@@ -1,12 +1,13 @@
 package foatto.shop
 
+import foatto.app.CoreSpringController
 import foatto.core.link.TableCell
 import foatto.core.link.TableCellBackColorType
 import foatto.core.link.TableCellForeColorType
 import foatto.core.link.TableResponse
 import foatto.core.link.XyDocumentConfig
-import foatto.core.util.getDateTimeArray
 import foatto.core.util.getCurrentTimeInt
+import foatto.core.util.getDateTimeArray
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.cAbstractHierarchy
@@ -153,7 +154,7 @@ class cCatalog : cAbstractHierarchy() {
 
         if(isMerchant) {
             val mc = model as mCatalog
-            
+
             //--- теперь это единообразно делается в cAbstractHierarchy
             //if((hmColumnData[mc.columnToArchive] as DataBoolean).value) moveToArchive(stm, id)
 

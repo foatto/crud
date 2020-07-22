@@ -1,5 +1,6 @@
 package foatto.core_server.app.system
 
+import foatto.app.CoreSpringController
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnString
@@ -44,7 +45,7 @@ class mLogText : mAbstract() {
 
         alTableGroupColumn.add(columnLogFileName)
 
-        addTableColumn( columnLogRow )
+        addTableColumn(columnLogRow)
 
         //--- у этой таблицы нет ID-поля, поэтому её записи невозможно показать в виде формы
     }

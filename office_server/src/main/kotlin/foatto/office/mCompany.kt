@@ -1,7 +1,16 @@
 package foatto.office
 
-import foatto.core_server.app.server.*
-import foatto.core_server.app.server.column.*
+import foatto.app.CoreSpringController
+import foatto.core_server.app.server.AliasConfig
+import foatto.core_server.app.server.ChildData
+import foatto.core_server.app.server.DependData
+import foatto.core_server.app.server.UserConfig
+import foatto.core_server.app.server.column.ColumnBoolean
+import foatto.core_server.app.server.column.ColumnDate3Int
+import foatto.core_server.app.server.column.ColumnFile
+import foatto.core_server.app.server.column.ColumnInt
+import foatto.core_server.app.server.column.ColumnString
+import foatto.core_server.app.server.mAbstract
 import foatto.sql.CoreAdvancedStatement
 
 class mCompany : mAbstract() {
@@ -31,8 +40,8 @@ class mCompany : mAbstract() {
         columnCityName.addSelectorColumn(columnCityName)
         columnCityName.addSelectorColumn(columnCityPhoneCode)
 
-        val columnCompanyAddress = ColumnString( tableName, "address", "Адрес компании", 12, STRING_COLUMN_WIDTH, textFieldMaxSize )
-        val columnCompanyContactInfo = ColumnString( tableName, "contact_info", "Доп. информация по компании", 12, STRING_COLUMN_WIDTH, textFieldMaxSize )
+        val columnCompanyAddress = ColumnString(tableName, "address", "Адрес компании", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
+        val columnCompanyContactInfo = ColumnString(tableName, "contact_info", "Доп. информация по компании", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
         val columnCompanyBirthDate = ColumnDate3Int(tableName, "birth_ye", "birth_mo", "birth_da", "Дата образования компании")
         val columnFile = ColumnFile(tableName, "file_id", "Файлы")
 

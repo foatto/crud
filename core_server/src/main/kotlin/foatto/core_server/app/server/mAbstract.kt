@@ -1,5 +1,6 @@
 package foatto.core_server.app.server
 
+import foatto.app.CoreSpringController
 import foatto.core.app.UP_TIME_OFFSET
 import foatto.core.util.getZoneId
 import foatto.core_server.app.server.column.ColumnBoolean

@@ -1,15 +1,22 @@
 package foatto.shop
 
+import foatto.app.CoreSpringController
 import foatto.core.link.AppAction
-import foatto.core_server.app.AppParameter
 import foatto.core.link.XyDocumentConfig
 import foatto.core.util.getCurrentTimeInt
-import foatto.sql.CoreAdvancedStatement
+import foatto.core_server.app.AppParameter
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.column.iColumn
-import foatto.core_server.app.server.data.*
+import foatto.core_server.app.server.data.DataComboBox
+import foatto.core_server.app.server.data.DataDate3Int
+import foatto.core_server.app.server.data.DataDateTimeInt
+import foatto.core_server.app.server.data.DataDouble
+import foatto.core_server.app.server.data.DataInt
+import foatto.core_server.app.server.data.DataString
+import foatto.core_server.app.server.data.iData
+import foatto.sql.CoreAdvancedStatement
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.*
@@ -24,27 +31,31 @@ class cDocument : cStandart() {
         val PERM_AUDIT_MODE = "audit_mode"
 
         //--- расчёт всех параметров накладной: кол-во строк, стоимость с учётом скидки
-        fun calcDocCountAndCost(stm: CoreAdvancedStatement, hmPrice: Map<Int, List<Pair<Int, Double>>>,
-                                docID: Int, docType: Int, zoneId: ZoneId, ye: Int, mo:Int, da:Int, discount: Double ): Pair<Int,Double> {
+        fun calcDocCountAndCost(
+            stm: CoreAdvancedStatement, hmPrice: Map<Int, List<Pair<Int, Double>>>,
+            docID: Int, docType: Int, zoneId: ZoneId, ye: Int, mo: Int, da: Int, discount: Double
+        ): Pair<Int, Double> {
             val zdt = ZonedDateTime.of(ye, mo, da, 0, 0, 0, 0, zoneId)
-            return calcDocCountAndCost( stm, hmPrice, docID, docType, zdt.toEpochSecond().toInt(), discount )
+            return calcDocCountAndCost(stm, hmPrice, docID, docType, zdt.toEpochSecond().toInt(), discount)
         }
 
-        fun calcDocCountAndCost(stm: CoreAdvancedStatement, hmPrice: Map<Int, List<Pair<Int, Double>>>,
-                                docID: Int, docType: Int, docTime: Int, discount: Double ): Pair<Int,Double> {
-            val fnNum = if( DocumentTypeConfig.hsUseDestNum.contains( docType ) ) "dest_num" else "sour_num"
-            val fnCatalog = if( DocumentTypeConfig.hsUseDestCatalog.contains( docType ) ) "dest_id" else "sour_id"
+        fun calcDocCountAndCost(
+            stm: CoreAdvancedStatement, hmPrice: Map<Int, List<Pair<Int, Double>>>,
+            docID: Int, docType: Int, docTime: Int, discount: Double
+        ): Pair<Int, Double> {
+            val fnNum = if(DocumentTypeConfig.hsUseDestNum.contains(docType)) "dest_num" else "sour_num"
+            val fnCatalog = if(DocumentTypeConfig.hsUseDestCatalog.contains(docType)) "dest_id" else "sour_id"
 
-            val rs = stm.executeQuery( " SELECT $fnNum , $fnCatalog FROM SHOP_doc_content WHERE doc_id = $docID AND is_deleted = 0 " )
+            val rs = stm.executeQuery(" SELECT $fnNum , $fnCatalog FROM SHOP_doc_content WHERE doc_id = $docID AND is_deleted = 0 ")
             var rowCount = 0
             var costSum = 0.0
-            while( rs.next() ) {
+            while(rs.next()) {
                 rowCount++
-                costSum += rs.getDouble( 1 ) * PriceData.getPrice( hmPrice, rs.getInt( 2 ), docTime )
+                costSum += rs.getDouble(1) * PriceData.getPrice(hmPrice, rs.getInt(2), docTime)
             }
             rs.close()
 
-            return Pair( rowCount, floor( costSum * ( 1 - discount / 100 ) ) )
+            return Pair(rowCount, floor(costSum * (1 - discount / 100)))
         }
     }
 
@@ -56,56 +67,56 @@ class cDocument : cStandart() {
     override fun init(aAppController: CoreSpringController, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig) {
         super.init(aAppController, aStm, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
 
-        docType = DocumentTypeConfig.hmAliasDocType[ aliasConfig.alias ]!!
-        hmPrice = PriceData.loadPrice( stm, mPrice.PRICE_TYPE_OUT )
+        docType = DocumentTypeConfig.hmAliasDocType[aliasConfig.alias]!!
+        hmPrice = PriceData.loadPrice(stm, mPrice.PRICE_TYPE_OUT)
     }
 
     override fun definePermission() {
         super.definePermission()
         //--- права доступа как флаг работы в режиме аудита
-        alPermission.add( Pair( PERM_AUDIT_MODE, "20 Audit mode" ) )
+        alPermission.add(Pair(PERM_AUDIT_MODE, "20 Audit mode"))
     }
 
-    override fun addSQLWhere( hsTableRenameList: Set<String> ): String {
-        val pid = getParentID( "shop_warehouse" )
+    override fun addSQLWhere(hsTableRenameList: Set<String>): String {
+        val pid = getParentID("shop_warehouse")
 
         val md = model as mDocument
-        val tableName = renameTableName( hsTableRenameList, model.tableName )
-        val typeFieldName = md.columnDocumentType.getFieldName( 0 )
+        val tableName = renameTableName(hsTableRenameList, model.tableName)
+        val typeFieldName = md.columnDocumentType.getFieldName(0)
 
         var sSQL = ""
 
-        if( docType != DocumentTypeConfig.TYPE_ALL ) sSQL += " AND $tableName.$typeFieldName = $docType "
+        if(docType != DocumentTypeConfig.TYPE_ALL) sSQL += " AND $tableName.$typeFieldName = $docType "
 
         //--- добавить свои ограничения по parent-данным от shop_warehouse (из-за нестандартной обработки shop_doc_all/move/_resort)
-        if( pid != null ) {
-            val sourFieldName = md.columnWarehouseSour.getFieldName( 0 )
-            val destFieldName = md.columnWarehouseDest.getFieldName( 0 )
-            val useSour = DocumentTypeConfig.hsUseSourWarehouse.contains( docType )
-            val useDest = DocumentTypeConfig.hsUseDestWarehouse.contains( docType )
+        if(pid != null) {
+            val sourFieldName = md.columnWarehouseSour.getFieldName(0)
+            val destFieldName = md.columnWarehouseDest.getFieldName(0)
+            val useSour = DocumentTypeConfig.hsUseSourWarehouse.contains(docType)
+            val useDest = DocumentTypeConfig.hsUseDestWarehouse.contains(docType)
 
             sSQL += " AND "
             //--- используются оба складских поля
-            if( useSour && useDest ) sSQL += " ( $tableName.$sourFieldName = $pid OR $tableName.$destFieldName = $pid ) "
-            else if( useSour ) sSQL += " $tableName.$sourFieldName = $pid "
-            else if( useDest ) sSQL += " $tableName.$destFieldName = $pid "
+            if(useSour && useDest) sSQL += " ( $tableName.$sourFieldName = $pid OR $tableName.$destFieldName = $pid ) "
+            else if(useSour) sSQL += " $tableName.$sourFieldName = $pid "
+            else if(useDest) sSQL += " $tableName.$destFieldName = $pid "
         }
-        return super.addSQLWhere( hsTableRenameList ) + sSQL
+        return super.addSQLWhere(hsTableRenameList) + sSQL
     }
 
     //--- перекрывается наследниками для генерации данных в момент загрузки записей ПОСЛЕ фильтров поиска и страничной разбивки
-    override fun generateColumnDataAfterFilter( hmColumnData: MutableMap<iColumn, iData> ) {
+    override fun generateColumnDataAfterFilter(hmColumnData: MutableMap<iColumn, iData>) {
         val md = model as mDocument
 
-        val docID = ( hmColumnData[ md.columnID!! ] as DataInt ).value
+        val docID = (hmColumnData[md.columnID!!] as DataInt).value
         //--- именно тип документа из строки, а не общий (т.к. м.б. == TYPE_ALL)
-        val rowDocType = ( hmColumnData[ md.columnDocumentType ] as DataComboBox ).value
-        val docTime = ( hmColumnData[ md.columnDocumentDate ] as DataDate3Int ).localDate.atStartOfDay(zoneId).toEpochSecond().toInt()
-        val discount = ( hmColumnData[ md.columnDocumentDiscount ] as DataDouble ).value
+        val rowDocType = (hmColumnData[md.columnDocumentType] as DataComboBox).value
+        val docTime = (hmColumnData[md.columnDocumentDate] as DataDate3Int).localDate.atStartOfDay(zoneId).toEpochSecond().toInt()
+        val discount = (hmColumnData[md.columnDocumentDiscount] as DataDouble).value
 
-        val ( rowCount, docCost ) = calcDocCountAndCost( stm, hmPrice, docID, rowDocType, docTime, discount )
-        ( hmColumnData[ md.columnDocumentRowCount ] as DataInt ).value = rowCount
-        ( hmColumnData[ md.columnDocumentCostOut ] as DataDouble ).value = docCost
+        val (rowCount, docCost) = calcDocCountAndCost(stm, hmPrice, docID, rowDocType, docTime, discount)
+        (hmColumnData[md.columnDocumentRowCount] as DataInt).value = rowCount
+        (hmColumnData[md.columnDocumentCostOut] as DataDouble).value = docCost
     }
 
     override fun preSave(id: Int, hmColumnData: Map<iColumn, iData>) {
@@ -113,48 +124,49 @@ class cDocument : cStandart() {
 
         //--- если номер документа не заполнен - заполняем его автоматически
         //--- поиск максимального номера накладной за текущий год
-        val dataDocNo = ( hmColumnData[ md.columnDocumentNo ] as DataString )
-        if( id == 0 && dataDocNo.text.isBlank() ) {
+        val dataDocNo = (hmColumnData[md.columnDocumentNo] as DataString)
+        if(id == 0 && dataDocNo.text.isBlank()) {
             var maxDocNo = 0
             val rs = stm.executeQuery(
-                " SELECT doc_no FROM SHOP_doc WHERE doc_type = $docType AND doc_ye = ${ZonedDateTime.now().year} " )
-            while( rs.next() ) {
+                " SELECT doc_no FROM SHOP_doc WHERE doc_type = $docType AND doc_ye = ${ZonedDateTime.now().year} "
+            )
+            while(rs.next()) {
                 try {
                     //--- номер накладной может быть в свободной строкой форме,
                     //--- поэтому учитываем только цифровые значения
-                    maxDocNo = max( maxDocNo, rs.getString( 1 ).toInt() )
+                    maxDocNo = max(maxDocNo, rs.getString(1).toInt())
+                } catch(nfe: Throwable) {
                 }
-                catch( nfe: Throwable ) {}
             }
             //--- дополняем номер нулями спереди, чтобы сортировка не сбивалась
             //--- (стандартный padStart( 5, '0' ) не пойдёт, т.к. он обрезает более длинную строку до 5 символов
-            val sb = StringBuilder().append( maxDocNo + 1 )
-            while( sb.length < 5 ) sb.insert( 0, '0' )
+            val sb = StringBuilder().append(maxDocNo + 1)
+            while(sb.length < 5) sb.insert(0, '0')
             dataDocNo.text = sb.toString()
         }
 
         //--- явно менять поле последнего изменения только при повторном сохранении,
         //--- при первом сохранении при создании оставлять значение по умолчанию, равное времени создания
-        if( id != 0 ) ( hmColumnData[ md.columnEditTime ] as DataDateTimeInt ).setDateTime(getCurrentTimeInt())
+        if(id != 0) (hmColumnData[md.columnEditTime] as DataDateTimeInt).setDateTime(getCurrentTimeInt())
 
         //--- при пересортице программно выставляем "На склад" = "Со склада"
-        if( docType == DocumentTypeConfig.TYPE_RESORT ) {
-            val sourWarehouse = hmColumnData[ md.columnWarehouseSour ] as DataComboBox
-            val destWarehouse = hmColumnData[ md.columnWarehouseDest ] as DataInt
+        if(docType == DocumentTypeConfig.TYPE_RESORT) {
+            val sourWarehouse = hmColumnData[md.columnWarehouseSour] as DataComboBox
+            val destWarehouse = hmColumnData[md.columnWarehouseDest] as DataInt
             destWarehouse.value = sourWarehouse.value
         }
-        super.preSave( id, hmColumnData )
+        super.preSave(id, hmColumnData)
     }
 
     override fun postAdd(id: Int, hmColumnData: Map<iColumn, iData>, hmOut: MutableMap<String, Any>): String? {
-        var postURL = super.postAdd( id, hmColumnData, hmOut )
+        var postURL = super.postAdd(id, hmColumnData, hmOut)
 
-        val refererID = hmParam[ AppParameter.REFERER ]
+        val refererID = hmParam[AppParameter.REFERER]
         //--- если добавление не из формы, а из главного меню - то переходим на состав накладной
-        if( refererID == null ) {
+        if(refererID == null) {
             val hmDocContentParentData = HashMap<String, Int>()
-            hmDocContentParentData[ aliasConfig.alias ] = id
-            postURL = getParamURL( DocumentTypeConfig.hmAliasChild[ aliasConfig.alias ]!!, AppAction.TABLE, refererID, 0, hmDocContentParentData, null, null )
+            hmDocContentParentData[aliasConfig.alias] = id
+            postURL = getParamURL(DocumentTypeConfig.hmAliasChild[aliasConfig.alias]!!, AppAction.TABLE, refererID, 0, hmDocContentParentData, null, null)
         }
 
         return postURL

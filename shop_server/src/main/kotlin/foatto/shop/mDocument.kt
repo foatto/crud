@@ -1,5 +1,6 @@
 package foatto.shop
 
+import foatto.app.CoreSpringController
 import foatto.core.link.AppAction
 import foatto.core.link.TableCellAlign
 import foatto.core_server.app.server.*

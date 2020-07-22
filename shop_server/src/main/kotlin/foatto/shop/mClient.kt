@@ -1,9 +1,14 @@
 package foatto.shop
 
+import foatto.app.CoreSpringController
 import foatto.core.link.AppAction
-import foatto.core_server.app.server.*
+import foatto.core_server.app.server.AliasConfig
+import foatto.core_server.app.server.ChildData
+import foatto.core_server.app.server.DependData
+import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
+import foatto.core_server.app.server.mAbstract
 import foatto.sql.CoreAdvancedStatement
 
 class mClient : mAbstract() {
@@ -18,38 +23,38 @@ class mClient : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt( tableName, "id" )
+        columnID = ColumnInt(tableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnClientName = ColumnString( tableName, "name", "Контрагент", STRING_COLUMN_WIDTH )
-            columnClientName.isRequired = true
-            columnClientName.setUnique( true, null )
+        val columnClientName = ColumnString(tableName, "name", "Контрагент", STRING_COLUMN_WIDTH)
+        columnClientName.isRequired = true
+        columnClientName.setUnique(true, null)
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add( columnID!! )
+        alTableHiddenColumn.add(columnID!!)
 
-        addTableColumn( columnClientName )
+        addTableColumn(columnClientName)
 
-        alFormHiddenColumn.add( columnID!! )
+        alFormHiddenColumn.add(columnID!!)
 
-        alFormColumn.add( columnClientName )
+        alFormColumn.add(columnClientName)
 
         //----------------------------------------------------------------------------------------------------------------------
 
         //--- поля для сортировки
-        alTableSortColumn.add( columnClientName )
-        alTableSortDirect.add( "ASC" )
+        alTableSortColumn.add(columnClientName)
+        alTableSortDirect.add("ASC")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        DocumentTypeConfig.fillDocChild( alChildData, columnID!! )
-        alChildData.add( ChildData( "Отчёты", "shop_report_doc_content", columnID!!, AppAction.FORM, true ) )
+        DocumentTypeConfig.fillDocChild(alChildData, columnID!!)
+        alChildData.add(ChildData("Отчёты", "shop_report_doc_content", columnID!!, AppAction.FORM, true))
 
         //----------------------------------------------------------------------------------------
 
-        alDependData.add( DependData( "SHOP_doc", "client_id" ) )
+        alDependData.add(DependData("SHOP_doc", "client_id"))
     }
 
 }

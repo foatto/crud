@@ -1,5 +1,6 @@
 package foatto.mms.core_mms.report
 
+import foatto.app.CoreSpringController
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnInt
@@ -21,7 +22,7 @@ class mUODGP : mP() {
         //----------------------------------------------------------------------------------------------------------------------
 
         //--- отдельная обработка перехода от журнала суточных работ/рабочих смен/путёвок/журнала сменных работ
-        val arrDT = MMSFunction.getDayShiftWorkParent( stm, zoneId, hmParentData, false )
+        val arrDT = MMSFunction.getDayShiftWorkParent(stm, zoneId, hmParentData, false)
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -29,22 +30,22 @@ class mUODGP : mP() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt( tableName, "id" )
+        columnID = ColumnInt(tableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        initReportPeriod( arrDT )
+        initReportPeriod(arrDT)
 
-        initReportCapAndSignature( aliasConfig, userConfig )
+        initReportCapAndSignature(aliasConfig, userConfig)
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alFormHiddenColumn.add( columnID!! )
+        alFormHiddenColumn.add(columnID!!)
 
         //----------------------------------------------------------------------------------------------------------------------
 
         uodg = UODGSelector()
-        uodg.fillColumns( tableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn )
+        uodg.fillColumns(tableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn)
 
         addReportPeriodFormColumns()
 

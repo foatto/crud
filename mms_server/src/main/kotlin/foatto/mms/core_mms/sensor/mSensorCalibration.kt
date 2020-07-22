@@ -1,6 +1,6 @@
-@file:JvmName("mSensorCalibration")
 package foatto.mms.core_mms.sensor
 
+import foatto.app.CoreSpringController
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnDouble
@@ -20,37 +20,37 @@ class mSensorCalibration : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt( tableName, "id" )
+        columnID = ColumnInt(tableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnSensor = ColumnInt( tableName, "sensor_id", hmParentData[ "mms_sensor" ]!! )
+        val columnSensor = ColumnInt(tableName, "sensor_id", hmParentData["mms_sensor"]!!)
 
-        val columnValueSensor = ColumnInt( tableName, "value_sensor", "Значение датчика", 10, 0 )
-        val columnValueData = ColumnDouble( tableName, "value_data", "Значение измеряемой величины", 10, 1, 0.0 )
+        val columnValueSensor = ColumnInt(tableName, "value_sensor", "Значение датчика", 10, 0)
+        val columnValueData = ColumnDouble(tableName, "value_data", "Значение измеряемой величины", 10, 1, 0.0)
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add( columnID!! )
-        alTableHiddenColumn.add( columnSensor )
+        alTableHiddenColumn.add(columnID!!)
+        alTableHiddenColumn.add(columnSensor)
 
-        addTableColumn( columnValueSensor )
-        addTableColumn( columnValueData )
+        addTableColumn(columnValueSensor)
+        addTableColumn(columnValueData)
 
-        alFormHiddenColumn.add( columnID!! )
-        alFormHiddenColumn.add( columnSensor )
+        alFormHiddenColumn.add(columnID!!)
+        alFormHiddenColumn.add(columnSensor)
 
-        alFormColumn.add( columnValueSensor )
-        alFormColumn.add( columnValueData )
+        alFormColumn.add(columnValueSensor)
+        alFormColumn.add(columnValueData)
 
         //----------------------------------------------------------------------------------------------------------------------
 
         //--- поля для сортировки
-        alTableSortColumn.add( columnValueSensor )
-        alTableSortDirect.add( "ASC" )
+        alTableSortColumn.add(columnValueSensor)
+        alTableSortDirect.add("ASC")
 
         //----------------------------------------------------------------------------------------
 
-        hmParentColumn[ "mms_sensor" ] = columnSensor
+        hmParentColumn["mms_sensor"] = columnSensor
     }
 }

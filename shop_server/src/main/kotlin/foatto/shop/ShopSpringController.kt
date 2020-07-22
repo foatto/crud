@@ -1,20 +1,25 @@
 package foatto.shop
 
 import foatto.app.CoreSpringApp
+import foatto.app.CoreSpringController
 import foatto.core.link.*
-import foatto.sql.CoreAdvancedStatement
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
-
+import foatto.sql.CoreAdvancedStatement
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
 import javax.servlet.http.HttpServletResponse
 
 @RestController     // = @Controller + @ResponseBody
-open class ShopSpringController( aJdbcTemplate: JdbcTemplate ) : CoreSpringController( aJdbcTemplate ) {
+open class ShopSpringController(aJdbcTemplate: JdbcTemplate) : CoreSpringController(aJdbcTemplate) {
 
     @Value("\${fiscal_url}")
     val fiscalURL: String? = null
@@ -25,41 +30,61 @@ open class ShopSpringController( aJdbcTemplate: JdbcTemplate ) : CoreSpringContr
     @Value("\${fiscal_line_cutter}")
     val fiscalLineCutter: String? = null
 
-//!!! сделать статику через nginx и убрать в проекте привязку к tomcat-embed-core-9.0.12.jar ---
+//!!! сделать статику через nginx и убрать в проекте привязку к tomcat-embed-core-XXX.jar ---
 
     @GetMapping(value = ["/"])
     fun downloadRoot(response: HttpServletResponse) {
-        download(response, "${CoreSpringApp.rootDirName}/web/index.html" )
+        download(response, "${CoreSpringApp.rootDirName}/web/index.html")
     }
 
     @GetMapping(value = ["/reports/{fileName:.+}"])
-    fun downloadReports(response: HttpServletResponse, @PathVariable("fileName") fileName: String ) {
+    fun downloadReports(response: HttpServletResponse,
+                        @PathVariable("fileName")
+                        fileName: String
+    ) {
         download(response, "${CoreSpringApp.rootDirName}/reports/$fileName")
     }
 
     @GetMapping(value = ["/web/{fileName:.+}"])
-    fun downloadWeb(response: HttpServletResponse, @PathVariable("fileName") fileName: String ) {
-        download(response, "${CoreSpringApp.rootDirName}/web/$fileName" )
+    fun downloadWeb(response: HttpServletResponse,
+                    @PathVariable("fileName")
+                    fileName: String
+    ) {
+        download(response, "${CoreSpringApp.rootDirName}/web/$fileName")
     }
 
     @GetMapping(value = ["/web/images/{fileName:.+}"])
-    fun downloadWebImages(response: HttpServletResponse, @PathVariable("fileName") fileName: String ) {
-        download(response, "${CoreSpringApp.rootDirName}/web/images/$fileName" )
+    fun downloadWebImages(response: HttpServletResponse,
+                          @PathVariable("fileName")
+                          fileName: String
+    ) {
+        download(response, "${CoreSpringApp.rootDirName}/web/images/$fileName")
     }
 
     @GetMapping(value = ["/web/js/{fileName:.+}"])
-    fun downloadWebJS(response: HttpServletResponse, @PathVariable("fileName") fileName: String ) {
-        download(response, "${CoreSpringApp.rootDirName}/web/js/$fileName" )
+    fun downloadWebJS(response: HttpServletResponse,
+                      @PathVariable("fileName")
+                      fileName: String
+    ) {
+        download(response, "${CoreSpringApp.rootDirName}/web/js/$fileName")
     }
 
     @GetMapping(value = ["/web/lib/{fileName:.+}"])
-    fun downloadWebLib(response: HttpServletResponse, @PathVariable("fileName") fileName: String ) {
-        download(response, "${CoreSpringApp.rootDirName}/web/lib/$fileName" )
+    fun downloadWebLib(response: HttpServletResponse,
+                       @PathVariable("fileName")
+                       fileName: String
+    ) {
+        download(response, "${CoreSpringApp.rootDirName}/web/lib/$fileName")
     }
 
     @GetMapping(value = ["/files/{dirName:.+}/{fileName:.+}"])
-    fun downloadFile(response: HttpServletResponse, @PathVariable("dirName") dirName: String, @PathVariable("fileName") fileName: String ) {
-        download(response, "${CoreSpringApp.rootDirName}/files/$dirName/$fileName" )
+    fun downloadFile(response: HttpServletResponse,
+                     @PathVariable("dirName")
+                     dirName: String,
+                     @PathVariable("fileName")
+                     fileName: String
+    ) {
+        download(response, "${CoreSpringApp.rootDirName}/files/$dirName/$fileName")
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -72,7 +97,7 @@ open class ShopSpringController( aJdbcTemplate: JdbcTemplate ) : CoreSpringContr
         appRequest: AppRequest
         //@CookieValue("SESSION") sessionId: String
     ): AppResponse {
-        return super.app( appRequest )
+        return super.app(appRequest)
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -160,14 +185,14 @@ open class ShopSpringController( aJdbcTemplate: JdbcTemplate ) : CoreSpringContr
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     //--- пропускаем логи по запуску модулей из 1С, отчётов и показов картографии
-    override fun checkLogSkipAliasPrefix( alias: String ): Boolean {
-        return alias.startsWith( "shop_report_" )
+    override fun checkLogSkipAliasPrefix(alias: String): Boolean {
+        return alias.startsWith("shop_report_")
         //        return alias.startsWith(  "1c_"  ) ||
         //               alias.startsWith(  "ft_report_"  ) ||
         //               alias.startsWith(  "ft_show_"  );
     }
 
-    override fun menuInit(stm: CoreAdvancedStatement, hmAliasConfig: Map<String, AliasConfig>, userConfig: UserConfig ): List<MenuData> {
+    override fun menuInit(stm: CoreAdvancedStatement, hmAliasConfig: Map<String, AliasConfig>, userConfig: UserConfig): List<MenuData> {
 
         val alMenu = mutableListOf<MenuData>()
         val hmAliasPerm = userConfig.userPermission
@@ -176,95 +201,95 @@ open class ShopSpringController( aJdbcTemplate: JdbcTemplate ) : CoreSpringContr
 
         val alMenuDocument = mutableListOf<MenuData>()
 
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuDocument, "shop_doc_out", true )
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuDocument, "shop_doc_move", true )
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuDocument, "shop_doc_return_out", true )
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuDocument, "shop_doc_out", true)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuDocument, "shop_doc_move", true)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuDocument, "shop_doc_return_out", true)
 
-        addSeparator( alMenuDocument )
+        addSeparator(alMenuDocument)
 
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuDocument, "shop_doc_in", true )
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuDocument, "shop_doc_resort", true )
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuDocument, "shop_doc_in", true)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuDocument, "shop_doc_resort", true)
 
-        addSeparator( alMenuDocument )
+        addSeparator(alMenuDocument)
 
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuDocument, "shop_doc_return_in", true )
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuDocument, "shop_doc_destroy", true )
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuDocument, "shop_doc_return_in", true)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuDocument, "shop_doc_destroy", true)
 
-        addSeparator( alMenuDocument )
+        addSeparator(alMenuDocument)
 
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuDocument, "shop_doc_all", true )
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuDocument, "shop_doc_all", true)
 
-        if( alMenuDocument.size > 3 ) alMenu.add( MenuData( "", "Накладные", alMenuDocument ) )
+        if(alMenuDocument.size > 3) alMenu.add(MenuData("", "Накладные", alMenuDocument))
 
         //--- Журналы --------------------------------------------------------------------------------------------------------
 
         val alMenuJournal = mutableListOf<MenuData>()
 
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuJournal, "shop_cash", true )
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuJournal, "shop_cash", true)
 
-        if( alMenuJournal.size > 0 ) alMenu.add( MenuData( "", "Журналы", alMenuJournal ) )
+        if(alMenuJournal.size > 0) alMenu.add(MenuData("", "Журналы", alMenuJournal))
 
         //--- Отчёты --------------------------------------------------------------------------------------------------------
 
         val alMenuReport = mutableListOf<MenuData>()
 
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuReport, "shop_report_warehouse_state", false )
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuReport, "shop_report_operation_summary", false )
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuReport, "shop_report_cash_history", false )
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuReport, "shop_report_warehouse_state", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuReport, "shop_report_operation_summary", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuReport, "shop_report_cash_history", false)
 
-        addSeparator( alMenuReport )
+        addSeparator(alMenuReport)
 
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuReport, "shop_report_doc_content", false )
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuReport, "shop_report_doc_content", false)
 
-        addSeparator( alMenuReport )
+        addSeparator(alMenuReport)
 
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuReport, "shop_report_price_tag", false )
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuReport, "shop_report_price_list", false )
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuReport, "shop_report_price_tag", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuReport, "shop_report_price_list", false)
 
-        addSeparator( alMenuReport )
+        addSeparator(alMenuReport)
 
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuReport, "shop_report_operation_history", false )
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuReport, "shop_report_minus_detector", false )
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuReport, "shop_report_doc_error", false )
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuReport, "shop_report_operation_history", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuReport, "shop_report_minus_detector", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuReport, "shop_report_doc_error", false)
 
-        if( alMenuReport.size > 3 ) alMenu.add( MenuData( "", "Отчёты", alMenuReport ) )
+        if(alMenuReport.size > 3) alMenu.add(MenuData("", "Отчёты", alMenuReport))
 
         //--- Справочники --------------------------------------------------------------------------------------------------------
 
         val alMenuDir = mutableListOf<MenuData>()
 
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuDir, "shop_catalog", true )
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuDir, "shop_catalog_archive", true )
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuDir, "shop_client", true )
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuDir, "shop_warehouse", true )
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuDir, "shop_catalog", true)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuDir, "shop_catalog_archive", true)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuDir, "shop_client", true)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuDir, "shop_warehouse", true)
 
-        addSeparator( alMenuDir )
+        addSeparator(alMenuDir)
 
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuDir, "shop_price", true )
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuDir, "shop_price_in", true )
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuDir, "shop_price_out", true )
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuDir, "shop_price", true)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuDir, "shop_price_in", true)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuDir, "shop_price_out", true)
 
-        if( alMenuDir.size > 1 ) alMenu.add( MenuData( "", "Справочники", alMenuDir ) )
+        if(alMenuDir.size > 1) alMenu.add(MenuData("", "Справочники", alMenuDir))
 
         //--- Система --------------------------------------------------------------------------------------------------------
 
         val alMenuSystem = mutableListOf<MenuData>()
 
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuSystem, "system_user", true )
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuSystem, "system_role", true )
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuSystem, "system_alias", true )
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuSystem, "system_user", true)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuSystem, "system_role", true)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuSystem, "system_alias", true)
 
-        addSeparator( alMenuSystem )
+        addSeparator(alMenuSystem)
 
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuSystem, "system_user_role", true )
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuSystem, "system_permission", true )
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuSystem, "system_role_permission", true )
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuSystem, "system_user_role", true)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuSystem, "system_permission", true)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuSystem, "system_role_permission", true)
 
-        addSeparator( alMenuSystem )
+        addSeparator(alMenuSystem)
 
-        addMenu( hmAliasConfig, hmAliasPerm, alMenuSystem, "system_log_user", true )
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuSystem, "system_log_user", true)
 
-        if( alMenuSystem.size > 2 ) alMenu.add( MenuData( "", "Система", alMenuSystem ) )
+        if(alMenuSystem.size > 2) alMenu.add(MenuData("", "Система", alMenuSystem))
 
         //----------------------------------------------------------------------------------------------------------------------
 

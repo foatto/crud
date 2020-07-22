@@ -1,9 +1,18 @@
 package foatto.office
 
+import foatto.app.CoreSpringController
 import foatto.core.link.AppAction
 import foatto.core.link.FormPinMode
-import foatto.core_server.app.server.*
-import foatto.core_server.app.server.column.*
+import foatto.core_server.app.server.AliasConfig
+import foatto.core_server.app.server.ChildData
+import foatto.core_server.app.server.DependData
+import foatto.core_server.app.server.UserConfig
+import foatto.core_server.app.server.column.ColumnBoolean
+import foatto.core_server.app.server.column.ColumnDate3Int
+import foatto.core_server.app.server.column.ColumnFile
+import foatto.core_server.app.server.column.ColumnInt
+import foatto.core_server.app.server.column.ColumnString
+import foatto.core_server.app.server.mAbstract
 import foatto.sql.CoreAdvancedStatement
 
 class mTask : mAbstract() {
@@ -29,7 +38,7 @@ class mTask : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val isTaskOwner = aliasConfig.alias.startsWith( "office_task_out" )
+        val isTaskOwner = aliasConfig.alias.startsWith("office_task_out")
 
         //----------------------------------------------------------------------------------------
 
@@ -61,7 +70,7 @@ class mTask : mAbstract() {
         columnDate.formPinMode = FormPinMode.OFF
 
         columnTaskSubj = ColumnString(tableName, "subj", "Тема", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
-            columnTaskSubj.formPinMode = FormPinMode.OFF
+        columnTaskSubj.formPinMode = FormPinMode.OFF
 
         val columnFile = ColumnFile(tableName, "file_id", "Файлы")
         columnFile.formPinMode = FormPinMode.OFF

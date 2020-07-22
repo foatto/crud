@@ -1,6 +1,6 @@
-@file:JvmName("mMinusDetector")
 package foatto.shop.report
 
+import foatto.app.CoreSpringController
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.sql.CoreAdvancedStatement

@@ -1,5 +1,6 @@
 package foatto.core_server.app.graphic.server.document
 
+import foatto.app.CoreSpringController
 import foatto.core.app.UP_TIME_OFFSET
 import foatto.core.app.graphic.GraphicActionRequest
 import foatto.core.app.graphic.GraphicActionResponse
@@ -20,51 +21,51 @@ abstract class sdcAbstractGraphic {
         val hmIndexColor = mutableMapOf<GraphicColorIndex, Int>()
 
         init {
-            hmIndexColor[ GraphicColorIndex.FILL_NEUTRAL    ] = 0xFF_E0_FF_FF.toInt()
-            hmIndexColor[ GraphicColorIndex.FILL_NORMAL     ] = 0xFF_E0_FF_E0.toInt()
-            hmIndexColor[ GraphicColorIndex.FILL_WARNING    ] = 0xFF_FF_FF_E0.toInt()
-            hmIndexColor[ GraphicColorIndex.FILL_CRITICAL   ] = 0xFF_FF_E0_E0.toInt()
-                        
-            hmIndexColor[ GraphicColorIndex.BORDER_NEUTRAL  ] = 0xFF_C0_FF_FF.toInt()
-            hmIndexColor[ GraphicColorIndex.BORDER_NORMAL   ] = 0xFF_B0_F0_B0.toInt()
-            hmIndexColor[ GraphicColorIndex.BORDER_WARNING  ] = 0xFF_E0_E0_C0.toInt()
-            hmIndexColor[ GraphicColorIndex.BORDER_CRITICAL ] = 0xFF_FF_C0_C0.toInt()
-                        
-            hmIndexColor[ GraphicColorIndex.TEXT_NEUTRAL    ] = 0xFF_00_00_80.toInt()
-            hmIndexColor[ GraphicColorIndex.TEXT_NORMAL     ] = 0xFF_00_80_00.toInt()
-            hmIndexColor[ GraphicColorIndex.TEXT_WARNING    ] = 0xFF_80_80_00.toInt()
-            hmIndexColor[ GraphicColorIndex.TEXT_CRITICAL   ] = 0xFF_80_00_00.toInt()
-                        
-            hmIndexColor[ GraphicColorIndex.POINT_NEUTRAL   ] = 0xFF_C0_C0_FF.toInt()
-            hmIndexColor[ GraphicColorIndex.POINT_NORMAL    ] = 0xFF_C0_FF_C0.toInt()
-            hmIndexColor[ GraphicColorIndex.POINT_WARNING   ] = 0xFF_E0_E0_A0.toInt()
-            hmIndexColor[ GraphicColorIndex.POINT_CRITICAL  ] = 0xFF_FF_C0_C0.toInt()
-                        
-            hmIndexColor[ GraphicColorIndex.AXIS_NEUTRAL    ] = 0xFF_80_80_80.toInt()
-            hmIndexColor[ GraphicColorIndex.AXIS_0          ] = 0xFF_80_80_FF.toInt()
-            hmIndexColor[ GraphicColorIndex.AXIS_1          ] = 0xFF_80_C0_80.toInt()
-            hmIndexColor[ GraphicColorIndex.AXIS_2          ] = 0xFF_80_80_C0.toInt()
-                        
-            hmIndexColor[ GraphicColorIndex.LINE_LIMIT      ] = 0xFF_FF_A0_A0.toInt()
-            hmIndexColor[ GraphicColorIndex.LINE_NEUTRAL    ] = 0xFF_80_80_80.toInt()
-                        
-            hmIndexColor[ GraphicColorIndex.LINE_NONE_0     ] = 0xFF_80_80_80.toInt()
-            hmIndexColor[ GraphicColorIndex.LINE_NORMAL_0   ] = 0xFF_00_00_FF.toInt()
-            hmIndexColor[ GraphicColorIndex.LINE_WARNING_0  ] = 0xFF_FF_00_FF.toInt()
-            hmIndexColor[ GraphicColorIndex.LINE_CRITICAL_0 ] = 0xFF_FF_00_00.toInt()
-                        
-            hmIndexColor[ GraphicColorIndex.LINE_NONE_1     ] = 0xFF_80_80_80.toInt()
-            hmIndexColor[ GraphicColorIndex.LINE_NORMAL_1   ] = 0xFF_00_E0_00.toInt()
-            hmIndexColor[ GraphicColorIndex.LINE_WARNING_1  ] = 0xFF_E0_E0_00.toInt()
-            hmIndexColor[ GraphicColorIndex.LINE_CRITICAL_1 ] = 0xFF_E0_00_00.toInt()
-                        
-            hmIndexColor[ GraphicColorIndex.LINE_NONE_2     ] = 0xFF_80_80_80.toInt()
-            hmIndexColor[ GraphicColorIndex.LINE_NORMAL_2   ] = 0xFF_00_C0_C0.toInt()
-            hmIndexColor[ GraphicColorIndex.LINE_WARNING_2  ] = 0xFF_E0_C0_C0.toInt()
-            hmIndexColor[ GraphicColorIndex.LINE_CRITICAL_2 ] = 0xFF_FF_C0_C0.toInt()
+            hmIndexColor[GraphicColorIndex.FILL_NEUTRAL] = 0xFF_E0_FF_FF.toInt()
+            hmIndexColor[GraphicColorIndex.FILL_NORMAL] = 0xFF_E0_FF_E0.toInt()
+            hmIndexColor[GraphicColorIndex.FILL_WARNING] = 0xFF_FF_FF_E0.toInt()
+            hmIndexColor[GraphicColorIndex.FILL_CRITICAL] = 0xFF_FF_E0_E0.toInt()
+
+            hmIndexColor[GraphicColorIndex.BORDER_NEUTRAL] = 0xFF_C0_FF_FF.toInt()
+            hmIndexColor[GraphicColorIndex.BORDER_NORMAL] = 0xFF_B0_F0_B0.toInt()
+            hmIndexColor[GraphicColorIndex.BORDER_WARNING] = 0xFF_E0_E0_C0.toInt()
+            hmIndexColor[GraphicColorIndex.BORDER_CRITICAL] = 0xFF_FF_C0_C0.toInt()
+
+            hmIndexColor[GraphicColorIndex.TEXT_NEUTRAL] = 0xFF_00_00_80.toInt()
+            hmIndexColor[GraphicColorIndex.TEXT_NORMAL] = 0xFF_00_80_00.toInt()
+            hmIndexColor[GraphicColorIndex.TEXT_WARNING] = 0xFF_80_80_00.toInt()
+            hmIndexColor[GraphicColorIndex.TEXT_CRITICAL] = 0xFF_80_00_00.toInt()
+
+            hmIndexColor[GraphicColorIndex.POINT_NEUTRAL] = 0xFF_C0_C0_FF.toInt()
+            hmIndexColor[GraphicColorIndex.POINT_NORMAL] = 0xFF_C0_FF_C0.toInt()
+            hmIndexColor[GraphicColorIndex.POINT_WARNING] = 0xFF_E0_E0_A0.toInt()
+            hmIndexColor[GraphicColorIndex.POINT_CRITICAL] = 0xFF_FF_C0_C0.toInt()
+
+            hmIndexColor[GraphicColorIndex.AXIS_NEUTRAL] = 0xFF_80_80_80.toInt()
+            hmIndexColor[GraphicColorIndex.AXIS_0] = 0xFF_80_80_FF.toInt()
+            hmIndexColor[GraphicColorIndex.AXIS_1] = 0xFF_80_C0_80.toInt()
+            hmIndexColor[GraphicColorIndex.AXIS_2] = 0xFF_80_80_C0.toInt()
+
+            hmIndexColor[GraphicColorIndex.LINE_LIMIT] = 0xFF_FF_A0_A0.toInt()
+            hmIndexColor[GraphicColorIndex.LINE_NEUTRAL] = 0xFF_80_80_80.toInt()
+
+            hmIndexColor[GraphicColorIndex.LINE_NONE_0] = 0xFF_80_80_80.toInt()
+            hmIndexColor[GraphicColorIndex.LINE_NORMAL_0] = 0xFF_00_00_FF.toInt()
+            hmIndexColor[GraphicColorIndex.LINE_WARNING_0] = 0xFF_FF_00_FF.toInt()
+            hmIndexColor[GraphicColorIndex.LINE_CRITICAL_0] = 0xFF_FF_00_00.toInt()
+
+            hmIndexColor[GraphicColorIndex.LINE_NONE_1] = 0xFF_80_80_80.toInt()
+            hmIndexColor[GraphicColorIndex.LINE_NORMAL_1] = 0xFF_00_E0_00.toInt()
+            hmIndexColor[GraphicColorIndex.LINE_WARNING_1] = 0xFF_E0_E0_00.toInt()
+            hmIndexColor[GraphicColorIndex.LINE_CRITICAL_1] = 0xFF_E0_00_00.toInt()
+
+            hmIndexColor[GraphicColorIndex.LINE_NONE_2] = 0xFF_80_80_80.toInt()
+            hmIndexColor[GraphicColorIndex.LINE_NORMAL_2] = 0xFF_00_C0_C0.toInt()
+            hmIndexColor[GraphicColorIndex.LINE_WARNING_2] = 0xFF_E0_C0_C0.toInt()
+            hmIndexColor[GraphicColorIndex.LINE_CRITICAL_2] = 0xFF_FF_C0_C0.toInt()
         }
 
-        val UP_GRAPHIC_VISIBLE = "graphic_visible_"
+        const val UP_GRAPHIC_VISIBLE = "graphic_visible_"
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -89,24 +90,23 @@ abstract class sdcAbstractGraphic {
         zoneId = getZoneId(userConfig.getUserProperty(UP_TIME_OFFSET)?.toIntOrNull())
     }
 
-    open fun doGetCoords( startParamID: String ): GraphicActionResponse {
+    open fun doGetCoords(startParamID: String): GraphicActionResponse {
         val begTime: Int
         val endTime: Int
 
         val sd = chmSession[AppParameter.GRAPHIC_START_DATA + startParamID] as GraphicStartData
 
-        if( sd.rangeType == 0 ) {
+        if(sd.rangeType == 0) {
             begTime = sd.begTime
             endTime = sd.endTime
-        }
-        else {
+        } else {
             endTime = ZonedDateTime.now(zoneId).toEpochSecond().toInt()
             begTime = endTime - sd.rangeType
         }
-        return GraphicActionResponse( begTime = begTime, endTime = endTime )
+        return GraphicActionResponse(begTime = begTime, endTime = endTime)
     }
 
-    abstract fun doGetElements( graphicActionRequest: GraphicActionRequest ): GraphicActionResponse
+    abstract fun doGetElements(graphicActionRequest: GraphicActionRequest): GraphicActionResponse
 
 }
 

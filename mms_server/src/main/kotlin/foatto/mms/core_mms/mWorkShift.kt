@@ -1,8 +1,17 @@
 package foatto.mms.core_mms
 
+import foatto.app.CoreSpringController
 import foatto.core.link.AppAction
-import foatto.core_server.app.server.*
-import foatto.core_server.app.server.column.*
+import foatto.core_server.app.server.AliasConfig
+import foatto.core_server.app.server.ChildData
+import foatto.core_server.app.server.DependData
+import foatto.core_server.app.server.UserConfig
+import foatto.core_server.app.server.column.ColumnBoolean
+import foatto.core_server.app.server.column.ColumnDateTimeInt
+import foatto.core_server.app.server.column.ColumnDouble
+import foatto.core_server.app.server.column.ColumnInt
+import foatto.core_server.app.server.column.ColumnString
+import foatto.core_server.app.server.mAbstract
 import foatto.sql.CoreAdvancedStatement
 
 class mWorkShift : mAbstract() {
@@ -28,7 +37,7 @@ class mWorkShift : mAbstract() {
         //--- определим опцию автосоздания рабочих смен
         var isAutoWorkShift: Boolean? = false
         if(!isWaybill && parentObjectID != null) {
-            val rs = stm.executeQuery( " SELECT is_auto_work_shift FROM MMS_object WHERE id = $parentObjectID " )
+            val rs = stm.executeQuery(" SELECT is_auto_work_shift FROM MMS_object WHERE id = $parentObjectID ")
             if(rs.next()) isAutoWorkShift = rs.getInt(1) != 0
             rs.close()
         }
@@ -115,8 +124,7 @@ class mWorkShift : mAbstract() {
             addTableColumn(columnWorkerTabNo)
             addTableColumn(columnWorkerName)
             addTableColumn(columnRun)
-        }
-        else {
+        } else {
             alTableHiddenColumn.add(columnShiftNo)
             alTableHiddenColumn.add(columnWorkerTabNo)
             alTableHiddenColumn.add(columnWorkerName)

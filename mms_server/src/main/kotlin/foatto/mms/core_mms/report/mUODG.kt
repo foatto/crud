@@ -1,6 +1,6 @@
-@file:JvmName("mUODG")
 package foatto.mms.core_mms.report
 
+import foatto.app.CoreSpringController
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnInt
@@ -25,20 +25,20 @@ class mUODG : mAbstractReport() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt( tableName, "id" )
+        columnID = ColumnInt(tableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        initReportCapAndSignature( aliasConfig, userConfig )
+        initReportCapAndSignature(aliasConfig, userConfig)
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alFormHiddenColumn.add( columnID!! )
+        alFormHiddenColumn.add(columnID!!)
 
         //----------------------------------------------------------------------------------------------------------------------
 
         uodg = UODGSelector()
-        uodg.fillColumns( tableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn )
+        uodg.fillColumns(tableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn)
 
         addCapAndSignatureColumns()
     }

@@ -1,4 +1,3 @@
-@file:JvmName("mGraphicMMS")
 package foatto.mms.core_mms.graphic
 
 import foatto.mms.core_mms.mShow

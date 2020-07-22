@@ -1,9 +1,13 @@
-@file:JvmName("mWorker")
 package foatto.mms.core_mms
 
-import foatto.core_server.app.server.*
+import foatto.app.CoreSpringController
+import foatto.core_server.app.server.AliasConfig
+import foatto.core_server.app.server.ChildData
+import foatto.core_server.app.server.DependData
+import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
+import foatto.core_server.app.server.mAbstract
 import foatto.sql.CoreAdvancedStatement
 
 class mWorker : mAbstract() {

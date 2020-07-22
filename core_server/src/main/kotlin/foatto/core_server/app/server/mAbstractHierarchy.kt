@@ -1,5 +1,6 @@
 package foatto.core_server.app.server
 
+import foatto.app.CoreSpringController
 import foatto.core.link.AddActionButton
 import foatto.core_server.app.server.column.ColumnComboBox
 import foatto.core_server.app.server.column.ColumnInt

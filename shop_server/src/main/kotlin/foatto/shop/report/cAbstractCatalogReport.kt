@@ -1,5 +1,6 @@
 package foatto.shop.report
 
+import foatto.app.CoreSpringController
 import foatto.core.link.FormData
 import foatto.core.link.XyDocumentConfig
 import foatto.core_server.app.server.AliasConfig

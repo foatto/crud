@@ -1,5 +1,6 @@
 package foatto.mms.core_mms
 
+import foatto.app.CoreSpringController
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.FormColumnVisibleData
 import foatto.core_server.app.server.UserConfig
@@ -69,7 +70,7 @@ class mObjectZone : mAbstract() {
         //----------------------------------------------------------------------------------------------------------------------
 
         val os = ObjectSelector()
-        os.fillColumns( this, true, true, alTableHiddenColumn, alFormHiddenColumn, alFormColumn, hmParentColumn, hmParentData["mms_object"] != null, -1 )
+        os.fillColumns(this, true, true, alTableHiddenColumn, alFormHiddenColumn, alFormColumn, hmParentColumn, hmParentData["mms_object"] != null, -1)
 
         //----------------------------------------------------------------------------------------------------------------------
 

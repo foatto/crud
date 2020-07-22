@@ -1,6 +1,6 @@
-@file:JvmName("mUODGD")
 package foatto.mms.core_mms.report
 
+import foatto.app.CoreSpringController
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnDate3Int
@@ -36,30 +36,30 @@ class mUODGD : mAbstractReport() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt( tableName, "id" )
+        columnID = ColumnInt(tableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
         columnReportBegDate = ColumnDate3Int(tableName, "beg_ye", "beg_mo", "beg_da", "Дата начала периода")
-            //columnReportBegDate.setDefaultDate( arrDT[ 0 ], arrDT[ 1 ], arrDT[ 2 ] );
-            columnReportBegDate.isVirtual = true
+        //columnReportBegDate.setDefaultDate( arrDT[ 0 ], arrDT[ 1 ], arrDT[ 2 ] );
+        columnReportBegDate.isVirtual = true
         columnReportEndDate = ColumnDate3Int(tableName, "end_ye", "end_mo", "end_da", "Дата окончания периода")
-            //columnReportEndDate.setDefaultDate( arrDT[ 6 ], arrDT[ 7 ], arrDT[ 8 ] );
-            columnReportEndDate.isVirtual = true
+        //columnReportEndDate.setDefaultDate( arrDT[ 6 ], arrDT[ 7 ], arrDT[ 8 ] );
+        columnReportEndDate.isVirtual = true
 
-        initReportCapAndSignature( aliasConfig, userConfig )
+        initReportCapAndSignature(aliasConfig, userConfig)
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alFormHiddenColumn.add( columnID!! )
+        alFormHiddenColumn.add(columnID!!)
 
         //----------------------------------------------------------------------------------------------------------------------
 
         uodg = UODGSelector()
-        uodg.fillColumns( tableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn )
+        uodg.fillColumns(tableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn)
 
-        alFormColumn.add( columnReportBegDate )
-        alFormColumn.add( columnReportEndDate )
+        alFormColumn.add(columnReportBegDate)
+        alFormColumn.add(columnReportEndDate)
 
         addCapAndSignatureColumns()
     }

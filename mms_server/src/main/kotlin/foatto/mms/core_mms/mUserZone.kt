@@ -1,6 +1,6 @@
-@file:JvmName("mUserZone")
 package foatto.mms.core_mms
 
+import foatto.app.CoreSpringController
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.FormColumnVisibleData
 import foatto.core_server.app.server.UserConfig

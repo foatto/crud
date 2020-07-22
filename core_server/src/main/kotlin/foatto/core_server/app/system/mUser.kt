@@ -1,5 +1,6 @@
 package foatto.core_server.app.system
 
+import foatto.app.CoreSpringController
 import foatto.core.app.ICON_NAME_ADD_FOLDER
 import foatto.core.app.ICON_NAME_ADD_ITEM
 import foatto.core.app.ICON_NAME_BOSS

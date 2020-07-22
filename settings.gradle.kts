@@ -26,7 +26,7 @@ include(
 
     "del_web",
 
-    "fs_server",
+//    "fs_server",
 
     "mms_server",
     "mms_web",

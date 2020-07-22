@@ -1,5 +1,6 @@
 package foatto.shop.report
 
+import foatto.app.CoreSpringController
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnInt
@@ -17,7 +18,7 @@ class mPriceTag : mAbstractReport() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    private val alColumnCatalog = ArrayList<ArrayList<ColumnInt>>( ROWS )
+    private val alColumnCatalog = ArrayList<ArrayList<ColumnInt>>(ROWS)
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -31,38 +32,38 @@ class mPriceTag : mAbstractReport() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt( tableName, "id" )
+        columnID = ColumnInt(tableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val alColumnCatalogName = ArrayList<ArrayList<ColumnString>>( ROWS )
+        val alColumnCatalogName = ArrayList<ArrayList<ColumnString>>(ROWS)
 
-        val columnCatalogName = ColumnString( "SHOP_catalog", "name", "aaa", 1 )
+        val columnCatalogName = ColumnString("SHOP_catalog", "name", "aaa", 1)
 
-        for( i in 0 until ROWS ) {
-            alColumnCatalog.add( ArrayList( COLS ) )
-            alColumnCatalogName.add( ArrayList( COLS ) )
-            for( j in 0 until COLS ) {
+        for(i in 0 until ROWS) {
+            alColumnCatalog.add(ArrayList(COLS))
+            alColumnCatalogName.add(ArrayList(COLS))
+            for(j in 0 until COLS) {
                 val selfLinkDestTableName = "SHOP_catalog_$i$j"
 
-                val columnCatalogDestID = ColumnInt( selfLinkDestTableName, "id" )
+                val columnCatalogDestID = ColumnInt(selfLinkDestTableName, "id")
                 columnCatalogDestID.selfLinkTableName = "SHOP_catalog"
 
-                alColumnCatalog[ i ].add( ColumnInt( tableName, "catalog_id_$i$j", columnCatalogDestID ) )
-                    alColumnCatalog[ i ][ j ].isVirtual = true
+                alColumnCatalog[i].add(ColumnInt(tableName, "catalog_id_$i$j", columnCatalogDestID))
+                alColumnCatalog[i][j].isVirtual = true
 
-                alColumnCatalogName[ i ].add( ColumnString( selfLinkDestTableName, "name_$i$j", "Товар", 3, STRING_COLUMN_WIDTH, textFieldMaxSize ) )
-                    alColumnCatalogName[ i ][ j ].selfLinkTableName = "SHOP_catalog"  // для правильной работы селектора с подстановочной таблицей
-                    //columnCatalogDestName.setRequired(  false  );
-                    alColumnCatalogName[ i ][ j ].isVirtual = true
-                    alColumnCatalogName[ i ][ j ].selectorAlias = "shop_catalog_item"
-                    alColumnCatalogName[ i ][ j ].addSelectorColumn( alColumnCatalog[ i ][ j ], columnCatalogDestID )
-                    alColumnCatalogName[ i ][ j ].addSelectorColumn( alColumnCatalogName[ i ][ j ], columnCatalogName )
-                    //arrColumnCatalogName[  i  ][  j  ].addSelectorColumn(  arrColumnCatalogName[  i  ][  j  ]  );   //, columnCatalogName  );
+                alColumnCatalogName[i].add(ColumnString(selfLinkDestTableName, "name_$i$j", "Товар", 3, STRING_COLUMN_WIDTH, textFieldMaxSize))
+                alColumnCatalogName[i][j].selfLinkTableName = "SHOP_catalog"  // для правильной работы селектора с подстановочной таблицей
+                //columnCatalogDestName.setRequired(  false  );
+                alColumnCatalogName[i][j].isVirtual = true
+                alColumnCatalogName[i][j].selectorAlias = "shop_catalog_item"
+                alColumnCatalogName[i][j].addSelectorColumn(alColumnCatalog[i][j], columnCatalogDestID)
+                alColumnCatalogName[i][j].addSelectorColumn(alColumnCatalogName[i][j], columnCatalogName)
+                //arrColumnCatalogName[  i  ][  j  ].addSelectorColumn(  arrColumnCatalogName[  i  ][  j  ]  );   //, columnCatalogName  );
             }
         }
 
-        val columnTMP = ColumnInt( tableName, "dest_catalog_id" )
+        val columnTMP = ColumnInt(tableName, "dest_catalog_id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -70,18 +71,18 @@ class mPriceTag : mAbstractReport() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alFormHiddenColumn.add( columnID!! )
-        alFormHiddenColumn.add( columnTMP )
+        alFormHiddenColumn.add(columnID!!)
+        alFormHiddenColumn.add(columnTMP)
 
-        for( i in 0 until ROWS )
-            for( j in 0 until COLS ) {
-                alFormHiddenColumn.add( alColumnCatalog[ i ][ j ] )
+        for(i in 0 until ROWS)
+            for(j in 0 until COLS) {
+                alFormHiddenColumn.add(alColumnCatalog[i][j])
 
-                alFormColumn.add( alColumnCatalogName[ i ][ j ] )
+                alFormColumn.add(alColumnCatalogName[i][j])
             }
     }
 
-    fun getColumnCatalog( row: Int, col: Int ): ColumnInt {
-        return alColumnCatalog[ row ][ col ]
+    fun getColumnCatalog(row: Int, col: Int): ColumnInt {
+        return alColumnCatalog[row][col]
     }
 }

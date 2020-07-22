@@ -1,6 +1,6 @@
-@file:JvmName("mShiftWork")
 package foatto.mms.core_mms
 
+import foatto.app.CoreSpringController
 import foatto.core.link.AppAction
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.ChildData
@@ -153,8 +153,7 @@ class mShiftWork : mAbstract() {
         if(parentObjectID == null) {
             alTableGroupColumn.add(columnShiftBegDoc)
             addTableColumnVertNew(columnShiftEndDoc, columnShiftBegFact, columnShiftEndFact)
-        }
-        else addTableColumnVertNew(columnShiftBegDoc, columnShiftEndDoc, columnShiftBegFact, columnShiftEndFact)
+        } else addTableColumnVertNew(columnShiftBegDoc, columnShiftEndDoc, columnShiftBegFact, columnShiftEndFact)
         //            addTableColumnVertNew( columnShiftEndDoc );
         //            addTableColumnVertNew( columnShiftBegFact );
         //            addTableColumnVertNew( columnShiftEndFact );

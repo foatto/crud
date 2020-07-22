@@ -1,5 +1,6 @@
 package foatto.core_server.app.system
 
+import foatto.app.CoreSpringController
 import foatto.core.link.FormPinMode
 import foatto.core.util.getCurrentDayStart
 import foatto.core.util.getDateTimeArray
@@ -31,7 +32,7 @@ class mLogShow : mAbstract() {
 
     //----------------------------------------------------------------------------------------------------------------------
 
-    override fun getSaveButonCaption( aAliasConfig: AliasConfig ) = "Показать"
+    override fun getSaveButonCaption(aAliasConfig: AliasConfig) = "Показать"
 
     override fun init(
         appController: CoreSpringController, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int
@@ -89,7 +90,7 @@ class mLogShow : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------
 
-        alFormHiddenColumn.add( columnID!! )
+        alFormHiddenColumn.add(columnID!!)
 
         //----------------------------------------------------------------------------------------------------------------------
 

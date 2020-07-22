@@ -1,9 +1,14 @@
 package foatto.office
 
+import foatto.app.CoreSpringController
 import foatto.core.link.FormPinMode
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
-import foatto.core_server.app.server.column.*
+import foatto.core_server.app.server.column.ColumnDate3Int
+import foatto.core_server.app.server.column.ColumnFile
+import foatto.core_server.app.server.column.ColumnInt
+import foatto.core_server.app.server.column.ColumnString
+import foatto.core_server.app.server.column.ColumnTime3Int
 import foatto.core_server.app.server.mAbstract
 import foatto.sql.CoreAdvancedStatement
 
@@ -27,10 +32,7 @@ class mTaskThread : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val parentTaskID: Int = hmParentData["office_task_out"] ?:
-                                hmParentData["office_task_in"] ?:
-                                hmParentData["office_task_out_archive"] ?:
-                                hmParentData["office_task_in_archive"]!!
+        val parentTaskID: Int = hmParentData["office_task_out"] ?: hmParentData["office_task_in"] ?: hmParentData["office_task_out_archive"] ?: hmParentData["office_task_in_archive"]!!
 
         //----------------------------------------------------------------------------------------
 
@@ -49,10 +51,10 @@ class mTaskThread : mAbstract() {
         val columnTaskThreadTime = ColumnTime3Int(tableName, "ho", "mi", null, "Время")
 
         columnTaskThreadMessage = ColumnString(tableName, "message", "Обсуждение", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
-            columnTaskThreadMessage.formPinMode = FormPinMode.OFF
+        columnTaskThreadMessage.formPinMode = FormPinMode.OFF
 
         val columnFile = ColumnFile(tableName, "file_id", "Файлы")
-            columnFile.formPinMode = FormPinMode.OFF
+        columnFile.formPinMode = FormPinMode.OFF
 
         //----------------------------------------------------------------------------------------
 

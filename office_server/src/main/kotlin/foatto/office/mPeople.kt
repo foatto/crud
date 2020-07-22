@@ -1,8 +1,20 @@
 package foatto.office
 
+import foatto.app.CoreSpringController
 import foatto.core.link.FormPinMode
-import foatto.core_server.app.server.*
-import foatto.core_server.app.server.column.*
+import foatto.core_server.app.server.AliasConfig
+import foatto.core_server.app.server.ChildData
+import foatto.core_server.app.server.DependData
+import foatto.core_server.app.server.FormColumnVisibleData
+import foatto.core_server.app.server.UserConfig
+import foatto.core_server.app.server.column.ColumnBoolean
+import foatto.core_server.app.server.column.ColumnComboBox
+import foatto.core_server.app.server.column.ColumnDate3Int
+import foatto.core_server.app.server.column.ColumnFile
+import foatto.core_server.app.server.column.ColumnInt
+import foatto.core_server.app.server.column.ColumnString
+import foatto.core_server.app.server.column.ColumnTime3Int
+import foatto.core_server.app.server.mAbstract
 import foatto.sql.CoreAdvancedStatement
 
 class mPeople : mAbstract() {
@@ -22,7 +34,15 @@ class mPeople : mAbstract() {
     lateinit var columnClientPlanTime: ColumnTime3Int
         private set
 
-    override fun init(appController: CoreSpringController, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
+    override fun init(
+        appController: CoreSpringController,
+        aStm: CoreAdvancedStatement,
+        aliasConfig: AliasConfig,
+        userConfig: UserConfig,
+        aHmParam: Map<String, String>,
+        hmParentData: MutableMap<String, Int>,
+        id: Int
+    ) {
 
         super.init(appController, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 

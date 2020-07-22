@@ -1,6 +1,6 @@
-@file:JvmName( "mPrice" )
 package foatto.shop
 
+import foatto.app.CoreSpringController
 import foatto.core.link.TableCellAlign
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig

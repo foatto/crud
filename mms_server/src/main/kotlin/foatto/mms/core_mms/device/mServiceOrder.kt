@@ -1,6 +1,6 @@
-@file:JvmName("mServiceOrder")
 package foatto.mms.core_mms.device
 
+import foatto.app.CoreSpringController
 import foatto.core.link.FormPinMode
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
@@ -26,42 +26,42 @@ class mServiceOrder : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt( tableName, "id" )
-        columnUser = ColumnInt( tableName, "user_id", userConfig.userID )
+        columnID = ColumnInt(tableName, "id")
+        columnUser = ColumnInt(tableName, "user_id", userConfig.userID)
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnOrderTime = ColumnDateTimeInt( tableName, "order_time", "Дата и время заявки", false, zoneId )
+        val columnOrderTime = ColumnDateTimeInt(tableName, "order_time", "Дата и время заявки", false, zoneId)
         columnOrderTime.isEditable = false
 
-        val columnOrderText = ColumnString( tableName, "order_text", "Текст заявки", 12, STRING_COLUMN_WIDTH, textFieldMaxSize )
+        val columnOrderText = ColumnString(tableName, "order_text", "Текст заявки", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
         columnOrderText.isEditable = id == 0
         columnOrderText.formPinMode = FormPinMode.OFF
 
-        columnOrderCompleted = ColumnBoolean( tableName, "order_completed", "Заявка выполнена", false )
+        columnOrderCompleted = ColumnBoolean(tableName, "order_completed", "Заявка выполнена", false)
         columnOrderCompleted.isEditable = id != 0
         columnOrderCompleted.formPinMode = FormPinMode.OFF
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add( columnID!! )
-        alTableHiddenColumn.add( columnUser!! )
+        alTableHiddenColumn.add(columnID!!)
+        alTableHiddenColumn.add(columnUser!!)
 
-        addTableColumn( columnOrderTime )
-        addTableColumn( columnOrderText )
-        addTableColumn( columnOrderCompleted )
+        addTableColumn(columnOrderTime)
+        addTableColumn(columnOrderText)
+        addTableColumn(columnOrderCompleted)
 
-        alFormHiddenColumn.add( columnID!! )
-        alFormHiddenColumn.add( columnUser!! )
+        alFormHiddenColumn.add(columnID!!)
+        alFormHiddenColumn.add(columnUser!!)
 
-        alFormColumn.add( columnOrderTime )
-        alFormColumn.add( columnOrderText )
-        alFormColumn.add( columnOrderCompleted )
+        alFormColumn.add(columnOrderTime)
+        alFormColumn.add(columnOrderText)
+        alFormColumn.add(columnOrderCompleted)
 
         //----------------------------------------------------------------------------------------------------------------------
 
         //--- поля для сортировки
-        alTableSortColumn.add( columnOrderTime )
-        alTableSortDirect.add( "ASC" )
+        alTableSortColumn.add(columnOrderTime)
+        alTableSortDirect.add("ASC")
     }
 }

@@ -1,10 +1,14 @@
-@file:JvmName("mDeviceCommand")
 package foatto.mms.core_mms.device
 
-import foatto.core_server.app.server.*
+import foatto.app.CoreSpringController
+import foatto.core_server.app.server.AliasConfig
+import foatto.core_server.app.server.ChildData
+import foatto.core_server.app.server.DependData
+import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnRadioButton
 import foatto.core_server.app.server.column.ColumnString
+import foatto.core_server.app.server.mAbstract
 import foatto.mms.core_mms.ds.MMSHandler
 import foatto.sql.CoreAdvancedStatement
 
@@ -20,50 +24,50 @@ class mDeviceCommand : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt( tableName, "id" )
+        columnID = ColumnInt(tableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        val columnDeviceType = ColumnRadioButton( tableName, "type", "Тип устройства" )
-            MMSHandler.fillDeviceTypeColumn( columnDeviceType )
+        val columnDeviceType = ColumnRadioButton(tableName, "type", "Тип устройства")
+        MMSHandler.fillDeviceTypeColumn(columnDeviceType)
 
-        val columnName = ColumnString( tableName, "name", "Наименование", STRING_COLUMN_WIDTH )
-            columnName.setUnique( true, "" )
-        val columnDescr = ColumnString( tableName, "descr", "Описание", STRING_COLUMN_WIDTH )
-            columnDescr.setUnique( true, "" )
+        val columnName = ColumnString(tableName, "name", "Наименование", STRING_COLUMN_WIDTH)
+        columnName.setUnique(true, "")
+        val columnDescr = ColumnString(tableName, "descr", "Описание", STRING_COLUMN_WIDTH)
+        columnDescr.setUnique(true, "")
 
-        val columnCommand = ColumnString( tableName, "cmd", "Команда", 12, STRING_COLUMN_WIDTH, textFieldMaxSize )
+        val columnCommand = ColumnString(tableName, "cmd", "Команда", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add( columnID!! )
+        alTableHiddenColumn.add(columnID!!)
 
-        addTableColumn( columnDeviceType )
-        addTableColumn( columnName )
-        addTableColumn( columnDescr )
-        addTableColumn( columnCommand )
+        addTableColumn(columnDeviceType)
+        addTableColumn(columnName)
+        addTableColumn(columnDescr)
+        addTableColumn(columnCommand)
 
-        alFormHiddenColumn.add( columnID!! )
+        alFormHiddenColumn.add(columnID!!)
 
-        alFormColumn.add( columnDeviceType )
-        alFormColumn.add( columnName )
-        alFormColumn.add( columnDescr )
-        alFormColumn.add( columnCommand )
+        alFormColumn.add(columnDeviceType)
+        alFormColumn.add(columnName)
+        alFormColumn.add(columnDescr)
+        alFormColumn.add(columnCommand)
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
         //--- поля для сортировки
-        alTableSortColumn.add( columnDescr )
-        alTableSortDirect.add( "ASC" )
+        alTableSortColumn.add(columnDescr)
+        alTableSortDirect.add("ASC")
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        alChildData.add( ChildData( "mms_device_command_history", columnID!! ) )
+        alChildData.add(ChildData("mms_device_command_history", columnID!!))
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        alDependData.add( DependData( "MMS_device_command_history", "command_id" ) )
-        alDependData.add( DependData( "MMS_device", "cmd_on_id" ) )
-        alDependData.add( DependData( "MMS_device", "cmd_off_id" ) )
+        alDependData.add(DependData("MMS_device_command_history", "command_id"))
+        alDependData.add(DependData("MMS_device", "cmd_on_id"))
+        alDependData.add(DependData("MMS_device", "cmd_off_id"))
     }
 }

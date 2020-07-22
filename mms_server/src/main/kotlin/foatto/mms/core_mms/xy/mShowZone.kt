@@ -1,6 +1,6 @@
-@file:JvmName("mShowZone")
 package foatto.mms.core_mms.xy
 
+import foatto.app.CoreSpringController
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnInt
@@ -15,7 +15,7 @@ class mShowZone : mAbstract() {
 
     //----------------------------------------------------------------------------------------------------------------------
 
-    override fun getSaveButonCaption( aAliasConfig: AliasConfig ) = "Показать"
+    override fun getSaveButonCaption(aAliasConfig: AliasConfig) = "Показать"
 
     override fun init(appController: CoreSpringController, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
 
@@ -27,33 +27,33 @@ class mShowZone : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt( tableName, "id" )
+        columnID = ColumnInt(tableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnZoneID = ColumnInt( "MMS_zone", "id" )
-        columnZone = ColumnInt( tableName, "zone_id", columnZoneID )
-        val columnZoneName = ColumnString( "MMS_zone", "name", "Наименование геозоны", STRING_COLUMN_WIDTH )
+        val columnZoneID = ColumnInt("MMS_zone", "id")
+        columnZone = ColumnInt(tableName, "zone_id", columnZoneID)
+        val columnZoneName = ColumnString("MMS_zone", "name", "Наименование геозоны", STRING_COLUMN_WIDTH)
         columnZoneName.isRequired = true
-        val columnZoneDescr = ColumnString( "MMS_zone", "descr", "Описание геозоны", STRING_COLUMN_WIDTH )
+        val columnZoneDescr = ColumnString("MMS_zone", "descr", "Описание геозоны", STRING_COLUMN_WIDTH)
 
         columnZoneName.selectorAlias = "mms_zone"
-        columnZoneName.addSelectorColumn( columnZone, columnZoneID )
-        columnZoneName.addSelectorColumn( columnZoneName )
-        columnZoneName.addSelectorColumn( columnZoneDescr )
+        columnZoneName.addSelectorColumn(columnZone, columnZoneID)
+        columnZoneName.addSelectorColumn(columnZoneName)
+        columnZoneName.addSelectorColumn(columnZoneDescr)
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alFormHiddenColumn.add( columnID!! )
-        alFormHiddenColumn.add( columnZone )
+        alFormHiddenColumn.add(columnID!!)
+        alFormHiddenColumn.add(columnZone)
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alFormColumn.add( columnZoneName )
-        alFormColumn.add( columnZoneDescr )
+        alFormColumn.add(columnZoneName)
+        alFormColumn.add(columnZoneDescr)
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        hmParentColumn[ "mms_zone" ] = columnZone
+        hmParentColumn["mms_zone"] = columnZone
     }
 }

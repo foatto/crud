@@ -1,6 +1,6 @@
-@file:JvmName("mEquipServiceShedule")
 package foatto.mms.core_mms
 
+import foatto.app.CoreSpringController
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnDouble
@@ -15,7 +15,7 @@ class mEquipServiceShedule : mAbstract() {
 
         super.init(appController, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
-        val equipID = hmParentData[ "mms_equip" ]
+        val equipID = hmParentData["mms_equip"]
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -23,37 +23,37 @@ class mEquipServiceShedule : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt( tableName, "id" )
+        columnID = ColumnInt(tableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnEquip = ColumnInt( tableName, "equip_id", equipID )
+        val columnEquip = ColumnInt(tableName, "equip_id", equipID)
 
-        val columnServiceName = ColumnString( tableName, "name", "Наименование", STRING_COLUMN_WIDTH )
-        val columnServicePeriod = ColumnDouble( tableName, "period", "Периодичность обслуживания [мото-час]", 10, 1, 0.0 )
+        val columnServiceName = ColumnString(tableName, "name", "Наименование", STRING_COLUMN_WIDTH)
+        val columnServicePeriod = ColumnDouble(tableName, "period", "Периодичность обслуживания [мото-час]", 10, 1, 0.0)
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add( columnID!! )
-        alTableHiddenColumn.add( columnEquip )
+        alTableHiddenColumn.add(columnID!!)
+        alTableHiddenColumn.add(columnEquip)
 
-        addTableColumn( columnServiceName )
-        addTableColumn( columnServicePeriod )
+        addTableColumn(columnServiceName)
+        addTableColumn(columnServicePeriod)
 
-        alFormHiddenColumn.add( columnID!! )
-        alFormHiddenColumn.add( columnEquip )
+        alFormHiddenColumn.add(columnID!!)
+        alFormHiddenColumn.add(columnEquip)
 
-        alFormColumn.add( columnServiceName )
-        alFormColumn.add( columnServicePeriod )
+        alFormColumn.add(columnServiceName)
+        alFormColumn.add(columnServicePeriod)
 
         //----------------------------------------------------------------------------------------------------------------------
 
         //--- поля для сортировки
-        alTableSortColumn.add( columnServiceName )
-        alTableSortDirect.add( "ASC" )
+        alTableSortColumn.add(columnServiceName)
+        alTableSortDirect.add("ASC")
 
         //----------------------------------------------------------------------------------------
 
-        hmParentColumn[ "mms_equip" ] = columnEquip
+        hmParentColumn["mms_equip"] = columnEquip
     }
 }

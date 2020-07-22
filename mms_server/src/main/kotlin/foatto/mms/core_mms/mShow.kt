@@ -1,5 +1,6 @@
 package foatto.mms.core_mms
 
+import foatto.app.CoreSpringController
 import foatto.core.link.FormPinMode
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.FormColumnVisibleData

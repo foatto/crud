@@ -1,5 +1,6 @@
 package foatto.core_server.app.xy.server.document
 
+import foatto.app.CoreSpringController
 import foatto.core.app.UP_TIME_OFFSET
 import foatto.core.app.xy.XyActionRequest
 import foatto.core.app.xy.XyActionResponse
@@ -36,6 +37,7 @@ abstract class sdcXyAbstract {
 
     //--- таблица преобразований бизнес-алиасов в типы графических элементов
     protected val hmInAliasElementType = mutableMapOf<String, Array<String>>()
+
     //--- таблица преобразований типов графических элементов в бизнес-алиасы
     protected val hmOutElementTypeAlias = mutableMapOf<String, String>() //??? пока никак не используется...
 
@@ -54,61 +56,60 @@ abstract class sdcXyAbstract {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    abstract fun getCoords( startParamID: String ): XyActionResponse
+    abstract fun getCoords(startParamID: String): XyActionResponse
 
-    abstract fun getElements( xyActionRequest: XyActionRequest ): XyActionResponse
+    abstract fun getElements(xyActionRequest: XyActionRequest): XyActionResponse
 
-    abstract fun getOneElement( xyActionRequest: XyActionRequest ): XyActionResponse
+    abstract fun getOneElement(xyActionRequest: XyActionRequest): XyActionResponse
 
-    abstract fun clickElement( xyActionRequest: XyActionRequest ): XyActionResponse
+    abstract fun clickElement(xyActionRequest: XyActionRequest): XyActionResponse
 
-    abstract fun addElement( xyActionRequest: XyActionRequest, userID: Int ): XyActionResponse
+    abstract fun addElement(xyActionRequest: XyActionRequest, userID: Int): XyActionResponse
 
-    abstract fun editElementPoint( xyActionRequest: XyActionRequest ): XyActionResponse
+    abstract fun editElementPoint(xyActionRequest: XyActionRequest): XyActionResponse
 
-    abstract fun moveElements( xyActionRequest: XyActionRequest ): XyActionResponse
+    abstract fun moveElements(xyActionRequest: XyActionRequest): XyActionResponse
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     //--- разбор стартовых параметров
-    protected fun parseObjectParam(isStartObjectOnly: Boolean, sd: XyStartData, hsReadOnlyObject: MutableSet<Int> ): List<XyStartObjectParsedData> {
+    protected fun parseObjectParam(isStartObjectOnly: Boolean, sd: XyStartData, hsReadOnlyObject: MutableSet<Int>): List<XyStartObjectParsedData> {
 
         val alObjectParamData = mutableListOf<XyStartObjectParsedData>()
 
-        for( sod in sd.alStartObjectData ) {
+        for(sod in sd.alStartObjectData) {
             //--- обрабатываем только параметры с заданным префиксом
-            if( isStartObjectOnly && !sod.isStart ) continue
+            if(isStartObjectOnly && !sod.isStart) continue
 
             //--- собираем список объектов "только для чтения/просмотра"
-            if( sod.isReadOnly ) hsReadOnlyObject.add( sod.objectID )
+            if(sod.isReadOnly) hsReadOnlyObject.add(sod.objectID)
 
             //--- разбор параметров
-            val objectParamData = XyStartObjectParsedData( sod.objectID )
+            val objectParamData = XyStartObjectParsedData(sod.objectID)
 
             //--- список типов элементов для данного бизнес-объекта
             //--- (их может быть несколько, например, траектория а/м -
             //--- это сама траектория, стоянки, превышения и проч.)
-            hmInAliasElementType[ sod.typeName ]?.let {
-                objectParamData.hsType.addAll( it )
+            hmInAliasElementType[sod.typeName]?.let {
+                objectParamData.hsType.addAll(it)
             }
 
             //--- пройдемся по временному интервалу
-            if( sod.isTimed ) {
-                if( sd.rangeType == -1 ) {
+            if(sod.isTimed) {
+                if(sd.rangeType == -1) {
                     objectParamData.begTime = sd.begTime
                     objectParamData.endTime = sd.endTime
-                }
-                else {
+                } else {
                     objectParamData.endTime = getCurrentTimeInt()
                     objectParamData.begTime = objectParamData.endTime - sd.rangeType
                 }
             }
-            alObjectParamData.add( objectParamData )
+            alObjectParamData.add(objectParamData)
         }
         return alObjectParamData
     }
 
-    protected abstract fun loadDynamicElements( scale: Int, objectParamData: XyStartObjectParsedData, alElement: MutableList<XyElement> )
+    protected abstract fun loadDynamicElements(scale: Int, objectParamData: XyStartObjectParsedData, alElement: MutableList<XyElement>)
 
 }
 

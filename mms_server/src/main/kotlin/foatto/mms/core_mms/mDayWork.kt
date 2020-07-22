@@ -1,10 +1,15 @@
 package foatto.mms.core_mms
 
+import foatto.app.CoreSpringController
 import foatto.core.link.AppAction
-import foatto.core_server.app.server.*
+import foatto.core_server.app.server.AliasConfig
+import foatto.core_server.app.server.ChildData
+import foatto.core_server.app.server.UserConfig
+import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.column.ColumnDate3Int
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
+import foatto.core_server.app.server.mAbstract
 import foatto.sql.CoreAdvancedStatement
 
 class mDayWork : mAbstract() {
@@ -103,7 +108,7 @@ class mDayWork : mAbstract() {
         //----------------------------------------------------------------------------------------------------------------------------------------
 
         os = ObjectSelector()
-        os.fillColumns( this, true, true, alTableHiddenColumn, alFormHiddenColumn, alFormColumn, hmParentColumn, false, 0 )
+        os.fillColumns(this, true, true, alTableHiddenColumn, alFormHiddenColumn, alFormColumn, hmParentColumn, false, 0)
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -144,7 +149,7 @@ class mDayWork : mAbstract() {
         val hsPermissionDW = userConfig.userPermission["mms_day_work"]
         val hsPermissionSW = userConfig.userPermission["mms_shift_work"]
         val isMovingMode = hsPermissionDW != null && hsPermissionDW.contains(cStandart.PERM_ACCESS) &&
-                (hsPermissionSW == null || !hsPermissionSW.contains(cStandart.PERM_ACCESS))
+            (hsPermissionSW == null || !hsPermissionSW.contains(cStandart.PERM_ACCESS))
 
         if(isMovingMode) {
             alChildData.add(ChildData("mms_show_trace", columnID!!, AppAction.FORM, true, true))
