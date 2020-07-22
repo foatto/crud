@@ -1,0 +1,151 @@
+@file:JvmName("mDeviceCommandHistory")
+package foatto.mms.core_mms.device
+
+import foatto.core.link.FormPinMode
+import foatto.core_server.app.server.AliasConfig
+import foatto.core_server.app.server.UserConfig
+import foatto.core_server.app.server.column.*
+import foatto.core_server.app.server.mAbstract
+import foatto.mms.core_mms.ObjectSelector
+import foatto.sql.CoreAdvancedStatement
+import java.time.ZonedDateTime
+
+class mDeviceCommandHistory : mAbstract() {
+
+    lateinit var columnEditTime: ColumnDateTimeInt
+        private set
+
+    override fun init(appController: CoreSpringController, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
+
+        super.init(appController, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+
+        //----------------------------------------------------------------------------------------------------------------------------------------
+
+        var parentObjectID = hmParentData[ "mms_object" ]
+        val parentDeviceID = hmParentData[ "mms_device" ]
+
+        //--- если переход из списка контроллеров, то подгрузим соответствующий объект ( если прикреплён )
+        if( parentObjectID == null && parentDeviceID != null ) {
+            val rs = stm.executeQuery( " SELECT object_id FROM MMS_device WHERE id = $parentDeviceID " )
+            rs.next()
+            parentObjectID = rs.getInt( 1 )
+            rs.close()
+
+            hmParentData[ "mms_object" ] = parentObjectID
+        }
+
+        //----------------------------------------------------------------------------------------------------------------------
+
+        tableName = "MMS_device_command_history"
+
+        //----------------------------------------------------------------------------------------------------------------------
+
+        columnID = ColumnInt( tableName, "id" )
+        columnUser = ColumnInt( tableName, "user_id", userConfig.userID )
+
+        //----------------------------------------------------------------------------------------------------------------------
+
+        val columnDevice = ColumnComboBox( tableName, "device_id", "Номер устройства" )
+        if( parentDeviceID != null ) {
+            columnDevice.defaultValue = parentDeviceID
+            columnDevice.addChoice( parentDeviceID, Integer.toString( parentDeviceID ) )
+        }
+        else if( parentObjectID != null ) {
+            val rs = stm.executeQuery( " SELECT id FROM MMS_device WHERE object_id = $parentObjectID ORDER BY device_index " )
+            //--- первая строка станет дефолтным значение
+            if( rs.next() ) {
+                val deviceID = rs.getInt( 1 )
+                columnDevice.defaultValue = deviceID
+                columnDevice.addChoice( deviceID, Integer.toString( deviceID ) )
+            }
+            while( rs.next() ) {
+                val deviceID = rs.getInt( 1 )
+                columnDevice.addChoice( deviceID, Integer.toString( deviceID ) )
+            }
+            rs.close()
+        }
+        //--- хоть что-нибудь, чтобы ошибок не было
+        else {
+            columnDevice.defaultValue = 0
+            columnDevice.addChoice( 0, "0" )
+        }
+
+        val columnCommandID = ColumnInt( "MMS_device_command", "id" )
+        val columnCommand = ColumnInt( tableName, "command_id", columnCommandID )
+        val columnCommandName = ColumnString( "MMS_device_command", "name", "Наименование", STRING_COLUMN_WIDTH )
+            columnCommandName.isRequired = true
+            columnCommandName.formPinMode = FormPinMode.OFF
+        val columnCommandDescr = ColumnString( "MMS_device_command", "descr", "Описание", STRING_COLUMN_WIDTH )
+        val columnCommandCommand = ColumnString( "MMS_device_command", "cmd", "Команда", 12, STRING_COLUMN_WIDTH, textFieldMaxSize )
+            columnCommandName.selectorAlias = "mms_device_command"
+            columnCommandName.addSelectorColumn( columnCommand, columnCommandID )
+            columnCommandName.addSelectorColumn( columnCommandName )
+            columnCommandName.addSelectorColumn( columnCommandDescr )
+            columnCommandName.addSelectorColumn( columnCommandCommand )
+
+        columnEditTime = ColumnDateTimeInt( tableName, "edit_time", "Время последнего редактирования", true, zoneId )
+            columnEditTime.isEditable = false
+            columnEditTime.formPinMode = FormPinMode.OFF
+
+        val columnForSend = ColumnBoolean( tableName, "for_send", "Отправить команду", true )
+            columnForSend.formPinMode = FormPinMode.OFF
+
+        val columnSendTime = ColumnDateTimeInt( tableName, "send_time", "Время отправки", true, zoneId )
+            columnSendTime.default = ZonedDateTime.of(2000, 1, 1, 0, 0, 0, 0, zoneId)
+            columnSendTime.isEditable = false
+
+        //--- вручную добавленное поле для обозначения владельца а/м ---
+
+        val columnObjectUserName = ColumnComboBox( "MMS_object", "user_id", "Пользователь" )
+            columnObjectUserName.addChoice( 0, "" )
+            for( ( userID, userName ) in userConfig.hmUserFullNames )
+                columnObjectUserName.addChoice( userID, if( userID == userConfig.userID || userName.trim().isEmpty() ) "" else userName )
+
+        //----------------------------------------------------------------------------------------------------------------------
+
+        alTableHiddenColumn.add( columnID!! )
+        alTableHiddenColumn.add( columnUser!! )
+        alTableHiddenColumn.add( columnCommand )
+
+        addTableColumn( columnDevice )
+        addTableColumn( columnObjectUserName )
+
+        alFormHiddenColumn.add( columnID!! )
+        alFormHiddenColumn.add( columnUser!! )
+        alFormHiddenColumn.add( columnCommand )
+
+        alFormColumn.add( columnDevice )
+
+        //----------------------------------------------------------------------------------------------------------------------
+
+        val os = ObjectSelector()
+        os.fillColumns( this, false, true, alTableHiddenColumn, alFormHiddenColumn, alFormColumn, hmParentColumn, false, -1 )
+
+        //----------------------------------------------------------------------------------------------------------------------
+
+        addTableColumn( columnCommandName )
+        addTableColumn( columnCommandDescr )
+        addTableColumn( columnCommandCommand )
+        addTableColumn( columnEditTime )
+        addTableColumn( columnForSend )
+        addTableColumn( columnSendTime )
+
+        alFormColumn.add( columnCommandName )
+        alFormColumn.add( columnCommandDescr )
+        alFormColumn.add( columnCommandCommand )
+        alFormColumn.add( columnEditTime )
+        alFormColumn.add( columnForSend )
+        alFormColumn.add( columnSendTime )
+
+        //----------------------------------------------------------------------------------------------------------------------
+
+        //--- поля для сортировки
+        alTableSortColumn.add( columnEditTime )
+        alTableSortDirect.add( "ASC" )
+
+        //----------------------------------------------------------------------------------------------------------------------
+
+        hmParentColumn[ "mms_device" ] = columnDevice
+        hmParentColumn[ "mms_device_command" ] = columnCommand
+    }
+}
