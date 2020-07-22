@@ -60,9 +60,9 @@ publishing {
     }
     repositories {
         mavenLocal()
-////        maven {
-////            url = uri("http://nexus.otr.ru/content/repositories/core-release/")
-////        }
+//        maven {
+//            url = uri("http://.../")
+//        }
     }
 }
 
