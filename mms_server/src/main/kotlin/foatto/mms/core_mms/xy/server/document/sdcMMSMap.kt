@@ -34,7 +34,7 @@ import foatto.mms.core_mms.calc.ObjectCalc
 import foatto.mms.core_mms.calc.ObjectState
 import foatto.mms.core_mms.calc.OverSpeedPeriodData
 import foatto.mms.core_mms.sensor.SensorConfig
-import foatto.mms.core_mms.sensor.SensorConfigW
+import foatto.mms.core_mms.sensor.SensorConfigWork
 import foatto.sql.CoreAdvancedStatement
 import java.nio.ByteOrder
 import java.util.*
@@ -233,7 +233,7 @@ class sdcMMSMap : sdcXyMap() {
                 val hmSCW = objectConfig.hmSensorConfig[SensorConfig.SENSOR_WORK]
                 if(hmSCW != null && !hmSCW.isEmpty())
                     for(portNum in hmSCW.keys) {
-                        val scw = hmSCW[portNum] as SensorConfigW
+                        val scw = hmSCW[portNum] as SensorConfigWork
 
                         val alWork = ObjectCalc.calcWorkSensor(alRawTime, alRawData, objectConfig, scw, objectParamData.begTime, objectParamData.endTime, mutableListOf()).alWorkOnOff
                         if(alWork != null)
@@ -329,7 +329,7 @@ class sdcMMSMap : sdcXyMap() {
                     val tmWorkTime = TreeMap<String, Int>()
                     val hmSCW = objectConfig.hmSensorConfig[SensorConfig.SENSOR_WORK]
                     if(hmSCW != null && !hmSCW.isEmpty()) for(portNum in hmSCW.keys) {
-                        val scw = hmSCW[portNum] as SensorConfigW
+                        val scw = hmSCW[portNum] as SensorConfigWork
 
                         val alWork = ObjectCalc.calcWorkSensor(alRawTime, alRawData, objectConfig, scw, mpd.begTime, mpd.endTime, mutableListOf()).alWorkOnOff
                         if(alWork != null) for(apd in alWork) if(apd.getState() != 0) {

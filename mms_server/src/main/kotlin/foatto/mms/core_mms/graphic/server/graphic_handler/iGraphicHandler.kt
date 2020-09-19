@@ -1,20 +1,18 @@
 package foatto.mms.core_mms.graphic.server.graphic_handler
 
-import foatto.core.app.graphic.GraphicDataContainer
 import foatto.core.app.graphic.GraphicColorIndex
+import foatto.core.app.graphic.GraphicDataContainer
 import foatto.core.util.AdvancedByteBuffer
 import foatto.mms.core_mms.ObjectConfig
-import foatto.mms.core_mms.sensor.SensorConfigA
+import foatto.mms.core_mms.sensor.SensorConfigSemiAnalogue
 
 interface iGraphicHandler {
 
-    //----------------------------------------------------------------------------------------------------------------------------------------
-
-    //--- опытным путём выяснено - делать усреднение по X не стОит,
-    //--- т.к. в этом случае резкие переходы между уровнями получаются слишком спрямленными,
-    //--- т.к. промежуточные точки "убегают/усредняются" к многочисленным соседним точкам,
-    //--- а детектор заправки начинает ошибаться (незасчитывать начало заправки),
-    //--- т.к. средняя точка слишком убежала направо и должного кол-ва л/час не получается
+    //--- empirically found out - it is not worth averaging over X,
+    //--- since in this case, sharp transitions between levels are too straightened,
+    //--- since run / average intermediate points to multiple neighboring points,
+    //--- and the refueling detector starts to make mistakes (not counting the start of refueling),
+    //--- since the midpoint ran too far to the right and the proper amount of l / h does not work
     //boolean useAverageX();
 
     val lineNoneColorIndex: GraphicColorIndex
@@ -24,31 +22,31 @@ interface iGraphicHandler {
 
     //----------------------------------------------------------------------------------------------------------------------------------------
 
-    //--- будут ли использоваться/показываться статические линии предельных значений
-    fun isStaticMinLimit( sca: SensorConfigA ): Boolean
-    fun isStaticMaxLimit( sca: SensorConfigA ): Boolean
+    //--- whether static limit lines will be used / displayed
+    fun isStaticMinLimit(sca: SensorConfigSemiAnalogue): Boolean
+    fun isStaticMaxLimit(sca: SensorConfigSemiAnalogue): Boolean
 
-    fun getStaticMinLimit( sca: SensorConfigA ): Double
-    fun getStaticMaxLimit( sca: SensorConfigA ): Double
+    fun getStaticMinLimit(sca: SensorConfigSemiAnalogue): Double
+    fun getStaticMaxLimit(sca: SensorConfigSemiAnalogue): Double
 
-    fun setStaticMinLimit(sca: SensorConfigA, begTime: Int, endTime: Int, aMinLimit: GraphicDataContainer? )
-    fun setStaticMaxLimit(sca: SensorConfigA, begTime: Int, endTime: Int, aMaxLimit: GraphicDataContainer? )
-
-    //----------------------------------------------------------------------------------------------------------------------------------------
-
-    //--- будут ли использоваться/показываться динамические линии предельных значений
-    fun isDynamicMinLimit( sca: SensorConfigA ): Boolean
-    fun isDynamicMaxLimit( sca: SensorConfigA ): Boolean
-
-    fun getDynamicMinLimit(oc: ObjectConfig, sca: SensorConfigA, rawTime: Int, rawData: Double ): Double
-    fun getDynamicMaxLimit(oc: ObjectConfig, sca: SensorConfigA, rawTime: Int, rawData: Double ): Double
-
-    fun addDynamicMinLimit(rawTime: Int, dynamicMinLimit: Double, aMinLimit: GraphicDataContainer )
-    fun addDynamicMaxLimit(rawTime: Int, dynamicMaxLimit: Double, aMaxLimit: GraphicDataContainer )
+    fun setStaticMinLimit(sca: SensorConfigSemiAnalogue, begTime: Int, endTime: Int, aMinLimit: GraphicDataContainer?)
+    fun setStaticMaxLimit(sca: SensorConfigSemiAnalogue, begTime: Int, endTime: Int, aMaxLimit: GraphicDataContainer?)
 
     //----------------------------------------------------------------------------------------------------------------------------------------
 
-    fun getRawData( oc: ObjectConfig, sca: SensorConfigA, bb: AdvancedByteBuffer ): Double?
+    //--- whether dynamic limit lines will be used / displayed
+    fun isDynamicMinLimit(sca: SensorConfigSemiAnalogue): Boolean
+    fun isDynamicMaxLimit(sca: SensorConfigSemiAnalogue): Boolean
 
-    fun getLineColorIndex(oc: ObjectConfig, sca: SensorConfigA, rawTime: Int, rawData: Double, prevTime: Int, prevData: Double ): GraphicColorIndex
+    fun getDynamicMinLimit(oc: ObjectConfig, sca: SensorConfigSemiAnalogue, rawTime: Int, rawData: Double): Double
+    fun getDynamicMaxLimit(oc: ObjectConfig, sca: SensorConfigSemiAnalogue, rawTime: Int, rawData: Double): Double
+
+    fun addDynamicMinLimit(rawTime: Int, dynamicMinLimit: Double, aMinLimit: GraphicDataContainer)
+    fun addDynamicMaxLimit(rawTime: Int, dynamicMaxLimit: Double, aMaxLimit: GraphicDataContainer)
+
+    //----------------------------------------------------------------------------------------------------------------------------------------
+
+    fun getRawData(oc: ObjectConfig, sca: SensorConfigSemiAnalogue, bb: AdvancedByteBuffer): Double?
+
+    fun getLineColorIndex(oc: ObjectConfig, sca: SensorConfigSemiAnalogue, rawTime: Int, rawData: Double, prevTime: Int, prevData: Double): GraphicColorIndex
 }

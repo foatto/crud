@@ -4,18 +4,15 @@ import foatto.core.app.graphic.AxisYData
 import foatto.core.app.graphic.GraphicColorIndex
 import foatto.core.app.graphic.GraphicDataContainer
 import foatto.core.app.graphic.GraphicLineData
-import foatto.core.app.graphic.GraphicTextData
 import foatto.core.util.AdvancedByteBuffer
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.calc.AbstractObjectStateCalc
 import foatto.mms.core_mms.calc.ObjectCalc
 import foatto.mms.core_mms.graphic.server.graphic_handler.LiquidGraphicHandler
-import foatto.mms.core_mms.graphic.server.graphic_handler.PowerGraphicHandler
 import foatto.mms.core_mms.graphic.server.graphic_handler.iGraphicHandler
 import foatto.mms.core_mms.sensor.SensorConfig
-import foatto.mms.core_mms.sensor.SensorConfigA
-import foatto.mms.core_mms.sensor.SensorConfigU
-import foatto.mms.core_mms.sensor.SensorConfigW
+import foatto.mms.core_mms.sensor.SensorConfigAnalogue
+import foatto.mms.core_mms.sensor.SensorConfigUsing
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -35,7 +32,7 @@ class sdcLiquid : sdcAnalog() {
 //    private val alEnergoPowerLine = mutableListOf<GraphicDataContainer?>()
 
     override fun calcGraphic(
-        graphicHandler: iGraphicHandler, alRawTime: List<Int>, alRawData: List<AdvancedByteBuffer>, oc: ObjectConfig, sca: SensorConfigA,
+        graphicHandler: iGraphicHandler, alRawTime: List<Int>, alRawData: List<AdvancedByteBuffer>, oc: ObjectConfig, sca: SensorConfigAnalogue,
         begTime: Int, endTime: Int, xScale: Int, yScale: Double, isShowPoint: Boolean, isShowLine: Boolean, isShowText: Boolean,
         alAxisYData: MutableList<AxisYData>, aMinLimit: GraphicDataContainer?, aMaxLimit: GraphicDataContainer?,
         aPoint: GraphicDataContainer?, aLine: GraphicDataContainer?, aText: GraphicDataContainer?
@@ -52,11 +49,11 @@ class sdcLiquid : sdcAnalog() {
         }
         if(aText != null) {
         //--- ловим ошибки с датчиков уровня топлива
-            for(errorCode in SensorConfigA.hmLLErrorCodeDescr.keys)
+            for (errorCode in SensorConfigAnalogue.hmLLErrorCodeDescr.keys)
                 checkSensorError(
                     alRawTime, alRawData, oc, sca.portNum, sca.descr, begTime, endTime,
                     GraphicColorIndex.FILL_CRITICAL, GraphicColorIndex.BORDER_CRITICAL, GraphicColorIndex.TEXT_CRITICAL, errorCode,
-                    SensorConfigA.hmLLErrorCodeDescr[errorCode]!!, SensorConfigA.hmLLMinSensorErrorTime[errorCode]!!, aText
+                    SensorConfigAnalogue.hmLLErrorCodeDescr[errorCode]!!, SensorConfigAnalogue.hmLLMinSensorErrorTime[errorCode]!!, aText
                 )
         }
 
@@ -70,11 +67,11 @@ class sdcLiquid : sdcAnalog() {
 
             //--- есть ли вообще прописанные датчики скорости расхода жидкости
             val hmSCLF = oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_FLOW_CALC].orEmpty()
-            val scafInGroup = hmSCLF.values.map { it as SensorConfigA }.firstOrNull { it.group == sca.group }
+            val scafInGroup = hmSCLF.values.map { it as SensorConfigAnalogue }.firstOrNull { it.group == sca.group }
 
             //--- обработка счётчиков массового/объёмного расхода (счётчиков топлива)
             val hmSVF = oc.hmSensorConfig[SensorConfig.SENSOR_VOLUME_FLOW].orEmpty()
-            val alScu = hmSVF.values.filter { it.group == sca.group }.map { it as SensorConfigU }.toList()
+            val alScu = hmSVF.values.filter { it.group == sca.group }.map { it as SensorConfigUsing }.toList()
 
             //--- если есть расходомер и он только один (находим датчик скорости расхода) и считаем по нему
             if(scafInGroup != null && alScu.size == 1) {
@@ -84,7 +81,7 @@ class sdcLiquid : sdcAnalog() {
             //--- расходомеров не нашлось (или их >1), считаем через изменение уровня топлива
             else {
                 //--- есть ли ( виртуальный ) датчик скорости расхода жидкости на том же порту, что и текущий уровнемер
-                val scafInPort = hmSCLF[sca.portNum] as? SensorConfigA
+                val scafInPort = hmSCLF[sca.portNum] as? SensorConfigAnalogue
                 if(scafInPort != null && aLine.alGLD.isNotEmpty()) {
                     isLiquidFlow = true
                     calcLiquidFlowOverLiquidLevel(alAxisYData, sca, scafInPort, begTime, endTime, xScale, yScale, aLine.alGLD)
@@ -156,8 +153,8 @@ class sdcLiquid : sdcAnalog() {
         alRawData: List<AdvancedByteBuffer>,
         alAxisYData: MutableList<AxisYData>,
         oc: ObjectConfig,
-        scu: SensorConfigU,
-        scaf: SensorConfigA,
+        scu: SensorConfigUsing,
+        scaf: SensorConfigAnalogue,
         begTime: Int,
         endTime: Int,
         xScale: Int,
@@ -253,8 +250,8 @@ class sdcLiquid : sdcAnalog() {
 
     private fun calcLiquidFlowOverLiquidLevel(
         alAxisYData: MutableList<AxisYData>,
-        sca: SensorConfigA,
-        scaf: SensorConfigA,
+        sca: SensorConfigAnalogue,
+        scaf: SensorConfigAnalogue,
         begTime: Int,
         endTime: Int,
         xScale: Int,

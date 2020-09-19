@@ -1,16 +1,20 @@
 package foatto.mms.core_mms.sensor
 
-open class SensorConfig( val id: Int, val name: String, val sumGroup: String, val group: String, val descr: String, val portNum: Int, val sensorType: Int ) {
-
-    //--- name: внутреннее/системное имя датчика, необходимо для поиска/идентификации при программном добавлении датчиков ( например, из дпнных измерений )
-    //--- sumGroup: имя группы датчиков для суммирования однотипных датчиков в пределах одного графика/отчёта
-    //--- group: имя группы датчиков для логической связки разнотипных датчиков в пределах одного графика/отчёта
-    //--- descr: видимое/выводимое описание датчика
+open class SensorConfig(
+    val id: Int,
+    val name: String,       // внутреннее/системное имя датчика, необходимо для поиска/идентификации при программном добавлении датчиков ( например, из дпнных измерений )
+    val sumGroup: String,   // имя группы датчиков для суммирования однотипных датчиков в пределах одного графика/отчёта
+    val group: String,      // имя группы датчиков для логической связки разнотипных датчиков в пределах одного графика/отчёта
+    val descr: String,      // видимое/выводимое описание датчика
+    val portNum: Int,
+    val sensorType: Int
+) {
 
     companion object {
 
         //--- предопределённый номер порта для гео-датика
         const val GEO_PORT_NUM = 19
+
         //--- предопределённый размер гео-данных (  wgsX + wgsY + speed + distance = 4 + 4 + 2 + 4 = 14  )
         const val GEO_DATA_SIZE = 14
 
@@ -45,7 +49,7 @@ open class SensorConfig( val id: Int, val name: String, val sumGroup: String, va
         const val SENSOR_MASS_ACCUMULATED = 14
         const val SENSOR_VOLUME_ACCUMULATED = 15
 
-        //--- электросчётчик
+        //--- electro energo counters
 
         //--- учётные величины - отчёты
         //--- Вт*ч - выводим как кВт*ч
@@ -56,76 +60,75 @@ open class SensorConfig( val id: Int, val name: String, val sumGroup: String, va
 
         //--- контрольные величины - графики
 
-        //--- напряжение по фазе
-        const val SENSOR_ENERGO_VOLTAGE_A = 30
-        const val SENSOR_ENERGO_VOLTAGE_B = 31
-        const val SENSOR_ENERGO_VOLTAGE_C = 32
+        const val SENSOR_ENERGO_VOLTAGE = 30        // voltage by phase
+        const val SENSOR_ENERGO_CURRENT = 31        // current by phase
+        const val SENSOR_ENERGO_POWER_KOEF = 32     // power koeff by phase
+        const val SENSOR_ENERGO_POWER_ACTIVE = 33   // active power by phase
+        const val SENSOR_ENERGO_POWER_REACTIVE = 34 // reactive power by phase
+        const val SENSOR_ENERGO_POWER_FULL = 35     // full/summary power by phase
 
-        //--- ток по фазе
-        const val SENSOR_ENERGO_CURRENT_A = 33
-        const val SENSOR_ENERGO_CURRENT_B = 34
-        const val SENSOR_ENERGO_CURRENT_C = 35
+        //--- алгоритмы усреднения:
+        //--- медиана
+        const val SMOOTH_METOD_MEDIAN = 0
 
-        //--- коэффициент мощности по фазе
-        const val SENSOR_ENERGO_POWER_KOEF_A = 36
-        const val SENSOR_ENERGO_POWER_KOEF_B = 37
-        const val SENSOR_ENERGO_POWER_KOEF_C = 38
+        //--- среднее арифметическое
+        const val SMOOTH_METOD_AVERAGE = 1
 
+        //--- среднее квадратическое
+        const val SMOOTH_METOD_AVERAGE_SQUARE = 2
+
+        //--- среднее геометрическое
+        const val SMOOTH_METOD_AVERAGE_GEOMETRIC = 3
+
+        //--- названия датчиков
         val hmSensorDescr = mutableMapOf<Int, String>()
-
-        init {
-            hmSensorDescr[ SENSOR_SIGNAL ] = "Сигнал"
-            hmSensorDescr[ SENSOR_GEO ] = "Гео-данные"
-            hmSensorDescr[ SENSOR_WORK ] = "Работа оборудования"
-            //hmSensorDescr[ SENSOR_LIQUID_USING ] = "Расход топлива"
-            hmSensorDescr[ SENSOR_LIQUID_FLOW_CALC ] = "Скорость расхода топлива (расчётная)"
-            hmSensorDescr[ SENSOR_LIQUID_LEVEL ] = "Уровень топлива"
-            hmSensorDescr[ SENSOR_WEIGHT ] = "Нагрузка"
-            hmSensorDescr[ SENSOR_TURN ] = "Обороты"
-            hmSensorDescr[ SENSOR_PRESSURE ] = "Давление"
-            hmSensorDescr[ SENSOR_TEMPERATURE ] = "Температура"
-            hmSensorDescr[ SENSOR_VOLTAGE ] = "Напряжение"
-            hmSensorDescr[ SENSOR_POWER ] = "Мощность"
-            hmSensorDescr[ SENSOR_DENSITY ] = "Плотность"
-            hmSensorDescr[ SENSOR_MASS_FLOW ] = "Массовый расход"
-            hmSensorDescr[ SENSOR_VOLUME_FLOW ] = "Объёмный расход"
-            hmSensorDescr[ SENSOR_MASS_ACCUMULATED ] = "Накопленная масся"
-            hmSensorDescr[ SENSOR_VOLUME_ACCUMULATED ] = "Накопленный объём"
-            hmSensorDescr[ SENSOR_ENERGO_COUNT_AD ] = "Электроэнергия активная прямая"
-            hmSensorDescr[ SENSOR_ENERGO_COUNT_AR ] = "Электроэнергия активная прямая"
-            hmSensorDescr[ SENSOR_ENERGO_COUNT_RD ] = "Электроэнергия активная прямая"
-            hmSensorDescr[ SENSOR_ENERGO_COUNT_RR ] = "Электроэнергия активная прямая"
-            hmSensorDescr[ SENSOR_ENERGO_VOLTAGE_A ] = "Напряжение по фазе A"
-            hmSensorDescr[ SENSOR_ENERGO_VOLTAGE_B ] = "Напряжение по фазе B"
-            hmSensorDescr[ SENSOR_ENERGO_VOLTAGE_C ] = "Напряжение по фазе C"
-            hmSensorDescr[ SENSOR_ENERGO_CURRENT_A ] = "Ток по фазе A"
-            hmSensorDescr[ SENSOR_ENERGO_CURRENT_B ] = "Ток по фазе B"
-            hmSensorDescr[ SENSOR_ENERGO_CURRENT_C ] = "Ток по фазе C"
-            hmSensorDescr[ SENSOR_ENERGO_POWER_KOEF_A ] = "Коэффициент мощности по фазе A"
-            hmSensorDescr[ SENSOR_ENERGO_POWER_KOEF_B ] = "Коэффициент мощности по фазе B"
-            hmSensorDescr[ SENSOR_ENERGO_POWER_KOEF_C ] = "Коэффициент мощности по фазе C"
-        }
 
         //--- типы датчиков, к которым не применяется сглаживание
         val hsSensorNonSmooth = mutableSetOf<Int>()
-
-        init {
-            hsSensorNonSmooth.add( SENSOR_SIGNAL )
-            hsSensorNonSmooth.add( SENSOR_GEO )
-            hsSensorNonSmooth.add( SENSOR_WORK )
-            //hsSensorNonSmooth.add( SENSOR_LIQUID_USING )
-            hsSensorNonSmooth.add( SENSOR_MASS_ACCUMULATED )
-            hsSensorNonSmooth.add( SENSOR_VOLUME_ACCUMULATED )
-            hsSensorNonSmooth.add( SENSOR_ENERGO_COUNT_AD )
-            hsSensorNonSmooth.add( SENSOR_ENERGO_COUNT_AR )
-            hsSensorNonSmooth.add( SENSOR_ENERGO_COUNT_RD )
-            hsSensorNonSmooth.add( SENSOR_ENERGO_COUNT_RR )
-        }
 
         //--- типы датчиков, у которых не бывает калибровки
         val hsSensorNonCalibration = mutableSetOf<Int>()
 
         init {
+            hmSensorDescr[SENSOR_SIGNAL] = "Сигнал"
+            hmSensorDescr[SENSOR_GEO] = "Гео-данные"
+            hmSensorDescr[SENSOR_WORK] = "Работа оборудования"
+            //hmSensorDescr[ SENSOR_LIQUID_USING ] = "Расход топлива"
+            hmSensorDescr[SENSOR_LIQUID_FLOW_CALC] = "Скорость расхода топлива (расчётная)"
+            hmSensorDescr[SENSOR_LIQUID_LEVEL] = "Уровень топлива"
+            hmSensorDescr[SENSOR_WEIGHT] = "Нагрузка"
+            hmSensorDescr[SENSOR_TURN] = "Обороты"
+            hmSensorDescr[SENSOR_PRESSURE] = "Давление"
+            hmSensorDescr[SENSOR_TEMPERATURE] = "Температура"
+            hmSensorDescr[SENSOR_VOLTAGE] = "Напряжение"
+            hmSensorDescr[SENSOR_POWER] = "Мощность"
+            hmSensorDescr[SENSOR_DENSITY] = "Плотность"
+            hmSensorDescr[SENSOR_MASS_FLOW] = "Массовый расход"
+            hmSensorDescr[SENSOR_VOLUME_FLOW] = "Объёмный расход"
+            hmSensorDescr[SENSOR_MASS_ACCUMULATED] = "Накопленная масся"
+            hmSensorDescr[SENSOR_VOLUME_ACCUMULATED] = "Накопленный объём"
+            hmSensorDescr[SENSOR_ENERGO_COUNT_AD] = "Электроэнергия активная прямая"
+            hmSensorDescr[SENSOR_ENERGO_COUNT_AR] = "Электроэнергия активная обратная"
+            hmSensorDescr[SENSOR_ENERGO_COUNT_RD] = "Электроэнергия реактивная прямая"
+            hmSensorDescr[SENSOR_ENERGO_COUNT_RR] = "Электроэнергия реактивная обратная"
+            hmSensorDescr[SENSOR_ENERGO_VOLTAGE] = "Напряжение по фазе"
+            hmSensorDescr[SENSOR_ENERGO_CURRENT] = "Ток по фазе"
+            hmSensorDescr[SENSOR_ENERGO_POWER_KOEF] = "Коэффициент мощности по фазе"
+            hmSensorDescr[SENSOR_ENERGO_POWER_ACTIVE] = "Активная мощность по фазе"
+            hmSensorDescr[SENSOR_ENERGO_POWER_REACTIVE] = "Реактивная мощность по фазе"
+            hmSensorDescr[SENSOR_ENERGO_POWER_FULL] = "Полная мощность по фазе"
+
+            hsSensorNonSmooth.add(SENSOR_SIGNAL)
+            hsSensorNonSmooth.add(SENSOR_GEO)
+            hsSensorNonSmooth.add(SENSOR_WORK)
+            //hsSensorNonSmooth.add( SENSOR_LIQUID_USING )
+            hsSensorNonSmooth.add(SENSOR_MASS_ACCUMULATED)
+            hsSensorNonSmooth.add(SENSOR_VOLUME_ACCUMULATED)
+            hsSensorNonSmooth.add(SENSOR_ENERGO_COUNT_AD)
+            hsSensorNonSmooth.add(SENSOR_ENERGO_COUNT_AR)
+            hsSensorNonSmooth.add(SENSOR_ENERGO_COUNT_RD)
+            hsSensorNonSmooth.add( SENSOR_ENERGO_COUNT_RR )
+
             hsSensorNonCalibration.add( SENSOR_SIGNAL )
             hsSensorNonCalibration.add( SENSOR_GEO )
             hsSensorNonCalibration.add( SENSOR_WORK )

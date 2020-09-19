@@ -3,7 +3,7 @@ package foatto.mms.core_mms.calc
 import foatto.core.app.graphic.GraphicColorIndex
 import foatto.core.app.xy.geom.XyPoint
 import foatto.mms.core_mms.ObjectConfig
-import foatto.mms.core_mms.sensor.SensorConfigA
+import foatto.mms.core_mms.sensor.SensorConfigAnalogue
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -110,7 +110,7 @@ class OverSensorPeriodData(
     var overSensorState = 1
 
     var objectConfig: ObjectConfig? = null
-    var sca: SensorConfigA? = null
+    var sca: SensorConfigAnalogue? = null
     var sbZoneName: StringBuilder? = null
 
     override fun getState(): Int = overSensorState

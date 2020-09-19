@@ -2,8 +2,8 @@ package foatto.mms.core_mms.report
 
 import foatto.core.link.FormData
 import foatto.core.util.DateTime_DMYHMS
-import foatto.core.util.secondIntervalToString
 import foatto.core.util.getSplittedDouble
+import foatto.core.util.secondIntervalToString
 import foatto.core_server.app.server.data.DataComboBox
 import foatto.core_server.app.server.data.DataDate3Int
 import foatto.core_server.app.server.data.DataInt
@@ -13,7 +13,7 @@ import foatto.mms.core_mms.ZoneData
 import foatto.mms.core_mms.calc.LiquidIncDecData
 import foatto.mms.core_mms.calc.ObjectCalc
 import foatto.mms.core_mms.sensor.SensorConfig
-import foatto.mms.core_mms.sensor.SensorConfigA
+import foatto.mms.core_mms.sensor.SensorConfigAnalogue
 import jxl.CellView
 import jxl.format.PageOrientation
 import jxl.format.PaperSize
@@ -222,7 +222,7 @@ class cLiquidIncDec : cMMSReport() {
 
             val tmObjectResult = TreeMap<String, LiquidIncDecData>()
             for(portNum in hmSCLL.keys) {
-                val sca = hmSCLL[portNum] as SensorConfigA
+                val sca = hmSCLL[portNum] as SensorConfigAnalogue
                 //--- собираем заправки или сливы по одному датчику
                 val alSCAResult = ObjectCalc.calcIncDec(
                     stm, alRawTime, alRawData, oc, sca, begTime, endTime, isWaybill, alBeg, alEnd, if(isInc) 1 else -1, hmZoneData, reportZone

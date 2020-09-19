@@ -3,7 +3,7 @@ package foatto.mms.core_mms.ds
 import foatto.core.app.UP_TIME_OFFSET
 import foatto.core.util.getZoneId
 import foatto.mms.core_mms.sensor.SensorConfig
-import foatto.mms.core_mms.sensor.SensorConfigG
+import foatto.mms.core_mms.sensor.SensorConfigGeo
 import foatto.sql.CoreAdvancedStatement
 import java.time.ZoneId
 
@@ -17,7 +17,7 @@ class DeviceConfig {
     var index = 0
     var isOfflineMode = false
 
-    var speedRoundRule = SensorConfigG.SPEED_ROUND_RULE_STANDART
+    var speedRoundRule = SensorConfigGeo.SPEED_ROUND_RULE_STANDART
 
     lateinit var zoneId: ZoneId
 
@@ -47,7 +47,7 @@ class DeviceConfig {
 
             if(dc != null) {
                 rs = stm.executeQuery(" SELECT speed_round_rule FROM MMS_sensor WHERE object_id = ${dc.objectID} AND sensor_type = ${SensorConfig.SENSOR_GEO}")
-                dc.speedRoundRule = if(rs.next()) rs.getInt(1) else SensorConfigG.SPEED_ROUND_RULE_STANDART
+                dc.speedRoundRule = if (rs.next()) rs.getInt(1) else SensorConfigGeo.SPEED_ROUND_RULE_STANDART
                 rs.close()
 
                 rs = stm.executeQuery(" SELECT property_value FROM SYSTEM_user_property WHERE user_id = ${dc.userID} AND property_name = '$UP_TIME_OFFSET' ")

@@ -21,9 +21,9 @@ import foatto.mms.core_mms.cObject
 import foatto.mms.core_mms.calc.ObjectState
 import foatto.mms.core_mms.ds.MMSHandler
 import foatto.mms.core_mms.sensor.SensorConfig
-import foatto.mms.core_mms.sensor.SensorConfigA
-import foatto.mms.core_mms.sensor.SensorConfigS
-import foatto.mms.core_mms.sensor.SensorConfigW
+import foatto.mms.core_mms.sensor.SensorConfigAnalogue
+import foatto.mms.core_mms.sensor.SensorConfigSignal
+import foatto.mms.core_mms.sensor.SensorConfigWork
 import foatto.mms.core_mms.sensor.SignalConfig
 import foatto.sql.CoreAdvancedStatement
 import java.util.*
@@ -177,7 +177,7 @@ class sdcMMSState : sdcXyState() {
         val hmSCLL = objectConfig.hmSensorConfig[SensorConfig.SENSOR_LIQUID_LEVEL]
         if(hmSCLL != null)
             for(portNum in hmSCLL.keys) {
-                val sca = hmSCLL[portNum] as SensorConfigA
+                val sca = hmSCLL[portNum] as SensorConfigAnalogue
                 val tmGroup = tmSumGroup.getOrPut(sca.sumGroup) { TreeMap() }
                 val alLL = tmGroup.getOrPut(sca.group) { mutableListOf() }
                 alLL.add(sca)
@@ -186,7 +186,7 @@ class sdcMMSState : sdcXyState() {
         val hmSCW = objectConfig.hmSensorConfig[SensorConfig.SENSOR_WORK]
         if(hmSCW != null)
             for(portNum in hmSCW.keys) {
-                val scw = hmSCW[portNum] as SensorConfigW
+                val scw = hmSCW[portNum] as SensorConfigWork
                 val tmGroup = tmSumGroup.getOrPut(scw.sumGroup) { TreeMap() }
                 val alW = tmGroup.getOrPut(scw.group) { mutableListOf() }
                 alW.add(scw)
@@ -195,7 +195,7 @@ class sdcMMSState : sdcXyState() {
         val hmSCS = objectConfig.hmSensorConfig[SensorConfig.SENSOR_SIGNAL]
         if(hmSCS != null)
             for(portNum in hmSCS.keys) {
-                val scs = hmSCS[portNum] as SensorConfigS
+                val scs = hmSCS[portNum] as SensorConfigSignal
                 val tmGroup = tmSumGroup.getOrPut(scs.sumGroup) { TreeMap() }
                 val alS = tmGroup.getOrPut(scs.group) { mutableListOf() }
                 alS.add(scs)
@@ -212,26 +212,26 @@ class sdcMMSState : sdcXyState() {
                 var xW = x + GRID_STEP * 2
                 var xS = x + GRID_STEP
                 for(sc in alSC) {
-                    if(sc is SensorConfigA) {
+                    if (sc is SensorConfigAnalogue) {
                         val liquidError = objectState.tmLiquidError[sc.descr]
                         val liquidLevel = objectState.tmLiquidLevel[sc.descr]
-                        val curLevel = if(liquidError == null && liquidLevel != null) liquidLevel else 0.0
+                        val curLevel = if (liquidError == null && liquidLevel != null) liquidLevel else 0.0
                         addLL25D(
                             objectParamData.objectID, sc, scale, xLL, GRID_STEP * 3, curLevel,
-                            StringBuilder(sc.descr).append(if(liquidError == null) "" else '\n').append(liquidError ?: "").toString(), alResult
+                            StringBuilder(sc.descr).append(if (liquidError == null) "" else '\n').append(liquidError ?: "").toString(), alResult
                         )
                         xLL += GRID_STEP * 8
-                    } else if(sc is SensorConfigW) {
+                    } else if (sc is SensorConfigWork) {
                         val workState = objectState.tmWorkState[sc.descr]
                         var commandID = 0
                         var toolTip = sc.descr
                         //--- выясняем возможность управления объектом
-                        if(isRemoteControlPermission) {
+                        if (isRemoteControlPermission) {
                             //--- оборудование сейчас включено и есть команда выключения и сигналы разрешают выключение
-                            if(workState != null && workState && sc.cmdOffID != 0 && getSignalEnabled(objectState, hmSCS!!, sc.signalOff)) {
+                            if (workState != null && workState && sc.cmdOffID != 0 && getSignalEnabled(objectState, hmSCS!!, sc.signalOff)) {
                                 commandID = sc.cmdOffID
                                 toolTip = "Отключить $toolTip"
-                            } else if(workState != null && !workState && sc.cmdOnID != 0 && getSignalEnabled(objectState, hmSCS!!, sc.signalOn)) {
+                            } else if (workState != null && !workState && sc.cmdOnID != 0 && getSignalEnabled(objectState, hmSCS!!, sc.signalOn)) {
                                 commandID = sc.cmdOnID
                                 toolTip = "Включить $toolTip"
                             }
@@ -240,7 +240,7 @@ class sdcMMSState : sdcXyState() {
                             objectParamData.objectID, xW, GRID_STEP * 8, if(workState == null) -1 else if(workState) 1 else 0, commandID != 0,
                             sc.descr, toolTip, alResult
                         )
-                        for(elementID in arrElementID) {
+                        for (elementID in arrElementID) {
                             //--- пропишем/обнулим команду на этот элемент
                             chmElementCommand.put(elementID, commandID)
                             //--- пропишем/обнулим номер порта датчика на этот элемент
@@ -248,9 +248,9 @@ class sdcMMSState : sdcXyState() {
                             chmElementPort.put(elementID, sc.portNum)
                         }
                         xW += GRID_STEP * 8
-                    } else if(sc is SensorConfigS) {
+                    } else if (sc is SensorConfigSignal) {
                         val signalState = objectState.tmSignalState[sc.descr]
-                        addS25D(objectParamData.objectID, scale, xS, GRID_STEP * 16, if(signalState == null) -1 else if(signalState) 1 else 0, sc.descr, alResult)
+                        addS25D(objectParamData.objectID, scale, xS, GRID_STEP * 16, if (signalState == null) -1 else if (signalState) 1 else 0, sc.descr, alResult)
                         xS += GRID_STEP * 8
                     }
                 }
@@ -366,9 +366,9 @@ class sdcMMSState : sdcXyState() {
     }
 
     //--- объём в литрах ---
-    private fun addLL25D(objectID: Int, sc: SensorConfigA, scale: Int, x: Int, y: Int, curLevel: Double, tankName: String, alResult: MutableList<XyElement>) {
+    private fun addLL25D(objectID: Int, sc: SensorConfigAnalogue, scale: Int, x: Int, y: Int, curLevel: Double, tankName: String, alResult: MutableList<XyElement>) {
 
-        val percent = curLevel / if(sc.maxView == 0.0) curLevel else sc.maxView
+        val percent = curLevel / if (sc.maxView == 0.0) curLevel else sc.maxView
         val totalVolumeText = "${getSplittedDouble(sc.maxView, 0)} ${sc.dim}"
         val currentVolumeText = " ${getSplittedDouble(curLevel, 0)} ${sc.dim}"
 
@@ -679,7 +679,7 @@ class sdcMMSState : sdcXyState() {
         if(signalConfig.alPort.isEmpty()) return true
         else {
             for(portNum in signalConfig.alPort) {
-                val scs = hmSCS[portNum] as SensorConfigS
+                val scs = hmSCS[portNum] as SensorConfigSignal
                 val signalState = objectState.tmSignalState[scs.descr]
                 //--- если состояние хотя бы одного сигнала не определено - выходим с отрицательным результатом
                 if(signalState == null) return false

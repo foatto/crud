@@ -2,14 +2,14 @@ package foatto.mms.core_mms.calc
 
 import foatto.core.app.xy.XyProjection
 import foatto.core.app.xy.geom.XyPoint
-import foatto.sql.CoreAdvancedStatement
 import foatto.core.util.getAngle
 import foatto.core.util.getCurrentTimeInt
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.sensor.SensorConfig
-import foatto.mms.core_mms.sensor.SensorConfigA
-import foatto.mms.core_mms.sensor.SensorConfigS
-import foatto.mms.core_mms.sensor.SensorConfigW
+import foatto.mms.core_mms.sensor.SensorConfigAnalogue
+import foatto.mms.core_mms.sensor.SensorConfigSignal
+import foatto.mms.core_mms.sensor.SensorConfigWork
+import foatto.sql.CoreAdvancedStatement
 import java.nio.ByteOrder
 import java.util.*
 
@@ -98,7 +98,7 @@ class ObjectState {
                     //--- если прописаны датчики сигналов
                     if( hmSCS != null && hmSCS.size != result.tmSignalState.size ) {
                         for( portNum in hmSCS.keys ) {
-                            val scs = hmSCS[ portNum ] as SensorConfigS
+                            val scs = hmSCS[portNum] as SensorConfigSignal
                             if( result.tmSignalState[ scs.descr ] == null ) {
                                 val sensorData = AbstractObjectStateCalc.getSensorData( oc, scs.portNum, bbSensor )?.toInt() ?: 0
                                 //--- вручную игнорируем заграничные значения
@@ -113,7 +113,7 @@ class ObjectState {
                     //--- если прописаны датчики работы оборудования
                     if( hmSCW != null && hmSCW.size != result.tmWorkState.size ) {
                         for( portNum in hmSCW.keys ) {
-                            val scw = hmSCW[ portNum ] as SensorConfigW
+                            val scw = hmSCW[portNum] as SensorConfigWork
                             if( result.tmWorkState[ scw.descr ] == null ) {
                                 val sensorData = AbstractObjectStateCalc.getSensorData( oc, scw.portNum, bbSensor )?.toInt() ?: 0
                                 //--- вручную игнорируем заграничные значения
@@ -136,22 +136,21 @@ class ObjectState {
                     //--- если прописаны датчики уровня жидкости
                     if( hmSCLL != null && hmSCLL.size != result.tmLiquidLevel.size ) {
                         for( portNum in hmSCLL.keys ) {
-                            val sca = hmSCLL[ portNum ] as SensorConfigA
+                            val sca = hmSCLL[portNum] as SensorConfigAnalogue
                             if( result.tmLiquidLevel[ sca.descr ] == null ) {
                                 //--- ручной разбор сырых данных
                                 val sensorData = AbstractObjectStateCalc.getSensorData( oc, sca.portNum, bbSensor )?.toInt() ?: 0
                                 //--- проверка на ошибку
-                                val troubleDescr = SensorConfigA.hmLLErrorCodeDescr[ sensorData ]
+                                val troubleDescr = SensorConfigAnalogue.hmLLErrorCodeDescr[sensorData]
                                 //--- если есть ошибка и она уже достаточное время
-                                if( troubleDescr != null && getCurrentTimeInt() - result.time > SensorConfigA.hmLLMinSensorErrorTime[ sensorData ]!! ) {
-                                    result.tmLiquidError[ sca.descr ] = troubleDescr
+                                if (troubleDescr != null && getCurrentTimeInt() - result.time > SensorConfigAnalogue.hmLLMinSensorErrorTime[sensorData]!!) {
+                                    result.tmLiquidError[sca.descr] = troubleDescr
                                     //--- значение не важно, ибо ошибка, лишь бы что-то было
-                                    result.tmLiquidLevel[ sca.descr ] = 0.0
-                                    result.tmLiquidDim[ sca.descr ] = sca.dim
-                                }
-                                else if( sensorData >= sca.minIgnore && sensorData <= sca.maxIgnore ) {
-                                    result.tmLiquidLevel[ sca.descr ] = AbstractObjectStateCalc.getSensorValue( sca.alValueSensor, sca.alValueData, sensorData.toDouble() )
-                                    result.tmLiquidDim[ sca.descr ] = sca.dim
+                                    result.tmLiquidLevel[sca.descr] = 0.0
+                                    result.tmLiquidDim[sca.descr] = sca.dim
+                                } else if (sensorData >= sca.minIgnore && sensorData <= sca.maxIgnore) {
+                                    result.tmLiquidLevel[sca.descr] = AbstractObjectStateCalc.getSensorValue(sca.alValueSensor, sca.alValueData, sensorData.toDouble())
+                                    result.tmLiquidDim[sca.descr] = sca.dim
                                 }//--- вручную игнорируем заграничные значения
                             }
                         }

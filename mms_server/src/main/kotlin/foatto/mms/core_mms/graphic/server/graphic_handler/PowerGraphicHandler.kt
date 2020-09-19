@@ -4,7 +4,7 @@ import foatto.core.app.graphic.GraphicColorIndex
 import foatto.core.util.AdvancedByteBuffer
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.calc.AbstractObjectStateCalc
-import foatto.mms.core_mms.sensor.SensorConfigA
+import foatto.mms.core_mms.sensor.SensorConfigSemiAnalogue
 
 class PowerGraphicHandler : AnalogGraphicHandler() {
 
@@ -17,11 +17,12 @@ class PowerGraphicHandler : AnalogGraphicHandler() {
 
     //----------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun getRawData( oc: ObjectConfig, scaep: SensorConfigA, bb: AdvancedByteBuffer ): Double? {
-        val energoCountActiveDirect = AbstractObjectStateCalc.getSensorData( oc, scaep.portNum, bb )?.toInt() ?: 0
+    override fun getRawData(oc: ObjectConfig, scaep: SensorConfigSemiAnalogue, bb: AdvancedByteBuffer): Double? {
+        val energoCountActiveDirect = AbstractObjectStateCalc.getSensorData(oc, scaep.portNum, bb)?.toInt() ?: 0
 //--- вручную игнорируем заграничные значения
-        return if( energoCountActiveDirect < scaep.minIgnore ||
-                   energoCountActiveDirect > scaep.maxIgnore ) null
-               else AbstractObjectStateCalc.getSensorValue( scaep.alValueSensor, scaep.alValueData, energoCountActiveDirect.toDouble() )
+        return if (energoCountActiveDirect < scaep.minIgnore ||
+            energoCountActiveDirect > scaep.maxIgnore
+        ) null
+        else AbstractObjectStateCalc.getSensorValue(scaep.alValueSensor, scaep.alValueData, energoCountActiveDirect.toDouble())
     }
 }

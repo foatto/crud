@@ -5,16 +5,16 @@ import foatto.core.app.graphic.GraphicDataContainer
 import foatto.core.app.xy.geom.XyPoint
 import foatto.core.link.FormData
 import foatto.core.util.DateTime_DMYHMS
-import foatto.core.util.secondIntervalToString
 import foatto.core.util.getSBFromIterable
 import foatto.core.util.getSplittedDouble
+import foatto.core.util.secondIntervalToString
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.ZoneData
 import foatto.mms.core_mms.calc.ObjectCalc
 import foatto.mms.core_mms.calc.OverSensorPeriodData
 import foatto.mms.core_mms.graphic.server.graphic_handler.AnalogGraphicHandler
 import foatto.mms.core_mms.sensor.SensorConfig
-import foatto.mms.core_mms.sensor.SensorConfigA
+import foatto.mms.core_mms.sensor.SensorConfigSemiAnalogue
 import jxl.CellView
 import jxl.format.PageOrientation
 import jxl.format.PaperSize
@@ -179,61 +179,61 @@ class cOverSensor : cMMSReport() {
 
             val alObjectResult = mutableListOf<OverSensorPeriodData>()
 
-            //--- единоразово загрузим данные по всем датчикам объекта
+            //--- load data on all sensors of the object once
             val ( alRawTime, alRawData ) = ObjectCalc.loadAllSensorData(stm, objectConfig, begTime, endTime)
 
             for(portNum in hmSensorConfig.keys) {
-                val sca = hmSensorConfig[portNum] as SensorConfigA
+                val scsc = hmSensorConfig[portNum] as SensorConfigSemiAnalogue
 
                 val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1)
-                ObjectCalc.getSmoothAnalogGraphicData(alRawTime, alRawData, objectConfig, sca, begTime, endTime, 0, 0.0, null, null, null, aLine, graphicHandler)
+                ObjectCalc.getSmoothAnalogGraphicData(alRawTime, alRawData, objectConfig, scsc, begTime, endTime, 0, 0.0, null, null, null, aLine, graphicHandler)
 
                 var begPos = 0
                 var curColorIndex = graphicHandler.lineNormalColorIndex
                 for(i in 1 until aLine.alGLD.size) {
                     val gdl = aLine.alGLD[i]
                     val newColorIndex = gdl.colorIndex
-                    //--- начался период нового типа, оканчиваем предыдущий период другого типа
+                    //--- a period of a new type has begun, we end the previous period of a different type
                     if(newColorIndex != curColorIndex) {
-                        //--- предыдущий период закончился в предыдущей точке
+                        //--- the previous period ended at the previous point
                         val endPos = i - 1
-                        //--- в периоде должно быть как минимум две точки, одноточечные периоды отбрасываем
-                        //--- (обычно это стартовая точка в "нормальном" состоянии)
-                        if(begPos < endPos) {
-                            //--- закончился предыдущий "ненормальный" период
-                            if(newColorIndex == graphicHandler.lineNormalColorIndex) calcOverSensor(
-                                reportZone, hmZoneData, graphicHandler, objectConfig, sca, aLine, begPos, endPos, curColorIndex, alObjectResult
-                            )
+                        //--- the period must have at least two points, we discard one-point periods
+                        //--- (this is usually the starting point in the "normal" state)
+                        if (begPos < endPos) {
+                            //--- the previous "abnormal" period has ended
+                            if (newColorIndex == graphicHandler.lineNormalColorIndex) {
+                                calcOverSensor(reportZone, hmZoneData, graphicHandler, objectConfig, scsc, aLine, begPos, endPos, curColorIndex, alObjectResult)
+                            }
                         }
-                        //--- новый период на самом деле начинается с предыдущей точки
+                        //--- the new period actually starts from the previous point
                         begPos = i - 1
                         curColorIndex = newColorIndex
                     }
                 }
-                //--- закончим последний период
+                //--- let's finish the last period
                 val endPos = aLine.alGLD.size - 1
-                //--- заканчиваем предыдущий "ненормальный" период
-                if(curColorIndex != graphicHandler.lineNormalColorIndex) calcOverSensor(
-                    reportZone, hmZoneData, graphicHandler, objectConfig, sca, aLine, begPos, endPos, curColorIndex, alObjectResult
-                )
+                //--- ending the previous "abnormal" period
+                if (curColorIndex != graphicHandler.lineNormalColorIndex) {
+                    calcOverSensor(reportZone, hmZoneData, graphicHandler, objectConfig, scsc, aLine, begPos, endPos, curColorIndex, alObjectResult)
+                }
             }
-            if(!alObjectResult.isEmpty()) alAllResult.add(alObjectResult)
+            if (alObjectResult.isNotEmpty()) alAllResult.add(alObjectResult)
         }
         return alAllResult
     }
 
     private fun calcOverSensor(
-        reportZone: Int, hmZoneData: Map<Int, ZoneData>, graphicHandler: AnalogGraphicHandler, objectConfig: ObjectConfig, sca: SensorConfigA, aLine: GraphicDataContainer,
+        reportZone: Int, hmZoneData: Map<Int, ZoneData>, graphicHandler: AnalogGraphicHandler, objectConfig: ObjectConfig, scsc: SensorConfigSemiAnalogue, aLine: GraphicDataContainer,
         begPos: Int, endPos: Int, curColorIndex: GraphicColorIndex, alObjectResult: MutableList<OverSensorPeriodData>
     ) {
-        //--- поиск точки с максимальным нарушением
+        //--- finding the point with maximum violation
         var maxOverSensorTime = 0
         var maxOverSensorCoord: XyPoint? = null
         var maxOverSensorMax = 0.0
         var maxOverSensorDiff = 0.0
         for(pos in begPos..endPos) {
             val y = aLine.alGLD[pos].y
-            val over = if(curColorIndex == graphicHandler.lineCriticalColorIndex) y - sca.maxLimit else sca.minLimit - y
+            val over = if (curColorIndex == graphicHandler.lineCriticalColorIndex) y - scsc.maxLimit else scsc.minLimit - y
             if(over > maxOverSensorDiff) {
                 maxOverSensorTime = aLine.alGLD.get(pos).x
                 maxOverSensorCoord = aLine.alGLD.get(pos).coord
@@ -243,10 +243,10 @@ class cOverSensor : cMMSReport() {
         }
 
         val tsZoneName = TreeSet<String>()
-        //--- могут быть объекты без GPS-датчиков
+        //--- there may be objects without GPS sensors
         if(maxOverSensorCoord != null) {
             val inZone = ObjectCalc.fillZoneList(hmZoneData, reportZone, maxOverSensorCoord, tsZoneName)
-            //--- фильтр по геозонам, если задано
+            //--- filter by geofences, if set
             if(reportZone != 0 && !inZone) return
         }
 

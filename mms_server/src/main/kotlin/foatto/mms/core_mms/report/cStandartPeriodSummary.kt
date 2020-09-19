@@ -2,7 +2,7 @@ package foatto.mms.core_mms.report
 
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.sensor.SensorConfig
-import foatto.mms.core_mms.sensor.SensorConfigA
+import foatto.mms.core_mms.sensor.SensorConfigAnalogue
 
 abstract class cStandartPeriodSummary : cAbstractPeriodSummary() {
 
@@ -31,9 +31,9 @@ abstract class cStandartPeriodSummary : cAbstractPeriodSummary() {
                 isGlobalUseRun = isGlobalUseRun or oc.scg!!.isUseRun
             }
             val hmSCLL = oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_LEVEL]
-            if(hmSCLL != null && !hmSCLL.isEmpty()) {
-                for(portNum in hmSCLL.keys) {
-                    val sca = hmSCLL[portNum] as SensorConfigA
+            if (hmSCLL != null && hmSCLL.isNotEmpty()) {
+                for (portNum in hmSCLL.keys) {
+                    val sca = hmSCLL[portNum] as SensorConfigAnalogue
                     isGlobalUsingCalc = isGlobalUsingCalc or sca.isUsingCalc
                 }
             }

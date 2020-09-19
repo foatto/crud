@@ -23,8 +23,8 @@ import foatto.mms.core_mms.graphic.server.MMSGraphicDocumentConfig
 import foatto.mms.core_mms.graphic.server.graphic_handler.AnalogGraphicHandler
 import foatto.mms.core_mms.graphic.server.graphic_handler.iGraphicHandler
 import foatto.mms.core_mms.sensor.SensorConfig
-import foatto.mms.core_mms.sensor.SensorConfigA
-import foatto.mms.core_mms.sensor.SensorConfigW
+import foatto.mms.core_mms.sensor.SensorConfigAnalogue
+import foatto.mms.core_mms.sensor.SensorConfigWork
 import java.util.*
 import kotlin.math.min
 
@@ -88,7 +88,7 @@ open class sdcAnalog : sdcAbstractGraphic() {
             var isCommonTroubleShowed = false
 
             for(portNum in hmSensorConfig.keys) {
-                val sca = hmSensorConfig[portNum] as SensorConfigA
+                val sca = hmSensorConfig[portNum] as SensorConfigAnalogue
 
                 //--- заранее заполняем список опеределений видимости графиков
                 val graphicVisibilityKey = "$UP_GRAPHIC_VISIBLE${sd.objectID}_${sca.portNum}"
@@ -262,7 +262,7 @@ open class sdcAnalog : sdcAbstractGraphic() {
     }
 
     protected open fun calcGraphic(
-        graphicHandler: iGraphicHandler, alRawTime: List<Int>, alRawData: List<AdvancedByteBuffer>, oc: ObjectConfig, sca: SensorConfigA,
+        graphicHandler: iGraphicHandler, alRawTime: List<Int>, alRawData: List<AdvancedByteBuffer>, oc: ObjectConfig, sca: SensorConfigAnalogue,
         begTime: Int, endTime: Int, xScale: Int, yScale: Double, isShowPoint: Boolean, isShowLine: Boolean, isShowText: Boolean,
         alAxisYData: MutableList<AxisYData>, aMinLimit: GraphicDataContainer?, aMaxLimit: GraphicDataContainer?,
         aPoint: GraphicDataContainer?, aLine: GraphicDataContainer?, aText: GraphicDataContainer?
@@ -277,7 +277,7 @@ open class sdcAnalog : sdcAbstractGraphic() {
             val hmSC = oc.hmSensorConfig[SensorConfig.SENSOR_WORK]
             if(hmSC != null && hmSC.isNotEmpty()) {
                 for(portNum in hmSC.keys) {
-                    val scw = hmSC[portNum] as SensorConfigW
+                    val scw = hmSC[portNum] as SensorConfigWork
                     //--- пропускаем датчики работы оборудования не из своей группы
                     if(sca.group != scw.group) continue
                     val alWork = ObjectCalc.calcWorkSensor(alRawTime, alRawData, oc, scw, begTime, endTime, mutableListOf()).alWorkOnOff
@@ -336,7 +336,7 @@ open class sdcAnalog : sdcAbstractGraphic() {
         val hmSCV = oc.hmSensorConfig[SensorConfig.SENSOR_VOLTAGE]
         if(hmSCV != null) {
             for(portNum in hmSCV.keys) {
-                val sca = hmSCV[portNum] as SensorConfigA
+                val sca = hmSCV[portNum] as SensorConfigAnalogue
                 //--- чтобы не смешивались разные ошибки по одному датчику и одинаковые ошибки по разным датчикам,
                 //--- добавляем в описание ошибки не только само описание ошибки, но и описание датчика
                 checkSensorError(

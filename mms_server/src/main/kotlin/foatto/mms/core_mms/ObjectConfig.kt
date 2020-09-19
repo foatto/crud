@@ -2,12 +2,7 @@ package foatto.mms.core_mms
 
 import foatto.core.util.AdvancedLogger
 import foatto.core_server.app.server.UserConfig
-import foatto.mms.core_mms.sensor.SensorConfig
-import foatto.mms.core_mms.sensor.SensorConfigA
-import foatto.mms.core_mms.sensor.SensorConfigG
-import foatto.mms.core_mms.sensor.SensorConfigS
-import foatto.mms.core_mms.sensor.SensorConfigU
-import foatto.mms.core_mms.sensor.SensorConfigW
+import foatto.mms.core_mms.sensor.*
 import foatto.sql.CoreAdvancedStatement
 
 class ObjectConfig {
@@ -30,7 +25,7 @@ class ObjectConfig {
     var hmSensorConfig = mutableMapOf<Int, MutableMap<Int, SensorConfig>>()
 
     //--- отдельная работа с гео-датчиком - он д.б. один на объекте
-    var scg: SensorConfigG? = null
+    var scg: SensorConfigGeo? = null
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -88,32 +83,34 @@ class ObjectConfig {
 
             //--- загрузка конфигурации датчиков
             rs = stm.executeQuery(
-                StringBuilder(" SELECT sensor_type , port_num , id , name , sum_group_name, group_name , descr , ") // 1..7
+                " SELECT sensor_type , port_num , id , name , sum_group_name, group_name , descr , " + // 1..7
 
-                    .append(" min_moving_time , min_parking_time , ")                                     // 8..9
-                    .append(" min_over_speed_time , is_absolute_run , ")                                  // 10..11
-                    .append(" speed_round_rule , run_koef , is_use_pos , is_use_speed , is_use_run , ")   // 12..16
+                    " min_moving_time , min_parking_time , " +                                     // 8..9
+                    " min_over_speed_time , is_absolute_run , " +                                  // 10..11
+                    " speed_round_rule , run_koef , is_use_pos , is_use_speed , is_use_run , " +   // 12..16
 
-                    .append(" bound_value , active_value , min_on_time , min_off_time , ")        // 17..20
-                    .append(" calc_in_moving , calc_in_parking , beg_work_value , ")              // 21..23
-                    .append(" cmd_on_id , cmd_off_id , signal_on , signal_off , ")                // 24..27
+                    " bound_value , active_value , min_on_time , min_off_time , " +        // 17..20
+                    " calc_in_moving , calc_in_parking , beg_work_value , " +              // 21..23
+                    " cmd_on_id , cmd_off_id , signal_on , signal_off , " +                // 24..27
 
-                    .append(" count_value_sensor , count_value_data , ")                          // 28..29
+                    " count_value_sensor , count_value_data , " +                          // 28..29
 
-                    .append(" analog_dim , analog_min_view , analog_max_view , ")                 // 30..32
-                    .append(" analog_min_limit , analog_max_limit , ")                            // 33..34
+                    " analog_dim , analog_min_view , analog_max_view , " +                 // 30..32
+                    " analog_min_limit , analog_max_limit , " +                            // 33..34
 
-                    .append(" analog_using_min_len , analog_is_using_calc , ")                    // 35..36
-                    .append(" analog_detect_inc , analog_detect_inc_min_diff , analog_detect_inc_min_len , ") // 37..39
-                    .append(" analog_inc_add_time_before , analog_inc_add_time_after , ")                     // 40..41
-                    .append(" analog_detect_dec , analog_detect_dec_min_diff , analog_detect_dec_min_len , ") // 42..44
-                    .append(" analog_dec_add_time_before , analog_dec_add_time_after , ")                     // 45..46
-                    .append(" smooth_method , smooth_time , ")                                                // 47..48
+                    " analog_using_min_len , analog_is_using_calc , " +                    // 35..36
+                    " analog_detect_inc , analog_detect_inc_min_diff , analog_detect_inc_min_len , " + // 37..39
+                    " analog_inc_add_time_before , analog_inc_add_time_after , " +                     // 40..41
+                    " analog_detect_dec , analog_detect_dec_min_diff , analog_detect_dec_min_len , " + // 42..44
+                    " analog_dec_add_time_before , analog_dec_add_time_after , " +                     // 45..46
+                    " smooth_method , smooth_time , " +                                                // 47..48
 
-                    .append(" ignore_min_sensor , ignore_max_sensor , ")                          // 49..50
+                    " ignore_min_sensor , ignore_max_sensor , " +                          // 49..50
 
-                    .append(" liquid_name , liquid_norm ")                                        // 51..52
-                    .append(" FROM MMS_sensor WHERE object_id = ").append(aObjectID).toString()
+                    " energo_phase , " +                                                  // 51
+
+                    " liquid_name , liquid_norm " +                                        // 52..53
+                    " FROM MMS_sensor WHERE object_id = $aObjectID"
             )
             //--- стартовая нумерация полей
             val COMMON = 3
@@ -122,69 +119,162 @@ class ObjectConfig {
             val LU = 28
             val ANALOG = 30
             val IGNORE = 49
-            val LI_NA = 51
-            val LI_NO = 52
-            while(rs.next()) {
+            val ENERGO = 51
+            val LI_NA = 52
+            val LI_NO = 53
+            while (rs.next()) {
                 val sensorType = rs.getInt(1)
                 val portNum = rs.getInt(2)
 
                 val hmSC = objectConfig.hmSensorConfig.getOrPut(sensorType, { mutableMapOf() })
-                when(sensorType) {
+                when (sensorType) {
                     SensorConfig.SENSOR_SIGNAL -> {
-                        hmSC[portNum] = SensorConfigS(
-                            rs.getInt(COMMON), rs.getString(COMMON + 1), rs.getString(COMMON + 2), rs.getString(COMMON + 3), rs.getString(COMMON + 4),
-                            portNum, sensorType,
-                            rs.getInt(WORK), rs.getInt(WORK + 1),
-                            rs.getInt(IGNORE), rs.getInt(IGNORE + 1)
+                        hmSC[portNum] = SensorConfigSignal(
+                            aId = rs.getInt(COMMON),
+                            aName = rs.getString(COMMON + 1),
+                            aSumGroup = rs.getString(COMMON + 2),
+                            aGroup = rs.getString(COMMON + 3),
+                            aDescr = rs.getString(COMMON + 4),
+                            aPortNum = portNum,
+                            aSensorType = sensorType,
+                            boundValue = rs.getInt(WORK),
+                            activeValue = rs.getInt(WORK + 1),
+                            minIgnore = rs.getInt(IGNORE),
+                            maxIgnore = rs.getInt(IGNORE + 1)
                         )
                     }
                     SensorConfig.SENSOR_GEO -> {
-                        objectConfig.scg = SensorConfigG(
-                            rs.getInt(COMMON), rs.getString(COMMON + 1), rs.getString(COMMON + 2), rs.getString(COMMON + 3), rs.getString(COMMON + 4),
-                            portNum, sensorType,
-                            rs.getInt(GEO), rs.getInt(GEO + 1), rs.getInt(GEO + 2), rs.getInt(GEO + 3) == 1, rs.getInt(GEO + 4),
-                            rs.getDouble(GEO + 5), rs.getInt(GEO + 6) == 1, rs.getInt(GEO + 7) == 1, rs.getInt(GEO + 8) == 1,
-                            rs.getDouble(ANALOG + 4).toInt(),
-                            rs.getString(LI_NA), rs.getDouble(LI_NO)
+                        objectConfig.scg = SensorConfigGeo(
+                            aId = rs.getInt(COMMON),
+                            aName = rs.getString(COMMON + 1),
+                            aSumGroup = rs.getString(COMMON + 2),
+                            aGroup = rs.getString(COMMON + 3),
+                            aDescr = rs.getString(COMMON + 4),
+                            aPortNum = portNum,
+                            aSensorType = sensorType,
+                            minMovingTime = rs.getInt(GEO),
+                            minParkingTime = rs.getInt(GEO + 1),
+                            minOverSpeedTime = rs.getInt(GEO + 2),
+                            isAbsoluteRun = rs.getInt(GEO + 3) == 1,
+                            speedRoundRule = rs.getInt(GEO + 4),
+                            runKoef = rs.getDouble(GEO + 5),
+                            isUsePos = rs.getInt(GEO + 6) == 1,
+                            isUseSpeed = rs.getInt(GEO + 7) == 1,
+                            isUseRun = rs.getInt(GEO + 8) == 1,
+                            maxSpeedLimit = rs.getDouble(ANALOG + 4).toInt(),
+                            liquidName = rs.getString(LI_NA),
+                            liquidNorm = rs.getDouble(LI_NO)
                         )
                     }
                     SensorConfig.SENSOR_WORK -> {
-                        hmSC[portNum] = SensorConfigW(
-                            rs.getInt(COMMON), rs.getString(COMMON + 1), rs.getString(COMMON + 2), rs.getString(COMMON + 3), rs.getString(COMMON + 4),
-                            portNum, sensorType,
-                            rs.getInt(WORK), rs.getInt(WORK + 1), rs.getInt(WORK + 2), rs.getInt(WORK + 3), rs.getInt(WORK + 4) == 1,
-                            rs.getInt(WORK + 5) == 1, rs.getDouble(WORK + 6), rs.getInt(WORK + 7), rs.getInt(WORK + 8), rs.getString(WORK + 9), rs.getString(WORK + 10),
-                            rs.getInt(IGNORE), rs.getInt(IGNORE + 1),
-                            rs.getString(LI_NA), rs.getDouble(LI_NO)
+                        hmSC[portNum] = SensorConfigWork(
+                            aId = rs.getInt(COMMON),
+                            aName = rs.getString(COMMON + 1),
+                            aSumGroup = rs.getString(COMMON + 2),
+                            aGroup = rs.getString(COMMON + 3),
+                            aDescr = rs.getString(COMMON + 4),
+                            aPortNum = portNum,
+                            aSensorType = sensorType,
+                            boundValue = rs.getInt(WORK),
+                            activeValue = rs.getInt(WORK + 1),
+                            minOnTime = rs.getInt(WORK + 2),
+                            minOffTime = rs.getInt(WORK + 3),
+                            calcInMoving = rs.getInt(WORK + 4) == 1,
+                            calcInParking = rs.getInt(WORK + 5) == 1,
+                            begWorkValue = rs.getDouble(WORK + 6),
+                            cmdOnID = rs.getInt(WORK + 7),
+                            cmdOffID = rs.getInt(WORK + 8),
+                            aSignalOn = rs.getString(WORK + 9),
+                            aSignalOff = rs.getString(WORK + 10),
+                            minIgnore = rs.getInt(IGNORE),
+                            maxIgnore = rs.getInt(IGNORE + 1),
+                            liquidName = rs.getString(LI_NA),
+                            liquidNorm = rs.getDouble(LI_NO)
                         )
                     }
                     /*SensorConfig.SENSOR_LIQUID_USING, */ SensorConfig.SENSOR_MASS_FLOW, SensorConfig.SENSOR_VOLUME_FLOW -> {
-                        hmSC[portNum] = SensorConfigU(
-                            rs.getInt(COMMON), rs.getString(COMMON + 1), rs.getString(COMMON + 2), rs.getString(COMMON + 3), rs.getString(COMMON + 4),
-                            portNum, sensorType,
-                            rs.getInt(LU), rs.getDouble(LU + 1),
-                            rs.getInt(IGNORE), rs.getInt(IGNORE + 1),
-                            rs.getString(LI_NA)
-                        )
-                    }
+                    hmSC[portNum] = SensorConfigUsing(
+                        aId = rs.getInt(COMMON),
+                        aName = rs.getString(COMMON + 1),
+                        aSumGroup = rs.getString(COMMON + 2),
+                        aGroup = rs.getString(COMMON + 3),
+                        aDescr = rs.getString(COMMON + 4),
+                        aPortNum = portNum,
+                        aSensorType = sensorType,
+                        sensorValue = rs.getInt(LU),
+                        dataValue = rs.getDouble(LU + 1),
+                        minIgnore = rs.getInt(IGNORE),
+                        maxIgnore = rs.getInt(IGNORE + 1),
+                        aLiquidName = rs.getString(LI_NA)
+                    )
+                }
                     SensorConfig.SENSOR_MASS_ACCUMULATED, SensorConfig.SENSOR_VOLUME_ACCUMULATED,
                     SensorConfig.SENSOR_ENERGO_COUNT_AD, SensorConfig.SENSOR_ENERGO_COUNT_AR,
                     SensorConfig.SENSOR_ENERGO_COUNT_RD, SensorConfig.SENSOR_ENERGO_COUNT_RR -> {
                         hmSC[portNum] = SensorConfig(
-                            rs.getInt(COMMON), rs.getString(COMMON + 1), rs.getString(COMMON + 2), rs.getString(COMMON + 3), rs.getString(COMMON + 4),
-                            portNum, sensorType
+                            id = rs.getInt(COMMON),
+                            name = rs.getString(COMMON + 1),
+                            sumGroup = rs.getString(COMMON + 2),
+                            group = rs.getString(COMMON + 3),
+                            descr = rs.getString(COMMON + 4),
+                            portNum = portNum,
+                            sensorType = sensorType
+                        )
+                    }
+                    SensorConfig.SENSOR_ENERGO_VOLTAGE, SensorConfig.SENSOR_ENERGO_CURRENT,
+                    SensorConfig.SENSOR_ENERGO_POWER_KOEF, SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
+                    SensorConfig.SENSOR_ENERGO_POWER_REACTIVE, SensorConfig.SENSOR_ENERGO_POWER_FULL -> {
+                        hmSC[portNum] = SensorConfigElectro(
+                            aId = rs.getInt(COMMON),
+                            aName = rs.getString(COMMON + 1),
+                            aSumGroup = rs.getString(COMMON + 2),
+                            aGroup = rs.getString(COMMON + 3),
+                            aDescr = rs.getString(COMMON + 4),
+                            aPortNum = portNum,
+                            aSensorType = sensorType,
+                            dim = rs.getString(ANALOG),
+                            minView = rs.getDouble(ANALOG + 1),
+                            maxView = rs.getDouble(ANALOG + 2),
+                            minLimit = rs.getDouble(ANALOG + 3),
+                            maxLimit = rs.getDouble(ANALOG + 4),
+                            smoothMethod = rs.getInt(ANALOG + 17),
+                            smoothTime = rs.getInt(ANALOG + 18) * 60,
+                            minIgnore = rs.getInt(IGNORE),
+                            maxIgnore = rs.getInt(IGNORE + 1),
+                            phase = rs.getInt(ENERGO)
                         )
                     }
                     else -> {
-                        hmSC[portNum] = SensorConfigA(
-                            rs.getInt(COMMON), rs.getString(COMMON + 1), rs.getString(COMMON + 2), rs.getString(COMMON + 3), rs.getString(COMMON + 4),
-                            portNum, sensorType,
-                            rs.getString(ANALOG), rs.getDouble(ANALOG + 1), rs.getDouble(ANALOG + 2), rs.getDouble(ANALOG + 3), rs.getDouble(ANALOG + 4),
-                            rs.getInt(ANALOG + 5), rs.getInt(ANALOG + 6) == 1, rs.getDouble(ANALOG + 7), rs.getDouble(ANALOG + 8), rs.getInt(ANALOG + 9),
-                            rs.getInt(ANALOG + 10), rs.getInt(ANALOG + 11), rs.getDouble(ANALOG + 12), rs.getDouble(ANALOG + 13), rs.getInt(ANALOG + 14),
-                            rs.getInt(ANALOG + 15), rs.getInt(ANALOG + 16), rs.getInt(ANALOG + 17), rs.getInt(ANALOG + 18) * 60,
-                            rs.getInt(IGNORE), rs.getInt(IGNORE + 1),
-                            rs.getString(LI_NA)
+                        hmSC[portNum] = SensorConfigAnalogue(
+                            aId = rs.getInt(COMMON),
+                            aName = rs.getString(COMMON + 1),
+                            aSumGroup = rs.getString(COMMON + 2),
+                            aGroup = rs.getString(COMMON + 3),
+                            aDescr = rs.getString(COMMON + 4),
+                            aPortNum = portNum,
+                            aSensorType = sensorType,
+                            dim = rs.getString(ANALOG),
+                            minView = rs.getDouble(ANALOG + 1),
+                            maxView = rs.getDouble(ANALOG + 2),
+                            minLimit = rs.getDouble(ANALOG + 3),
+                            maxLimit = rs.getDouble(ANALOG + 4),
+                            usingMinLen = rs.getInt(ANALOG + 5),
+                            isUsingCalc = rs.getInt(ANALOG + 6) == 1,
+                            detectIncKoef = rs.getDouble(ANALOG + 7),
+                            detectIncMinDiff = rs.getDouble(ANALOG + 8),
+                            detectIncMinLen = rs.getInt(ANALOG + 9),
+                            incAddTimeBefore = rs.getInt(ANALOG + 10),
+                            incAddTimeAfter = rs.getInt(ANALOG + 11),
+                            detectDecKoef = rs.getDouble(ANALOG + 12),
+                            detectDecMinDiff = rs.getDouble(ANALOG + 13),
+                            detectDecMinLen = rs.getInt(ANALOG + 14),
+                            decAddTimeBefore = rs.getInt(ANALOG + 15),
+                            decAddTimeAfter = rs.getInt(ANALOG + 16),
+                            smoothMethod = rs.getInt(ANALOG + 17),
+                            smoothTime = rs.getInt(ANALOG + 18) * 60,
+                            minIgnore = rs.getInt(IGNORE),
+                            maxIgnore = rs.getInt(IGNORE + 1),
+                            liquidName = rs.getString(LI_NA)
                         )
                     }
                 }
@@ -198,11 +288,11 @@ class ObjectConfig {
             }
             .forEach { entry ->
                 entry.value.values.forEach { sc ->
-                    val scA = sc as SensorConfigA
-                    rs = stm.executeQuery(" SELECT value_sensor , value_data FROM MMS_sensor_calibration WHERE sensor_id = ${scA.id} ORDER BY value_sensor ")
-                    while(rs.next()) {
-                        scA.alValueSensor.add(rs.getDouble(1))
-                        scA.alValueData.add(rs.getDouble(2))
+                    val scCalibrable = sc as SensorConfigSemiAnalogue
+                    rs = stm.executeQuery(" SELECT value_sensor , value_data FROM MMS_sensor_calibration WHERE sensor_id = ${scCalibrable.id} ORDER BY value_sensor ")
+                    while (rs.next()) {
+                        scCalibrable.alValueSensor.add(rs.getDouble(1))
+                        scCalibrable.alValueData.add(rs.getDouble(2))
                     }
                     rs.close()
                 }

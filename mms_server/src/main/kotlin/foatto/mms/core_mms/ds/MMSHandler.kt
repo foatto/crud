@@ -1,15 +1,20 @@
 package foatto.mms.core_mms.ds
 
-import foatto.sql.CoreAdvancedConnection
-import foatto.sql.CoreAdvancedStatement
-import foatto.sql.SQLBatch
-import foatto.core.util.*
+import foatto.core.util.AdvancedByteBuffer
+import foatto.core.util.AdvancedLogger
+import foatto.core.util.DateTime_YMDHMS
+import foatto.core.util.getCurrentTimeInt
+import foatto.core.util.getDateTimeArray
+import foatto.core.util.getFileWriter
 import foatto.core_server.app.server.column.ColumnRadioButton
 import foatto.core_server.ds.AbstractHandler
 import foatto.core_server.ds.CoreDataServer
 import foatto.core_server.ds.CoreDataWorker
 import foatto.mms.core_mms.cWorkShift
-import foatto.mms.core_mms.sensor.SensorConfigG
+import foatto.mms.core_mms.sensor.SensorConfigGeo
+import foatto.sql.CoreAdvancedConnection
+import foatto.sql.CoreAdvancedStatement
+import foatto.sql.SQLBatch
 import java.io.File
 import java.nio.channels.SelectionKey
 import java.nio.channels.SocketChannel
@@ -243,11 +248,11 @@ abstract class MMSHandler : AbstractHandler() {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     protected fun roundSpeed( speed: Double ): Short {
-        when( deviceConfig!!.speedRoundRule ) {
-            SensorConfigG.SPEED_ROUND_RULE_LESS     -> return floor( speed ).toShort()
-            SensorConfigG.SPEED_ROUND_RULE_GREATER  -> return ceil( speed ).toShort()
-            SensorConfigG.SPEED_ROUND_RULE_STANDART -> return round( speed ).toShort()
-            else                                    -> return round( speed ).toShort()
+        when (deviceConfig!!.speedRoundRule) {
+            SensorConfigGeo.SPEED_ROUND_RULE_LESS -> return floor(speed).toShort()
+            SensorConfigGeo.SPEED_ROUND_RULE_GREATER -> return ceil(speed).toShort()
+            SensorConfigGeo.SPEED_ROUND_RULE_STANDART -> return round(speed).toShort()
+            else -> return round(speed).toShort()
         }
     }
 

@@ -6,7 +6,7 @@ import foatto.core.util.getSplittedDouble
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.calc.ObjectCalc
 import foatto.mms.core_mms.sensor.SensorConfig
-import foatto.mms.core_mms.sensor.SensorConfigW
+import foatto.mms.core_mms.sensor.SensorConfigWork
 import jxl.CellView
 import jxl.format.PageOrientation
 import jxl.format.PaperSize
@@ -117,7 +117,7 @@ class cEquipService : cMMSReport() {
             offsY += 4 // +1 пустая строка снизу
 
             for(portNum in hmSCW.keys) {
-                val scw = hmSCW[portNum] as SensorConfigW
+                val scw = hmSCW[portNum] as SensorConfigWork
                 val wcd = objectCalc.tmWorkCalc[scw.descr] ?: continue
 
                 val alESD = ArrayList<EquipServiceData>()

@@ -84,9 +84,9 @@ class mSensor : mAbstract() {
         rs = stm.executeQuery(" SELECT sensor_type, COUNT( * ) AS aaa FROM MMS_sensor GROUP BY sensor_type ORDER BY aaa DESC ")
         while(rs.next()) {
             val sensorType = rs.getInt(1)
+            //--- теоретически возможны неправильные/несуществующие/устаревшие ( в т.ч. нулевые ) типы датчиков
             val sensorDescr = hmSensorDescr[sensorType] ?: continue
 
-            //--- теоретически возможны неправильные/несуществующие/устаревшие ( в т.ч. нулевые ) типы датчиков
             columnSensorType.addChoice(sensorType, sensorDescr)
             hmSensorDescr.remove(sensorType)
             //--- самый популярный тип датчика установим в качестве типа по-умолчанию
@@ -108,6 +108,14 @@ class mSensor : mAbstract() {
         val arrWorkSensor = intArrayOf(SensorConfig.SENSOR_WORK)
         val arrWorkSignalSensor = intArrayOf(SensorConfig.SENSOR_WORK, SensorConfig.SENSOR_SIGNAL)
         val arrCounterSensor = intArrayOf( /*SensorConfig.SENSOR_LIQUID_USING,*/ SensorConfig.SENSOR_MASS_FLOW, SensorConfig.SENSOR_VOLUME_FLOW)
+        val arrPhasedEnergoSensorOnly = intArrayOf(
+            SensorConfig.SENSOR_ENERGO_VOLTAGE,
+            SensorConfig.SENSOR_ENERGO_CURRENT,
+            SensorConfig.SENSOR_ENERGO_POWER_KOEF,
+            SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
+            SensorConfig.SENSOR_ENERGO_POWER_REACTIVE,
+            SensorConfig.SENSOR_ENERGO_POWER_FULL
+        )
         val arrAnalogSensorOnly = intArrayOf(
             SensorConfig.SENSOR_LIQUID_FLOW_CALC,
             SensorConfig.SENSOR_LIQUID_LEVEL,
@@ -118,15 +126,12 @@ class mSensor : mAbstract() {
             SensorConfig.SENSOR_VOLTAGE,
             SensorConfig.SENSOR_POWER,
             SensorConfig.SENSOR_DENSITY,
-            SensorConfig.SENSOR_ENERGO_VOLTAGE_A,
-            SensorConfig.SENSOR_ENERGO_VOLTAGE_B,
-            SensorConfig.SENSOR_ENERGO_VOLTAGE_C,
-            SensorConfig.SENSOR_ENERGO_CURRENT_A,
-            SensorConfig.SENSOR_ENERGO_CURRENT_B,
-            SensorConfig.SENSOR_ENERGO_CURRENT_C,
-            SensorConfig.SENSOR_ENERGO_POWER_KOEF_A,
-            SensorConfig.SENSOR_ENERGO_POWER_KOEF_B,
-            SensorConfig.SENSOR_ENERGO_POWER_KOEF_C
+            SensorConfig.SENSOR_ENERGO_VOLTAGE,
+            SensorConfig.SENSOR_ENERGO_CURRENT,
+            SensorConfig.SENSOR_ENERGO_POWER_KOEF,
+            SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
+            SensorConfig.SENSOR_ENERGO_POWER_REACTIVE,
+            SensorConfig.SENSOR_ENERGO_POWER_FULL
         )
         //--- параметры analog_max_view ( Максимальная скорость ) и analog_max_limit ( Ограничение скорости [км/ч] ) используются также в настройках геодатчиков
         val arrAnalogAndGeoSensor = intArrayOf(
@@ -140,15 +145,12 @@ class mSensor : mAbstract() {
             SensorConfig.SENSOR_VOLTAGE,
             SensorConfig.SENSOR_POWER,
             SensorConfig.SENSOR_DENSITY,
-            SensorConfig.SENSOR_ENERGO_VOLTAGE_A,
-            SensorConfig.SENSOR_ENERGO_VOLTAGE_B,
-            SensorConfig.SENSOR_ENERGO_VOLTAGE_C,
-            SensorConfig.SENSOR_ENERGO_CURRENT_A,
-            SensorConfig.SENSOR_ENERGO_CURRENT_B,
-            SensorConfig.SENSOR_ENERGO_CURRENT_C,
-            SensorConfig.SENSOR_ENERGO_POWER_KOEF_A,
-            SensorConfig.SENSOR_ENERGO_POWER_KOEF_B,
-            SensorConfig.SENSOR_ENERGO_POWER_KOEF_C
+            SensorConfig.SENSOR_ENERGO_VOLTAGE,
+            SensorConfig.SENSOR_ENERGO_CURRENT,
+            SensorConfig.SENSOR_ENERGO_POWER_KOEF,
+            SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
+            SensorConfig.SENSOR_ENERGO_POWER_REACTIVE,
+            SensorConfig.SENSOR_ENERGO_POWER_FULL
         )
         val arrLLSensor = intArrayOf(SensorConfig.SENSOR_LIQUID_LEVEL)
         val arrGeoAndSummarySensor = intArrayOf(
@@ -176,10 +178,10 @@ class mSensor : mAbstract() {
         val columnIsAbsoluteRun = ColumnBoolean(tableName, "is_absolute_run", "Абсолютный пробег", true)
         columnIsAbsoluteRun.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrGeoSensor))
 
-        val columnSpeedRoundRule = ColumnComboBox(tableName, "speed_round_rule", "Правило округления скорости", SensorConfigG.SPEED_ROUND_RULE_STANDART)
-        columnSpeedRoundRule.addChoice(SensorConfigG.SPEED_ROUND_RULE_LESS, "В меньшую сторону")
-        columnSpeedRoundRule.addChoice(SensorConfigG.SPEED_ROUND_RULE_STANDART, "Стандартно")
-        columnSpeedRoundRule.addChoice(SensorConfigG.SPEED_ROUND_RULE_GREATER, "В большую сторону")
+        val columnSpeedRoundRule = ColumnComboBox(tableName, "speed_round_rule", "Правило округления скорости", SensorConfigGeo.SPEED_ROUND_RULE_STANDART)
+        columnSpeedRoundRule.addChoice(SensorConfigGeo.SPEED_ROUND_RULE_LESS, "В меньшую сторону")
+        columnSpeedRoundRule.addChoice(SensorConfigGeo.SPEED_ROUND_RULE_STANDART, "Стандартно")
+        columnSpeedRoundRule.addChoice(SensorConfigGeo.SPEED_ROUND_RULE_GREATER, "В большую сторону")
         columnSpeedRoundRule.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrGeoSensor))
 
         val columnRunKoef = ColumnDouble(tableName, "run_koef", "Коэффициент учёта погрешности", 10, 3, 1.0)
@@ -295,6 +297,14 @@ class mSensor : mAbstract() {
         columnAnalogMaxLimit.addFormCaption(FormColumnCaptionData(columnSensorType, "Ограничение скорости [км/ч]", arrGeoSensor))
         columnAnalogMaxLimit.addFormCaption(FormColumnCaptionData(columnSensorType, "Максимальное рабочее значение", arrAnalogSensorOnly))
 
+        //--- применяется только для показаний электросчётчиков
+
+        val columnEnergoPhase = ColumnRadioButton(tableName, "energo_phase", "Фаза", 1)
+        columnEnergoPhase.addChoice(1, "A")
+        columnEnergoPhase.addChoice(2, "B")
+        columnEnergoPhase.addChoice(3, "C")
+        columnEnergoPhase.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrPhasedEnergoSensorOnly))
+
         //--- пока применяются только для датчиков уровня жидкости ( топлива )
 
         val columnAnalogUsingMinLen = ColumnInt(tableName, "analog_using_min_len", "-", 10, 1)
@@ -345,11 +355,11 @@ class mSensor : mAbstract() {
         columnAnalogDecAddTimeAfter.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrLLSensor))
         columnAnalogDecAddTimeAfter.addFormCaption(FormColumnCaptionData(columnSensorType, "Добавить время к концу слива [сек]", arrLLSensor))
 
-        val columnSmoothMethod = ColumnComboBox(tableName, "smooth_method", "Метод сглаживания", SensorConfigA.SMOOTH_METOD_MEDIAN)
-        columnSmoothMethod.addChoice(SensorConfigA.SMOOTH_METOD_MEDIAN, "Медиана")
-        columnSmoothMethod.addChoice(SensorConfigA.SMOOTH_METOD_AVERAGE, "Среднее арифметическое")
-        columnSmoothMethod.addChoice(SensorConfigA.SMOOTH_METOD_AVERAGE_SQUARE, "Среднее квадратическое")
-        columnSmoothMethod.addChoice(SensorConfigA.SMOOTH_METOD_AVERAGE_GEOMETRIC, "Среднее геометрическое")
+        val columnSmoothMethod = ColumnComboBox(tableName, "smooth_method", "Метод сглаживания", SensorConfig.SMOOTH_METOD_MEDIAN)
+        columnSmoothMethod.addChoice(SensorConfig.SMOOTH_METOD_MEDIAN, "Медиана")
+        columnSmoothMethod.addChoice(SensorConfig.SMOOTH_METOD_AVERAGE, "Среднее арифметическое")
+        columnSmoothMethod.addChoice(SensorConfig.SMOOTH_METOD_AVERAGE_SQUARE, "Среднее квадратическое")
+        columnSmoothMethod.addChoice(SensorConfig.SMOOTH_METOD_AVERAGE_GEOMETRIC, "Среднее геометрическое")
         columnSmoothMethod.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrAnalogSensorOnly))
 
         val columnSmoothTime = ColumnInt(tableName, "smooth_time", "Период сглаживания [мин]", 10, 0)
@@ -499,6 +509,8 @@ class mSensor : mAbstract() {
         alFormColumn.add(columnAnalogMaxView)
         alFormColumn.add(columnAnalogMinLimit)
         alFormColumn.add(columnAnalogMaxLimit)
+
+        alFormColumn.add(columnEnergoPhase)
 
         alFormColumn.add(columnAnalogUsingMinLen)
         alFormColumn.add(columnAnalogIsUsingCalc)

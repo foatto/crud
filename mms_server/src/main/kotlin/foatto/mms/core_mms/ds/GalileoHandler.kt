@@ -1,6 +1,5 @@
 package foatto.mms.core_mms.ds
 
-import foatto.sql.SQLBatch
 import foatto.core.util.AdvancedByteBuffer
 import foatto.core.util.AdvancedLogger
 import foatto.core.util.DateTime_YMDHMS
@@ -9,6 +8,7 @@ import foatto.core.util.getCurrentTimeInt
 import foatto.core_server.ds.CoreDataServer
 import foatto.core_server.ds.CoreDataWorker
 import foatto.mms.core_mms.sensor.SensorConfig
+import foatto.sql.SQLBatch
 import java.nio.ByteOrder
 import java.nio.channels.SelectionKey
 import java.time.ZoneId
@@ -64,23 +64,40 @@ open class GalileoHandler : MMSHandler() {
     private val tmEnergoVoltageA = TreeMap<Int, Int>()
     private val tmEnergoVoltageB = TreeMap<Int, Int>()
     private val tmEnergoVoltageC = TreeMap<Int, Int>()
+
     //--- ток по фазам
     private val tmEnergoCurrentA = TreeMap<Int, Int>()
     private val tmEnergoCurrentB = TreeMap<Int, Int>()
     private val tmEnergoCurrentC = TreeMap<Int, Int>()
+
     //--- коэффициент мощности по фазам
     private val tmEnergoPowerKoefA = TreeMap<Int, Int>()
     private val tmEnergoPowerKoefB = TreeMap<Int, Int>()
     private val tmEnergoPowerKoefC = TreeMap<Int, Int>()
 
+    //--- energy power (active, reactive, full/summary) by phase by 4 indicators
+    private val tmEnergoPowerActiveA = TreeMap<Int, Int>()
+    private val tmEnergoPowerActiveB = TreeMap<Int, Int>()
+    private val tmEnergoPowerActiveC = TreeMap<Int, Int>()
+    private val tmEnergoPowerReactiveA = TreeMap<Int, Int>()
+    private val tmEnergoPowerReactiveB = TreeMap<Int, Int>()
+    private val tmEnergoPowerReactiveC = TreeMap<Int, Int>()
+    private val tmEnergoPowerFullA = TreeMap<Int, Int>()
+    private val tmEnergoPowerFullB = TreeMap<Int, Int>()
+    private val tmEnergoPowerFullC = TreeMap<Int, Int>()
+
     //--- массовый расход
     private val tmMassFlow = TreeMap<Int, Float>()
+
     //--- плотность
     private val tmDensity = TreeMap<Int, Float>()
+
     //--- температура
     private val tmTemperature = TreeMap<Int, Float>()
+
     //--- объёмный расход
     private val tmVolumeFlow = TreeMap<Int, Float>()
+
     //--- накопленная масса
     private val tmAccumulatedMass = TreeMap<Int, Float>()
     //--- накопленный объём
@@ -460,24 +477,36 @@ open class GalileoHandler : MMSHandler() {
 
                                         in 0x02C1..0x02C4 -> tmEnergoVoltageA[ id - 0x02C1 ] = value
                                         in 0x0301..0x0304 -> tmEnergoVoltageB[ id - 0x0301 ] = value
-                                        in 0x0341..0x0344 -> tmEnergoVoltageC[ id - 0x0341 ] = value
+                                        in 0x0341..0x0344 -> tmEnergoVoltageC[id - 0x0341] = value
 
-                                        in 0x0381..0x0384 -> tmEnergoCurrentA[ id - 0x0381 ] = value
-                                        in 0x03C1..0x03C4 -> tmEnergoCurrentB[ id - 0x03C1 ] = value
-                                        in 0x0401..0x0404 -> tmEnergoCurrentC[ id - 0x0401 ] = value
+                                        in 0x0381..0x0384 -> tmEnergoCurrentA[id - 0x0381] = value
+                                        in 0x03C1..0x03C4 -> tmEnergoCurrentB[id - 0x03C1] = value
+                                        in 0x0401..0x0404 -> tmEnergoCurrentC[id - 0x0401] = value
 
-                                        in 0x0441..0x0444 -> tmEnergoPowerKoefA[ id - 0x0441 ] = value
-                                        in 0x0481..0x0484 -> tmEnergoPowerKoefB[ id - 0x0481 ] = value
-                                        in 0x0501..0x0504 -> tmEnergoPowerKoefC[ id - 0x0501 ] = value
+                                        in 0x0441..0x0444 -> tmEnergoPowerKoefA[id - 0x0441] = value
+                                        in 0x0481..0x0484 -> tmEnergoPowerKoefB[id - 0x0481] = value
+                                        in 0x0501..0x0504 -> tmEnergoPowerKoefC[id - 0x0501] = value
 
-                                        in 0x0541..0x0544 -> tmMassFlow[ id - 0x0541 ] = float
-                                        in 0x0581..0x0584 -> tmDensity[ id - 0x0581 ] = float
-                                        in 0x05C1..0x05C4 -> tmTemperature[ id - 0x05C1 ] = float
-                                        in 0x0601..0x0604 -> tmVolumeFlow[ id - 0x0601 ] = float
-                                        in 0x0641..0x0644 -> tmAccumulatedMass[ id - 0x0641 ] = float
-                                        in 0x0681..0x0684 -> tmAccumulatedVolume[ id - 0x0681 ] = float
+                                        in 0x0510..0x0513 -> tmEnergoPowerActiveA[id - 0x0510] = value
+                                        in 0x0514..0x0517 -> tmEnergoPowerActiveB[id - 0x0514] = value
+                                        in 0x0518..0x051B -> tmEnergoPowerActiveC[id - 0x0518] = value
 
-                                        else -> AdvancedLogger.error( "deviceID = $deviceID\n модуль сбора данных: неизвестный id = ${id.toString(16)}." )
+                                        in 0x051C..0x051F -> tmEnergoPowerReactiveA[id - 0x051C] = value
+                                        in 0x0520..0x0523 -> tmEnergoPowerReactiveB[id - 0x0520] = value
+                                        in 0x0524..0x0527 -> tmEnergoPowerReactiveC[id - 0x0524] = value
+
+                                        in 0x0528..0x052B -> tmEnergoPowerFullA[id - 0x0528] = value
+                                        in 0x052C..0x052F -> tmEnergoPowerFullB[id - 0x052C] = value
+                                        in 0x0530..0x0533 -> tmEnergoPowerFullC[id - 0x0530] = value
+
+                                        in 0x0541..0x0544 -> tmMassFlow[id - 0x0541] = float
+                                        in 0x0581..0x0584 -> tmDensity[id - 0x0581] = float
+                                        in 0x05C1..0x05C4 -> tmTemperature[id - 0x05C1] = float
+                                        in 0x0601..0x0604 -> tmVolumeFlow[id - 0x0601] = float
+                                        in 0x0641..0x0644 -> tmAccumulatedMass[id - 0x0641] = float
+                                        in 0x0681..0x0684 -> tmAccumulatedVolume[id - 0x0681] = float
+
+                                        else -> AdvancedLogger.error("deviceID = $deviceID\n модуль сбора данных: неизвестный id = ${id.toString(16)}.")
                                     }
                                 }
                             }
@@ -628,23 +657,38 @@ AdvancedLogger.error( "pointTime = ${DateTime_YMDHMS(ZoneId.systemDefault(), poi
             putDigitalSensor( tmEnergoVoltageC, 188, 4, bbData )
 
             //--- ток по фазам A1..4, B1..4, C1..4
-            putDigitalSensor( tmEnergoCurrentA, 200, 4, bbData )
-            putDigitalSensor( tmEnergoCurrentB, 204, 4, bbData )
-            putDigitalSensor( tmEnergoCurrentC, 208, 4, bbData )
+            putDigitalSensor(tmEnergoCurrentA, 200, 4, bbData)
+            putDigitalSensor(tmEnergoCurrentB, 204, 4, bbData)
+            putDigitalSensor(tmEnergoCurrentC, 208, 4, bbData)
 
             //--- коэффициент мощности по фазам A1..4, B1..4, C1..4
-            putDigitalSensor( tmEnergoPowerKoefA, 220, 4, bbData )
-            putDigitalSensor( tmEnergoPowerKoefB, 224, 4, bbData )
-            putDigitalSensor( tmEnergoPowerKoefC, 228, 4, bbData )
+            putDigitalSensor(tmEnergoPowerKoefA, 220, 4, bbData)
+            putDigitalSensor(tmEnergoPowerKoefB, 224, 4, bbData)
+            putDigitalSensor(tmEnergoPowerKoefC, 228, 4, bbData)
 
-            putDigitalSensor( tmMassFlow, 240, bbData )
-            putDigitalSensor( tmDensity, 250, bbData )
-            putDigitalSensor( tmTemperature, 260, bbData )
-            putDigitalSensor( tmVolumeFlow, 270, bbData )
-            putDigitalSensor( tmAccumulatedMass, 280, bbData )
-            putDigitalSensor( tmAccumulatedVolume, 290, bbData )
+            //--- активная мощность по фазам A1..4, B1..4, C1..4
+            putDigitalSensor(tmEnergoPowerActiveA, 232, 4, bbData)
+            putDigitalSensor(tmEnergoPowerActiveB, 236, 4, bbData)
+            putDigitalSensor(tmEnergoPowerActiveC, 240, 4, bbData)
 
-            addPoint( dataWorker.alStm[ 0 ], pointTime, bbData, sqlBatchData )
+            //--- реактивная мощность по фазам A1..4, B1..4, C1..4
+            putDigitalSensor(tmEnergoPowerReactiveA, 244, 4, bbData)
+            putDigitalSensor(tmEnergoPowerReactiveB, 248, 4, bbData)
+            putDigitalSensor(tmEnergoPowerReactiveC, 252, 4, bbData)
+
+            //--- полная мощность по фазам A1..4, B1..4, C1..4
+            putDigitalSensor(tmEnergoPowerFullA, 256, 4, bbData)
+            putDigitalSensor(tmEnergoPowerFullB, 260, 4, bbData)
+            putDigitalSensor(tmEnergoPowerFullC, 264, 4, bbData)
+
+            putDigitalSensor(tmMassFlow, 270, bbData)
+            putDigitalSensor(tmDensity, 280, bbData)
+            putDigitalSensor(tmTemperature, 290, bbData)
+            putDigitalSensor(tmVolumeFlow, 300, bbData)
+            putDigitalSensor(tmAccumulatedMass, 310, bbData)
+            putDigitalSensor(tmAccumulatedVolume, 320, bbData)
+
+            addPoint(dataWorker.alStm[0], pointTime, bbData, sqlBatchData)
             dataCount++
         }
         dataCountAll++

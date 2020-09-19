@@ -9,7 +9,7 @@ import foatto.core_server.app.server.data.DataInt
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.calc.ObjectCalc
 import foatto.mms.core_mms.sensor.SensorConfig
-import foatto.mms.core_mms.sensor.SensorConfigA
+import foatto.mms.core_mms.sensor.SensorConfigAnalogue
 import jxl.write.Label
 import jxl.write.WritableSheet
 import java.time.ZoneId
@@ -125,7 +125,7 @@ class cWorkShift : cAbstractPeriodSummary() {
             val hmSCLL = oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_LEVEL]
             if(hmSCLL != null && !hmSCLL.isEmpty()) {
                 for(portNum in hmSCLL.keys) {
-                    val sca = hmSCLL[portNum] as SensorConfigA
+                    val sca = hmSCLL[portNum] as SensorConfigAnalogue
                     isGlobalUsingCalc = isGlobalUsingCalc or sca.isUsingCalc
                 }
             }
