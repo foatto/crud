@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
+
 val isBuildSupressWarning: String by project
 
 val kotlinLanguageVersion: String by project
@@ -12,15 +14,15 @@ plugins {
     idea
 }
 
-version=coreWebVersion
+version = coreWebVersion
 
 dependencies {
-    api(kotlin("stdlib-js"))
+//    api(kotlin("stdlib-js"))
     api(project(":core"))
 }
 
 kotlin {
-    target {
+    js {
         browser {
         }
     }
@@ -40,14 +42,11 @@ publishing {
     }
 }
 
-tasks {
-    compileKotlinJs {
-        kotlinOptions {
-            languageVersion = kotlinLanguageVersion
-            apiVersion = kotlinApiVersion
-            suppressWarnings = isBuildSupressWarning.toBoolean()
-            sourceMap = true
-         }
+tasks.withType<Kotlin2JsCompile>().configureEach {
+    kotlinOptions {
+        languageVersion = kotlinLanguageVersion
+        apiVersion = kotlinApiVersion
+        suppressWarnings = isBuildSupressWarning.toBoolean()
+        sourceMap = true
     }
 }
-

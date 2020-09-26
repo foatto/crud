@@ -7,13 +7,13 @@ val kotlinJvmTarget: String by project
 val coreVersion: String by project
 
 plugins {
-    kotlin("multiplatform") 
+    kotlin("multiplatform")
 
     `maven-publish`
     idea
 }
 
-version=coreVersion
+version = coreVersion
 
 kotlin {
     js {
@@ -34,18 +34,18 @@ kotlin {
 
     sourceSets {
         val commonMain by getting {
-            dependencies {
-                api(kotlin("stdlib-common"))
-            }
+//            dependencies {
+//                api(kotlin("stdlib-common"))
+//            }
         }
         val jsMain by getting {
-            dependencies {
-                api(kotlin("stdlib-js"))
-            }
+//            dependencies {
+//                api(kotlin("stdlib-js"))
+//            }
         }
         val jvmMain by getting {
             dependencies {
-                api(kotlin("stdlib-jdk8"))
+//                api(kotlin("stdlib-jdk8"))
                 api(kotlin("reflect"))
             }
         }

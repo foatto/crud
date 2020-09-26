@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
+
 val isBuildSupressWarning: String by project
 
 val kotlinLanguageVersion: String by project
@@ -13,21 +15,22 @@ dependencies {
 }
 
 kotlin {
-    target {
+    js {
         browser {
         }
     }
 }
 
-tasks {
-    compileKotlinJs {
-        kotlinOptions {
-            languageVersion = kotlinLanguageVersion
-            apiVersion = kotlinApiVersion
-            suppressWarnings = isBuildSupressWarning.toBoolean()
-            sourceMap = true
-         }
+tasks.withType<Kotlin2JsCompile>().configureEach {
+    kotlinOptions {
+        languageVersion = kotlinLanguageVersion
+        apiVersion = kotlinApiVersion
+        suppressWarnings = isBuildSupressWarning.toBoolean()
+        sourceMap = true
     }
+}
+
+tasks {
     build {
         doLast {
             delete("/home/foatto/ShopServerSpring/web/lib")
