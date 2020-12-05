@@ -9,7 +9,7 @@ import foatto.core_server.app.server.column.ColumnDateTimeInt
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.mAbstract
-import foatto.mms.core_mms.sensor.SensorConfig
+import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.sql.CoreAdvancedStatement
 import java.util.*
 

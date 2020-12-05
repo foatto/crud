@@ -5,7 +5,6 @@ import foatto.core.link.FormPinMode
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.ChildData
 import foatto.core_server.app.server.DependData
-import foatto.core_server.app.server.FormColumnVisibleData
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnBoolean
 import foatto.core_server.app.server.column.ColumnComboBox
@@ -72,60 +71,70 @@ class mPeople : mAbstract() {
         var columnUser_: ColumnInt? = null
 
         //--- админы могут явно выбирать режим работы и менеджера контакта в любое время
-        columnPeopleWorkState = ColumnComboBox(tableName, "work_state", "Состояние работы с клиентом", if(isPeople) WORK_STATE_NOT_NEED else WORK_STATE_IN_WORK)
-        columnPeopleWorkState.isEditable = !isPeople || userConfig.isAdmin
-        columnPeopleWorkState.addChoice(WORK_STATE_NOT_NEED, "(нет)")
-        columnPeopleWorkState.addChoice(WORK_STATE_IN_WORK, "В работе")
-        //--- нет смысла создавать отработанного клиента
-        if(id != 0) columnPeopleWorkState.addChoice(WORK_STATE_OUT_WORK, "Отработан")
-        columnPeopleWorkState.formPinMode = FormPinMode.OFF
+        columnPeopleWorkState = ColumnComboBox(tableName, "work_state", "Состояние работы с клиентом", if (isPeople) WORK_STATE_NOT_NEED else WORK_STATE_IN_WORK).apply {
+            isEditable = !isPeople || userConfig.isAdmin
+            addChoice(WORK_STATE_NOT_NEED, "(нет)")
+            addChoice(WORK_STATE_IN_WORK, "В работе")
+            //--- нет смысла создавать отработанного клиента
+            if (id != 0) addChoice(WORK_STATE_OUT_WORK, "Отработан")
+            formPinMode = FormPinMode.OFF
+        }
 
-        if(isPeople) {
+        if (isPeople) {
             //--- админы могут явно выбирать владельца контакта в любое время
-            if(userConfig.isAdmin) {
+            if (userConfig.isAdmin) {
                 val selfLinkUserTableName = "SYSTEM_users_1"
-                val columnUserID = ColumnInt(selfLinkUserTableName, "id")
-                columnUserID.selfLinkTableName = "SYSTEM_users"
+                val columnUserID = ColumnInt(selfLinkUserTableName, "id").apply {
+                    selfLinkTableName = "SYSTEM_users"
+                }
                 //--- в режиме клиента вместо user_id регулятором прав доступа работает manager_id
                 columnUser = ColumnInt(tableName, "user_id", columnUserID, 0)
-                columnUserName = ColumnString(selfLinkUserTableName, "full_name", "Пользователь", STRING_COLUMN_WIDTH)
-                columnUserName.selfLinkTableName = "SYSTEM_users"
-                //columnUserName.setRequired( true ); - может быть ничья/общая
-                columnUserName.selectorAlias = "system_user_people"
-                columnUserName.addSelectorColumn(columnUser!!, columnUserID)
-                columnUserName.addSelectorColumn(columnUserName)
-            } else if(id == 0) {
-                columnUser = ColumnComboBox(tableName, "user_id", "Доступ", 0)
-                (columnUser as ColumnComboBox).addChoice(0, "общий")
-                (columnUser as ColumnComboBox).addChoice(userConfig.userID, "личный")
-            } else columnUser = ColumnInt(tableName, "user_id", 0)//--- во всех прочих случаях это обычное служебное/невидимое поле
+                columnUserName = ColumnString(selfLinkUserTableName, "full_name", "Пользователь", STRING_COLUMN_WIDTH).apply {
+                    selfLinkTableName = "SYSTEM_users"
+                    //columnUserName.setRequired( true ); - может быть ничья/общая
+                    selectorAlias = "system_user_people"
+                    addSelectorColumn(columnUser!!, columnUserID)
+                    addSelectorColumn(this)
+                }
+            } else if (id == 0) {
+                columnUser = ColumnComboBox(tableName, "user_id", "Доступ", 0).apply {
+                    addChoice(0, "общий")
+                    addChoice(userConfig.userID, "личный")
+                }
+            } else {
+                columnUser = ColumnInt(tableName, "user_id", 0)
+            }//--- во всех прочих случаях это обычное служебное/невидимое поле
             //--- обычные пользователи могут указать доступ к своему контакту только при его создании
 
             //--- показ имени менеджера в режиме контакта
             val selfLinkManagerTableName = "SYSTEM_users_2"
-            val columnPeopleManagerID = ColumnInt(selfLinkManagerTableName, "id")
-            columnPeopleManagerID.selfLinkTableName = "SYSTEM_users"
-            columnPeopleManager = ColumnInt(tableName, "manager_id", columnPeopleManagerID, 0)
-            columnPeopleManagerName = ColumnString(selfLinkManagerTableName, "full_name", "Менеджер", STRING_COLUMN_WIDTH)
-            columnPeopleManagerName.selfLinkTableName = "SYSTEM_users"
-            columnPeopleManagerName.addFormVisible(FormColumnVisibleData(columnPeopleWorkState!!, true, intArrayOf(WORK_STATE_IN_WORK)))
-            columnPeopleManagerName.formPinMode = FormPinMode.OFF
+            val columnPeopleManagerID = ColumnInt(selfLinkManagerTableName, "id").apply {
+                selfLinkTableName = "SYSTEM_users"
+            }
+            columnPeopleManager = ColumnInt(tableName, "manager_id", columnPeopleManagerID, 0).apply {
+                columnPeopleManagerName = ColumnString(selfLinkManagerTableName, "full_name", "Менеджер", STRING_COLUMN_WIDTH)
+                selfLinkTableName = "SYSTEM_users"
+                addFormVisible(columnPeopleWorkState!!, true, setOf(WORK_STATE_IN_WORK))
+                formPinMode = FormPinMode.OFF
+            }
         }
         //--- в режиме работы с клиентом всегда можно переназначить клиента другому менеджеру
         else {
             columnUser_ = ColumnInt(tableName, "user_id", 0)
 
             val selfLinkUserTableName = "SYSTEM_users_1"
-            val columnUserID = ColumnInt(selfLinkUserTableName, "id")
-            columnUserID.selfLinkTableName = "SYSTEM_users"
+            val columnUserID = ColumnInt(selfLinkUserTableName, "id").apply {
+                selfLinkTableName = "SYSTEM_users"
+            }
             //--- в режиме клиента вместо user_id регулятором прав доступа работает manager_id
             columnUser = ColumnInt(tableName, "manager_id", columnUserID, userConfig.userID)
-            columnUserName = ColumnString(selfLinkUserTableName, "full_name", "Менеджер", STRING_COLUMN_WIDTH)
-            columnUserName.selfLinkTableName = "SYSTEM_users"
-            //columnUserName.setRequired( true ); - может быть ничья/общая
-            columnUserName.selectorAlias = "system_user_people"
-            columnUserName.addSelectorColumn(columnUser!!, columnUserID)
-            columnUserName.addSelectorColumn(columnUserName)
+            columnUserName = ColumnString(selfLinkUserTableName, "full_name", "Менеджер", STRING_COLUMN_WIDTH).apply {
+                selfLinkTableName = "SYSTEM_users"
+                //columnUserName.setRequired( true ); - может быть ничья/общая
+                selectorAlias = "system_user_people"
+                addSelectorColumn(columnUser!!, columnUserID)
+                addSelectorColumn(this)
+            }
         }
 
         //---------------------------------------------------------------------------------------------------------------
@@ -133,30 +142,35 @@ class mPeople : mAbstract() {
         val columnCompanyID = ColumnInt("OFFICE_company", "id")
         val columnCompany = ColumnInt(tableName, "company_id", columnCompanyID)
 
-        val columnCompanyBlackList = ColumnBoolean("OFFICE_company", "in_black_list", "В чёрном списке")
-        columnCompanyBlackList.formPinMode = FormPinMode.OFF
-        val columnCompanyName = ColumnString("OFFICE_company", "name", "Предприятие", STRING_COLUMN_WIDTH)
-        columnCompanyName.formPinMode = FormPinMode.OFF
-        val columnCompanyAddress = ColumnString("OFFICE_company", "address", "Адрес компании", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
-        columnCompanyAddress.formPinMode = FormPinMode.OFF
-        val columnCompanyContactInfo = ColumnString("OFFICE_company", "contact_info", "Доп. информация по компании", 10, STRING_COLUMN_WIDTH, textFieldMaxSize)
-        columnCompanyContactInfo.formPinMode = FormPinMode.OFF
+        val columnCompanyBlackList = ColumnBoolean("OFFICE_company", "in_black_list", "В чёрном списке").apply {
+            formPinMode = FormPinMode.OFF
+        }
+        val columnCompanyAddress = ColumnString("OFFICE_company", "address", "Адрес компании", 12, STRING_COLUMN_WIDTH, textFieldMaxSize).apply {
+            formPinMode = FormPinMode.OFF
+        }
+        val columnCompanyContactInfo = ColumnString("OFFICE_company", "contact_info", "Доп. информация по компании", 10, STRING_COLUMN_WIDTH, textFieldMaxSize).apply {
+            formPinMode = FormPinMode.OFF
+        }
 
         val columnCityID = ColumnInt("OFFICE_city", "id")
         val columnCity = ColumnInt("OFFICE_company", "city_id", columnCityID)
 
-        val columnCityName = ColumnString("OFFICE_city", "name", "Город", STRING_COLUMN_WIDTH)
-        columnCityName.formPinMode = FormPinMode.OFF
+        val columnCityName = ColumnString("OFFICE_city", "name", "Город", STRING_COLUMN_WIDTH).apply {
+            formPinMode = FormPinMode.OFF
+        }
         val columnCityPhoneCode = ColumnString("OFFICE_city", "phone_code", "Код города", STRING_COLUMN_WIDTH)
 
-        columnCompanyName.selectorAlias = "office_company"
-        columnCompanyName.addSelectorColumn(columnCompany, columnCompanyID)
-        columnCompanyName.addSelectorColumn(columnCompanyBlackList)
-        columnCompanyName.addSelectorColumn(columnCompanyName)
-        columnCompanyName.addSelectorColumn(columnCompanyAddress)
-        columnCompanyName.addSelectorColumn(columnCompanyContactInfo)
-        columnCompanyName.addSelectorColumn(columnCityName)
-        columnCompanyName.addSelectorColumn(columnCityPhoneCode)
+        val columnCompanyName = ColumnString("OFFICE_company", "name", "Предприятие", STRING_COLUMN_WIDTH).apply {
+            formPinMode = FormPinMode.OFF
+            selectorAlias = "office_company"
+            addSelectorColumn(columnCompany, columnCompanyID)
+            addSelectorColumn(columnCompanyBlackList)
+            addSelectorColumn(this)
+            addSelectorColumn(columnCompanyAddress)
+            addSelectorColumn(columnCompanyContactInfo)
+            addSelectorColumn(columnCityName)
+            addSelectorColumn(columnCityPhoneCode)
+        }
 
         val columnPeopleName = ColumnString(tableName, "name", "Ф.И.О.", STRING_COLUMN_WIDTH)
         val columnPeoplePost = ColumnString(tableName, "post", "Должность", STRING_COLUMN_WIDTH)
@@ -174,28 +188,33 @@ class mPeople : mAbstract() {
 
         //---------------------------------------------------------------------------------------------------------------
 
-        val columnBusiness = ColumnComboBox(tableName, "business_id", "Направление деятельности", 0)
-        val rs = stm.executeQuery(" SELECT id , name FROM OFFICE_business ")
-        while(rs.next()) columnBusiness.addChoice(rs.getInt(1), rs.getString(2))
-        rs.close()
+        val columnBusiness = ColumnComboBox(tableName, "business_id", "Направление деятельности", 0).apply {
+            val rs = stm.executeQuery(" SELECT id , name FROM OFFICE_business ")
+            while (rs.next()) addChoice(rs.getInt(1), rs.getString(2))
+            rs.close()
+        }
 
-        val columnClientActionDate = ColumnDate3Int(tableName, "action_ye", "action_mo", "action_da", "Дата последнего действия")
-        columnClientActionDate.isEditable = false
-        val columnClientActionTime = ColumnTime3Int(tableName, "action_ho", "action_mi", null, "Время последнего действия")
-        columnClientActionTime.isEditable = false
+        val columnClientActionDate = ColumnDate3Int(tableName, "action_ye", "action_mo", "action_da", "Дата последнего действия").apply {
+            isEditable = false
+        }
+        val columnClientActionTime = ColumnTime3Int(tableName, "action_ho", "action_mi", null, "Время последнего действия").apply {
+            isEditable = false
+        }
 
-        columnClientPlanDate = ColumnDate3Int(tableName, "plan_ye", "plan_mo", "plan_da", "Дата следующего действия")
-        columnClientPlanDate.isEditable = false
-        columnClientPlanDate.formPinMode = FormPinMode.OFF
-        columnClientPlanTime = ColumnTime3Int(tableName, "plan_ho", "plan_mi", null, "Время следующего действия")
-        columnClientPlanTime.isEditable = false
+        columnClientPlanDate = ColumnDate3Int(tableName, "plan_ye", "plan_mo", "plan_da", "Дата следующего действия").apply {
+            isEditable = false
+            formPinMode = FormPinMode.OFF
+        }
+        columnClientPlanTime = ColumnTime3Int(tableName, "plan_ho", "plan_mi", null, "Время следующего действия").apply {
+            isEditable = false
+        }
 
         //---------------------------------------------------------------------------------------------------------------
 
         alTableHiddenColumn.add(columnID!!)
         alTableHiddenColumn.add(columnUser!!)
-        if(!isPeople) alTableHiddenColumn.add(columnUser_!!)
-        if(isPeople) alTableHiddenColumn.add(columnPeopleManager!!)
+        if (!isPeople) alTableHiddenColumn.add(columnUser_!!)
+        if (isPeople) alTableHiddenColumn.add(columnPeopleManager!!)
         alTableHiddenColumn.add(columnCompany)
         alTableHiddenColumn.add(columnCity)
         //--- показывать не будем, но для селектора оставим
@@ -212,7 +231,7 @@ class mPeople : mAbstract() {
         alTableHiddenColumn.add(columnCompanyContactInfo)
         alTableHiddenColumn.add(columnCityPhoneCode)
 
-        if(aliasConfig.alias == "office_client_in_work") {
+        if (aliasConfig.alias == "office_client_in_work") {
             alTableGroupColumn.add(columnClientPlanDate)
             alTableGroupColumn.add(columnClientPlanTime)
         } else {
@@ -227,11 +246,11 @@ class mPeople : mAbstract() {
         addTableColumn(columnCompanyName)
         addTableColumn(columnCityName)
 //        addTableColumn(columnPeopleWorkState)
-        if(isPeople) {
+        if (isPeople) {
 //            addTableColumn(columnPeopleManagerName!!)
         }
 //        addTableColumn(columnBusiness)
-        if(isPeople) {
+        if (isPeople) {
             alTableHiddenColumn.add(columnClientActionDate)
             alTableHiddenColumn.add(columnClientActionTime)
         } else {
@@ -242,13 +261,13 @@ class mPeople : mAbstract() {
 
 
         alFormHiddenColumn.add(columnID!!)
-        if(!isPeople) alFormHiddenColumn.add(columnUser_!!)
-        if(isPeople) alFormHiddenColumn.add(columnPeopleManager!!)
+        if (!isPeople) alFormHiddenColumn.add(columnUser_!!)
+        if (isPeople) alFormHiddenColumn.add(columnPeopleManager!!)
         alFormHiddenColumn.add(columnCompany)
         alFormHiddenColumn.add(columnCity)
 
-        (if(!isPeople || userConfig.isAdmin || id != 0) alFormHiddenColumn else alFormColumn).add(columnUser!!)
-        if(!isPeople || userConfig.isAdmin) {
+        (if (!isPeople || userConfig.isAdmin || id != 0) alFormHiddenColumn else alFormColumn).add(columnUser!!)
+        if (!isPeople || userConfig.isAdmin) {
             alFormColumn.add(columnUserName!!)
         }
         alFormColumn.add(columnPeopleName)
@@ -271,16 +290,16 @@ class mPeople : mAbstract() {
 //        alFormColumn.add(columnPeopleWorkState)
 //        if(isPeople) alFormColumn.add(columnPeopleManagerName!!)
 //        alFormColumn.add(columnBusiness)
-        (if(isPeople) alFormHiddenColumn else alFormColumn).add(columnClientActionDate)
-        (if(isPeople) alFormHiddenColumn else alFormColumn).add(columnClientActionTime)
-        (if(isPeople) alFormHiddenColumn else alFormColumn).add(columnClientPlanDate)
-        (if(isPeople) alFormHiddenColumn else alFormColumn).add(columnClientPlanTime)
+        (if (isPeople) alFormHiddenColumn else alFormColumn).add(columnClientActionDate)
+        (if (isPeople) alFormHiddenColumn else alFormColumn).add(columnClientActionTime)
+        (if (isPeople) alFormHiddenColumn else alFormColumn).add(columnClientPlanDate)
+        (if (isPeople) alFormHiddenColumn else alFormColumn).add(columnClientPlanTime)
         alFormColumn.add(columnFile)
 
         //---------------------------------------------------------------------------------------------------------------
 
         //--- поля для сортировки
-        if(!isPeople) {
+        if (!isPeople) {
             alTableSortColumn.add(columnClientPlanDate)
             alTableSortDirect.add("ASC")
             alTableSortColumn.add(columnClientPlanTime)
@@ -301,7 +320,7 @@ class mPeople : mAbstract() {
 
         //----------------------------------------------------------------------------------------
 
-        if(isPeople) {
+        if (isPeople) {
             alChildData.add(ChildData("office_reminder", columnID!!, true))
             alChildData.add(ChildData("office_reminder_call", columnID!!))
             alChildData.add(ChildData("office_reminder_meet", columnID!!))

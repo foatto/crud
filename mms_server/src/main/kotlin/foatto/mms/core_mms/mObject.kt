@@ -5,7 +5,6 @@ import foatto.core.link.AppAction
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.ChildData
 import foatto.core_server.app.server.DependData
-import foatto.core_server.app.server.FormColumnVisibleData
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnBoolean
 import foatto.core_server.app.server.column.ColumnInt
@@ -34,44 +33,45 @@ class mObject : mAbstract() {
 
         val columnUserID = ColumnInt("SYSTEM_users", "id")
         columnUser = ColumnInt(tableName, "user_id", columnUserID, userConfig.userID)
-        val columnUserName = ColumnString("SYSTEM_users", "full_name", "Владелец", STRING_COLUMN_WIDTH)
-        if(userConfig.isAdmin) {
-            columnUserName.selectorAlias = "system_user_people"
-            columnUserName.addSelectorColumn(columnUser!!, columnUserID)
-            columnUserName.addSelectorColumn(columnUserName)
+        val columnUserName = ColumnString("SYSTEM_users", "full_name", "Владелец", STRING_COLUMN_WIDTH).apply {
+            if (userConfig.isAdmin) {
+                selectorAlias = "system_user_people"
+                addSelectorColumn(columnUser!!, columnUserID)
+                addSelectorColumn(this)
+            }
         }
 
         columnDisabled = ColumnBoolean(tableName, "is_disabled", "Отключен", false)
-        val columnDisableReason = ColumnString(tableName, "disable_reason", "Причина отключения", STRING_COLUMN_WIDTH)
-        columnDisableReason.addFormVisible(FormColumnVisibleData(columnDisabled, true, intArrayOf(1)))
+        val columnDisableReason = ColumnString(tableName, "disable_reason", "Причина отключения", STRING_COLUMN_WIDTH).apply {
+            addFormVisible(columnDisabled, true, setOf(1))
+        }
 
-        columnObjectName = ColumnString(tableName, "name", "Наименование", STRING_COLUMN_WIDTH)
-        columnObjectName.isRequired = true
-        //columnObjectName.setUnique(  true, null  ); - у разных клиентов/пользователей могут быть объекты с одинаковыми названиями
+        columnObjectName = ColumnString(tableName, "name", "Наименование", STRING_COLUMN_WIDTH).apply {
+            isRequired = true
+            //setUnique(  true, null  ); - different clients / users may have objects with the same names
+        }
 
         val columnObjectModel = ColumnString(tableName, "model", "Модель", STRING_COLUMN_WIDTH)
 
         val columnGroupID = ColumnInt("MMS_group", "id")
         val columnGroup = ColumnInt(tableName, "group_id", columnGroupID)
-        val columnGroupName = ColumnString("MMS_group", "name", "Группа", STRING_COLUMN_WIDTH)
-        columnGroupName.selectorAlias = "mms_group"
-        columnGroupName.addSelectorColumn(columnGroup, columnGroupID)
-        columnGroupName.addSelectorColumn(columnGroupName)
+        val columnGroupName = ColumnString("MMS_group", "name", "Группа", STRING_COLUMN_WIDTH).apply {
+            selectorAlias = "mms_group"
+            addSelectorColumn(columnGroup, columnGroupID)
+            addSelectorColumn(this)
+        }
 
         val columnDepartmentID = ColumnInt("MMS_department", "id")
         val columnDepartment = ColumnInt(tableName, "department_id", columnDepartmentID)
-        val columnDepartmentName = ColumnString("MMS_department", "name", "Подразделение", STRING_COLUMN_WIDTH)
-        columnDepartmentName.selectorAlias = "mms_department"
-        columnDepartmentName.addSelectorColumn(columnDepartment, columnDepartmentID)
-        columnDepartmentName.addSelectorColumn(columnDepartmentName)
+        val columnDepartmentName = ColumnString("MMS_department", "name", "Подразделение", STRING_COLUMN_WIDTH).apply {
+            selectorAlias = "mms_department"
+            addSelectorColumn(columnDepartment, columnDepartmentID)
+            addSelectorColumn(this)
+        }
 
         val columnObjectInfo = ColumnString(tableName, "info", "Дополнительная информация", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
 
         val columnEmail = ColumnString(tableName, "e_mail", "E-mail для оповещения", STRING_COLUMN_WIDTH)
-
-        //--- data_version = 0 - старая версия, по 1 байту на номер порта и кол-во байт данных на этом порту
-        //--- data_version = 1 - текущая/новая версия, по 2 байта на номер порта и кол-во байт данных на этом порту
-        val columnDataVersion = ColumnInt(tableName, "data_version", 1)
 
         val columnIsAutoWorkShift = ColumnInt(tableName, "is_auto_work_shift", 0)
 
@@ -82,7 +82,6 @@ class mObject : mAbstract() {
         alTableHiddenColumn.add(columnDisabled)   // нужен для раскраски
         alTableHiddenColumn.add(columnGroup)
         alTableHiddenColumn.add(columnDepartment)
-        alTableHiddenColumn.add(columnDataVersion)
         alTableHiddenColumn.add(columnIsAutoWorkShift)
 
         addTableColumn(columnObjectName)
@@ -96,7 +95,6 @@ class mObject : mAbstract() {
         alFormHiddenColumn.add(columnUser!!)
         alFormHiddenColumn.add(columnGroup)
         alFormHiddenColumn.add(columnDepartment)
-        alFormHiddenColumn.add(columnDataVersion)
         alFormHiddenColumn.add(columnIsAutoWorkShift)
 
         alFormColumn.add(columnUserName)
@@ -111,7 +109,6 @@ class mObject : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        //--- поля для сортировки
         alTableSortColumn.add(columnObjectName)
         alTableSortDirect.add("ASC")
 
@@ -126,7 +123,7 @@ class mObject : mAbstract() {
         alChildData.add(ChildData("Журналы...", "mms_day_work", columnID!!, AppAction.TABLE))
         alChildData.add(ChildData("Журналы...", "mms_shift_work", columnID!!, AppAction.TABLE))
         alChildData.add(ChildData("Журналы...", "mms_downtime", columnID!!, AppAction.TABLE))
-        //--- обычно показывается один из двух модулей
+        //--- usually one of two modules is shown
         alChildData.add(ChildData("Журналы...", "mms_work_shift", columnID!!, AppAction.TABLE))
         alChildData.add(ChildData("Журналы...", "mms_waybill", columnID!!, AppAction.TABLE))
 
@@ -135,7 +132,6 @@ class mObject : mAbstract() {
         alChildData.add(ChildData("Отчёты...", "mms_report_work_shift", columnID!!, AppAction.FORM))
         alChildData.add(ChildData("Отчёты...", "mms_report_waybill", columnID!!, AppAction.FORM))
         alChildData.add(ChildData("Отчёты...", "mms_report_waybill_compare", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Отчёты...", "mms_report_summary_without_waybill", columnID!!, AppAction.FORM))
         alChildData.add(ChildData("Отчёты...", "mms_report_liquid_inc", columnID!!, AppAction.FORM))
         alChildData.add(ChildData("Отчёты...", "mms_report_liquid_inc_waybill", columnID!!, AppAction.FORM))
         alChildData.add(ChildData("Отчёты...", "mms_report_liquid_dec", columnID!!, AppAction.FORM))
@@ -154,14 +150,7 @@ class mObject : mAbstract() {
         alChildData.add(ChildData("Отчёты...", "mms_report_trouble", columnID!!, AppAction.FORM))
         alChildData.add(ChildData("Отчёты...", "mms_report_data_out", columnID!!, AppAction.FORM))
 
-        alChildData.add(ChildData("Графики...", "mms_graphic_liquid", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Графики...", "mms_graphic_weight", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Графики...", "mms_graphic_turn", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Графики...", "mms_graphic_pressure", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Графики...", "mms_graphic_temperature", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Графики...", "mms_graphic_voltage", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Графики...", "mms_graphic_power", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Графики...", "mms_graphic_speed", columnID!!, AppAction.FORM))
+        MMSFunction.fillAllChildDataForGraphics(columnID!!, alChildData)
 
         alChildData.add(ChildData("Карты...", "mms_show_object", columnID!!, AppAction.FORM))
         alChildData.add(ChildData("Карты...", "mms_show_trace", columnID!!, AppAction.FORM))
@@ -183,9 +172,9 @@ class mObject : mAbstract() {
 
         alDependData.add(DependData("MMS_day_work", "object_id", DependData.DELETE))
         alDependData.add(DependData("MMS_downtime", "object_id", DependData.DELETE))
-        //--- каскадная процедура удаления, реализована в cObject.postDelete
+        //--- cascade deletion procedure, implemented in cObject.postDelete
         //alDependData.add(  new DependData(  "MMS_work_shift", "object_id", DependData.DELETE  )  );
-        //--- каскадная процедура удаления, реализована в cObject.postDelete
+        //--- cascade deletion procedure, implemented in cObject.postDelete
         //alDependData.add(  new DependData(  "MMS_sensor", "object_id", DependData.DELETE  )  );
         alDependData.add(DependData("MMS_object_zone", "object_id", DependData.DELETE))
 

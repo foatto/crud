@@ -171,14 +171,7 @@ class mWorkShift : mAbstract() {
         alChildData.add(ChildData("Отчёты...", "mms_report_over_voltage", columnID!!, AppAction.FORM))
         alChildData.add(ChildData("Отчёты...", "mms_report_data_out", columnID!!, AppAction.FORM))
 
-        alChildData.add(ChildData("Графики...", "mms_graphic_liquid", columnID!!, AppAction.FORM, true))
-        alChildData.add(ChildData("Графики...", "mms_graphic_weight", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Графики...", "mms_graphic_turn", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Графики...", "mms_graphic_pressure", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Графики...", "mms_graphic_temperature", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Графики...", "mms_graphic_voltage", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Графики...", "mms_graphic_power", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Графики...", "mms_graphic_speed", columnID!!, AppAction.FORM))
+        MMSFunction.fillAllChildDataForGraphics(columnID!!, alChildData)
 
         alChildData.add(ChildData("mms_show_object", columnID!!, AppAction.FORM, true))
         if(isWaybill)

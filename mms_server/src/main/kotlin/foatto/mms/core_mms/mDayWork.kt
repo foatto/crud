@@ -60,8 +60,6 @@ class mDayWork : mAbstract() {
         columnObjectDayWorkRun.isVirtual = true
         columnObjectDayWorkRun.isSearchable = false
         columnObjectDayWorkRun.rowSpan = 3
-        //--- глючит вывод пробегов в Стрела-М
-        //if( ! isOldVersion ) columnObjectDayWorkRun.setColSpan( 2 );
         columnObjectDayWorkHourName = ColumnString(tableName, "_work_name", "Оборудование", STRING_COLUMN_WIDTH)
         columnObjectDayWorkHourName.isVirtual = true
         columnObjectDayWorkHourName.isSearchable = false
@@ -70,18 +68,14 @@ class mDayWork : mAbstract() {
         columnObjectDayWorkHourValue.isVirtual = true
         columnObjectDayWorkHourValue.isSearchable = false
         columnObjectDayWorkHourValue.rowSpan = 3
-        //--- глючит вывод пробегов в Стрела-М
-        //if( ! isOldVersion ) columnObjectDayWorkHourValue.setColSpan( 2 );
         columnObjectDayWorkLiquidName = ColumnString(tableName, "_liquid_name", "Топливо", STRING_COLUMN_WIDTH)
         columnObjectDayWorkLiquidName.isVirtual = true
         columnObjectDayWorkLiquidName.isSearchable = false
         columnObjectDayWorkLiquidName.rowSpan = 3
-        columnObjectDayWorkLiquidValue = ColumnString(tableName, "_liquid_value", "Расход [л]", STRING_COLUMN_WIDTH)
+        columnObjectDayWorkLiquidValue = ColumnString(tableName, "_liquid_value", "Расход", STRING_COLUMN_WIDTH)
         columnObjectDayWorkLiquidValue.isVirtual = true
         columnObjectDayWorkLiquidValue.isSearchable = false
         columnObjectDayWorkLiquidValue.rowSpan = 3
-        //--- глючит вывод пробегов в Стрела-М
-        //if( ! isOldVersion ) columnObjectDayWorkLiquidValue.setColSpan( 2 );
         columnObjectDayWorkLevelName = ColumnString(tableName, "_level_name", "Ёмкость", STRING_COLUMN_WIDTH)
         columnObjectDayWorkLevelName.isVirtual = true
         columnObjectDayWorkLevelName.isSearchable = false
@@ -108,7 +102,17 @@ class mDayWork : mAbstract() {
         //----------------------------------------------------------------------------------------------------------------------------------------
 
         os = ObjectSelector()
-        os.fillColumns(this, true, true, alTableHiddenColumn, alFormHiddenColumn, alFormColumn, hmParentColumn, false, 0)
+        os.fillColumns(
+            model = this,
+            isRequired = true,
+            isSelector = true,
+            alTableHiddenColumn = alTableHiddenColumn,
+            alFormHiddenColumn = alFormHiddenColumn,
+            alFormColumn = alFormColumn,
+            hmParentColumn = hmParentColumn,
+            aSingleObjectMode = false,
+            addedStaticColumnCount = 0
+        )
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -133,7 +137,6 @@ class mDayWork : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        //--- поля для сортировки
         alTableSortColumn.add(columnObjectDayWorkDate)
         alTableSortDirect.add("DESC")
         alTableSortColumn.add(os.columnObjectName)
@@ -145,13 +148,13 @@ class mDayWork : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        //--- определяем пользователя только передвижных объектов
+        //--- define the user of mobile objects only
         val hsPermissionDW = userConfig.userPermission["mms_day_work"]
         val hsPermissionSW = userConfig.userPermission["mms_shift_work"]
         val isMovingMode = hsPermissionDW != null && hsPermissionDW.contains(cStandart.PERM_ACCESS) &&
             (hsPermissionSW == null || !hsPermissionSW.contains(cStandart.PERM_ACCESS))
 
-        if(isMovingMode) {
+        if (isMovingMode) {
             alChildData.add(ChildData("mms_show_trace", columnID!!, AppAction.FORM, true, true))
             alChildData.add(ChildData("mms_show_object", columnID!!, AppAction.FORM))
         }
@@ -161,7 +164,6 @@ class mDayWork : mAbstract() {
         alChildData.add(ChildData("Отчёты...", "mms_report_work_shift", columnID!!, AppAction.FORM))
         alChildData.add(ChildData("Отчёты...", "mms_report_waybill", columnID!!, AppAction.FORM))
         alChildData.add(ChildData("Отчёты...", "mms_report_waybill_compare", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Отчёты...", "mms_report_summary_without_waybill", columnID!!, AppAction.FORM))
         alChildData.add(ChildData("Отчёты...", "mms_report_liquid_inc", columnID!!, AppAction.FORM))
         alChildData.add(ChildData("Отчёты...", "mms_report_liquid_inc_waybill", columnID!!, AppAction.FORM))
         alChildData.add(ChildData("Отчёты...", "mms_report_liquid_dec", columnID!!, AppAction.FORM))
@@ -177,16 +179,9 @@ class mDayWork : mAbstract() {
         alChildData.add(ChildData("Отчёты...", "mms_report_over_voltage", columnID!!, AppAction.FORM))
         alChildData.add(ChildData("Отчёты...", "mms_report_data_out", columnID!!, AppAction.FORM))
 
-        alChildData.add(ChildData("Графики...", "mms_graphic_liquid", columnID!!, AppAction.FORM, true))
-        alChildData.add(ChildData("Графики...", "mms_graphic_weight", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Графики...", "mms_graphic_turn", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Графики...", "mms_graphic_pressure", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Графики...", "mms_graphic_temperature", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Графики...", "mms_graphic_voltage", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Графики...", "mms_graphic_power", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Графики...", "mms_graphic_speed", columnID!!, AppAction.FORM))
+        MMSFunction.fillAllChildDataForGraphics(columnID!!, alChildData)
 
-        if(!isMovingMode) {
+        if (!isMovingMode) {
             alChildData.add(ChildData("mms_show_object", columnID!!, AppAction.FORM, true))
             alChildData.add(ChildData("mms_show_trace", columnID!!, AppAction.FORM))
         }

@@ -11,14 +11,13 @@ import foatto.core_server.app.server.data.DataDate3Int
 import foatto.core_server.app.server.data.DataInt
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.calc.ObjectCalc
-import foatto.mms.core_mms.sensor.SensorConfig
+import foatto.mms.core_mms.sensor.config.SensorConfig
 import jxl.CellView
 import jxl.format.PageOrientation
 import jxl.format.PaperSize
 import jxl.write.Label
 import jxl.write.WritableSheet
 import java.util.*
-import kotlin.math.max
 
 class cWorkShiftCompare : cMMSReport() {
 
@@ -56,7 +55,6 @@ class cWorkShiftCompare : cMMSReport() {
         hmReportParam["report_max_diff"] = (hmColumnData[m.columnMaxDiff] as DataInt).value
         hmReportParam["report_out_over_diff_only"] = (hmColumnData[m.columnOutOverDiffOnly] as DataBoolean).value
         hmReportParam["report_out_run_without_koef"] = (hmColumnData[m.columnOutRunWithoutKoef] as DataBoolean).value
-        hmReportParam["report_is_compact"] = (hmColumnData[m.columnIsCompactReport] as DataBoolean).value
         hmReportParam["report_sum_worker"] = (hmColumnData[m.columnSumWorker] as DataBoolean).value
 
         fillReportParam(m.sos)
@@ -92,7 +90,6 @@ class cWorkShiftCompare : cMMSReport() {
         val reportMaxDiff = hmReportParam["report_max_diff"] as Int
         val reportOutOverDiffOnly = hmReportParam["report_out_over_diff_only"] as Boolean
         val reportOutRunWithoutKoef = hmReportParam["report_out_run_without_koef"] as Boolean
-        val reportIsCompact = hmReportParam["report_is_compact"] as Boolean
         val reportSumWorker = hmReportParam["report_sum_worker"] as Boolean
         var reportSumOnly = hmReportParam["report_sum_only"] as Boolean
         val reportSumUser = hmReportParam["report_sum_user"] as Boolean
@@ -101,7 +98,7 @@ class cWorkShiftCompare : cMMSReport() {
         //--- если отчет получается слишком длинный, то включаем режим вывода только сумм
         if(tmWorkShiftCalcResult.size > java.lang.Short.MAX_VALUE) reportSumOnly = true
 
-        defineFormats(if(reportIsCompact) 5 else 8, if(reportIsCompact) 5 else 2, if(reportIsCompact) 3 else 0)
+        defineFormats(8, 2, 0)
 
         var offsY = fillReportTitleWithDate(sheet)
         offsY++
@@ -129,57 +126,28 @@ class cWorkShiftCompare : cMMSReport() {
 
         offsY++
 
-        offsY = max(offsY, outReportCap(sheet, 10, 0) + 1)
-
         //--- установка размеров заголовков (общая ширина = 140 для А4 ландшафт поля по 10 мм)
         val alDim = ArrayList<Int>()
-        if(reportIsCompact) {
-            alDim.add(3)  // "N п/п"
+        alDim.add(5)  // "N п/п"
 
-            alDim.add(6)  // "Выезд"
-            alDim.add(6)  // "Заезд"
-            alDim.add(14)  // "Объект"
-            alDim.add(14)  // "Ф.И.О."
-            alDim.add(14)  // "N п/л"
+        alDim.add(7)  // "Пробег [км] - по п/л"
+        alDim.add(7)  // "Пробег [км] - по контроллеру"
+        alDim.add(7)  // "Пробег [км] - расхождение"
+        alDim.add(6)  // "% расхождения"
 
-            alDim.add(5)  // "Пробег [км] - по п/л"
-            alDim.add(5)  // "Пробег [км] - по контроллеру"
-            alDim.add(5)  // "Пробег [км] - расхождение"
-            alDim.add(4)  // "% расхождения"
+        alDim.add(27)  // "Наименование"
+        alDim.add(7)  // "Моточасы [ч] - по п/л"
+        alDim.add(7)  // "Моточасы [ч] - по контроллеру"
+        alDim.add(7)  // "Моточасы [ч] - расхождение"
+        alDim.add(6)  // "% расхождения"
 
-            alDim.add(13)  // "Наименование"
-            alDim.add(5)  // "Моточасы [ч] - по п/л"
-            alDim.add(5)  // "Моточасы [ч] - по контроллеру"
-            alDim.add(5)  // "Моточасы [ч] - расхождение"
-            alDim.add(4)  // "% расхождения"
+        alDim.add(27)  // "Наименование"
+        alDim.add(7)  // "Расход - по п/л"
+        alDim.add(7)  // "Расход - по контроллеру"
+        alDim.add(7)  // "Расход - расхождение"
+        alDim.add(6)  // "% расхождения"
 
-            alDim.add(13)  // "Наименование"
-            alDim.add(5)  // "Расход [л] - по п/л"
-            alDim.add(5)  // "Расход [л] - по контроллеру"
-            alDim.add(5)  // "Расход [л] - расхождение"
-            alDim.add(4)  // "% расхождения"
-        } else {
-            alDim.add(5)  // "N п/п"
-
-            alDim.add(7)  // "Пробег [км] - по п/л"
-            alDim.add(7)  // "Пробег [км] - по контроллеру"
-            alDim.add(7)  // "Пробег [км] - расхождение"
-            alDim.add(6)  // "% расхождения"
-
-            alDim.add(27)  // "Наименование"
-            alDim.add(7)  // "Моточасы [ч] - по п/л"
-            alDim.add(7)  // "Моточасы [ч] - по контроллеру"
-            alDim.add(7)  // "Моточасы [ч] - расхождение"
-            alDim.add(6)  // "% расхождения"
-
-            alDim.add(27)  // "Наименование"
-            alDim.add(7)  // "Расход [л] - по п/л"
-            alDim.add(7)  // "Расход [л] - по контроллеру"
-            alDim.add(7)  // "Расход [л] - расхождение"
-            alDim.add(6)  // "% расхождения"
-        }
-
-        for(i in alDim.indices) {
+        for (i in alDim.indices) {
             val cvNN = CellView()
             cvNN.size = alDim[i] * 256
             sheet.setColumnView(i, cvNN)
@@ -190,28 +158,6 @@ class cWorkShiftCompare : cMMSReport() {
         sheet.addCell(Label(offsX, offsY, "№ п/п", wcfCaptionHC))
         sheet.mergeCells(offsX, offsY, offsX, offsY + 1)
         offsX++
-
-        if(reportIsCompact) {
-            sheet.addCell(Label(offsX, offsY, "Выезд", wcfCaptionHC))
-            sheet.mergeCells(offsX, offsY, offsX, offsY + 1)
-            offsX++
-
-            sheet.addCell(Label(offsX, offsY, "Заезд", wcfCaptionHC))
-            sheet.mergeCells(offsX, offsY, offsX, offsY + 1)
-            offsX++
-
-            sheet.addCell(Label(offsX, offsY, "Объект", wcfCaptionHC))
-            sheet.mergeCells(offsX, offsY, offsX, offsY + 1)
-            offsX++
-
-            sheet.addCell(Label(offsX, offsY, "Водитель", wcfCaptionHC))
-            sheet.mergeCells(offsX, offsY, offsX, offsY + 1)
-            offsX++
-
-            sheet.addCell(Label(offsX, offsY, "№ п/л", wcfCaptionHC))
-            sheet.mergeCells(offsX, offsY, offsX, offsY + 1)
-            offsX++
-        }
 
         sheet.addCell(Label(offsX, offsY, "Пробег [км]", wcfCaptionHC))
         sheet.mergeCells(offsX, offsY, offsX + 3, offsY)
@@ -228,7 +174,7 @@ class cWorkShiftCompare : cMMSReport() {
         sheet.addCell(Label(offsX++, offsY + 1, "Расхож-дение", wcfCaptionHC))
         sheet.addCell(Label(offsX++, offsY + 1, "%", wcfCaptionHC))
 
-        sheet.addCell(Label(offsX, offsY, "Расход топлива [л]", wcfCaptionHC))
+        sheet.addCell(Label(offsX, offsY, "Расход топлива", wcfCaptionHC))
         sheet.mergeCells(offsX, offsY, offsX + 4, offsY)
         sheet.addCell(Label(offsX++, offsY + 1, "Наименование", wcfCaptionHC))
         sheet.addCell(Label(offsX++, offsY + 1, "По п/л", wcfCaptionHC))
@@ -304,35 +250,26 @@ class cWorkShiftCompare : cMMSReport() {
             }
 
             if(!reportSumOnly) {
-                if(reportIsCompact) {
-                    sheet.addCell(Label(0, offsY, (countNN++).toString(), wcfNN))
-                    sheet.addCell(Label(1, offsY, DateTime_DMYHM(zoneId, wscr.wsd.begTime), wcfCellC))
-                    sheet.addCell(Label(2, offsY, DateTime_DMYHM(zoneId, wscr.wsd.endTime), wcfCellC))
-                    sheet.addCell(Label(3, offsY, wscr.objectConfig.name, wcfCellC))
-                    sheet.addCell(Label(4, offsY, wscr.wsd.workerName, wcfCellC))
-                    sheet.addCell(Label(5, offsY, wscr.wsd.shiftNo, wcfCellC))
-                } else {
-                    sheet.addCell(Label(0, offsY, (countNN++).toString(), wcfNN))
-                    sheet.mergeCells(0, offsY, 0, offsY + 1)
-                    sheet.addCell(Label(1, offsY, DateTime_DMYHM(zoneId, wscr.wsd.begTime), wcfCellC))
-                    sheet.mergeCells(1, offsY, 2, offsY)
-                    sheet.addCell(Label(3, offsY, DateTime_DMYHM(zoneId, wscr.wsd.endTime), wcfCellC))
-                    sheet.mergeCells(3, offsY, 4, offsY)
-                    sheet.addCell(Label(5, offsY, wscr.objectConfig.name, wcfCellC))
-                    sheet.addCell(Label(6, offsY, wscr.wsd.workerName, wcfCellC))
-                    sheet.mergeCells(6, offsY, 9, offsY)
-                    sheet.addCell(Label(10, offsY, wscr.wsd.shiftNo, wcfCellC))
+                sheet.addCell(Label(0, offsY, (countNN++).toString(), wcfNN))
+                sheet.mergeCells(0, offsY, 0, offsY + 1)
+                sheet.addCell(Label(1, offsY, DateTime_DMYHM(zoneId, wscr.wsd.begTime), wcfCellC))
+                sheet.mergeCells(1, offsY, 2, offsY)
+                sheet.addCell(Label(3, offsY, DateTime_DMYHM(zoneId, wscr.wsd.endTime), wcfCellC))
+                sheet.mergeCells(3, offsY, 4, offsY)
+                sheet.addCell(Label(5, offsY, wscr.objectConfig.name, wcfCellC))
+                sheet.addCell(Label(6, offsY, wscr.wsd.workerName, wcfCellC))
+                sheet.mergeCells(6, offsY, 9, offsY)
+                sheet.addCell(Label(10, offsY, wscr.wsd.shiftNo, wcfCellC))
 
-                    offsY++
-                }
+                offsY++
 
                 outRow(
-                    sheet, if(reportIsCompact) 6 else 1, offsY, reportMaxDiff.toDouble(), isWrongRow,
+                    sheet, 1, offsY, reportMaxDiff.toDouble(), isWrongRow,
                     reportOutRunWithoutKoef, wscr.wsd.run, wscr.runWK, wscr.runWOK,
                     wscr.wsd.tmWorkHour, wscr.tmWorkHour, wscr.wsd.tmLiquidUsing, wscr.tmLiquidUsing
                 )
 
-                offsY += if(reportIsCompact) 1 else 2
+                offsY += 2
             }
         }
 
@@ -352,7 +289,7 @@ class cWorkShiftCompare : cMMSReport() {
                         sheet.mergeCells(6, offsY, 10, offsY)
                         offsY++
                         outRow(
-                            sheet, if(reportIsCompact) 6 else 1, offsY, reportMaxDiff.toDouble(), false, reportOutRunWithoutKoef, sumW.runWK, sumC.runWK, sumC.runWOK,
+                            sheet, 1, offsY, reportMaxDiff.toDouble(), false, reportOutRunWithoutKoef, sumW.runWK, sumC.runWK, sumC.runWOK,
                             sumW.tmWorkHour, sumC.tmWorkHour, sumW.tmLiquidUsing, sumC.tmLiquidUsing
                         )
                         offsY++
@@ -368,7 +305,7 @@ class cWorkShiftCompare : cMMSReport() {
                         sheet.mergeCells(5, offsY, 9, offsY)
                         offsY++
                         outRow(
-                            sheet, if(reportIsCompact) 6 else 1, offsY, reportMaxDiff.toDouble(), false, reportOutRunWithoutKoef, sumW.runWK, sumC.runWK, sumC.runWOK,
+                            sheet, 1, offsY, reportMaxDiff.toDouble(), false, reportOutRunWithoutKoef, sumW.runWK, sumC.runWK, sumC.runWOK,
                             sumW.tmWorkHour, sumC.tmWorkHour, sumW.tmLiquidUsing, sumC.tmLiquidUsing
                         )
                         offsY++
@@ -381,7 +318,7 @@ class cWorkShiftCompare : cMMSReport() {
                 val sumUserW = sumWorkShift.sumUser
                 val sumUserC = sumCalc.sumUser
                 outRow(
-                    sheet, if(reportIsCompact) 6 else 1, offsY, reportMaxDiff.toDouble(), false, reportOutRunWithoutKoef, sumUserW.runWK, sumUserC.runWK, sumUserC.runWOK,
+                    sheet, 1, offsY, reportMaxDiff.toDouble(), false, reportOutRunWithoutKoef, sumUserW.runWK, sumUserC.runWK, sumUserC.runWOK,
                     sumUserW.tmWorkHour, sumUserC.tmWorkHour, sumUserW.tmLiquidUsing, sumUserC.tmLiquidUsing
                 )
                 offsY++
@@ -395,15 +332,13 @@ class cWorkShiftCompare : cMMSReport() {
         val sumAllW = allWorkShiftSumCollector.sumUser
         val sumAllC = allCalcSumCollector.sumUser
         outRow(
-            sheet, if(reportIsCompact) 6 else 1, offsY, reportMaxDiff.toDouble(), false, reportOutRunWithoutKoef, sumAllW.runWK, sumAllC.runWK, sumAllC.runWOK,
+            sheet, 1, offsY, reportMaxDiff.toDouble(), false, reportOutRunWithoutKoef, sumAllW.runWK, sumAllC.runWK, sumAllC.runWOK,
             sumAllW.tmWorkHour, sumAllC.tmWorkHour, sumAllW.tmLiquidUsing, sumAllC.tmLiquidUsing
         )
 
         offsY += 2
         sheet.addCell(Label(11, offsY, getPreparedAt(), wcfCellL))
         sheet.mergeCells(11, offsY, 14, offsY)
-
-        outReportSignature(sheet, intArrayOf(0, 5, 10), offsY + 3)
     }
 
     private fun outRow(
@@ -651,8 +586,7 @@ class cWorkShiftCompare : cMMSReport() {
         for(wsd in alWSD) {
             rs = stm.executeQuery(" SELECT data_type, descr , data_value FROM MMS_work_shift_data WHERE shift_id = ${wsd.shiftID}")
             while(rs.next()) {
-                val dataType = rs.getInt(1)
-                when(dataType) {
+                when (rs.getInt(1)) {
                     SensorConfig.SENSOR_WORK -> wsd.tmWorkHour[rs.getString(2)] = rs.getDouble(3)
                     SensorConfig.SENSOR_VOLUME_FLOW -> wsd.tmLiquidUsing[rs.getString(2)] = rs.getDouble(3)
                 }
@@ -700,12 +634,15 @@ class cWorkShiftCompare : cMMSReport() {
         init {
             objectConfig = aObjectCalc.objectConfig
 
-            runWK = if(aObjectCalc.gcd == null) 0.0 else aObjectCalc.gcd!!.run
-            runWOK = if(aObjectCalc.gcd == null) 0.0 else aObjectCalc.gcd!!.run / objectConfig.scg!!.runKoef
+            runWK = if (aObjectCalc.gcd == null) 0.0 else aObjectCalc.gcd!!.run
+            runWOK = if (aObjectCalc.gcd == null) 0.0 else aObjectCalc.gcd!!.run / objectConfig.scg!!.runKoef
 
-            for((descr, wc) in aObjectCalc.tmWorkCalc) tmWorkHour[descr] = wc.onTime.toDouble() / 60.0 / 60.0
+            for ((descr, wc) in aObjectCalc.tmWorkCalc) tmWorkHour[descr] = wc.onTime.toDouble() / 60.0 / 60.0
 
-            for((descr, luc) in aObjectCalc.tmLiquidUsingCalc) tmLiquidUsing[descr] = luc.usingTotal
+            //???
+            aObjectCalc.tmLiquidUsingTotal.forEach { (name, total) ->
+                tmLiquidUsing[name] = total
+            }
         }
     }
 

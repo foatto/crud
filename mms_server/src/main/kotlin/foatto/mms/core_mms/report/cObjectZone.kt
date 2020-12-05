@@ -3,8 +3,8 @@ package foatto.mms.core_mms.report
 import foatto.core.app.xy.XyProjection
 import foatto.core.link.FormData
 import foatto.core.util.DateTime_DMYHMS
-import foatto.core.util.secondIntervalToString
 import foatto.core.util.getSplittedDouble
+import foatto.core.util.secondIntervalToString
 import foatto.core_server.app.server.data.DataComboBox
 import foatto.core_server.app.server.data.DataDate3Int
 import foatto.core_server.app.server.data.DataInt
@@ -19,7 +19,6 @@ import jxl.format.PaperSize
 import jxl.write.Label
 import jxl.write.WritableSheet
 import java.util.*
-import kotlin.math.max
 
 class cObjectZone : cMMSReport() {
 
@@ -107,8 +106,8 @@ class cObjectZone : cMMSReport() {
                 val detailName2 = if(reportGroupType == mObjectZone.GROUP_BY_OBJECT) ozcr2.zoneName else ozcr2.oc.name
 
                 val groupSortResult = groupName1.compareTo(groupName2)
-                if(groupSortResult < 0) break
-                if(groupSortResult == 0 && (if(reportType == mObjectZone.TYPE_DETAIL) (ozcr1.begTime - ozcr2.begTime).toInt()
+                if (groupSortResult < 0) break
+                if (groupSortResult == 0 && (if (reportType == mObjectZone.TYPE_DETAIL) (ozcr1.begTime - ozcr2.begTime)
                     else detailName1.compareTo(detailName2)) <= 0
                 ) break
                 pos++
@@ -119,9 +118,9 @@ class cObjectZone : cMMSReport() {
                 if(pos >= alSortedResult.size) alSortedResult.add(pos, ObjectZoneCalcResult(ozcr1))
                 else {
                     val ozcr2 = alSortedResult[pos]
-                    val groupName2 = if(reportGroupType == mObjectZone.GROUP_BY_OBJECT) ozcr2.oc!!.name else ozcr2.zoneName
-                    val detailName2 = if(reportGroupType == mObjectZone.GROUP_BY_OBJECT) ozcr2.zoneName else ozcr2.oc!!.name
-                    if(groupName1 == groupName2 && detailName1 == detailName2) ozcr2.add(ozcr1)
+                    val groupName2 = if (reportGroupType == mObjectZone.GROUP_BY_OBJECT) ozcr2.oc.name else ozcr2.zoneName
+                    val detailName2 = if (reportGroupType == mObjectZone.GROUP_BY_OBJECT) ozcr2.zoneName else ozcr2.oc.name
+                    if (groupName1 == groupName2 && detailName1 == detailName2) ozcr2.add(ozcr1)
                     else alSortedResult.add(pos, ObjectZoneCalcResult(ozcr1))
                 }
             }
@@ -132,25 +131,22 @@ class cObjectZone : cMMSReport() {
 
         offsY = fillReportHeader(reportDepartment, reportGroup, sheet, 1, offsY)
 
-        offsY = max(offsY, outReportCap(sheet, 4, 0) + 1)
-
         //--- установка размеров заголовков (общая ширина = 90 для А4 портрет и 140 для А4 ландшафт поля по 10 мм)
         val alDim = mutableListOf<Int>()
         alDim.add(5)    // "N п/п"
         alDim.add(if(reportType == mObjectZone.TYPE_DETAIL) 29 else 34)    // "Объект/Геозона"
-        if(reportType == mObjectZone.TYPE_DETAIL) {
+        if (reportType == mObjectZone.TYPE_DETAIL) {
             alDim.add(9)    // "Въезд" - дата и время в две строки как в сравнительном отчёте
             alDim.add(9)    // "Выезд" - дата и время в две строки как в сравнительном отчёте
-        }
-        else alDim.add(5)     // "Кол-во вх./вых."
+        } else alDim.add(5)     // "Кол-во вх./вых."
         alDim.add(9)         // "Продолжительность"
         alDim.add(7)         // "Пробег [км]"
-        alDim.add(if(reportType == mObjectZone.TYPE_DETAIL) 29 else 33)         // "Оборудование"
+        alDim.add(if (reportType == mObjectZone.TYPE_DETAIL) 29 else 33)         // "Оборудование"
         alDim.add(7)         // "Время работы [час]"
-        alDim.add(if(reportType == mObjectZone.TYPE_DETAIL) 29 else 33)         // "Топливо"
-        alDim.add(7)         // "Расход [л]"
+        alDim.add(if (reportType == mObjectZone.TYPE_DETAIL) 29 else 33)         // "Топливо"
+        alDim.add(7)         // "Расход"
 
-        for(i in alDim.indices) {
+        for (i in alDim.indices) {
             val cvNN = CellView()
             cvNN.size = alDim[i] * 256
             sheet.setColumnView(i, cvNN)
@@ -174,7 +170,7 @@ class cObjectZone : cMMSReport() {
         sheet.addCell(Label(offsX++, offsY, "Оборудование", wcfCaptionHC))
         sheet.addCell(Label(offsX++, offsY, "Время работы [час]", wcfCaptionHC))
         sheet.addCell(Label(offsX++, offsY, "Топливо", wcfCaptionHC))
-        sheet.addCell(Label(offsX++, offsY, "Расход [л]", wcfCaptionHC))
+        sheet.addCell(Label(offsX++, offsY, "Расход", wcfCaptionHC))
 
         offsY++
 
@@ -203,8 +199,7 @@ class cObjectZone : cMMSReport() {
             if(reportType == mObjectZone.TYPE_DETAIL) {
                 sheet.addCell(Label(offsX++, offsY, DateTime_DMYHMS(zoneId, cr.begTime), wcfCellC))
                 sheet.addCell(Label(offsX++, offsY, DateTime_DMYHMS(zoneId, cr.endTime), wcfCellC))
-            }
-            else sheet.addCell(Label(offsX++, offsY, cr.count.toString(), wcfCellR))
+            } else sheet.addCell(Label(offsX++, offsY, cr.count.toString(), wcfCellR))
 
             sheet.addCell(Label(offsX++, offsY, secondIntervalToString(cr.begTime, cr.endTime), wcfCellC))
             sheet.addCell(Label(offsX++, offsY, getSplittedDouble(cr.calc!!.gcd!!.run, 1).toString(), wcfCellR))
@@ -214,10 +209,8 @@ class cObjectZone : cMMSReport() {
             val sbLiquidUsingName = StringBuilder()
             val sbLiquidUsingTotal = StringBuilder()
 
-            ObjectCalc.fillWorkString(cr.calc!!.tmWorkCalc, sbWorkName, sbWorkTotal, StringBuilder(), StringBuilder())
-            ObjectCalc.fillLiquidUsingString(
-                cr.calc!!.tmLiquidUsingCalc, sbLiquidUsingName, sbLiquidUsingTotal, StringBuilder(), StringBuilder()
-            )
+            ObjectCalc.fillWorkString(cr.calc!!.tmWorkCalc, sbWorkName, sbWorkTotal)
+            ObjectCalc.fillLiquidUsingString(cr.calc!!.tmLiquidUsingTotal, cr.calc!!.tmLiquidUsingCalc, sbLiquidUsingName, sbLiquidUsingTotal, StringBuilder())
 
             sheet.addCell(Label(offsX++, offsY, sbWorkName.toString(), wcfCellC))
             sheet.addCell(Label(offsX++, offsY, sbWorkTotal.toString(), wcfCellR))
@@ -231,8 +224,6 @@ class cObjectZone : cMMSReport() {
         //offsY += 2;
         sheet.addCell(Label(if(reportType == mObjectZone.TYPE_DETAIL) 8 else 7, offsY, getPreparedAt(), wcfCellL))
         //sheet.mergeCells( 3, offsY, 4, offsY );
-
-        outReportSignature(sheet, intArrayOf(0, 4, 7), offsY + 3)
     }
 
     private fun calcObjectZone(): MutableList<ObjectZoneCalcResult> {
@@ -365,18 +356,16 @@ class cObjectZone : cMMSReport() {
 
             calc!!.gcd!!.run += cr.calc!!.gcd!!.run
 
-            for((name,wcdNew) in cr.calc!!.tmWorkCalc) {
+            for ((name, wcdNew) in cr.calc!!.tmWorkCalc) {
                 val wcdSum = calc!!.tmWorkCalc[name]
 
-                if(wcdSum == null) calc!!.tmWorkCalc[name] = wcdNew
+                if (wcdSum == null) calc!!.tmWorkCalc[name] = wcdNew
                 else wcdSum.onTime += wcdNew.onTime
             }
 
-            for((name,lucdNew) in cr.calc!!.tmLiquidUsingCalc) {
-                val lucdSum = calc!!.tmLiquidUsingCalc[name]
-
-                if(lucdSum == null) calc!!.tmLiquidUsingCalc[name] = lucdNew
-                else lucdSum.usingTotal += lucdNew.usingTotal
+            cr.calc!!.tmLiquidUsingTotal.forEach { (name, value) ->
+                val lucdSum = calc!!.tmLiquidUsingCalc[name] ?: 0.0
+                calc!!.tmLiquidUsingCalc[name] = lucdSum + value
             }
 
             count++

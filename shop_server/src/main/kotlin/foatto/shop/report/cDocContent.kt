@@ -22,6 +22,7 @@ import foatto.shop.ShopSpringApp
 import foatto.shop.ShopSpringController
 import foatto.shop.mPrice
 import foatto.shop.mWarehouse
+import foatto.shop.toJson
 import foatto.sql.CoreAdvancedStatement
 import jxl.CellView
 import jxl.format.PageOrientation
@@ -499,7 +500,7 @@ class cDocContent : cAbstractReport() {
 
         stm.executeUpdate(" UPDATE SHOP_doc SET is_fiscaled = 1 WHERE id = $docID ")
 
-//        AdvancedLogger.error( JSON.stringify( query ) )
+        AdvancedLogger.debug(query.toJson())
     }
 
     fun sendFiscal(fiscalURL: String, query: FiscalQuery) {
@@ -519,6 +520,7 @@ class cDocContent : cAbstractReport() {
         urlConn.connect()
 
         val os = urlConn.outputStream
+        os.write(query.toJson().toByteArray())
 //        os.write( JSON.stringify( query ).toByteArray())
         os.flush()
         os.close()
@@ -592,3 +594,43 @@ data class FiscalDateTime(
     val Date: FiscalDate,
     val Time: FiscalTime
 )
+
+fun FiscalQuery.toJson(): String {
+    var json = "{"
+
+    json += Device.toJson("Device") + ","
+    json += Password.toJson("Password") + ","
+    json += ClientId.toJson("ClientId") + ","
+    json += RequestId.toJson("RequestId") + ","
+    json += DocumentType.toJson("DocumentType") + ","
+
+    json += "\"Lines\":["
+
+    for (formData in Lines)
+        json += "${formData.toJson()},"
+
+    if (Lines.isNotEmpty())
+        json = json.substring(0, json.length - 1)
+
+    json += "],"
+
+    json += Cash.toJson("Cash") + ","
+    json += NonCash.toJson("NonCash") + ","
+
+    json += TaxMode.toJson("TaxMode") + ","
+    json += FullResponse.toJson("FullResponse")
+
+    return "$json}"
+}
+
+fun FiscalLine.toJson(): String {
+    var json = "{"
+
+    json += Qty.toJson("Qty") + ","
+    json += Price.toJson("Price") + ","
+    json += PayAttribute.toJson("PayAttribute") + ","
+    json += TaxId.toJson("TaxId") + ","
+    json += Description.toJson("Description")
+
+    return "$json}"
+}

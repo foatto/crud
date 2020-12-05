@@ -6,7 +6,6 @@ import foatto.core.util.getCurrentDayStart
 import foatto.core.util.getDateTimeArray
 import foatto.core.util.getNextDayStart
 import foatto.core_server.app.server.AliasConfig
-import foatto.core_server.app.server.FormColumnVisibleData
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnDate3Int
 import foatto.core_server.app.server.column.ColumnInt
@@ -58,35 +57,40 @@ class mLogShow : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnShowRangeType = ColumnRadioButton(tableName, "show_range_type", "За какой период показывать", 0)
-        columnShowRangeType.addChoice(0, "За указанный период")
-        columnShowRangeType.addChoice(15 * 60, "За последние 15 минут")
-        columnShowRangeType.addChoice(30 * 60, "За последние 30 минут")
-        columnShowRangeType.addChoice(60 * 60, "За последний час")
-        columnShowRangeType.addChoice(2 * 60 * 60, "За последние 2 часа")
-        columnShowRangeType.addChoice(3 * 60 * 60, "За последние 3 часа")
-        columnShowRangeType.addChoice(6 * 60 * 60, "За последние 6 часов")
-        columnShowRangeType.isVirtual = true
+        columnShowRangeType = ColumnRadioButton(tableName, "show_range_type", "За какой период показывать", 0).apply {
+            addChoice(0, "За указанный период")
+            addChoice(15 * 60, "За последние 15 минут")
+            addChoice(30 * 60, "За последние 30 минут")
+            addChoice(60 * 60, "За последний час")
+            addChoice(2 * 60 * 60, "За последние 2 часа")
+            addChoice(3 * 60 * 60, "За последние 3 часа")
+            addChoice(6 * 60 * 60, "За последние 6 часов")
+            isVirtual = true
+        }
 
-        columnShowBegDate = ColumnDate3Int(tableName, "beg_ye", "beg_mo", "beg_da", "Дата начала периода")
-        columnShowBegDate.default = LocalDate.of(arrBegDT[0], arrBegDT[1], arrBegDT[2])
-        columnShowBegDate.isVirtual = true
-        columnShowBegDate.addFormVisible(FormColumnVisibleData(columnShowRangeType, true, intArrayOf(0)))
-        columnShowBegTime = ColumnTime3Int(tableName, "beg_ho", "beg_mi", null, "Время начала периода")
-        columnShowBegTime.default = LocalTime.of(arrBegDT[3], arrBegDT[4], arrBegDT[5])
-        columnShowBegTime.isVirtual = true
-        columnShowBegTime.addFormVisible(FormColumnVisibleData(columnShowRangeType, true, intArrayOf(0)))
-        columnShowBegTime.formPinMode = FormPinMode.ON
+        columnShowBegDate = ColumnDate3Int(tableName, "beg_ye", "beg_mo", "beg_da", "Дата начала периода").apply {
+            default = LocalDate.of(arrBegDT[0], arrBegDT[1], arrBegDT[2])
+            isVirtual = true
+            addFormVisible(columnShowRangeType, true, setOf(0))
+        }
+        columnShowBegTime = ColumnTime3Int(tableName, "beg_ho", "beg_mi", null, "Время начала периода").apply {
+            default = LocalTime.of(arrBegDT[3], arrBegDT[4], arrBegDT[5])
+            isVirtual = true
+            addFormVisible(columnShowRangeType, true, setOf(0))
+            formPinMode = FormPinMode.ON
+        }
 
-        columnShowEndDate = ColumnDate3Int(tableName, "end_ye", "end_mo", "end_da", "Дата окончания периода")
-        columnShowEndDate.default = LocalDate.of(arrEndDT[0], arrEndDT[1], arrEndDT[2])
-        columnShowEndDate.isVirtual = true
-        columnShowEndDate.addFormVisible(FormColumnVisibleData(columnShowRangeType, true, intArrayOf(0)))
-        columnShowEndTime = ColumnTime3Int(tableName, "end_ho", "end_mi", null, "Время окончания периода")
-        columnShowEndTime.default = LocalTime.of(arrEndDT[3], arrEndDT[4], arrEndDT[5])
-        columnShowEndTime.isVirtual = true
-        columnShowEndTime.addFormVisible(FormColumnVisibleData(columnShowRangeType, true, intArrayOf(0)))
-        columnShowEndTime.formPinMode = FormPinMode.ON
+        columnShowEndDate = ColumnDate3Int(tableName, "end_ye", "end_mo", "end_da", "Дата окончания периода").apply {
+            default = LocalDate.of(arrEndDT[0], arrEndDT[1], arrEndDT[2])
+            isVirtual = true
+            addFormVisible(columnShowRangeType, true, setOf(0))
+        }
+        columnShowEndTime = ColumnTime3Int(tableName, "end_ho", "end_mi", null, "Время окончания периода").apply {
+            default = LocalTime.of(arrEndDT[3], arrEndDT[4], arrEndDT[5])
+            isVirtual = true
+            addFormVisible(columnShowRangeType, true, setOf(0))
+            formPinMode = FormPinMode.ON
+        }
 
         //----------------------------------------------------------------------------------------------------
 

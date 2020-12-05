@@ -3,8 +3,8 @@ package foatto.mms.core_mms.graphic.server.document
 import foatto.core.app.UP_GRAPHIC_SHOW_TEXT
 import foatto.core.app.graphic.*
 import foatto.core.app.xy.XyProjection
-import foatto.core_server.app.AppParameter
 import foatto.core.util.AdvancedByteBuffer
+import foatto.core_server.app.AppParameter
 import foatto.core_server.app.graphic.server.GraphicStartData
 import foatto.core_server.app.graphic.server.document.sdcAbstractGraphic
 import foatto.mms.MMSSpringController
@@ -13,7 +13,7 @@ import foatto.mms.core_mms.ZoneData
 import foatto.mms.core_mms.ZoneLimitData
 import foatto.mms.core_mms.calc.AbstractObjectStateCalc
 import foatto.mms.core_mms.calc.ObjectCalc
-import foatto.mms.core_mms.sensor.SensorConfig
+import foatto.mms.core_mms.sensor.config.SensorConfig
 import java.util.*
 import kotlin.math.abs
 
@@ -141,8 +141,8 @@ class sdcSpeed : sdcAbstractGraphic() {
 
             val gldLast = if( aSpeed.alGLD.isEmpty() ) null else aSpeed.alGLD[ aSpeed.alGLD.size - 1 ]
 
-            val overSpeed = ObjectCalc.calcOverSpeed( oc.scg!!.maxSpeedLimit, alZoneSpeedLimit, pixPoint, gd.speed )
-            val curColorIndex = if( overSpeed > maxEnabledOverSpeed ) GraphicColorIndex.LINE_CRITICAL_0
+            val overSpeed = ObjectCalc.calcOverSpeed(oc.scg!!.maxSpeedLimit, alZoneSpeedLimit, pixPoint, gd.speed)
+            val curColorIndex = if (overSpeed > maxEnabledOverSpeed) GraphicColorIndex.LINE_ABOVE_0
             else GraphicColorIndex.LINE_NORMAL_0
             //--- нереализуемо - т.к. предыдущая точка всегда будет нормальной, т.к. предыдущая к ней точка тоже была нормальной
             //--- и т.д. по рекурсии

@@ -22,9 +22,9 @@ import foatto.mms.core_mms.calc.ObjectCalc
 import foatto.mms.core_mms.graphic.server.MMSGraphicDocumentConfig
 import foatto.mms.core_mms.graphic.server.graphic_handler.AnalogGraphicHandler
 import foatto.mms.core_mms.graphic.server.graphic_handler.iGraphicHandler
-import foatto.mms.core_mms.sensor.SensorConfig
-import foatto.mms.core_mms.sensor.SensorConfigAnalogue
-import foatto.mms.core_mms.sensor.SensorConfigWork
+import foatto.mms.core_mms.sensor.config.SensorConfig
+import foatto.mms.core_mms.sensor.config.SensorConfigAnalogue
+import foatto.mms.core_mms.sensor.config.SensorConfigWork
 import java.util.*
 import kotlin.math.min
 
@@ -79,9 +79,7 @@ open class sdcAnalog : sdcAbstractGraphic() {
         val tmElementVisibleConfig = TreeMap<String, String>()
         if(hmSensorConfig != null) {
             //--- единоразово загрузим данные по объекту
-            val pair = ObjectCalc.loadAllSensorData(stm, oc, x1, x2)
-            val alRawTime = pair.component1()
-            val alRawData = pair.component2()
+            val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(stm, oc, x1, x2)
             //--- данные по гео-датчику ( движение/стоянка/ошибка ) показываем только на первом/верхнем графике
             var isGeoSensorShowed = false
             //--- общие нештатные ситуации показываем только на первом/верхнем графике
@@ -102,9 +100,10 @@ open class sdcAnalog : sdcAbstractGraphic() {
 
                 val alAxisYData = mutableListOf<AxisYData>()
 
-                //--- Максимальный размер массива = кол-во точек по горизонтали = 3840 ( максимальная ширина экрана ), окгруляем до 4000
+                //--- Максимальный размер массива = кол-во точек по горизонтали = 3840 ( максимальная ширина 4K-экрана ), окгруляем до 4000
                 val aMinLimit = if(agh.isStaticMinLimit(sca)) GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1)
                 else if(agh.isDynamicMinLimit(sca)) GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1) else null
+
                 val aMaxLimit = if(agh.isStaticMaxLimit(sca)) GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1)
                 else if(agh.isDynamicMaxLimit(sca)) GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1) else null
 
@@ -268,7 +267,7 @@ open class sdcAnalog : sdcAbstractGraphic() {
         aPoint: GraphicDataContainer?, aLine: GraphicDataContainer?, aText: GraphicDataContainer?
     ) {
 
-        alAxisYData.add(AxisYData(StringBuilder(SensorConfig.hmSensorDescr[sca.sensorType]).append(", ").append(sca.dim).toString(), sca.minView, sca.maxView, GraphicColorIndex.AXIS_0))
+        alAxisYData.add(AxisYData(sca.name, sca.minView, sca.maxView, GraphicColorIndex.AXIS_0))
 
         ObjectCalc.getSmoothAnalogGraphicData(alRawTime, alRawData, oc, sca, begTime, endTime, xScale, yScale, aMinLimit, aMaxLimit, aPoint, aLine, graphicHandler)
 
@@ -280,7 +279,7 @@ open class sdcAnalog : sdcAbstractGraphic() {
                     val scw = hmSC[portNum] as SensorConfigWork
                     //--- пропускаем датчики работы оборудования не из своей группы
                     if(sca.group != scw.group) continue
-                    val alWork = ObjectCalc.calcWorkSensor(alRawTime, alRawData, oc, scw, begTime, endTime, mutableListOf()).alWorkOnOff
+                    val alWork = ObjectCalc.calcWorkSensor(alRawTime, alRawData, scw, begTime, endTime).alWorkOnOff
                     if(alWork != null) {
                         for(apd in alWork) {
                             val workDescr = StringBuilder(scw.descr).append(" : ").append(if(apd.getState() != 0) "ВКЛ" else "выкл").toString()
@@ -340,7 +339,7 @@ open class sdcAnalog : sdcAbstractGraphic() {
                 //--- чтобы не смешивались разные ошибки по одному датчику и одинаковые ошибки по разным датчикам,
                 //--- добавляем в описание ошибки не только само описание ошибки, но и описание датчика
                 checkSensorError(
-                    alRawTime, alRawData, oc, portNum, sca.descr, begTime, endTime, GraphicColorIndex.FILL_WARNING, GraphicColorIndex.BORDER_WARNING,
+                    alRawTime, alRawData, portNum, sca.descr, begTime, endTime, GraphicColorIndex.FILL_WARNING, GraphicColorIndex.BORDER_WARNING,
                     GraphicColorIndex.TEXT_WARNING, 0, "Нет питания", MIN_POWER_OFF_TIME, aText
                 )
             }
@@ -348,7 +347,7 @@ open class sdcAnalog : sdcAbstractGraphic() {
     }
 
     protected fun checkSensorError(
-        alRawTime: List<Int>, alRawData: List<AdvancedByteBuffer>, oc: ObjectConfig, portNum: Int, sensorDescr: String,
+        alRawTime: List<Int>, alRawData: List<AdvancedByteBuffer>, portNum: Int, sensorDescr: String,
         begTime: Int, endTime: Int, aFillColorIndex: GraphicColorIndex, aBorderColorIndex: GraphicColorIndex, aTextColorIndex: GraphicColorIndex,
         troubleCode: Int, troubleDescr: String, minTime: Int, aText: GraphicDataContainer
     ) {
@@ -364,7 +363,7 @@ open class sdcAnalog : sdcAbstractGraphic() {
             if(rawTime < begTime) continue
             if(rawTime > endTime) break
 
-            sensorData = AbstractObjectStateCalc.getSensorData(oc, portNum, alRawData[pos])?.toInt() ?: 0
+            sensorData = AbstractObjectStateCalc.getSensorData(portNum, alRawData[pos])?.toInt() ?: continue
             if(sensorData == troubleCode) {
                 if(troubleBegTime == 0) troubleBegTime = rawTime
             } else {

@@ -11,7 +11,7 @@ import foatto.core_server.ds.AbstractHandler
 import foatto.core_server.ds.CoreDataServer
 import foatto.core_server.ds.CoreDataWorker
 import foatto.mms.core_mms.cWorkShift
-import foatto.mms.core_mms.sensor.SensorConfigGeo
+import foatto.mms.core_mms.sensor.config.SensorConfigGeo
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedStatement
 import foatto.sql.SQLBatch
@@ -303,8 +303,7 @@ abstract class MMSHandler : AbstractHandler() {
     //    }
 
     protected fun putSensorPortNumAndDataSize( portNum: Int, dataSize: Int, bbData: AdvancedByteBuffer ) {
-        if( deviceConfig!!.dataVersion == 0 ) bbData.putByte( deviceConfig!!.index * MAX_PORT_PER_DEVICE + portNum ).putByte( dataSize - 1 )
-        else bbData.putShort( deviceConfig!!.index * MAX_PORT_PER_DEVICE + portNum ).putShort( dataSize - 1 )
+        bbData.putShort(deviceConfig!!.index * MAX_PORT_PER_DEVICE + portNum).putShort(dataSize - 1)
     }
 
     protected fun addPoint(stm: CoreAdvancedStatement, time: Int, bbData: AdvancedByteBuffer, sqlBatchData: SQLBatch) {

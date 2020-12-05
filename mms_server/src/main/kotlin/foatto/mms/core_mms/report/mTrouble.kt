@@ -45,8 +45,6 @@ class mTrouble : mAbstractReport() {
         columnReportPeriod.setSavedDefault(userConfig)
         columnReportPeriod.minValue = 1
 
-        initReportCapAndSignature(aliasConfig, userConfig)
-
         //----------------------------------------------------------------------------------------------------------------------
 
         alFormHiddenColumn.add(columnID!!)
@@ -57,7 +55,5 @@ class mTrouble : mAbstractReport() {
         uodg.fillColumns(tableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn)
 
         alFormColumn.add(columnReportPeriod)
-
-        addCapAndSignatureColumns()
     }
 }

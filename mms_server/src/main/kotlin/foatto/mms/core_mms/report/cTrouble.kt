@@ -8,8 +8,8 @@ import foatto.mms.MMSSpringController
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.calc.AbstractObjectStateCalc
 import foatto.mms.core_mms.calc.ObjectCalc
-import foatto.mms.core_mms.sensor.SensorConfig
-import foatto.mms.core_mms.sensor.SensorConfigAnalogue
+import foatto.mms.core_mms.sensor.config.SensorConfig
+import foatto.mms.core_mms.sensor.config.SensorConfigLiquidLevel
 import jxl.CellView
 import jxl.format.PageOrientation
 import jxl.format.PaperSize
@@ -72,8 +72,6 @@ class cTrouble : cMMSReport() {
 
         offsY = fillReportHeader(reportDepartment, reportGroup, sheet, 1, offsY)
 
-        offsY = Math.max(offsY, outReportCap(sheet, 4, 0) + 1)
-
         //--- установка размеров заголовков (общая ширина = 90 для А4-портрет поля по 10 мм)
         val alDim = mutableListOf<Int>()
         alDim.add(5)    // "N п/п"
@@ -131,8 +129,6 @@ class cTrouble : cMMSReport() {
         //offsY += 2;
         sheet.addCell(Label(3, offsY, getPreparedAt(), wcfCellL))
         sheet.mergeCells(3, offsY, 4, offsY)
-
-        outReportSignature(sheet, intArrayOf(0, 3, 4), offsY + 3)
     }
 
     //----------------------------------------------------------------------------------------------------------------------
@@ -226,26 +222,24 @@ class cTrouble : cMMSReport() {
                 if(hmSCLL != null)
                     for((portNum,sc) in hmSCLL) {
                         //--- этот датчик уже обработан
-                        if(hsLLFinished.contains(portNum)) continue
+                        if (hsLLFinished.contains(portNum)) continue
 
-                        val sca = sc as SensorConfigAnalogue
-                        val sensorData = AbstractObjectStateCalc.getSensorData(oc, portNum, bbIn)?.toInt() ?: 0
+                        val sca = sc as SensorConfigLiquidLevel
+                        val sensorData = AbstractObjectStateCalc.getSensorData(portNum, bbIn)?.toInt() ?: continue
 
                         val oldLLData = hmLLData[portNum]
-                        if(oldLLData == null) {
+                        if (oldLLData == null) {
                             hmLLTime[portNum] = curTime
                             hmLLData[portNum] = sensorData
-                        }
-                        else if(oldLLData == sensorData) {
+                        } else if (oldLLData == sensorData) {
                             hmLLTime[portNum] = curTime
-                        }
-                        else {
-                            if (SensorConfigAnalogue.hmLLErrorCodeDescr[oldLLData] != null && getCurrentTimeInt() - hmLLTime[portNum]!! > reportPeriod)
+                        } else {
+                            if (SensorConfigLiquidLevel.hmLLErrorCodeDescr[oldLLData] != null && getCurrentTimeInt() - hmLLTime[portNum]!! > reportPeriod)
 
                                 addTrouble(
                                     tmResult, objectKey, TroubleData(
                                         if (lastDowntime == null) hmLLTime[portNum]!!
-                                        else Math.max(lastDowntime, hmLLTime[portNum]!!), sca.descr, SensorConfigAnalogue.hmLLErrorCodeDescr[oldLLData]!!, TroubleLevel.ERROR
+                                        else max(lastDowntime, hmLLTime[portNum]!!), sca.descr, SensorConfigLiquidLevel.hmLLErrorCodeDescr[oldLLData]!!, TroubleLevel.ERROR
                                     )
                                 )
 
@@ -277,7 +271,7 @@ class cTrouble : cMMSReport() {
                 }
                 if(hmSCLL != null) {
                     for(portNum in hmSCLL.keys) {
-                        val sca = hmSCLL[portNum] as SensorConfigAnalogue
+                        val sca = hmSCLL[portNum] as SensorConfigLiquidLevel
                         //--- этот датчик так и не обработан
                         if(!hsLLFinished.contains(portNum)) {
                             if(hmLLTime[portNum] == null) {
@@ -286,11 +280,11 @@ class cTrouble : cMMSReport() {
                             }
                             else {
                                 val oldLLData = hmLLData[portNum]
-                                if (SensorConfigAnalogue.hmLLErrorCodeDescr[oldLLData] != null && getCurrentTimeInt() - hmLLTime[portNum]!! > reportPeriod)
+                                if (SensorConfigLiquidLevel.hmLLErrorCodeDescr[oldLLData] != null && getCurrentTimeInt() - hmLLTime[portNum]!! > reportPeriod)
 
                                     addTrouble(
                                         tmResult, objectKey, TroubleData(
-                                            if (lastDowntime == null) hmLLTime[portNum]!! else Math.max(lastDowntime, hmLLTime[portNum]!!), sca.descr, SensorConfigAnalogue.hmLLErrorCodeDescr[oldLLData]!!, TroubleLevel.ERROR
+                                            if (lastDowntime == null) hmLLTime[portNum]!! else Math.max(lastDowntime, hmLLTime[portNum]!!), sca.descr, SensorConfigLiquidLevel.hmLLErrorCodeDescr[oldLLData]!!, TroubleLevel.ERROR
                                         )
                                     )
                             }

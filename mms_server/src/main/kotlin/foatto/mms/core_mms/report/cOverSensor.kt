@@ -13,21 +13,20 @@ import foatto.mms.core_mms.ZoneData
 import foatto.mms.core_mms.calc.ObjectCalc
 import foatto.mms.core_mms.calc.OverSensorPeriodData
 import foatto.mms.core_mms.graphic.server.graphic_handler.AnalogGraphicHandler
-import foatto.mms.core_mms.sensor.SensorConfig
-import foatto.mms.core_mms.sensor.SensorConfigSemiAnalogue
+import foatto.mms.core_mms.sensor.config.SensorConfig
+import foatto.mms.core_mms.sensor.config.SensorConfigAnalogue
 import jxl.CellView
 import jxl.format.PageOrientation
 import jxl.format.PaperSize
 import jxl.write.Label
 import jxl.write.WritableSheet
 import java.util.*
-import kotlin.math.max
 
 class cOverSensor : cMMSReport() {
 
     override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
         val returnURL = super.doSave(action, alFormData, hmOut)
-        if(returnURL != null) return returnURL
+        if (returnURL != null) return returnURL
 
         fillReportParam(model as mUODGPZ)
 
@@ -53,14 +52,21 @@ class cOverSensor : cMMSReport() {
 
     override fun postReport(sheet: WritableSheet) {
         var sensorType = 0
-        when(aliasConfig.alias) {
+        when (aliasConfig.alias) {
             "mms_report_over_weight" -> sensorType = SensorConfig.SENSOR_WEIGHT
             "mms_report_over_turn" -> sensorType = SensorConfig.SENSOR_TURN
             "mms_report_over_pressure" -> sensorType = SensorConfig.SENSOR_PRESSURE
             "mms_report_over_temperature" -> sensorType = SensorConfig.SENSOR_TEMPERATURE
             "mms_report_over_voltage" -> sensorType = SensorConfig.SENSOR_VOLTAGE
-        }//??? liquid_level - просто уровень жидкости, без заправок/сливов
-        //??? energo_power - электрическая мощность
+            "mms_report_over_power" -> sensorType = SensorConfig.SENSOR_POWER
+            "mms_report_over_density" -> sensorType = SensorConfig.SENSOR_DENSITY
+            "mms_report_over_energo_voltage" -> sensorType = SensorConfig.SENSOR_ENERGO_VOLTAGE
+            "mms_report_over_energo_current" -> sensorType = SensorConfig.SENSOR_ENERGO_CURRENT
+            "mms_report_over_energo_power_koef" -> sensorType = SensorConfig.SENSOR_ENERGO_POWER_KOEF
+            "mms_report_over_energo_power_active" -> sensorType = SensorConfig.SENSOR_ENERGO_POWER_ACTIVE
+            "mms_report_over_energo_power_reactive" -> sensorType = SensorConfig.SENSOR_ENERGO_POWER_REACTIVE
+            "mms_report_over_energo_power_full" -> sensorType = SensorConfig.SENSOR_ENERGO_POWER_FULL
+        }
 
         //--- загрузить данные по ВСЕМ зонам (reportZone используется только для последующей фильтрации)
         val hmZoneData = ZoneData.getZoneData(stm, userConfig, 0)
@@ -77,9 +83,7 @@ class cOverSensor : cMMSReport() {
 
         offsY = fillReportHeader(reportDepartment, reportGroup, sheet, 1, offsY)
 
-        offsY = fillReportHeader(if(reportZone == 0) null else hmZoneData[reportZone], sheet, offsY)
-
-        offsY = max(offsY, outReportCap(sheet, 4, 0) + 1)
+        offsY = fillReportHeader(if (reportZone == 0) null else hmZoneData[reportZone], sheet, offsY)
 
         //--- установка размеров заголовков (общая ширина = 90 для А4 портрет и 140 для А4 ландшафт поля по 10 мм)
         val alDim = mutableListOf<Int>()
@@ -91,7 +95,7 @@ class cOverSensor : cMMSReport() {
         alDim.add(6)    // "Макс. значение"
         alDim.add(44)    // "Место"
 
-        for(i in alDim.indices) {
+        for (i in alDim.indices) {
             val cvNN = CellView()
             cvNN.size = alDim[i] * 256
             sheet.setColumnView(i, cvNN)
@@ -109,12 +113,12 @@ class cOverSensor : cMMSReport() {
         offsY++
 
         var countNN = 1
-        for(alOSPD in alAllResult) {
+        for (alOSPD in alAllResult) {
             sheet.addCell(Label(1, offsY, alOSPD[0].objectConfig!!.name, wcfCellCB))
             sheet.mergeCells(1, offsY, 6, offsY + 2)
             offsY += 3
 
-            for(ospd in alOSPD) {
+            for (ospd in alOSPD) {
                 offsX = 0
 
                 sheet.addCell(Label(offsX++, offsY, (countNN++).toString(), wcfNN))
@@ -144,8 +148,6 @@ class cOverSensor : cMMSReport() {
 
         sheet.addCell(Label(6, offsY, getPreparedAt(), wcfCellL))
         //sheet.mergeCells( 5, offsY, 6, offsY );
-
-        outReportSignature(sheet, intArrayOf(0, 3, 4), offsY + 3)
     }
 
     //----------------------------------------------------------------------------------------------------------------------
@@ -168,33 +170,33 @@ class cOverSensor : cMMSReport() {
 
         val alObjectID = mutableListOf<Int>()
         //--- если объект не указан, то загрузим полный список доступных объектов
-        if(reportObject == 0) loadObjectList(stm, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
+        if (reportObject == 0) loadObjectList(stm, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
         else alObjectID.add(reportObject)
 
-        for(objectID in alObjectID) {
+        for (objectID in alObjectID) {
             val objectConfig = ObjectConfig.getObjectConfig(stm, userConfig, objectID)
 
             val hmSensorConfig = objectConfig.hmSensorConfig[sensorType]
-            if(hmSensorConfig == null || hmSensorConfig.isEmpty()) continue
+            if (hmSensorConfig == null || hmSensorConfig.isEmpty()) continue
 
             val alObjectResult = mutableListOf<OverSensorPeriodData>()
 
             //--- load data on all sensors of the object once
-            val ( alRawTime, alRawData ) = ObjectCalc.loadAllSensorData(stm, objectConfig, begTime, endTime)
+            val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(stm, objectConfig, begTime, endTime)
 
-            for(portNum in hmSensorConfig.keys) {
-                val scsc = hmSensorConfig[portNum] as SensorConfigSemiAnalogue
+            for (portNum in hmSensorConfig.keys) {
+                val scsc = hmSensorConfig[portNum] as SensorConfigAnalogue
 
                 val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1)
                 ObjectCalc.getSmoothAnalogGraphicData(alRawTime, alRawData, objectConfig, scsc, begTime, endTime, 0, 0.0, null, null, null, aLine, graphicHandler)
 
                 var begPos = 0
                 var curColorIndex = graphicHandler.lineNormalColorIndex
-                for(i in 1 until aLine.alGLD.size) {
+                for (i in 1 until aLine.alGLD.size) {
                     val gdl = aLine.alGLD[i]
                     val newColorIndex = gdl.colorIndex
                     //--- a period of a new type has begun, we end the previous period of a different type
-                    if(newColorIndex != curColorIndex) {
+                    if (newColorIndex != curColorIndex) {
                         //--- the previous period ended at the previous point
                         val endPos = i - 1
                         //--- the period must have at least two points, we discard one-point periods
@@ -223,18 +225,26 @@ class cOverSensor : cMMSReport() {
     }
 
     private fun calcOverSensor(
-        reportZone: Int, hmZoneData: Map<Int, ZoneData>, graphicHandler: AnalogGraphicHandler, objectConfig: ObjectConfig, scsc: SensorConfigSemiAnalogue, aLine: GraphicDataContainer,
-        begPos: Int, endPos: Int, curColorIndex: GraphicColorIndex, alObjectResult: MutableList<OverSensorPeriodData>
+        reportZone: Int,
+        hmZoneData: Map<Int, ZoneData>,
+        graphicHandler: AnalogGraphicHandler,
+        objectConfig: ObjectConfig,
+        scsc: SensorConfigAnalogue,
+        aLine: GraphicDataContainer,
+        begPos: Int,
+        endPos: Int,
+        curColorIndex: GraphicColorIndex,
+        alObjectResult: MutableList<OverSensorPeriodData>
     ) {
         //--- finding the point with maximum violation
         var maxOverSensorTime = 0
         var maxOverSensorCoord: XyPoint? = null
         var maxOverSensorMax = 0.0
         var maxOverSensorDiff = 0.0
-        for(pos in begPos..endPos) {
+        for (pos in begPos..endPos) {
             val y = aLine.alGLD[pos].y
             val over = if (curColorIndex == graphicHandler.lineCriticalColorIndex) y - scsc.maxLimit else scsc.minLimit - y
-            if(over > maxOverSensorDiff) {
+            if (over > maxOverSensorDiff) {
                 maxOverSensorTime = aLine.alGLD.get(pos).x
                 maxOverSensorCoord = aLine.alGLD.get(pos).coord
                 maxOverSensorMax = y
@@ -244,10 +254,10 @@ class cOverSensor : cMMSReport() {
 
         val tsZoneName = TreeSet<String>()
         //--- there may be objects without GPS sensors
-        if(maxOverSensorCoord != null) {
+        if (maxOverSensorCoord != null) {
             val inZone = ObjectCalc.fillZoneList(hmZoneData, reportZone, maxOverSensorCoord, tsZoneName)
             //--- filter by geofences, if set
-            if(reportZone != 0 && !inZone) return
+            if (reportZone != 0 && !inZone) return
         }
 
         val ospd = OverSensorPeriodData(

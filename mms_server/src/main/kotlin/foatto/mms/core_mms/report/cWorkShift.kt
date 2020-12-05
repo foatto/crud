@@ -8,8 +8,8 @@ import foatto.core_server.app.server.data.DataDate3Int
 import foatto.core_server.app.server.data.DataInt
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.calc.ObjectCalc
-import foatto.mms.core_mms.sensor.SensorConfig
-import foatto.mms.core_mms.sensor.SensorConfigAnalogue
+import foatto.mms.core_mms.sensor.config.SensorConfig
+import foatto.mms.core_mms.sensor.config.SensorConfigLiquidLevel
 import jxl.write.Label
 import jxl.write.WritableSheet
 import java.time.ZoneId
@@ -51,7 +51,6 @@ class cWorkShift : cAbstractPeriodSummary() {
         hmReportParam["report_add_after"] = (hmColumnData[m.columnAddAfter] as DataInt).value
 
         hmReportParam["report_group_type"] = (hmColumnData[m.columnReportGroupType] as DataComboBox).value
-        hmReportParam["report_is_compact"] = false
 
         fillReportParam(m.sos)
 
@@ -123,9 +122,9 @@ class cWorkShift : cAbstractPeriodSummary() {
                 isGlobalUseRun = isGlobalUseRun or oc.scg!!.isUseRun
             }
             val hmSCLL = oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_LEVEL]
-            if(hmSCLL != null && !hmSCLL.isEmpty()) {
-                for(portNum in hmSCLL.keys) {
-                    val sca = hmSCLL[portNum] as SensorConfigAnalogue
+            if (hmSCLL != null && hmSCLL.isNotEmpty()) {
+                for (portNum in hmSCLL.keys) {
+                    val sca = hmSCLL[portNum] as SensorConfigLiquidLevel
                     isGlobalUsingCalc = isGlobalUsingCalc or sca.isUsingCalc
                 }
             }
@@ -170,7 +169,7 @@ class cWorkShift : cAbstractPeriodSummary() {
 
         offsY = fillReportHeader(reportDepartment, reportGroup, sheet, 1, offsY)
 
-        offsY = defineSummaryReportHeaders(sheet, offsY, if(reportGroupType == mWorkShift.GROUP_BY_DATE) "Дата" else "Объект")
+        offsY = defineSummaryReportHeaders(sheet, offsY)
 
         val allSumCollector = SumCollector()
         val tmUserSumCollector = TreeMap<String, SumCollector>()

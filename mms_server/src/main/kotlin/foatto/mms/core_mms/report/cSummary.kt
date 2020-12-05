@@ -12,7 +12,6 @@ class cSummary : cStandartPeriodSummary() {
         if(returnURL != null) return returnURL
 
         fillReportParam(model as mUODGP)
-        hmReportParam["report_is_compact"] = false
 
         return getReport()
     }
@@ -32,7 +31,7 @@ class cSummary : cStandartPeriodSummary() {
 
         offsY = fillReportHeader(reportDepartment, reportGroup, sheet, 1, offsY)
 
-        offsY = defineSummaryReportHeaders(sheet, offsY, "Объект")
+        offsY = defineSummaryReportHeaders(sheet, offsY)
 
         val allSumCollector = SumCollector()
         var countNN = 1
@@ -51,16 +50,10 @@ class cSummary : cStandartPeriodSummary() {
             offsY = outRow(sheet, offsY, objectConfig, objectCalc)
         }
 
-        if(isCompactReport) {
-            sheet.addCell(Label(0, offsY, "ИТОГО общее", wcfCellCBStdYellow))
-            sheet.mergeCells(0, offsY, 6, offsY)
-            offsY += 2
-        }
-        else {
-            sheet.addCell(Label(0, offsY, "ИТОГО общее", wcfCellCBStdYellow))
-            sheet.mergeCells(0, offsY, if(isGlobalUseSpeed) 10 else if(isGlobalUsingCalc) 7 else 6, offsY + 2)
-            offsY += 4
-        }
+        sheet.addCell(Label(0, offsY, "ИТОГО общее", wcfCellCBStdYellow))
+        sheet.mergeCells(0, offsY, if (isGlobalUseSpeed) 10 else if (isGlobalUsingCalc) 7 else 6, offsY + 2)
+        offsY += 4
+
         offsY = outSumData(sheet, offsY, allSumCollector.sumUser, false)
 
         outReportTrail(sheet, offsY)

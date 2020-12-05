@@ -2,8 +2,8 @@ package foatto.mms.core_mms.report
 
 import foatto.core.link.FormData
 import foatto.core.util.DateTime_DMYHMS
-import foatto.core.util.secondIntervalToString
 import foatto.core.util.getSBFromIterable
+import foatto.core.util.secondIntervalToString
 import foatto.mms.MMSSpringController
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.ZoneData
@@ -63,8 +63,6 @@ class cOverSpeed : cMMSReport() {
 
         offsY = fillReportHeader(if(reportZone == 0) null else hmZoneData[reportZone], sheet, offsY)
 
-        offsY = Math.max(offsY, outReportCap(sheet, 4, 0) + 1)
-
         //--- установка размеров заголовков (общая ширина = 90 для А4 портрет и 140 для А4 ландшафт поля по 10 мм)
         val alDim = mutableListOf<Int>()
         alDim.add(5)    // "N п/п"
@@ -117,8 +115,6 @@ class cOverSpeed : cMMSReport() {
         sheet.addCell(Label(6, offsY, getPreparedAt(), wcfCellL)
         )
         //sheet.mergeCells( 5, offsY, 6, offsY );
-
-        outReportSignature(sheet, intArrayOf(0, 3, 4), offsY + 3)
     }
 
     //----------------------------------------------------------------------------------------------------------------------

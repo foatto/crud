@@ -1,4 +1,4 @@
-package foatto.mms.core_mms.sensor
+package foatto.mms.core_mms.sensor.config
 
 import java.util.*
 

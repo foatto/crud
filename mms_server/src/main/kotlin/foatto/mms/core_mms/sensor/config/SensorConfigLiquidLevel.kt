@@ -1,6 +1,6 @@
-package foatto.mms.core_mms.sensor
+package foatto.mms.core_mms.sensor.config
 
-class SensorConfigAnalogue(
+class SensorConfigLiquidLevel(
     aId: Int,
     aName: String,
     aSumGroup: String,
@@ -8,11 +8,15 @@ class SensorConfigAnalogue(
     aDescr: String,
     aPortNum: Int,
     aSensorType: Int,
-    val dim: String,
-    minView: Double,
-    maxView: Double,
-    minLimit: Double,
-    maxLimit: Double,
+    aSmoothMethod: Int,
+    aSmoothTime: Int,
+    aMinIgnore: Double,
+    aMaxIgnore: Double,
+    val liquidName: String,
+    aMinView: Double,
+    aMaxView: Double,
+    aMinLimit: Double,
+    aMaxLimit: Double,
     val usingMinLen: Int,
     val isUsingCalc: Boolean,
     val detectIncKoef: Double,
@@ -25,12 +29,7 @@ class SensorConfigAnalogue(
     val detectDecMinLen: Int,
     val decAddTimeBefore: Int,
     val decAddTimeAfter: Int,
-    smoothMethod: Int,
-    smoothTime: Int,
-    minIgnore: Int,
-    maxIgnore: Int,
-    val liquidName: String
-) : SensorConfigSemiAnalogue(
+) : SensorConfigAnalogue(
     aId = aId,
     aName = aName,
     aSumGroup = aSumGroup,
@@ -38,14 +37,14 @@ class SensorConfigAnalogue(
     aDescr = aDescr,
     aPortNum = aPortNum,
     aSensorType = aSensorType,
-    minView = minView,
-    maxView = maxView,
-    minLimit = minLimit,
-    maxLimit = maxLimit,
-    smoothMethod = smoothMethod,
-    smoothTime = smoothTime,
-    minIgnore = minIgnore,
-    maxIgnore = maxIgnore
+    aSmoothMethod = aSmoothMethod,
+    aSmoothTime = aSmoothTime,
+    aMinIgnore = aMinIgnore,
+    aMaxIgnore = aMaxIgnore,
+    minView = aMinView,
+    maxView = aMaxView,
+    minLimit = aMinLimit,
+    maxLimit = aMaxLimit,
 ) {
 
     companion object {

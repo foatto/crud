@@ -36,8 +36,6 @@ class mUODGP : mP() {
 
         initReportPeriod(arrDT)
 
-        initReportCapAndSignature(aliasConfig, userConfig)
-
         //----------------------------------------------------------------------------------------------------------------------
 
         alFormHiddenColumn.add(columnID!!)
@@ -49,6 +47,5 @@ class mUODGP : mP() {
 
         addReportPeriodFormColumns()
 
-        addCapAndSignatureColumns()
     }
 }

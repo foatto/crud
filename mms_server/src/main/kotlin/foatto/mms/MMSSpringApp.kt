@@ -11,9 +11,8 @@ import foatto.core_server.app.server.DependData
 import foatto.core_server.app.system.mUser
 import foatto.mms.core_mms.graphic.server.MMSGraphicDocumentConfig
 import foatto.mms.core_mms.graphic.server.graphic_handler.AnalogGraphicHandler
-import foatto.mms.core_mms.graphic.server.graphic_handler.PowerGraphicHandler
 import foatto.mms.core_mms.graphic.server.graphic_handler.LiquidGraphicHandler
-import foatto.mms.core_mms.sensor.SensorConfig
+import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.xy.server.document.sdcMMSMap
 import foatto.mms.core_mms.xy.server.document.sdcMMSState
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -22,7 +21,7 @@ import org.springframework.boot.runApplication
 import org.springframework.context.event.EventListener
 import org.springframework.web.servlet.config.annotation.EnableWebMvc
 
-@SpringBootApplication  // = @SpringBootConfiguration + @EnableAutoConfiguration + @ComponentScan
+@SpringBootApplication
 @EnableWebMvc
 open class MMSSpringApp : CoreSpringApp() {
     companion object {
@@ -31,7 +30,7 @@ open class MMSSpringApp : CoreSpringApp() {
             runApplication<MMSSpringApp>(*args)
         }
 
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------------------------------
 
         //--- пока минимально используемый масштаб 1:16, что соответствует старому 1:2000 при 4 пикселях на мм
         //--- ограничение исходит из-за отсутствия битмапов выше 18-го уровня ( т.е. для 1:1000 ),
@@ -44,35 +43,50 @@ open class MMSSpringApp : CoreSpringApp() {
         //private static final int MAP_AVG_SCALE = 512; - не видна пригодимость
 
         init {
-            GraphicDocumentConfig.hmConfig[ "mms_graphic_liquid" ] = MMSGraphicDocumentConfig( "mms_graphic_liquid", "foatto.mms.core_mms.graphic.server.document.sdcLiquid",
-                    /*null, null, null,*/ SensorConfig.SENSOR_LIQUID_LEVEL, LiquidGraphicHandler() )
+            GraphicDocumentConfig.hmConfig["mms_graphic_liquid"] = MMSGraphicDocumentConfig(
+                aServerControlClassName = "foatto.mms.core_mms.graphic.server.document.sdcLiquid",
+                sensorType = SensorConfig.SENSOR_LIQUID_LEVEL,
+                graphicHandler = LiquidGraphicHandler()
+            )
 
-            GraphicDocumentConfig.hmConfig[ "mms_graphic_weight" ] = MMSGraphicDocumentConfig( "mms_graphic_weight", "foatto.mms.core_mms.graphic.server.document.sdcAnalog",
-                    /*null, null, null,*/ SensorConfig.SENSOR_WEIGHT, AnalogGraphicHandler() )
-            GraphicDocumentConfig.hmConfig[ "mms_graphic_turn" ] = MMSGraphicDocumentConfig( "mms_graphic_turn", "foatto.mms.core_mms.graphic.server.document.sdcAnalog",
-                    /*null, null, null,*/ SensorConfig.SENSOR_TURN, AnalogGraphicHandler() )
-            GraphicDocumentConfig.hmConfig[ "mms_graphic_pressure" ] = MMSGraphicDocumentConfig( "mms_graphic_pressure", "foatto.mms.core_mms.graphic.server.document.sdcAnalog",
-                    /*null, null, null,*/ SensorConfig.SENSOR_PRESSURE, AnalogGraphicHandler() )
-            GraphicDocumentConfig.hmConfig[ "mms_graphic_temperature" ] = MMSGraphicDocumentConfig( "mms_graphic_temperature", "foatto.mms.core_mms.graphic.server.document.sdcAnalog",
-                    /*null, null, null,*/ SensorConfig.SENSOR_TEMPERATURE, AnalogGraphicHandler() )
-            GraphicDocumentConfig.hmConfig[ "mms_graphic_voltage" ] = MMSGraphicDocumentConfig( "mms_graphic_voltage", "foatto.mms.core_mms.graphic.server.document.sdcAnalog",
-                    /*null, null, null,*/ SensorConfig.SENSOR_VOLTAGE, AnalogGraphicHandler() )
+            listOf(
+                "mms_graphic_weight" to SensorConfig.SENSOR_WEIGHT,
+                "mms_graphic_turn" to SensorConfig.SENSOR_TURN,
+                "mms_graphic_pressure" to SensorConfig.SENSOR_PRESSURE,
+                "mms_graphic_temperature" to SensorConfig.SENSOR_TEMPERATURE,
+                "mms_graphic_voltage" to SensorConfig.SENSOR_VOLTAGE,
+                "mms_graphic_power" to SensorConfig.SENSOR_POWER,
+                "mms_graphic_density" to SensorConfig.SENSOR_DENSITY,
 
-            GraphicDocumentConfig.hmConfig[ "mms_graphic_power" ] = MMSGraphicDocumentConfig( "mms_graphic_power", "foatto.mms.core_mms.graphic.server.document.sdcAnalog",
-                    /*null, null, null,*/ SensorConfig.SENSOR_POWER, PowerGraphicHandler() )
+                "mms_graphic_energo_voltage" to SensorConfig.SENSOR_ENERGO_VOLTAGE,
+                "mms_graphic_energo_current" to SensorConfig.SENSOR_ENERGO_CURRENT,
+                "mms_graphic_energo_power_koef" to SensorConfig.SENSOR_ENERGO_POWER_KOEF,
+                "mms_graphic_energo_power_active" to SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
+                "mms_graphic_energo_power_reactive" to SensorConfig.SENSOR_ENERGO_POWER_REACTIVE,
+                "mms_graphic_energo_power_full" to SensorConfig.SENSOR_ENERGO_POWER_FULL,
+            ).forEach { (name, sensorType) ->
+                GraphicDocumentConfig.hmConfig[name] = MMSGraphicDocumentConfig(
+                    aServerControlClassName = "foatto.mms.core_mms.graphic.server.document.sdcAnalog",
+                    sensorType = sensorType,
+                    graphicHandler = AnalogGraphicHandler()
+                )
+            }
 
-            GraphicDocumentConfig.hmConfig[ "mms_graphic_speed" ] = MMSGraphicDocumentConfig( "mms_graphic_speed", "foatto.mms.core_mms.graphic.server.document.sdcSpeed",
-                    /*null, null, null,*/ SensorConfig.SENSOR_GEO, null )
+            GraphicDocumentConfig.hmConfig["mms_graphic_speed"] = MMSGraphicDocumentConfig(
+                aServerControlClassName = "foatto.mms.core_mms.graphic.server.document.sdcSpeed",
+                sensorType = SensorConfig.SENSOR_GEO,
+                graphicHandler = null
+            )
 
-            mUser.alExtendChildData.add( ChildData( "mms_object", true ) )
-            mUser.alExtendChildData.add( ChildData( "mms_day_work" ) )
-            mUser.alExtendChildData.add( ChildData( "mms_downtime" ) )
-            mUser.alExtendChildData.add( ChildData( "mms_shift_work" ) )
-            mUser.alExtendChildData.add( ChildData( "mms_department" ) )
-            mUser.alExtendChildData.add( ChildData( "mms_group" ) )
-            mUser.alExtendChildData.add( ChildData( "mms_work_shift" ) )
-            mUser.alExtendChildData.add( ChildData( "mms_waybill" ) )
-            mUser.alExtendChildData.add( ChildData( "mms_worker" ) )
+            mUser.alExtendChildData.add(ChildData("mms_object", true))
+            mUser.alExtendChildData.add(ChildData("mms_day_work"))
+            mUser.alExtendChildData.add(ChildData("mms_downtime"))
+            mUser.alExtendChildData.add(ChildData("mms_shift_work"))
+            mUser.alExtendChildData.add(ChildData("mms_department"))
+            mUser.alExtendChildData.add(ChildData("mms_group"))
+            mUser.alExtendChildData.add(ChildData("mms_work_shift"))
+            mUser.alExtendChildData.add(ChildData("mms_waybill"))
+            mUser.alExtendChildData.add(ChildData("mms_worker"))
             mUser.alExtendChildData.add( ChildData( "mms_zone" ) )
             mUser.alExtendChildData.add( ChildData( "mms_user_zone" ) )
             mUser.alExtendChildData.add( ChildData( "mms_device_command_history" ) )
@@ -103,20 +117,21 @@ open class MMSSpringApp : CoreSpringApp() {
     override fun addXyDocumentConfig() {
         super.addXyDocumentConfig()
 
-        CoreSpringApp.hmXyDocumentConfig[ "mms_map" ] = XyDocumentConfig(
+        hmXyDocumentConfig["mms_map"] = XyDocumentConfig(
             "mms_map", "Карта",
             "foatto.mms.core_mms.xy.server.document.sdcMMSMap",
             XyDocumentClientType.MAP,
 //            "foatto.app_client.XyMapControl", "foatto.app.MapControl",
-            true, initMapElementConfig( MAP_MIN_SCALE, MAP_MAX_SCALE ).toList() )
+            true, initMapElementConfig(MAP_MIN_SCALE, MAP_MAX_SCALE).toList()
+        )
 
-        CoreSpringApp.hmXyDocumentConfig[ "mms_state" ] = XyDocumentConfig(
+        hmXyDocumentConfig["mms_state"] = XyDocumentConfig(
             "mms_state", "Состояние объекта",
             "foatto.mms.core_mms.xy.server.document.sdcMMSState",
             XyDocumentClientType.STATE,
 //            "foatto.app_client.XyStateControl", "foatto.app.StateControl",
-            //--- масштабы пока заданы от балды
-            false, initStateElementConfig( 1, 1024 * 1024 * 1024 ).toList() )
+            false, initStateElementConfig(1, 1024 * 1024 * 1024).toList()
+        )
     }
 
     private fun initMapElementConfig( minScale: Int, maxScale: Int ): MutableMap<String, XyElementConfig> {

@@ -36,7 +36,6 @@ class mWorkShiftCompare : mAbstractReport() {
     lateinit var columnMaxDiff: ColumnInt
     lateinit var columnOutOverDiffOnly: ColumnBoolean
     lateinit var columnOutRunWithoutKoef: ColumnBoolean
-    lateinit var columnIsCompactReport: ColumnBoolean
 
     lateinit var columnSumWorker: ColumnBoolean
     lateinit var sos: SumOptionSelector
@@ -125,15 +124,9 @@ class mWorkShiftCompare : mAbstractReport() {
         columnOutRunWithoutKoef.isVirtual = true
         columnOutRunWithoutKoef.setSavedDefault(userConfig)
 
-        columnIsCompactReport = ColumnBoolean(tableName, "is_compact", "Компактный вид", false)
-        columnIsCompactReport.isVirtual = true
-        columnIsCompactReport.setSavedDefault(userConfig)
-
         columnSumWorker = ColumnBoolean(tableName, "sum_worker", "Выводить суммы по водителям", true)
         columnSumWorker.isVirtual = true
         columnSumWorker.setSavedDefault(userConfig)
-
-        initReportCapAndSignature(aliasConfig, userConfig)
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -162,14 +155,11 @@ class mWorkShiftCompare : mAbstractReport() {
         alFormColumn.add(columnMaxDiff)
         alFormColumn.add(columnOutOverDiffOnly)
         alFormColumn.add(columnOutRunWithoutKoef)
-        alFormColumn.add(columnIsCompactReport)
 
         sos = SumOptionSelector()
         sos.fillColumns(userConfig, tableName, alFormColumn)
 
         (if(isWaybillReport) alFormColumn else alFormHiddenColumn).add(columnSumWorker)
-
-        addCapAndSignatureColumns()
 
         //----------------------------------------------------------------------------------------------------------------------
 

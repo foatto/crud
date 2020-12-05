@@ -1,6 +1,5 @@
-@file:JvmName("FormColumnVisibleData")
 package foatto.core_server.app.server
 
 import foatto.core_server.app.server.column.iColumn
 
-class FormColumnVisibleData( val columnMaster: iColumn, val state: Boolean, val arrValue: IntArray )
+class FormColumnVisibleData(val columnMaster: iColumn, val state: Boolean, val values: Set<Int>)

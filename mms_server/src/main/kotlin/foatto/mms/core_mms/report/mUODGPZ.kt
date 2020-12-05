@@ -50,8 +50,6 @@ class mUODGPZ : mP() {
         columnZoneName.addSelectorColumn(columnZoneName)
         columnZoneName.addSelectorColumn(columnZoneDescr)
 
-        initReportCapAndSignature(aliasConfig, userConfig)
-
         //----------------------------------------------------------------------------------------------------------------------
 
         alFormHiddenColumn.add(columnID!!)
@@ -64,8 +62,6 @@ class mUODGPZ : mP() {
 
         alFormColumn.add(columnZoneName)
         alFormColumn.add(columnZoneDescr)
-
-        addCapAndSignatureColumns()
 
         //----------------------------------------------------------------------------------------------------------------------
 

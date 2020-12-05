@@ -3,24 +3,19 @@ package foatto.core_server.app.server
 import foatto.app.CoreSpringApp
 import foatto.core.app.ICON_NAME_PRINT
 import foatto.core.app.iCoreAppContainer
-import foatto.core.link.FormData
 import foatto.core.util.DateTime_DMYHMS
 import foatto.core.util.getFreeFile
 import foatto.core.util.getRandomInt
-import foatto.core_server.app.server.data.DataString
 import jxl.Workbook
 import jxl.format.*
-import jxl.format.Alignment
-import jxl.format.Border
-import jxl.format.BorderLineStyle
-import jxl.format.Colour
-import jxl.format.VerticalAlignment
-import jxl.write.*
+import jxl.write.WritableCellFormat
+import jxl.write.WritableFont
+import jxl.write.WritableImage
+import jxl.write.WritableSheet
 import java.io.File
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
-import kotlin.collections.ArrayList
 
 abstract class cAbstractReport : cAbstractForm() {
 
@@ -233,31 +228,6 @@ abstract class cAbstractReport : cAbstractForm() {
 
     override fun getOkButtonIconName(): String = ICON_NAME_PRINT
 
-    override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
-
-        //--- ошибки ввода в форме
-        val returnURL = super.doSave(action, alFormData, hmOut)
-
-        //--- если нет ошибок, то сохраним параметры подписей отчётов
-        if( returnURL == null ) {
-            val mar = model as mAbstractReport
-            //--- графики запускаются как отчёты, но у них нет заголовков/подписей
-            if( mar.columnReportCap != null ) {
-                val reportCapValue = ( hmColumnData[ mar.columnReportCap!! ] as DataString ).text
-                userConfig.saveUserProperty( stm, mar.getReportCapPropertyName( aliasConfig ), reportCapValue )
-                hmReportParam[ mAbstractReport.REPORT_CAP_FIELD_NAME ] = reportCapValue
-
-                for( i in 0 until mAbstractReport.MAX_REPORT_SIGNATURE_ROWS )
-                    for( j in 0 until mAbstractReport.MAX_REPORT_SIGNATURE_COLS ) {
-                        val reportSignatureValue = ( hmColumnData[ mar.alColumnReportSignature[ i ][ j ] ] as DataString ).text
-                        userConfig.saveUserProperty( stm, mar.getReportSignaturePropertyName( i, j, aliasConfig ), reportSignatureValue )
-                        hmReportParam[ mar.getReportSignatureFieldName( i, j ) ] = reportSignatureValue
-                    }
-            }
-        }
-        return returnURL
-    }
-
     //--- обязательный метод установки параметров печати/бумаги
     protected abstract fun setPrintOptions()
 
@@ -375,34 +345,4 @@ abstract class cAbstractReport : cAbstractForm() {
         for( i in alDim.indices ) if( alDim[ i ] < 0 ) alDim[ i ] = alDim[ i ] * captionRelWidth
     }
 
-    protected fun outReportCap( sheet: WritableSheet, aCapX: Int, aCapY: Int ): Int {
-        var capY = aCapY
-        val reportCap = hmReportParam[ mAbstractReport.REPORT_CAP_FIELD_NAME ] as? String
-        if( reportCap != null ) {
-            val st = StringTokenizer( reportCap, "\n" )
-            while( st.hasMoreTokens() )
-                sheet.addCell( Label( aCapX, capY++, st.nextToken(), wcfCap ) )
-        }
-        return capY
-    }
-
-    protected fun outReportSignature( sheet: WritableSheet, arrSignatureX: IntArray, aSignatureY: Int ) {
-        var signatureY = aSignatureY
-        val mar = model as mAbstractReport
-        for( i in 0 until mAbstractReport.MAX_REPORT_SIGNATURE_ROWS ) {
-            var maxSignatureHeight = 0
-            for( j in 0 until mAbstractReport.MAX_REPORT_SIGNATURE_COLS ) {
-                val signature = hmReportParam[ mar.getReportSignatureFieldName( i, j ) ] as? String
-                if( signature != null ) {
-                    val st = StringTokenizer( signature, "\n" )
-                    val alSignature = ArrayList<String>()
-                    while( st.hasMoreTokens() ) alSignature.add( st.nextToken() )
-                    for( k in 0 until alSignature.size )
-                        sheet.addCell( Label( arrSignatureX[ j ], signatureY + k, alSignature[ k ], wcfSignature ) )
-                    maxSignatureHeight = Math.max( maxSignatureHeight, alSignature.size )
-                }
-            }
-            signatureY += maxSignatureHeight + 1
-        }
-    }
 }

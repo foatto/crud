@@ -4,7 +4,7 @@
 //import foatto.core.util.AdvancedLogger;
 //import foatto.core.util.StringFunction;
 //import foatto.core_server.service.CoreServiceWorker;
-//import foatto.mms.core_mms.sensor.SensorConfig;
+//import foatto.mms.core_mms.sensor.config.SensorConfig;
 //import foatto.sql.AdvancedConnection;
 //import org.w3c.dom.NodeList;
 //import org.w3c.dom.Node;

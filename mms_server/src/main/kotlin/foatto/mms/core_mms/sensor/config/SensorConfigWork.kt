@@ -1,4 +1,4 @@
-package foatto.mms.core_mms.sensor
+package foatto.mms.core_mms.sensor.config
 
 class SensorConfigWork(
     aId: Int,
@@ -12,15 +12,13 @@ class SensorConfigWork(
     val activeValue: Int,
     val minOnTime: Int,
     val minOffTime: Int,
-    val calcInMoving: Boolean,
-    val calcInParking: Boolean,
     val begWorkValue: Double,
     val cmdOnID: Int,
     val cmdOffID: Int,
     aSignalOn: String,
     aSignalOff: String,
-    val minIgnore: Int,
-    val maxIgnore: Int,
+    val minIgnore: Double,
+    val maxIgnore: Double,
     val liquidName: String,
     val liquidNorm: Double
 ) : SensorConfig(aId, aName, aSumGroup, aGroup, aDescr, aPortNum, aSensorType) {

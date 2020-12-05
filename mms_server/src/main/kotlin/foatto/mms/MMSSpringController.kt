@@ -353,7 +353,6 @@ open class MMSSpringController(aJdbcTemplate: JdbcTemplate) : CoreSpringControll
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuMobileReport, "mms_report_waybill", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuMobileReport, "mms_report_waybill_compare", false)
-        addMenu(hmAliasConfig, hmAliasPerm, alMenuMobileReport, "mms_report_summary_without_waybill", false)
 
         addSeparator(alMenuMobileReport)
 
@@ -405,12 +404,21 @@ open class MMSSpringController(aJdbcTemplate: JdbcTemplate) : CoreSpringControll
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherReport, "mms_report_data_out", false)
 
-        if(alMenuOtherReport.size > 6) alMenu.add(MenuData("", "Прочие отчёты", alMenuOtherReport))
+        if (alMenuOtherReport.size > 6) alMenu.add(MenuData("", "Прочие отчёты", alMenuOtherReport))
 
         //--- Графики --------------------------------------------------------------------------------------------------------
 
         val alMenuGraphic = mutableListOf<MenuData>()
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "mms_graphic_liquid", false)
+
+        addSeparator(alMenuGraphic)
+
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "mms_graphic_energo_power_full", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "mms_graphic_energo_power_active", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "mms_graphic_energo_power_reactive", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "mms_graphic_energo_power_koef", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "mms_graphic_energo_voltage", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "mms_graphic_energo_current", false)
 
         addSeparator(alMenuGraphic)
 
@@ -420,6 +428,7 @@ open class MMSSpringController(aJdbcTemplate: JdbcTemplate) : CoreSpringControll
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "mms_graphic_temperature", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "mms_graphic_voltage", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "mms_graphic_power", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "mms_graphic_density", false)
 
         addSeparator(alMenuGraphic)
 

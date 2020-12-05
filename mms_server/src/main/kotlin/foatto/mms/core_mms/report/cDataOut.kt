@@ -6,7 +6,7 @@ import foatto.core.util.getZoneId
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.calc.AbstractObjectStateCalc
 import foatto.mms.core_mms.calc.ObjectCalc
-import foatto.mms.core_mms.sensor.SensorConfig
+import foatto.mms.core_mms.sensor.config.SensorConfig
 import jxl.CellView
 import jxl.format.PageOrientation
 import jxl.format.PaperSize
@@ -121,7 +121,7 @@ class cDataOut : cMMSReport() {
 
             val bb = alRawData[pos]
             while(bb.hasRemaining()) {
-                val ( portNum, dataSize ) = AbstractObjectStateCalc.getSensorPortNumAndDataSize(objectConfig, bb)
+                val (portNum, dataSize) = AbstractObjectStateCalc.getSensorPortNumAndDataSize(bb)
                 //--- по каждому номеру порта - составляем визуальное представление значения
                 val sensorValue = AbstractObjectStateCalc.getSensorString(tmSensorPortType[portNum], dataSize, bb)
                 //--- выводим только определённые/прописанные порты

@@ -39,8 +39,6 @@ class mUODGPS : mP() {
 
         initReportPeriod(arrDT)
 
-        initReportCapAndSignature(aliasConfig, userConfig)
-
         //----------------------------------------------------------------------------------------------------------------------
 
         alFormHiddenColumn.add(columnID!!)
@@ -52,7 +50,5 @@ class mUODGPS : mP() {
 
         sos = SumOptionSelector()
         sos.fillColumns(userConfig, tableName, alFormColumn)
-
-        addCapAndSignatureColumns()
     }
 }

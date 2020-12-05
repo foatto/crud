@@ -18,13 +18,10 @@ import foatto.core_server.app.server.UserConfig
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.ZoneData
 import foatto.mms.core_mms.ZoneLimitData
+import foatto.mms.core_mms.graphic.server.graphic_handler.AnalogGraphicHandler
 import foatto.mms.core_mms.graphic.server.graphic_handler.LiquidGraphicHandler
 import foatto.mms.core_mms.graphic.server.graphic_handler.iGraphicHandler
-import foatto.mms.core_mms.sensor.SensorConfig
-import foatto.mms.core_mms.sensor.SensorConfigAnalogue
-import foatto.mms.core_mms.sensor.SensorConfigSemiAnalogue
-import foatto.mms.core_mms.sensor.SensorConfigUsing
-import foatto.mms.core_mms.sensor.SensorConfigWork
+import foatto.mms.core_mms.sensor.config.*
 import foatto.sql.CoreAdvancedStatement
 import java.nio.ByteOrder
 import java.time.ZoneId
@@ -38,62 +35,59 @@ class ObjectCalc {
 
     lateinit var objectConfig: ObjectConfig
 
-    //    public long lastDataTime = 0;
-
     var gcd: GeoCalcData? = null
-    var tmWorkCalc = TreeMap<String, WorkCalcData>()
-    var tmLiquidLevelCalc = TreeMap<String, LiquidLevelCalcData>()
-    var tmLiquidLevelGroupSum = TreeMap<String, LiquidLevelCalcData>()
-    var tmLiquidUsingCalc = TreeMap<String, LiquidUsingCalcData>()
-    var tmEnergoCalc = TreeMap<String, Int>()
-    var tmEnergoGroupSum = TreeMap<String, Int>()
+    val tmWorkCalc = TreeMap<String, WorkCalcData>()
+    val tmLiquidUsingTotal = TreeMap<String, Double>()
+    val tmLiquidUsingCalc = TreeMap<String, Double>()
+    val tmEnergoCalc = TreeMap<String, Double>()
+    val tmLiquidLevelCalc = TreeMap<String, LiquidLevelCalcData>()
 
-    var sbGeoName = StringBuilder()
-    var sbGeoRun = StringBuilder()
-    var sbGeoOutTime = StringBuilder()
-    var sbGeoInTime = StringBuilder()
-    var sbGeoWayTime = StringBuilder()
-    var sbGeoMovingTime = StringBuilder()
-    var sbGeoParkingTime = StringBuilder()
-    var sbGeoParkingCount = StringBuilder()
+    val tmGroupSum = TreeMap<String, GroupSumData>()
 
-    var sbWorkName = StringBuilder()
-    var sbWorkTotal = StringBuilder()
-    var sbWorkMoving = StringBuilder()
-    var sbWorkParking = StringBuilder()
+    val tmTemperature = TreeMap<String, GraphicDataContainer>()
+    val tmDensity = TreeMap<String, GraphicDataContainer>()
 
-    var sbLiquidLevelName = StringBuilder()
-    var sbLiquidLevelBeg = StringBuilder()
-    var sbLiquidLevelEnd = StringBuilder()
-    var sbLiquidLevelIncTotal = StringBuilder()
-    var sbLiquidLevelDecTotal = StringBuilder()
-    var sbLiquidLevelUsingTotal = StringBuilder()
-    var sbLiquidLevelUsingMoving = StringBuilder()
-    var sbLiquidLevelUsingParking = StringBuilder()
-    var sbLiquidLevelUsingCalc = StringBuilder()
+    val sbGeoName = StringBuilder()
+    val sbGeoRun = StringBuilder()
+    val sbGeoOutTime = StringBuilder()
+    val sbGeoInTime = StringBuilder()
+    val sbGeoWayTime = StringBuilder()
+    val sbGeoMovingTime = StringBuilder()
+    val sbGeoParkingTime = StringBuilder()
+    val sbGeoParkingCount = StringBuilder()
 
-    var sbLiquidUsingName = StringBuilder()
-    var sbLiquidUsingTotal = StringBuilder()
-    var sbLiquidUsingMoving = StringBuilder()
-    var sbLiquidUsingParking = StringBuilder()
+    val sbWorkName = StringBuilder()
+    val sbWorkTotal = StringBuilder()
 
-    var sbEnergoName = StringBuilder()
-    var sbEnergoValue = StringBuilder()
+    val sbLiquidUsingName = StringBuilder()
+    val sbLiquidUsingTotal = StringBuilder()
+    val sbLiquidUsingCalc = StringBuilder()
+
+    val sbEnergoName = StringBuilder()
+    val sbEnergoValue = StringBuilder()
+
+    val sbLiquidLevelName = StringBuilder()
+    val sbLiquidLevelBeg = StringBuilder()
+    val sbLiquidLevelEnd = StringBuilder()
+    val sbLiquidLevelIncTotal = StringBuilder()
+    val sbLiquidLevelDecTotal = StringBuilder()
+    val sbLiquidLevelUsingTotal = StringBuilder()
+    val sbLiquidLevelUsingCalc = StringBuilder()
 
     companion object {
 
-        //--- максимально допустимый пробег между точками
-        private val MAX_RUN = 100000 // 100 км. = полчаса ( см. MAX_WORK_TIME_INTERVAL ) при 200 км/ч
+        //--- maximum allowable distance between points
+        private val MAX_RUN = 100_000 // 100 km = 30 minutes (see MAX_WORK_TIME_INTERVAL) at 200 km/h
 
-        //--- максимально допустимый интервал времени между точками, свыше которого:
-        //--- 1. для гео-датчиков - за этот период пробег не считается
-        //--- 2. для датчиков работы оборудования - этот период считается нерабочим, независимо от текущего состояния точки
-        //--- 3. для датчиков уровня топлива - этот период считается нерабочим ( не расходом, не заправкой, не сливом ) и изменение уровня ни в какие суммы не входит
+        //--- the maximum allowable time interval between points, over which:
+        //--- 1.for geo-sensors - the mileage is not counted for this period
+        //--- 2. for sensors of equipment operation - this period is considered inoperative, regardless of the current state of the point
+        //--- 3. for fuel level sensors - this period is considered inoperative (not consumption, not refueling, not draining) and the level change is not included in any amount
         const val MAX_WORK_TIME_INTERVAL = 30 * 60
 
-        //--- максимальная продолжительность предыдущего "нормального" периода,
-        //--- используемого для расчёта среднего расхода топлива во время заправки/слива
-        private val MAX_CALC_PREV_NORMAL_PERIOD = 3 * 60 * 60
+        //--- maximum duration of the previous "normal" period,
+        //--- used to calculate the average fuel consumption during refueling / draining
+        private const val MAX_CALC_PREV_NORMAL_PERIOD = 3 * 60 * 60
 
         fun calcObject(stm: CoreAdvancedStatement, userConfig: UserConfig, oc: ObjectConfig, begTime: Int, endTime: Int): ObjectCalc {
 
@@ -101,172 +95,231 @@ class ObjectCalc {
             result.objectConfig = oc
 
             val zoneId = getZoneId(userConfig.getUserProperty(UP_TIME_OFFSET)?.toIntOrNull())
-            //--- единоразово загрузим данные по всем датчикам объекта
             val (alRawTime, alRawData) = loadAllSensorData(stm, oc, begTime, endTime)
 
-            //--- последнее время точки с данными
-            //if(  ! alRawTime.isEmpty()  ) result.lastDataTime = alRawTime.get(  alRawTime.size() - 1  );
+            //--- if geo-sensors are registered - we sum up the mileage
+            oc.scg?.let { scg ->
+                //--- in normal calculations, we do not need trajectory points, so we give the maximum scale.
+                //--- excess is also not needed, so we give maxEnabledOverSpeed = 0
+                result.gcd = calcGeoSensor(alRawTime, alRawData, oc, begTime, endTime, 1_000_000_000, 0, null)
 
-            //--- если прописаны гео-датчики - суммируем метры пробега
-            if (oc.scg != null) {
-                //--- в обычных расчётах нам не нужны точки траектории, поэтому даем максимальный масштаб.
-                //--- превышения тоже не нужны, поэтому даём maxEnabledOverSpeed = 0
-                result.gcd = calcGeoSensor(alRawTime, alRawData, oc, begTime, endTime, 1000000000, 0, null)
-
-                //--- если задан норматив по жидкости( топливу ), посчитаем его
-                if (oc.scg!!.isUseRun && /*oc.scg!!.liquidName != null &&*/ !oc.scg!!.liquidName.isEmpty()) {
-                    var lucd: LiquidUsingCalcData? = result.tmLiquidUsingCalc[oc.scg!!.liquidName]
-                    if (lucd == null) {
-                        lucd = LiquidUsingCalcData()
-                        result.tmLiquidUsingCalc[oc.scg!!.liquidName] = lucd
-                    }
-                    lucd.add(oc.scg!!.liquidNorm * result.gcd!!.run / 100.0, oc.scg!!.liquidNorm * result.gcd!!.run / 100.0, 0.0, 0.0)
+                //--- if the standard for liquid (fuel) is set, we will calculate it
+                if (scg.isUseRun && scg.liquidName.isNotEmpty()) {
+                    liquidCalc(scg.liquidName, scg.sumGroup, scg.liquidNorm * result.gcd!!.run / 100.0, 0.0, result)
                 }
             }
 
-            //--- датчики работы оборудования
+            //--- equipment operation sensors
             val hmSCW = oc.hmSensorConfig[SensorConfig.SENSOR_WORK]
             if (!hmSCW.isNullOrEmpty()) {
-                //--- для удобства выведем в отдельную переменную
-                val alMovingAndParking = if (oc.scg != null && oc.scg!!.isUseSpeed) result.gcd!!.alMovingAndParking else null
-                for (portNum in hmSCW.keys) {
-                    val scw = hmSCW[portNum] as SensorConfigWork
+                hmSCW.values.forEach { sc ->
+                    val scw = sc as SensorConfigWork
 
-                    val wcd = calcWorkSensor(alRawTime, alRawData, oc, scw, begTime, endTime, alMovingAndParking)
+                    val wcd = calcWorkSensor(alRawTime, alRawData, scw, begTime, endTime)
                     result.tmWorkCalc[scw.descr] = wcd
 
-                    //--- если задан норматив по жидкости( топливу ), посчитаем его
-                    if ( /*scw.liquidName != null &&*/ !scw.liquidName.isEmpty()) {
-                        var lucd: LiquidUsingCalcData? = result.tmLiquidUsingCalc[scw.liquidName]
-                        if (lucd == null) {
-                            lucd = LiquidUsingCalcData()
-                            result.tmLiquidUsingCalc[scw.liquidName] = lucd
-                        }
-                        lucd.add(
-                            scw.liquidNorm * wcd.onTime / 60.0 / 60.0,
-                            if (alMovingAndParking == null || alMovingAndParking.isEmpty()) 0.0 else scw.liquidNorm * wcd.onMovingTime / 60.0 / 60.0,
-                            if (alMovingAndParking == null || alMovingAndParking.isEmpty()) 0.0 else scw.liquidNorm * wcd.onParkingTime / 60.0 / 60.0, 0.0
-                        )
+                    if (sc.sumGroup.isNotBlank()) {
+                        val workGroupSum = result.tmGroupSum.getOrPut(sc.sumGroup) { GroupSumData() }
+                        workGroupSum.addWorkData(wcd.onTime)
+                    }
+
+                    //--- if the standard for liquid (fuel) is set, we will calculate it
+                    if (sc.liquidName.isNotEmpty()) {
+                        liquidCalc(scw.liquidName, scw.sumGroup, scw.liquidNorm * wcd.onTime / 60.0 / 60.0, 0.0, result)
                     }
                 }
             }
 
-            //--- датчики уровня жидкости
-            val hmSCLL = oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_LEVEL]
-            if (!hmSCLL.isNullOrEmpty()) {
-                //--- для удобства выведем в отдельную переменную
-                val alMovingAndParking = if (oc.scg != null && oc.scg!!.isUseSpeed) result.gcd!!.alMovingAndParking else null
-                for (portNum in hmSCLL.keys) {
-                    val sca = hmSCLL[portNum] as SensorConfigAnalogue
-
-                    val llcd = calcLiquidLevelSensor(alRawTime, alRawData, oc, sca, begTime, endTime, result.gcd, result.tmWorkCalc, result.tmEnergoCalc, stm)
-                    result.tmLiquidLevelCalc[sca.descr] = llcd
-
-                    //--- посчитаем групповую сумму
-                    var llcdGroupSum: LiquidLevelCalcData? = result.tmLiquidLevelGroupSum[sca.sumGroup]
-                    if (llcdGroupSum == null) {
-                        llcdGroupSum = LiquidLevelCalcData(sca.sumGroup)
-                        result.tmLiquidLevelGroupSum[sca.sumGroup] = llcdGroupSum
-                    }
-                    llcdGroupSum.begLevel += llcd.begLevel
-                    llcdGroupSum.endLevel += llcd.endLevel
-                    llcdGroupSum.incTotal += llcd.incTotal
-                    llcdGroupSum.decTotal += llcd.decTotal
-                    llcdGroupSum.usingTotal += llcd.usingTotal
-                    llcdGroupSum.usingMoving += llcd.usingMoving
-                    llcdGroupSum.usingParking += llcd.usingParking
-                    if (llcd.usingCalc != null) llcdGroupSum.usingCalc = (if (llcdGroupSum.usingCalc == null) 0.0 else llcdGroupSum.usingCalc!!) + llcd.usingCalc!!
-
-                    //--- если задано наименование жидкости ( топлива ), то добавим его расход в общий список
-                    if ( /*sca.liquidName != null &&*/ !sca.liquidName.isEmpty()) {
-                        //--- для измеренных уровней
-                        val liquidName = sca.liquidName
-                        var lucd: LiquidUsingCalcData? = result.tmLiquidUsingCalc[liquidName]
-                        if (lucd == null) {
-                            lucd = LiquidUsingCalcData()
-                            result.tmLiquidUsingCalc[liquidName] = lucd
-                        }
-                        lucd.add(
-                            llcd.usingTotal, if (alMovingAndParking == null || alMovingAndParking.isEmpty()) 0.0 else llcd.usingMoving,
-                            if (alMovingAndParking == null || alMovingAndParking.isEmpty()) 0.0 else llcd.usingParking,
-                            if (llcd.usingCalc == null) 0.0 else llcd.usingCalc!!
-                        )
-                    }
-                }
-            }
-
-            //--- датчики объёмного расхода жидкости ( расходомеры ) - не лучше ли считать SENSOR_MASS_FLOW?
+            //--- volumetric flow sensors (flow meters)
             val hmSCVF = oc.hmSensorConfig[SensorConfig.SENSOR_VOLUME_FLOW]
             if (!hmSCVF.isNullOrEmpty()) {
-                for (portNum in hmSCVF.keys) {
-                    val scu = hmSCVF[portNum] as SensorConfigUsing
-                    //--- если задано наименование жидкости ( топлива ), то добавим его расход в общий список
-                    if (scu.liquidName.isNotEmpty()) {
-                        var lucd: LiquidUsingCalcData? = result.tmLiquidUsingCalc[scu.liquidName]
-                        if (lucd == null) {
-                            lucd = LiquidUsingCalcData()
-                            result.tmLiquidUsingCalc[scu.liquidName] = lucd
+                hmSCVF.values.forEach { sc ->
+                    calcFlowSensor(alRawTime, alRawData, sc as SensorConfigCounter, begTime, endTime, result)
+                }
+            }
+
+            //--- mass flow sensors
+            val hmSCMF = oc.hmSensorConfig[SensorConfig.SENSOR_MASS_FLOW]
+            if (!hmSCMF.isNullOrEmpty()) {
+                hmSCMF.values.forEach { sc ->
+                    calcFlowSensor(alRawTime, alRawData, sc as SensorConfigCounter, begTime, endTime, result)
+                }
+            }
+
+            //--- volume accumulated values sensor
+            val hmSCVA = oc.hmSensorConfig[SensorConfig.SENSOR_VOLUME_ACCUMULATED]
+            if (!hmSCVA.isNullOrEmpty()) {
+                hmSCVA.values.forEach { sc ->
+                    calcLiquidSummary(alRawTime, alRawData, sc as SensorConfigLiquidSummary, begTime, endTime, result)
+                }
+            }
+
+            //--- mass accumulated values sensor
+            val hmSCMA = oc.hmSensorConfig[SensorConfig.SENSOR_MASS_ACCUMULATED]
+            if (!hmSCMA.isNullOrEmpty()) {
+                hmSCMA.values.forEach { sc ->
+                    calcLiquidSummary(alRawTime, alRawData, sc as SensorConfigLiquidSummary, begTime, endTime, result)
+                }
+            }
+
+            //--- sensors - electricity meters
+            listOf(
+                SensorConfig.SENSOR_ENERGO_COUNT_AD,
+                SensorConfig.SENSOR_ENERGO_COUNT_AR,
+                SensorConfig.SENSOR_ENERGO_COUNT_RD,
+                SensorConfig.SENSOR_ENERGO_COUNT_RR
+            ).forEach { sensorType ->
+                val hmSCEC = oc.hmSensorConfig[sensorType]
+                if (!hmSCEC.isNullOrEmpty()) {
+                    for (sc in hmSCEC.values) {
+                        val e = calcEnergoSensor(alRawTime, alRawData, sc as SensorConfigEnergoSummary, begTime, endTime)
+
+                        val curTotal = result.tmEnergoCalc[sc.descr] ?: 0.0
+                        result.tmEnergoCalc[sc.descr] = curTotal + e
+
+                        //--- calculate the group amount
+                        if (sc.sumGroup.isNotBlank()) {
+                            val groupSum = result.tmGroupSum.getOrPut(sc.sumGroup) { GroupSumData() }
+                            val byType = groupSum.tmEnergoUsing.getOrPut(sensorType) { TreeMap<Int, Double>() }
+                            val byPhase = byType[sc.phase] ?: 0.0
+                            byType[sc.phase] = byPhase + e
                         }
-                        calcLiquidUsingSensor(
-                            alRawTime, alRawData, oc, scu, begTime, endTime,
-                            if (oc.scg != null && oc.scg!!.isUseSpeed) result.gcd!!.alMovingAndParking else null, lucd
-                        )
                     }
                 }
             }
 
-            //--- датчики - электросчётчики
-            val hmSCE = oc.hmSensorConfig[SensorConfig.SENSOR_ENERGO_COUNT_AD]
-            if (!hmSCE.isNullOrEmpty()) {
-                for (sce in hmSCE.values) {
-                    val e = calcEnergoSensor(alRawTime, alRawData, oc, sce, begTime, endTime)
-                    result.tmEnergoCalc[sce.descr] = e
+            //--- liquid level sensors
+            val hmSCLL = oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_LEVEL]
+            if (!hmSCLL.isNullOrEmpty()) {
+                hmSCLL.values.forEach { sc ->
+                    val scll = sc as SensorConfigLiquidLevel
 
-                    //--- посчитаем групповую сумму
-                    val eGroupSum = result.tmEnergoGroupSum[sce.sumGroup]
-                    result.tmEnergoGroupSum[sce.sumGroup] = (eGroupSum ?: 0) + e
+                    val llcd = calcLiquidLevelSensor(alRawTime, alRawData, oc, scll, begTime, endTime, stm)
+                    result.tmLiquidLevelCalc[scll.descr] = llcd
+
+                    if (sc.sumGroup.isNotBlank()) {
+                        val groupSum = result.tmGroupSum.getOrPut(sc.sumGroup) { GroupSumData() }
+                        groupSum.addLiquidLevel(llcd.begLevel, llcd.endLevel, llcd.incTotal, llcd.decTotal)
+                    }
+
+                    //--- if the name of the liquid (fuel) is given, then add its consumption to the general list
+                    if (scll.liquidName.isNotEmpty()) {
+                        liquidCalc(scll.liquidName, scll.sumGroup, llcd.usingTotal, llcd.usingCalc, result)
+                    }
+                }
+            }
+
+            //--- some analogue sensors
+            val hmSCTemperature = oc.hmSensorConfig[SensorConfig.SENSOR_TEMPERATURE]
+            if (!hmSCTemperature.isNullOrEmpty()) {
+                hmSCTemperature.values.forEach { sc ->
+                    val sca = sc as SensorConfigAnalogue
+                    val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2)
+                    getSmoothAnalogGraphicData(
+                        alRawTime = alRawTime,
+                        alRawData = alRawData,
+                        oc = oc,
+                        scsc = sca,
+                        begTime = begTime,
+                        endTime = endTime,
+                        xScale = 0,
+                        yScale = 0.0,
+                        aMinLimit = null,
+                        aMaxLimit = null,
+                        aPoint = null,
+                        aLine = aLine,
+                        gh = AnalogGraphicHandler()
+                    )
+                    result.tmTemperature[sc.descr] = aLine
+                }
+            }
+
+            val hmSCDensity = oc.hmSensorConfig[SensorConfig.SENSOR_DENSITY]
+            if (!hmSCDensity.isNullOrEmpty()) {
+                hmSCDensity.values.forEach { sc ->
+                    val sca = sc as SensorConfigAnalogue
+                    val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2)
+                    getSmoothAnalogGraphicData(
+                        alRawTime = alRawTime,
+                        alRawData = alRawData,
+                        oc = oc,
+                        scsc = sca,
+                        begTime = begTime,
+                        endTime = endTime,
+                        xScale = 0,
+                        yScale = 0.0,
+                        aMinLimit = null,
+                        aMaxLimit = null,
+                        aPoint = null,
+                        aLine = aLine,
+                        gh = AnalogGraphicHandler()
+                    )
+                    result.tmDensity[sc.descr] = aLine
                 }
             }
 
             //--- заполнение типовых строк вывода ( для табличных форм и отчетов )
             if (oc.scg != null)
                 fillGeoString(
-                    result.gcd!!, zoneId, result.sbGeoName, result.sbGeoRun, result.sbGeoOutTime, result.sbGeoInTime, result.sbGeoWayTime,
-                    result.sbGeoMovingTime, result.sbGeoParkingTime, result.sbGeoParkingCount
+                    gcd = result.gcd!!,
+                    zoneId = zoneId,
+                    sbGeoName = result.sbGeoName,
+                    sbGeoRun = result.sbGeoRun,
+                    sbGeoOutTime = result.sbGeoOutTime,
+                    sbGeoInTime = result.sbGeoInTime,
+                    sbGeoWayTime = result.sbGeoWayTime,
+                    sbGeoMovingTime = result.sbGeoMovingTime,
+                    sbGeoParkingTime = result.sbGeoParkingTime,
+                    sbGeoParkingCount = result.sbGeoParkingCount
                 )
-            fillWorkString(result.tmWorkCalc, result.sbWorkName, result.sbWorkTotal, result.sbWorkMoving, result.sbWorkParking)
-            fillLiquidLevelString(
-                result.tmLiquidLevelCalc, result.sbLiquidLevelName, result.sbLiquidLevelBeg, result.sbLiquidLevelEnd, result.sbLiquidLevelIncTotal,
-                result.sbLiquidLevelDecTotal, result.sbLiquidLevelUsingTotal, result.sbLiquidLevelUsingMoving, result.sbLiquidLevelUsingParking, result.sbLiquidLevelUsingCalc
+            fillWorkString(
+                tmWorkCalc = result.tmWorkCalc,
+                sbWorkName = result.sbWorkName,
+                sbWorkTotal = result.sbWorkTotal,
             )
-            fillLiquidUsingString(result.tmLiquidUsingCalc, result.sbLiquidUsingName, result.sbLiquidUsingTotal, result.sbLiquidUsingMoving, result.sbLiquidUsingParking)
-            fillEnergoString(result.tmEnergoCalc, result.sbEnergoName, result.sbEnergoValue)
+            fillLiquidUsingString(
+                tmLiquidUsingTotal = result.tmLiquidUsingTotal,
+                tmLiquidUsingCalc = result.tmLiquidUsingCalc,
+                sbLiquidUsingName = result.sbLiquidUsingName,
+                sbLiquidUsingTotal = result.sbLiquidUsingTotal,
+                sbLiquidUsingCalc = result.sbLiquidUsingCalc,
+            )
+            fillEnergoString(
+                tmEnergoCalc = result.tmEnergoCalc,
+                sbEnergoName = result.sbEnergoName,
+                sbEnergoValue = result.sbEnergoValue
+            )
+            fillLiquidLevelString(
+                tmLiquidLevelCalc = result.tmLiquidLevelCalc,
+                sbLiquidLevelName = result.sbLiquidLevelName,
+                sbLiquidLevelBeg = result.sbLiquidLevelBeg,
+                sbLiquidLevelEnd = result.sbLiquidLevelEnd,
+                sbLiquidLevelIncTotal = result.sbLiquidLevelIncTotal,
+                sbLiquidLevelDecTotal = result.sbLiquidLevelDecTotal,
+                sbLiquidLevelUsingTotal = result.sbLiquidLevelUsingTotal,
+                sbLiquidLevelUsingCalc = result.sbLiquidLevelUsingCalc
+            )
 
             return result
         }
 
         fun loadAllSensorData(stm: CoreAdvancedStatement, oc: ObjectConfig, begTime: Int, endTime: Int): Pair<List<Int>, List<AdvancedByteBuffer>> {
-
-            //--- определим максимальное сглаживание
             var maxSmoothTime = 0
-            for (sensorType in oc.hmSensorConfig.keys) {
-                //--- в датчиках работы оборудования, расхода жидкости и электроэнергии нет параметра сглаживания
-                if (SensorConfig.hsSensorNonSmooth.contains(sensorType)) continue
-
-                val hmSC = oc.hmSensorConfig[sensorType]!!
-                for (portNum in hmSC.keys) {
-                    val scSmoothable = hmSC[portNum] as SensorConfigSemiAnalogue
-                    maxSmoothTime = max(maxSmoothTime, scSmoothable.smoothTime)
+            oc.hmSensorConfig.values.forEach { hmSC ->
+                hmSC.values.forEach { sensorConfig ->
+                    if (sensorConfig is SensorConfigBase) {
+                        maxSmoothTime = max(maxSmoothTime, sensorConfig.smoothTime)
+                    }
                 }
             }
 
-            //--- соберём сырые необработанные данные
+            //--- collect raw data
             val alRawTime = mutableListOf<Int>()
             val alRawData = mutableListOf<AdvancedByteBuffer>()
 
-            //--- чтобы не пропадали начальные/конечные точки в периодах
-            //--- и чтобы совпадали конечные уровни одного периода и начальные уровни следующего -
-            //--- берём диапазоны с запасом для сглаживания
+            //--- so that start / end points do not disappear in periods
+            //--- and so that the final levels of one period and the initial levels of the next one coincide -
+            //--- take ranges with a margin for smoothing
             val sql =
                 " SELECT ontime , sensor_data FROM MMS_data_${oc.objectID} " +
                     " WHERE ontime >= ${begTime - maxSmoothTime} AND ontime <= ${endTime + maxSmoothTime} " +
@@ -283,7 +336,13 @@ class ObjectCalc {
         }
 
         fun calcGeoSensor(
-            alRawTime: List<Int>, alRawData: List<AdvancedByteBuffer>, oc: ObjectConfig, begTime: Int, endTime: Int, scale: Int, maxEnabledOverSpeed: Int,
+            alRawTime: List<Int>,
+            alRawData: List<AdvancedByteBuffer>,
+            oc: ObjectConfig,
+            begTime: Int,
+            endTime: Int,
+            scale: Int,
+            maxEnabledOverSpeed: Int,
             alZoneSpeedLimit: List<ZoneLimitData>?
         ): GeoCalcData {
             val scg = oc.scg
@@ -292,9 +351,9 @@ class ObjectCalc {
             var lastRun = 0
             var run = 0
 
-            var movingBeginTime = 0           // время начала движения
-            var parkingBeginTime = 0          // время начала остановки
-            var parkingCoord: XyPoint? = null        // координаты стоянки
+            var movingBeginTime = 0
+            var parkingBeginTime = 0
+            var parkingCoord: XyPoint? = null
 
             val alMovingAndParking = mutableListOf<AbstractPeriodData>()
             val alOverSpeed = mutableListOf<AbstractPeriodData>()
@@ -303,77 +362,70 @@ class ObjectCalc {
             val alPointSpeed = mutableListOf<Int>()
             val alPointOverSpeed = mutableListOf<Int>()
 
-            var normalSpeedBeginTime = 0      // время начала нормальной скорости
+            var normalSpeedBeginTime = 0
             var overSpeedBeginTime = 0
-            var maxOverSpeedTime = 0          // время максимального превышения
-            var maxOverSpeedCoord: XyPoint? = null   // координаты точки максимального превышения
-            var maxOverSpeedMax = 0            // скорость при максимальном превышении
-            var maxOverSpeedDiff = 0           // величина максимального превышения
+            var maxOverSpeedTime = 0
+            var maxOverSpeedCoord: XyPoint? = null
+            var maxOverSpeedMax = 0
+            var maxOverSpeedDiff = 0
 
-            //--- для генерализации
             val lastPoint = XyPoint(0, 0)
 
             var lastTime = 0
             var curTime = 0
             for (i in alRawTime.indices) {
                 curTime = alRawTime[i]
-                //--- данные до запрашиваемого диапазона ( расширенные для сглаживания )
-                //--- в данном случае не интересны и их можно пропустить
-                if (curTime < begTime) continue
-                //--- данные после запрашиваемого диапазона ( расширенные для сглаживания )
-                //--- в данном случае не интересны и можно прекращать обработку
+                if (curTime < begTime) {
+                    continue
+                }
                 if (curTime > endTime) {
-                    //--- точка за краем диапазона нам не нужна, возвращаем предыдущую точку
-                    if (i > 0) curTime = alRawTime[i - 1]
+                    if (i > 0) {
+                        curTime = alRawTime[i - 1]
+                    }
                     break
                 }
 
                 val gd = AbstractObjectStateCalc.getGeoData(oc, alRawData[i]) ?: continue
-                //--- самих геоданных может и не оказаться
-                //            boolean curValue = (  lastTime == 0 || curTime - lastTime <= MAX_WORK_TIME_INTERVAL  ) &&
-                //                               sensorData >= scw.minIgnore && sensorData <= scw.maxIgnore &&
-                //                               (  scw.activeValue == 0  ) ^ (  sensorData > scw.boundValue  );
-
-                //--- Нюансы расчёта пробега:
-                //--- 1. Независимо от способа выдачи пробега ( относительный/межточечный или абсолютный ):
-                //--- 1.1. Игнорируем пробеги между точками со слишком долгим промежутком по времени.
-                //--- 1.2. Игнорируем точки со слишком большим/нереальным межточечным пробегом.
-                //--- 2. Приборы, дающие в своих показаниях абсолютный пробег, умудряются его сбрасывать посреди дня,
-                //---    приходится ловить каждый такой сброс ( алгоритм в чем-то схож с поиском заправок/сливов ),
-                //---    но пропуская внезапные точки с нулевым пробегом при абсолютно нормальных координатах.
+                // --- Nuances of calculating the mileage:
+                // --- 1. Regardless of the mileage display method (relative / point-to-point or absolute):
+                // --- 1.1. We ignore the runs between points with too long a time interval.
+                // --- 1.2. Ignore points with too high / unrealistic distance between points.
+                // --- 2. Devices that give absolute mileage in their readings manage to reset it in the middle of the day,
+                // --- you have to catch each such reset (the algorithm is somewhat similar to the search for refueling / draining),
+                // --- but skipping sudden points with zero mileage at absolutely normal coordinates.
                 if (gd.distance > 0) {
                     if (scg!!.isAbsoluteRun) {
                         val curRun = gd.distance
 
-                        //--- первоначальная инициализация
-                        if (begRun == 0) begRun = curRun
-                        else if (curRun < lastRun || curRun - lastRun > MAX_RUN || lastTime != 0 && curTime - lastTime > MAX_WORK_TIME_INTERVAL) {
-                            //--- суммируем подпробег
-                            run += lastRun - begRun
-                            //--- начинаем новый диапазон
+                        if (begRun == 0) {
                             begRun = curRun
-                        }//--- точка сброса пробега
+                        } else if (curRun < lastRun || curRun - lastRun > MAX_RUN || lastTime != 0 && curTime - lastTime > MAX_WORK_TIME_INTERVAL) {
+                            run += lastRun - begRun
+                            begRun = curRun
+                        }
                         lastRun = curRun
-                    } else if (gd.distance < MAX_RUN) run += gd.distance
+                    } else if (gd.distance < MAX_RUN) {
+                        run += gd.distance
+                    }
                 }
 
                 val pixPoint = XyProjection.wgs_pix(gd.wgs)
 
                 var overSpeed = 0
 
-                //--- на стоянке ?
+                //--- on parking ?
                 if (gd.speed <= AbstractObjectStateCalc.MAX_SPEED_AS_PARKING) {
-                    //--- запись предыдущего движения
+                    //--- recording previous movement
                     if (movingBeginTime != 0) {
                         alMovingAndParking.add(GeoPeriodData(movingBeginTime, curTime, 1))
                         movingBeginTime = 0
                     }
-                    //--- начало стоянки ( parkingBeginTime - флаг стоянки )
+                    //--- parking start (parkingBeginTime - parking flag)
                     if (parkingBeginTime == 0) {
                         parkingBeginTime = curTime
                         parkingCoord = pixPoint
                     }
-                    //--- стоянка = конец превышения и как бы начало нормальной скорости
+                    //--- parking = end of excess and, as it were, the beginning of normal speed
                     if (overSpeedBeginTime != 0) {
                         alOverSpeed.add(OverSpeedPeriodData(overSpeedBeginTime, curTime, maxOverSpeedTime, maxOverSpeedCoord!!, maxOverSpeedMax, maxOverSpeedDiff))
                         overSpeedBeginTime = 0
@@ -382,28 +434,34 @@ class ObjectCalc {
                         maxOverSpeedMax = 0
                         maxOverSpeedDiff = 0
                     }
-                    if (normalSpeedBeginTime == 0) normalSpeedBeginTime = curTime
+                    if (normalSpeedBeginTime == 0) {
+                        normalSpeedBeginTime = curTime
+                    }
                 } else {
-                    //--- запись предыдущей стоянки
+                    //--- previous parking record
                     if (parkingBeginTime != 0) {
                         alMovingAndParking.add(GeoPeriodData(parkingBeginTime, curTime, parkingCoord!!))
                         parkingBeginTime = 0
                         parkingCoord = null
                     }
-                    //--- начало движения
-                    if (movingBeginTime == 0) movingBeginTime = curTime
+                    //--- start of movement
+                    if (movingBeginTime == 0) {
+                        movingBeginTime = curTime
+                    }
 
-                    //--- обработка превышений
+                    //--- overspeed handling
                     overSpeed = calcOverSpeed(scg!!.maxSpeedLimit, alZoneSpeedLimit, pixPoint, gd.speed)
                     if (overSpeed > maxEnabledOverSpeed) {
-                        //--- запишем предыдущее нормальное движение
+                        //--- we will record the previous normal movement
                         if (normalSpeedBeginTime != 0) {
                             alOverSpeed.add(OverSpeedPeriodData(normalSpeedBeginTime, curTime))
                             normalSpeedBeginTime = 0
                         }
-                        //--- отметка начала превышения
-                        if (overSpeedBeginTime == 0) overSpeedBeginTime = curTime
-                        //--- сохранение величины/координат/времени максимального превышения на участке
+                        //--- overspeed start mark
+                        if (overSpeedBeginTime == 0) {
+                            overSpeedBeginTime = curTime
+                        }
+                        //--- saving the value / coordinates / time of maximum speeding on the site
                         if (overSpeed > maxOverSpeedDiff) {
                             maxOverSpeedTime = curTime
                             maxOverSpeedCoord = pixPoint
@@ -419,10 +477,12 @@ class ObjectCalc {
                             maxOverSpeedMax = 0
                             maxOverSpeedDiff = 0
                         }
-                        if (normalSpeedBeginTime == 0) normalSpeedBeginTime = curTime
+                        if (normalSpeedBeginTime == 0) {
+                            normalSpeedBeginTime = curTime
+                        }
                     }
                 }
-                //--- для траектории записываются только точки с движением
+                //--- only points with movement are recorded for the trajectory
                 if (gd.speed > AbstractObjectStateCalc.MAX_SPEED_AS_PARKING && pixPoint.distance(lastPoint) > scale) {
                     alPointTime.add(curTime)
                     alPointXY.add(pixPoint)
@@ -434,9 +494,9 @@ class ObjectCalc {
 
                 lastTime = curTime
             }
-            //--- суммируем подпробег последнего ( т.е. неоконченного ) диапазона
+            //--- summarize the sub-run of the last (i.e. unfinished) range
             if (scg!!.isAbsoluteRun) run += lastRun - begRun
-            //--- запись последнего незакрытого события
+            //--- record of the last unclosed event
             if (movingBeginTime != 0) alMovingAndParking.add(GeoPeriodData(movingBeginTime, curTime, 1))
             if (parkingBeginTime != 0) alMovingAndParking.add(GeoPeriodData(parkingBeginTime, curTime, parkingCoord!!))
             if (normalSpeedBeginTime != 0) alOverSpeed.add(OverSpeedPeriodData(normalSpeedBeginTime, curTime))
@@ -445,7 +505,7 @@ class ObjectCalc {
             mergePeriods(alMovingAndParking, scg.minMovingTime, scg.minParkingTime)
             mergePeriods(alOverSpeed, scg.minOverSpeedTime, max(10, scg.minOverSpeedTime / 10))
 
-            //--- подсчёт прочих показателей: время выезда/заезда, в движении/на стоянке, кол-во стоянок
+            //--- calculation of other indicators: time of departure / arrival, in motion / in the parking lot, number of parking lots
             var outTime = 0
             var inTime = 0
             var movingTime = 0
@@ -464,108 +524,166 @@ class ObjectCalc {
                 }
             }
 
-            //--- переводим суммы метров в км
-            //--- ( если пробег от этого датчика не используется, то сделаем его отрицательным )
+            //--- we convert the sums of meters into km (if the mileage from this sensor is not used, then we will make it negative)
             return GeoCalcData(
-                scg.descr, run / 1000.0 * scg.runKoef, outTime, inTime, movingTime, parkingCount, parkingTime,
-                alMovingAndParking, alOverSpeed, alPointTime, alPointXY, alPointSpeed, alPointOverSpeed
+                scg.descr,
+                run / 1000.0 * scg.runKoef,
+                outTime,
+                inTime,
+                movingTime,
+                parkingCount,
+                parkingTime,
+                alMovingAndParking,
+                alOverSpeed,
+                alPointTime,
+                alPointXY,
+                alPointSpeed,
+                alPointOverSpeed
             )
         }
 
         fun calcWorkSensor(
-            alRawTime: List<Int>, alRawData: List<AdvancedByteBuffer>, oc: ObjectConfig, scw: SensorConfigWork, begTime: Int, endTime: Int,
-            alMovingAndParking: List<AbstractPeriodData>?
+            alRawTime: List<Int>,
+            alRawData: List<AdvancedByteBuffer>,
+            scw: SensorConfigWork,
+            begTime: Int,
+            endTime: Int,
         ): WorkCalcData {
 
             val alResult = mutableListOf<AbstractPeriodData>()
 
-            var workBeginTime = 0       // время начала работы
-            var delayBeginTime = 0      // время начала простоя
+            var workBeginTime = 0
+            var delayBeginTime = 0
 
             var lastTime = 0
             var curTime = 0
             for (i in alRawTime.indices) {
                 curTime = alRawTime[i]
-                //--- данные до запрашиваемого диапазона ( расширенные для сглаживания )
-                //--- в данном случае не интересны и их можно пропустить
-                if (curTime < begTime) continue
-                //--- данные после запрашиваемого диапазона ( расширенные для сглаживания )
-                //--- в данном случае не интересны и можно прекращать обработку
+                if (curTime < begTime) {
+                    continue
+                }
                 if (curTime > endTime) {
-                    //--- точка за краем диапазона нам не нужна, возвращаем предыдущую точку
-                    if (i > 0) curTime = alRawTime[i - 1]
+                    if (i > 0) {
+                        curTime = alRawTime[i - 1]
+                    }
                     break
                 }
 
-                //--- преобразование данных --------------------------------------------------------------------
+                val sensorData = AbstractObjectStateCalc.getSensorData(scw.portNum, alRawData[i])?.toDouble()
 
-                val sensorData = AbstractObjectStateCalc.getSensorData(oc, scw.portNum, alRawData[i])?.toInt() ?: 0
-                //--- вручную игнорируем:
-                //--- 1. слишком длинные интервалы между точками ( кроме первой точки )
-                //--- 2. заграничные значения
-                //--- ( новое условие - не академически/бесполезно ИГНОРИРУЕМ, а считаем, что оборудование вне заданных границ НЕ РАБОТАЕТ )
-                //if(  sensorData < scw.minIgnore || sensorData > scw.maxIgnore  ) continue;
-                var curValue =
+                // --- manually ignore:
+                // --- 1. too long intervals between points (except for the first point)
+                // --- 2. foreign values
+                val curValue = sensorData != null &&
                     (lastTime == 0 || curTime - lastTime <= MAX_WORK_TIME_INTERVAL) &&
-                        sensorData >= scw.minIgnore &&
-                        sensorData <= scw.maxIgnore &&
-                        ((scw.activeValue == 0) xor (sensorData > scw.boundValue))
+                    getWorkSensorValue(scw, sensorData)
 
-                //--- учёт модификатора работы датчика - учёт работы только в движении или только на стоянке
-                if (curValue && alMovingAndParking != null && !alMovingAndParking.isEmpty()) {
-                    if (scw.calcInMoving xor scw.calcInParking) {
-                        //--- ищем период, в который попадает данная точка
-                        //--- ( поскольку конец периода всегда == началу следующего периода,
-                        //--- а нам важнее начало нового периода, нежели конец предыдущего - то ищем с конца списка )
-                        for (j in alMovingAndParking.indices.reversed()) {
-                            val mpd = alMovingAndParking[j] as GeoPeriodData
-                            if (curTime >= mpd.begTime && curTime <= mpd.endTime) {
-                                curValue = if (mpd.moveState != 0) scw.calcInMoving else scw.calcInParking
-                                break
-                            }
-                        }
-                    } else curValue = curValue and (scw.calcInMoving && scw.calcInParking)//--- если обе галочки выключены - датчик никогда не считается
-                }
-                //--- таки всё ещё в работе?
+                //--- still in work?
                 if (curValue) {
-                    //--- запись предыдущего простоя
+                    //--- record of previous downtime
                     if (delayBeginTime != 0) {
                         alResult.add(WorkPeriodData(delayBeginTime, curTime, 0))
                         delayBeginTime = 0
                     }
-                    //--- начало работы
+                    //--- Beginning of work
                     if (workBeginTime == 0) workBeginTime = curTime
                 } else {
-                    //--- запись предыдущей работы
+                    //--- record of previous work
                     if (workBeginTime != 0) {
                         alResult.add(WorkPeriodData(workBeginTime, curTime, 1))
                         workBeginTime = 0
                     }
-                    //--- начало простоя
+                    //--- start of downtime
                     if (delayBeginTime == 0) delayBeginTime = curTime
                 }
                 lastTime = curTime
             }
 
-            //--- запись последнего незакрытого события
+            //--- record of the last unclosed event
             if (workBeginTime != 0) alResult.add(WorkPeriodData(workBeginTime, curTime, 1))
             if (delayBeginTime != 0) alResult.add(WorkPeriodData(delayBeginTime, curTime, 0))
 
-            //--- слияние периодов работы/простоя в соответствии с минимальными продолжительностями
+            //--- merging of work / downtime periods according to minimum durations
             mergePeriods(alResult, scw.minOnTime, scw.minOffTime)
 
-            //--- при наличии гео-датчика посчитаем распределение работы/простоя
-            //--- по заданным периодам движения/стоянок
-            return WorkCalcData(
-                alResult, if (alMovingAndParking == null) null
-                else if (alMovingAndParking.isEmpty()) mutableListOf()
-                else multiplePeriods(alMovingAndParking, alResult)
+            return WorkCalcData(alResult)
+        }
+
+        fun calcCounterSensor(
+            alRawTime: List<Int>,
+            alRawData: List<AdvancedByteBuffer>,
+            scu: SensorConfigCounter,
+            begTime: Int,
+            endTime: Int,
+        ): Pair<Double, Double> {
+            return Pair(
+                getSensorCountData(
+                    alRawTime = alRawTime,
+                    alRawData = alRawData,
+                    scu = scu,
+                    begTime = begTime,
+                    endTime = endTime
+                ),
+                0.0
             )
         }
 
+        fun calcEnergoSensor(
+            alRawTime: List<Int>,
+            alRawData: List<AdvancedByteBuffer>,
+            sces: SensorConfigEnergoSummary,
+            begTime: Int,
+            endTime: Int
+        ): Double {
+            //--- counters that give absolute values in their readings can reset it on command or overflow.
+            //--- you will have to catch each such reset (the algorithm is somewhat similar to the search for refueling / draining)
+            //--- also skip sudden dots with a zero counter
+            var begE = 0.0
+            var lastE = 0.0
+            var energo = 0.0
+
+            for (i in alRawTime.indices) {
+                val curTime = alRawTime[i]
+                if (curTime < begTime) continue
+                if (curTime > endTime) break
+
+                val rawSensorData = AbstractObjectStateCalc.getSensorData(sces.portNum, alRawData[i]) ?: continue
+                val sensorData = when (rawSensorData) {
+                    is Int -> {
+                        rawSensorData.toDouble()
+                    }
+                    is Double -> {
+                        rawSensorData
+                    }
+                    else -> {
+                        0.0
+                    }
+                }
+                if (isIgnoreSensorData(sces, sensorData)) continue
+
+                val sensorValue = AbstractObjectStateCalc.getSensorValue(sces.alValueSensor, sces.alValueData, sensorData)
+
+                if (begE == 0.0) {
+                    begE = sensorValue
+                } else if (sensorValue < lastE) {
+                    energo += lastE - begE
+                    begE = sensorValue
+                }
+                lastE = sensorValue
+
+            }
+            energo += lastE - begE
+
+            return energo
+        }
+
         fun calcLiquidLevelSensor(
-            alRawTime: List<Int>, alRawData: List<AdvancedByteBuffer>, oc: ObjectConfig, sca: SensorConfigAnalogue, begTime: Int, endTime: Int,
-            gcd: GeoCalcData?, tmWorkCalc: TreeMap<String, WorkCalcData>, tmEnergoCalc: TreeMap<String, Int>,
+            alRawTime: List<Int>,
+            alRawData: List<AdvancedByteBuffer>,
+            oc: ObjectConfig,
+            sca: SensorConfigLiquidLevel,
+            begTime: Int,
+            endTime: Int,
             stm: CoreAdvancedStatement
         ): LiquidLevelCalcData {
 
@@ -574,290 +692,32 @@ class ObjectCalc {
             getSmoothLiquidGraphicData(alRawTime, alRawData, oc, sca, begTime, endTime, aLine, alLSPD)
 
             val llcd = LiquidLevelCalcData(aLine, alLSPD)
-            calcLiquidUsingByLevel(sca, llcd, if (oc.scg != null && oc.scg!!.isUseSpeed) gcd!!.alMovingAndParking else null, stm, oc, begTime, endTime)
-
-            llcd.sumGroup = sca.sumGroup
-
-            //--- сразу добавим ссылок на работу гео-датчиков, оборудования и электросчётчиков в той же группе, что и уровнемер
-
-            if (oc.scg != null && oc.scg!!.group == sca.group) llcd.gcd = gcd
-
-            val hmSCW = oc.hmSensorConfig[SensorConfig.SENSOR_WORK]
-            hmSCW?.values?.forEach {
-                if (it.group == sca.group && tmWorkCalc[it.descr] != null)
-                    llcd.tmWorkCalc[it.descr] = tmWorkCalc[it.descr]!!
-            }
-
-            val hmSCE = oc.hmSensorConfig[SensorConfig.SENSOR_ENERGO_COUNT_AD]
-            hmSCE?.values?.forEach {
-                if (it.group == sca.group && tmEnergoCalc[it.descr] != null)
-                    llcd.tmEnergoCalc[it.descr] = tmEnergoCalc[it.descr]!!
-            }
+            calcLiquidUsingByLevel(sca, llcd, stm, oc, begTime, endTime)
 
             return llcd
         }
 
-        //--- определение расхода жидкости по расходомеру
-        fun calcLiquidUsingSensor(
-            alRawTime: List<Int>, alRawData: List<AdvancedByteBuffer>, oc: ObjectConfig, scu: SensorConfigUsing, begTime: Int, endTime: Int,
-            alMovingAndParking: List<AbstractPeriodData>?, lucd: LiquidUsingCalcData
-        ) {
-            var usingMoving = 0.0
-            var usingParking = 0.0
-            if (alMovingAndParking != null) {
-                for (apd in alMovingAndParking) {
-                    val usingForPeriod = getSensorCountData(alRawTime, alRawData, oc, scu, apd.begTime, apd.endTime)
-                    //--- в движении
-                    if (apd.getState() != 0) usingMoving += usingForPeriod
-                    else usingParking += usingForPeriod
-                }
-            }
-            //--- принципиально считаем общий расход отдельно от "в движении/на стоянке",
-            //--- чтобы сразу выявить возможные ошибки в расчётах
-            lucd.add(getSensorCountData(alRawTime, alRawData, oc, scu, begTime, endTime), usingMoving, usingParking, 0.0)
-        }
-
-        //--- расчёт электроэнергии
-        fun calcEnergoSensor(alRawTime: List<Int>, alRawData: List<AdvancedByteBuffer>, oc: ObjectConfig, sce: SensorConfig, begTime: Int, endTime: Int): Int {
-            //--- счётчики, дающие в своих показаниях абсолютные значения, могут его сбросить по команде или переполнении.
-            //--- придётся ловить каждый такой сброс ( алгоритм в чем-то схож с поиском заправок/сливов )
-            //--- также пропускаем внезапные точки с нулевым счётчиком
-            var begE = 0
-            var lastE = 0
-            var energo = 0
-
-            for (i in alRawTime.indices) {
-                val curTime = alRawTime[i]
-                //--- данные до запрашиваемого диапазона ( расширенные для сглаживания )
-                //--- в данном случае не интересны и их можно пропустить
-                if (curTime < begTime) continue
-                //--- данные после запрашиваемого диапазона ( расширенные для сглаживания )
-                //--- в данном случае не интересны и можно прекращать обработку
-                if (curTime > endTime) break
-
-                //--- самих энергоданных может и не оказаться
-                val energoCountActiveDirect = AbstractObjectStateCalc.getSensorData(oc, sce.portNum, alRawData[i])?.toInt() ?: continue
-
-                //--- электроэнергию считаем только для точек с ненулевым значением активной прямой э/энергии
-                if (energoCountActiveDirect > 0) {
-                    val curE = energoCountActiveDirect
-
-                    //--- первоначальная инициализация
-                    if (begE == 0) begE = curE
-                    else if (curE < lastE) {
-                        //--- суммируем подзначение
-                        energo += lastE - begE
-                        //--- начинаем новый диапазон
-                        begE = curE
-                    }//--- точка сброса счётчика
-                    lastE = curE
-                    //}
-                    //else run += gd.distance;
-                }
-
-            }
-            //--- суммируем подзначение последнего ( т.е. неоконченного ) диапазона
-            //if(  scg.isAbsoluteRun  )
-            energo += lastE - begE
-
-            return energo
-        }
-
-        //--------------------------------------------------------------------------------------------------------------
+        //--- another public part -----------------------------------------------------------------------------------------------------------
 
         //--- collect the value of the maximum excess for a given point (taking into account the zones with a speed limit)
-        fun calcOverSpeed(maxSpeedConst: Int, alZoneSpeedLimit: List<ZoneLimitData>?, /*long pointTime, */ prjPoint: XyPoint, speed: Int): Int {
-            //--- собираем максимальное превышение
+        fun calcOverSpeed(maxSpeedConst: Int, alZoneSpeedLimit: List<ZoneLimitData>?, prjPoint: XyPoint, speed: Int): Int {
+            //--- collecting the maximum excess
             var maxOverSpeed = -Integer.MAX_VALUE
 
-            //--- ищем превышение среди постоянного ограничения
+            //--- looking for an excess among the permanent limit
             maxOverSpeed = max(maxOverSpeed, speed - maxSpeedConst)
-            //--- ищем среди зон с ограничением по скорости
+            //--- looking for speed limit zones
             if (alZoneSpeedLimit != null)
                 for (zd in alZoneSpeedLimit) {
-                    //--- если есть ограничения по времени действия, то проверим в их входимость,
-                    //--- и если в интервал( ы ) времени действия зоны мы не входим, то переходим к следующей зоне
+                    //--- if there are restrictions on the duration of the action, then we will check their entry,
+                    //--- and if we do not enter the interval (s) of the zone, then we go to the next zone
                     //if(  ! checkZoneInTime(  zd, pointTime  )  ) continue; - пока не применяется
-                    //--- проверим геометрическую входимость в зону
+                    //--- check the geometric entry into the zone
                     if (!zd.zoneData!!.polygon!!.isContains(prjPoint)) continue
-                    //--- проверим на наличие превышения
+                    //--- check for excess
                     maxOverSpeed = max(maxOverSpeed, speed - zd.maxSpeed)
                 }
             return maxOverSpeed
-        }
-
-        //--- пока не применяется
-        //    private static boolean checkZoneInTime(  ZoneLimitData zd, long pointTime  ) throws Exception {
-        //        //--- если ограничений нет, то все пучком : )
-        //        if(  zd.alBeg.isEmpty()  ) return true;
-        //        //--- если есть ограничения по времени действия, проверим в их входимость
-        //        else {
-        //            for(  int j = 0; j < zd.alBeg.size(); j++  )
-        //                if(  pointTime >= zd.alBeg.get(  j  ) && pointTime <= zd.alEnd.get(  j  )  ) return true; // достаточно войти в один интервал
-        //            return false;
-        //        }
-        //    }
-
-        private fun mergePeriods(alPD: MutableList<AbstractPeriodData>, minOnTime: Int, minOffTime: Int) {
-            //--- выбрасывание недостаточно продолжительных периодов вкл/выкл
-            //--- и последующее слияние соседних с ним выкл/вкл соответственно
-            while (true) {
-                var isShortFound = false
-                var i = 0
-                while (i < alPD.size) {
-                    val pd = alPD[i]
-                    //--- если период слишком короткий для учета
-                    if (pd.endTime - pd.begTime < (if (pd.getState() != 0) minOnTime else minOffTime)) {
-                        //--- если рядом есть хотя бы один длинный противоположный период - то убираем короткий и соединяем соседние
-                        var isLongFound = false
-                        if (i > 0) {
-                            val pdPrev = alPD[i - 1]
-                            isLongFound = isLongFound or (pdPrev.endTime - pdPrev.begTime >= if (pdPrev.getState() != 0) minOnTime else minOffTime)
-                        }
-                        if (i < alPD.size - 1) {
-                            val pdNext = alPD[i + 1]
-                            isLongFound = isLongFound or (pdNext.endTime - pdNext.begTime >= if (pdNext.getState() != 0) minOnTime else minOffTime)
-                        }
-                        //--- найден( ы ) длинный( е ) сосед( и )
-                        if (isLongFound) {
-                            //--- первый короткий период
-                            if (i == 0) {
-                                alPD[1].begTime = alPD[0].begTime
-                                alPD.removeAt(0)
-                                i = 1    // текущий период уже длинный, идем сразу дальше
-                            } else if (i == alPD.size - 1) {
-                                alPD[i - 1].endTime = alPD[i].endTime
-                                alPD.removeAt(i)
-                                i++    // текущий период уже длинный, идем сразу дальше ( хотя для последнего периода это уже не обязательно )
-                            } else {
-                                alPD[i - 1].endTime = alPD[i + 1].endTime
-                                alPD.removeAt(i)   // удаляем текущий короткий период
-                                alPD.removeAt(i)   // удаляем следующий противоположный период, слитый с предыдущим противоположным
-                                //i++ - делать не надо, т.к. текущий период теперь новый с неизвестной длительностью
-                            }//--- серединный короткий период
-                            //--- последний короткий период
-                            isShortFound = true    // удаление было, есть смысл пройтись по цепочке еще раз
-                        } else i++ // ни одного длинного соседа не найдено - идем дальше
-                    } else i++
-                }
-                //--- больше нечего выбрасывать и соединять
-                if (!isShortFound) break
-            }
-        }
-
-        private fun multiplePeriods(alPD1: List<AbstractPeriodData>, alPD2: List<AbstractPeriodData>): List<MultiplePeriodData> {
-            val alResult = mutableListOf<MultiplePeriodData>()
-
-            var pos1 = 0
-            var pos2 = 0
-            while (pos1 < alPD1.size && pos2 < alPD2.size) {
-                val pd1 = alPD1[pos1]
-                val pd2 = alPD2[pos2]
-
-                //--- полное несовпадение: первый совсем раньше второго
-                //--- 1: -|===|-----
-                //--- 2: -----|===|-
-                if (pd1.endTime <= pd2.begTime) {
-                    alResult.add(MultiplePeriodData(pd1.begTime, pd1.endTime, pd1.getState(), 0))
-                    pos1++
-                } else if (pd2.endTime <= pd1.begTime) {
-                    alResult.add(MultiplePeriodData(pd2.begTime, pd2.endTime, 0, pd2.getState()))
-                    pos2++
-                } else if (pd1.begTime <= pd2.begTime) {
-                    //--- "пустое время" между началом первого и второго периодов возможно только,
-                    //--- если второй период - начальный элемент в своем списке ( т.е. перед ним нет данных ),
-                    //--- а иначе этот отрезок должен был быть записан на предыдущем шаге
-                    //--- 1: -|=======|-   -|=====|-   -|===|---
-                    //--- 2: -|?|===|---   -|?|===|-   -|?|===|-
-                    if (pd1.begTime < pd2.begTime && pos2 == 0) alResult.add(MultiplePeriodData(pd1.begTime, pd2.begTime, pd1.getState(), 0))
-                    //--- подварианты: второй закончился раньше первого - т.е. полностью входит в первый
-                    //--- или закончился одновременно с первым
-                    //--- 1: -|=======|-   -|=====|-
-                    //--- 2: ---|===|---   ---|===|-
-                    //--- 1: -|=======|-   -|=====|-
-                    //--- 2: -|=====|---   -|=====|-
-                    if (pd2.endTime <= pd1.endTime) {
-                        alResult.add(MultiplePeriodData(pd2.begTime, pd2.endTime, pd1.getState(), pd2.getState()))
-                        pos2++
-                        if (pd1.endTime == pd2.endTime) pos1++
-                        else if (pos2 == alPD2.size) {
-                            alResult.add(MultiplePeriodData(pd2.endTime, pd1.endTime, pd1.getState(), 0))
-                            pos1++
-                        }//--- если это был последний второй, то запишем остаток/хвост первого
-                    }
-                    //--- первый закончился раньше второго
-                    //--- 1: -|===|---
-                    //--- 2: ---|===|-
-                    //--- 1: -|===|---
-                    //--- 2: -|=====|-
-                    else if (pd1.endTime < pd2.endTime) {
-                        alResult.add(MultiplePeriodData(pd2.begTime, pd1.endTime, pd1.getState(), pd2.getState()))
-                        pos1++
-                        //--- если это был последний первый, то запишем остаток/хвост второго
-                        if (pos1 == alPD1.size) {
-                            alResult.add(MultiplePeriodData(pd1.endTime, pd2.endTime, 0, pd2.getState()))
-                            pos2++
-                        }
-                    }
-                }
-                //--- частичное перекрытие: второй начался раньше первого
-                //--- 1: ---|===|---   ---|===|-   ---|===|-
-                //--- 2: -|=======|-   -|=====|-   -|===|---
-                //--- частичное перекрытие: первый начался раньше второго или начались одинаково
-                //--- 1: -|=======|-   -|=====|-   -|===|---
-                //--- 2: ---|===|---   ---|===|-   ---|===|-
-                //--- 1: -|=======|-   -|=====|-   -|===|---
-                //--- 2: -|=====|---   -|=====|-   -|=====|-
-                //--- полное несовпадение: второй совсем раньше первого
-                //--- 1: -----|===|-
-                //--- 2: -|===|-----
-                else if (pd2.begTime < pd1.begTime) {
-                    //--- "пустое время" между началом второго и первого периодов возможно только,
-                    //--- если первый период - начальный элемент в своем списке ( т.е. перед ним нет данных ),
-                    //--- а иначе этот отрезок должен был быть записан на предыдущем шаге
-                    //--- 1: -|?|===|---   -|?|===|-   -|?|===|-
-                    //--- 2: -|=======|-   -|=====|-   -|===|---
-                    if (pos1 == 0) alResult.add(MultiplePeriodData(pd2.begTime, pd1.begTime, 0, pd2.getState()))
-                    //--- подварианты: первый закончился раньше второго - т.е. полностью входит во второй
-                    //--- или закончился одновременно со вторым
-                    //--- 1: ---|===|---   ---|===|-
-                    //--- 2: -|=======|-   -|=====|-
-                    if (pd1.endTime <= pd2.endTime) {
-                        alResult.add(MultiplePeriodData(pd1.begTime, pd1.endTime, pd1.getState(), pd2.getState()))
-                        pos1++
-                        if (pd1.endTime == pd2.endTime) pos2++
-                        else if (pos1 == alPD1.size) {
-                            alResult.add(MultiplePeriodData(pd1.endTime, pd2.endTime, 0, pd2.getState()))
-                            pos2++
-                        }//--- если это был последний первый, то запишем остаток/хвост второго
-                    }
-                    //--- второй закончился раньше первого
-                    //--- 1: ---|===|-
-                    //--- 2: -|===|---
-                    else if (pd2.endTime < pd1.endTime) {
-                        alResult.add(MultiplePeriodData(pd1.begTime, pd2.endTime, pd1.getState(), pd2.getState()))
-                        pos2++
-                        //--- если это был последний второй, то запишем остаток/хвост первого
-                        if (pos2 == alPD2.size) {
-                            alResult.add(MultiplePeriodData(pd2.endTime, pd1.endTime, pd1.getState(), 0))
-                            pos1++
-                        }
-                    }
-                }
-            }
-            //--- дописать оставшиеся периоды у первой последовательности, если есть
-            while (pos1 < alPD1.size) {
-                val pd1 = alPD1[pos1]
-                alResult.add(MultiplePeriodData(pd1.begTime, pd1.endTime, pd1.getState(), 0))
-                pos1++
-            }
-            //--- дописать оставшиеся периоды у второй последовательности, если есть
-            while (pos2 < alPD2.size) {
-                val pd2 = alPD2[pos2]
-                alResult.add(MultiplePeriodData(pd2.begTime, pd2.endTime, 0, pd2.getState()))
-                pos2++
-            }
-            return alResult
         }
 
         //--- smoothing analog value graph
@@ -865,7 +725,7 @@ class ObjectCalc {
             alRawTime: List<Int>,
             alRawData: List<AdvancedByteBuffer>,
             oc: ObjectConfig,
-            scsc: SensorConfigSemiAnalogue,
+            scsc: SensorConfigAnalogue,
             begTime: Int,
             endTime: Int,
             xScale: Int,
@@ -922,7 +782,7 @@ class ObjectCalc {
                         isStaticMaxLimit && rawData > gh.getStaticMaxLimit(scsc) ||
                         isDynamicMinLimit && rawData < gh.getDynamicMinLimit(oc, scsc, rawTime, rawData) ||
                         isDynamicMaxLimit && rawData > gh.getDynamicMaxLimit(oc, scsc, rawTime, rawData)
-                    ) GraphicColorIndex.POINT_CRITICAL
+                    ) GraphicColorIndex.POINT_ABOVE
                     else GraphicColorIndex.POINT_NORMAL
 
                     val gpdLast = if (aPoint.alGPD.isEmpty()) null else aPoint.alGPD[aPoint.alGPD.size - 1]
@@ -960,17 +820,16 @@ class ObjectCalc {
                                 val v = alSensorData[p] ?: continue
                                 alSubList.add(v)
                             }
-                            val arrValue = alSubList.toTypedArray()
-                            Arrays.sort(arrValue)
+                            alSubList.sort()
                             //--- if the number of values is odd, take exactly the middle
-                            if (arrValue.size % 2 != 0) {
-                                avgValue = arrValue[arrValue.size / 2]
+                            avgValue = if (alSubList.size % 2 != 0) {
+                                alSubList[alSubList.size / 2]
                             }
                             //--- otherwise the arithmetic mean between two values closest to the middle
                             else {
-                                val val1 = arrValue[arrValue.size / 2 - 1]
-                                val val2 = arrValue[arrValue.size / 2]
-                                avgValue = val1 + (val2 - val1) / 2
+                                val val1 = alSubList[alSubList.size / 2 - 1]
+                                val val2 = alSubList[alSubList.size / 2]
+                                val1 + (val2 - val1) / 2
                             }
                         }
 
@@ -997,7 +856,7 @@ class ObjectCalc {
                         }
 
                         SensorConfig.SMOOTH_METOD_AVERAGE_GEOMETRIC -> {
-                            sumValue = 1.0   // будет умножение, поэтому начальное значение = 1
+                            sumValue = 1.0   // there will be a multiplication, so the initial value = 1
                             countValue = 0
                             for (p in pos1 + 1 until pos2) {
                                 val v = alSensorData[p] ?: continue
@@ -1012,8 +871,8 @@ class ObjectCalc {
 
                     val gldLast = if (aLine.alGLD.isEmpty()) null else aLine.alGLD[aLine.alGLD.size - 1]
 
-                    //--- если заданы граничные значения - смотрим по усреднённому avgValue,
-                    //--- поэтому типовой getDynamicXXX из начала цикла нам не подходит
+                    //--- if boundary values are set, we look at the averaged avgValue,
+                    //--- so the typical getDynamicXXX from the beginning of the cycle does not suit us
                     val prevTime = (gldLast?.x ?: rawTime)
                     val prevData = gldLast?.y ?: avgValue
                     val curColorIndex = gh.getLineColorIndex(oc, scsc, rawTime, avgValue, prevTime, prevData)
@@ -1027,54 +886,58 @@ class ObjectCalc {
             }
         }
 
-        //--- собираем периоды состояний уровня жидкости ( заправка, слив, расход ) и примененяем фильтры по заправкам/сливам/расходу
-        fun getLiquidStatePeriodData(sca: SensorConfigAnalogue, aLine: GraphicDataContainer, alLSPD: MutableList<LiquidStatePeriodData>, gh: LiquidGraphicHandler) {
-            //--- нулевой проход: собираем периоды из точек
-            //--- начинаем с 1-й точки, т.к. 0-я точка всегда "нормальная"
+        //--- we collect periods of liquid level states (refueling, draining, consumption) and apply filters for refueling / draining / consumption
+        fun getLiquidStatePeriodData(
+            sca: SensorConfigLiquidLevel,
+            aLine: GraphicDataContainer,
+            alLSPD: MutableList<LiquidStatePeriodData>,
+            gh: LiquidGraphicHandler
+        ) {
+            //--- zero pass: collecting periods from points; we start from the 1st point, because 0th point is always "normal"
             var begPos = 0
             var curColorIndex = gh.lineNormalColorIndex
             for (i in 1 until aLine.alGLD.size) {
                 val gdl = aLine.alGLD[i]
                 val newColorIndex = gdl.colorIndex
-                //--- начался период нового типа, оканчиваем предыдущий период другого типа
+                //--- a period of a new type has begun, we end the previous period of a different type
                 if (newColorIndex != curColorIndex) {
-                    //--- предыдущий период закончился в предыдущей точке
+                    //--- the previous period ended at the previous point
                     val endPos = i - 1
-                    //--- в периоде должно быть как минимум две точки, одноточечные периоды отбрасываем
-                    //--- ( обычно это стартовая точка в "нормальном" состоянии )
+                    //--- there must be at least two points in the period, we discard one-point periods (usually this is the starting point in the "normal" state)
                     if (begPos < endPos) alLSPD.add(LiquidStatePeriodData(begPos, endPos, curColorIndex))
-                    //--- новый период на самом деле начинается с предыдущей точки
+                    //--- the new period actually starts from the previous point
                     begPos = i - 1
                     curColorIndex = newColorIndex
                 }
             }
-            //--- закончим последний период
+            //--- let's finish the last period
             val endPos = aLine.alGLD.size - 1
             if (begPos < endPos) alLSPD.add(LiquidStatePeriodData(begPos, endPos, curColorIndex))
 
-            //--- первый проход: несущественные заправки/сливы превратим в "обычный" расход
+            //--- first pass: turn insignificant fillings / drains into "normal" consumption
             run {
                 var pos = 0
                 while (pos < alLSPD.size) {
                     val lspd = alLSPD[pos]
-                    //--- сразу же пропускаем пустые или нормальные периоды
+                    //--- skip empty or normal periods immediately
                     if (lspd.colorIndex == gh.lineNoneColorIndex || lspd.colorIndex == gh.lineNormalColorIndex) {
                         pos++
                         continue
                     }
-                    //--- определим несущественность заправки/слива
+                    //--- determine the insignificance of filling / draining
                     val begGDL = aLine.alGLD[lspd.begPos]
                     val endGDL = aLine.alGLD[lspd.endPos]
                     var isFound = false
-                    if (lspd.colorIndex == gh.lineCriticalColorIndex) isFound = endGDL.y - begGDL.y < sca.detectIncMinDiff ||
-                        //--- заодно ловим периоды с нулевой длиной
-                        endGDL.x - begGDL.x < max(sca.detectIncMinLen, 1)
-                    else if (lspd.colorIndex == gh.lineWarningColorIndex) isFound = -(endGDL.y - begGDL.y) < sca.detectDecMinDiff ||
-                        //--- заодно ловим периоды с нулевой длиной
-                        endGDL.x - begGDL.x < max(sca.detectDecMinLen, 1)
-                    //--- найдена несущественная заправка/слив
+                    if (lspd.colorIndex == gh.lineCriticalColorIndex) {
+                        //--- at the same time we catch periods with zero length
+                        isFound = endGDL.y - begGDL.y < sca.detectIncMinDiff || endGDL.x - begGDL.x < max(sca.detectIncMinLen, 1)
+                    } else if (lspd.colorIndex == gh.lineWarningColorIndex) {
+                        //--- at the same time we catch periods with zero length
+                        isFound = -(endGDL.y - begGDL.y) < sca.detectDecMinDiff || endGDL.x - begGDL.x < max(sca.detectDecMinLen, 1)
+                    }
+                    //--- insignificant fill / drain found
                     if (isFound) {
-                        //--- ищем возможные нормальные периоды слева/справа для слияния
+                        //--- looking for possible normal left / right periods for merging
                         var prevNormalLSPD: LiquidStatePeriodData? = null
                         var nextNormalLSPD: LiquidStatePeriodData? = null
                         if (pos > 0) {
@@ -1085,113 +948,108 @@ class ObjectCalc {
                             nextNormalLSPD = alLSPD[pos + 1]
                             if (nextNormalLSPD.colorIndex != gh.lineNormalColorIndex) nextNormalLSPD = null
                         }
-                        //--- оба соседних периода нормальные, все три сливаем в один
+                        //--- both adjacent periods are normal, all three are merged into one
                         if (prevNormalLSPD != null && nextNormalLSPD != null) {
                             prevNormalLSPD.endPos = nextNormalLSPD.endPos
                             alLSPD.removeAt(pos)
-                            //--- это не опечатка и не ошибка: после удаления текущего периода следующий период
-                            //--- становится текущим и тоже удаляется
+                            //--- this is not a typo or an error: after deleting the current period, the next period becomes the current one and is also deleted
                             alLSPD.removeAt(pos)
-                            //--- после слияния трёх периодов pos уже указывает на следующую позицию,
-                            //--- увеличивать счетчик не надо
+                            //--- after merging two periods, pos already points to the next position, there is no need to increase the counter
                             //pos++;
-                        } else if (prevNormalLSPD != null) {
+                        } else if (prevNormalLSPD != null) {    //--- no normal neighbors, we normalize ourselves
                             prevNormalLSPD.endPos = lspd.endPos
                             alLSPD.removeAt(pos)
-                            //--- после слияния двух периодов pos уже указывает на следующую позицию,
-                            //--- увеличивать счетчик не надо
+                            //--- after merging two periods, pos already points to the next position, there is no need to increase the counter
                             //pos++;
-                        } else if (nextNormalLSPD != null) {
+                        } else if (nextNormalLSPD != null) {    //--- the right period is normal, we merge with it
                             nextNormalLSPD.begPos = lspd.begPos
                             alLSPD.removeAt(pos)
                             pos++
-                        } else {
+                        } else {                                //--- the left period is normal, we merge with it
                             lspd.colorIndex = gh.lineNormalColorIndex
                             pos++
-                        }//--- нет нормальных соседей, сами нормализуемся
-                        //--- правый период нормальный, сливаемся с ним
-                        //--- левый период нормальный, сливаемся с ним
-                        //--- в любом случае, нормализуем "свои" точки сглаженного графика
+                        }
+                        //--- in any case, normalize "our" points of the smoothed graph
                         for (i in lspd.begPos + 1..lspd.endPos) aLine.alGLD[i].colorIndex = gh.lineNormalColorIndex
-                    } else pos++//--- иначе просто переходим к следущему периоду
+                    } else pos++    //--- otherwise just go to the next period
                 }
             }
 
-            //--- второй проход - удлинняем заправки и сливы за счёт сокращения соседских нормальных периодов
+            //--- second pass - we lengthen refueling and drainage by reducing neighboring normal periods
             for (pos in alLSPD.indices) {
                 val lspd = alLSPD[pos]
-                //--- сразу же пропускаем пустые или нормальные периоды
+                //--- skip empty or normal periods immediately
                 if (lspd.colorIndex == gh.lineNoneColorIndex || lspd.colorIndex == gh.lineNormalColorIndex) continue
 
-                //--- ищем нормальный период слева, если надо
+                //--- looking for a normal period on the left, if necessary
                 val addTimeBefore = if (lspd.colorIndex == gh.lineCriticalColorIndex) sca.incAddTimeBefore
                 else sca.decAddTimeBefore
                 if (addTimeBefore > 0 && pos > 0) {
                     val prevNormalLSPD = alLSPD[pos - 1]
                     if (prevNormalLSPD.colorIndex == gh.lineNormalColorIndex) {
                         val bt = aLine.alGLD[lspd.begPos].x
-                        //--- удлинняем начало своего периода, укорачиваем предыдущий нормальный период с конца
-                        //--- именно >, а не >=, чтобы не допустить одноточечных нормальных периодов ( begPos == endPos )
-                        //--- после удлиннения текущего ненормального
+                        // --- lengthen the beginning of our period, shorten the previous normal period from the end
+                        // --- namely>, not> =, in order to prevent single-point normal periods (begPos == endPos)
+                        // --- after lengthening the current abnormal
                         var p = prevNormalLSPD.endPos - 1
                         while (p > prevNormalLSPD.begPos) {
                             if (bt - aLine.alGLD[p].x > addTimeBefore) break
                             p--
                         }
-                        //--- допустимой является предыдущая позиция
+                        //--- the previous position is valid
                         p++
-                        //--- есть куда удлинняться?
+                        //--- is there where to lengthen?
                         if (p < prevNormalLSPD.endPos) {
                             prevNormalLSPD.endPos = p
                             lspd.begPos = p
-                            //--- в любом случае, переотметим "свои" точки сглаженного графика
+                            //--- in any case, let's re-mark "our" points of the smoothed graph
                             for (i in lspd.begPos + 1..lspd.endPos) aLine.alGLD[i].colorIndex = lspd.colorIndex
                         }
                     }
                 }
-                //--- ищем нормальный период справа, если надо
+                //--- looking for a normal period on the right, if necessary
                 val addTimeAfter = if (lspd.colorIndex == gh.lineCriticalColorIndex) sca.incAddTimeAfter
                 else sca.decAddTimeAfter
                 if (addTimeAfter > 0 && pos < alLSPD.size - 1) {
                     val nextNormalLSPD = alLSPD[pos + 1]
                     if (nextNormalLSPD.colorIndex == gh.lineNormalColorIndex) {
                         val et = aLine.alGLD[lspd.endPos].x
-                        //--- удлинняем конец своего периода, укорачиваем следующий нормальный период с начала
-                        //--- именно <, а не <=, чтобы не допустить одноточечных нормальных периодов ( begPos == endPos )
-                        //--- после удлиннения текущего ненормального
+                        //--- lengthen the end of our period, shorten the next normal period from the beginning
+                        //--- exactly <, not <=, in order to prevent single-point normal periods (begPos == endPos)
+                        //--- after lengthening the current abnormal
                         var p = nextNormalLSPD.begPos + 1
                         while (p < nextNormalLSPD.endPos) {
                             if (aLine.alGLD[p].x - et > addTimeAfter) break
                             p++
                         }
-                        //--- допустимой является предыдущая позиция
+                        //--- the previous position is valid
                         p--
-                        //--- есть куда удлинняться?
+                        //--- is there where to lengthen?
                         if (p > nextNormalLSPD.begPos) {
                             nextNormalLSPD.begPos = p
                             lspd.endPos = p
-                            //--- в любом случае, переотметим "свои" точки сглаженного графика
+                            //--- in any case, let's re-mark "our" points of the smoothed graph
                             for (i in lspd.begPos + 1..lspd.endPos) aLine.alGLD[i].colorIndex = lspd.colorIndex
                         }
                     }
                 }
             }
 
-            //--- третий проход: удаляем несущественные ( короткие ) "нормальные" периоды между одинаковыми ненормальными
+            //--- third pass: remove insignificant (short) "normal" periods between identical abnormal
             var pos = 0
             while (pos < alLSPD.size) {
                 val lspd = alLSPD[pos]
-                //--- сразу же пропускаем ненормальные периоды
+                //--- skip abnormal periods immediately
                 if (lspd.colorIndex != gh.lineNormalColorIndex) {
                     pos++
                     continue
                 }
-                //--- определим несущественность расхода
+                //--- determine the insignificance of the expense
                 val begGDL = aLine.alGLD[lspd.begPos]
                 val endGDL = aLine.alGLD[lspd.endPos]
-                //--- заодно ловим периоды с нулевой длиной
-                if (endGDL.x - begGDL.x < Math.max(sca.usingMinLen, 1)) {
-                    //--- ищем ненормальные периоды слева/справа для слияния
+                //--- at the same time we catch periods with zero length
+                if (endGDL.x - begGDL.x < max(sca.usingMinLen, 1)) {
+                    //--- looking for abnormal periods left / right for merging
                     var prevAbnormalLSPD: LiquidStatePeriodData? = null
                     var nextAbnormalLSPD: LiquidStatePeriodData? = null
                     if (pos > 0) {
@@ -1203,195 +1061,37 @@ class ObjectCalc {
                         if (nextAbnormalLSPD.colorIndex == gh.lineNormalColorIndex) nextAbnormalLSPD = null
                     }
 
-                    //--- оба соседних периода одинаково ненормальные, все три сливаем в один
-                    //--- ( два соседних разно-ненормальных периода не сольёшь )
+                    //--- both neighboring periods are equally abnormal, all three are merged into one (two neighboring differently abnormal periods cannot be merged)
                     if (prevAbnormalLSPD != null && nextAbnormalLSPD != null && prevAbnormalLSPD.colorIndex == nextAbnormalLSPD.colorIndex) {
 
                         prevAbnormalLSPD.endPos = nextAbnormalLSPD.endPos
                         alLSPD.removeAt(pos)
-                        //--- это не опечатка и не ошибка: после удаления текущего периода следующий период
-                        //--- становится текущим и тоже удаляется
+                        //--- this is not a typo or an error: after deleting the current period, the next period becomes the current one and is also deleted
                         alLSPD.removeAt(pos)
-                        //--- после слияния трёх периодов pos уже указывает на следующую позицию,
-                        //--- увеличивать счетчик не надо
+                        //--- after merging three periods, pos already points to the next position, there is no need to increase the counter
                         //pos++;
-                        //--- денормализуем "свои" точки сглаженного графика
+                        //--- denormalize "our" points of the smoothed graph
                         for (i in lspd.begPos + 1..lspd.endPos) aLine.alGLD[i].colorIndex = prevAbnormalLSPD.colorIndex
-                    } else pos++//--- иначе просто переходим к следущему периоду
-                } else pos++//--- иначе просто переходим к следущему периоду
+                    } else pos++    //--- otherwise just go to the next period
+                } else pos++    //--- otherwise just go to the next period
             }
         }
 
-        //--- сглаживание графика аналоговой величины уровня жидкости/топлива ( сокращённый вызов для генерации отчётов )
-        fun getSmoothLiquidGraphicData(
-            alRawTime: List<Int>, alRawData: List<AdvancedByteBuffer>, oc: ObjectConfig, sca: SensorConfigAnalogue, begTime: Int, endTime: Int,
-            aLine: GraphicDataContainer, alLSPD: MutableList<LiquidStatePeriodData>
-        ) {
-            val gh = LiquidGraphicHandler()
-            getSmoothAnalogGraphicData(alRawTime, alRawData, oc, sca, begTime, endTime, 0, 0.0, null, null, null, aLine, gh)
-            getLiquidStatePeriodData(sca, aLine, alLSPD, gh)
-        }
-
-        fun calcLiquidUsingByLevel(
-            sca: SensorConfigAnalogue, llcd: LiquidLevelCalcData, alMovingAndParking: List<AbstractPeriodData>?,
-            stm: CoreAdvancedStatement, oc: ObjectConfig, begTime: Int, endTime: Int
-        ) {
-            val aLine = llcd.aLine
-            val alLSPD = llcd.alLSPD
-
-            if (!alLSPD!!.isEmpty()) {
-                //--- сначала считаем обычный расход
-                for (i in alLSPD.indices) {
-                    val lspd = alLSPD[i]
-                    val begGDL = aLine!!.alGLD[lspd.begPos]
-                    val endGDL = aLine.alGLD[lspd.endPos]
-                    when (lspd.colorIndex) {
-                        GraphicColorIndex.LINE_NORMAL_0 -> llcd.usingTotal += begGDL.y - endGDL.y
-                        GraphicColorIndex.LINE_CRITICAL_0 -> {
-                            llcd.incTotal += endGDL.y - begGDL.y
-                            if (sca.isUsingCalc) {
-                                //--- ищем предыдущий нормальный период
-                                val avgUsing = getPrevNormalPeriodAverageUsing(llcd, i, stm, oc, sca, begTime, endTime)
-                                val calcUsing = avgUsing * (endGDL.x - begGDL.x)
-                                llcd.usingCalc = (if (llcd.usingCalc == null) 0.0 else llcd.usingCalc!!) + calcUsing
-                                llcd.usingTotal += calcUsing
-                            }
-                        }
-                        GraphicColorIndex.LINE_WARNING_0 -> {
-                            llcd.decTotal += begGDL.y - endGDL.y
-                            if (sca.isUsingCalc) {
-                                //--- ищем предыдущий нормальный период
-                                val avgUsing = getPrevNormalPeriodAverageUsing(llcd, i, stm, oc, sca, begTime, endTime)
-                                val calcUsing = avgUsing * (endGDL.x - begGDL.x)
-                                llcd.usingCalc = (if (llcd.usingCalc == null) 0.0 else llcd.usingCalc!!) + calcUsing
-                                llcd.usingTotal += calcUsing
-                            }
-                        }
-                    }
-                }
-
-                //--- если заданы периоды движения/стоянки, то отдельно раскидаем заправку/слив/расход по периодам
-                //--- движения/стоянки, не забывая про вычисляемый расход во время заправки/стоянки на основе averageUsingSpeed
-                if (alMovingAndParking != null && !alMovingAndParking.isEmpty()) {
-                    //--- для процедуры пересечения/умножения периодов перегрузим
-                    //--- LiquidStatePeriodData в LiquidLevelPeriodData
-                    val alLLPD = mutableListOf<AbstractPeriodData>()
-                    for (lspd in alLSPD) alLLPD.add(LiquidLevelPeriodData(aLine!!.alGLD[lspd.begPos].x, aLine.alGLD[lspd.endPos].x, lspd.colorIndex))
-                    //--- пересекаем/умножаем два списка периодов
-                    val alMPD = multiplePeriods(alMovingAndParking, alLLPD)
-                    //--- пробегаем по списку пересечения
-                    for (mpd in alMPD) {
-                        //--- в движении
-                        if (mpd.state1 != 0) {
-                            when (mpd.state2) {
-                                /*GraphicColorIndex.LINE_NORMAL_0*/ 1 -> llcd.usingMoving += searchGDL(aLine!!, mpd.begTime) - searchGDL(aLine, mpd.endTime)
-                            }//                        case GraphicColorIndex.LINE_CRITICAL_0:
-                            //                            //--- не забываем про начисление расхода по среднему за период заправки/слива
-                            //                            llcd.calcUsingMoving += averageUsingSpeed * (  mpd.endTime - mpd.begTime  );
-                            //                            break;
-                            //                        case GraphicColorIndex.LINE_WARNING_0:
-                            //                            //--- не забываем про начисление расхода по среднему за период заправки/слива
-                            //                            llcd.calcUsingMoving += averageUsingSpeed * (  mpd.endTime - mpd.begTime  );
-                            //                            break;
-                        } else {
-                            when (mpd.state2) {
-                                /*GraphicColorIndex.LINE_NORMAL_0*/ 1 -> llcd.usingParking += searchGDL(aLine!!, mpd.begTime) - searchGDL(aLine, mpd.endTime)
-                            }//                        case GraphicColorIndex.LINE_CRITICAL_0:
-                            //                            //--- не забываем про начисление расхода по среднему за период заправки/слива
-                            //                            llcd.calcUsingParking += averageUsingSpeed * (  mpd.endTime - mpd.begTime  );
-                            //                            break;
-                            //                        case GraphicColorIndex.LINE_WARNING_0:
-                            //                            //--- не забываем про начисление расхода по среднему за период заправки/слива
-                            //                            llcd.calcUsingParking += averageUsingSpeed * (  mpd.endTime - mpd.begTime  );
-                            //                            break;
-                        }//--- на стоянке
-                    }
-                    //--- если будет использоваться расчётный расход во время заправки/слива,
-                    //--- то прибавляем его к стояночному расходу
-                    //--- ( исходим из того, что заправки/сливы происходят только на стоянках )
-                    if (sca.isUsingCalc) llcd.usingParking += if (llcd.usingCalc == null) 0.0 else llcd.usingCalc!!
-                }
-            }
-        }
-
-        //--- ищем предыдущий нормальный период для расчёта среднего расхода во время заправки/слива
-        private fun getPrevNormalPeriodAverageUsing(
-            llcd: LiquidLevelCalcData, curPos: Int,
-            stm: CoreAdvancedStatement, oc: ObjectConfig, sca: SensorConfigAnalogue, begTime: Int, endTime: Int
-        ): Double {
-
-            var lspdPrevNorm: LiquidStatePeriodData? = null
-            var aLinePrevNorm: GraphicDataContainer? = null
-
-            val aLine = llcd.aLine
-            val alLSPD = llcd.alLSPD
-
-            for (i in curPos - 1 downTo 0) {
-                val lspdPrev = alLSPD!![i]
-                val begGDLPrev = aLine!!.alGLD[lspdPrev.begPos]
-                val endGDLPrev = aLine.alGLD[lspdPrev.endPos]
-
-                //--- найденный нормальный период не является первым ( неважно какой продолжительности ) или первым,
-                //--- но с достаточной для вычислений продолжительностью
-                if (lspdPrev.colorIndex == GraphicColorIndex.LINE_NORMAL_0 && (i > 0 || endGDLPrev.x - begGDLPrev.x >= MAX_CALC_PREV_NORMAL_PERIOD)) {
-
-                    lspdPrevNorm = lspdPrev
-                    aLinePrevNorm = aLine
-                    break
-                }
-            }
-            //--- подходящий нормальный участок во всём запрашиваемом периоде не найден - запрашиваем расширенный период
-            if (lspdPrevNorm == null) {
-                //--- расширим период в прошлое с двухкратным запасом - на скорость обработки это не сильно повлияет
-                val (alRawTimeExt, alRawDataExt) = loadAllSensorData(stm, oc, begTime - MAX_CALC_PREV_NORMAL_PERIOD * 2, endTime)
-
-                val aLineExt = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2)
-                val alLSPDExt = mutableListOf<LiquidStatePeriodData>()
-                getSmoothLiquidGraphicData(alRawTimeExt, alRawDataExt, oc, sca, begTime - MAX_CALC_PREV_NORMAL_PERIOD * 2, endTime, aLineExt, alLSPDExt)
-
-                //--- текущий период в текущем диапазоне
-                val lspdCur = alLSPD!![curPos]
-                val begGDLPCur = aLine!!.alGLD[lspdCur.begPos]
-                val endGDLPCur = aLine.alGLD[lspdCur.endPos]
-                //--- найдём текущий период заправки/слива в новом расширенном периоде
-                var curPosExt = 0
-                while (curPosExt < alLSPDExt.size) {
-                    val lspdCurExt = alLSPDExt[curPosExt]
-                    val begGDLPCurExt = aLineExt.alGLD[lspdCurExt.begPos]
-                    val endGDLPCurExt = aLineExt.alGLD[lspdCurExt.endPos]
-                    if (begGDLPCur.x == begGDLPCurExt.x && endGDLPCur.x == endGDLPCurExt.x) break
-                    curPosExt++
-                }
-                for (i in curPosExt - 1 downTo 0) {
-                    val lspdPrevExt = alLSPDExt[i]
-                    if (lspdPrevExt.colorIndex == GraphicColorIndex.LINE_NORMAL_0) {
-                        lspdPrevNorm = lspdPrevExt
-                        aLinePrevNorm = aLineExt
-                        break
-                    }
-                }
-            }
-            //--- посчитаем таки средний расход в предыдущем нормальном периоде
-            if (lspdPrevNorm != null) {
-                var begGDLPrevNorm = aLinePrevNorm!!.alGLD[lspdPrevNorm.begPos]
-                val endGDLPrevNorm = aLinePrevNorm.alGLD[lspdPrevNorm.endPos]
-                //--- нормальный период слишком большой, берём последние N часов - корректируем begPos
-                if (endGDLPrevNorm.x - begGDLPrevNorm.x > MAX_CALC_PREV_NORMAL_PERIOD) {
-                    for (begPos in lspdPrevNorm.begPos + 1 until lspdPrevNorm.endPos) {
-                        begGDLPrevNorm = aLinePrevNorm.alGLD[begPos]
-                        if (endGDLPrevNorm.x - begGDLPrevNorm.x <= MAX_CALC_PREV_NORMAL_PERIOD) break
-                    }
-                }
-
-                return if (endGDLPrevNorm.x == begGDLPrevNorm.x) 0.0 else (begGDLPrevNorm.y - endGDLPrevNorm.y) / (endGDLPrevNorm.x - begGDLPrevNorm.x)
-            } else return 0.0
-        }
-
-        //--- собираем периоды, величины и место заправок/сливов
+        //--- we collect periods, values and place of refueling / draining
         fun calcIncDec(
-            stm: CoreAdvancedStatement, alRawTime: List<Int>, alRawData: List<AdvancedByteBuffer>, oc: ObjectConfig, sca: SensorConfigAnalogue,
-            begTime: Int, endTime: Int, isWaybill: Boolean, alBeg: List<Int>, alEnd: List<Int>, calcMode: Int,
-            hmZoneData: Map<Int, ZoneData>, calcZoneID: Int
+            stm: CoreAdvancedStatement,
+            alRawTime: List<Int>,
+            alRawData: List<AdvancedByteBuffer>,
+            oc: ObjectConfig,
+            sca: SensorConfigLiquidLevel,
+            begTime: Int,
+            endTime: Int,
+            isWaybill: Boolean,
+            alBeg: List<Int>,
+            alEnd: List<Int>,
+            calcMode: Int,
+            hmZoneData: Map<Int, ZoneData>,
+            calcZoneID: Int
         ): List<LiquidIncDecData> {
             val alLIDD = mutableListOf<LiquidIncDecData>()
 
@@ -1400,31 +1100,35 @@ class ObjectCalc {
             getSmoothLiquidGraphicData(alRawTime, alRawData, oc, sca, begTime, endTime, aLine, alLSPD)
 
             val llcd = LiquidLevelCalcData(aLine, alLSPD)
-            calcLiquidUsingByLevel(sca, llcd, null, stm, oc, begTime, endTime)
+            calcLiquidUsingByLevel(sca, llcd, stm, oc, begTime, endTime)
 
             for (lspd in llcd.alLSPD!!) {
                 val begGLD = llcd.aLine!!.alGLD[lspd.begPos]
                 val endGLD = llcd.aLine!!.alGLD[lspd.endPos]
                 var lidd: LiquidIncDecData? = null
-                if (lspd.colorIndex == GraphicColorIndex.LINE_CRITICAL_0 && calcMode >= 0) lidd = LiquidIncDecData(begGLD.x, endGLD.x, begGLD.y, endGLD.y)
-                else if (lspd.colorIndex == GraphicColorIndex.LINE_WARNING_0 && calcMode <= 0) lidd = LiquidIncDecData(begGLD.x, endGLD.x, begGLD.y, endGLD.y)
+                if (lspd.colorIndex == GraphicColorIndex.LINE_ABOVE_0 && calcMode >= 0) {
+                    lidd = LiquidIncDecData(begGLD.x, endGLD.x, begGLD.y, endGLD.y)
+                } else if (lspd.colorIndex == GraphicColorIndex.LINE_BELOW_0 && calcMode <= 0) {
+                    lidd = LiquidIncDecData(begGLD.x, endGLD.x, begGLD.y, endGLD.y)
+                }
 
                 if (lidd != null) {
                     var inZoneAll = false
                     val tsZoneName = TreeSet<String>()
-                    if (oc.scg != null) for (pos in lspd.begPos..lspd.endPos) {
-                        val gd = AbstractObjectStateCalc.getGeoData(oc, alRawData[pos]) ?: continue
-                        //--- самих геоданных может и не оказаться
-                        val pixPoint = XyProjection.wgs_pix(gd.wgs)
+                    if (oc.scg != null) {
+                        for (pos in lspd.begPos..lspd.endPos) {
+                            val gd = AbstractObjectStateCalc.getGeoData(oc, alRawData[pos]) ?: continue
+                            val pixPoint = XyProjection.wgs_pix(gd.wgs)
 
-                        val inZone = fillZoneList(hmZoneData, calcZoneID, pixPoint, tsZoneName)
-                        //--- фильтр по геозонам, если задано
-                        if (calcZoneID != 0 && inZone) inZoneAll = true
+                            val inZone = fillZoneList(hmZoneData, calcZoneID, pixPoint, tsZoneName)
+                            //--- filter by geofences, if specified
+                            if (calcZoneID != 0 && inZone) inZoneAll = true
+                        }
                     }
-                    //--- фильтр по геозонам, если задано
+                    //--- filter by geofences, if specified
                     if (calcZoneID != 0 && !inZoneAll) continue
 
-                    //--- фильтр по времени путевого листа, если задано
+                    //--- filter by directions time, if set
                     if (isWaybill) {
                         var inWaybill = false
                         for (wi in alBeg.indices) if (lidd.begTime < alEnd[wi] && lidd.endTime > alBeg[wi]) {
@@ -1445,17 +1149,115 @@ class ObjectCalc {
             return alLIDD
         }
 
-        //--- универсальная функция определения РЕАЛЬНОЙ суммы значений счетчика
-        private fun getSensorCountData(alRawTime: List<Int>, alRawData: List<AdvancedByteBuffer>, oc: ObjectConfig, scu: SensorConfigUsing, begTime: Int, endTime: Int): Double {
-            //--- проход по диапазону
-            var sensorSum = 0.0
-            for (pos in alRawTime.indices) {
-                val rawTime = alRawTime[pos]
-                //--- сразу пропускаем запредельные точки, загруженные для бесшовного сглаживания между соседними диапазонами
-                if (rawTime < begTime) continue
-                if (rawTime > endTime) break
+        //--- define sensor data ignoring
+        fun isIgnoreSensorData(scb: SensorConfigBase, sensorData: Double?): Boolean =
+            if (sensorData == null) {
+                true
+            }
+            //--- classic variant: if minIgnore < maxIgnore, then ignore below minIgnore or above maxIgnore
+            else if (scb.minIgnore < scb.maxIgnore) {
+                sensorData < scb.minIgnore || sensorData > scb.maxIgnore
+            } else {
+                //--- alternative: if minIgnore >= maxIgnore, then ignore between minIgnore and maxIgnore,
+                //--- given the case, if minIgnore == maxIgnore, then ignore nothing
+                sensorData < scb.minIgnore && sensorData > scb.maxIgnore
+            }
 
-                val sensorData = when (val rawSensorData = AbstractObjectStateCalc.getSensorData(oc, scu.portNum, alRawData[pos])) {
+        // --- (new condition - not academically / uselessly Ignore, but consider that equipment outside the specified limits DOES NOT WORK)
+        //if(  sensorData < scw.minIgnore || sensorData > scw.maxIgnore  ) continue;
+        fun getWorkSensorValue(scw: SensorConfigWork, sensorData: Double?): Boolean =
+            sensorData != null &&
+                if (scw.minIgnore < scw.maxIgnore) {
+                    sensorData > scw.minIgnore && sensorData < scw.maxIgnore
+                } else {
+                    sensorData > scw.minIgnore || sensorData < scw.maxIgnore
+                } &&
+                ((scw.activeValue == 0) xor (sensorData > scw.boundValue))
+
+        fun getSignalSensorValue(scs: SensorConfigSignal, sensorData: Double?): Boolean =
+            sensorData != null &&
+                if (scs.minIgnore < scs.maxIgnore) {
+                    sensorData > scs.minIgnore && sensorData < scs.maxIgnore
+                } else {
+                    sensorData > scs.minIgnore || sensorData < scs.maxIgnore
+                } &&
+                ((scs.activeValue == 0) xor (sensorData > scs.boundValue))
+
+        //--- private part -----------------------------------------------------------------------------------------------------------
+
+        private fun liquidCalc(
+            liquidName: String,
+            sumGroup: String,
+            total: Double,
+            calc: Double,
+            result: ObjectCalc,
+        ) {
+            val curTotal = result.tmLiquidUsingTotal[liquidName] ?: 0.0
+            result.tmLiquidUsingTotal[liquidName] = curTotal + total
+
+            val curCalc = result.tmLiquidUsingCalc[liquidName] ?: 0.0
+            result.tmLiquidUsingCalc[liquidName] = curCalc + calc
+
+            if (sumGroup.isNotBlank()) {
+                val groupSum = result.tmGroupSum.getOrPut(sumGroup) { GroupSumData() }
+                groupSum.addLiquidUsing(
+                    liquidName,
+                    aTotal = total,
+                    aCalc = calc
+                )
+            }
+        }
+
+        private fun calcFlowSensor(
+            alRawTime: List<Int>,
+            alRawData: List<AdvancedByteBuffer>,
+            scu: SensorConfigCounter,
+            begTime: Int,
+            endTime: Int,
+            result: ObjectCalc
+        ) {
+            //--- if the name of the liquid (fuel) is given, then add its consumption to the general list
+            if (scu.liquidName.isNotEmpty()) {
+                val luquidUsing = calcCounterSensor(alRawTime, alRawData, scu, begTime, endTime)
+                liquidCalc(scu.liquidName, scu.sumGroup, luquidUsing.first, luquidUsing.second, result)
+            }
+        }
+
+        private fun calcLiquidSummary(
+            alRawTime: List<Int>,
+            alRawData: List<AdvancedByteBuffer>,
+            scls: SensorConfigLiquidSummary,
+            begTime: Int,
+            endTime: Int,
+            result: ObjectCalc
+        ) {
+            if (scls.liquidName.isNotEmpty()) {
+                val luquidUsing = calcLiquidAccumulatedSensor(alRawTime, alRawData, scls, begTime, endTime)
+                liquidCalc(scls.liquidName, scls.sumGroup, luquidUsing, 0.0, result)
+            }
+        }
+
+        private fun calcLiquidAccumulatedSensor(
+            alRawTime: List<Int>,
+            alRawData: List<AdvancedByteBuffer>,
+            scls: SensorConfigLiquidSummary,
+            begTime: Int,
+            endTime: Int
+        ): Double {
+            //--- counters that give absolute values in their readings can reset it on command or overflow.
+            //--- you will have to catch each such reset (the algorithm is somewhat similar to the search for refueling / draining)
+            //--- also skip sudden dots with a zero counter
+            var begValue = 0.0
+            var lastValue = 0.0
+            var value = 0.0
+
+            for (i in alRawTime.indices) {
+                val curTime = alRawTime[i]
+                if (curTime < begTime) continue
+                if (curTime > endTime) break
+
+                val rawSensorData = AbstractObjectStateCalc.getSensorData(scls.portNum, alRawData[i]) ?: continue
+                val sensorData = when (rawSensorData) {
                     is Int -> {
                         rawSensorData.toDouble()
                     }
@@ -1466,40 +1268,417 @@ class ObjectCalc {
                         0.0
                     }
                 }
-                //--- вручную игнорируем заграничные значения
-                if (sensorData < scu.minIgnore || sensorData > scu.maxIgnore) continue
+                if (isIgnoreSensorData(scls, sensorData)) continue
+
+                val sensorValue = AbstractObjectStateCalc.getSensorValue(scls.alValueSensor, scls.alValueData, sensorData)
+
+                if (begValue <= 0.0) {
+                    begValue = sensorValue
+                } else if (sensorValue < lastValue) {
+                    value += lastValue - begValue
+                    begValue = sensorValue
+                }
+                lastValue = sensorValue
+            }
+            value += lastValue - begValue
+
+            return value
+        }
+
+        //--- not yet applied
+        //    private static boolean checkZoneInTime(  ZoneLimitData zd, long pointTime  ) throws Exception {
+        //        //--- if there are no restrictions, then everything is a bunch :)
+        //        if(  zd.alBeg.isEmpty()  ) return true;
+        //        //--- if there are restrictions on the time of validity, check their entry
+        //        else {
+        //            for(  int j = 0; j < zd.alBeg.size(); j++  )
+        //                if(  pointTime >= zd.alBeg.get(  j  ) && pointTime <= zd.alEnd.get(  j  )  ) return true; // just enter one interval
+        //            return false;
+        //        }
+        //    }
+
+        private fun mergePeriods(alPD: MutableList<AbstractPeriodData>, minOnTime: Int, minOffTime: Int) {
+            //--- ejection of insufficient on / off periods
+            //--- and the subsequent merging of adjacent off / on, respectively
+            while (true) {
+                var isShortFound = false
+                var i = 0
+                while (i < alPD.size) {
+                    val pd = alPD[i]
+                    //--- if the period is too short to account for
+                    if (pd.endTime - pd.begTime < (if (pd.getState() != 0) minOnTime else minOffTime)) {
+                        //--- if there is at least one long opposite period nearby, then we remove the short one and connect the adjacent ones
+                        var isLongFound = false
+                        if (i > 0) {
+                            val pdPrev = alPD[i - 1]
+                            isLongFound = isLongFound or (pdPrev.endTime - pdPrev.begTime >= if (pdPrev.getState() != 0) minOnTime else minOffTime)
+                        }
+                        if (i < alPD.size - 1) {
+                            val pdNext = alPD[i + 1]
+                            isLongFound = isLongFound or (pdNext.endTime - pdNext.begTime >= if (pdNext.getState() != 0) minOnTime else minOffTime)
+                        }
+                        //--- found long neighbor (s)
+                        if (isLongFound) {
+                            //--- first short period
+                            if (i == 0) {
+                                alPD[1].begTime = alPD[0].begTime
+                                alPD.removeAt(0)
+                                i = 1    // the current period is already long, we go immediately further
+                            } else if (i == alPD.size - 1) {    //--- middle short period
+                                alPD[i - 1].endTime = alPD[i].endTime
+                                alPD.removeAt(i)
+                                i++    // the current period is already long, we go immediately further (although for the last period this is no longer necessary)
+                            } else {   //--- last short period
+                                alPD[i - 1].endTime = alPD[i + 1].endTime
+                                alPD.removeAt(i)   // delete the current short period
+                                alPD.removeAt(i)   // delete the next opposite period, merged with the previous opposite
+                                //i++ - do not need to be done, since the current period is now new with an unknown duration
+                            }
+                            isShortFound = true    // deletion was, it makes sense to go through the chain again
+                        } else i++ // no long neighbors found - let's move on
+                    } else i++
+                }
+                //--- nothing more to throw away and connect
+                if (!isShortFound) break
+            }
+        }
+
+//        private fun multiplePeriods(alPD1: List<AbstractPeriodData>, alPD2: List<AbstractPeriodData>): List<MultiplePeriodData> {
+//            val alResult = mutableListOf<MultiplePeriodData>()
+//
+//            var pos1 = 0
+//            var pos2 = 0
+//            while (pos1 < alPD1.size && pos2 < alPD2.size) {
+//                val pd1 = alPD1[pos1]
+//                val pd2 = alPD2[pos2]
+//
+//                //--- complete mismatch: the first is quite earlier than the second
+//                //--- 1: -|===|-----
+//                //--- 2: -----|===|-
+//                if (pd1.endTime <= pd2.begTime) {
+//                    alResult.add(MultiplePeriodData(pd1.begTime, pd1.endTime, pd1.getState(), 0))
+//                    pos1++
+//                } else if (pd2.endTime <= pd1.begTime) {
+//                    alResult.add(MultiplePeriodData(pd2.begTime, pd2.endTime, 0, pd2.getState()))
+//                    pos2++
+//                } else if (pd1.begTime <= pd2.begTime) {
+//                    //--- "empty time" between the beginning of the first and second periods is possible only if
+//                    //--- if the second period is the initial element in its list (i.e. there is no data before it),
+//                    //--- otherwise this segment should have been recorded in the previous step
+//                    //--- 1: -|=======|-   -|=====|-   -|===|---
+//                    //--- 2: -|?|===|---   -|?|===|-   -|?|===|-
+//                    if (pd1.begTime < pd2.begTime && pos2 == 0) alResult.add(MultiplePeriodData(pd1.begTime, pd2.begTime, pd1.getState(), 0))
+//                    //--- subvariants: the second ended earlier than the first - i.e. completely enters the first or ended simultaneously with the first
+//                    //--- 1: -|=======|-   -|=====|-
+//                    //--- 2: ---|===|---   ---|===|-
+//                    //--- 1: -|=======|-   -|=====|-
+//                    //--- 2: -|=====|---   -|=====|-
+//                    if (pd2.endTime <= pd1.endTime) {
+//                        alResult.add(MultiplePeriodData(pd2.begTime, pd2.endTime, pd1.getState(), pd2.getState()))
+//                        pos2++
+//                        if (pd1.endTime == pd2.endTime) {
+//                            pos1++
+//                        }
+//                        //--- если это был последний второй, то запишем остаток/хвост первого
+//                        else if (pos2 == alPD2.size) {
+//                            alResult.add(MultiplePeriodData(pd2.endTime, pd1.endTime, pd1.getState(), 0))
+//                            pos1++
+//                        }
+//                    }
+//                    //--- the first ended before the second
+//                    //--- 1: -|===|---
+//                    //--- 2: ---|===|-
+//                    //--- 1: -|===|---
+//                    //--- 2: -|=====|-
+//                    else if (pd1.endTime < pd2.endTime) {
+//                        alResult.add(MultiplePeriodData(pd2.begTime, pd1.endTime, pd1.getState(), pd2.getState()))
+//                        pos1++
+//                        //--- if it was the last first, then write the remainder / tail of the second
+//                        if (pos1 == alPD1.size) {
+//                            alResult.add(MultiplePeriodData(pd1.endTime, pd2.endTime, 0, pd2.getState()))
+//                            pos2++
+//                        }
+//                    }
+//                }
+//                //--- partial overlap: the second started earlier than the first
+//                //--- 1: ---|===|---   ---|===|-   ---|===|-
+//                //--- 2: -|=======|-   -|=====|-   -|===|---
+//                //--- partial overlap: the first started earlier than the second or started the same way
+//                //--- 1: -|=======|-   -|=====|-   -|===|---
+//                //--- 2: ---|===|---   ---|===|-   ---|===|-
+//                //--- 1: -|=======|-   -|=====|-   -|===|---
+//                //--- 2: -|=====|---   -|=====|-   -|=====|-
+//                //--- complete mismatch: the second is quite earlier than the first
+//                //--- 1: -----|===|-
+//                //--- 2: -|===|-----
+//                else if (pd2.begTime < pd1.begTime) {
+//                    // --- "empty time" between the beginning of the second and first periods is possible only
+//                    // --- if the first period is the initial element in its list (i.e. there is no data before it),
+//                    // --- otherwise this segment should have been written at the previous step
+//                    //--- 1: -|?|===|---   -|?|===|-   -|?|===|-
+//                    //--- 2: -|=======|-   -|=====|-   -|===|---
+//                    if (pos1 == 0) alResult.add(MultiplePeriodData(pd2.begTime, pd1.begTime, 0, pd2.getState()))
+//                    //--- subvariants: the first ended earlier than the second - i.e. completely enters the second or ended simultaneously with the second
+//                    //--- 1: ---|===|---   ---|===|-
+//                    //--- 2: -|=======|-   -|=====|-
+//                    if (pd1.endTime <= pd2.endTime) {
+//                        alResult.add(MultiplePeriodData(pd1.begTime, pd1.endTime, pd1.getState(), pd2.getState()))
+//                        pos1++
+//                        if (pd1.endTime == pd2.endTime) pos2++
+//                        //--- if it was the last first, then write the remainder / tail of the second
+//                        else if (pos1 == alPD1.size) {
+//                            alResult.add(MultiplePeriodData(pd1.endTime, pd2.endTime, 0, pd2.getState()))
+//                            pos2++
+//                        }
+//                    }
+//                    //--- the second ended before the first
+//                    //--- 1: ---|===|-
+//                    //--- 2: -|===|---
+//                    else if (pd2.endTime < pd1.endTime) {
+//                        alResult.add(MultiplePeriodData(pd1.begTime, pd2.endTime, pd1.getState(), pd2.getState()))
+//                        pos2++
+//                        //--- if it was the last second, then write the remainder / tail of the first
+//                        if (pos2 == alPD2.size) {
+//                            alResult.add(MultiplePeriodData(pd2.endTime, pd1.endTime, pd1.getState(), 0))
+//                            pos1++
+//                        }
+//                    }
+//                }
+//            }
+//            //--- add the remaining periods of the first sequence, if any
+//            while (pos1 < alPD1.size) {
+//                val pd1 = alPD1[pos1]
+//                alResult.add(MultiplePeriodData(pd1.begTime, pd1.endTime, pd1.getState(), 0))
+//                pos1++
+//            }
+//            //--- add the remaining periods of the second sequence, if any
+//            while (pos2 < alPD2.size) {
+//                val pd2 = alPD2[pos2]
+//                alResult.add(MultiplePeriodData(pd2.begTime, pd2.endTime, 0, pd2.getState()))
+//                pos2++
+//            }
+//            return alResult
+//        }
+
+        //--- smoothing the graph of the analog value of the liquid / fuel level (abbreviated call for generating reports)
+        private fun getSmoothLiquidGraphicData(
+            alRawTime: List<Int>,
+            alRawData: List<AdvancedByteBuffer>,
+            oc: ObjectConfig,
+            sca: SensorConfigLiquidLevel,
+            begTime: Int,
+            endTime: Int,
+            aLine: GraphicDataContainer,
+            alLSPD: MutableList<LiquidStatePeriodData>
+        ) {
+            val gh = LiquidGraphicHandler()
+            getSmoothAnalogGraphicData(alRawTime, alRawData, oc, sca, begTime, endTime, 0, 0.0, null, null, null, aLine, gh)
+            getLiquidStatePeriodData(sca, aLine, alLSPD, gh)
+        }
+
+        private fun calcLiquidUsingByLevel(
+            sca: SensorConfigLiquidLevel,
+            llcd: LiquidLevelCalcData,
+            stm: CoreAdvancedStatement,
+            oc: ObjectConfig,
+            begTime: Int,
+            endTime: Int
+        ) {
+            val aLine = llcd.aLine
+            val alLSPD = llcd.alLSPD
+
+            if (alLSPD!!.isNotEmpty()) {
+                //--- first we count the usual flow
+                for (i in alLSPD.indices) {
+                    val lspd = alLSPD[i]
+                    val begGDL = aLine!!.alGLD[lspd.begPos]
+                    val endGDL = aLine.alGLD[lspd.endPos]
+                    when (lspd.colorIndex) {
+                        GraphicColorIndex.LINE_NORMAL_0 -> {
+                            llcd.usingTotal += begGDL.y - endGDL.y
+                        }
+                        GraphicColorIndex.LINE_ABOVE_0 -> {
+                            llcd.incTotal += endGDL.y - begGDL.y
+                            if (sca.isUsingCalc) {
+                                //--- looking for the previous normal period
+                                val avgUsing = getPrevNormalPeriodAverageUsing(llcd, i, stm, oc, sca, begTime, endTime)
+                                val calcUsing = avgUsing * (endGDL.x - begGDL.x)
+                                llcd.usingCalc += calcUsing
+                                llcd.usingTotal += calcUsing
+                            }
+                        }
+                        GraphicColorIndex.LINE_BELOW_0 -> {
+                            llcd.decTotal += begGDL.y - endGDL.y
+                            if (sca.isUsingCalc) {
+                                //--- looking for the previous normal period
+                                val avgUsing = getPrevNormalPeriodAverageUsing(llcd, i, stm, oc, sca, begTime, endTime)
+                                val calcUsing = avgUsing * (endGDL.x - begGDL.x)
+                                llcd.usingCalc += calcUsing
+                                llcd.usingTotal += calcUsing
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        //--- looking for the previous normal period to calculate the average consumption during refueling / draining
+        private fun getPrevNormalPeriodAverageUsing(
+            llcd: LiquidLevelCalcData,
+            curPos: Int,
+            stm: CoreAdvancedStatement,
+            oc: ObjectConfig,
+            sca: SensorConfigLiquidLevel,
+            begTime: Int,
+            endTime: Int
+        ): Double {
+
+            var lspdPrevNorm: LiquidStatePeriodData? = null
+            var aLinePrevNorm: GraphicDataContainer? = null
+
+            val aLine = llcd.aLine
+            val alLSPD = llcd.alLSPD
+
+            for (i in curPos - 1 downTo 0) {
+                val lspdPrev = alLSPD!![i]
+                val begGDLPrev = aLine!!.alGLD[lspdPrev.begPos]
+                val endGDLPrev = aLine.alGLD[lspdPrev.endPos]
+
+                //--- the found normal period is not the first (no matter how long) or the first, but with a sufficient duration for calculations
+                if (lspdPrev.colorIndex == GraphicColorIndex.LINE_NORMAL_0 && (i > 0 || endGDLPrev.x - begGDLPrev.x >= MAX_CALC_PREV_NORMAL_PERIOD)) {
+
+                    lspdPrevNorm = lspdPrev
+                    aLinePrevNorm = aLine
+                    break
+                }
+            }
+            //--- no suitable normal site was found in the entire requested period - we request an extended period
+            if (lspdPrevNorm == null) {
+                //--- let's extend the period into the past with a two-fold margin - this will not greatly affect the processing speed
+                val (alRawTimeExt, alRawDataExt) = loadAllSensorData(stm, oc, begTime - MAX_CALC_PREV_NORMAL_PERIOD * 2, endTime)
+
+                val aLineExt = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2)
+                val alLSPDExt = mutableListOf<LiquidStatePeriodData>()
+                getSmoothLiquidGraphicData(alRawTimeExt, alRawDataExt, oc, sca, begTime - MAX_CALC_PREV_NORMAL_PERIOD * 2, endTime, aLineExt, alLSPDExt)
+
+                //--- the current period in the current range
+                val lspdCur = alLSPD!![curPos]
+                val begGDLPCur = aLine!!.alGLD[lspdCur.begPos]
+                val endGDLPCur = aLine.alGLD[lspdCur.endPos]
+                //--- find the current refueling / draining period in the new extended period
+                var curPosExt = 0
+                while (curPosExt < alLSPDExt.size) {
+                    val lspdCurExt = alLSPDExt[curPosExt]
+                    val begGDLPCurExt = aLineExt.alGLD[lspdCurExt.begPos]
+                    val endGDLPCurExt = aLineExt.alGLD[lspdCurExt.endPos]
+                    if (begGDLPCur.x == begGDLPCurExt.x && endGDLPCur.x == endGDLPCurExt.x) break
+                    curPosExt++
+                }
+                for (i in curPosExt - 1 downTo 0) {
+                    val lspdPrevExt = alLSPDExt[i]
+                    if (lspdPrevExt.colorIndex == GraphicColorIndex.LINE_NORMAL_0) {
+                        lspdPrevNorm = lspdPrevExt
+                        aLinePrevNorm = aLineExt
+                        break
+                    }
+                }
+            }
+            //--- let's calculate the same average consumption in the previous normal period
+            if (lspdPrevNorm != null) {
+                var begGDLPrevNorm = aLinePrevNorm!!.alGLD[lspdPrevNorm.begPos]
+                val endGDLPrevNorm = aLinePrevNorm.alGLD[lspdPrevNorm.endPos]
+                //--- the normal period is too long, we take the last N hours - adjust begPos
+                if (endGDLPrevNorm.x - begGDLPrevNorm.x > MAX_CALC_PREV_NORMAL_PERIOD) {
+                    for (begPos in lspdPrevNorm.begPos + 1 until lspdPrevNorm.endPos) {
+                        begGDLPrevNorm = aLinePrevNorm.alGLD[begPos]
+                        if (endGDLPrevNorm.x - begGDLPrevNorm.x <= MAX_CALC_PREV_NORMAL_PERIOD) break
+                    }
+                }
+
+                return if (endGDLPrevNorm.x == begGDLPrevNorm.x) {
+                    0.0
+                } else {
+                    (begGDLPrevNorm.y - endGDLPrevNorm.y) / (endGDLPrevNorm.x - begGDLPrevNorm.x)
+                }
+            } else {
+                return 0.0
+            }
+        }
+
+        //--- universal function for determining the REAL sum of counter values
+        private fun getSensorCountData(
+            alRawTime: List<Int>,
+            alRawData: List<AdvancedByteBuffer>,
+            scu: SensorConfigCounter,
+            begTime: Int,
+            endTime: Int
+        ): Double {
+            var sensorSum = 0.0
+            for (pos in alRawTime.indices) {
+                val rawTime = alRawTime[pos]
+
+                if (rawTime < begTime) continue
+                if (rawTime > endTime) break
+
+                val rawSensorData = AbstractObjectStateCalc.getSensorData(scu.portNum, alRawData[pos]) ?: continue
+                val sensorData = when (rawSensorData) {
+                    is Int -> {
+                        rawSensorData.toDouble()
+                    }
+                    is Double -> {
+                        rawSensorData
+                    }
+                    else -> {
+                        0.0
+                    }
+                }
+                //--- ignore outbound values
+                if (isIgnoreSensorData(scu, sensorData)) continue
 
                 sensorSum += sensorData
             }
-            return sensorSum * scu.dataValue / scu.sensorValue
+            return AbstractObjectStateCalc.getSensorValue(scu.alValueSensor, scu.alValueData, sensorSum)
         }
 
-        private fun searchGDL(aLine: GraphicDataContainer, time: Int): Double {
-            //--- если время находится на/за поисковыми границами, то берём граничное значение
-            if (time <= aLine.alGLD[0].x) return aLine.alGLD[0].y
-            else if (time >= aLine.alGLD[aLine.alGLD.size - 1].x) return aLine.alGLD[aLine.alGLD.size - 1].y
+//        private fun searchGDL(aLine: GraphicDataContainer, time: Int): Double {
+//            //--- if the time is on / outside the search boundaries, then we take the boundary value
+//            if (time <= aLine.alGLD[0].x) return aLine.alGLD[0].y
+//            else if (time >= aLine.alGLD[aLine.alGLD.size - 1].x) return aLine.alGLD[aLine.alGLD.size - 1].y
+//
+//            var pos1 = 0
+//            var pos2 = aLine.alGLD.size - 1
+//            while (pos1 <= pos2) {
+//                val posMid = (pos1 + pos2) / 2
+//                val valueMid = aLine.alGLD[posMid].x
+//
+//                if (time < valueMid) {
+//                    pos2 = posMid - 1
+//                }
+//                else if (time > valueMid) {
+//                    pos1 = posMid + 1
+//                }
+//                else {
+//                    return aLine.alGLD[posMid].y
+//                }
+//            }
+//            //--- if nothing was found, then now pos2 is to the left of the desired value, and pos1 is to the right of it.
+//            //--- In this case, we approximate the value
+//            return (time - aLine.alGLD[pos2].x) / (aLine.alGLD[pos1].x - aLine.alGLD[pos2].x) * (aLine.alGLD[pos1].y - aLine.alGLD[pos2].y) + aLine.alGLD[pos2].y
+//        }
 
-            var pos1 = 0
-            var pos2 = aLine.alGLD.size - 1
-            while (pos1 <= pos2) {
-                val posMid = (pos1 + pos2).ushr(1)
-                val valueMid = aLine.alGLD[posMid].x
+        //--- filling in standard output lines (for tabular forms and reports) ---------------------------
 
-                if (time < valueMid) pos2 = posMid - 1
-                else if (time > valueMid) pos1 = posMid + 1
-                else return aLine.alGLD[posMid].y
-            }
-            //--- если ничего не нашли, то теперь pos2 - левее искомого значения, а pos1 - правее его.
-            //--- в этом случае аппроксимируем значение
-            return (time - aLine.alGLD[pos2].x) / (aLine.alGLD[pos1].x - aLine.alGLD[pos2].x) * (aLine.alGLD[pos1].y - aLine.alGLD[pos2].y) + aLine.alGLD[pos2].y
-        }
-
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-        //--- заполнение типовых строк вывода ( для табличных форм и отчетов )
         fun fillGeoString(
-            gcd: GeoCalcData, zoneId: ZoneId, sbGeoName: StringBuilder, sbGeoRun: StringBuilder, sbGeoOutTime: StringBuilder, sbGeoInTime: StringBuilder,
-            sbGeoWayTime: StringBuilder, sbGeoMovingTime: StringBuilder, sbGeoParkingTime: StringBuilder, sbGeoParkingCount: StringBuilder
+            gcd: GeoCalcData,
+            zoneId: ZoneId,
+            sbGeoName: StringBuilder,
+            sbGeoRun: StringBuilder,
+            sbGeoOutTime: StringBuilder,
+            sbGeoInTime: StringBuilder,
+            sbGeoWayTime: StringBuilder,
+            sbGeoMovingTime: StringBuilder,
+            sbGeoParkingTime: StringBuilder,
+            sbGeoParkingCount: StringBuilder
         ) {
             sbGeoName.append(gcd.descr)
             sbGeoRun.append(if (gcd.run < 0) '-' else getSplittedDouble(gcd.run, 1))
@@ -1511,56 +1690,51 @@ class ObjectCalc {
             sbGeoParkingCount.append(if (gcd.parkingCount < 0) '-' else getSplittedLong(gcd.parkingCount.toLong()))
         }
 
-        fun fillZoneString(hmZoneData: Map<Int, ZoneData>, p: XyPoint): StringBuilder {
-            val tsZoneName = TreeSet<String>()
-            for (zd in hmZoneData.values)
-                if (zd.polygon!!.isContains(p))
-                    tsZoneName.add(zd.name)
-            return getSBFromIterable(tsZoneName, ", ")
-        }
+//        fun fillZoneString(hmZoneData: Map<Int, ZoneData>, p: XyPoint): StringBuilder {
+//            val tsZoneName = TreeSet<String>()
+//            for (zd in hmZoneData.values)
+//                if (zd.polygon!!.isContains(p))
+//                    tsZoneName.add(zd.name)
+//            return getSBFromIterable(tsZoneName, ", ")
+//        }
 
-        fun fillWorkString(tmWorkCalc: TreeMap<String, WorkCalcData>, sbWorkName: StringBuilder, sbWorkTotal: StringBuilder, sbWorkMoving: StringBuilder, sbWorkParking: StringBuilder) {
-
+        fun fillWorkString(
+            tmWorkCalc: TreeMap<String, WorkCalcData>,
+            sbWorkName: StringBuilder,
+            sbWorkTotal: StringBuilder,
+        ) {
             for ((workName, wcd) in tmWorkCalc) {
-                if (!sbWorkName.isEmpty()) {
+                if (sbWorkName.isNotEmpty()) {
                     sbWorkName.append('\n')
                     sbWorkTotal.append('\n')
-                    sbWorkMoving.append('\n')
-                    sbWorkParking.append('\n')
                 }
                 sbWorkName.append(workName)
                 sbWorkTotal.append(getSplittedDouble(wcd.onTime.toDouble() / 60.0 / 60.0, 1))
-                sbWorkMoving.append(getSplittedDouble(wcd.onMovingTime.toDouble() / 60.0 / 60.0, 1))
-                sbWorkParking.append(getSplittedDouble(wcd.onParkingTime.toDouble() / 60.0 / 60.0, 1))
             }
         }
 
-        fun fillLiquidLevelString(
+        private fun fillLiquidLevelString(
             tmLiquidLevelCalc: TreeMap<String, LiquidLevelCalcData>,
-            sbLiquidLevelName: StringBuilder, sbLiquidLevelBeg: StringBuilder, sbLiquidLevelEnd: StringBuilder,
-            sbLiquidLevelIncTotal: StringBuilder, sbLiquidLevelDecTotal: StringBuilder,
-            sbLiquidLevelUsingTotal: StringBuilder, sbLiquidLevelUsingMoving: StringBuilder, sbLiquidLevelUsingParking: StringBuilder,
+            sbLiquidLevelName: StringBuilder,
+            sbLiquidLevelBeg: StringBuilder,
+            sbLiquidLevelEnd: StringBuilder,
+            sbLiquidLevelIncTotal: StringBuilder,
+            sbLiquidLevelDecTotal: StringBuilder,
+            sbLiquidLevelUsingTotal: StringBuilder,
             sbLiquidLevelUsingCalc: StringBuilder
         ) {
 
             //--- используется ли вообще usingCalc
-            var isUsingCalc = false
-            for (llcd in tmLiquidLevelCalc.values)
-                if (llcd.usingCalc != null) {
-                    isUsingCalc = true
-                    break
-                }
+            val isUsingCalc = tmLiquidLevelCalc.values.any { it.usingCalc > 0.0 }
 
             for ((liquidName, llcd) in tmLiquidLevelCalc) {
-                if (!sbLiquidLevelName.isEmpty()) {
+                if (sbLiquidLevelName.isNotEmpty()) {
                     sbLiquidLevelName.append('\n')
                     sbLiquidLevelBeg.append('\n')
                     sbLiquidLevelEnd.append('\n')
                     sbLiquidLevelIncTotal.append('\n')
                     sbLiquidLevelDecTotal.append('\n')
                     sbLiquidLevelUsingTotal.append('\n')
-                    sbLiquidLevelUsingMoving.append('\n')
-                    sbLiquidLevelUsingParking.append('\n')
                     if (isUsingCalc) sbLiquidLevelUsingCalc.append('\n')
                 }
                 sbLiquidLevelName.append(liquidName)
@@ -1569,34 +1743,37 @@ class ObjectCalc {
                 sbLiquidLevelIncTotal.append(getSplittedDouble(llcd.incTotal, getPrecision(llcd.incTotal)))
                 sbLiquidLevelDecTotal.append(getSplittedDouble(llcd.decTotal, getPrecision(llcd.decTotal)))
                 sbLiquidLevelUsingTotal.append(getSplittedDouble(llcd.usingTotal, getPrecision(llcd.usingTotal)))
-                sbLiquidLevelUsingMoving.append(getSplittedDouble(llcd.usingMoving, getPrecision(llcd.usingMoving)))
-                sbLiquidLevelUsingParking.append(getSplittedDouble(llcd.usingParking, getPrecision(llcd.usingParking)))
                 if (isUsingCalc) sbLiquidLevelUsingCalc.append(
-                    if (llcd.usingCalc == null) "-"
-                    else getSplittedDouble(llcd.usingCalc!!, getPrecision(llcd.usingCalc!!))
+                    if (llcd.usingCalc <= 0.0) "-"
+                    else getSplittedDouble(llcd.usingCalc, getPrecision(llcd.usingCalc))
                 )
             }
         }
 
         fun fillLiquidUsingString(
-            tmLiquidUsingCalc: TreeMap<String, LiquidUsingCalcData>,
-            sbLiquidUsingName: StringBuilder, sbLiquidUsingTotal: StringBuilder, sbLiquidUsingInMove: StringBuilder, sbLiquidUsingInParking: StringBuilder
+            tmLiquidUsingTotal: TreeMap<String, Double>,
+            tmLiquidUsingCalc: TreeMap<String, Double>,
+            sbLiquidUsingName: StringBuilder,
+            sbLiquidUsingTotal: StringBuilder,
+            sbLiquidUsingCalc: StringBuilder,
         ) {
-            for ((liquidName, lucd) in tmLiquidUsingCalc) {
-                if (!sbLiquidUsingName.isEmpty()) {
+            tmLiquidUsingTotal.forEach { (name, total) ->
+                if (sbLiquidUsingName.isNotEmpty()) {
                     sbLiquidUsingName.append('\n')
                     sbLiquidUsingTotal.append('\n')
-                    sbLiquidUsingInMove.append('\n')
-                    sbLiquidUsingInParking.append('\n')
+                    sbLiquidUsingCalc.append('\n')
                 }
-                sbLiquidUsingName.append(liquidName)
-                sbLiquidUsingTotal.append(getSplittedDouble(lucd.usingTotal, getPrecision(lucd.usingTotal)))
-                sbLiquidUsingInMove.append(getSplittedDouble(lucd.usingMoving, getPrecision(lucd.usingMoving)))
-                sbLiquidUsingInParking.append(getSplittedDouble(lucd.usingParking, getPrecision(lucd.usingParking)))
+                sbLiquidUsingName.append(name)
+                sbLiquidUsingTotal.append(getSplittedDouble(total, getPrecision(total)))
+
+                val calc = tmLiquidUsingCalc[name]
+                if (calc != null && calc > 0) {
+                    sbLiquidUsingCalc.append(getSplittedDouble(calc, getPrecision(calc)))
+                }
             }
         }
 
-        fun fillEnergoString(tmEnergoCalc: TreeMap<String, Int>, sbEnergoName: StringBuilder, sbEnergoValue: StringBuilder) {
+        fun fillEnergoString(tmEnergoCalc: TreeMap<String, Double>, sbEnergoName: StringBuilder, sbEnergoValue: StringBuilder) {
             for ((energoName, e) in tmEnergoCalc) {
                 if (sbEnergoName.isNotEmpty()) {
                     sbEnergoName.append('\n')
@@ -1604,31 +1781,31 @@ class ObjectCalc {
                 }
                 sbEnergoName.append(energoName)
                 //--- выводим в кВт*ч
-                sbEnergoValue.append(getSplittedDouble(e / 1000.0, 3))
+                sbEnergoValue.append(getSplittedDouble(e, getPrecision(e)))
             }
         }
 
         fun getPrecision(value: Double): Int {
-            //--- обновлённый/упрощённый вариант точности вывода - больше кубометра - в целых литрах, менее - в сотнях миллилитров/грамм
-            return if (value >= 1000) 0 else 1
-            //        return value >= 1000 ? 0
-            //                             : value >= 100 ? 1
-            //                                            : 2;
+            //--- updated / simplified version of the output accuracy - more cubic meters - in whole liters, less - in hundreds of milliliters / gram
+            return if (value >= 1000) 0
+            else if (value >= 100) 1
+            else if (value >= 10) 2
+            else 3
         }
-
-        //----------------------------------------------------------------------------------------------------------------------------------------
 
         fun fillZoneList(hmZoneData: Map<Int, ZoneData>, reportZone: Int, p: XyPoint, tsZoneName: TreeSet<String>): Boolean {
             var inZone = false
-            for ((zoneID, zd) in hmZoneData)
+            for ((zoneID, zd) in hmZoneData) {
                 if (zd.polygon!!.isContains(p)) {
-                    val sbZoneInfo = StringBuilder(zd.name)
-                    if ( /*zd.descr != null &&*/ !zd.descr.isEmpty()) sbZoneInfo.append(" (").append(zd.descr).append(')')
+                    var sZoneInfo = zd.name
+                    if (zd.descr.isNotEmpty()) {
+                        sZoneInfo += " (${zd.descr})"
+                    }
 
-                    tsZoneName.add(sbZoneInfo.toString())
-                    //--- фильтр по геозонам, если задано
+                    tsZoneName.add(sZoneInfo)
                     if (reportZone != 0 && reportZone == zoneID) inZone = true
                 }
+            }
             return inZone
         }
     }

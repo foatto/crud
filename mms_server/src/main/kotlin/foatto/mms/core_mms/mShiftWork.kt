@@ -111,8 +111,8 @@ class mShiftWork : mAbstract() {
         columnObjectShiftWorkLiquidName = ColumnString(tableName, "_liquid_name", "Топливо", STRING_COLUMN_WIDTH)
         columnObjectShiftWorkLiquidName.isVirtual = true
         columnObjectShiftWorkLiquidName.isSearchable = false
-        columnObjectShiftWorkLiquidName.rowSpan = if(parentObjectID == null) 3 else 4
-        columnObjectShiftWorkLiquidValue = ColumnString(tableName, "_liquid_value", "Расход [л]", STRING_COLUMN_WIDTH)
+        columnObjectShiftWorkLiquidName.rowSpan = if (parentObjectID == null) 3 else 4
+        columnObjectShiftWorkLiquidValue = ColumnString(tableName, "_liquid_value", "Расход", STRING_COLUMN_WIDTH)
         columnObjectShiftWorkLiquidValue.isVirtual = true
         columnObjectShiftWorkLiquidValue.isSearchable = false
         columnObjectShiftWorkLiquidValue.rowSpan = if(parentObjectID == null) 3 else 4
@@ -210,13 +210,7 @@ class mShiftWork : mAbstract() {
         alChildData.add(ChildData("Отчёты...", "mms_report_work_detail", columnID!!, AppAction.FORM))
         alChildData.add(ChildData("Отчёты...", "mms_report_data_out", columnID!!, AppAction.FORM))
 
-        alChildData.add(ChildData("Графики...", "mms_graphic_liquid", columnID!!, AppAction.FORM, true))
-        alChildData.add(ChildData("Графики...", "mms_graphic_weight", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Графики...", "mms_graphic_turn", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Графики...", "mms_graphic_pressure", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Графики...", "mms_graphic_temperature", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Графики...", "mms_graphic_power", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Графики...", "mms_graphic_voltage", columnID!!, AppAction.FORM))
+        MMSFunction.fillAllChildDataForGraphics(columnID!!, alChildData)
 
         alChildData.add(ChildData("mms_show_object", columnID!!, AppAction.FORM, true))
         //        alChildData.add( new ChildData( "mms_show_trace", columnID, AppAction.FORM ) );

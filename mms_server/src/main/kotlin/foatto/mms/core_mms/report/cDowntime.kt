@@ -49,8 +49,6 @@ class cDowntime : cMMSReport() {
 
         offsY = fillReportHeader(reportDepartment, reportGroup, sheet, 1, offsY)
 
-        offsY = Math.max(offsY, outReportCap(sheet, 3, 0) + 1)
-
         //--- установка размеров заголовков (общая ширина = 90 для А4-портрет поля по 10 мм)
         val alDim = mutableListOf<Int>()
         alDim.add(5)    // "N п/п"
@@ -99,8 +97,6 @@ class cDowntime : cMMSReport() {
 
         sheet.addCell(Label(3, offsY, getPreparedAt(), wcfCellL))
         //sheet.mergeCells( 5, offsY, 6, offsY );
-
-        outReportSignature(sheet, intArrayOf(0, 2, 3), offsY + 3)
     }
 
     //----------------------------------------------------------------------------------------------------------------------------------------

@@ -19,7 +19,7 @@
 //import foatto.mms.core_mms.ZoneData;
 //import foatto.mms.core_mms.calc.ObjectCalc;
 //import foatto.mms.core_mms.graphic.server.graphic_handler.AnalogGraphicHandler;
-//import foatto.mms.core_mms.sensor.SensorConfig;
+//import foatto.mms.core_mms.sensor.config.SensorConfig;
 //import foatto.mms.core_mms.sensor.SensorConfigA;
 //import foatto.sql.AdvancedConnection;
 //import kotlin.Pair;

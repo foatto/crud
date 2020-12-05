@@ -2,9 +2,9 @@ package foatto.mms.core_mms.report
 
 import foatto.core.link.FormData
 import foatto.core.util.DateTime_DMYHMS
-import foatto.core.util.secondIntervalToString
 import foatto.core.util.getSplittedDouble
 import foatto.core.util.getSplittedLong
+import foatto.core.util.secondIntervalToString
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.calc.GeoPeriodData
 import foatto.mms.core_mms.calc.ObjectCalc
@@ -67,9 +67,9 @@ class cMovingDetail : cMMSReport() {
         alDim.add(41)   // "Оборудование"
         alDim.add(7)    // "Время работы [час]"
         alDim.add(41)   // "Топливо"
-        alDim.add(7)    // "Расход [л]"
+        alDim.add(7)    // "Расход"
 
-        for(i in alDim.indices) {
+        for (i in alDim.indices) {
             val cvNN = CellView()
             cvNN.size = alDim[i] * 256
             sheet.setColumnView(i, cvNN)
@@ -86,7 +86,7 @@ class cMovingDetail : cMMSReport() {
         sheet.addCell(Label(offsX++, offsY, "Оборудование", wcfCaptionHC))
         sheet.addCell(Label(offsX++, offsY, "Время работы [час]", wcfCaptionHC))
         sheet.addCell(Label(offsX++, offsY, "Топливо", wcfCaptionHC))
-        sheet.addCell(Label(offsX++, offsY, "Расход [л]", wcfCaptionHC))
+        sheet.addCell(Label(offsX++, offsY, "Расход", wcfCaptionHC))
         offsY++
 
         val alObjectID = mutableListOf<Int>()
@@ -149,10 +149,6 @@ class cMovingDetail : cMMSReport() {
             offsX = 4
             sheet.addCell(Label(offsX++, offsY, secondIntervalToString(calcSum.gcd!!.movingTime), wcfCellC))
             sheet.addCell(Label(offsX++, offsY, getSplittedDouble(calcSum.gcd!!.run, 1).toString(), wcfCellC))
-            sheet.addCell(Label(offsX++, offsY, calcSum.sbWorkName.toString(), wcfCellC))
-            sheet.addCell(Label(offsX++, offsY, calcSum.sbWorkMoving.toString(), wcfCellR))
-            sheet.addCell(Label(offsX++, offsY, calcSum.sbLiquidUsingName.toString(), wcfCellC))
-            sheet.addCell(Label(offsX++, offsY, calcSum.sbLiquidUsingMoving.toString(), wcfCellR))
             offsY++
 
             sheet.addCell(Label(1, offsY, "На стоянках:", wcfCellRB))
@@ -160,10 +156,6 @@ class cMovingDetail : cMMSReport() {
             offsX = 4
             sheet.addCell(Label(offsX++, offsY, secondIntervalToString(calcSum.gcd!!.parkingTime), wcfCellC))
             sheet.addCell(Label(offsX++, offsY, getSplittedLong(calcSum.gcd!!.parkingCount.toLong()).toString(), wcfCellC))
-            sheet.addCell(Label(offsX++, offsY, calcSum.sbWorkName.toString(), wcfCellC))
-            sheet.addCell(Label(offsX++, offsY, calcSum.sbWorkParking.toString(), wcfCellR))
-            sheet.addCell(Label(offsX++, offsY, calcSum.sbLiquidUsingName.toString(), wcfCellC))
-            sheet.addCell(Label(offsX++, offsY, calcSum.sbLiquidUsingParking.toString(), wcfCellR))
             offsY++
 
             sheet.addCell(Label(1, offsY, "Общее:", wcfCellRB))
@@ -181,7 +173,5 @@ class cMovingDetail : cMMSReport() {
                 8, offsY, getPreparedAt(), wcfCellL
             )
         )
-
-        outReportSignature(sheet, intArrayOf(0, 6, 8), offsY + 3)
     }
 }

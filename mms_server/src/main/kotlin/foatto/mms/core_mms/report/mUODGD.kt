@@ -47,8 +47,6 @@ class mUODGD : mAbstractReport() {
         //columnReportEndDate.setDefaultDate( arrDT[ 6 ], arrDT[ 7 ], arrDT[ 8 ] );
         columnReportEndDate.isVirtual = true
 
-        initReportCapAndSignature(aliasConfig, userConfig)
-
         //----------------------------------------------------------------------------------------------------------------------
 
         alFormHiddenColumn.add(columnID!!)
@@ -61,6 +59,5 @@ class mUODGD : mAbstractReport() {
         alFormColumn.add(columnReportBegDate)
         alFormColumn.add(columnReportEndDate)
 
-        addCapAndSignatureColumns()
     }
 }

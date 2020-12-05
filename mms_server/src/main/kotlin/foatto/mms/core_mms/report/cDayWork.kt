@@ -2,7 +2,6 @@ package foatto.mms.core_mms.report
 
 import foatto.core.link.FormData
 import foatto.core.util.DateTime_DMY
-import foatto.core_server.app.server.data.DataBoolean
 import foatto.core_server.app.server.data.DataComboBox
 import foatto.core_server.app.server.data.DataDate3Int
 import foatto.mms.core_mms.calc.ObjectCalc
@@ -37,7 +36,6 @@ class cDayWork : cStandartPeriodSummary() {
         hmReportParam["report_end_day"] = endDate.dayOfMonth
 
         hmReportParam["report_group_type"] = (hmColumnData[m.columnReportGroupType] as DataComboBox).value
-        hmReportParam["report_is_compact"] = (hmColumnData[m.columnIsCompactReport] as DataBoolean).value
 
         fillReportParam(m.sos)
 
@@ -64,7 +62,7 @@ class cDayWork : cStandartPeriodSummary() {
 
         offsY = fillReportHeader(reportDepartment, reportGroup, sheet, 1, offsY)
 
-        offsY = defineSummaryReportHeaders(sheet, offsY, if(reportGroupType == mDayWork.GROUP_BY_DATE) "Дата" else "Объект")
+        offsY = defineSummaryReportHeaders(sheet, offsY)
 
         val allSumCollector = SumCollector()
         val tmUserSumCollector = TreeMap<String, SumCollector>()
@@ -101,27 +99,17 @@ class cDayWork : cStandartPeriodSummary() {
                     }
                     daySumCollector!!.add(null, 0, dwcr.objectCalc)
                 } else {
-                    if(lastObjectInfo != dwcr.objectCalc.objectConfig.name) {
+                    if (lastObjectInfo != dwcr.objectCalc.objectConfig.name) {
                         offsY = addGroupTitle(sheet, offsY, dwcr.objectCalc.objectConfig.name)
                         lastObjectInfo = dwcr.objectCalc.objectConfig.name
                     }
                 }
                 sheet.addCell(Label(0, offsY, (countNN++).toString(), wcfNN))
-                if(isCompactReport) {
-                    sheet.addCell(
-                        Label(
-                            1, offsY, if(reportGroupType == mDayWork.GROUP_BY_DATE) dwcr.objectCalc.objectConfig.name else dwcr.date, wcfCellC
-                        )
-                    )
-                } else {
-                    sheet.addCell(
-                        Label(
-                            1, offsY, if(reportGroupType == mDayWork.GROUP_BY_DATE) dwcr.objectCalc.objectConfig.name else dwcr.date, wcfCellLBStdYellow
-                        )
-                    )
-                    sheet.mergeCells(1, offsY, if(isGlobalUseSpeed) 10 else if(isGlobalUsingCalc) 7 else 6, offsY)
-                    offsY += 2
-                }
+                sheet.addCell(
+                    Label(1, offsY, if (reportGroupType == mDayWork.GROUP_BY_DATE) dwcr.objectCalc.objectConfig.name else dwcr.date, wcfCellLBStdYellow)
+                )
+                sheet.mergeCells(1, offsY, if (isGlobalUseSpeed) 10 else if (isGlobalUsingCalc) 7 else 6, offsY)
+                offsY += 2
                 offsY = outRow(sheet, offsY, dwcr.objectCalc.objectConfig, dwcr.objectCalc)
             }
         }
@@ -130,74 +118,40 @@ class cDayWork : cStandartPeriodSummary() {
 
         //--- вывод сумм
         if(reportSumUser) {
-            if(isCompactReport) {
-                sheet.addCell(Label(0, offsY, "ИТОГО по объектам и их владельцам", wcfCellCBStdYellow))
-                sheet.mergeCells(0, offsY, 6, offsY)
+            sheet.addCell(Label(0, offsY, "ИТОГО по объектам и их владельцам", wcfCellCBStdYellow))
+            sheet.mergeCells(0, offsY, if (isGlobalUseSpeed) 10 else if (isGlobalUsingCalc) 7 else 6, offsY + 2)
+            offsY += 4
+
+            for ((userName, sumUser) in tmUserSumCollector) {
+                sheet.addCell(Label(0, offsY, userName, wcfCellLBStdYellow))
+                sheet.mergeCells(0, offsY, if (isGlobalUseSpeed) 10 else if (isGlobalUsingCalc) 7 else 6, offsY)
                 offsY += 2
+                if (reportSumObject) {
+                    val tmObjectSum = sumUser.tmSumObject
+                    for ((objectInfo, objectSum) in tmObjectSum) {
+                        sheet.addCell(Label(1, offsY, objectInfo, wcfCellLB))
+                        offsY++
 
-                for((userName, sumUser) in tmUserSumCollector) {
-                    sheet.addCell(Label(0, offsY, userName, wcfCellLBStdYellow))
-                    sheet.mergeCells(0, offsY, 6, offsY)
-                    offsY += 2
-                    if(reportSumObject) {
-                        val tmObjectSum = sumUser.tmSumObject
-                        for((objectInfo, objectSum) in tmObjectSum) {
-                            sheet.addCell(Label(1, offsY, objectInfo, wcfCellLB))
-                            offsY = outSumData(sheet, offsY, objectSum, false)
-                        }
+                        offsY = outSumData(sheet, offsY, objectSum, false)
                     }
-
-                    sheet.addCell(Label(0, offsY, "ИТОГО по владельцу:", wcfCellLBStdYellow))
-                    sheet.mergeCells(0, offsY, 1, offsY)
-                    //offsY++;
-
-                    offsY = outSumData(sheet, offsY, sumUser.sumUser, true)
-
-                    //--- если выводятся суммы по объектам, добавим ещё одну (третью) пустую строчку между этой суммой и
-                    //--- следующим объектом следующего пользователя
-                    offsY += 2
                 }
-            } else {
-                sheet.addCell(Label(0, offsY, "ИТОГО по объектам и их владельцам", wcfCellCBStdYellow))
-                sheet.mergeCells(0, offsY, if(isGlobalUseSpeed) 10 else if(isGlobalUsingCalc) 7 else 6, offsY + 2)
-                offsY += 4
 
-                for((userName, sumUser) in tmUserSumCollector) {
-                    sheet.addCell(Label(0, offsY, userName, wcfCellLBStdYellow))
-                    sheet.mergeCells(0, offsY, if(isGlobalUseSpeed) 10 else if(isGlobalUsingCalc) 7 else 6, offsY)
-                    offsY += 2
-                    if(reportSumObject) {
-                        val tmObjectSum = sumUser.tmSumObject
-                        for((objectInfo, objectSum) in tmObjectSum) {
-                            sheet.addCell(Label(1, offsY, objectInfo, wcfCellLB))
-                            offsY++
+                sheet.addCell(Label(0, offsY, "ИТОГО по владельцу:", wcfCellLBStdYellow))
+                sheet.mergeCells(0, offsY, 1, offsY)
+                offsY++
 
-                            offsY = outSumData(sheet, offsY, objectSum, false)
-                        }
-                    }
+                offsY = outSumData(sheet, offsY, sumUser.sumUser, true)
 
-                    sheet.addCell(Label(0, offsY, "ИТОГО по владельцу:", wcfCellLBStdYellow))
-                    sheet.mergeCells(0, offsY, 1, offsY)
-                    offsY++
-
-                    offsY = outSumData(sheet, offsY, sumUser.sumUser, true)
-
-                    //--- если выводятся суммы по объектам, добавим ещё одну (третью) пустую строчку между этой суммой и
-                    //--- следующим объектом следующего пользователя
-                    offsY += 2
-                }
+                //--- если выводятся суммы по объектам, добавим ещё одну (третью) пустую строчку между этой суммой и
+                //--- следующим объектом следующего пользователя
+                offsY += 2
             }
         }
 
-        if(isCompactReport) {
-            sheet.addCell(Label(0, offsY, "ИТОГО общее", wcfCellCBStdYellow))
-            sheet.mergeCells(0, offsY, 6, offsY)
-            offsY += 2
-        } else {
-            sheet.addCell(Label(0, offsY, "ИТОГО общее", wcfCellCBStdYellow))
-            sheet.mergeCells(0, offsY, if(isGlobalUseSpeed) 10 else if(isGlobalUsingCalc) 7 else 6, offsY + 2)
-            offsY += 4
-        }
+        sheet.addCell(Label(0, offsY, "ИТОГО общее", wcfCellCBStdYellow))
+        sheet.mergeCells(0, offsY, if (isGlobalUseSpeed) 10 else if (isGlobalUsingCalc) 7 else 6, offsY + 2)
+        offsY += 4
+
         offsY = outSumData(sheet, offsY, allSumCollector.sumUser, true)
 
         outReportTrail(sheet, offsY)
@@ -229,10 +183,8 @@ class cDayWork : cStandartPeriodSummary() {
 
                 val crKey = StringBuilder().append(if(reportGroupType == mDayWork.GROUP_BY_DATE) zdtCurBeg.toEpochSecond().toInt() else objectConfig.name).append(if(reportGroupType == mDayWork.GROUP_BY_DATE) objectConfig.name else zdtCurBeg.toEpochSecond().toInt()).toString()
 
-                val dwcr: DayWorkCalcResult
-
                 //--- заполнение первой порции результатов
-                dwcr = DayWorkCalcResult(
+                val dwcr = DayWorkCalcResult(
                     DateTime_DMY(zdtCurBeg), ObjectCalc.calcObject(
                         stm, userConfig, objectConfig, zdtCurBeg.toEpochSecond().toInt(), zdtCurEnd.toEpochSecond().toInt()
                     )

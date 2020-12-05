@@ -1,6 +1,6 @@
-package foatto.mms.core_mms.sensor
+package foatto.mms.core_mms.sensor.config
 
-open class SensorConfig(
+abstract class SensorConfig(
     val id: Int,
     val name: String,       // внутреннее/системное имя датчика, необходимо для поиска/идентификации при программном добавлении датчиков ( например, из дпнных измерений )
     val sumGroup: String,   // имя группы датчиков для суммирования однотипных датчиков в пределах одного графика/отчёта
@@ -28,8 +28,6 @@ open class SensorConfig(
 
         //--- учётные величины - отчёты
         const val SENSOR_WORK = 1           // мото * час
-        //--- вместо этого будут два датчика: SENSOR_MASS_FLOW и SENSOR_VOLUME_FLOW
-        //const val SENSOR_LIQUID_USING = 2   // литр
 
         //--- контрольные величины - графики
         const val SENSOR_LIQUID_FLOW_CALC = 3   // литр * час - расчётный, по изменению уровня
@@ -52,7 +50,6 @@ open class SensorConfig(
         //--- electro energo counters
 
         //--- учётные величины - отчёты
-        //--- Вт*ч - выводим как кВт*ч
         const val SENSOR_ENERGO_COUNT_AD = 20   // Active Direct - активная прямая электроэнергия
         const val SENSOR_ENERGO_COUNT_AR = 21   // Active Reverse - активная обратная электроэнергия
         const val SENSOR_ENERGO_COUNT_RD = 22   // Reactive Direct - реактивная прямая электроэнергия
@@ -83,17 +80,10 @@ open class SensorConfig(
         //--- названия датчиков
         val hmSensorDescr = mutableMapOf<Int, String>()
 
-        //--- типы датчиков, к которым не применяется сглаживание
-        val hsSensorNonSmooth = mutableSetOf<Int>()
-
-        //--- типы датчиков, у которых не бывает калибровки
-        val hsSensorNonCalibration = mutableSetOf<Int>()
-
         init {
             hmSensorDescr[SENSOR_SIGNAL] = "Сигнал"
             hmSensorDescr[SENSOR_GEO] = "Гео-данные"
             hmSensorDescr[SENSOR_WORK] = "Работа оборудования"
-            //hmSensorDescr[ SENSOR_LIQUID_USING ] = "Расход топлива"
             hmSensorDescr[SENSOR_LIQUID_FLOW_CALC] = "Скорость расхода топлива (расчётная)"
             hmSensorDescr[SENSOR_LIQUID_LEVEL] = "Уровень топлива"
             hmSensorDescr[SENSOR_WEIGHT] = "Нагрузка"
@@ -105,40 +95,18 @@ open class SensorConfig(
             hmSensorDescr[SENSOR_DENSITY] = "Плотность"
             hmSensorDescr[SENSOR_MASS_FLOW] = "Массовый расход"
             hmSensorDescr[SENSOR_VOLUME_FLOW] = "Объёмный расход"
-            hmSensorDescr[SENSOR_MASS_ACCUMULATED] = "Накопленная масся"
+            hmSensorDescr[SENSOR_MASS_ACCUMULATED] = "Накопленная масса"
             hmSensorDescr[SENSOR_VOLUME_ACCUMULATED] = "Накопленный объём"
             hmSensorDescr[SENSOR_ENERGO_COUNT_AD] = "Электроэнергия активная прямая"
             hmSensorDescr[SENSOR_ENERGO_COUNT_AR] = "Электроэнергия активная обратная"
             hmSensorDescr[SENSOR_ENERGO_COUNT_RD] = "Электроэнергия реактивная прямая"
             hmSensorDescr[SENSOR_ENERGO_COUNT_RR] = "Электроэнергия реактивная обратная"
-            hmSensorDescr[SENSOR_ENERGO_VOLTAGE] = "Напряжение по фазе"
-            hmSensorDescr[SENSOR_ENERGO_CURRENT] = "Ток по фазе"
-            hmSensorDescr[SENSOR_ENERGO_POWER_KOEF] = "Коэффициент мощности по фазе"
-            hmSensorDescr[SENSOR_ENERGO_POWER_ACTIVE] = "Активная мощность по фазе"
-            hmSensorDescr[SENSOR_ENERGO_POWER_REACTIVE] = "Реактивная мощность по фазе"
-            hmSensorDescr[SENSOR_ENERGO_POWER_FULL] = "Полная мощность по фазе"
-
-            hsSensorNonSmooth.add(SENSOR_SIGNAL)
-            hsSensorNonSmooth.add(SENSOR_GEO)
-            hsSensorNonSmooth.add(SENSOR_WORK)
-            //hsSensorNonSmooth.add( SENSOR_LIQUID_USING )
-            hsSensorNonSmooth.add(SENSOR_MASS_ACCUMULATED)
-            hsSensorNonSmooth.add(SENSOR_VOLUME_ACCUMULATED)
-            hsSensorNonSmooth.add(SENSOR_ENERGO_COUNT_AD)
-            hsSensorNonSmooth.add(SENSOR_ENERGO_COUNT_AR)
-            hsSensorNonSmooth.add(SENSOR_ENERGO_COUNT_RD)
-            hsSensorNonSmooth.add( SENSOR_ENERGO_COUNT_RR )
-
-            hsSensorNonCalibration.add( SENSOR_SIGNAL )
-            hsSensorNonCalibration.add( SENSOR_GEO )
-            hsSensorNonCalibration.add( SENSOR_WORK )
-            //hsSensorNonCalibration.add( SENSOR_LIQUID_USING )
-            hsSensorNonCalibration.add( SENSOR_MASS_ACCUMULATED )
-            hsSensorNonCalibration.add( SENSOR_VOLUME_ACCUMULATED )
-            hsSensorNonCalibration.add( SENSOR_ENERGO_COUNT_AD )
-            hsSensorNonCalibration.add( SENSOR_ENERGO_COUNT_AR )
-            hsSensorNonCalibration.add( SENSOR_ENERGO_COUNT_RD )
-            hsSensorNonCalibration.add( SENSOR_ENERGO_COUNT_RR )
+            hmSensorDescr[SENSOR_ENERGO_VOLTAGE] = "Электрическое напряжение"
+            hmSensorDescr[SENSOR_ENERGO_CURRENT] = "Электрический ток"
+            hmSensorDescr[SENSOR_ENERGO_POWER_KOEF] = "Коэффициент мощности"
+            hmSensorDescr[SENSOR_ENERGO_POWER_ACTIVE] = "Активная мощность"
+            hmSensorDescr[SENSOR_ENERGO_POWER_REACTIVE] = "Реактивная мощность"
+            hmSensorDescr[SENSOR_ENERGO_POWER_FULL] = "Полная мощность"
         }
     }
 }

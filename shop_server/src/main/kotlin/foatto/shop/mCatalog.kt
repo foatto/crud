@@ -10,8 +10,6 @@ import foatto.core.link.TableCellAlign
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.ChildData
 import foatto.core_server.app.server.DependData
-import foatto.core_server.app.server.FormColumnCaptionData
-import foatto.core_server.app.server.FormColumnVisibleData
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnBoolean
 import foatto.core_server.app.server.column.ColumnComboBox
@@ -80,65 +78,76 @@ class mCatalog : mAbstractHierarchy() {
 
         val recordType = getRecordType(id, "record_type", RECORD_TYPE_ITEM)
 
-        columnRecordType = ColumnComboBox(tableName, "record_type", "", recordType)
-        columnRecordType.addChoice(RECORD_TYPE_FOLDER, ">>>", "Подраздел", ICON_NAME_FOLDER)
-        columnRecordType.addChoice(RECORD_TYPE_ITEM, "", "Товар")
-        columnRecordType.tableAlign = TableCellAlign.CENTER
+        columnRecordType = ColumnComboBox(tableName, "record_type", "", recordType).apply {
+            addChoice(RECORD_TYPE_FOLDER, ">>>", "Подраздел", ICON_NAME_FOLDER)
+            addChoice(RECORD_TYPE_ITEM, "", "Товар")
+            tableAlign = TableCellAlign.CENTER
+        }
 
-        columnParentFullName = ColumnString(selfLinkTableName, "name", "Раздел", STRING_COLUMN_WIDTH)
-        columnParentFullName.selfLinkTableName = tableName // для правильной работы селектора с подстановочной таблицей
-        columnParentFullName.selectorAlias = folderAliasName
-        columnParentFullName.addSelectorColumn(columnParent, columnParentID)
-        columnParentFullName.addSelectorColumn(columnParentFullName)
+        columnParentFullName = ColumnString(selfLinkTableName, "name", "Раздел", STRING_COLUMN_WIDTH).apply {
+            selfLinkTableName = tableName // для правильной работы селектора с подстановочной таблицей
+            selectorAlias = folderAliasName
+            addSelectorColumn(columnParent, columnParentID)
+            addSelectorColumn(this)
+        }
 
-        columnRecordFullName = ColumnString(tableName, "name", "-", 3, STRING_COLUMN_WIDTH, textFieldMaxSize)
-        columnRecordFullName.isRequired = true
-        columnRecordFullName.setUnique(true, null)
-        columnRecordFullName.addFormCaption(FormColumnCaptionData(columnRecordType, "Подраздел", intArrayOf(RECORD_TYPE_FOLDER)))
-        columnRecordFullName.addFormCaption(FormColumnCaptionData(columnRecordType, "Наименование товара", intArrayOf(RECORD_TYPE_ITEM)))
+        columnRecordFullName = ColumnString(tableName, "name", "-", 3, STRING_COLUMN_WIDTH, textFieldMaxSize).apply {
+            isRequired = true
+            setUnique(true, null)
+            addFormCaption(columnRecordType, "Подраздел", setOf(RECORD_TYPE_FOLDER))
+            addFormCaption(columnRecordType, "Наименование товара", setOf(RECORD_TYPE_ITEM))
+        }
 
-        val columnIsProduction = ColumnBoolean(tableName, "is_production", "Собственное производство")
-        columnIsProduction.addFormVisible(FormColumnVisibleData(columnRecordType, true, intArrayOf(RECORD_TYPE_ITEM)))
-        columnIsProduction.tableCaption = "Собс. пр-во"
+        val columnIsProduction = ColumnBoolean(tableName, "is_production", "Собственное производство").apply {
+            addFormVisible(columnRecordType, true, setOf(RECORD_TYPE_ITEM))
+            tableCaption = "Собс. пр-во"
+        }
 
-        val columnProfitAdd = ColumnInt(tableName, "profit_add", "Добавочная наценка", 10)
-        columnProfitAdd.tableCaption = "Добав. наценка"
+        val columnProfitAdd = ColumnInt(tableName, "profit_add", "Добавочная наценка", 10).apply {
+            tableCaption = "Добав. наценка"
+        }
 
-        columnCatalogPriceDate = ColumnDate3Int(tableName, "_price_ye", "_price_mo", "_price_da", "Дата установки цены")
-        columnCatalogPriceDate.isVirtual = true
-        columnCatalogPriceDate.tableCaption = "Дата устан. цены"
-        columnCatalogPriceDate.addFormVisible(FormColumnVisibleData(columnRecordType, true, intArrayOf(RECORD_TYPE_ITEM)))
-        columnCatalogPriceDate.default = LocalDate.now(zoneId)
-        //gc.add( GregorianCalendar.DAY_OF_MONTH, 1 ) - оказалось неудобно, т.к. цена завтрашняя и сегодня она не отображается, что вводит в заблуждение
+        columnCatalogPriceDate = ColumnDate3Int(tableName, "_price_ye", "_price_mo", "_price_da", "Дата установки цены").apply {
+            isVirtual = true
+            tableCaption = "Дата устан. цены"
+            addFormVisible(columnRecordType, true, setOf(RECORD_TYPE_ITEM))
+            default = LocalDate.now(zoneId)
+            //gc.add( GregorianCalendar.DAY_OF_MONTH, 1 ) - оказалось неудобно, т.к. цена завтрашняя и сегодня она не отображается, что вводит в заблуждение
+        }
 
-        columnCatalogPriceIn = ColumnDouble(tableName, "_price_in", "Закупочная цена", 10, 2)
-        columnCatalogPriceIn.isVirtual = true
-        columnCatalogPriceIn.addFormVisible(FormColumnVisibleData(columnRecordType, true, intArrayOf(RECORD_TYPE_ITEM)))
-        columnCatalogPriceIn.tableCaption = "Закуп. цена"
-        columnCatalogPriceIn.tableAlign = TableCellAlign.RIGHT
+        columnCatalogPriceIn = ColumnDouble(tableName, "_price_in", "Закупочная цена", 10, 2).apply {
+            isVirtual = true
+            addFormVisible(columnRecordType, true, setOf(RECORD_TYPE_ITEM))
+            tableCaption = "Закуп. цена"
+            tableAlign = TableCellAlign.RIGHT
+        }
 
-        columnCatalogPriceOut = ColumnDouble(tableName, "_price_out", "Розничная цена", 10, 2)
-        columnCatalogPriceOut.isVirtual = true
-        columnCatalogPriceOut.addFormVisible(FormColumnVisibleData(columnRecordType, true, intArrayOf(RECORD_TYPE_ITEM)))
-        columnCatalogPriceOut.tableCaption = "Розн. цена"
-        columnCatalogPriceOut.tableAlign = TableCellAlign.RIGHT
+        columnCatalogPriceOut = ColumnDouble(tableName, "_price_out", "Розничная цена", 10, 2).apply {
+            isVirtual = true
+            addFormVisible(columnRecordType, true, setOf(RECORD_TYPE_ITEM))
+            tableCaption = "Розн. цена"
+            tableAlign = TableCellAlign.RIGHT
+        }
 
-        columnCatalogRowCount = ColumnString(tableName, "_row_count", "Кол-во наименований", 10)
-        columnCatalogRowCount.isVirtual = true
-        columnCatalogRowCount.emptyValueString = ""
-        columnCatalogRowCount.tableCaption = "Кол-во наим."
-        columnCatalogRowCount.tableAlign = TableCellAlign.RIGHT
+        columnCatalogRowCount = ColumnString(tableName, "_row_count", "Кол-во наименований", 10).apply {
+            isVirtual = true
+            emptyValueString = ""
+            tableCaption = "Кол-во наим."
+            tableAlign = TableCellAlign.RIGHT
+        }
 
         alColumnCatalogCount = ArrayList(alWarehouseName.size)
-        for(i in 0 until alWarehouseName.size) {
-            val cd = ColumnDouble(tableName, "_$i", alWarehouseName[i], 10, -1)
-            cd.isVirtual = true
-            cd.tableAlign = TableCellAlign.CENTER
+        for (i in 0 until alWarehouseName.size) {
+            val cd = ColumnDouble(tableName, "_$i", alWarehouseName[i], 10, -1).apply {
+                isVirtual = true
+                tableAlign = TableCellAlign.CENTER
+            }
             alColumnCatalogCount.add(cd)
         }
-        columnCatalogAllCount = ColumnDouble(tableName, "_all_count", "ВСЕГО", 10, -1)
-        columnCatalogAllCount.isVirtual = true
-        columnCatalogAllCount.tableAlign = TableCellAlign.CENTER
+        columnCatalogAllCount = ColumnDouble(tableName, "_all_count", "ВСЕГО", 10, -1).apply {
+            isVirtual = true
+            tableAlign = TableCellAlign.CENTER
+        }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -149,9 +158,9 @@ class mCatalog : mAbstractHierarchy() {
         addTableColumn(columnRecordFullName)
         addTableColumn(columnCatalogPriceOut)
         addTableColumn(columnCatalogRowCount)
-        for(cd in alColumnCatalogCount) addTableColumn(cd)
+        for (cd in alColumnCatalogCount) addTableColumn(cd)
         addTableColumn(columnCatalogAllCount)
-        if(isMerchant) {
+        if (isMerchant) {
             addTableColumn(columnIsProduction)
             addTableColumn(columnProfitAdd)
             addTableColumn(columnCatalogPriceDate)
@@ -169,7 +178,7 @@ class mCatalog : mAbstractHierarchy() {
         alFormHiddenColumn.add(columnRecordType)
 
         alFormColumn.add(columnRecordFullName)
-        if(isMerchant) {
+        if (isMerchant) {
             alFormColumn.add(columnIsProduction)
             alFormColumn.add(columnProfitAdd)
             alFormColumn.add(columnCatalogPriceDate)

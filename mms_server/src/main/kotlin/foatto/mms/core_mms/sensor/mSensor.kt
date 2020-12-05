@@ -5,8 +5,6 @@ import foatto.core.link.FormPinMode
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.ChildData
 import foatto.core_server.app.server.DependData
-import foatto.core_server.app.server.FormColumnCaptionData
-import foatto.core_server.app.server.FormColumnVisibleData
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnBoolean
 import foatto.core_server.app.server.column.ColumnComboBox
@@ -17,11 +15,13 @@ import foatto.core_server.app.server.column.ColumnRadioButton
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.mAbstract
 import foatto.mms.core_mms.ObjectSelector
+import foatto.mms.core_mms.sensor.config.SensorConfig
+import foatto.mms.core_mms.sensor.config.SensorConfigGeo
 import foatto.sql.CoreAdvancedStatement
 
 class mSensor : mAbstract() {
 
-    lateinit var columnSensorType: ColumnRadioButton
+    lateinit var columnSensorType: ColumnComboBox   //ColumnRadioButton
         private set
     lateinit var columnCalibrationText: ColumnString
         private set
@@ -30,13 +30,9 @@ class mSensor : mAbstract() {
 
         super.init(appController, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
-        //        //--- этот метод может быть запущен из "Модули системы", безо всяких parent data
-        //        Integer objectID = hmParentData.get(  "mms_object"  );
-        //        AutoConfig ac = autoID == null ? null : AutoConfig.getAutoConfig(  conn, userConfig, autoID  );
-
         val parentObjectID = hmParentData["mms_object"]
 
-        //--- это "оборудование" ( для пользователей ) или полноценные "датчики" для монтажников?
+        //--- this is "equipment" (for users) or full "sensors" (for installers)?
         val isEquip = aliasConfig.alias == "mms_equip"
 
         //----------------------------------------------------------------------------------------------------------------------------------------
@@ -51,219 +47,282 @@ class mSensor : mAbstract() {
 
         val columnSensorName = ColumnString(tableName, "name", "name", STRING_COLUMN_WIDTH)
 
-        val columnSensorSumGroup = ColumnString(tableName, "sum_group_name", "Группа для суммирования", STRING_COLUMN_WIDTH)
-        columnSensorSumGroup.addCombo("")
-        var rs = stm.executeQuery(
-            " SELECT DISTINCT sum_group_name FROM $tableName WHERE object_id = $parentObjectID AND sum_group_name IS NOT NULL AND sum_group_name <> '' ORDER BY sum_group_name "
-        )
-        while(rs.next()) columnSensorSumGroup.addCombo(rs.getString(1).trim())
-        rs.close()
-
-        val columnSensorGroup = ColumnString(tableName, "group_name", "Группа датчиков", STRING_COLUMN_WIDTH)
-        columnSensorGroup.addCombo("")
-        rs = stm.executeQuery(
-            " SELECT DISTINCT group_name FROM $tableName WHERE object_id = $parentObjectID AND group_name IS NOT NULL AND group_name <> '' ORDER BY group_name "
-        )
-        while(rs.next()) columnSensorGroup.addCombo(rs.getString(1).trim())
-        rs.close()
-
-        val columnSensorDescr = ColumnString(tableName, "descr", "Описание", STRING_COLUMN_WIDTH)
-        columnSensorDescr.isRequired = true
-        columnSensorDescr.isEditable = !isEquip
-
-        val columnSensorPortNum = ColumnInt(tableName, "port_num", "Номер входа", 10)
-        columnSensorPortNum.minValue = 0
-        columnSensorPortNum.maxValue = 65535
-
-        columnSensorType = ColumnRadioButton(tableName, "sensor_type", "Тип датчика")
-        columnSensorType.formPinMode = FormPinMode.OFF
-        columnSensorType.isEditable = !isEquip
-        //--- расставляем типы датчиков в завимости от их "популярности" ( т.е. частоты использования )
-        val hmSensorDescr = mutableMapOf<Int, String>()
-        hmSensorDescr.putAll(SensorConfig.hmSensorDescr)
-        rs = stm.executeQuery(" SELECT sensor_type, COUNT( * ) AS aaa FROM MMS_sensor GROUP BY sensor_type ORDER BY aaa DESC ")
-        while(rs.next()) {
-            val sensorType = rs.getInt(1)
-            //--- теоретически возможны неправильные/несуществующие/устаревшие ( в т.ч. нулевые ) типы датчиков
-            val sensorDescr = hmSensorDescr[sensorType] ?: continue
-
-            columnSensorType.addChoice(sensorType, sensorDescr)
-            hmSensorDescr.remove(sensorType)
-            //--- самый популярный тип датчика установим в качестве типа по-умолчанию
-            if(columnSensorType.defaultValue == null) columnSensorType.defaultValue = sensorType
+        val columnSensorSumGroup = ColumnString(tableName, "sum_group_name", "Группа для суммирования", STRING_COLUMN_WIDTH).apply {
+            addCombo("")
+            val rs = stm.executeQuery(
+                " SELECT DISTINCT sum_group_name FROM $tableName WHERE object_id = $parentObjectID AND sum_group_name IS NOT NULL AND sum_group_name <> '' ORDER BY sum_group_name "
+            )
+            while (rs.next()) addCombo(rs.getString(1).trim())
+            rs.close()
         }
-        rs.close()
-        //--- добавить остатки непопулярных датчиков
-        for((sensorType, descr) in hmSensorDescr) columnSensorType.addChoice(sensorType, descr)
 
-        val columnSensorSerialNo = ColumnString(tableName, "serial_no", "Серийный номер", STRING_COLUMN_WIDTH)
-        columnSensorSerialNo.formPinMode = FormPinMode.OFF
-        columnSensorSerialNo.isEditable = !isEquip
-        val columnSensorWorkBegin = ColumnDate3Int(tableName, "beg_ye", "beg_mo", "beg_da", "Дата начала эксплуатации")
-        columnSensorWorkBegin.isEditable = !isEquip
+        val columnSensorGroup = ColumnString(tableName, "group_name", "Группа датчиков", STRING_COLUMN_WIDTH).apply {
+            addCombo("")
+            val rs = stm.executeQuery(
+                " SELECT DISTINCT group_name FROM $tableName WHERE object_id = $parentObjectID AND group_name IS NOT NULL AND group_name <> '' ORDER BY group_name "
+            )
+            while (rs.next()) addCombo(rs.getString(1).trim())
+            rs.close()
+        }
+
+        val columnSensorDescr = ColumnString(tableName, "descr", "Описание", STRING_COLUMN_WIDTH).apply {
+            isRequired = true
+            isEditable = !isEquip
+        }
+
+        val columnSensorPortNum = ColumnInt(tableName, "port_num", "Номер входа", 10).apply {
+            minValue = 0
+            maxValue = 65535
+        }
+
+        columnSensorType = ColumnComboBox(tableName, "sensor_type", "Тип датчика").apply {
+            formPinMode = FormPinMode.OFF
+            isEditable = !isEquip
+
+            //--- arrange the types of sensors depending on their "popularity" (ie frequency of use)
+            val hmSensorDescr = mutableMapOf<Int, String>()
+            hmSensorDescr.putAll(SensorConfig.hmSensorDescr)
+            val rs = stm.executeQuery(" SELECT sensor_type, COUNT( * ) AS aaa FROM MMS_sensor GROUP BY sensor_type ORDER BY aaa DESC ")
+            while (rs.next()) {
+                val sensorType = rs.getInt(1)
+                //--- theoretically, incorrect / non-existent / obsolete (including zero) types of sensors are possible
+                val sensorDescr = hmSensorDescr[sensorType] ?: continue
+
+                addChoice(sensorType, sensorDescr)
+                hmSensorDescr.remove(sensorType)
+                //--- the most popular sensor type is set as the default type
+                if (defaultValue == null) defaultValue = sensorType
+            }
+            rs.close()
+            //--- add leftovers from unpopular sensors
+            for ((sensorType, descr) in hmSensorDescr) addChoice(sensorType, descr)
+        }
+
+        val columnSensorSerialNo = ColumnString(tableName, "serial_no", "Серийный номер", STRING_COLUMN_WIDTH).apply {
+            formPinMode = FormPinMode.OFF
+            isEditable = !isEquip
+        }
+
+        val columnSensorWorkBegin = ColumnDate3Int(tableName, "beg_ye", "beg_mo", "beg_da", "Дата начала эксплуатации").apply {
+            isEditable = !isEquip
+        }
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        val arrGeoSensor = intArrayOf(SensorConfig.SENSOR_GEO)
-        val arrWorkSensor = intArrayOf(SensorConfig.SENSOR_WORK)
-        val arrWorkSignalSensor = intArrayOf(SensorConfig.SENSOR_WORK, SensorConfig.SENSOR_SIGNAL)
-        val arrCounterSensor = intArrayOf( /*SensorConfig.SENSOR_LIQUID_USING,*/ SensorConfig.SENSOR_MASS_FLOW, SensorConfig.SENSOR_VOLUME_FLOW)
-        val arrPhasedEnergoSensorOnly = intArrayOf(
-            SensorConfig.SENSOR_ENERGO_VOLTAGE,
-            SensorConfig.SENSOR_ENERGO_CURRENT,
-            SensorConfig.SENSOR_ENERGO_POWER_KOEF,
-            SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
-            SensorConfig.SENSOR_ENERGO_POWER_REACTIVE,
-            SensorConfig.SENSOR_ENERGO_POWER_FULL
-        )
-        val arrAnalogSensorOnly = intArrayOf(
-            SensorConfig.SENSOR_LIQUID_FLOW_CALC,
-            SensorConfig.SENSOR_LIQUID_LEVEL,
-            SensorConfig.SENSOR_WEIGHT,
-            SensorConfig.SENSOR_TURN,
-            SensorConfig.SENSOR_PRESSURE,
-            SensorConfig.SENSOR_TEMPERATURE,
-            SensorConfig.SENSOR_VOLTAGE,
-            SensorConfig.SENSOR_POWER,
-            SensorConfig.SENSOR_DENSITY,
-            SensorConfig.SENSOR_ENERGO_VOLTAGE,
-            SensorConfig.SENSOR_ENERGO_CURRENT,
-            SensorConfig.SENSOR_ENERGO_POWER_KOEF,
-            SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
-            SensorConfig.SENSOR_ENERGO_POWER_REACTIVE,
-            SensorConfig.SENSOR_ENERGO_POWER_FULL
-        )
-        //--- параметры analog_max_view ( Максимальная скорость ) и analog_max_limit ( Ограничение скорости [км/ч] ) используются также в настройках геодатчиков
-        val arrAnalogAndGeoSensor = intArrayOf(
-            SensorConfig.SENSOR_GEO,
-            SensorConfig.SENSOR_LIQUID_FLOW_CALC,
-            SensorConfig.SENSOR_LIQUID_LEVEL,
-            SensorConfig.SENSOR_WEIGHT,
-            SensorConfig.SENSOR_TURN,
-            SensorConfig.SENSOR_PRESSURE,
-            SensorConfig.SENSOR_TEMPERATURE,
-            SensorConfig.SENSOR_VOLTAGE,
-            SensorConfig.SENSOR_POWER,
-            SensorConfig.SENSOR_DENSITY,
-            SensorConfig.SENSOR_ENERGO_VOLTAGE,
-            SensorConfig.SENSOR_ENERGO_CURRENT,
-            SensorConfig.SENSOR_ENERGO_POWER_KOEF,
-            SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
-            SensorConfig.SENSOR_ENERGO_POWER_REACTIVE,
-            SensorConfig.SENSOR_ENERGO_POWER_FULL
-        )
-        val arrLLSensor = intArrayOf(SensorConfig.SENSOR_LIQUID_LEVEL)
-        val arrGeoAndSummarySensor = intArrayOf(
-            SensorConfig.SENSOR_GEO,
+        val signalSensorType = setOf(SensorConfig.SENSOR_SIGNAL)
+        val geoSensorType = setOf(SensorConfig.SENSOR_GEO)
+        val workSensorType = setOf(SensorConfig.SENSOR_WORK)
+
+        val counterSensorTypes = setOf(SensorConfig.SENSOR_MASS_FLOW, SensorConfig.SENSOR_VOLUME_FLOW)
+
+        val liquidSummarySensorTypes = setOf(
             SensorConfig.SENSOR_MASS_ACCUMULATED,
             SensorConfig.SENSOR_VOLUME_ACCUMULATED,
+        )
+        val energoSummarySensorTypes = setOf(
             SensorConfig.SENSOR_ENERGO_COUNT_AD,
             SensorConfig.SENSOR_ENERGO_COUNT_AR,
             SensorConfig.SENSOR_ENERGO_COUNT_RD,
             SensorConfig.SENSOR_ENERGO_COUNT_RR
         )
 
-        //--- гео-датчики ( координат, скорости и пробега ) ----------------------------------------------------------------------------------------
+        val liquidLevelSensorType = setOf(SensorConfig.SENSOR_LIQUID_LEVEL)
+        val phasedEnergoSensorTypes = setOf(
+            SensorConfig.SENSOR_ENERGO_VOLTAGE,
+            SensorConfig.SENSOR_ENERGO_CURRENT,
+            SensorConfig.SENSOR_ENERGO_POWER_KOEF,
+            SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
+            SensorConfig.SENSOR_ENERGO_POWER_REACTIVE,
+            SensorConfig.SENSOR_ENERGO_POWER_FULL
+        )
+        val analogSensorTypes = setOf(
+            SensorConfig.SENSOR_LIQUID_FLOW_CALC,
+            SensorConfig.SENSOR_WEIGHT,
+            SensorConfig.SENSOR_TURN,
+            SensorConfig.SENSOR_PRESSURE,
+            SensorConfig.SENSOR_TEMPERATURE,
+            SensorConfig.SENSOR_VOLTAGE,
+            SensorConfig.SENSOR_POWER,
+            SensorConfig.SENSOR_DENSITY,
+        ) + liquidLevelSensorType + phasedEnergoSensorTypes
 
-        val columnMinMovingTime = ColumnInt(tableName, "min_moving_time", "Минимальное время движения [сек]", 10, 1)
-        columnMinMovingTime.formPinMode = FormPinMode.OFF
-        columnMinMovingTime.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrGeoSensor))
+        //--- geo-sensors (coordinates, speed and mileage) ----------------------------------------------------------------------------------------
 
-        val columnMinParkingTime = ColumnInt(tableName, "min_parking_time", "Минимальное время стоянки [сек]", 10, 300)
-        columnMinParkingTime.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrGeoSensor))
+        val columnMinMovingTime = ColumnInt(tableName, "min_moving_time", "Минимальное время движения [сек]", 10, 1).apply {
+            formPinMode = FormPinMode.OFF
+            addFormVisible(columnSensorType, true, geoSensorType)
+        }
 
-        val columnMinOverSpeedTime = ColumnInt(tableName, "min_over_speed_time", "Минимальное время превышения скорости [сек]", 10, 60)
-        columnMinOverSpeedTime.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrGeoSensor))
+        val columnMinParkingTime = ColumnInt(tableName, "min_parking_time", "Минимальное время стоянки [сек]", 10, 300).apply {
+            addFormVisible(columnSensorType, true, geoSensorType)
+        }
 
-        val columnIsAbsoluteRun = ColumnBoolean(tableName, "is_absolute_run", "Абсолютный пробег", true)
-        columnIsAbsoluteRun.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrGeoSensor))
+        val columnMinOverSpeedTime = ColumnInt(tableName, "min_over_speed_time", "Минимальное время превышения скорости [сек]", 10, 60).apply {
+            addFormVisible(columnSensorType, true, geoSensorType)
+        }
 
-        val columnSpeedRoundRule = ColumnComboBox(tableName, "speed_round_rule", "Правило округления скорости", SensorConfigGeo.SPEED_ROUND_RULE_STANDART)
-        columnSpeedRoundRule.addChoice(SensorConfigGeo.SPEED_ROUND_RULE_LESS, "В меньшую сторону")
-        columnSpeedRoundRule.addChoice(SensorConfigGeo.SPEED_ROUND_RULE_STANDART, "Стандартно")
-        columnSpeedRoundRule.addChoice(SensorConfigGeo.SPEED_ROUND_RULE_GREATER, "В большую сторону")
-        columnSpeedRoundRule.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrGeoSensor))
+        val columnIsAbsoluteRun = ColumnBoolean(tableName, "is_absolute_run", "Абсолютный пробег", true).apply {
+            addFormVisible(columnSensorType, true, geoSensorType)
+        }
 
-        val columnRunKoef = ColumnDouble(tableName, "run_koef", "Коэффициент учёта погрешности", 10, 3, 1.0)
-        columnRunKoef.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrGeoSensor))
+        val columnSpeedRoundRule = ColumnComboBox(tableName, "speed_round_rule", "Правило округления скорости", SensorConfigGeo.SPEED_ROUND_RULE_STANDART).apply {
+            addChoice(SensorConfigGeo.SPEED_ROUND_RULE_LESS, "В меньшую сторону")
+            addChoice(SensorConfigGeo.SPEED_ROUND_RULE_STANDART, "Стандартно")
+            addChoice(SensorConfigGeo.SPEED_ROUND_RULE_GREATER, "В большую сторону")
+            addFormVisible(columnSensorType, true, geoSensorType)
+        }
 
-        val columnIsUsePos = ColumnBoolean(tableName, "is_use_pos", "Использовать местоположение", true)
-        columnIsUsePos.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrGeoSensor))
+        val columnRunKoef = ColumnDouble(tableName, "run_koef", "Коэффициент учёта погрешности", 10, 3, 1.0).apply {
+            addFormVisible(columnSensorType, true, geoSensorType)
+        }
 
-        val columnIsUseSpeed = ColumnBoolean(tableName, "is_use_speed", "Использовать скорость", true)
-        columnIsUseSpeed.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrGeoSensor))
+        val columnIsUsePos = ColumnBoolean(tableName, "is_use_pos", "Использовать местоположение", true).apply {
+            addFormVisible(columnSensorType, true, geoSensorType)
+        }
 
-        val columnIsUseRun = ColumnBoolean(tableName, "is_use_run", "Использовать пробег", true)
-        columnIsUseRun.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrGeoSensor))
+        val columnIsUseSpeed = ColumnBoolean(tableName, "is_use_speed", "Использовать скорость", true).apply {
+            addFormVisible(columnSensorType, true, geoSensorType)
+        }
 
-        //--- дискретные датчики: время работы оборудования; сигналы -----------------------------------------------------------------------------
+        val columnIsUseRun = ColumnBoolean(tableName, "is_use_run", "Использовать пробег", true).apply {
+            addFormVisible(columnSensorType, true, geoSensorType)
+        }
 
-        val columnBoundValue = ColumnInt(tableName, "bound_value", "Граничное значение", 10, 0)
-        columnBoundValue.formPinMode = FormPinMode.OFF
-        columnBoundValue.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrWorkSignalSensor))
+        //--- discrete sensors: equipment operating time; -----------------------------------------------------------------------------
 
-        val columnActiveValue = ColumnRadioButton(tableName, "active_value", "Рабочее состояние", 1)
-        columnActiveValue.addChoice(0, "<= граничному значению")
-        columnActiveValue.addChoice(1, ">  граничного значения")
-        columnActiveValue.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrWorkSignalSensor))
+        val columnBoundValue = ColumnInt(tableName, "bound_value", "Граничное значение", 10, 0).apply {
+            formPinMode = FormPinMode.OFF
+            addFormVisible(columnSensorType, true, workSensorType + signalSensorType)
+        }
 
-        val columnMinOnTime = ColumnInt(tableName, "min_on_time", "Минимальное время работы [сек]", 10, 1)
-        columnMinOnTime.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrWorkSensor))
+        val columnActiveValue = ColumnRadioButton(tableName, "active_value", "Рабочее состояние", 1).apply {
+            addChoice(0, "<= граничному значению")
+            addChoice(1, ">  граничного значения")
+            addFormVisible(columnSensorType, true, workSensorType + signalSensorType)
+        }
 
-        val columnMinOffTime = ColumnInt(tableName, "min_off_time", "Минимальное время простоя [сек]", 10, 1)
-        columnMinOffTime.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrWorkSensor))
+        val columnMinOnTime = ColumnInt(tableName, "min_on_time", "Минимальное время работы [сек]", 10, 1).apply {
+            addFormVisible(columnSensorType, true, workSensorType)
+        }
 
-        val columnCalcInMoving = ColumnBoolean(tableName, "calc_in_moving", "Учитывать работу в движении", true)
-        columnCalcInMoving.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrWorkSensor))
+        val columnMinOffTime = ColumnInt(tableName, "min_off_time", "Минимальное время простоя [сек]", 10, 1).apply {
+            addFormVisible(columnSensorType, true, workSensorType)
+        }
 
-        val columnCalcInParking = ColumnBoolean(tableName, "calc_in_parking", "Учитывать работу на стоянках", true)
-        columnCalcInParking.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrWorkSensor))
+        val columnCalcInMoving = ColumnBoolean(tableName, "calc_in_moving", "Учитывать работу в движении", true).apply {
+            addFormVisible(columnSensorType, true, workSensorType)
+        }
 
-        val columnBegWorkValue = ColumnDouble(tableName, "beg_work_value", "Наработка на момент установки датчика [мото-час]", 10, 1, 0.0)
-        columnBegWorkValue.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrWorkSensor))
+        val columnCalcInParking = ColumnBoolean(tableName, "calc_in_parking", "Учитывать работу на стоянках", true).apply {
+            addFormVisible(columnSensorType, true, workSensorType)
+        }
+
+        val columnBegWorkValue = ColumnDouble(tableName, "beg_work_value", "Наработка на момент установки датчика [мото-час]", 10, 1, 0.0).apply {
+            addFormVisible(columnSensorType, true, workSensorType)
+        }
 
         val selfLinkOnTableName = "MMS_device_command_1"
-        val columnCommandIDOn = ColumnInt(selfLinkOnTableName, "id")
-        columnCommandIDOn.selfLinkTableName = "MMS_device_command"
-        val columnCommandOn = ColumnInt(tableName, "cmd_on_id", columnCommandIDOn)
-        val columnCommandDescrOn = ColumnString(selfLinkOnTableName, "descr", "Команда включения", STRING_COLUMN_WIDTH)
-        columnCommandDescrOn.selfLinkTableName = "MMS_device_command"
-        columnCommandDescrOn.formPinMode = FormPinMode.OFF
-        columnCommandDescrOn.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrWorkSensor))
 
-        columnCommandDescrOn.selectorAlias = "mms_device_command"
-        columnCommandDescrOn.addSelectorColumn(columnCommandOn, columnCommandIDOn)
-        columnCommandDescrOn.addSelectorColumn(columnCommandDescrOn)
+        val columnCommandIDOn = ColumnInt(selfLinkOnTableName, "id").apply {
+            selfLinkTableName = "MMS_device_command"
+        }
+        val columnCommandOn = ColumnInt(tableName, "cmd_on_id", columnCommandIDOn)
+        val columnCommandDescrOn = ColumnString(selfLinkOnTableName, "descr", "Команда включения", STRING_COLUMN_WIDTH).apply {
+            selfLinkTableName = "MMS_device_command"
+            formPinMode = FormPinMode.OFF
+            addFormVisible(columnSensorType, true, workSensorType)
+
+            selectorAlias = "mms_device_command"
+            addSelectorColumn(columnCommandOn, columnCommandIDOn)
+            addSelectorColumn(this)
+        }
 
         val selfLinkOffTableName = "MMS_device_command_2"
-        val columnCommandIDOff = ColumnInt(selfLinkOffTableName, "id")
-        columnCommandIDOff.selfLinkTableName = "MMS_device_command"
+
+        val columnCommandIDOff = ColumnInt(selfLinkOffTableName, "id").apply {
+            selfLinkTableName = "MMS_device_command"
+        }
         val columnCommandOff = ColumnInt(tableName, "cmd_off_id", columnCommandIDOff)
-        val columnCommandDescrOff = ColumnString(selfLinkOffTableName, "descr", "Команда отключения", STRING_COLUMN_WIDTH)
-        columnCommandDescrOff.selfLinkTableName = "MMS_device_command"
-        columnCommandDescrOff.formPinMode = FormPinMode.OFF
-        columnCommandDescrOff.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrWorkSensor))
+        val columnCommandDescrOff = ColumnString(selfLinkOffTableName, "descr", "Команда отключения", STRING_COLUMN_WIDTH).apply {
+            selfLinkTableName = "MMS_device_command"
+            formPinMode = FormPinMode.OFF
+            addFormVisible(columnSensorType, true, workSensorType)
 
-        columnCommandDescrOff.selectorAlias = "mms_device_command"
-        columnCommandDescrOff.addSelectorColumn(columnCommandOff, columnCommandIDOff)
-        columnCommandDescrOff.addSelectorColumn(columnCommandDescrOff)
+            selectorAlias = "mms_device_command"
+            addSelectorColumn(columnCommandOff, columnCommandIDOff)
+            addSelectorColumn(this)
+        }
 
-        val columnSignalOn = ColumnString(tableName, "signal_on", "Сигналы, разрешающие включение", STRING_COLUMN_WIDTH)
-        columnSignalOn.formPinMode = FormPinMode.OFF
-        columnSignalOn.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrWorkSensor))
+        val columnSignalOn = ColumnString(tableName, "signal_on", "Сигналы, разрешающие включение", STRING_COLUMN_WIDTH).apply {
+            formPinMode = FormPinMode.OFF
+            addFormVisible(columnSensorType, true, workSensorType)
+        }
 
-        val columnSignalOff = ColumnString(tableName, "signal_off", "Сигналы, разрешающие отключение", STRING_COLUMN_WIDTH)
-        columnSignalOff.formPinMode = FormPinMode.OFF
-        columnSignalOff.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrWorkSensor))
+        val columnSignalOff = ColumnString(tableName, "signal_off", "Сигналы, разрешающие отключение", STRING_COLUMN_WIDTH).apply {
+            formPinMode = FormPinMode.OFF
+            addFormVisible(columnSensorType, true, workSensorType)
+        }
 
-        //--- счётные датчики --------------------------------------------------------------------------------------------------
+        //--- for smoothable sensors (counting and analog sensors)
 
-        val columnCountValueSensor = ColumnInt(tableName, "count_value_sensor", "Кол-во счетных импульсов", 10, 1)
-        columnCountValueSensor.formPinMode = FormPinMode.OFF
-        columnCountValueSensor.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrCounterSensor))
+        val columnSmoothMethod = ColumnComboBox(tableName, "smooth_method", "Метод сглаживания", SensorConfig.SMOOTH_METOD_MEDIAN).apply {
+            addChoice(SensorConfig.SMOOTH_METOD_MEDIAN, "Медиана")
+            addChoice(SensorConfig.SMOOTH_METOD_AVERAGE, "Среднее арифметическое")
+            addChoice(SensorConfig.SMOOTH_METOD_AVERAGE_SQUARE, "Среднее квадратическое")
+            addChoice(SensorConfig.SMOOTH_METOD_AVERAGE_GEOMETRIC, "Среднее геометрическое")
+            addFormVisible(columnSensorType, false, signalSensorType + geoSensorType + workSensorType)
+        }
 
-        val columnCountValueData = ColumnDouble(tableName, "count_value_data", "Кол-во измеряемой величины [л, кг, кВт*ч]", 10, 3, 0.0)
-        columnCountValueData.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrCounterSensor))
+        val columnSmoothTime = ColumnInt(tableName, "smooth_time", "Период сглаживания [мин]", 10, 0).apply {
+            addFormVisible(columnSensorType, false, signalSensorType + geoSensorType + workSensorType)
+        }
+
+        //--- common for all sensors, except for geo and total sensors --------------------------------------------------------------------------------
+
+        val columnIgnoreMin = ColumnDouble(
+            aTableName = tableName,
+            aFieldName = "ignore_min_sensor",
+            aCaption = "Игнорировать показания датчика менее [ед.]",
+            aCols = 10,
+            aPrecision = -1,
+            aDefaultValue = 0.0,
+        ).apply {
+            formPinMode = FormPinMode.OFF
+            addFormVisible(columnSensorType, false, geoSensorType)
+        }
+
+        val columnIgnoreMax = ColumnDouble(
+            aTableName = tableName,
+            aFieldName = "ignore_max_sensor",
+            aCaption = "Игнорировать показания датчика более [ед.]",
+            aCols = 10,
+            aPrecision = -1,
+            aDefaultValue = Integer.MAX_VALUE.toDouble(),
+        ).apply {
+            addFormVisible(columnSensorType, false, geoSensorType)
+        }
+
+        //--- common for geo sensors, discrete, counting, liquid level, density, total mass and total volume
+
+        val columnLiquidName = ColumnString(tableName, "liquid_name", "Наименование топлива", STRING_COLUMN_WIDTH).apply {
+            formPinMode = FormPinMode.OFF
+            addFormVisible(
+                columnSensorType,
+                true,
+                geoSensorType + workSensorType + counterSensorTypes + liquidSummarySensorTypes + liquidLevelSensorType
+            )
+        }
+
+        //--- common for geo and discrete sensors ------------------------------------------------------------------------------------------------
+
+        val columnLiquidNorm = ColumnDouble(tableName, "liquid_norm", "-", 10, 1, 0.0).apply {
+            formPinMode = FormPinMode.OFF
+            addFormVisible(columnSensorType, true, geoSensorType + workSensorType)
+            addFormCaption(columnSensorType, "Норматив расхода топлива [л/100км]", geoSensorType)
+            addFormCaption(columnSensorType, "Норматив расхода топлива [л/час]", workSensorType)
+        }
+
+        //--- counting sensors --------------------------------------------------------------------------------------------------
 
         //        ColumnDouble columnFuelUsingMax = new ColumnDouble(  tableName, "liquid_using_max", "Максимально возможный расход [л/час]", 10, 0, 100.0  );
         //            columnFuelUsingMax.addFormVisible(  new FormColumnVisibleData(  columnSensorType, true, new int[] { SensorConfig.SENSOR_LIQUID_USING }  )  );
@@ -274,137 +333,110 @@ class mSensor : mAbstract() {
         //        ColumnDouble columnFuelUsingBorder = new ColumnDouble(  tableName, "liquid_using_border", "Граница холостого хода [л/час]", 10, 0, 1.0  );
         //            columnFuelUsingBorder.addFormVisible(  new FormColumnVisibleData(  columnSensorType, true, new int[] { SensorConfig.SENSOR_LIQUID_USING }  )  );
 
-        //--- аналоговые/измерительные датчики ---------------------------------------------------------------------------------
+        //--- applies only to readings of electricity meters
 
-        val columnAnalogDim = ColumnString(tableName, "analog_dim", "Единица измерения", STRING_COLUMN_WIDTH)
-        columnAnalogDim.formPinMode = FormPinMode.OFF
-        columnAnalogDim.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrAnalogSensorOnly))
+        val columnEnergoPhase = ColumnRadioButton(tableName, "energo_phase", "Фаза", 0).apply {
+            addChoice(0, "По сумме фаз")
+            addChoice(1, "A")
+            addChoice(2, "B")
+            addChoice(3, "C")
+            addFormVisible(columnSensorType, true, phasedEnergoSensorTypes)
+        }
 
-        val columnAnalogMinView = ColumnDouble(tableName, "analog_min_view", "Минимальное отображаемое значение", 10, 3, 0.0)
-        columnAnalogMinView.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrAnalogSensorOnly))
+        //--- analog / measuring sensors ---------------------------------------------------------------------------------
 
-        val columnAnalogMaxView = ColumnDouble(tableName, "analog_max_view", "-", 10, 3, 100.0)
-        columnAnalogMaxView.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrAnalogSensorOnly))
-        columnAnalogMaxView.addFormCaption(FormColumnCaptionData(columnSensorType, "Максимальное отображаемое значение", arrAnalogSensorOnly))
+        val columnAnalogMinView = ColumnDouble(tableName, "analog_min_view", "Минимальное отображаемое значение", 10, 3, 0.0).apply {
+            formPinMode = FormPinMode.OFF
+            addFormVisible(columnSensorType, true, analogSensorTypes)
+        }
 
-        val columnAnalogMinLimit = ColumnDouble(tableName, "analog_min_limit", "Минимальное рабочее значение", 10, 3, 0.0)
-        columnAnalogMinLimit.formPinMode = FormPinMode.OFF
-        columnAnalogMinLimit.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrAnalogSensorOnly))
+        val columnAnalogMaxView = ColumnDouble(tableName, "analog_max_view", "-", 10, 3, 100.0).apply {
+            addFormVisible(columnSensorType, true, analogSensorTypes)
+            addFormCaption(columnSensorType, "Максимальное отображаемое значение", analogSensorTypes)
+        }
 
-        val columnAnalogMaxLimit = ColumnDouble(tableName, "analog_max_limit", "-", 10, 3, 100.0)
-        columnAnalogMaxLimit.formPinMode = FormPinMode.OFF
-        columnAnalogMaxLimit.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrAnalogAndGeoSensor))
-        columnAnalogMaxLimit.addFormCaption(FormColumnCaptionData(columnSensorType, "Ограничение скорости [км/ч]", arrGeoSensor))
-        columnAnalogMaxLimit.addFormCaption(FormColumnCaptionData(columnSensorType, "Максимальное рабочее значение", arrAnalogSensorOnly))
+        val columnAnalogMinLimit = ColumnDouble(tableName, "analog_min_limit", "Минимальное рабочее значение", 10, 3, 0.0).apply {
+            formPinMode = FormPinMode.OFF
+            addFormVisible(columnSensorType, true, analogSensorTypes)
+        }
 
-        //--- применяется только для показаний электросчётчиков
+        //--- geo + analog / measuring sensors ---------------------------------------------------------------------------------
 
-        val columnEnergoPhase = ColumnRadioButton(tableName, "energo_phase", "Фаза", 1)
-        columnEnergoPhase.addChoice(1, "A")
-        columnEnergoPhase.addChoice(2, "B")
-        columnEnergoPhase.addChoice(3, "C")
-        columnEnergoPhase.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrPhasedEnergoSensorOnly))
+        val columnAnalogMaxLimit = ColumnDouble(tableName, "analog_max_limit", "-", 10, 3, 100.0).apply {
+            formPinMode = FormPinMode.OFF
+            addFormVisible(columnSensorType, true, analogSensorTypes + geoSensorType)
+            addFormCaption(columnSensorType, "Ограничение скорости [км/ч]", geoSensorType)
+            addFormCaption(columnSensorType, "Максимальное рабочее значение", analogSensorTypes)
+        }
 
-        //--- пока применяются только для датчиков уровня жидкости ( топлива )
+        //--- while they are only used for liquid (fuel) level sensors
 
-        val columnAnalogUsingMinLen = ColumnInt(tableName, "analog_using_min_len", "-", 10, 1)
-        columnAnalogUsingMinLen.formPinMode = FormPinMode.OFF
-        columnAnalogUsingMinLen.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrLLSensor))
-        columnAnalogUsingMinLen.addFormCaption(FormColumnCaptionData(columnSensorType, "Минимальная продолжительность расхода [сек]", arrLLSensor))
-        val columnAnalogIsUsingCalc = ColumnBoolean(tableName, "analog_is_using_calc", "-", false)
-        columnAnalogIsUsingCalc.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrLLSensor))
-        columnAnalogIsUsingCalc.addFormCaption(FormColumnCaptionData(columnSensorType, "Использовать расчётный расход за время заправки/слива", arrLLSensor))
+        val columnAnalogUsingMinLen = ColumnInt(tableName, "analog_using_min_len", "-", 10, 1).apply {
+            formPinMode = FormPinMode.OFF
+            addFormVisible(columnSensorType, true, liquidLevelSensorType)
+            addFormCaption(columnSensorType, "Минимальная продолжительность расхода [сек]", liquidLevelSensorType)
+        }
+        val columnAnalogIsUsingCalc = ColumnBoolean(tableName, "analog_is_using_calc", "-", false).apply {
+            addFormVisible(columnSensorType, true, liquidLevelSensorType)
+            addFormCaption(columnSensorType, "Использовать расчётный расход за время заправки/слива", liquidLevelSensorType)
+        }
 
-        val columnAnalogDetectInc = ColumnDouble(tableName, "analog_detect_inc", "-", 10, 0, 1.0)
-        columnAnalogDetectInc.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrLLSensor))
-        columnAnalogDetectInc.addFormCaption(FormColumnCaptionData(columnSensorType, "Детектор заправки [л/час]", arrLLSensor))
-        val columnAnalogDetectIncMinDiff = ColumnDouble(tableName, "analog_detect_inc_min_diff", "-", 10, 0, 0.0)
-        columnAnalogDetectIncMinDiff.formPinMode = FormPinMode.ON
-        columnAnalogDetectIncMinDiff.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrLLSensor))
-        columnAnalogDetectIncMinDiff.addFormCaption(FormColumnCaptionData(columnSensorType, "Минимальный объём заправки [л]", arrLLSensor))
-        val columnAnalogDetectIncMinLen = ColumnInt(tableName, "analog_detect_inc_min_len", "-", 10, 1)
-        columnAnalogDetectIncMinLen.formPinMode = FormPinMode.ON
-        columnAnalogDetectIncMinLen.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrLLSensor))
-        columnAnalogDetectIncMinLen.addFormCaption(FormColumnCaptionData(columnSensorType, "Минимальная продолжительность заправки [сек]", arrLLSensor))
-        val columnAnalogIncAddTimeBefore = ColumnInt(tableName, "analog_inc_add_time_before", "-", 10, 0)
-        columnAnalogIncAddTimeBefore.formPinMode = FormPinMode.ON
-        columnAnalogIncAddTimeBefore.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrLLSensor))
-        columnAnalogIncAddTimeBefore.addFormCaption(FormColumnCaptionData(columnSensorType, "Добавить время к началу заправки [сек]", arrLLSensor))
-        val columnAnalogIncAddTimeAfter = ColumnInt(tableName, "analog_inc_add_time_after", "-", 10, 0)
-        columnAnalogIncAddTimeAfter.formPinMode = FormPinMode.ON
-        columnAnalogIncAddTimeAfter.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrLLSensor))
-        columnAnalogIncAddTimeAfter.addFormCaption(FormColumnCaptionData(columnSensorType, "Добавить время к концу заправки [сек]", arrLLSensor))
+        val columnAnalogDetectInc = ColumnDouble(tableName, "analog_detect_inc", "-", 10, 0, 1.0).apply {
+            addFormVisible(columnSensorType, true, liquidLevelSensorType)
+            addFormCaption(columnSensorType, "Детектор заправки [л/час]", liquidLevelSensorType)
+        }
+        val columnAnalogDetectIncMinDiff = ColumnDouble(tableName, "analog_detect_inc_min_diff", "-", 10, 0, 0.0).apply {
+            formPinMode = FormPinMode.ON
+            addFormVisible(columnSensorType, true, liquidLevelSensorType)
+            addFormCaption(columnSensorType, "Минимальный объём заправки", liquidLevelSensorType)
+        }
+        val columnAnalogDetectIncMinLen = ColumnInt(tableName, "analog_detect_inc_min_len", "-", 10, 1).apply {
+            formPinMode = FormPinMode.ON
+            addFormVisible(columnSensorType, true, liquidLevelSensorType)
+            addFormCaption(columnSensorType, "Минимальная продолжительность заправки [сек]", liquidLevelSensorType)
+        }
+        val columnAnalogIncAddTimeBefore = ColumnInt(tableName, "analog_inc_add_time_before", "-", 10, 0).apply {
+            formPinMode = FormPinMode.ON
+            addFormVisible(columnSensorType, true, liquidLevelSensorType)
+            addFormCaption(columnSensorType, "Добавить время к началу заправки [сек]", liquidLevelSensorType)
+        }
+        val columnAnalogIncAddTimeAfter = ColumnInt(tableName, "analog_inc_add_time_after", "-", 10, 0).apply {
+            formPinMode = FormPinMode.ON
+            addFormVisible(columnSensorType, true, liquidLevelSensorType)
+            addFormCaption(columnSensorType, "Добавить время к концу заправки [сек]", liquidLevelSensorType)
+        }
 
-        val columnAnalogDetectDec = ColumnDouble(tableName, "analog_detect_dec", "-", 10, 0, 1.0)
-        columnAnalogDetectDec.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrLLSensor))
-        columnAnalogDetectDec.addFormCaption(FormColumnCaptionData(columnSensorType, "Детектор слива [л/час]", arrLLSensor))
-        val columnAnalogDetectDecMinDiff = ColumnDouble(tableName, "analog_detect_dec_min_diff", "-", 10, 0, 0.0)
-        columnAnalogDetectDecMinDiff.formPinMode = FormPinMode.ON
-        columnAnalogDetectDecMinDiff.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrLLSensor))
-        columnAnalogDetectDecMinDiff.addFormCaption(FormColumnCaptionData(columnSensorType, "Минимальный объём слива [л]", arrLLSensor))
-        val columnAnalogDetectDecMinLen = ColumnInt(tableName, "analog_detect_dec_min_len", "-", 10, 1)
-        columnAnalogDetectDecMinLen.formPinMode = FormPinMode.ON
-        columnAnalogDetectDecMinLen.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrLLSensor))
-        columnAnalogDetectDecMinLen.addFormCaption(FormColumnCaptionData(columnSensorType, "Минимальная продолжительность слива [сек]", arrLLSensor))
-        val columnAnalogDecAddTimeBefore = ColumnInt(tableName, "analog_dec_add_time_before", "-", 10, 0)
-        columnAnalogDecAddTimeBefore.formPinMode = FormPinMode.ON
-        columnAnalogDecAddTimeBefore.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrLLSensor))
-        columnAnalogDecAddTimeBefore.addFormCaption(FormColumnCaptionData(columnSensorType, "Добавить время к началу слива [сек]", arrLLSensor))
-        val columnAnalogDecAddTimeAfter = ColumnInt(tableName, "analog_dec_add_time_after", "-", 10, 0)
-        columnAnalogDecAddTimeAfter.formPinMode = FormPinMode.ON
-        columnAnalogDecAddTimeAfter.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrLLSensor))
-        columnAnalogDecAddTimeAfter.addFormCaption(FormColumnCaptionData(columnSensorType, "Добавить время к концу слива [сек]", arrLLSensor))
+        val columnAnalogDetectDec = ColumnDouble(tableName, "analog_detect_dec", "-", 10, 0, 1.0).apply {
+            addFormVisible(columnSensorType, true, liquidLevelSensorType)
+            addFormCaption(columnSensorType, "Детектор слива [л/час]", liquidLevelSensorType)
+        }
+        val columnAnalogDetectDecMinDiff = ColumnDouble(tableName, "analog_detect_dec_min_diff", "-", 10, 0, 0.0).apply {
+            formPinMode = FormPinMode.ON
+            addFormVisible(columnSensorType, true, liquidLevelSensorType)
+            addFormCaption(columnSensorType, "Минимальный объём слива", liquidLevelSensorType)
+        }
+        val columnAnalogDetectDecMinLen = ColumnInt(tableName, "analog_detect_dec_min_len", "-", 10, 1).apply {
+            formPinMode = FormPinMode.ON
+            addFormVisible(columnSensorType, true, liquidLevelSensorType)
+            addFormCaption(columnSensorType, "Минимальная продолжительность слива [сек]", liquidLevelSensorType)
+        }
+        val columnAnalogDecAddTimeBefore = ColumnInt(tableName, "analog_dec_add_time_before", "-", 10, 0).apply {
+            formPinMode = FormPinMode.ON
+            addFormVisible(columnSensorType, true, liquidLevelSensorType)
+            addFormCaption(columnSensorType, "Добавить время к началу слива [сек]", liquidLevelSensorType)
+        }
+        val columnAnalogDecAddTimeAfter = ColumnInt(tableName, "analog_dec_add_time_after", "-", 10, 0).apply {
+            formPinMode = FormPinMode.ON
+            addFormVisible(columnSensorType, true, liquidLevelSensorType)
+            addFormCaption(columnSensorType, "Добавить время к концу слива [сек]", liquidLevelSensorType)
+        }
 
-        val columnSmoothMethod = ColumnComboBox(tableName, "smooth_method", "Метод сглаживания", SensorConfig.SMOOTH_METOD_MEDIAN)
-        columnSmoothMethod.addChoice(SensorConfig.SMOOTH_METOD_MEDIAN, "Медиана")
-        columnSmoothMethod.addChoice(SensorConfig.SMOOTH_METOD_AVERAGE, "Среднее арифметическое")
-        columnSmoothMethod.addChoice(SensorConfig.SMOOTH_METOD_AVERAGE_SQUARE, "Среднее квадратическое")
-        columnSmoothMethod.addChoice(SensorConfig.SMOOTH_METOD_AVERAGE_GEOMETRIC, "Среднее геометрическое")
-        columnSmoothMethod.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrAnalogSensorOnly))
+        //--- any calibrable sensors ---
 
-        val columnSmoothTime = ColumnInt(tableName, "smooth_time", "Период сглаживания [мин]", 10, 0)
-        columnSmoothTime.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrAnalogSensorOnly))
-
-        columnCalibrationText = ColumnString(tableName, "_calibration_text", "Тарировка датчика", 20, STRING_COLUMN_WIDTH, 64000)
-        columnCalibrationText.addFormVisible(FormColumnVisibleData(columnSensorType, true, arrAnalogSensorOnly))
-        columnCalibrationText.isVirtual = true
-
-        //--- общее для всех датчиков, кроме гео и суммарных датчиков --------------------------------------------------------------------------------
-
-        val columnAnalogIgnoreMin = ColumnInt(tableName, "ignore_min_sensor", "Игнорировать показания датчика менее [ед.]", 10, 0)
-        columnAnalogIgnoreMin.formPinMode = FormPinMode.OFF
-        columnAnalogIgnoreMin.addFormVisible(FormColumnVisibleData(columnSensorType, false, arrGeoAndSummarySensor))
-
-        val columnAnalogIgnoreMax = ColumnInt(tableName, "ignore_max_sensor", "Игнорировать показания датчика более [ед.]", 10, Integer.MAX_VALUE)
-        columnAnalogIgnoreMax.addFormVisible(FormColumnVisibleData(columnSensorType, false, arrGeoAndSummarySensor))
-
-        //--- общее для гео, дискретных, счётных и уровня жидкости датчиков ----------------------------------------------------------------------
-
-        val columnLiquidName = ColumnString(tableName, "liquid_name", "Наименование топлива", STRING_COLUMN_WIDTH)
-        columnLiquidName.formPinMode = FormPinMode.OFF
-        columnLiquidName.addFormVisible(
-            FormColumnVisibleData(
-                columnSensorType, true, intArrayOf(
-                    SensorConfig.SENSOR_GEO,
-                    SensorConfig.SENSOR_WORK,
-                    //SensorConfig.SENSOR_LIQUID_USING, - вместо него буду два новых датчика - SENSOR_MASS_FLOW и SENSOR_VOLUME_FLOW
-                    SensorConfig.SENSOR_LIQUID_LEVEL,
-                    SensorConfig.SENSOR_DENSITY,
-                    SensorConfig.SENSOR_MASS_FLOW,
-                    SensorConfig.SENSOR_VOLUME_FLOW,
-                    SensorConfig.SENSOR_MASS_ACCUMULATED,
-                    SensorConfig.SENSOR_VOLUME_ACCUMULATED
-                )
-            )
-        )
-
-        //--- общее для гео и дискретных датчиков ------------------------------------------------------------------------------------------------
-
-        val columnLiquidNorm = ColumnDouble(tableName, "liquid_norm", "-", 10, 1, 0.0)
-        columnLiquidNorm.formPinMode = FormPinMode.OFF
-        columnLiquidNorm.addFormVisible(FormColumnVisibleData(columnSensorType, true, intArrayOf(SensorConfig.SENSOR_GEO, SensorConfig.SENSOR_WORK)))
-        columnLiquidNorm.addFormCaption(FormColumnCaptionData(columnSensorType, "Норматив расхода топлива [л/100км]", intArrayOf(SensorConfig.SENSOR_GEO)))
-        columnLiquidNorm.addFormCaption(FormColumnCaptionData(columnSensorType, "Норматив расхода топлива [л/час]", intArrayOf(SensorConfig.SENSOR_WORK)))
+        columnCalibrationText = ColumnString(tableName, "_calibration_text", "Тарировка датчика", 20, STRING_COLUMN_WIDTH, 64000).apply {
+            addFormVisible(columnSensorType, false, signalSensorType + geoSensorType + workSensorType)
+            isVirtual = true
+        }
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -413,26 +445,25 @@ class mSensor : mAbstract() {
         alTableHiddenColumn.add(columnCommandOn)
         alTableHiddenColumn.add(columnCommandOff)
 
-        if(isEquip) {
+        if (isEquip) {
             alTableHiddenColumn.add(columnSensorSumGroup)
             alTableHiddenColumn.add(columnSensorGroup)
-            addTableColumn(columnSensorDescr)
-            alTableHiddenColumn.add(columnSensorPortNum)
-            alTableHiddenColumn.add(columnSensorType)
-            addTableColumn(columnSensorSerialNo)
-            addTableColumn(columnSensorWorkBegin)
-            addTableColumn(columnBegWorkValue)
         } else {
             alTableGroupColumn.add(columnSensorSumGroup)
             alTableGroupColumn.add(columnSensorGroup)
-            //            addTableColumn(  columnSensorSumGroup  );
-            //            addTableColumn(  columnSensorGroup  );
-
-            addTableColumn(columnSensorDescr)
+        }
+        addTableColumn(columnSensorDescr)
+        if (isEquip) {
+            alTableHiddenColumn.add(columnSensorPortNum)
+            alTableHiddenColumn.add(columnSensorType)
+        } else {
             addTableColumn(columnSensorPortNum)
             addTableColumn(columnSensorType)
-            addTableColumn(columnSensorSerialNo)
-            addTableColumn(columnSensorWorkBegin)
+        }
+        addTableColumn(columnSensorSerialNo)
+        addTableColumn(columnSensorWorkBegin)
+        if (isEquip) {
+            addTableColumn(columnBegWorkValue)
         }
 
         alFormHiddenColumn.add(columnID!!)
@@ -447,23 +478,22 @@ class mSensor : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        if(isEquip) {
+        if (isEquip) {
             alFormHiddenColumn.add(columnSensorSumGroup)
             alFormHiddenColumn.add(columnSensorGroup)
-            alFormColumn.add(columnSensorDescr)
-            alFormHiddenColumn.add(columnSensorPortNum)
-            alFormColumn.add(columnSensorType)
-            alFormColumn.add(columnSensorSerialNo)
-            alFormColumn.add(columnSensorWorkBegin)
         } else {
             alFormColumn.add(columnSensorSumGroup)
             alFormColumn.add(columnSensorGroup)
-            alFormColumn.add(columnSensorDescr)
-            alFormColumn.add(columnSensorPortNum)
-            alFormColumn.add(columnSensorType)
-            alFormColumn.add(columnSensorSerialNo)
-            alFormColumn.add(columnSensorWorkBegin)
         }
+        alFormColumn.add(columnSensorDescr)
+        if (isEquip) {
+            alFormHiddenColumn.add(columnSensorPortNum)
+        } else {
+            alFormColumn.add(columnSensorPortNum)
+        }
+        alFormColumn.add(columnSensorType)
+        alFormColumn.add(columnSensorSerialNo)
+        alFormColumn.add(columnSensorWorkBegin)
 
         alFormColumn.add(columnMinMovingTime)
         alFormColumn.add(columnMinParkingTime)
@@ -475,7 +505,7 @@ class mSensor : mAbstract() {
         alFormColumn.add(columnIsUseSpeed)
         alFormColumn.add(columnIsUseRun)
 
-        if(isEquip) {
+        if (isEquip) {
             alFormHiddenColumn.add(columnBoundValue)
             alFormHiddenColumn.add(columnActiveValue)
             alFormHiddenColumn.add(columnMinOnTime)
@@ -501,16 +531,30 @@ class mSensor : mAbstract() {
             alFormColumn.add(columnSignalOff)
         }
 
-        alFormColumn.add(columnCountValueSensor)
-        alFormColumn.add(columnCountValueData)
+        alFormColumn.add(columnSmoothMethod)
+        alFormColumn.add(columnSmoothTime)
 
-        alFormColumn.add(columnAnalogDim)
+        if (isEquip) {
+            alFormHiddenColumn.add(columnIgnoreMin)
+            alFormHiddenColumn.add(columnIgnoreMax)
+        } else {
+            alFormColumn.add(columnIgnoreMin)
+            alFormColumn.add(columnIgnoreMax)
+        }
+
+        if (isEquip) {
+            alFormHiddenColumn.add(columnLiquidName)
+            alFormHiddenColumn.add(columnLiquidNorm)
+        } else {
+            alFormColumn.add(columnLiquidName)
+            alFormColumn.add(columnLiquidNorm)
+        }
+
+        alFormColumn.add(columnEnergoPhase)
         alFormColumn.add(columnAnalogMinView)
         alFormColumn.add(columnAnalogMaxView)
         alFormColumn.add(columnAnalogMinLimit)
         alFormColumn.add(columnAnalogMaxLimit)
-
-        alFormColumn.add(columnEnergoPhase)
 
         alFormColumn.add(columnAnalogUsingMinLen)
         alFormColumn.add(columnAnalogIsUsingCalc)
@@ -525,20 +569,9 @@ class mSensor : mAbstract() {
         alFormColumn.add(columnAnalogDecAddTimeBefore)
         alFormColumn.add(columnAnalogDecAddTimeAfter)
 
-        alFormColumn.add(columnSmoothMethod)
-        alFormColumn.add(columnSmoothTime)
-
-        if(isEquip) {
-            alFormHiddenColumn.add(columnAnalogIgnoreMin)
-            alFormHiddenColumn.add(columnAnalogIgnoreMax)
-            alFormHiddenColumn.add(columnLiquidName)
-            alFormHiddenColumn.add(columnLiquidNorm)
+        if (isEquip) {
             alFormHiddenColumn.add(columnCalibrationText)
         } else {
-            alFormColumn.add(columnAnalogIgnoreMin)
-            alFormColumn.add(columnAnalogIgnoreMax)
-            alFormColumn.add(columnLiquidName)
-            alFormColumn.add(columnLiquidNorm)
             alFormColumn.add(columnCalibrationText)
         }
 
@@ -554,7 +587,7 @@ class mSensor : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        if(isEquip) {
+        if (isEquip) {
             alChildData.add(ChildData("mms_equip_service_shedule", columnID!!, true))
             alChildData.add(ChildData("mms_equip_service_history", columnID!!))
         } else {

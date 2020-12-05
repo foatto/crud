@@ -3,20 +3,32 @@ package foatto.core_web
 import foatto.core.app.UP_GRAPHIC_SHOW_LINE
 import foatto.core.app.UP_GRAPHIC_SHOW_POINT
 import foatto.core.app.UP_GRAPHIC_SHOW_TEXT
-import foatto.core.app.graphic.*
+import foatto.core.app.graphic.GraphicAction
+import foatto.core.app.graphic.GraphicActionRequest
+import foatto.core.app.graphic.GraphicActionResponse
+import foatto.core.app.graphic.GraphicColorIndex
+import foatto.core.app.graphic.GraphicDataContainer
+import foatto.core.app.graphic.GraphicElement
+import foatto.core.app.graphic.GraphicViewCoord
 import foatto.core.app.xy.geom.XyRect
-import foatto.core.link.*
+import foatto.core.link.GraphicResponse
+import foatto.core.link.SaveUserPropertyRequest
 import foatto.core_web.external.vue.that
 import foatto.core_web.external.vue.vueComponentOptions
+import kotlinx.browser.document
+import kotlinx.browser.window
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.MouseEvent
 import org.w3c.dom.events.WheelEvent
-import kotlin.browser.document
-import kotlin.browser.window
 import kotlin.js.Date
 import kotlin.js.Json
 import kotlin.js.json
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.floor
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.round
+import kotlin.math.roundToInt
 
 private const val MARGIN_LEFT = 100
 //private val MARGIN_RIGHT = 40
@@ -34,15 +46,15 @@ private const val MAX_SCALE_X = 32 * 86400  // максимальный разр
 private const val GRAPHIC_TEXT_HEIGHT = 20              // высота текстового блока
 private const val GRAPHIC_TEXT_MIN_VISIBLE_WIDTH = 4    // минимальная ширина видимого текстового блока
 
-private val arrGridStepX = intArrayOf(
-     1,              5,            15,          // 1 - 5 - 15 сек
-     1 * 60,         5 * 60,       15 * 60,     // 1 - 5 - 15 мин
-     1 * 3_600,      3 * 3_600,     6 * 3_600,  // 1 - 3 - 6 час
-     1 * 86_400,     3 * 86_400,    9 * 86_400, // 1 - 3 - 9 суток
-    27 * 86_400,    81 * 86_400
+private val arrGridStepX = arrayOf(
+    1, 5, 15,          // 1 - 5 - 15 сек
+    1 * 60, 5 * 60, 15 * 60,     // 1 - 5 - 15 мин
+    1 * 3_600, 3 * 3_600, 6 * 3_600,  // 1 - 3 - 6 час
+    1 * 86_400, 3 * 86_400, 9 * 86_400, // 1 - 3 - 9 суток
+    27 * 86_400, 81 * 86_400
 )
 
-private val arrGridStepY = doubleArrayOf(
+private val arrGridStepY = arrayOf(
     0.001, 0.002, 0.0025, 0.005,
     0.01, 0.02, 0.025, 0.05,
     0.1, 0.2, 0.25, 0.5,
@@ -55,7 +67,7 @@ private val arrGridStepY = doubleArrayOf(
     1_000_000.0
 )
 
-private val arrPrecY = intArrayOf(
+private val arrPrecY = arrayOf(
     3, 3, 4, 3,
     2, 2, 3, 2,
     1, 1, 2, 1,
@@ -1014,7 +1026,7 @@ fun graphicControl( graphicResponse: GraphicResponse, tabIndex: Int ) = vueCompo
         val svgGraphicTitle = document.getElementById( "graphic_title_$tabIndex" )!!
         val svgGraphicToolbar = document.getElementById( "graphic_toolbar_$tabIndex" )!!
 
-        that().svg_height = kotlin.browser.window.innerHeight - ( svgTabPanel.clientHeight + svgGraphicTitle.clientHeight + svgGraphicToolbar.clientHeight )
+        that().svg_height = window.innerHeight - (svgTabPanel.clientHeight + svgGraphicTitle.clientHeight + svgGraphicToolbar.clientHeight)
 
         that().style_graphic_text = json(
             "font-size" to "${1.0 * scaleKoef}rem"
@@ -1613,34 +1625,34 @@ private fun drawAxisY(
     val axisX = ( pixDrawWidth - axisIndex * MARGIN_LEFT * scaleKoef ).roundToInt()
 
     //--- сетка, насечки, надписи по оси Y
-    val minGraphicStepY = ( grHeight * MIN_GRID_STEP_Y * scaleKoef / pixDrawHeight ).roundToInt()
+    val minGraphicStepY = grHeight * MIN_GRID_STEP_Y * scaleKoef / pixDrawHeight
     var notchGraphicStepY = 0.0   // шаг насечек
     var labelGraphicStepY = 0.0   // шаг подписей под насечками
     var precY = 0
     for( i in arrGridStepY.indices ) {
         val gridStepY = arrGridStepY[ i ]
-        if( gridStepY >= minGraphicStepY ) {
+        if (gridStepY >= minGraphicStepY) {
             notchGraphicStepY = gridStepY
             //--- подписи по шкале Y делаются на каждой насечке
             labelGraphicStepY = gridStepY  //element.getGridStepX(  i == element.getGridStepXCount() - 1 ? i : i + 1  );
             //--- сразу же определим precY
-            precY = arrPrecY[ i ]
+            precY = arrPrecY[i]
             break
         }
     }
     //--- если подходящий шаг насечек не нашелся, берем максимальный ( хотя такой ситуации не должно быть )
-    if( notchGraphicStepY == 0.0 ) {
-        notchGraphicStepY = arrGridStepY[ arrGridStepY.size - 1 ]
-        labelGraphicStepY = arrGridStepY[ arrGridStepY.size - 1 ]
+    if (notchGraphicStepY <= 0.0) {
+        notchGraphicStepY = arrGridStepY.last()
+        labelGraphicStepY = arrGridStepY.last()
         //--- сразу же определим precY
-        precY = arrPrecY[ arrPrecY.size - 1 ]
+        precY = arrPrecY.last()
     }
 
-    //--- для последующего корректного вычисления остатка от деления дробных чисел будем приводит их к целым числам путём умножения на квадрат минимального шага
-    val mult = round( 1.0 / arrGridStepY[ 0 ] / arrGridStepY[ 0 ] )
+    //--- для последующего корректного вычисления остатка от деления дробных чисел будем приводить их к целым числам путём умножения на квадрат минимального шага
+    val mult = round(1.0 / arrGridStepY[0] / arrGridStepY[0])
 
-    var notchY = floor( ayd.min / notchGraphicStepY ) * notchGraphicStepY
-    while( notchY <= ayd.max ) {
+    var notchY = floor(ayd.min / notchGraphicStepY) * notchGraphicStepY
+    while (notchY <= ayd.max) {
 
         if( notchY < ayd.min ) {
             notchY += notchGraphicStepY
@@ -1675,16 +1687,17 @@ private fun drawAxisY(
         }
 
         //--- текст метки по оси Y
+
         if( round( notchY * mult ).toInt() % round( labelGraphicStepY * mult ).toInt() == 0 ) {
             val axisText = SvgText(
-                x = axisX - ( 2 * scaleKoef ).roundToInt(),
-                y = drawY.toInt() - ( 2 * scaleKoef ).roundToInt(),
-                text = getSplittedDouble( notchY, precY ),
-                stroke = hmIndexColor[ element.graphicTitle ]!![ ayd.colorIndex.toString() ]!!,
+                x = axisX - (2 * scaleKoef).roundToInt(),
+                y = drawY.toInt() - (2 * scaleKoef).roundToInt(),
+                text = getSplittedDouble(notchY, precY),
+                stroke = hmIndexColor[element.graphicTitle]!![ayd.colorIndex.toString()]!!,
                 hAlign = "end",
                 vAlign = "text-bottom"
             )
-            alAxisText.add( axisText )
+            alAxisText.add(axisText)
         }
         notchY += notchGraphicStepY
     }
@@ -1706,13 +1719,13 @@ private fun drawAxisY(
         x = axisTextX,
         y = axisTextY,
         text = ayd.title,
-        stroke = hmIndexColor[ element.graphicTitle ]!![ ayd.colorIndex.toString() ]!!,
+        stroke = hmIndexColor[element.graphicTitle]!![ayd.colorIndex.toString()]!!,
         hAlign = "middle",
         vAlign = "hanging",
         transform = "rotate(-90 $axisTextX $axisTextY)"
     )
 
-    alAxisText.add( axisText )
+    alAxisText.add(axisText)  //!!! не видно?
 
     return precY
 }

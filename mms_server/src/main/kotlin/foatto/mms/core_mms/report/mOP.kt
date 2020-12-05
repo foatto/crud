@@ -38,8 +38,6 @@ class mOP : mP() {
 
         initReportPeriod(arrDT)
 
-        initReportCapAndSignature(aliasConfig, userConfig)
-
         //----------------------------------------------------------------------------------------------------------------------
 
         alFormHiddenColumn.add(columnID!!)
@@ -52,7 +50,5 @@ class mOP : mP() {
         //----------------------------------------------------------------------------------------------------------------------
 
         addReportPeriodFormColumns()
-
-        addCapAndSignatureColumns()
     }
 }

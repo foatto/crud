@@ -1,4 +1,3 @@
-//@file:Suppress("unused", "UnsafeCastFromDynamic", "NOTHING_TO_INLINE")
 package foatto.core_web
 
 import foatto.core_web.external.SHA_1
@@ -6,6 +5,7 @@ import foatto.core_web.external.SHA_INPUT_TEXT
 import foatto.core_web.external.SHA_OUTPUT_B64
 import foatto.core_web.external.jsSHA
 import kotlin.math.pow
+import kotlin.math.round
 import kotlin.math.roundToLong
 
 fun getColorFromInt( argb: Int ) =
@@ -29,8 +29,11 @@ fun getSplittedDouble( value: Double, precision: Int ): String {
         }
         //--- положительный precision - округляем до указанного знака после запятой/точки
         else {
-            val s = ( value * 10.0.pow( precision ) ).roundToLong().toString()
-            s.substring( 0, s.length - precision ) + "." + s.substring( s.length - precision )
+            val pow10 = 10.0.pow(precision)
+            val s = (round(value * pow10) / pow10).toString().replace(",", ".")
+            val intPart = s.substringBefore('.')
+            val fracPart = s.substringAfter('.').substring(0, precision).padEnd(precision, '0')
+            "$intPart.$fracPart"
         }
 
     val dotPos = strValue.indexOf( "." )

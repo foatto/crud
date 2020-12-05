@@ -77,8 +77,6 @@ class mObjectZone : mP() {
         columnReportGroupType.isVirtual = true
         columnReportGroupType.setSavedDefault(userConfig)
 
-        initReportCapAndSignature(aliasConfig, userConfig)
-
         //----------------------------------------------------------------------------------------------------------------------
 
         alFormHiddenColumn.add(columnID!!)
@@ -93,8 +91,6 @@ class mObjectZone : mP() {
         alFormColumn.add(columnZoneDescr)
         alFormColumn.add(columnReportType)
         alFormColumn.add(columnReportGroupType)
-
-        addCapAndSignatureColumns()
 
         //----------------------------------------------------------------------------------------------------------------------
 

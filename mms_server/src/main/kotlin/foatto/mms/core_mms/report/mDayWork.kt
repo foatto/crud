@@ -3,7 +3,6 @@ package foatto.mms.core_mms.report
 import foatto.app.CoreSpringController
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
-import foatto.core_server.app.server.column.ColumnBoolean
 import foatto.core_server.app.server.column.ColumnComboBox
 import foatto.core_server.app.server.column.ColumnDate3Int
 import foatto.core_server.app.server.column.ColumnInt
@@ -28,8 +27,6 @@ class mDayWork : mAbstractReport() {
     lateinit var columnReportEndDate: ColumnDate3Int
         private set
     lateinit var columnReportGroupType: ColumnComboBox
-        private set
-    lateinit var columnIsCompactReport: ColumnBoolean
         private set
 
     lateinit var sos: SumOptionSelector
@@ -70,12 +67,6 @@ class mDayWork : mAbstractReport() {
         columnReportGroupType.isVirtual = true
         columnReportGroupType.setSavedDefault(userConfig)
 
-        columnIsCompactReport = ColumnBoolean(tableName, "is_compact", "Компактный вид", false)
-        columnIsCompactReport.isVirtual = true
-        columnIsCompactReport.setSavedDefault(userConfig)
-
-        initReportCapAndSignature(aliasConfig, userConfig)
-
         //----------------------------------------------------------------------------------------------------------------------
 
         alFormHiddenColumn.add(columnID!!)
@@ -88,11 +79,8 @@ class mDayWork : mAbstractReport() {
         alFormColumn.add(columnReportBegDate)
         alFormColumn.add(columnReportEndDate)
         alFormColumn.add(columnReportGroupType)
-        alFormColumn.add(columnIsCompactReport)
 
         sos = SumOptionSelector()
         sos.fillColumns(userConfig, tableName, alFormColumn)
-
-        addCapAndSignatureColumns()
     }
 }

@@ -8,13 +8,18 @@ import foatto.core.app.ICON_NAME_DIVISION
 import foatto.core.app.ICON_NAME_WORKER
 import foatto.core.link.AddActionButton
 import foatto.core.link.TableCellAlign
-import foatto.core_server.app.server.*
+import foatto.core_server.app.server.AliasConfig
+import foatto.core_server.app.server.ChildData
+import foatto.core_server.app.server.DependData
+import foatto.core_server.app.server.OrgType
+import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnBoolean
 import foatto.core_server.app.server.column.ColumnComboBox
 import foatto.core_server.app.server.column.ColumnDate3Int
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.column.ColumnTime3Int
+import foatto.core_server.app.server.mAbstractHierarchy
 import foatto.sql.CoreAdvancedStatement
 import java.time.LocalDate
 import java.time.ZonedDateTime
@@ -65,66 +70,76 @@ class mUser : mAbstractHierarchy() {
 
         val recordType = getRecordType(id, "org_type", OrgType.ORG_TYPE_WORKER)
 
-        columnRecordType = ColumnComboBox(tableName, "org_type", "", recordType)
-        columnRecordType.addChoice(OrgType.ORG_TYPE_DIVISION, "Подразделение", "Подразделение", ICON_NAME_DIVISION)
-        columnRecordType.addChoice(OrgType.ORG_TYPE_BOSS, "Руководитель", "Руководитель", ICON_NAME_BOSS)
-        columnRecordType.addChoice(OrgType.ORG_TYPE_WORKER, "Работник", "Работник", ICON_NAME_WORKER)
-        columnRecordType.tableAlign = TableCellAlign.CENTER
+        columnRecordType = ColumnComboBox(tableName, "org_type", "", recordType).apply {
+            addChoice(OrgType.ORG_TYPE_DIVISION, "Подразделение", "Подразделение", ICON_NAME_DIVISION)
+            addChoice(OrgType.ORG_TYPE_BOSS, "Руководитель", "Руководитель", ICON_NAME_BOSS)
+            addChoice(OrgType.ORG_TYPE_WORKER, "Работник", "Работник", ICON_NAME_WORKER)
+            tableAlign = TableCellAlign.CENTER
+        }
 
-        columnParentFullName = ColumnString(selfLinkTableName, "full_name", "Вышестоящее подразделение", STRING_COLUMN_WIDTH)
-        columnParentFullName.selfLinkTableName = tableName // для правильной работы селектора с подстановочной таблицей
-        columnParentFullName.selectorAlias = folderAliasName
-        columnParentFullName.addSelectorColumn(columnParent, columnParentID)
-        columnParentFullName.addSelectorColumn(columnParentFullName)
+        columnParentFullName = ColumnString(selfLinkTableName, "full_name", "Вышестоящее подразделение", STRING_COLUMN_WIDTH).apply {
+            selfLinkTableName = tableName // для правильной работы селектора с подстановочной таблицей
+            selectorAlias = folderAliasName
+            addSelectorColumn(columnParent, columnParentID)
+            addSelectorColumn(columnParentFullName)
+        }
 
-        columnRecordFullName = ColumnString(tableName, "full_name", "-", STRING_COLUMN_WIDTH)
-        columnRecordFullName.isRequired = true
-        columnRecordFullName.addFormCaption(FormColumnCaptionData(columnRecordType, "Наименование", intArrayOf(OrgType.ORG_TYPE_DIVISION)))
-        columnRecordFullName.addFormCaption(FormColumnCaptionData(columnRecordType, "Полное имя", intArrayOf(OrgType.ORG_TYPE_BOSS, OrgType.ORG_TYPE_WORKER)))
+        columnRecordFullName = ColumnString(tableName, "full_name", "-", STRING_COLUMN_WIDTH).apply {
+            isRequired = true
+            addFormCaption(columnRecordType, "Наименование", setOf(OrgType.ORG_TYPE_DIVISION))
+            addFormCaption(columnRecordType, "Полное имя", setOf(OrgType.ORG_TYPE_BOSS, OrgType.ORG_TYPE_WORKER))
+        }
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnUserShortName = ColumnString(tableName, "short_name", "Краткое имя", STRING_COLUMN_WIDTH)
-        columnUserShortName.addFormVisible(FormColumnVisibleData(columnRecordType, false, intArrayOf(OrgType.ORG_TYPE_DIVISION)))
+        val columnUserShortName = ColumnString(tableName, "short_name", "Краткое имя", STRING_COLUMN_WIDTH).apply {
+            addFormVisible(columnRecordType, false, setOf(OrgType.ORG_TYPE_DIVISION))
+        }
 
-        columnDisabled = ColumnBoolean(tableName, "is_disabled", "Отключен", false)
-        columnDisabled.addFormVisible(FormColumnVisibleData(columnRecordType, false, intArrayOf(OrgType.ORG_TYPE_DIVISION)))
+        columnDisabled = ColumnBoolean(tableName, "is_disabled", "Отключен", false).apply {
+            addFormVisible(columnRecordType, false, setOf(OrgType.ORG_TYPE_DIVISION))
+        }
 
-        val columnUserLogin = ColumnString(tableName, "login", "Логин", STRING_COLUMN_WIDTH)
-        columnUserLogin.addFormVisible(FormColumnVisibleData(columnRecordType, false, intArrayOf(OrgType.ORG_TYPE_DIVISION)))
-        columnUserLogin.setUnique(true, "")
+        val columnUserLogin = ColumnString(tableName, "login", "Логин", STRING_COLUMN_WIDTH).apply {
+            addFormVisible(columnRecordType, false, setOf(OrgType.ORG_TYPE_DIVISION))
+            setUnique(true, "")
+        }
 
-        columnUserPassword = ColumnString(tableName, "pwd", "Пароль", STRING_COLUMN_WIDTH)
-        columnUserPassword.isPassword = true
-        columnUserPassword.addFormVisible(FormColumnVisibleData(columnRecordType, false, intArrayOf(OrgType.ORG_TYPE_DIVISION)))
+        columnUserPassword = ColumnString(tableName, "pwd", "Пароль", STRING_COLUMN_WIDTH).apply {
+            isPassword = true
+            addFormVisible(columnRecordType, false, setOf(OrgType.ORG_TYPE_DIVISION))
+        }
 
-        val columnUserLoginAttemptCount = ColumnInt(tableName, "at_count", "Счетчик попыток входа", 10)
-        columnUserLoginAttemptCount.addFormVisible(FormColumnVisibleData(columnRecordType, false, intArrayOf(OrgType.ORG_TYPE_DIVISION)))
+        val columnUserLoginAttemptCount = ColumnInt(tableName, "at_count", "Счетчик попыток входа", 10).apply {
+            addFormVisible(columnRecordType, false, setOf(OrgType.ORG_TYPE_DIVISION))
+        }
 
-        columnUserLastLoginAttemptDate = ColumnDate3Int(tableName, "at_ye", "at_mo", "at_da", "Дата последней попытки входа")
-        columnUserLastLoginAttemptDate.isEditable = false
-        columnUserLastLoginAttemptDate.addFormVisible(FormColumnVisibleData(columnRecordType, false, intArrayOf(OrgType.ORG_TYPE_DIVISION)))
+        columnUserLastLoginAttemptDate = ColumnDate3Int(tableName, "at_ye", "at_mo", "at_da", "Дата последней попытки входа").apply {
+            isEditable = false
+            addFormVisible(columnRecordType, false, setOf(OrgType.ORG_TYPE_DIVISION))
+        }
 
-        val columnUserLastLoginAttemptTime = ColumnTime3Int(tableName, "at_ho", "at_mi", null, "Время последней попытки входа")
-        columnUserLastLoginAttemptTime.isEditable = false
-        columnUserLastLoginAttemptTime.addFormVisible(FormColumnVisibleData(columnRecordType, false, intArrayOf(OrgType.ORG_TYPE_DIVISION)))
+        val columnUserLastLoginAttemptTime = ColumnTime3Int(tableName, "at_ho", "at_mi", null, "Время последней попытки входа").apply {
+            isEditable = false
+            addFormVisible(columnRecordType, false, setOf(OrgType.ORG_TYPE_DIVISION))
+        }
 
-        val columnUserLastPasswordChangeDate = ColumnDate3Int(tableName, "pwd_ye", "pwd_mo", "pwd_da", "Дата последнего изменения пароля")
-        val toDay = ZonedDateTime.now(zoneId)
-        columnUserLastPasswordChangeDate.default = LocalDate.of(toDay.year + 1, toDay.monthValue, toDay.dayOfMonth) // через год
-        columnUserLastPasswordChangeDate.addFormVisible(FormColumnVisibleData(columnRecordType, false, intArrayOf(OrgType.ORG_TYPE_DIVISION)))
+        val columnUserLastPasswordChangeDate = ColumnDate3Int(tableName, "pwd_ye", "pwd_mo", "pwd_da", "Дата последнего изменения пароля").apply {
+            val toDay = ZonedDateTime.now(zoneId)
+            default = LocalDate.of(toDay.year + 1, toDay.monthValue, toDay.dayOfMonth) // через год
+            addFormVisible(columnRecordType, false, setOf(OrgType.ORG_TYPE_DIVISION))
+        }
 
-        val columnUserEmail = ColumnString(tableName, "e_mail", "E-mail", STRING_COLUMN_WIDTH)
-        columnUserEmail.addFormVisible(FormColumnVisibleData(columnRecordType, false, intArrayOf(OrgType.ORG_TYPE_DIVISION)))
-        val columnUserContactInfo = ColumnString(
-            tableName, "contact_info", "Контактная информация",
-            12, STRING_COLUMN_WIDTH, textFieldMaxSize
-        )
+        val columnUserEmail = ColumnString(tableName, "e_mail", "E-mail", STRING_COLUMN_WIDTH).apply {
+            addFormVisible(columnRecordType, false, setOf(OrgType.ORG_TYPE_DIVISION))
+        }
+        val columnUserContactInfo = ColumnString(tableName, "contact_info", "Контактная информация", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
 //        val columnFile = ColumnFile(tableName, "file_id", "Файлы")
 
-        val columnUserLastIP = ColumnString(tableName, "last_ip", "Last IP", STRING_COLUMN_WIDTH)
-        columnUserLastIP.isEditable = false
-        columnUserLastIP.addFormVisible(FormColumnVisibleData(columnRecordType, false, intArrayOf(OrgType.ORG_TYPE_DIVISION)))
+        val columnUserLastIP = ColumnString(tableName, "last_ip", "Last IP", STRING_COLUMN_WIDTH).apply {
+            isEditable = false
+            addFormVisible(columnRecordType, false, setOf(OrgType.ORG_TYPE_DIVISION))
+        }
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -135,7 +150,7 @@ class mUser : mAbstractHierarchy() {
         addTableColumn(columnRecordFullName)
         addTableColumn(columnUserEmail)
         addTableColumn(columnUserContactInfo)
-        if(userConfig.isAdmin) {
+        if (userConfig.isAdmin) {
             addTableColumn(columnUserLastLoginAttemptDate)
             addTableColumn(columnUserLastLoginAttemptTime)
             addTableColumn(columnUserLoginAttemptCount)
@@ -154,14 +169,14 @@ class mUser : mAbstractHierarchy() {
         alFormColumn.add(columnDisabled)
         alFormColumn.add(columnRecordFullName)
 
-        if(userConfig.isAdmin) {
+        if (userConfig.isAdmin) {
             alFormColumn.add(columnUserLogin)
             alFormColumn.add(columnUserPassword)
         }
         alFormColumn.add(columnUserShortName)
         alFormColumn.add(columnUserEmail)
         alFormColumn.add(columnUserContactInfo)
-        if(userConfig.isAdmin) {
+        if (userConfig.isAdmin) {
             alFormColumn.add(columnUserLastPasswordChangeDate)
             alFormColumn.add(columnUserLoginAttemptCount)
             alFormColumn.add(columnUserLastLoginAttemptDate)
@@ -181,36 +196,23 @@ class mUser : mAbstractHierarchy() {
 
         //----------------------------------------------------------------------------------------
 
-        //--- определены в предке
-        //hmParentColumn.put( commonAliasName, columnParent );
-        //hmParentColumn.put( folderAliasName, columnParent );
-        //hmParentColumn.put( itemAliasName, columnParent );
-
-        //----------------------------------------------------------------------------------------
-
-        //--- определён в предке
-        //alChildData.add( new ChildData( aliasConfig.getAlias(), columnID, true, true ) );
         alChildData.add(ChildData("system_user_role", columnID!!))
         alChildData.add(ChildData("system_log_user", columnID!!))
 
-        for(cd in alExtendChildData)
+        for (cd in alExtendChildData)
             alChildData.add(ChildData(cd.alias, columnID!!, cd.isNewGroup))
 
         //----------------------------------------------------------------------------------------
 
-        //--- определён в предке
-        //alDependData.add( new DependData( tableName, columnParent.getFieldName() ) );
         alDependData.add(DependData("SYSTEM_user_role", "user_id", DependData.DELETE))
         alDependData.add(DependData("SYSTEM_user_property", "user_id", DependData.DELETE))
         alDependData.add(DependData("SYSTEM_new", "user_id", DependData.DELETE))
 
-        for(dd in alExtendDependData)
+        for (dd in alExtendDependData)
             alDependData.add(DependData(dd.destTableName, dd.destFieldName, dd.type))
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        //--- определён в предке
-        //expandParentIDColumn = columnParent;
         expandParentNameColumn = columnRecordFullName
     }
 }

@@ -2,11 +2,11 @@ package foatto.core_server.app.server.column
 
 import foatto.core.link.FormPinMode
 import foatto.core.link.TableCellAlign
-import foatto.sql.CoreAdvancedStatement
 import foatto.core_server.app.server.FormColumnCaptionData
 import foatto.core_server.app.server.FormColumnVisibleData
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.data.iData
+import foatto.sql.CoreAdvancedStatement
 
 interface iColumn {
 
@@ -37,7 +37,7 @@ interface iColumn {
     val isSearchable: Boolean
     val isEditable: Boolean
     var isUnique: Boolean
-        var uniqueIgnore: Any?
+    var uniqueIgnore: Any?
 
     val isSavedDefault: Boolean
 
@@ -52,14 +52,14 @@ interface iColumn {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     fun isSortable(): Boolean
-    fun getSortFieldName( index: Int ): String
+    fun getSortFieldName(index: Int): String
 
-    fun addSelectorColumn( columnToAndFrom: iColumn )
-    fun addSelectorColumn( columnTo: iColumn, columnFrom: iColumn )
+    fun addSelectorColumn(columnToAndFrom: iColumn)
+    fun addSelectorColumn(columnTo: iColumn, columnFrom: iColumn)
 
-    fun setUnique( aIsUnique: Boolean, aUniqueIgnore: Any? = null )
+    fun setUnique(aIsUnique: Boolean, aUniqueIgnore: Any? = null)
 
-    fun setSavedDefault( userConfig: UserConfig )
+    fun setSavedDefault(userConfig: UserConfig)
     fun saveDefault(stm: CoreAdvancedStatement, userConfig: UserConfig, hmColumnData: Map<iColumn, iData>)
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -70,16 +70,16 @@ interface iColumn {
 
     fun getFieldCount(): Int
     fun getFieldName(): String
-    fun getFieldName( index: Int ): String
+    fun getFieldName(index: Int): String
 
     fun getSelectTo(): List<iColumn>
     fun getSelectFrom(): List<iColumn>
 
     fun getFormVisibleCount(): Int
-    fun getFormVisible( index: Int ): FormColumnVisibleData
-    fun addFormVisible( fcv: FormColumnVisibleData )
+    fun getFormVisible(index: Int): FormColumnVisibleData
+    fun addFormVisible(columnMaster: iColumn, state: Boolean, values: Set<Int>)
 
     fun getFormCaptionCount(): Int
-    fun getFormCaption( index: Int ): FormColumnCaptionData
-    fun addFormCaption( fcc: FormColumnCaptionData )
+    fun getFormCaption(index: Int): FormColumnCaptionData
+    fun addFormCaption(columnMaster: iColumn, caption: String, values: Set<Int>)
 }

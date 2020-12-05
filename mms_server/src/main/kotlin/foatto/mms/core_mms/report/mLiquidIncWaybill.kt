@@ -61,8 +61,6 @@ class mLiquidIncWaybill : mP() {
         columnZoneName.addSelectorColumn(columnZoneName)
         columnZoneName.addSelectorColumn(columnZoneDescr)
 
-        initReportCapAndSignature(aliasConfig, userConfig)
-
         //----------------------------------------------------------------------------------------------------------------------
 
         alFormHiddenColumn.add(columnID!!)
@@ -76,8 +74,6 @@ class mLiquidIncWaybill : mP() {
         alFormColumn.add(columnTimeType)
         alFormColumn.add(columnZoneName)
         alFormColumn.add(columnZoneDescr)
-
-        addCapAndSignatureColumns()
 
         //----------------------------------------------------------------------------------------------------------------------
 

@@ -965,14 +965,12 @@ open class cStandart {
                 var cellIsVisible = true
                 for(i in 0 until column.getFormVisibleCount()) {
                     val fcvd = column.getFormVisible(i)
-                    val hsValue = mutableSetOf<Int>()
-                    for(v in fcvd.arrValue) hsValue.add(v) //for(  int j = 0; j < fcvd.arrValue.length; j++  ) hsValue.add(  fcvd.arrValue[  j  ]  );
                     //--- определение контрольного значения
                     var controlValue = 0
                     val data = hmColumnData[fcvd.columnMaster]
                     if(data is DataBoolean) controlValue = if(data.value) 1 else 0
                     else if(data is DataAbstractSelector) controlValue = data.value
-                    cellIsVisible = cellIsVisible and (fcvd.state == hsValue.contains(controlValue))
+                    cellIsVisible = cellIsVisible and (fcvd.state == fcvd.values.contains(controlValue))
                     //--- одного доказательства невидимости достаточно
                     if(!cellIsVisible) break
                 }
@@ -1389,17 +1387,13 @@ open class cStandart {
         //--- эту чисто серверную часть нежелательно передавать в клиенто-ориентированный FormCellInfo
         for(i in 0 until column.getFormVisibleCount()) {
             val fcvd = column.getFormVisible(i)
-            val hsValue = mutableSetOf<Int>()
-            for(v in fcvd.arrValue) hsValue.add(v)
             //--- выжимка из getFieldCellName
-            fci.alVisible.add(Triple("${fcvd.columnMaster.tableName}___${fcvd.columnMaster.getFieldName(0)}", fcvd.state, hsValue))
+            fci.alVisible.add(Triple("${fcvd.columnMaster.tableName}___${fcvd.columnMaster.getFieldName(0)}", fcvd.state, fcvd.values))
         }
         for(i in 0 until column.getFormCaptionCount()) {
             val fccd = column.getFormCaption(i)
-            val hsValue = mutableSetOf<Int>()
-            for(v in fccd.arrValue) hsValue.add(v)
             //--- выжимка из getFieldCellName
-            fci.alCaption.add(Triple("${fccd.columnMaster.tableName}___${fccd.columnMaster.getFieldName(0)}", fccd.caption, hsValue))
+            fci.alCaption.add(Triple("${fccd.columnMaster.tableName}___${fccd.columnMaster.getFieldName(0)}", fccd.caption, fccd.values))
         }
         return fci
     }

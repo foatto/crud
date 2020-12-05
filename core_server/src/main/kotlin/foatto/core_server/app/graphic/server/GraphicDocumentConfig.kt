@@ -1,9 +1,11 @@
 package foatto.core_server.app.graphic.server
 
-open class GraphicDocumentConfig( val name: String, val serverControlClassName: String ) {
+open class GraphicDocumentConfig(
+    val serverControlClassName: String
+) {
 
     companion object {
-        //--- конфигурации по умолчанию не существует, т.к. серверный класс у всех разный
+        //--- there is no default configuration because the server class is different for everyone
         val hmConfig = mutableMapOf<String, GraphicDocumentConfig>()
     }
 }

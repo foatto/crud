@@ -12,15 +12,14 @@ import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.ZoneData
 import foatto.mms.core_mms.calc.LiquidIncDecData
 import foatto.mms.core_mms.calc.ObjectCalc
-import foatto.mms.core_mms.sensor.SensorConfig
-import foatto.mms.core_mms.sensor.SensorConfigAnalogue
+import foatto.mms.core_mms.sensor.config.SensorConfig
+import foatto.mms.core_mms.sensor.config.SensorConfigLiquidLevel
 import jxl.CellView
 import jxl.format.PageOrientation
 import jxl.format.PaperSize
 import jxl.write.Label
 import jxl.write.WritableSheet
 import java.util.*
-import kotlin.math.max
 
 class cLiquidIncDec : cMMSReport() {
 
@@ -103,8 +102,6 @@ class cLiquidIncDec : cMMSReport() {
 
         offsY = fillReportHeader(if(reportZone == 0) null else hmZoneData[reportZone], sheet, offsY)
 
-        offsY = max(offsY, outReportCap(sheet, 4, 0) + 1)
-
         //--- установка размеров заголовков (общая ширина = 90 для А4-портрет поля по 10 мм)
         val alDim = mutableListOf<Int>()
         alDim.add(5)    // "N п/п"
@@ -128,7 +125,7 @@ class cLiquidIncDec : cMMSReport() {
         sheet.addCell(Label(offsX++, offsY, "Окончание", wcfCaptionHC))
         sheet.addCell(Label(offsX++, offsY, "Продолжи-тельность", wcfCaptionHC))
         sheet.addCell(Label(offsX++, offsY, "Ёмкость", wcfCaptionHC))
-        sheet.addCell(Label(offsX++, offsY, "Объём [л]", wcfCaptionHC))
+        sheet.addCell(Label(offsX++, offsY, "Объём", wcfCaptionHC))
         sheet.addCell(Label(offsX++, offsY, "Место", wcfCaptionHC))
         offsY++
 
@@ -166,8 +163,6 @@ class cLiquidIncDec : cMMSReport() {
 
         sheet.addCell(Label(6, offsY, getPreparedAt(), wcfCellL))
         //sheet.mergeCells( 5, offsY, 6, offsY );
-
-        outReportSignature(sheet, intArrayOf(0, 3, 4), offsY + 3)
     }
 
     //----------------------------------------------------------------------------------------------------------------------------------------
@@ -222,7 +217,7 @@ class cLiquidIncDec : cMMSReport() {
 
             val tmObjectResult = TreeMap<String, LiquidIncDecData>()
             for(portNum in hmSCLL.keys) {
-                val sca = hmSCLL[portNum] as SensorConfigAnalogue
+                val sca = hmSCLL[portNum] as SensorConfigLiquidLevel
                 //--- собираем заправки или сливы по одному датчику
                 val alSCAResult = ObjectCalc.calcIncDec(
                     stm, alRawTime, alRawData, oc, sca, begTime, endTime, isWaybill, alBeg, alEnd, if(isInc) 1 else -1, hmZoneData, reportZone

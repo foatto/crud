@@ -38,31 +38,29 @@ abstract class sdcAbstractGraphic {
 
             hmIndexColor[GraphicColorIndex.POINT_NEUTRAL] = 0xFF_C0_C0_FF.toInt()
             hmIndexColor[GraphicColorIndex.POINT_NORMAL] = 0xFF_C0_FF_C0.toInt()
-            hmIndexColor[GraphicColorIndex.POINT_WARNING] = 0xFF_E0_E0_A0.toInt()
-            hmIndexColor[GraphicColorIndex.POINT_CRITICAL] = 0xFF_FF_C0_C0.toInt()
+            hmIndexColor[GraphicColorIndex.POINT_BELOW] = 0xFF_E0_E0_A0.toInt()
+            hmIndexColor[GraphicColorIndex.POINT_ABOVE] = 0xFF_FF_C0_C0.toInt()
 
-            hmIndexColor[GraphicColorIndex.AXIS_NEUTRAL] = 0xFF_80_80_80.toInt()
-            hmIndexColor[GraphicColorIndex.AXIS_0] = 0xFF_80_80_FF.toInt()
-            hmIndexColor[GraphicColorIndex.AXIS_1] = 0xFF_80_C0_80.toInt()
-            hmIndexColor[GraphicColorIndex.AXIS_2] = 0xFF_80_80_C0.toInt()
+            hmIndexColor[GraphicColorIndex.AXIS_0] = 0xFF_80_C0_80.toInt()
+            hmIndexColor[GraphicColorIndex.AXIS_1] = 0xFF_80_80_C0.toInt()
+            hmIndexColor[GraphicColorIndex.AXIS_2] = 0xFF_C0_80_80.toInt()
+            hmIndexColor[GraphicColorIndex.AXIS_3] = 0xFF_C0_80_C0.toInt()
 
             hmIndexColor[GraphicColorIndex.LINE_LIMIT] = 0xFF_FF_A0_A0.toInt()
-            hmIndexColor[GraphicColorIndex.LINE_NEUTRAL] = 0xFF_80_80_80.toInt()
 
             hmIndexColor[GraphicColorIndex.LINE_NONE_0] = 0xFF_80_80_80.toInt()
-            hmIndexColor[GraphicColorIndex.LINE_NORMAL_0] = 0xFF_00_00_FF.toInt()
-            hmIndexColor[GraphicColorIndex.LINE_WARNING_0] = 0xFF_FF_00_FF.toInt()
-            hmIndexColor[GraphicColorIndex.LINE_CRITICAL_0] = 0xFF_FF_00_00.toInt()
+            hmIndexColor[GraphicColorIndex.LINE_NORMAL_0] = 0xFF_00_E0_00.toInt()
+            hmIndexColor[GraphicColorIndex.LINE_BELOW_0] = 0xFF_00_60_E0.toInt()
+            hmIndexColor[GraphicColorIndex.LINE_ABOVE_0] = 0xFF_E0_60_00.toInt()
 
-            hmIndexColor[GraphicColorIndex.LINE_NONE_1] = 0xFF_80_80_80.toInt()
-            hmIndexColor[GraphicColorIndex.LINE_NORMAL_1] = 0xFF_00_E0_00.toInt()
-            hmIndexColor[GraphicColorIndex.LINE_WARNING_1] = 0xFF_E0_E0_00.toInt()
-            hmIndexColor[GraphicColorIndex.LINE_CRITICAL_1] = 0xFF_E0_00_00.toInt()
+            hmIndexColor[GraphicColorIndex.LINE_NONE_1] = 0xFF_90_90_90.toInt()
+            hmIndexColor[GraphicColorIndex.LINE_NORMAL_1] = 0xFF_00_00_E0.toInt()
 
-            hmIndexColor[GraphicColorIndex.LINE_NONE_2] = 0xFF_80_80_80.toInt()
-            hmIndexColor[GraphicColorIndex.LINE_NORMAL_2] = 0xFF_00_C0_C0.toInt()
-            hmIndexColor[GraphicColorIndex.LINE_WARNING_2] = 0xFF_E0_C0_C0.toInt()
-            hmIndexColor[GraphicColorIndex.LINE_CRITICAL_2] = 0xFF_FF_C0_C0.toInt()
+            hmIndexColor[GraphicColorIndex.LINE_NONE_2] = 0xFF_A0_A0_A0.toInt()
+            hmIndexColor[GraphicColorIndex.LINE_NORMAL_2] = 0xFF_E0_00_00.toInt()
+
+            hmIndexColor[GraphicColorIndex.LINE_NONE_3] = 0xFF_B0_B0_B0.toInt()
+            hmIndexColor[GraphicColorIndex.LINE_NORMAL_3] = 0xFF_E0_00_E0.toInt()
         }
 
         const val UP_GRAPHIC_VISIBLE = "graphic_visible_"

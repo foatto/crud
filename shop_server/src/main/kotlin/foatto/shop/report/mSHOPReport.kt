@@ -172,10 +172,6 @@ abstract class mSHOPReport : mAbstractReport() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        initReportCapAndSignature(aliasConfig, userConfig)
-
-        //----------------------------------------------------------------------------------------------------------------------
-
         alFormHiddenColumn.add(columnID!!)
         alFormHiddenColumn.add(columnDocument)
         alFormHiddenColumn.add(columnClient)
@@ -195,8 +191,6 @@ abstract class mSHOPReport : mAbstractReport() {
         (if(isReportEndDate) alFormColumn else alFormHiddenColumn).add(columnEndDate)
 
         //        ( periodCaption != null ? alFormColumn : alFormHiddenColumn ).add( columnPeriod );
-
-        addCapAndSignatureColumns()
 
         //----------------------------------------------------------------------------------------------------------------------
 

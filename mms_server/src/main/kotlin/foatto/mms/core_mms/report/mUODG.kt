@@ -29,10 +29,6 @@ class mUODG : mAbstractReport() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        initReportCapAndSignature(aliasConfig, userConfig)
-
-        //----------------------------------------------------------------------------------------------------------------------
-
         alFormHiddenColumn.add(columnID!!)
 
         //----------------------------------------------------------------------------------------------------------------------
@@ -40,6 +36,5 @@ class mUODG : mAbstractReport() {
         uodg = UODGSelector()
         uodg.fillColumns(tableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn)
 
-        addCapAndSignatureColumns()
     }
 }

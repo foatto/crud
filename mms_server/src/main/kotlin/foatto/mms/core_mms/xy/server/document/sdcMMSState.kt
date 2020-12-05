@@ -20,11 +20,11 @@ import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.cObject
 import foatto.mms.core_mms.calc.ObjectState
 import foatto.mms.core_mms.ds.MMSHandler
-import foatto.mms.core_mms.sensor.SensorConfig
-import foatto.mms.core_mms.sensor.SensorConfigAnalogue
-import foatto.mms.core_mms.sensor.SensorConfigSignal
-import foatto.mms.core_mms.sensor.SensorConfigWork
-import foatto.mms.core_mms.sensor.SignalConfig
+import foatto.mms.core_mms.sensor.config.SensorConfig
+import foatto.mms.core_mms.sensor.config.SensorConfigLiquidLevel
+import foatto.mms.core_mms.sensor.config.SensorConfigSignal
+import foatto.mms.core_mms.sensor.config.SensorConfigWork
+import foatto.mms.core_mms.sensor.config.SignalConfig
 import foatto.sql.CoreAdvancedStatement
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -177,7 +177,7 @@ class sdcMMSState : sdcXyState() {
         val hmSCLL = objectConfig.hmSensorConfig[SensorConfig.SENSOR_LIQUID_LEVEL]
         if(hmSCLL != null)
             for(portNum in hmSCLL.keys) {
-                val sca = hmSCLL[portNum] as SensorConfigAnalogue
+                val sca = hmSCLL[portNum] as SensorConfigLiquidLevel
                 val tmGroup = tmSumGroup.getOrPut(sca.sumGroup) { TreeMap() }
                 val alLL = tmGroup.getOrPut(sca.group) { mutableListOf() }
                 alLL.add(sca)
@@ -212,7 +212,7 @@ class sdcMMSState : sdcXyState() {
                 var xW = x + GRID_STEP * 2
                 var xS = x + GRID_STEP
                 for(sc in alSC) {
-                    if (sc is SensorConfigAnalogue) {
+                    if (sc is SensorConfigLiquidLevel) {
                         val liquidError = objectState.tmLiquidError[sc.descr]
                         val liquidLevel = objectState.tmLiquidLevel[sc.descr]
                         val curLevel = if (liquidError == null && liquidLevel != null) liquidLevel else 0.0
@@ -366,11 +366,11 @@ class sdcMMSState : sdcXyState() {
     }
 
     //--- объём в литрах ---
-    private fun addLL25D(objectID: Int, sc: SensorConfigAnalogue, scale: Int, x: Int, y: Int, curLevel: Double, tankName: String, alResult: MutableList<XyElement>) {
+    private fun addLL25D(objectID: Int, sc: SensorConfigLiquidLevel, scale: Int, x: Int, y: Int, curLevel: Double, tankName: String, alResult: MutableList<XyElement>) {
 
         val percent = curLevel / if (sc.maxView == 0.0) curLevel else sc.maxView
-        val totalVolumeText = "${getSplittedDouble(sc.maxView, 0)} ${sc.dim}"
-        val currentVolumeText = " ${getSplittedDouble(curLevel, 0)} ${sc.dim}"
+        val totalVolumeText = "${getSplittedDouble(sc.maxView, 0)}"
+        val currentVolumeText = " ${getSplittedDouble(curLevel, 0)}"
 
         //--- используем логарифмическую шкалу показа относительных ёмкостей,
         //--- т.к. нельзя использовать линейную шкалу - объёмы могут быть от 100 до 50 000 л
@@ -380,7 +380,7 @@ class sdcMMSState : sdcXyState() {
         //--- собственно уровень жидкости/топлива
         val levelHeight = Math.round(tankHeight * percent).toInt()
         //--- цвет жидкости и поверхности жидкости зависит от общего объёма
-        val tankFillColor = (if(sc.maxView < 1000) 0xFF_00_FF_FF else if(sc.maxView < 10000) 0xFF_00_C0_FF else 0xFF_00_80_FF).toInt()
+        val tankFillColor = (if (sc.maxView < 1000) 0xFF_00_FF_FF else if (sc.maxView < 10000) 0xFF_00_C0_FF else 0xFF_00_80_FF).toInt()
         val tankFillColor2 = (if(sc.maxView < 1000) 0xFF_00_E0_E0 else if(sc.maxView < 10000) 0xFF_00_A0_E0 else 0xFF_00_60_E0).toInt()
         //--- цвет рамки ёмкости зависит от заполненности
         val tankDrawColor = if(percent < CRITICAL_LL_PERCENT) 0xFF_FF_00_00.toInt() else 0xFF_00_00_00.toInt()

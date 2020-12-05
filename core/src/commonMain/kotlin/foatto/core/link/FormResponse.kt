@@ -64,10 +64,10 @@ class FormCell( val cellType: FormCellType ) {
     var errorMessage = ""
 
     //--- значения устанавливаются извне
-    val alVisible = mutableListOf<Triple<String,Boolean,MutableSet<Int>>>()  // name, state, set<value>
+    val alVisible = mutableListOf<Triple<String, Boolean, Set<Int>>>()  // name, state, set<value>
 
     //--- значения устанавливаются извне
-    val alCaption = mutableListOf<Triple<String,String,MutableSet<Int>>>()  // name, string, set<value>
+    val alCaption = mutableListOf<Triple<String, String, Set<Int>>>()  // name, string, set<value>
 
 //-----------------------------------------------------------------------------------------------------
 
@@ -90,11 +90,3 @@ class FormButton(
     val key: Int
 )
 
-//!!! х.з. где применяется - само всплывёт
-//    public CoreFormCellInfo( String aStringName, String aStringValue ) throws Throwable {
-//        cellType = TYPE_STRING;
-//
-//        alStringName.add( aStringName );
-//        alStringValue.add( aStringValue );
-//        alStringSize.add( 0 );
-//    }

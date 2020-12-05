@@ -2,7 +2,6 @@ package foatto.mms.core_mms
 
 import foatto.app.CoreSpringController
 import foatto.core_server.app.server.AliasConfig
-import foatto.core_server.app.server.FormColumnVisibleData
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnComboBox
 import foatto.core_server.app.server.column.ColumnInt
@@ -28,38 +27,41 @@ class mUserZone : mAbstract() {
 
         val columnUserID = ColumnInt("SYSTEM_users", "id")
         columnUser = ColumnInt(tableName, "user_id", columnUserID, userConfig.userID)
-        val columnUserName = ColumnString("SYSTEM_users", "full_name", "Владелец геозоны", STRING_COLUMN_WIDTH)
-        if(userConfig.isAdmin) {
-            //columnUserName.setRequired( true ); - может быть ничья/общая
-            columnUserName.selectorAlias = "system_user_people"
-            columnUserName.addSelectorColumn(columnUser!!, columnUserID)
-            columnUserName.addSelectorColumn(columnUserName)
+        val columnUserName = ColumnString("SYSTEM_users", "full_name", "Владелец геозоны", STRING_COLUMN_WIDTH).apply {
+            if (userConfig.isAdmin) {
+                //columnUserName.setRequired( true ); - может быть ничья/общая
+                selectorAlias = "system_user_people"
+                addSelectorColumn(columnUser!!, columnUserID)
+                addSelectorColumn(this)
+            }
         }
 
         //----------------------------------------------------------------------------------------------------------------------
 
         val columnZoneID = ColumnInt("MMS_zone", "id")
         val columnZone = ColumnInt(tableName, "zone_id", columnZoneID)
-        val columnZoneName = ColumnString("MMS_zone", "name", "Наименование геозоны", STRING_COLUMN_WIDTH)
-        columnZoneName.isRequired = true
         val columnZoneDescr = ColumnString("MMS_zone", "descr", "Описание геозоны", STRING_COLUMN_WIDTH)
 
-        columnZoneName.selectorAlias = "mms_zone"
-        columnZoneName.addSelectorColumn(columnZone, columnZoneID)
-        columnZoneName.addSelectorColumn(columnZoneName)
-        columnZoneName.addSelectorColumn(columnZoneDescr)
+        val columnZoneName = ColumnString("MMS_zone", "name", "Наименование геозоны", STRING_COLUMN_WIDTH).apply {
+            isRequired = true
+            selectorAlias = "mms_zone"
+            addSelectorColumn(columnZone, columnZoneID)
+            addSelectorColumn(this)
+            addSelectorColumn(columnZoneDescr)
+        }
 
-        val columnZoneType = ColumnComboBox(tableName, "zone_type", "Ограничение", ZoneLimitData.TYPE_LIMIT_SPEED)
-        columnZoneType.addChoice(ZoneLimitData.TYPE_LIMIT_SPEED, "Ограничение по скорости")
-        columnZoneType.addChoice(ZoneLimitData.TYPE_LIMIT_AREA_BLOCKED, "Нахождение в геозоне запрещено")
-        columnZoneType.addChoice(ZoneLimitData.TYPE_LIMIT_AREA_ONLY, "Нахождение вне геозоны запрещено")
-        columnZoneType.addChoice(ZoneLimitData.TYPE_LIMIT_PARKING_BLOCKED, "Стоянка в геозоне запрещена")
-        columnZoneType.addChoice(ZoneLimitData.TYPE_LIMIT_PARKING_ONLY, "Стоянка вне геозоны запрещена")
-        //            //--- заполнение дополнительных ограничений по датчикам
-        //            ZoneLimitData.fillZoneLimitComboBox( columnZoneType );
-
-        val columnZoneMaxSpeed = ColumnInt(tableName, "max_speed", "Максимальная скорость [км/ч]", 10, 100)
-        columnZoneMaxSpeed.addFormVisible(FormColumnVisibleData(columnZoneType, true, intArrayOf(ZoneLimitData.TYPE_LIMIT_SPEED)))
+        val columnZoneType = ColumnComboBox(tableName, "zone_type", "Ограничение", ZoneLimitData.TYPE_LIMIT_SPEED).apply {
+            addChoice(ZoneLimitData.TYPE_LIMIT_SPEED, "Ограничение по скорости")
+            addChoice(ZoneLimitData.TYPE_LIMIT_AREA_BLOCKED, "Нахождение в геозоне запрещено")
+            addChoice(ZoneLimitData.TYPE_LIMIT_AREA_ONLY, "Нахождение вне геозоны запрещено")
+            addChoice(ZoneLimitData.TYPE_LIMIT_PARKING_BLOCKED, "Стоянка в геозоне запрещена")
+            addChoice(ZoneLimitData.TYPE_LIMIT_PARKING_ONLY, "Стоянка вне геозоны запрещена")
+            //            //--- заполнение дополнительных ограничений по датчикам
+            //            ZoneLimitData.fillZoneLimitComboBox( columnZoneType );
+        }
+        val columnZoneMaxSpeed = ColumnInt(tableName, "max_speed", "Максимальная скорость [км/ч]", 10, 100).apply {
+            addFormVisible(columnZoneType, true, setOf(ZoneLimitData.TYPE_LIMIT_SPEED))
+        }
 
         //----------------------------------------------------------------------------------------------------------------------
 

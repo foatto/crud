@@ -7,7 +7,7 @@ import foatto.core.util.crc16_modbus
 import foatto.core.util.getCurrentTimeInt
 import foatto.core_server.ds.CoreDataServer
 import foatto.core_server.ds.CoreDataWorker
-import foatto.mms.core_mms.sensor.SensorConfig
+import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.sql.SQLBatch
 import java.nio.ByteOrder
 import java.nio.channels.SelectionKey
@@ -60,6 +60,7 @@ open class GalileoHandler : MMSHandler() {
     private val tmEnergoCountActiveReverse = TreeMap<Int, Int>()
     private val tmEnergoCountReactiveDirect = TreeMap<Int, Int>()
     private val tmEnergoCountReactiveReverse = TreeMap<Int, Int>()
+
     //--- напряжение по фазам
     private val tmEnergoVoltageA = TreeMap<Int, Int>()
     private val tmEnergoVoltageB = TreeMap<Int, Int>()
@@ -85,6 +86,9 @@ open class GalileoHandler : MMSHandler() {
     private val tmEnergoPowerFullA = TreeMap<Int, Int>()
     private val tmEnergoPowerFullB = TreeMap<Int, Int>()
     private val tmEnergoPowerFullC = TreeMap<Int, Int>()
+    private val tmEnergoPowerActiveABC = TreeMap<Int, Int>()
+    private val tmEnergoPowerReactiveABC = TreeMap<Int, Int>()
+    private val tmEnergoPowerFullABC = TreeMap<Int, Int>()
 
     //--- массовый расход
     private val tmMassFlow = TreeMap<Int, Float>()
@@ -100,6 +104,7 @@ open class GalileoHandler : MMSHandler() {
 
     //--- накопленная масса
     private val tmAccumulatedMass = TreeMap<Int, Float>()
+
     //--- накопленный объём
     private val tmAccumulatedVolume = TreeMap<Int, Float>()
 
@@ -109,21 +114,21 @@ open class GalileoHandler : MMSHandler() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun init( aDataServer: CoreDataServer, aSelectionKey: SelectionKey ) {
+    override fun init(aDataServer: CoreDataServer, aSelectionKey: SelectionKey) {
         deviceType = DEVICE_TYPE_GALILEO
 
-        super.init( aDataServer, aSelectionKey )
+        super.init(aDataServer, aSelectionKey)
     }
 
-    override fun oneWork( dataWorker: CoreDataWorker ): Boolean {
+    override fun oneWork(dataWorker: CoreDataWorker): Boolean {
         //--- Iridium-заголовок
-        if( isIridium ) {
+        if (isIridium) {
             //--- в данном случае - версия протокола
-            if( packetHeader.toInt() == 0 ) {
+            if (packetHeader.toInt() == 0) {
                 //--- будем ждать загрузки максимально полного заголовка
                 //--- (если он не полный - то "непрочитанный" остаток безопасно уйдёт в полезную нагрузку,
                 //--- т.к. опциональная часть заголовка много меньше полезной нагрузки)
-                if( bbIn.remaining() < 1 + 2 + 1 + 2 + 4 + 15 + 1 + 2 + 2 + 4 + 1 + 2 + 1 + 1 + 2 + 1 + 2 + 4 + 1 + 2 ) {
+                if (bbIn.remaining() < 1 + 2 + 1 + 2 + 4 + 15 + 1 + 2 + 2 + 4 + 1 + 2 + 1 + 1 + 2 + 1 + 2 + 4 + 1 + 2) {
                     bbIn.compact()
                     return true
                 }
@@ -132,26 +137,26 @@ open class GalileoHandler : MMSHandler() {
                 bbIn.getByte()     // Тэг 0х01
                 bbIn.getShort()    // размер данных тэга
                 bbIn.getInt()      // ID пакета
-                val arrIridiumIMEI = ByteArray( 15 )
+                val arrIridiumIMEI = ByteArray(15)
                 bbIn.get(arrIridiumIMEI)    // IMEI
-                val iridiumIMEI = String( arrIridiumIMEI )
+                val iridiumIMEI = String(arrIridiumIMEI)
                 val iridiumStatusSession = bbIn.getByte().toInt()
                 bbIn.getShort()    // номер пакета
                 bbIn.getShort()    // пустое поле
                 bbIn.getInt()      // время отправки пакета
 
-                if( packetHeader.toInt() != 0x01 ) {
-                    writeError( dataWorker.alConn, dataWorker.alStm[ 0 ], "Wrong Iridium protocol version = $packetHeader for IMEI = $iridiumIMEI" )
+                if (packetHeader.toInt() != 0x01) {
+                    writeError(dataWorker.alConn, dataWorker.alStm[0], "Wrong Iridium protocol version = $packetHeader for IMEI = $iridiumIMEI")
                     return false
                 }
-                if( iridiumStatusSession < 0 || iridiumStatusSession > 2 ) {
-                    writeError( dataWorker.alConn, dataWorker.alStm[ 0 ], "Wrong Iridium session status = $iridiumStatusSession for IMEI = $iridiumIMEI" )
+                if (iridiumStatusSession < 0 || iridiumStatusSession > 2) {
+                    writeError(dataWorker.alConn, dataWorker.alStm[0], "Wrong Iridium session status = $iridiumStatusSession for IMEI = $iridiumIMEI")
                     return false
                 }
 
                 var tag = bbIn.getByte().toInt()
                 //--- опциональный тэг
-                if( tag == 0x03 ) {
+                if (tag == 0x03) {
                     bbIn.getShort()    // размер данных тэга
                     bbIn.getByte()     // флаги
                     bbIn.getByte()     // широта - градусы
@@ -163,16 +168,15 @@ open class GalileoHandler : MMSHandler() {
                     tag = bbIn.getByte().toInt()
                 }
                 //--- основной тэг
-                if( tag == 0x02 ) {
+                if (tag == 0x02) {
                     //--- данные в Iridium-заголовке идут в BidEndian, в отличие от остальных галилео-данных.
                     //--- чтобы не переключать BidEndian-режим из-за одного только размера пакета,
                     //--- проще у него самого байты переставить
                     val b1 = bbIn.getByte()
                     val b2 = bbIn.getByte()
-                    packetSize = ( b1.toInt() and 0xFF shl 8 ) or ( b2.toInt() and 0xFF )
-                }
-                else {
-                    writeError( dataWorker.alConn, dataWorker.alStm[ 0 ], "Unknown Iridium tag = $tag for IMEI = $iridiumIMEI" )
+                    packetSize = (b1.toInt() and 0xFF shl 8) or (b2.toInt() and 0xFF)
+                } else {
+                    writeError(dataWorker.alConn, dataWorker.alStm[0], "Unknown Iridium tag = $tag for IMEI = $iridiumIMEI")
                     return false
                 }
             }
@@ -180,8 +184,8 @@ open class GalileoHandler : MMSHandler() {
         //--- Стандартный заголовок
         else {
             //--- магический байт-заголовок
-            if( packetHeader.toInt() == 0 ) {
-                if( bbIn.remaining() < 1 + 2 ) {
+            if (packetHeader.toInt() == 0) {
+                if (bbIn.remaining() < 1 + 2) {
                     bbIn.compact()
                     return true
                 }
@@ -193,15 +197,15 @@ open class GalileoHandler : MMSHandler() {
                 //--- длина пакета - остальные/младшие 15 бит
                 packetSize = packetSize and 0x7FFF
 
-                if( packetHeader.toInt() != 0x01 ) {
-                    writeError( dataWorker.alConn, dataWorker.alStm[ 0 ], "Wrong packet header = $packetHeader for device ID = $deviceID" )
+                if (packetHeader.toInt() != 0x01) {
+                    writeError(dataWorker.alConn, dataWorker.alStm[0], "Wrong packet header = $packetHeader for device ID = $deviceID")
                     return false
                 }
             }
         }
 
         //--- ждём основные данные + 2 байта CRC (0, если данные передавались через iridium, там не передается CRC)
-        if( bbIn.remaining() < packetSize + ( if( isIridium ) 0 else 2 ) ) {
+        if (bbIn.remaining() < packetSize + (if (isIridium) 0 else 2)) {
             bbIn.compact()
             return true
         }
@@ -214,52 +218,52 @@ open class GalileoHandler : MMSHandler() {
 
         //--- обработка данных, кроме последних 2 байт CRC
         //--- (0, если данные передавались через iridium, там не передается CRC)
-        while( bbIn.remaining() > if( isIridium ) 0 else 2 ) {
+        while (bbIn.remaining() > if (isIridium) 0 else 2) {
             //AdvancedLogger.debug( "remaining = " + bbIn.remaining() );
             //--- тег данных
             val tag = bbIn.getByte().toInt() and 0xFF
             //AdvancedLogger.debug( "tag = " + Integer.toHexString( tag ) );
-            when( tag ) {
+            when (tag) {
 
-            //--- версия прибора/железа
+                //--- версия прибора/железа
                 0x01 -> {
                     val hwVersion = bbIn.getByte().toInt() and 0xFF // хрен знает, что с ней делать
-                    AdvancedLogger.debug( "hardware version = " + hwVersion )
+                    AdvancedLogger.debug("hardware version = " + hwVersion)
                 }
 
-            //--- версия прошивки
+                //--- версия прошивки
                 0x02 -> {
                     fwVersion = bbIn.getByte().toInt() and 0xFF
-                    AdvancedLogger.debug( "firmware version = " + fwVersion )
+                    AdvancedLogger.debug("firmware version = " + fwVersion)
                 }
 
-            //--- IMEI
+                //--- IMEI
                 0x03 -> {
-                    arrIMEI = ByteArray( 15 )
-                    bbIn.get( arrIMEI )
-                    val imei = String( arrIMEI )
+                    arrIMEI = ByteArray(15)
+                    bbIn.get(arrIMEI)
+                    val imei = String(arrIMEI)
 
-                    deviceID = Integer.parseInt( imei.substring( imei.length - 7 ) )
-                    AdvancedLogger.debug( "deviceID = " + deviceID )
+                    deviceID = Integer.parseInt(imei.substring(imei.length - 7))
+                    AdvancedLogger.debug("deviceID = " + deviceID)
 
-                    if( !loadDeviceConfig( dataWorker ) ) return false
+                    if (!loadDeviceConfig(dataWorker)) return false
                 }
 
-            //--- нужен только для отправки команды терминалу, обычно он одинаков у всех приборов
+                //--- нужен только для отправки команды терминалу, обычно он одинаков у всех приборов
                 0x04 -> terminalID = bbIn.getShort().toInt() and 0xFFFF
 
-            //--- record No - будем игнорировать, т.к. может и не приходить, а дата/время точки должно приходить по-любому
+                //--- record No - будем игнорировать, т.к. может и не приходить, а дата/время точки должно приходить по-любому
                 0x10 -> bbIn.getShort()    // SKIP record No
 
-            //--- date time
+                //--- date time
                 0x20 -> {
                     //--- если была предыдущая точка, то запишем её
-                    if( pointTime != 0 ) savePoint( dataWorker, pointTime, sqlBatchData )
+                    if (pointTime != 0) savePoint(dataWorker, pointTime, sqlBatchData)
                     //--- даже с учётом игнорирования/обнуления старшего/знакового бита, этого нам хватит еще до 2038 года
-                    pointTime = ( bbIn.getInt() and 0x7F_FF_FF_FF )
+                    pointTime = (bbIn.getInt() and 0x7F_FF_FF_FF)
                 }
 
-            //--- coords
+                //--- coords
                 0x30 -> {
                     isCoordOk = bbIn.getByte().toInt() and 0xF0 == 0
                     //--- галиеевские int-координаты с точностью 6 цифр после запятой переводим
@@ -268,161 +272,161 @@ open class GalileoHandler : MMSHandler() {
                     wgsX = bbIn.getInt() * 10
                 }
 
-            //--- speed & angle
+                //--- speed & angle
                 0x33 -> {
-                    speed = roundSpeed( ( bbIn.getShort().toInt() and 0xFFFF ) / 10.0 )
+                    speed = roundSpeed((bbIn.getShort().toInt() and 0xFFFF) / 10.0)
                     bbIn.getShort()    // SKIP angle
                 }
 
-            //--- altitude
+                //--- altitude
                 0x34 -> bbIn.getShort()    // SKIP altitude
 
-            //--- HDOP
+                //--- HDOP
                 0x35 -> bbIn.getByte() // SKIP HDOP
 
-            //--- device status - из всех статусов нам пока интересен только статус парковки по уровню вибрации
+                //--- device status - из всех статусов нам пока интересен только статус парковки по уровню вибрации
                 0x40 -> isParking = bbIn.getShort().toInt() and 0x0001 == 0
 
-            //--- power voltage
+                //--- power voltage
                 0x41 -> powerVoltage = bbIn.getShort().toInt() and 0xFFFF
 
-            //--- accum voltage
+                //--- accum voltage
                 0x42 -> accumVoltage = bbIn.getShort().toInt() and 0xFFFF
 
-            //--- controller temperature
+                //--- controller temperature
                 0x43 -> controllerTemperature = bbIn.getByte().toInt()
 
-            //--- acceleration
+                //--- acceleration
                 0x44 -> bbIn.getInt()
 
-            //--- out status
+                //--- out status
                 0x45 -> bbIn.getShort()
 
-            //--- in status - не совсем понятно - дискретных входов как бы нет, а приходит аж 16 бит
+                //--- in status - не совсем понятно - дискретных входов как бы нет, а приходит аж 16 бит
                 0x46 -> bbIn.getShort()// & 0xFFFF;
 
-            //--- EcoDrive
+                //--- EcoDrive
                 0x47 -> bbIn.getInt()  // SKIP EcoDrive
 
-            //--- in voltage / impulse count / impulse frequency
+                //--- in voltage / impulse count / impulse frequency
                 in 0x50..0x57 -> tmUniversalSensor[tag - 0x50] = bbIn.getShort().toInt() and 0xFFFF
 
-            //--- RS-232
+                //--- RS-232
                 0x58, 0x59 -> bbIn.getShort()
 
-            //--- показатель счётчика электроэнергии РЭП-500
+                //--- показатель счётчика электроэнергии РЭП-500
                 0x5A -> bbIn.getInt()  // SKIP
 
-            //--- данные рефрижераторной установки
+                //--- данные рефрижераторной установки
                 0x5B -> {
-                    AdvancedLogger.error( "deviceID = $deviceID\n unsupported tag = 0x${Integer.toHexString( tag )}\n disable refrigerator data, please" )
+                    AdvancedLogger.error("deviceID = $deviceID\n unsupported tag = 0x${Integer.toHexString(tag)}\n disable refrigerator data, please")
                     return false
                 }
 
-            //--- система контроля давления в шинах PressurePro, 34 датчика
-                0x5C -> for( i in 0..33 ) bbIn.getShort()
+                //--- система контроля давления в шинах PressurePro, 34 датчика
+                0x5C -> for (i in 0..33) bbIn.getShort()
 
-            //--- Данные дозиметра ДБГ-С11Д
+                //--- Данные дозиметра ДБГ-С11Д
                 0x5D -> {
                     bbIn.getShort()
                     bbIn.getByte()
                 }
 
-            //--- RS-485 основные/типовые (0..2)
-                in 0x60..0x62 -> tmRS485Fuel.put( tag - 0x60, bbIn.getShort().toInt() and 0xFFFF )
+                //--- RS-485 основные/типовые (0..2)
+                in 0x60..0x62 -> tmRS485Fuel.put(tag - 0x60, bbIn.getShort().toInt() and 0xFFFF)
 
-            //--- RS-485 дополнительные/расширенные (с показаниями температуры) (3..7)
-            //--- RS-485 дополнительные/расширенные (с показаниями температуры) (8..15)
+                //--- RS-485 дополнительные/расширенные (с показаниями температуры) (3..7)
+                //--- RS-485 дополнительные/расширенные (с показаниями температуры) (8..15)
                 in 0x63..0x6F -> {
-                    tmRS485Fuel.put( tag - 0x60, bbIn.getShort().toInt() and 0xFFFF )
-                    tmRS485Temp.put( tag - 0x60, bbIn.getByte().toInt() )
+                    tmRS485Fuel.put(tag - 0x60, bbIn.getShort().toInt() and 0xFFFF)
+                    tmRS485Temp.put(tag - 0x60, bbIn.getByte().toInt())
                 }
 
-            //--- thermometer
+                //--- thermometer
                 in 0x70..0x77 -> {
                     bbIn.getByte()  //.toInt() and 0xFF - thermometerID
                     bbIn.getByte()  //.toInt() - value
                 }
 
-            //--- датчик DS1923 (температура и влажность)
+                //--- датчик DS1923 (температура и влажность)
                 in 0x80..0x87 -> {
                     bbIn.getByte()  //.toInt() and 0xFF - DS_ID
                     bbIn.getByte()  //.toInt() - temp
                     bbIn.getByte()  //.toInt() and 0xFF) * 100 / 255 - humidity
                 }
 
-            //--- Температура ДУТ, подключенного к нулевому порту RS232, С
+                //--- Температура ДУТ, подключенного к нулевому порту RS232, С
                 0x88 -> bbIn.getByte()
 
-            //--- RS-485 основные/типовые (0..2) - показания температуры
+                //--- RS-485 основные/типовые (0..2) - показания температуры
                 0x8A, 0x8B, 0x8C -> tmRS485Temp.put(tag - 0x8A, bbIn.getByte().toInt())
 
-            //--- iButton 0
+                //--- iButton 0
                 0x90 -> bbIn.getInt()
 
-            //--- CAN8BITR16..CAN8BITR31
+                //--- CAN8BITR16..CAN8BITR31
                 in 0xA0..0xAF -> bbIn.getByte()
 
-            //--- CAN16BITR6..CAN16BITR15
+                //--- CAN16BITR6..CAN16BITR15
                 in 0xB0..0xB9 -> bbIn.getShort()
 
-            //--- FMS-Standart: fuel
+                //--- FMS-Standart: fuel
                 0xC0 -> bbIn.getInt()   // / 2).toLong()   //!!! не учитывается, что беззнаковое целое
 
-            //--- CAN
+                //--- CAN
                 0xC1 -> {
-                    canFuelLevel = Math.round( ( bbIn.getByte().toInt() and 0xFF ) * 0.4f )
-                    canCoolantTemperature = ( bbIn.getByte().toInt() and 0xFF ) - 40
-                    canEngineRPM = Math.round( ( bbIn.getShort().toInt() and 0xFFFF ) * 0.125f )
+                    canFuelLevel = Math.round((bbIn.getByte().toInt() and 0xFF) * 0.4f)
+                    canCoolantTemperature = (bbIn.getByte().toInt() and 0xFF) - 40
+                    canEngineRPM = Math.round((bbIn.getShort().toInt() and 0xFFFF) * 0.125f)
                 }
 
-            //--- FMS-Standart: run
+                //--- FMS-Standart: run
                 0xC2 -> bbIn.getInt()   // * 5L    //!!! не учитывается, что беззнаковое целое
 
-            //--- CAN_B1
+                //--- CAN_B1
                 0xC3 -> bbIn.getInt()
 
-            //--- CAN8BITR0..7 или CAN-LOG, зависит от настроек
+                //--- CAN8BITR0..7 или CAN-LOG, зависит от настроек
                 in 0xC4..0xD2 -> bbIn.getByte()
 
-            //--- iButton 1
+                //--- iButton 1
                 0xD3 -> bbIn.getInt()
 
-            //--- absolute/summary run - не учитывается, что беззнаковое целое, однако машине больше 2 млн. км всё равно не пробежать
+                //--- absolute/summary run - не учитывается, что беззнаковое целое, однако машине больше 2 млн. км всё равно не пробежать
                 0xD4 -> absoluteRun = bbIn.getInt()
 
-            //--- iButton status
+                //--- iButton status
                 0xD5 -> bbIn.getByte()  //.toInt() and 0xFF
 
-            //--- CAN16BITR0..4 или CAN-LOG, зависит от настроек
+                //--- CAN16BITR0..4 или CAN-LOG, зависит от настроек
                 0xD6, 0xD7, 0xD8, 0xD9, 0xDA -> bbIn.getShort()
 
-            //--- CAN32BITR0..4 или CAN-LOG, зависит от настроек
+                //--- CAN32BITR0..4 или CAN-LOG, зависит от настроек
                 0xDB, 0xDC, 0xDD, 0xDE, 0xDF -> bbIn.getInt()
 
-            //--- номер команды, на которую пришёл ответ
+                //--- номер команды, на которую пришёл ответ
                 0xE0 -> bbIn.getInt()
 
-            //--- ответ на команду
+                //--- ответ на команду
                 0xE1 -> {
                     val answerLen = bbIn.getByte().toInt() and 0xFF
-                    val arrAnswer = ByteArray( answerLen )
-                    bbIn.get( arrAnswer )
-                    val answer = String( arrAnswer )
-                    sbStatus.append( "AnswerReceive=" ).append( answer ).append( ';' )
-                    AdvancedLogger.debug( "Answer" )
-                    AdvancedLogger.debug( "deviceID = $deviceID\n Answer = $answer" )
+                    val arrAnswer = ByteArray(answerLen)
+                    bbIn.get(arrAnswer)
+                    val answer = String(arrAnswer)
+                    sbStatus.append("AnswerReceive=").append(answer).append(';')
+                    AdvancedLogger.debug("Answer")
+                    AdvancedLogger.debug("deviceID = $deviceID\n Answer = $answer")
                 }
 
-            //--- пользовательские данные в виде одиночных значений
+                //--- пользовательские данные в виде одиночных значений
                 in 0xE2..0xE9 -> tmUserData[tag - 0xE2] = bbIn.getInt()
 
-            //--- пользовательские данные
+                //--- пользовательские данные
                 0xEA -> {
                     //AdvancedLogger.debug( "deviceID = " + deviceID + "\n user data time = " + StringFunction.DateTime_YMDHMS( timeZone, pointTime ) );
 
                     val userDataSize = bbIn.getByte().toInt() and 0xFF // размер данных
-                    AdvancedLogger.debug( "deviceID = " + deviceID + "\n userDataSize = " + userDataSize );
+                    AdvancedLogger.debug("deviceID = " + deviceID + "\n userDataSize = " + userDataSize);
 
                     //                StringBuilder sbHex = new StringBuilder( " 0xEA =" );
                     //                for( int i = 0; i < userDataSize; i++ ) {
@@ -434,49 +438,49 @@ open class GalileoHandler : MMSHandler() {
                     val userDataType = bbIn.getByte().toInt() and 0xFF  // тип пользовательских данных
                     //AdvancedLogger.debug( "deviceID = " + deviceID + "\n userDataType = " + userDataType );
                     //--- данные от электрического счетчика "Меркурий"
-                    if( userDataType == 0x02 ) {
-                        AdvancedLogger.error( "deviceID = $deviceID\n Меркурий: электросчётчик напрямую прибором Galileo больше не поддерживается. Используте модуль сбора данных." )
-                        bbIn.skip( userDataSize - 1 )
-                    }
-                    else if( userDataType == 0x03 ) {
+                    if (userDataType == 0x02) {
+                        AdvancedLogger.error("deviceID = $deviceID\n Меркурий: электросчётчик напрямую прибором Galileo больше не поддерживается. Используте модуль сбора данных.")
+                        bbIn.skip(userDataSize - 1)
+                    } else if (userDataType == 0x03) {
                         //--- версия данных, пока не учитываем
                         val dataVersion = bbIn.getByte().toInt() and 0xFF
-                        when(dataVersion) {
+                        when (dataVersion) {
                             2 -> {
                                 //--- далее кусками по 6 байт
-                                for( idi in 0 until ( userDataSize - 2 ) / 6 ) {
+                                for (idi in 0 until (userDataSize - 2) / 6) {
                                     //--- данные идут в BigEndian, в отличие от остальных галилео-данных.
                                     //--- чтобы не переключать BigEndian-режим из-за этих данных, проще переставить байты вручную
                                     var b1 = bbIn.getByte()
                                     var b2 = bbIn.getByte()
-                                    val id = ( b1.toInt() and 0xFF shl 8 ) or ( b2.toInt() and 0xFF )
+                                    val id = (b1.toInt() and 0xFF shl 8) or (b2.toInt() and 0xFF)
                                     //int id = bbIn.getShort() & 0xFFFF;
 
                                     b1 = bbIn.getByte()
                                     b2 = bbIn.getByte()
                                     val b3 = bbIn.getByte()
                                     val b4 = bbIn.getByte()
-                                    val value = ( b1.toInt() and 0xFF shl 24 ) or ( b2.toInt() and 0xFF shl 16 ) or ( b3.toInt() and 0xFF shl 8 ) or ( b4.toInt() and 0xFF )
+                                    val value = (b1.toInt() and 0xFF shl 24) or (b2.toInt() and 0xFF shl 16) or (b3.toInt() and 0xFF shl 8) or (b4.toInt() and 0xFF)
                                     //int value = bbIn.getInt();
 
                                     val float = Float.fromBits(value)
 
-                                    AdvancedLogger.error( "id = ${id.toString(16)}, value = $value / 0x${value.toString(16)}, float = $float" )
+                                    AdvancedLogger.error("id = ${id.toString(16)}, value = $value / 0x${value.toString(16)}, float = $float")
 
-                                    when(id) {
-                                        0 -> {} // молча пропускаем пустой 0-й id
-                                        
-                                        in 0x0100..0x010F -> tmLevelSensor[ id - 0x0100 ] = value
-                                        in 0x0140..0x014F -> tmVoltageSensor[ id - 0x0140 ] = value
-                                        in 0x0180..0x018F -> tmCountSensor[ id - 0x0180 ] = value
+                                    when (id) {
+                                        0 -> {
+                                        } // молча пропускаем пустой 0-й id
 
-                                        in 0x01C1..0x01C4 -> tmEnergoCountActiveDirect[ id - 0x01C1 ] = value
-                                        in 0x0201..0x0204 -> tmEnergoCountActiveReverse[ id - 0x0201 ] = value
-                                        in 0x0241..0x0244 -> tmEnergoCountReactiveDirect[ id - 0x0241 ] = value
-                                        in 0x0281..0x0284 -> tmEnergoCountReactiveReverse[ id - 0x0281 ] = value
+                                        in 0x0100..0x010F -> tmLevelSensor[id - 0x0100] = value
+                                        in 0x0140..0x014F -> tmVoltageSensor[id - 0x0140] = value
+                                        in 0x0180..0x018F -> tmCountSensor[id - 0x0180] = value
 
-                                        in 0x02C1..0x02C4 -> tmEnergoVoltageA[ id - 0x02C1 ] = value
-                                        in 0x0301..0x0304 -> tmEnergoVoltageB[ id - 0x0301 ] = value
+                                        in 0x01C1..0x01C4 -> tmEnergoCountActiveDirect[id - 0x01C1] = value
+                                        in 0x0201..0x0204 -> tmEnergoCountActiveReverse[id - 0x0201] = value
+                                        in 0x0241..0x0244 -> tmEnergoCountReactiveDirect[id - 0x0241] = value
+                                        in 0x0281..0x0284 -> tmEnergoCountReactiveReverse[id - 0x0281] = value
+
+                                        in 0x02C1..0x02C4 -> tmEnergoVoltageA[id - 0x02C1] = value
+                                        in 0x0301..0x0304 -> tmEnergoVoltageB[id - 0x0301] = value
                                         in 0x0341..0x0344 -> tmEnergoVoltageC[id - 0x0341] = value
 
                                         in 0x0381..0x0384 -> tmEnergoCurrentA[id - 0x0381] = value
@@ -506,92 +510,96 @@ open class GalileoHandler : MMSHandler() {
                                         in 0x0641..0x0644 -> tmAccumulatedMass[id - 0x0641] = float
                                         in 0x0681..0x0684 -> tmAccumulatedVolume[id - 0x0681] = float
 
+                                        in 0x0700..0x0703 -> tmEnergoPowerActiveABC[id - 0x0700] = value
+                                        in 0x0710..0x0713 -> tmEnergoPowerReactiveABC[id - 0x0710] = value
+                                        in 0x0720..0x0723 -> tmEnergoPowerFullABC[id - 0x0720] = value
+
                                         else -> AdvancedLogger.error("deviceID = $deviceID\n модуль сбора данных: неизвестный id = ${id.toString(16)}.")
                                     }
                                 }
                             }
                             else -> {
-                                AdvancedLogger.error( "deviceID = $deviceID\n модуль сбора данных: версия $dataVersion больше не поддерживается. Используйте свежий скрипт/прошивку." )
+                                AdvancedLogger.error("deviceID = $deviceID\n модуль сбора данных: версия $dataVersion больше не поддерживается. Используйте свежий скрипт/прошивку.")
                                 return false
                             }
                         }
                     }
                     //--- неизвестные данные, пропускаем их
                     else {
-                        AdvancedLogger.error( "deviceID = $deviceID\n Неизвестный тип пользовательских данных = $userDataType" )
-                        bbIn.skip( userDataSize - 1 )
+                        AdvancedLogger.error("deviceID = $deviceID\n Неизвестный тип пользовательских данных = $userDataType")
+                        bbIn.skip(userDataSize - 1)
                     }
                 }
 
-            //--- CAN32BITR6..CAN32BITR15
+                //--- CAN32BITR6..CAN32BITR15
                 0xF0, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7, 0xF8, 0xF9 -> bbIn.getInt()
 
                 else -> {
-                    AdvancedLogger.error( "deviceID = $deviceID\n unknown tag = 0x${Integer.toHexString( tag )}" )
+                    AdvancedLogger.error("deviceID = $deviceID\n unknown tag = 0x${Integer.toHexString(tag)}")
                     return false
                 }
             }
         }
         //--- при передаче через iridium crc-код возвращать не надо
-        val crc = if( isIridium ) 0 else bbIn.getShort()
+        val crc = if (isIridium) 0 else bbIn.getShort()
         //AdvancedLogger.debug( "remaining = " + bbIn.remaining() );
-        sbStatus.append( "DataRead;" )
+        sbStatus.append("DataRead;")
 
         //--- здесь имеет смысл сохранить данные по последней точке, если таковая была считана
-        if( pointTime != 0 ) savePoint( dataWorker, pointTime, sqlBatchData )
+        if (pointTime != 0) savePoint(dataWorker, pointTime, sqlBatchData)
 
-        for( stm in dataWorker.alStm ) sqlBatchData.execute( stm )
+        for (stm in dataWorker.alStm) sqlBatchData.execute(stm)
 
         //--- при передаче через iridium отвечать не надо
-        if( !isIridium ) sendAccept( crc )
+        if (!isIridium) sendAccept(crc)
 
         //--- проверка на наличие команды терминалу
 
-        val ( cmdID, cmdStr ) = getCommand( dataWorker.alStm[ 0 ], deviceID )
+        val (cmdID, cmdStr) = getCommand(dataWorker.alStm[0], deviceID)
 
         //--- команда есть
-        if( cmdStr != null ) {
+        if (cmdStr != null) {
             //--- и она не пустая
-            if( !cmdStr.isEmpty() ) {
+            if (!cmdStr.isEmpty()) {
                 val dataSize = 1 + 15 + 1 + 2 + 1 + 4 + 1 + 1 + cmdStr.length
 
-                val bbOut = AdvancedByteBuffer( 64 )  // 64 байта в большинстве случаев хватает
+                val bbOut = AdvancedByteBuffer(64)  // 64 байта в большинстве случаев хватает
 
-                bbOut.putByte( 0x01 )
-                bbOut.putShort( dataSize )
+                bbOut.putByte(0x01)
+                bbOut.putShort(dataSize)
 
-                bbOut.putByte( 0x03 )
-                bbOut.put( arrIMEI )
+                bbOut.putByte(0x03)
+                bbOut.put(arrIMEI)
 
-                bbOut.putByte( 0x04 )
-                bbOut.putShort( terminalID )
+                bbOut.putByte(0x04)
+                bbOut.putShort(terminalID)
 
-                bbOut.putByte( 0xE0 )
-                bbOut.putInt( 0 )
+                bbOut.putByte(0xE0)
+                bbOut.putInt(0)
 
-                bbOut.putByte( 0xE1 )
-                bbOut.putByte( cmdStr.length )
-                bbOut.put( cmdStr.toByteArray() )
+                bbOut.putByte(0xE1)
+                bbOut.putByte(cmdStr.length)
+                bbOut.put(cmdStr.toByteArray())
 
                 //--- кто бы мог подумать: CRC отправляется в big-endian, хотя сами данные приходят в little-endian
-                bbOut.putShort( crc16_modbus( bbOut.array(), bbOut.arrayOffset(), dataSize + 3, true ) )
+                bbOut.putShort(crc16_modbus(bbOut.array(), bbOut.arrayOffset(), dataSize + 3, true))
 
-                outBuf( bbOut )
+                outBuf(bbOut)
             }
             //--- отметим успешную отправку команды
-            setCommandSended( dataWorker.alStm[ 0 ], cmdID )
-            sbStatus.append( "CommandSend;" )
+            setCommandSended(dataWorker.alStm[0], cmdID)
+            sbStatus.append("CommandSend;")
         }
 
         //--- данные успешно переданы - теперь можно завершить транзакцию
-        sbStatus.append( "Ok;" )
+        sbStatus.append("Ok;")
         errorText = null
-        writeSession( dataWorker.alConn, dataWorker.alStm[ 0 ], true )
+        writeSession(dataWorker.alConn, dataWorker.alStm[0], true)
 
         //--- для возможного режима постоянного/длительного соединения
         bbIn.clear()   // других данных быть не должно, именно .clear(), а не .compact()
         begTime = 0
-        sbStatus.setLength( 0 )
+        sbStatus.setLength(0)
         dataCount = 0
         dataCountAll = 0
         firstPointTime = 0
@@ -603,58 +611,58 @@ open class GalileoHandler : MMSHandler() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    private fun savePoint( dataWorker: CoreDataWorker, pointTime: Int, sqlBatchData: SQLBatch) {
+    private fun savePoint(dataWorker: CoreDataWorker, pointTime: Int, sqlBatchData: SQLBatch) {
         val curTime = getCurrentTimeInt()
-AdvancedLogger.error( "pointTime = ${DateTime_YMDHMS(ZoneId.systemDefault(), pointTime)}" )
-        if( pointTime > curTime - MAX_PAST_TIME && pointTime < curTime + MAX_FUTURE_TIME ) {
-            val bbData = AdvancedByteBuffer( dataWorker.alConn[ 0 ].dialect.textFieldMaxSize / 2 )
+        AdvancedLogger.error("pointTime = ${DateTime_YMDHMS(ZoneId.systemDefault(), pointTime)}")
+        if (pointTime > curTime - MAX_PAST_TIME && pointTime < curTime + MAX_FUTURE_TIME) {
+            val bbData = AdvancedByteBuffer(dataWorker.alConn[0].dialect.textFieldMaxSize / 2)
 
             //--- напряжения основного и резервного питаний
-            putSensorData( 8, 2, powerVoltage, bbData )
-            putSensorData( 9, 2, accumVoltage, bbData )
+            putSensorData(8, 2, powerVoltage, bbData)
+            putSensorData(9, 2, accumVoltage, bbData)
             //--- универсальные входы (аналоговые/частотные/счётные)
-            putDigitalSensor( tmUniversalSensor, 10, 2, bbData )
+            putDigitalSensor(tmUniversalSensor, 10, 2, bbData)
             //--- температура контроллера
-            putSensorData( 18, 2, controllerTemperature, bbData )
+            putSensorData(18, 2, controllerTemperature, bbData)
             //--- гео-данные
-            putSensorPortNumAndDataSize( SensorConfig.GEO_PORT_NUM, SensorConfig.GEO_DATA_SIZE, bbData )
-            bbData.putInt( if( isCoordOk ) wgsX else 0 ).putInt( if( isCoordOk ) wgsY else 0 )
-                  .putShort( if( isCoordOk && !isParking ) speed else 0 ).putInt( if( isCoordOk ) absoluteRun else 0 )
+            putSensorPortNumAndDataSize(SensorConfig.GEO_PORT_NUM, SensorConfig.GEO_DATA_SIZE, bbData)
+            bbData.putInt(if (isCoordOk) wgsX else 0).putInt(if (isCoordOk) wgsY else 0)
+                .putShort(if (isCoordOk && !isParking) speed else 0).putInt(if (isCoordOk) absoluteRun else 0)
 
             //--- 16 RS485-датчиков уровня топлива, по 2 байта
-            putDigitalSensor( tmRS485Fuel, 20, 2, bbData )
+            putDigitalSensor(tmRS485Fuel, 20, 2, bbData)
 
             //--- CAN: уровень топлива в %
-            putSensorData( 36, 1, canFuelLevel, bbData )
+            putSensorData(36, 1, canFuelLevel, bbData)
             //--- CAN: температура охлаждающей жидкости - сохраняется в виде 4 байт,
             //--- чтобы сохранить знак числа, не попадая под переделку в unsigned short в виде & 0xFFFF
-            putSensorData( 37, 4, canCoolantTemperature, bbData )
+            putSensorData(37, 4, canCoolantTemperature, bbData)
             //--- CAN: обороты двигателя, об/мин
-            putSensorData( 38, 2, canEngineRPM, bbData )
+            putSensorData(38, 2, canEngineRPM, bbData)
 
             //--- 39-й порт пока свободен
 
             //--- 16 RS485-датчиков температуры, по 4 байта - пишем как int,
             //--- чтобы при чтении не потерялся +- температуры
-            putDigitalSensor( tmRS485Temp, 40, 4, bbData )
+            putDigitalSensor(tmRS485Temp, 40, 4, bbData)
 
-            putDigitalSensor( tmUserData, 100, 4, bbData )
-            putDigitalSensor( tmCountSensor, 110, 4, bbData )
-            putDigitalSensor( tmLevelSensor, 120, 4, bbData )
-            putDigitalSensor( tmVoltageSensor, 140, 4, bbData )
+            putDigitalSensor(tmUserData, 100, 4, bbData)
+            putDigitalSensor(tmCountSensor, 110, 4, bbData)
+            putDigitalSensor(tmLevelSensor, 120, 4, bbData)
+            putDigitalSensor(tmVoltageSensor, 140, 4, bbData)
 
             //--- данные по электросчётчику ---
 
             //--- значения счётчиков от последнего сброса (активная/реактивная прямая/обратная)
-            putDigitalSensor( tmEnergoCountActiveDirect, 160, 4, bbData )
-            putDigitalSensor( tmEnergoCountActiveReverse, 164, 4, bbData )
-            putDigitalSensor( tmEnergoCountReactiveDirect, 168, 4, bbData )
-            putDigitalSensor( tmEnergoCountReactiveReverse, 172, 4, bbData )
+            putDigitalSensor(tmEnergoCountActiveDirect, 160, 4, bbData)
+            putDigitalSensor(tmEnergoCountActiveReverse, 164, 4, bbData)
+            putDigitalSensor(tmEnergoCountReactiveDirect, 168, 4, bbData)
+            putDigitalSensor(tmEnergoCountReactiveReverse, 172, 4, bbData)
 
             //--- напряжение по фазам A1..4, B1..4, C1..4
-            putDigitalSensor( tmEnergoVoltageA, 180, 4, bbData )
-            putDigitalSensor( tmEnergoVoltageB, 184, 4, bbData )
-            putDigitalSensor( tmEnergoVoltageC, 188, 4, bbData )
+            putDigitalSensor(tmEnergoVoltageA, 180, 4, bbData)
+            putDigitalSensor(tmEnergoVoltageB, 184, 4, bbData)
+            putDigitalSensor(tmEnergoVoltageC, 188, 4, bbData)
 
             //--- ток по фазам A1..4, B1..4, C1..4
             putDigitalSensor(tmEnergoCurrentA, 200, 4, bbData)
@@ -688,24 +696,29 @@ AdvancedLogger.error( "pointTime = ${DateTime_YMDHMS(ZoneId.systemDefault(), poi
             putDigitalSensor(tmAccumulatedMass, 310, bbData)
             putDigitalSensor(tmAccumulatedVolume, 320, bbData)
 
+            //--- мощность по трём фазам: активная, реактивная, суммарная
+            putDigitalSensor(tmEnergoPowerActiveABC, 330, 4, bbData)
+            putDigitalSensor(tmEnergoPowerReactiveABC, 340, 4, bbData)
+            putDigitalSensor(tmEnergoPowerFullABC, 350, 4, bbData)
+
             addPoint(dataWorker.alStm[0], pointTime, bbData, sqlBatchData)
             dataCount++
         }
         dataCountAll++
-        if( firstPointTime == 0 ) firstPointTime = pointTime
+        if (firstPointTime == 0) firstPointTime = pointTime
         lastPointTime = pointTime
         //--- массивы данных по датчикам очищаем независимо от записываемости точек
         clearSensorArrays()
     }
 
-    private fun sendAccept( crc: Short ) {
+    private fun sendAccept(crc: Short) {
         //--- буфер для ответа - достаточно 3 байт, но кеширование работает начиная с 4 байт
-        val bbOut = AdvancedByteBuffer( 4, byteOrder )
+        val bbOut = AdvancedByteBuffer(4, byteOrder)
 
-        bbOut.putByte( 0x02 )
-        bbOut.putShort( crc )
+        bbOut.putByte(0x02)
+        bbOut.putShort(crc)
 
-        outBuf( bbOut )
+        outBuf(bbOut)
     }
 
     private fun clearSensorArrays() {
@@ -750,6 +763,19 @@ AdvancedLogger.error( "pointTime = ${DateTime_YMDHMS(ZoneId.systemDefault(), poi
         tmEnergoPowerKoefA.clear()
         tmEnergoPowerKoefB.clear()
         tmEnergoPowerKoefC.clear()
+
+        tmEnergoPowerActiveA.clear()
+        tmEnergoPowerActiveB.clear()
+        tmEnergoPowerActiveC.clear()
+        tmEnergoPowerReactiveA.clear()
+        tmEnergoPowerReactiveB.clear()
+        tmEnergoPowerReactiveC.clear()
+        tmEnergoPowerFullA.clear()
+        tmEnergoPowerFullB.clear()
+        tmEnergoPowerFullC.clear()
+        tmEnergoPowerActiveABC.clear()
+        tmEnergoPowerReactiveABC.clear()
+        tmEnergoPowerFullABC.clear()
 
         tmMassFlow.clear()
         tmDensity.clear()

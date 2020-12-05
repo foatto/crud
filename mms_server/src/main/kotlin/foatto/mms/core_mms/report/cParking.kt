@@ -2,8 +2,8 @@ package foatto.mms.core_mms.report
 
 import foatto.core.link.FormData
 import foatto.core.util.DateTime_DMYHMS
-import foatto.core.util.secondIntervalToString
 import foatto.core.util.getSBFromIterable
+import foatto.core.util.secondIntervalToString
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.ZoneData
 import foatto.mms.core_mms.calc.GeoPeriodData
@@ -68,8 +68,6 @@ class cParking : cMMSReport() {
 
         offsY = fillReportHeader(if(reportZone == 0) null else hmZoneData[reportZone], sheet, offsY)
 
-        offsY = Math.max(offsY, outReportCap(sheet, 4, 0) + 1)
-
         //--- установка размеров заголовков (общая ширина = 90 для А4 портрет и 140 для А4 ландшафт поля по 10 мм)
         val alDim = mutableListOf<Int>()
         alDim.add(5)    // "N п/п"
@@ -79,10 +77,10 @@ class cParking : cMMSReport() {
         alDim.add(32)   // "Оборудование"
         alDim.add(7)    // "Время работы [час]"
         alDim.add(32)   // "Топливо"
-        alDim.add(7)    // "Расход [л]"
+        alDim.add(7)    // "Расход"
         alDim.add(30)   // "Место"
 
-        for(i in alDim.indices) {
+        for (i in alDim.indices) {
             val cvNN = CellView()
             cvNN.size = alDim[i] * 256
             sheet.setColumnView(i, cvNN)
@@ -97,7 +95,7 @@ class cParking : cMMSReport() {
         sheet.addCell(Label(offsX++, offsY, "Оборудование", wcfCaptionHC))
         sheet.addCell(Label(offsX++, offsY, "Время работы [час]", wcfCaptionHC))
         sheet.addCell(Label(offsX++, offsY, "Топливо", wcfCaptionHC))
-        sheet.addCell(Label(offsX++, offsY, "Расход [л]", wcfCaptionHC))
+        sheet.addCell(Label(offsX++, offsY, "Расход", wcfCaptionHC))
         sheet.addCell(Label(offsX++, offsY, "Место", wcfCaptionHC))
         offsY++
 
@@ -119,9 +117,9 @@ class cParking : cMMSReport() {
                 val sbLiquidUsingName = StringBuilder()
                 val sbLiquidUsingTotal = StringBuilder()
 
-                ObjectCalc.fillWorkString(gpd.calc!!.tmWorkCalc, sbWorkName, sbWorkTotal, StringBuilder(), StringBuilder())
+                ObjectCalc.fillWorkString(gpd.calc!!.tmWorkCalc, sbWorkName, sbWorkTotal)
                 ObjectCalc.fillLiquidUsingString(
-                    gpd.calc!!.tmLiquidUsingCalc, sbLiquidUsingName, sbLiquidUsingTotal, StringBuilder(), StringBuilder()
+                    gpd.calc!!.tmLiquidUsingTotal, gpd.calc!!.tmLiquidUsingCalc, sbLiquidUsingName, sbLiquidUsingTotal, StringBuilder()
                 )
 
                 sheet.addCell(Label(offsX++, offsY, sbWorkName.toString(), wcfCellC))
@@ -149,8 +147,6 @@ class cParking : cMMSReport() {
 
         sheet.addCell(Label(7, offsY, getPreparedAt(), wcfCellL))
         sheet.mergeCells(7, offsY, 8, offsY)
-
-        outReportSignature(sheet, intArrayOf(0, 4, 7), offsY + 3)
     }
 
     private fun calcReport(hmZoneData: Map<Int, ZoneData>): List<List<GeoPeriodData>> {

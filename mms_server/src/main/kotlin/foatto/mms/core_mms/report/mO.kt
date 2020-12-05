@@ -31,10 +31,6 @@ class mO : mAbstractReport() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        initReportCapAndSignature(aliasConfig, userConfig)
-
-        //----------------------------------------------------------------------------------------------------------------------
-
         alFormHiddenColumn.add(columnID!!)
 
         //----------------------------------------------------------------------------------------------------------------------
@@ -42,8 +38,5 @@ class mO : mAbstractReport() {
         os = ObjectSelector()
         os.fillColumns(this, true, true, alTableHiddenColumn, alFormHiddenColumn, alFormColumn, hmParentColumn, false, -1)
 
-        //----------------------------------------------------------------------------------------------------------------------
-
-        addCapAndSignatureColumns()
     }
 }

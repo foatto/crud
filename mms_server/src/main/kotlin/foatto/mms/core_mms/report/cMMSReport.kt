@@ -1,7 +1,6 @@
 package foatto.mms.core_mms.report
 
 import foatto.core.util.DateTime_DMY
-import foatto.sql.CoreAdvancedStatement
 import foatto.core.util.DateTime_DMYHMS
 import foatto.core_server.app.server.OtherOwnerData
 import foatto.core_server.app.server.UserConfig
@@ -14,6 +13,7 @@ import foatto.core_server.app.server.data.DataTime3Int
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.UODGSelector
 import foatto.mms.core_mms.ZoneData
+import foatto.sql.CoreAdvancedStatement
 import jxl.write.Label
 import jxl.write.WritableSheet
 
@@ -167,14 +167,14 @@ abstract class cMMSReport : cAbstractReport() {
         val reportBegYear = hmReportParam["report_beg_year"] as Int
         val reportBegMonth = hmReportParam["report_beg_month"] as Int
         val reportBegDay = hmReportParam["report_beg_day"] as Int
-        val reportBegHour = hmReportParam["report_beg_hour"] as Int
-        val reportBegMinute = hmReportParam["report_beg_minute"] as Int
+        val reportBegHour = hmReportParam["report_beg_hour"] as? Int ?: 0
+        val reportBegMinute = hmReportParam["report_beg_minute"] as? Int ?: 0
 
         val reportEndYear = hmReportParam["report_end_year"] as Int
         val reportEndMonth = hmReportParam["report_end_month"] as Int
         val reportEndDay = hmReportParam["report_end_day"] as Int
-        val reportEndHour = hmReportParam["report_end_hour"] as Int
-        val reportEndMinute = hmReportParam["report_end_minute"] as Int
+        val reportEndHour = hmReportParam["report_end_hour"] as? Int ?: 0
+        val reportEndMinute = hmReportParam["report_end_minute"] as? Int ?: 0
 
         return fillReportTitle(
             aliasConfig.descr,

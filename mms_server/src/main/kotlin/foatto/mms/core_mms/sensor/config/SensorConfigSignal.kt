@@ -1,4 +1,4 @@
-package foatto.mms.core_mms.sensor
+package foatto.mms.core_mms.sensor.config
 
 class SensorConfigSignal(
     aId: Int,
@@ -10,6 +10,6 @@ class SensorConfigSignal(
     aSensorType: Int,
     val boundValue: Int,
     val activeValue: Int,
-    val minIgnore: Int,
-    val maxIgnore: Int
+    val minIgnore: Double,
+    val maxIgnore: Double
 ) : SensorConfig(aId, aName, aSumGroup, aGroup, aDescr, aPortNum, aSensorType)

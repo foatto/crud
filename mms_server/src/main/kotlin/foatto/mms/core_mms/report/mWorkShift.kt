@@ -124,8 +124,6 @@ class mWorkShift : mAbstractReport() {
         columnReportGroupType.isVirtual = true
         columnReportGroupType.setSavedDefault(userConfig)
 
-        initReportCapAndSignature(aliasConfig, userConfig)
-
         //----------------------------------------------------------------------------------------------------------------------
 
         alFormHiddenColumn.add(columnID!!)
@@ -155,8 +153,6 @@ class mWorkShift : mAbstractReport() {
 
         sos = SumOptionSelector()
         sos.fillColumns(userConfig, tableName, alFormColumn)
-
-        addCapAndSignatureColumns()
 
         //----------------------------------------------------------------------------------------------------------------------
 

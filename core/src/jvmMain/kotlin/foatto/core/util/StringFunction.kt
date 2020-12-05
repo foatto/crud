@@ -5,6 +5,8 @@ import java.io.StringWriter
 import java.security.MessageDigest
 import java.text.DecimalFormat
 import java.util.*
+import kotlin.math.pow
+import kotlin.math.round
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -170,22 +172,22 @@ fun getSplittedDouble( aValue: Double, aPrecision: Int ): StringBuilder {
     var precision = aPrecision
 
     //--- корректируем завышенную точность (отрицательную точность не трогаем, это индикатор автоопределения)
-    if( precision >= arrDoubleFormat.size ) precision = arrDoubleFormat.size - 1
+    if (precision >= arrDoubleFormat.size) precision = arrDoubleFormat.size - 1
 
-    val precisionIndex = if( precision < 0 ) arrDoubleFormat.size - 1 else precision
+    val precisionIndex = if (precision < 0) arrDoubleFormat.size - 1 else precision
 
     //--- обеспечиваем округление до нужного знака после запятой
-    val pow10 = Math.pow( 10.0, precisionIndex.toDouble() )
-    value = Math.rint( value * pow10 ) / pow10
+    val pow10 = 10.0.pow(precisionIndex.toDouble())
+    value = round(value * pow10) / pow10
 
     //--- дополнительно меняем десятичную запятую (для русской локали) на универсальную десятичную точку
-    val sbIn = StringBuilder( arrDoubleFormat[ precisionIndex ].format( value ).replace( ',', '.' ) )
+    val sbIn = StringBuilder(arrDoubleFormat[precisionIndex].format(value).replace(',', '.'))
 
     //--- если задано автоматическое округление - убирается только нулевая оконцовка дробной части
     //--- и вычисляется "автоматический" precision
-    if( precision < 0 ) {
+    if (precision < 0) {
         precision = arrDoubleFormat.size - 1
-        while( sbIn[ sbIn.length - ( arrDoubleFormat.size - precision ) ] == '0' ) precision--
+        while (sbIn[sbIn.length - (arrDoubleFormat.size - precision)] == '0') precision--
         //--- если точность оказалась нулевой, то дополнительно убираем ненужную теперь десятичную точку
         sbIn.delete( sbIn.length - ( arrDoubleFormat.size - precision ) + if( precision == 0 ) 0 else 1, sbIn.length )
     }
