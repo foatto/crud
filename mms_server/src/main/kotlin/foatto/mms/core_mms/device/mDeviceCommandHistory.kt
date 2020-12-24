@@ -1,7 +1,7 @@
 package foatto.mms.core_mms.device
 
-import foatto.app.CoreSpringController
 import foatto.core.link.FormPinMode
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnBoolean
@@ -19,9 +19,9 @@ class mDeviceCommandHistory : mAbstract() {
     lateinit var columnEditTime: ColumnDateTimeInt
         private set
 
-    override fun init(appController: CoreSpringController, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
+    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
 
-        super.init(appController, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+        super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ class mDeviceCommandHistory : mAbstract() {
         val parentDeviceID = hmParentData["mms_device"]
 
         //--- если переход из списка контроллеров, то подгрузим соответствующий объект ( если прикреплён )
-        if(parentObjectID == null && parentDeviceID != null) {
+        if (parentObjectID == null && parentDeviceID != null) {
             val rs = stm.executeQuery(" SELECT object_id FROM MMS_device WHERE id = $parentDeviceID ")
             rs.next()
             parentObjectID = rs.getInt(1)

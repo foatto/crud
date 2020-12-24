@@ -1,12 +1,12 @@
 package foatto.core_server.app.server.data
 
-import foatto.app.CoreSpringApp
 import foatto.core.link.FormCell
 import foatto.core.link.FormCellType
 import foatto.core.link.FormData
 import foatto.core.link.TableCell
 import foatto.core.util.getFreeDir
 import foatto.core_server.app.server.column.iColumn
+import foatto.spring.CoreSpringApp
 import foatto.sql.CoreAdvancedResultSet
 import foatto.sql.CoreAdvancedStatement
 import java.io.File

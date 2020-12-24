@@ -1,7 +1,7 @@
 package foatto.shop
 
-import foatto.app.CoreSpringController
 import foatto.core.link.TableCellAlign
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.*
@@ -52,14 +52,14 @@ class mDocumentContent : mAbstract() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun init(appController: CoreSpringController, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
+    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
 
-        super.init(appController, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+        super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         var docID: Int? = null
-        for(name in DocumentTypeConfig.hmAliasDocType.keys) {
+        for (name in DocumentTypeConfig.hmAliasDocType.keys) {
             docID = hmParentData[name]
-            if(docID != null) break
+            if (docID != null) break
         }
 
         val hmAliasConfig = AliasConfig.getConfig(stm)

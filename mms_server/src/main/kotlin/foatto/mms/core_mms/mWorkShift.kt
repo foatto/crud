@@ -1,7 +1,7 @@
 package foatto.mms.core_mms
 
-import foatto.app.CoreSpringController
 import foatto.core.link.AppAction
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.ChildData
 import foatto.core_server.app.server.DependData
@@ -24,10 +24,10 @@ class mWorkShift : mAbstract() {
         get() = os.columnObject
 
     override fun init(
-        appController: CoreSpringController, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int
+        application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int
     ) {
 
-        super.init(appController, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+        super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         //--- это "путевой лист" или "рабочая смена"? (mms_waybill vs. mms_work_shift)
         val isWaybill = aliasConfig.alias == "mms_waybill"

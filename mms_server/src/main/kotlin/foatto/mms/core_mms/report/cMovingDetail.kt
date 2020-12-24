@@ -5,9 +5,9 @@ import foatto.core.util.DateTime_DMYHMS
 import foatto.core.util.getSplittedDouble
 import foatto.core.util.getSplittedLong
 import foatto.core.util.secondIntervalToString
-import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.calc.GeoPeriodData
 import foatto.mms.core_mms.calc.ObjectCalc
+import foatto.mms.iMMSApplication
 import jxl.CellView
 import jxl.format.PageOrientation
 import jxl.format.PaperSize
@@ -97,7 +97,7 @@ class cMovingDetail : cMMSReport() {
         var countNNObject = 1
         for( objectID in alObjectID ) {
 
-            val objectConfig = ObjectConfig.getObjectConfig(stm, userConfig, objectID)
+            val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
             //--- если не прописаны гео-датчики - выходим тут же
             if(objectConfig.scg == null) continue
 

@@ -1,14 +1,22 @@
 package foatto.core_server.app.system
 
-import foatto.app.CoreSpringApp
 import foatto.core.app.UP_TIME_OFFSET
-import foatto.core.link.*
+import foatto.core.link.AppAction
+import foatto.core.link.TableCell
+import foatto.core.link.TableCellForeColorType
 import foatto.core.util.encodePassword
 import foatto.core.util.getCurrentTimeInt
 import foatto.core_server.app.AppParameter
-import foatto.core_server.app.server.*
+import foatto.core_server.app.server.OrgType
+import foatto.core_server.app.server.UserConfig
+import foatto.core_server.app.server.cAbstractHierarchy
 import foatto.core_server.app.server.column.iColumn
-import foatto.core_server.app.server.data.*
+import foatto.core_server.app.server.data.DataBoolean
+import foatto.core_server.app.server.data.DataComboBox
+import foatto.core_server.app.server.data.DataDate3Int
+import foatto.core_server.app.server.data.DataString
+import foatto.core_server.app.server.data.iData
+import foatto.spring.CoreSpringApp
 import java.util.*
 
 class cUser : cAbstractHierarchy() {

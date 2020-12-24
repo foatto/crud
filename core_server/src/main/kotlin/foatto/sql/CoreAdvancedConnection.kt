@@ -4,14 +4,18 @@ import foatto.core.util.AdvancedByteBuffer
 import foatto.core.util.getRandomInt
 import java.io.File
 import java.io.FileOutputStream
-import java.nio.file.*
+import java.nio.file.FileVisitResult
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-abstract class CoreAdvancedConnection( dbConfig: DBConfig ) {
+abstract class CoreAdvancedConnection(dbConfig: DBConfig) {
 
     var dialect: SQLDialect = SQLDialect.POSTGRESQL
         protected set
@@ -28,19 +32,19 @@ abstract class CoreAdvancedConnection( dbConfig: DBConfig ) {
     init {
         var dbReplicationFilter = dbConfig.replFilter
         //--- без имён реплицируемых серверов репликация считается выключенной
-        if( dbConfig.replName != null ) {
-            val stRN = StringTokenizer( dbConfig.replName, ", " )
-            if( stRN.hasMoreTokens() ) {
-                while( stRN.hasMoreTokens() )
-                    alReplicationName.add( stRN.nextToken() )
+        if (dbConfig.replName != null) {
+            val stRN = StringTokenizer(dbConfig.replName, ", ")
+            if (stRN.hasMoreTokens()) {
+                while (stRN.hasMoreTokens())
+                    alReplicationName.add(stRN.nextToken())
                 //--- фильтр начинается с символа "!" = фильтр - чёрный список, иначе фильтр - белый список
-                if( dbReplicationFilter != null && !dbReplicationFilter.isEmpty() ) {
-                    if( dbReplicationFilter.first() == '!' ) {
-                        dbReplicationFilter = dbReplicationFilter.substring( 1 )
+                if (dbReplicationFilter != null && !dbReplicationFilter.isEmpty()) {
+                    if (dbReplicationFilter.first() == '!') {
+                        dbReplicationFilter = dbReplicationFilter.substring(1)
                         replicationFilterIsBlackList = true
                     }
-                    val stRF = StringTokenizer( dbReplicationFilter, ", " )
-                    while( stRF.hasMoreTokens() ) alReplicationFilter.add( stRF.nextToken() )
+                    val stRF = StringTokenizer(dbReplicationFilter, ", ")
+                    while (stRF.hasMoreTokens()) alReplicationFilter.add(stRF.nextToken())
                 }
             }
         }
@@ -58,13 +62,13 @@ abstract class CoreAdvancedConnection( dbConfig: DBConfig ) {
         //--- коммит обязательно должен быть общий, чтобы реплики не пропускались ни в коем случае
         //--- conn.commit();
 
-        if( !alReplicationSQL.isEmpty() ) {
+        if (!alReplicationSQL.isEmpty()) {
             //--- один буфер на всех
-            val bbOut = getReplicationData( alReplicationSQL )
+            val bbOut = getReplicationData(alReplicationSQL)
 
             //--- для каждого репликанта
-            for( name in alReplicationName )
-                saveReplication( name, bbOut )
+            for (name in alReplicationName)
+                saveReplication(name, bbOut)
         }
         alReplicationSQL.clear()
 
@@ -85,83 +89,83 @@ abstract class CoreAdvancedConnection( dbConfig: DBConfig ) {
     }
 
     //--- различные вариации организации ограничения кол-ва возвращаемых строк
-    fun getPreLimit( limit: Int ): StringBuilder {
+    fun getPreLimit(limit: Int): StringBuilder {
         val sb = StringBuilder()
-        if( dialect == SQLDialect.MSSQL)
-            sb.append( " TOP( " ).append( limit ).append( " ) " )
+        if (dialect == SQLDialect.MSSQL)
+            sb.append(" TOP( ").append(limit).append(" ) ")
         return sb
     }
 
-    fun getMidLimit( limit: Int ): StringBuilder {
+    fun getMidLimit(limit: Int): StringBuilder {
         val sb = StringBuilder()
-        if( dialect == SQLDialect.ORACLE)
-            sb.append( " AND ROWNUM <= " ).append( limit )
+        if (dialect == SQLDialect.ORACLE)
+            sb.append(" AND ROWNUM <= ").append(limit)
         return sb
     }
 
-    fun getPostLimit( limit: Int ): StringBuilder {
+    fun getPostLimit(limit: Int): StringBuilder {
         val sb = StringBuilder()
-        if( dialect == SQLDialect.H2 || dialect == SQLDialect.POSTGRESQL || dialect == SQLDialect.SQLITE )
-            sb.append( " LIMIT " ).append( limit )
+        if (dialect == SQLDialect.H2 || dialect == SQLDialect.POSTGRESQL || dialect == SQLDialect.SQLITE)
+            sb.append(" LIMIT ").append(limit)
         return sb
     }
 
-    fun addReplicationSQL( sql: String ) {
+    fun addReplicationSQL(sql: String) {
         //--- для черного списка результат по умолчанию положительный, для белого - отрицательный
         var checkResult = alReplicationFilter.isEmpty() || replicationFilterIsBlackList
-        for( filter in alReplicationFilter )
-            if( sql.contains( filter ) ) {
+        for (filter in alReplicationFilter)
+            if (sql.contains(filter)) {
                 checkResult = !replicationFilterIsBlackList
                 break
             }
-        if( checkResult )
-            alReplicationSQL.add( sql )
+        if (checkResult)
+            alReplicationSQL.add(sql)
     }
 
-    fun saveReplication( replicationName: String, bbOut: AdvancedByteBuffer ) {
-        val dir = File( replicationPath, replicationName )
+    fun saveReplication(replicationName: String, bbOut: AdvancedByteBuffer) {
+        val dir = File(replicationPath, replicationName)
 
         var file: File
-        while( true ) {
-            file = File( dir, getRandomInt().toString() )
-            if( !file.exists() ) break
+        while (true) {
+            file = File(dir, getRandomInt().toString())
+            if (!file.exists()) break
         }
         //--- сохраняем репликацию в файле
-        val fileChannel = FileOutputStream( file ).channel
-        fileChannel.write( bbOut.buffer )
+        val fileChannel = FileOutputStream(file).channel
+        fileChannel.write(bbOut.buffer)
         fileChannel.close()
         //--- этот буфер может использоваться для записи для нескольких репликантов сразу
         bbOut.rewind()
     }
 
-    fun getReplicationList( replicationName: String ): TreeMap<Long,MutableList<File>> {
-        var tmFile: TreeMap<Long, MutableList<File>>? = chmReplicationFile[ replicationName ]
-        if( tmFile == null ) {
+    fun getReplicationList(replicationName: String): TreeMap<Long, MutableList<File>> {
+        var tmFile: TreeMap<Long, MutableList<File>>? = chmReplicationFile[replicationName]
+        if (tmFile == null) {
             tmFile = TreeMap()
-            chmReplicationFile[ replicationName ] = tmFile
+            chmReplicationFile[replicationName] = tmFile
         }
-        if( tmFile.isEmpty() ) Files.walkFileTree( Paths.get( replicationPath, replicationName ), ReplicationFileVisitor(tmFile, MAX_REPLICATION_LIST_SIZE))
+        if (tmFile.isEmpty()) Files.walkFileTree(Paths.get(replicationPath, replicationName), ReplicationFileVisitor(tmFile, MAX_REPLICATION_LIST_SIZE))
         return tmFile
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    private class ReplicationFileVisitor( val tmFile: TreeMap<Long,MutableList<File>>, val maxSize: Int ) : SimpleFileVisitor<Path>() {
-        override fun visitFile( path: Path, fileAttributes: BasicFileAttributes ): FileVisitResult {
-            if( fileAttributes.isRegularFile ) {
+    private class ReplicationFileVisitor(val tmFile: TreeMap<Long, MutableList<File>>, val maxSize: Int) : SimpleFileVisitor<Path>() {
+        override fun visitFile(path: Path, fileAttributes: BasicFileAttributes): FileVisitResult {
+            if (fileAttributes.isRegularFile) {
                 //--- игнорируем (не удаляем! этот файл возможно ещё записывается!) файлы реплик с нулевым размером/длиной
-                if( fileAttributes.size() > 0 ) {
+                if (fileAttributes.size() > 0) {
                     val fileTime = fileAttributes.lastModifiedTime().toMillis()
 
-                    if( tmFile.size < maxSize || fileTime <= tmFile.lastKey() ) {
-                        var alFile = tmFile[ fileTime ]
-                        if( alFile == null ) {
+                    if (tmFile.size < maxSize || fileTime <= tmFile.lastKey()) {
+                        var alFile = tmFile[fileTime]
+                        if (alFile == null) {
                             alFile = ArrayList()
-                            tmFile[ fileTime ] = alFile
+                            tmFile[fileTime] = alFile
                         }
-                        alFile.add( path.toFile() )
+                        alFile.add(path.toFile())
                     }
-                    if( tmFile.size > maxSize ) tmFile.remove( tmFile.lastKey() )
+                    if (tmFile.size > maxSize) tmFile.remove(tmFile.lastKey())
                 }
             }
             return FileVisitResult.CONTINUE
@@ -175,16 +179,16 @@ abstract class CoreAdvancedConnection( dbConfig: DBConfig ) {
         //--- макисмально известный размер реплики - 21 кб
         const val START_REPLICATION_SIZE = 32 * 1024
 
-        private val MAX_REPLICATION_LIST_SIZE = 100_000   // 1_000_000 - out of memory, 10_000 - слишком часто (каждые 50 мин)
+        private const val MAX_REPLICATION_LIST_SIZE = 100_000   // 1_000_000 - out of memory, 10_000 - слишком часто (каждые 50 мин)
 
         //--- ConcurrentHashMap - потому что для разных репликантов могут придти одновременные запросы
         //--- PriorityQueue - потому что для одного конкретного репликанта запросы идут строго последовательно
-        private val chmReplicationFile = ConcurrentHashMap<String,TreeMap<Long,MutableList<File>>>()
+        private val chmReplicationFile = ConcurrentHashMap<String, TreeMap<Long, MutableList<File>>>()
 
-        fun getReplicationData( alReplicationSQL: List<String> ): AdvancedByteBuffer {
-            val bbOut = AdvancedByteBuffer( START_REPLICATION_SIZE )
-            bbOut.putInt( alReplicationSQL.size )
-            for( sql in alReplicationSQL ) bbOut.putLongString( sql )
+        fun getReplicationData(alReplicationSQL: List<String>): AdvancedByteBuffer {
+            val bbOut = AdvancedByteBuffer(START_REPLICATION_SIZE)
+            bbOut.putInt(alReplicationSQL.size)
+            for (sql in alReplicationSQL) bbOut.putLongString(sql)
             bbOut.flip()
 
             return bbOut
@@ -195,29 +199,16 @@ abstract class CoreAdvancedConnection( dbConfig: DBConfig ) {
         fun convertDialect(aSql: String, sourDialect: SQLDialect, destDialect: SQLDialect): String {
             var sql = aSql
             //--- одинаковые диалекты не конвертируем
-            if( sourDialect == destDialect ) return sql
+            if (sourDialect == destDialect) return sql
 
-            sql = sql.replace( sourDialect.integerFieldTypeName, destDialect.integerFieldTypeName )
-                     .replace( sourDialect.hexFieldTypeName, destDialect.hexFieldTypeName )
+            sql = sql.replace(sourDialect.integerFieldTypeName, destDialect.integerFieldTypeName)
+                .replace(sourDialect.hexFieldTypeName, destDialect.hexFieldTypeName)
             //--- частный случай - убираем clustered-index только в mssql-варианте
             //--- (обязательной необходимости зеркальной операций - добавления clustered-опции - не определено)
-            if( sourDialect == SQLDialect.MSSQL) sql = sql.replace( sourDialect.createClusteredIndex, destDialect.createClusteredIndex )
+            if (sourDialect == SQLDialect.MSSQL) sql = sql.replace(sourDialect.createClusteredIndex, destDialect.createClusteredIndex)
 
             return sql
         }
 
     }
 }
-
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-// download jdbc & server & console jars
-// server & client console scripts
-// jdbc connect string
-// start params
-// user/itPassword
-// auto-commit
-// integer/hex-string type names
-// text field max size
-// alter/rebuild index
-// top/limit clause in select statement

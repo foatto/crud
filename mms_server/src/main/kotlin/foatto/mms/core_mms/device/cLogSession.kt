@@ -1,8 +1,8 @@
 @file:JvmName("cLogSession")
 package foatto.mms.core_mms.device
 
-import foatto.app.CoreSpringApp
 import foatto.core_server.app.system.cLogText
+import foatto.spring.CoreSpringApp
 import java.io.File
 
 class cLogSession : cLogText() {

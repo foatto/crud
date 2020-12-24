@@ -1,10 +1,16 @@
 package foatto.core_server.app.graphic.server.document
 
-import foatto.app.CoreSpringApp
-import foatto.core.app.graphic.*
-import foatto.core_server.app.AppParameter
+import foatto.core.app.graphic.AxisYData
+import foatto.core.app.graphic.GraphicActionRequest
+import foatto.core.app.graphic.GraphicActionResponse
+import foatto.core.app.graphic.GraphicColorIndex
+import foatto.core.app.graphic.GraphicDataContainer
+import foatto.core.app.graphic.GraphicElement
+import foatto.core.app.graphic.GraphicLineData
 import foatto.core.util.loadTextFile
+import foatto.core_server.app.AppParameter
 import foatto.core_server.app.graphic.server.GraphicStartData
+import foatto.spring.CoreSpringApp
 import java.io.File
 import java.time.ZonedDateTime
 import java.util.*

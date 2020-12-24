@@ -1,4 +1,3 @@
-@file:JvmName("DataServer")
 package foatto.ds
 
 import foatto.core_server.ds.CoreDataServer

@@ -7,13 +7,13 @@ import foatto.core.util.AdvancedByteBuffer
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.graphic.server.GraphicStartData
 import foatto.core_server.app.graphic.server.document.sdcAbstractGraphic
-import foatto.mms.MMSSpringController
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.ZoneData
 import foatto.mms.core_mms.ZoneLimitData
 import foatto.mms.core_mms.calc.AbstractObjectStateCalc
 import foatto.mms.core_mms.calc.ObjectCalc
 import foatto.mms.core_mms.sensor.config.SensorConfig
+import foatto.mms.iMMSApplication
 import java.util.*
 import kotlin.math.abs
 
@@ -35,7 +35,7 @@ class sdcSpeed : sdcAbstractGraphic() {
         val viewWidth = graphicActionRequest.viewSize!!.first
         val viewHeight = graphicActionRequest.viewSize!!.second
 
-        val maxEnabledOverSpeed = ( appController as MMSSpringController ).maxEnabledOverSpeed
+        val maxEnabledOverSpeed = (application as iMMSApplication).maxEnabledOverSpeed
 
         val smText = userConfig.getUserProperty( UP_GRAPHIC_SHOW_TEXT )
 
@@ -44,33 +44,39 @@ class sdcSpeed : sdcAbstractGraphic() {
         val isShowText = smText?.toBoolean() ?: false
 
         //--- загрузить данные по зонам
-        val hmZoneData = ZoneData.getZoneData( stm, userConfig, 0 )
+        val hmZoneData = ZoneData.getZoneData(stm, userConfig, 0)
 
-        val oc = ObjectConfig.getObjectConfig( stm, userConfig, sd.objectID )
+        val oc = (application as iMMSApplication).getObjectConfig(userConfig, sd.objectID)
         //--- загрузка заголовочной информации по объекту
-        val sbObjectInfo = StringBuilder( oc.name )
+        val sbObjectInfo = StringBuilder(oc.name)
 
-        if( !oc.model.isEmpty() ) sbObjectInfo.append( ", " ).append( oc.model )
-        if( !oc.groupName.isEmpty() ) sbObjectInfo.append( ", " ).append( oc.groupName )
-        if( !oc.departmentName.isEmpty() ) sbObjectInfo.append( ", " ).append( oc.departmentName )
+        if (oc.model.isNotEmpty()) sbObjectInfo.append(", ").append(oc.model)
+        if (oc.groupName.isNotEmpty()) sbObjectInfo.append(", ").append(oc.groupName)
+        if (oc.departmentName.isNotEmpty()) sbObjectInfo.append(", ").append(oc.departmentName)
 
         val tmElement = TreeMap<String, GraphicElement>()
         val tmElementVisibleConfig = TreeMap<String, String>()
         //--- если гео-датчика нет или в нём отключено использование понятия "скорости"
-        if( oc.scg != null || !oc.scg!!.isUseSpeed ) {
+        if (oc.scg != null || !oc.scg!!.isUseSpeed) {
             //--- заранее заполняем список опеределений видимости графиков
             val graphicVisibilityKey = "$UP_GRAPHIC_VISIBLE${sd.objectID}_19"
-            tmElementVisibleConfig[ oc.scg!!.descr ] = graphicVisibilityKey
+            tmElementVisibleConfig[oc.scg!!.descr] = graphicVisibilityKey
 
             //--- а сейчас уже можно и нужно проверять на видимость графика
             val strGraphicVisible = userConfig.getUserProperty( graphicVisibilityKey )
             val isGraphicVisible = strGraphicVisible == null || java.lang.Boolean.parseBoolean( strGraphicVisible )
             if( isGraphicVisible ) {
-                val hmZoneLimit = ZoneLimitData.getZoneLimit( stm, userConfig, hmZoneData, oc.objectID, ZoneLimitData.TYPE_LIMIT_SPEED )
-                val alZoneSpeedLimit = hmZoneLimit[ ZoneLimitData.TYPE_LIMIT_SPEED ]
+                val hmZoneLimit = ZoneLimitData.getZoneLimit(
+                    stm = stm,
+                    userConfig = userConfig,
+                    objectConfig = oc,
+                    hmZoneData = hmZoneData,
+                    zoneType = ZoneLimitData.TYPE_LIMIT_SPEED
+                )
+                val alZoneSpeedLimit = hmZoneLimit[ZoneLimitData.TYPE_LIMIT_SPEED]
 
                 //--- единоразово загрузим данные по объекту
-                val pair = ObjectCalc.loadAllSensorData( stm, oc, x1, x2 )
+                val pair = ObjectCalc.loadAllSensorData(stm, oc, x1, x2)
                 val alRawTime = pair.component1()
                 val alRawData = pair.component2()
 
@@ -99,10 +105,10 @@ class sdcSpeed : sdcAbstractGraphic() {
 
                 val ge = GraphicElement(
                     graphicTitle = oc.scg!!.descr,
-                    alIndexColor = sdcAbstractGraphic.hmIndexColor.toList(),
+                    alIndexColor = hmIndexColor.toList(),
                     graphicHeight = -1.0,
                     alAxisYData = alAxisYData,
-                    alGDC = listOf( aZone, aDistance, aMaxLimit, aLine ).filterNotNull().filter { /*it != null &&*/ it.itNotEmpty() }
+                    alGDC = listOfNotNull(aZone, aDistance, aMaxLimit, aLine).filter { it.itNotEmpty() }
                 )
 
                 tmElement[ ge.graphicTitle ] = ge

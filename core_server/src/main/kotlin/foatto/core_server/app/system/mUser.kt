@@ -1,6 +1,5 @@
 package foatto.core_server.app.system
 
-import foatto.app.CoreSpringController
 import foatto.core.app.ICON_NAME_ADD_FOLDER
 import foatto.core.app.ICON_NAME_ADD_ITEM
 import foatto.core.app.ICON_NAME_BOSS
@@ -8,6 +7,7 @@ import foatto.core.app.ICON_NAME_DIVISION
 import foatto.core.app.ICON_NAME_WORKER
 import foatto.core.link.AddActionButton
 import foatto.core.link.TableCellAlign
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.ChildData
 import foatto.core_server.app.server.DependData
@@ -55,7 +55,7 @@ class mUser : mAbstractHierarchy() {
     //----------------------------------------------------------------------------------------------------------------------
 
     override fun init(
-        appController: CoreSpringController,
+        application: iApplication,
         aStm: CoreAdvancedStatement,
         aliasConfig: AliasConfig,
         userConfig: UserConfig,
@@ -64,7 +64,7 @@ class mUser : mAbstractHierarchy() {
         id: Int
     ) {
 
-        super.init(appController, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+        super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         //----------------------------------------------------------------------------------------------------------------------
 

@@ -321,7 +321,7 @@ class ObjectCalc {
             //--- and so that the final levels of one period and the initial levels of the next one coincide -
             //--- take ranges with a margin for smoothing
             val sql =
-                " SELECT ontime , sensor_data FROM MMS_data_${oc.objectID} " +
+                " SELECT ontime , sensor_data FROM MMS_data_${oc.objectId} " +
                     " WHERE ontime >= ${begTime - maxSmoothTime} AND ontime <= ${endTime + maxSmoothTime} " +
                     " ORDER BY ontime "
 

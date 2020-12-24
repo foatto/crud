@@ -1,6 +1,5 @@
 package foatto.core_server.app.xy.server.document
 
-import foatto.app.CoreSpringController
 import foatto.core.app.UP_TIME_OFFSET
 import foatto.core.app.xy.XyActionRequest
 import foatto.core.app.xy.XyActionResponse
@@ -8,6 +7,7 @@ import foatto.core.app.xy.XyElement
 import foatto.core.link.XyDocumentConfig
 import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.getZoneId
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.xy.XyStartData
 import foatto.core_server.app.xy.XyStartObjectParsedData
@@ -27,7 +27,7 @@ abstract class sdcXyAbstract {
         val TRACE = "trace"
     }
 
-    protected lateinit var appController: CoreSpringController
+    protected lateinit var application: iApplication
     protected lateinit var stm: CoreAdvancedStatement
     protected lateinit var chmSession: ConcurrentHashMap<String, Any>
     protected lateinit var userConfig: UserConfig
@@ -41,9 +41,9 @@ abstract class sdcXyAbstract {
     //--- таблица преобразований типов графических элементов в бизнес-алиасы
     protected val hmOutElementTypeAlias = mutableMapOf<String, String>() //??? пока никак не используется...
 
-    open fun init(aAppController: CoreSpringController, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aUserConfig: UserConfig, aDocumentConfig: XyDocumentConfig) {
+    open fun init(aApplication: iApplication, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aUserConfig: UserConfig, aDocumentConfig: XyDocumentConfig) {
 
-        appController = aAppController
+        application = aApplication
         stm = aStm
         chmSession = aChmSession
         //--- получить конфигурацию по подключенному пользователю

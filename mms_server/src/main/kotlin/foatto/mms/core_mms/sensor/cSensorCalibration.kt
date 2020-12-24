@@ -1,11 +1,20 @@
 package foatto.mms.core_mms.sensor
 
-import foatto.core.app.*
-import foatto.core.link.*
+import foatto.core.app.BUTTON_KEY_EXIT
+import foatto.core.app.BUTTON_KEY_SAVE
+import foatto.core.app.ICON_NAME_EXIT
+import foatto.core.app.ICON_NAME_SAVE
+import foatto.core.link.AppAction
+import foatto.core.link.FormButton
+import foatto.core.link.FormCell
+import foatto.core.link.FormCellType
+import foatto.core.link.FormData
+import foatto.core.link.FormResponse
 import foatto.core.util.getSplittedDouble
 import foatto.core.util.getSplittedLong
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.server.cStandart
+import kotlin.math.max
 
 class cSensorCalibration : cStandart() {
 
@@ -40,19 +49,19 @@ class cSensorCalibration : cStandart() {
         val sensorID = getParentID( "mms_sensor" )!!
 
         val sqlCalibration = " SELECT value_sensor , value_data FROM MMS_sensor_calibration WHERE sensor_id = $sensorID ORDER BY value_sensor "
-        val alSensorValue = mutableListOf<Int?>()
+        val alSensorValue = mutableListOf<Double?>()
         val alDataValue = mutableListOf<Double?>()
 
         val rs = stm.executeQuery( sqlCalibration )
         while( rs.next() ) {
-            alSensorValue.add( rs.getInt( 1 ) )
-            alDataValue.add( rs.getDouble( 2 ) )
+            alSensorValue.add(rs.getDouble(1))
+            alDataValue.add(rs.getDouble(2))
         }
         rs.close()
 
         //--- добавим пустых полей для добавления новых калибровок
         //--- полное кол-во строк = текущему + 50% добавки пустых ( минимум 30 строк, если получается меньше )
-        val nextSize = Math.max( 30, alSensorValue.size * 3 / 2 )
+        val nextSize = max(30, alSensorValue.size * 3 / 2)
         while( alSensorValue.size < nextSize ) {
             alSensorValue.add( null )
             alDataValue.add( null )
@@ -138,11 +147,11 @@ class cSensorCalibration : cStandart() {
             val strData = alFormData[ i++ ].stringValue!!
             //--- строки с пустыми значениями просто пропускаем
             if( strSensor.isEmpty() || strData.isEmpty() ) continue
-            val sensorValue: Int
+            val sensorValue: Double
             val dataValue: Double
             try {
-                sensorValue = strSensor.replace( " ", "" ).toInt()
-                dataValue = strData.replace( ',', '.' ).replace( " ", "" ).toDouble()
+                sensorValue = strSensor.replace(',', '.').replace(" ", "").toDouble()
+                dataValue = strData.replace(',', '.').replace(" ", "").toDouble()
             }
             catch( t: Throwable ) {
                 continue

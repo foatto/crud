@@ -1,6 +1,5 @@
 package foatto.core_server.app.graphic.server.document
 
-import foatto.app.CoreSpringController
 import foatto.core.app.UP_TIME_OFFSET
 import foatto.core.app.graphic.GraphicActionRequest
 import foatto.core.app.graphic.GraphicActionResponse
@@ -8,6 +7,7 @@ import foatto.core.app.graphic.GraphicColorIndex
 import foatto.core.util.getZoneId
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.graphic.server.GraphicStartData
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.UserConfig
 import foatto.sql.CoreAdvancedStatement
 import java.time.ZoneId
@@ -68,7 +68,7 @@ abstract class sdcAbstractGraphic {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    protected lateinit var appController: CoreSpringController
+    protected lateinit var application: iApplication
     protected lateinit var stm: CoreAdvancedStatement
     protected lateinit var chmSession: ConcurrentHashMap<String, Any>
     protected lateinit var userConfig: UserConfig
@@ -76,8 +76,8 @@ abstract class sdcAbstractGraphic {
 
     protected lateinit var zoneId: ZoneId
 
-    fun init(aAppController: CoreSpringController, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aUserConfig: UserConfig, aDocumentTypeName: String) {
-        appController = aAppController
+    fun init(aApplication: iApplication, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aUserConfig: UserConfig, aDocumentTypeName: String) {
+        application = aApplication
         stm = aStm
         chmSession = aChmSession
         //--- получить конфигурацию по подключенному пользователю

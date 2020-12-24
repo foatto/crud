@@ -7,8 +7,8 @@ val kotlinJvmTarget: String by project
 plugins {
     kotlin("jvm")
 
-//    kotlin("plugin.jpa")
     kotlin("plugin.spring")
+    kotlin("plugin.jpa")
 
     id("io.spring.dependency-management")
     id("org.springframework.boot")
@@ -20,9 +20,15 @@ dependencies {
     api(project(":core_server"))
 }
 
+allOpen {
+    annotation("javax.persistence.Entity")
+    annotation("javax.persistence.MappedSuperclass")
+    annotation("javax.persistence.Embeddable")
+}
+
 tasks {
     compileKotlin {
-		kotlinOptions {
+        kotlinOptions {
             languageVersion = kotlinLanguageVersion
             apiVersion = kotlinApiVersion
             jvmTarget = kotlinJvmTarget
@@ -37,8 +43,7 @@ tasks {
         doLast {
             delete("/home/foatto/ShopServerSpring/lib")
             copy {
-                from("build/libs/shop_server.jar", configurations["runtimeClasspath"])       // + snakeyaml-1.25.jar - ���� ����� ������ �������
-                // from("build/libs/shop_server.jar", configurations["compileClasspath"])    // - snakeyaml-1.25.jar
+                from("build/libs/shop_server.jar", configurations["runtimeClasspath"])
                 into("/home/foatto/ShopServerSpring/lib")
             }
         }

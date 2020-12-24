@@ -1,10 +1,10 @@
 package foatto.shop.report
 
-import foatto.app.CoreSpringController
 import foatto.core.link.FormData
 import foatto.core.link.XyDocumentConfig
 import foatto.core.util.DateTime_DMY
 import foatto.core.util.getSplittedDouble
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.cAbstractReport
@@ -29,8 +29,8 @@ class cCashHistory : cAbstractReport() {
 
     private lateinit var hmPrice: Map<Int, List<Pair<Int, Double>>>
 
-    override fun init(aAppController: CoreSpringController, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig) {
-        super.init(aAppController, aStm, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
+    override fun init(aApplication: iApplication, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig) {
+        super.init(aApplication, aStm, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
 
         hmPrice = PriceData.loadPrice(stm, mPrice.PRICE_TYPE_OUT)
     }
@@ -38,7 +38,7 @@ class cCashHistory : cAbstractReport() {
     override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
 
         val returnURL = super.doSave(action, alFormData, hmOut)
-        if(returnURL != null) return returnURL
+        if (returnURL != null) return returnURL
 
         val m = model as mCashHistory
 

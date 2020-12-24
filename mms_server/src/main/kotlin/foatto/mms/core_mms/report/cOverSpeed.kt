@@ -4,12 +4,11 @@ import foatto.core.link.FormData
 import foatto.core.util.DateTime_DMYHMS
 import foatto.core.util.getSBFromIterable
 import foatto.core.util.secondIntervalToString
-import foatto.mms.MMSSpringController
-import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.ZoneData
 import foatto.mms.core_mms.ZoneLimitData
 import foatto.mms.core_mms.calc.ObjectCalc
 import foatto.mms.core_mms.calc.OverSpeedPeriodData
+import foatto.mms.iMMSApplication
 import jxl.CellView
 import jxl.format.PageOrientation
 import jxl.format.PaperSize
@@ -133,7 +132,7 @@ class cOverSpeed : cMMSReport() {
 
         val (begTime, endTime) = getBegEndTimeFromParam()
 
-        val maxEnabledOverSpeed = (appController as MMSSpringController).maxEnabledOverSpeed
+        val maxEnabledOverSpeed = (application as iMMSApplication).maxEnabledOverSpeed
 
         val alObjectID = ArrayList<Int>()
         //--- если объект не указан, то загрузим полный список доступных объектов
@@ -141,13 +140,16 @@ class cOverSpeed : cMMSReport() {
         else alObjectID.add(reportObject)
 
         for(objectID in alObjectID) {
-            val oc = ObjectConfig.getObjectConfig(stm, userConfig, objectID)
+            val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
             //--- гео-датчик не прописан
             if(oc.scg == null) continue
 
             val hmZoneLimit = ZoneLimitData.getZoneLimit(
-                stm, userConfig, hmZoneData, objectID,
-                /*0, begTime, endTime,*/ ZoneLimitData.TYPE_LIMIT_SPEED
+                stm = stm,
+                userConfig = userConfig,
+                objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, objectID),
+                hmZoneData = hmZoneData,
+                zoneType = ZoneLimitData.TYPE_LIMIT_SPEED
             )
 
             //--- единоразово загрузим данные по всем датчикам объекта
@@ -174,7 +176,7 @@ class cOverSpeed : cMMSReport() {
 
                 alObjectResult.add(ospd)
             }
-            if(!alObjectResult.isEmpty()) alAllResult.add(alObjectResult)
+            if (alObjectResult.isNotEmpty()) alAllResult.add(alObjectResult)
         }
         return alAllResult
     }

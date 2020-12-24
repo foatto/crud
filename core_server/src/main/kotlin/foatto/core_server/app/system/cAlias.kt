@@ -54,7 +54,7 @@ class cAlias : cStandart() {
 
         //--- вытащить (новый) список прав доступа класса
         val page = Class.forName( ac.controlClassName ).getConstructor().newInstance() as cStandart
-        page.init(appController, stm, chmSession, hmParam, hmAliasConfig, ac, hmXyDocumentConfig, userConfig)
+        page.init(application, stm, chmSession, hmParam, hmAliasConfig, ac, hmXyDocumentConfig, userConfig)
         val alPermNameDescr = page.alPermission
 
         //--- обновить список прав доступа с проверкой зависимых таблиц

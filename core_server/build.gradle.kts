@@ -15,9 +15,8 @@ val coreServerVersion: String by project
 plugins {
     kotlin("jvm")
 
-//    kotlin("plugin.allopen")
-//    kotlin("plugin.jpa")
     kotlin("plugin.spring")
+    kotlin("plugin.jpa")
 
     id("io.spring.dependency-management")
     id("org.springframework.boot")
@@ -29,10 +28,11 @@ plugins {
 version=coreServerVersion
 
 dependencies {
-    api("org.springframework.boot:spring-boot-starter:$springBootVersion")
-    api("org.springframework.boot:spring-boot-starter-jdbc:$springBootVersion")
-//    api("org.springframework.boot:spring-boot-starter-data-jpa")
+    //api("org.springframework.boot:spring-boot-starter:$springBootVersion") - redundantly, come with starter-jdbc or starter-web
+    //api("org.springframework.boot:spring-boot-starter-jdbc:$springBootVersion") - redundantly, come with starter-data-jpa
     api("org.springframework.boot:spring-boot-starter-web:$springBootVersion")
+    api("org.springframework.boot:spring-boot-starter-data-jpa:$springBootVersion")
+// compile group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.10.0'
 
     runtimeOnly("org.postgresql:postgresql:$postgresJdbcVersion")
     runtimeOnly("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonModuleKotlinVersion")
@@ -41,6 +41,17 @@ dependencies {
     api("net.sourceforge.jexcelapi:jxl:$jExcelApiVersion")
 
     api(project(":core"))
+
+//    testImplementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion")
+//    testImplementation("org.testcontainers:testcontainers:$testContainersVer")
+//    testImplementation("org.testcontainers:postgresql:$testContainersVer")
+//    testImplementation("org.testcontainers:junit-jupiter:$testcontainersVersion")
+}
+
+allOpen {
+    annotation("javax.persistence.Entity")
+    annotation("javax.persistence.MappedSuperclass")
+    annotation("javax.persistence.Embeddable")
 }
 
 publishing {
@@ -72,5 +83,6 @@ tasks {
     }
     bootJar {
         enabled = false
+        mainClassName = "foatto.ds.DataServer"  // BUG: bootJar disabled, but mainClassName is required
     }
 }

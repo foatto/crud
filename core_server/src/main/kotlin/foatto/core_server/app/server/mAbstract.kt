@@ -1,8 +1,8 @@
 package foatto.core_server.app.server
 
-import foatto.app.CoreSpringController
 import foatto.core.app.UP_TIME_OFFSET
 import foatto.core.util.getZoneId
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.column.ColumnBoolean
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnSimple
@@ -72,7 +72,7 @@ abstract class mAbstract {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     open fun init(
-        appController: CoreSpringController,
+        application: iApplication,
         aStm: CoreAdvancedStatement,
         aliasConfig: AliasConfig,
         userConfig: UserConfig,

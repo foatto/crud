@@ -78,7 +78,7 @@ class cDayWork : cStandartPeriodSummary() {
                 dwcr.objectCalc.sbLiquidUsingTotal.isEmpty() && dwcr.objectCalc.sbEnergoValue.isEmpty()
             ) continue
 
-            val userName = getRecordUserName(dwcr.objectCalc.objectConfig.userID)
+            val userName = getRecordUserName(dwcr.objectCalc.objectConfig.userId)
 
             var sumUser: SumCollector? = tmUserSumCollector[userName]
             if(sumUser == null) {

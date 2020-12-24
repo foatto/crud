@@ -13,6 +13,7 @@ import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.ZoneData
 import foatto.mms.core_mms.calc.AbstractObjectStateCalc
 import foatto.mms.core_mms.calc.ObjectCalc
+import foatto.mms.iMMSApplication
 import jxl.CellView
 import jxl.format.PageOrientation
 import jxl.format.PaperSize
@@ -250,7 +251,7 @@ class cObjectZone : cMMSReport() {
         val hmZoneData = ZoneData.getZoneData(stm, userConfig, reportZone)
 
         for(objectID in alObjectID) {
-            val oc = ObjectConfig.getObjectConfig(stm, userConfig, objectID)
+            val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
             //--- гео-датчик не прописан
             if(oc.scg == null) continue
 

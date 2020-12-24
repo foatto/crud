@@ -60,9 +60,9 @@ class ObjectState {
                 //--- флаг наличия данных
                 var isDataExist = false
                 val inRs = stm.executeQuery(
-                    " SELECT ${stm.getPreLimit( lastLimit )} ontime , sensor_data " +
-                    " FROM MMS_data_${oc.objectID} " +
-                    " WHERE ontime < $lastTime ${stm.getMidLimit( lastLimit )} " +
+                    " SELECT ${stm.getPreLimit(lastLimit)} ontime , sensor_data " +
+                        " FROM MMS_data_${oc.objectId} " +
+                        " WHERE ontime < $lastTime ${stm.getMidLimit(lastLimit)} " +
                     " ORDER BY ontime DESC ${stm.getPostLimit( lastLimit )} " )
                 while( inRs.next() ) {
                     //--- данные вообще есть, ещё есть смысл крутиться дальше

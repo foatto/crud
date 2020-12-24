@@ -3,6 +3,7 @@ package foatto.mms.core_mms.report
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigLiquidLevel
+import foatto.mms.iMMSApplication
 
 abstract class cStandartPeriodSummary : cAbstractPeriodSummary() {
 
@@ -23,7 +24,7 @@ abstract class cStandartPeriodSummary : cAbstractPeriodSummary() {
         else alObjectID.add(reportObject)
 
         alObjectConfig = mutableListOf()
-        for(objectID in alObjectID) alObjectConfig.add(ObjectConfig.getObjectConfig(stm, userConfig, objectID))
+        for (objectID in alObjectID) alObjectConfig.add((application as iMMSApplication).getObjectConfig(userConfig, objectID))
 
         for(oc in alObjectConfig) {
             if(oc.scg != null) {

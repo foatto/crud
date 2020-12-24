@@ -1,7 +1,7 @@
 package foatto.core_server.app.server
 
-import foatto.app.CoreSpringController
 import foatto.core.link.AddActionButton
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.column.ColumnComboBox
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
@@ -50,7 +50,7 @@ open class mAbstractHierarchy : mAbstract() {
     override fun isExpandable(): Boolean = true
 
     override fun init(
-        appController: CoreSpringController,
+        application: iApplication,
         aStm: CoreAdvancedStatement,
         aliasConfig: AliasConfig,
         userConfig: UserConfig,
@@ -59,7 +59,7 @@ open class mAbstractHierarchy : mAbstract() {
         id: Int
     ) {
 
-        super.init(appController, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+        super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         commonAliasName += (if(isArchiveAlias) ALIAS_NAME_ARCHIVE_POSTFIX else "")
         folderAliasName += (if(isArchiveAlias) ALIAS_NAME_ARCHIVE_POSTFIX else "")

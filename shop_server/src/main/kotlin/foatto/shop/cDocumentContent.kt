@@ -1,6 +1,5 @@
 package foatto.shop
 
-import foatto.app.CoreSpringController
 import foatto.core.app.ICON_NAME_PRINT
 import foatto.core.link.AppAction
 import foatto.core.link.ClientActionButton
@@ -10,6 +9,7 @@ import foatto.core.util.AdvancedLogger
 import foatto.core.util.DateTime_DMY
 import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.getSplittedDouble
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.cAbstractHierarchy
@@ -36,12 +36,12 @@ class cDocumentContent : cStandart() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun init(aAppController: CoreSpringController, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig) {
-        super.init(aAppController, aStm, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
+    override fun init(aApplication: iApplication, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig) {
+        super.init(aApplication, aStm, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
 
-        for(name in DocumentTypeConfig.hmAliasDocType.keys) {
+        for (name in DocumentTypeConfig.hmAliasDocType.keys) {
             docID = hmParentData[name]
-            if(docID != null) break
+            if (docID != null) break
         }
         docType = DocumentTypeConfig.hmAliasDocType[aliasConfig.alias]!!
         hmPrice = PriceData.loadPrice(

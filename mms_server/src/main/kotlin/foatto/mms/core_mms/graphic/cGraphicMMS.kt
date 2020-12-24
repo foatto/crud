@@ -2,16 +2,16 @@ package foatto.mms.core_mms.graphic
 
 import foatto.core.app.ICON_NAME_GRAPHIC
 import foatto.core.link.AppAction
-import foatto.core_server.app.AppParameter
 import foatto.core.link.FormData
 import foatto.core.util.getRandomInt
+import foatto.core_server.app.AppParameter
 import foatto.core_server.app.graphic.server.GraphicStartData
 import foatto.core_server.app.server.cAbstractForm
 import foatto.core_server.app.server.data.DataDate3Int
 import foatto.core_server.app.server.data.DataInt
 import foatto.core_server.app.server.data.DataRadioButton
 import foatto.core_server.app.server.data.DataTime3Int
-import foatto.mms.core_mms.ObjectConfig
+import foatto.mms.iMMSApplication
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 
@@ -59,7 +59,7 @@ class cGraphicMMS : cAbstractForm() {
         }
 
         //--- заполнение текста заголовка информацией по объекту
-        val oc = ObjectConfig.getObjectConfig( stm, userConfig, selectObject )
+        val oc = (application as iMMSApplication).getObjectConfig(userConfig, selectObject)
         sd.shortTitle = aliasConfig.descr
         sd.sbTitle = StringBuilder()
         sd.sbTitle.append( oc.name )

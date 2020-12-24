@@ -1,9 +1,9 @@
 package foatto.mms.core_mms
 
-import foatto.sql.CoreAdvancedResultSet
-import foatto.sql.CoreAdvancedStatement
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.cStandart
+import foatto.sql.CoreAdvancedResultSet
+import foatto.sql.CoreAdvancedStatement
 
 class ZoneLimitData {
 
@@ -81,16 +81,19 @@ class ZoneLimitData {
         //        }
         //    }
 
-        fun getZoneLimit(stm: CoreAdvancedStatement, userConfig: UserConfig, hmZoneData: Map<Int, ZoneData>, objectID: Int, /*int aWaybillID, long begTime, long endTime,*/
-                          zoneType: Int ): Map<Int, List<ZoneLimitData>> {
+        fun getZoneLimit(
+            stm: CoreAdvancedStatement,
+            userConfig: UserConfig,
+            objectConfig: ObjectConfig,
+            hmZoneData: Map<Int, ZoneData>,
+            zoneType: Int
+        ): Map<Int, List<ZoneLimitData>> {
 
             val hmZoneLimit = mutableMapOf<Int, MutableList<ZoneLimitData>>()
 
-            val oc = ObjectConfig.getObjectConfig( stm, userConfig, objectID )
-
-            val hsZonePermission = userConfig.userPermission[ "mms_zone" ]!!
-            val hsUserZonePermission = userConfig.userPermission[ "mms_user_zone" ]!!
-            val hsObjectZonePermission = userConfig.userPermission[ "mms_object_zone" ]!!
+            val hsZonePermission = userConfig.userPermission["mms_zone"]!!
+            val hsUserZonePermission = userConfig.userPermission["mms_user_zone"]!!
+            val hsObjectZonePermission = userConfig.userPermission["mms_object_zone"]!!
             //HashSet hsWaybillPermission = userConfig.getUserPermission().get( "ft_auto_waybill" );
 
             //--- взять зоны, привязанные к пользователю
@@ -126,7 +129,7 @@ class ZoneLimitData {
             // первое нулевое "поле" - для совместимости с загрузкой user_zone
             sbSQL = " SELECT 0, MMS_zone.id , MMS_object_zone.zone_type , MMS_object_zone.max_speed " +
                     " FROM MMS_object_zone , MMS_zone " +
-                    " WHERE MMS_object_zone.zone_id = MMS_zone.id AND MMS_object_zone.object_id = $objectID "
+                " WHERE MMS_object_zone.zone_id = MMS_zone.id AND MMS_object_zone.object_id = ${objectConfig.objectId} "
             if( zoneType != 0 ) sbSQL += " AND MMS_object_zone.zone_type = $zoneType "
             rs = stm.executeQuery( sbSQL )
             while( rs.next() ) {
@@ -134,10 +137,11 @@ class ZoneLimitData {
 
                 val zoneData = hmZoneData[ zoneID ] ?: continue
 
-                if( cStandart.checkPerm( userConfig, hsObjectZonePermission, cStandart.PERM_TABLE, oc.userID ) &&
-                    cStandart.checkPerm( userConfig, hsZonePermission, cStandart.PERM_TABLE, zoneData.userID ) )
+                if (cStandart.checkPerm(userConfig, hsObjectZonePermission, cStandart.PERM_TABLE, objectConfig.userId) &&
+                    cStandart.checkPerm(userConfig, hsZonePermission, cStandart.PERM_TABLE, zoneData.userID)
+                )
 
-                    loadOneZoneData( zoneData, rs, hmZoneLimit/*, begTime, endTime*/)
+                    loadOneZoneData(zoneData, rs, hmZoneLimit/*, begTime, endTime*/)
             }
             rs.close()
 

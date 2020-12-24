@@ -1,11 +1,11 @@
 package foatto.core_server.app.server
 
-import foatto.app.CoreSpringApp
 import foatto.core.app.ICON_NAME_PRINT
 import foatto.core.app.iCoreAppContainer
 import foatto.core.util.DateTime_DMYHMS
 import foatto.core.util.getFreeFile
 import foatto.core.util.getRandomInt
+import foatto.spring.CoreSpringApp
 import jxl.Workbook
 import jxl.format.*
 import jxl.write.WritableCellFormat

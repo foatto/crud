@@ -3,10 +3,10 @@ package foatto.mms.core_mms.report
 import foatto.core.link.FormData
 import foatto.core.util.DateTime_YMDHMS
 import foatto.core.util.getZoneId
-import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.calc.AbstractObjectStateCalc
 import foatto.mms.core_mms.calc.ObjectCalc
 import foatto.mms.core_mms.sensor.config.SensorConfig
+import foatto.mms.iMMSApplication
 import jxl.CellView
 import jxl.format.PageOrientation
 import jxl.format.PaperSize
@@ -65,7 +65,7 @@ class cDataOut : cMMSReport() {
         val zoneId0 = getZoneId(0)
 
         //--- загрузка конфигурации объекта
-        val objectConfig = ObjectConfig.getObjectConfig(stm, userConfig, reportObject)
+        val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, reportObject)
         //--- соберём все номера портов
         val tmSensorPortType = TreeMap<Int, Int>()
         for((sensorType,hmSC) in objectConfig.hmSensorConfig) {

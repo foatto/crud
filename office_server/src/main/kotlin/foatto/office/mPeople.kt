@@ -1,7 +1,7 @@
 package foatto.office
 
-import foatto.app.CoreSpringController
 import foatto.core.link.FormPinMode
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.ChildData
 import foatto.core_server.app.server.DependData
@@ -34,7 +34,7 @@ class mPeople : mAbstract() {
         private set
 
     override fun init(
-        appController: CoreSpringController,
+        application: iApplication,
         aStm: CoreAdvancedStatement,
         aliasConfig: AliasConfig,
         userConfig: UserConfig,
@@ -43,7 +43,7 @@ class mPeople : mAbstract() {
         id: Int
     ) {
 
-        super.init(appController, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+        super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         //----------------------------------------------------------------------------------------------------------------------
 

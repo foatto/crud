@@ -26,7 +26,7 @@ class cSensor : cMMSOneObjectParent() {
             val sb = StringBuilder()
             val rs = stm.executeQuery(" SELECT value_sensor , value_data FROM MMS_sensor_calibration WHERE sensor_id = $id ORDER BY value_sensor ")
             while (rs.next())
-                sb.append(rs.getInt(1)).append(" = ").append(rs.getDouble(2)).append('\n')
+                sb.append(rs.getDouble(1)).append(" = ").append(rs.getDouble(2)).append('\n')
             rs.close()
 
             (hmColumnData[ms.columnCalibrationText] as DataString).text = sb.toString()
@@ -58,7 +58,7 @@ class cSensor : cMMSOneObjectParent() {
         calibration.split('\n').forEach {
             val alSensorData = it.split('=')
             if (alSensorData.size == 2) {
-                val sensorValue = alSensorData[0].trim().toIntOrNull()
+                val sensorValue = alSensorData[0].trim().toDoubleOrNull()
                 val dataValue = alSensorData[1].trim().toDoubleOrNull()
 
                 if (sensorValue != null && dataValue != null) {

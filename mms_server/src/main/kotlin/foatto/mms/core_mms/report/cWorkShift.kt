@@ -6,10 +6,10 @@ import foatto.core.util.getSBFromIterable
 import foatto.core_server.app.server.data.DataComboBox
 import foatto.core_server.app.server.data.DataDate3Int
 import foatto.core_server.app.server.data.DataInt
-import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.calc.ObjectCalc
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigLiquidLevel
+import foatto.mms.iMMSApplication
 import jxl.write.Label
 import jxl.write.WritableSheet
 import java.time.ZoneId
@@ -116,7 +116,7 @@ class cWorkShift : cAbstractPeriodSummary() {
 
         //--- в отдельном цикле, т.к. будут открываться новые ResultSet'ы в этом же Statement'e
         for(objectID in alObjectID) {
-            val oc = ObjectConfig.getObjectConfig(stm, userConfig, objectID)
+            val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
             if(oc.scg != null) {
                 isGlobalUseSpeed = isGlobalUseSpeed or oc.scg!!.isUseSpeed
                 isGlobalUseRun = isGlobalUseRun or oc.scg!!.isUseRun
@@ -185,8 +185,8 @@ class cWorkShift : cAbstractPeriodSummary() {
             if(wscr.objectCalc.sbGeoRun.length == 0 && wscr.objectCalc.sbWorkTotal.length == 0 && wscr.objectCalc.sbLiquidLevelBeg.length == 0 &&
                wscr.objectCalc.sbLiquidUsingTotal.length == 0 && wscr.objectCalc.sbEnergoValue.length == 0) continue
 
-            val userName = getRecordUserName(wscr.objectCalc.objectConfig.userID)
-            val sumUser = tmUserSumCollector.getOrPut( userName ) { SumCollector() }
+            val userName = getRecordUserName(wscr.objectCalc.objectConfig.userId)
+            val sumUser = tmUserSumCollector.getOrPut(userName) { SumCollector() }
             sumUser.add(wscr.objectCalc.objectConfig.name, 0, wscr.objectCalc)
             allSumCollector.add(null, 0, wscr.objectCalc)
 
@@ -271,11 +271,11 @@ class cWorkShift : cAbstractPeriodSummary() {
         val reportAddAfter = hmReportParam["report_add_after"] as Int * 60
         val reportGroupType = hmReportParam["report_group_type"] as Int
 
-        for(wsd in alWSD!!) {
-            val objectConfig = ObjectConfig.getObjectConfig(stm, userConfig, wsd.objectID)
+        for (wsd in alWSD) {
+            val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, wsd.objectID)
 
-            tmResult[StringBuilder().append(if(reportGroupType == mWorkShift.GROUP_BY_DATE) wsd.begTimeDoc else objectConfig.name)
-                .append(if(reportGroupType == mWorkShift.GROUP_BY_DATE) objectConfig.name else wsd.begTimeDoc).toString()] =
+            tmResult[StringBuilder().append(if (reportGroupType == mWorkShift.GROUP_BY_DATE) wsd.begTimeDoc else objectConfig.name)
+                .append(if (reportGroupType == mWorkShift.GROUP_BY_DATE) objectConfig.name else wsd.begTimeDoc).toString()] =
                 WorkShiftCalcResult(wsd, ObjectCalc.calcObject(stm, userConfig, objectConfig, wsd.begTimeDoc - reportAddBefore, wsd.endTimeDoc + reportAddAfter), zoneId)
         }
         return tmResult

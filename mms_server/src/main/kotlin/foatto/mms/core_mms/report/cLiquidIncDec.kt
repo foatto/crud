@@ -8,12 +8,12 @@ import foatto.core_server.app.server.data.DataComboBox
 import foatto.core_server.app.server.data.DataDate3Int
 import foatto.core_server.app.server.data.DataInt
 import foatto.core_server.app.server.data.DataTime3Int
-import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.ZoneData
 import foatto.mms.core_mms.calc.LiquidIncDecData
 import foatto.mms.core_mms.calc.ObjectCalc
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigLiquidLevel
+import foatto.mms.iMMSApplication
 import jxl.CellView
 import jxl.format.PageOrientation
 import jxl.format.PaperSize
@@ -192,7 +192,7 @@ class cLiquidIncDec : cMMSReport() {
 
         //--- общий обработчик на всех
         for(objectID in alObjectID) {
-            val oc = ObjectConfig.getObjectConfig(stm, userConfig, objectID)
+            val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
             val hmSCLL = oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_LEVEL]
             //--- уровнемеры не прописаны
             if(hmSCLL == null || hmSCLL.isEmpty()) continue

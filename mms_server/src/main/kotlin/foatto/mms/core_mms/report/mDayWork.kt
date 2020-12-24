@@ -1,6 +1,6 @@
 package foatto.mms.core_mms.report
 
-import foatto.app.CoreSpringController
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnComboBox
@@ -35,10 +35,10 @@ class mDayWork : mAbstractReport() {
     //----------------------------------------------------------------------------------------------------------------------
 
     override fun init(
-        appController: CoreSpringController, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int
+        application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int
     ) {
 
-        super.init(appController, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+        super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         //--- отдельная обработка перехода от журнала (суточных) пробегов
         val arrADR = MMSFunction.getDayWorkParent(stm, hmParentData)

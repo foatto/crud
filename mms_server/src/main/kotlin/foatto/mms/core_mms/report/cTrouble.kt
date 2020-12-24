@@ -4,12 +4,11 @@ import foatto.core.link.FormData
 import foatto.core.util.DateTime_DMYHMS
 import foatto.core.util.getCurrentTimeInt
 import foatto.core_server.app.server.data.DataInt
-import foatto.mms.MMSSpringController
-import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.calc.AbstractObjectStateCalc
 import foatto.mms.core_mms.calc.ObjectCalc
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigLiquidLevel
+import foatto.mms.iMMSApplication
 import jxl.CellView
 import jxl.format.PageOrientation
 import jxl.format.PaperSize
@@ -161,7 +160,7 @@ class cTrouble : cMMSReport() {
         else alObjectID.add(reportObject)
 
         for(objectID in alObjectID) {
-            val oc = ObjectConfig.getObjectConfig(stm, userConfig, objectID)
+            val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
 
             //--- отключенные объекты в отчёт попасть не должны
             if(oc.isDisabled) continue
@@ -173,7 +172,7 @@ class cTrouble : cMMSReport() {
             //--- чтобы неисправность "начиналась" ПОСЛЕ периода простоя
 
             //--- нестандартное object-info: сначала идёт имя пользователя
-            val sbObjectKey = StringBuilder(getRecordUserName(oc.userID)).append('\n').append(oc.name)
+            val sbObjectKey = StringBuilder(getRecordUserName(oc.userId)).append('\n').append(oc.name)
             if(!oc.model.isEmpty()) sbObjectKey.append(", ").append(oc.model)
             if(!oc.groupName.isEmpty() || !oc.departmentName.isEmpty()) sbObjectKey.append('\n').append(oc.groupName).append(if(oc.groupName.isEmpty() || oc.departmentName.isEmpty()) "" else ", ").append(oc.departmentName)
             val objectKey = sbObjectKey.toString()
@@ -181,7 +180,7 @@ class cTrouble : cMMSReport() {
             val hmSCLL = oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_LEVEL]
 
             //--- отчёт делаем только по активной базе (по полной архивной базе - слишком долго, а сроки свыше недели несущественны)
-            rs = stm.executeQuery( " SELECT ontime , sensor_data FROM MMS_data_${oc.objectID} ORDER BY ontime DESC " )
+            rs = stm.executeQuery(" SELECT ontime , sensor_data FROM MMS_data_${oc.objectId} ORDER BY ontime DESC ")
 
             var isNoDataFinished = false
             var isNoGeoFinished = false
@@ -256,7 +255,7 @@ class cTrouble : cMMSReport() {
             if(!isNoDataFinished) {
                 if(lastDowntime == null) addTrouble(
                     tmResult, objectKey, TroubleData(
-                        0, "Контроллер", "Нет данных более ${(appController as MMSSpringController).expirePeriod} недель(и)", TroubleLevel.ERROR
+                        0, "Контроллер", "Нет данных более ${(application as iMMSApplication).expirePeriod} недель(и)", TroubleLevel.ERROR
                     )
                 )
                 else addTrouble(tmResult, objectKey, TroubleData(lastDowntime, "Контроллер", "Нет данных", TroubleLevel.ERROR))

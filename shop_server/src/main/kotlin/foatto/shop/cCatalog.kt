@@ -1,6 +1,5 @@
 package foatto.shop
 
-import foatto.app.CoreSpringController
 import foatto.core.link.TableCell
 import foatto.core.link.TableCellBackColorType
 import foatto.core.link.TableCellForeColorType
@@ -8,6 +7,7 @@ import foatto.core.link.TableResponse
 import foatto.core.link.XyDocumentConfig
 import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.getDateTimeArray
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.cAbstractHierarchy
@@ -42,9 +42,9 @@ class cCatalog : cAbstractHierarchy() {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     override fun init(
-        aAppController: CoreSpringController, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig
+        aApplication: iApplication, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig
     ) {
-        super.init(aAppController, aStm, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
+        super.init(aApplication, aStm, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
 
         hmPriceIn = PriceData.loadPrice(stm, mPrice.PRICE_TYPE_IN)
         hmPriceOut = PriceData.loadPrice(stm, mPrice.PRICE_TYPE_OUT)

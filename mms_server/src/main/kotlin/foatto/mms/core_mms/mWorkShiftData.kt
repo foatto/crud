@@ -1,6 +1,6 @@
 package foatto.mms.core_mms
 
-import foatto.app.CoreSpringController
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnDouble
@@ -15,9 +15,9 @@ class mWorkShiftData : mAbstract() {
     lateinit var columnDataType: ColumnInt
         private set
 
-    override fun init(appController: CoreSpringController, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
+    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
 
-        super.init(appController, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+        super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         val isWorkData = aliasConfig.alias == "mms_work_shift_work"
         val isLiquidData = aliasConfig.alias == "mms_work_shift_liquid"

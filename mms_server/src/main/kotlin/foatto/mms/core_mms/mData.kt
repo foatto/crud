@@ -1,7 +1,7 @@
 package foatto.mms.core_mms
 
-import foatto.app.CoreSpringController
 import foatto.core.util.getZoneId
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnBinary
@@ -10,6 +10,7 @@ import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.mAbstract
 import foatto.mms.core_mms.sensor.config.SensorConfig
+import foatto.mms.iMMSApplication
 import foatto.sql.CoreAdvancedStatement
 import java.util.*
 
@@ -31,9 +32,9 @@ class mData : mAbstract() {
 
     val hmSensorPortType = HashMap<Int, Int>()
 
-    override fun init(appController: CoreSpringController, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
+    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
 
-        super.init(appController, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+        super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         val zoneId0 = getZoneId(0)
 
@@ -58,7 +59,7 @@ class mData : mAbstract() {
         columnDataBinary = ColumnBinary(tableName, "sensor_data")
 
         //--- соберём все номера портов
-        val oc = ObjectConfig.getObjectConfig(stm, userConfig, objectID)
+        val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
         for((sensorType, hmSC) in oc.hmSensorConfig)
         //--- генерируем виртуальные поля по объявленным портам
             for(portNum in hmSC.keys) {

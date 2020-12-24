@@ -1,6 +1,6 @@
 package foatto.mms.core_mms.sensor
 
-import foatto.app.CoreSpringController
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnDouble
@@ -10,9 +10,9 @@ import foatto.sql.CoreAdvancedStatement
 
 class mSensorCalibration : mAbstract() {
 
-    override fun init(appController: CoreSpringController, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
+    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
 
-        super.init(appController, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+        super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -26,8 +26,8 @@ class mSensorCalibration : mAbstract() {
 
         val columnSensor = ColumnInt(tableName, "sensor_id", hmParentData["mms_sensor"]!!)
 
-        val columnValueSensor = ColumnInt(tableName, "value_sensor", "Значение датчика", 10, 0)
-        val columnValueData = ColumnDouble(tableName, "value_data", "Значение измеряемой величины", 10, 1, 0.0)
+        val columnValueSensor = ColumnDouble(tableName, "value_sensor", "Значение датчика", 10, -1, 0.0)
+        val columnValueData = ColumnDouble(tableName, "value_data", "Значение измеряемой величины", 10, -1, 0.0)
 
         //----------------------------------------------------------------------------------------------------------------------
 

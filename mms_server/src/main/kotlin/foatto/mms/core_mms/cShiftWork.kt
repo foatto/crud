@@ -7,6 +7,7 @@ import foatto.core_server.app.server.data.DataInt
 import foatto.core_server.app.server.data.DataString
 import foatto.core_server.app.server.data.iData
 import foatto.mms.core_mms.calc.ObjectCalc
+import foatto.mms.iMMSApplication
 
 class cShiftWork : cStandart() {
 
@@ -18,7 +19,7 @@ class cShiftWork : cStandart() {
         val begTime = (hmColumnData[m.columnShiftBegDoc] as DataDateTimeInt).zonedDateTime.toEpochSecond().toInt()
         val endTime = (hmColumnData[m.columnShiftEndDoc] as DataDateTimeInt).zonedDateTime.toEpochSecond().toInt()
 
-        val oc = ObjectConfig.getObjectConfig(stm, userConfig, objectID)
+        val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
         val calc = ObjectCalc.calcObject(stm, userConfig, oc, begTime, endTime)
 
         (hmColumnData[m.columnObjectShiftWorkRun] as DataString).text = calc.sbGeoRun.toString()

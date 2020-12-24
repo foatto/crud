@@ -1,6 +1,5 @@
 package foatto.mms.core_mms.xy.server.document
 
-import foatto.app.CoreSpringController
 import foatto.core.app.PARAM_ZONE_DESCR
 import foatto.core.app.PARAM_ZONE_NAME
 import foatto.core.app.iCoreAppContainer
@@ -18,13 +17,13 @@ import foatto.core.util.prepareForSQL
 import foatto.core.util.sLineSeparator
 import foatto.core.util.secondIntervalToString
 import foatto.core_server.app.AppParameter
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.xy.XyStartData
 import foatto.core_server.app.xy.XyStartObjectData
 import foatto.core_server.app.xy.XyStartObjectParsedData
 import foatto.core_server.app.xy.server.XyProperty
 import foatto.core_server.app.xy.server.document.sdcXyMap
-import foatto.mms.MMSSpringController
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.ZoneData
 import foatto.mms.core_mms.ZoneLimitData
@@ -35,6 +34,7 @@ import foatto.mms.core_mms.calc.ObjectState
 import foatto.mms.core_mms.calc.OverSpeedPeriodData
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigWork
+import foatto.mms.iMMSApplication
 import foatto.sql.CoreAdvancedStatement
 import java.nio.ByteOrder
 import java.util.*
@@ -62,7 +62,7 @@ class sdcMMSMap : sdcXyMap() {
 
     private lateinit var hmZoneData: Map<Int, ZoneData>
 
-    override fun init(aAppController: CoreSpringController, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aUserConfig: UserConfig, aDocumentConfig: XyDocumentConfig) {
+    override fun init(aApplication: iApplication, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aUserConfig: UserConfig, aDocumentConfig: XyDocumentConfig) {
 
         //--- зоны ---
 
@@ -82,7 +82,7 @@ class sdcMMSMap : sdcXyMap() {
 
         //------
 
-        super.init(aAppController, aStm, aChmSession, aUserConfig, aDocumentConfig)
+        super.init(aApplication, aStm, aChmSession, aUserConfig, aDocumentConfig)
     }
 
     override fun getCoords(startParamID: String): XyActionResponse {
@@ -123,7 +123,7 @@ class sdcMMSMap : sdcXyMap() {
             //--- статические объекты уже обработаны
             if(objectParamData.begTime == 0) continue
             //--- нужен хотя бы один гео-датчик
-            val objectConfig = ObjectConfig.getObjectConfig(stm, userConfig, objectParamData.objectID)
+            val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, objectParamData.objectID)
             if(objectConfig.scg == null) continue
 
             //--- если траекторные элементы глобально не запрещены
@@ -200,19 +200,22 @@ class sdcMMSMap : sdcXyMap() {
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     override fun loadDynamicElements(scale: Int, objectParamData: XyStartObjectParsedData, alElement: MutableList<XyElement>) {
+        val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, objectParamData.objectID)
+        if (objectConfig.scg == null) return
+
         val hmZoneLimit = ZoneLimitData.getZoneLimit(
-            stm, userConfig, hmZoneData, objectParamData.objectID,
-            /*0, objectParamData.begDT, objectParamData.endDT,*/ ZoneLimitData.TYPE_LIMIT_SPEED
+            stm = stm,
+            userConfig = userConfig,
+            objectConfig = objectConfig,
+            hmZoneData = hmZoneData,
+            zoneType = ZoneLimitData.TYPE_LIMIT_SPEED
         )
 
-        val objectConfig = ObjectConfig.getObjectConfig(stm, userConfig, objectParamData.objectID)
-        if(objectConfig.scg == null) return
-
-        val objectNameAndModel = StringBuilder(objectConfig.name).append(if(objectConfig.model.isEmpty()) "" else ", ").append(objectConfig.model).toString()
+        val objectNameAndModel = StringBuilder(objectConfig.name).append(if (objectConfig.model.isEmpty()) "" else ", ").append(objectConfig.model).toString()
 
         //--- если траекторные элементы глобально не запрещены
-        if(objectParamData.begTime < objectParamData.endTime) {
-            val maxEnabledOverSpeed = (appController as MMSSpringController).maxEnabledOverSpeed
+        if (objectParamData.begTime < objectParamData.endTime) {
+            val maxEnabledOverSpeed = (application as iMMSApplication).maxEnabledOverSpeed
 
             //--- грузим данные за период
             val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(stm, objectConfig, objectParamData.begTime, objectParamData.endTime)

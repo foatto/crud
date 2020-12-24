@@ -3,7 +3,6 @@ package foatto.shop.report
 //import kotlinx.serialization.Serializable
 //import kotlinx.serialization.json.JSON
 //import kotlinx.serialization.stringify
-import foatto.app.CoreSpringController
 import foatto.core.link.FormData
 import foatto.core.link.XyDocumentConfig
 import foatto.core.util.AdvancedLogger
@@ -11,6 +10,7 @@ import foatto.core.util.DateTime_DMY
 import foatto.core.util.getSplittedDouble
 import foatto.core.util.getWordOfCount
 import foatto.core.util.getWordOfMoney
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.cAbstractReport
@@ -18,10 +18,10 @@ import foatto.core_server.app.server.data.DataComboBox
 import foatto.core_server.app.server.data.DataInt
 import foatto.shop.DocumentTypeConfig
 import foatto.shop.PriceData
-import foatto.shop.ShopSpringApp
-import foatto.shop.ShopSpringController
+import foatto.shop.iShopApplication
 import foatto.shop.mPrice
 import foatto.shop.mWarehouse
+import foatto.shop.spring.ShopSpringApp
 import foatto.shop.toJson
 import foatto.sql.CoreAdvancedStatement
 import jxl.CellView
@@ -45,15 +45,15 @@ class cDocContent : cAbstractReport() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun init(aAppController: CoreSpringController, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig) {
-        super.init(aAppController, aStm, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
+    override fun init(aApplication: iApplication, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig) {
+        super.init(aApplication, aStm, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
 
         hmPrice = PriceData.loadPrice(stm, mPrice.PRICE_TYPE_OUT)
     }
 
     override fun isFormAutoClick(): Boolean {
-        for(an in DocumentTypeConfig.hmDocTypeAlias.values)
-            if(hmParentData[an] != null) return true
+        for (an in DocumentTypeConfig.hmDocTypeAlias.values)
+            if (hmParentData[an] != null) return true
 
         return super.isFormAutoClick()
     }
@@ -447,10 +447,10 @@ class cDocContent : cAbstractReport() {
     }
 
     fun printFiscal(docID: Int) {
-        val shopAppController = appController as ShopSpringController
-        val fiscalURL = shopAppController.fiscalURL ?: return
-        val fiscalClient = shopAppController.fiscalClient ?: return
-        val fiscalLineCutter = shopAppController.fiscalLineCutter?.toInt() ?: return
+        val shopApplication = application as iShopApplication
+        val fiscalURL = shopApplication.fiscalURL ?: return
+        val fiscalClient = shopApplication.fiscalClient ?: return
+        val fiscalLineCutter = shopApplication.fiscalLineCutter?.toInt() ?: return
 
         var docYe = 0
         var docMo = 0
@@ -458,7 +458,7 @@ class cDocContent : cAbstractReport() {
         var discount = 0.0
 
         var rs = stm.executeQuery(" SELECT doc_ye , doc_mo , doc_da , discount FROM SHOP_doc WHERE id = $docID ")
-        if(rs.next()) {
+        if (rs.next()) {
             docYe = rs.getInt(1)
             docMo = rs.getInt(2)
             docDa = rs.getInt(3)

@@ -12,6 +12,7 @@ import foatto.core_server.app.server.data.DataInt
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.calc.ObjectCalc
 import foatto.mms.core_mms.sensor.config.SensorConfig
+import foatto.mms.iMMSApplication
 import jxl.CellView
 import jxl.format.PageOrientation
 import jxl.format.PaperSize
@@ -192,7 +193,7 @@ class cWorkShiftCompare : cMMSReport() {
         offsY++    // пропустим еще строку между шапкой и первой строкой отчёта
         var countNN = 1
         for(wscr in tmWorkShiftCalcResult.values) {
-            val userName = getRecordUserName(wscr.objectConfig.userID)
+            val userName = getRecordUserName(wscr.objectConfig.userId)
 
             //--- неправильная строка:
             //--- 1. или путевка с нулевым пробегом и моточасами и расходом топлива
@@ -595,7 +596,7 @@ class cWorkShiftCompare : cMMSReport() {
         }
 
         for(wsd in alWSD) {
-            val objectConfig = ObjectConfig.getObjectConfig(stm, userConfig, wsd.objectID)
+            val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, wsd.objectID)
 
             tmResult[StringBuilder().append(wsd.begTime).append(objectConfig.name).toString()] = WorkShiftCalcResult(wsd, ObjectCalc.calcObject(stm, userConfig, objectConfig, wsd.begTime - reportAddBefore, wsd.endTime + reportAddAfter))
         }

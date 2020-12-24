@@ -13,16 +13,12 @@ class SensorConfigWork(
     val minOnTime: Int,
     val minOffTime: Int,
     val begWorkValue: Double,
-    val cmdOnID: Int,
-    val cmdOffID: Int,
-    aSignalOn: String,
-    aSignalOff: String,
+    val cmdOnId: Int,
+    val cmdOffId: Int,
+    val signalOn: SignalConfig,
+    val signalOff: SignalConfig,
     val minIgnore: Double,
     val maxIgnore: Double,
     val liquidName: String,
     val liquidNorm: Double
-) : SensorConfig(aId, aName, aSumGroup, aGroup, aDescr, aPortNum, aSensorType) {
-
-    val signalOn = SignalConfig(aSignalOn)
-    val signalOff = SignalConfig(aSignalOff)
-}
+) : SensorConfig(aId, aName, aSumGroup, aGroup, aDescr, aPortNum, aSensorType)

@@ -2,14 +2,14 @@ package foatto.mms.core_mms.xy
 
 import foatto.core.app.ICON_NAME_STATE
 import foatto.core.link.AppAction
-import foatto.core_server.app.AppParameter
 import foatto.core.link.FormData
 import foatto.core.util.getRandomInt
+import foatto.core_server.app.AppParameter
 import foatto.core_server.app.server.cAbstractForm
 import foatto.core_server.app.server.data.DataInt
 import foatto.core_server.app.xy.XyStartData
 import foatto.core_server.app.xy.XyStartObjectData
-import foatto.mms.core_mms.ObjectConfig
+import foatto.mms.iMMSApplication
 
 class cShowState : cAbstractForm() {
 
@@ -27,7 +27,7 @@ class cShowState : cAbstractForm() {
         //--- выборка данных параметров для отчета
         val selectObjectID = ( hmColumnData[ mss.columnObject ] as DataInt ).value
 
-        val oc = ObjectConfig.getObjectConfig( stm, userConfig, selectObjectID )
+        val oc = (application as iMMSApplication).getObjectConfig(userConfig, selectObjectID)
 
         val sd = XyStartData()
 

@@ -34,18 +34,11 @@ kotlin {
 
     sourceSets {
         val commonMain by getting {
-//            dependencies {
-//                api(kotlin("stdlib-common"))
-//            }
         }
         val jsMain by getting {
-//            dependencies {
-//                api(kotlin("stdlib-js"))
-//            }
         }
         val jvmMain by getting {
             dependencies {
-//                api(kotlin("stdlib-jdk8"))
                 api(kotlin("reflect"))
             }
         }

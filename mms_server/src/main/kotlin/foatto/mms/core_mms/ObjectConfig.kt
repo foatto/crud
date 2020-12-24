@@ -1,38 +1,35 @@
 package foatto.mms.core_mms
 
-import foatto.core.util.AdvancedLogger
-import foatto.core_server.app.server.UserConfig
-import foatto.mms.core_mms.sensor.config.*
-import foatto.sql.CoreAdvancedStatement
+import foatto.mms.core_mms.sensor.config.SensorConfig
+import foatto.mms.core_mms.sensor.config.SensorConfigGeo
 
-class ObjectConfig {
+class ObjectConfig(
 
-    var objectID = 0
-    var userID = 0
-    var isDisabled = false
-    lateinit var name: String
-    lateinit var model: String
-    lateinit var groupName: String
-    lateinit var departmentName: String
-    lateinit var info: String
-
-    var alTitleName = mutableListOf<String>()
-    var alTitleValue = mutableListOf<String>()
+    val objectId: Int,
+    val userId: Int,
+    val isDisabled: Boolean,
+    val name: String,
+    val model: String,
+    val groupName: String,
+    val departmentName: String,
+    val info: String,
+) {
+    val alTitleName: MutableList<String> = mutableListOf()
+    val alTitleValue: MutableList<String> = mutableListOf()
 
     //--- description of the sensor configuration - the first key is the sensor type, the second key is the port number
-    var hmSensorConfig = mutableMapOf<Int, MutableMap<Int, SensorConfig>>()
+    val hmSensorConfig: MutableMap<Int, MutableMap<Int, SensorConfig>> = mutableMapOf()
 
     //--- separate work with a geo-sensor - it should be the only one on the object
     var scg: SensorConfigGeo? = null
 
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     companion object {
-
         const val WARNING_TIME = 1 * 60 * 60
         const val CRITICAL_TIME = 24 * 60 * 60
+    }
+}
 
-        //----------------------------------------------------------------------------------------------------------------------
+/* --- old jdbc variant, rest for history ---
 
         fun getObjectConfig(stm: CoreAdvancedStatement, userConfig: UserConfig, aObjectID: Int): ObjectConfig {
             val objectConfig = ObjectConfig()
@@ -336,5 +333,4 @@ class ObjectConfig {
 
             return objectConfig
         }
-    }
-}
+*/

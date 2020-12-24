@@ -1,10 +1,14 @@
 package foatto.shop
 
-import foatto.app.CoreSpringController
 import foatto.core.link.AppAction
 import foatto.core.link.TableCellAlign
-import foatto.core_server.app.server.*
+import foatto.core_server.app.iApplication
+import foatto.core_server.app.server.AliasConfig
+import foatto.core_server.app.server.ChildData
+import foatto.core_server.app.server.DependData
+import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.*
+import foatto.core_server.app.server.mAbstract
 import foatto.sql.CoreAdvancedStatement
 
 class mDocument : mAbstract() {
@@ -33,15 +37,15 @@ class mDocument : mAbstract() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun init(appController: CoreSpringController, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
+    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
 
-        super.init(appController, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+        super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
-        val docType = DocumentTypeConfig.hmAliasDocType[ aliasConfig.alias ]!!
+        val docType = DocumentTypeConfig.hmAliasDocType[aliasConfig.alias]!!
 
-        val hmAliasConfig = AliasConfig.getConfig( stm )
+        val hmAliasConfig = AliasConfig.getConfig(stm)
 
-        val ( alWarehouseID, alWarehouseName ) = mWarehouse.fillWarehouseList( stm )
+        val (alWarehouseID, alWarehouseName) = mWarehouse.fillWarehouseList(stm)
 
         //--- получить данные по правам доступа
         val hsPermission = userConfig.userPermission[ aliasConfig.alias ]

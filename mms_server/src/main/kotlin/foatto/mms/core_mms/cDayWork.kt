@@ -7,11 +7,11 @@ import foatto.core_server.app.server.data.DataInt
 import foatto.core_server.app.server.data.DataString
 import foatto.core_server.app.server.data.iData
 import foatto.mms.core_mms.calc.ObjectCalc
+import foatto.mms.iMMSApplication
 import java.time.temporal.ChronoUnit
 
 class cDayWork : cStandart() {
 
-    //--- перекрывается наследниками для генерации данных в момент загрузки записей ПОСЛЕ фильтров поиска и страничной разбивки
     override fun generateColumnDataAfterFilter(hmColumnData: MutableMap<iColumn, iData>) {
         val mODW = model as mDayWork
 
@@ -21,7 +21,7 @@ class cDayWork : cStandart() {
         val begTime = gc.toEpochSecond().toInt()
         val endTime = gc.plus(1, ChronoUnit.DAYS).toEpochSecond().toInt()
 
-        val oc = ObjectConfig.getObjectConfig(stm, userConfig, objectID)
+        val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
         val calc = ObjectCalc.calcObject(stm, userConfig, oc, begTime, endTime)
 
         (hmColumnData[mODW.columnObjectDayWorkRun] as DataString).text = calc.sbGeoRun.toString()
@@ -32,5 +32,7 @@ class cDayWork : cStandart() {
         (hmColumnData[mODW.columnObjectDayWorkLevelEnd] as DataString).text = calc.sbLiquidLevelEnd.toString()
         (hmColumnData[mODW.columnObjectDayWorkLiquidName] as DataString).text = calc.sbLiquidUsingName.toString()
         (hmColumnData[mODW.columnObjectDayWorkLiquidValue] as DataString).text = calc.sbLiquidUsingTotal.toString()
+
     }
+
 }

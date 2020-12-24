@@ -3,6 +3,7 @@ package foatto.mms.core_mms.report
 import foatto.core.link.FormData
 import foatto.core.util.DateTime_DMY
 import foatto.mms.core_mms.ObjectConfig
+import foatto.mms.iMMSApplication
 import jxl.CellView
 import jxl.format.PageOrientation
 import jxl.format.PaperSize
@@ -127,16 +128,17 @@ class cDowntime : cMMSReport() {
         //--- общий обработчик на всех
         for(objectID in alObjectID) {
             //--- загрузим данные по объекту до работы с ResultSet'ом
-            val oc = ObjectConfig.getObjectConfig(stm, userConfig, objectID)
+            val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
             val rs = stm.executeQuery(
                 " SELECT ye , mo , da , reason FROM MMS_downtime " +
-                " WHERE object_id = $objectID " +
-                " AND ( ye > $reportBegYear " +
+                    " WHERE object_id = $objectID " +
+                    " AND ( ye > $reportBegYear " +
                     " OR ye = $reportBegYear AND mo > $reportBegMonth " +
                     " OR ye = $reportBegYear AND mo = $reportBegMonth AND da >= $reportBegDay ) " +
-                " AND ( ye < $reportEndYear " +
+                    " AND ( ye < $reportEndYear " +
                     " OR ye = $reportEndYear AND mo < $reportEndMonth " +
-                    " OR ye = $reportEndYear AND mo = $reportEndMonth AND da <= $reportEndDay ) " )
+                    " OR ye = $reportEndYear AND mo = $reportEndMonth AND da <= $reportEndDay ) "
+            )
             while(rs.next()) alResult.add(DowntimeData(oc, rs.getInt(1), rs.getInt(2), rs.getInt(3), rs.getString(4)))
             rs.close()
         }

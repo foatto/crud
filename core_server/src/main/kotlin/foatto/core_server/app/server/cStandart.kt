@@ -1,7 +1,5 @@
 package foatto.core_server.app.server
 
-import foatto.app.CoreSpringApp
-import foatto.app.CoreSpringController
 import foatto.core.app.*
 import foatto.core.link.*
 import foatto.core.util.BusinessException
@@ -9,11 +7,13 @@ import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.getRandomInt
 import foatto.core.util.getZoneId
 import foatto.core_server.app.AppParameter
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.column.ColumnDouble
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.data.*
+import foatto.spring.CoreSpringApp
 import foatto.sql.CoreAdvancedResultSet
 import foatto.sql.CoreAdvancedStatement
 import java.time.ZoneId
@@ -99,7 +99,7 @@ open class cStandart {
 
     //--- common part ---
 
-    protected lateinit var appController: CoreSpringController
+    protected lateinit var application: iApplication
     protected lateinit var stm: CoreAdvancedStatement
     protected lateinit var chmSession: ConcurrentHashMap<String, Any>
     protected lateinit var hmParam: Map<String, String>
@@ -135,10 +135,17 @@ open class cStandart {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     open fun init(
-        aAppController: CoreSpringController, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig
+        aApplication: iApplication,
+        aStm: CoreAdvancedStatement,
+        aChmSession: ConcurrentHashMap<String, Any>,
+        aHmParam: Map<String, String>,
+        aHmAliasConfig: Map<String, AliasConfig>,
+        aAliasConfig: AliasConfig,
+        aHmXyDocumentConfig: Map<String, XyDocumentConfig>,
+        aUserConfig: UserConfig
     ) {
 
-        appController = aAppController
+        application = aApplication
         stm = aStm
         chmSession = aChmSession
         hmParam = aHmParam
@@ -187,7 +194,7 @@ open class cStandart {
         model = Class.forName(aliasConfig.modelClassName).getConstructor().newInstance() as mAbstract
         //--- если для иерархической таблицы парент от себя не задан, то самостоятельно задаем 0-й уровень структуры иерархической таблицы
         if(model.isExpandable() && getParentID(aliasConfig.alias) == null) hmParentData[aliasConfig.alias] = 0
-        model.init(appController, stm, aliasConfig, userConfig, hmParam, hmParentData, id)
+        model.init(application, stm, aliasConfig, userConfig, hmParam, hmParentData, id)
     }
 
 //--- permission part -----------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -386,7 +393,7 @@ open class cStandart {
                 if(m.isExpandable()) {
                     //!!! можно ли как-то обойтись без создания объекта?
                     val page = Class.forName(ac.controlClassName).getConstructor().newInstance() as cStandart
-                    page.init(appController, stm, chmSession, emptyMap(), hmAliasConfig, ac, hmXyDocumentConfig, userConfig)
+                    page.init(application, stm, chmSession, emptyMap(), hmAliasConfig, ac, hmXyDocumentConfig, userConfig)
                     return page.doExpand(pID)
                 }
             }

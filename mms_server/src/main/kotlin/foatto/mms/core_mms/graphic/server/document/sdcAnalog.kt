@@ -25,6 +25,7 @@ import foatto.mms.core_mms.graphic.server.graphic_handler.iGraphicHandler
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigAnalogue
 import foatto.mms.core_mms.sensor.config.SensorConfigWork
+import foatto.mms.iMMSApplication
 import java.util.*
 import kotlin.math.min
 
@@ -66,7 +67,7 @@ open class sdcAnalog : sdcAbstractGraphic() {
         //--- показ текстов по умолчанию включен, если не указано явно иное
         val isShowText = smText?.toBoolean() ?: true
 
-        val oc = ObjectConfig.getObjectConfig(stm, userConfig, sd.objectID)
+        val oc = (application as iMMSApplication).getObjectConfig(userConfig, sd.objectID)
         //--- загрузка заголовочной информации по объекту
         var sObjectInfo = oc.name
 

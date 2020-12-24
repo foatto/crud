@@ -3,10 +3,10 @@ package foatto.mms.core_mms.report
 import foatto.core.link.FormData
 import foatto.core.util.DateTime_DMY
 import foatto.core.util.getSplittedDouble
-import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.calc.ObjectCalc
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigWork
+import foatto.mms.iMMSApplication
 import jxl.CellView
 import jxl.format.PageOrientation
 import jxl.format.PaperSize
@@ -97,7 +97,7 @@ class cEquipService : cMMSReport() {
 
         var countNN = 1
         for(objectID in alObjectID) {
-            val objectConfig = ObjectConfig.getObjectConfig(stm, userConfig, objectID)
+            val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
 
             //--- пропускаем, если нет датчиков оборудования
             val hmSCW = objectConfig.hmSensorConfig[SensorConfig.SENSOR_WORK]

@@ -15,6 +15,7 @@ import foatto.mms.core_mms.calc.OverSensorPeriodData
 import foatto.mms.core_mms.graphic.server.graphic_handler.AnalogGraphicHandler
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigAnalogue
+import foatto.mms.iMMSApplication
 import jxl.CellView
 import jxl.format.PageOrientation
 import jxl.format.PaperSize
@@ -174,7 +175,7 @@ class cOverSensor : cMMSReport() {
         else alObjectID.add(reportObject)
 
         for (objectID in alObjectID) {
-            val objectConfig = ObjectConfig.getObjectConfig(stm, userConfig, objectID)
+            val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
 
             val hmSensorConfig = objectConfig.hmSensorConfig[sensorType]
             if (hmSensorConfig == null || hmSensorConfig.isEmpty()) continue

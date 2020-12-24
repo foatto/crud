@@ -1,6 +1,5 @@
 package foatto.mms.core_mms.xy.server.document
 
-import foatto.app.CoreSpringController
 import foatto.core.app.iCoreAppContainer
 import foatto.core.app.xy.XyActionRequest
 import foatto.core.app.xy.XyActionResponse
@@ -12,11 +11,11 @@ import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.getRandomInt
 import foatto.core.util.getSplittedDouble
 import foatto.core_server.app.AppParameter
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.xy.XyStartData
 import foatto.core_server.app.xy.XyStartObjectParsedData
 import foatto.core_server.app.xy.server.document.sdcXyState
-import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.cObject
 import foatto.mms.core_mms.calc.ObjectState
 import foatto.mms.core_mms.ds.MMSHandler
@@ -25,6 +24,7 @@ import foatto.mms.core_mms.sensor.config.SensorConfigLiquidLevel
 import foatto.mms.core_mms.sensor.config.SensorConfigSignal
 import foatto.mms.core_mms.sensor.config.SensorConfigWork
 import foatto.mms.core_mms.sensor.config.SignalConfig
+import foatto.mms.iMMSApplication
 import foatto.sql.CoreAdvancedStatement
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -63,7 +63,7 @@ class sdcMMSState : sdcXyState() {
         private val chmElementPort = ConcurrentHashMap<Int, Int>()
     }
 
-    override fun init(aAppController: CoreSpringController, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aUserConfig: UserConfig, aDocumentConfig: XyDocumentConfig) {
+    override fun init(aApplication: iApplication, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aUserConfig: UserConfig, aDocumentConfig: XyDocumentConfig) {
 
         //--- схемы ---
 
@@ -91,7 +91,7 @@ class sdcMMSState : sdcXyState() {
         hmOutElementTypeAlias.put(TYPE_STATE_S_FIGURE_25D, "mms_object")
         hmOutElementTypeAlias.put(TYPE_STATE_S_TEXT_25D, "mms_object")
 
-        super.init(aAppController, aStm, aChmSession, aUserConfig, aDocumentConfig)
+        super.init(aApplication, aStm, aChmSession, aUserConfig, aDocumentConfig)
     }
 
     override fun getCoords(startParamID: String): XyActionResponse {
@@ -167,7 +167,7 @@ class sdcMMSState : sdcXyState() {
     }
 
     private fun getElementList(scale: Int, objectParamData: XyStartObjectParsedData, isRemoteControlPermission: Boolean): List<XyElement> {
-        val objectConfig = ObjectConfig.getObjectConfig(stm, userConfig, objectParamData.objectID)
+        val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, objectParamData.objectID)
         val objectState = ObjectState.getState(stm, objectConfig)
 
         //--- составляем иерархию ёмкостей и оборудования
@@ -228,11 +228,11 @@ class sdcMMSState : sdcXyState() {
                         //--- выясняем возможность управления объектом
                         if (isRemoteControlPermission) {
                             //--- оборудование сейчас включено и есть команда выключения и сигналы разрешают выключение
-                            if (workState != null && workState && sc.cmdOffID != 0 && getSignalEnabled(objectState, hmSCS!!, sc.signalOff)) {
-                                commandID = sc.cmdOffID
+                            if (workState != null && workState && sc.cmdOffId != 0 && getSignalEnabled(objectState, hmSCS!!, sc.signalOff)) {
+                                commandID = sc.cmdOffId
                                 toolTip = "Отключить $toolTip"
-                            } else if (workState != null && !workState && sc.cmdOnID != 0 && getSignalEnabled(objectState, hmSCS!!, sc.signalOn)) {
-                                commandID = sc.cmdOnID
+                            } else if (workState != null && !workState && sc.cmdOnId != 0 && getSignalEnabled(objectState, hmSCS!!, sc.signalOn)) {
+                                commandID = sc.cmdOnId
                                 toolTip = "Включить $toolTip"
                             }
                         }
@@ -279,7 +279,7 @@ class sdcMMSState : sdcXyState() {
             x += GRID_STEP
         }
         //--- выводим время последних данных
-        val label = XyElement(TEXT, -getRandomInt(), objectConfig.objectID)
+        val label = XyElement(TEXT, -getRandomInt(), objectConfig.objectId)
         //label.init( timeZone )
         //label.typeName = TYPE_STATE_W_TEXT;
         label.itReadOnly = true
