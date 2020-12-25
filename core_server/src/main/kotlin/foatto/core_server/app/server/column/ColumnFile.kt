@@ -1,11 +1,17 @@
 package foatto.core_server.app.server.column
 
 import foatto.core.link.TableCellAlign
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.data.DataFile
 
-class ColumnFile( aTableName: String, aFieldName: String, aCaption: String ) : ColumnSimple() {
+class ColumnFile(
+    val application: iApplication,
+    aTableName: String,
+    aFieldName: String,
+    aCaption: String
+) : ColumnSimple() {
 
-//    //--- для картинок
+//    //--- for pictures
 //    private int imageBigWidth = 0;
 //    private int imageBigHeight = 0;
 //    private int imageSmallWidth = 0;
@@ -13,7 +19,7 @@ class ColumnFile( aTableName: String, aFieldName: String, aCaption: String ) : C
 
     init {
         tableName = aTableName
-        addFieldName( aFieldName )
+        addFieldName(aFieldName)
         caption = aCaption
 
         tableAlign = TableCellAlign.CENTER
@@ -21,7 +27,7 @@ class ColumnFile( aTableName: String, aFieldName: String, aCaption: String ) : C
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun getData() = DataFile( this )
+    override fun getData() = DataFile(application, this)
 
     override fun isSortable(): Boolean = false
 }

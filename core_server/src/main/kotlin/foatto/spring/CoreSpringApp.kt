@@ -32,9 +32,6 @@ open class CoreSpringApp {
         val LOGON_LOCK_TIMEOUT = 15   // таймаут [мин] после N-кратного ввода неправильного пароля
         val PASSWORD_LIFE_TIME = 12   // период смены пароля [мес.]
 
-        //--- параметры, живущие только внутри сессии
-        const val USER_CONFIG = "user_config"
-
         //--- выявляемая продолжительность запроса
         val MAX_TIME_PER_REQUEST = 1 * 60
 
@@ -46,21 +43,17 @@ open class CoreSpringApp {
         //--- параметры, живущие только внутри сессии
         val ALIAS_CONFIG = "alias_config"
 
-        val BUSINESS_EXCEPTION_MESSAGE = "Выполнено обновление системы.\nПожалуйста, перезапустите программу."
-
-        val hsSkipKeyWords = hashSetOf( AppParameter.FORM_DATA, AppParameter.FORM_SELECTOR, AppParameter.REFERER, AppParameter.SELECTOR )
+        val hsSkipKeyWords = hashSetOf(AppParameter.FORM_DATA, AppParameter.FORM_SELECTOR, AppParameter.REFERER, AppParameter.SELECTOR)
 
         val zoneId = ZoneId.systemDefault()
 
         val chmSessionStore = ConcurrentHashMap<Long, ConcurrentHashMap<String, Any>>()
 
         //--- инициируются снаружи после чтения конфигов
-        lateinit var rootDirName: String
-        lateinit var tempDirName: String
         lateinit var dirUserLog: File
         var userLogMode: Int = SYSTEM_LOG_NONE
         lateinit var dbConfig: DBConfig
-        val hmAliasLogDir = mutableMapOf<String, String>()
+        internal val hmAliasLogDir = mutableMapOf<String, String>()
         val hmXyDocumentConfig = mutableMapOf<String, XyDocumentConfig>()
     }
 
@@ -88,10 +81,7 @@ open class CoreSpringApp {
     val dbReplicationPath: String = ""
 
     @Value("\${root_dir}")
-    val rootDirName: String = ""
-
-    @Value("\${temp_dir}")
-    val tempDirName: String = ""
+    private val rootDirName: String = ""
 
     @Value("\${log_dir}")
     val logDir: String = ""
@@ -106,32 +96,31 @@ open class CoreSpringApp {
     val sUserLogMode: String = ""
 
     @Value("\${log_show_alias}")
-    val logShowAlias: String? = null
+    private val logShowAlias: String? = null
+
     @Value("\${log_show_dir}")
-    val logShowDir: String? = null
+    private val logShowDir: String? = null
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-//--- добавлять у каждого наследника
+    //--- добавлять у каждого наследника
 //    @EventListener(ApplicationReadyEvent::class)
     open fun init() {
-        AdvancedLogger.init( logDir, logOptions.contains( "error" ), logOptions.contains( "info" ), logOptions.contains( "debug" ) )
-        AdvancedLogger.info( "==================== Spring App started ====================" )
+        AdvancedLogger.init(logDir, logOptions.contains("error"), logOptions.contains("info"), logOptions.contains("debug"))
+        AdvancedLogger.info("==================== Spring App started ====================")
 
         //--- запуск асинхронного записывателя файлов
-        AsyncFileSaver.init( rootDirName )
+        AsyncFileSaver.init(rootDirName)
 
-        CoreSpringApp.rootDirName = rootDirName
-        CoreSpringApp.tempDirName = tempDirName
-        dirUserLog = File( userLogPath )
-    userLogMode = sUserLogMode.toIntOrNull() ?: SYSTEM_LOG_NONE
-    dbConfig = DBConfig(dbName, dataSourceURL, dataSourceUser, dataSourcePassword, dbReplicationName, dbReplicatiionFilter, dbReplicationPath)
+        dirUserLog = File(userLogPath)
+        userLogMode = sUserLogMode.toIntOrNull() ?: SYSTEM_LOG_NONE
+        dbConfig = DBConfig(dbName, dataSourceURL, dataSourceUser, dataSourcePassword, dbReplicationName, dbReplicatiionFilter, dbReplicationPath)
 
-        val arrLogShowAlias = logShowAlias?.split( ",", " " )
-        val arrLogShowDir = logShowDir?.split( ",", " " )
-        if( arrLogShowAlias != null && arrLogShowDir != null ) {
-            for( i in 0 until min( arrLogShowAlias.size, arrLogShowDir.size ) )
-                hmAliasLogDir[ arrLogShowAlias[ i ] ] = arrLogShowDir[ i ]
+        val arrLogShowAlias = logShowAlias?.split(",", " ")
+        val arrLogShowDir = logShowDir?.split(",", " ")
+        if (arrLogShowAlias != null && arrLogShowDir != null) {
+            for (i in 0 until min(arrLogShowAlias.size, arrLogShowDir.size))
+                hmAliasLogDir[arrLogShowAlias[i]] = arrLogShowDir[i]
         }
 
         initXyConfig()
@@ -147,10 +136,10 @@ open class CoreSpringApp {
     protected open fun addXyDocumentConfig() {}
 
     //--- предположительно/пока его не надо перекрывать
-    protected fun initXyElementConfig( level: Int, minScale: Int, maxScale: Int ): MutableMap<String, XyElementConfig> {
+    protected fun initXyElementConfig(level: Int, minScale: Int, maxScale: Int): MutableMap<String, XyElementConfig> {
         val hmElementConfig = mutableMapOf<String, XyElementConfig>()
 
-        hmElementConfig[ sdcXyAbstract.BITMAP ] = XyElementConfig(
+        hmElementConfig[sdcXyAbstract.BITMAP] = XyElementConfig(
             sdcXyAbstract.BITMAP,
             XyElementClientType.BITMAP,
             //"foatto.app_client.xy.element.XyBitmap", "foatto.app.xy.element.fxBitmap",
@@ -158,7 +147,7 @@ open class CoreSpringApp {
             itRotatable = false, itMoveable = true, itEditablePoint = false
         )
 
-        hmElementConfig[ sdcXyAbstract.ICON ] = XyElementConfig(
+        hmElementConfig[sdcXyAbstract.ICON] = XyElementConfig(
             sdcXyAbstract.ICON,
             XyElementClientType.ICON,
             //"foatto.app_client.xy.element.XyIcon", "foatto.app.xy.element.fxIcon",
@@ -166,7 +155,7 @@ open class CoreSpringApp {
             itRotatable = true, itMoveable = true, itEditablePoint = false
         )
 
-        hmElementConfig[ sdcXyAbstract.MARKER ] = XyElementConfig(
+        hmElementConfig[sdcXyAbstract.MARKER] = XyElementConfig(
             sdcXyAbstract.MARKER,
             XyElementClientType.MARKER,
             //"foatto.app_client.xy.element.XyMarker", "foatto.app.xy.element.fxMarker",
@@ -174,7 +163,7 @@ open class CoreSpringApp {
             itRotatable = true, itMoveable = true, itEditablePoint = false
         )
 
-        hmElementConfig[ sdcXyAbstract.POLY ] = XyElementConfig(
+        hmElementConfig[sdcXyAbstract.POLY] = XyElementConfig(
             sdcXyAbstract.POLY,
             XyElementClientType.POLY,
             //"foatto.app_client.xy.element.XyPoly", "foatto.app.xy.element.fxPoly",
@@ -182,7 +171,7 @@ open class CoreSpringApp {
             itRotatable = false, itMoveable = true, itEditablePoint = true
         )
 
-        hmElementConfig[ sdcXyAbstract.TEXT ] = XyElementConfig(
+        hmElementConfig[sdcXyAbstract.TEXT] = XyElementConfig(
             sdcXyAbstract.TEXT,
             XyElementClientType.TEXT,
             //"foatto.app_client.xy.element.XyText", "foatto.app.xy.element.fxText",
@@ -190,7 +179,7 @@ open class CoreSpringApp {
             itRotatable = true, itMoveable = true, itEditablePoint = false
         )
 
-        hmElementConfig[ sdcXyAbstract.TRACE ] = XyElementConfig(
+        hmElementConfig[sdcXyAbstract.TRACE] = XyElementConfig(
             sdcXyAbstract.TRACE,
             XyElementClientType.TRACE,
             //"foatto.app_client.xy.element.XyTrace", "foatto.app.xy.element.fxTrace",

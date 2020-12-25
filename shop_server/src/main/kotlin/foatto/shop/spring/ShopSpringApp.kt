@@ -47,8 +47,6 @@ class ShopSpringApp : CoreSpringApp() {
             //        mUser.alExtendDependData.add(  new DependData(  "PLA_user_zone", "user_id"  )  );
             //        mUser.alExtendDependData.add(  new DependData(  "PLA_report", "user_id", DependData.DELETE  )  );
         }
-
-        val arrDocTitle = arrayOf( "ИП Карипова Гульнара Дамировна", "ИНН 165007039790  ОГРН 318169000001873" )
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -4,7 +4,6 @@ import foatto.core.link.*
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.shop.iShopApplication
-import foatto.spring.CoreSpringApp
 import foatto.spring.CoreSpringController
 import foatto.sql.CoreAdvancedStatement
 import org.springframework.beans.factory.annotation.Value
@@ -34,7 +33,7 @@ class ShopSpringController : CoreSpringController(), iShopApplication {
 
     @GetMapping(value = ["/"])
     fun downloadRoot(response: HttpServletResponse) {
-        download(response, "${CoreSpringApp.rootDirName}/web/index.html")
+        download(response, "${rootDirName}/web/index.html")
     }
 
     @GetMapping(value = ["/reports/{fileName:.+}"])
@@ -43,7 +42,7 @@ class ShopSpringController : CoreSpringController(), iShopApplication {
         @PathVariable("fileName")
         fileName: String
     ) {
-        download(response, "${CoreSpringApp.rootDirName}/reports/$fileName")
+        download(response, "${rootDirName}/reports/$fileName")
     }
 
     @GetMapping(value = ["/web/{fileName:.+}"])
@@ -52,7 +51,7 @@ class ShopSpringController : CoreSpringController(), iShopApplication {
         @PathVariable("fileName")
         fileName: String
     ) {
-        download(response, "${CoreSpringApp.rootDirName}/web/$fileName")
+        download(response, "${rootDirName}/web/$fileName")
     }
 
     @GetMapping(value = ["/web/images/{fileName:.+}"])
@@ -61,7 +60,7 @@ class ShopSpringController : CoreSpringController(), iShopApplication {
         @PathVariable("fileName")
         fileName: String
     ) {
-        download(response, "${CoreSpringApp.rootDirName}/web/images/$fileName")
+        download(response, "${rootDirName}/web/images/$fileName")
     }
 
     @GetMapping(value = ["/web/js/{fileName:.+}"])
@@ -70,7 +69,7 @@ class ShopSpringController : CoreSpringController(), iShopApplication {
         @PathVariable("fileName")
         fileName: String
     ) {
-        download(response, "${CoreSpringApp.rootDirName}/web/js/$fileName")
+        download(response, "${rootDirName}/web/js/$fileName")
     }
 
     @GetMapping(value = ["/web/lib/{fileName:.+}"])
@@ -79,7 +78,7 @@ class ShopSpringController : CoreSpringController(), iShopApplication {
         @PathVariable("fileName")
         fileName: String
     ) {
-        download(response, "${CoreSpringApp.rootDirName}/web/lib/$fileName")
+        download(response, "${rootDirName}/web/lib/$fileName")
     }
 
     @GetMapping(value = ["/files/{dirName:.+}/{fileName:.+}"])
@@ -90,7 +89,7 @@ class ShopSpringController : CoreSpringController(), iShopApplication {
         @PathVariable("fileName")
         fileName: String
     ) {
-        download(response, "${CoreSpringApp.rootDirName}/files/$dirName/$fileName")
+        download(response, "${rootDirName}/files/$dirName/$fileName")
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -5,17 +5,20 @@ import foatto.core.link.FormCellType
 import foatto.core.link.FormData
 import foatto.core.link.TableCell
 import foatto.core.util.getFreeDir
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.column.iColumn
-import foatto.spring.CoreSpringApp
 import foatto.sql.CoreAdvancedResultSet
 import foatto.sql.CoreAdvancedStatement
 import java.io.File
 
 private class FileStoreData(val id: Int, val name: String, val dir: String)
 
-class DataFile(aColumn: iColumn) : DataAbstract(aColumn) {
+class DataFile(
+    val application: iApplication,
+    aColumn: iColumn
+) : DataAbstract(aColumn) {
 
-    val FILE_BASE = "files"
+    private val FILE_BASE = "files"
 
     private var fileID = 0
 //        private set
@@ -49,17 +52,17 @@ class DataFile(aColumn: iColumn) : DataAbstract(aColumn) {
     }
 
     override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int): TableCell {
-        if(isShowEmptyTableCell) return TableCell(row, col, column.rowSpan, column.colSpan)
+        if (isShowEmptyTableCell) return TableCell(row, col, column.rowSpan, column.colSpan)
 
         val alFileStoreData = getList(stm, fileID)
 
-        if(alFileStoreData.isEmpty()) return TableCell(row, col)
+        if (alFileStoreData.isEmpty()) return TableCell(row, col)
 
         val tc = TableCell(
             aRow = row, aCol = col, aRowSpan = column.rowSpan, aColSpan = column.colSpan, aAlign = column.tableAlign, aMinWidth = 0, aTooltip = column.caption
         )
 
-        for(fsd in alFileStoreData) {
+        for (fsd in alFileStoreData) {
             val url = "/$FILE_BASE/${fsd.dir}/${fsd.name}"
             tc.addCellData(
                 aText = url.substringAfterLast('/'), aUrl = url, aInNewWindow = true
@@ -75,7 +78,7 @@ class DataFile(aColumn: iColumn) : DataAbstract(aColumn) {
         fci.fileID = fileID
 
         val alFileStoreData = getList(stm, fileID)
-        for(fsd in alFileStoreData) {
+        for (fsd in alFileStoreData) {
             val url = "/$FILE_BASE/${fsd.dir}/${fsd.name}"
             fci.alFile.add(Triple(fsd.id, url, url.substringAfterLast('/')))
         }
@@ -86,15 +89,15 @@ class DataFile(aColumn: iColumn) : DataAbstract(aColumn) {
 
     override fun preSave(rootDirName: String, stm: CoreAdvancedStatement) {
         //--- по каждому добавляемому файлу
-        if(hmFileAdd.isNotEmpty()) {
+        if (hmFileAdd.isNotEmpty()) {
             //--- при создании записи установим значение fileID - только при реальной необходимости
-            if(fileID == 0) fileID = stm.getNextID("SYSTEM_file_store", "file_id")
+            if (fileID == 0) fileID = stm.getNextID("SYSTEM_file_store", "file_id")
             hmFileAdd.forEach { (id, fileName) ->
                 save(stm, rootDirName, fileID, id, fileName)
             }
         }
         //--- по каждому удаляемому файлу
-        for(deleteID in alFileRemovedID) delete(stm, rootDirName, fileID, deleteID)
+        for (deleteID in alFileRemovedID) delete(stm, rootDirName, fileID, deleteID)
     }
 
     override fun preDelete(rootDirName: String, stm: CoreAdvancedStatement) {
@@ -122,7 +125,7 @@ class DataFile(aColumn: iColumn) : DataAbstract(aColumn) {
         val alFileStoreData = mutableListOf<FileStoreData>()
 
         val rs = stm.executeQuery(" SELECT id , name , dir FROM SYSTEM_file_store WHERE file_id = $aFileID ORDER BY name ")
-        while(rs.next()) alFileStoreData.add(FileStoreData(rs.getInt(1), rs.getString(2), rs.getString(3)))
+        while (rs.next()) alFileStoreData.add(FileStoreData(rs.getInt(1), rs.getString(2), rs.getString(3)))
         rs.close()
 
         return alFileStoreData
@@ -133,7 +136,7 @@ class DataFile(aColumn: iColumn) : DataAbstract(aColumn) {
         val newDirName = getFreeDir("$rootDirName/$FILE_BASE", arrayOf(""), fileName)
         val newFile = File("$rootDirName/$FILE_BASE/$newDirName/$fileName")
         //--- перенести файл в отведённое место
-        File(CoreSpringApp.tempDirName, id.toString()).renameTo(newFile)
+        File(application.tempDirName, id.toString()).renameTo(newFile)
         //--- сохранить запись о файле
         stm.executeUpdate(
             " INSERT INTO SYSTEM_file_store ( id , file_id , name , dir ) VALUES ( ${stm.getNextID("SYSTEM_file_store", "id")} , " + "$aFileID , '$fileName' , '$newDirName' ) "
@@ -141,11 +144,11 @@ class DataFile(aColumn: iColumn) : DataAbstract(aColumn) {
     }
 
     private fun delete(stm: CoreAdvancedStatement, rootDirName: String, aFileID: Int, aID: Int) {
-        val sbSQLDiff = if(aID == 0) "" else " AND id = $aID "
+        val sbSQLDiff = if (aID == 0) "" else " AND id = $aID "
         val sbSQL = " SELECT name , dir FROM SYSTEM_file_store WHERE file_id = $aFileID $sbSQLDiff "
 
         val rs = stm.executeQuery(sbSQL)
-        while(rs.next()) {
+        while (rs.next()) {
             val recName = rs.getString(1)
             val recDir = rs.getString(2)
             deleteFile(rootDirName, recDir, recName)
@@ -156,6 +159,6 @@ class DataFile(aColumn: iColumn) : DataAbstract(aColumn) {
 
     private fun deleteFile(rootDirName: String, dirName: String, fileName: String) {
         val delFile = File(rootDirName, "$FILE_BASE/$dirName/$fileName")
-        if(delFile.exists()) delFile.delete()
+        if (delFile.exists()) delFile.delete()
     }
 }

@@ -7,7 +7,6 @@ import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.data.DataString
 import foatto.core_server.app.server.data.iData
-import foatto.spring.CoreSpringApp
 import foatto.sql.CoreAdvancedResultSet
 import java.io.File
 import java.util.*
@@ -22,7 +21,7 @@ open class cLogText : cStandart() {
     //---------------------------------------------------------------------------------------------------------------
 
     //--- по умолчанию возвращаем просто соответствующую папку логов
-    protected open fun getLogDir(): File = File( CoreSpringApp.hmAliasLogDir[ aliasConfig.alias ] )
+    protected open fun getLogDir(): File = File(application.hmAliasLogDir[aliasConfig.alias]!!)
 
     //--- понятно что будет регулироваться правами доступа, но лишняя предосторожность не помешает
     override fun isAddEnabled() = false

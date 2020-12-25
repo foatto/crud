@@ -13,7 +13,6 @@ import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.data.*
-import foatto.spring.CoreSpringApp
 import foatto.sql.CoreAdvancedResultSet
 import foatto.sql.CoreAdvancedStatement
 import java.time.ZoneId
@@ -756,7 +755,7 @@ open class cStandart {
         val recordUserName = getRecordUserName(recordUserID)
 
         val hmColumnCell = mutableMapOf<iColumn, TableCell>()
-        for((column, data) in hmColumnData) hmColumnCell[column] = data.getTableCell(CoreSpringApp.rootDirName, stm, -1, -1)
+        for ((column, data) in hmColumnData) hmColumnCell[column] = data.getTableCell(application.rootDirName, stm, -1, -1)
 
         val sbFind = StringBuilder(recordUserName).append(' ')
 
@@ -822,7 +821,7 @@ open class cStandart {
         //--- обработка группировочных полей
         for(gi in 0 until model.alTableGroupColumn.size) {
             val curGroupColumn = model.alTableGroupColumn[gi]
-            val curValue = hmColumnData[curGroupColumn]!!.getTableCell(CoreSpringApp.rootDirName, stm, -1, -1).alCellData.first().text
+            val curValue = hmColumnData[curGroupColumn]!!.getTableCell(application.rootDirName, stm, -1, -1).alCellData.first().text
             if(curValue != arrCurGroupValue!![gi]) {
                 val row = tableRowStart + rowCount
                 var col = 0
@@ -982,7 +981,7 @@ open class cStandart {
                     if(!cellIsVisible) break
                 }
                 //--- передаем именно свежесозданный CoreTableCellInfo, т.к. у него будут меняться настройки стиля
-                val tci = if(cellIsVisible) hmColumnData[column]!!.getTableCell(CoreSpringApp.rootDirName, stm, row, col + colIndex)
+                val tci = if (cellIsVisible) hmColumnData[column]!!.getTableCell(application.rootDirName, stm, row, col + colIndex)
                 else TableCell(row, col + colIndex)
                 //--- стиль столбца ( возможно перекрытие из описания самого класса )
                 getTableColumnStyle(dataRowNo, isNewRow, hmColumnData, column, tci)
@@ -1388,7 +1387,7 @@ open class cStandart {
     protected open fun generateFormColumnData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {}
 
     protected fun getFormCell(column: iColumn, hmColumnData: Map<iColumn, iData>, isEditable: Boolean): FormCell {
-        val fci = hmColumnData[column]!!.getFormCell(CoreSpringApp.rootDirName, stm)
+        val fci = hmColumnData[column]!!.getFormCell(application.rootDirName, stm)
         fci.itEditable = isEditable && column.isEditable && column.tableName == model.tableName
         fci.formPinMode = column.formPinMode
         //--- эту чисто серверную часть нежелательно передавать в клиенто-ориентированный FormCellInfo
@@ -1523,7 +1522,7 @@ open class cStandart {
             if(column == model.columnID) continue             // свое id-поле пропускаем, т.к. не изменяется
             if(column.isVirtual) continue                     // виртуальным полям нельзя делать предзапись
             if(column.tableName == model.tableName)
-                hmColumnData[column]!!.preSave(CoreSpringApp.rootDirName, stm)
+                hmColumnData[column]!!.preSave(application.rootDirName, stm)
         }
         val postURL: String?
         val alertTag: String?
@@ -1754,7 +1753,7 @@ open class cStandart {
             if(column.isVirtual) continue  // предочистка виртуальных полей не нужна
             if(column.tableName == model.tableName) {
                 val data = hmColumnData[column]!!
-                data.preDelete(CoreSpringApp.rootDirName, stm)
+                data.preDelete(application.rootDirName, stm)
             }
         }
 

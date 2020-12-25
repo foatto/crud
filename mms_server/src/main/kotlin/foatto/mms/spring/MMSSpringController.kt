@@ -12,7 +12,6 @@ import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.sensor.config.*
 import foatto.mms.iMMSApplication
 import foatto.mms.spring.repositories.ObjectRepository
-import foatto.spring.CoreSpringApp
 import foatto.spring.CoreSpringController
 import foatto.sql.CoreAdvancedStatement
 import org.springframework.beans.factory.annotation.Autowired
@@ -64,7 +63,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         @PathVariable("fileName")
         fileName: String
     ) {
-        download(response, "${CoreSpringApp.rootDirName}/del_web/$fileName")
+        download(response, "${rootDirName}/del_web/$fileName")
     }
 
     @GetMapping(value = ["/del_web/fonts/{fileName:.+}"])
@@ -73,7 +72,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         @PathVariable("fileName")
         fileName: String
     ) {
-        download(response, "${CoreSpringApp.rootDirName}/del_web/fonts/$fileName")
+        download(response, "${rootDirName}/del_web/fonts/$fileName")
     }
 
     @GetMapping(value = ["/del_web/images/{fileName:.+}"])
@@ -82,7 +81,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         @PathVariable("fileName")
         fileName: String
     ) {
-        download(response, "${CoreSpringApp.rootDirName}/del_web/images/$fileName")
+        download(response, "${rootDirName}/del_web/images/$fileName")
     }
 
     @GetMapping(value = ["/del_web/js/{fileName:.+}"])
@@ -91,7 +90,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         @PathVariable("fileName")
         fileName: String
     ) {
-        download(response, "${CoreSpringApp.rootDirName}/del_web/js/$fileName")
+        download(response, "${rootDirName}/del_web/js/$fileName")
     }
 
     @GetMapping(value = ["/del_web/lib/{fileName:.+}"])
@@ -100,7 +99,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         @PathVariable("fileName")
         fileName: String
     ) {
-        download(response, "${CoreSpringApp.rootDirName}/del_web/lib/$fileName")
+        download(response, "${rootDirName}/del_web/lib/$fileName")
     }
 
     @GetMapping(value = ["/del_web/style/{fileName:.+}"])
@@ -109,7 +108,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         @PathVariable("fileName")
         fileName: String
     ) {
-        download(response, "${CoreSpringApp.rootDirName}/del_web/style/$fileName")
+        download(response, "${rootDirName}/del_web/style/$fileName")
     }
 
 //-------------------------------------------------------------------------------------------------
@@ -118,7 +117,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
 
     @GetMapping(value = ["/"])
     fun downloadRoot(response: HttpServletResponse) {
-        download(response, "${CoreSpringApp.rootDirName}/web/index.html")
+        download(response, "${rootDirName}/web/index.html")
     }
 
     @GetMapping(value = ["/files/{dirName:.+}/{fileName:.+}"])
@@ -129,7 +128,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         @PathVariable("fileName")
         fileName: String
     ) {
-        download(response, "${CoreSpringApp.rootDirName}/files/$dirName/$fileName")
+        download(response, "${rootDirName}/files/$dirName/$fileName")
     }
 
     @GetMapping(value = ["/map/{fileName:.+}"])
@@ -138,7 +137,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         @PathVariable("fileName")
         fileName: String
     ) {
-        download(response, "${CoreSpringApp.rootDirName}/map/$fileName")
+        download(response, "${rootDirName}/map/$fileName")
     }
 
     @GetMapping(value = ["/reports/{fileName:.+}"])
@@ -147,7 +146,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         @PathVariable("fileName")
         fileName: String
     ) {
-        download(response, "${CoreSpringApp.rootDirName}/reports/$fileName")
+        download(response, "${rootDirName}/reports/$fileName")
     }
 
     @GetMapping(value = ["/web/{fileName:.+}"])
@@ -156,7 +155,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         @PathVariable("fileName")
         fileName: String
     ) {
-        download(response, "${CoreSpringApp.rootDirName}/web/$fileName")
+        download(response, "${rootDirName}/web/$fileName")
     }
 
     @GetMapping(value = ["/web/images/{fileName:.+}"])
@@ -165,7 +164,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         @PathVariable("fileName")
         fileName: String
     ) {
-        download(response, "${CoreSpringApp.rootDirName}/web/images/$fileName")
+        download(response, "${rootDirName}/web/images/$fileName")
     }
 
     @GetMapping(value = ["/web/js/{fileName:.+}"])
@@ -174,7 +173,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         @PathVariable("fileName")
         fileName: String
     ) {
-        download(response, "${CoreSpringApp.rootDirName}/web/js/$fileName")
+        download(response, "${rootDirName}/web/js/$fileName")
     }
 
     @GetMapping(value = ["/web/lib/{fileName:.+}"])
@@ -183,7 +182,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         @PathVariable("fileName")
         fileName: String
     ) {
-        download(response, "${CoreSpringApp.rootDirName}/web/lib/$fileName")
+        download(response, "${rootDirName}/web/lib/$fileName")
     }
 
 //-------------------------------------------------------------------------------------------------

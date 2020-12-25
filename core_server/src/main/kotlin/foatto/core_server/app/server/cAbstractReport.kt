@@ -5,7 +5,6 @@ import foatto.core.app.iCoreAppContainer
 import foatto.core.util.DateTime_DMYHMS
 import foatto.core.util.getFreeFile
 import foatto.core.util.getRandomInt
-import foatto.spring.CoreSpringApp
 import jxl.Workbook
 import jxl.format.*
 import jxl.write.WritableCellFormat
@@ -173,12 +172,12 @@ abstract class cAbstractReport : cAbstractForm() {
 
     open fun getReport(): String {
 
-        val newFileName = getFreeFile( "${CoreSpringApp.rootDirName}/$REPORT_FILES_BASE", arrayOf( "xls" ) )
-        val fullExcelName = "${CoreSpringApp.rootDirName}/$REPORT_FILES_BASE/$newFileName.xls"
+        val newFileName = getFreeFile("${application.rootDirName}/$REPORT_FILES_BASE", arrayOf("xls"))
+        val fullExcelName = "${application.rootDirName}/$REPORT_FILES_BASE/$newFileName.xls"
 
-        val fileExcel = File( fullExcelName )
-        val workbook = Workbook.createWorkbook( fileExcel )
-        val sheet = workbook.createSheet( " ", 0 )
+        val fileExcel = File(fullExcelName)
+        val workbook = Workbook.createWorkbook(fileExcel)
+        val sheet = workbook.createSheet(" ", 0)
 
         setPrintOptions()
         val ss = sheet.settings
@@ -204,7 +203,7 @@ abstract class cAbstractReport : cAbstractForm() {
         postReport( sheet )
 
         //--- если есть картинка-водяной знак, тогда имеет смысл защищать отчет
-        val printKeyImage = File( "${CoreSpringApp.rootDirName}/logo.png" )
+        val printKeyImage = File("${application.rootDirName}/logo.png")
         if( printKeyW > 0 && printKeyH > 0 && printKeyImage.exists() ) {
             ss.password = getRandomInt().toString()
             ss.isProtected = true

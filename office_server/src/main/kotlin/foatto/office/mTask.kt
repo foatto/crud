@@ -72,7 +72,7 @@ class mTask : mAbstract() {
         columnTaskSubj = ColumnString(tableName, "subj", "Тема", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
         columnTaskSubj.formPinMode = FormPinMode.OFF
 
-        val columnFile = ColumnFile(tableName, "file_id", "Файлы")
+        val columnFile = ColumnFile(application, tableName, "file_id", "Файлы")
         columnFile.formPinMode = FormPinMode.OFF
 
         //------------------------------------------------------------------------------------

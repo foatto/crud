@@ -29,10 +29,6 @@ Core web-client module.
 Uses wrapper for Vue.js for tables and forms, SVG for graphics and maps.
 Map subsystem based on a self-written engine. The engine supports crud-operations for vector elements on a map. 
 
-## fs_server
-
-Closed application project, will be removed soon.
-
 ## mms_server + mms_web
 
 Application module of transport and fuel consumption control system. 

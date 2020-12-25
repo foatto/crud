@@ -53,7 +53,7 @@ class mTaskThread : mAbstract() {
         columnTaskThreadMessage = ColumnString(tableName, "message", "Обсуждение", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
         columnTaskThreadMessage.formPinMode = FormPinMode.OFF
 
-        val columnFile = ColumnFile(tableName, "file_id", "Файлы")
+        val columnFile = ColumnFile(application, tableName, "file_id", "Файлы")
         columnFile.formPinMode = FormPinMode.OFF
 
         //----------------------------------------------------------------------------------------

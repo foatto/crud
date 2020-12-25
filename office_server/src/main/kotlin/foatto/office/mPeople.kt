@@ -184,7 +184,7 @@ class mPeople : mAbstract() {
         val columnPeopleContactInfo = ColumnString(tableName, "contact_info", "Доп. информация по контакту", 10, STRING_COLUMN_WIDTH, textFieldMaxSize)
         val columnPeopleBirthDate = ColumnDate3Int(tableName, "birth_ye", "birth_mo", "birth_da", "День рождения")
 
-        val columnFile = ColumnFile(tableName, "file_id", "Файлы")
+        val columnFile = ColumnFile(application, tableName, "file_id", "Файлы")
 
         //---------------------------------------------------------------------------------------------------------------
 

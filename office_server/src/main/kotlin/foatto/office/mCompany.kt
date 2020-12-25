@@ -43,7 +43,7 @@ class mCompany : mAbstract() {
         val columnCompanyAddress = ColumnString(tableName, "address", "Адрес компании", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
         val columnCompanyContactInfo = ColumnString(tableName, "contact_info", "Доп. информация по компании", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
         val columnCompanyBirthDate = ColumnDate3Int(tableName, "birth_ye", "birth_mo", "birth_da", "Дата образования компании")
-        val columnFile = ColumnFile(tableName, "file_id", "Файлы")
+        val columnFile = ColumnFile(application, tableName, "file_id", "Файлы")
 
         //----------------------------------------------------------------------------------------
 

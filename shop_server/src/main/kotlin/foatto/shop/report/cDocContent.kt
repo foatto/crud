@@ -21,7 +21,6 @@ import foatto.shop.PriceData
 import foatto.shop.iShopApplication
 import foatto.shop.mPrice
 import foatto.shop.mWarehouse
-import foatto.shop.spring.ShopSpringApp
 import foatto.shop.toJson
 import foatto.sql.CoreAdvancedStatement
 import jxl.CellView
@@ -38,6 +37,8 @@ import java.util.concurrent.ConcurrentHashMap
 
 //@kotlinx.serialization.ImplicitReflectionSerializer
 class cDocContent : cAbstractReport() {
+
+    private val arrDocTitle = arrayOf("ИП Карипова Гульнара Дамировна", "ИНН 165007039790  ОГРН 318169000001873")
 
     //--- заранее определяем формат отчёта
     private var isWideReport = false
@@ -124,10 +125,13 @@ class cDocContent : cAbstractReport() {
 
         var offsY = 0
 
-        if(reportDocument != 0 && reportDocumentType == DocumentTypeConfig.TYPE_OUT) {
-            for(docTitle in ShopSpringApp.arrDocTitle)
+        if (reportDocument != 0 && reportDocumentType == DocumentTypeConfig.TYPE_OUT) {
+            for (docTitle in arrDocTitle) {
                 sheet.addCell(Label(1, offsY++, docTitle, wcfTitleValue))
-        } else sheet.addCell(Label(1, offsY++, aliasConfig.descr, wcfTitleC))
+            }
+        } else {
+            sheet.addCell(Label(1, offsY++, aliasConfig.descr, wcfTitleC))
+        }
         offsY++
 
         //--- заголовок отчёта зависит от указанных параметров
@@ -364,11 +368,11 @@ class cDocContent : cAbstractReport() {
                 if(isRowUseDestWarehouse) sb.append("На склад / магазин: ").append(hmWarehouseName[rs.getInt(6)]).append('\n')
                 //--- прочие реквизиты накладной
                 val docNo = rs.getString(7)
-                if(!docNo.isEmpty()) sb.append("Номер накладной: ").append(docNo).append('\n')
+                if (docNo.isNotEmpty()) sb.append("Номер накладной: ").append(docNo).append('\n')
                 val clientName = rs.getString(8)
-                if(!clientName.isEmpty()) sb.append("Покупатель: ").append(clientName).append('\n')
+                if (clientName.isNotEmpty()) sb.append("Покупатель: ").append(clientName).append('\n')
                 val docDescr = rs.getString(9)
-                if(!docDescr.isEmpty()) sb.append("Примечание: ").append(docDescr).append('\n')
+                if (docDescr.isNotEmpty()) sb.append("Примечание: ").append(docDescr).append('\n')
 
                 sheet.addCell(Label(offsX++, offsY, sb.toString(), wcfCellC))
             }

@@ -7,6 +7,7 @@ import foatto.core.link.TableCellForeColorType
 import foatto.core.util.encodePassword
 import foatto.core.util.getCurrentTimeInt
 import foatto.core_server.app.AppParameter
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.OrgType
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.cAbstractHierarchy
@@ -16,7 +17,6 @@ import foatto.core_server.app.server.data.DataComboBox
 import foatto.core_server.app.server.data.DataDate3Int
 import foatto.core_server.app.server.data.DataString
 import foatto.core_server.app.server.data.iData
-import foatto.spring.CoreSpringApp
 import java.util.*
 
 class cUser : cAbstractHierarchy() {
@@ -70,7 +70,7 @@ class cUser : cAbstractHierarchy() {
         var postURL = super.postAdd(id, hmColumnData, hmOut)
 
         //--- обновим конфигурацию текущего пользователя (более всего необходимо обновление списка пользователей id=name)
-        hmOut[CoreSpringApp.USER_CONFIG] = UserConfig.getConfig( stm, userConfig.userID )
+        hmOut[iApplication.USER_CONFIG] = UserConfig.getConfig(stm, userConfig.userID)
 
         //--- создать запись индивидуального сдвига часового пояса (позор, не могу определить текущий offset в jaba-8-time, пока сделаю через GregorianCalendar)
         val gc = GregorianCalendar()
@@ -93,7 +93,7 @@ class cUser : cAbstractHierarchy() {
         val postURL = super.postEdit(action, id, hmColumnData, hmOut)
 
         //--- обновим конфигурацию текущего пользователя (более всего необходимо обновление списка пользователей id=name
-        hmOut[CoreSpringApp.USER_CONFIG] = UserConfig.getConfig(stm, userConfig.userID)
+        hmOut[iApplication.USER_CONFIG] = UserConfig.getConfig(stm, userConfig.userID)
 
         return postURL
     }

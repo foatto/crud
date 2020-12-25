@@ -28,6 +28,7 @@ import foatto.sql.AdvancedConnection
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedStatement
 import foatto.sql.SQLDialect
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.multipart.MultipartFile
 import java.io.File
 import java.io.FileInputStream
@@ -42,6 +43,17 @@ import javax.servlet.http.HttpServletResponse
 //--- добавлять у каждого наследника
 //@RestController
 abstract class CoreSpringController : iApplication {
+
+    @Value("\${root_dir}")
+    override val rootDirName: String = ""
+
+    @Value("\${temp_dir}")
+    override val tempDirName: String = ""
+
+    override val hmAliasLogDir: MutableMap<String, String>
+        get() = CoreSpringApp.hmAliasLogDir
+
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     protected fun download(response: HttpServletResponse, path: String) {
         val file = File(path)
@@ -94,8 +106,8 @@ abstract class CoreSpringController : iApplication {
                 appResponse = AppResponse( logonResult )
 
                 if( logonResult == ResponseCode.LOGON_SUCCESS || logonResult == ResponseCode.LOGON_SUCCESS_BUT_OLD ) {
-                    val hmAliasConfig = getAliasConfig( stm, chmSession, hmOut )
-                    val userConfig = chmSession[ CoreSpringApp.USER_CONFIG ] as UserConfig
+                    val hmAliasConfig = getAliasConfig(stm, chmSession, hmOut)
+                    val userConfig = chmSession[iApplication.USER_CONFIG] as UserConfig
 
                     //--- временно используем List вместо Map, т.к. в Kotlin/JS нет возможности десериализовать Map (а List десериализуется в Array)
                     appResponse.hmUserProperty = userConfig.userProperty.toList()
@@ -110,7 +122,7 @@ abstract class CoreSpringController : iApplication {
                 }
             }
             else -> {
-                var userConfig: UserConfig? = chmSession[ CoreSpringApp.USER_CONFIG ] as? UserConfig
+                var userConfig: UserConfig? = chmSession[iApplication.USER_CONFIG] as? UserConfig
                 when( appRequest.action ) {
                     AppAction.GRAPHIC -> {
 //                        if( userLogMode == SYSTEM_LOG_ALL ) logQuery( hmParam )
@@ -179,8 +191,8 @@ abstract class CoreSpringController : iApplication {
                         //--- то подгрузим хотя бы гостевой логин
                         if( !aliasConfig.isAuthorization && userConfig == null ) {
                             //--- при отсутствии оного загрузим гостевой логин
-                            userConfig = UserConfig.getConfig( stm, UserConfig.USER_GUEST )
-                            hmOut[ CoreSpringApp.USER_CONFIG ] = userConfig // уйдет в сессию
+                            userConfig = UserConfig.getConfig(stm, UserConfig.USER_GUEST)
+                            hmOut[iApplication.USER_CONFIG] = userConfig // уйдет в сессию
                         }
                         //--- если класс требует обязательную аутентификацию,
                         //--- а юзер не залогинен или имеет гостевой логин, то запросим авторизацию
@@ -291,8 +303,8 @@ abstract class CoreSpringController : iApplication {
         //File fileForDeleteAfterCommit = null;
 
 //                        if( userLogMode == SYSTEM_LOG_ALL ) logQuery( hmParam )
-        val userConfig: UserConfig = chmSession[ CoreSpringApp.USER_CONFIG ] as? UserConfig ?: throw BusinessException( CoreSpringApp.BUSINESS_EXCEPTION_MESSAGE )
-        val serverDocumentControlClassName = GraphicDocumentConfig.hmConfig[ graphicActionRequest.documentTypeName ]!!.serverControlClassName
+    val userConfig: UserConfig = chmSession[iApplication.USER_CONFIG] as? UserConfig ?: throw BusinessException("Не найден пользователь в сессии!")
+    val serverDocumentControlClassName = GraphicDocumentConfig.hmConfig[graphicActionRequest.documentTypeName]!!.serverControlClassName
         val doc = Class.forName( serverDocumentControlClassName ).getConstructor().newInstance() as sdcAbstractGraphic
         doc.init( this, stm, chmSession, userConfig, graphicActionRequest.documentTypeName )
 
@@ -353,8 +365,8 @@ abstract class CoreSpringController : iApplication {
         //File fileForDeleteAfterCommit = null;
 
 //                        if( userLogMode == SYSTEM_LOG_ALL ) logQuery( hmParam )
-        val userConfig: UserConfig = chmSession[ CoreSpringApp.USER_CONFIG ] as? UserConfig ?: throw BusinessException( CoreSpringApp.BUSINESS_EXCEPTION_MESSAGE )
-        val docTypeName = xyActionRequest.documentTypeName
+    val userConfig: UserConfig = chmSession[iApplication.USER_CONFIG] as? UserConfig ?: throw BusinessException("Не найден пользователь в сессии!")
+    val docTypeName = xyActionRequest.documentTypeName
         val xyDocConfig = CoreSpringApp.hmXyDocumentConfig[docTypeName]!!
 
         val doc = Class.forName( xyDocConfig.serverClassName ).getConstructor().newInstance() as sdcXyAbstract
@@ -450,8 +462,8 @@ abstract class CoreSpringController : iApplication {
     ): GetFileResponse {
         val getFileBegTime = getCurrentTimeInt()
 
-        val file = File( getFileRequest.altServerDirName ?: CoreSpringApp.rootDirName, getFileRequest.fullFileName )
-        val getFileResponse = GetFileResponse( if( file.exists() ) FileInputStream( file ).readAllBytes() else null )
+    val file = File(getFileRequest.altServerDirName ?: rootDirName, getFileRequest.fullFileName)
+    val getFileResponse = GetFileResponse(if (file.exists()) FileInputStream(file).readAllBytes() else null)
         //--- если запрос длился/обрабатывался дольше MAX_TIME_PER_REQUEST, покажем его
         if( getCurrentTimeInt() - getFileBegTime > CoreSpringApp.MAX_TIME_PER_REQUEST ) {
             AdvancedLogger.error( "--- Long Get File Query = " + ( getCurrentTimeInt() - getFileBegTime ) )
@@ -474,8 +486,8 @@ abstract class CoreSpringController : iApplication {
 
         //--- для правильного срабатывания mkdirs надо выделить путь из общего имени файла
         val ( dirName, fileName ) = separateUnixPath( uploadFileName )
-        val dir = File( CoreSpringApp.rootDirName, dirName )
-        val file = File( dir, fileName )
+    val dir = File(rootDirName, dirName)
+    val file = File(dir, fileName)
 
         dir.mkdirs()
         val fos = FileOutputStream( file )
@@ -647,8 +659,8 @@ abstract class CoreSpringController : iApplication {
         val upValue = saveUserPropertyRequest.value
 
         //--- загрузка/создании сессии
-        val chmSession = CoreSpringApp.chmSessionStore.getOrPut( saveUserPropertyRequest.sessionID ) { ConcurrentHashMap() }
-        val userConfig: UserConfig? = chmSession[ CoreSpringApp.USER_CONFIG ] as? UserConfig
+    val chmSession = CoreSpringApp.chmSessionStore.getOrPut(saveUserPropertyRequest.sessionID) { ConcurrentHashMap() }
+    val userConfig: UserConfig? = chmSession[iApplication.USER_CONFIG] as? UserConfig
 
         if( userConfig != null )
             userConfig.saveUserProperty( stm, upName, upValue )
@@ -690,8 +702,8 @@ abstract class CoreSpringController : iApplication {
         val toDay = ZonedDateTime.now()
 
         //--- загрузка/создании сессии
-        val chmSession = CoreSpringApp.chmSessionStore.getOrPut( changePasswordRequest.sessionID ) { ConcurrentHashMap() }
-        val userConfig: UserConfig? = chmSession[ CoreSpringApp.USER_CONFIG ] as? UserConfig
+    val chmSession = CoreSpringApp.chmSessionStore.getOrPut(changePasswordRequest.sessionID) { ConcurrentHashMap() }
+    val userConfig: UserConfig? = chmSession[iApplication.USER_CONFIG] as? UserConfig
 
         if( userConfig != null )
             stm.executeUpdate(
@@ -746,7 +758,7 @@ abstract class CoreSpringController : iApplication {
     ): FormFileUploadResponse {
 
         arrFormFileId.forEachIndexed { i, id ->
-            arrFormFileBlob[ i ].transferTo( File( CoreSpringApp.tempDirName, id ) )
+            arrFormFileBlob[i].transferTo(File(tempDirName, id))
         }
 
         return FormFileUploadResponse()
@@ -797,7 +809,7 @@ abstract class CoreSpringController : iApplication {
 
         //--- исключение из правил: сразу же записываем в сессию информацию по успешно залогиненному пользователю,
         //--- т.к. эта инфа понадобится в той же команде (для выдачи меню и т.п.)
-        chmSession[ CoreSpringApp.USER_CONFIG ] = UserConfig.getConfig( stm, userID )
+        chmSession[iApplication.USER_CONFIG] = UserConfig.getConfig(stm, userID)
 
         //--- проверяем просроченность пароля
         return if( toDay.isAfter( pwdDay ) ) ResponseCode.LOGON_SUCCESS_BUT_OLD else ResponseCode.LOGON_SUCCESS

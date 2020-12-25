@@ -10,7 +10,6 @@ import foatto.core.app.graphic.GraphicLineData
 import foatto.core.util.loadTextFile
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.graphic.server.GraphicStartData
-import foatto.spring.CoreSpringApp
 import java.io.File
 import java.time.ZonedDateTime
 import java.util.*
@@ -38,7 +37,7 @@ class sdcLogGraphic : sdcAbstractGraphic() {
         val tmMemoryUsed = TreeMap<Int, Int>()
         val tmMemoryTotal = TreeMap<Int, Int>()
 
-        val dirLog = File( CoreSpringApp.hmAliasLogDir[ sd.sbTitle.toString() ] )
+        val dirLog = File(application.hmAliasLogDir[sd.sbTitle.toString()]!!)
         val alLogWord = ArrayList<String>()
 
         val arrFile = dirLog.listFiles()
