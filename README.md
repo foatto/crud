@@ -31,10 +31,9 @@ Map subsystem based on a self-written engine. The engine supports crud-operation
 
 ## mms_server + mms_web
 
-Application module of transport and fuel consumption control system. 
+Application module of transport, drilling equipment, electic energo generating and fuel consumption control system.
 
-To receive GPS & telematic data from devices, it uses a self-written engine based on NIO.
-In the future, it is planned to rewrite on Netty.
+To receive GPS & telematic data from devices, it uses a self-written engine based on NIO. In the future, it is planned to rewrite on Netty.
 
 In production and support now.
 
