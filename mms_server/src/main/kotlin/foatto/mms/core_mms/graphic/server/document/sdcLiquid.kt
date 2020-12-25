@@ -70,20 +70,20 @@ class sdcLiquid : sdcAnalog() {
             val hmSCLF = oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_FLOW_CALC].orEmpty()
             val scafInGroup = hmSCLF.values.map { it as SensorConfigAnalogue }.firstOrNull { it.group == sca.group }
 
-            //--- обработка счётчиков массового/объёмного расхода (счётчиков топлива)
-            val hmSVF = oc.hmSensorConfig[SensorConfig.SENSOR_VOLUME_FLOW].orEmpty()
-            val alScu = hmSVF.values.filter { it.group == sca.group }.map { it as SensorConfigCounter }.toList()
+            //--- обработка счётчиков топлива
+            val hmSCLU = oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_USING].orEmpty()
+            val alSclu = hmSCLU.values.filter { it.group == sca.group }.map { it as SensorConfigCounter }.toList()
 
             //--- если есть расходомер и он только один (находим датчик скорости расхода) и считаем по нему
-            if(scafInGroup != null && alScu.size == 1) {
+            if (scafInGroup != null && alSclu.size == 1) {
                 isLiquidFlow = true
-                calcLiquidFlowOverLiquidUsing(alRawTime, alRawData, alAxisYData, alScu.first(), scafInGroup, begTime, endTime, xScale, yScale)
+                calcLiquidFlowOverLiquidUsing(alRawTime, alRawData, alAxisYData, alSclu.first(), scafInGroup, begTime, endTime, xScale, yScale)
             }
             //--- расходомеров не нашлось (или их >1), считаем через изменение уровня топлива
             else {
                 //--- есть ли ( виртуальный ) датчик скорости расхода жидкости на том же порту, что и текущий уровнемер
                 val scafInPort = hmSCLF[sca.portNum] as? SensorConfigAnalogue
-                if(scafInPort != null && aLine.alGLD.isNotEmpty()) {
+                if (scafInPort != null && aLine.alGLD.isNotEmpty()) {
                     isLiquidFlow = true
                     calcLiquidFlowOverLiquidLevel(alAxisYData, sca as SensorConfigLiquidLevel, scafInPort, begTime, endTime, xScale, yScale, aLine.alGLD)
                 }

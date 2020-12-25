@@ -61,6 +61,8 @@ class cOverSensor : cMMSReport() {
             "mms_report_over_voltage" -> sensorType = SensorConfig.SENSOR_VOLTAGE
             "mms_report_over_power" -> sensorType = SensorConfig.SENSOR_POWER
             "mms_report_over_density" -> sensorType = SensorConfig.SENSOR_DENSITY
+            "mms_report_over_mass_flow" -> sensorType = SensorConfig.SENSOR_MASS_FLOW
+            "mms_report_over_volume_flow" -> sensorType = SensorConfig.SENSOR_VOLUME_FLOW
             "mms_report_over_energo_voltage" -> sensorType = SensorConfig.SENSOR_ENERGO_VOLTAGE
             "mms_report_over_energo_current" -> sensorType = SensorConfig.SENSOR_ENERGO_CURRENT
             "mms_report_over_energo_power_koef" -> sensorType = SensorConfig.SENSOR_ENERGO_POWER_KOEF

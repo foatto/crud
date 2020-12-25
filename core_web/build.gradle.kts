@@ -17,7 +17,6 @@ plugins {
 version = coreWebVersion
 
 dependencies {
-//    api(kotlin("stdlib-js"))
     api(project(":core"))
 }
 

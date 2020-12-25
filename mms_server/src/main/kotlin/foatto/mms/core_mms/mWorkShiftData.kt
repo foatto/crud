@@ -36,7 +36,7 @@ class mWorkShiftData : mAbstract() {
 
         val columnShift = ColumnInt(tableName, "shift_id", shiftID)
 
-        columnDataType = ColumnInt(tableName, "data_type", if (isWorkData) SensorConfig.SENSOR_WORK else if (isLiquidData) SensorConfig.SENSOR_VOLUME_FLOW else 0)
+        columnDataType = ColumnInt(tableName, "data_type", if (isWorkData) SensorConfig.SENSOR_WORK else if (isLiquidData) SensorConfig.SENSOR_LIQUID_USING else 0)
 
         val columnName = ColumnString(tableName, "name", "", STRING_COLUMN_WIDTH)
 

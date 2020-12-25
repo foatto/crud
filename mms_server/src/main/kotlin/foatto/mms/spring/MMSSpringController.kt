@@ -404,6 +404,8 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
 
         val alMenuOtherReport = mutableListOf<MenuData>()
 
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherReport, "mms_report_over_mass_flow", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherReport, "mms_report_over_volume_flow", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherReport, "mms_report_over_weight", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherReport, "mms_report_over_turn", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherReport, "mms_report_over_pressure", false)
@@ -436,6 +438,8 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
 
         addSeparator(alMenuGraphic)
 
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "mms_graphic_mass_flow", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "mms_graphic_volume_flow", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "mms_graphic_weight", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "mms_graphic_turn", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "mms_graphic_pressure", false)
@@ -637,7 +641,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
                         liquidNorm = sensorEntity.liquidNorm,
                     )
                 }
-                SensorConfig.SENSOR_MASS_FLOW, SensorConfig.SENSOR_VOLUME_FLOW -> {
+                SensorConfig.SENSOR_LIQUID_USING -> {
                     hmSC[portNum] = SensorConfigCounter(
                         aId = sensorEntity.id,
                         aName = sensorEntity.name,
@@ -689,7 +693,8 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
                 SensorConfig.SENSOR_LIQUID_FLOW_CALC, SensorConfig.SENSOR_WEIGHT,
                 SensorConfig.SENSOR_TURN, SensorConfig.SENSOR_PRESSURE,
                 SensorConfig.SENSOR_TEMPERATURE, SensorConfig.SENSOR_VOLTAGE,
-                SensorConfig.SENSOR_POWER, SensorConfig.SENSOR_DENSITY -> {
+                SensorConfig.SENSOR_POWER, SensorConfig.SENSOR_DENSITY,
+                SensorConfig.SENSOR_MASS_FLOW, SensorConfig.SENSOR_VOLUME_FLOW -> {
                     hmSC[portNum] = SensorConfigAnalogue(
                         aId = sensorEntity.id,
                         aName = sensorEntity.name,

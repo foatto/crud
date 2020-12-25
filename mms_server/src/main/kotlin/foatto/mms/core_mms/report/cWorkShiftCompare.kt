@@ -589,7 +589,7 @@ class cWorkShiftCompare : cMMSReport() {
             while(rs.next()) {
                 when (rs.getInt(1)) {
                     SensorConfig.SENSOR_WORK -> wsd.tmWorkHour[rs.getString(2)] = rs.getDouble(3)
-                    SensorConfig.SENSOR_VOLUME_FLOW -> wsd.tmLiquidUsing[rs.getString(2)] = rs.getDouble(3)
+                    SensorConfig.SENSOR_LIQUID_USING -> wsd.tmLiquidUsing[rs.getString(2)] = rs.getDouble(3)
                 }
             }
             rs.close()

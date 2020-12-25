@@ -82,17 +82,9 @@ class mZone : mAbstract() {
         alChildData.add(ChildData("mms_show_zone", columnID!!, AppAction.FORM, true))
         alChildData.add(ChildData("mms_user_zone", columnID!!))
         alChildData.add(ChildData("mms_object_zone", columnID!!))
-        //alChildData.add( new ChildData( "mms_route_zone" , columnID ) );
-        alChildData.add(ChildData("Отчёты...", "mms_report_liquid_inc", columnID!!, AppAction.FORM, true))
-        alChildData.add(ChildData("Отчёты...", "mms_report_liquid_dec", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Отчёты...", "mms_report_over_speed", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Отчёты...", "mms_report_parking", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Отчёты...", "mms_report_object_zone", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Отчёты...", "mms_report_over_weight", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Отчёты...", "mms_report_over_turn", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Отчёты...", "mms_report_over_pressure", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Отчёты...", "mms_report_over_temperature", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Отчёты...", "mms_report_over_voltage", columnID!!, AppAction.FORM))
+        MMSFunction.fillChildDataForLiquidIncDecReports(columnID!!, alChildData, withIncWaybillReport = false, newGroup = true)
+        MMSFunction.fillChildDataForGeoReports(columnID!!, alChildData, withMovingDetailReport = false)
+        MMSFunction.fillChildDataForOverReports(columnID!!, alChildData)
 
         //----------------------------------------------------------------------------------------
 

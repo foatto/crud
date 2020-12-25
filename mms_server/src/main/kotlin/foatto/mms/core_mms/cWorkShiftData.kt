@@ -11,7 +11,7 @@ class cWorkShiftData : cStandart() {
 
         return super.addSQLWhere(hsTableRenameList) +
             " AND ${renameTableName(hsTableRenameList, model.tableName)}.${(model as mWorkShiftData).columnDataType.getFieldName()} = " +
-            "${if (isWorkData) SensorConfig.SENSOR_WORK else if (isLiquidData) SensorConfig.SENSOR_VOLUME_FLOW else 0} "
+            "${if (isWorkData) SensorConfig.SENSOR_WORK else if (isLiquidData) SensorConfig.SENSOR_LIQUID_USING else 0} "
     }
 
 }

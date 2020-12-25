@@ -59,6 +59,8 @@ class MMSSpringApp : CoreSpringApp() {
                 "mms_graphic_voltage" to SensorConfig.SENSOR_VOLTAGE,
                 "mms_graphic_power" to SensorConfig.SENSOR_POWER,
                 "mms_graphic_density" to SensorConfig.SENSOR_DENSITY,
+                "mms_graphic_mass_flow" to SensorConfig.SENSOR_MASS_FLOW,
+                "mms_graphic_volume_flow" to SensorConfig.SENSOR_VOLUME_FLOW,
 
                 "mms_graphic_energo_voltage" to SensorConfig.SENSOR_ENERGO_VOLTAGE,
                 "mms_graphic_energo_current" to SensorConfig.SENSOR_ENERGO_CURRENT,

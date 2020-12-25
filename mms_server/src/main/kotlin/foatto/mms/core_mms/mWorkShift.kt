@@ -153,28 +153,20 @@ class mWorkShift : mAbstract() {
 
         alChildData.add(ChildData("mms_work_shift_work", columnID!!, true))
         alChildData.add(ChildData("mms_work_shift_liquid", columnID!!))
-        //--- запустится один из них
-        alChildData.add(ChildData("Отчёты...", "mms_report_work_shift", columnID!!, AppAction.FORM, true))
-        alChildData.add(ChildData("Отчёты...", "mms_report_waybill", columnID!!, AppAction.FORM, true))
-        alChildData.add(ChildData("Отчёты...", "mms_report_waybill_compare", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Отчёты...", "mms_report_liquid_inc", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Отчёты...", "mms_report_liquid_dec", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Отчёты...", "mms_report_work_detail", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Отчёты...", "mms_report_over_speed", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Отчёты...", "mms_report_parking", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Отчёты...", "mms_report_object_zone", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Отчёты...", "mms_report_moving_detail", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Отчёты...", "mms_report_over_weight", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Отчёты...", "mms_report_over_turn", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Отчёты...", "mms_report_over_pressure", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Отчёты...", "mms_report_over_temperature", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Отчёты...", "mms_report_over_voltage", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Отчёты...", "mms_report_data_out", columnID!!, AppAction.FORM))
+        //--- запустится только один из этих двух
+        alChildData.add(ChildData("Отчёты", "mms_report_work_shift", columnID!!, AppAction.FORM, true))
+        alChildData.add(ChildData("Отчёты", "mms_report_waybill", columnID!!, AppAction.FORM, true))
+        alChildData.add(ChildData("Отчёты", "mms_report_waybill_compare", columnID!!, AppAction.FORM))
+        MMSFunction.fillChildDataForLiquidIncDecReports(columnID!!, alChildData, withIncWaybillReport = false, newGroup = false)
+        alChildData.add(ChildData("Отчёты", "mms_report_work_detail", columnID!!, AppAction.FORM))
+        MMSFunction.fillChildDataForGeoReports(columnID!!, alChildData, withMovingDetailReport = true)
+        MMSFunction.fillChildDataForOverReports(columnID!!, alChildData)
+        alChildData.add(ChildData("Отчёты", "mms_report_data_out", columnID!!, AppAction.FORM))
 
         MMSFunction.fillAllChildDataForGraphics(columnID!!, alChildData)
 
         alChildData.add(ChildData("mms_show_object", columnID!!, AppAction.FORM, true))
-        if(isWaybill)
+        if (isWaybill)
             alChildData.add(ChildData("mms_show_trace", columnID!!, AppAction.FORM))
 
         //----------------------------------------------------------------------------------------

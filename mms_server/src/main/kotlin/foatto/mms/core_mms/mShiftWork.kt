@@ -206,9 +206,9 @@ class mShiftWork : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData("Отчёты...", "mms_report_work_shift", columnID!!, AppAction.FORM, true))
-        alChildData.add(ChildData("Отчёты...", "mms_report_work_detail", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Отчёты...", "mms_report_data_out", columnID!!, AppAction.FORM))
+        alChildData.add(ChildData("Отчёты", "mms_report_work_shift", columnID!!, AppAction.FORM, true))
+        alChildData.add(ChildData("Отчёты", "mms_report_work_detail", columnID!!, AppAction.FORM))
+        alChildData.add(ChildData("Отчёты", "mms_report_data_out", columnID!!, AppAction.FORM))
 
         MMSFunction.fillAllChildDataForGraphics(columnID!!, alChildData)
 

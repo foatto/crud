@@ -30,22 +30,28 @@ abstract class SensorConfig(
         const val SENSOR_WORK = 1           // мото * час
 
         //--- контрольные величины - графики
-        const val SENSOR_LIQUID_FLOW_CALC = 3   // литр * час - расчётный, по изменению уровня
-        const val SENSOR_LIQUID_LEVEL = 4   // литр
-        const val SENSOR_WEIGHT = 5         // кг
-        const val SENSOR_TURN = 6           // об / мин
-        const val SENSOR_PRESSURE = 7       // кПа или атм?
-        const val SENSOR_TEMPERATURE = 8    // С
-        const val SENSOR_VOLTAGE = 9        // В
-        const val SENSOR_POWER = 10         // Вт или л.с.?
+        const val SENSOR_LIQUID_FLOW_CALC = 3
+        const val SENSOR_LIQUID_LEVEL = 4
+        const val SENSOR_WEIGHT = 5
+        const val SENSOR_TURN = 6
+        const val SENSOR_PRESSURE = 7
+        const val SENSOR_TEMPERATURE = 8
+        const val SENSOR_VOLTAGE = 9
+        const val SENSOR_POWER = 10
 
         //--- датчики, подключенные через массомер ЭМИС
 
+        //--- контрольные величины - графики
         const val SENSOR_DENSITY = 11
         const val SENSOR_MASS_FLOW = 12
         const val SENSOR_VOLUME_FLOW = 13
+
+        //--- учётные величины - отчёты
         const val SENSOR_MASS_ACCUMULATED = 14
         const val SENSOR_VOLUME_ACCUMULATED = 15
+
+        //--- учётные величины - отчёты
+        const val SENSOR_LIQUID_USING = 16   // расходомер/счётчик
 
         //--- electro energo counters
 
@@ -56,7 +62,6 @@ abstract class SensorConfig(
         const val SENSOR_ENERGO_COUNT_RR = 23   // Reactive Reverse - реактивная обратная электроэнергия
 
         //--- контрольные величины - графики
-
         const val SENSOR_ENERGO_VOLTAGE = 30        // voltage by phase
         const val SENSOR_ENERGO_CURRENT = 31        // current by phase
         const val SENSOR_ENERGO_POWER_KOEF = 32     // power koeff by phase
@@ -86,7 +91,7 @@ abstract class SensorConfig(
             hmSensorDescr[SENSOR_WORK] = "Работа оборудования"
             hmSensorDescr[SENSOR_LIQUID_FLOW_CALC] = "Скорость расхода топлива (расчётная)"
             hmSensorDescr[SENSOR_LIQUID_LEVEL] = "Уровень топлива"
-            hmSensorDescr[SENSOR_WEIGHT] = "Нагрузка"
+            hmSensorDescr[SENSOR_WEIGHT] = "Вес"
             hmSensorDescr[SENSOR_TURN] = "Обороты"
             hmSensorDescr[SENSOR_PRESSURE] = "Давление"
             hmSensorDescr[SENSOR_TEMPERATURE] = "Температура"
@@ -97,6 +102,7 @@ abstract class SensorConfig(
             hmSensorDescr[SENSOR_VOLUME_FLOW] = "Объёмный расход"
             hmSensorDescr[SENSOR_MASS_ACCUMULATED] = "Накопленная масса"
             hmSensorDescr[SENSOR_VOLUME_ACCUMULATED] = "Накопленный объём"
+            hmSensorDescr[SENSOR_LIQUID_USING] = "Расход топлива (счётчик)"
             hmSensorDescr[SENSOR_ENERGO_COUNT_AD] = "Электроэнергия активная прямая"
             hmSensorDescr[SENSOR_ENERGO_COUNT_AR] = "Электроэнергия активная обратная"
             hmSensorDescr[SENSOR_ENERGO_COUNT_RD] = "Электроэнергия реактивная прямая"

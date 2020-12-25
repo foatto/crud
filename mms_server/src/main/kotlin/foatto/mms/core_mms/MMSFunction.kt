@@ -65,6 +65,92 @@ object MMSFunction {
         )
     }
 
+    fun fillChildDataForPeriodicReports(columnID: ColumnInt, alChildData: MutableList<ChildData>) {
+        val aliases = mutableListOf(
+            "mms_report_summary",
+            "mms_report_day_work",
+            "mms_report_work_shift",
+            "mms_report_waybill",
+            "mms_report_waybill_compare",
+        )
+
+        fillChildDataForReports(
+            aliases = aliases,
+            columnID = columnID,
+            alChildData = alChildData,
+            aFirstItem = true,
+        )
+    }
+
+    fun fillChildDataForLiquidIncDecReports(columnID: ColumnInt, alChildData: MutableList<ChildData>, withIncWaybillReport: Boolean, newGroup: Boolean) {
+        val aliases = mutableListOf("mms_report_liquid_inc")
+        if (withIncWaybillReport) {
+            aliases.add("mms_report_liquid_inc_waybill")
+        }
+        aliases.add("mms_report_liquid_dec")
+
+        fillChildDataForReports(
+            aliases = aliases,
+            columnID = columnID,
+            alChildData = alChildData,
+            aFirstItem = newGroup,
+        )
+    }
+
+    fun fillChildDataForGeoReports(columnID: ColumnInt, alChildData: MutableList<ChildData>, withMovingDetailReport: Boolean) {
+        val aliases = mutableListOf(
+            "mms_report_over_speed",
+            "mms_report_parking",
+            "mms_report_object_zone",
+        )
+        if (withMovingDetailReport) {
+            aliases.add("mms_report_moving_detail")
+        }
+        fillChildDataForReports(
+            aliases = aliases,
+            columnID = columnID,
+            alChildData = alChildData,
+            aFirstItem = false,
+        )
+    }
+
+    fun fillChildDataForOverReports(columnID: ColumnInt, alChildData: MutableList<ChildData>) {
+        fillChildDataForReports(
+            aliases = listOf(
+                "mms_report_over_mass_flow",
+                "mms_report_over_volume_flow",
+                "mms_report_over_weight",
+                "mms_report_over_turn",
+                "mms_report_over_pressure",
+                "mms_report_over_temperature",
+                "mms_report_over_voltage",
+            ),
+            columnID = columnID,
+            alChildData = alChildData,
+            aFirstItem = false,
+        )
+    }
+
+    fun fillChildDataForReports(aliases: List<String>, columnID: ColumnInt, alChildData: MutableList<ChildData>, aFirstItem: Boolean) {
+        var firstItem = aFirstItem
+        aliases.forEach {
+            alChildData.add(
+                ChildData(
+                    aGroup = "Отчёты",
+                    aAlias = it,
+                    aColumn = columnID,
+                    aAction = AppAction.FORM,
+                    aNewGroup = if (firstItem) {
+                        firstItem = false
+                        true
+                    } else {
+                        false
+                    }
+                )
+            )
+        }
+    }
+
     fun fillAllChildDataForGraphics(columnID: ColumnInt, alChildData: MutableList<ChildData>) {
         fillChildDataForGraphics(
             aliases = listOf(
@@ -75,6 +161,8 @@ object MMSFunction {
                 "mms_graphic_energo_power_koef",
                 "mms_graphic_energo_voltage",
                 "mms_graphic_energo_current",   // График значений электрического тока (э/счётчик)
+                "mms_graphic_mass_flow",
+                "mms_graphic_volume_flow",
                 "mms_graphic_weight",
                 "mms_graphic_turn",
                 "mms_graphic_pressure",

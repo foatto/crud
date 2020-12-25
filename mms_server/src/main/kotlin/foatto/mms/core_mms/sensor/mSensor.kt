@@ -113,7 +113,7 @@ class mSensor : mAbstract() {
         val geoSensorType = setOf(SensorConfig.SENSOR_GEO)
         val workSensorType = setOf(SensorConfig.SENSOR_WORK)
 
-        val counterSensorTypes = setOf(SensorConfig.SENSOR_MASS_FLOW, SensorConfig.SENSOR_VOLUME_FLOW)
+        val counterSensorTypes = setOf(SensorConfig.SENSOR_LIQUID_USING)
 
         val liquidSummarySensorTypes = setOf(
             SensorConfig.SENSOR_MASS_ACCUMULATED,
@@ -123,7 +123,7 @@ class mSensor : mAbstract() {
             SensorConfig.SENSOR_ENERGO_COUNT_AD,
             SensorConfig.SENSOR_ENERGO_COUNT_AR,
             SensorConfig.SENSOR_ENERGO_COUNT_RD,
-            SensorConfig.SENSOR_ENERGO_COUNT_RR
+            SensorConfig.SENSOR_ENERGO_COUNT_RR,
         )
 
         val liquidLevelSensorType = setOf(SensorConfig.SENSOR_LIQUID_LEVEL)
@@ -133,7 +133,7 @@ class mSensor : mAbstract() {
             SensorConfig.SENSOR_ENERGO_POWER_KOEF,
             SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
             SensorConfig.SENSOR_ENERGO_POWER_REACTIVE,
-            SensorConfig.SENSOR_ENERGO_POWER_FULL
+            SensorConfig.SENSOR_ENERGO_POWER_FULL,
         )
         val analogSensorTypes = setOf(
             SensorConfig.SENSOR_LIQUID_FLOW_CALC,
@@ -144,6 +144,8 @@ class mSensor : mAbstract() {
             SensorConfig.SENSOR_VOLTAGE,
             SensorConfig.SENSOR_POWER,
             SensorConfig.SENSOR_DENSITY,
+            SensorConfig.SENSOR_MASS_FLOW,
+            SensorConfig.SENSOR_VOLUME_FLOW,
         ) + liquidLevelSensorType + phasedEnergoSensorTypes
 
         //--- geo-sensors (coordinates, speed and mileage) ----------------------------------------------------------------------------------------

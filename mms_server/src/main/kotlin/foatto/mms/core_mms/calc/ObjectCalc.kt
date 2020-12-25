@@ -130,19 +130,11 @@ class ObjectCalc {
                 }
             }
 
-            //--- volumetric flow sensors (flow meters)
-            val hmSCVF = oc.hmSensorConfig[SensorConfig.SENSOR_VOLUME_FLOW]
-            if (!hmSCVF.isNullOrEmpty()) {
-                hmSCVF.values.forEach { sc ->
-                    calcFlowSensor(alRawTime, alRawData, sc as SensorConfigCounter, begTime, endTime, result)
-                }
-            }
-
-            //--- mass flow sensors
-            val hmSCMF = oc.hmSensorConfig[SensorConfig.SENSOR_MASS_FLOW]
-            if (!hmSCMF.isNullOrEmpty()) {
-                hmSCMF.values.forEach { sc ->
-                    calcFlowSensor(alRawTime, alRawData, sc as SensorConfigCounter, begTime, endTime, result)
+            //--- liquid calc sensor
+            val hmSCLC = oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_USING]
+            if (!hmSCLC.isNullOrEmpty()) {
+                hmSCLC.values.forEach { sc ->
+                    calcLiquidCalcSensor(alRawTime, alRawData, sc as SensorConfigCounter, begTime, endTime, result)
                 }
             }
 
@@ -1208,7 +1200,7 @@ class ObjectCalc {
             }
         }
 
-        private fun calcFlowSensor(
+        private fun calcLiquidCalcSensor(
             alRawTime: List<Int>,
             alRawData: List<AdvancedByteBuffer>,
             scu: SensorConfigCounter,
