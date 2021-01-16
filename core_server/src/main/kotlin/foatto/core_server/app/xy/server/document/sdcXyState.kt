@@ -22,7 +22,7 @@ abstract class sdcXyState : sdcXyAbstract() {
         for( objectParamData in alObjectParamData )
             loadDynamicElements( xyActionRequest.viewCoord!!.scale, objectParamData, alElement )
 
-        return XyActionResponse( alElement = alElement )
+        return XyActionResponse(alElement = alElement.toTypedArray())
     }
 
 }

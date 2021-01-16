@@ -3,7 +3,6 @@ package foatto.mms.core_mms.sensor.config
 class SensorConfigGeo(
     aId: Int,
     aName: String,
-    aSumGroup: String,
     aGroup: String,
     aDescr: String,
     aPortNum: Int,
@@ -20,7 +19,7 @@ class SensorConfigGeo(
     val liquidName: String,
     val liquidNorm: Double,
     val maxSpeedLimit: Int,
-) : SensorConfig(aId, aName, aSumGroup, aGroup, aDescr, aPortNum, aSensorType) {
+) : SensorConfig(aId, aName, aGroup, aDescr, aPortNum, aSensorType) {
 
     companion object {
 

@@ -16,7 +16,7 @@ class cDayWork : cStandart() {
         val mODW = model as mDayWork
 
         val objectID = (hmColumnData[mODW.columnObject] as DataInt).value
-        val dd = hmColumnData[mODW.columnObjectDayWorkDate] as DataDate3Int
+        val dd = hmColumnData[mODW.columnDate] as DataDate3Int
         val gc = dd.localDate.atStartOfDay(zoneId)
         val begTime = gc.toEpochSecond().toInt()
         val endTime = gc.plus(1, ChronoUnit.DAYS).toEpochSecond().toInt()
@@ -24,15 +24,33 @@ class cDayWork : cStandart() {
         val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
         val calc = ObjectCalc.calcObject(stm, userConfig, oc, begTime, endTime)
 
-        (hmColumnData[mODW.columnObjectDayWorkRun] as DataString).text = calc.sbGeoRun.toString()
-        (hmColumnData[mODW.columnObjectDayWorkHourName] as DataString).text = calc.sbWorkName.toString()
-        (hmColumnData[mODW.columnObjectDayWorkHourValue] as DataString).text = calc.sbWorkTotal.toString()
-        (hmColumnData[mODW.columnObjectDayWorkLevelName] as DataString).text = calc.sbLiquidLevelName.toString()
-        (hmColumnData[mODW.columnObjectDayWorkLevelBeg] as DataString).text = calc.sbLiquidLevelBeg.toString()
-        (hmColumnData[mODW.columnObjectDayWorkLevelEnd] as DataString).text = calc.sbLiquidLevelEnd.toString()
-        (hmColumnData[mODW.columnObjectDayWorkLiquidName] as DataString).text = calc.sbLiquidUsingName.toString()
-        (hmColumnData[mODW.columnObjectDayWorkLiquidValue] as DataString).text = calc.sbLiquidUsingTotal.toString()
+        (hmColumnData[mODW.columnRun] as DataString).text = calc.sGeoRun
 
+        (hmColumnData[mODW.columnWorkName] as DataString).text = calc.sWorkName
+        (hmColumnData[mODW.columnWorkValue] as DataString).text = calc.sWorkValue
+
+        (hmColumnData[mODW.columnEnergoName] as DataString).text = calc.sEnergoName
+        (hmColumnData[mODW.columnEnergoValue] as DataString).text = calc.sEnergoValue
+//        //--- if tmGroupSum.size == 1, then values are equal all sums
+//        (hmColumnData[mODW.columnGroupSumEnergoName] as DataString).text = if(calc.tmGroupSum.size > 1 ) calc.sGroupSumEnergoName else ""
+//        (hmColumnData[mODW.columnGroupSumEnergoValue] as DataString).text = if(calc.tmGroupSum.size > 1 ) calc.sGroupSumEnergoValue else ""
+        (hmColumnData[mODW.columnAllSumEnergoName] as DataString).text = calc.sAllSumEnergoName
+        (hmColumnData[mODW.columnAllSumEnergoValue] as DataString).text = calc.sAllSumEnergoValue
+
+        (hmColumnData[mODW.columnLiquidName] as DataString).text = calc.sLiquidUsingName
+        (hmColumnData[mODW.columnLiquidValue] as DataString).text = calc.sLiquidUsingValue
+//        //--- if tmGroupSum.size == 1, then values are equal all sums
+//        (hmColumnData[mODW.columnGroupSumLiquidName] as DataString).text = if(calc.tmGroupSum.size > 1 ) calc.sGroupSumLiquidName else ""
+//        (hmColumnData[mODW.columnGroupSumLiquidValue] as DataString).text = if(calc.tmGroupSum.size > 1 ) calc.sGroupSumLiquidValue else ""
+        (hmColumnData[mODW.columnAllSumLiquidName] as DataString).text = calc.sAllSumLiquidName
+        (hmColumnData[mODW.columnAllSumLiquidValue] as DataString).text = calc.sAllSumLiquidValue
+
+        (hmColumnData[mODW.columnLevelName] as DataString).text = calc.sLiquidLevelName
+        (hmColumnData[mODW.columnLevelBeg] as DataString).text = calc.sLiquidLevelBeg
+        (hmColumnData[mODW.columnLevelEnd] as DataString).text = calc.sLiquidLevelEnd
+
+        (hmColumnData[mODW.columnLevelLiquidName] as DataString).text = calc.sLiquidLevelLiquidName
+        (hmColumnData[mODW.columnLevelLiquidInc] as DataString).text = calc.sLiquidLevelLiquidInc
+        (hmColumnData[mODW.columnLevelLiquidDec] as DataString).text = calc.sLiquidLevelLiquidDec
     }
-
 }

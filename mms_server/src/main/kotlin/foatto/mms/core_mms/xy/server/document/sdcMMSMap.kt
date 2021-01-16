@@ -62,7 +62,13 @@ class sdcMMSMap : sdcXyMap() {
 
     private lateinit var hmZoneData: Map<Int, ZoneData>
 
-    override fun init(aApplication: iApplication, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aUserConfig: UserConfig, aDocumentConfig: XyDocumentConfig) {
+    override fun init(
+        aApplication: iApplication,
+        aStm: CoreAdvancedStatement,
+        aChmSession: ConcurrentHashMap<String, Any>,
+        aUserConfig: UserConfig,
+        aDocumentConfig: XyDocumentConfig
+    ) {
 
         //--- зоны ---
 
@@ -100,17 +106,17 @@ class sdcMMSMap : sdcXyMap() {
 
         //--- отдельная групповая обработка статических объектов
         val sbStaticObjectID = StringBuilder()
-        for(objectParamData in alObjectParamData) {
-            //--- статические объекты - зоны
-            if(objectParamData.begTime == 0) sbStaticObjectID.append(if(sbStaticObjectID.isEmpty()) "" else " , ").append(objectParamData.objectID)
+        //--- статические объекты - зоны
+        alObjectParamData.filter { it.begTime == 0 }.forEach {
+            sbStaticObjectID.append(if (sbStaticObjectID.isEmpty()) "" else " , ").append(it.objectID)
         }
-        if(!sbStaticObjectID.isEmpty()) {
+        if (sbStaticObjectID.isNotEmpty()) {
             //--- именно MIN/MAX, т.к. одному статическому объекту может соответствовать несколько элементов
             //--- (нельзя убирать проверку на COUNT, т.к. при отсутствии выборки все равно вернется строка с null-значениями)
             val inRs = stm.executeQuery(
                 " SELECT COUNT( * ) , MIN( prj_x1 ) , MIN( prj_y1 ) , MAX( prj_x2 ) , MAX( prj_y2 ) FROM XY_element WHERE object_id IN ( $sbStaticObjectID ) "
             )
-            if(inRs.next() && inRs.getInt(1) > 0) {
+            if (inRs.next() && inRs.getInt(1) > 0) {
                 getMinMaxCoords(XyPoint(inRs.getInt(2), inRs.getInt(3)), minXY, maxXY)
                 getMinMaxCoords(XyPoint(inRs.getInt(4), inRs.getInt(5)), minXY, maxXY)
                 isFound = true
@@ -119,42 +125,40 @@ class sdcMMSMap : sdcXyMap() {
         }
 
         //--- отдельная обработка динамических объектов
-        for(objectParamData in alObjectParamData) {
-            //--- статические объекты уже обработаны
-            if(objectParamData.begTime == 0) continue
+        alObjectParamData.filter { it.begTime != 0 }.forEach { objectParamData ->
             //--- нужен хотя бы один гео-датчик
             val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, objectParamData.objectID)
-            if(objectConfig.scg == null) continue
-
-            //--- если траекторные элементы глобально не запрещены
-            if(objectParamData.begTime < objectParamData.endTime) {
-                val inRs = stm.executeQuery(
-                    " SELECT sensor_data FROM MMS_data_${objectParamData.objectID} WHERE ontime >= ${objectParamData.begTime} AND ontime <= ${objectParamData.endTime} "
-                )
-                while(inRs.next()) {
-                    val bbSensor = inRs.getByteBuffer(1, ByteOrder.BIG_ENDIAN)
-                    val gd = AbstractObjectStateCalc.getGeoData(objectConfig, bbSensor) ?: continue
-                    //--- самих геоданных в этой строке может и не оказаться
-                    getMinMaxCoords(XyProjection.wgs_pix(gd.wgs), minXY, maxXY)
-                    isFound = true
+            objectConfig.scg?.let {
+                //--- если траекторные элементы глобально не запрещены
+                if (objectParamData.begTime < objectParamData.endTime) {
+                    val inRs = stm.executeQuery(
+                        " SELECT sensor_data FROM MMS_data_${objectParamData.objectID} WHERE ontime >= ${objectParamData.begTime} AND ontime <= ${objectParamData.endTime} "
+                    )
+                    while (inRs.next()) {
+                        val bbSensor = inRs.getByteBuffer(1, ByteOrder.BIG_ENDIAN)
+                        val gd = AbstractObjectStateCalc.getGeoData(objectConfig.scg!!, bbSensor) ?: continue
+                        //--- самих геоданных в этой строке может и не оказаться
+                        getMinMaxCoords(XyProjection.wgs_pix(gd.wgs), minXY, maxXY)
+                        isFound = true
+                    }
+                    inRs.close()
                 }
-                inRs.close()
-            }
-            //--- если по траектории ничего не нашлось, пробуем по последнему положению объекта
-            if(!isFound) {
-                val objectState = ObjectState.getState(stm, objectConfig)
-                //--- если текущее положение не в будущем относительно запрашиваемого периода и есть последние координаты
-                if(objectState.time <= objectParamData.endTime && objectState.pixPoint != null) {
-                    getMinMaxCoords(objectState.pixPoint!!, minXY, maxXY)
-                    isFound = true
+                //--- если по траектории ничего не нашлось, пробуем по последнему положению объекта
+                if (!isFound) {
+                    val objectState = ObjectState.getState(stm, objectConfig)
+                    //--- если текущее положение не в будущем относительно запрашиваемого периода и есть последние координаты
+                    if (objectState.time <= objectParamData.endTime && objectState.pixPoint != null) {
+                        getMinMaxCoords(objectState.pixPoint!!, minXY, maxXY)
+                        isFound = true
+                    }
                 }
             }
         }
 
         //--- если элементы, соответствующие стартовым объектам, не нашлись, то возвращаем координаты России
         return XyActionResponse(
-            minCoord = if(isFound) minXY else XyProjection.wgs_pix(20, 70),
-            maxCoord = if(isFound) maxXY else XyProjection.wgs_pix(180, 40)
+            minCoord = if (isFound) minXY else XyProjection.wgs_pix(20, 70),
+            maxCoord = if (isFound) maxXY else XyProjection.wgs_pix(180, 40)
         )
     }
 
@@ -221,183 +225,177 @@ class sdcMMSMap : sdcXyMap() {
             val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(stm, objectConfig, objectParamData.begTime, objectParamData.endTime)
             //--- Хоть какая-то экономия трафика. ( 16 - достаточное огрубление - и стрелки видно и не слишком грубо срезано )
             val gcd = ObjectCalc.calcGeoSensor(
-                alRawTime, alRawData, objectConfig, objectParamData.begTime, objectParamData.endTime, scale * 16, maxEnabledOverSpeed,
-                hmZoneLimit[ZoneLimitData.TYPE_LIMIT_SPEED]
+                alRawTime = alRawTime,
+                alRawData = alRawData,
+                scg = objectConfig.scg!!,
+                begTime = objectParamData.begTime,
+                endTime = objectParamData.endTime,
+                scale = scale * 16,
+                maxEnabledOverSpeed = maxEnabledOverSpeed,
+                alZoneSpeedLimit = hmZoneLimit[ZoneLimitData.TYPE_LIMIT_SPEED]
             )
 
             //--- генерация траектории, стоянок и превышений скорости ---
 
             //--- вывод траектории
-            if(!gcd.alPointXY.isNullOrEmpty() && !gcd.alPointSpeed.isNullOrEmpty() && !gcd.alPointOverSpeed.isNullOrEmpty()) {
+            if (gcd.alPointXY.isNotEmpty() && gcd.alPointSpeed.isNotEmpty() && gcd.alPointOverSpeed.isNotEmpty()) {
 
                 //--- определим начало/окончание работы для Т1/Т2 на траектории
                 val tmWorkBegTime = TreeMap<String, Int>()
                 val tmWorkEndTime = TreeMap<String, Int>()
-                val hmSCW = objectConfig.hmSensorConfig[SensorConfig.SENSOR_WORK]
-                if(hmSCW != null && !hmSCW.isEmpty())
-                    for(portNum in hmSCW.keys) {
-                        val scw = hmSCW[portNum] as SensorConfigWork
+                objectConfig.hmSensorConfig[SensorConfig.SENSOR_WORK]?.let { hmSCW ->
+                    hmSCW.values.forEach { sc ->
+                        val scw = sc as SensorConfigWork
 
                         val alWork = ObjectCalc.calcWorkSensor(alRawTime, alRawData, scw, objectParamData.begTime, objectParamData.endTime).alWorkOnOff
-                        if(alWork != null)
-                            for(apd in alWork)
-                                if(apd.getState() != 0) {
-                                    if(tmWorkBegTime[scw.descr] == null) tmWorkBegTime[scw.descr] = apd.begTime
-                                    tmWorkEndTime[scw.descr] = apd.endTime
+                        for (apd in alWork)
+                            if (apd.getState() != 0) {
+                                if (tmWorkBegTime[scw.descr] == null) {
+                                    tmWorkBegTime[scw.descr] = apd.begTime
                                 }
+                                tmWorkEndTime[scw.descr] = apd.endTime
+                            }
                     }
-
-                val objectTrace = XyElement(TYPE_OBJECT_TRACE, -getRandomInt(), objectParamData.objectID)
-                //objectTrace.init( zoneId )
-                objectTrace.toolTipText = objectNameAndModel
-                objectTrace.itReadOnly = true
-                objectTrace.lineWidth = 3
-                objectTrace.arrowPos = XyElement.ArrowPos.MIDDLE
-                //--- оптимальная длина стрелки = 3 ширинам стрелки ( допустим диапазон от 2 до 4 ширин стрелки )
-                objectTrace.arrowLen = 9
-                //--- стрелки высотой крыльев ( шириной стрелки ) менее 3 пикселов уже неразличимы
-                objectTrace.arrowHeight = 3
-                objectTrace.arrowLineWidth = 1
-
-                //--- эти данные касаются межточечных отрезков, их на 1 меньше
-                for(i in 0 until gcd.alPointXY!!.size - 1) {
-                    val overSpeed = gcd.alPointOverSpeed!![i]
-                    val sb = "$objectNameAndModel$sLineSeparator${DateTime_DMYHMS(zoneId, gcd.alPointTime!![i])} -> ${DateTime_DMYHMS(zoneId, gcd.alPointTime!![i + 1])}" +
-                        "$sLineSeparator${gcd.alPointSpeed!![i]} -> ${gcd.alPointSpeed!![i + 1]} км/ч"
-
-                    objectTrace.addTracePoint(gcd.alPointXY!![i], if(overSpeed > maxEnabledOverSpeed) 0xFF_FF_00_00.toInt() else 0xFF_00_00_FF.toInt(), sb)
                 }
-                //--- последняя точка добавляется без траекторной информации
-                objectTrace.alPoint.add(gcd.alPointXY!![gcd.alPointXY!!.size - 1])
+                val objectTrace = XyElement(TYPE_OBJECT_TRACE, -getRandomInt(), objectParamData.objectID).apply {
+                    toolTipText = objectNameAndModel
+                    itReadOnly = true
+                    lineWidth = 3
+                    arrowPos = XyElement.ArrowPos.MIDDLE
+                    //--- оптимальная длина стрелки = 3 ширинам стрелки ( допустим диапазон от 2 до 4 ширин стрелки )
+                    arrowLen = 9
+                    //--- стрелки высотой крыльев ( шириной стрелки ) менее 3 пикселов уже неразличимы
+                    arrowHeight = 3
+                    arrowLineWidth = 1
 
+                    //--- эти данные касаются межточечных отрезков, их на 1 меньше
+                    for (i in 0 until gcd.alPointXY.size - 1) {
+                        val overSpeed = gcd.alPointOverSpeed[i]
+                        val sb = "$objectNameAndModel$sLineSeparator${DateTime_DMYHMS(zoneId, gcd.alPointTime[i])} -> ${DateTime_DMYHMS(zoneId, gcd.alPointTime[i + 1])}" +
+                            "$sLineSeparator${gcd.alPointSpeed[i]} -> ${gcd.alPointSpeed[i + 1]} км/ч"
+
+                        addTracePoint(gcd.alPointXY[i], if (overSpeed > maxEnabledOverSpeed) 0xFF_FF_00_00.toInt() else 0xFF_00_00_FF.toInt(), sb)
+                    }
+                    //--- последняя точка добавляется без траекторной информации
+                    alPoint = arrayOf(gcd.alPointXY[gcd.alPointXY.size - 1])
+                }
                 alElement.add(objectTrace)
 
                 //--- знак начала траектории
-                val objectTraceText1 = XyElement(TYPE_OBJECT_TRACE_INFO, -getRandomInt(), objectParamData.objectID)
-                //objectTraceText1.init( zoneId )
-                objectTraceText1.itReadOnly = true
-                objectTraceText1.alPoint.add(gcd.alPointXY!![0])
-                objectTraceText1.anchorX = XyElement.Anchor.LT
-                objectTraceText1.anchorY = XyElement.Anchor.LT
-                objectTraceText1.fillColor = 0xFFFFFFFF.toInt()
-                objectTraceText1.drawColor = 0xFF000000.toInt()
-                objectTraceText1.lineWidth = 1
+                val objectTraceText1 = XyElement(TYPE_OBJECT_TRACE_INFO, -getRandomInt(), objectParamData.objectID).apply {
+                    itReadOnly = true
+                    alPoint = arrayOf(gcd.alPointXY[0])
+                    anchorX = XyElement.Anchor.LT
+                    anchorY = XyElement.Anchor.LT
+                    fillColor = 0xFFFFFFFF.toInt()
+                    drawColor = 0xFF000000.toInt()
+                    lineWidth = 1
 
-                val sbT1 = StringBuilder(objectNameAndModel).append(sLineSeparator).append("Начало траектории:").append(sLineSeparator)
-                    .append(DateTime_DMYHMS(zoneId, gcd.alPointTime!![0])).append(sLineSeparator).append(gcd.alPointSpeed!![0]).append(" км/ч")
-                if(!tmWorkBegTime.isEmpty()) sbT1.append(sLineSeparator).append("Начало работы оборудования:")
-                for((descr, bt) in tmWorkBegTime)
-                    sbT1.append(sLineSeparator).append(descr).append(": ").append(DateTime_DMYHMS(zoneId, bt))
+                    val sbT1 = StringBuilder(objectNameAndModel).append(sLineSeparator).append("Начало траектории:").append(sLineSeparator)
+                        .append(DateTime_DMYHMS(zoneId, gcd.alPointTime[0])).append(sLineSeparator).append(gcd.alPointSpeed[0]).append(" км/ч")
+                    if (!tmWorkBegTime.isEmpty()) sbT1.append(sLineSeparator).append("Начало работы оборудования:")
+                    for ((descr, bt) in tmWorkBegTime)
+                        sbT1.append(sLineSeparator).append(descr).append(": ").append(DateTime_DMYHMS(zoneId, bt))
 
-                objectTraceText1.text = "T1"
-                objectTraceText1.toolTipText = sbT1.toString()
-                objectTraceText1.textColor = 0xFF000000.toInt()
-                objectTraceText1.fontSize = iCoreAppContainer.BASE_FONT_SIZE
-                objectTraceText1.itFontBold = true
-
+                    text = "T1"
+                    toolTipText = sbT1.toString()
+                    textColor = 0xFF000000.toInt()
+                    fontSize = iCoreAppContainer.BASE_FONT_SIZE
+                    itFontBold = true
+                }
                 alElement.add(objectTraceText1)
 
                 //--- знак конца траектории
-                val objectTraceText2 = XyElement(TYPE_OBJECT_TRACE_INFO, -getRandomInt(), objectParamData.objectID)
-                //objectTraceText2.init( zoneId )
-                objectTraceText2.itReadOnly = true
-                objectTraceText2.alPoint.add(gcd.alPointXY!![gcd.alPointXY!!.size - 1])
-                objectTraceText2.anchorX = XyElement.Anchor.LT
-                objectTraceText2.anchorY = XyElement.Anchor.LT
-                objectTraceText2.fillColor = 0xFFFFFFFF.toInt()
-                objectTraceText2.drawColor = 0xFF000000.toInt()
-                objectTraceText2.lineWidth = 1
+                val objectTraceText2 = XyElement(TYPE_OBJECT_TRACE_INFO, -getRandomInt(), objectParamData.objectID).apply {
+                    itReadOnly = true
+                    alPoint = arrayOf(gcd.alPointXY[gcd.alPointXY.size - 1])
+                    anchorX = XyElement.Anchor.LT
+                    anchorY = XyElement.Anchor.LT
+                    fillColor = 0xFFFFFFFF.toInt()
+                    drawColor = 0xFF000000.toInt()
+                    lineWidth = 1
 
-                val sbT2 = StringBuilder(objectNameAndModel).append(sLineSeparator).append("Окончание траектории").append(sLineSeparator)
-                    .append(DateTime_DMYHMS(zoneId, gcd.alPointTime!![gcd.alPointTime!!.size - 1])).append(sLineSeparator)
-                    .append(gcd.alPointSpeed!![gcd.alPointSpeed!!.size - 1]).append(" км/ч")
-                if(!tmWorkEndTime.isEmpty()) sbT2.append(sLineSeparator).append("Окончание работы оборудования:")
-                for((descr, et) in tmWorkEndTime)
-                    sbT2.append(sLineSeparator).append(descr).append(": ").append(DateTime_DMYHMS(zoneId, et))
+                    val sbT2 = StringBuilder(objectNameAndModel).append(sLineSeparator).append("Окончание траектории").append(sLineSeparator)
+                        .append(DateTime_DMYHMS(zoneId, gcd.alPointTime[gcd.alPointTime.size - 1])).append(sLineSeparator)
+                        .append(gcd.alPointSpeed[gcd.alPointSpeed.size - 1]).append(" км/ч")
+                    if (!tmWorkEndTime.isEmpty()) sbT2.append(sLineSeparator).append("Окончание работы оборудования:")
+                    for ((descr, et) in tmWorkEndTime)
+                        sbT2.append(sLineSeparator).append(descr).append(": ").append(DateTime_DMYHMS(zoneId, et))
 
-                objectTraceText2.text = "T2"
-                objectTraceText2.toolTipText = sbT2.toString()
-                objectTraceText2.textColor = 0xFF000000.toInt()
-                objectTraceText2.fontSize = iCoreAppContainer.BASE_FONT_SIZE
-                objectTraceText2.itFontBold = true
-
+                    text = "T2"
+                    toolTipText = sbT2.toString()
+                    textColor = 0xFF000000.toInt()
+                    fontSize = iCoreAppContainer.BASE_FONT_SIZE
+                    itFontBold = true
+                }
                 alElement.add(objectTraceText2)
             }
             //--- вывод стоянок
-            if(gcd.alMovingAndParking != null) {
-                for(i in gcd.alMovingAndParking!!.indices) {
-                    val mpd = gcd.alMovingAndParking!![i] as GeoPeriodData
-                    if(mpd.getState() != 0) continue
+            gcd.alMovingAndParking.filter { it.getState() == 0 }.forEach { map ->
+                val mpd = map as GeoPeriodData
 
-                    val tmWorkTime = TreeMap<String, Int>()
-                    val hmSCW = objectConfig.hmSensorConfig[SensorConfig.SENSOR_WORK]
-                    if(hmSCW != null && !hmSCW.isEmpty()) for(portNum in hmSCW.keys) {
-                        val scw = hmSCW[portNum] as SensorConfigWork
+                val tmWorkTime = TreeMap<String, Int>()
+                objectConfig.hmSensorConfig[SensorConfig.SENSOR_WORK]?.values?.forEach { sc ->
+                    val scw = sc as SensorConfigWork
 
-                        val alWork = ObjectCalc.calcWorkSensor(alRawTime, alRawData, scw, mpd.begTime, mpd.endTime).alWorkOnOff
-                        if(alWork != null) for(apd in alWork) if(apd.getState() != 0) {
-                            val workTime = tmWorkTime[scw.descr]
-                            tmWorkTime[scw.descr] = (workTime ?: 0) + (apd.endTime - apd.begTime)
-                        }
+                    val alWork = ObjectCalc.calcWorkSensor(alRawTime, alRawData, scw, mpd.begTime, mpd.endTime).alWorkOnOff
+                    alWork.filter { it.getState() != 0 }.forEach { apd ->
+                        val workTime = tmWorkTime[scw.descr]
+                        tmWorkTime[scw.descr] = (workTime ?: 0) + (apd.endTime - apd.begTime)
                     }
-
-                    //StringBuilder sbParkingTime = StringFunction.MillisInterval_SB(  mpd.begTime, mpd.endTime  );
-                    //StringBuilder sbText = new StringBuilder(  sbParkingTime.substring(  0, sbParkingTime.length() - 3  )  );
-                    val sbText = secondIntervalToString(mpd.begTime, mpd.endTime)
-                    val sbToolTip = StringBuilder(objectNameAndModel).append(sLineSeparator).append("Стоянка с ").append(DateTime_DMYHMS(zoneId, mpd.begTime))
-                        .append(" до ").append(DateTime_DMYHMS(zoneId, mpd.endTime)).append(sLineSeparator).append("Всего: ").append(sbText)
-                    if(!tmWorkTime.isEmpty()) sbToolTip.append(sLineSeparator).append("Время работы оборудования:")
-                    for((descr, wt) in tmWorkTime)
-                        sbToolTip.append(sLineSeparator).append(descr).append(": ").append(secondIntervalToString(wt))
-
-                    val objectParking = XyElement(TYPE_OBJECT_PARKING, -getRandomInt(), objectParamData.objectID)
-                    //objectParking.init( zoneId )
-                    objectParking.itReadOnly = true
-                    objectParking.alPoint.add(mpd.parkingCoord!!)
-                    objectParking.anchorX = XyElement.Anchor.LT
-                    objectParking.anchorY = XyElement.Anchor.LT
-                    objectParking.fillColor = 0xFFFFFFFF.toInt()
-                    objectParking.drawColor = 0xFF0000FF.toInt()
-                    objectParking.lineWidth = 1
-
-                    objectParking.text = sbText
-                    objectParking.toolTipText = sbToolTip.toString()
-                    objectParking.textColor = 0xFF0000FF.toInt()
-                    objectParking.fontSize = iCoreAppContainer.BASE_FONT_SIZE
-                    objectParking.itFontBold = true
-
-                    alElement.add(objectParking)
                 }
+
+                //StringBuilder sbParkingTime = StringFunction.MillisInterval_SB(  mpd.begTime, mpd.endTime  );
+                //StringBuilder sbText = new StringBuilder(  sbParkingTime.substring(  0, sbParkingTime.length() - 3  )  );
+                val sbText = secondIntervalToString(mpd.begTime, mpd.endTime)
+                val sbToolTip = StringBuilder(objectNameAndModel).append(sLineSeparator).append("Стоянка с ").append(DateTime_DMYHMS(zoneId, mpd.begTime))
+                    .append(" до ").append(DateTime_DMYHMS(zoneId, mpd.endTime)).append(sLineSeparator).append("Всего: ").append(sbText)
+                if (!tmWorkTime.isEmpty()) sbToolTip.append(sLineSeparator).append("Время работы оборудования:")
+                for ((descr, wt) in tmWorkTime)
+                    sbToolTip.append(sLineSeparator).append(descr).append(": ").append(secondIntervalToString(wt))
+
+                val objectParking = XyElement(TYPE_OBJECT_PARKING, -getRandomInt(), objectParamData.objectID).apply {
+                    itReadOnly = true
+                    alPoint = arrayOf(mpd.parkingCoord!!)
+                    anchorX = XyElement.Anchor.LT
+                    anchorY = XyElement.Anchor.LT
+                    fillColor = 0xFFFFFFFF.toInt()
+                    drawColor = 0xFF0000FF.toInt()
+                    lineWidth = 1
+
+                    text = sbText
+                    toolTipText = sbToolTip.toString()
+                    textColor = 0xFF0000FF.toInt()
+                    fontSize = iCoreAppContainer.BASE_FONT_SIZE
+                    itFontBold = true
+                }
+                alElement.add(objectParking)
             }
             //--- вывод превышений
-            if(gcd.alOverSpeed != null) {
-                for(i in gcd.alOverSpeed!!.indices) {
-                    val ospd = gcd.alOverSpeed!![i] as OverSpeedPeriodData
-                    if(ospd.getState() == 0) continue
-                    val sbToolTip = StringBuilder(objectNameAndModel).append(sLineSeparator).append("Превышение с ").append(DateTime_DMYHMS(zoneId, ospd.begTime))
-                        .append(" до ").append(DateTime_DMYHMS(zoneId, ospd.endTime)).append(sLineSeparator).append("Всего: ")
-                        .append(secondIntervalToString(ospd.begTime, ospd.endTime)).append(sLineSeparator).append("Максимальная скорость на участке: ")
-                        .append(ospd.maxOverSpeedMax).append(" км/ч").append(sLineSeparator).append("Максимальное превышение на участке: ")
-                        .append(ospd.maxOverSpeedDiff).append(" км/ч")
+            gcd.alOverSpeed.filter { it.getState() != 0 }.forEach { pd ->
+                val ospd = pd as OverSpeedPeriodData
+                val sbToolTip = StringBuilder(objectNameAndModel).append(sLineSeparator).append("Превышение с ").append(DateTime_DMYHMS(zoneId, ospd.begTime))
+                    .append(" до ").append(DateTime_DMYHMS(zoneId, ospd.endTime)).append(sLineSeparator).append("Всего: ")
+                    .append(secondIntervalToString(ospd.begTime, ospd.endTime)).append(sLineSeparator).append("Максимальная скорость на участке: ")
+                    .append(ospd.maxOverSpeedMax).append(" км/ч").append(sLineSeparator).append("Максимальное превышение на участке: ")
+                    .append(ospd.maxOverSpeedDiff).append(" км/ч")
 
-                    val objectOverSpeed = XyElement(TYPE_OBJECT_OVER_SPEED, -getRandomInt(), objectParamData.objectID)
-                    //objectOverSpeed.init( zoneId )
-                    objectOverSpeed.itReadOnly = true
-                    objectOverSpeed.alPoint.add(ospd.maxOverSpeedCoord!!)
-                    objectOverSpeed.anchorX = XyElement.Anchor.LT
-                    objectOverSpeed.anchorY = XyElement.Anchor.LT
-                    objectOverSpeed.fillColor = 0xFFFFFFFF.toInt()
-                    objectOverSpeed.drawColor = 0xFFFF0000.toInt()
-                    objectOverSpeed.lineWidth = 1
+                val objectOverSpeed = XyElement(TYPE_OBJECT_OVER_SPEED, -getRandomInt(), objectParamData.objectID).apply {
+                    itReadOnly = true
+                    alPoint = arrayOf(ospd.maxOverSpeedCoord!!)
+                    anchorX = XyElement.Anchor.LT
+                    anchorY = XyElement.Anchor.LT
+                    fillColor = 0xFFFFFFFF.toInt()
+                    drawColor = 0xFFFF0000.toInt()
+                    lineWidth = 1
 
-                    objectOverSpeed.text = StringBuilder().append(ospd.maxOverSpeedDiff).toString()
-                    objectOverSpeed.toolTipText = sbToolTip.toString()
-                    objectOverSpeed.textColor = 0xFFFF0000.toInt()
-                    objectOverSpeed.fontSize = iCoreAppContainer.BASE_FONT_SIZE
-                    objectOverSpeed.itFontBold = true
-
-                    alElement.add(objectOverSpeed)
+                    text = StringBuilder().append(ospd.maxOverSpeedDiff).toString()
+                    toolTipText = sbToolTip.toString()
+                    textColor = 0xFFFF0000.toInt()
+                    fontSize = iCoreAppContainer.BASE_FONT_SIZE
+                    itFontBold = true
                 }
+                alElement.add(objectOverSpeed)
             }
         }
 
@@ -406,36 +404,37 @@ class sdcMMSMap : sdcXyMap() {
 
         //--- если текущее положение не в будущем относительно запрашиваемого периода
         //--- и есть последние координаты
-        if(objectState.time <= objectParamData.endTime && objectState.pixPoint != null) {
-            val sbToolTip = StringBuilder(objectNameAndModel).append(sLineSeparator).append("Время: ").append(DateTime_DMYHMS(zoneId, objectState.time))
-            if(objectConfig.scg!!.isUseSpeed) sbToolTip.append(sLineSeparator).append("Скорость: ").append(objectState.speed).append(" км/ч")
-            for(descr in objectState.tmWorkState.keys) {
-                val state = objectState.tmWorkState[descr]
-                sbToolTip.append(sLineSeparator).append(descr).append(": ").append(if(state == null) "( неизв. )" else if(state) "ВКЛ." else "выкл.")
+        if (objectState.time <= objectParamData.endTime && objectState.pixPoint != null) {
+            var sToolTip = objectNameAndModel + sLineSeparator + "Время: ${DateTime_DMYHMS(zoneId, objectState.time)}"
+            if (objectConfig.scg!!.isUseSpeed) {
+                sToolTip += sLineSeparator + "Скорость: ${objectState.speed} км/ч"
             }
-            for(descr in objectState.tmLiquidLevel.keys) {
+            for (descr in objectState.tmWorkState.keys) {
+                val state = objectState.tmWorkState[descr]
+                sToolTip += sLineSeparator + descr + ": " + (if (state == null) "( неизв. )" else if (state) "ВКЛ." else "выкл.")
+            }
+            for (descr in objectState.tmLiquidLevel.keys) {
                 val error = objectState.tmLiquidError[descr]
                 val value = objectState.tmLiquidLevel[descr]
                 val dim = objectState.tmLiquidDim[descr]
-                sbToolTip.append(sLineSeparator).append(descr).append(": ").append(error ?: if(value == null) "( неизв. )" else getSplittedDouble(value, 0).append(' ').append(dim).toString())
+                sToolTip += sLineSeparator + descr + ": " + (error ?: if (value == null) "( неизв. )" else (getSplittedDouble(value, 0) + ' ' + dim))
             }
             val objectInfo = XyElement(TYPE_OBJECT_INFO, -getRandomInt(), objectParamData.objectID)
-            //objectInfo.init( zoneId )
             objectInfo.itReadOnly = true
-            objectInfo.alPoint.add(objectState.pixPoint!!)
-            objectInfo.toolTipText = sbToolTip.toString()
+            objectInfo.alPoint = arrayOf(objectState.pixPoint!!)
+            objectInfo.toolTipText = sToolTip
 
             objectInfo.markerType =
-                if(objectConfig.scg!!.isUseSpeed || objectConfig.scg!!.isUseRun) XyElement.MarkerType.ARROW else XyElement.MarkerType.DIAMOND
+                if (objectConfig.scg!!.isUseSpeed || objectConfig.scg!!.isUseRun) XyElement.MarkerType.ARROW else XyElement.MarkerType.DIAMOND
             objectInfo.markerSize = 16
             //--- раскраска а/м на карте в зависимости от времени отсутствия данных
-            if(objectConfig.isDisabled) {
+            if (objectConfig.isDisabled) {
                 objectInfo.drawColor = 0xFF000000.toInt()
                 objectInfo.fillColor = 0xFF808080.toInt()
-            } else if(getCurrentTimeInt() - objectState.time > ObjectConfig.CRITICAL_TIME) {
+            } else if (getCurrentTimeInt() - objectState.time > ObjectConfig.CRITICAL_TIME) {
                 objectInfo.drawColor = 0xFF000000.toInt()
                 objectInfo.fillColor = 0xFFFF0000.toInt()
-            } else if(getCurrentTimeInt() - objectState.time > ObjectConfig.WARNING_TIME) {
+            } else if (getCurrentTimeInt() - objectState.time > ObjectConfig.WARNING_TIME) {
                 objectInfo.drawColor = 0xFF000000.toInt()
                 objectInfo.fillColor = 0xFFFFFF00.toInt()
             } else {
@@ -444,7 +443,7 @@ class sdcMMSMap : sdcXyMap() {
             }
             objectInfo.lineWidth = 2
             //--- если угол поворота определить все равно не удалось ( нет траектории и только одна точка cur_pos )
-            objectInfo.rotateDegree = if(objectState.objectAngle == null) 0.0 else objectState.objectAngle!!
+            objectInfo.rotateDegree = if (objectState.objectAngle == null) 0.0 else objectState.objectAngle!!
 
             alElement.add(objectInfo)
 

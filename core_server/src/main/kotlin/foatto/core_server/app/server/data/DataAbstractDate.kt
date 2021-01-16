@@ -31,7 +31,7 @@ abstract class DataAbstractDate(aColumn: iColumn) : DataAbstract(aColumn) {
             arrErrorValue = null
             errorText = null
             return true
-        } catch(t: Throwable) {
+        } catch (t: Throwable) {
             arrErrorValue = arrayOf(sYe, sMo, sDa)
             errorText = "Ошибка ввода даты"
             return false
@@ -39,7 +39,7 @@ abstract class DataAbstractDate(aColumn: iColumn) : DataAbstract(aColumn) {
     }
 
     override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int): TableCell =
-        if(isShowEmptyTableCell) TableCell(row, col, column.rowSpan, column.colSpan)
+        if (isShowEmptyTableCell) TableCell(row, col, column.rowSpan, column.colSpan)
         else TableCell(
             aRow = row,
             aCol = col,
@@ -57,10 +57,11 @@ abstract class DataAbstractDate(aColumn: iColumn) : DataAbstract(aColumn) {
         val fci = FormCell(FormCellType.DATE)
 
         //--- данные ye/mo/da для пользователя выводим как da/mo/ye
-        fci.alDateTimeField.add(Pair(getFieldCellName(2), if(errorText == null) localDate.dayOfMonth.toString() else arrErrorValue!![2]))
-        fci.alDateTimeField.add(Pair(getFieldCellName(1), if(errorText == null) localDate.monthValue.toString() else arrErrorValue!![1]))
-        fci.alDateTimeField.add(Pair(getFieldCellName(0), if(errorText == null) localDate.year.toString() else arrErrorValue!![0]))
-
+        fci.alDateTimeField = fci.alDateTimeField.toMutableList().apply {
+            add(Pair(getFieldCellName(2), if (errorText == null) localDate.dayOfMonth.toString() else arrErrorValue!![2]))
+            add(Pair(getFieldCellName(1), if (errorText == null) localDate.monthValue.toString() else arrErrorValue!![1]))
+            add(Pair(getFieldCellName(0), if (errorText == null) localDate.year.toString() else arrErrorValue!![0]))
+        }.toTypedArray()
         return fci
     }
 

@@ -10,7 +10,6 @@ import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.mAbstract
 import foatto.sql.CoreAdvancedStatement
-import java.util.*
 
 class mWarehouse : mAbstract() {
 
@@ -28,9 +27,10 @@ class mWarehouse : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnWarehouseName = ColumnString(tableName, "name", "Склад / Магазин", STRING_COLUMN_WIDTH)
-        columnWarehouseName.isRequired = true
-        columnWarehouseName.setUnique(true, null)
+        val columnWarehouseName = ColumnString(tableName, "name", "Склад / Магазин", STRING_COLUMN_WIDTH).apply {
+            isRequired = true
+            setUnique(true, null)
+        }
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -67,28 +67,26 @@ class mWarehouse : mAbstract() {
 
     companion object {
 
-        @JvmStatic
-        fun fillWarehouseList(stm: CoreAdvancedStatement): Pair<ArrayList<Int>, ArrayList<String>> {
-            val alWarehouseID = ArrayList<Int>()
-            val alWarehouseName = ArrayList<String>()
+        fun fillWarehouseList(stm: CoreAdvancedStatement): List<Pair<Int, String>> {
+            val alWarehouse = mutableListOf<Pair<Int, String>>()
             val rs = stm.executeQuery(" SELECT id , name FROM SHOP_warehouse WHERE id <> 0 ORDER BY name ")
-            while(rs.next()) {
-                alWarehouseID.add(rs.getInt(1))
-                alWarehouseName.add(rs.getString(2))
+            while (rs.next()) {
+                alWarehouse += Pair(rs.getInt(1), rs.getString(2))
             }
             rs.close()
 
-            return Pair(alWarehouseID, alWarehouseName)
+            return alWarehouse
         }
 
-        @JvmStatic
-        fun fillWarehouseMap(stm: CoreAdvancedStatement): HashMap<Int, String> {
-            val hmWarehouseName = HashMap<Int, String>()
+        fun fillWarehouseMap(stm: CoreAdvancedStatement): Map<Int, String> {
+            val hmWarehouseName = mutableMapOf<Int, String>()
             //--- пустое имя для warehouseID == 0 тоже может пригодиться
             hmWarehouseName[0] = "(все склады / магазины)"
 
             val rs = stm.executeQuery(" SELECT id , name FROM SHOP_warehouse WHERE id <> 0 ORDER BY name ")
-            while(rs.next()) hmWarehouseName[rs.getInt(1)] = rs.getString(2)
+            while (rs.next()) {
+                hmWarehouseName[rs.getInt(1)] = rs.getString(2)
+            }
             rs.close()
 
             return hmWarehouseName

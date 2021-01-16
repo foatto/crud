@@ -3,16 +3,16 @@ package foatto.mms.core_mms.calc
 import foatto.core.util.AdvancedByteBuffer
 import foatto.core.util.byteToHex
 import foatto.mms.core_mms.GeoData
-import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.sensor.config.SensorConfig
+import foatto.mms.core_mms.sensor.config.SensorConfigGeo
 
 object AbstractObjectStateCalc {
 
     const val MAX_SPEED_AS_PARKING = 0
 
-    fun getGeoData(oc: ObjectConfig, bb: AdvancedByteBuffer): GeoData? {
+    fun getGeoData(scg: SensorConfigGeo, bb: AdvancedByteBuffer): GeoData? {
         var gd: GeoData? = null
-        val sensorPortNum = oc.scg!!.portNum
+        val sensorPortNum = scg.portNum
 
         while (bb.hasRemaining()) {
             val (portNum, dataSize) = getSensorPortNumAndDataSize(bb)

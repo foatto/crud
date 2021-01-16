@@ -181,7 +181,7 @@ class cObjectZone : cMMSReport() {
         for(cr in alSortedResult) {
             offsX = 0
 
-            val curGroupName = if(reportGroupType == mObjectZone.GROUP_BY_OBJECT) cr.oc!!.name else cr.zoneName
+            val curGroupName = if (reportGroupType == mObjectZone.GROUP_BY_OBJECT) cr.oc.name else cr.zoneName
             if(lastGroupName != curGroupName) {
                 sheet.addCell(Label(1, offsY, curGroupName, wcfCellCB))
                 sheet.mergeCells(1, offsY, if(reportType == mObjectZone.TYPE_DETAIL) 9 else 8, offsY + 2)
@@ -197,26 +197,21 @@ class cObjectZone : cMMSReport() {
                     else cr.oc.name, wcfCellC
                 )
             )
-            if(reportType == mObjectZone.TYPE_DETAIL) {
+            if (reportType == mObjectZone.TYPE_DETAIL) {
                 sheet.addCell(Label(offsX++, offsY, DateTime_DMYHMS(zoneId, cr.begTime), wcfCellC))
                 sheet.addCell(Label(offsX++, offsY, DateTime_DMYHMS(zoneId, cr.endTime), wcfCellC))
             } else sheet.addCell(Label(offsX++, offsY, cr.count.toString(), wcfCellR))
 
             sheet.addCell(Label(offsX++, offsY, secondIntervalToString(cr.begTime, cr.endTime), wcfCellC))
-            sheet.addCell(Label(offsX++, offsY, getSplittedDouble(cr.calc!!.gcd!!.run, 1).toString(), wcfCellR))
+            sheet.addCell(Label(offsX++, offsY, getSplittedDouble(cr.calc!!.gcd!!.run, 1), wcfCellR))
 
-            val sbWorkName = StringBuilder()
-            val sbWorkTotal = StringBuilder()
-            val sbLiquidUsingName = StringBuilder()
-            val sbLiquidUsingTotal = StringBuilder()
+            val (sWorkDescr, sWorkTotal) = ObjectCalc.fillWorkString(cr.calc!!.tmWork)
+            val (sLiquidUsingName, sLiquidUsingTotal) = ObjectCalc.fillLiquidUsingString(cr.calc!!.tmLiquidUsing)
 
-            ObjectCalc.fillWorkString(cr.calc!!.tmWorkCalc, sbWorkName, sbWorkTotal)
-            ObjectCalc.fillLiquidUsingString(cr.calc!!.tmLiquidUsingTotal, cr.calc!!.tmLiquidUsingCalc, sbLiquidUsingName, sbLiquidUsingTotal, StringBuilder())
-
-            sheet.addCell(Label(offsX++, offsY, sbWorkName.toString(), wcfCellC))
-            sheet.addCell(Label(offsX++, offsY, sbWorkTotal.toString(), wcfCellR))
-            sheet.addCell(Label(offsX++, offsY, sbLiquidUsingName.toString(), wcfCellC))
-            sheet.addCell(Label(offsX++, offsY, sbLiquidUsingTotal.toString(), wcfCellR))
+            sheet.addCell(Label(offsX++, offsY, sWorkDescr, wcfCellC))
+            sheet.addCell(Label(offsX++, offsY, sWorkTotal, wcfCellR))
+            sheet.addCell(Label(offsX++, offsY, sLiquidUsingName, wcfCellC))
+            sheet.addCell(Label(offsX++, offsY, sLiquidUsingTotal, wcfCellR))
 
             offsY++
         }
@@ -231,7 +226,6 @@ class cObjectZone : cMMSReport() {
 
         val alResult = mutableListOf<ObjectZoneCalcResult>()
 
-        //--- загрузка стартовых параметров
         //--- загрузка стартовых параметров
         val reportObjectUser = hmReportParam["report_object_user"] as Int
         val reportObject = hmReportParam["report_object"] as Int
@@ -277,7 +271,7 @@ class cObjectZone : cMMSReport() {
                     break
                 }
 
-                val gd = AbstractObjectStateCalc.getGeoData(oc, alRawData[timeIndex]) ?: continue
+                val gd = AbstractObjectStateCalc.getGeoData(oc.scg!!, alRawData[timeIndex]) ?: continue
                 //--- самих геоданных может и не оказаться
 
                 val pixPoint = XyProjection.wgs_pix(gd.wgs)
@@ -357,16 +351,11 @@ class cObjectZone : cMMSReport() {
 
             calc!!.gcd!!.run += cr.calc!!.gcd!!.run
 
-            for ((name, wcdNew) in cr.calc!!.tmWorkCalc) {
-                val wcdSum = calc!!.tmWorkCalc[name]
+            for ((descr, wcdNew) in cr.calc!!.tmWork) {
+                val wcdSum = calc!!.tmWork[descr]
 
-                if (wcdSum == null) calc!!.tmWorkCalc[name] = wcdNew
+                if (wcdSum == null) calc!!.tmWork[descr] = wcdNew
                 else wcdSum.onTime += wcdNew.onTime
-            }
-
-            cr.calc!!.tmLiquidUsingTotal.forEach { (name, value) ->
-                val lucdSum = calc!!.tmLiquidUsingCalc[name] ?: 0.0
-                calc!!.tmLiquidUsingCalc[name] = lucdSum + value
             }
 
             count++

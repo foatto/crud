@@ -3,7 +3,6 @@ package foatto.mms.core_mms.sensor.config
 class SensorConfigWork(
     aId: Int,
     aName: String,
-    aSumGroup: String,
     aGroup: String,
     aDescr: String,
     aPortNum: Int,
@@ -21,4 +20,4 @@ class SensorConfigWork(
     val maxIgnore: Double,
     val liquidName: String,
     val liquidNorm: Double
-) : SensorConfig(aId, aName, aSumGroup, aGroup, aDescr, aPortNum, aSensorType)
+) : SensorConfig(aId, aName, aGroup, aDescr, aPortNum, aSensorType)

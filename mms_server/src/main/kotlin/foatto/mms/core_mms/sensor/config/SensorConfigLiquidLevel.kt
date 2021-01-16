@@ -3,7 +3,6 @@ package foatto.mms.core_mms.sensor.config
 class SensorConfigLiquidLevel(
     aId: Int,
     aName: String,
-    aSumGroup: String,
     aGroup: String,
     aDescr: String,
     aPortNum: Int,
@@ -32,7 +31,6 @@ class SensorConfigLiquidLevel(
 ) : SensorConfigAnalogue(
     aId = aId,
     aName = aName,
-    aSumGroup = aSumGroup,
     aGroup = aGroup,
     aDescr = aDescr,
     aPortNum = aPortNum,

@@ -6,7 +6,6 @@ import foatto.core.link.FormData
 import foatto.core.link.TableCell
 import foatto.core.util.Time_HM
 import foatto.core.util.Time_HMS
-import foatto.core_server.app.server.column.ColumnTime3Int
 import foatto.core_server.app.server.column.ColumnTimeDT
 import foatto.core_server.app.server.column.iColumn
 import foatto.sql.CoreAdvancedResultSet
@@ -35,15 +34,15 @@ class DataTimeDT(aColumn: iColumn) : DataAbstractTime(aColumn) {
 
         val sHo = formData.alDateTimeValue!![0]
         val sMi = formData.alDateTimeValue!![1]
-        val sSe = if(ct.withSecond) formData.alDateTimeValue!![2] else "0"
+        val sSe = if (ct.withSecond) formData.alDateTimeValue!![2] else "0"
 
         try {
             localTime = LocalTime.of(sHo.toInt(), sMi.toInt(), sSe.toInt())
             arrErrorValue = null
             errorText = null
             return true
-        } catch(t: Throwable) {
-            arrErrorValue = if(ct.withSecond) arrayOf(sHo, sMi, sSe) else arrayOf(sHo, sMi)
+        } catch (t: Throwable) {
+            arrErrorValue = if (ct.withSecond) arrayOf(sHo, sMi, sSe) else arrayOf(sHo, sMi)
             errorText = "Ошибка ввода времени"
             return false
         }
@@ -52,7 +51,7 @@ class DataTimeDT(aColumn: iColumn) : DataAbstractTime(aColumn) {
     override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int): TableCell {
         val ct = column as ColumnTimeDT
 
-        return if(isShowEmptyTableCell) TableCell(row, col, column.rowSpan, column.colSpan)
+        return if (isShowEmptyTableCell) TableCell(row, col, column.rowSpan, column.colSpan)
         else TableCell(
             aRow = row,
             aCol = col,
@@ -63,21 +62,17 @@ class DataTimeDT(aColumn: iColumn) : DataAbstractTime(aColumn) {
             aIsWordWrap = column.isWordWrap,
             aTooltip = column.caption,
 
-            aText = if(ct.withSecond) Time_HMS(localTime) else Time_HM(localTime)
+            aText = if (ct.withSecond) Time_HMS(localTime) else Time_HM(localTime)
         )
     }
 
     override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement): FormCell {
-        val ct = column as ColumnTime3Int
+        val ct = column as ColumnTimeDT
 
         val fci = FormCell(FormCellType.TIME)
 
         fci.withSecond = ct.withSecond
-
-        fci.alDateTimeField.add(Pair(getFieldCellName(0), if(errorText == null) localTime.hour.toString() else arrErrorValue!![0]))
-        fci.alDateTimeField.add(Pair(getFieldCellName(1), if(errorText == null) (if(localTime.minute < 10) "0" else "") + localTime.minute else arrErrorValue!![1]))
-        if(ct.withSecond)
-            fci.alDateTimeField.add(Pair(getFieldCellName(2), if(errorText == null) (if(localTime.second < 10) "0" else "") + localTime.second else arrErrorValue!![2]))
+        fci.alDateTimeField = getDateTimeField(fci.alDateTimeField, ct.withSecond)
 
         return fci
     }

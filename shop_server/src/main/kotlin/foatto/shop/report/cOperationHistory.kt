@@ -22,7 +22,7 @@ import java.util.*
 
 class cOperationHistory : cAbstractReport() {
 
-    private lateinit var hmWarehouseName: HashMap<Int, String>
+    private lateinit var hmWarehouseName: Map<Int, String>
     private lateinit var tmWarehouseID: TreeMap<String, Int>
     private lateinit var hmCatalogName: HashMap<Int, String>
 

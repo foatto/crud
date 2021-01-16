@@ -2,7 +2,6 @@ package foatto.mms.core_mms.graphic.server.graphic_handler
 
 import foatto.core.app.graphic.GraphicColorIndex
 import foatto.core.app.graphic.GraphicDataContainer
-import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.calc.ObjectCalc
 import foatto.mms.core_mms.sensor.config.SensorConfigAnalogue
 import foatto.mms.core_mms.sensor.config.SensorConfigLiquidLevel
@@ -22,7 +21,7 @@ class LiquidGraphicHandler : AnalogGraphicHandler() {
 
     //----------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun getLineColorIndex(oc: ObjectConfig, sca: SensorConfigAnalogue, rawTime: Int, rawData: Double, prevTime: Int, prevData: Double): GraphicColorIndex {
+    override fun getLineColorIndex(sca: SensorConfigAnalogue, rawTime: Int, rawData: Double, prevTime: Int, prevData: Double): GraphicColorIndex {
         //--- checking for coincidence of the start / end points, so that there is no division by zero later
         if (rawTime == prevTime) return lineNormalColorIndex
 

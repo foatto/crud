@@ -242,15 +242,15 @@ abstract class cMMSReport : cAbstractReport() {
 
     fun fillReportHeader( zoneData: ZoneData?, sheet: WritableSheet, aOffsY: Int ): Int {
         var offsY = aOffsY
-        lateinit var zoneInfo: String
-        if( zoneData == null ) zoneInfo = "(все)"
-        else {
-            val sbZone = StringBuilder( zoneData.name )
-            if( !zoneData.descr.isEmpty() ) sbZone.append( " (" ).append( zoneData.descr ).append( ')' )
-            zoneInfo = sbZone.toString()
-        }
-        sheet.addCell( Label( 1, offsY, "Геозона:", wcfTitleName ) )
-        sheet.addCell( Label( 2, offsY, zoneInfo, wcfTitleValue ) )
+        val zoneInfo = zoneData?.let {
+            var sZone = zoneData.name
+            if (zoneData.descr.isNotEmpty()) {
+                sZone += " (${zoneData.descr})"
+            }
+            sZone
+        } ?: "(все)"
+        sheet.addCell(Label(1, offsY, "Геозона:", wcfTitleName))
+        sheet.addCell(Label(2, offsY, zoneInfo, wcfTitleValue))
         offsY += 2      // + пропуск строки между заголовком и шапкой отчета
         return offsY
     }
@@ -295,13 +295,11 @@ abstract class cMMSReport : cAbstractReport() {
             if( groupID != 0 ) sb.append( " AND group_id = " ).append( groupID )
             sb.append( " ORDER BY name " )
 
-            //--- отдельный статемент на запрос, т.к. внутри него проходят свои подзапросы
             val rs = stm.executeQuery( sb.toString() )
             while( rs.next() ) {
                 val aID = rs.getInt( 1 )
                 val uID = rs.getInt( 2 )
 
-                //--- применяем именно conn-версию getOtherOwner, т.к. текущий Statement занят
                 if( userID != 0 || checkPerm( userConfig, hsObjectPermission, PERM_TABLE, OtherOwnerData.getOtherOwner( stm, objectAliasID, aID, uID, userConfig.userID ) ) )
                     alObject.add( aID )
             }

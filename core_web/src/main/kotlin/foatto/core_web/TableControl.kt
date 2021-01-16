@@ -4,9 +4,9 @@ import foatto.core.app.*
 import foatto.core.link.*
 import foatto.core_web.external.vue.that
 import foatto.core_web.external.vue.vueComponentOptions
+import kotlinx.browser.window
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.MouseEvent
-import kotlin.browser.window
 import kotlin.js.Json
 import kotlin.js.json
 import kotlin.math.max

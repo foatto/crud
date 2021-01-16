@@ -3,6 +3,7 @@ package foatto.mms.core_mms.report
 import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
+import foatto.core_server.app.server.column.ColumnBoolean
 import foatto.core_server.app.server.column.ColumnComboBox
 import foatto.core_server.app.server.column.ColumnDate3Int
 import foatto.core_server.app.server.column.ColumnInt
@@ -29,6 +30,11 @@ class mDayWork : mAbstractReport() {
     lateinit var columnReportGroupType: ColumnComboBox
         private set
 
+    lateinit var columnOutTemperature: ColumnBoolean
+        private set
+    lateinit var columnOutDensity: ColumnBoolean
+        private set
+
     lateinit var sos: SumOptionSelector
         private set
 
@@ -53,19 +59,31 @@ class mDayWork : mAbstractReport() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnReportBegDate = ColumnDate3Int(tableName, "beg_ye", "beg_mo", "beg_da", "Начало периода")
-        if(arrADR != null) columnReportBegDate.default = LocalDate.of(arrADR[0], arrADR[1], arrADR[2])
-        columnReportBegDate.isVirtual = true
+        columnReportBegDate = ColumnDate3Int(tableName, "beg_ye", "beg_mo", "beg_da", "Начало периода").apply {
+            if (arrADR != null) default = LocalDate.of(arrADR[0], arrADR[1], arrADR[2])
+            isVirtual = true
+        }
 
-        columnReportEndDate = ColumnDate3Int(tableName, "end_ye", "end_mo", "end_da", "Конец периода")
-        if(arrADR != null) columnReportEndDate.default = LocalDate.of(arrADR[0], arrADR[1], arrADR[2])
-        columnReportEndDate.isVirtual = true
+        columnReportEndDate = ColumnDate3Int(tableName, "end_ye", "end_mo", "end_da", "Конец периода").apply {
+            if (arrADR != null) default = LocalDate.of(arrADR[0], arrADR[1], arrADR[2])
+            isVirtual = true
+        }
 
-        columnReportGroupType = ColumnComboBox(tableName, "object_date_group_type", "Группировка", GROUP_BY_OBJECT)
-        columnReportGroupType.addChoice(GROUP_BY_OBJECT, "По объектам")
-        columnReportGroupType.addChoice(GROUP_BY_DATE, "По датам")
-        columnReportGroupType.isVirtual = true
-        columnReportGroupType.setSavedDefault(userConfig)
+        columnReportGroupType = ColumnComboBox(tableName, "object_date_group_type", "Группировка", GROUP_BY_OBJECT).apply {
+            addChoice(GROUP_BY_OBJECT, "По объектам")
+            addChoice(GROUP_BY_DATE, "По датам")
+            isVirtual = true
+            setSavedDefault(userConfig)
+        }
+
+        columnOutTemperature = ColumnBoolean(tableName, "out_temperature", "Выводить показания температуры", false).apply {
+            isVirtual = true
+            setSavedDefault(userConfig)
+        }
+        columnOutDensity = ColumnBoolean(tableName, "out_density", "Выводить показания плотности", true).apply {
+            isVirtual = true
+            setSavedDefault(userConfig)
+        }
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -79,6 +97,8 @@ class mDayWork : mAbstractReport() {
         alFormColumn.add(columnReportBegDate)
         alFormColumn.add(columnReportEndDate)
         alFormColumn.add(columnReportGroupType)
+        alFormColumn.add(columnOutTemperature)
+        alFormColumn.add(columnOutDensity)
 
         sos = SumOptionSelector()
         sos.fillColumns(userConfig, tableName, alFormColumn)

@@ -19,8 +19,8 @@ open class cAbstractForm : cStandart() {
     override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
 
         val alColumnList = mutableListOf<iColumn>()
-        alColumnList.addAll( model.alFormHiddenColumn )
-        alColumnList.addAll( model.alFormColumn )
+        alColumnList.addAll(model.alFormHiddenColumn)
+        alColumnList.addAll(model.alFormColumn)
 
         val id = getIDFromParam()
 
@@ -28,11 +28,11 @@ open class cAbstractForm : cStandart() {
         val returnURL = checkInput(id, alFormData, alColumnList, hmColumnData, hmOut)
 
         //--- если нет ошибок, то сохраним значения saved-default-values
-        if( returnURL == null )
-            for( column in hmColumnData.keys )
-                if( column.isSavedDefault )
-                    column.saveDefault( stm, userConfig, hmColumnData )
-
+        if (returnURL == null) {
+            for (column in hmColumnData.keys)
+                if (column.isSavedDefault)
+                    column.saveDefault(stm, userConfig, hmColumnData)
+        }
         return returnURL
     }
 }

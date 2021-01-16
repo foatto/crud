@@ -36,14 +36,14 @@ class DataDouble(aColumn: iColumn) : DataAbstract(aColumn) {
     override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String, id: Int): Boolean {
         val strValue = formData.stringValue!!
 
-        if(cd.isRequired && strValue.isBlank()) {
+        if (cd.isRequired && strValue.isBlank()) {
             errorValue = strValue
             errorText = "Обязательно для заполнения"
             return false
         }
         try {
             value = strValue.replace(',', '.').replace(" ", "").toDouble()
-        } catch(t: Throwable) {
+        } catch (t: Throwable) {
             value = 0.0
             errorValue = strValue
             errorText = "Ошибка ввода"
@@ -51,18 +51,18 @@ class DataDouble(aColumn: iColumn) : DataAbstract(aColumn) {
         }
 
         //--- проверка на минимум
-        if(cd.minValue != null && value < cd.minValue!!) {
+        if (cd.minValue != null && value < cd.minValue!!) {
             errorValue = strValue
             errorText = "Значение должно быть не меньше, чем ${cd.minValue}"
             return false
         }
         //--- проверка на максимум
-        if(cd.maxValue != null && value > cd.maxValue!!) {
+        if (cd.maxValue != null && value > cd.maxValue!!) {
             errorValue = strValue
             errorText = "Значение должно быть не больше, чем ${cd.maxValue}"
             return false
         }
-        if(column.isUnique &&
+        if (column.isUnique &&
             (column.uniqueIgnore == null || column.uniqueIgnore != value) &&
             stm.checkExist(column.tableName, column.alFieldName[0], value, fieldNameID, id)
         ) {
@@ -75,7 +75,7 @@ class DataDouble(aColumn: iColumn) : DataAbstract(aColumn) {
     }
 
     override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int): TableCell =
-        if(isShowEmptyTableCell) TableCell(row, col, column.rowSpan, column.colSpan)
+        if (isShowEmptyTableCell) TableCell(row, col, column.rowSpan, column.colSpan)
         else TableCell(
             aRow = row,
             aCol = col,
@@ -92,9 +92,9 @@ class DataDouble(aColumn: iColumn) : DataAbstract(aColumn) {
     override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement): FormCell {
         val fci = FormCell(FormCellType.DOUBLE)
         fci.name = getFieldCellName(0)
-        fci.value = if(errorText == null) getSplittedDouble(value, cd.precision).toString() else errorValue!!
+        fci.value = if (errorText == null) getSplittedDouble(value, cd.precision) else errorValue!!
         fci.column = cd.cols
-        fci.alComboString.addAll(cd.alCombo)
+        fci.alComboString = cd.alCombo.toTypedArray()
         return fci
     }
 
@@ -107,8 +107,8 @@ class DataDouble(aColumn: iColumn) : DataAbstract(aColumn) {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     private fun getReportString(): String {
-        return if(cd.emptyValue != null && cd.emptyValue == value) cd.emptyText!!
-        else getSplittedDouble(value, cd.precision).toString()
+        return if (cd.emptyValue != null && cd.emptyValue == value) cd.emptyText!!
+        else getSplittedDouble(value, cd.precision)
     }
 
     private fun validate(obj: Double?) = obj ?: 0.0

@@ -7,7 +7,8 @@ import foatto.core.link.MenuData
 import foatto.core.link.SaveUserPropertyRequest
 import foatto.core_web.external.vue.that
 import foatto.core_web.external.vue.vueComponentOptions
-import kotlin.browser.localStorage
+import kotlinx.browser.localStorage
+import kotlinx.browser.window
 import kotlin.js.json
 
 private const val CMD_SET_START_PAGE = "set_start_page"
@@ -16,14 +17,18 @@ private const val CMD_CHANGE_PASSWORD = "change_password"
 private const val CMD_LOGOFF = "logoff"
 private const val CMD_TIME_OFFSET_PREFIX = "timeoffset_"
 
-private val arrTZOffset = intArrayOf( 0, 1 * 60 * 60, 2 * 60 * 60, 3 * 60 * 60, 4 * 60 * 60, 5 * 60 * 60, 6 * 60 * 60,
-                                      7 * 60 * 60, 8 * 60 * 60, 9 * 60 * 60, 10 * 60 * 60, 11 * 60 * 60, 12 * 60 * 60 )
+private val arrTZOffset = intArrayOf(
+    0, 1 * 60 * 60, 2 * 60 * 60, 3 * 60 * 60, 4 * 60 * 60, 5 * 60 * 60, 6 * 60 * 60,
+    7 * 60 * 60, 8 * 60 * 60, 9 * 60 * 60, 10 * 60 * 60, 11 * 60 * 60, 12 * 60 * 60
+)
 
-val arrRbmiTZ = arrayOf( "UTC+00:00", "UTC+01:00", "UTC+02:00", "UTC+03:00", "UTC+04:00", "UTC+05:00", "UTC+06:00",
-                         "UTC+07:00", "UTC+08:00", "UTC+09:00", "UTC+10:00", "UTC+11:00", "UTC+12:00" )
+val arrRbmiTZ = arrayOf(
+    "UTC+00:00", "UTC+01:00", "UTC+02:00", "UTC+03:00", "UTC+04:00", "UTC+05:00", "UTC+06:00",
+    "UTC+07:00", "UTC+08:00", "UTC+09:00", "UTC+10:00", "UTC+11:00", "UTC+12:00"
+)
 
 @Suppress("UnsafeCastFromDynamic")
-fun menuBar( arrMenuData: Array<MenuData> ) = vueComponentOptions().apply {
+fun menuBar(arrMenuData: Array<MenuData>) = vueComponentOptions().apply {
 
     //--- убрать этот вложенный ужас, переделать на циклические шаблоны
     this.template = """
@@ -93,21 +98,19 @@ fun menuBar( arrMenuData: Array<MenuData> ) = vueComponentOptions().apply {
             that().isShowMainMenu = false
 
             //--- when не подойдёт из-за сложных else в конце
-            if( url == CMD_SET_START_PAGE ) {
+            if (url == CMD_SET_START_PAGE) {
                 val curAppParam = that().`$root`.curAppParam.unsafeCast<String>()
-                localStorage.setItem( LOCAL_STORAGE_APP_PARAM, curAppParam )
-            }
-            else if( url == CMD_CLEAR_START_PAGE ) {
-                localStorage.removeItem( LOCAL_STORAGE_APP_PARAM )
-            }
-            else if( url == CMD_CHANGE_PASSWORD ) {
-                val password1 = kotlin.browser.window.prompt( "Введите новый пароль" )
+                localStorage.setItem(LOCAL_STORAGE_APP_PARAM, curAppParam)
+            } else if (url == CMD_CLEAR_START_PAGE) {
+                localStorage.removeItem(LOCAL_STORAGE_APP_PARAM)
+            } else if (url == CMD_CHANGE_PASSWORD) {
+                val password1 = window.prompt("Введите новый пароль")
                 password1?.let {
-                    val password2 = kotlin.browser.window.prompt( "Введите ещё раз" )
+                    val password2 = window.prompt("Введите ещё раз")
                     password2?.let {
                         //--- проверка нового пароля
-                        if( password1 != password2 ) kotlin.browser.window.alert( "Вы ввели разные пароли.\nПопробуйте ввести еще раз." )
-                        else if( password1.length <= 3 ) kotlin.browser.window.alert( "Слишком короткий пароль.\nПопробуйте ввести еще раз." )
+                        if (password1 != password2) window.alert("Вы ввели разные пароли.\nПопробуйте ввести еще раз.")
+                        else if (password1.length <= 3) window.alert("Слишком короткий пароль.\nПопробуйте ввести еще раз.")
                         else {
                             //--- проверку комплексности пароля пока пропустим. Не любят этого пользователи.
                             //if(  pwd.length() < 8  ) return false;
@@ -120,39 +123,36 @@ fun menuBar( arrMenuData: Array<MenuData> ) = vueComponentOptions().apply {
                             //        break;
                             //    }
                             //return haveDigit;
-                            invokeChangePassword( ChangePasswordRequest( encodePassword( password1 ) ) )
-                            kotlin.browser.window.alert( "Пароль успешно сменен." )
+                            invokeChangePassword(ChangePasswordRequest(encodePassword(password1)))
+                            window.alert("Пароль успешно сменен.")
                         }
                     }
                 }
-            }
-            else if( url == CMD_LOGOFF ) {
-                val localStorage = kotlin.browser.localStorage
-                localStorage.setItem( LOCAL_STORAGE_LOGIN, "" )
-                localStorage.setItem( LOCAL_STORAGE_PASSWORD, "" )
+            } else if (url == CMD_LOGOFF) {
+                val localStorage = localStorage
+                localStorage.setItem(LOCAL_STORAGE_LOGIN, "")
+                localStorage.setItem(LOCAL_STORAGE_PASSWORD, "")
 
-                invokeLogoff( LogoffRequest() )
-            }
-            else if( url.startsWith( CMD_TIME_OFFSET_PREFIX ) ) {
-                val newTimeOffsetInSec = url.substringAfterLast( '_' ).toInt()
+                invokeLogoff(LogoffRequest())
+            } else if (url.startsWith(CMD_TIME_OFFSET_PREFIX)) {
+                val newTimeOffsetInSec = url.substringAfterLast('_').toInt()
 
                 that().`$root`.timeOffset = newTimeOffsetInSec
                 //--- на сервере лежит в миллисекундах - избыточно, но менять уже не будем
-                invokeSaveUserProperty( SaveUserPropertyRequest( UP_TIME_OFFSET, newTimeOffsetInSec.toString() ) )
-            }
-            else that().`$root`.openTab( url )
+                invokeSaveUserProperty(SaveUserPropertyRequest(UP_TIME_OFFSET, newTimeOffsetInSec.toString()))
+            } else that().`$root`.openTab(url)
         },
         "setMenuShow" to { level: Int, index: Int ->
-            val oldValue = that().arrShowMenu[ level ][ index ].unsafeCast<Boolean>()
-            that().arrShowMenu[ level ].splice( index, 1, !oldValue )
+            val oldValue = that().arrShowMenu[level][index].unsafeCast<Boolean>()
+            that().arrShowMenu[level].splice(index, 1, !oldValue)
         }
     )
 
     this.mounted = {
         //--- добавить клиентское меню и преобразовать в локальную структуру
-        that().arrMenuData = convertMenuData( addClientMenu( arrMenuData ) )
+        that().arrMenuData = addClientMenu(arrMenuData)
 
-        val arrShowMenu = Array( 5 ) { BooleanArray( 100 ) { false } }
+        val arrShowMenu = Array(5) { BooleanArray(100) { false } }
         that().arrShowMenu = arrShowMenu
     }
 
@@ -199,47 +199,42 @@ fun menuBar( arrMenuData: Array<MenuData> ) = vueComponentOptions().apply {
     }
 }
 
-private class MenuData_( val url: String, val text: String, val alSubMenu: Array<MenuData_>? = null, val isHover: Boolean = false )
-
-private fun convertMenuData( arrMenuData: Array<MenuData> ): Array<MenuData_> =
-    arrMenuData.map { MenuData_( it.url, it.text, if( it.alSubMenu == null ) null else convertMenuData( it.alSubMenu ), false ) }.toTypedArray()
-
-private fun addClientMenu( arrMenuData: Array<MenuData> ): Array<MenuData> {
+private fun addClientMenu(arrMenuData: Array<MenuData>): Array<MenuData> {
     val alSubMenu = mutableListOf<MenuData>()
 
 //    miUserDoc = MenuItem( "Руководство пользователя" )
 //    miUserDoc.onAction = this as EventHandler<ActionEvent>
 //    menuClientStaticMenu.items.add( miUserDoc )
 
-    alSubMenu.add( MenuData( CMD_SET_START_PAGE, "Установить вкладку как стартовую", null ) )
-    alSubMenu.add( MenuData( CMD_CLEAR_START_PAGE, "Очистить установку стартовой", null ) )
+    alSubMenu.add(MenuData(CMD_SET_START_PAGE, "Установить вкладку как стартовую", null))
+    alSubMenu.add(MenuData(CMD_CLEAR_START_PAGE, "Очистить установку стартовой", null))
 
-    alSubMenu.add( MenuData( "", "" ) )
+    alSubMenu.add(MenuData("", ""))
 
-    alSubMenu.add( MenuData( CMD_CHANGE_PASSWORD, "Сменить пароль", null ) )
+    alSubMenu.add(MenuData(CMD_CHANGE_PASSWORD, "Сменить пароль", null))
 
-    alSubMenu.add( MenuData( "", "" ) )
+    alSubMenu.add(MenuData("", ""))
 
     val alTimeOffsetMenu = mutableListOf<MenuData>()
-    for( i in arrTZOffset.indices ) {
-        alTimeOffsetMenu.add( MenuData( CMD_TIME_OFFSET_PREFIX + arrTZOffset[ i ], arrRbmiTZ[ i ], null ) )
+    for (i in arrTZOffset.indices) {
+        alTimeOffsetMenu.add(MenuData(CMD_TIME_OFFSET_PREFIX + arrTZOffset[i], arrRbmiTZ[i], null))
     }
 
-    alSubMenu.add( MenuData( "", "Часовой пояс", alTimeOffsetMenu.toTypedArray() ) )
+    alSubMenu.add(MenuData("", "Часовой пояс", alTimeOffsetMenu.toTypedArray()))
 
-    alSubMenu.add( MenuData( "", "" ) )
+    alSubMenu.add(MenuData("", ""))
 
-    alSubMenu.add( MenuData( CMD_LOGOFF, "Выход из системы", null ) )
+    alSubMenu.add(MenuData(CMD_LOGOFF, "Выход из системы", null))
 
-    alSubMenu.add( MenuData( "", "" ) )
+    alSubMenu.add(MenuData("", ""))
 
-    alSubMenu.add( MenuData( "", "outer width = ${kotlin.browser.window.outerWidth}", null ) )
-    alSubMenu.add( MenuData( "", "inner width = ${kotlin.browser.window.innerWidth}", null ) )
-    alSubMenu.add( MenuData( "", "device pixel ratio = ${kotlin.browser.window.devicePixelRatio}", null ) )
-    alSubMenu.add( MenuData( "", "touch screen = ${styleIsTouchScreen()}", null ) )
+    alSubMenu.add(MenuData("", "outer width = ${window.outerWidth}", null))
+    alSubMenu.add(MenuData("", "inner width = ${window.innerWidth}", null))
+    alSubMenu.add(MenuData("", "device pixel ratio = ${window.devicePixelRatio}", null))
+    alSubMenu.add(MenuData("", "touch screen = ${styleIsTouchScreen()}", null))
 
     val alMenuData = arrMenuData.toMutableList()
-    alMenuData.add( MenuData( "", "Дополнительно", alSubMenu.toTypedArray() ) )
+    alMenuData.add(MenuData("", "Дополнительно", alSubMenu.toTypedArray()))
 
     return alMenuData.toTypedArray()
 }

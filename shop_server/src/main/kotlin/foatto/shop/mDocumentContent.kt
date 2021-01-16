@@ -4,7 +4,13 @@ import foatto.core.link.TableCellAlign
 import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
-import foatto.core_server.app.server.column.*
+import foatto.core_server.app.server.column.ColumnBoolean
+import foatto.core_server.app.server.column.ColumnComboBox
+import foatto.core_server.app.server.column.ColumnDate3Int
+import foatto.core_server.app.server.column.ColumnDateTimeInt
+import foatto.core_server.app.server.column.ColumnDouble
+import foatto.core_server.app.server.column.ColumnInt
+import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.mAbstract
 import foatto.sql.CoreAdvancedStatement
 
@@ -18,9 +24,6 @@ class mDocumentContent : mAbstract() {
     lateinit var columnDocumentType: ColumnComboBox
         private set
     lateinit var columnDocumentDate: ColumnDate3Int
-        private set
-
-    lateinit var columnWarehouseSour: iColumn
         private set
 
     lateinit var columnSourCatalog: ColumnInt
@@ -64,7 +67,7 @@ class mDocumentContent : mAbstract() {
 
         val hmAliasConfig = AliasConfig.getConfig(stm)
 
-        val (alWarehouseID, alWarehouseName) = mWarehouse.fillWarehouseList(stm)
+        val alWarehouse = mWarehouse.fillWarehouseList(stm)
 
         val docType = DocumentTypeConfig.hmAliasDocType[aliasConfig.alias]
 
@@ -78,7 +81,7 @@ class mDocumentContent : mAbstract() {
         //--- получить данные по правам доступа
         val hsPermission = userConfig.userPermission[aliasConfig.alias]
         //--- при добавлении модуля в систему прав доступа к нему ещё нет
-        val isAuditMode = hsPermission != null && hsPermission.contains(cDocumentContent.PERM_AUDIT_MODE)
+        val isAuditMode = hsPermission?.contains(cDocumentContent.PERM_AUDIT_MODE) ?: false
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -90,10 +93,12 @@ class mDocumentContent : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnCreateTime = ColumnDateTimeInt(tableName, "create_time", "Создание", true, zoneId)
-        columnCreateTime.isEditable = false
-        columnEditTime = ColumnDateTimeInt(tableName, "edit_time", "Изменение", true, zoneId)
-        columnEditTime.isEditable = false
+        val columnCreateTime = ColumnDateTimeInt(tableName, "create_time", "Создание", true, zoneId).apply {
+            isEditable = false
+        }
+        columnEditTime = ColumnDateTimeInt(tableName, "edit_time", "Изменение", true, zoneId).apply {
+            isEditable = false
+        }
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -102,26 +107,33 @@ class mDocumentContent : mAbstract() {
         val columnDocumentID = ColumnInt("SHOP_doc", "id")
         columnDocument = ColumnInt(tableName, "doc_id", columnDocumentID, docID)
 
-        columnDocumentType = ColumnComboBox("SHOP_doc", "doc_type", "Тип накладной")
-        for((dt, an) in DocumentTypeConfig.hmDocTypeAlias)
-            columnDocumentType.addChoice(dt, hmAliasConfig[an]!!.descr)
-
+        columnDocumentType = ColumnComboBox("SHOP_doc", "doc_type", "Тип накладной").apply {
+            for ((dt, an) in DocumentTypeConfig.hmDocTypeAlias)
+                addChoice(dt, hmAliasConfig[an]!!.descr)
+        }
         columnDocumentDate = ColumnDate3Int("SHOP_doc", "doc_ye", "doc_mo", "doc_da", "Дата")
 
-        if(DocumentTypeConfig.hsUseSourWarehouse.contains(docType)) {
-            columnWarehouseSour = ColumnComboBox("SHOP_doc", "sour_id", if(docType == DocumentTypeConfig.TYPE_RESORT) "Склад / магазин" else "Со склада / магазина")
-            (columnWarehouseSour as ColumnComboBox).addChoice(0, "")
-            for(i in alWarehouseID.indices)
-                (columnWarehouseSour as ColumnComboBox).addChoice(alWarehouseID[i], alWarehouseName[i])
-        } else columnWarehouseSour = ColumnInt("SHOP_doc", "sour_id", 0)
+        val columnWarehouseSour = if (DocumentTypeConfig.hsUseSourWarehouse.contains(docType)) {
+            ColumnComboBox("SHOP_doc", "sour_id", if (docType == DocumentTypeConfig.TYPE_RESORT) "Склад / магазин" else "Со склада / магазина").apply {
+                addChoice(0, "")
+                alWarehouse.forEach { wh ->
+                    addChoice(wh.first, wh.second)
+                }
+            }
+        } else {
+            ColumnInt("SHOP_doc", "sour_id", 0)
+        }
 
-        val columnWarehouseDest: iColumn
-        if(DocumentTypeConfig.hsUseDestWarehouse.contains(docType)) {
-            columnWarehouseDest = ColumnComboBox("SHOP_doc", "dest_id", "На склад / магазин")
-            columnWarehouseDest.addChoice(0, "")
-            for(i in alWarehouseID.indices)
-                columnWarehouseDest.addChoice(alWarehouseID[i], alWarehouseName[i])
-        } else columnWarehouseDest = ColumnInt("SHOP_doc", "dest_id", 0)
+        val columnWarehouseDest = if (DocumentTypeConfig.hsUseDestWarehouse.contains(docType)) {
+            ColumnComboBox("SHOP_doc", "dest_id", "На склад / магазин").apply {
+                addChoice(0, "")
+                alWarehouse.forEach { wh ->
+                    addChoice(wh.first, wh.second)
+                }
+            }
+        } else {
+            ColumnInt("SHOP_doc", "dest_id", 0)
+        }
 
         val columnDocumentNo = ColumnString("SHOP_doc", "doc_no", "№ накладной", STRING_COLUMN_WIDTH)
         val columnClientID = ColumnInt("SHOP_client", "id")
@@ -130,67 +142,85 @@ class mDocumentContent : mAbstract() {
         val columnDocumentDescr = ColumnString("SHOP_doc", "descr", "Примечание", STRING_COLUMN_WIDTH)
 
         val selfLinkSourTableName = "SHOP_catalog_1"
-        val columnSourCatalogID = ColumnInt(selfLinkSourTableName, "id")
-        columnSourCatalogID.selfLinkTableName = "SHOP_catalog"
+        val columnSourCatalogID = ColumnInt(selfLinkSourTableName, "id").apply {
+            selfLinkTableName = "SHOP_catalog"
+        }
         columnSourCatalog = ColumnInt(tableName, "sour_id", columnSourCatalogID)
         columnSourCatalogName = ColumnString(
-            selfLinkSourTableName, "name",
-            if(docType == DocumentTypeConfig.TYPE_ALL || docType == DocumentTypeConfig.TYPE_RESORT) "Исх. наименование" else "Наименование",
-            3, STRING_COLUMN_WIDTH, textFieldMaxSize
-        )
-        columnSourCatalogName.selfLinkTableName = "SHOP_catalog"  // для правильной работы селектора с подстановочной таблицей
-        columnSourCatalogName.isRequired = isUseSourCatalog
+            aTableName = selfLinkSourTableName,
+            aFieldName = "name",
+            aCaption = if (docType == DocumentTypeConfig.TYPE_ALL || docType == DocumentTypeConfig.TYPE_RESORT) "Исх. наименование" else "Наименование",
+            aRows = 3,
+            aCols = STRING_COLUMN_WIDTH,
+            aMaxSize = textFieldMaxSize
+        ).apply {
+            selfLinkTableName = "SHOP_catalog"  // для правильной работы селектора с подстановочной таблицей
+            isRequired = isUseSourCatalog
+            selectorAlias = "shop_catalog_item"
+            addSelectorColumn(columnSourCatalog, columnSourCatalogID)
+            addSelectorColumn(this)//, columnCatalogName );
+            isAutoStartSelector = true
+        }
 
-        columnSourCatalogName.selectorAlias = "shop_catalog_item"
-        columnSourCatalogName.addSelectorColumn(columnSourCatalog, columnSourCatalogID)
-        columnSourCatalogName.addSelectorColumn(columnSourCatalogName)//, columnCatalogName );
-        columnSourCatalogName.isAutoStartSelector = true
-
-        columnSourCatalogPriceOut = ColumnDouble(tableName, "_price_out_sour", "Цена", 10, 2)
-        columnSourCatalogPriceOut.isVirtual = true
-        columnSourCatalogPriceOut.tableAlign = TableCellAlign.RIGHT
-        columnSourCatalogPriceOut.isEditable = false
-
+        columnSourCatalogPriceOut = ColumnDouble(tableName, "_price_out_sour", "Цена", 10, 2).apply {
+            isVirtual = true
+            tableAlign = TableCellAlign.RIGHT
+            isEditable = false
+        }
         val selfLinkDestTableName = "SHOP_catalog_2"
-        val columnDestCatalogID = ColumnInt(selfLinkDestTableName, "id")
-        columnDestCatalogID.selfLinkTableName = "SHOP_catalog"
+        val columnDestCatalogID = ColumnInt(selfLinkDestTableName, "id").apply {
+            selfLinkTableName = "SHOP_catalog"
+        }
         columnDestCatalog = ColumnInt(tableName, "dest_id", columnDestCatalogID)
         columnDestCatalogName = ColumnString(
-            selfLinkDestTableName, "name",
-            if(docType == DocumentTypeConfig.TYPE_ALL || docType == DocumentTypeConfig.TYPE_RESORT) "Вх. наименование" else "Наименование",
-            3, STRING_COLUMN_WIDTH, textFieldMaxSize
-        )
-        columnDestCatalogName.selfLinkTableName = "SHOP_catalog"  // для правильной работы селектора с подстановочной таблицей
-        columnDestCatalogName.isRequired = isUseDestCatalog
+            aTableName = selfLinkDestTableName,
+            aFieldName = "name",
+            aCaption = if (docType == DocumentTypeConfig.TYPE_ALL || docType == DocumentTypeConfig.TYPE_RESORT) "Вх. наименование" else "Наименование",
+            aRows = 3,
+            aCols = STRING_COLUMN_WIDTH,
+            aMaxSize = textFieldMaxSize
+        ).apply {
+            selfLinkTableName = "SHOP_catalog"  // для правильной работы селектора с подстановочной таблицей
+            isRequired = isUseDestCatalog
 
-        columnDestCatalogName.selectorAlias = "shop_catalog_item"
-        columnDestCatalogName.addSelectorColumn(columnDestCatalog, columnDestCatalogID)
-        columnDestCatalogName.addSelectorColumn(columnDestCatalogName)//, columnCatalogName );
-        columnDestCatalogName.isAutoStartSelector = true
+            selectorAlias = "shop_catalog_item"
+            addSelectorColumn(columnDestCatalog, columnDestCatalogID)
+            addSelectorColumn(this)//, columnCatalogName );
+            isAutoStartSelector = true
+        }
+        columnDestCatalogPriceOut = ColumnDouble(tableName, "_price_out_dest", "Цена", 10, 2).apply {
+            isVirtual = true
+            tableAlign = TableCellAlign.RIGHT
+            isEditable = false
+        }
 
-        columnDestCatalogPriceOut = ColumnDouble(tableName, "_price_out_dest", "Цена", 10, 2)
-        columnDestCatalogPriceOut.isVirtual = true
-        columnDestCatalogPriceOut.tableAlign = TableCellAlign.RIGHT
-        columnDestCatalogPriceOut.isEditable = false
+        columnSourNum = ColumnDouble(tableName, "sour_num", if (docType == DocumentTypeConfig.TYPE_ALL) "Исх. кол-во" else "Кол-во", 10, -1, 0.0).apply {
+            tableAlign = TableCellAlign.CENTER
+            if (isUseSourNum && docType != DocumentTypeConfig.TYPE_RESORT) {
+                minValue = 0.1
+            }
+        }
 
-        columnSourNum = ColumnDouble(tableName, "sour_num", if(docType == DocumentTypeConfig.TYPE_ALL) "Исх. кол-во" else "Кол-во", 10, -1, 0.0)
-        columnSourNum.tableAlign = TableCellAlign.CENTER
-        if(isUseSourNum && docType != DocumentTypeConfig.TYPE_RESORT) columnSourNum.minValue = 0.1
+        columnDestNum = ColumnDouble(tableName, "dest_num", if (docType == DocumentTypeConfig.TYPE_ALL) "Вх. кол-во" else "Кол-во", 10, -1, 0.0).apply {
+            tableAlign = TableCellAlign.CENTER
+            if (isUseDestNum && docType != DocumentTypeConfig.TYPE_RESORT) {
+                minValue = 0.1
+            }
+        }
 
-        columnDestNum = ColumnDouble(tableName, "dest_num", if(docType == DocumentTypeConfig.TYPE_ALL) "Вх. кол-во" else "Кол-во", 10, -1, 0.0)
-        columnDestNum.tableAlign = TableCellAlign.CENTER
-        if(isUseDestNum && docType != DocumentTypeConfig.TYPE_RESORT) columnDestNum.minValue = 0.1
+        columnCostOut = ColumnDouble(tableName, "_doc_cost_out", "Сумма [руб.]", 10, 2).apply {
+            isVirtual = true
+            tableAlign = TableCellAlign.RIGHT
+        }
 
-        columnCostOut = ColumnDouble(tableName, "_doc_cost_out", "Сумма [руб.]", 10, 2)
-        columnCostOut.isVirtual = true
-        columnCostOut.tableAlign = TableCellAlign.RIGHT
+        columnToArchive = ColumnBoolean(tableName, "_to_archive", "Перенести исх. товар в архив", false).apply {
+            isVirtual = true
+//            setSavedDefault( userConfig )
+        }
 
-        columnToArchive = ColumnBoolean(tableName, "_to_archive", "Перенести исх. товар в архив", false)
-        columnToArchive.isVirtual = true
-//            columnToArchive.setSavedDefault( userConfig )
-
-        columnResort2Reprice = ColumnBoolean(tableName, "_resort_2_reprice", "Пересортицу в переоценку", false)
-        columnResort2Reprice.isVirtual = true
+        columnResort2Reprice = ColumnBoolean(tableName, "_resort_2_reprice", "Пересортицу в переоценку", false).apply {
+            isVirtual = true
+        }
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -202,28 +232,39 @@ class mDocumentContent : mAbstract() {
         alTableHiddenColumn.add(columnToArchive)
         alTableHiddenColumn.add(columnResort2Reprice)
 
-        if(isAuditMode) {
+        if (isAuditMode) {
             addTableColumn(columnCreateTime)
             addTableColumn(columnEditTime)
         } else {
             alTableHiddenColumn.add(columnCreateTime)
             alTableHiddenColumn.add(columnEditTime)
         }
-        addTableColumn(columnDocumentContentIsDeleted)
 
         //--- различный порядок показа полей в зависимости от того, откуда пришли
         //--- переход от каталога по какому-либо элементу номенклатуры
-        if(docID == null && docType == DocumentTypeConfig.TYPE_ALL) addTableColumn(columnDocumentType)
-        else alTableHiddenColumn.add(columnDocumentType)
-        if(docID == null) {
-            if(isUseSourWarehouse) addTableColumn(columnWarehouseSour)
-            else alTableHiddenColumn.add(columnWarehouseSour)
-            if(isUseDestWarehouse) addTableColumn(columnWarehouseDest)
-            else alTableHiddenColumn.add(columnWarehouseDest)
+        if (docID == null && docType == DocumentTypeConfig.TYPE_ALL) {
+            addTableColumn(columnDocumentType)
+        } else {
+            alTableHiddenColumn.add(columnDocumentType)
+        }
+        if (docID == null) {
+            if (isUseSourWarehouse) {
+                addTableColumn(columnWarehouseSour)
+            } else {
+                alTableHiddenColumn.add(columnWarehouseSour)
+            }
+            if (isUseDestWarehouse) {
+                addTableColumn(columnWarehouseDest)
+            } else {
+                alTableHiddenColumn.add(columnWarehouseDest)
+            }
             addTableColumn(columnDocumentNo)
             addTableColumn(columnDocumentDate)
-            if(DocumentTypeConfig.hsUseClient.contains(docType)) addTableColumn(columnClientName)
-            else alTableHiddenColumn.add(columnClientName)
+            if (DocumentTypeConfig.hsUseClient.contains(docType)) {
+                addTableColumn(columnClientName)
+            } else {
+                alTableHiddenColumn.add(columnClientName)
+            }
             addTableColumn(columnDocumentDescr)
         } else {
             alTableHiddenColumn.add(columnWarehouseSour)
@@ -232,8 +273,8 @@ class mDocumentContent : mAbstract() {
             alTableHiddenColumn.add(columnDocumentDate)
             alTableHiddenColumn.add(columnClientName)
             alTableHiddenColumn.add(columnDocumentDescr)
-        }//--- на всякий случай всё-таки оставим их в невидимой части
-        if(isUseSourCatalog) {
+        }
+        if (isUseSourCatalog) {
             addTableColumn(columnSourCatalogName)
             addTableColumn(columnSourCatalogPriceOut)
         } else {
@@ -241,21 +282,24 @@ class mDocumentContent : mAbstract() {
             alTableHiddenColumn.add(columnSourCatalogPriceOut)
         }
 
-        if(isUseSourNum) addTableColumn(columnSourNum)
+        if (isUseSourNum) addTableColumn(columnSourNum)
         else alTableHiddenColumn.add(columnSourNum)
 
-        if(isUseDestCatalog) {
+        if (isUseDestCatalog) {
             addTableColumn(columnDestCatalogName)
             addTableColumn(columnDestCatalogPriceOut)
         } else {
             alTableHiddenColumn.add(columnDestCatalogName)
             alTableHiddenColumn.add(columnDestCatalogPriceOut)
         }
-        if(isUseDestNum) addTableColumn(columnDestNum)
-        else alTableHiddenColumn.add(columnDestNum)
+        if (isUseDestNum) {
+            addTableColumn(columnDestNum)
+        } else {
+            alTableHiddenColumn.add(columnDestNum)
+        }
 
         addTableColumn(columnCostOut)
-
+        addTableColumn(columnDocumentContentIsDeleted)
 
 
         alFormHiddenColumn.add(columnID!!)
@@ -264,7 +308,7 @@ class mDocumentContent : mAbstract() {
         alFormHiddenColumn.add(columnSourCatalog)
         alFormHiddenColumn.add(columnDestCatalog)
 
-        if(isAuditMode) {
+        if (isAuditMode) {
             alFormColumn.add(columnCreateTime)
             alFormColumn.add(columnEditTime)
         } else {
@@ -273,13 +317,13 @@ class mDocumentContent : mAbstract() {
         }
         //--- если это не состав конкретной накладной, то показывать необходимые подробности,
         //--- которых не будет в заголовке
-        if(docID == null) {
+        if (docID == null) {
             alFormColumn.add(columnDocumentType)
-            (if(isUseSourWarehouse) alFormColumn else alFormHiddenColumn).add(columnWarehouseSour)
-            (if(isUseDestWarehouse) alFormColumn else alFormHiddenColumn).add(columnWarehouseDest)
+            (if (isUseSourWarehouse) alFormColumn else alFormHiddenColumn).add(columnWarehouseSour)
+            (if (isUseDestWarehouse) alFormColumn else alFormHiddenColumn).add(columnWarehouseDest)
             alFormColumn.add(columnDocumentNo)
             alFormColumn.add(columnDocumentDate)
-            (if(DocumentTypeConfig.hsUseClient.contains(docType)) alFormColumn else alFormHiddenColumn).add(columnClientName)
+            (if (DocumentTypeConfig.hsUseClient.contains(docType)) alFormColumn else alFormHiddenColumn).add(columnClientName)
             alFormColumn.add(columnDocumentDescr)
         }
         //--- в отличие от таблицы даже "ненужные" поля используются в form-методах,
@@ -293,23 +337,23 @@ class mDocumentContent : mAbstract() {
             alFormHiddenColumn.add(columnDocumentDescr)
         }
         //--- так что лучше их оставить в невидимой части
-        (if(isUseSourCatalog) alFormColumn else alFormHiddenColumn).add(columnSourCatalogName)
-        (if(isUseSourCatalog) alFormColumn else alFormHiddenColumn).add(columnSourCatalogPriceOut)
-        (if(isUseDestCatalog) alFormColumn else alFormHiddenColumn).add(columnDestCatalogName)
-        (if(isUseDestCatalog) alFormColumn else alFormHiddenColumn).add(columnDestCatalogPriceOut)
-        (if(isUseSourNum) alFormColumn else alFormHiddenColumn).add(columnSourNum)
-        (if(isUseDestNum) alFormColumn else alFormHiddenColumn).add(columnDestNum)
+        (if (isUseSourCatalog) alFormColumn else alFormHiddenColumn).add(columnSourCatalogName)
+        (if (isUseSourCatalog) alFormColumn else alFormHiddenColumn).add(columnSourCatalogPriceOut)
+        (if (isUseDestCatalog) alFormColumn else alFormHiddenColumn).add(columnDestCatalogName)
+        (if (isUseDestCatalog) alFormColumn else alFormHiddenColumn).add(columnDestCatalogPriceOut)
+        (if (isUseSourNum) alFormColumn else alFormHiddenColumn).add(columnSourNum)
+        (if (isUseDestNum) alFormColumn else alFormHiddenColumn).add(columnDestNum)
         //--- перенос в архив - только при добавлении пересортице
-        (if(docType == DocumentTypeConfig.TYPE_RESORT && id == 0) alFormColumn else alFormHiddenColumn).add(columnToArchive)
+        (if (docType == DocumentTypeConfig.TYPE_RESORT && id == 0) alFormColumn else alFormHiddenColumn).add(columnToArchive)
         //--- преобразование пересортицы в переоценку - только при пересохранении переоценки
-        (if(docType == DocumentTypeConfig.TYPE_RESORT && id != 0) alFormColumn else alFormHiddenColumn).add(columnResort2Reprice)
+        (if (docType == DocumentTypeConfig.TYPE_RESORT && id != 0) alFormColumn else alFormHiddenColumn).add(columnResort2Reprice)
 
         alFormColumn.add(columnDocumentContentIsDeleted)
 
         //----------------------------------------------------------------------------------------------------------------------
 
         //--- переход от каталога
-        if(docID == null) {
+        if (docID == null) {
             alTableSortColumn.add(columnDocumentDate)
             alTableSortDirect.add("DESC")
             alTableSortColumn.add(columnDocumentNo)
@@ -317,11 +361,11 @@ class mDocumentContent : mAbstract() {
         }
         //--- переход от документа
         else {
-            if(isUseSourCatalog) {
+            if (isUseSourCatalog) {
                 alTableSortColumn.add(columnSourCatalogName)
                 alTableSortDirect.add("ASC")
             }
-            if(isUseDestCatalog) {
+            if (isUseDestCatalog) {
                 alTableSortColumn.add(columnDestCatalogName)
                 alTableSortDirect.add("ASC")
             }
@@ -330,7 +374,7 @@ class mDocumentContent : mAbstract() {
         //----------------------------------------------------------------------------------------
 
         //hmParentColumn.put(  "shop_client", columnClient  ); - накуа?
-        for(an in DocumentTypeConfig.hmDocTypeAlias.values)
+        for (an in DocumentTypeConfig.hmDocTypeAlias.values)
             hmParentColumn[an] = columnDocument
 
         //--- из-за нестандартной обработки shop_doc_content_all/move/_resort паренты от shop_catalog будут обрабатываться отдельно в addSQLWhere

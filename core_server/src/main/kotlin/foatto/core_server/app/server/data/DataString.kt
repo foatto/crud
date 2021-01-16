@@ -38,17 +38,17 @@ class DataString(aColumn: iColumn) : DataAbstract(aColumn) {
     }
 
     override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String, id: Int): Boolean {
-        text = if(cs.rows == 0) formData.stringValue!! else formData.textValue!!
+        text = if (cs.rows == 0) formData.stringValue!! else formData.textValue!!
 
-        if(cs.isUseTrim) text = text.trim()
+        if (cs.isUseTrim) text = text.trim()
         text = text.substring(0, min(text.length, cs.maxSize))
 
-        if(cs.isRequired && text.isEmpty()) {
+        if (cs.isRequired && text.isEmpty()) {
             errorValue = text
             errorText = "Обязательно для заполнения"
             return false
         }
-        if(column.isUnique && (column.uniqueIgnore == null || column.uniqueIgnore != text) &&
+        if (column.isUnique && (column.uniqueIgnore == null || column.uniqueIgnore != text) &&
             stm.checkExist(column.tableName, column.alFieldName[0], prepareForSQL(text), fieldNameID, id)
         ) {
 
@@ -60,7 +60,7 @@ class DataString(aColumn: iColumn) : DataAbstract(aColumn) {
     }
 
     override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int): TableCell {
-        if(isShowEmptyTableCell) return TableCell(row, col, column.rowSpan, column.colSpan)
+        if (isShowEmptyTableCell) return TableCell(row, col, column.rowSpan, column.colSpan)
 
         return TableCell(
             aRow = row,
@@ -72,20 +72,20 @@ class DataString(aColumn: iColumn) : DataAbstract(aColumn) {
             aIsWordWrap = column.isWordWrap,
             aTooltip = column.caption,
 
-            aText = if(cs.isPassword) "********" else if(text.isEmpty()) cs.emptyValueString else text
+            aText = if (cs.isPassword) "********" else if (text.isEmpty()) cs.emptyValueString else text
         )
     }
 
     override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement): FormCell {
         val fci: FormCell
 
-        if(cs.rows == 0) {
+        if (cs.rows == 0) {
             fci = FormCell(FormCellType.STRING)
             fci.name = getFieldCellName(0)
-            fci.value = if(errorText == null) text else errorValue!!
+            fci.value = if (errorText == null) text else errorValue!!
             fci.column = cs.cols
             fci.itPassword = cs.isPassword
-            fci.alComboString.addAll(cs.alCombo)
+            fci.alComboString = cs.alCombo.toTypedArray()
         } else {
             fci = FormCell(FormCellType.TEXT)
             fci.textName = getFieldCellName(0)
@@ -106,7 +106,7 @@ class DataString(aColumn: iColumn) : DataAbstract(aColumn) {
 
     private fun validate(obj: Any?): String {
         var tmp = obj?.toString() ?: ""
-        if(cs.isUseTrim) tmp = tmp.trim()
+        if (cs.isUseTrim) tmp = tmp.trim()
         return tmp
     }
 }

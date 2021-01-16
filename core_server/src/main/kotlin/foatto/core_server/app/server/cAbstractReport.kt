@@ -1,7 +1,6 @@
 package foatto.core_server.app.server
 
 import foatto.core.app.ICON_NAME_PRINT
-import foatto.core.app.iCoreAppContainer
 import foatto.core.util.DateTime_DMYHMS
 import foatto.core.util.getFreeFile
 import foatto.core.util.getRandomInt
@@ -62,6 +61,7 @@ abstract class cAbstractReport : cAbstractForm() {
     protected lateinit var wcfTextRB: WritableCellFormat
 
     protected lateinit var wcfCaptionHC: WritableCellFormat
+
     //    protected WritableCellFormat wcfCaptionHCB = null;
     //    protected WritableCellFormat wcfCaptionHT = null;
     protected lateinit var wcfCaptionVC: WritableCellFormat
@@ -113,7 +113,7 @@ abstract class cAbstractReport : cAbstractForm() {
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    protected fun getBegEndTimeFromParam(): Pair<Int,Int> {
+    protected fun getBegEndTimeFromParam(): Pair<Int, Int> {
         val reportBegYear = hmReportParam["report_beg_year"] as Int
         val reportBegMonth = hmReportParam["report_beg_month"] as Int
         val reportBegDay = hmReportParam["report_beg_day"] as Int
@@ -134,7 +134,7 @@ abstract class cAbstractReport : cAbstractForm() {
         return Pair(begTime, endTime)
     }
 
-    protected fun getBegEndDayFromParam(): Pair<ZonedDateTime,ZonedDateTime> {
+    protected fun getBegEndDayFromParam(): Pair<ZonedDateTime, ZonedDateTime> {
         val reportBegYear = hmReportParam["report_beg_year"] as Int
         val reportBegMonth = hmReportParam["report_beg_month"] as Int
         val reportBegDay = hmReportParam["report_beg_day"] as Int
@@ -149,7 +149,7 @@ abstract class cAbstractReport : cAbstractForm() {
         return Pair(zdtBeg, zdtEnd)
     }
 
-    protected fun getBegNextDayFromParam(): Pair<Int,Int> {
+    protected fun getBegNextDayFromParam(): Pair<Int, Int> {
         val reportBegYear = hmReportParam["report_beg_year"] as Int
         val reportBegMonth = hmReportParam["report_beg_month"] as Int
         val reportBegDay = hmReportParam["report_beg_day"] as Int
@@ -200,14 +200,14 @@ abstract class cAbstractReport : cAbstractForm() {
 //        hf.getRight().append( "" + ( v + 1 ) + " - " + ( h + 1 ) );
 
         //--- пост-обработка отчета в классах-наследниках
-        postReport( sheet )
+        postReport(sheet)
 
         //--- если есть картинка-водяной знак, тогда имеет смысл защищать отчет
         val printKeyImage = File("${application.rootDirName}/logo.png")
-        if( printKeyW > 0 && printKeyH > 0 && printKeyImage.exists() ) {
+        if (printKeyW > 0 && printKeyH > 0 && printKeyImage.exists()) {
             ss.password = getRandomInt().toString()
             ss.isProtected = true
-            sheet.addImage( WritableImage( printKeyX, printKeyY, printKeyW, printKeyH, printKeyImage ) )
+            sheet.addImage(WritableImage(printKeyX, printKeyY, printKeyW, printKeyH, printKeyImage))
         }
 
         workbook.write()
@@ -215,9 +215,10 @@ abstract class cAbstractReport : cAbstractForm() {
         fileExcel.deleteOnExit()
 
         //--- (пока) одному важному пользователю не понравилось автозакрытие формы запуска отчёта после его генерации
-        val isDisableReportAutoclose = userConfig.getUserProperty( iCoreAppContainer.UP_DISABLE_REPORT_AUTOCLOSE )?.toBoolean() ?: false
+        //val isDisableReportAutoclose = userConfig.getUserProperty( iCoreAppContainer.UP_DISABLE_REPORT_AUTOCLOSE )?.toBoolean() ?: false
 
-        val startChar = if( isDisableReportAutoclose ) "" else "#"
+        //val startChar = if( isDisableReportAutoclose ) "" else "#"
+        val startChar = "#"
 
         //--- вернуть имя отчета (с отметкой автозакрытия закладки с формой отчёта)
         return "$startChar/$REPORT_FILES_BASE/$newFileName.xls"
@@ -230,13 +231,13 @@ abstract class cAbstractReport : cAbstractForm() {
     //--- обязательный метод установки параметров печати/бумаги
     protected abstract fun setPrintOptions()
 
-    protected abstract fun postReport( sheet: WritableSheet )
+    protected abstract fun postReport(sheet: WritableSheet)
 
-    protected fun defineFormats( fontSize: Int, titleFontSizeInc: Int, titleNVFontSizeInc: Int ) {
+    protected fun defineFormats(fontSize: Int, titleFontSizeInc: Int, titleNVFontSizeInc: Int) {
 
-        wcfTitleL = getWCF( fontSize + titleFontSizeInc, true, false, Alignment.LEFT, VerticalAlignment.CENTRE, false, false, Colour.BLACK)
-        wcfTitleC = getWCF( fontSize + titleFontSizeInc, true, false, Alignment.CENTRE, VerticalAlignment.CENTRE, false, false, Colour.BLACK)
-        wcfTitleR = getWCF( fontSize + titleFontSizeInc, true, false, Alignment.RIGHT, VerticalAlignment.CENTRE, false, false, Colour.BLACK)
+        wcfTitleL = getWCF(fontSize + titleFontSizeInc, true, false, Alignment.LEFT, VerticalAlignment.CENTRE, false, false, Colour.BLACK)
+        wcfTitleC = getWCF(fontSize + titleFontSizeInc, true, false, Alignment.CENTRE, VerticalAlignment.CENTRE, false, false, Colour.BLACK)
+        wcfTitleR = getWCF(fontSize + titleFontSizeInc, true, false, Alignment.RIGHT, VerticalAlignment.CENTRE, false, false, Colour.BLACK)
 
         wcfTitleName = getWCF(fontSize + titleNVFontSizeInc, false, false, Alignment.RIGHT, VerticalAlignment.CENTRE, false, false, Colour.BLACK)
         wcfTitleValue = getWCF(fontSize + titleNVFontSizeInc, false, false, Alignment.LEFT, VerticalAlignment.CENTRE, false, false, Colour.BLACK)
@@ -319,29 +320,35 @@ abstract class cAbstractReport : cAbstractForm() {
         //        wcfCellCRedBack.setBackground( Colour.PINK );
     }
 
-    protected fun getWCF( fontSize: Int, isBold: Boolean, isItalic: Boolean, hAlign: Alignment, vAlign: VerticalAlignment,
-                          isBorder: Boolean, isWrap: Boolean, fontColor: Colour ): WritableCellFormat {
-        val wcf = WritableCellFormat( WritableFont( WritableFont.ARIAL, fontSize, if( isBold ) WritableFont.BOLD else WritableFont.NO_BOLD,
-                                                    isItalic, UnderlineStyle.NO_UNDERLINE, fontColor ) )
+    protected fun getWCF(
+        fontSize: Int, isBold: Boolean, isItalic: Boolean, hAlign: Alignment, vAlign: VerticalAlignment,
+        isBorder: Boolean, isWrap: Boolean, fontColor: Colour
+    ): WritableCellFormat {
+        val wcf = WritableCellFormat(
+            WritableFont(
+                WritableFont.ARIAL, fontSize, if (isBold) WritableFont.BOLD else WritableFont.NO_BOLD,
+                isItalic, UnderlineStyle.NO_UNDERLINE, fontColor
+            )
+        )
         wcf.alignment = hAlign
         wcf.verticalAlignment = vAlign
-        wcf.setBorder( if( isBorder ) Border.ALL else Border.NONE, if( isBorder ) BorderLineStyle.THIN else BorderLineStyle.NONE )
+        wcf.setBorder(if (isBorder) Border.ALL else Border.NONE, if (isBorder) BorderLineStyle.THIN else BorderLineStyle.NONE)
         wcf.wrap = isWrap
 
         return wcf
     }
 
     //--- распределяет ширину по столбцам с динамической шириной
-    protected fun defineRelWidth( alDim: MutableList<Int>, totalWidth: Int ) {
+    protected fun defineRelWidth(alDim: MutableList<Int>, totalWidth: Int) {
         var captionConstWidthSum = 0
         var captionRelWidthSum = 0
-        for( w in alDim )
-            if( w > 0 ) captionConstWidthSum += w
+        for (w in alDim)
+            if (w > 0) captionConstWidthSum += w
             else captionRelWidthSum += w
         //--- получаем минусовую ширину на одну относительную ед.ширины
-        val captionRelWidth = ( totalWidth - captionConstWidthSum ) / captionRelWidthSum
+        val captionRelWidth = (totalWidth - captionConstWidthSum) / captionRelWidthSum
         //--- устанавливаем полученные остатки ширины (минус на минус как раз даёт плюс)
-        for( i in alDim.indices ) if( alDim[ i ] < 0 ) alDim[ i ] = alDim[ i ] * captionRelWidth
+        for (i in alDim.indices) if (alDim[i] < 0) alDim[i] = alDim[i] * captionRelWidth
     }
 
 }

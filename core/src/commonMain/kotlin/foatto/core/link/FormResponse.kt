@@ -2,19 +2,19 @@ package foatto.core.link
 
 class FormResponse(
     val tab: String,
-    val alHeader: List<Pair<String,String>>,
-    //--- кол-во столбцов для GRID-формы (  > 0  )
-    //--- или режим отображения для обычной формы (  == 0 или -1  )
-    //--- (в настольной версии узкий режим отображения игнорируется - отображается как обычный, т.к. "достигнуть" узкого экрана на компе/ноуте проблематично)
+    val alHeader: Array<Pair<String, String>>,
+    //--- number of columns for GRID-form (> 0)
+    //--- or display mode for normal form (== 0 or -1)
+    //--- (in the desktop version, the narrow display mode is ignored - it is displayed as normal, because "reaching" a narrow screen on a computer / laptop is problematic)
     val columnCount: Int,
-    val alFormColumn: List<String>,
-    val alFormCell: List<FormCell>,
-    val alFormButton: List<FormButton>
+    val alFormColumn: Array<String>,
+    val alFormCell: Array<FormCell>,
+    val alFormButton: Array<FormButton>
 )
 
-class FormCell( val cellType: FormCellType ) {
+class FormCell(val cellType: FormCellType) {
 
-    //--- ДЛЯ ВСЕХ ТИПОВ (значения устанавливаются извне)
+    //--- FOR ALL TYPES (values set externally)
     var caption = ""         // empty caption == hidden cell
     var itEditable = false
     var formPinMode = FormPinMode.AUTO
@@ -23,7 +23,7 @@ class FormCell( val cellType: FormCellType ) {
     var name = ""
     var value = ""
     var column = 0
-    val alComboString = mutableListOf<String>()
+    var alComboString = arrayOf<String>()
 
     //--- TYPE_STRING
     var itPassword = false
@@ -39,7 +39,7 @@ class FormCell( val cellType: FormCellType ) {
     var booleanValue = false
 
     //--- TYPE_DATE, TYPE_TIME, TYPE_DATE_TIME
-    val alDateTimeField = mutableListOf<Pair<String,String>>()    // name, value
+    var alDateTimeField = arrayOf<Pair<String, String>>()    // name, value
 
     //--- TYPE_TIME, TYPE_DATE_TIME
     var withSecond = false
@@ -47,31 +47,31 @@ class FormCell( val cellType: FormCellType ) {
     //--- TYPE_COMBO, TYPE_RADIO
     var comboName = ""
     var comboValue = 0
-    val alComboData = mutableListOf<Pair<Int,String>>()         // value, descr
+    var alComboData = arrayOf<Pair<Int, String>>()         // value, descr
 
     //--- TYPE_FILE
     var fileName = ""
     var fileID = 0
-    val alFile = mutableListOf<Triple<Int,String,String>>()             // id, url, text (который на самом деле просто имя файла)
+    var alFile = arrayOf<Triple<Int, String, String>>()             // id, url, text (which is actually just a filename)
 
     var selectorSetURL = ""
     var selectorClearURL = ""
-    var itAutoStartSelector = false // запускать ли селектор сразу после открытия формы
+    var itAutoStartSelector = false // whether to run the selector immediately after opening the form
 
     //--- TYPE_STRING, TYPE_TEXT, TYPE_BOOLEAN, TYPE_INT, TYPE_DOUBLE,
     //--- TYPE_DATE, TYPE_TIME, TYPE_DATE_TIME, TYPE_COMBO
     //--- (значения устанавливаются извне)
     var errorMessage = ""
 
-    //--- значения устанавливаются извне
-    val alVisible = mutableListOf<Triple<String, Boolean, Set<Int>>>()  // name, state, set<value>
+    //--- values are set externally
+    var alVisible = arrayOf<Triple<String, Boolean, Array<Int>>>()  // name, state, set<value>
 
-    //--- значения устанавливаются извне
-    val alCaption = mutableListOf<Triple<String, String, Set<Int>>>()  // name, string, set<value>
+    //--- values are set externally
+    var alCaption = arrayOf<Triple<String, String, Array<Int>>>()  // name, string, set<value>
 
 //-----------------------------------------------------------------------------------------------------
 
-    constructor( aBooleanName: String, aBooleanValue: Boolean ) : this( FormCellType.BOOLEAN ) {
+    constructor(aBooleanName: String, aBooleanValue: Boolean) : this(FormCellType.BOOLEAN) {
         booleanName = aBooleanName
         booleanValue = aBooleanValue
     }

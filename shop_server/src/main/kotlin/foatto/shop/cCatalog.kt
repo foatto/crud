@@ -33,8 +33,7 @@ class cCatalog : cAbstractHierarchy() {
 
     private var isMerchant: Boolean = false
 
-    private lateinit var alWarehouseID: MutableList<Int>
-    private lateinit var alWarehouseName: MutableList<String>
+    private lateinit var alWarehouse: List<Pair<Int, String>>
 
     private val hmDestCount = mutableMapOf<Int, MutableMap<Int, Double>>()
     private val hmSourCount = mutableMapOf<Int, MutableMap<Int, Double>>()
@@ -63,10 +62,7 @@ class cCatalog : cAbstractHierarchy() {
     }
 
     override fun getTable(hmOut: MutableMap<String, Any>): TableResponse {
-        mWarehouse.fillWarehouseList(stm).apply {
-            alWarehouseID = first
-            alWarehouseName = second
-        }
+        alWarehouse = mWarehouse.fillWarehouseList(stm)
 
         hmDestCount.clear()
         hmSourCount.clear()
@@ -83,11 +79,11 @@ class cCatalog : cAbstractHierarchy() {
         val recordType = (hmColumnData[mc.columnRecordType] as DataComboBox).value
 
         val hsID: Set<Int>
-        if(recordType == mAbstractHierarchy.RECORD_TYPE_FOLDER) {
+        if (recordType == mAbstractHierarchy.RECORD_TYPE_FOLDER) {
             //--- возвращаем ID только от items
             hsID = expandCatalog(stm, model.tableName, catalogID, true)
             //--- если в результате только один элемент и тот равен ID группы элементов, значит группа пустая
-            (hmColumnData[mc.columnCatalogRowCount] as DataString).text = (if(hsID.size == 1 && hsID.contains(catalogID)) 0 else hsID.size).toString()
+            (hmColumnData[mc.columnCatalogRowCount] as DataString).text = (if (hsID.size == 1 && hsID.contains(catalogID)) 0 else hsID.size).toString()
         } else {
             hsID = mutableSetOf()
             hsID.add(catalogID)
@@ -96,8 +92,8 @@ class cCatalog : cAbstractHierarchy() {
         }
 
         var countAll = 0.0
-        for(i in 0 until mc.alColumnCatalogCount.size) {
-            val wc = calcCatalogCount(hmDestCount, hmSourCount, hsID, alWarehouseID[i])
+        for (i in 0 until mc.alColumnCatalogCount.size) {
+            val wc = calcCatalogCount(hmDestCount, hmSourCount, hsID, alWarehouse[i].first)
             (hmColumnData[mc.alColumnCatalogCount[i]] as DataDouble).value = wc
             countAll += wc
         }
@@ -107,7 +103,7 @@ class cCatalog : cAbstractHierarchy() {
     override fun getTableColumnStyle(rowNo: Int, isNewRow: Boolean, hmColumnData: Map<iColumn, iData>, column: iColumn, tci: TableCell) {
         super.getTableColumnStyle(rowNo, isNewRow, hmColumnData, column, tci)
 
-        if(column is ColumnInt && (hmColumnData[column] as DataInt).value < 0 || column is ColumnDouble && (hmColumnData[column] as DataDouble).value < 0) {
+        if (column is ColumnInt && (hmColumnData[column] as DataInt).value < 0 || column is ColumnDouble && (hmColumnData[column] as DataDouble).value < 0) {
 
             tci.foreColorType = TableCellForeColorType.DEFINED
             tci.foreColor = TABLE_CELL_FORE_COLOR_CRITICAL
@@ -118,11 +114,11 @@ class cCatalog : cAbstractHierarchy() {
     }
 
     override fun generateFormColumnData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {
-        if(id != 0 && isMerchant) {
+        if (id != 0 && isMerchant) {
             val mc = model as mCatalog
             val recordType = (hmColumnData[mc.columnRecordType] as DataComboBox).value
 
-            if(recordType == mAbstractHierarchy.RECORD_TYPE_ITEM) {
+            if (recordType == mAbstractHierarchy.RECORD_TYPE_ITEM) {
                 (hmColumnData[mc.columnCatalogPriceIn] as DataDouble).value = PriceData.getPrice(hmPriceIn, id, today)
                 (hmColumnData[mc.columnCatalogPriceOut] as DataDouble).value = PriceData.getPrice(hmPriceOut, id, today)
             }
@@ -132,11 +128,11 @@ class cCatalog : cAbstractHierarchy() {
     override fun postAdd(id: Int, hmColumnData: Map<iColumn, iData>, hmOut: MutableMap<String, Any>): String? {
         val postURL = super.postAdd(id, hmColumnData, hmOut)
 
-        if(isMerchant) {
+        if (isMerchant) {
             val mc = model as mCatalog
             val recordType = (hmColumnData[mc.columnRecordType] as DataComboBox).value
 
-            if(recordType == mAbstractHierarchy.RECORD_TYPE_ITEM) {
+            if (recordType == mAbstractHierarchy.RECORD_TYPE_ITEM) {
                 val priceDate = (hmColumnData[mc.columnCatalogPriceDate] as DataDate3Int).localDate.atStartOfDay(zoneId)
                 val priceIn = (hmColumnData[mc.columnCatalogPriceIn] as DataDouble).value
                 val priceOut = (hmColumnData[mc.columnCatalogPriceOut] as DataDouble).value
@@ -152,7 +148,7 @@ class cCatalog : cAbstractHierarchy() {
     override fun postEdit(action: String, id: Int, hmColumnData: Map<iColumn, iData>, hmOut: MutableMap<String, Any>): String? {
         val postURL = super.postEdit(action, id, hmColumnData, hmOut)
 
-        if(isMerchant) {
+        if (isMerchant) {
             val mc = model as mCatalog
 
             //--- теперь это единообразно делается в cAbstractHierarchy
@@ -160,7 +156,7 @@ class cCatalog : cAbstractHierarchy() {
 
             val recordType = (hmColumnData[mc.columnRecordType] as DataComboBox).value
 
-            if(recordType == mAbstractHierarchy.RECORD_TYPE_ITEM) {
+            if (recordType == mAbstractHierarchy.RECORD_TYPE_ITEM) {
                 val priceDate = (hmColumnData[mc.columnCatalogPriceDate] as DataDate3Int).localDate.atStartOfDay(zoneId)
                 val priceIn = (hmColumnData[mc.columnCatalogPriceIn] as DataDouble).value
                 val priceOut = (hmColumnData[mc.columnCatalogPriceOut] as DataDouble).value
@@ -177,7 +173,7 @@ class cCatalog : cAbstractHierarchy() {
 //                " WHERE catalog_id = $destID AND price_type = ${mPrice.PRICE_TYPE_OUT} AND ye = 2000 AND mo = 1 AND da = 1 " )
 
         //--- если цена нулевая - то это ошибка или цену менять не надо - пропускаем
-        if(priceValue == 0.0) return
+        if (priceValue == 0.0) return
 
         val arrPriceDate = getDateTimeArray(priceDate)
 
@@ -185,12 +181,12 @@ class cCatalog : cAbstractHierarchy() {
         val rs = stm.executeQuery(
             " SELECT price_value FROM SHOP_price WHERE catalog_id = $catalogID AND price_type = $priceType ORDER BY ye DESC , mo DESC , da DESC "
         )
-        val lastPrice = if(rs.next()) rs.getDouble(1) else 0.0
+        val lastPrice = if (rs.next()) rs.getDouble(1) else 0.0
         rs.close()
-        if(lastPrice == priceValue) return
+        if (lastPrice == priceValue) return
 
         //--- сначала попробуем просто поменять сегодняшнюю цену (вдруг её сегодня уже меняли), чтобы не получилось ДВЕ сегодняшних цены
-        if(stm.executeUpdate(
+        if (stm.executeUpdate(
                 " UPDATE SHOP_price SET price_value = $priceValue " +
                     " WHERE catalog_id = $catalogID " +
                     " AND price_type  = $priceType " +
@@ -220,7 +216,7 @@ class cCatalog : cAbstractHierarchy() {
             arrEndDT: IntArray?, hmDest: MutableMap<Int, MutableMap<Int, Double>>, hmSour: MutableMap<Int, MutableMap<Int, Double>>
         ) {
 
-            val whereClient = if(aClientID == null) "" else " AND SHOP_doc.client_id = $aClientID"
+            val whereClient = if (aClientID == null) "" else " AND SHOP_doc.client_id = $aClientID"
 
             val whereDocType = ""
             //        if( aDocType != DocumentTypeConfig.TYPE_ALL )
@@ -237,7 +233,7 @@ class cCatalog : cAbstractHierarchy() {
             //                    .append( " AND SHOP_doc.doc_da >= " ).append( arrBegDT[ 2 ] )
             //            .append( " ) " );
             //        }
-            if(arrEndDT != null)
+            if (arrEndDT != null)
                 whereDT += " AND ( SHOP_doc.doc_ye < ${arrEndDT[0]} OR SHOP_doc.doc_ye = ${arrEndDT[0]} AND SHOP_doc.doc_mo < ${arrEndDT[1]} OR " +
                     " SHOP_doc.doc_ye = ${arrEndDT[0]} AND SHOP_doc.doc_mo = ${arrEndDT[1]} AND SHOP_doc.doc_da <= ${arrEndDT[2]} ) "
 
@@ -251,12 +247,12 @@ class cCatalog : cAbstractHierarchy() {
                     " $whereClient $whereDocType $whereDT " +
                     " GROUP BY SHOP_doc_content.dest_id , SHOP_doc.dest_id "
             )
-            while(rs.next()) {
+            while (rs.next()) {
                 val cID = rs.getInt(1)
                 val wID = rs.getInt(2)
                 val num = rs.getDouble(3)
                 var hmDestCatalog: MutableMap<Int, Double>? = hmDest[cID]
-                if(hmDestCatalog == null) {
+                if (hmDestCatalog == null) {
                     hmDestCatalog = mutableMapOf()
                     hmDest[cID] = hmDestCatalog
                 }
@@ -274,12 +270,12 @@ class cCatalog : cAbstractHierarchy() {
                     " $whereClient $whereDocType $whereDT " +
                     " GROUP BY SHOP_doc_content.sour_id , SHOP_doc.sour_id "
             )
-            while(rs.next()) {
+            while (rs.next()) {
                 val cID = rs.getInt(1)
                 val wID = rs.getInt(2)
                 val num = rs.getDouble(3)
                 var hmSourCatalog: MutableMap<Int, Double>? = hmSour[cID]
-                if(hmSourCatalog == null) {
+                if (hmSourCatalog == null) {
                     hmSourCatalog = mutableMapOf()
                     hmSour[cID] = hmSourCatalog
                 }
@@ -290,7 +286,7 @@ class cCatalog : cAbstractHierarchy() {
 
         fun calcCatalogCount(hmDest: Map<Int, Map<Int, Double>>, hmSour: Map<Int, Map<Int, Double>>, hsID: Set<Int>, warehouseID: Int): Double {
             var result = 0.0
-            for(cid in hsID) result += calcCatalogCount(hmDest, hmSour, cid, warehouseID)
+            for (cid in hsID) result += calcCatalogCount(hmDest, hmSour, cid, warehouseID)
 
             return result
         }
@@ -298,17 +294,17 @@ class cCatalog : cAbstractHierarchy() {
         fun calcCatalogCount(hmDest: Map<Int, Map<Int, Double>>?, hmSour: Map<Int, Map<Int, Double>>?, catalogID: Int, warehouseID: Int): Double {
             var result = 0.0
 
-            if(hmDest != null) {
+            if (hmDest != null) {
                 val hmDestCatalog = hmDest[catalogID]
-                if(hmDestCatalog != null) {
+                if (hmDestCatalog != null) {
                     val n = hmDestCatalog[warehouseID]
                     result += n ?: 0.0
                 }
             }
 
-            if(hmSour != null) {
+            if (hmSour != null) {
                 val hmSourCatalog = hmSour[catalogID]
-                if(hmSourCatalog != null) {
+                if (hmSourCatalog != null) {
                     val n = hmSourCatalog[warehouseID]
                     result -= n ?: 0.0
                 }

@@ -20,7 +20,7 @@ class cOverSpeed : cMMSReport() {
 
     override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
         val returnURL = super.doSave(action, alFormData, hmOut)
-        if(returnURL != null) return returnURL
+        if (returnURL != null) return returnURL
 
         fillReportParam(model as mUODGPZ)
 
@@ -60,7 +60,7 @@ class cOverSpeed : cMMSReport() {
 
         offsY = fillReportHeader(reportDepartment, reportGroup, sheet, 1, offsY)
 
-        offsY = fillReportHeader(if(reportZone == 0) null else hmZoneData[reportZone], sheet, offsY)
+        offsY = fillReportHeader(if (reportZone == 0) null else hmZoneData[reportZone], sheet, offsY)
 
         //--- установка размеров заголовков (общая ширина = 90 для А4 портрет и 140 для А4 ландшафт поля по 10 мм)
         val alDim = mutableListOf<Int>()
@@ -72,7 +72,7 @@ class cOverSpeed : cMMSReport() {
         alDim.add(6)    // "Макс. превышение на участке"
         alDim.add(44)    // "Место"
 
-        for(i in alDim.indices) {
+        for (i in alDim.indices) {
             val cvNN = CellView()
             cvNN.size = alDim[i] * 256
             sheet.setColumnView(i, cvNN)
@@ -90,12 +90,12 @@ class cOverSpeed : cMMSReport() {
         offsY++
 
         var countNN = 1
-        for(alOSPD in alAllResult) {
+        for (alOSPD in alAllResult) {
             sheet.addCell(Label(1, offsY, alOSPD[0].objectConfig!!.name, wcfCellCB))
             sheet.mergeCells(1, offsY, 6, offsY + 2)
             offsY += 3
 
-            for(ospd in alOSPD) {
+            for (ospd in alOSPD) {
                 offsX = 0
 
                 sheet.addCell(Label(offsX++, offsY, (countNN++).toString(), wcfNN))
@@ -111,7 +111,8 @@ class cOverSpeed : cMMSReport() {
         }
         offsY++
 
-        sheet.addCell(Label(6, offsY, getPreparedAt(), wcfCellL)
+        sheet.addCell(
+            Label(6, offsY, getPreparedAt(), wcfCellL)
         )
         //sheet.mergeCells( 5, offsY, 6, offsY );
     }
@@ -136,13 +137,13 @@ class cOverSpeed : cMMSReport() {
 
         val alObjectID = ArrayList<Int>()
         //--- если объект не указан, то загрузим полный список доступных объектов
-        if(reportObject == 0) loadObjectList(stm, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
+        if (reportObject == 0) loadObjectList(stm, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
         else alObjectID.add(reportObject)
 
-        for(objectID in alObjectID) {
+        for (objectID in alObjectID) {
             val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
             //--- гео-датчик не прописан
-            if(oc.scg == null) continue
+            if (oc.scg == null) continue
 
             val hmZoneLimit = ZoneLimitData.getZoneLimit(
                 stm = stm,
@@ -153,23 +154,30 @@ class cOverSpeed : cMMSReport() {
             )
 
             //--- единоразово загрузим данные по всем датчикам объекта
-            val ( alRawTime, alRawData ) = ObjectCalc.loadAllSensorData(stm, oc, begTime, endTime)
+            val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(stm, oc, begTime, endTime)
 
             val gcd = ObjectCalc.calcGeoSensor(
-                alRawTime, alRawData, oc, begTime, endTime, hmXyDocumentConfig["mms_map"]!!.minScale(), maxEnabledOverSpeed, hmZoneLimit[ZoneLimitData.TYPE_LIMIT_SPEED]
+                alRawTime = alRawTime,
+                alRawData = alRawData,
+                scg = oc.scg!!,
+                begTime = begTime,
+                endTime = endTime,
+                scale = hmXyDocumentConfig["mms_map"]!!.alElementConfig.minOf { it.second.scaleMin },
+                maxEnabledOverSpeed = maxEnabledOverSpeed,
+                alZoneSpeedLimit = hmZoneLimit[ZoneLimitData.TYPE_LIMIT_SPEED]
             )
 
-            if(gcd.alOverSpeed == null || gcd.alOverSpeed!!.isEmpty()) continue
+            if (gcd.alOverSpeed.isEmpty()) continue
 
             val alObjectResult = ArrayList<OverSpeedPeriodData>()
-            for(i in gcd.alOverSpeed!!.indices) {
-                val ospd = gcd.alOverSpeed!![i] as OverSpeedPeriodData
-                if(ospd.getState() == 0) continue
+            for (i in gcd.alOverSpeed.indices) {
+                val ospd = gcd.alOverSpeed[i] as OverSpeedPeriodData
+                if (ospd.getState() == 0) continue
 
                 val tsZoneName = TreeSet<String>()
                 val inZone = ObjectCalc.fillZoneList(hmZoneData, reportZone, ospd.maxOverSpeedCoord!!, tsZoneName)
                 //--- фильтр по геозонам, если задано
-                if(reportZone != 0 && !inZone) continue
+                if (reportZone != 0 && !inZone) continue
 
                 ospd.objectConfig = oc
                 ospd.sbZoneName = getSBFromIterable(tsZoneName, ", ")

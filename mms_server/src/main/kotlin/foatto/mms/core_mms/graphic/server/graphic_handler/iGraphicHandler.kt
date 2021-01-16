@@ -3,7 +3,6 @@ package foatto.mms.core_mms.graphic.server.graphic_handler
 import foatto.core.app.graphic.GraphicColorIndex
 import foatto.core.app.graphic.GraphicDataContainer
 import foatto.core.util.AdvancedByteBuffer
-import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigAnalogue
 
 interface iGraphicHandler {
@@ -38,15 +37,15 @@ interface iGraphicHandler {
     fun isDynamicMinLimit(sca: SensorConfigAnalogue): Boolean
     fun isDynamicMaxLimit(sca: SensorConfigAnalogue): Boolean
 
-    fun getDynamicMinLimit(oc: ObjectConfig, sca: SensorConfigAnalogue, rawTime: Int, rawData: Double): Double
-    fun getDynamicMaxLimit(oc: ObjectConfig, sca: SensorConfigAnalogue, rawTime: Int, rawData: Double): Double
+    fun getDynamicMinLimit(sca: SensorConfigAnalogue, rawTime: Int, rawData: Double): Double
+    fun getDynamicMaxLimit(sca: SensorConfigAnalogue, rawTime: Int, rawData: Double): Double
 
     fun addDynamicMinLimit(rawTime: Int, dynamicMinLimit: Double, aMinLimit: GraphicDataContainer)
     fun addDynamicMaxLimit(rawTime: Int, dynamicMaxLimit: Double, aMaxLimit: GraphicDataContainer)
 
     //----------------------------------------------------------------------------------------------------------------------------------------
 
-    fun getRawData(oc: ObjectConfig, sca: SensorConfigAnalogue, bb: AdvancedByteBuffer): Double?
+    fun getRawData(sca: SensorConfigAnalogue, bb: AdvancedByteBuffer): Double?
 
-    fun getLineColorIndex(oc: ObjectConfig, sca: SensorConfigAnalogue, rawTime: Int, rawData: Double, prevTime: Int, prevData: Double): GraphicColorIndex
+    fun getLineColorIndex(sca: SensorConfigAnalogue, rawTime: Int, rawData: Double, prevTime: Int, prevData: Double): GraphicColorIndex
 }

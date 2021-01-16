@@ -24,14 +24,14 @@ class DataInt(aColumn: iColumn) : DataAbstractValue(aColumn) {
     override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String, id: Int): Boolean {
         val strValue = formData.stringValue!!
 
-        if(ci.isRequired && strValue.isBlank()) {
+        if (ci.isRequired && strValue.isBlank()) {
             errorValue = strValue
             errorText = "Обязательно для заполнения"
             return false
         }
         try {
             value = strValue.replace(" ", "").toInt(ci.radix)
-        } catch(t: Throwable) {
+        } catch (t: Throwable) {
             value = 0
             errorValue = strValue
             errorText = "Ошибка ввода"
@@ -39,19 +39,19 @@ class DataInt(aColumn: iColumn) : DataAbstractValue(aColumn) {
         }
 
         //--- проверка на минимум
-        if(ci.minValue != null && value < ci.minValue!!) {
+        if (ci.minValue != null && value < ci.minValue!!) {
             errorValue = strValue
             errorText = "Значение должно быть не меньше, чем ${ci.minValue}"
             return false
         }
         //--- проверка на максимум
-        if(ci.maxValue != null && value > ci.maxValue!!) {
+        if (ci.maxValue != null && value > ci.maxValue!!) {
             errorValue = strValue
             errorText = "Значение должно быть не больше, чем ${ci.maxValue}"
             return false
         }
 
-        if(column.isUnique &&
+        if (column.isUnique &&
             (column.uniqueIgnore == null || column.uniqueIgnore != value) &&
             stm.checkExist(column.tableName, column.alFieldName[0], value, fieldNameID, id)
         ) {
@@ -64,7 +64,7 @@ class DataInt(aColumn: iColumn) : DataAbstractValue(aColumn) {
     }
 
     override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int): TableCell =
-        if(isShowEmptyTableCell) TableCell(row, col, column.rowSpan, column.colSpan)
+        if (isShowEmptyTableCell) TableCell(row, col, column.rowSpan, column.colSpan)
         else TableCell(
             aRow = row,
             aCol = col,
@@ -81,9 +81,9 @@ class DataInt(aColumn: iColumn) : DataAbstractValue(aColumn) {
     override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement): FormCell {
         val fci = FormCell(FormCellType.INT)
         fci.name = getFieldCellName(0)
-        fci.value = if(errorText == null) getSplittedLong(value.toLong(), ci.radix).toString() else errorValue!!
+        fci.value = if (errorText == null) getSplittedLong(value.toLong(), ci.radix) else errorValue!!
         fci.column = ci.cols
-        fci.alComboString.addAll(ci.alCombo)
+        fci.alComboString = ci.alCombo.toTypedArray()
         return fci
     }
 
@@ -94,7 +94,7 @@ class DataInt(aColumn: iColumn) : DataAbstractValue(aColumn) {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     private fun getReportString(): String {
-        return if(ci.emptyValue != null && ci.emptyValue == value) ci.emptyText!!
-        else getSplittedLong(value.toLong(), ci.radix).toString()
+        return if (ci.emptyValue != null && ci.emptyValue == value) ci.emptyText!!
+        else getSplittedLong(value.toLong(), ci.radix)
     }
 }

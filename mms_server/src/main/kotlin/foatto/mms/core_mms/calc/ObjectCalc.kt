@@ -31,53 +31,64 @@ import kotlin.math.max
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-class ObjectCalc {
-
-    lateinit var objectConfig: ObjectConfig
+class ObjectCalc(val objectConfig: ObjectConfig) {
 
     var gcd: GeoCalcData? = null
-    val tmWorkCalc = TreeMap<String, WorkCalcData>()
-    val tmLiquidUsingTotal = TreeMap<String, Double>()
-    val tmLiquidUsingCalc = TreeMap<String, Double>()
-    val tmEnergoCalc = TreeMap<String, Double>()
-    val tmLiquidLevelCalc = TreeMap<String, LiquidLevelCalcData>()
+    val tmWork = TreeMap<String, WorkCalcData>()
+    val tmEnergo = TreeMap<String, Double>()
+    val tmLiquidUsing = TreeMap<String, Double>()   // liquid using by sensor descr
+    val tmLiquidLevel = TreeMap<String, LiquidLevelCalcData>()
 
-    val tmGroupSum = TreeMap<String, GroupSumData>()
+    val tmGroupSum = TreeMap<String, CalcSumData>() // sums by group
+    val allSumData = CalcSumData()                  // overall sum
 
     val tmTemperature = TreeMap<String, GraphicDataContainer>()
     val tmDensity = TreeMap<String, GraphicDataContainer>()
 
-    val sbGeoName = StringBuilder()
-    val sbGeoRun = StringBuilder()
-    val sbGeoOutTime = StringBuilder()
-    val sbGeoInTime = StringBuilder()
-    val sbGeoWayTime = StringBuilder()
-    val sbGeoMovingTime = StringBuilder()
-    val sbGeoParkingTime = StringBuilder()
-    val sbGeoParkingCount = StringBuilder()
+    var sGeoName = ""
+    var sGeoRun = ""
+    var sGeoOutTime = ""
+    var sGeoInTime = ""
+    var sGeoWayTime = ""
+    var sGeoMovingTime = ""
+    var sGeoParkingTime = ""
+    var sGeoParkingCount = ""
 
-    val sbWorkName = StringBuilder()
-    val sbWorkTotal = StringBuilder()
+    var sWorkName = ""
+    var sWorkValue = ""
 
-    val sbLiquidUsingName = StringBuilder()
-    val sbLiquidUsingTotal = StringBuilder()
-    val sbLiquidUsingCalc = StringBuilder()
+    var sEnergoName = ""
+    var sEnergoValue = ""
 
-    val sbEnergoName = StringBuilder()
-    val sbEnergoValue = StringBuilder()
+    //    var sGroupSumEnergoName = ""
+//    var sGroupSumEnergoValue = ""
+    var sAllSumEnergoName = ""
+    var sAllSumEnergoValue = ""
 
-    val sbLiquidLevelName = StringBuilder()
-    val sbLiquidLevelBeg = StringBuilder()
-    val sbLiquidLevelEnd = StringBuilder()
-    val sbLiquidLevelIncTotal = StringBuilder()
-    val sbLiquidLevelDecTotal = StringBuilder()
-    val sbLiquidLevelUsingTotal = StringBuilder()
-    val sbLiquidLevelUsingCalc = StringBuilder()
+    var sLiquidUsingName = ""
+    var sLiquidUsingValue = ""
+
+    //    var sGroupSumLiquidName = ""
+//    var sGroupSumLiquidValue = ""
+    var sAllSumLiquidName = ""
+    var sAllSumLiquidValue = ""
+
+    var sLiquidLevelName = ""
+    var sLiquidLevelBeg = ""
+    var sLiquidLevelEnd = ""
+    var sLiquidLevelIncTotal = ""
+    var sLiquidLevelDecTotal = ""
+    var sLiquidLevelUsingTotal = ""
+    var sLiquidLevelUsingCalc = ""
+
+    var sLiquidLevelLiquidName = ""
+    var sLiquidLevelLiquidInc = ""
+    var sLiquidLevelLiquidDec = ""
 
     companion object {
 
         //--- maximum allowable distance between points
-        private val MAX_RUN = 100_000 // 100 km = 30 minutes (see MAX_WORK_TIME_INTERVAL) at 200 km/h
+        private const val MAX_RUN = 100_000 // 100 km = 30 minutes (see MAX_WORK_TIME_INTERVAL) at 200 km/h
 
         //--- the maximum allowable time interval between points, over which:
         //--- 1.for geo-sensors - the mileage is not counted for this period
@@ -91,41 +102,33 @@ class ObjectCalc {
 
         fun calcObject(stm: CoreAdvancedStatement, userConfig: UserConfig, oc: ObjectConfig, begTime: Int, endTime: Int): ObjectCalc {
 
-            val result = ObjectCalc()
-            result.objectConfig = oc
+            val result = ObjectCalc(oc)
 
             val zoneId = getZoneId(userConfig.getUserProperty(UP_TIME_OFFSET)?.toIntOrNull())
             val (alRawTime, alRawData) = loadAllSensorData(stm, oc, begTime, endTime)
 
             //--- if geo-sensors are registered - we sum up the mileage
             oc.scg?.let { scg ->
-                //--- in normal calculations, we do not need trajectory points, so we give the maximum scale.
-                //--- excess is also not needed, so we give maxEnabledOverSpeed = 0
-                result.gcd = calcGeoSensor(alRawTime, alRawData, oc, begTime, endTime, 1_000_000_000, 0, null)
-
-                //--- if the standard for liquid (fuel) is set, we will calculate it
-                if (scg.isUseRun && scg.liquidName.isNotEmpty()) {
-                    liquidCalc(scg.liquidName, scg.sumGroup, scg.liquidNorm * result.gcd!!.run / 100.0, 0.0, result)
-                }
+                calcGeo(alRawTime, alRawData, scg, begTime, endTime, result)
             }
 
             //--- equipment operation sensors
-            val hmSCW = oc.hmSensorConfig[SensorConfig.SENSOR_WORK]
-            if (!hmSCW.isNullOrEmpty()) {
+            oc.hmSensorConfig[SensorConfig.SENSOR_WORK]?.let { hmSCW ->
                 hmSCW.values.forEach { sc ->
-                    val scw = sc as SensorConfigWork
+                    calcWork(alRawTime, alRawData, sc as SensorConfigWork, begTime, endTime, result)
+                }
+            }
 
-                    val wcd = calcWorkSensor(alRawTime, alRawData, scw, begTime, endTime)
-                    result.tmWorkCalc[scw.descr] = wcd
-
-                    if (sc.sumGroup.isNotBlank()) {
-                        val workGroupSum = result.tmGroupSum.getOrPut(sc.sumGroup) { GroupSumData() }
-                        workGroupSum.addWorkData(wcd.onTime)
-                    }
-
-                    //--- if the standard for liquid (fuel) is set, we will calculate it
-                    if (sc.liquidName.isNotEmpty()) {
-                        liquidCalc(scw.liquidName, scw.sumGroup, scw.liquidNorm * wcd.onTime / 60.0 / 60.0, 0.0, result)
+            //--- sensors - electricity meters
+            listOf(
+                SensorConfig.SENSOR_ENERGO_COUNT_AD,
+                SensorConfig.SENSOR_ENERGO_COUNT_AR,
+                SensorConfig.SENSOR_ENERGO_COUNT_RD,
+                SensorConfig.SENSOR_ENERGO_COUNT_RR
+            ).forEach { sensorType ->
+                oc.hmSensorConfig[sensorType]?.let { hmSCEC ->
+                    hmSCEC.values.forEach { sc ->
+                        calcEnergo(alRawTime, alRawData, sc as SensorConfigEnergoSummary, begTime, endTime, result)
                     }
                 }
             }
@@ -154,50 +157,11 @@ class ObjectCalc {
                 }
             }
 
-            //--- sensors - electricity meters
-            listOf(
-                SensorConfig.SENSOR_ENERGO_COUNT_AD,
-                SensorConfig.SENSOR_ENERGO_COUNT_AR,
-                SensorConfig.SENSOR_ENERGO_COUNT_RD,
-                SensorConfig.SENSOR_ENERGO_COUNT_RR
-            ).forEach { sensorType ->
-                val hmSCEC = oc.hmSensorConfig[sensorType]
-                if (!hmSCEC.isNullOrEmpty()) {
-                    for (sc in hmSCEC.values) {
-                        val e = calcEnergoSensor(alRawTime, alRawData, sc as SensorConfigEnergoSummary, begTime, endTime)
-
-                        val curTotal = result.tmEnergoCalc[sc.descr] ?: 0.0
-                        result.tmEnergoCalc[sc.descr] = curTotal + e
-
-                        //--- calculate the group amount
-                        if (sc.sumGroup.isNotBlank()) {
-                            val groupSum = result.tmGroupSum.getOrPut(sc.sumGroup) { GroupSumData() }
-                            val byType = groupSum.tmEnergoUsing.getOrPut(sensorType) { TreeMap<Int, Double>() }
-                            val byPhase = byType[sc.phase] ?: 0.0
-                            byType[sc.phase] = byPhase + e
-                        }
-                    }
-                }
-            }
-
             //--- liquid level sensors
             val hmSCLL = oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_LEVEL]
             if (!hmSCLL.isNullOrEmpty()) {
                 hmSCLL.values.forEach { sc ->
-                    val scll = sc as SensorConfigLiquidLevel
-
-                    val llcd = calcLiquidLevelSensor(alRawTime, alRawData, oc, scll, begTime, endTime, stm)
-                    result.tmLiquidLevelCalc[scll.descr] = llcd
-
-                    if (sc.sumGroup.isNotBlank()) {
-                        val groupSum = result.tmGroupSum.getOrPut(sc.sumGroup) { GroupSumData() }
-                        groupSum.addLiquidLevel(llcd.begLevel, llcd.endLevel, llcd.incTotal, llcd.decTotal)
-                    }
-
-                    //--- if the name of the liquid (fuel) is given, then add its consumption to the general list
-                    if (scll.liquidName.isNotEmpty()) {
-                        liquidCalc(scll.liquidName, scll.sumGroup, llcd.usingTotal, llcd.usingCalc, result)
-                    }
+                    calcLiquidLevel(alRawTime, alRawData, stm, oc, sc as SensorConfigLiquidLevel, begTime, endTime, result)
                 }
             }
 
@@ -210,7 +174,7 @@ class ObjectCalc {
                     getSmoothAnalogGraphicData(
                         alRawTime = alRawTime,
                         alRawData = alRawData,
-                        oc = oc,
+                        scg = oc.scg,
                         scsc = sca,
                         begTime = begTime,
                         endTime = endTime,
@@ -234,7 +198,7 @@ class ObjectCalc {
                     getSmoothAnalogGraphicData(
                         alRawTime = alRawTime,
                         alRawData = alRawData,
-                        oc = oc,
+                        scg = oc.scg,
                         scsc = sca,
                         begTime = begTime,
                         endTime = endTime,
@@ -250,47 +214,13 @@ class ObjectCalc {
                 }
             }
 
-            //--- заполнение типовых строк вывода ( для табличных форм и отчетов )
-            if (oc.scg != null)
-                fillGeoString(
-                    gcd = result.gcd!!,
-                    zoneId = zoneId,
-                    sbGeoName = result.sbGeoName,
-                    sbGeoRun = result.sbGeoRun,
-                    sbGeoOutTime = result.sbGeoOutTime,
-                    sbGeoInTime = result.sbGeoInTime,
-                    sbGeoWayTime = result.sbGeoWayTime,
-                    sbGeoMovingTime = result.sbGeoMovingTime,
-                    sbGeoParkingTime = result.sbGeoParkingTime,
-                    sbGeoParkingCount = result.sbGeoParkingCount
-                )
-            fillWorkString(
-                tmWorkCalc = result.tmWorkCalc,
-                sbWorkName = result.sbWorkName,
-                sbWorkTotal = result.sbWorkTotal,
-            )
-            fillLiquidUsingString(
-                tmLiquidUsingTotal = result.tmLiquidUsingTotal,
-                tmLiquidUsingCalc = result.tmLiquidUsingCalc,
-                sbLiquidUsingName = result.sbLiquidUsingName,
-                sbLiquidUsingTotal = result.sbLiquidUsingTotal,
-                sbLiquidUsingCalc = result.sbLiquidUsingCalc,
-            )
-            fillEnergoString(
-                tmEnergoCalc = result.tmEnergoCalc,
-                sbEnergoName = result.sbEnergoName,
-                sbEnergoValue = result.sbEnergoValue
-            )
-            fillLiquidLevelString(
-                tmLiquidLevelCalc = result.tmLiquidLevelCalc,
-                sbLiquidLevelName = result.sbLiquidLevelName,
-                sbLiquidLevelBeg = result.sbLiquidLevelBeg,
-                sbLiquidLevelEnd = result.sbLiquidLevelEnd,
-                sbLiquidLevelIncTotal = result.sbLiquidLevelIncTotal,
-                sbLiquidLevelDecTotal = result.sbLiquidLevelDecTotal,
-                sbLiquidLevelUsingTotal = result.sbLiquidLevelUsingTotal,
-                sbLiquidLevelUsingCalc = result.sbLiquidLevelUsingCalc
-            )
+            if (oc.scg != null) {
+                fillGeoString(zoneId, result)
+            }
+            fillWorkString(result)
+            fillEnergoString(result)
+            fillLiquidUsingString(result)
+            fillLiquidLevelString(result)
 
             return result
         }
@@ -330,14 +260,13 @@ class ObjectCalc {
         fun calcGeoSensor(
             alRawTime: List<Int>,
             alRawData: List<AdvancedByteBuffer>,
-            oc: ObjectConfig,
+            scg: SensorConfigGeo,
             begTime: Int,
             endTime: Int,
             scale: Int,
             maxEnabledOverSpeed: Int,
             alZoneSpeedLimit: List<ZoneLimitData>?
         ): GeoCalcData {
-            val scg = oc.scg
 
             var begRun = 0
             var lastRun = 0
@@ -377,7 +306,7 @@ class ObjectCalc {
                     break
                 }
 
-                val gd = AbstractObjectStateCalc.getGeoData(oc, alRawData[i]) ?: continue
+                val gd = AbstractObjectStateCalc.getGeoData(scg, alRawData[i]) ?: continue
                 // --- Nuances of calculating the mileage:
                 // --- 1. Regardless of the mileage display method (relative / point-to-point or absolute):
                 // --- 1.1. We ignore the runs between points with too long a time interval.
@@ -518,19 +447,20 @@ class ObjectCalc {
 
             //--- we convert the sums of meters into km (if the mileage from this sensor is not used, then we will make it negative)
             return GeoCalcData(
-                scg.descr,
-                run / 1000.0 * scg.runKoef,
-                outTime,
-                inTime,
-                movingTime,
-                parkingCount,
-                parkingTime,
-                alMovingAndParking,
-                alOverSpeed,
-                alPointTime,
-                alPointXY,
-                alPointSpeed,
-                alPointOverSpeed
+                group = scg.group,
+                descr = scg.descr,
+                run = run / 1000.0 * scg.runKoef,
+                outTime = outTime,
+                inTime = inTime,
+                movingTime = movingTime,
+                parkingCount = parkingCount,
+                parkingTime = parkingTime,
+                alMovingAndParking = alMovingAndParking,
+                alOverSpeed = alOverSpeed,
+                alPointTime = alPointTime,
+                alPointXY = alPointXY,
+                alPointSpeed = alPointSpeed,
+                alPointOverSpeed = alPointOverSpeed
             )
         }
 
@@ -598,26 +528,7 @@ class ObjectCalc {
             //--- merging of work / downtime periods according to minimum durations
             mergePeriods(alResult, scw.minOnTime, scw.minOffTime)
 
-            return WorkCalcData(alResult)
-        }
-
-        fun calcCounterSensor(
-            alRawTime: List<Int>,
-            alRawData: List<AdvancedByteBuffer>,
-            scu: SensorConfigCounter,
-            begTime: Int,
-            endTime: Int,
-        ): Pair<Double, Double> {
-            return Pair(
-                getSensorCountData(
-                    alRawTime = alRawTime,
-                    alRawData = alRawData,
-                    scu = scu,
-                    begTime = begTime,
-                    endTime = endTime
-                ),
-                0.0
-            )
+            return WorkCalcData(scw.group, alResult)
         }
 
         fun calcEnergoSensor(
@@ -639,18 +550,7 @@ class ObjectCalc {
                 if (curTime < begTime) continue
                 if (curTime > endTime) break
 
-                val rawSensorData = AbstractObjectStateCalc.getSensorData(sces.portNum, alRawData[i]) ?: continue
-                val sensorData = when (rawSensorData) {
-                    is Int -> {
-                        rawSensorData.toDouble()
-                    }
-                    is Double -> {
-                        rawSensorData
-                    }
-                    else -> {
-                        0.0
-                    }
-                }
+                val sensorData = AbstractObjectStateCalc.getSensorData(sces.portNum, alRawData[i])?.toDouble() ?: continue
                 if (isIgnoreSensorData(sces, sensorData)) continue
 
                 val sensorValue = AbstractObjectStateCalc.getSensorValue(sces.alValueSensor, sces.alValueData, sensorData)
@@ -672,16 +572,16 @@ class ObjectCalc {
         fun calcLiquidLevelSensor(
             alRawTime: List<Int>,
             alRawData: List<AdvancedByteBuffer>,
+            stm: CoreAdvancedStatement,
             oc: ObjectConfig,
             sca: SensorConfigLiquidLevel,
             begTime: Int,
             endTime: Int,
-            stm: CoreAdvancedStatement
         ): LiquidLevelCalcData {
 
             val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2)
             val alLSPD = mutableListOf<LiquidStatePeriodData>()
-            getSmoothLiquidGraphicData(alRawTime, alRawData, oc, sca, begTime, endTime, aLine, alLSPD)
+            getSmoothLiquidGraphicData(alRawTime, alRawData, oc.scg, sca, begTime, endTime, aLine, alLSPD)
 
             val llcd = LiquidLevelCalcData(aLine, alLSPD)
             calcLiquidUsingByLevel(sca, llcd, stm, oc, begTime, endTime)
@@ -699,7 +599,7 @@ class ObjectCalc {
             //--- looking for an excess among the permanent limit
             maxOverSpeed = max(maxOverSpeed, speed - maxSpeedConst)
             //--- looking for speed limit zones
-            if (alZoneSpeedLimit != null)
+            alZoneSpeedLimit?.let {
                 for (zd in alZoneSpeedLimit) {
                     //--- if there are restrictions on the duration of the action, then we will check their entry,
                     //--- and if we do not enter the interval (s) of the zone, then we go to the next zone
@@ -709,6 +609,7 @@ class ObjectCalc {
                     //--- check for excess
                     maxOverSpeed = max(maxOverSpeed, speed - zd.maxSpeed)
                 }
+            }
             return maxOverSpeed
         }
 
@@ -716,7 +617,7 @@ class ObjectCalc {
         fun getSmoothAnalogGraphicData(
             alRawTime: List<Int>,
             alRawData: List<AdvancedByteBuffer>,
-            oc: ObjectConfig,
+            scg: SensorConfigGeo?,
             scsc: SensorConfigAnalogue,
             begTime: Int,
             endTime: Int,
@@ -741,7 +642,10 @@ class ObjectCalc {
             //--- for smoothing, you may need data before and after the time of the current point,
             //--- therefore, we overload / translate data in advance
             val alSensorData = mutableListOf<Double?>()
-            for (bb in alRawData) alSensorData.add(gh.getRawData(oc, scsc, bb))
+            for (bb in alRawData) alSensorData.add(gh.getRawData(scsc, bb))
+
+            val alGPD = aPoint?.alGPD?.toMutableList() ?: mutableListOf()
+            val alGLD = aLine?.alGLD?.toMutableList() ?: mutableListOf()
 
             //--- raw data processing -----------------------------------------------------------------------------------------
 
@@ -760,31 +664,31 @@ class ObjectCalc {
                 if (isDynamicMinLimit) {
                     //--- if the line point is far enough from the previous one (or just the first one :)
                     if (aMinLimit!!.alGLD.isEmpty() || rawTime - aMinLimit.alGLD[aMinLimit.alGLD.size - 1].x > xScale)
-                        gh.addDynamicMinLimit(rawTime, gh.getDynamicMinLimit(oc, scsc, rawTime, rawData), aMinLimit)
+                        gh.addDynamicMinLimit(rawTime, gh.getDynamicMinLimit(scsc, rawTime, rawData), aMinLimit)
                 }
                 if (isDynamicMaxLimit) {
                     //--- if the line point is far enough from the previous one (or just the first one :)
                     if (aMaxLimit!!.alGLD.isEmpty() || rawTime - aMaxLimit.alGLD[aMaxLimit.alGLD.size - 1].x > xScale)
-                        gh.addDynamicMaxLimit(rawTime, gh.getDynamicMaxLimit(oc, scsc, rawTime, rawData), aMaxLimit)
+                        gh.addDynamicMaxLimit(rawTime, gh.getDynamicMaxLimit(scsc, rawTime, rawData), aMaxLimit)
                 }
 
                 //--- if points are shown
-                if (aPoint != null) {
+                aPoint?.let {
                     val colorIndex = if (isStaticMinLimit && rawData < gh.getStaticMinLimit(scsc) ||
                         isStaticMaxLimit && rawData > gh.getStaticMaxLimit(scsc) ||
-                        isDynamicMinLimit && rawData < gh.getDynamicMinLimit(oc, scsc, rawTime, rawData) ||
-                        isDynamicMaxLimit && rawData > gh.getDynamicMaxLimit(oc, scsc, rawTime, rawData)
+                        isDynamicMinLimit && rawData < gh.getDynamicMinLimit(scsc, rawTime, rawData) ||
+                        isDynamicMaxLimit && rawData > gh.getDynamicMaxLimit(scsc, rawTime, rawData)
                     ) GraphicColorIndex.POINT_ABOVE
                     else GraphicColorIndex.POINT_NORMAL
 
-                    val gpdLast = if (aPoint.alGPD.isEmpty()) null else aPoint.alGPD[aPoint.alGPD.size - 1]
+                    val gpdLast = if (alGPD.isEmpty()) null else alGPD[alGPD.size - 1]
 
                     if (gpdLast == null || rawTime - gpdLast.x > xScale || abs(rawData - gpdLast.y) > yScale || colorIndex != gpdLast.colorIndex)
-                        aPoint.alGPD.add(GraphicPointData(rawTime, rawData, colorIndex))
+                        alGPD.add(GraphicPointData(rawTime, rawData, colorIndex))
                 }
 
                 //--- if lines are shown
-                if (aLine != null) {
+                aLine?.let {
                     //--- finding the left border of the smoothing range
                     var pos1 = pos - 1
                     while (pos1 >= 0) {
@@ -861,21 +765,25 @@ class ObjectCalc {
                         else -> avgValue = 0.0
                     }
 
-                    val gldLast = if (aLine.alGLD.isEmpty()) null else aLine.alGLD[aLine.alGLD.size - 1]
+                    val gldLast = if (alGLD.isEmpty()) null else alGLD[alGLD.size - 1]
 
                     //--- if boundary values are set, we look at the averaged avgValue,
                     //--- so the typical getDynamicXXX from the beginning of the cycle does not suit us
                     val prevTime = (gldLast?.x ?: rawTime)
                     val prevData = gldLast?.y ?: avgValue
-                    val curColorIndex = gh.getLineColorIndex(oc, scsc, rawTime, avgValue, prevTime, prevData)
+                    val curColorIndex = gh.getLineColorIndex(scsc, rawTime, avgValue, prevTime, prevData)
 
                     if (gldLast == null || rawTime - gldLast.x > xScale || abs(rawData - gldLast.y) > yScale || curColorIndex != gldLast.colorIndex) {
-
-                        val gd = if (oc.scg == null) null else AbstractObjectStateCalc.getGeoData(oc, alRawData[pos])
-                        aLine.alGLD.add(GraphicLineData(rawTime, avgValue, curColorIndex, if (gd == null) null else XyProjection.wgs_pix(gd.wgs)))
+                        val gd = scg?.let {
+                            AbstractObjectStateCalc.getGeoData(scg, alRawData[pos])
+                        }
+                        alGLD.add(GraphicLineData(rawTime, avgValue, curColorIndex, gd?.let { XyProjection.wgs_pix(gd.wgs) }))
                     }
                 }
             }
+
+            aPoint?.alGPD = alGPD.toTypedArray()
+            aLine?.alGLD = alGLD.toTypedArray()
         }
 
         //--- we collect periods of liquid level states (refueling, draining, consumption) and apply filters for refueling / draining / consumption
@@ -1089,7 +997,7 @@ class ObjectCalc {
 
             val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2)
             val alLSPD = mutableListOf<LiquidStatePeriodData>()
-            getSmoothLiquidGraphicData(alRawTime, alRawData, oc, sca, begTime, endTime, aLine, alLSPD)
+            getSmoothLiquidGraphicData(alRawTime, alRawData, oc.scg, sca, begTime, endTime, aLine, alLSPD)
 
             val llcd = LiquidLevelCalcData(aLine, alLSPD)
             calcLiquidUsingByLevel(sca, llcd, stm, oc, begTime, endTime)
@@ -1107,9 +1015,9 @@ class ObjectCalc {
                 if (lidd != null) {
                     var inZoneAll = false
                     val tsZoneName = TreeSet<String>()
-                    if (oc.scg != null) {
+                    oc.scg?.let { scg ->
                         for (pos in lspd.begPos..lspd.endPos) {
-                            val gd = AbstractObjectStateCalc.getGeoData(oc, alRawData[pos]) ?: continue
+                            val gd = AbstractObjectStateCalc.getGeoData(scg, alRawData[pos]) ?: continue
                             val pixPoint = XyProjection.wgs_pix(gd.wgs)
 
                             val inZone = fillZoneList(hmZoneData, calcZoneID, pixPoint, tsZoneName)
@@ -1177,27 +1085,76 @@ class ObjectCalc {
 
         //--- private part -----------------------------------------------------------------------------------------------------------
 
-        private fun liquidCalc(
-            liquidName: String,
-            sumGroup: String,
-            total: Double,
-            calc: Double,
-            result: ObjectCalc,
+        private fun calcGeo(
+            alRawTime: List<Int>,
+            alRawData: List<AdvancedByteBuffer>,
+            scg: SensorConfigGeo,
+            begTime: Int,
+            endTime: Int,
+            result: ObjectCalc
         ) {
-            val curTotal = result.tmLiquidUsingTotal[liquidName] ?: 0.0
-            result.tmLiquidUsingTotal[liquidName] = curTotal + total
+            //--- in normal calculations, we do not need trajectory points, so we give the maximum scale.
+            //--- excess is also not needed, so we give maxEnabledOverSpeed = 0
+            result.gcd = calcGeoSensor(alRawTime, alRawData, scg, begTime, endTime, 1_000_000_000, 0, null)
 
-            val curCalc = result.tmLiquidUsingCalc[liquidName] ?: 0.0
-            result.tmLiquidUsingCalc[liquidName] = curCalc + calc
+            //--- if the standard for liquid (fuel) is set, we will calculate it
+            if (scg.isUseRun && scg.liquidName.isNotEmpty() && scg.liquidNorm != 0.0) {
+                val liquidUsing = scg.liquidNorm * result.gcd!!.run / 100.0
 
-            if (sumGroup.isNotBlank()) {
-                val groupSum = result.tmGroupSum.getOrPut(sumGroup) { GroupSumData() }
-                groupSum.addLiquidUsing(
-                    liquidName,
-                    aTotal = total,
-                    aCalc = calc
-                )
+                result.tmLiquidUsing["${scg.descr} (расч.) ${scg.liquidName}"] = liquidUsing
+                addLiquidUsingSum(scg.group, scg.liquidName, liquidUsing, result)
             }
+
+        }
+
+        private fun calcWork(
+            alRawTime: List<Int>,
+            alRawData: List<AdvancedByteBuffer>,
+            scw: SensorConfigWork,
+            begTime: Int,
+            endTime: Int,
+            result: ObjectCalc
+        ) {
+            val wcd = calcWorkSensor(alRawTime, alRawData, scw, begTime, endTime)
+            result.tmWork[scw.descr] = wcd
+
+            //--- needed to determine the uniqueness of equipment in a group to calculate the average fuel consumption
+            val groupSum = result.tmGroupSum.getOrPut(scw.group) { CalcSumData() }
+            groupSum.tmWork[scw.descr] = wcd.onTime
+
+            //--- do not needed
+            //result.allSumData.tmWork[scw.descr] = wcd.onTime
+
+            //--- if the standard for liquid (fuel) is set, we will calculate it
+            if (scw.liquidName.isNotEmpty() && scw.liquidNorm != 0.0) {
+                val liquidUsing = scw.liquidNorm * wcd.onTime / 60.0 / 60.0
+
+                result.tmLiquidUsing["${scw.descr} (расч.) ${scw.liquidName}"] = liquidUsing
+                addLiquidUsingSum(scw.group, scw.liquidName, liquidUsing, result)
+            }
+        }
+
+        private fun calcEnergo(
+            alRawTime: List<Int>,
+            alRawData: List<AdvancedByteBuffer>,
+            sces: SensorConfigEnergoSummary,
+            begTime: Int,
+            endTime: Int,
+            result: ObjectCalc
+        ) {
+            val e = calcEnergoSensor(alRawTime, alRawData, sces, begTime, endTime)
+
+            result.tmEnergo[sces.descr] = e
+
+            //--- calculate the group amount
+            val groupSum = result.tmGroupSum.getOrPut(sces.group) { CalcSumData() }
+            val byType = groupSum.tmEnergo.getOrPut(sces.sensorType) { TreeMap<Int, Double>() }
+            val byPhase = byType[sces.phase] ?: 0.0
+            byType[sces.phase] = byPhase + e
+
+            val byTypeAll = result.allSumData.tmEnergo.getOrPut(sces.sensorType) { TreeMap<Int, Double>() }
+            val byPhaseAll = byTypeAll[sces.phase] ?: 0.0
+            byTypeAll[sces.phase] = byPhaseAll + e
         }
 
         private fun calcLiquidCalcSensor(
@@ -1210,8 +1167,10 @@ class ObjectCalc {
         ) {
             //--- if the name of the liquid (fuel) is given, then add its consumption to the general list
             if (scu.liquidName.isNotEmpty()) {
-                val luquidUsing = calcCounterSensor(alRawTime, alRawData, scu, begTime, endTime)
-                liquidCalc(scu.liquidName, scu.sumGroup, luquidUsing.first, luquidUsing.second, result)
+                val liquidUsing = getSensorCountData(alRawTime, alRawData, scu, begTime, endTime)
+
+                result.tmLiquidUsing["${scu.descr} ${scu.liquidName}"] = liquidUsing
+                addLiquidUsingSum(scu.group, scu.liquidName, liquidUsing, result)
             }
         }
 
@@ -1224,9 +1183,48 @@ class ObjectCalc {
             result: ObjectCalc
         ) {
             if (scls.liquidName.isNotEmpty()) {
-                val luquidUsing = calcLiquidAccumulatedSensor(alRawTime, alRawData, scls, begTime, endTime)
-                liquidCalc(scls.liquidName, scls.sumGroup, luquidUsing, 0.0, result)
+                val liquidUsing = calcLiquidAccumulatedSensor(alRawTime, alRawData, scls, begTime, endTime)
+
+                result.tmLiquidUsing["${scls.descr} ${scls.liquidName}"] = liquidUsing
+                addLiquidUsingSum(scls.group, scls.liquidName, liquidUsing, result)
             }
+        }
+
+        private fun calcLiquidLevel(
+            alRawTime: List<Int>,
+            alRawData: List<AdvancedByteBuffer>,
+            stm: CoreAdvancedStatement,
+            oc: ObjectConfig,
+            scll: SensorConfigLiquidLevel,
+            begTime: Int,
+            endTime: Int,
+            result: ObjectCalc
+        ) {
+            val llcd = calcLiquidLevelSensor(alRawTime, alRawData, stm, oc, scll, begTime, endTime)
+
+            result.tmLiquidLevel[scll.descr] = llcd
+
+            result.tmLiquidUsing["${scll.descr} ${scll.liquidName}"] = llcd.usingTotal
+            addLiquidUsingSum(scll.group, scll.liquidName, llcd.usingTotal, result)
+
+            val groupSum = result.tmGroupSum.getOrPut(scll.group) { CalcSumData() }
+            groupSum.addLiquidLevel(scll.descr, llcd.incTotal, llcd.decTotal)
+
+            result.allSumData.addLiquidLevel(scll.descr, llcd.incTotal, llcd.decTotal)
+        }
+
+        //-----------------------------
+
+        private fun addLiquidUsingSum(
+            groupName: String,
+            liquidName: String,
+            using: Double,
+            result: ObjectCalc,
+        ) {
+            val groupSum = result.tmGroupSum.getOrPut(groupName) { CalcSumData() }
+            groupSum.addLiquidUsing(liquidName, using)
+
+            result.allSumData.addLiquidUsing(liquidName, using)
         }
 
         private fun calcLiquidAccumulatedSensor(
@@ -1248,18 +1246,7 @@ class ObjectCalc {
                 if (curTime < begTime) continue
                 if (curTime > endTime) break
 
-                val rawSensorData = AbstractObjectStateCalc.getSensorData(scls.portNum, alRawData[i]) ?: continue
-                val sensorData = when (rawSensorData) {
-                    is Int -> {
-                        rawSensorData.toDouble()
-                    }
-                    is Double -> {
-                        rawSensorData
-                    }
-                    else -> {
-                        0.0
-                    }
-                }
+                val sensorData = AbstractObjectStateCalc.getSensorData(scls.portNum, alRawData[i])?.toDouble() ?: continue
                 if (isIgnoreSensorData(scls, sensorData)) continue
 
                 val sensorValue = AbstractObjectStateCalc.getSensorValue(scls.alValueSensor, scls.alValueData, sensorData)
@@ -1456,7 +1443,7 @@ class ObjectCalc {
         private fun getSmoothLiquidGraphicData(
             alRawTime: List<Int>,
             alRawData: List<AdvancedByteBuffer>,
-            oc: ObjectConfig,
+            scg: SensorConfigGeo?,
             sca: SensorConfigLiquidLevel,
             begTime: Int,
             endTime: Int,
@@ -1464,7 +1451,7 @@ class ObjectCalc {
             alLSPD: MutableList<LiquidStatePeriodData>
         ) {
             val gh = LiquidGraphicHandler()
-            getSmoothAnalogGraphicData(alRawTime, alRawData, oc, sca, begTime, endTime, 0, 0.0, null, null, null, aLine, gh)
+            getSmoothAnalogGraphicData(alRawTime, alRawData, scg, sca, begTime, endTime, 0, 0.0, null, null, null, aLine, gh)
             getLiquidStatePeriodData(sca, aLine, alLSPD, gh)
         }
 
@@ -1551,7 +1538,7 @@ class ObjectCalc {
 
                 val aLineExt = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2)
                 val alLSPDExt = mutableListOf<LiquidStatePeriodData>()
-                getSmoothLiquidGraphicData(alRawTimeExt, alRawDataExt, oc, sca, begTime - MAX_CALC_PREV_NORMAL_PERIOD * 2, endTime, aLineExt, alLSPDExt)
+                getSmoothLiquidGraphicData(alRawTimeExt, alRawDataExt, oc.scg, sca, begTime - MAX_CALC_PREV_NORMAL_PERIOD * 2, endTime, aLineExt, alLSPDExt)
 
                 //--- the current period in the current range
                 val lspdCur = alLSPD!![curPos]
@@ -1612,18 +1599,7 @@ class ObjectCalc {
                 if (rawTime < begTime) continue
                 if (rawTime > endTime) break
 
-                val rawSensorData = AbstractObjectStateCalc.getSensorData(scu.portNum, alRawData[pos]) ?: continue
-                val sensorData = when (rawSensorData) {
-                    is Int -> {
-                        rawSensorData.toDouble()
-                    }
-                    is Double -> {
-                        rawSensorData
-                    }
-                    else -> {
-                        0.0
-                    }
-                }
+                val sensorData = AbstractObjectStateCalc.getSensorData(scu.portNum, alRawData[pos])?.toDouble() ?: continue
                 //--- ignore outbound values
                 if (isIgnoreSensorData(scu, sensorData)) continue
 
@@ -1660,26 +1636,17 @@ class ObjectCalc {
 
         //--- filling in standard output lines (for tabular forms and reports) ---------------------------
 
-        fun fillGeoString(
-            gcd: GeoCalcData,
-            zoneId: ZoneId,
-            sbGeoName: StringBuilder,
-            sbGeoRun: StringBuilder,
-            sbGeoOutTime: StringBuilder,
-            sbGeoInTime: StringBuilder,
-            sbGeoWayTime: StringBuilder,
-            sbGeoMovingTime: StringBuilder,
-            sbGeoParkingTime: StringBuilder,
-            sbGeoParkingCount: StringBuilder
-        ) {
-            sbGeoName.append(gcd.descr)
-            sbGeoRun.append(if (gcd.run < 0) '-' else getSplittedDouble(gcd.run, 1))
-            sbGeoOutTime.append(if (gcd.outTime == 0) "-" else DateTime_DMYHMS(zoneId, gcd.outTime))
-            sbGeoInTime.append(if (gcd.inTime == 0) "-" else DateTime_DMYHMS(zoneId, gcd.inTime))
-            sbGeoWayTime.append(if (gcd.outTime == 0 || gcd.inTime == 0) '-' else secondIntervalToString(gcd.outTime, gcd.inTime))
-            sbGeoMovingTime.append(if (gcd.movingTime < 0) '-' else secondIntervalToString(gcd.movingTime))
-            sbGeoParkingTime.append(if (gcd.parkingTime < 0) '-' else secondIntervalToString(gcd.parkingTime))
-            sbGeoParkingCount.append(if (gcd.parkingCount < 0) '-' else getSplittedLong(gcd.parkingCount.toLong()))
+        fun fillGeoString(zoneId: ZoneId, result: ObjectCalc) {
+            result.gcd?.let { gcd ->
+                result.sGeoName += gcd.descr
+                result.sGeoRun += if (gcd.run < 0) '-' else getSplittedDouble(gcd.run, 1)
+                result.sGeoOutTime += if (gcd.outTime == 0) "-" else DateTime_DMYHMS(zoneId, gcd.outTime)
+                result.sGeoInTime += if (gcd.inTime == 0) "-" else DateTime_DMYHMS(zoneId, gcd.inTime)
+                result.sGeoWayTime += if (gcd.outTime == 0 || gcd.inTime == 0) '-' else secondIntervalToString(gcd.outTime, gcd.inTime)
+                result.sGeoMovingTime += if (gcd.movingTime < 0) '-' else secondIntervalToString(gcd.movingTime)
+                result.sGeoParkingTime += if (gcd.parkingTime < 0) '-' else secondIntervalToString(gcd.parkingTime)
+                result.sGeoParkingCount += if (gcd.parkingCount < 0) '-' else getSplittedLong(gcd.parkingCount.toLong())
+            }
         }
 
 //        fun fillZoneString(hmZoneData: Map<Int, ZoneData>, p: XyPoint): StringBuilder {
@@ -1690,92 +1657,124 @@ class ObjectCalc {
 //            return getSBFromIterable(tsZoneName, ", ")
 //        }
 
-        fun fillWorkString(
-            tmWorkCalc: TreeMap<String, WorkCalcData>,
-            sbWorkName: StringBuilder,
-            sbWorkTotal: StringBuilder,
-        ) {
-            for ((workName, wcd) in tmWorkCalc) {
-                if (sbWorkName.isNotEmpty()) {
-                    sbWorkName.append('\n')
-                    sbWorkTotal.append('\n')
+        fun fillWorkString(result: ObjectCalc) {
+            val workPair = fillWorkString(result.tmWork)
+            result.sWorkName = workPair.first
+            result.sWorkValue = workPair.second
+        }
+
+        fun fillWorkString(tmWork: TreeMap<String, WorkCalcData>): Pair<String, String> {
+            var sWorkName = ""
+            var sWorkTotal = ""
+            tmWork.forEach { (workName, wcd) ->
+                if (sWorkName.isNotEmpty()) {
+                    sWorkName += '\n'
+                    sWorkTotal += '\n'
                 }
-                sbWorkName.append(workName)
-                sbWorkTotal.append(getSplittedDouble(wcd.onTime.toDouble() / 60.0 / 60.0, 1))
+                sWorkName += workName
+                sWorkTotal += getSplittedDouble(wcd.onTime.toDouble() / 60.0 / 60.0, 1)
+            }
+            return Pair(sWorkName, sWorkTotal)
+        }
+
+        fun fillEnergoString(result: ObjectCalc) {
+            result.tmEnergo.forEach { (descr, e) ->
+                if (result.sEnergoName.isNotEmpty()) {
+                    result.sEnergoName += '\n'
+                    result.sEnergoValue += '\n'
+                }
+                result.sEnergoName += descr
+                result.sEnergoValue += getSplittedDouble(e, getPrecision(e))
+            }
+
+            result.allSumData.tmEnergo.forEach { (sensorType, dataByPhase) ->
+                dataByPhase.forEach { (phase, value) ->
+                    if (result.sAllSumEnergoName.isNotEmpty()) {
+                        result.sAllSumEnergoName += '\n'
+                        result.sAllSumEnergoValue += '\n'
+                    }
+                    result.sAllSumEnergoName += (SensorConfig.hmSensorDescr[sensorType] ?: "(неизв. тип датчика)") + getPhaseDescr(phase)
+                    result.sEnergoValue += getSplittedDouble(value, getPrecision(value))
+                }
+            }
+
+        }
+
+        fun fillLiquidUsingString(result: ObjectCalc) {
+            val liquidPair = fillLiquidUsingString(result.tmLiquidUsing)
+            result.sLiquidUsingName = liquidPair.first
+            result.sLiquidUsingValue = liquidPair.second
+
+            val allSumLiquidPair = fillLiquidUsingString(result.allSumData.tmLiquidUsing)
+            result.sAllSumLiquidName = allSumLiquidPair.first
+            result.sAllSumLiquidValue = allSumLiquidPair.second
+        }
+
+        fun fillLiquidUsingString(tmLiquidUsing: TreeMap<String, Double>): Pair<String, String> {
+            var sLiquidUsingName = ""
+            var sLiquidUsing = ""
+            tmLiquidUsing.forEach { (name, total) ->
+                if (sLiquidUsingName.isNotEmpty()) {
+                    sLiquidUsingName += '\n'
+                    sLiquidUsing += '\n'
+                }
+                sLiquidUsingName += name
+                sLiquidUsing += getSplittedDouble(total, getPrecision(total))
+            }
+            return Pair(sLiquidUsingName, sLiquidUsing)
+        }
+
+        private fun fillLiquidLevelString(result: ObjectCalc) {
+            val isUsingCalc = result.tmLiquidLevel.values.any { it.usingCalc > 0.0 }
+
+            result.tmLiquidLevel.forEach { (liquidName, llcd) ->
+                if (result.sLiquidLevelName.isNotEmpty()) {
+                    result.sLiquidLevelName += '\n'
+                    result.sLiquidLevelBeg += '\n'
+                    result.sLiquidLevelEnd += '\n'
+                    result.sLiquidLevelIncTotal += '\n'
+                    result.sLiquidLevelDecTotal += '\n'
+                    result.sLiquidLevelUsingTotal += '\n'
+                    if (isUsingCalc) {
+                        result.sLiquidLevelUsingCalc += '\n'
+                    }
+                }
+                result.sLiquidLevelName += liquidName
+                result.sLiquidLevelBeg += getSplittedDouble(llcd.begLevel, getPrecision(llcd.begLevel))
+                result.sLiquidLevelEnd += getSplittedDouble(llcd.endLevel, getPrecision(llcd.endLevel))
+                result.sLiquidLevelIncTotal += getSplittedDouble(llcd.incTotal, getPrecision(llcd.incTotal))
+                result.sLiquidLevelDecTotal += getSplittedDouble(llcd.decTotal, getPrecision(llcd.decTotal))
+                result.sLiquidLevelUsingTotal += getSplittedDouble(llcd.usingTotal, getPrecision(llcd.usingTotal))
+                if (isUsingCalc) {
+                    result.sLiquidLevelUsingCalc +=
+                        if (llcd.usingCalc <= 0.0) {
+                            "-"
+                        } else {
+                            getSplittedDouble(llcd.usingCalc, getPrecision(llcd.usingCalc))
+                        }
+                }
+            }
+
+            result.allSumData.tmLiquidIncDec.forEach { (liquidName, pairIncDec) ->
+                if (result.sLiquidLevelLiquidName.isNotEmpty()) {
+                    result.sLiquidLevelLiquidName += '\n'
+                    result.sLiquidLevelLiquidInc += '\n'
+                    result.sLiquidLevelLiquidDec += '\n'
+                }
+                result.sLiquidLevelLiquidName += liquidName
+                result.sLiquidLevelLiquidInc += getSplittedDouble(pairIncDec.first, getPrecision(pairIncDec.first))
+                result.sLiquidLevelLiquidDec += getSplittedDouble(pairIncDec.second, getPrecision(pairIncDec.second))
             }
         }
 
-        private fun fillLiquidLevelString(
-            tmLiquidLevelCalc: TreeMap<String, LiquidLevelCalcData>,
-            sbLiquidLevelName: StringBuilder,
-            sbLiquidLevelBeg: StringBuilder,
-            sbLiquidLevelEnd: StringBuilder,
-            sbLiquidLevelIncTotal: StringBuilder,
-            sbLiquidLevelDecTotal: StringBuilder,
-            sbLiquidLevelUsingTotal: StringBuilder,
-            sbLiquidLevelUsingCalc: StringBuilder
-        ) {
-
-            //--- используется ли вообще usingCalc
-            val isUsingCalc = tmLiquidLevelCalc.values.any { it.usingCalc > 0.0 }
-
-            for ((liquidName, llcd) in tmLiquidLevelCalc) {
-                if (sbLiquidLevelName.isNotEmpty()) {
-                    sbLiquidLevelName.append('\n')
-                    sbLiquidLevelBeg.append('\n')
-                    sbLiquidLevelEnd.append('\n')
-                    sbLiquidLevelIncTotal.append('\n')
-                    sbLiquidLevelDecTotal.append('\n')
-                    sbLiquidLevelUsingTotal.append('\n')
-                    if (isUsingCalc) sbLiquidLevelUsingCalc.append('\n')
-                }
-                sbLiquidLevelName.append(liquidName)
-                sbLiquidLevelBeg.append(getSplittedDouble(llcd.begLevel, getPrecision(llcd.begLevel)))
-                sbLiquidLevelEnd.append(getSplittedDouble(llcd.endLevel, getPrecision(llcd.endLevel)))
-                sbLiquidLevelIncTotal.append(getSplittedDouble(llcd.incTotal, getPrecision(llcd.incTotal)))
-                sbLiquidLevelDecTotal.append(getSplittedDouble(llcd.decTotal, getPrecision(llcd.decTotal)))
-                sbLiquidLevelUsingTotal.append(getSplittedDouble(llcd.usingTotal, getPrecision(llcd.usingTotal)))
-                if (isUsingCalc) sbLiquidLevelUsingCalc.append(
-                    if (llcd.usingCalc <= 0.0) "-"
-                    else getSplittedDouble(llcd.usingCalc, getPrecision(llcd.usingCalc))
-                )
+        fun getPhaseDescr(phase: Int) =
+            when (phase) {
+                0 -> " (сумма фаз)"
+                1 -> " (фаза A)"
+                2 -> " (фаза B)"
+                3 -> " (фаза C)"
+                else -> " (неизв. фаза)"
             }
-        }
-
-        fun fillLiquidUsingString(
-            tmLiquidUsingTotal: TreeMap<String, Double>,
-            tmLiquidUsingCalc: TreeMap<String, Double>,
-            sbLiquidUsingName: StringBuilder,
-            sbLiquidUsingTotal: StringBuilder,
-            sbLiquidUsingCalc: StringBuilder,
-        ) {
-            tmLiquidUsingTotal.forEach { (name, total) ->
-                if (sbLiquidUsingName.isNotEmpty()) {
-                    sbLiquidUsingName.append('\n')
-                    sbLiquidUsingTotal.append('\n')
-                    sbLiquidUsingCalc.append('\n')
-                }
-                sbLiquidUsingName.append(name)
-                sbLiquidUsingTotal.append(getSplittedDouble(total, getPrecision(total)))
-
-                val calc = tmLiquidUsingCalc[name]
-                if (calc != null && calc > 0) {
-                    sbLiquidUsingCalc.append(getSplittedDouble(calc, getPrecision(calc)))
-                }
-            }
-        }
-
-        fun fillEnergoString(tmEnergoCalc: TreeMap<String, Double>, sbEnergoName: StringBuilder, sbEnergoValue: StringBuilder) {
-            for ((energoName, e) in tmEnergoCalc) {
-                if (sbEnergoName.isNotEmpty()) {
-                    sbEnergoName.append('\n')
-                    sbEnergoValue.append('\n')
-                }
-                sbEnergoName.append(energoName)
-                //--- выводим в кВт*ч
-                sbEnergoValue.append(getSplittedDouble(e, getPrecision(e)))
-            }
-        }
 
         fun getPrecision(value: Double): Int {
             //--- updated / simplified version of the output accuracy - more cubic meters - in whole liters, less - in hundreds of milliliters / gram

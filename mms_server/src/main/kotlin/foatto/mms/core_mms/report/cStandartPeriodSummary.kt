@@ -1,8 +1,6 @@
 package foatto.mms.core_mms.report
 
 import foatto.mms.core_mms.ObjectConfig
-import foatto.mms.core_mms.sensor.config.SensorConfig
-import foatto.mms.core_mms.sensor.config.SensorConfigLiquidLevel
 import foatto.mms.iMMSApplication
 
 abstract class cStandartPeriodSummary : cAbstractPeriodSummary() {
@@ -20,24 +18,19 @@ abstract class cStandartPeriodSummary : cAbstractPeriodSummary() {
 
         alObjectID = mutableListOf()
         //--- если объект не указан, то загрузим полный список доступных объектов
-        if(reportObject == 0) loadObjectList(stm, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
-        else alObjectID.add(reportObject)
+        if (reportObject == 0) {
+            loadObjectList(stm, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
+        } else {
+            alObjectID.add(reportObject)
+        }
 
         alObjectConfig = mutableListOf()
-        for (objectID in alObjectID) alObjectConfig.add((application as iMMSApplication).getObjectConfig(userConfig, objectID))
+        for (objectID in alObjectID) {
+            alObjectConfig.add((application as iMMSApplication).getObjectConfig(userConfig, objectID))
+        }
 
-        for(oc in alObjectConfig) {
-            if(oc.scg != null) {
-                isGlobalUseSpeed = isGlobalUseSpeed or oc.scg!!.isUseSpeed
-                isGlobalUseRun = isGlobalUseRun or oc.scg!!.isUseRun
-            }
-            val hmSCLL = oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_LEVEL]
-            if (hmSCLL != null && hmSCLL.isNotEmpty()) {
-                for (portNum in hmSCLL.keys) {
-                    val sca = hmSCLL[portNum] as SensorConfigLiquidLevel
-                    isGlobalUsingCalc = isGlobalUsingCalc or sca.isUsingCalc
-                }
-            }
+        alObjectConfig.forEach { oc ->
+            defineGlobalFlags(oc)
         }
         return super.getReport()
     }

@@ -47,15 +47,6 @@ class mSensor : mAbstract() {
 
         val columnSensorName = ColumnString(tableName, "name", "name", STRING_COLUMN_WIDTH)
 
-        val columnSensorSumGroup = ColumnString(tableName, "sum_group_name", "Группа для суммирования", STRING_COLUMN_WIDTH).apply {
-            addCombo("")
-            val rs = stm.executeQuery(
-                " SELECT DISTINCT sum_group_name FROM $tableName WHERE object_id = $parentObjectID AND sum_group_name IS NOT NULL AND sum_group_name <> '' ORDER BY sum_group_name "
-            )
-            while (rs.next()) addCombo(rs.getString(1).trim())
-            rs.close()
-        }
-
         val columnSensorGroup = ColumnString(tableName, "group_name", "Группа датчиков", STRING_COLUMN_WIDTH).apply {
             addCombo("")
             val rs = stm.executeQuery(
@@ -447,13 +438,8 @@ class mSensor : mAbstract() {
         alTableHiddenColumn.add(columnCommandOn)
         alTableHiddenColumn.add(columnCommandOff)
 
-        if (isEquip) {
-            alTableHiddenColumn.add(columnSensorSumGroup)
-            alTableHiddenColumn.add(columnSensorGroup)
-        } else {
-            alTableGroupColumn.add(columnSensorSumGroup)
-            alTableGroupColumn.add(columnSensorGroup)
-        }
+        alTableGroupColumn.add(columnSensorGroup)
+
         addTableColumn(columnSensorDescr)
         if (isEquip) {
             alTableHiddenColumn.add(columnSensorPortNum)
@@ -480,13 +466,7 @@ class mSensor : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        if (isEquip) {
-            alFormHiddenColumn.add(columnSensorSumGroup)
-            alFormHiddenColumn.add(columnSensorGroup)
-        } else {
-            alFormColumn.add(columnSensorSumGroup)
-            alFormColumn.add(columnSensorGroup)
-        }
+        alFormColumn.add(columnSensorGroup)
         alFormColumn.add(columnSensorDescr)
         if (isEquip) {
             alFormHiddenColumn.add(columnSensorPortNum)
@@ -580,8 +560,6 @@ class mSensor : mAbstract() {
         //----------------------------------------------------------------------------------------------------------------------------------------
 
         //--- поля для сортировки
-        alTableSortColumn.add(columnSensorSumGroup)
-        alTableSortDirect.add("ASC")
         alTableSortColumn.add(columnSensorGroup)
         alTableSortDirect.add("ASC")
         alTableSortColumn.add(columnSensorPortNum)

@@ -3,10 +3,7 @@ package foatto.core.util
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.security.MessageDigest
-import java.text.DecimalFormat
 import java.util.*
-import kotlin.math.pow
-import kotlin.math.round
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -113,109 +110,116 @@ fun translit( sour: String ): StringBuilder {
 //--- (на случай невозможности задавать гос.номер в параметрах русскими буквами в UTF-8, например, в тестах)
 private val hmReverseTranslit = hashMapOf(
     'A' to 'А', 'a' to 'а', 'B' to 'В', 'b' to 'в', 'C' to 'С', 'c' to 'с', 'E' to 'Е', 'e' to 'е', 'H' to 'Н', 'h' to 'н', 'K' to 'К', 'k' to 'к',
-    'M' to 'М', 'm' to 'м', 'O' to 'О', 'o' to 'о', 'P' to 'Р', 'p' to 'р', 'T' to 'Т', 't' to 'т', 'X' to 'Х', 'x' to 'х', 'Y' to 'У', 'y' to 'у' )
+    'M' to 'М', 'm' to 'м', 'O' to 'О', 'o' to 'о', 'P' to 'Р', 'p' to 'р', 'T' to 'Т', 't' to 'т', 'X' to 'Х', 'x' to 'х', 'Y' to 'У', 'y' to 'у'
+)
 
-fun reverseTranslit( sour: String ): StringBuilder {
+fun reverseTranslit(sour: String): StringBuilder {
     val dest = StringBuilder()
-    for( ch in sour ) dest.append( hmReverseTranslit[ ch ] ?: ch )
+    for (ch in sour) dest.append(hmReverseTranslit[ch] ?: ch)
     return dest
 }
 
 //--- преобразование числа <---> строки -----------------------------------------------------------------------------------------------------------------------------------------------
 
-fun getFilledNumberString( num: Int, charCount: Int ): String {
-    val sb = StringBuilder()
-    sb.append( num )
-    //--- дополнить слева нулями до charCount символов
-    while( sb.length < charCount ) sb.insert( 0, '0' )
-    return sb.toString()
-}
-
-//fun getSplittedInt( value: Int, radix: Int = 10 ): StringBuilder = getSplittedLong( value.toLong(), radix )
-fun getSplittedLong( value: Long, radix: Int = 10 ): StringBuilder {
-    val sbIn: StringBuilder
-    val digitInGroup: Int
-    when( radix ) {
-        2  -> {
-            sbIn = StringBuilder( java.lang.Long.toBinaryString( value ) )
-            digitInGroup = 4
-        }
-        10 -> {
-            sbIn = StringBuilder( java.lang.Long.toString( value ) )
-            digitInGroup = 3
-        }
-        16 -> {
-            sbIn = StringBuilder( java.lang.Long.toHexString( value ).toUpperCase() )
-            digitInGroup = 2
-        }
-        else -> return StringBuilder( "" )
-    }
-
-    val groupCount = sbIn.length / digitInGroup // кол-во групп цифр (по полных N знаков)
-    val groupLead = sbIn.length % digitInGroup  // кол-во цифр в первой неполной группе
-    val sbOut = StringBuilder()
-    if( groupLead > 0 ) sbOut.append( sbIn.subSequence( 0, groupLead ) )
-    for( i in 0 until groupCount ) {
-        if( !sbOut.isEmpty() ) sbOut.append( ' ' )
-        val tmpPos = groupLead + i * digitInGroup
-        sbOut.append( sbIn.subSequence( tmpPos, tmpPos + digitInGroup ) )
-    }
-    return sbOut
-}
-
-private val arrDoubleFormat = arrayOf(
-                                DecimalFormat( "0" ), DecimalFormat( "0.0" ), DecimalFormat( "0.00" ), DecimalFormat( "0.000" ), DecimalFormat(" 0.0000 "), DecimalFormat( "0.00000" ),
-                                DecimalFormat( "0.000000" ), DecimalFormat( "0.0000000" ), DecimalFormat( "0.00000000" ), DecimalFormat( "0.000000000" ) )
-
-fun getSplittedDouble( aValue: Double, aPrecision: Int ): StringBuilder {
-    var value = aValue
-    var precision = aPrecision
-
-    //--- корректируем завышенную точность (отрицательную точность не трогаем, это индикатор автоопределения)
-    if (precision >= arrDoubleFormat.size) precision = arrDoubleFormat.size - 1
-
-    val precisionIndex = if (precision < 0) arrDoubleFormat.size - 1 else precision
-
-    //--- обеспечиваем округление до нужного знака после запятой
-    val pow10 = 10.0.pow(precisionIndex.toDouble())
-    value = round(value * pow10) / pow10
-
-    //--- дополнительно меняем десятичную запятую (для русской локали) на универсальную десятичную точку
-    val sbIn = StringBuilder(arrDoubleFormat[precisionIndex].format(value).replace(',', '.'))
-
-    //--- если задано автоматическое округление - убирается только нулевая оконцовка дробной части
-    //--- и вычисляется "автоматический" precision
-    if (precision < 0) {
-        precision = arrDoubleFormat.size - 1
-        while (sbIn[sbIn.length - (arrDoubleFormat.size - precision)] == '0') precision--
-        //--- если точность оказалась нулевой, то дополнительно убираем ненужную теперь десятичную точку
-        sbIn.delete( sbIn.length - ( arrDoubleFormat.size - precision ) + if( precision == 0 ) 0 else 1, sbIn.length )
-    }
-
-    val dotPos = sbIn.indexOf( "." )
-    val groupCount = ( if( dotPos == -1 ) sbIn.length else dotPos ) / 3 // кол-во групп цифр (по полных 3 знака)
-    val groupLead = ( if( dotPos == -1 ) sbIn.length else dotPos ) % 3  // кол-во цифр в первой неполной группе
-    val sbOut = StringBuilder()
-    if( groupLead > 0 ) sbOut.append( sbIn.subSequence( 0, groupLead ) )
-    for( i in 0 until groupCount ) {
-        if( sbOut.isNotEmpty() ) sbOut.append( ' ' )
-        val pos = groupLead + i * 3
-        sbOut.append( sbIn.subSequence( pos, pos + 3 ) )
-    }
-    //--- добавить дробный остаток, если есть (прим.: dotPos == 0 быть не может)
-    if( dotPos > 0 ) sbOut.append( sbIn.subSequence( dotPos, sbIn.length ) )
-    return sbOut
-}
+//fun getFilledNumberString( num: Int, charCount: Int ): String {
+//    val sb = StringBuilder()
+//    sb.append( num )
+//    //--- дополнить слева нулями до charCount символов
+//    while( sb.length < charCount ) sb.insert( 0, '0' )
+//    return sb.toString()
+//}
+//
+//fun getSplittedLong( value: Long, radix: Int = 10 ): StringBuilder {
+//    val sbIn: StringBuilder
+//    val digitInGroup: Int
+//    when( radix ) {
+//        2  -> {
+//            sbIn = StringBuilder( java.lang.Long.toBinaryString( value ) )
+//            digitInGroup = 4
+//        }
+//        10 -> {
+//            sbIn = StringBuilder( java.lang.Long.toString( value ) )
+//            digitInGroup = 3
+//        }
+//        16 -> {
+//            sbIn = StringBuilder( java.lang.Long.toHexString( value ).toUpperCase() )
+//            digitInGroup = 2
+//        }
+//        else -> return StringBuilder( "" )
+//    }
+//
+//    val groupCount = sbIn.length / digitInGroup // кол-во групп цифр (по полных N знаков)
+//    val groupLead = sbIn.length % digitInGroup  // кол-во цифр в первой неполной группе
+//    val sbOut = StringBuilder()
+//    if( groupLead > 0 ) sbOut.append( sbIn.subSequence( 0, groupLead ) )
+//    for( i in 0 until groupCount ) {
+//        if( !sbOut.isEmpty() ) sbOut.append( ' ' )
+//        val tmpPos = groupLead + i * digitInGroup
+//        sbOut.append( sbIn.subSequence( tmpPos, tmpPos + digitInGroup ) )
+//    }
+//    return sbOut
+//}
+//
+//private val arrDoubleFormat = arrayOf(
+//                                DecimalFormat( "0" ), DecimalFormat( "0.0" ), DecimalFormat( "0.00" ), DecimalFormat( "0.000" ), DecimalFormat(" 0.0000 "), DecimalFormat( "0.00000" ),
+//                                DecimalFormat( "0.000000" ), DecimalFormat( "0.0000000" ), DecimalFormat( "0.00000000" ), DecimalFormat( "0.000000000" ) )
+//
+//fun getSplittedDouble( aValue: Double, aPrecision: Int ): String {
+//    var value = aValue
+//    var precision = aPrecision
+//
+//    //--- корректируем завышенную точность (отрицательную точность не трогаем, это индикатор автоопределения)
+//    if (precision >= arrDoubleFormat.size) precision = arrDoubleFormat.size - 1
+//
+//    val precisionIndex = if (precision < 0) arrDoubleFormat.size - 1 else precision
+//
+//    //--- обеспечиваем округление до нужного знака после запятой
+//    val pow10 = 10.0.pow(precisionIndex.toDouble())
+//    value = round(value * pow10) / pow10
+//
+//    //--- дополнительно меняем десятичную запятую (для русской локали) на универсальную десятичную точку
+//    val sbIn = StringBuilder(arrDoubleFormat[precisionIndex].format(value).replace(',', '.'))
+//
+//    //--- если задано автоматическое округление - убирается только нулевая оконцовка дробной части
+//    //--- и вычисляется "автоматический" precision
+//    if (precision < 0) {
+//        precision = arrDoubleFormat.size - 1
+//        while (sbIn[sbIn.length - (arrDoubleFormat.size - precision)] == '0') precision--
+//        //--- если точность оказалась нулевой, то дополнительно убираем ненужную теперь десятичную точку
+//        sbIn.delete( sbIn.length - ( arrDoubleFormat.size - precision ) + if( precision == 0 ) 0 else 1, sbIn.length )
+//    }
+//
+//    val dotPos = sbIn.indexOf( "." )
+//    val groupCount = ( if( dotPos == -1 ) sbIn.length else dotPos ) / 3 // кол-во групп цифр (по полных 3 знака)
+//    val groupLead = ( if( dotPos == -1 ) sbIn.length else dotPos ) % 3  // кол-во цифр в первой неполной группе
+//
+//    var sOut = ""
+//    if( groupLead > 0 ) sOut += sbIn.subSequence( 0, groupLead )
+//    for( i in 0 until groupCount ) {
+//        if( sOut.isNotEmpty() ) {
+//            sOut += ' '
+//        }
+//        val pos = groupLead + i * 3
+//        sOut += sbIn.subSequence( pos, pos + 3 )
+//    }
+//    //--- добавить дробный остаток, если есть (прим.: dotPos == 0 быть не может)
+//    if( dotPos > 0 ) {
+//        sOut += sbIn.subSequence( dotPos, sbIn.length )
+//    }
+//    return sOut
+//}
 
 //--- преобразования HEX <---> String -------------------------------------------------------------------------------------------------------------------------------------------------
 
 private val arrHexChar = "0123456789ABCDEF".toCharArray()
-private val hmHexInt = hashMapOf( '0' to 0x0, '1' to 0x1, '2' to 0x2, '3' to 0x3, '4' to 0x4, '5' to 0x5, '6' to 0x6, '7' to 0x7,
-                                  '8' to 0x8, '9' to 0x9, 'A' to 0xA, 'B' to 0xB, 'C' to 0xC, 'D' to 0xD, 'E' to 0xE, 'F' to 0xF )
+private val hmHexInt = hashMapOf(
+    '0' to 0x0, '1' to 0x1, '2' to 0x2, '3' to 0x3, '4' to 0x4, '5' to 0x5, '6' to 0x6, '7' to 0x7,
+    '8' to 0x8, '9' to 0x9, 'A' to 0xA, 'B' to 0xB, 'C' to 0xC, 'D' to 0xD, 'E' to 0xE, 'F' to 0xF
+)
 
-fun byteArrayToHex( arrByte: ByteArray, aSb: StringBuilder?, withSpace: Boolean ): StringBuilder {
-    val sb = aSb ?: StringBuilder( arrByte.size * 2 )
-    for( b in arrByte ) byteToHex( b, sb, withSpace )
+fun byteArrayToHex(arrByte: ByteArray, aSb: StringBuilder?, withSpace: Boolean): StringBuilder {
+    val sb = aSb ?: StringBuilder(arrByte.size * 2)
+    for (b in arrByte) byteToHex(b, sb, withSpace)
     return sb
 }
 

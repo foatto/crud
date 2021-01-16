@@ -349,7 +349,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGeneral, "mms_downtime", true)
 
-        if (alMenuGeneral.size > 3) alMenu.add(MenuData("", "Учёт", alMenuGeneral))
+        if (alMenuGeneral.size > 3) alMenu.add(MenuData("", "Учёт", alMenuGeneral.toTypedArray()))
 
         //--- Общие отчёты --------------------------------------------------------------------------------------------------------
 
@@ -359,7 +359,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuCommonReport, "mms_report_day_work", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuCommonReport, "mms_report_work_shift", false)
 
-        if (alMenuCommonReport.size > 0) alMenu.add(MenuData("", "Общие отчёты", alMenuCommonReport))
+        if (alMenuCommonReport.size > 0) alMenu.add(MenuData("", "Общие отчёты", alMenuCommonReport.toTypedArray()))
 
         //--- Отчёты по передвижной технике --------------------------------------------------------------------------------------------------------
 
@@ -379,7 +379,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuMobileReport, "mms_report_downtime", false)
 
-        if (alMenuMobileReport.size > 2) alMenu.add(MenuData("", "Отчёты по передвижной технике", alMenuMobileReport))
+        if (alMenuMobileReport.size > 2) alMenu.add(MenuData("", "Отчёты по передвижной технике", alMenuMobileReport.toTypedArray()))
 
         //--- Отчёты по оборудованию --------------------------------------------------------------------------------------------------------
 
@@ -388,7 +388,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuWorkReport, "mms_report_equip_service", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuWorkReport, "mms_report_work_detail", false)
 
-        if (alMenuWorkReport.size > 0) alMenu.add(MenuData("", "Отчёты по оборудованию", alMenuWorkReport))
+        if (alMenuWorkReport.size > 0) alMenu.add(MenuData("", "Отчёты по оборудованию", alMenuWorkReport.toTypedArray()))
 
         //--- Отчёты по топливу --------------------------------------------------------------------------------------------------------
 
@@ -398,7 +398,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuLiquidReport, "mms_report_liquid_inc_waybill", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuLiquidReport, "mms_report_liquid_dec", false)
 
-        if (alMenuLiquidReport.size > 0) alMenu.add(MenuData("", "Отчёты по топливу", alMenuLiquidReport))
+        if (alMenuLiquidReport.size > 0) alMenu.add(MenuData("", "Отчёты по топливу", alMenuLiquidReport.toTypedArray()))
 
         //--- Прочие отчёты --------------------------------------------------------------------------------------------------------
 
@@ -420,7 +420,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherReport, "mms_report_data_out", false)
 
-        if (alMenuOtherReport.size > 6) alMenu.add(MenuData("", "Прочие отчёты", alMenuOtherReport))
+        if (alMenuOtherReport.size > 6) alMenu.add(MenuData("", "Прочие отчёты", alMenuOtherReport.toTypedArray()))
 
         //--- Графики --------------------------------------------------------------------------------------------------------
 
@@ -452,7 +452,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "mms_graphic_speed", false)
 
-        if (alMenuGraphic.size > 2) alMenu.add(MenuData("", "Графики", alMenuGraphic))
+        if (alMenuGraphic.size > 2) alMenu.add(MenuData("", "Графики", alMenuGraphic.toTypedArray()))
 
         //--- Карта --------------------------------------------------------------------------------------------------------
 
@@ -464,7 +464,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         //
         //            addMenu(  hmAliasConfig, hmAliasPerm, alMenuMap, "mms_graphic_weight", false  );
 
-        if (alMenuMap.size > 0) alMenu.add(MenuData("", "Карта", alMenuMap))
+        if (alMenuMap.size > 0) alMenu.add(MenuData("", "Карта", alMenuMap.toTypedArray()))
 
         //--- Контроль --------------------------------------------------------------------------------------------------------
 
@@ -475,7 +475,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         //
         //            addMenu(  hmAliasConfig, hmAliasPerm, alMenuMap, "mms_graphic_weight", false  );
 
-        if (alMenuControl.size > 0) alMenu.add(MenuData("", "Контроль", alMenuControl))
+        if (alMenuControl.size > 0) alMenu.add(MenuData("", "Контроль", alMenuControl.toTypedArray()))
 
         //--- Справочники --------------------------------------------------------------------------------------------------------
 
@@ -489,7 +489,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDir, "mms_zone", true)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDir, "mms_user_zone", true)
 
-        if (alMenuDir.size > 1) alMenu.add(MenuData("", "Справочники", alMenuDir))
+        if (alMenuDir.size > 1) alMenu.add(MenuData("", "Справочники", alMenuDir.toTypedArray()))
 
         //--- Устройства ------------------------------------------------------------------------------------------------------
 
@@ -506,7 +506,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDevice, "mms_log_journal", true)
 
-        if (alMenuDevice.size > 2) alMenu.add(MenuData("", "Контроллеры", alMenuDevice))
+        if (alMenuDevice.size > 2) alMenu.add(MenuData("", "Контроллеры", alMenuDevice.toTypedArray()))
 
         //--- Система --------------------------------------------------------------------------------------------------------
 
@@ -526,7 +526,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuSystem, "system_log_user", true)
 
-        if (alMenuSystem.size > 2) alMenu.add(MenuData("", "Система", alMenuSystem))
+        if (alMenuSystem.size > 2) alMenu.add(MenuData("", "Система", alMenuSystem.toTypedArray()))
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -583,94 +583,89 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
                     hmSC[portNum] = SensorConfigSignal(
                         aId = sensorEntity.id,
                         aName = sensorEntity.name,
-                        aSumGroup = sensorEntity.sumGroup,
                         aGroup = sensorEntity.group,
                         aDescr = sensorEntity.descr,
                         aPortNum = portNum,
                         aSensorType = sensorType,
-                        boundValue = sensorEntity.boundValue,
-                        activeValue = sensorEntity.activeValue,
-                        minIgnore = sensorEntity.minIgnore,
-                        maxIgnore = sensorEntity.maxIgnore,
+                        boundValue = sensorEntity.boundValue ?: 0,
+                        activeValue = sensorEntity.activeValue ?: 0,
+                        minIgnore = sensorEntity.minIgnore ?: 0.0,
+                        maxIgnore = sensorEntity.maxIgnore ?: 0.0,
                     )
                 }
                 SensorConfig.SENSOR_GEO -> {
                     objectConfig.scg = SensorConfigGeo(
                         aId = sensorEntity.id,
                         aName = sensorEntity.name,
-                        aSumGroup = sensorEntity.sumGroup,
                         aGroup = sensorEntity.group,
                         aDescr = sensorEntity.descr,
                         aPortNum = portNum,
                         aSensorType = sensorType,
-                        minMovingTime = sensorEntity.minMovingTime,
-                        minParkingTime = sensorEntity.minParkingTime,
-                        minOverSpeedTime = sensorEntity.minOverSpeedTime,
-                        isAbsoluteRun = sensorEntity.isAbsoluteRun != 0,
-                        speedRoundRule = sensorEntity.speedRoundRule,
-                        runKoef = sensorEntity.runKoef,
+                        minMovingTime = sensorEntity.minMovingTime ?: 0,
+                        minParkingTime = sensorEntity.minParkingTime ?: 0,
+                        minOverSpeedTime = sensorEntity.minOverSpeedTime ?: 0,
+                        isAbsoluteRun = (sensorEntity.isAbsoluteRun ?: 0) != 0,
+                        speedRoundRule = sensorEntity.speedRoundRule ?: 0,
+                        runKoef = sensorEntity.runKoef ?: 1.0,
                         isUsePos = sensorEntity.isUsePos != 0,
                         isUseSpeed = sensorEntity.isUseSpeed != 0,
                         isUseRun = sensorEntity.isUseRun != 0,
-                        liquidName = sensorEntity.liquidName,
-                        liquidNorm = sensorEntity.liquidNorm,
-                        maxSpeedLimit = sensorEntity.maxLimit.toInt(),
+                        liquidName = sensorEntity.liquidName ?: "",
+                        liquidNorm = sensorEntity.liquidNorm ?: 0.0,
+                        maxSpeedLimit = (sensorEntity.maxLimit ?: 0.0).toInt(),
                     )
                 }
                 SensorConfig.SENSOR_WORK -> {
                     hmSC[portNum] = SensorConfigWork(
                         aId = sensorEntity.id,
                         aName = sensorEntity.name,
-                        aSumGroup = sensorEntity.sumGroup,
                         aGroup = sensorEntity.group,
                         aDescr = sensorEntity.descr,
                         aPortNum = portNum,
                         aSensorType = sensorType,
-                        boundValue = sensorEntity.boundValue,
-                        activeValue = sensorEntity.activeValue,
-                        minOnTime = sensorEntity.minOnTime,
-                        minOffTime = sensorEntity.minOffTime,
-                        begWorkValue = sensorEntity.begWorkValue,
-                        cmdOnId = sensorEntity.cmdOnId,
-                        cmdOffId = sensorEntity.cmdOffId,
-                        signalOn = SignalConfig(sensorEntity.signalOn),
-                        signalOff = SignalConfig(sensorEntity.signalOff),
-                        minIgnore = sensorEntity.minIgnore,
-                        maxIgnore = sensorEntity.maxIgnore,
-                        liquidName = sensorEntity.liquidName,
-                        liquidNorm = sensorEntity.liquidNorm,
+                        boundValue = sensorEntity.boundValue ?: 0,
+                        activeValue = sensorEntity.activeValue ?: 0,
+                        minOnTime = sensorEntity.minOnTime ?: 0,
+                        minOffTime = sensorEntity.minOffTime ?: 0,
+                        begWorkValue = sensorEntity.begWorkValue ?: 0.0,
+                        cmdOnId = sensorEntity.cmdOnId ?: 0,
+                        cmdOffId = sensorEntity.cmdOffId ?: 0,
+                        signalOn = SignalConfig(sensorEntity.signalOn ?: ""),
+                        signalOff = SignalConfig(sensorEntity.signalOff ?: ""),
+                        minIgnore = sensorEntity.minIgnore ?: 0.0,
+                        maxIgnore = sensorEntity.maxIgnore ?: 0.0,
+                        liquidName = sensorEntity.liquidName ?: "",
+                        liquidNorm = sensorEntity.liquidNorm ?: 0.0,
                     )
                 }
                 SensorConfig.SENSOR_LIQUID_USING -> {
                     hmSC[portNum] = SensorConfigCounter(
                         aId = sensorEntity.id,
                         aName = sensorEntity.name,
-                        aSumGroup = sensorEntity.sumGroup,
                         aGroup = sensorEntity.group,
                         aDescr = sensorEntity.descr,
                         aPortNum = portNum,
                         aSensorType = sensorType,
-                        aSmoothMethod = sensorEntity.smoothMethod,
-                        aSmoothTime = sensorEntity.smoothTime * 60,
-                        aMinIgnore = sensorEntity.minIgnore,
-                        aMaxIgnore = sensorEntity.maxIgnore,
-                        liquidName = sensorEntity.liquidName,
+                        aSmoothMethod = sensorEntity.smoothMethod ?: 0,
+                        aSmoothTime = (sensorEntity.smoothTime ?: 0) * 60,
+                        aMinIgnore = sensorEntity.minIgnore ?: 0.0,
+                        aMaxIgnore = sensorEntity.maxIgnore ?: 0.0,
+                        liquidName = sensorEntity.liquidName ?: "",
                     )
                 }
                 SensorConfig.SENSOR_MASS_ACCUMULATED, SensorConfig.SENSOR_VOLUME_ACCUMULATED -> {
                     hmSC[portNum] = SensorConfigLiquidSummary(
                         aId = sensorEntity.id,
                         aName = sensorEntity.name,
-                        aSumGroup = sensorEntity.sumGroup,
                         aGroup = sensorEntity.group,
                         aDescr = sensorEntity.descr,
                         aPortNum = portNum,
                         aSensorType = sensorType,
-                        aSmoothMethod = sensorEntity.smoothMethod,
-                        aSmoothTime = sensorEntity.smoothTime * 60,
-                        aMinIgnore = sensorEntity.minIgnore,
-                        aMaxIgnore = sensorEntity.maxIgnore,
-                        liquidName = sensorEntity.liquidName,
+                        aSmoothMethod = sensorEntity.smoothMethod ?: 0,
+                        aSmoothTime = (sensorEntity.smoothTime ?: 0) * 60,
+                        aMinIgnore = sensorEntity.minIgnore ?: 0.0,
+                        aMaxIgnore = sensorEntity.maxIgnore ?: 0.0,
+                        liquidName = sensorEntity.liquidName ?: "",
                     )
                 }
                 SensorConfig.SENSOR_ENERGO_COUNT_AD, SensorConfig.SENSOR_ENERGO_COUNT_AR,
@@ -678,16 +673,15 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
                     hmSC[portNum] = SensorConfigEnergoSummary(
                         aId = sensorEntity.id,
                         aName = sensorEntity.name,
-                        aSumGroup = sensorEntity.sumGroup,
                         aGroup = sensorEntity.group,
                         aDescr = sensorEntity.descr,
                         aPortNum = portNum,
                         aSensorType = sensorType,
-                        aSmoothMethod = sensorEntity.smoothMethod,
-                        aSmoothTime = sensorEntity.smoothTime * 60,
-                        aMinIgnore = sensorEntity.minIgnore,
-                        aMaxIgnore = sensorEntity.maxIgnore,
-                        phase = sensorEntity.phase,
+                        aSmoothMethod = sensorEntity.smoothMethod ?: 0,
+                        aSmoothTime = (sensorEntity.smoothTime ?: 0) * 60,
+                        aMinIgnore = sensorEntity.minIgnore ?: 0.0,
+                        aMaxIgnore = sensorEntity.maxIgnore ?: 0.0,
+                        phase = sensorEntity.phase ?: 0,
                     )
                 }
                 SensorConfig.SENSOR_LIQUID_FLOW_CALC, SensorConfig.SENSOR_WEIGHT,
@@ -698,19 +692,18 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
                     hmSC[portNum] = SensorConfigAnalogue(
                         aId = sensorEntity.id,
                         aName = sensorEntity.name,
-                        aSumGroup = sensorEntity.sumGroup,
                         aGroup = sensorEntity.group,
                         aDescr = sensorEntity.descr,
                         aPortNum = portNum,
                         aSensorType = sensorType,
-                        aSmoothMethod = sensorEntity.smoothMethod,
-                        aSmoothTime = sensorEntity.smoothTime * 60,
-                        aMinIgnore = sensorEntity.minIgnore,
-                        aMaxIgnore = sensorEntity.maxIgnore,
-                        minView = sensorEntity.minView,
-                        maxView = sensorEntity.maxView,
-                        minLimit = sensorEntity.minLimit,
-                        maxLimit = sensorEntity.maxLimit,
+                        aSmoothMethod = sensorEntity.smoothMethod ?: 0,
+                        aSmoothTime = (sensorEntity.smoothTime ?: 0) * 60,
+                        aMinIgnore = sensorEntity.minIgnore ?: 0.0,
+                        aMaxIgnore = sensorEntity.maxIgnore ?: 0.0,
+                        minView = sensorEntity.minView ?: 0.0,
+                        maxView = sensorEntity.maxView ?: 0.0,
+                        minLimit = sensorEntity.minLimit ?: 0.0,
+                        maxLimit = sensorEntity.maxLimit ?: 0.0,
                     )
                 }
                 SensorConfig.SENSOR_ENERGO_VOLTAGE, SensorConfig.SENSOR_ENERGO_CURRENT,
@@ -719,52 +712,50 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
                     hmSC[portNum] = SensorConfigEnergoAnalogue(
                         aId = sensorEntity.id,
                         aName = sensorEntity.name,
-                        aSumGroup = sensorEntity.sumGroup,
                         aGroup = sensorEntity.group,
                         aDescr = sensorEntity.descr,
                         aPortNum = portNum,
                         aSensorType = sensorType,
-                        aSmoothMethod = sensorEntity.smoothMethod,
-                        aSmoothTime = sensorEntity.smoothTime * 60,
-                        aMinIgnore = sensorEntity.minIgnore,
-                        aMaxIgnore = sensorEntity.maxIgnore,
-                        phase = sensorEntity.phase,
-                        aMinView = sensorEntity.minView,
-                        aMaxView = sensorEntity.maxView,
-                        aMinLimit = sensorEntity.minLimit,
-                        aMaxLimit = sensorEntity.maxLimit,
+                        aSmoothMethod = sensorEntity.smoothMethod ?: 0,
+                        aSmoothTime = (sensorEntity.smoothTime ?: 0) * 60,
+                        aMinIgnore = sensorEntity.minIgnore ?: 0.0,
+                        aMaxIgnore = sensorEntity.maxIgnore ?: 0.0,
+                        phase = sensorEntity.phase ?: 0,
+                        aMinView = sensorEntity.minView ?: 0.0,
+                        aMaxView = sensorEntity.maxView ?: 0.0,
+                        aMinLimit = sensorEntity.minLimit ?: 0.0,
+                        aMaxLimit = sensorEntity.maxLimit ?: 0.0,
                     )
                 }
                 SensorConfig.SENSOR_LIQUID_LEVEL -> {
                     hmSC[portNum] = SensorConfigLiquidLevel(
                         aId = sensorEntity.id,
                         aName = sensorEntity.name,
-                        aSumGroup = sensorEntity.sumGroup,
                         aGroup = sensorEntity.group,
                         aDescr = sensorEntity.descr,
                         aPortNum = portNum,
                         aSensorType = sensorType,
-                        aSmoothMethod = sensorEntity.smoothMethod,
-                        aSmoothTime = sensorEntity.smoothTime * 60,
-                        aMinIgnore = sensorEntity.minIgnore,
-                        aMaxIgnore = sensorEntity.maxIgnore,
-                        liquidName = sensorEntity.liquidName,
-                        aMinView = sensorEntity.minView,
-                        aMaxView = sensorEntity.maxView,
-                        aMinLimit = sensorEntity.minLimit,
-                        aMaxLimit = sensorEntity.maxLimit,
-                        usingMinLen = sensorEntity.usingMinLen,
-                        isUsingCalc = sensorEntity.isUsingCalc != 0,
-                        detectIncKoef = sensorEntity.detectIncKoef,
-                        detectIncMinDiff = sensorEntity.detectIncMinDiff,
-                        detectIncMinLen = sensorEntity.detectIncMinLen,
-                        incAddTimeBefore = sensorEntity.incAddTimeBefore,
-                        incAddTimeAfter = sensorEntity.incAddTimeAfter,
-                        detectDecKoef = sensorEntity.detectDecKoef,
-                        detectDecMinDiff = sensorEntity.detectDecMinDiff,
-                        detectDecMinLen = sensorEntity.detectDecMinLen,
-                        decAddTimeBefore = sensorEntity.decAddTimeBefore,
-                        decAddTimeAfter = sensorEntity.decAddTimeAfter,
+                        aSmoothMethod = sensorEntity.smoothMethod ?: 0,
+                        aSmoothTime = (sensorEntity.smoothTime ?: 0) * 60,
+                        aMinIgnore = sensorEntity.minIgnore ?: 0.0,
+                        aMaxIgnore = sensorEntity.maxIgnore ?: 0.0,
+                        liquidName = sensorEntity.liquidName ?: "",
+                        aMinView = sensorEntity.minView ?: 0.0,
+                        aMaxView = sensorEntity.maxView ?: 0.0,
+                        aMinLimit = sensorEntity.minLimit ?: 0.0,
+                        aMaxLimit = sensorEntity.maxLimit ?: 0.0,
+                        usingMinLen = sensorEntity.usingMinLen ?: 0,
+                        isUsingCalc = (sensorEntity.isUsingCalc ?: 0) != 0,
+                        detectIncKoef = sensorEntity.detectIncKoef ?: 0.0,
+                        detectIncMinDiff = sensorEntity.detectIncMinDiff ?: 0.0,
+                        detectIncMinLen = sensorEntity.detectIncMinLen ?: 0,
+                        incAddTimeBefore = sensorEntity.incAddTimeBefore ?: 0,
+                        incAddTimeAfter = sensorEntity.incAddTimeAfter ?: 0,
+                        detectDecKoef = sensorEntity.detectDecKoef ?: 0.0,
+                        detectDecMinDiff = sensorEntity.detectDecMinDiff ?: 0.0,
+                        detectDecMinLen = sensorEntity.detectDecMinLen ?: 0,
+                        decAddTimeBefore = sensorEntity.decAddTimeBefore ?: 0,
+                        decAddTimeAfter = sensorEntity.decAddTimeAfter ?: 0,
                     )
                 }
                 else -> {

@@ -122,19 +122,23 @@ class MMSSpringApp : CoreSpringApp() {
         super.addXyDocumentConfig()
 
         hmXyDocumentConfig["mms_map"] = XyDocumentConfig(
-            "mms_map", "Карта",
-            "foatto.mms.core_mms.xy.server.document.sdcMMSMap",
-            XyDocumentClientType.MAP,
+            name = "mms_map",
+            descr = "Карта",
+            serverClassName = "foatto.mms.core_mms.xy.server.document.sdcMMSMap",
+            clientType = XyDocumentClientType.MAP,
 //            "foatto.app_client.XyMapControl", "foatto.app.MapControl",
-            true, initMapElementConfig(MAP_MIN_SCALE, MAP_MAX_SCALE).toList()
+            itScaleAlign = true,
+            alElementConfig = initMapElementConfig(MAP_MIN_SCALE, MAP_MAX_SCALE).toList().toTypedArray()
         )
 
         hmXyDocumentConfig["mms_state"] = XyDocumentConfig(
-            "mms_state", "Состояние объекта",
-            "foatto.mms.core_mms.xy.server.document.sdcMMSState",
-            XyDocumentClientType.STATE,
+            name = "mms_state",
+            descr = "Состояние объекта",
+            serverClassName = "foatto.mms.core_mms.xy.server.document.sdcMMSState",
+            clientType = XyDocumentClientType.STATE,
 //            "foatto.app_client.XyStateControl", "foatto.app.StateControl",
-            false, initStateElementConfig(1, 1024 * 1024 * 1024).toList()
+            itScaleAlign = false,
+            alElementConfig = initStateElementConfig(1, 1024 * 1024 * 1024).toList().toTypedArray()
         )
     }
 

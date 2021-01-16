@@ -1,16 +1,19 @@
 package foatto.core_web
 
 import foatto.core.app.*
-import foatto.core.link.*
+import foatto.core.link.AppRequest
+import foatto.core.link.FormCell
+import foatto.core.link.FormCellType
+import foatto.core.link.FormData
+import foatto.core.link.FormPinMode
+import foatto.core.link.FormResponse
 import foatto.core_web.external.vue.that
 import foatto.core_web.external.vue.vueComponentOptions
+import kotlinx.browser.document
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.dom.events.Event
-import org.w3c.dom.events.KeyboardEvent
-import org.w3c.dom.events.KeyboardEventInit
-import kotlin.browser.document
 import kotlin.js.Json
 import kotlin.js.json
 import kotlin.math.max

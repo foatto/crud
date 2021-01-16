@@ -1,20 +1,28 @@
 package foatto.core_web
 
-import foatto.core.app.xy.*
+import foatto.core.app.xy.XyAction
+import foatto.core.app.xy.XyActionRequest
+import foatto.core.app.xy.XyProjection
+import foatto.core.app.xy.XyViewCoord
 import foatto.core.app.xy.config.XyBitmapType
 import foatto.core.app.xy.geom.XyLine
 import foatto.core.app.xy.geom.XyPoint
 import foatto.core.app.xy.geom.XyRect
 import foatto.core.link.XyElementConfig
 import foatto.core.link.XyResponse
+import foatto.core.util.getSplittedDouble
 import foatto.core_web.external.vue.that
 import foatto.core_web.external.vue.vueComponentOptions
+import kotlinx.browser.document
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.MouseEvent
 import org.w3c.dom.events.WheelEvent
-import kotlin.browser.document
 import kotlin.js.json
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToInt
 
 private enum class MapWorkMode {
     PAN, ZOOM_BOX, SELECT_FOR_ACTION, DISTANCER, ACTION_ADD, ACTION_EDIT_POINT, ACTION_MOVE

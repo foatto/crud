@@ -18,7 +18,7 @@ class cMovingDetail : cMMSReport() {
 
     override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
         val returnURL = super.doSave(action, alFormData, hmOut)
-        if(returnURL != null) return returnURL
+        if (returnURL != null) return returnURL
 
         fillReportParam(model as mUODGP)
 
@@ -91,52 +91,55 @@ class cMovingDetail : cMMSReport() {
 
         val alObjectID = mutableListOf<Int>()
         //--- если объект не указан, то загрузим полный список доступных объектов
-        if(reportObject == 0) loadObjectList(stm, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
-        else alObjectID.add(reportObject)
+        if (reportObject == 0) {
+            loadObjectList(stm, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
+        } else {
+            alObjectID.add(reportObject)
+        }
 
         var countNNObject = 1
-        for( objectID in alObjectID ) {
+        for (objectID in alObjectID) {
 
             val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
             //--- если не прописаны гео-датчики - выходим тут же
-            if(objectConfig.scg == null) continue
+            if (objectConfig.scg == null) continue
 
             //--- единоразово загрузим данные по всем датчикам объекта
-            val ( alRawTime, alRawData ) = ObjectCalc.loadAllSensorData(stm, objectConfig, begTime, endTime)
+            val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(stm, objectConfig, begTime, endTime)
 
             //--- в обычных расчётах нам не нужны точки траектории, поэтому даем максимальный масштаб.
             //--- превышения тоже не нужны, поэтому даём maxEnabledOverSpeed = 0
-            val gcd = ObjectCalc.calcGeoSensor(alRawTime, alRawData, objectConfig, begTime, endTime, 1000000000, 0, null)
+            val gcd = ObjectCalc.calcGeoSensor(alRawTime, alRawData, objectConfig.scg!!, begTime, endTime, 1000000000, 0, null)
 
             //--- первая строка: порядковый номер и наименование объекта
             offsY++    // отодвинуться от предыдущей строки
-            sheet.addCell(Label(0, offsY, Integer.toString(countNNObject++), wcfNN))
+            sheet.addCell(Label(0, offsY, (countNNObject++).toString(), wcfNN))
             sheet.addCell(Label(1, offsY, "${objectConfig.name}, ${objectConfig.model}, ${objectConfig.groupName}, ${objectConfig.departmentName}", wcfCellCBStdYellow))
             sheet.mergeCells(1, offsY, 8, offsY)
             offsY += 2 // +1 пустая строка снизу
 
             var countNNInObject = 1
-            for(apd in gcd.alMovingAndParking!!) {
+            for (apd in gcd.alMovingAndParking) {
                 val gpd = apd as GeoPeriodData
 
                 val calc = ObjectCalc.calcObject(stm, userConfig, objectConfig, gpd.begTime, gpd.endTime)
 
                 offsX = 0
-                sheet.addCell(Label(offsX++, offsY, Integer.toString(countNNInObject++), wcfNN))
+                sheet.addCell(Label(offsX++, offsY, (countNNInObject++).toString(), wcfNN))
                 sheet.addCell(Label(offsX++, offsY, DateTime_DMYHMS(zoneId, gpd.begTime), wcfCellC))
                 sheet.addCell(Label(offsX++, offsY, DateTime_DMYHMS(zoneId, gpd.endTime), wcfCellC))
-                sheet.addCell(Label(offsX++, offsY, if(gpd.getState() != 0) "Дв." else "Ст.", if(gpd.getState() != 0) wcfCellL else wcfCellR))
+                sheet.addCell(Label(offsX++, offsY, if (gpd.getState() != 0) "Дв." else "Ст.", if (gpd.getState() != 0) wcfCellL else wcfCellR))
                 sheet.addCell(Label(offsX++, offsY, secondIntervalToString(gpd.begTime, gpd.endTime), wcfCellC))
                 sheet.addCell(
                     Label(
-                        offsX++, offsY, if(gpd.getState() != 0) getSplittedDouble(calc.gcd!!.run, 1).toString()
-                        else "-", if(gpd.getState() != 0) wcfCellR else wcfCellC
+                        offsX++, offsY, if (gpd.getState() != 0) getSplittedDouble(calc.gcd!!.run, 1)
+                        else "-", if (gpd.getState() != 0) wcfCellR else wcfCellC
                     )
                 )
-                sheet.addCell(Label(offsX++, offsY, calc.sbWorkName.toString(), wcfCellC))
-                sheet.addCell(Label(offsX++, offsY, calc.sbWorkTotal.toString(), wcfCellR))
-                sheet.addCell(Label(offsX++, offsY, calc.sbLiquidUsingName.toString(), wcfCellC))
-                sheet.addCell(Label(offsX++, offsY, calc.sbLiquidUsingTotal.toString(), wcfCellR))
+                sheet.addCell(Label(offsX++, offsY, calc.sWorkName, wcfCellC))
+                sheet.addCell(Label(offsX++, offsY, calc.sWorkValue, wcfCellR))
+                sheet.addCell(Label(offsX++, offsY, calc.sLiquidUsingName, wcfCellC))
+                sheet.addCell(Label(offsX++, offsY, calc.sLiquidUsingValue, wcfCellR))
 
                 offsY++
             }
@@ -148,23 +151,23 @@ class cMovingDetail : cMMSReport() {
             sheet.mergeCells(1, offsY, 3, offsY)
             offsX = 4
             sheet.addCell(Label(offsX++, offsY, secondIntervalToString(calcSum.gcd!!.movingTime), wcfCellC))
-            sheet.addCell(Label(offsX++, offsY, getSplittedDouble(calcSum.gcd!!.run, 1).toString(), wcfCellC))
+            sheet.addCell(Label(offsX++, offsY, getSplittedDouble(calcSum.gcd!!.run, 1), wcfCellC))
             offsY++
 
             sheet.addCell(Label(1, offsY, "На стоянках:", wcfCellRB))
             sheet.mergeCells(1, offsY, 3, offsY)
             offsX = 4
             sheet.addCell(Label(offsX++, offsY, secondIntervalToString(calcSum.gcd!!.parkingTime), wcfCellC))
-            sheet.addCell(Label(offsX++, offsY, getSplittedLong(calcSum.gcd!!.parkingCount.toLong()).toString(), wcfCellC))
+            sheet.addCell(Label(offsX++, offsY, getSplittedLong(calcSum.gcd!!.parkingCount.toLong()), wcfCellC))
             offsY++
 
             sheet.addCell(Label(1, offsY, "Общее:", wcfCellRB))
             sheet.mergeCells(1, offsY, 3, offsY)
             offsX = 6
-            sheet.addCell(Label(offsX++, offsY, calcSum.sbWorkName.toString(), wcfCellC))
-            sheet.addCell(Label(offsX++, offsY, calcSum.sbWorkTotal.toString(), wcfCellR))
-            sheet.addCell(Label(offsX++, offsY, calcSum.sbLiquidUsingName.toString(), wcfCellC))
-            sheet.addCell(Label(offsX++, offsY, calcSum.sbLiquidUsingTotal.toString(), wcfCellR))
+            sheet.addCell(Label(offsX++, offsY, calcSum.sWorkName, wcfCellC))
+            sheet.addCell(Label(offsX++, offsY, calcSum.sWorkValue, wcfCellR))
+            sheet.addCell(Label(offsX++, offsY, calcSum.sLiquidUsingName, wcfCellC))
+            sheet.addCell(Label(offsX++, offsY, calcSum.sLiquidUsingValue, wcfCellR))
             offsY += 2
         }
 

@@ -72,19 +72,19 @@ abstract class mSHOPReport : mAbstractReport() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val (alWarehouseID, alWarehouseName) = mWarehouse.fillWarehouseList(stm)
+        val alWarehouse = mWarehouse.fillWarehouseList(stm)
 
         //----------------------------------------------------------------------------------------------------------------------
 
         var parentDocID: Int? = null
         var parentDocType = DocumentTypeConfig.TYPE_ALL
         var parentClient: Int? = null
-        for((dt, an) in DocumentTypeConfig.hmDocTypeAlias) {
+        for ((dt, an) in DocumentTypeConfig.hmDocTypeAlias) {
             parentDocID = hmParentData[an]
-            if(parentDocID != null) {
+            if (parentDocID != null) {
                 parentDocType = dt
                 val rs = stm.executeQuery(" SELECT client_id FROM SHOP_doc WHERE id = $parentDocID ")
-                if(rs.next()) parentClient = rs.getInt(1)
+                if (rs.next()) parentClient = rs.getInt(1)
                 rs.close()
 
                 break
@@ -101,11 +101,15 @@ abstract class mSHOPReport : mAbstractReport() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnWarehouseDest = ColumnComboBox(tableName, "dest_warehouse_id", "На склад / магазин")
-        if(isUseNullWarehouse) columnWarehouseDest.addChoice(0, "(все склады / магазины)")
-        for(i in alWarehouseID.indices)
-            columnWarehouseDest.addChoice(alWarehouseID[i], alWarehouseName[i])
-        columnWarehouseDest.defaultValue = if(isUseNullWarehouse) 0 else alWarehouseID[0]
+        columnWarehouseDest = ColumnComboBox(tableName, "dest_warehouse_id", "На склад / магазин").apply {
+            if (isUseNullWarehouse) {
+                addChoice(0, "(все склады / магазины)")
+            }
+            alWarehouse.forEach { wh ->
+                addChoice(wh.first, wh.second)
+            }
+            defaultValue = if (isUseNullWarehouse) 0 else alWarehouse[0].first
+        }
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -116,53 +120,58 @@ abstract class mSHOPReport : mAbstractReport() {
 
         val columnClientID = ColumnInt("SHOP_client", "id")
         columnClient = ColumnInt(tableName, "client_id", columnClientID, parentClient)
-        val columnClientName = ColumnString("SHOP_client", "name", "Контрагент", STRING_COLUMN_WIDTH)
-        if(isReportClient) {
-            columnClientName.selectorAlias = "shop_client"
-            columnClientName.addSelectorColumn(columnClient, columnClientID)
-            columnClientName.addSelectorColumn(columnClientName)
+        val columnClientName = ColumnString("SHOP_client", "name", "Контрагент", STRING_COLUMN_WIDTH).apply {
+            if (isReportClient) {
+                selectorAlias = "shop_client"
+                addSelectorColumn(columnClient, columnClientID)
+                addSelectorColumn(this)
+            }
         }
-
         val columnDocumentDescr = ColumnString("SHOP_doc", "descr", "Примечание", STRING_COLUMN_WIDTH)
 
-        columnDocumentType = ColumnComboBox(tableName, "doc_type", "Тип накладной", parentDocType)
-        columnDocumentType.isVirtual = true
-        columnDocumentType.isEditable = isReportDocumentType
-        for((dt, an) in DocumentTypeConfig.hmDocTypeAlias)
-            columnDocumentType.addChoice(dt, hmAliasConfig[an]!!.descr)
+        columnDocumentType = ColumnComboBox(tableName, "doc_type", "Тип накладной", parentDocType).apply {
+            isVirtual = true
+            isEditable = isReportDocumentType
+            for ((dt, an) in DocumentTypeConfig.hmDocTypeAlias)
+                addChoice(dt, hmAliasConfig[an]!!.descr)
+        }
         //--- спецполя для одновременной установки клиента и типа накладной, чтобы отдельно его не хватать
         val columnClient_ = ColumnInt("SHOP_doc", "client_id")
         val columnDocumentType_ = ColumnComboBox("SHOP_doc", "doc_type", "", DocumentTypeConfig.TYPE_ALL)
 
         //--- опишем ниже columnDocumentType, чтобы при выборе накладной тип тоже устанавливался автоматически
-        columnDocumentNo.isRequired = false
-        columnDocumentNo.selectorAlias = "shop_doc_all"
-        columnDocumentNo.addSelectorColumn(columnDocument, columnDocumentID)
-        columnDocumentNo.addSelectorColumn(columnDocumentNo)
-        columnDocumentNo.addSelectorColumn(columnDocumentDate)
-        columnDocumentNo.addSelectorColumn(columnClient, columnClient_)
-        columnDocumentNo.addSelectorColumn(columnClientName)
-        columnDocumentNo.addSelectorColumn(columnDocumentDescr)
-        columnDocumentNo.addSelectorColumn(columnDocumentType, columnDocumentType_)
-
+        columnDocumentNo.apply {
+            isRequired = false
+            selectorAlias = "shop_doc_all"
+            addSelectorColumn(columnDocument, columnDocumentID)
+            addSelectorColumn(this)
+            addSelectorColumn(columnDocumentDate)
+            addSelectorColumn(columnClient, columnClient_)
+            addSelectorColumn(columnClientName)
+            addSelectorColumn(columnDocumentDescr)
+            addSelectorColumn(columnDocumentType, columnDocumentType_)
+        }
         //----------------------------------------------------------------------------------------------------------------------
 
         val selfLinkDestTableName = "SHOP_catalog_2"
-        val columnCatalogDestID = ColumnInt(selfLinkDestTableName, "id")
-        columnCatalogDestID.selfLinkTableName = "SHOP_catalog"
+        val columnCatalogDestID = ColumnInt(selfLinkDestTableName, "id").apply {
+            selfLinkTableName = "SHOP_catalog"
+        }
         columnCatalogDest = ColumnInt(tableName, "dest_catalog_id", columnCatalogDestID)
-        val columnCatalogDestName = ColumnString(selfLinkDestTableName, "name", "Товар", 3, STRING_COLUMN_WIDTH, textFieldMaxSize)
-        columnCatalogDestName.selfLinkTableName = "SHOP_catalog"  // для правильной работы селектора с подстановочной таблицей
-        columnCatalogDestName.isRequired = false
-        columnCatalogDestName.selectorAlias = catalogSelectorAlias
-        columnCatalogDestName.addSelectorColumn(columnCatalogDest, columnCatalogDestID)
-        columnCatalogDestName.addSelectorColumn(columnCatalogDestName)   //, columnCatalogName );
-
-        columnBegDate = ColumnDate3Int(tableName, "beg_ye", "beg_mo", "beg_da", "Начало периода")
-        columnBegDate.isVirtual = true
-        columnBegDate.default = LocalDate.now(zoneId).withDayOfMonth(1)
-        columnEndDate = ColumnDate3Int(tableName, "end_ye", "end_mo", "end_da", if(isReportBegDate) "Конец периода" else "Дата")
-        columnEndDate.isVirtual = true
+        val columnCatalogDestName = ColumnString(selfLinkDestTableName, "name", "Товар", 3, STRING_COLUMN_WIDTH, textFieldMaxSize).apply {
+            selfLinkTableName = "SHOP_catalog"  // для правильной работы селектора с подстановочной таблицей
+            isRequired = false
+            selectorAlias = catalogSelectorAlias
+            addSelectorColumn(columnCatalogDest, columnCatalogDestID)
+            addSelectorColumn(this)   //, columnCatalogName );
+        }
+        columnBegDate = ColumnDate3Int(tableName, "beg_ye", "beg_mo", "beg_da", "Начало периода").apply {
+            isVirtual = true
+            default = LocalDate.now(zoneId).withDayOfMonth(1)
+        }
+        columnEndDate = ColumnDate3Int(tableName, "end_ye", "end_mo", "end_da", if (isReportBegDate) "Конец периода" else "Дата").apply {
+            isVirtual = true
+        }
 
         //        if( periodCaption != null ) {
         //            columnPeriod = new ColumnInt( tableName, "period", periodCaption, 10 );
@@ -177,18 +186,18 @@ abstract class mSHOPReport : mAbstractReport() {
         alFormHiddenColumn.add(columnClient)
         alFormHiddenColumn.add(columnCatalogDest)
 
-        (if(isReportWarehouse) alFormColumn else alFormHiddenColumn).add(columnWarehouseDest)
+        (if (isReportWarehouse) alFormColumn else alFormHiddenColumn).add(columnWarehouseDest)
 
-        (if(isReportDocument) alFormColumn else alFormHiddenColumn).add(columnDocumentNo)
-        (if(isReportDocument) alFormColumn else alFormHiddenColumn).add(columnDocumentDate)
-        (if(isReportDocument) alFormColumn else alFormHiddenColumn).add(columnDocumentDescr)
-        (if((isReportDocument || isReportClient) && DocumentTypeConfig.hsUseClient.contains(parentDocType)) alFormColumn else alFormHiddenColumn).add(columnClientName)
-        (if(isReportDocument || isReportDocumentType) alFormColumn else alFormHiddenColumn).add(columnDocumentType)
+        (if (isReportDocument) alFormColumn else alFormHiddenColumn).add(columnDocumentNo)
+        (if (isReportDocument) alFormColumn else alFormHiddenColumn).add(columnDocumentDate)
+        (if (isReportDocument) alFormColumn else alFormHiddenColumn).add(columnDocumentDescr)
+        (if ((isReportDocument || isReportClient) && DocumentTypeConfig.hsUseClient.contains(parentDocType)) alFormColumn else alFormHiddenColumn).add(columnClientName)
+        (if (isReportDocument || isReportDocumentType) alFormColumn else alFormHiddenColumn).add(columnDocumentType)
 
-        (if(isReportCatalog) alFormColumn else alFormHiddenColumn).add(columnCatalogDestName)
+        (if (isReportCatalog) alFormColumn else alFormHiddenColumn).add(columnCatalogDestName)
 
-        (if(isReportBegDate) alFormColumn else alFormHiddenColumn).add(columnBegDate)
-        (if(isReportEndDate) alFormColumn else alFormHiddenColumn).add(columnEndDate)
+        (if (isReportBegDate) alFormColumn else alFormHiddenColumn).add(columnBegDate)
+        (if (isReportEndDate) alFormColumn else alFormHiddenColumn).add(columnEndDate)
 
         //        ( periodCaption != null ? alFormColumn : alFormHiddenColumn ).add( columnPeriod );
 
@@ -200,5 +209,6 @@ abstract class mSHOPReport : mAbstractReport() {
         hmParentColumn["shop_client"] = columnClient
         hmParentColumn["shop_catalog"] = columnCatalogDest
     }
-    //    public ColumnInt getColumnPeriod() { return columnPeriod; }
+
+//    public ColumnInt getColumnPeriod() { return columnPeriod; }
 }

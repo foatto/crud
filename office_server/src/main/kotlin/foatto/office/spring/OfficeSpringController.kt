@@ -33,43 +33,48 @@ class OfficeSpringController : CoreSpringController() {
     }
 
     @GetMapping(value = ["/web/{fileName:.+}"])
-    fun downloadWeb(response: HttpServletResponse,
-                    @PathVariable("fileName")
-                    fileName: String
+    fun downloadWeb(
+        response: HttpServletResponse,
+        @PathVariable("fileName")
+        fileName: String
     ) {
         download(response, "${rootDirName}/web/$fileName")
     }
 
     @GetMapping(value = ["/web/images/{fileName:.+}"])
-    fun downloadWebImages(response: HttpServletResponse,
-                          @PathVariable("fileName")
-                          fileName: String
+    fun downloadWebImages(
+        response: HttpServletResponse,
+        @PathVariable("fileName")
+        fileName: String
     ) {
         download(response, "${rootDirName}/web/images/$fileName")
     }
 
     @GetMapping(value = ["/web/js/{fileName:.+}"])
-    fun downloadWebJS(response: HttpServletResponse,
-                      @PathVariable("fileName")
-                      fileName: String
+    fun downloadWebJS(
+        response: HttpServletResponse,
+        @PathVariable("fileName")
+        fileName: String
     ) {
         download(response, "${rootDirName}/web/js/$fileName")
     }
 
     @GetMapping(value = ["/web/lib/{fileName:.+}"])
-    fun downloadWebLib(response: HttpServletResponse,
-                       @PathVariable("fileName")
-                       fileName: String
+    fun downloadWebLib(
+        response: HttpServletResponse,
+        @PathVariable("fileName")
+        fileName: String
     ) {
         download(response, "${rootDirName}/web/lib/$fileName")
     }
 
     @GetMapping(value = ["/files/{dirName:.+}/{fileName:.+}"])
-    fun downloadFile(response: HttpServletResponse,
-                     @PathVariable("dirName")
-                     dirName: String,
-                     @PathVariable("fileName")
-                     fileName: String
+    fun downloadFile(
+        response: HttpServletResponse,
+        @PathVariable("dirName")
+        dirName: String,
+        @PathVariable("fileName")
+        fileName: String
     ) {
         download(response, "${rootDirName}/files/$dirName/$fileName")
     }
@@ -210,8 +215,8 @@ class OfficeSpringController : CoreSpringController() {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuTask, "office_task_out_archive", true)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuTask, "office_task_in_archive", true)
 
-        if(alMenuTask.size > 1)
-            alMenu.add(MenuData("", "Поручения", alMenuTask))
+        if (alMenuTask.size > 1)
+            alMenu.add(MenuData("", "Поручения", alMenuTask.toTypedArray()))
 
 ////--- Сопровождение клиентов -------------------------------------------------------------------------------------------
 //
@@ -278,7 +283,7 @@ class OfficeSpringController : CoreSpringController() {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDir, "office_company", true)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDir, "office_city", true)
 
-        if(alMenuDir.size > 0) alMenu.add(MenuData("", "Справочники", alMenuDir))
+        if (alMenuDir.size > 0) alMenu.add(MenuData("", "Справочники", alMenuDir.toTypedArray()))
 
         //--- Система --------------------------------------------------------------------------------------------------------
 
@@ -298,7 +303,7 @@ class OfficeSpringController : CoreSpringController() {
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuSystem, "system_log_user", true)
 
-        if(alMenuSystem.size > 2) alMenu.add(MenuData("", "Система", alMenuSystem))
+        if (alMenuSystem.size > 2) alMenu.add(MenuData("", "Система", alMenuSystem.toTypedArray()))
 
         //----------------------------------------------------------------------------------------------------------------------
 

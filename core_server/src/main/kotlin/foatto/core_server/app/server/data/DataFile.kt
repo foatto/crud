@@ -78,10 +78,10 @@ class DataFile(
         fci.fileID = fileID
 
         val alFileStoreData = getList(stm, fileID)
-        for (fsd in alFileStoreData) {
+        fci.alFile = alFileStoreData.map { fsd ->
             val url = "/$FILE_BASE/${fsd.dir}/${fsd.name}"
-            fci.alFile.add(Triple(fsd.id, url, url.substringAfterLast('/')))
-        }
+            Triple(fsd.id, url, url.substringAfterLast('/'))
+        }.toTypedArray()
         return fci
     }
 

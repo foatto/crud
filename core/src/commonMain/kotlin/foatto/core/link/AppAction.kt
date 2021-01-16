@@ -1,6 +1,6 @@
 package foatto.core.link
 
-//--- это всё нельзя перевести в enum class, потому что используется именно в строковом виде внутри actionParam
+//--- all this cannot be translated into an enum class, because it is used precisely in a string form inside actionParam
 object AppAction {
     const val LOGON = "logon"
 

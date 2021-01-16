@@ -1,11 +1,14 @@
 package foatto.office_web
 
-import foatto.core_web.external.vue.*
 import foatto.core_web.*
+import foatto.core_web.external.vue.Vue
+import foatto.core_web.external.vue.VueComponentOptions
+import foatto.core_web.external.vue.that
+import foatto.core_web.external.vue.vueComponentOptions
+import kotlinx.browser.document
+import kotlinx.browser.localStorage
+import kotlinx.browser.window
 import org.w3c.dom.HTMLSpanElement
-import kotlin.browser.document
-import kotlin.browser.localStorage
-import kotlin.browser.window
 import kotlin.js.Json
 import kotlin.js.json
 

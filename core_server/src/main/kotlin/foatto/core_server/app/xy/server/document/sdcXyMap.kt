@@ -1,14 +1,21 @@
 package foatto.core_server.app.xy.server.document
 
-import foatto.core.app.xy.*
+import foatto.core.app.xy.XyActionRequest
+import foatto.core.app.xy.XyActionResponse
+import foatto.core.app.xy.XyElement
+import foatto.core.app.xy.XyViewCoord
 import foatto.core.app.xy.config.XyBitmapType
 import foatto.core.app.xy.geom.XyPoint
+import foatto.core.util.AdvancedByteBuffer
+import foatto.core.util.AsyncFileSaver
+import foatto.core.util.getCurrentTimeInt
+import foatto.core.util.getRandomInt
+import foatto.core.util.getStringFromIterable
 import foatto.core_server.app.AppParameter
-import foatto.sql.CoreAdvancedResultSet
-import foatto.core.util.*
 import foatto.core_server.app.xy.XyStartData
 import foatto.core_server.app.xy.XyStartObjectParsedData
 import foatto.core_server.app.xy.server.XyProperty
+import foatto.sql.CoreAdvancedResultSet
 import java.nio.ByteOrder
 import java.util.concurrent.ConcurrentHashMap
 
@@ -32,7 +39,7 @@ abstract class sdcXyMap : sdcXyAbstract() {
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun getElements( xyActionRequest: XyActionRequest ): XyActionResponse {
+    override fun getElements(xyActionRequest: XyActionRequest): XyActionResponse {
 
         val xyStartDataID = xyActionRequest.startParamID
         val sd = chmSession[AppParameter.XY_START_DATA + xyStartDataID] as XyStartData
@@ -46,27 +53,27 @@ abstract class sdcXyMap : sdcXyAbstract() {
         //--- оптимизированная массовая загрузка статических объектов (без временнЫх параметров, например, зоны)
 
         val alElementData = loadStaticElement(alObjectParamData, viewCoord)
-        if( alElementData.isNotEmpty() ) {
+        if (alElementData.isNotEmpty()) {
             //--- подготовка IN-списка по elementID
             val sbElementID = StringBuilder()
-            for( ( edo, _ ) in alElementData )
-                sbElementID.append(if(sbElementID.isEmpty()) "" else " , ").append(edo.elementID)
+            for ((edo, _) in alElementData)
+                sbElementID.append(if (sbElementID.isEmpty()) "" else " , ").append(edo.elementID)
 
             val sPoint = " SELECT element_id , prj_x , prj_y FROM XY_point " +
-                         " WHERE element_id IN ( $sbElementID ) " +
-            //--- ограничение по координатам, если есть (при загрузке одиночного элемента (например, для редактирования) они не указываются)
-            //--- также ограничения по координатам не используются для статических бизнес-элементов (зоны, например), которые грузятся полностью
-            //--- для бизнес-элементов ограничение по координатам при загрузке не применяется
-            //if( ! ( prjX1 == 0 && prjY1 == 0 && prjX2 == 0 && prjY2 == 0 ) )
-            //    sbPoint.append( " AND prj_x >= " ).append( prjX1 )
-            //           .append( " AND prj_y >= " ).append( prjY1 )
-            //           .append( " AND prj_x <= " ).append( prjX2 )
-            //           .append( " AND prj_y <= " ).append( prjY2 );
-                         " ORDER BY element_id , sort_id "
+                " WHERE element_id IN ( $sbElementID ) " +
+                //--- ограничение по координатам, если есть (при загрузке одиночного элемента (например, для редактирования) они не указываются)
+                //--- также ограничения по координатам не используются для статических бизнес-элементов (зоны, например), которые грузятся полностью
+                //--- для бизнес-элементов ограничение по координатам при загрузке не применяется
+                //if( ! ( prjX1 == 0 && prjY1 == 0 && prjX2 == 0 && prjY2 == 0 ) )
+                //    sbPoint.append( " AND prj_x >= " ).append( prjX1 )
+                //           .append( " AND prj_y >= " ).append( prjY1 )
+                //           .append( " AND prj_x <= " ).append( prjX2 )
+                //           .append( " AND prj_y <= " ).append( prjY2 );
+                " ORDER BY element_id , sort_id "
 
             val sProperty = " SELECT element_id , property_name , property_value FROM XY_property " +
-                            " WHERE element_id IN ( $sbElementID ) " +
-                            " ORDER BY element_id "
+                " WHERE element_id IN ( $sbElementID ) " +
+                " ORDER BY element_id "
 
             //--- загрузка двух наборов - point и property
 //            val stmPoint = dataWorker.alConn.get(0).createStatement()
@@ -75,7 +82,7 @@ abstract class sdcXyMap : sdcXyAbstract() {
             val rsPoint = stm.executeQuery(sPoint)
             val rsProperty = stm.executeQuery(sProperty)
 
-            loadPointsAndProperties( sd, viewCoord.scale, rsPoint, rsProperty, hsReadOnlyObject, alElementData )
+            loadPointsAndProperties(sd, viewCoord.scale, rsPoint, rsProperty, hsReadOnlyObject, alElementData)
 
             rsPoint.close()
             rsProperty.close()
@@ -87,24 +94,24 @@ abstract class sdcXyMap : sdcXyAbstract() {
         val alElement = alElementData.map { it.first }.toMutableList()
 
         //--- загрузка динамических объектов
-        for( objectParamData in alObjectParamData ) {
-            if( objectParamData.begTime != 0 )
-                loadDynamicElements( viewCoord.scale, objectParamData, alElement )
+        for (objectParamData in alObjectParamData) {
+            if (objectParamData.begTime != 0)
+                loadDynamicElements(viewCoord.scale, objectParamData, alElement)
         }
         //AdvancedLogger.debug( "load/write dynamic elements [obj] : " + ( System.currentTimeMillis() - begTime ) );
 
         //--- вывод элементов растровых карт:
         //--- грузим все виды карт, показываем только требуемые
-        for( name in XyBitmapType.hmTypeScaleZ.keys )
-            outBitmapElements( name, viewCoord, if( name == xyActionRequest.bitmapTypeName ) alElement else null )
+        for (name in XyBitmapType.hmTypeScaleZ.keys)
+            outBitmapElements(name, viewCoord, if (name == xyActionRequest.bitmapTypeName) alElement else null)
 
         //AdvancedLogger.info( "Doc Size = " + arrByte.length );
         //AdvancedLogger.info( "------------------------------------------------------------" );
 
-        return XyActionResponse( alElement = alElement )
+        return XyActionResponse(alElement = alElement.toTypedArray())
     }
 
-    override fun getOneElement( xyActionRequest: XyActionRequest ): XyActionResponse {
+    override fun getOneElement(xyActionRequest: XyActionRequest): XyActionResponse {
 
         val xyStartDataID = xyActionRequest.startParamID
         val sd = chmSession[AppParameter.XY_START_DATA + xyStartDataID] as XyStartData
@@ -117,18 +124,19 @@ abstract class sdcXyMap : sdcXyAbstract() {
 
         val rs = stm.executeQuery(
             " SELECT type_name , id , object_id , prj_x1 , prj_y1 , point_data " +
-            " FROM XY_element " +
-            " WHERE id = $elementID " )
+                " FROM XY_element " +
+                " WHERE id = $elementID "
+        )
         rs.next()
-        alElementData.add( loadElement( rs, viewCoord ) )
+        alElementData.add(loadElement(rs, viewCoord))
         rs.close()
 
         val sPoint = " SELECT element_id , prj_x , prj_y FROM XY_point " +
-                     " WHERE element_id = $elementID " +
-                     " ORDER BY sort_id "
+            " WHERE element_id = $elementID " +
+            " ORDER BY sort_id "
 
         val sProperty = " SELECT element_id , property_name , property_value FROM XY_property " +
-                        " WHERE element_id = $elementID "
+            " WHERE element_id = $elementID "
 
         //--- загрузка двух наборов - point и property
 //            val stmPoint = dataWorker.alConn.get(0).createStatement()
@@ -137,34 +145,34 @@ abstract class sdcXyMap : sdcXyAbstract() {
         val rsPoint = stm.executeQuery(sPoint)
         val rsProperty = stm.executeQuery(sProperty)
 
-        loadPointsAndProperties( sd, viewCoord.scale, rsPoint, rsProperty, emptySet(), alElementData )
+        loadPointsAndProperties(sd, viewCoord.scale, rsPoint, rsProperty, emptySet(), alElementData)
 
         rsPoint.close()
         rsProperty.close()
 
 //            stmPoint.close()
 //            stmProperty.close()
-        return XyActionResponse( element = alElementData.first().first )
+        return XyActionResponse(element = alElementData.first().first)
     }
 
-    override fun editElementPoint( xyActionRequest: XyActionRequest ): XyActionResponse {
-        putElement( xyActionRequest.xyElement!!, false )
+    override fun editElementPoint(xyActionRequest: XyActionRequest): XyActionResponse {
+        putElement(xyActionRequest.xyElement!!, false)
 
         return XyActionResponse()
     }
 
-    override fun moveElements( xyActionRequest: XyActionRequest ): XyActionResponse {
-        val sElementID = getStringFromIterable( xyActionRequest.alActionElementIds!!, " , " )
+    override fun moveElements(xyActionRequest: XyActionRequest): XyActionResponse {
+        val sElementID = getStringFromIterable(xyActionRequest.alActionElementIds!!, " , ")
         val dx = xyActionRequest.dx!!
         val dy = xyActionRequest.dy!!
 
         stm.executeUpdate(
             " UPDATE XY_element SET " +
-            " prj_x1 = prj_x1 + ( $dx ) , " +
-            " prj_y1 = prj_y1 + ( $dy ) , " +
-            " prj_x2 = prj_x2 + ( $dx ) , " +
-            " prj_y2 = prj_y2 + ( $dy ) " +
-            " WHERE id IN ( $sElementID ) "
+                " prj_x1 = prj_x1 + ( $dx ) , " +
+                " prj_y1 = prj_y1 + ( $dy ) , " +
+                " prj_x2 = prj_x2 + ( $dx ) , " +
+                " prj_y2 = prj_y2 + ( $dy ) " +
+                " WHERE id IN ( $sElementID ) "
         )
 
         return XyActionResponse()
@@ -172,53 +180,55 @@ abstract class sdcXyMap : sdcXyAbstract() {
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    private fun loadStaticElement( alObjectParamData: List<XyStartObjectParsedData>, viewCoord: XyViewCoord ): List<Pair<XyElement, XyPoint>> {
+    private fun loadStaticElement(alObjectParamData: List<XyStartObjectParsedData>, viewCoord: XyViewCoord): List<Pair<XyElement, XyPoint>> {
         val alElementData = mutableListOf<Pair<XyElement, XyPoint>>()
 
         val alTypeName = mutableSetOf<String>()
         val alObjectID = mutableSetOf<Int>()
 
         //--- статические бизнес-объекты
-        for(objectParamData in alObjectParamData) {
-            if( objectParamData.begTime == 0 ) {
-                for(typeName in objectParamData.hsType)
+        for (objectParamData in alObjectParamData) {
+            if (objectParamData.begTime == 0) {
+                for (typeName in objectParamData.hsType)
                     alTypeName.add(typeName)
-                alObjectID.add( objectParamData.objectID )
+                alObjectID.add(objectParamData.objectID)
             }
         }
 
-        if(alTypeName.isNotEmpty()) {
+        if (alTypeName.isNotEmpty()) {
             val s = " SELECT type_name , id , object_id , prj_x1 , prj_y1 , point_data " +
-                    " FROM XY_element " +
-                    " WHERE type_name IN ( ${getStringFromIterable(alTypeName, " , ", " '", "' ")} ) " +
-            //if(sbObjectID.length > 0)
-                    " AND object_id IN ( ${getStringFromIterable(alObjectID, " , ")} ) " +
-                    " AND prj_x1 <= ${viewCoord.x2} " +
-                    " AND prj_y1 <= ${viewCoord.y2} " +
-                    " AND prj_x2 >= ${viewCoord.x1} " +
-                    " AND prj_y2 >= ${viewCoord.y1} " +
-                    " ORDER BY id "
+                " FROM XY_element " +
+                " WHERE type_name IN ( ${getStringFromIterable(alTypeName, " , ", " '", "' ")} ) " +
+                //if(sbObjectID.length > 0)
+                " AND object_id IN ( ${getStringFromIterable(alObjectID, " , ")} ) " +
+                " AND prj_x1 <= ${viewCoord.x2} " +
+                " AND prj_y1 <= ${viewCoord.y2} " +
+                " AND prj_x2 >= ${viewCoord.x1} " +
+                " AND prj_y2 >= ${viewCoord.y1} " +
+                " ORDER BY id "
             ///*if( AppServlet.xyLog != null )*/ AppServlet.xyLog.debug( sb.toString() );
 
             val rs = stm.executeQuery(s)
-            while(rs.next())
-                alElementData.add( loadElement( rs, viewCoord ) )
+            while (rs.next())
+                alElementData.add(loadElement(rs, viewCoord))
             rs.close()
         }
 
         return alElementData
     }
 
-    private fun loadElement(rs: CoreAdvancedResultSet, viewCoord: XyViewCoord ): Pair<XyElement, XyPoint> {
-        val xyElement = XyElement( rs.getString(1), rs.getInt(2), rs.getInt(3) )
+    private fun loadElement(rs: CoreAdvancedResultSet, viewCoord: XyViewCoord): Pair<XyElement, XyPoint> {
+        val xyElement = XyElement(rs.getString(1), rs.getInt(2), rs.getInt(3))
         val prjXY = XyPoint(rs.getInt(4), rs.getInt(5))
-
         val bbPoint = rs.getByteBuffer(6, ByteOrder.BIG_ENDIAN)
-        var lastPoint = XyPoint(0, 0)
-        while( bbPoint.hasRemaining() )
-            lastPoint = loadPoint( lastPoint, viewCoord.scale, prjXY.x + bbPoint.getInt(), prjXY.y + bbPoint.getInt(), xyElement.alPoint )
 
-        return Pair( xyElement, prjXY )
+        var lastPoint = XyPoint(0, 0)
+        val alPoint = mutableListOf<XyPoint>()
+        while (bbPoint.hasRemaining()) {
+            lastPoint = loadPoint(lastPoint, viewCoord.scale, prjXY.x + bbPoint.getInt(), prjXY.y + bbPoint.getInt(), alPoint)
+        }
+        xyElement.alPoint = alPoint.toTypedArray()
+        return Pair(xyElement, prjXY)
     }
 
     private fun loadPointsAndProperties(
@@ -230,58 +240,59 @@ abstract class sdcXyMap : sdcXyAbstract() {
         //--- установка на первые строки ResultSet'ов
         rsPoint.next()
         rsProperty.next()
-        for( ( xyElement, prjXY ) in alElementData ) {
+        for ((xyElement, prjXY) in alElementData) {
             var lastPoint = xyElement.alPoint.lastOrNull() ?: XyPoint(0, 0)
-            while( !rsPoint.isAfterLast ) {
-                val pointElementID = rsPoint.getInt( 1 )
-                if( pointElementID != xyElement.elementID ) break        // кончились точки данного элемента
-                lastPoint = loadPoint( lastPoint, scale, prjXY.x + rsPoint.getInt( 2 ), prjXY.y + rsPoint.getInt( 3 ), xyElement.alPoint )
+            val alPoint = xyElement.alPoint.toMutableList()
+            while (!rsPoint.isAfterLast) {
+                val pointElementID = rsPoint.getInt(1)
+                if (pointElementID != xyElement.elementID) break        // кончились точки данного элемента
+                lastPoint = loadPoint(lastPoint, scale, prjXY.x + rsPoint.getInt(2), prjXY.y + rsPoint.getInt(3), alPoint)
                 rsPoint.next()
             }
+            xyElement.alPoint = alPoint.toTypedArray()
 
-            while( !rsProperty.isAfterLast ) {
-                val propertyElementID = rsProperty.getInt( 1 )
-                if( propertyElementID != xyElement.elementID ) break        // кончились св-ва данного элемента
-                loadProperty( xyElement, rsProperty.getString( 2 ), rsProperty.getString( 3 ) )
+            while (!rsProperty.isAfterLast) {
+                val propertyElementID = rsProperty.getInt(1)
+                if (propertyElementID != xyElement.elementID) break        // кончились св-ва данного элемента
+                loadProperty(xyElement, rsProperty.getString(2), rsProperty.getString(3))
                 rsProperty.next()
             }
 
             //--- отметим элементы "только для чтения/просмотра"
-            xyElement.itReadOnly = hsReadOnlyObject.contains( xyElement.objectID )
+            xyElement.itReadOnly = hsReadOnlyObject.contains(xyElement.objectID)
             //--- отметим актуальные (isStart) объекты
-            if(xyElement.objectID != 0)
-                for(sod in sd.alStartObjectData)
-                    if(sod.objectID == xyElement.objectID) {
+            if (xyElement.objectID != 0)
+                for (sod in sd.alStartObjectData)
+                    if (sod.objectID == xyElement.objectID) {
                         xyElement.itActual = sod.isStart
                         break
                     }
         }
     }
 
-    private fun loadPoint(lastPoint: XyPoint, aScale: Int, aX: Int, aY: Int, alPoint: MutableList<XyPoint> ) =
-        //--- первая точка доступна для всех масштабов
+    private fun loadPoint(lastPoint: XyPoint, aScale: Int, aX: Int, aY: Int, alPoint: MutableList<XyPoint>) =
+    //--- первая точка доступна для всех масштабов
         //--- (точность вычисления расстояния не важна, используем проекционные координаты)
-        if( aScale == 0 || alPoint.isEmpty() || XyPoint.distance( aX.toDouble(), aY.toDouble(), lastPoint.x.toDouble(), lastPoint.y.toDouble()) > aScale * XyElement.GEN_KOEF ) {
+        if (aScale == 0 || alPoint.isEmpty() || XyPoint.distance(aX.toDouble(), aY.toDouble(), lastPoint.x.toDouble(), lastPoint.y.toDouble()) > aScale * XyElement.GEN_KOEF) {
             val p = XyPoint(aX, aY)
-            alPoint.add( p )
+            alPoint.add(p)
             p
-        }
-        else lastPoint
+        } else lastPoint
 
-    private fun loadProperty( xyElement: XyElement, propName: String, propValue: String ) {
-        when( propName ) {
-            XyProperty.IS_CLOSED      -> xyElement.itClosed = propValue.toBoolean()
-            XyProperty.LINE_WIDTH     -> xyElement.lineWidth = propValue.toInt()
-            XyProperty.DRAW_COLOR     -> xyElement.drawColor = propValue.toInt()
-            XyProperty.FILL_COLOR     -> xyElement.fillColor = propValue.toInt()
-            XyProperty.IMAGE_ANCHOR_X -> xyElement.anchorX = XyElement.Anchor.valueOf( propValue )  // } catch( t: Throwable ) { XyElement.Anchor.CC }
-            XyProperty.IMAGE_ANCHOR_Y -> xyElement.anchorY = XyElement.Anchor.valueOf( propValue )  // } catch( t: Throwable ) { XyElement.Anchor.CC }
-            XyProperty.ROTATE_DEGREE  -> xyElement.rotateDegree = propValue.toDouble()   //OrNull() ?: 0.0
-            XyProperty.TOOL_TIP_TEXT  -> xyElement.toolTipText = propValue
+    private fun loadProperty(xyElement: XyElement, propName: String, propValue: String) {
+        when (propName) {
+            XyProperty.IS_CLOSED -> xyElement.itClosed = propValue.toBoolean()
+            XyProperty.LINE_WIDTH -> xyElement.lineWidth = propValue.toInt()
+            XyProperty.DRAW_COLOR -> xyElement.drawColor = propValue.toInt()
+            XyProperty.FILL_COLOR -> xyElement.fillColor = propValue.toInt()
+            XyProperty.IMAGE_ANCHOR_X -> xyElement.anchorX = XyElement.Anchor.valueOf(propValue)  // } catch( t: Throwable ) { XyElement.Anchor.CC }
+            XyProperty.IMAGE_ANCHOR_Y -> xyElement.anchorY = XyElement.Anchor.valueOf(propValue)  // } catch( t: Throwable ) { XyElement.Anchor.CC }
+            XyProperty.ROTATE_DEGREE -> xyElement.rotateDegree = propValue.toDouble()   //OrNull() ?: 0.0
+            XyProperty.TOOL_TIP_TEXT -> xyElement.toolTipText = propValue
             XyProperty.IMAGE_NAME -> xyElement.imageName = propValue
             XyProperty.IMAGE_WIDTH -> xyElement.imageWidth = propValue.toInt()      //OrNull() ?: 0
             XyProperty.IMAGE_HEIGHT -> xyElement.imageHeight = propValue.toInt()    //OrNull() ?: 0
-            XyProperty.MARKER_TYPE -> xyElement.markerType = XyElement.MarkerType.valueOf( propValue )  //} catch( t: Throwable ) { XyElement.MarkerType.CIRCLE }
+            XyProperty.MARKER_TYPE -> xyElement.markerType = XyElement.MarkerType.valueOf(propValue)  //} catch( t: Throwable ) { XyElement.MarkerType.CIRCLE }
             XyProperty.MARKER_SIZE -> xyElement.markerSize = propValue.toInt()
             XyProperty.MARKER_SIZE_2 -> xyElement.markerSize2 = propValue.toInt()
             XyProperty.TEXT -> xyElement.text = propValue
@@ -289,17 +300,17 @@ abstract class sdcXyMap : sdcXyAbstract() {
             XyProperty.FONT_SIZE -> xyElement.fontSize = propValue.toInt()
             XyProperty.FONT_BOLD -> xyElement.itFontBold = propValue.toBoolean()
             XyProperty.FONT_ITALIC -> xyElement.itFontItalic = propValue.toBoolean()
-            XyProperty.ARROW_POS -> xyElement.arrowPos = XyElement.ArrowPos.valueOf( propValue )
+            XyProperty.ARROW_POS -> xyElement.arrowPos = XyElement.ArrowPos.valueOf(propValue)
             XyProperty.ARROW_LEN -> xyElement.arrowLen = propValue.toInt()
             XyProperty.ARROW_HEIGHT -> xyElement.arrowHeight = propValue.toInt()
             XyProperty.ARROW_LINE_WIDTH -> xyElement.arrowLineWidth = propValue.toInt()
         }
     }
 
-    private fun outBitmapElements( bmTypeName: String, viewCoord: XyViewCoord, alElement: MutableList<XyElement>? ) {
+    private fun outBitmapElements(bmTypeName: String, viewCoord: XyViewCoord, alElement: MutableList<XyElement>?) {
 
-        val zoomLevel = XyBitmapType.hmTypeScaleZ[ bmTypeName ]?.get( viewCoord.scale ) ?: return
-        if( zoomLevel == -1 ) return
+        val zoomLevel = XyBitmapType.hmTypeScaleZ[bmTypeName]?.get(viewCoord.scale) ?: return
+        if (zoomLevel == -1) return
 
         //--- опытным путём - 3840х2160 даёт максимум 16x9=144 заданий х 12 байт = 1728 байт
         val bbTask = AdvancedByteBuffer(2048)
@@ -313,13 +324,13 @@ abstract class sdcXyMap : sdcXyAbstract() {
         val y2 = (viewCoord.y2 / bmRealSize + 1) * bmRealSize
 
         var y = y1
-        while(y <= y2) {
+        while (y <= y2) {
             var x = x1
-            while(x <= x2) {
+            while (x <= x2) {
                 val blockX = x / XyBitmapType.BLOCK_SIZE / viewCoord.scale
                 val blockY = y / XyBitmapType.BLOCK_SIZE / viewCoord.scale
                 //--- при высоких масштабах можем залезть за край земли
-                if(blockX < 0 || blockY < 0) {
+                if (blockX < 0 || blockY < 0) {
                     x += bmRealSize
                     continue
                 }
@@ -328,26 +339,26 @@ abstract class sdcXyMap : sdcXyAbstract() {
 
                 //--- специфично для MAPNIK
                 val arrPrefixOSM = charArrayOf('a', 'b', 'c')
-                val sbServerURL = StringBuilder( "http://a.tile.openstreetmap.org" )
+                val sbServerURL = StringBuilder("http://a.tile.openstreetmap.org")
                 sbServerURL.setCharAt(7, arrPrefixOSM[getRandomInt() % 3])
                 val serverURL = "$sbServerURL/$zoomLevel/$blockX/$blockY.png"
 
                 //--- если выходной поток задан, пишем в него
                 //--- (null может быть при запуске загрузки других типов карт)
-                if(alElement != null) {
-                    val imageElement = XyElement( BITMAP, -getRandomInt(), 0 )
+                if (alElement != null) {
+                    val imageElement = XyElement(BITMAP, -getRandomInt(), 0)
                     //imageElement.init(timeZone)
                     imageElement.itReadOnly = true
-                    imageElement.alPoint.add(XyPoint(x, y))
+                    imageElement.alPoint = arrayOf(XyPoint(x, y))
                     imageElement.imageWidth = bmRealSize
                     imageElement.imageHeight = bmRealSize
                     imageElement.imageName = serverURL
 
-                    alElement.add( imageElement )
+                    alElement.add(imageElement)
                 }
 
                 //--- если этот файл уже запрашивался, пропускаем, он вероятно уже создан
-                if( chmWorkedBitmap[serverURL] != null ) {
+                if (chmWorkedBitmap[serverURL] != null) {
                     x += bmRealSize
                     continue
                 }
@@ -363,12 +374,12 @@ abstract class sdcXyMap : sdcXyAbstract() {
 
         bbTask.flip()
 
-        if(bbTask.hasRemaining())
+        if (bbTask.hasRemaining())
         //--- приоритет запишем в начале файла
-            AsyncFileSaver.put( "$BITMAP_LOADER_JOB_DIR/${if(alElement == null) '1' else '0'}_${bmTypeName}_${getRandomInt()}", bbTask )
+            AsyncFileSaver.put("$BITMAP_LOADER_JOB_DIR/${if (alElement == null) '1' else '0'}_${bmTypeName}_${getRandomInt()}", bbTask)
     }
 
-    protected fun putElement( xyElement: XyElement, isAddElement: Boolean ) {
+    protected fun putElement(xyElement: XyElement, isAddElement: Boolean) {
         //--- определим крайние координаты
         val minX = xyElement.alPoint.minBy { it.x }!!.x
         val minY = xyElement.alPoint.minBy { it.y }!!.y
@@ -377,48 +388,51 @@ abstract class sdcXyMap : sdcXyAbstract() {
 
         //--- сначала запишем в hex-поле, сколько влезет
         val maxHexPointCount = stm.dialect.binaryFieldMaxSize / POINT_SIZE_IN_BIN
-        val hexPointCount = Math.min( xyElement.alPoint.size, maxHexPointCount )
-        val bbPoint = AdvancedByteBuffer( hexPointCount * POINT_SIZE_IN_BIN )
-        for( i in 0 until hexPointCount ) {
-            val p = xyElement.alPoint[ i ]
+        val hexPointCount = Math.min(xyElement.alPoint.size, maxHexPointCount)
+        val bbPoint = AdvancedByteBuffer(hexPointCount * POINT_SIZE_IN_BIN)
+        for (i in 0 until hexPointCount) {
+            val p = xyElement.alPoint[i]
 
-            bbPoint.putInt( p.x - minX )
-            bbPoint.putInt( p.y - minY )
+            bbPoint.putInt(p.x - minX)
+            bbPoint.putInt(p.y - minY)
         }
         bbPoint.flip()
 
-        if( isAddElement ) {
+        if (isAddElement) {
             stm.executeUpdate(
                 " INSERT INTO XY_element ( id , type_name , object_id , prj_x1 , prj_y1 , prj_x2 , prj_y2 , point_data ) VALUES ( " +
-                " ${xyElement.elementID} , '${xyElement.typeName}' , ${xyElement.objectID} , $minX , $minY , $maxX , $maxY , ${stm.getHexValue( bbPoint )} ) " )
-        }
-        else {
+                    " ${xyElement.elementID} , '${xyElement.typeName}' , ${xyElement.objectID} , $minX , $minY , $maxX , $maxY , ${stm.getHexValue(bbPoint)} ) "
+            )
+        } else {
             stm.executeUpdate(
-                " UPDATE XY_element SET prj_x1 = $minX , prj_y1 = $minY , prj_x2 = $maxX , prj_y2 = $maxY , point_data = ${stm.getHexValue( bbPoint )} " +
-                " WHERE id = ${xyElement.elementID} " )
-            stm.executeUpdate( " DELETE FROM XY_point WHERE element_id = ${xyElement.elementID} " )
+                " UPDATE XY_element SET prj_x1 = $minX , prj_y1 = $minY , prj_x2 = $maxX , prj_y2 = $maxY , point_data = ${stm.getHexValue(bbPoint)} " +
+                    " WHERE id = ${xyElement.elementID} "
+            )
+            stm.executeUpdate(" DELETE FROM XY_point WHERE element_id = ${xyElement.elementID} ")
         }
         //--- запись точек, не влезших в hex-поле, если таковые есть
-        for( i in maxHexPointCount until xyElement.alPoint.size ) {
-            val p = xyElement.alPoint[ i ]
-            stm.executeUpdate( " INSERT INTO XY_point ( element_id , sort_id , prj_x , prj_y ) VALUES ( " +
-                               //--- запись относительных координат в точки позволит перемещать элемент простым смещением prjX..Y_1..2 без попутного апдейта этих точек
-                               " ${xyElement.elementID} , ${i - maxHexPointCount} , ${p.x - minX} , ${p.y - minY} ) " )
+        for (i in maxHexPointCount until xyElement.alPoint.size) {
+            val p = xyElement.alPoint[i]
+            stm.executeUpdate(
+                " INSERT INTO XY_point ( element_id , sort_id , prj_x , prj_y ) VALUES ( " +
+                    //--- запись относительных координат в точки позволит перемещать элемент простым смещением prjX..Y_1..2 без попутного апдейта этих точек
+                    " ${xyElement.elementID} , ${i - maxHexPointCount} , ${p.x - minX} , ${p.y - minY} ) "
+            )
         }
     }
 }
 
-        //        //--- удалить элементы
-        //        else if( action.equals( XyParameter.ACTION_DELETE_ELEMENT ) ) return doDeleteElement( alConn, hmParam );
-        //        //--- повернуть элемент
-        //        else if( action.equals( XyParameter.ACTION_ROTATE_ELEMENT ) ) return doRotateElement( alConn, hmParam );
-        //        //--- изменить текст элемента
-        //        else if( action.equals( XyParameter.ACTION_EDIT_ELEMENT_TEXT ) ) return doEditElementText( alConn, hmParam );
-        //        //--- копировать элемент
-        //        else if( action.equals( XyParameter.ACTION_COPY_ELEMENT ) ) return doCopyElement( alConn, hmParam );
-        //        //--- изменить тип элементов
-        //        else if( action.equals( XyParameter.ACTION_CHANGE_TYPE_ELEMENT ) ) return doChangeTypeOfElement( alConn, hmParam );
-        //        //--- добавить к родительскому объекту
-        //        else if( action.equals( XyParameter.ACTION_LINK_TO_PARENT ) ) return doLinkToParentObject( alConn, hmParam );
-        //        //--- удалить из родительского объекта
-        //        else if( action.equals( XyParameter.ACTION_UNLINK_FROM_PARENT ) ) return doUnlinkFromParentObject( alConn, hmParam );
+//        //--- удалить элементы
+//        else if( action.equals( XyParameter.ACTION_DELETE_ELEMENT ) ) return doDeleteElement( alConn, hmParam );
+//        //--- повернуть элемент
+//        else if( action.equals( XyParameter.ACTION_ROTATE_ELEMENT ) ) return doRotateElement( alConn, hmParam );
+//        //--- изменить текст элемента
+//        else if( action.equals( XyParameter.ACTION_EDIT_ELEMENT_TEXT ) ) return doEditElementText( alConn, hmParam );
+//        //--- копировать элемент
+//        else if( action.equals( XyParameter.ACTION_COPY_ELEMENT ) ) return doCopyElement( alConn, hmParam );
+//        //--- изменить тип элементов
+//        else if( action.equals( XyParameter.ACTION_CHANGE_TYPE_ELEMENT ) ) return doChangeTypeOfElement( alConn, hmParam );
+//        //--- добавить к родительскому объекту
+//        else if( action.equals( XyParameter.ACTION_LINK_TO_PARENT ) ) return doLinkToParentObject( alConn, hmParam );
+//        //--- удалить из родительского объекта
+//        else if( action.equals( XyParameter.ACTION_UNLINK_FROM_PARENT ) ) return doUnlinkFromParentObject( alConn, hmParam );

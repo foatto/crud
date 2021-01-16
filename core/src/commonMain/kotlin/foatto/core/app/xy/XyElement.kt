@@ -2,15 +2,15 @@ package foatto.core.app.xy
 
 import foatto.core.app.xy.geom.XyPoint
 
-class XyElement(   // именно data class, понадобится .copy
+class XyElement(
     val typeName: String,
     var elementID: Int,
     var objectID: Int
 ) {
 
     companion object {
-        //--- коэффициент дополнительного огрубления при генерализации:
-        //--- для топографии будем огрублять до 1 pix видимого размера/промежутка
+        //--- coefficient of additional coarsening during generalization:
+        //--- for topography we will coarse up to 1 pix of apparent size / interval
         val GEN_KOEF = 1
     }
 
@@ -23,7 +23,7 @@ class XyElement(   // именно data class, понадобится .copy
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    val alPoint = mutableListOf<XyPoint>()
+    var alPoint = arrayOf<XyPoint>()
     var itClosed = false
 
     var lineWidth = 0
@@ -31,7 +31,7 @@ class XyElement(   // именно data class, понадобится .copy
     var drawColor = 0
     var fillColor = 0
 
-    //--- позиция точки привязки относительно изображения или текста
+    //--- the position of the anchor point relative to the image or text
     var anchorX = Anchor.CC
     var anchorY = Anchor.CC
 
@@ -47,7 +47,8 @@ class XyElement(   // именно data class, понадобится .copy
 
     //--- Bitmap
     var imageName = ""
-    //--- для Bitmap: реальная/масштабируемая, для Icon: видимая/экранная ширина и высота изображения
+
+    //--- for Bitmap: real / scalable, for Icon: visible / screen width and image height
     var imageWidth = 0
     var imageHeight = 0
 
@@ -63,10 +64,11 @@ class XyElement(   // именно data class, понадобится .copy
     var itFontBold = false
     var itFontItalic = false
 
-    //--- ограничения текста
+    //--- text restrictions
     var limitWidth = 0
     var limitHeight = 0
-    //--- выравнивание текст
+
+    //--- text alignment
     var alignX = Align.LT
     var alignY = Align.LT
 
@@ -76,31 +78,34 @@ class XyElement(   // именно data class, понадобится .copy
     var arrowHeight = 0
     var arrowLineWidth = 0
 
-    val alDrawColor = mutableListOf<Int>()
-    val alFillColor = mutableListOf<Int>()
-    val alToolTip = mutableListOf<String>()
+    var alDrawColor = arrayOf<Int>()
+    var alFillColor = arrayOf<Int>()
+    var alToolTip = arrayOf<String>()
 
-//--- внутренние методы ---------------------------------------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    fun addTracePoint( aP: XyPoint, aColor: Int, aToolTip: String ) {
-        alPoint.add( aP )
+    fun addTracePoint(aP: XyPoint, aColor: Int, aToolTip: String) {
+        alPoint = alPoint.toMutableList().apply { add(aP) }.toTypedArray()
 
-        alDrawColor.add( aColor )
-        alFillColor.add( aColor )
-        alToolTip.add( aToolTip )
+        alDrawColor = alDrawColor.toMutableList().apply { add(aColor) }.toTypedArray()
+        alFillColor = alFillColor.toMutableList().apply { add(aColor) }.toTypedArray()
+        alToolTip = alToolTip.toMutableList().apply { add(aToolTip) }.toTypedArray()
     }
 
+    //--- use .toString() for Kotlin/JS implementation
     fun calcAnchorXKoef() =
-        when( anchorX ) {
-            Anchor.LT -> 0.0f
-            Anchor.CC -> 0.5f
-            Anchor.RB -> 1.0f
+        when (anchorX.toString()) {
+            Anchor.LT.toString() -> 0.0f
+            Anchor.CC.toString() -> 0.5f
+            Anchor.RB.toString() -> 1.0f
+            else -> 0.5f
         }
 
     fun calcAnchorYKoef() =
-        when( anchorY ) {
-            Anchor.LT -> 0.0f
-            Anchor.CC -> 0.5f
-            Anchor.RB -> 1.0f
+        when (anchorY.toString()) {
+            Anchor.LT.toString() -> 0.0f
+            Anchor.CC.toString() -> 0.5f
+            Anchor.RB.toString() -> 1.0f
+            else -> 0.5f
         }
 }

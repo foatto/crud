@@ -27,7 +27,7 @@ class cWorkShiftCompare : cMMSReport() {
     override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
 
         val returnURL = super.doSave(action, alFormData, hmOut)
-        if(returnURL != null) return returnURL
+        if (returnURL != null) return returnURL
 
         val m = model as mWorkShiftCompare
 
@@ -97,7 +97,7 @@ class cWorkShiftCompare : cMMSReport() {
         val reportSumObject = hmReportParam["report_sum_object"] as Boolean
 
         //--- если отчет получается слишком длинный, то включаем режим вывода только сумм
-        if(tmWorkShiftCalcResult.size > java.lang.Short.MAX_VALUE) reportSumOnly = true
+        if (tmWorkShiftCalcResult.size > java.lang.Short.MAX_VALUE) reportSumOnly = true
 
         defineFormats(8, 2, 0)
 
@@ -110,8 +110,8 @@ class cWorkShiftCompare : cMMSReport() {
         sheet.addCell(Label(4, offsY, "Используемое время:", wcfTitleName))
         sheet.addCell(
             Label(
-                5, offsY, if(reportTimeType == mWorkShiftCompare.TIME_TYPE_DOC) "Заявленное"
-                else if(reportTimeType == mWorkShiftCompare.TIME_TYPE_FACT) "Фактическое" else "Начало/окончание суток", wcfTitleValue
+                5, offsY, if (reportTimeType == mWorkShiftCompare.TIME_TYPE_DOC) "Заявленное"
+                else if (reportTimeType == mWorkShiftCompare.TIME_TYPE_FACT) "Фактическое" else "Начало/окончание суток", wcfTitleValue
             )
         )
         offsY++
@@ -192,7 +192,7 @@ class cWorkShiftCompare : cMMSReport() {
 
         offsY++    // пропустим еще строку между шапкой и первой строкой отчёта
         var countNN = 1
-        for(wscr in tmWorkShiftCalcResult.values) {
+        for (wscr in tmWorkShiftCalcResult.values) {
             val userName = getRecordUserName(wscr.objectConfig.userId)
 
             //--- неправильная строка:
@@ -200,27 +200,27 @@ class cWorkShiftCompare : cMMSReport() {
             //--- 2. или контроллер с нулевым пробегом и моточасами и расходом топлива (т.е. нерабочий контроллер).
             //--- такие строки выводим (для справки) серым цветом и в суммы не включаем.
             var isWrongRow = false
-            if(!isWrongRow) {
+            if (!isWrongRow) {
                 var isWorkShiftWork = false
-                for(descr in wscr.wsd.tmWorkHour.keys) if(wscr.wsd.tmWorkHour[descr]!! > 0) {
+                for (descr in wscr.wsd.tmWorkHour.keys) if (wscr.wsd.tmWorkHour[descr]!! > 0) {
                     isWorkShiftWork = true
                     break
                 }
                 var isWorkShiftLiquidUsing = false
-                for(descr in wscr.wsd.tmLiquidUsing.keys) if(wscr.wsd.tmLiquidUsing[descr]!! > 0) {
+                for (descr in wscr.wsd.tmLiquidUsing.keys) if (wscr.wsd.tmLiquidUsing[descr]!! > 0) {
                     isWorkShiftLiquidUsing = true
                     break
                 }
                 isWrongRow = wscr.wsd.run <= 0 && !isWorkShiftWork && !isWorkShiftLiquidUsing
             }
-            if(!isWrongRow) {
+            if (!isWrongRow) {
                 var isWorkShiftWork = false
-                for(descr in wscr.tmWorkHour.keys) if(wscr.tmWorkHour[descr]!! > 0) {
+                for (descr in wscr.tmWorkHour.keys) if (wscr.tmWorkHour[descr]!! > 0) {
                     isWorkShiftWork = true
                     break
                 }
                 var isWorkShiftLiquidUsing = false
-                for(descr in wscr.tmLiquidUsing.keys) if(wscr.tmLiquidUsing[descr]!! > 0) {
+                for (descr in wscr.tmLiquidUsing.keys) if (wscr.tmLiquidUsing[descr]!! > 0) {
                     isWorkShiftLiquidUsing = true
                     break
                 }
@@ -228,29 +228,29 @@ class cWorkShiftCompare : cMMSReport() {
             }
 
             //--- если задано выводить только строки с нарушениями, то пропускаем обычные/нормальные и wrong-строки
-            if(reportOutOverDiffOnly && (isWrongRow || Math.abs(calcPercent(wscr.wsd.run, wscr.runWK)) <= reportMaxDiff)) continue
+            if (reportOutOverDiffOnly && (isWrongRow || Math.abs(calcPercent(wscr.wsd.run, wscr.runWK)) <= reportMaxDiff)) continue
 
             var sumWorkShift: WorkShiftSumCollector? = tmWorkShiftSumCollector[userName]
-            if(sumWorkShift == null) {
+            if (sumWorkShift == null) {
                 sumWorkShift = WorkShiftSumCollector()
                 tmWorkShiftSumCollector[userName] = sumWorkShift
             }
             var sumCalc: WorkShiftSumCollector? = tmCalcSumCollector[userName]
-            if(sumCalc == null) {
+            if (sumCalc == null) {
                 sumCalc = WorkShiftSumCollector()
                 tmCalcSumCollector[userName] = sumCalc
             }
 
             //--- НЮАНС: считаем суммы ДО манипуляции со сравнением работы оборудования и расхода топлива
             //--- (т.к. в процессе сравнения они будут удалены из списка)
-            if(!isWrongRow) {
+            if (!isWrongRow) {
                 allWorkShiftSumCollector.add(null, null, wscr.wsd.run, wscr.wsd.run, wscr.wsd.tmWorkHour, wscr.wsd.tmLiquidUsing)
                 sumWorkShift.add(wscr.objectConfig.name, wscr.wsd.workerName, wscr.wsd.run, wscr.wsd.run, wscr.wsd.tmWorkHour, wscr.wsd.tmLiquidUsing)
                 allCalcSumCollector.add(null, null, wscr.runWK, wscr.runWOK, wscr.tmWorkHour, wscr.tmLiquidUsing)
                 sumCalc.add(wscr.objectConfig.name, wscr.wsd.workerName, wscr.runWK, wscr.runWOK, wscr.tmWorkHour, wscr.tmLiquidUsing)
             }
 
-            if(!reportSumOnly) {
+            if (!reportSumOnly) {
                 sheet.addCell(Label(0, offsY, (countNN++).toString(), wcfNN))
                 sheet.mergeCells(0, offsY, 0, offsY + 1)
                 sheet.addCell(Label(1, offsY, DateTime_DMYHM(zoneId, wscr.wsd.begTime), wcfCellC))
@@ -276,14 +276,14 @@ class cWorkShiftCompare : cMMSReport() {
 
         //--- вывод сумм -----------------------------------------------------------------------------------------------
 
-        if(reportSumUser) {
-            for(userName in tmWorkShiftSumCollector.keys) {
+        if (reportSumUser) {
+            for (userName in tmWorkShiftSumCollector.keys) {
                 val sumWorkShift = tmWorkShiftSumCollector[userName]!!
                 val sumCalc = tmCalcSumCollector[userName]!!
-                if(reportSumWorker) {
+                if (reportSumWorker) {
                     val tmDriverW = sumWorkShift.tmSumWorker
                     val tmDriverC = sumCalc.tmSumWorker
-                    for(workerName in tmDriverW.keys) {
+                    for (workerName in tmDriverW.keys) {
                         val sumW = tmDriverW[workerName]!!
                         val sumC = tmDriverC[workerName]!!
                         sheet.addCell(Label(6, offsY, workerName, wcfCellLBStdYellow))
@@ -296,10 +296,10 @@ class cWorkShiftCompare : cMMSReport() {
                         offsY++
                     }
                 }
-                if(reportSumObject) {
+                if (reportSumObject) {
                     val tmObjectW = sumWorkShift.tmSumObject
                     val tmObjectC = sumCalc.tmSumObject
-                    for(objectName in tmObjectW.keys) {
+                    for (objectName in tmObjectW.keys) {
                         val sumW = tmObjectW[objectName]!!
                         val sumC = tmObjectC[objectName]!!
                         sheet.addCell(Label(5, offsY, objectName, wcfCellLBStdYellow))
@@ -354,28 +354,28 @@ class cWorkShiftCompare : cMMSReport() {
 
         val isOutWOK = reportOutRunWithoutKoef && cRunWK != cRunWOK
         val isOverRun = Math.abs(percentWK) > reportMaxDiff
-        val runCellStyle1 = if(isWrongRow) wcfCellRGrayStd else if(isOverRun) wcfCellRRedStd else wcfCellR
-        val runCellStyle2 = if(isWrongRow) wcfCellRGrayStd else if(isOverRun) wcfCellRBRedStd else wcfCellR
+        val runCellStyle1 = if (isWrongRow) wcfCellRGrayStd else if (isOverRun) wcfCellRRedStd else wcfCellR
+        val runCellStyle2 = if (isWrongRow) wcfCellRGrayStd else if (isOverRun) wcfCellRBRedStd else wcfCellR
 
         sheet.addCell(Label(startX, offsY, getSplittedDouble(wRun, 1).toString(), runCellStyle1))
         sheet.addCell(
             Label(
                 startX + 1, offsY,
-                getSplittedDouble(cRunWK, 1).toString() + if(isOutWOK) "\n(" + getSplittedDouble(cRunWOK, 1).toString() + ")" else "",
+                getSplittedDouble(cRunWK, 1).toString() + if (isOutWOK) "\n(" + getSplittedDouble(cRunWOK, 1).toString() + ")" else "",
                 runCellStyle1
             )
         )
         sheet.addCell(
             Label(
                 startX + 2, offsY,
-                getSplittedDouble(wRun - cRunWK, 1).toString() + if(isOutWOK) "\n(" + getSplittedDouble(wRun - cRunWOK, 1).toString() + ")" else "",
+                getSplittedDouble(wRun - cRunWK, 1).toString() + if (isOutWOK) "\n(" + getSplittedDouble(wRun - cRunWOK, 1).toString() + ")" else "",
                 runCellStyle2
             )
         )
         sheet.addCell(
             Label(
                 startX + 3, offsY,
-                getSplittedDouble(percentWK, 1).toString() + if(isOutWOK) "\n(" + getSplittedDouble(percentWOK, 1).toString() + ")" else "",
+                getSplittedDouble(percentWK, 1).toString() + if (isOutWOK) "\n(" + getSplittedDouble(percentWOK, 1).toString() + ")" else "",
                 runCellStyle2
             )
         )
@@ -387,8 +387,8 @@ class cWorkShiftCompare : cMMSReport() {
         val sbDiffWorkPercent = StringBuilder()
         var isRed = false
         //--- проход по списку оборудования из путевки с одновременным сравнением по списку расчетного оборудования
-        for(workDescr in tmWorkHourW.keys) {
-            if(sbWorkDescr.isNotEmpty()) {
+        for (workDescr in tmWorkHourW.keys) {
+            if (sbWorkDescr.isNotEmpty()) {
                 sbWorkDescr.append('\n')
                 sbWorkShiftWork.append('\n')
                 sbCalcWork.append('\n')
@@ -400,7 +400,7 @@ class cWorkShiftCompare : cMMSReport() {
             sbWorkShiftWork.append(getSplittedDouble(wWorkHour, 1))
 
             val cWorkHour = tmWorkHourC[workDescr]
-            if(cWorkHour == null || cWorkHour < 0) {
+            if (cWorkHour == null || cWorkHour < 0) {
                 sbCalcWork.append('-')
                 sbDiffWorkValue.append('-')
                 sbDiffWorkPercent.append('-')
@@ -409,7 +409,7 @@ class cWorkShiftCompare : cMMSReport() {
                 sbCalcWork.append(getSplittedDouble(cWorkHour, 1))
                 sbDiffWorkValue.append(getSplittedDouble(wWorkHour - cWorkHour, 1))
                 sbDiffWorkPercent.append(
-                    if(cWorkHour == 0.0) "100"
+                    if (cWorkHour == 0.0) "100"
                     else getSplittedDouble((wWorkHour - cWorkHour) / cWorkHour * 100.0, 1)
                 )
                 isRed = isRed or (cWorkHour == 0.0 || Math.abs(wWorkHour - cWorkHour) / cWorkHour * 100.0 > reportMaxDiff)
@@ -417,8 +417,8 @@ class cWorkShiftCompare : cMMSReport() {
             tmWorkHourC.remove(workDescr)
         }
         //--- проход остатку списка расчетного оборудования
-        for(workDescr in tmWorkHourC.keys) {
-            if(sbWorkDescr.isNotEmpty()) {
+        for (workDescr in tmWorkHourC.keys) {
+            if (sbWorkDescr.isNotEmpty()) {
                 sbWorkDescr.append('\n')
                 sbWorkShiftWork.append('\n')
                 sbCalcWork.append('\n')
@@ -433,11 +433,11 @@ class cWorkShiftCompare : cMMSReport() {
             sbDiffWorkPercent.append('-')
             isRed = true
         }
-        sheet.addCell(Label(startX + 4, offsY, sbWorkDescr.toString(), if(isWrongRow) wcfCellCGrayStd else if(isRed) wcfCellCRedStd else wcfCellC))
-        sheet.addCell(Label(startX + 5, offsY, sbWorkShiftWork.toString(), if(isWrongRow) wcfCellRGrayStd else if(isRed) wcfCellRRedStd else wcfCellR))
-        sheet.addCell(Label(startX + 6, offsY, sbCalcWork.toString(), if(isWrongRow) wcfCellRGrayStd else if(isRed) wcfCellRRedStd else wcfCellR))
-        sheet.addCell(Label(startX + 7, offsY, sbDiffWorkValue.toString(), if(isWrongRow) wcfCellRGrayStd else if(isRed) wcfCellRRedStd else wcfCellRB))
-        sheet.addCell(Label(startX + 8, offsY, sbDiffWorkPercent.toString(), if(isWrongRow) wcfCellRGrayStd else if(isRed) wcfCellRBRedStd else wcfCellRB))
+        sheet.addCell(Label(startX + 4, offsY, sbWorkDescr.toString(), if (isWrongRow) wcfCellCGrayStd else if (isRed) wcfCellCRedStd else wcfCellC))
+        sheet.addCell(Label(startX + 5, offsY, sbWorkShiftWork.toString(), if (isWrongRow) wcfCellRGrayStd else if (isRed) wcfCellRRedStd else wcfCellR))
+        sheet.addCell(Label(startX + 6, offsY, sbCalcWork.toString(), if (isWrongRow) wcfCellRGrayStd else if (isRed) wcfCellRRedStd else wcfCellR))
+        sheet.addCell(Label(startX + 7, offsY, sbDiffWorkValue.toString(), if (isWrongRow) wcfCellRGrayStd else if (isRed) wcfCellRRedStd else wcfCellRB))
+        sheet.addCell(Label(startX + 8, offsY, sbDiffWorkPercent.toString(), if (isWrongRow) wcfCellRGrayStd else if (isRed) wcfCellRBRedStd else wcfCellRB))
 
         val sbLiquidDescr = StringBuilder()
         val sbWorkShiftLiquidUsing = StringBuilder()
@@ -446,8 +446,8 @@ class cWorkShiftCompare : cMMSReport() {
         val sbDiffLiquidUsingPercent = StringBuilder()
         isRed = false
         //--- проход по списку расхода топлива из путевки с одновременным сравнением по списку расчетного расхода топлива
-        for(liquidDescr in tmLiquidUsingW.keys) {
-            if(sbLiquidDescr.isNotEmpty()) {
+        for (liquidDescr in tmLiquidUsingW.keys) {
+            if (sbLiquidDescr.isNotEmpty()) {
                 sbLiquidDescr.append('\n')
                 sbWorkShiftLiquidUsing.append('\n')
                 sbCalcLiquidUsing.append('\n')
@@ -459,7 +459,7 @@ class cWorkShiftCompare : cMMSReport() {
             sbWorkShiftLiquidUsing.append(getSplittedDouble(wLiquidUsing, 1))
 
             val cLiquidUsing = tmLiquidUsingC[liquidDescr]
-            if(cLiquidUsing == null || cLiquidUsing < 0) {
+            if (cLiquidUsing == null || cLiquidUsing < 0) {
                 sbCalcLiquidUsing.append('-')
                 sbDiffLiquidUsingValue.append('-')
                 sbDiffLiquidUsingPercent.append('-')
@@ -468,7 +468,7 @@ class cWorkShiftCompare : cMMSReport() {
                 sbCalcLiquidUsing.append(getSplittedDouble(cLiquidUsing, 1))
                 sbDiffLiquidUsingValue.append(getSplittedDouble(wLiquidUsing - cLiquidUsing, 1))
                 sbDiffLiquidUsingPercent.append(
-                    if(cLiquidUsing == 0.0) "100"
+                    if (cLiquidUsing == 0.0) "100"
                     else getSplittedDouble((wLiquidUsing - cLiquidUsing) / cLiquidUsing * 100.0, 1)
                 )
                 isRed = isRed or (cLiquidUsing == 0.0 || Math.abs(wLiquidUsing - cLiquidUsing) / cLiquidUsing * 100.0 > reportMaxDiff)
@@ -476,8 +476,8 @@ class cWorkShiftCompare : cMMSReport() {
             tmLiquidUsingC.remove(liquidDescr)
         }
         //--- проход остатку списка расчётного оборудования
-        for(liquidDescr in tmLiquidUsingC.keys) {
-            if(sbLiquidDescr.isNotEmpty()) {
+        for (liquidDescr in tmLiquidUsingC.keys) {
+            if (sbLiquidDescr.isNotEmpty()) {
                 sbLiquidDescr.append('\n')
                 sbWorkShiftLiquidUsing.append('\n')
                 sbCalcLiquidUsing.append('\n')
@@ -492,16 +492,16 @@ class cWorkShiftCompare : cMMSReport() {
             sbDiffLiquidUsingPercent.append('-')
             isRed = true
         }
-        sheet.addCell(Label(startX + 9, offsY, sbLiquidDescr.toString(), if(isWrongRow) wcfCellCGrayStd else if(isRed) wcfCellCRedStd else wcfCellC))
-        sheet.addCell(Label(startX + 10, offsY, sbWorkShiftLiquidUsing.toString(), if(isWrongRow) wcfCellRGrayStd else if(isRed) wcfCellRRedStd else wcfCellR))
-        sheet.addCell(Label(startX + 11, offsY, sbCalcLiquidUsing.toString(), if(isWrongRow) wcfCellRGrayStd else if(isRed) wcfCellRRedStd else wcfCellR))
-        sheet.addCell(Label(startX + 12, offsY, sbDiffLiquidUsingValue.toString(), if(isWrongRow) wcfCellRGrayStd else if(isRed) wcfCellRRedStd else wcfCellRB))
-        sheet.addCell(Label(startX + 13, offsY, sbDiffLiquidUsingPercent.toString(), if(isWrongRow) wcfCellRGrayStd else if(isRed) wcfCellRBRedStd else wcfCellRB))
+        sheet.addCell(Label(startX + 9, offsY, sbLiquidDescr.toString(), if (isWrongRow) wcfCellCGrayStd else if (isRed) wcfCellCRedStd else wcfCellC))
+        sheet.addCell(Label(startX + 10, offsY, sbWorkShiftLiquidUsing.toString(), if (isWrongRow) wcfCellRGrayStd else if (isRed) wcfCellRRedStd else wcfCellR))
+        sheet.addCell(Label(startX + 11, offsY, sbCalcLiquidUsing.toString(), if (isWrongRow) wcfCellRGrayStd else if (isRed) wcfCellRRedStd else wcfCellR))
+        sheet.addCell(Label(startX + 12, offsY, sbDiffLiquidUsingValue.toString(), if (isWrongRow) wcfCellRGrayStd else if (isRed) wcfCellRRedStd else wcfCellRB))
+        sheet.addCell(Label(startX + 13, offsY, sbDiffLiquidUsingPercent.toString(), if (isWrongRow) wcfCellRGrayStd else if (isRed) wcfCellRBRedStd else wcfCellRB))
 
     }
 
     private fun calcPercent(wRun: Double, cRun: Double): Double {
-        return if(cRun == 0.0) if(wRun == 0.0) 0.0 else 100.0 else if(wRun == 0.0) -100.0 else (wRun - cRun) / wRun * 100.0
+        return if (cRun == 0.0) if (wRun == 0.0) 0.0 else 100.0 else if (wRun == 0.0) -100.0 else (wRun - cRun) / wRun * 100.0
     }
 
     private fun calcReport(): TreeMap<String, WorkShiftCalcResult> {
@@ -528,11 +528,11 @@ class cWorkShiftCompare : cMMSReport() {
         //.append( " AND in_repair = 0 " );
 
         //--- если указана рабочая смена/путевой лист, то загрузим только его
-        if(reportWorkShift != 0) sbSQL.append(" AND MMS_work_shift.id = ").append(reportWorkShift)
+        if (reportWorkShift != 0) sbSQL.append(" AND MMS_work_shift.id = ").append(reportWorkShift)
         else {
             val alObjectID = ArrayList<Int>()
             //--- если объект не указан, то загрузим полный список доступных объектов
-            if(reportObject == 0) cMMSReport.loadObjectList(stm, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
+            if (reportObject == 0) cMMSReport.loadObjectList(stm, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
             else alObjectID.add(reportObject)
 
             sbSQL.append(" AND MMS_work_shift.object_id IN ( ").append(getSBFromIterable(alObjectID, " , ")).append(" ) ")
@@ -543,10 +543,10 @@ class cWorkShiftCompare : cMMSReport() {
             //--- хотя бы частично пересекающиеся с заданным временным диапазоном
             //.append( " AND beg_dt < " ).append( endTime )
             //.append( " AND end_dt > " ).append( begTime );
-            if(reportWorker != 0) sbSQL.append(" AND MMS_work_shift.worker_id = ").append(reportWorker)
+            if (reportWorker != 0) sbSQL.append(" AND MMS_work_shift.worker_id = ").append(reportWorker)
         }
         var rs = stm.executeQuery(sbSQL.toString())
-        while(rs.next()) {
+        while (rs.next()) {
             val oID = rs.getInt(1)
             val sID = rs.getInt(2)
             val sNo = rs.getString(3)
@@ -559,7 +559,7 @@ class cWorkShiftCompare : cMMSReport() {
 
             val begDT: Int
             val endDT: Int
-            when(reportTimeType) {
+            when (reportTimeType) {
                 mWorkShiftCompare.TIME_TYPE_FACT -> {
                     begDT = begFact
                     endDT = endFact
@@ -584,9 +584,9 @@ class cWorkShiftCompare : cMMSReport() {
         rs.close()
 
         //--- "бумажная/документальная" информация по путевке
-        for(wsd in alWSD) {
+        for (wsd in alWSD) {
             rs = stm.executeQuery(" SELECT data_type, descr , data_value FROM MMS_work_shift_data WHERE shift_id = ${wsd.shiftID}")
-            while(rs.next()) {
+            while (rs.next()) {
                 when (rs.getInt(1)) {
                     SensorConfig.SENSOR_WORK -> wsd.tmWorkHour[rs.getString(2)] = rs.getDouble(3)
                     SensorConfig.SENSOR_LIQUID_USING -> wsd.tmLiquidUsing[rs.getString(2)] = rs.getDouble(3)
@@ -595,7 +595,7 @@ class cWorkShiftCompare : cMMSReport() {
             rs.close()
         }
 
-        for(wsd in alWSD) {
+        for (wsd in alWSD) {
             val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, wsd.objectID)
 
             tmResult[StringBuilder().append(wsd.begTime).append(objectConfig.name).toString()] = WorkShiftCalcResult(wsd, ObjectCalc.calcObject(stm, userConfig, objectConfig, wsd.begTime - reportAddBefore, wsd.endTime + reportAddAfter))
@@ -638,10 +638,10 @@ class cWorkShiftCompare : cMMSReport() {
             runWK = if (aObjectCalc.gcd == null) 0.0 else aObjectCalc.gcd!!.run
             runWOK = if (aObjectCalc.gcd == null) 0.0 else aObjectCalc.gcd!!.run / objectConfig.scg!!.runKoef
 
-            for ((descr, wc) in aObjectCalc.tmWorkCalc) tmWorkHour[descr] = wc.onTime.toDouble() / 60.0 / 60.0
+            for ((descr, wc) in aObjectCalc.tmWork) tmWorkHour[descr] = wc.onTime.toDouble() / 60.0 / 60.0
 
             //???
-            aObjectCalc.tmLiquidUsingTotal.forEach { (name, total) ->
+            aObjectCalc.tmLiquidUsing.forEach { (name, total) ->
                 tmLiquidUsing[name] = total
             }
         }
@@ -659,18 +659,18 @@ class cWorkShiftCompare : cMMSReport() {
 
             add(sumUser, runWK, runWOK, tmWorkHour, tmLiquidUsing)
 
-            if(objectName != null) {
+            if (objectName != null) {
                 var sumObject: WorkShiftSumData? = tmSumObject[objectName]
-                if(sumObject == null) {
+                if (sumObject == null) {
                     sumObject = WorkShiftSumData()
                     tmSumObject[objectName] = sumObject
                 }
                 add(sumObject, runWK, runWOK, tmWorkHour, tmLiquidUsing)
             }
 
-            if(workerName != null) {
+            if (workerName != null) {
                 var sumWorker: WorkShiftSumData? = tmSumWorker[workerName]
-                if(sumWorker == null) {
+                if (sumWorker == null) {
                     sumWorker = WorkShiftSumData()
                     tmSumWorker[workerName] = sumWorker
                 }
@@ -683,12 +683,12 @@ class cWorkShiftCompare : cMMSReport() {
             aWorkShiftSumData.runWK += runWK
             aWorkShiftSumData.runWOK += runWOK
 
-            for((workDescr, wh) in tmWorkHour) {
+            for ((workDescr, wh) in tmWorkHour) {
                 val workHour = aWorkShiftSumData.tmWorkHour[workDescr]
                 aWorkShiftSumData.tmWorkHour[workDescr] = (workHour ?: 0.0) + wh
             }
 
-            for((liquidName, lu) in tmLiquidUsing) {
+            for ((liquidName, lu) in tmLiquidUsing) {
                 val liquidUsing = aWorkShiftSumData.tmLiquidUsing[liquidName]
                 aWorkShiftSumData.tmLiquidUsing[liquidName] = (liquidUsing ?: 0.0) + lu
             }

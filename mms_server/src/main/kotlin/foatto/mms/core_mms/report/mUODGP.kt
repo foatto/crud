@@ -8,7 +8,7 @@ import foatto.mms.core_mms.MMSFunction
 import foatto.mms.core_mms.UODGSelector
 import foatto.sql.CoreAdvancedStatement
 
-class mUODGP : mP() {
+open class mUODGP : mP() {
 
     lateinit var uodg: UODGSelector
         private set
@@ -38,6 +38,10 @@ class mUODGP : mP() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
+        defineOptionsColumns(userConfig)
+
+        //----------------------------------------------------------------------------------------------------------------------
+
         alFormHiddenColumn.add(columnID!!)
 
         //----------------------------------------------------------------------------------------------------------------------
@@ -47,5 +51,10 @@ class mUODGP : mP() {
 
         addReportPeriodFormColumns()
 
+        addOptionsColumns(userConfig)
     }
+
+    open fun defineOptionsColumns(userConfig: UserConfig) {}
+
+    open fun addOptionsColumns(userConfig: UserConfig) {}
 }

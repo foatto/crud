@@ -19,7 +19,7 @@ import kotlin.math.abs
 
 class sdcSpeed : sdcAbstractGraphic() {
 
-    override fun doGetElements( graphicActionRequest: GraphicActionRequest ): GraphicActionResponse {
+    override fun doGetElements(graphicActionRequest: GraphicActionRequest): GraphicActionResponse {
         //long begTime = System.currentTimeMillis();
 
         //--- придёт null, ибо нет необходимости
@@ -28,7 +28,7 @@ class sdcSpeed : sdcAbstractGraphic() {
         //AnalogGraphicHandler agh = ( AnalogGraphicHandler ) mmsgdc.graphicHandler;
 
         val graphicStartDataID = graphicActionRequest.startParamID
-        val sd = chmSession[ AppParameter.GRAPHIC_START_DATA + graphicStartDataID ] as GraphicStartData
+        val sd = chmSession[AppParameter.GRAPHIC_START_DATA + graphicStartDataID] as GraphicStartData
 
         val x1 = graphicActionRequest.graphicCoords!!.first
         val x2 = graphicActionRequest.graphicCoords!!.second
@@ -37,7 +37,7 @@ class sdcSpeed : sdcAbstractGraphic() {
 
         val maxEnabledOverSpeed = (application as iMMSApplication).maxEnabledOverSpeed
 
-        val smText = userConfig.getUserProperty( UP_GRAPHIC_SHOW_TEXT )
+        val smText = userConfig.getUserProperty(UP_GRAPHIC_SHOW_TEXT)
 
         //--- показ текстов по умолчанию ВЫКЛЮЧЕН, если не указано явно иное -
         //--- т.к. кол-во зон может оказаться слишком большим и загромоздить экран
@@ -63,9 +63,9 @@ class sdcSpeed : sdcAbstractGraphic() {
             tmElementVisibleConfig[oc.scg!!.descr] = graphicVisibilityKey
 
             //--- а сейчас уже можно и нужно проверять на видимость графика
-            val strGraphicVisible = userConfig.getUserProperty( graphicVisibilityKey )
-            val isGraphicVisible = strGraphicVisible == null || java.lang.Boolean.parseBoolean( strGraphicVisible )
-            if( isGraphicVisible ) {
+            val strGraphicVisible = userConfig.getUserProperty(graphicVisibilityKey)
+            val isGraphicVisible = strGraphicVisible == null || java.lang.Boolean.parseBoolean(strGraphicVisible)
+            if (isGraphicVisible) {
                 val hmZoneLimit = ZoneLimitData.getZoneLimit(
                     stm = stm,
                     userConfig = userConfig,
@@ -83,69 +83,94 @@ class sdcSpeed : sdcAbstractGraphic() {
                 //--- Типовой размер массива = кол-во точек по горизонтали = 3840 ( максимальная ширина экрана ), пусть будет 4000
                 //--- Если включён показ линий и выключено сглаживание, то точки можно не показывать,
                 //--- их всё равно не будет видно за покрывающей их линией
-                val aMaxLimit = GraphicDataContainer( GraphicDataContainer.ElementType.LINE, 0, 1 )
-                val aLine = GraphicDataContainer( GraphicDataContainer.ElementType.LINE, 0, 3 )
+                val aMaxLimit = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1)
+                val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 3)
                 //--- показывать график пробега только чистому админу -
                 //--- в отладочных целях для быстрого поиска точек с неправильными пробегами
-                val aDistance = if( userConfig.isAdmin && userConfig.roleCount == 1 ) GraphicDataContainer( GraphicDataContainer.ElementType.LINE, 1, 1 )
+                val aDistance = if (userConfig.isAdmin && userConfig.roleCount == 1) GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 1, 1)
                 else null
-                val aZone = if( isShowText ) GraphicDataContainer( GraphicDataContainer.ElementType.TEXT, 0 ) else null
+                val aZone = if (isShowText) GraphicDataContainer(GraphicDataContainer.ElementType.TEXT, 0) else null
 
-                getSmoothSpeedGraphicData( alRawTime, alRawData, oc, x1, x2, if( viewWidth == 0 ) 0 else ( x2 - x1 ) / viewWidth,
-                                           if( viewHeight == 0 ) 0.0 else 200.0 / viewHeight, maxEnabledOverSpeed, alZoneSpeedLimit, hmZoneData, aMaxLimit, aLine, aDistance, aZone )
+                getSmoothSpeedGraphicData(
+                    alRawTime, alRawData, oc, x1, x2, if (viewWidth == 0) 0 else (x2 - x1) / viewWidth,
+                    if (viewHeight == 0) 0.0 else 200.0 / viewHeight, maxEnabledOverSpeed, alZoneSpeedLimit, hmZoneData, aMaxLimit, aLine, aDistance, aZone
+                )
 
                 val alAxisYData = mutableListOf<AxisYData>()
-                alAxisYData.add( AxisYData( "${SensorConfig.hmSensorDescr[ SensorConfig.SENSOR_GEO ]}, [ км/ч ]", 0.0, 200.0, GraphicColorIndex.AXIS_0 ) )
+                alAxisYData.add(AxisYData("${SensorConfig.hmSensorDescr[SensorConfig.SENSOR_GEO]}, [ км/ч ]", 0.0, 200.0, GraphicColorIndex.AXIS_0))
                 //--- динамическая верхняя граница
-                if( aDistance != null ) {
+                if (aDistance != null) {
                     var maxDistance = 0.0
-                    for( gld in aDistance.alGLD ) maxDistance = Math.max( maxDistance, gld.y )
-                    alAxisYData.add( AxisYData( "Пробег в точке, [ м ]", 0.0, maxDistance, GraphicColorIndex.AXIS_1 ) )
+                    for (gld in aDistance.alGLD) maxDistance = Math.max(maxDistance, gld.y)
+                    alAxisYData.add(AxisYData("Пробег в точке, [ м ]", 0.0, maxDistance, GraphicColorIndex.AXIS_1))
                 }
 
                 val ge = GraphicElement(
                     graphicTitle = oc.scg!!.descr,
-                    alIndexColor = hmIndexColor.toList(),
+                    alIndexColor = hmIndexColor.toList().toTypedArray(),
                     graphicHeight = -1.0,
-                    alAxisYData = alAxisYData,
-                    alGDC = listOfNotNull(aZone, aDistance, aMaxLimit, aLine).filter { it.itNotEmpty() }
+                    alAxisYData = alAxisYData.toTypedArray(),
+                    alGDC = listOfNotNull(aZone, aDistance, aMaxLimit, aLine).filter { it.itNotEmpty() }.toTypedArray()
                 )
 
-                tmElement[ ge.graphicTitle ] = ge
+                tmElement[ge.graphicTitle] = ge
             }
         }
         //AdvancedLogger.debug(  "Graphic time [ ms ] = " + (  System.currentTimeMillis() - begTime  )  );
         //AdvancedLogger.debug(  "------------------------------------------------------------"  );
 
         return GraphicActionResponse(
-            alElement = tmElement.toList(),
-            alVisibleElement = tmElementVisibleConfig.toList()
+            alElement = tmElement.toList().toTypedArray(),
+            alVisibleElement = tmElementVisibleConfig.toList().toTypedArray()
         )
 
     }
 
     //--- сглаживание графика аналоговой величины
-    private fun getSmoothSpeedGraphicData( alRawTime: List<Int>, alRawData: List<AdvancedByteBuffer>, oc: ObjectConfig, begTime: Int, endTime: Int,
-                                           xScale: Int, yScale: Double, maxEnabledOverSpeed: Int, alZoneSpeedLimit: List<ZoneLimitData>?, hmZoneData: Map<Int, ZoneData>,
-                                           aMaxLimit: GraphicDataContainer, aSpeed: GraphicDataContainer, aDistance: GraphicDataContainer?,
-                                           aZone: GraphicDataContainer? ) {
+    private fun getSmoothSpeedGraphicData(
+        alRawTime: List<Int>,
+        alRawData: List<AdvancedByteBuffer>,
+        oc: ObjectConfig,
+        begTime: Int,
+        endTime: Int,
+        xScale: Int,
+        yScale: Double,
+        maxEnabledOverSpeed: Int,
+        alZoneSpeedLimit: List<ZoneLimitData>?,
+        hmZoneData: Map<Int, ZoneData>,
+        aMaxLimit: GraphicDataContainer,
+        aSpeed: GraphicDataContainer,
+        aDistance: GraphicDataContainer?,
+        aZone: GraphicDataContainer?
+    ) {
 
         val hmCurZone = mutableMapOf<String, Int>()
         val hsZoneForDelete = mutableSetOf<String>()
 
         var rawTime = 0
-        for( pos in alRawTime.indices ) {
-            rawTime = alRawTime[ pos ]
-            //--- сразу пропускаем запредельные точки, загруженные для бесшовного сглаживания между соседними диапазонами
-            if( rawTime < begTime ) continue
-            if( rawTime > endTime ) break
 
-            val gd = AbstractObjectStateCalc.getGeoData( oc, alRawData[ pos ] ) ?: continue
+        val aMaxLimitGLD = aMaxLimit.alGLD.toMutableList()
+        val aSpeedGLD = aSpeed.alGLD.toMutableList()
+        val aDistanceGLD = aDistance?.run {
+            alGLD.toMutableList()
+        } ?: mutableListOf()
+
+        val alZoneGTD = aZone?.run {
+            alGTD.toMutableList()
+        } ?: mutableListOf()
+
+        for (pos in alRawTime.indices) {
+            rawTime = alRawTime[pos]
+            //--- сразу пропускаем запредельные точки, загруженные для бесшовного сглаживания между соседними диапазонами
+            if (rawTime < begTime) continue
+            if (rawTime > endTime) break
+
+            val gd = AbstractObjectStateCalc.getGeoData(oc.scg!!, alRawData[pos]) ?: continue
             //--- самих геоданных может и не оказаться
 
-            val pixPoint = XyProjection.wgs_pix( gd.wgs )
+            val pixPoint = XyProjection.wgs_pix(gd.wgs)
 
-            val gldLast = if( aSpeed.alGLD.isEmpty() ) null else aSpeed.alGLD[ aSpeed.alGLD.size - 1 ]
+            val gldLast = if (aSpeed.alGLD.isEmpty()) null else aSpeed.alGLD[aSpeed.alGLD.size - 1]
 
             val overSpeed = ObjectCalc.calcOverSpeed(oc.scg!!.maxSpeedLimit, alZoneSpeedLimit, pixPoint, gd.speed)
             val curColorIndex = if (overSpeed > maxEnabledOverSpeed) GraphicColorIndex.LINE_ABOVE_0
@@ -155,47 +180,75 @@ class sdcSpeed : sdcAbstractGraphic() {
             //byte newColorIndex = gldLast == null || gldLast.colorIndex == GraphicColorIndex.LINE_NORMAL_0
             //                    ? GraphicColorIndex.LINE_NORMAL_0 : curColorIndex;
 
-            if( gldLast == null || rawTime - gldLast.x > xScale || abs( gd.speed - gldLast.y ) > yScale || curColorIndex != gldLast.colorIndex ) {
+            if (gldLast == null || rawTime - gldLast.x > xScale || abs(gd.speed - gldLast.y) > yScale || curColorIndex != gldLast.colorIndex) {
 
-                aMaxLimit.alGLD.add( GraphicLineData( rawTime, ( gd.speed - overSpeed ).toDouble(), GraphicColorIndex.LINE_LIMIT) )
-                aSpeed.alGLD.add( GraphicLineData( rawTime, gd.speed.toDouble(), curColorIndex ) )
+                aMaxLimitGLD.add(GraphicLineData(rawTime, (gd.speed - overSpeed).toDouble(), GraphicColorIndex.LINE_LIMIT))
+                aSpeedGLD.add(GraphicLineData(rawTime, gd.speed.toDouble(), curColorIndex))
             }
 
             //--- отдельно пишем "график" пробега для вылавливания глючных пробегов:
             //--- - точки с нулевым пробегом пропускаем
             //--- - "лишние" с точки зрения x/y-масштабирования точки не пропускаем
-            if( aDistance != null && gd.distance > 0 ) aDistance.alGLD.add( GraphicLineData( rawTime, gd.distance.toDouble(), GraphicColorIndex.LINE_NORMAL_1 ) )
+            if (aDistance != null && gd.distance > 0) {
+                aDistanceGLD.add(GraphicLineData(rawTime, gd.distance.toDouble(), GraphicColorIndex.LINE_NORMAL_1))
+            }
 
-            if( aZone != null ) {
+            aZone?.let {
                 //--- пишем список зон ---
                 //--- составление списка зон для данной точки ( работаем с name, а не ID, для удобства последующей группировки/сортировки )
                 val hsZoneName = mutableSetOf<String>()
-                for( zd in hmZoneData.values ) {
-                    if( zd.polygon!!.isContains( pixPoint ) ) hsZoneName.add( zd.name )
+                for (zd in hmZoneData.values) {
+                    if (zd.polygon!!.isContains(pixPoint)) hsZoneName.add(zd.name)
                 }
                 //--- по каждой обрабатываемой сейчас зоне
                 hsZoneForDelete.clear()
-                for( zoneName in hmCurZone.keys ) {
+                for (zoneName in hmCurZone.keys) {
                     //--- мы всё ещё находимся в этой зоне - убрать обработанную зону из списка
-                    if( !hsZoneName.remove( zoneName ) ) {
+                    if (!hsZoneName.remove(zoneName)) {
                         //--- этой зоны уже нет в списка - мы вышли из  неё
-                        aZone.alGTD.add( GraphicTextData( hmCurZone[ zoneName ]!!, rawTime / 1000,
-                            GraphicColorIndex.FILL_NEUTRAL, GraphicColorIndex.BORDER_NEUTRAL, GraphicColorIndex.TEXT_NEUTRAL, zoneName, zoneName ) )
+                        alZoneGTD += GraphicTextData(
+                            textX1 = hmCurZone[zoneName]!!,
+                            textX2 = rawTime / 1000,
+                            fillColorIndex = GraphicColorIndex.FILL_NEUTRAL,
+                            borderColorIndex = GraphicColorIndex.BORDER_NEUTRAL,
+                            textColorIndex = GraphicColorIndex.TEXT_NEUTRAL,
+                            text = zoneName,
+                            toolTip = zoneName
+                        )
                         //--- нельзя удалить элемент из итерируемого списка, приходится сохранять список удалемых зон отдельно
-                        hsZoneForDelete.add( zoneName )
+                        hsZoneForDelete.add(zoneName)
                     }
                 }
                 //--- удаляем обработанные зоны
-                for( zoneName in hsZoneForDelete ) hmCurZone.remove( zoneName )
+                for (zoneName in hsZoneForDelete) {
+                    hmCurZone.remove(zoneName)
+                }
                 //--- обработка оставшихся в списке новых зон
-                for( zoneName in hsZoneName ) hmCurZone[ zoneName ] = rawTime
+                for (zoneName in hsZoneName) {
+                    hmCurZone[zoneName] = rawTime
+                }
             }
         }
-        if( aZone != null )
         //--- в конце периода закроем/сохранием незакрытые зоны
-            for( zoneName in hmCurZone.keys )
-                aZone.alGTD.add( GraphicTextData(
-                    hmCurZone[ zoneName ]!!, rawTime,
-                    GraphicColorIndex.FILL_NEUTRAL, GraphicColorIndex.BORDER_NEUTRAL, GraphicColorIndex.TEXT_NEUTRAL, zoneName, zoneName ) )
+        aZone?.let {
+            for (zoneName in hmCurZone.keys) {
+                alZoneGTD += GraphicTextData(
+                    textX1 = hmCurZone[zoneName]!!,
+                    textX2 = rawTime,
+                    fillColorIndex = GraphicColorIndex.FILL_NEUTRAL,
+                    borderColorIndex = GraphicColorIndex.BORDER_NEUTRAL,
+                    textColorIndex = GraphicColorIndex.TEXT_NEUTRAL,
+                    text = zoneName,
+                    toolTip = zoneName
+                )
+            }
+            aZone.alGTD = alZoneGTD.toTypedArray()
+        }
+
+        aMaxLimit.alGLD = aMaxLimitGLD.toTypedArray()
+        aSpeed.alGLD = aSpeedGLD.toTypedArray()
+        aDistance?.apply {
+            alGLD = aDistanceGLD.toTypedArray()
+        }
     }
 }

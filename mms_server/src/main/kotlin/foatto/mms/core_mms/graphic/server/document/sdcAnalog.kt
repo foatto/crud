@@ -24,6 +24,7 @@ import foatto.mms.core_mms.graphic.server.graphic_handler.AnalogGraphicHandler
 import foatto.mms.core_mms.graphic.server.graphic_handler.iGraphicHandler
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigAnalogue
+import foatto.mms.core_mms.sensor.config.SensorConfigGeo
 import foatto.mms.core_mms.sensor.config.SensorConfigWork
 import foatto.mms.iMMSApplication
 import java.util.*
@@ -71,14 +72,14 @@ open class sdcAnalog : sdcAbstractGraphic() {
         //--- загрузка заголовочной информации по объекту
         var sObjectInfo = oc.name
 
-        if(oc.model.isNotEmpty()) sObjectInfo += ", " + oc.model
-        if(oc.groupName.isNotEmpty()) sObjectInfo += ", " + oc.groupName
-        if(oc.departmentName.isNotEmpty()) sObjectInfo += ", " + oc.departmentName
+        if (oc.model.isNotEmpty()) sObjectInfo += ", " + oc.model
+        if (oc.groupName.isNotEmpty()) sObjectInfo += ", " + oc.groupName
+        if (oc.departmentName.isNotEmpty()) sObjectInfo += ", " + oc.departmentName
 
         val hmSensorConfig = oc.hmSensorConfig[sensorType]
         val tmElement = TreeMap<String, GraphicElement>()
         val tmElementVisibleConfig = TreeMap<String, String>()
-        if(hmSensorConfig != null) {
+        if (hmSensorConfig != null) {
             //--- единоразово загрузим данные по объекту
             val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(stm, oc, x1, x2)
             //--- данные по гео-датчику ( движение/стоянка/ошибка ) показываем только на первом/верхнем графике
@@ -86,7 +87,7 @@ open class sdcAnalog : sdcAbstractGraphic() {
             //--- общие нештатные ситуации показываем только на первом/верхнем графике
             var isCommonTroubleShowed = false
 
-            for(portNum in hmSensorConfig.keys) {
+            for (portNum in hmSensorConfig.keys) {
                 val sca = hmSensorConfig[portNum] as SensorConfigAnalogue
 
                 //--- заранее заполняем список опеределений видимости графиков
@@ -97,40 +98,54 @@ open class sdcAnalog : sdcAbstractGraphic() {
                 val strGraphicVisible = userConfig.getUserProperty(graphicVisibilityKey)
                 val isGraphicVisible = strGraphicVisible?.toBoolean() ?: true
 
-                if(!isGraphicVisible) continue
+                if (!isGraphicVisible) continue
 
                 val alAxisYData = mutableListOf<AxisYData>()
 
                 //--- Максимальный размер массива = кол-во точек по горизонтали = 3840 ( максимальная ширина 4K-экрана ), окгруляем до 4000
-                val aMinLimit = if(agh.isStaticMinLimit(sca)) GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1)
-                else if(agh.isDynamicMinLimit(sca)) GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1) else null
+                val aMinLimit = if (agh.isStaticMinLimit(sca)) GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1)
+                else if (agh.isDynamicMinLimit(sca)) GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1) else null
 
-                val aMaxLimit = if(agh.isStaticMaxLimit(sca)) GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1)
-                else if(agh.isDynamicMaxLimit(sca)) GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1) else null
+                val aMaxLimit = if (agh.isStaticMaxLimit(sca)) GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1)
+                else if (agh.isDynamicMaxLimit(sca)) GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1) else null
 
                 //--- Если включён показ линий и выключено сглаживание, то точки можно не показывать,
                 //--- их всё равно не будет видно за покрывающей их линией
-                val aPoint = if(isShowPoint && (!isShowLine || sca.smoothTime > 0)) GraphicDataContainer(GraphicDataContainer.ElementType.POINT, 0) else null
-                val aLine = if(isShowLine) GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 3) else null
-                val aText = if(isShowText) GraphicDataContainer(GraphicDataContainer.ElementType.TEXT, 0) else null
+                val aPoint = if (isShowPoint && (!isShowLine || sca.smoothTime > 0)) GraphicDataContainer(GraphicDataContainer.ElementType.POINT, 0) else null
+                val aLine = if (isShowLine) GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 3) else null
+                val aText = if (isShowText) GraphicDataContainer(GraphicDataContainer.ElementType.TEXT, 0) else null
 
                 //--- данные по гео-датчику показываем до работы оборудования
-                if(!isGeoSensorShowed) {
-                    calcGeoSensor(alRawTime, alRawData, oc, x1, x2, aText)
+                if (!isGeoSensorShowed && aText != null && oc.scg != null && oc.scg!!.isUseSpeed) {
+                    calcGeoSensor(alRawTime, alRawData, oc.scg!!, x1, x2, aText)
                     isGeoSensorShowed = true
                 }
 
                 calcGraphic(
-                    agh, alRawTime, alRawData, oc, sca, x1, x2,
-                    if(viewWidth == 0) 0 else (x2 - x1) / (viewWidth / DOT_PER_MM),
-                    if(viewHeight == 0) 0.0 else (sca.maxView - sca.minView) / (viewHeight / DOT_PER_MM),
-                    isShowPoint, isShowLine, isShowText, alAxisYData, aMinLimit, aMaxLimit, aPoint, aLine, aText
+                    graphicHandler = agh,
+                    alRawTime = alRawTime,
+                    alRawData = alRawData,
+                    oc = oc,
+                    sca = sca,
+                    begTime = x1,
+                    endTime = x2,
+                    xScale = if (viewWidth == 0) 0 else (x2 - x1) / (viewWidth / DOT_PER_MM),
+                    yScale = if (viewHeight == 0) 0.0 else (sca.maxView - sca.minView) / (viewHeight / DOT_PER_MM),
+                    isShowPoint = isShowPoint,
+                    isShowLine = isShowLine,
+                    isShowText = isShowText,
+                    alAxisYData = alAxisYData,
+                    aMinLimit = aMinLimit,
+                    aMaxLimit = aMaxLimit,
+                    aPoint = aPoint,
+                    aLine = aLine,
+                    aText = aText
                 )
 
                 //--- общие нештатные ситуации показываем после работы оборудования,
                 //--- отображаемого в виде сплошной полосы различного цвета и
                 //--- после специфических ( как правило - более критических ) ошибок конкретных датчиков
-                if(!isCommonTroubleShowed) {
+                if (!isCommonTroubleShowed && aText != null) {
                     checkCommonTrouble(alRawTime, alRawData, oc, x1, x2, aText)
                     isCommonTroubleShowed = true
                 }
@@ -141,10 +156,10 @@ open class sdcAnalog : sdcAbstractGraphic() {
 
                 val ge = GraphicElement(
                     graphicTitle = sca.descr,
-                    alIndexColor = hmIndexColor.toList(),
+                    alIndexColor = hmIndexColor.toList().toTypedArray(),
                     graphicHeight = -1.0,
-                    alAxisYData = alAxisYData,
-                    alGDC = alGDC.filterNotNull().filter { /*it != null &&*/ it.itNotEmpty() }
+                    alAxisYData = alAxisYData.toTypedArray(),
+                    alGDC = alGDC.filterNotNull().filter { /*it != null &&*/ it.itNotEmpty() }.toTypedArray()
                 )
 
                 tmElement[ge.graphicTitle] = ge
@@ -160,65 +175,59 @@ open class sdcAnalog : sdcAbstractGraphic() {
         //AdvancedLogger.debug(  "------------------------------------------------------------"  );
 
         return GraphicActionResponse(
-            alElement = tmElement.toList(),
-            alVisibleElement = tmElementVisibleConfig.toList()
+            alElement = tmElement.toList().toTypedArray(),
+            alVisibleElement = tmElementVisibleConfig.toList().toTypedArray()
         )
     }
 
     //--- упрощённый вывод данных по гео-датчику ( движение/стоянка/нет данных АКА ошибка )
     //--- ( без учёта минимального времени стоянки )
-    protected fun calcGeoSensor(alRawTime: List<Int>, alRawData: List<AdvancedByteBuffer>, oc: ObjectConfig, begTime: Int, endTime: Int, aText: GraphicDataContainer?) {
-        if(aText == null) return
-
-        //--- если гео-датчика нет или в нём отключено использование понятия "скорости"
-        if(oc.scg == null || !oc.scg!!.isUseSpeed) return
-
+    private fun calcGeoSensor(alRawTime: List<Int>, alRawData: List<AdvancedByteBuffer>, scg: SensorConfigGeo, begTime: Int, endTime: Int, aText: GraphicDataContainer) {
         var lastStatus = -2 // -1 = нет гео-данных, 0 = стоянка, 1 - движение
         var lastTime = 0
-        for(pos in alRawTime.indices) {
+        val alGTD = aText.alGTD.toMutableList()
+        for (pos in alRawTime.indices) {
             val rawTime = alRawTime[pos]
             //--- данные до запрашиваемого диапазона ( расширенные для сглаживания )
             //--- в данном случае не интересны и их можно пропустить
-            if(rawTime < begTime) continue
+            if (rawTime < begTime) continue
             //--- данные после запрашиваемого диапазона ( расширенные для сглаживания )
             //--- в данном случае не интересны и можно прекращать обработку
-            if(rawTime > endTime) break
+            if (rawTime > endTime) break
 
-            val gd = AbstractObjectStateCalc.getGeoData(oc, alRawData[pos])
+            val gd = AbstractObjectStateCalc.getGeoData(scg, alRawData[pos])
             //--- самих геоданных может и не оказаться ( нет датчика или нет или ошибка GPS-данных )
-            if(gd == null) {
+            if (gd == null) {
                 //--- если до этого было другое состояние ( движение или стоянка )
-                if(lastStatus != -1) {
+                if (lastStatus != -1) {
                     //--- если это не первое состояние
-                    if(lastTime != 0) {
-                        aText.alGTD.add(
-                            GraphicTextData(
-                                lastTime, rawTime,
-                                if(lastStatus == 0) GraphicColorIndex.FILL_WARNING else GraphicColorIndex.FILL_NORMAL,
-                                if(lastStatus == 0) GraphicColorIndex.BORDER_WARNING else GraphicColorIndex.BORDER_NORMAL,
-                                if(lastStatus == 0) GraphicColorIndex.TEXT_WARNING else GraphicColorIndex.TEXT_NORMAL,
-                                if(lastStatus == 0) "Стоянка" else "Движение",
-                                if(lastStatus == 0) "Стоянка" else "Движение"
-                            )
+                    if (lastTime != 0) {
+                        alGTD += GraphicTextData(
+                            textX1 = lastTime,
+                            textX2 = rawTime,
+                            fillColorIndex = if (lastStatus == 0) GraphicColorIndex.FILL_WARNING else GraphicColorIndex.FILL_NORMAL,
+                            borderColorIndex = if (lastStatus == 0) GraphicColorIndex.BORDER_WARNING else GraphicColorIndex.BORDER_NORMAL,
+                            textColorIndex = if (lastStatus == 0) GraphicColorIndex.TEXT_WARNING else GraphicColorIndex.TEXT_NORMAL,
+                            text = if (lastStatus == 0) "Стоянка" else "Движение",
+                            toolTip = if (lastStatus == 0) "Стоянка" else "Движение"
                         )
                     }
                     lastStatus = -1
                     lastTime = rawTime
                 }
-            } else if(gd.speed <= AbstractObjectStateCalc.MAX_SPEED_AS_PARKING) {
+            } else if (gd.speed <= AbstractObjectStateCalc.MAX_SPEED_AS_PARKING) {
                 //--- если до этого было другое состояние ( движение или ошибка )
-                if(lastStatus != 0) {
+                if (lastStatus != 0) {
                     //--- если это не первое состояние
-                    if(lastTime != 0) {
-                        aText.alGTD.add(
-                            GraphicTextData(
-                                lastTime, rawTime,
-                                if(lastStatus == -1) GraphicColorIndex.FILL_CRITICAL else GraphicColorIndex.FILL_NORMAL,
-                                if(lastStatus == -1) GraphicColorIndex.BORDER_CRITICAL else GraphicColorIndex.BORDER_NORMAL,
-                                if(lastStatus == -1) GraphicColorIndex.TEXT_CRITICAL else GraphicColorIndex.TEXT_NORMAL,
-                                if(lastStatus == -1) "Нет данных от гео-датчика" else "Движение",
-                                if(lastStatus == -1) "Нет данных от гео-датчика" else "Движение"
-                            )
+                    if (lastTime != 0) {
+                        alGTD += GraphicTextData(
+                            textX1 = lastTime,
+                            textX2 = rawTime,
+                            fillColorIndex = if (lastStatus == -1) GraphicColorIndex.FILL_CRITICAL else GraphicColorIndex.FILL_NORMAL,
+                            borderColorIndex = if (lastStatus == -1) GraphicColorIndex.BORDER_CRITICAL else GraphicColorIndex.BORDER_NORMAL,
+                            textColorIndex = if (lastStatus == -1) GraphicColorIndex.TEXT_CRITICAL else GraphicColorIndex.TEXT_NORMAL,
+                            text = if (lastStatus == -1) "Нет данных от гео-датчика" else "Движение",
+                            toolTip = if (lastStatus == -1) "Нет данных от гео-датчика" else "Движение"
                         )
                     }
                     lastStatus = 0
@@ -226,18 +235,17 @@ open class sdcAnalog : sdcAbstractGraphic() {
                 }
             } else {
                 //--- если до этого было другое состояние ( стоянка или ошибка )
-                if(lastStatus != 1) {
+                if (lastStatus != 1) {
                     //--- если это не первое состояние
-                    if(lastTime != 0) {
-                        aText.alGTD.add(
-                            GraphicTextData(
-                                lastTime, rawTime,
-                                if(lastStatus == -1) GraphicColorIndex.FILL_CRITICAL else GraphicColorIndex.FILL_WARNING,
-                                if(lastStatus == -1) GraphicColorIndex.BORDER_CRITICAL else GraphicColorIndex.BORDER_WARNING,
-                                if(lastStatus == -1) GraphicColorIndex.TEXT_CRITICAL else GraphicColorIndex.TEXT_WARNING,
-                                if(lastStatus == -1) "Нет данных от гео-датчика" else "Стоянка",
-                                if(lastStatus == -1) "Нет данных от гео-датчика" else "Стоянка"
-                            )
+                    if (lastTime != 0) {
+                        alGTD += GraphicTextData(
+                            textX1 = lastTime,
+                            textX2 = rawTime,
+                            fillColorIndex = if (lastStatus == -1) GraphicColorIndex.FILL_CRITICAL else GraphicColorIndex.FILL_WARNING,
+                            borderColorIndex = if (lastStatus == -1) GraphicColorIndex.BORDER_CRITICAL else GraphicColorIndex.BORDER_WARNING,
+                            textColorIndex = if (lastStatus == -1) GraphicColorIndex.TEXT_CRITICAL else GraphicColorIndex.TEXT_WARNING,
+                            text = if (lastStatus == -1) "Нет данных от гео-датчика" else "Стоянка",
+                            toolTip = if (lastStatus == -1) "Нет данных от гео-датчика" else "Стоянка"
                         )
                     }
                     lastStatus = 1
@@ -247,110 +255,154 @@ open class sdcAnalog : sdcAbstractGraphic() {
             //--- стоянка
         }
         //--- если это не первое состояние
-        if(lastTime != 0) {
-            aText.alGTD.add(
-                GraphicTextData(
-                    lastTime, min(getCurrentTimeInt(), endTime),
-                    if(lastStatus == -1) GraphicColorIndex.FILL_CRITICAL else if(lastStatus == 0) GraphicColorIndex.FILL_WARNING else GraphicColorIndex.FILL_NORMAL,
-                    if(lastStatus == -1) GraphicColorIndex.BORDER_CRITICAL else if(lastStatus == 0) GraphicColorIndex.BORDER_WARNING else GraphicColorIndex.BORDER_NORMAL,
-                    if(lastStatus == -1) GraphicColorIndex.TEXT_CRITICAL else if(lastStatus == 0) GraphicColorIndex.TEXT_WARNING else GraphicColorIndex.TEXT_NORMAL,
-                    if(lastStatus == -1) "Нет данных от гео-датчика" else if(lastStatus == 0) "Стоянка" else "Движение",
-                    if(lastStatus == -1) "Нет данных от гео-датчика" else if(lastStatus == 0) "Стоянка" else "Движение"
-                )
+        if (lastTime != 0) {
+            alGTD += GraphicTextData(
+                textX1 = lastTime,
+                textX2 = min(getCurrentTimeInt(), endTime),
+                fillColorIndex = if (lastStatus == -1) GraphicColorIndex.FILL_CRITICAL else if (lastStatus == 0) GraphicColorIndex.FILL_WARNING else GraphicColorIndex.FILL_NORMAL,
+                borderColorIndex = if (lastStatus == -1) GraphicColorIndex.BORDER_CRITICAL else if (lastStatus == 0) GraphicColorIndex.BORDER_WARNING else GraphicColorIndex.BORDER_NORMAL,
+                textColorIndex = if (lastStatus == -1) GraphicColorIndex.TEXT_CRITICAL else if (lastStatus == 0) GraphicColorIndex.TEXT_WARNING else GraphicColorIndex.TEXT_NORMAL,
+                text = if (lastStatus == -1) "Нет данных от гео-датчика" else if (lastStatus == 0) "Стоянка" else "Движение",
+                toolTip = if (lastStatus == -1) "Нет данных от гео-датчика" else if (lastStatus == 0) "Стоянка" else "Движение"
             )
         }
+        aText.alGTD = alGTD.toTypedArray()
     }
 
     protected open fun calcGraphic(
-        graphicHandler: iGraphicHandler, alRawTime: List<Int>, alRawData: List<AdvancedByteBuffer>, oc: ObjectConfig, sca: SensorConfigAnalogue,
-        begTime: Int, endTime: Int, xScale: Int, yScale: Double, isShowPoint: Boolean, isShowLine: Boolean, isShowText: Boolean,
-        alAxisYData: MutableList<AxisYData>, aMinLimit: GraphicDataContainer?, aMaxLimit: GraphicDataContainer?,
-        aPoint: GraphicDataContainer?, aLine: GraphicDataContainer?, aText: GraphicDataContainer?
+        graphicHandler: iGraphicHandler,
+        alRawTime: List<Int>,
+        alRawData: List<AdvancedByteBuffer>,
+        oc: ObjectConfig,
+        sca: SensorConfigAnalogue,
+        begTime: Int,
+        endTime: Int,
+        xScale: Int,
+        yScale: Double,
+        isShowPoint: Boolean,
+        isShowLine: Boolean,
+        isShowText: Boolean,
+        alAxisYData: MutableList<AxisYData>,
+        aMinLimit: GraphicDataContainer?,
+        aMaxLimit: GraphicDataContainer?,
+        aPoint: GraphicDataContainer?,
+        aLine: GraphicDataContainer?,
+        aText: GraphicDataContainer?
     ) {
 
-        alAxisYData.add(AxisYData(sca.name, sca.minView, sca.maxView, GraphicColorIndex.AXIS_0))
+        alAxisYData.add(AxisYData(sca.descr, sca.minView, sca.maxView, GraphicColorIndex.AXIS_0))
 
-        ObjectCalc.getSmoothAnalogGraphicData(alRawTime, alRawData, oc, sca, begTime, endTime, xScale, yScale, aMinLimit, aMaxLimit, aPoint, aLine, graphicHandler)
+        ObjectCalc.getSmoothAnalogGraphicData(alRawTime, alRawData, oc.scg, sca, begTime, endTime, xScale, yScale, aMinLimit, aMaxLimit, aPoint, aLine, graphicHandler)
 
         //--- если вывод текстов задан, сделаем вывод режимов работы оборудования
-        if(aText != null) {
+        if (aText != null) {
             val hmSC = oc.hmSensorConfig[SensorConfig.SENSOR_WORK]
-            if(hmSC != null && hmSC.isNotEmpty()) {
-                for(portNum in hmSC.keys) {
-                    val scw = hmSC[portNum] as SensorConfigWork
+            if (!hmSC.isNullOrEmpty()) {
+                val alGTD = aText.alGTD.toMutableList()
+                hmSC.values.forEach { sc ->
+                    val scw = sc as SensorConfigWork
                     //--- пропускаем датчики работы оборудования не из своей группы
-                    if(sca.group != scw.group) continue
-                    val alWork = ObjectCalc.calcWorkSensor(alRawTime, alRawData, scw, begTime, endTime).alWorkOnOff
-                    if(alWork != null) {
-                        for(apd in alWork) {
-                            val workDescr = StringBuilder(scw.descr).append(" : ").append(if(apd.getState() != 0) "ВКЛ" else "выкл").toString()
-                            aText.alGTD.add(
-                                GraphicTextData(
-                                    apd.begTime, apd.endTime,
-                                    if(apd.getState() != 0) GraphicColorIndex.FILL_NORMAL else GraphicColorIndex.FILL_WARNING,
-                                    if(apd.getState() != 0) GraphicColorIndex.BORDER_NORMAL else GraphicColorIndex.BORDER_WARNING,
-                                    if(apd.getState() != 0) GraphicColorIndex.TEXT_NORMAL else GraphicColorIndex.TEXT_WARNING, workDescr, workDescr
-                                )
+                    if (sca.group == scw.group) {
+                        val alWork = ObjectCalc.calcWorkSensor(alRawTime, alRawData, scw, begTime, endTime).alWorkOnOff
+                        for (apd in alWork) {
+                            val workDescr = StringBuilder(scw.descr).append(" : ").append(if (apd.getState() != 0) "ВКЛ" else "выкл").toString()
+                            alGTD += GraphicTextData(
+                                textX1 = apd.begTime,
+                                textX2 = apd.endTime,
+                                fillColorIndex = if (apd.getState() != 0) GraphicColorIndex.FILL_NORMAL else GraphicColorIndex.FILL_WARNING,
+                                borderColorIndex = if (apd.getState() != 0) GraphicColorIndex.BORDER_NORMAL else GraphicColorIndex.BORDER_WARNING,
+                                textColorIndex = if (apd.getState() != 0) GraphicColorIndex.TEXT_NORMAL else GraphicColorIndex.TEXT_WARNING,
+                                text = workDescr,
+                                toolTip = workDescr
                             )
                         }
                     }
                 }
+                aText.alGTD = alGTD.toTypedArray()
             }
         }
     }
 
     //--- ловля основных/системных нештатных ситуаций, показываемых только на первом/верхнем графике:
     //--- нет связи, нет данных и резервное питание
-    protected fun checkCommonTrouble(alRawTime: List<Int>, alRawData: List<AdvancedByteBuffer>, oc: ObjectConfig, begTime: Int, endTime: Int, aText: GraphicDataContainer?) {
-        if(aText == null) return
-
+    private fun checkCommonTrouble(alRawTime: List<Int>, alRawData: List<AdvancedByteBuffer>, oc: ObjectConfig, begTime: Int, endTime: Int, aText: GraphicDataContainer) {
         //--- дабы не загромождать код
         val curTime = getCurrentTimeInt()
+
+        val alGTD = aText.alGTD.toMutableList()
 
         //--- поиск значительных промежутков отсутствия данных ---
 
         var lastDataTime = begTime
-        for(rawTime in alRawTime) {
+        for (rawTime in alRawTime) {
             //--- сразу пропускаем запредельные точки, загруженные для бесшовного сглаживания между соседними диапазонами
-            if(rawTime < begTime) continue
-            if(rawTime > endTime) break
+            if (rawTime < begTime) continue
+            if (rawTime > endTime) break
 
-            if(rawTime - lastDataTime > MIN_NO_DATA_TIME)
-                aText.alGTD.add(
-                    GraphicTextData(
-                        lastDataTime, rawTime, GraphicColorIndex.FILL_CRITICAL, GraphicColorIndex.BORDER_CRITICAL, GraphicColorIndex.TEXT_CRITICAL,
-                        "Нет данных от контроллера", "Нет данных от контроллера"
-                    )
-                )
-            lastDataTime = rawTime
-        }
-        if(min(curTime, endTime) - lastDataTime > MIN_NO_DATA_TIME)
-            aText.alGTD.add(
-                GraphicTextData(
-                    lastDataTime, min(curTime, endTime), GraphicColorIndex.FILL_CRITICAL, GraphicColorIndex.BORDER_CRITICAL, GraphicColorIndex.TEXT_CRITICAL,
-                    "Нет данных от контроллера", "Нет данных от контроллера"
-                )
-            )
-
-        //--- поиск значительных промежутков отсутствия основного питания ( перехода на резервное питание )
-        val hmSCV = oc.hmSensorConfig[SensorConfig.SENSOR_VOLTAGE]
-        if(hmSCV != null) {
-            for(portNum in hmSCV.keys) {
-                val sca = hmSCV[portNum] as SensorConfigAnalogue
-                //--- чтобы не смешивались разные ошибки по одному датчику и одинаковые ошибки по разным датчикам,
-                //--- добавляем в описание ошибки не только само описание ошибки, но и описание датчика
-                checkSensorError(
-                    alRawTime, alRawData, portNum, sca.descr, begTime, endTime, GraphicColorIndex.FILL_WARNING, GraphicColorIndex.BORDER_WARNING,
-                    GraphicColorIndex.TEXT_WARNING, 0, "Нет питания", MIN_POWER_OFF_TIME, aText
+            if (rawTime - lastDataTime > MIN_NO_DATA_TIME) {
+                alGTD += GraphicTextData(
+                    textX1 = lastDataTime,
+                    textX2 = rawTime,
+                    fillColorIndex = GraphicColorIndex.FILL_CRITICAL,
+                    borderColorIndex = GraphicColorIndex.BORDER_CRITICAL,
+                    textColorIndex = GraphicColorIndex.TEXT_CRITICAL,
+                    text = "Нет данных от контроллера",
+                    toolTip = "Нет данных от контроллера"
                 )
             }
+            lastDataTime = rawTime
         }
+        if (min(curTime, endTime) - lastDataTime > MIN_NO_DATA_TIME) {
+            alGTD += GraphicTextData(
+                textX1 = lastDataTime,
+                textX2 = min(curTime, endTime),
+                fillColorIndex = GraphicColorIndex.FILL_CRITICAL,
+                borderColorIndex = GraphicColorIndex.BORDER_CRITICAL,
+                textColorIndex = GraphicColorIndex.TEXT_CRITICAL,
+                text = "Нет данных от контроллера",
+                toolTip = "Нет данных от контроллера"
+            )
+        }
+
+        //--- поиск значительных промежутков отсутствия основного питания ( перехода на резервное питание )
+        oc.hmSensorConfig[SensorConfig.SENSOR_VOLTAGE]?.forEach { (portNum, sc) ->
+            val sca = sc as SensorConfigAnalogue
+            //--- чтобы не смешивались разные ошибки по одному датчику и одинаковые ошибки по разным датчикам,
+            //--- добавляем в описание ошибки не только само описание ошибки, но и описание датчика
+            checkSensorError(
+                alRawTime = alRawTime,
+                alRawData = alRawData,
+                portNum = portNum,
+                sensorDescr = sca.descr,
+                begTime = begTime,
+                endTime = endTime,
+                aFillColorIndex = GraphicColorIndex.FILL_WARNING,
+                aBorderColorIndex = GraphicColorIndex.BORDER_WARNING,
+                aTextColorIndex = GraphicColorIndex.TEXT_WARNING,
+                troubleCode = 0,
+                troubleDescr = "Нет питания",
+                minTime = MIN_POWER_OFF_TIME,
+                alGTD = alGTD
+            )
+        }
+
+        aText.alGTD = alGTD.toTypedArray()
     }
 
     protected fun checkSensorError(
-        alRawTime: List<Int>, alRawData: List<AdvancedByteBuffer>, portNum: Int, sensorDescr: String,
-        begTime: Int, endTime: Int, aFillColorIndex: GraphicColorIndex, aBorderColorIndex: GraphicColorIndex, aTextColorIndex: GraphicColorIndex,
-        troubleCode: Int, troubleDescr: String, minTime: Int, aText: GraphicDataContainer
+        alRawTime: List<Int>,
+        alRawData: List<AdvancedByteBuffer>,
+        portNum: Int,
+        sensorDescr: String,
+        begTime: Int,
+        endTime: Int,
+        aFillColorIndex: GraphicColorIndex,
+        aBorderColorIndex: GraphicColorIndex,
+        aTextColorIndex: GraphicColorIndex,
+        troubleCode: Int,
+        troubleDescr: String,
+        minTime: Int,
+        alGTD: MutableList<GraphicTextData>
     ) {
 
         //--- в основном тексте пишем только текст ошибки, а в tooltips'e напишем вместе с описанием датчика
@@ -358,32 +410,43 @@ open class sdcAnalog : sdcAbstractGraphic() {
         var troubleBegTime = 0
         var sensorData: Int
 
-        for(pos in alRawTime.indices) {
+        for (pos in alRawTime.indices) {
             val rawTime = alRawTime[pos]
             //--- сразу пропускаем запредельные точки, загруженные для бесшовного сглаживания между соседними диапазонами
-            if(rawTime < begTime) continue
-            if(rawTime > endTime) break
+            if (rawTime < begTime) continue
+            if (rawTime > endTime) break
 
             sensorData = AbstractObjectStateCalc.getSensorData(portNum, alRawData[pos])?.toInt() ?: continue
-            if(sensorData == troubleCode) {
-                if(troubleBegTime == 0) troubleBegTime = rawTime
-            } else {
-                if(troubleBegTime != 0) {
-                    if(rawTime - troubleBegTime > minTime)
-                        aText.alGTD.add(GraphicTextData(troubleBegTime, rawTime, aFillColorIndex, aBorderColorIndex, aTextColorIndex, troubleDescr, fullTroubleDescr))
-                    troubleBegTime = 0
+            if (sensorData == troubleCode) {
+                if (troubleBegTime == 0) {
+                    troubleBegTime = rawTime
                 }
+            } else if (troubleBegTime != 0) {
+                if (rawTime - troubleBegTime > minTime) {
+                    alGTD += GraphicTextData(
+                        textX1 = troubleBegTime,
+                        textX2 = rawTime,
+                        fillColorIndex = aFillColorIndex,
+                        borderColorIndex = aBorderColorIndex,
+                        textColorIndex = aTextColorIndex,
+                        text = troubleDescr,
+                        toolTip = fullTroubleDescr
+                    )
+                }
+                troubleBegTime = 0
             }
         }
         //--- запись последней незакрытой проблемы
-        if(troubleBegTime != 0) {
-            if(min(getCurrentTimeInt(), endTime) - troubleBegTime > minTime)
-                aText.alGTD.add(
-                    GraphicTextData(
-                        troubleBegTime, min(getCurrentTimeInt(), endTime), aFillColorIndex, aBorderColorIndex, aTextColorIndex, troubleDescr, fullTroubleDescr
-                    )
-                )
-            //troubleBegTime = 0; - уже и не надо
+        if (troubleBegTime != 0 && min(getCurrentTimeInt(), endTime) - troubleBegTime > minTime) {
+            alGTD += GraphicTextData(
+                textX1 = troubleBegTime,
+                textX2 = min(getCurrentTimeInt(), endTime),
+                fillColorIndex = aFillColorIndex,
+                borderColorIndex = aBorderColorIndex,
+                textColorIndex = aTextColorIndex,
+                text = troubleDescr,
+                toolTip = fullTroubleDescr
+            )
         }
     }
 

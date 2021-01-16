@@ -3,7 +3,6 @@ package foatto.mms.core_mms.sensor.config
 class SensorConfigEnergoAnalogue(
     aId: Int,
     aName: String,
-    aSumGroup: String,
     aGroup: String,
     aDescr: String,
     aPortNum: Int,
@@ -20,7 +19,6 @@ class SensorConfigEnergoAnalogue(
 ) : SensorConfigAnalogue(
     aId = aId,
     aName = aName,
-    aSumGroup = aSumGroup,
     aGroup = aGroup,
     aDescr = aDescr,
     aPortNum = aPortNum,

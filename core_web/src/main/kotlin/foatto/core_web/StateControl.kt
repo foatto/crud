@@ -1,12 +1,12 @@
 package foatto.core_web
 
-import foatto.core.app.xy.*
+import foatto.core.app.xy.XyViewCoord
 import foatto.core.link.XyResponse
 import foatto.core_web.external.vue.that
 import foatto.core_web.external.vue.vueComponentOptions
+import kotlinx.browser.document
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.MouseEvent
-import kotlin.browser.document
 import kotlin.js.json
 
 //    companion object {

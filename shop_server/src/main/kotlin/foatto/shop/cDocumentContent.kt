@@ -176,6 +176,7 @@ class cDocumentContent : cStandart() {
         val alSAB = super.getServerAction()
 
         //--- проверяем на возможность печати чека
+//        var isFiscable = true
         var isFiscable = false
         if(docType == DocumentTypeConfig.TYPE_OUT && docID != null && docID != 0) {
             val rs = stm.executeQuery(" SELECT is_fiscaled FROM SHOP_doc WHERE id = $docID ")

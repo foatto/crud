@@ -34,6 +34,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.math.min
 
 //@kotlinx.serialization.ImplicitReflectionSerializer
 class cDocContent : cAbstractReport() {
@@ -419,7 +420,7 @@ class cDocContent : cAbstractReport() {
             if(reportDocument != 0 && reportDocumentType == DocumentTypeConfig.TYPE_OUT) {
                 sheet.addCell(Label(1, offsY, "Скидка:", wcfTextRB))
 
-                sheet.addCell(Label(alCaption.size - 2, offsY, getSplittedDouble(discount, 1).append(" %").toString(), wcfTextCB))
+                sheet.addCell(Label(alCaption.size - 2, offsY, getSplittedDouble(discount, 1) + " %", wcfTextCB))
                 sheet.addCell(Label(alCaption.size - 1, offsY, getSplittedDouble(Math.ceil(sumCostOut * discount / 100), 2).toString(), wcfTextRB))
                 offsY++
 
@@ -455,6 +456,8 @@ class cDocContent : cAbstractReport() {
         val fiscalURL = shopApplication.fiscalURL ?: return
         val fiscalClient = shopApplication.fiscalClient ?: return
         val fiscalLineCutter = shopApplication.fiscalLineCutter?.toInt() ?: return
+        val fiscalTaxMode = shopApplication.fiscalTaxMode?.toInt() ?: return
+        val fiscalPlace = shopApplication.fiscalPlace ?: return
 
         var docYe = 0
         var docMo = 0
@@ -485,9 +488,10 @@ class cDocContent : cAbstractReport() {
             val name = rs.getString(2).trim()
             val count = (rs.getDouble(3) * 1000).toInt()
 
-            alLine.add(FiscalLine(Qty = count, Price = price, Description = name.substring(0, Math.min(name.length, fiscalLineCutter))))
+            alLine.add(FiscalLine(Qty = count, Price = price, Description = name.substring(0, min(name.length, fiscalLineCutter))))
 
-            sumCostOut += price * count
+            //--- avoid int value overflow to negative values
+            sumCostOut += price.toLong() * count.toLong()
         }
         rs.close()
 
@@ -498,7 +502,9 @@ class cDocContent : cAbstractReport() {
 
             Lines = alLine.toTypedArray(),
             Cash = sumCostOut / 1000,
-            NonCash = arrayOf(0)
+            NonCash = arrayOf(0),
+            TaxMode = fiscalTaxMode,
+            Place = fiscalPlace,
         )
         sendFiscal(fiscalURL, query)
 
@@ -555,15 +561,17 @@ data class FiscalQuery(
     val Lines: Array<FiscalLine>,
 
     val Cash: Long,             // сумма наличными
-    val NonCash: Array<Long> = arrayOf(0L),   // оплачено карточкой (разделение по типам карточек), если только наличкой, писать [ 0 ]
+    //--- оплачено карточкой (разделение по типам карточек), если только наличкой, писать [ 0 ],
+    //--- иначе писать [ xxx, 0, 0 ]
+    val NonCash: Array<Long> = arrayOf(0L),
 //    val AdvancePayment: Long,   // предоплата
 //    val Credit: Long,           // кредит
 //    val Consideration: Long,    // Сумма оплаты встречным предоставлением
-    val TaxMode: Int = 8,           // 8 = ЕНВД
+    val TaxMode: Int,               // 2 = УСН доход 6%, 32 = ПСН (современный?)
 //    val PhoneOrEmail: String,
 //    val MaxDocumentsInTurn: Int,  // макс. кол-во документов в одной смене - накуа?
-    val FullResponse: Boolean = true    // иначе чек печататься не будет
-//    val Place: String,            // возьмётся из регистрационных данных самой кассы
+    val FullResponse: Boolean = true,    // иначе чек печататься не будет
+    val Place: String,
 //    val TaxCalculationMethod: Int = 0,  // метод расчёта налогов в чеке (берётся из настроек кассы, д.б. == 0)
 
 //    val UserRequisite: пользовательские реквизиты
@@ -622,7 +630,8 @@ fun FiscalQuery.toJson(): String {
     json += NonCash.toJson("NonCash") + ","
 
     json += TaxMode.toJson("TaxMode") + ","
-    json += FullResponse.toJson("FullResponse")
+    json += FullResponse.toJson("FullResponse") + ","
+    json += Place.toJson("Place")
 
     return "$json}"
 }

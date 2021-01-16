@@ -12,8 +12,8 @@ class AppRequest(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-class LogonRequest( val login: String, val password: String ) {
-    val hmSystemProperties = mutableMapOf<String,String>()
+class LogonRequest(val login: String, val password: String) {
+    val hmSystemProperties = mutableMapOf<String, String>()
 }
 
 class FormData(
@@ -34,8 +34,8 @@ class FormData(
 
     //--- FILE
     val fileID: Int? = null,
-    //-- используем для передачи String-to-String вместо Int-to-String из-за проблем сериализации в JSON (т.к. имена полей получатся в виде цифр)
-    val hmFileAdd: Map<String,String>? = null,
+    //-- use for passing String-to-String instead of Int-to-String due to serialization problems in JSON (since field names will be obtained as numbers)
+    val hmFileAdd: Map<String, String>? = null,
     val alFileRemovedID: List<Int>? = null
 )
 

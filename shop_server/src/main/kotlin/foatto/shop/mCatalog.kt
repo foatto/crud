@@ -20,7 +20,6 @@ import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.mAbstractHierarchy
 import foatto.sql.CoreAdvancedStatement
 import java.time.LocalDate
-import java.util.*
 
 class mCatalog : mAbstractHierarchy() {
 
@@ -32,7 +31,7 @@ class mCatalog : mAbstractHierarchy() {
         private set
     lateinit var columnCatalogRowCount: ColumnString
         private set  // т.к. у элементов номенклатуры - пустое
-    lateinit var alColumnCatalogCount: ArrayList<ColumnDouble>
+    lateinit var alColumnCatalogCount: MutableList<ColumnDouble>
         private set
     lateinit var columnCatalogAllCount: ColumnDouble
         private set
@@ -69,7 +68,7 @@ class mCatalog : mAbstractHierarchy() {
         //--- при добавлении модуля в систему прав доступа к нему ещё нет
         val isMerchant = hsPermission?.contains(cCatalog.PERM_MERCHANT) ?: false
 
-        val (_, alWarehouseName) = mWarehouse.fillWarehouseList(stm)
+        val alWarehouse = mWarehouse.fillWarehouseList(stm)
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -136,9 +135,9 @@ class mCatalog : mAbstractHierarchy() {
             tableAlign = TableCellAlign.RIGHT
         }
 
-        alColumnCatalogCount = ArrayList(alWarehouseName.size)
-        for (i in 0 until alWarehouseName.size) {
-            val cd = ColumnDouble(tableName, "_$i", alWarehouseName[i], 10, -1).apply {
+        alColumnCatalogCount = mutableListOf()
+        for (i in alWarehouse.indices) {
+            val cd = ColumnDouble(tableName, "_$i", alWarehouse[i].second, 10, -1).apply {
                 isVirtual = true
                 tableAlign = TableCellAlign.CENTER
             }
@@ -158,7 +157,9 @@ class mCatalog : mAbstractHierarchy() {
         addTableColumn(columnRecordFullName)
         addTableColumn(columnCatalogPriceOut)
         addTableColumn(columnCatalogRowCount)
-        for (cd in alColumnCatalogCount) addTableColumn(cd)
+        alColumnCatalogCount.forEach {
+            addTableColumn(it)
+        }
         addTableColumn(columnCatalogAllCount)
         if (isMerchant) {
             addTableColumn(columnIsProduction)

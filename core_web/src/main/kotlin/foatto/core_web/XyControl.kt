@@ -1,13 +1,17 @@
 package foatto.core_web
 
-import foatto.core.app.xy.*
+import foatto.core.app.xy.XyAction
+import foatto.core.app.xy.XyActionRequest
+import foatto.core.app.xy.XyActionResponse
+import foatto.core.app.xy.XyElement
+import foatto.core.app.xy.XyViewCoord
 import foatto.core.app.xy.geom.XyPoint
 import foatto.core.app.xy.geom.XyRect
 import foatto.core.link.XyDocumentConfig
 import foatto.core.link.XyResponse
+import kotlinx.browser.document
+import kotlinx.browser.window
 import org.w3c.dom.events.MouseEvent
-import kotlin.browser.document
-import kotlin.browser.window
 import kotlin.js.Date
 import kotlin.js.Json
 import kotlin.js.json

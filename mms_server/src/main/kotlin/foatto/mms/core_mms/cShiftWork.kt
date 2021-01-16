@@ -22,13 +22,13 @@ class cShiftWork : cStandart() {
         val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
         val calc = ObjectCalc.calcObject(stm, userConfig, oc, begTime, endTime)
 
-        (hmColumnData[m.columnObjectShiftWorkRun] as DataString).text = calc.sbGeoRun.toString()
-        (hmColumnData[m.columnObjectShiftWorkHourName] as DataString).text = calc.sbWorkName.toString()
-        (hmColumnData[m.columnObjectShiftWorkHourValue] as DataString).text = calc.sbWorkTotal.toString()
-        (hmColumnData[m.columnObjectShiftWorkLevelName] as DataString).text = calc.sbLiquidLevelName.toString()
-        (hmColumnData[m.columnObjectShiftWorkLevelBeg] as DataString).text = calc.sbLiquidLevelBeg.toString()
-        (hmColumnData[m.columnObjectShiftWorkLevelEnd] as DataString).text = calc.sbLiquidLevelEnd.toString()
-        (hmColumnData[m.columnObjectShiftWorkLiquidName] as DataString).text = calc.sbLiquidUsingName.toString()
-        (hmColumnData[m.columnObjectShiftWorkLiquidValue] as DataString).text = calc.sbLiquidUsingTotal.toString()
+        (hmColumnData[m.columnObjectShiftWorkRun] as DataString).text = calc.sGeoRun
+        (hmColumnData[m.columnObjectShiftWorkHourName] as DataString).text = calc.sWorkName
+        (hmColumnData[m.columnObjectShiftWorkHourValue] as DataString).text = calc.sWorkValue
+        (hmColumnData[m.columnObjectShiftWorkLevelName] as DataString).text = calc.sLiquidLevelName
+        (hmColumnData[m.columnObjectShiftWorkLevelBeg] as DataString).text = calc.sLiquidLevelBeg
+        (hmColumnData[m.columnObjectShiftWorkLevelEnd] as DataString).text = calc.sLiquidLevelEnd
+        (hmColumnData[m.columnObjectShiftWorkLiquidName] as DataString).text = calc.sLiquidUsingName
+        (hmColumnData[m.columnObjectShiftWorkLiquidValue] as DataString).text = calc.sLiquidUsingValue
     }
 }

@@ -76,7 +76,7 @@ class ObjectConfig(
             //--- sensor configuration loading
             //--- (notes: "serial no" and "start date of operation" will be ignored)
             rs = stm.executeQuery(
-                " SELECT sensor_type , port_num , id , name , sum_group_name, group_name , descr , " + // 1..7
+                " SELECT sensor_type , port_num , id , name , !!!sum_group_name, group_name , descr , " + // 1..7
 
                     " min_moving_time , min_parking_time , " +                                     // 8..9
                     " min_over_speed_time , is_absolute_run , " +                                  // 10..11

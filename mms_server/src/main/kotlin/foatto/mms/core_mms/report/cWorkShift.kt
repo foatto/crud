@@ -3,12 +3,11 @@ package foatto.mms.core_mms.report
 import foatto.core.link.FormData
 import foatto.core.util.DateTime_DMYHMS
 import foatto.core.util.getSBFromIterable
+import foatto.core_server.app.server.data.DataBoolean
 import foatto.core_server.app.server.data.DataComboBox
 import foatto.core_server.app.server.data.DataDate3Int
 import foatto.core_server.app.server.data.DataInt
 import foatto.mms.core_mms.calc.ObjectCalc
-import foatto.mms.core_mms.sensor.config.SensorConfig
-import foatto.mms.core_mms.sensor.config.SensorConfigLiquidLevel
 import foatto.mms.iMMSApplication
 import jxl.write.Label
 import jxl.write.WritableSheet
@@ -25,7 +24,7 @@ class cWorkShift : cAbstractPeriodSummary() {
 
     override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
         val returnURL = super.doSave(action, alFormData, hmOut)
-        if(returnURL != null) return returnURL
+        if (returnURL != null) return returnURL
 
         val m = model as mWorkShift
 
@@ -51,6 +50,9 @@ class cWorkShift : cAbstractPeriodSummary() {
         hmReportParam["report_add_after"] = (hmColumnData[m.columnAddAfter] as DataInt).value
 
         hmReportParam["report_group_type"] = (hmColumnData[m.columnReportGroupType] as DataComboBox).value
+
+        hmReportParam["report_out_temperature"] = (hmColumnData[m.columnOutTemperature] as DataBoolean).value
+        hmReportParam["report_out_density"] = (hmColumnData[m.columnOutDensity] as DataBoolean).value
 
         fillReportParam(m.sos)
 
@@ -85,11 +87,15 @@ class cWorkShift : cAbstractPeriodSummary() {
         alWSD = mutableListOf()
 
         //--- если указана рабочая смена/путевой лист, то загрузим только его
-        if(reportWorkShift != 0) sbSQL.append(" AND MMS_work_shift.id = ").append(reportWorkShift)
-        else {
+        if (reportWorkShift != 0) {
+            sbSQL.append(" AND MMS_work_shift.id = ").append(reportWorkShift)
+        } else {
             //--- если объект не указан, то загрузим полный список доступных объектов
-            if(reportObject == 0) loadObjectList(stm, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
-            else alObjectID.add(reportObject)
+            if (reportObject == 0) {
+                loadObjectList(stm, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
+            } else {
+                alObjectID.add(reportObject)
+            }
 
             sbSQL.append(" AND MMS_work_shift.object_id IN ( ").append(getSBFromIterable(alObjectID, " , ")).append(" ) ")
                 //--- пока будем брать путевки, только полностью входящие в требуемый диапазон
@@ -98,36 +104,34 @@ class cWorkShift : cAbstractPeriodSummary() {
             //--- хотя бы частично пересекающиеся с заданным временным диапазоном
             //.append( " AND beg_dt < " ).append( endTime / 1000 )
             //.append( " AND end_dt > " ).append( begTime / 1000 );
-            if(reportWorker != 0) sbSQL.append(" AND MMS_work_shift.worker_id = ").append(reportWorker)
+            if (reportWorker != 0) {
+                sbSQL.append(" AND MMS_work_shift.worker_id = ").append(reportWorker)
+            }
         }
 
         val rs = stm.executeQuery(sbSQL.toString())
-        while(rs.next()) {
+        while (rs.next()) {
             val objectID = rs.getInt(1)
             //--- если список не был ранее заполнен (для варианта с явно указанным reportWorkShift)
-            if(alObjectID.isEmpty()) alObjectID.add(objectID)
+            if (alObjectID.isEmpty()) alObjectID.add(objectID)
             alWSD.add(
                 WorkShiftData(
-                    objectID, rs.getInt(2), rs.getInt(3), rs.getInt(4), rs.getInt(5), rs.getString(6), rs.getString(7)
+                    objectID = objectID,
+                    begTimeDoc = rs.getInt(2),
+                    endTimeDoc = rs.getInt(3),
+                    begTimeFact = rs.getInt(4),
+                    endTimeFact = rs.getInt(5),
+                    shiftNo = rs.getString(6),
+                    workerName = rs.getString(7)
                 )
             )
         }
         rs.close()
 
         //--- в отдельном цикле, т.к. будут открываться новые ResultSet'ы в этом же Statement'e
-        for(objectID in alObjectID) {
+        for (objectID in alObjectID) {
             val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
-            if(oc.scg != null) {
-                isGlobalUseSpeed = isGlobalUseSpeed or oc.scg!!.isUseSpeed
-                isGlobalUseRun = isGlobalUseRun or oc.scg!!.isUseRun
-            }
-            val hmSCLL = oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_LEVEL]
-            if (hmSCLL != null && hmSCLL.isNotEmpty()) {
-                for (portNum in hmSCLL.keys) {
-                    val sca = hmSCLL[portNum] as SensorConfigLiquidLevel
-                    isGlobalUsingCalc = isGlobalUsingCalc or sca.isUsingCalc
-                }
-            }
+            defineGlobalFlags(oc)
         }
 
         return super.getReport()
@@ -148,22 +152,24 @@ class cWorkShift : cAbstractPeriodSummary() {
         val reportEndMonth = hmReportParam["report_end_month"] as Int
         val reportEndDay = hmReportParam["report_end_day"] as Int
         val reportGroupType = hmReportParam["report_group_type"] as Int
+        val reportOutTemperature = hmReportParam["report_out_temperature"] as Boolean
+        val reportOutDensity = hmReportParam["report_out_density"] as Boolean
         var reportSumOnly = hmReportParam["report_sum_only"] as Boolean
         val reportSumUser = hmReportParam["report_sum_user"] as Boolean
         val reportSumObject = hmReportParam["report_sum_object"] as Boolean
 
         //--- если отчет получается слишком длинный, то включаем режим вывода только сумм
-        if(tmWorkShiftCalcResult.size > java.lang.Short.MAX_VALUE) reportSumOnly = true
+        if (tmWorkShiftCalcResult.size > java.lang.Short.MAX_VALUE) reportSumOnly = true
 
         defineFormats(8, 2, 0)
 
         var offsY = 0
         sheet.addCell(Label(1, offsY++, aliasConfig.descr, wcfTitleL))
-        if(reportWorkShift == 0) sheet.addCell(
+        if (reportWorkShift == 0) sheet.addCell(
             Label(
-                1, offsY++, StringBuilder("за период с ").append(if(reportBegDay < 10) '0' else "").append(reportBegDay).append('.').append(if(reportBegMonth < 10) '0' else "")
-                                  .append(reportBegMonth).append('.').append(reportBegYear).append(" по ").append(if(reportEndDay < 10) '0' else "").append(reportEndDay).append('.')
-                                  .append(if(reportEndMonth < 10) '0' else "").append(reportEndMonth).append('.').append(reportEndYear).toString(), wcfTitleL
+                1, offsY++, StringBuilder("за период с ").append(if (reportBegDay < 10) '0' else "").append(reportBegDay).append('.').append(if (reportBegMonth < 10) '0' else "")
+                    .append(reportBegMonth).append('.').append(reportBegYear).append(" по ").append(if (reportEndDay < 10) '0' else "").append(reportEndDay).append('.')
+                    .append(if (reportEndMonth < 10) '0' else "").append(reportEndMonth).append('.').append(reportEndYear).toString(), wcfTitleL
             )
         )
 
@@ -171,93 +177,59 @@ class cWorkShift : cAbstractPeriodSummary() {
 
         offsY = defineSummaryReportHeaders(sheet, offsY)
 
-        val allSumCollector = SumCollector()
-        val tmUserSumCollector = TreeMap<String, SumCollector>()
-        var shiftSumCollector: SumCollector? = null
+        val allSumCollector = ReportSumCollector()
+        val tmUserSumCollector = TreeMap<String, ReportSumCollector>()
+        var shiftSumCollector: ReportSumCollector? = null
 
         var countNN = 1
-        var lastShift: String? = ""
+        var lastShift = ""
         var lastObjectInfo = ""
 
-        for(wscr in tmWorkShiftCalcResult.values) {
+        for (wscr in tmWorkShiftCalcResult.values) {
 
             //--- пропускаем строки с нулевыми/неизвестными пробегами, моточасами, уровнями и расходом жидкости
-            if(wscr.objectCalc.sbGeoRun.length == 0 && wscr.objectCalc.sbWorkTotal.length == 0 && wscr.objectCalc.sbLiquidLevelBeg.length == 0 &&
-               wscr.objectCalc.sbLiquidUsingTotal.length == 0 && wscr.objectCalc.sbEnergoValue.length == 0) continue
+            if (wscr.objectCalc.sGeoRun.isEmpty() &&
+                wscr.objectCalc.sWorkValue.isEmpty() &&
+                wscr.objectCalc.sLiquidLevelBeg.isEmpty() &&
+                wscr.objectCalc.sLiquidUsingValue.isEmpty() &&
+                wscr.objectCalc.sEnergoValue.isEmpty()
+            ) continue
 
             val userName = getRecordUserName(wscr.objectCalc.objectConfig.userId)
-            val sumUser = tmUserSumCollector.getOrPut(userName) { SumCollector() }
-            sumUser.add(wscr.objectCalc.objectConfig.name, 0, wscr.objectCalc)
-            allSumCollector.add(null, 0, wscr.objectCalc)
+            val sumUser = tmUserSumCollector.getOrPut(userName) { ReportSumCollector() }
+            sumUser.add(wscr.objectCalc.objectConfig.name, wscr.objectCalc)
+            allSumCollector.add(null, wscr.objectCalc)
 
-            if(!reportSumOnly) {
+            if (!reportSumOnly) {
                 //--- вывод заголовков групп (дата или номер+модель а/м)
-                if(reportGroupType == mWorkShift.GROUP_BY_DATE) {
-                    if(lastShift != wscr.shift) {
-                        if(shiftSumCollector != null) offsY = outPeriodSum(sheet, offsY, shiftSumCollector)
-                        shiftSumCollector = SumCollector()
-                        offsY = addGroupTitle(sheet, offsY, wscr.shift!!)
+                if (reportGroupType == mWorkShift.GROUP_BY_DATE) {
+                    if (lastShift != wscr.shift) {
+                        if (shiftSumCollector != null) {
+                            offsY = outSumData(sheet, offsY, shiftSumCollector.sumUser, false, null)
+                        }
+                        shiftSumCollector = ReportSumCollector()
+                        offsY = addGroupTitle(sheet, offsY, wscr.shift)
                         lastShift = wscr.shift
                     }
-                    shiftSumCollector!!.add(null, 0, wscr.objectCalc!!)
-                }
-                else {
-                    if(lastObjectInfo != wscr.objectCalc.objectConfig.name) {
-                        offsY = addGroupTitle(sheet, offsY, wscr.objectCalc!!.objectConfig.name)
+                    shiftSumCollector!!.add(null, wscr.objectCalc)
+                } else {
+                    if (lastObjectInfo != wscr.objectCalc.objectConfig.name) {
+                        offsY = addGroupTitle(sheet, offsY, wscr.objectCalc.objectConfig.name)
                         lastObjectInfo = wscr.objectCalc.objectConfig.name
                     }
                 }
                 sheet.addCell(Label(0, offsY, (countNN++).toString(), wcfNN))
-                sheet.addCell(
-                    Label(
-                        1, offsY, if(reportGroupType == mWorkShift.GROUP_BY_DATE) wscr.objectCalc.objectConfig.name else wscr.shift, wcfCellLBStdYellow
-                    )
-                )
-                sheet.mergeCells(1, offsY, if(isGlobalUseSpeed) 10 else if(isGlobalUsingCalc) 7 else 6, offsY)
+                sheet.addCell(Label(1, offsY, if (reportGroupType == mWorkShift.GROUP_BY_DATE) wscr.objectCalc.objectConfig.name else wscr.shift, wcfCellLBStdYellow))
+                sheet.mergeCells(1, offsY, getColumnCount(1), offsY)
                 offsY += 2
-                offsY = outRow(sheet, offsY, wscr.objectCalc.objectConfig, wscr.objectCalc)
+                offsY = outRow(sheet, offsY, wscr.objectCalc.objectConfig, wscr.objectCalc, reportOutTemperature, reportOutDensity)
             }
         }
-        if(shiftSumCollector != null) offsY = outPeriodSum(sheet, offsY, shiftSumCollector)
-        offsY += 2
-
-        //--- вывод сумм
-        if(reportSumUser) {
-            sheet.addCell(Label(0, offsY, "ИТОГО по объектам и их владельцам", wcfCellCBStdYellow))
-            sheet.mergeCells(0, offsY, if(isGlobalUseSpeed) 10 else if(isGlobalUsingCalc) 7 else 6, offsY + 2)
-            offsY += 4
-
-            for((userName,sumUser) in tmUserSumCollector) {
-                sheet.addCell(Label(0, offsY, userName, wcfCellLBStdYellow))
-                sheet.mergeCells(0, offsY, if(isGlobalUseSpeed) 10 else if(isGlobalUsingCalc) 7 else 6, offsY)
-                offsY += 2
-                if(reportSumObject) {
-                    val tmObjectSum = sumUser.tmSumObject
-                    for((objectInfo,objectSum) in tmObjectSum) {
-                        sheet.addCell(Label(1, offsY, objectInfo, wcfCellLB))
-                        offsY++
-
-                        offsY = outSumData(sheet, offsY, objectSum, false)
-                    }
-                }
-
-                sheet.addCell(Label(0, offsY, "ИТОГО по владельцу:", wcfCellLBStdYellow))
-                sheet.mergeCells(0, offsY, 1, offsY)
-                offsY++
-
-                offsY = outSumData(sheet, offsY, sumUser.sumUser, true)
-
-                //--- если выводятся суммы по объектам, добавим ещё одну (третью) пустую строчку между этой суммой и
-                //--- следующим объектом следующего пользователя
-                offsY += 2
-            }
+        if (shiftSumCollector != null) {
+            offsY = outSumData(sheet, offsY, shiftSumCollector.sumUser, false, null)
         }
 
-        sheet.addCell(Label(0, offsY, "ИТОГО общее", wcfCellCBStdYellow))
-        sheet.mergeCells(0, offsY, if(isGlobalUseSpeed) 10 else if(isGlobalUsingCalc) 7 else 6, offsY + 2)
-        offsY += 4
-
-        offsY = outSumData(sheet, offsY, allSumCollector.sumUser, true)
+        offsY = outObjectAndUserSum(sheet, offsY, reportSumUser, reportSumObject, tmUserSumCollector, allSumCollector)
 
         outReportTrail(sheet, offsY)
     }
@@ -282,17 +254,23 @@ class cWorkShift : cAbstractPeriodSummary() {
     }
 
     private class WorkShiftData(
-        val objectID: Int, val begTimeDoc: Int, val endTimeDoc: Int, val begTimeFact: Int, val endTimeFact: Int, val shiftNo: String, val workerName: String
+        val objectID: Int,
+        val begTimeDoc: Int,
+        val endTimeDoc: Int,
+        val begTimeFact: Int,
+        val endTimeFact: Int,
+        val shiftNo: String,
+        val workerName: String
     )
 
-    private class WorkShiftCalcResult( val wsd: WorkShiftData, val objectCalc: ObjectCalc, zoneId: ZoneId) {
+    private class WorkShiftCalcResult(val wsd: WorkShiftData, val objectCalc: ObjectCalc, zoneId: ZoneId) {
 
-        var shift: String? = null
+        var shift = ""
 
         init {
             val sb = StringBuilder()
-            if(wsd.shiftNo.isNotEmpty()) sb.append("№ ").append(wsd.shiftNo).append(", ")
-            if(wsd.workerName.isNotEmpty()) sb.append(wsd.workerName).append(", ")
+            if (wsd.shiftNo.isNotEmpty()) sb.append("№ ").append(wsd.shiftNo).append(", ")
+            if (wsd.workerName.isNotEmpty()) sb.append(wsd.workerName).append(", ")
             sb.append("с ").append(DateTime_DMYHMS(zoneId, wsd.begTimeDoc)).append(" по ").append(DateTime_DMYHMS(zoneId, wsd.endTimeDoc))
 
             shift = sb.toString()

@@ -42,15 +42,15 @@ abstract class DataAbstractDateTime(aColumn: iColumn) : DataAbstract(aColumn) {
         val sYe = formData.alDateTimeValue!![2]
         val sHo = formData.alDateTimeValue!![3]
         val sMi = formData.alDateTimeValue!![4]
-        val sSe = if(cdt.withSecond) formData.alDateTimeValue!![5] else "0"
+        val sSe = if (cdt.withSecond) formData.alDateTimeValue!![5] else "0"
 
         //--- сначала проверка на правильность ввода цифр как таковых (для полей простой даты, где цифры вводятся вручную)
         try {
             zonedDateTime = ZonedDateTime.of(sYe.toInt(), sMo.toInt(), sDa.toInt(), sHo.toInt(), sMi.toInt(), sSe.toInt(), 0, zoneId)
             arrErrorValue = null
             errorText = null
-        } catch(t: Throwable) {
-            arrErrorValue = if(cdt.withSecond) arrayOf(sYe, sMo, sDa, sHo, sMi, sSe) else arrayOf(sYe, sMo, sDa, sHo, sMi)
+        } catch (t: Throwable) {
+            arrErrorValue = if (cdt.withSecond) arrayOf(sYe, sMo, sDa, sHo, sMi, sSe) else arrayOf(sYe, sMo, sDa, sHo, sMi)
             errorText = "Ошибка ввода даты/времени"
             return false
         }
@@ -60,7 +60,7 @@ abstract class DataAbstractDateTime(aColumn: iColumn) : DataAbstract(aColumn) {
     override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int): TableCell {
         val cdt = column as ColumnAbstractDateTime
 
-        return if(isShowEmptyTableCell) TableCell(row, col, column.rowSpan, column.colSpan)
+        return if (isShowEmptyTableCell) TableCell(row, col, column.rowSpan, column.colSpan)
         else TableCell(
             aRow = row,
             aCol = col,
@@ -71,7 +71,7 @@ abstract class DataAbstractDateTime(aColumn: iColumn) : DataAbstract(aColumn) {
             aIsWordWrap = column.isWordWrap,
             aTooltip = column.caption,
 
-            aText = if(cdt.withSecond) DateTime_DMYHMS(zonedDateTime) else DateTime_DMYHM(zonedDateTime)
+            aText = if (cdt.withSecond) DateTime_DMYHMS(zonedDateTime) else DateTime_DMYHM(zonedDateTime)
         )
     }
 
@@ -82,23 +82,25 @@ abstract class DataAbstractDateTime(aColumn: iColumn) : DataAbstract(aColumn) {
 
         fci.withSecond = cdt.withSecond
 
-        fci.alDateTimeField.add(Pair(getFieldCellName(2), if(errorText == null) zonedDateTime.dayOfMonth.toString() else arrErrorValue!![2]))
-        fci.alDateTimeField.add(Pair(getFieldCellName(1), if(errorText == null) zonedDateTime.monthValue.toString() else arrErrorValue!![1]))
-        fci.alDateTimeField.add(Pair(getFieldCellName(0), if(errorText == null) zonedDateTime.year.toString() else arrErrorValue!![0]))
-        fci.alDateTimeField.add(Pair(getFieldCellName(3), if(errorText == null) zonedDateTime.hour.toString() else arrErrorValue!![3]))
-        fci.alDateTimeField.add(
-            Pair(
-                getFieldCellName(4), if(errorText == null) (if(zonedDateTime.minute < 10) "0" else "") + zonedDateTime.minute.toString()
-                else arrErrorValue!![4]
-            )
-        )
-        if(cdt.withSecond)
-            fci.alDateTimeField.add(
+        fci.alDateTimeField = fci.alDateTimeField.toMutableList().apply {
+            add(Pair(getFieldCellName(2), if (errorText == null) zonedDateTime.dayOfMonth.toString() else arrErrorValue!![2]))
+            add(Pair(getFieldCellName(1), if (errorText == null) zonedDateTime.monthValue.toString() else arrErrorValue!![1]))
+            add(Pair(getFieldCellName(0), if (errorText == null) zonedDateTime.year.toString() else arrErrorValue!![0]))
+            add(Pair(getFieldCellName(3), if (errorText == null) zonedDateTime.hour.toString() else arrErrorValue!![3]))
+            add(
                 Pair(
-                    getFieldCellName(5), if(errorText == null) (if(zonedDateTime.second < 10) "0" else "") + zonedDateTime.second.toString()
-                    else arrErrorValue!![5]
+                    getFieldCellName(4), if (errorText == null) (if (zonedDateTime.minute < 10) "0" else "") + zonedDateTime.minute.toString()
+                    else arrErrorValue!![4]
                 )
             )
+            if (cdt.withSecond)
+                add(
+                    Pair(
+                        getFieldCellName(5), if (errorText == null) (if (zonedDateTime.second < 10) "0" else "") + zonedDateTime.second.toString()
+                        else arrErrorValue!![5]
+                    )
+                )
+        }.toTypedArray()
         return fci
     }
 

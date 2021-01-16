@@ -29,6 +29,12 @@ class ShopSpringController : CoreSpringController(), iShopApplication {
     @Value("\${fiscal_line_cutter}")
     override val fiscalLineCutter: String? = null
 
+    @Value("\${fiscal_tax_mode}")
+    override val fiscalTaxMode: String? = null
+
+    @Value("\${fiscal_place}")
+    override val fiscalPlace: String? = null
+
 //!!! сделать статику через nginx и убрать в проекте привязку к tomcat-embed-core-XXX.jar ---
 
     @GetMapping(value = ["/"])
@@ -224,7 +230,7 @@ class ShopSpringController : CoreSpringController(), iShopApplication {
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDocument, "shop_doc_all", true)
 
-        if (alMenuDocument.size > 3) alMenu.add(MenuData("", "Накладные", alMenuDocument))
+        if (alMenuDocument.size > 3) alMenu.add(MenuData("", "Накладные", alMenuDocument.toTypedArray()))
 
         //--- Журналы --------------------------------------------------------------------------------------------------------
 
@@ -232,7 +238,7 @@ class ShopSpringController : CoreSpringController(), iShopApplication {
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuJournal, "shop_cash", true)
 
-        if (alMenuJournal.size > 0) alMenu.add(MenuData("", "Журналы", alMenuJournal))
+        if (alMenuJournal.size > 0) alMenu.add(MenuData("", "Журналы", alMenuJournal.toTypedArray()))
 
         //--- Отчёты --------------------------------------------------------------------------------------------------------
 
@@ -257,7 +263,7 @@ class ShopSpringController : CoreSpringController(), iShopApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuReport, "shop_report_minus_detector", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuReport, "shop_report_doc_error", false)
 
-        if (alMenuReport.size > 3) alMenu.add(MenuData("", "Отчёты", alMenuReport))
+        if (alMenuReport.size > 3) alMenu.add(MenuData("", "Отчёты", alMenuReport.toTypedArray()))
 
         //--- Справочники --------------------------------------------------------------------------------------------------------
 
@@ -274,7 +280,7 @@ class ShopSpringController : CoreSpringController(), iShopApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDir, "shop_price_in", true)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDir, "shop_price_out", true)
 
-        if (alMenuDir.size > 1) alMenu.add(MenuData("", "Справочники", alMenuDir))
+        if (alMenuDir.size > 1) alMenu.add(MenuData("", "Справочники", alMenuDir.toTypedArray()))
 
         //--- Система --------------------------------------------------------------------------------------------------------
 
@@ -294,7 +300,7 @@ class ShopSpringController : CoreSpringController(), iShopApplication {
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuSystem, "system_log_user", true)
 
-        if (alMenuSystem.size > 2) alMenu.add(MenuData("", "Система", alMenuSystem))
+        if (alMenuSystem.size > 2) alMenu.add(MenuData("", "Система", alMenuSystem.toTypedArray()))
 
         //----------------------------------------------------------------------------------------------------------------------
 

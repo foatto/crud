@@ -15,8 +15,8 @@ class SensorConfigEntity(
 
     val name: String,       // inner/system sensor name for programmatically sensors adding
 
-    @Column(name = "sum_group_name")
-    val sumGroup: String,   // sensor group name for calculation data summaring
+//    @Column(name = "sum_group_name")
+//    val sumGroup: String,   // sensor group name for calculation data summaring
 
     @Column(name = "group_name")
     val group: String,      // sensor group name for sensors logical linking
@@ -38,137 +38,137 @@ class SensorConfigEntity(
     //--- geo-sensor data
 
     @Column(name = "min_moving_time")
-    val minMovingTime: Int,
+    val minMovingTime: Int?,
 
     @Column(name = "min_parking_time")
-    val minParkingTime: Int,
+    val minParkingTime: Int?,
 
     @Column(name = "min_over_speed_time")
-    val minOverSpeedTime: Int,
+    val minOverSpeedTime: Int?,
 
     @Column(name = "is_absolute_run")
-    val isAbsoluteRun: Int,
+    val isAbsoluteRun: Int?,
 
     @Column(name = "speed_round_rule")
-    val speedRoundRule: Int,
+    val speedRoundRule: Int?,
 
     @Column(name = "run_koef")
-    val runKoef: Double,
+    val runKoef: Double?,
 
     @Column(name = "is_use_pos")
-    val isUsePos: Int,
+    val isUsePos: Int?,
 
     @Column(name = "is_use_speed")
-    val isUseSpeed: Int,
+    val isUseSpeed: Int?,
 
     @Column(name = "is_use_run")
-    val isUseRun: Int,
+    val isUseRun: Int?,
 
     //--- discrete/work/signal sensors
 
     @Column(name = "bound_value")
-    val boundValue: Int,
+    val boundValue: Int?,
 
     @Column(name = "active_value")
-    val activeValue: Int,
+    val activeValue: Int?,
 
     @Column(name = "min_on_time")
-    val minOnTime: Int,
+    val minOnTime: Int?,
 
     @Column(name = "min_off_time")
-    val minOffTime: Int,
+    val minOffTime: Int?,
 
     @Column(name = "beg_work_value")
-    val begWorkValue: Double,
+    val begWorkValue: Double?,
 
     @Column(name = "cmd_on_id")
-    val cmdOnId: Int,
+    val cmdOnId: Int?,
 
     @Column(name = "cmd_off_id")
-    val cmdOffId: Int,
+    val cmdOffId: Int?,
 
     @Column(name = "signal_on")
-    val signalOn: String,
+    val signalOn: String?,
 
     @Column(name = "signal_off")
-    val signalOff: String,
+    val signalOff: String?,
 
     //--- base sensor attributes
 
     @Column(name = "smooth_method")
-    val smoothMethod: Int,
+    val smoothMethod: Int?,
 
     @Column(name = "smooth_time")
-    val smoothTime: Int,
+    val smoothTime: Int?,
 
     @Column(name = "ignore_min_sensor")
-    val minIgnore: Double,
+    val minIgnore: Double?,
 
     @Column(name = "ignore_max_sensor")
-    val maxIgnore: Double,
+    val maxIgnore: Double?,
 
     @Column(name = "liquid_name")
-    val liquidName: String,
+    val liquidName: String?,
 
     @Column(name = "liquid_norm")
-    val liquidNorm: Double,
+    val liquidNorm: Double?,
 
     //--- analogue sensor attributes
 
     @Column(name = "analog_min_view")
-    val minView: Double,
+    val minView: Double?,
 
     @Column(name = "analog_max_view")
-    val maxView: Double,
+    val maxView: Double?,
 
     @Column(name = "analog_min_limit")
-    val minLimit: Double,
+    val minLimit: Double?,
 
     @Column(name = "analog_max_limit")
-    val maxLimit: Double,
+    val maxLimit: Double?,
 
     //--- energo sensor attributes
 
     @Column(name = "energo_phase")
-    val phase: Int,
+    val phase: Int?,
 
     //--- liquid level sensors only
 
     @Column(name = "analog_using_min_len")
-    val usingMinLen: Int,
+    val usingMinLen: Int?,
 
     @Column(name = "analog_is_using_calc")
-    val isUsingCalc: Int,
+    val isUsingCalc: Int?,
 
     @Column(name = "analog_detect_inc")
-    val detectIncKoef: Double,
+    val detectIncKoef: Double?,
 
     @Column(name = "analog_detect_inc_min_diff")
-    val detectIncMinDiff: Double,
+    val detectIncMinDiff: Double?,
 
     @Column(name = "analog_detect_inc_min_len")
-    val detectIncMinLen: Int,
+    val detectIncMinLen: Int?,
 
     @Column(name = "analog_inc_add_time_before")
-    val incAddTimeBefore: Int,
+    val incAddTimeBefore: Int?,
 
     @Column(name = "analog_inc_add_time_after")
-    val incAddTimeAfter: Int,
+    val incAddTimeAfter: Int?,
 
     @Column(name = "analog_detect_dec")
-    val detectDecKoef: Double,
+    val detectDecKoef: Double?,
 
     @Column(name = "analog_detect_dec_min_diff")
-    val detectDecMinDiff: Double,
+    val detectDecMinDiff: Double?,
 
     @Column(name = "analog_detect_dec_min_len")
-    val detectDecMinLen: Int,
+    val detectDecMinLen: Int?,
 
     @Column(name = "analog_dec_add_time_before")
-    val decAddTimeBefore: Int,
+    val decAddTimeBefore: Int?,
 
     @Column(name = "analog_dec_add_time_after")
-    val decAddTimeAfter: Int,
+    val decAddTimeAfter: Int?,
 
     @OneToMany(mappedBy = "sensor", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     var calibration: MutableSet<SensorConfigCalibrationEntity> = mutableSetOf(),
@@ -181,7 +181,6 @@ class SensorConfigEntity(
 
         if (obj != other.obj) return false
         if (name != other.name) return false
-        if (sumGroup != other.sumGroup) return false
         if (group != other.group) return false
         if (descr != other.descr) return false
         if (portNum != other.portNum) return false
@@ -193,7 +192,6 @@ class SensorConfigEntity(
     override fun hashCode(): Int {
         var result = obj.hashCode()
         result = 31 * result + name.hashCode()
-        result = 31 * result + sumGroup.hashCode()
         result = 31 * result + group.hashCode()
         result = 31 * result + descr.hashCode()
         result = 31 * result + portNum

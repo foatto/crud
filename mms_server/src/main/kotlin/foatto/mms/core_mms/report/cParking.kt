@@ -19,7 +19,7 @@ class cParking : cMMSReport() {
 
     override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
         val returnURL = super.doSave(action, alFormData, hmOut)
-        if(returnURL != null) return returnURL
+        if (returnURL != null) return returnURL
 
         fillReportParam(model as mUODGPZ)
 
@@ -55,7 +55,6 @@ class cParking : cMMSReport() {
 
         val reportZone = hmReportParam["report_zone"] as Int
 
-
         //--- вылетает при попытке загрузить конфиг по нулевому объекту
         //        ObjectConfig oc = ObjectConfig.getObjectConfig( dataWorker.alStm.get( 0 ), userConfig, reportObject );
         //        //--- если не прописаны гео-датчики - выходим тут же
@@ -66,7 +65,7 @@ class cParking : cMMSReport() {
 
         offsY = fillReportHeader(reportDepartment, reportGroup, sheet, 1, offsY)
 
-        offsY = fillReportHeader(if(reportZone == 0) null else hmZoneData[reportZone], sheet, offsY)
+        offsY = fillReportHeader(if (reportZone == 0) null else hmZoneData[reportZone], sheet, offsY)
 
         //--- установка размеров заголовков (общая ширина = 90 для А4 портрет и 140 для А4 ландшафт поля по 10 мм)
         val alDim = mutableListOf<Int>()
@@ -100,32 +99,25 @@ class cParking : cMMSReport() {
         offsY++
 
         var countNN = 1
-        for(alGPD in alAllResult) {
+        for (alGPD in alAllResult) {
             sheet.addCell(Label(1, offsY, alGPD[0].calc!!.objectConfig.name, wcfCellCB))
             sheet.mergeCells(1, offsY, 8, offsY + 2)
             offsY += 3
 
-            for(gpd in alGPD) {
+            for (gpd in alGPD) {
                 offsX = 0
                 sheet.addCell(Label(offsX++, offsY, (countNN++).toString(), wcfNN))
                 sheet.addCell(Label(offsX++, offsY, DateTime_DMYHMS(zoneId, gpd.begTime), wcfCellC))
                 sheet.addCell(Label(offsX++, offsY, DateTime_DMYHMS(zoneId, gpd.endTime), wcfCellC))
                 sheet.addCell(Label(offsX++, offsY, secondIntervalToString(gpd.begTime, gpd.endTime), wcfCellC))
 
-                val sbWorkName = StringBuilder()
-                val sbWorkTotal = StringBuilder()
-                val sbLiquidUsingName = StringBuilder()
-                val sbLiquidUsingTotal = StringBuilder()
+                val (sWorkDescr, sWorkTotal) = ObjectCalc.fillWorkString(gpd.calc!!.tmWork)
+                val (sLiquidUsingName, sLiquidUsingTotal) = ObjectCalc.fillLiquidUsingString(gpd.calc!!.tmLiquidUsing)
 
-                ObjectCalc.fillWorkString(gpd.calc!!.tmWorkCalc, sbWorkName, sbWorkTotal)
-                ObjectCalc.fillLiquidUsingString(
-                    gpd.calc!!.tmLiquidUsingTotal, gpd.calc!!.tmLiquidUsingCalc, sbLiquidUsingName, sbLiquidUsingTotal, StringBuilder()
-                )
-
-                sheet.addCell(Label(offsX++, offsY, sbWorkName.toString(), wcfCellC))
-                sheet.addCell(Label(offsX++, offsY, sbWorkTotal.toString(), wcfCellR))
-                sheet.addCell(Label(offsX++, offsY, sbLiquidUsingName.toString(), wcfCellC))
-                sheet.addCell(Label(offsX++, offsY, sbLiquidUsingTotal.toString(), wcfCellR))
+                sheet.addCell(Label(offsX++, offsY, sWorkDescr, wcfCellC))
+                sheet.addCell(Label(offsX++, offsY, sWorkTotal, wcfCellR))
+                sheet.addCell(Label(offsX++, offsY, sLiquidUsingName, wcfCellC))
+                sheet.addCell(Label(offsX++, offsY, sLiquidUsingTotal, wcfCellR))
                 sheet.addCell(Label(offsX++, offsY, gpd.sbZoneName!!.toString(), wcfCellL))
 
                 offsY++
@@ -165,39 +157,39 @@ class cParking : cMMSReport() {
 
         val alObjectID = mutableListOf<Int>()
         //--- если объект не указан, то загрузим полный список доступных объектов
-        if(reportObject == 0) loadObjectList(stm, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
+        if (reportObject == 0) loadObjectList(stm, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
         else alObjectID.add(reportObject)
 
-        for(objectID in alObjectID) {
+        for (objectID in alObjectID) {
             val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
             //--- гео-датчик не прописан
-            if(oc.scg == null) continue
+            if (oc.scg == null) continue
 
             //--- единоразово загрузим данные по всем датчикам объекта
-            val ( alRawTime, alRawData ) = ObjectCalc.loadAllSensorData(stm, oc, begTime, endTime)
+            val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(stm, oc, begTime, endTime)
 
             //--- в обычных расчётах нам не нужны точки траектории, поэтому даем максимальный масштаб.
             //--- превышения тоже не нужны, поэтому даём maxEnabledOverSpeed = 0
-            val gcd = ObjectCalc.calcGeoSensor(alRawTime, alRawData, oc, begTime, endTime, 1000000000, 0, null)
+            val gcd = ObjectCalc.calcGeoSensor(alRawTime, alRawData, oc.scg!!, begTime, endTime, 1000000000, 0, null)
 
             val alObjectResult = ArrayList<GeoPeriodData>()
-            for(apd in gcd.alMovingAndParking!!) {
+            for (apd in gcd.alMovingAndParking) {
                 val gpd = apd as GeoPeriodData
 
                 //--- пропускаем периоды движения
-                if(gpd.getState() != 0) continue
+                if (gpd.getState() != 0) continue
 
                 val tsZoneName = TreeSet<String>()
                 val inZone = ObjectCalc.fillZoneList(hmZoneData, reportZone, gpd.parkingCoord!!, tsZoneName)
                 //--- фильтр по геозонам, если задано
-                if(reportZone != 0 && !inZone) continue
+                if (reportZone != 0 && !inZone) continue
 
                 gpd.calc = ObjectCalc.calcObject(stm, userConfig, oc, gpd.begTime, gpd.endTime)
                 gpd.sbZoneName = getSBFromIterable(iterable = tsZoneName, delimiter = ", ")
 
                 alObjectResult.add(gpd)
             }
-            if(!alObjectResult.isEmpty()) alAllResult.add(alObjectResult)
+            if (!alObjectResult.isEmpty()) alAllResult.add(alObjectResult)
         }
         return alAllResult
     }

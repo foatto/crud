@@ -3,6 +3,7 @@ package foatto.mms.core_mms.report
 import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
+import foatto.core_server.app.server.column.ColumnBoolean
 import foatto.core_server.app.server.column.ColumnComboBox
 import foatto.core_server.app.server.column.ColumnDate3Int
 import foatto.core_server.app.server.column.ColumnDateTimeInt
@@ -39,6 +40,11 @@ class mWorkShift : mAbstractReport() {
     lateinit var columnAddBefore: ColumnInt
         private set
     lateinit var columnAddAfter: ColumnInt
+        private set
+
+    lateinit var columnOutTemperature: ColumnBoolean
+        private set
+    lateinit var columnOutDensity: ColumnBoolean
         private set
 
     lateinit var sos: SumOptionSelector
@@ -78,51 +84,70 @@ class mWorkShift : mAbstractReport() {
         //----------------------------------------------------------------------------------------------------------------------
 
         val columnWorkShiftID = ColumnInt("MMS_work_shift", "id")
-        columnWorkShift = ColumnInt(tableName, "work_shift_id", columnWorkShiftID)
-        columnWorkShift.defaultValue = parentShift
-        val columnShiftNo = ColumnString("MMS_work_shift", "shift_no", if(isWaybillReport) "Номер путевого листа" else "", STRING_COLUMN_WIDTH)
-        val columnShiftBegDoc = ColumnDateTimeInt("MMS_work_shift", "beg_dt", if(isWaybillReport) "Начало" else "Начало смены", false, zoneId)
-        val columnShiftEndDoc = ColumnDateTimeInt("MMS_work_shift", "end_dt", if(isWaybillReport) "Окончание" else "Окончание смены", false, zoneId)
-        val columnShiftBegFact = ColumnDateTimeInt("MMS_work_shift", "beg_dt_fact", if(isWaybillReport) "Начало факт." else "Начало смены факт.", false, zoneId)
-        val columnShiftEndFact = ColumnDateTimeInt("MMS_work_shift", "end_dt_fact", if(isWaybillReport) "Окончание факт." else "Окончание смены факт.", false, zoneId)
+        columnWorkShift = ColumnInt(tableName, "work_shift_id", columnWorkShiftID).apply {
+            defaultValue = parentShift
+        }
+        val columnShiftNo = ColumnString("MMS_work_shift", "shift_no", if (isWaybillReport) "Номер путевого листа" else "", STRING_COLUMN_WIDTH)
+        val columnShiftBegDoc = ColumnDateTimeInt("MMS_work_shift", "beg_dt", if (isWaybillReport) "Начало" else "Начало смены", false, zoneId)
+        val columnShiftEndDoc = ColumnDateTimeInt("MMS_work_shift", "end_dt", if (isWaybillReport) "Окончание" else "Окончание смены", false, zoneId)
+        val columnShiftBegFact = ColumnDateTimeInt("MMS_work_shift", "beg_dt_fact", if (isWaybillReport) "Начало факт." else "Начало смены факт.", false, zoneId)
+        val columnShiftEndFact = ColumnDateTimeInt("MMS_work_shift", "end_dt_fact", if (isWaybillReport) "Окончание факт." else "Окончание смены факт.", false, zoneId)
 
-        (if(isWaybillReport) columnShiftNo else columnShiftBegDoc).selectorAlias = if(isWaybillReport) "mms_waybill" else "mms_work_shift"
-        (if(isWaybillReport) columnShiftNo else columnShiftBegDoc).addSelectorColumn(columnWorkShift, columnWorkShiftID)
-        (if(isWaybillReport) columnShiftNo else columnShiftBegDoc).addSelectorColumn(columnShiftNo)
-        (if(isWaybillReport) columnShiftNo else columnShiftBegDoc).addSelectorColumn(columnShiftBegDoc)
-        (if(isWaybillReport) columnShiftNo else columnShiftBegDoc).addSelectorColumn(columnShiftEndDoc)
-        (if(isWaybillReport) columnShiftNo else columnShiftBegDoc).addSelectorColumn(columnShiftBegFact)
-        (if(isWaybillReport) columnShiftNo else columnShiftBegDoc).addSelectorColumn(columnShiftEndFact)
+        (if (isWaybillReport) columnShiftNo else columnShiftBegDoc).apply {
+            selectorAlias = if (isWaybillReport) "mms_waybill" else "mms_work_shift"
+            addSelectorColumn(columnWorkShift, columnWorkShiftID)
+            addSelectorColumn(columnShiftNo)        // not "this"!
+            addSelectorColumn(columnShiftBegDoc)    // not "this"!
+            addSelectorColumn(columnShiftEndDoc)
+            addSelectorColumn(columnShiftBegFact)
+            addSelectorColumn(columnShiftEndFact)
+        }
 
         val columnWorkerID = ColumnInt("MMS_worker", "id")
         columnWorker = ColumnInt(tableName, "worker_id", columnWorkerID)
-        val columnWorkerTabNo = ColumnString("MMS_worker", "tab_no", "Табельный номер", STRING_COLUMN_WIDTH)
         val columnWorkerName = ColumnString("MMS_worker", "name", "Ф.И.О.", STRING_COLUMN_WIDTH)
 
-        columnWorkerTabNo.selectorAlias = "mms_worker"
-        columnWorkerTabNo.addSelectorColumn(columnWorker, columnWorkerID)
-        columnWorkerTabNo.addSelectorColumn(columnWorkerTabNo)
-        columnWorkerTabNo.addSelectorColumn(columnWorkerName)
+        val columnWorkerTabNo = ColumnString("MMS_worker", "tab_no", "Табельный номер", STRING_COLUMN_WIDTH).apply {
+            selectorAlias = "mms_worker"
+            addSelectorColumn(columnWorker, columnWorkerID)
+            addSelectorColumn(this)
+            addSelectorColumn(columnWorkerName)
+        }
 
-        columnReportBegDate = ColumnDate3Int(tableName, "beg_ye", "beg_mo", "beg_da", "Начало периода")
-        if(arrADR != null) columnReportBegDate.default = LocalDate.of(arrADR[0], arrADR[1], arrADR[2])
-        columnReportBegDate.isVirtual = true
-        columnReportEndDate = ColumnDate3Int(tableName, "end_ye", "end_mo", "end_da", "Конец периода")
-        if(arrADR != null) columnReportEndDate.default = LocalDate.of(arrADR[0], arrADR[1], arrADR[2])
-        columnReportEndDate.isVirtual = true
+        columnReportBegDate = ColumnDate3Int(tableName, "beg_ye", "beg_mo", "beg_da", "Начало периода").apply {
+            if (arrADR != null) default = LocalDate.of(arrADR[0], arrADR[1], arrADR[2])
+            isVirtual = true
+        }
 
-        columnAddBefore = ColumnInt(tableName, "add_before", "Добавить к началу путёвки [мин]", 10, 0)
-        columnAddBefore.isVirtual = true
-        columnAddBefore.setSavedDefault(userConfig)
-        columnAddAfter = ColumnInt(tableName, "add_after", "Добавить к концу путёвки [мин]", 10, 0)
-        columnAddAfter.isVirtual = true
-        columnAddAfter.setSavedDefault(userConfig)
+        columnReportEndDate = ColumnDate3Int(tableName, "end_ye", "end_mo", "end_da", "Конец периода").apply {
+            if (arrADR != null) default = LocalDate.of(arrADR[0], arrADR[1], arrADR[2])
+            isVirtual = true
+        }
 
-        columnReportGroupType = ColumnComboBox(tableName, "object_date_group_type", "Группировка", GROUP_BY_OBJECT)
-        columnReportGroupType.addChoice(GROUP_BY_OBJECT, "По объектам")
-        columnReportGroupType.addChoice(GROUP_BY_DATE, "По датам")
-        columnReportGroupType.isVirtual = true
-        columnReportGroupType.setSavedDefault(userConfig)
+        columnAddBefore = ColumnInt(tableName, "add_before", "Добавить к началу путёвки [мин]", 10, 0).apply {
+            isVirtual = true
+            setSavedDefault(userConfig)
+        }
+        columnAddAfter = ColumnInt(tableName, "add_after", "Добавить к концу путёвки [мин]", 10, 0).apply {
+            isVirtual = true
+            setSavedDefault(userConfig)
+        }
+
+        columnReportGroupType = ColumnComboBox(tableName, "object_date_group_type", "Группировка", GROUP_BY_OBJECT).apply {
+            addChoice(GROUP_BY_OBJECT, "По объектам")
+            addChoice(GROUP_BY_DATE, "По датам")
+            isVirtual = true
+            setSavedDefault(userConfig)
+        }
+
+        columnOutTemperature = ColumnBoolean(tableName, "out_temperature", "Выводить показания температуры", false).apply {
+            isVirtual = true
+            setSavedDefault(userConfig)
+        }
+        columnOutDensity = ColumnBoolean(tableName, "out_density", "Выводить показания плотности", true).apply {
+            isVirtual = true
+            setSavedDefault(userConfig)
+        }
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -132,7 +157,7 @@ class mWorkShift : mAbstractReport() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        (if(isWaybillReport) alFormColumn else alFormHiddenColumn).add(columnShiftNo)
+        (if (isWaybillReport) alFormColumn else alFormHiddenColumn).add(columnShiftNo)
         alFormColumn.add(columnShiftBegDoc)
         alFormColumn.add(columnShiftEndDoc)
         alFormColumn.add(columnShiftBegFact)
@@ -141,15 +166,17 @@ class mWorkShift : mAbstractReport() {
         uodg = UODGSelector()
         uodg.fillColumns(tableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn)
 
-        (if(isWaybillReport) alFormColumn else alFormHiddenColumn).add(columnWorkerTabNo)
-        (if(isWaybillReport) alFormColumn else alFormHiddenColumn).add(columnWorkerName)
+        (if (isWaybillReport) alFormColumn else alFormHiddenColumn).add(columnWorkerTabNo)
+        (if (isWaybillReport) alFormColumn else alFormHiddenColumn).add(columnWorkerName)
         alFormColumn.add(columnReportBegDate)
         alFormColumn.add(columnReportEndDate)
-        (if(isWaybillReport) alFormColumn else alFormHiddenColumn).add(columnAddBefore)
-        (if(isWaybillReport) alFormColumn else alFormHiddenColumn).add(columnAddAfter)
+        (if (isWaybillReport) alFormColumn else alFormHiddenColumn).add(columnAddBefore)
+        (if (isWaybillReport) alFormColumn else alFormHiddenColumn).add(columnAddAfter)
         //--- при выводе отчёт по путевому листу нет смысла группировать по времени,
         //--- т.к. помимо временного периода путёвки отличаются ещё номером и водителем
-        (if(isWaybillReport) alFormHiddenColumn else alFormColumn).add(columnReportGroupType)
+        (if (isWaybillReport) alFormHiddenColumn else alFormColumn).add(columnReportGroupType)
+        alFormColumn.add(columnOutTemperature)
+        alFormColumn.add(columnOutDensity)
 
         sos = SumOptionSelector()
         sos.fillColumns(userConfig, tableName, alFormColumn)

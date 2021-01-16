@@ -13,6 +13,7 @@ import foatto.core.app.graphic.GraphicViewCoord
 import foatto.core.app.xy.geom.XyRect
 import foatto.core.link.GraphicResponse
 import foatto.core.link.SaveUserPropertyRequest
+import foatto.core.util.getSplittedDouble
 import foatto.core_web.external.vue.that
 import foatto.core_web.external.vue.vueComponentOptions
 import kotlinx.browser.document

@@ -191,7 +191,7 @@ class cOverSensor : cMMSReport() {
                 val scsc = hmSensorConfig[portNum] as SensorConfigAnalogue
 
                 val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1)
-                ObjectCalc.getSmoothAnalogGraphicData(alRawTime, alRawData, objectConfig, scsc, begTime, endTime, 0, 0.0, null, null, null, aLine, graphicHandler)
+                ObjectCalc.getSmoothAnalogGraphicData(alRawTime, alRawData, objectConfig.scg!!, scsc, begTime, endTime, 0, 0.0, null, null, null, aLine, graphicHandler)
 
                 var begPos = 0
                 var curColorIndex = graphicHandler.lineNormalColorIndex

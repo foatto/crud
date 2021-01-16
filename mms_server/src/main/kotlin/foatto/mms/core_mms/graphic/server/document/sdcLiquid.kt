@@ -33,29 +33,71 @@ class sdcLiquid : sdcAnalog() {
 //    private val alEnergoPowerLine = mutableListOf<GraphicDataContainer?>()
 
     override fun calcGraphic(
-        graphicHandler: iGraphicHandler, alRawTime: List<Int>, alRawData: List<AdvancedByteBuffer>, oc: ObjectConfig, sca: SensorConfigAnalogue,
-        begTime: Int, endTime: Int, xScale: Int, yScale: Double, isShowPoint: Boolean, isShowLine: Boolean, isShowText: Boolean,
-        alAxisYData: MutableList<AxisYData>, aMinLimit: GraphicDataContainer?, aMaxLimit: GraphicDataContainer?,
-        aPoint: GraphicDataContainer?, aLine: GraphicDataContainer?, aText: GraphicDataContainer?
+        graphicHandler: iGraphicHandler,
+        alRawTime: List<Int>,
+        alRawData: List<AdvancedByteBuffer>,
+        oc: ObjectConfig,
+        sca: SensorConfigAnalogue,
+        begTime: Int,
+        endTime: Int,
+        xScale: Int,
+        yScale: Double,
+        isShowPoint: Boolean,
+        isShowLine: Boolean,
+        isShowText: Boolean,
+        alAxisYData: MutableList<AxisYData>,
+        aMinLimit: GraphicDataContainer?,
+        aMaxLimit: GraphicDataContainer?,
+        aPoint: GraphicDataContainer?,
+        aLine: GraphicDataContainer?,
+        aText: GraphicDataContainer?
     ) {
 
         super.calcGraphic(
-            graphicHandler, alRawTime, alRawData, oc, sca, begTime, endTime, xScale, yScale, isShowPoint, isShowLine, isShowText, alAxisYData, aMinLimit, aMaxLimit,
-            aPoint, aLine, aText
+            graphicHandler = graphicHandler,
+            alRawTime = alRawTime,
+            alRawData = alRawData,
+            oc = oc,
+            sca = sca,
+            begTime = begTime,
+            endTime = endTime,
+            xScale = xScale,
+            yScale = yScale,
+            isShowPoint = isShowPoint,
+            isShowLine = isShowLine,
+            isShowText = isShowText,
+            alAxisYData = alAxisYData,
+            aMinLimit = aMinLimit,
+            aMaxLimit = aMaxLimit,
+            aPoint = aPoint,
+            aLine = aLine,
+            aText = aText
         )
 
         //--- постобработка/фильтрация заправок/сливов/расходов
-        if(aLine != null) {
+        aLine?.let {
             ObjectCalc.getLiquidStatePeriodData(sca as SensorConfigLiquidLevel, aLine, mutableListOf(), graphicHandler as LiquidGraphicHandler)
         }
-        if(aText != null) {
-        //--- ловим ошибки с датчиков уровня топлива
+        aText?.let {
+            //--- ловим ошибки с датчиков уровня топлива
+            val alGTD = aText.alGTD.toMutableList()
             for (errorCode in SensorConfigLiquidLevel.hmLLErrorCodeDescr.keys)
                 checkSensorError(
-                    alRawTime, alRawData, sca.portNum, sca.descr, begTime, endTime,
-                    GraphicColorIndex.FILL_CRITICAL, GraphicColorIndex.BORDER_CRITICAL, GraphicColorIndex.TEXT_CRITICAL, errorCode,
-                    SensorConfigLiquidLevel.hmLLErrorCodeDescr[errorCode]!!, SensorConfigLiquidLevel.hmLLMinSensorErrorTime[errorCode]!!, aText
+                    alRawTime = alRawTime,
+                    alRawData = alRawData,
+                    portNum = sca.portNum,
+                    sensorDescr = sca.descr,
+                    begTime = begTime,
+                    endTime = endTime,
+                    aFillColorIndex = GraphicColorIndex.FILL_CRITICAL,
+                    aBorderColorIndex = GraphicColorIndex.BORDER_CRITICAL,
+                    aTextColorIndex = GraphicColorIndex.TEXT_CRITICAL,
+                    troubleCode = errorCode,
+                    troubleDescr = SensorConfigLiquidLevel.hmLLErrorCodeDescr[errorCode]!!,
+                    minTime = SensorConfigLiquidLevel.hmLLMinSensorErrorTime[errorCode]!!,
+                    alGTD = alGTD
                 )
+            aText.alGTD = alGTD.toTypedArray()
         }
 
         //--- расчет скорости расхода жидкости по счётчику топлива или уровнемеру
@@ -64,7 +106,7 @@ class sdcLiquid : sdcAnalog() {
         aLiquidMax = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 1, 1)
         aLiquidFlow = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 1, 2)
 
-        if(aLine != null) {
+        aLine?.let {
 
             //--- есть ли вообще прописанные датчики скорости расхода жидкости
             val hmSCLF = oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_FLOW_CALC].orEmpty()
@@ -142,7 +184,7 @@ class sdcLiquid : sdcAnalog() {
 //            //--- сглаженная линия усреднённых значений
 //            alGDC.add(alEnergoPowerLine[i])
 //        }
-        if(isLiquidFlow) {
+        if (isLiquidFlow) {
             alGDC.add(aLiquidMin)
             alGDC.add(aLiquidMax)
             alGDC.add(aLiquidFlow)
@@ -163,43 +205,47 @@ class sdcLiquid : sdcAnalog() {
         alAxisYData.add(AxisYData("${SensorConfig.hmSensorDescr[scaf.sensorType]}", scaf.minView, scaf.maxView, GraphicColorIndex.AXIS_1))
 
         val isLimit = scaf.maxLimit > scaf.minLimit
-        if(isLimit) {
-            aLiquidMin!!.alGLD.add(GraphicLineData(begTime, scaf.minLimit, GraphicColorIndex.LINE_LIMIT))
-            aLiquidMin!!.alGLD.add(GraphicLineData(endTime, scaf.minLimit, GraphicColorIndex.LINE_LIMIT))
-            aLiquidMax!!.alGLD.add(GraphicLineData(begTime, scaf.maxLimit, GraphicColorIndex.LINE_LIMIT))
-            aLiquidMax!!.alGLD.add(GraphicLineData(endTime, scaf.maxLimit, GraphicColorIndex.LINE_LIMIT))
+        if (isLimit) {
+            aLiquidMin!!.alGLD = arrayOf(
+                GraphicLineData(begTime, scaf.minLimit, GraphicColorIndex.LINE_LIMIT),
+                GraphicLineData(endTime, scaf.minLimit, GraphicColorIndex.LINE_LIMIT)
+            )
+            aLiquidMax!!.alGLD = arrayOf(
+                GraphicLineData(begTime, scaf.maxLimit, GraphicColorIndex.LINE_LIMIT),
+                GraphicLineData(endTime, scaf.maxLimit, GraphicColorIndex.LINE_LIMIT)
+            )
         }
         //--- х-координата последней усреднённой точки
         var lastAvgTime = 0
         var lastLiquidUsingPerHour = 0.0
 
         //--- теперь по данным счётчика посчитаем скорость расхода жидкости
-        for(pos1 in alRawTime.indices) {
+        for (pos1 in alRawTime.indices) {
             val time1 = alRawTime[pos1]
 
             //--- сразу пропускаем запредельные точки, загруженные для бесшовного сглаживания между соседними диапазонами
-            if( time1 < begTime ) continue
-            if( time1 > endTime ) break
+            if (time1 < begTime) continue
+            if (time1 > endTime) break
 
             //--- поиск правой границы диапазона сглаживания
             var pos2 = pos1 + 1
-            while(pos2 < alRawTime.size && alRawTime[pos2] <= endTime) {
+            while (pos2 < alRawTime.size && alRawTime[pos2] <= endTime) {
                 //--- умножаем период сглаживания на 2,
                 //--- т.к. период сглаживания сам по себе задается как +- радиус от точки,
                 //--- а здесь используется "диагональное" расстояние между двумя крайними точками.
-                if(alRawTime[pos2] - time1 > scaf.smoothTime * 2) {
+                if (alRawTime[pos2] - time1 > scaf.smoothTime * 2) {
                     break
                 }
                 pos2++
             }
             //--- если правая граница диапазона сглаживания достигла конца данных,
             //--- то прекращаем расчёты, иначе на концах графиков можем поиметь локальные вылеты из-за недостаточности данных для сглаживания
-            if(pos2 >= alRawTime.size || alRawTime[pos2] > endTime) break
+            if (pos2 >= alRawTime.size || alRawTime[pos2] > endTime) break
 
             //--- вычисляем среднюю х-координату усреднения
             var sumTime: Long = 0   // суммировать время в Int поле грозит быстрым переполнением
             var sumSensor = 0.0
-            for(p in pos1 until pos2) {
+            for (p in pos1 until pos2) {
                 sumTime += alRawTime[p]
 
                 val rawSensorData = AbstractObjectStateCalc.getSensorData(scu.portNum, alRawData[p]) ?: continue
@@ -230,7 +276,9 @@ class sdcLiquid : sdcAnalog() {
 
             //--- новая средняя точка достаточно далека от предыдущей или отличается от неё цветом
             if (avgTime - lastAvgTime > xScale || abs(liquidUsingPerHour - lastLiquidUsingPerHour) > yScale) {
-                aLiquidFlow!!.alGLD.add(GraphicLineData(avgTime, liquidUsingPerHour, GraphicColorIndex.LINE_NORMAL_1))
+                aLiquidFlow!!.alGLD = aLiquidFlow!!.alGLD.toMutableList().apply {
+                    add(GraphicLineData(avgTime, liquidUsingPerHour, GraphicColorIndex.LINE_NORMAL_1))
+                }.toTypedArray()
 
                 lastAvgTime = avgTime
                 lastLiquidUsingPerHour = liquidUsingPerHour
@@ -246,47 +294,51 @@ class sdcLiquid : sdcAnalog() {
         endTime: Int,
         xScale: Int,
         yScale: Double,
-        alGLD: List<GraphicLineData>
+        alGLD: Array<GraphicLineData>
     ) {
         alAxisYData.add(AxisYData("${SensorConfig.hmSensorDescr[scaf.sensorType]}", scaf.minView, scaf.maxView, GraphicColorIndex.AXIS_1))
 
-        val isLimit = scaf.maxLimit > scaf.minLimit
-        if(isLimit) {
-            aLiquidMin!!.alGLD.add(GraphicLineData(begTime, scaf.minLimit, GraphicColorIndex.LINE_LIMIT))
-            aLiquidMin!!.alGLD.add(GraphicLineData(endTime, scaf.minLimit, GraphicColorIndex.LINE_LIMIT))
-            aLiquidMax!!.alGLD.add(GraphicLineData(begTime, scaf.maxLimit, GraphicColorIndex.LINE_LIMIT))
-            aLiquidMax!!.alGLD.add(GraphicLineData(endTime, scaf.maxLimit, GraphicColorIndex.LINE_LIMIT))
+        val isLimit = scaf.maxLimit != scaf.minLimit
+        if (isLimit) {
+            aLiquidMin!!.alGLD = arrayOf(
+                GraphicLineData(begTime, scaf.minLimit, GraphicColorIndex.LINE_LIMIT),
+                GraphicLineData(endTime, scaf.minLimit, GraphicColorIndex.LINE_LIMIT)
+            )
+            aLiquidMax!!.alGLD = arrayOf(
+                GraphicLineData(begTime, scaf.maxLimit, GraphicColorIndex.LINE_LIMIT),
+                GraphicLineData(endTime, scaf.maxLimit, GraphicColorIndex.LINE_LIMIT)
+            )
         }
         //--- х-координата последней усреднённой точки
         var lastAvgTime = 0
         var lastLiquidUsingPerHour = 0.0
         //--- теперь по сглаженному графику уровня жидкости можно попробовать рассчитать расход по изменению уровня
-        NEXT_POINT@ for(pos1 in alGLD.indices) {
+        NEXT_POINT@ for (pos1 in alGLD.indices) {
             val gpd = alGLD[pos1]
             //--- период сглаживания нельзя начинать с "ненормальной точки"
-            if(gpd.colorIndex != GraphicColorIndex.LINE_NORMAL_0) continue
+            if (gpd.colorIndex != GraphicColorIndex.LINE_NORMAL_0) continue
             //--- поиск правой границы диапазона сглаживания
             var pos2 = pos1 + 1
-            while(pos2 < alGLD.size) {
+            while (pos2 < alGLD.size) {
                 val gpd2 = alGLD[pos2]
                 //--- если в период сглаживания начали попадать "ненормальные" точки,
                 //--- прекращаем расширение периода и сразу переходим на поиск следующего периода
-                if(gpd2.colorIndex != GraphicColorIndex.LINE_NORMAL_0) continue@NEXT_POINT
+                if (gpd2.colorIndex != GraphicColorIndex.LINE_NORMAL_0) continue@NEXT_POINT
                 //--- умножаем период сглаживания на 2,
                 //--- т.к. период сглаживания сам по себе задается как +- радиус от точки,
                 //--- а здесь используется "диагональное" расстояние между двумя крайними точками.
                 //--- тонкий момент - сглаживание датчика скорости расхода жидкости
                 //--- не должно быть меньше сглаживания исходного датчика уровня жидкости,
                 //--- т.к. "ближайших данных" по уровню жидкости в таком случае может и вовсе не найтись
-                if(gpd2.x - gpd.x > max(sca.smoothTime, scaf.smoothTime) * 2) break
+                if (gpd2.x - gpd.x > max(sca.smoothTime, scaf.smoothTime) * 2) break
                 pos2++
             }
             //--- если правая граница диапазона сглаживания достигла конца данных,
             //--- то прекращаем расчёты, иначе на концах графиков можем поиметь локальные вылеты из-за недостаточности данных для сглаживания
-            if(pos2 >= alGLD.size) break
+            if (pos2 >= alGLD.size) break
             //--- вычисляем среднюю х-координату усреднения
             var sumTime: Long = 0   // суммировать время в Int поле грозит быстрым переполнением
-            for(p in pos1 until pos2) {
+            for (p in pos1 until pos2) {
                 sumTime += alGLD[p].x
             }
             val avgTime = (sumTime / (pos2 - pos1)).toInt()
@@ -302,8 +354,9 @@ class sdcLiquid : sdcAnalog() {
 
             //--- новая средняя точка достаточно далека от предыдущей или отличается от неё цветом
             if (avgTime - lastAvgTime > xScale || abs(liquidUsingPerHour - lastLiquidUsingPerHour) > yScale) {
-                aLiquidFlow!!.alGLD.add(GraphicLineData(avgTime, liquidUsingPerHour, GraphicColorIndex.LINE_NORMAL_1))
-
+                aLiquidFlow!!.alGLD = aLiquidFlow!!.alGLD.toMutableList().apply {
+                    add(GraphicLineData(avgTime, liquidUsingPerHour, GraphicColorIndex.LINE_NORMAL_1))
+                }.toTypedArray()
                 lastAvgTime = avgTime
                 lastLiquidUsingPerHour = liquidUsingPerHour
             }

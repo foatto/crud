@@ -21,13 +21,11 @@ const val ICON_NAME_UNARCHIVE = "unarchive"
 const val ICON_NAME_VIDEO = "video"
 const val ICON_NAME_WORKER = "worker"
 
-//--- обозначение поведения/реакции кнопки на горячие клавиши
 const val BUTTON_KEY_NONE = 0
 const val BUTTON_KEY_EXIT = 1
 const val BUTTON_KEY_SAVE = 2
 const val BUTTON_KEY_AUTOCLICK = 3
 
-//--- режимы показа элементов графика
 const val UP_GRAPHIC_SHOW_POINT = "graphic_show_point"
 const val UP_GRAPHIC_SHOW_LINE = "graphic_show_line"
 const val UP_GRAPHIC_SHOW_TEXT = "graphic_show_text"

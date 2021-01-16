@@ -1,51 +1,48 @@
 package foatto.core.app.graphic
 
-//import kotlinx.serialization.Serializable
-
-//@Serializable
 enum class GraphicColorIndex {
-    FILL_NEUTRAL, // фон нейтрального текста
-    FILL_NORMAL, // фон текста нормального значения
-    FILL_WARNING, // фон текста предупредительного значения
-    FILL_CRITICAL, // фон текста критического значения
+    FILL_NEUTRAL,       // neutral text background
+    FILL_NORMAL,        // normal value text background
+    FILL_WARNING,       // warning text background
+    FILL_CRITICAL,      // critical text background
 
-    BORDER_NEUTRAL, // рамка нейтрального текста
-    BORDER_NORMAL, // рамка текста нормального значения
-    BORDER_WARNING, // рамка текста предупредительного значения
-    BORDER_CRITICAL, // рамка текста критического значения
+    BORDER_NEUTRAL,     // neutral text border
+    BORDER_NORMAL,      // normal value text border
+    BORDER_WARNING,     // warning text border
+    BORDER_CRITICAL,    // critical text border
 
-    TEXT_NEUTRAL, // цвет нейтрального текста
-    TEXT_NORMAL, // цвет текста нормального значения
-    TEXT_WARNING, // цвет текста предупредительного значения
-    TEXT_CRITICAL, // цвет текста критического значения
+    TEXT_NEUTRAL,       // neutral text color
+    TEXT_NORMAL,        // normal value text color
+    TEXT_WARNING,       // warning text color
+    TEXT_CRITICAL,      // critical text color
 
-    POINT_NEUTRAL, // точка с нейтральным значением
-    POINT_NORMAL, // точка с нормальным значением
-    POINT_BELOW, // точка ниже соответствующего порогового значения
-    POINT_ABOVE, // точка выше соответствующего порогового значения
+    POINT_NEUTRAL,      // point with neutral value
+    POINT_NORMAL,       // point with normal value
+    POINT_BELOW,        // point below the corresponding threshold
+    POINT_ABOVE,        // point above the corresponding threshold
 
-    AXIS_0, // ось Y для основного графика
-    AXIS_1, // ось Y для дополнительного графика
-    AXIS_2, // ось Y для дополнительного графика
-    AXIS_3, // ось Y для дополнительного графика
+    AXIS_0,             // Y-axis for main plot
+    AXIS_1,             // Y-axis for additional plot
+    AXIS_2,             // Y-axis for additional plot
+    AXIS_3,             // Y-axis for additional plot
 
-    LINE_LIMIT, // линия, отображающая граничные значения
+    LINE_LIMIT,         // line showing boundary values
 
-    //--- для основного графика
-    LINE_NONE_0, // линия отсутствия значений
-    LINE_NORMAL_0, // линия с нормальным значением
-    LINE_BELOW_0, // линия ниже соответствующего порогового значения
-    LINE_ABOVE_0, // линия выше соответствующего порогового значения
+    //--- for the main plot
+    LINE_NONE_0,        // line of no values
+    LINE_NORMAL_0,      // normal line
+    LINE_BELOW_0,       // line below the corresponding threshold
+    LINE_ABOVE_0,       // line above the corresponding threshold
 
-    //--- для дополнительного графика
-    LINE_NONE_1, // линия отсутствия значений
-    LINE_NORMAL_1, // линия с нормальным значением
-
-    //--- для дополнительного графика
-    LINE_NONE_2, // линия отсутствия значений
-    LINE_NORMAL_2, // линия с нормальным значением
+    //--- for the additional plot
+    LINE_NONE_1,        // line of no values
+    LINE_NORMAL_1,      // normal line
 
     //--- для дополнительного графика
-    LINE_NONE_3, // линия отсутствия значений
-    LINE_NORMAL_3, // линия с нормальным значением
+    LINE_NONE_2,        // line of no values
+    LINE_NORMAL_2,      // normal line
+
+    //--- для дополнительного графика
+    LINE_NONE_3,        // line of no values
+    LINE_NORMAL_3,      // normal line
 }

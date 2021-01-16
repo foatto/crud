@@ -5,10 +5,8 @@ import foatto.core.app.graphic.GraphicActionResponse
 import foatto.core.app.xy.XyActionRequest
 import foatto.core.app.xy.XyActionResponse
 import foatto.core.link.*
-import org.w3c.dom.asList
-import org.w3c.files.FileList
+import kotlinx.browser.window
 import org.w3c.xhr.XMLHttpRequest
-import kotlin.browser.window
 import kotlin.random.Random
 
 private val sessionID = Random.nextLong()
