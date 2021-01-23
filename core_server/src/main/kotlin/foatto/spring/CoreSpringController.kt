@@ -576,22 +576,20 @@ abstract class CoreSpringController : iApplication {
     ): PutReplicationResponse {
         val putReplicationBegTime = getCurrentTimeInt()
 
-        val conn = AdvancedConnection(CoreSpringApp.dbConfig)
-        val stm = conn.createStatement()
-
         val destName = putReplicationRequest.destName
         val sourName = putReplicationRequest.sourName
         val sourDialect = putReplicationRequest.sourDialect
         val timeKey = putReplicationRequest.timeKey
+
+        val conn = AdvancedConnection(CoreSpringApp.dbConfig)
+        val stm = conn.createStatement()
 
         val alReplicationSQL = putReplicationRequest.alSQL.map {
             CoreAdvancedConnection.convertDialect(it, SQLDialect.hmDialect[sourDialect]!!, conn.dialect)
         }
 
         //--- проверка на приём этой реплики в предыдущей сессии связи
-        val rs = stm.executeQuery(
-            " SELECT 1 FROM SYSTEM_replication_send WHERE dest_name = '$destName' AND sour_name = '$sourName' AND time_key = $timeKey"
-        )
+        val rs = stm.executeQuery(" SELECT 1 FROM SYSTEM_replication_send WHERE dest_name = '$destName' AND sour_name = '$sourName' AND time_key = $timeKey")
         val isAlReadyReceived = rs.next()
         rs.close()
         //--- такую реплику мы ещё не получали
@@ -609,25 +607,21 @@ abstract class CoreSpringController : iApplication {
                 }
             }
             //--- реплика предназначена другому серверу - её надо просто отложить в соответствующую папку
-            else if (!alReplicationSQL.isEmpty()) {
+            else if (alReplicationSQL.isNotEmpty()) {
                 val bbReplicationData = CoreAdvancedConnection.getReplicationData(alReplicationSQL)
                 conn.saveReplication(destName, bbReplicationData)
             }
 
             //--- и в этой же транзакции запомним имя/номер реплики
-            if (stm.executeUpdate(
-                    " UPDATE SYSTEM_replication_send SET time_key = $timeKey WHERE dest_name = '$destName' AND sour_name = '$sourName' ", false
-                ) == 0
-            )
+            if (stm.executeUpdate(" UPDATE SYSTEM_replication_send SET time_key = $timeKey WHERE dest_name = '$destName' AND sour_name = '$sourName' ", false) == 0) {
 
-                stm.executeUpdate(
-                    " INSERT INTO SYSTEM_replication_send ( dest_name , sour_name , time_key ) VALUES ( '$destName' , '$sourName' , $timeKey ) ", false
-                )
+                stm.executeUpdate(" INSERT INTO SYSTEM_replication_send ( dest_name , sour_name , time_key ) VALUES ( '$destName' , '$sourName' , $timeKey ) ", false)
+            }
         }
         //--- просто ответ
         val putReplicationResponse = PutReplicationResponse(timeKey)
 
-        //--- зафиксировать любые изменения в базе/
+        //--- зафиксировать любые изменения в базе
         //--- на самом деле база коммитится самим спрингом, здесь только реплика пишется
         conn.commit()
 

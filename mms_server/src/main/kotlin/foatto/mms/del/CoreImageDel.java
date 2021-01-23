@@ -121,12 +121,12 @@
 //
 //        serverNo = Integer.parseInt( hmConfig.get( CONFIG_SERVER_NO ) );
 //
-//        if( serverNo >= alServerIP.size() ) System.exit( 0 );
+//        if( serverNo >= alServerIP.size() ) exitProcess( 0 );
 //
 //        final int connectTimeOut = Integer.parseInt( hmConfig.get( CONFIG_CONNECT_TIME_OUT ) );
 //        new Thread( new Runnable() { public void run() {
 //            while( true ) {
-//                if( System.currentTimeMillis() / 1000 - lastWorkTime > connectTimeOut ) System.exit( 1 );
+//                if( System.currentTimeMillis() / 1000 - lastWorkTime > connectTimeOut ) exitProcess( 1 );
 //                try { Thread.sleep( connectTimeOut * 1000L ); } catch( InterruptedException ie ) {}
 //            }
 //        } } ).start();

@@ -1,14 +1,14 @@
 package foatto.core_server.service
 
-import foatto.sql.CoreAdvancedConnection
-import foatto.sql.CoreAdvancedStatement
-import foatto.sql.DBConfig
 import foatto.core.util.AdvancedLogger
 import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.loadConfig
+import foatto.sql.CoreAdvancedConnection
+import foatto.sql.CoreAdvancedStatement
+import foatto.sql.DBConfig
 import java.io.File
 
-abstract class CoreServiceWorker( private val configFileName: String ) {
+abstract class CoreServiceWorker(private val configFileName: String) {
 
     companion object {
 
@@ -31,6 +31,7 @@ abstract class CoreServiceWorker( private val configFileName: String ) {
 
     //--- путь к веб-серверу (для доступа к общим файлам)
     protected lateinit var rootDirName: String
+
     //--- путь к временной папке
     protected lateinit var tempDirName: String
 
@@ -55,15 +56,15 @@ abstract class CoreServiceWorker( private val configFileName: String ) {
     //--- иначе ловить буду удивительнейшие баги недоинициализации,
     //--- когда в конструкторе вызывается метод, перекрываемый в наследниках
     open fun loadConfig() {
-        hmConfig = loadConfig( configFileName )
+        hmConfig = loadConfig(configFileName)
 
-        rootDirName = hmConfig[ CONFIG_ROOT_DIR ]!!
-        tempDirName = hmConfig[ CONFIG_TEMP_DIR ]!!
+        rootDirName = hmConfig[CONFIG_ROOT_DIR]!!
+        tempDirName = hmConfig[CONFIG_TEMP_DIR]!!
 
-        logPath = hmConfig[ CONFIG_LOG_PATH ]!!
-        logOptions = hmConfig[ CONFIG_LOG_OPTIONS ]!!
+        logPath = hmConfig[CONFIG_LOG_PATH]!!
+        logOptions = hmConfig[CONFIG_LOG_OPTIONS]!!
 
-        alDBConfig = DBConfig.loadConfig( hmConfig )
+        alDBConfig = DBConfig.loadConfig(hmConfig)
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -73,67 +74,62 @@ abstract class CoreServiceWorker( private val configFileName: String ) {
         //--- т.к. AdvancedLogger к этому времени ещё не готов выводить ошибки
         try {
             loadConfig()
-        }
-        catch( t: Throwable ) {
+        } catch (t: Throwable) {
             t.printStackTrace()
             return
         }
 
         try {
-            AdvancedLogger.init( logPath, logOptions.contains( "error" ), logOptions.contains( "info" ), logOptions.contains( "debug" ) )
-            AdvancedLogger.info( "==================== $serviceWorkerName started ====================" )
+            AdvancedLogger.init(logPath, logOptions.contains("error"), logOptions.contains("info"), logOptions.contains("debug"))
+            AdvancedLogger.info("==================== $serviceWorkerName started ====================")
 
-            val fileRestartFlag = File( "${configFileName}_" )
+            val fileRestartFlag = File("${configFileName}_")
 
             initDB()
 
             //--- разовый запуск
-            if( isRunOnce ) cycle()
+            if (isRunOnce) cycle()
             else {
-                val startDay = getCurrentTimeInt() / ( 24 * 60 * 60 )
-                while( true ) {
+                val startDay = getCurrentTimeInt() / (24 * 60 * 60)
+                while (true) {
                     //--- рестарт по обнаружению рестарт-файла
-                    if( fileRestartFlag.exists() ) {
+                    if (fileRestartFlag.exists()) {
                         fileRestartFlag.delete()
-                        AdvancedLogger.info( "==================== $serviceWorkerName restart by flag-file ====================" )
+                        AdvancedLogger.info("==================== $serviceWorkerName restart by flag-file ====================")
                         break
                     }
                     //--- собственно цикл обработки
                     cycle()
                     //--- всяческая статистика
-                    if( AdvancedLogger.isInfoEnabled && getCurrentTimeInt() - lastStatisticOutTime > STATISTIC_OUT_PERIOD ) {
+                    if (AdvancedLogger.isInfoEnabled && getCurrentTimeInt() - lastStatisticOutTime > STATISTIC_OUT_PERIOD) {
                         outStat()
                         lastStatisticOutTime = getCurrentTimeInt()
                     }
                 }
             }
-        }
-        catch( t: Throwable ) {
+        } catch (t: Throwable) {
             t.printStackTrace()
-            AdvancedLogger.error( t )
-            for( conn in alConn ) {
+            AdvancedLogger.error(t)
+            for (conn in alConn) {
                 try {
                     conn.rollback()
-                }
-                catch( re: Throwable ) {
+                } catch (re: Throwable) {
                     re.printStackTrace()
-                    AdvancedLogger.error( re )
+                    AdvancedLogger.error(re)
                 }
 
             }
-        }
-        finally {
-            for( conn in alConn ) {
+        } finally {
+            for (conn in alConn) {
                 try {
                     conn.close()
-                }
-                catch( re: Throwable ) {
+                } catch (re: Throwable) {
                     re.printStackTrace()
-                    AdvancedLogger.error( re )
+                    AdvancedLogger.error(re)
                 }
 
             }
-            AdvancedLogger.info( "==================== $serviceWorkerName close ====================" )
+            AdvancedLogger.info("==================== $serviceWorkerName close ====================")
             AdvancedLogger.close()
         }
     }
@@ -152,12 +148,12 @@ abstract class CoreServiceWorker( private val configFileName: String ) {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     protected fun outStat() {
-        AdvancedLogger.info( "======= Memory Statistic ======" )
-        AdvancedLogger.info( "Used = ${( runtime.totalMemory() - runtime.freeMemory() ) / 1024 / 1024}" )
-        AdvancedLogger.info( "Free = ${runtime.freeMemory() / 1024 / 1024}" )
-        AdvancedLogger.info( "Total = ${runtime.totalMemory() / 1024 / 1024}" )
-        AdvancedLogger.info( "Max = ${runtime.maxMemory() / 1024 / 1024}" )
-        AdvancedLogger.info( "===============================" )
+        AdvancedLogger.info("======= Memory Statistic ======")
+        AdvancedLogger.info("Used = ${(runtime.totalMemory() - runtime.freeMemory()) / 1024 / 1024}")
+        AdvancedLogger.info("Free = ${runtime.freeMemory() / 1024 / 1024}")
+        AdvancedLogger.info("Total = ${runtime.totalMemory() / 1024 / 1024}")
+        AdvancedLogger.info("Max = ${runtime.maxMemory() / 1024 / 1024}")
+        AdvancedLogger.info("===============================")
 
     }
 

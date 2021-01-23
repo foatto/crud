@@ -47,9 +47,10 @@ class ClientDBPrepare(aConfigFileName: String) : CoreServiceWorker(aConfigFileNa
     }
 
     override fun initDB() {
-        for(i in alDBConfig.indices) {
-            alConn.add(AdvancedConnection(alDBConfig[i]))
-            alStm.add(alConn[i].createStatement())
+        alDBConfig.forEach {
+            val conn = AdvancedConnection(it)
+            alConn.add(conn)
+            alStm.add(conn.createStatement())
         }
     }
 

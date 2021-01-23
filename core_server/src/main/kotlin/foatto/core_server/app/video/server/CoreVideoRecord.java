@@ -97,7 +97,7 @@
 //        }
 //        catch( Throwable t ) {
 //            t.printStackTrace();
-//            System.exit( 0 );
+//            exitProcess( 0 );
 //        }
 //    }
 //

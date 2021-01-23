@@ -81,7 +81,7 @@ class mUser : mAbstractHierarchy() {
             selfLinkTableName = tableName // для правильной работы селектора с подстановочной таблицей
             selectorAlias = folderAliasName
             addSelectorColumn(columnParent, columnParentID)
-            addSelectorColumn(columnParentFullName)
+            addSelectorColumn(this)
         }
 
         columnRecordFullName = ColumnString(tableName, "full_name", "-", STRING_COLUMN_WIDTH).apply {

@@ -53,7 +53,7 @@
 //                t.printStackTrace()
 //            }
 //
-//            System.exit(exitCode)
+//            exitProcess(exitCode)
 //        }
 //    }
 //}

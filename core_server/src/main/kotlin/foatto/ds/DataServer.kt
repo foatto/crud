@@ -1,32 +1,32 @@
 package foatto.ds
 
 import foatto.core_server.ds.CoreDataServer
+import kotlin.system.exitProcess
 
-class DataServer( aConfigFileName: String ) : CoreDataServer( aConfigFileName ) {
+class DataServer(aConfigFileName: String) : CoreDataServer(aConfigFileName) {
 
     companion object {
         @JvmStatic
-        fun main( args: Array<String> ) {
+        fun main(args: Array<String>) {
             var exitCode = 0
             try {
-                if( args.size == 1 ) {
-                    DataServer( args[ 0 ] ).run()
+                if (args.size == 1) {
+                    DataServer(args[0]).run()
                     //--- выход для перезапуска
                     exitCode = 1
                 }
                 //--- обычный выход с прерыванием цикла запусков
-                else println( "Usage: DataServer <ini-file-name>" )
-            }
-            catch( t: Throwable ) {
+                else println("Usage: DataServer <ini-file-name>")
+            } catch (t: Throwable) {
                 t.printStackTrace()
             }
-            System.exit( exitCode )
+            exitProcess(exitCode)
         }
     }
 
     //--- запуск своей специфичной для платформы версии обработчика
     override fun runNewDataWorker() {
-        DataWorker( this ).start()
+        DataWorker(this).start()
     }
 
 }

@@ -6,7 +6,11 @@ import foatto.core.util.getCurrentTimeInt
 import foatto.core_server.service.CoreServiceWorker
 import foatto.sql.AdvancedConnection
 import java.io.File
-import java.nio.file.*
+import java.nio.file.FileVisitResult
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
 import java.time.ZoneId
 import java.util.*
@@ -16,6 +20,7 @@ import javax.mail.internet.InternetAddress
 import javax.mail.internet.MimeMessage
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.system.exitProcess
 
 class AppMonitor(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
 
@@ -41,18 +46,17 @@ class AppMonitor(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         fun main(args: Array<String>) {
             var exitCode = 0   // нормальный выход с прерыванием цикла запусков
             try {
-                CoreServiceWorker.serviceWorkerName = "AppMonitor"
-                if(args.size == 1) {
+                serviceWorkerName = "AppMonitor"
+                if (args.size == 1) {
                     AppMonitor(args[0]).run()
                     exitCode = 1
-                }
-                else println("Usage: ${CoreServiceWorker.serviceWorkerName} <ini-file-name>")
+                } else println("Usage: ${serviceWorkerName} <ini-file-name>")
             }
             catch(t: Throwable) {
                 t.printStackTrace()
             }
 
-            System.exit(exitCode)
+            exitProcess(exitCode)
         }
     }
 
@@ -110,9 +114,10 @@ class AppMonitor(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
     }
 
     override fun initDB() {
-        for(i in alDBConfig.indices) {
-            alConn.add(AdvancedConnection(alDBConfig[i]))
-            alStm.add(alConn[i].createStatement())
+        alDBConfig.forEach {
+            val conn = AdvancedConnection(it)
+            alConn.add(conn)
+            alStm.add(conn.createStatement())
         }
     }
 

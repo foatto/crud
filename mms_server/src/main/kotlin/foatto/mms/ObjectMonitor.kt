@@ -10,6 +10,7 @@ import javax.mail.Message
 import javax.mail.Session
 import javax.mail.internet.InternetAddress
 import javax.mail.internet.MimeMessage
+import kotlin.system.exitProcess
 
 class ObjectMonitor(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
 
@@ -46,7 +47,7 @@ class ObjectMonitor(aConfigFileName: String) : CoreServiceWorker(aConfigFileName
                 t.printStackTrace()
             }
 
-            System.exit(exitCode)
+            exitProcess(exitCode)
         }
     }
 
@@ -89,9 +90,10 @@ class ObjectMonitor(aConfigFileName: String) : CoreServiceWorker(aConfigFileName
     }
 
     override fun initDB() {
-        for(i in alDBConfig.indices) {
-            alConn.add(AdvancedConnection(alDBConfig[i]))
-            alStm.add(alConn[i].createStatement())
+        alDBConfig.forEach {
+            val conn = AdvancedConnection(it)
+            alConn.add(conn)
+            alStm.add(conn.createStatement())
         }
     }
 
