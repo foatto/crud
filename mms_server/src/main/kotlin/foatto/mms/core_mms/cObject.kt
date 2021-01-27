@@ -33,18 +33,20 @@ class cObject : cStandart() {
                 tci.foreColor = TABLE_CELL_FORE_COLOR_DISABLED
             }
             else {
-                val id = ( hmColumnData[ model.columnID!! ] as DataInt).value
-                var lastDataTime = 0
+                val id = (hmColumnData[model.columnID!!] as DataInt).value
 
-                val rs = stm.executeQuery( " SELECT ontime FROM MMS_data_${id} ORDER BY ontime DESC " )
-                if( rs.next() )
-                    lastDataTime = rs.getInt(1)
+                val rs = stm.executeQuery(" SELECT MAX(ontime) FROM MMS_data_${id} ")
+                val lastDataTime = if (rs.next()) {
+                    rs.getInt(1)
+                } else {
+                    0
+                }
                 rs.close()
 
                 //--- нет данных больше суток - критично
-                if( getCurrentTimeInt() - lastDataTime > 1 * 24 * 60 * 60 ) tci.foreColor = TABLE_CELL_FORE_COLOR_CRITICAL
+                if (getCurrentTimeInt() - lastDataTime > 1 * 24 * 60 * 60) tci.foreColor = TABLE_CELL_FORE_COLOR_CRITICAL
                 //--- нет данных больше часа - предупреждение + начинается оповещение по e-mail
-                else if( getCurrentTimeInt() - lastDataTime > 1 * 60 * 60 ) tci.foreColor = TABLE_CELL_FORE_COLOR_WARNING
+                else if (getCurrentTimeInt() - lastDataTime > 1 * 60 * 60) tci.foreColor = TABLE_CELL_FORE_COLOR_WARNING
                 //--- всё нормально
                 else tci.foreColor = TABLE_CELL_FORE_COLOR_NORMAL
             }

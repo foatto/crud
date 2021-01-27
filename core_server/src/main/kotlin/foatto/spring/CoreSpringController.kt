@@ -255,7 +255,6 @@ abstract class CoreSpringController : iApplication {
         }
 
         //--- зафиксировать любые изменения в базе/
-        //--- на самом деле база коммитится самим спрингом, здесь только реплика пишется
         conn.commit()
 
         stm.close()
@@ -315,7 +314,6 @@ abstract class CoreSpringController : iApplication {
             }
 
         //--- зафиксировать любые изменения в базе/
-        //--- на самом деле база коммитится самим спрингом, здесь только реплика пишется
         conn.commit()
 
         stm.close()
@@ -384,7 +382,6 @@ abstract class CoreSpringController : iApplication {
             }
 
         //--- зафиксировать любые изменения в базе/
-        //--- на самом деле база коммитится самим спрингом, здесь только реплика пишется
         conn.commit()
 
         stm.close()
@@ -551,7 +548,6 @@ abstract class CoreSpringController : iApplication {
         }
 
         //--- зафиксировать любые изменения в базе/
-        //--- на самом деле база коммитится самим спрингом, здесь только реплика пишется
         conn.commit()
 
         stm.close()
@@ -622,7 +618,6 @@ abstract class CoreSpringController : iApplication {
         val putReplicationResponse = PutReplicationResponse(timeKey)
 
         //--- зафиксировать любые изменения в базе
-        //--- на самом деле база коммитится самим спрингом, здесь только реплика пишется
         conn.commit()
 
         stm.close()
@@ -666,7 +661,6 @@ abstract class CoreSpringController : iApplication {
             AdvancedLogger.error("User config not defined for saved property, name = '$upName', value = '$upValue'.")
 
         //--- зафиксировать любые изменения в базе/
-        //--- на самом деле база коммитится самим спрингом, здесь только реплика пишется
         conn.commit()
 
         stm.close()
@@ -711,7 +705,6 @@ abstract class CoreSpringController : iApplication {
             )
 
         //--- зафиксировать любые изменения в базе/
-        //--- на самом деле база коммитится самим спрингом, здесь только реплика пишется
         conn.commit()
 
         stm.close()

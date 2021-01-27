@@ -721,28 +721,57 @@ open class cStandart {
 
     protected fun getTableCaption(forSelect: Boolean, urlReferer: String, sort: Int, alCaption: MutableList<Pair<String, String>>) {
         //--- пустой заголовок для нумератора строк
-        if (aliasConfig.isShowRowNo)
+        if (aliasConfig.isShowRowNo) {
             alCaption.add(Pair("", "№"))
+        }
         //--- пустой заголовок для кнопки возврата в вызывающую форму
-        if (forSelect)
+        if (forSelect) {
             alCaption.add(Pair("", ""))
+        }
         //--- пустые заголовки для групповых полей
-        for (i in 0 until model.alTableGroupColumn.size)
+        for (i in 0 until model.alTableGroupColumn.size) {
             alCaption.add(Pair("", ""))
+        }
         //--- пустой заголовок для указателя имени пользователя записи при работе в режиме всех пользователей
-        if (model.columnUser != null && aliasConfig.isShowUserColumn)
+        if (model.columnUser != null && aliasConfig.isShowUserColumn) {
             alCaption.add(Pair("", ""))
+        }
 
         //--- заголовки табличных полей - только если в одном столбце только одно поле
         val tableColCount = model.getTableColumnColCount()
-        for (i in 0 until tableColCount) {
-            val column = model.getTableColumn(0, i)
-            val isMultiColColumn = model.getTableColumnColCount(i) > 1
+        for (col in 0 until tableColCount) {
+            val column = model.getTableColumn(0, col)
+            val isMultiColColumn = model.getTableColumnColCount(col) > 1
             alCaption.add(
                 Pair(
-                    if (column == null || isMultiColColumn || !column.isSortable()) ""
-                    else AppParameter.setParam(urlReferer, AppParameter.SORT, (if (abs(sort) - 1 == i) -sort else i + 1).toString()),
-                    if (column == null || isMultiColColumn) "" else if (column.tableCaption.isNotBlank()) column.tableCaption else column.caption
+                    if (column == null || isMultiColColumn || !column.isSortable()) {
+                        ""
+                    } else {
+                        AppParameter.setParam(urlReferer, AppParameter.SORT, (if (abs(sort) - 1 == col) -sort else col + 1).toString())
+                    },
+                    if (column == null) {
+                        ""
+                    } else if (isMultiColColumn) {
+                        //--- составляем неповторяющийся список заголовков с сохранением порядка полей
+                        val captions = mutableListOf<String>()
+                        for (row in 0 until model.getTableColumnColCount(col)) {
+                            model.getTableColumn(row, col)?.let { c ->
+                                val caption = if (c.tableCaption.isNotBlank()) {
+                                    c.tableCaption
+                                } else {
+                                    c.caption
+                                }
+                                if (caption.isNotBlank() && !captions.contains(caption)) {
+                                    captions += caption
+                                }
+                            }
+                        }
+                        captions.joinToString()
+                    } else if (column.tableCaption.isNotBlank()) {
+                        column.tableCaption
+                    } else {
+                        column.caption
+                    }
                 )
             )
         }

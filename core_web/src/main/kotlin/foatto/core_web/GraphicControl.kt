@@ -1372,29 +1372,31 @@ private fun outElement(
             value1 = ayd.min,
             value2 = ayd.max,
             prec = precY
-        ) )
+        )
+        )
     }
 
     //--- графики ---
 
     val alPrevTextBounds = mutableListOf<XyRect>()
 
-    for( cagdc in element.alGDC ) {
+    //--- для преодоления целочисленного переполнения
+    val svgBodyWidthDouble = svgBodyWidth.toDouble()
+    for (cagdc in element.alGDC) {
         val axisYIndex = cagdc.axisYIndex
 
-        when( cagdc.type.toString() ) {
+        when (cagdc.type.toString()) {
             GraphicDataContainer.ElementType.LINE.toString() -> {
                 var prevDrawX = -1
                 var prevDrawY = -1.0
                 var prevDrawColorIndex: GraphicColorIndex? = null
-                val hmCurIndexColor = hmIndexColor[ element.graphicTitle ]!!
-                val ayd = element.alAxisYData[ axisYIndex ]
+                val hmCurIndexColor = hmIndexColor[element.graphicTitle]!!
+                val ayd = element.alAxisYData[axisYIndex]
                 val graphicHeight = ayd.max - ayd.min
 
                 for( gld in cagdc.alGLD ) {
-                    val drawX = svgBodyWidth * ( gld.x - t1 ) / ( t2 - t1 )
-                    val drawY = pixDrawY0 - pixDrawHeight * ( gld.y - ayd.min ) / graphicHeight
-
+                    val drawX = (svgBodyWidthDouble * (gld.x - t1) / (t2 - t1)).toInt()
+                    val drawY = pixDrawY0 - pixDrawHeight * (gld.y - ayd.min) / graphicHeight
                     prevDrawColorIndex?.let {
                         alGraphicLine.add( SvgLine(
                             x1 = prevDrawX,

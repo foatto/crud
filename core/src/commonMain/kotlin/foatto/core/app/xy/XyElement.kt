@@ -84,14 +84,6 @@ class XyElement(
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    fun addTracePoint(aP: XyPoint, aColor: Int, aToolTip: String) {
-        alPoint = alPoint.toMutableList().apply { add(aP) }.toTypedArray()
-
-        alDrawColor = alDrawColor.toMutableList().apply { add(aColor) }.toTypedArray()
-        alFillColor = alFillColor.toMutableList().apply { add(aColor) }.toTypedArray()
-        alToolTip = alToolTip.toMutableList().apply { add(aToolTip) }.toTypedArray()
-    }
-
     //--- use .toString() for Kotlin/JS implementation
     fun calcAnchorXKoef() =
         when (anchorX.toString()) {

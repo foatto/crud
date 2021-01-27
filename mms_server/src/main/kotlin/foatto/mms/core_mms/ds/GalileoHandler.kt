@@ -426,7 +426,7 @@ open class GalileoHandler : MMSHandler() {
                     //AdvancedLogger.debug( "deviceID = " + deviceID + "\n user data time = " + StringFunction.DateTime_YMDHMS( timeZone, pointTime ) );
 
                     val userDataSize = bbIn.getByte().toInt() and 0xFF // размер данных
-                    AdvancedLogger.debug("deviceID = " + deviceID + "\n userDataSize = " + userDataSize);
+                    AdvancedLogger.debug("deviceID = $deviceID\n userDataSize = $userDataSize")
 
                     //                StringBuilder sbHex = new StringBuilder( " 0xEA =" );
                     //                for( int i = 0; i < userDataSize; i++ ) {
@@ -613,7 +613,7 @@ open class GalileoHandler : MMSHandler() {
 
     private fun savePoint(dataWorker: CoreDataWorker, pointTime: Int, sqlBatchData: SQLBatch) {
         val curTime = getCurrentTimeInt()
-        AdvancedLogger.error("pointTime = ${DateTime_YMDHMS(ZoneId.systemDefault(), pointTime)}")
+        AdvancedLogger.debug("pointTime = ${DateTime_YMDHMS(ZoneId.systemDefault(), pointTime)}")
         if (pointTime > curTime - MAX_PAST_TIME && pointTime < curTime + MAX_FUTURE_TIME) {
             val bbData = AdvancedByteBuffer(dataWorker.alConn[0].dialect.textFieldMaxSize / 2)
 

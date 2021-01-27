@@ -258,6 +258,11 @@ class sdcMMSMap : sdcXyMap() {
                     }
                 }
                 val objectTrace = XyElement(TYPE_OBJECT_TRACE, -getRandomInt(), objectParamData.objectID).apply {
+                    val alPoint_ = mutableListOf<XyPoint>()
+                    val alDrawColor_ = mutableListOf<Int>()
+                    val alFillColor_ = mutableListOf<Int>()
+                    val alToolTip_ = mutableListOf<String>()
+
                     toolTipText = objectNameAndModel
                     itReadOnly = true
                     lineWidth = 3
@@ -274,10 +279,18 @@ class sdcMMSMap : sdcXyMap() {
                         val sb = "$objectNameAndModel$sLineSeparator${DateTime_DMYHMS(zoneId, gcd.alPointTime[i])} -> ${DateTime_DMYHMS(zoneId, gcd.alPointTime[i + 1])}" +
                             "$sLineSeparator${gcd.alPointSpeed[i]} -> ${gcd.alPointSpeed[i + 1]} км/ч"
 
-                        addTracePoint(gcd.alPointXY[i], if (overSpeed > maxEnabledOverSpeed) 0xFF_FF_00_00.toInt() else 0xFF_00_00_FF.toInt(), sb)
+                        alPoint_.add(gcd.alPointXY[i])
+                        alDrawColor_.add(if (overSpeed > maxEnabledOverSpeed) 0xFF_FF_00_00.toInt() else 0xFF_00_00_FF.toInt())
+                        alFillColor_.add(if (overSpeed > maxEnabledOverSpeed) 0xFF_FF_00_00.toInt() else 0xFF_00_00_FF.toInt())
+                        alToolTip_.add(sb)
                     }
                     //--- последняя точка добавляется без траекторной информации
-                    alPoint = arrayOf(gcd.alPointXY[gcd.alPointXY.size - 1])
+                    alPoint_.add(gcd.alPointXY[gcd.alPointXY.size - 1])
+
+                    alPoint = alPoint_.toTypedArray()
+                    alDrawColor = alDrawColor_.toTypedArray()
+                    alFillColor = alFillColor_.toTypedArray()
+                    alToolTip = alToolTip_.toTypedArray()
                 }
                 alElement.add(objectTrace)
 

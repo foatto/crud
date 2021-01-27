@@ -84,11 +84,13 @@ class mCatalog : mAbstractHierarchy() {
         }
 
         columnParentFullName = ColumnString(selfLinkTableName, "name", "Раздел", STRING_COLUMN_WIDTH).apply {
-            selfLinkTableName = tableName // для правильной работы селектора с подстановочной таблицей
             selectorAlias = folderAliasName
             addSelectorColumn(columnParent, columnParentID)
             addSelectorColumn(this)
         }
+        //--- для правильной работы селектора с подстановочной таблицей
+        //--- (во избежание путаницы (tableName и selfLinkTableName есть как в mAbstract, так и в iColumn) делаем вне apply-блока)
+        columnParentFullName.selfLinkTableName = tableName
 
         columnRecordFullName = ColumnString(tableName, "name", "-", 3, STRING_COLUMN_WIDTH, textFieldMaxSize).apply {
             isRequired = true
