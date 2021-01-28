@@ -131,7 +131,6 @@ abstract class CoreReplicator(aConfigFileName: String) : CoreServiceWorker(aConf
 
                         val putReplicationRequest = PutReplicationRequest(destName, alDBConfig[0].name, alConn[0].dialect.dialect, timeKey, alSQL)
 
-
                         runBlocking {
                             val putReplicationResponse: PutReplicationResponse = alHttpClient[destIndex].post("/api/put_replication") {
                                 contentType(ContentType.Application.Json)

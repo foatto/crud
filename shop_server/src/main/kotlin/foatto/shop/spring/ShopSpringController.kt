@@ -20,14 +20,14 @@ import javax.servlet.http.HttpServletResponse
 @RestController
 class ShopSpringController : CoreSpringController(), iShopApplication {
 
-    @Value("\${fiscal_url}")
-    override val fiscalURL: String? = null
+    @Value("\${fiscal_urls}")
+    override val fiscalUrls: Array<String> = emptyArray()
 
-    @Value("\${fiscal_client}")
-    override val fiscalClient: String? = null
+    @Value("\${fiscal_line_cutters}")
+    override val fiscalLineCutters: Array<String> = emptyArray()
 
-    @Value("\${fiscal_line_cutter}")
-    override val fiscalLineCutter: String? = null
+    @Value("\${fiscal_cashiers}")
+    override val fiscalCashiers: Array<String> = emptyArray()
 
     @Value("\${fiscal_tax_mode}")
     override val fiscalTaxMode: String? = null
