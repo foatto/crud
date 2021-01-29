@@ -6,14 +6,14 @@ import java.io.File
 class cLogSession : cLogText() {
 
     //--- по умолчанию возвращаем просто соответствующую папку логов
-    override fun getLogDir(): File {
-        val dirLog = File(application.hmAliasLogDir[aliasConfig.alias]!!)
+    override fun getLogDir(): File? =
+        application.hmAliasLogDir[aliasConfig.alias]?.let { dirName ->
+            val dirLog = File(dirName)
 
-        val dID = hmParentData[ "mms_device" ]
-        val oID = hmParentData[ "mms_object" ]
-
-        return if( dID != null ) File( dirLog, "device/$dID" )
-          else if( oID != null ) File( dirLog, "object/$oID" )
-          else dirLog
-    }
+            hmParentData["mms_device"]?.let {
+                File(dirLog, "device/$it")
+            } ?: hmParentData["mms_object"]?.let {
+                File(dirLog, "object/$it")
+            } ?: dirLog
+        }
 }

@@ -95,11 +95,11 @@ open class CoreSpringApp {
     @Value("\${user_log_mode}")
     val sUserLogMode: String = ""
 
-    @Value("\${log_show_alias}")
-    private val logShowAlias: String? = null
+    @Value("\${log_show_aliases}")
+    private val logShowAliases: Array<String> = emptyArray()
 
-    @Value("\${log_show_dir}")
-    private val logShowDir: String? = null
+    @Value("\${log_show_dirs}")
+    private val logShowDirs: Array<String> = emptyArray()
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -116,11 +116,8 @@ open class CoreSpringApp {
         userLogMode = sUserLogMode.toIntOrNull() ?: SYSTEM_LOG_NONE
         dbConfig = DBConfig(dbName, dataSourceURL, dataSourceUser, dataSourcePassword, dbReplicationName, dbReplicatiionFilter, dbReplicationPath)
 
-        val arrLogShowAlias = logShowAlias?.split(",", " ")
-        val arrLogShowDir = logShowDir?.split(",", " ")
-        if (arrLogShowAlias != null && arrLogShowDir != null) {
-            for (i in 0 until min(arrLogShowAlias.size, arrLogShowDir.size))
-                hmAliasLogDir[arrLogShowAlias[i]] = arrLogShowDir[i]
+        for (i in 0 until min(logShowAliases.size, logShowDirs.size)) {
+            hmAliasLogDir[logShowAliases[i]] = logShowDirs[i]
         }
 
         initXyConfig()

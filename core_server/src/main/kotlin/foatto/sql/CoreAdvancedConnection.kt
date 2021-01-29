@@ -144,7 +144,9 @@ abstract class CoreAdvancedConnection(dbConfig: DBConfig) {
             tmFile = TreeMap()
             chmReplicationFile[replicationName] = tmFile
         }
-        if (tmFile.isEmpty()) Files.walkFileTree(Paths.get(replicationPath, replicationName), ReplicationFileVisitor(tmFile, MAX_REPLICATION_LIST_SIZE))
+        if (tmFile.isEmpty()) {
+            Files.walkFileTree(Paths.get(replicationPath, replicationName), ReplicationFileVisitor(tmFile, MAX_REPLICATION_LIST_SIZE))
+        }
         return tmFile
     }
 
