@@ -36,7 +36,7 @@ class cDayWork : cStandartPeriodSummary() {
         hmReportParam["report_end_month"] = endDate.monthValue
         hmReportParam["report_end_day"] = endDate.dayOfMonth
 
-        hmReportParam["report_group_type"] = (hmColumnData[m.columnReportGroupType] as DataComboBox).value
+        hmReportParam["report_group_type"] = (hmColumnData[m.columnReportGroupType] as DataComboBox).intValue
 
         hmReportParam["report_out_temperature"] = (hmColumnData[m.columnOutTemperature] as DataBoolean).value
         hmReportParam["report_out_density"] = (hmColumnData[m.columnOutDensity] as DataBoolean).value

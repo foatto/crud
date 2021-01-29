@@ -48,7 +48,7 @@ class cPriceTag : cAbstractReport() {
         for(i in 0 until mPriceTag.ROWS)
             for(j in 0 until mPriceTag.COLS) {
                 val paramName = "report_catalog_$i$j"
-                hmReportParam[paramName] = (hmColumnData[mpt.getColumnCatalog(i, j)] as DataInt).value
+                hmReportParam[paramName] = (hmColumnData[mpt.getColumnCatalog(i, j)] as DataInt).intValue
             }
 
         return getReport()

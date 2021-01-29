@@ -145,7 +145,7 @@ class cDocumentContent : cStandart() {
 
         //--- может быть вывод состава по нескольким накладным
         val rowDocDate = (hmColumnData[mdc.columnDocumentDate] as DataDate3Int).localDate
-        val rowDocType = (hmColumnData[mdc.columnDocumentType] as DataComboBox).value
+        val rowDocType = (hmColumnData[mdc.columnDocumentType] as DataComboBox).intValue
         val isUseSourCatalog = DocumentTypeConfig.hsUseSourCatalog.contains(rowDocType)
         val isUseSourNum = DocumentTypeConfig.hsUseSourNum.contains(rowDocType)
         val isUseDestCatalog = DocumentTypeConfig.hsUseDestCatalog.contains(rowDocType)
@@ -162,12 +162,12 @@ class cDocumentContent : cStandart() {
         }
 
         val price = PriceData.getPrice(
-            hmPrice, (hmColumnData[if(isUseDestCatalog) mdc.columnDestCatalog else mdc.columnSourCatalog] as DataInt).value,
+            hmPrice, (hmColumnData[if(isUseDestCatalog) mdc.columnDestCatalog else mdc.columnSourCatalog] as DataInt).intValue,
             zoneId, rowDocDate.year, rowDocDate.monthValue, rowDocDate.dayOfMonth
         )
-        (hmColumnData[if(isUseDestCatalog) mdc.columnDestCatalogPriceOut else mdc.columnSourCatalogPriceOut] as DataDouble).value = price
+        (hmColumnData[if(isUseDestCatalog) mdc.columnDestCatalogPriceOut else mdc.columnSourCatalogPriceOut] as DataDouble).doubleValue = price
 
-        (hmColumnData[mdc.columnCostOut] as DataDouble).value = (hmColumnData[if(isUseDestNum) mdc.columnDestNum else mdc.columnSourNum] as DataDouble).value * price
+        (hmColumnData[mdc.columnCostOut] as DataDouble).doubleValue = (hmColumnData[if(isUseDestNum) mdc.columnDestNum else mdc.columnSourNum] as DataDouble).doubleValue * price
     }
 
     override fun getPrintButtonURL(): String = getParamURL("shop_report_doc_content", AppAction.FORM, null, 0, hmParentData, null, "")
@@ -232,16 +232,16 @@ class cDocumentContent : cStandart() {
 
     override fun generateFormColumnData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {
         val mdc = model as mDocumentContent
-        val rowDocType = (hmColumnData[mdc.columnDocumentType] as DataComboBox).value
+        val rowDocType = (hmColumnData[mdc.columnDocumentType] as DataComboBox).intValue
         val isUseDestCatalog = DocumentTypeConfig.hsUseDestCatalog.contains(rowDocType)
-        val catalogID = (hmColumnData[if(isUseDestCatalog) mdc.columnDestCatalog else mdc.columnSourCatalog] as DataInt).value
+        val catalogID = (hmColumnData[if(isUseDestCatalog) mdc.columnDestCatalog else mdc.columnSourCatalog] as DataInt).intValue
 
         if(catalogID != 0) {
             //--- может быть вывод состава по нескольким накладным
             val rowDocDate = (hmColumnData[mdc.columnDocumentDate] as DataDate3Int).localDate
 
             val price = PriceData.getPrice(hmPrice, catalogID, zoneId, rowDocDate.year, rowDocDate.monthValue, rowDocDate.dayOfMonth)
-            (hmColumnData[if(isUseDestCatalog) mdc.columnDestCatalogPriceOut else mdc.columnSourCatalogPriceOut] as DataDouble).value = price
+            (hmColumnData[if(isUseDestCatalog) mdc.columnDestCatalogPriceOut else mdc.columnSourCatalogPriceOut] as DataDouble).doubleValue = price
         }
     }
 
@@ -282,13 +282,13 @@ class cDocumentContent : cStandart() {
         if(docType == DocumentTypeConfig.TYPE_MOVE) {
             val sourCatalog = hmColumnData[mdc.columnSourCatalog] as DataInt
             val destCatalog = hmColumnData[mdc.columnDestCatalog] as DataInt
-            destCatalog.value = sourCatalog.value
+            destCatalog.intValue = sourCatalog.intValue
         }
 
         //--- при перемещении между складами или при пересортице программно выставляем вх.кол-во равным исх. кол-ву
         if(docType == DocumentTypeConfig.TYPE_MOVE || docType == DocumentTypeConfig.TYPE_RESORT) {
             val destNum = hmColumnData[mdc.columnDestNum] as DataDouble
-            destNum.value = sourNum.value
+            destNum.doubleValue = sourNum.doubleValue
         }
 
         super.preSave(id, hmColumnData)
@@ -302,7 +302,7 @@ class cDocumentContent : cStandart() {
             // старый вариант: cCatalog.moveToArchive( stm, (hmColumnData[ mdc.columnSourCatalog ] as DataInt).value )
             cAbstractHierarchy.setActiveAndArchive(
                 AppAction.ARCHIVE,
-                (hmColumnData[mdc.columnSourCatalog] as DataInt).value,
+                (hmColumnData[mdc.columnSourCatalog] as DataInt).intValue,
                 "SHOP_catalog",
                 "id",
                 "in_active",
@@ -323,8 +323,8 @@ class cDocumentContent : cStandart() {
         //--- преобразуем пересортицу в переоценку
         if(docType == DocumentTypeConfig.TYPE_RESORT && (hmColumnData[mdc.columnResort2Reprice] as DataBoolean).value) {
             val dataDate = (hmColumnData[mdc.columnDocumentDate] as DataDate3Int).localDate
-            val sourID = (hmColumnData[mdc.columnSourCatalog] as DataInt).value
-            val destID = (hmColumnData[mdc.columnDestCatalog] as DataInt).value
+            val sourID = (hmColumnData[mdc.columnSourCatalog] as DataInt).intValue
+            val destID = (hmColumnData[mdc.columnDestCatalog] as DataInt).intValue
             var destName = (hmColumnData[mdc.columnDestCatalogName] as DataString).text
 
             //--- убираем цену из названия
@@ -375,7 +375,7 @@ class cDocumentContent : cStandart() {
                 " UPDATE SHOP_doc SET content_edit_time = "
             )
                 .append(if(isCurTime) getCurrentTimeInt() else (hmColumnData[mdc.columnEditTime] as DataDateTimeInt).zonedDateTime.toEpochSecond().toInt())
-                .append(" WHERE id = ").append((hmColumnData[mdc.columnDocument] as DataInt).value)
+                .append(" WHERE id = ").append((hmColumnData[mdc.columnDocument] as DataInt).intValue)
         )
 
     }

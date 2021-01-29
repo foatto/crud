@@ -27,7 +27,7 @@ class cUser : cAbstractHierarchy() {
         super.getTableColumnStyle(rowNo, isNewRow, hmColumnData, column, tci)
 
         val mu = model as mUser
-        if(column == mu.columnRecordFullName && (hmColumnData[mu.columnRecordType] as DataComboBox).value != OrgType.ORG_TYPE_DIVISION) {
+        if(column == mu.columnRecordFullName && (hmColumnData[mu.columnRecordType] as DataComboBox).intValue != OrgType.ORG_TYPE_DIVISION) {
 
             tci.foreColorType = TableCellForeColorType.DEFINED
 
@@ -78,7 +78,7 @@ class cUser : cAbstractHierarchy() {
             " INSERT INTO SYSTEM_user_property( user_id , property_name , property_value ) VALUES ( " +
             " $id , '$UP_TIME_OFFSET' , '${gc.timeZone.getOffset(gc.timeInMillis) / 1000}' ) " )
 
-        if((hmColumnData[(model as mUser).columnRecordType] as DataComboBox).value != OrgType.ORG_TYPE_DIVISION) {
+        if((hmColumnData[(model as mUser).columnRecordType] as DataComboBox).intValue != OrgType.ORG_TYPE_DIVISION) {
             val refererID = hmParam[AppParameter.REFERER]
             val hmUserRoleParentData = HashMap<String, Int>()
             hmUserRoleParentData["system_user"] = id

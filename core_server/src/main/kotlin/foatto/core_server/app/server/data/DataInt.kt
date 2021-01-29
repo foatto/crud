@@ -9,16 +9,16 @@ import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.iColumn
 import foatto.sql.CoreAdvancedStatement
 
-class DataInt(aColumn: iColumn) : DataAbstractValue(aColumn) {
+class DataInt(aColumn: iColumn) : DataAbstractIntValue(aColumn) {
 
     private val ci = column as ColumnInt
-
-    private var errorValue: String? = null
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     override fun loadFromDefault() {
-        value = validate((column as ColumnInt).defaultValue)
+        intValue = validate((column as ColumnInt).defaultValue)
+        errorValue = null
+        errorText = null
     }
 
     override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String, id: Int): Boolean {
@@ -30,71 +30,84 @@ class DataInt(aColumn: iColumn) : DataAbstractValue(aColumn) {
             return false
         }
         try {
-            value = strValue.replace(" ", "").toInt(ci.radix)
+            intValue = strValue.replace(" ", "").toInt(ci.radix)
+            errorValue = null
+            errorText = null
         } catch (t: Throwable) {
-            value = 0
+            intValue = 0
             errorValue = strValue
             errorText = "Ошибка ввода"
             return false
         }
 
         //--- проверка на минимум
-        if (ci.minValue != null && value < ci.minValue!!) {
+        if (ci.minValue != null && intValue < ci.minValue!!) {
             errorValue = strValue
             errorText = "Значение должно быть не меньше, чем ${ci.minValue}"
             return false
         }
         //--- проверка на максимум
-        if (ci.maxValue != null && value > ci.maxValue!!) {
+        if (ci.maxValue != null && intValue > ci.maxValue!!) {
             errorValue = strValue
             errorText = "Значение должно быть не больше, чем ${ci.maxValue}"
             return false
         }
 
         if (column.isUnique &&
-            (column.uniqueIgnore == null || column.uniqueIgnore != value) &&
-            stm.checkExist(column.tableName, column.alFieldName[0], value, fieldNameID, id)
+            (column.uniqueIgnore == null || column.uniqueIgnore != intValue) &&
+            stm.checkExist(column.tableName, column.alFieldName[0], intValue, fieldNameID, id)
         ) {
-
             errorValue = strValue
             errorText = "Это значение уже существует"
             return false
         }
+
         return true
     }
 
     override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int): TableCell =
-        if (isShowEmptyTableCell) TableCell(row, col, column.rowSpan, column.colSpan)
-        else TableCell(
-            aRow = row,
-            aCol = col,
-            aRowSpan = column.rowSpan,
-            aColSpan = column.colSpan,
-            aAlign = column.tableAlign,
-            aMinWidth = column.minWidth,
-            aIsWordWrap = column.isWordWrap,
-            aTooltip = column.caption,
+        if (isShowEmptyTableCell) {
+            TableCell(row, col, column.rowSpan, column.colSpan)
+        } else {
+            TableCell(
+                aRow = row,
+                aCol = col,
+                aRowSpan = column.rowSpan,
+                aColSpan = column.colSpan,
+                aAlign = column.tableAlign,
+                aMinWidth = column.minWidth,
+                aIsWordWrap = column.isWordWrap,
+                aTooltip = column.caption,
 
-            aText = getReportString()
-        )
+                aText = getReportString()
+            )
+        }
 
-    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement): FormCell {
-        val fci = FormCell(FormCellType.INT)
-        fci.name = getFieldCellName(0)
-        fci.value = if (errorText == null) getSplittedLong(value.toLong(), ci.radix) else errorValue!!
-        fci.column = ci.cols
-        fci.alComboString = ci.alCombo.toTypedArray()
-        return fci
-    }
+    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement) =
+        FormCell(FormCellType.INT).apply {
+            name = getFieldCellName(0)
+            value = if (errorText == null) {
+                getSplittedLong(intValue.toLong(), ci.radix)
+            } else {
+                errorValue!!
+            }
+            column = ci.cols
+            alComboString = ci.alCombo.toTypedArray()
+        }
 
     override fun setData(data: iData) {
-        value = (data as DataInt).value
+        intValue = (data as DataInt).intValue
+        errorValue = null
+        errorText = null
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    private fun getReportString(): String {
-        return if (ci.emptyValue != null && ci.emptyValue == value) ci.emptyText!!
-        else getSplittedLong(value.toLong(), ci.radix)
-    }
+    private fun getReportString() =
+        if (ci.emptyValue != null && ci.emptyValue == intValue) {
+            ci.emptyText!!
+        } else {
+            getSplittedLong(intValue.toLong(), ci.radix)
+        }
+
 }

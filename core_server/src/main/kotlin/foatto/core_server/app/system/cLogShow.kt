@@ -2,9 +2,9 @@ package foatto.core_server.app.system
 
 import foatto.core.app.ICON_NAME_GRAPHIC
 import foatto.core.link.AppAction
-import foatto.core_server.app.AppParameter
 import foatto.core.link.FormData
 import foatto.core.util.getRandomInt
+import foatto.core_server.app.AppParameter
 import foatto.core_server.app.graphic.server.GraphicStartData
 import foatto.core_server.app.server.cAbstractForm
 import foatto.core_server.app.server.data.DataDate3Int
@@ -27,7 +27,7 @@ class cLogShow : cAbstractForm() {
         //--- выборка данных параметров для отчета
         val sd = GraphicStartData()
         //sd.objectID = selectObject;
-        sd.rangeType = ( hmColumnData[ msfd.columnShowRangeType ] as DataRadioButton ).value
+        sd.rangeType = ( hmColumnData[ msfd.columnShowRangeType ] as DataRadioButton ).intValue
 
         if( sd.rangeType == 0 ) {
             sd.begTime = ZonedDateTime.of(

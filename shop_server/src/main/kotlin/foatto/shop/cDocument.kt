@@ -108,15 +108,15 @@ class cDocument : cStandart() {
     override fun generateColumnDataAfterFilter(hmColumnData: MutableMap<iColumn, iData>) {
         val md = model as mDocument
 
-        val docID = (hmColumnData[md.columnID!!] as DataInt).value
+        val docID = (hmColumnData[md.columnID!!] as DataInt).intValue
         //--- именно тип документа из строки, а не общий (т.к. м.б. == TYPE_ALL)
-        val rowDocType = (hmColumnData[md.columnDocumentType] as DataComboBox).value
+        val rowDocType = (hmColumnData[md.columnDocumentType] as DataComboBox).intValue
         val docTime = (hmColumnData[md.columnDocumentDate] as DataDate3Int).localDate.atStartOfDay(zoneId).toEpochSecond().toInt()
-        val discount = (hmColumnData[md.columnDocumentDiscount] as DataDouble).value
+        val discount = (hmColumnData[md.columnDocumentDiscount] as DataDouble).doubleValue
 
         val (rowCount, docCost) = calcDocCountAndCost(stm, hmPrice, docID, rowDocType, docTime, discount)
-        (hmColumnData[md.columnDocumentRowCount] as DataInt).value = rowCount
-        (hmColumnData[md.columnDocumentCostOut] as DataDouble).value = docCost
+        (hmColumnData[md.columnDocumentRowCount] as DataInt).intValue = rowCount
+        (hmColumnData[md.columnDocumentCostOut] as DataDouble).doubleValue = docCost
     }
 
     override fun preSave(id: Int, hmColumnData: Map<iColumn, iData>) {
@@ -153,7 +153,7 @@ class cDocument : cStandart() {
         if(docType == DocumentTypeConfig.TYPE_RESORT) {
             val sourWarehouse = hmColumnData[md.columnWarehouseSour] as DataComboBox
             val destWarehouse = hmColumnData[md.columnWarehouseDest] as DataInt
-            destWarehouse.value = sourWarehouse.value
+            destWarehouse.intValue = sourWarehouse.intValue
         }
         super.preSave(id, hmColumnData)
     }

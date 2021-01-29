@@ -1,9 +1,9 @@
 package foatto.core_server.app.server.column
 
-import foatto.sql.CoreAdvancedStatement
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.data.DataDouble
 import foatto.core_server.app.server.data.iData
+import foatto.sql.CoreAdvancedStatement
 
 class ColumnDouble( aTableName: String, aFieldName: String, aCaption: String = "", aCols: Int = 0, aPrecision: Int = -1, aDefaultValue: Double? = null ) : ColumnSimple() {
 
@@ -47,7 +47,7 @@ class ColumnDouble( aTableName: String, aFieldName: String, aCaption: String = "
     }
 
     override fun saveDefault(stm: CoreAdvancedStatement, userConfig: UserConfig, hmColumnData: Map<iColumn, iData>) {
-        userConfig.saveUserProperty( stm, savedDefaultPropertyName, ( hmColumnData[ this ] as DataDouble ).value.toString() )
+        userConfig.saveUserProperty( stm, savedDefaultPropertyName, ( hmColumnData[ this ] as DataDouble ).doubleValue.toString() )
     }
 
     override fun getData() = DataDouble( this )

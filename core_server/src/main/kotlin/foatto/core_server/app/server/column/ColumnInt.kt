@@ -1,9 +1,9 @@
 package foatto.core_server.app.server.column
 
-import foatto.sql.CoreAdvancedStatement
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.data.DataInt
 import foatto.core_server.app.server.data.iData
+import foatto.sql.CoreAdvancedStatement
 
 class ColumnInt( aTableName: String, aFieldName: String, aCaption: String = "", aCols: Int = 0, aDefaultValue: Int? = null ) : ColumnSimple() {
 
@@ -58,7 +58,7 @@ class ColumnInt( aTableName: String, aFieldName: String, aCaption: String = "", 
     }
 
     override fun saveDefault(stm: CoreAdvancedStatement, userConfig: UserConfig, hmColumnData: Map<iColumn, iData> ) {
-        userConfig.saveUserProperty( stm, savedDefaultPropertyName, ( hmColumnData[ this ] as DataInt ).value.toString( radix ) )
+        userConfig.saveUserProperty( stm, savedDefaultPropertyName, ( hmColumnData[ this ] as DataInt ).intValue.toString( radix ) )
     }
 
     override fun getData() = DataInt( this )

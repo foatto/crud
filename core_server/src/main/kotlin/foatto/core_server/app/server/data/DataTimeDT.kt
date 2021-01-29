@@ -19,7 +19,11 @@ class DataTimeDT(aColumn: iColumn) : DataAbstractTime(aColumn) {
 
     override fun loadFromDB(rs: CoreAdvancedResultSet, aPosRS: Int): Int {
         var posRS = aPosRS
+
         localTime = rs.getTime(posRS++) ?: NULL_TIME
+        arrErrorValue = null
+        errorText = null
+
         return posRS
     }
 
@@ -27,6 +31,8 @@ class DataTimeDT(aColumn: iColumn) : DataAbstractTime(aColumn) {
         val cd = column as ColumnTimeDT
 
         localTime = LocalTime.from(cd.default)
+        arrErrorValue = null
+        errorText = null
     }
 
     override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String, id: Int): Boolean {
@@ -69,12 +75,10 @@ class DataTimeDT(aColumn: iColumn) : DataAbstractTime(aColumn) {
     override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement): FormCell {
         val ct = column as ColumnTimeDT
 
-        val fci = FormCell(FormCellType.TIME)
-
-        fci.withSecond = ct.withSecond
-        fci.alDateTimeField = getDateTimeField(fci.alDateTimeField, ct.withSecond)
-
-        return fci
+        return FormCell(FormCellType.TIME).apply {
+            withSecond = ct.withSecond
+            alDateTimeField = getDateTimeField(alDateTimeField, ct.withSecond)
+        }
     }
 
     override fun getFieldCellName(index: Int): String = "${getFieldName(0)}_$index".replace(".", "___")

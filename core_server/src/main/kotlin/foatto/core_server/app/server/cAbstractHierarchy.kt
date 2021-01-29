@@ -47,8 +47,8 @@ open class cAbstractHierarchy : cStandart() {
         val dataRecordType = hmColumnData[m.columnRecordType] as DataComboBox
 
         return if(
-            dataRecordType.value == mAbstractHierarchy.RECORD_TYPE_FOLDER && m.isSelectableFolder ||
-            dataRecordType.value != mAbstractHierarchy.RECORD_TYPE_FOLDER && m.isSelectableItem
+            dataRecordType.intValue == mAbstractHierarchy.RECORD_TYPE_FOLDER && m.isSelectableFolder ||
+            dataRecordType.intValue != mAbstractHierarchy.RECORD_TYPE_FOLDER && m.isSelectableItem
         ) {
             super.getTableRowSelectButton(row, col, selectorParam, hmColumnData, hmOut)
         } else {
@@ -61,7 +61,7 @@ open class cAbstractHierarchy : cStandart() {
         val childAlias = model.alChildData[indexChild].alias as String
         if(childAlias == aliasConfig.alias) {
             val dataRecordType = hmColumnData[m.columnRecordType] as DataComboBox
-            return if(dataRecordType.value == mAbstractHierarchy.RECORD_TYPE_FOLDER) {
+            return if(dataRecordType.intValue == mAbstractHierarchy.RECORD_TYPE_FOLDER) {
                 super.getTableRowGoto(selectorID, hmColumnData, indexChild, alPopupData)
             } else {
                 null
@@ -81,7 +81,7 @@ open class cAbstractHierarchy : cStandart() {
         //--- 1. это не селектор (т.е. не надо возвращать значений из текущей строки)
         //--- 2. это селектор, но это строка с папкой (в этом случае производится вход в папку, а не возврат значений из текущей строки)
         //--- 3. это селектор и это строка-элемент (не папка), но текущий алиас == выбор папки, поэтому не нужен значений из текущей строки
-        return if(selectorParam == null || dataRecordType.value == mAbstractHierarchy.RECORD_TYPE_FOLDER || aliasConfig.alias == m.folderAliasName) {
+        return if(selectorParam == null || dataRecordType.intValue == mAbstractHierarchy.RECORD_TYPE_FOLDER || aliasConfig.alias == m.folderAliasName) {
             null
         } else {
             //--- в остальных случаях перекрываем на стандартный возврат значения из селектора
@@ -95,7 +95,7 @@ open class cAbstractHierarchy : cStandart() {
 
         val mah = model as mAbstractHierarchy
 
-        val id = (hmColumnData[model.alChildData[indexChild].column] as DataInt).value
+        val id = (hmColumnData[model.alChildData[indexChild].column] as DataInt).intValue
         hmNewParentData[mah.commonAliasName] = id
         hmNewParentData[mah.folderAliasName] = id
         hmNewParentData[mah.itemAliasName] = id
@@ -109,7 +109,7 @@ open class cAbstractHierarchy : cStandart() {
             val mah = model as mAbstractHierarchy
 
             val dataParentID = hmColumnData[mah.columnParent] as DataInt
-            if(dataParentID.value == id) {
+            if(dataParentID.intValue == id) {
                 val dataParentFullName = hmColumnData[mah.columnParentFullName] as DataString
                 dataParentFullName.errorValue = dataParentFullName.text
                 dataParentFullName.errorText = "Значение совпадает с ${mah.columnParentFullName.caption} ! "
@@ -132,7 +132,7 @@ open class cAbstractHierarchy : cStandart() {
                 model.columnActive!!.getFieldName(),
                 model.columnArchive!!.getFieldName(),
                 (model as mAbstractHierarchy).columnParent.getFieldName(),
-                (hmColumnData[(model as mAbstractHierarchy).columnRecordType] as DataComboBox).value == mAbstractHierarchy.RECORD_TYPE_FOLDER,
+                (hmColumnData[(model as mAbstractHierarchy).columnRecordType] as DataComboBox).intValue == mAbstractHierarchy.RECORD_TYPE_FOLDER,
                 stm
             )
         }

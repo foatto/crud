@@ -459,8 +459,8 @@ open class cStandart {
     private fun getRecordUserID(hmColumnData: Map<iColumn, iData>): Int {
         if (model.columnUser == null || model.columnID == null) return 0
 
-        val userID = (hmColumnData[model.columnUser!!] as DataAbstractValue).value
-        val rowID = (hmColumnData[model.columnID!!] as DataInt).value
+        val userID = (hmColumnData[model.columnUser!!] as DataAbstractIntValue).intValue
+        val rowID = (hmColumnData[model.columnID!!] as DataInt).intValue
         //--- проверка на совладельца
         return OtherOwnerData.getOtherOwner(stm, aliasConfig.id, rowID, userID, userConfig.userID)
     }
@@ -469,7 +469,7 @@ open class cStandart {
     private fun getRecordUserID(hmColumnData: Map<iColumn, iData>, id: Int): Int {
         if (model.columnUser == null || model.columnID == null) return 0
 
-        val userID = (hmColumnData[model.columnUser!!] as DataAbstractValue).value
+        val userID = (hmColumnData[model.columnUser!!] as DataAbstractIntValue).intValue
         //--- проверка на совладельца
         return OtherOwnerData.getOtherOwner(stm, aliasConfig.id, id, userID, userConfig.userID)
     }
@@ -654,7 +654,7 @@ open class cStandart {
             //--- вынесено сюда, чтобы нумерация строк работала независимо от наличия постраничной разбивки
             dataRowCount++
             tableRowCount += rowCount
-            if (model.columnID != null && (hmColumnData[model.columnID!!] as DataInt).value == currentRowID) currentRowNo = tableRowCount - 1
+            if (model.columnID != null && (hmColumnData[model.columnID!!] as DataInt).intValue == currentRowID) currentRowNo = tableRowCount - 1
             if (aliasConfig.pageSize > 0 && dataRowCount >= (pageNo + 1) * aliasConfig.pageSize) {
                 nextPageExist = true
                 break
@@ -829,8 +829,15 @@ open class cStandart {
     protected open fun generateColumnDataAfterFilter(hmColumnData: MutableMap<iColumn, iData>) {}
 
     protected fun getTableRow(
-        hmColumnData: Map<iColumn, iData>, dataRowNo: Int, tableRowStart: Int, selectorID: String?, selectorParam: SelectorParameter?, refererID: String,
-        alTableCell: MutableList<TableCell>, alTableRowData: MutableList<TableRowData>, hmOut: MutableMap<String, Any>
+        hmColumnData: Map<iColumn, iData>,
+        dataRowNo: Int,
+        tableRowStart: Int,
+        selectorID: String?,
+        selectorParam: SelectorParameter?,
+        refererID: String,
+        alTableCell: MutableList<TableCell>,
+        alTableRowData: MutableList<TableRowData>,
+        hmOut: MutableMap<String, Any>
     ): Int {
 
         //--- вычислим и запомним кол-во один раз
@@ -842,8 +849,11 @@ open class cStandart {
         //--- для внешнего суммирования реального кол-ва выведенных строк
         var rowCount = 0
 
-        //--- удобнее именно в объектном виде ( из-за применения null-значений )
-        val valueID = if (model.columnID == null) null else (hmColumnData[model.columnID!!] as DataInt).value
+        val valueID = if (model.columnID == null) {
+            null
+        } else {
+            (hmColumnData[model.columnID!!] as DataInt).intValue
+        }
         //--- обработка для выделения isNew строки, если есть
         val isNewRow = aliasConfig.isNewable && userConfig.userID != UserConfig.USER_GUEST && !getTableRowIsReaded(valueID)
 
@@ -898,8 +908,12 @@ open class cStandart {
             }
         }
         //--- разрешено ли открытие формы для данной строки таблицы?
-        val formURL = if (checkPerm(PERM_FORM, recordUserID)) getParamURL(aliasConfig.alias, AppAction.FORM, refererID, valueID, hmParentData, parentUserID, null)
-        else ""
+        val formURL = if (checkPerm(PERM_FORM, recordUserID)) {
+            getParamURL(aliasConfig.alias, AppAction.FORM, refererID, valueID, hmParentData, parentUserID, null)
+        }
+        else {
+            ""
+        }
         //--- по умолчанию дабл-клик == открытию формы в том же окне
         var rowURL = formURL
         var itRowURLInNewWindow = false
@@ -1004,7 +1018,7 @@ open class cStandart {
                     var controlValue = 0
                     val data = hmColumnData[fcvd.columnMaster]
                     if (data is DataBoolean) controlValue = if (data.value) 1 else 0
-                    else if (data is DataAbstractSelector) controlValue = data.value
+                    else if (data is DataAbstractSelector) controlValue = data.intValue
                     cellIsVisible = cellIsVisible and (fcvd.state == fcvd.values.contains(controlValue))
                     //--- одного доказательства невидимости достаточно
                     if (!cellIsVisible) break
@@ -1068,11 +1082,18 @@ open class cStandart {
         tci.fontStyle = if (isNewRow) 1 else 0
     }
 
-    protected open fun getTableRowSelectButton(row: Int, col: Int, selectorParam: SelectorParameter, hmColumnData: Map<iColumn, iData>, hmOut: MutableMap<String, Any>): TableCell {
+    protected open fun getTableRowSelectButton(
+        row: Int,
+        col: Int,
+        selectorParam: SelectorParameter,
+        hmColumnData: Map<iColumn, iData>,
+        hmOut: MutableMap<String, Any>
+    ): TableCell {
         //--- глубокая копия column-data с данными селекта
         //        Map<iColumn,iData> hmNewColumnData = ( Map<iColumn,iData> ) selectorParam.hmColumnData.clone();
-        val hmNewColumnData = mutableMapOf<iColumn, iData>()
-        for (column in selectorParam.hmColumnData.keys) hmNewColumnData[column] = selectorParam.hmColumnData[column]!!.clone() as iData
+        val hmNewColumnData = selectorParam.hmColumnData.map { (column, data) ->
+            column to data.clone() as iData
+        }.toMap().toMutableMap()
 
         for (i in selectorParam.alColumnTo.indices) {
             val columnFrom = selectorParam.alColumnFrom[i]
@@ -1080,7 +1101,9 @@ open class cStandart {
             val oldTableName = columnFrom.tableName
             //--- если есть реальное имя таблицы ( т.е. нынешнее значение - подстановочное ),
             //--- то на время поиска поля в выборке заменим подстановочное имя таблицы на реальное
-            if (columnFrom.selfLinkTableName != null) columnFrom.tableName = columnFrom.selfLinkTableName!!
+            if (columnFrom.selfLinkTableName != null) {
+                columnFrom.tableName = columnFrom.selfLinkTableName!!
+            }
             //AdvancedLogger.error(  "columnFrom = " + columnFrom.getTableName() + "." + columnFrom.getFieldName(  0  )  );
             val dataFrom = hmColumnData[columnFrom]
             //--- вернём прежнее имя таблицы
@@ -1108,8 +1131,13 @@ open class cStandart {
             aIcon = ICON_NAME_SELECT,
             aText = "",
             aUrl = getParamURL(
-                selectorParam.formAlias, AppAction.FORM, selectorParam.refererID, selectorParam.recordID, selectorParam.hmParentData,
-                selectorParam.parentUserID, "&${AppParameter.FORM_DATA}=$formDataID"
+                aAlias = selectorParam.formAlias,
+                aAction = AppAction.FORM,
+                aRefererID = selectorParam.refererID,
+                aID = selectorParam.recordID,
+                aParentData = selectorParam.hmParentData,
+                aParentUserID = selectorParam.parentUserID,
+                aAltParams = "&${AppParameter.FORM_DATA}=$formDataID"
             ),
             aInNewWindow = false
         )
@@ -1156,7 +1184,7 @@ open class cStandart {
 
     //--- для наследников - можно добавлять дополнительные паренты для child'ов
     protected open fun putTableRowGotoNewParentData(hmColumnData: Map<iColumn, iData>, indexChild: Int, hmNewParentData: MutableMap<String, Int>) {
-        hmNewParentData[aliasConfig.alias] = (hmColumnData[model.alChildData[indexChild].column] as DataInt).value
+        hmNewParentData[aliasConfig.alias] = (hmColumnData[model.alChildData[indexChild].column] as DataInt).intValue
     }
 
     //--- для наследников - можно изменить реакцию на действие по умолчанию ( двойной клик по строке таблицы )
@@ -1236,7 +1264,9 @@ open class cStandart {
 
         val refererID = hmParam[AppParameter.REFERER]
         var refererURL: String? = null
-        if (refererID != null) refererURL = chmSession[AppParameter.REFERER + refererID] as? String
+        if (refererID != null) {
+            refererURL = chmSession[AppParameter.REFERER + refererID] as? String
+        }
 
         //--- подготовка "чистого" appParam для кнопок формы
         //--- ( простое клонирование исходного hmParam здесь не годится,
@@ -1246,7 +1276,9 @@ open class cStandart {
         var hmColumnData: MutableMap<iColumn, iData>? = null
         //--- возврат с ошибками ввода в форме или после выбора из справочника
         val formDataID = hmParam[AppParameter.FORM_DATA]
-        if (formDataID != null) hmColumnData = chmSession[AppParameter.FORM_DATA + formDataID] as? MutableMap<iColumn, iData>
+        if (formDataID != null) {
+            hmColumnData = chmSession[AppParameter.FORM_DATA + formDataID] as? MutableMap<iColumn, iData>
+        }
 
         //--- это первый запуск формы
         if (hmColumnData == null) {
@@ -1258,7 +1290,7 @@ open class cStandart {
                 for (column in alColumnList) {
                     if (column.selectorAlias == null) continue
                     val pID = getParentID(column.selectorAlias)
-                    if (pID != null && pID != 0) (hmColumnData[column.getSelectTo()[0]] as DataInt).value = pID
+                    if (pID != null && pID != 0) (hmColumnData[column.getSelectTo()[0]] as DataInt).intValue = pID
                 }
                 //--- для модулей с виртуальными таблицами служебную запись не делаем
                 if (model.tableName != mAbstract.FAKE_TABLE_NAME) {
@@ -1282,7 +1314,9 @@ open class cStandart {
             //--- служебную запись вернем в максимально "нулевое" состояние
             if (id == 0 && model.tableName != mAbstract.FAKE_TABLE_NAME) doUpdate(0, alColumnList, getFormDefaultValues(alColumnList, false))
         }
-        if (hmColumnData == null) throw BusinessException("Просмотр данных в форме не разрешен.")
+        if (hmColumnData == null) {
+            throw BusinessException("Просмотр данных в форме не разрешен.")
+        }
         //--- генерация вычисляемых полей
         generateFormColumnData(id, hmColumnData)
 
@@ -1306,10 +1340,18 @@ open class cStandart {
             fci.caption = column.caption
             if (isEditEnabled) {
                 //--- кнопки селектора ( если есть )
-                fci.selectorSetURL = if (column.selectorAlias == null) ""
-                else getFormSelector(formParam, false, id, refererID, column, hmColumnData, hmOut)
-                fci.selectorClearURL = if (column.selectorAlias == null) ""
-                else getFormSelector(formParam, true, id, refererID, column, hmColumnData, hmOut)
+                fci.selectorSetURL = if (column.selectorAlias == null) {
+                    ""
+                }
+                else {
+                    getFormSelector(formParam, false, id, refererID, column, hmColumnData, hmOut)
+                }
+                fci.selectorClearURL = if (column.selectorAlias == null) {
+                    ""
+                }
+                else {
+                    getFormSelector(formParam, true, id, refererID, column, hmColumnData, hmOut)
+                }
                 //--- определяем автозапуск селектора
                 fci.itAutoStartSelector = column.isAutoStartSelector
                 //--- текст сообщения об ошибке ввода ( если есть )
@@ -1451,7 +1493,7 @@ open class cStandart {
         selectorParam.parentUserID = parentUserID
 
         selectorParam.selectorAlias = column.selectorAlias!!
-        selectorParam.selectID = (hmColumnData[column.getSelectTo()[0]] as DataInt).value
+        selectorParam.selectID = (hmColumnData[column.getSelectTo()[0]] as DataInt).intValue
         selectorParam.alColumnTo = column.getSelectTo()
         selectorParam.alColumnFrom = column.getSelectFrom()
 
@@ -1476,7 +1518,9 @@ open class cStandart {
 
         //--- если сервер вдруг перезагрузили между отдельными командами поиска
         //--- ( такое бывает редко, только при обновлениях, но тем не менее пользователю обидно ), то сделаем вид что поиска не было :)
-        if (findStr == null || finderID == null || refererID == null || refererURL == null) return null
+        if (findStr == null || finderID == null || refererID == null || refererURL == null) {
+            return null
+        }
 
         val alWord = mutableListOf<String>()    // набор готовых к поиску слов
         var sWord = ""                             // набор слов, разделенных пробелами
@@ -1554,8 +1598,9 @@ open class cStandart {
         for (column in alColumnList) {
             if (column == model.columnID) continue             // свое id-поле пропускаем, т.к. не изменяется
             if (column.isVirtual) continue                     // виртуальным полям нельзя делать предзапись
-            if (column.tableName == model.tableName)
+            if (column.tableName == model.tableName) {
                 hmColumnData[column]!!.preSave(application.rootDirName, stm)
+            }
         }
         val postURL: String?
         val alertTag: String?
@@ -1563,7 +1608,7 @@ open class cStandart {
             id = getNextID(hmColumnData)
             model.columnVersionId?.let {
                 val versionId = stm.getNextID(model.tableName, it.getFieldName())
-                (hmColumnData[it] as DataInt).value = versionId
+                (hmColumnData[it] as DataInt).intValue = versionId
             }
             doInsert(id, alColumnList, hmColumnData)
             addIsReaded(id)
@@ -1614,7 +1659,7 @@ open class cStandart {
             val result = stm.checkExist(
                 model.tableName,
                 arrayOf(
-                    Pair(model.columnVersionId!!.getFieldName(), dataVersionId.value),
+                    Pair(model.columnVersionId!!.getFieldName(), dataVersionId.intValue),
                     Pair(model.columnVersionNo!!.getFieldName(), dataVersionNo.text)
                 ),
                 model.columnID!!.getFieldName(),
@@ -1740,7 +1785,7 @@ open class cStandart {
         if (arrDateTimeColumn != null) {
             val dcb = hmColumnData[arrDateTimeColumn[0]] as DataComboBox
             //--- возможное выключение оповещения для конкретной записи
-            if (dcb.value >= 0) {
+            if (dcb.intValue >= 0) {
                 //--- поле упреждения и одно поле ColumnDateTime
                 if (arrDateTimeColumn.size == 2) {
                     val ddt = hmColumnData[arrDateTimeColumn[1]] as DataDateTimeInt
@@ -1751,7 +1796,7 @@ open class cStandart {
                     alertTime = ZonedDateTime.of(dd.localDate, dt.localTime, zoneId).toEpochSecond().toInt()
                 }//--- поле упреждения и пара полей ColumnDate и ColumnTime
                 //--- сохраняем время в секундах с заданным упреждением
-                alertTime -= dcb.value * 60
+                alertTime -= dcb.intValue * 60
                 stm.executeUpdate(
                     " INSERT INTO SYSTEM_alert ( id , alert_time , tag , row_id ) VALUES ( " + stm.getNextID("SYSTEM_alert", "id") +
                         " , $alertTime , '$alertTag' , $id  ) "
@@ -1810,6 +1855,7 @@ open class cStandart {
     }
 
     //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     protected fun addIsReaded(id: Int) {
         if (aliasConfig.isNewable) {
             stm.executeUpdate(" INSERT INTO SYSTEM_new ( table_name, row_id, user_id ) VALUES ( '${model.tableName}' , $id , ${userConfig.userID} ) ")

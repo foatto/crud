@@ -43,7 +43,7 @@ class cCashHistory : cAbstractReport() {
         val m = model as mCashHistory
 
         //--- выборка данных параметров для отчета
-        hmReportParam["report_warehouse_dest"] = (hmColumnData[m.columnWarehouseDest] as DataComboBox).value
+        hmReportParam["report_warehouse_dest"] = (hmColumnData[m.columnWarehouseDest] as DataComboBox).intValue
 
         val begDate = (hmColumnData[m.columnBegDate] as DataDate3Int).localDate
         val endDate = (hmColumnData[m.columnEndDate] as DataDate3Int).localDate

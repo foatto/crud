@@ -29,11 +29,11 @@ class cWorkShift : cAbstractPeriodSummary() {
         val m = model as mWorkShift
 
         //--- выборка данных параметров для отчета
-        hmReportParam["report_work_shift"] = (hmColumnData[m.columnWorkShift] as DataInt).value
+        hmReportParam["report_work_shift"] = (hmColumnData[m.columnWorkShift] as DataInt).intValue
 
         fillReportParam(m.uodg)
 
-        hmReportParam["report_worker"] = (hmColumnData[m.columnWorker] as DataInt).value
+        hmReportParam["report_worker"] = (hmColumnData[m.columnWorker] as DataInt).intValue
 
         val begDate = (hmColumnData[m.columnReportBegDate] as DataDate3Int).localDate
         val endDate = (hmColumnData[m.columnReportEndDate] as DataDate3Int).localDate
@@ -46,10 +46,10 @@ class cWorkShift : cAbstractPeriodSummary() {
         hmReportParam["report_end_month"] = endDate.monthValue
         hmReportParam["report_end_day"] = endDate.dayOfMonth
 
-        hmReportParam["report_add_before"] = (hmColumnData[m.columnAddBefore] as DataInt).value
-        hmReportParam["report_add_after"] = (hmColumnData[m.columnAddAfter] as DataInt).value
+        hmReportParam["report_add_before"] = (hmColumnData[m.columnAddBefore] as DataInt).intValue
+        hmReportParam["report_add_after"] = (hmColumnData[m.columnAddAfter] as DataInt).intValue
 
-        hmReportParam["report_group_type"] = (hmColumnData[m.columnReportGroupType] as DataComboBox).value
+        hmReportParam["report_group_type"] = (hmColumnData[m.columnReportGroupType] as DataComboBox).intValue
 
         hmReportParam["report_out_temperature"] = (hmColumnData[m.columnOutTemperature] as DataBoolean).value
         hmReportParam["report_out_density"] = (hmColumnData[m.columnOutDensity] as DataBoolean).value

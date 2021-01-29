@@ -33,10 +33,10 @@ abstract class cMMSReport : cAbstractReport() {
     // 9999.9               = "расход жидкости"     = 7
 
     protected fun fillReportParam(uodg: UODGSelector) {
-        hmReportParam["report_object_user"] = (hmColumnData[uodg.columnObjectUser] as DataComboBox).value
-        hmReportParam["report_object"] = (hmColumnData[uodg.columnObject] as DataInt).value
-        hmReportParam["report_department"] = (hmColumnData[uodg.columnDepartment] as DataInt).value
-        hmReportParam["report_group"] = (hmColumnData[uodg.columnGroup] as DataInt).value
+        hmReportParam["report_object_user"] = (hmColumnData[uodg.columnObjectUser] as DataComboBox).intValue
+        hmReportParam["report_object"] = (hmColumnData[uodg.columnObject] as DataInt).intValue
+        hmReportParam["report_department"] = (hmColumnData[uodg.columnDepartment] as DataInt).intValue
+        hmReportParam["report_group"] = (hmColumnData[uodg.columnGroup] as DataInt).intValue
     }
 
     protected fun fillReportParam(sos: SumOptionSelector) {
@@ -46,7 +46,7 @@ abstract class cMMSReport : cAbstractReport() {
     }
 
     protected fun fillReportParam(m: mOP) {
-        hmReportParam["report_object"] = (hmColumnData[m.columnReportObject] as DataInt).value
+        hmReportParam["report_object"] = (hmColumnData[m.columnReportObject] as DataInt).intValue
 
         val begDate = (hmColumnData[m.columnReportBegDate] as DataDate3Int).localDate
         val begTime = (hmColumnData[m.columnReportBegTime] as DataTime3Int).localTime
@@ -126,7 +126,7 @@ abstract class cMMSReport : cAbstractReport() {
         hmReportParam["report_end_hour"] = endTime.hour
         hmReportParam["report_end_minute"] = endTime.minute
 
-        hmReportParam["report_zone"] = (hmColumnData[m.columnReportZone] as DataInt).value
+        hmReportParam["report_zone"] = (hmColumnData[m.columnReportZone] as DataInt).intValue
     }
 
     protected fun fillReportTitleWithDate(sheet: WritableSheet): Int {

@@ -14,7 +14,7 @@ class DataDouble(aColumn: iColumn) : DataAbstract(aColumn) {
 
     private val cd = column as ColumnDouble
 
-    var value = 0.0
+    var doubleValue = 0.0
 
     private var errorValue: String? = null
 
@@ -25,12 +25,18 @@ class DataDouble(aColumn: iColumn) : DataAbstract(aColumn) {
 
     override fun loadFromDB(rs: CoreAdvancedResultSet, aPosRS: Int): Int {
         var posRS = aPosRS
-        value = rs.getDouble(posRS++)
+
+        doubleValue = rs.getDouble(posRS++)
+        errorValue = null
+        errorText = null
+
         return posRS
     }
 
     override fun loadFromDefault() {
-        value = validate(cd.defaultValue)
+        doubleValue = validate(cd.defaultValue)
+        errorValue = null
+        errorText = null
     }
 
     override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String, id: Int): Boolean {
@@ -42,35 +48,37 @@ class DataDouble(aColumn: iColumn) : DataAbstract(aColumn) {
             return false
         }
         try {
-            value = strValue.replace(',', '.').replace(" ", "").toDouble()
+            doubleValue = strValue.replace(',', '.').replace(" ", "").toDouble()
+            errorValue = null
+            errorText = null
         } catch (t: Throwable) {
-            value = 0.0
+            doubleValue = 0.0
             errorValue = strValue
             errorText = "Ошибка ввода"
             return false
         }
 
         //--- проверка на минимум
-        if (cd.minValue != null && value < cd.minValue!!) {
+        if (cd.minValue != null && doubleValue < cd.minValue!!) {
             errorValue = strValue
             errorText = "Значение должно быть не меньше, чем ${cd.minValue}"
             return false
         }
         //--- проверка на максимум
-        if (cd.maxValue != null && value > cd.maxValue!!) {
+        if (cd.maxValue != null && doubleValue > cd.maxValue!!) {
             errorValue = strValue
             errorText = "Значение должно быть не больше, чем ${cd.maxValue}"
             return false
         }
         if (column.isUnique &&
-            (column.uniqueIgnore == null || column.uniqueIgnore != value) &&
-            stm.checkExist(column.tableName, column.alFieldName[0], value, fieldNameID, id)
+            (column.uniqueIgnore == null || column.uniqueIgnore != doubleValue) &&
+            stm.checkExist(column.tableName, column.alFieldName[0], doubleValue, fieldNameID, id)
         ) {
-
             errorValue = strValue
             errorText = "Это значение уже существует"
             return false
         }
+
         return true
     }
 
@@ -89,27 +97,35 @@ class DataDouble(aColumn: iColumn) : DataAbstract(aColumn) {
             aText = getReportString()
         )
 
-    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement): FormCell {
-        val fci = FormCell(FormCellType.DOUBLE)
-        fci.name = getFieldCellName(0)
-        fci.value = if (errorText == null) getSplittedDouble(value, cd.precision) else errorValue!!
-        fci.column = cd.cols
-        fci.alComboString = cd.alCombo.toTypedArray()
-        return fci
-    }
+    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement): FormCell =
+        FormCell(FormCellType.DOUBLE).apply {
+            name = getFieldCellName(0)
+            value = if (errorText == null) {
+                getSplittedDouble(doubleValue, cd.precision)
+            } else {
+                errorValue!!
+            }
+            column = cd.cols
+            alComboString = cd.alCombo.toTypedArray()
+        }
 
-    override fun getFieldSQLValue(index: Int): String = "$value"
+    override fun getFieldSQLValue(index: Int): String = "$doubleValue"
 
     override fun setData(data: iData) {
-        value = (data as DataDouble).value
+        doubleValue = (data as DataDouble).doubleValue
+        errorValue = null
+        errorText = null
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    private fun getReportString(): String {
-        return if (cd.emptyValue != null && cd.emptyValue == value) cd.emptyText!!
-        else getSplittedDouble(value, cd.precision)
-    }
+    private fun getReportString(): String =
+        if (cd.emptyValue != null && cd.emptyValue == doubleValue) {
+            cd.emptyText!!
+        }
+        else {
+            getSplittedDouble(doubleValue, cd.precision)
+        }
 
     private fun validate(obj: Double?) = obj ?: 0.0
 }

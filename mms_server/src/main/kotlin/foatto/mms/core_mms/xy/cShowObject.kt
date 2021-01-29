@@ -12,10 +12,10 @@ class cShowObject : cShowAbstractObject() {
 
         val msa = model as mShowObject
         //--- выборка данных параметров для отчета
-        val selectObjectUser = ( hmColumnData[ msa.uodg.columnObjectUser ] as DataComboBox ).value
-        val selectObject = ( hmColumnData[ msa.uodg.columnObject ] as DataInt ).value
-        val selectDepartment = ( hmColumnData[ msa.uodg.columnDepartment ] as DataInt ).value
-        val selectGroup = ( hmColumnData[ msa.uodg.columnGroup ] as DataInt ).value
+        val selectObjectUser = ( hmColumnData[ msa.uodg.columnObjectUser ] as DataComboBox ).intValue
+        val selectObject = ( hmColumnData[ msa.uodg.columnObject ] as DataInt ).intValue
+        val selectDepartment = ( hmColumnData[ msa.uodg.columnDepartment ] as DataInt ).intValue
+        val selectGroup = ( hmColumnData[ msa.uodg.columnGroup ] as DataInt ).intValue
 
         val alObjectID = mutableListOf<Int>()
         if( selectObject == 0 ) cMMSReport.loadObjectList( stm, userConfig, selectObjectUser, selectDepartment, selectGroup, alObjectID )
@@ -24,7 +24,7 @@ class cShowObject : cShowAbstractObject() {
         val sd = XyStartData()
         for( objectID in alObjectID )
             sd.alStartObjectData.add( XyStartObjectData( objectID ) )
-        sd.rangeType = ( hmColumnData[ msa.columnShowRangeType ] as DataRadioButton ).value
+        sd.rangeType = ( hmColumnData[ msa.columnShowRangeType ] as DataRadioButton ).intValue
 
         //--- обработка динамических диапазонов - здесь не нужна, будет постоянно производиться при запросах траектории
         if( sd.rangeType == -1 ) {
@@ -37,7 +37,7 @@ class cShowObject : cShowAbstractObject() {
                 ( hmColumnData[ msa.columnShowEndTime ] as DataTime3Int ).localTime,
                 zoneId).toEpochSecond().toInt()
         }
-        showZoneType = ( hmColumnData[ msa.columnShowZoneType ] as DataComboBox ).value
+        showZoneType = ( hmColumnData[ msa.columnShowZoneType ] as DataComboBox ).intValue
 
         return sd
     }

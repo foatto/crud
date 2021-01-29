@@ -16,7 +16,7 @@ class cDayWork : cStandart() {
     override fun generateColumnDataAfterFilter(hmColumnData: MutableMap<iColumn, iData>) {
         val mODW = model as mDayWork
 
-        val objectID = (hmColumnData[mODW.columnObject] as DataInt).value
+        val objectID = (hmColumnData[mODW.columnObject] as DataInt).intValue
         val dd = hmColumnData[mODW.columnDate] as DataDate3Int
         val gc = dd.localDate.atStartOfDay(zoneId)
         val begTime = gc.toEpochSecond().toInt()

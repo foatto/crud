@@ -32,11 +32,11 @@ class cWorkShiftCompare : cMMSReport() {
         val m = model as mWorkShiftCompare
 
         //--- выборка данных параметров для отчета
-        hmReportParam["report_work_shift"] = (hmColumnData[m.columnWorkShift] as DataInt).value
+        hmReportParam["report_work_shift"] = (hmColumnData[m.columnWorkShift] as DataInt).intValue
 
         fillReportParam(m.uodg)
 
-        hmReportParam["report_worker"] = (hmColumnData[m.columnWorker] as DataInt).value
+        hmReportParam["report_worker"] = (hmColumnData[m.columnWorker] as DataInt).intValue
 
         val begDate = (hmColumnData[m.columnReportBegDate] as DataDate3Int).localDate
         val endDate = (hmColumnData[m.columnReportEndDate] as DataDate3Int).localDate
@@ -49,11 +49,11 @@ class cWorkShiftCompare : cMMSReport() {
         hmReportParam["report_end_month"] = endDate.monthValue
         hmReportParam["report_end_day"] = endDate.dayOfMonth
 
-        hmReportParam["report_time_type"] = (hmColumnData[m.columnTimeType] as DataComboBox).value
-        hmReportParam["report_add_before"] = (hmColumnData[m.columnAddBefore] as DataInt).value
-        hmReportParam["report_add_after"] = (hmColumnData[m.columnAddAfter] as DataInt).value
+        hmReportParam["report_time_type"] = (hmColumnData[m.columnTimeType] as DataComboBox).intValue
+        hmReportParam["report_add_before"] = (hmColumnData[m.columnAddBefore] as DataInt).intValue
+        hmReportParam["report_add_after"] = (hmColumnData[m.columnAddAfter] as DataInt).intValue
 
-        hmReportParam["report_max_diff"] = (hmColumnData[m.columnMaxDiff] as DataInt).value
+        hmReportParam["report_max_diff"] = (hmColumnData[m.columnMaxDiff] as DataInt).intValue
         hmReportParam["report_out_over_diff_only"] = (hmColumnData[m.columnOutOverDiffOnly] as DataBoolean).value
         hmReportParam["report_out_run_without_koef"] = (hmColumnData[m.columnOutRunWithoutKoef] as DataBoolean).value
         hmReportParam["report_sum_worker"] = (hmColumnData[m.columnSumWorker] as DataBoolean).value

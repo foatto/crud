@@ -15,7 +15,7 @@ class cShiftWork : cStandart() {
     override fun generateColumnDataAfterFilter(hmColumnData: MutableMap<iColumn, iData>) {
         val m = model as mShiftWork
 
-        val objectID = (hmColumnData[m.columnObject] as DataInt).value
+        val objectID = (hmColumnData[m.columnObject] as DataInt).intValue
         val begTime = (hmColumnData[m.columnShiftBegDoc] as DataDateTimeInt).zonedDateTime.toEpochSecond().toInt()
         val endTime = (hmColumnData[m.columnShiftEndDoc] as DataDateTimeInt).zonedDateTime.toEpochSecond().toInt()
 

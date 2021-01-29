@@ -25,7 +25,7 @@ class cShowZone : cAbstractForm() {
         val msz = model as mShowZone
 
         //--- выборка данных параметров для показа
-        val showZoneID = ( hmColumnData[ msz.columnZone ] as DataInt ).value
+        val showZoneID = ( hmColumnData[ msz.columnZone ] as DataInt ).intValue
 
         val hmZoneData = ZoneData.getZoneData( stm, userConfig, 0 )
         val zoneData = hmZoneData[ showZoneID ]!!

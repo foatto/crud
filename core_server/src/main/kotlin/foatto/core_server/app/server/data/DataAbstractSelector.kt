@@ -8,29 +8,32 @@ import foatto.core_server.app.server.column.ColumnAbstractSelector
 import foatto.core_server.app.server.column.iColumn
 import foatto.sql.CoreAdvancedStatement
 
-abstract class DataAbstractSelector(aColumn: iColumn, aFormCellType: FormCellType) : DataAbstractValue(aColumn) {
+abstract class DataAbstractSelector(aColumn: iColumn, aFormCellType: FormCellType) : DataAbstractIntValue(aColumn) {
 
     private var formCellType = aFormCellType
-
-    private var errorValue: Int? = null
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     override fun loadFromDefault() {
-        value = validate((column as ColumnAbstractSelector).defaultValue)
+        intValue = validate((column as ColumnAbstractSelector).defaultValue)
+        errorValue = null
+        errorText = null
     }
 
     override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String, id: Int): Boolean {
         val cas = column as ColumnAbstractSelector
         cas.requiredExcept?.let {
             if (formData.comboValue!! == cas.requiredExcept) {
-                errorValue = formData.comboValue!!
+                errorValue = formData.comboValue!!.toString()
                 errorText = "Обязательно для выбора"
                 return false
             }
         }
 
-        value = formData.comboValue!!
+        intValue = formData.comboValue!!
+        errorValue = null
+        errorText = null
+
         return true
     }
 
@@ -39,8 +42,8 @@ abstract class DataAbstractSelector(aColumn: iColumn, aFormCellType: FormCellTyp
             TableCell(row, col, column.rowSpan, column.colSpan)
         } else {
             val cas = column as ColumnAbstractSelector
-            val icon = cas.findChoiceIcon(value)
-            val descr = cas.findChoiceTableDescr(value)
+            val icon = cas.findChoiceIcon(intValue)
+            val descr = cas.findChoiceTableDescr(intValue)
             TableCell(
                 aRow = row,
                 aCol = col,
@@ -59,14 +62,20 @@ abstract class DataAbstractSelector(aColumn: iColumn, aFormCellType: FormCellTyp
     override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement): FormCell {
         val cas = column as ColumnAbstractSelector
 
-        val fci = FormCell(formCellType)
-        fci.comboName = getFieldCellName(0)
-        fci.comboValue = if (errorText == null) value else errorValue!!
-        fci.alComboData = cas.alSelectorData.map { Pair(it.value, it.formDescr) }.toTypedArray()
-        return fci
+        return FormCell(formCellType).apply {
+            comboName = getFieldCellName(0)
+            comboValue = if (errorText == null) {
+                intValue
+            } else {
+                errorValue!!.toInt()
+            }
+            alComboData = cas.alSelectorData.map { Pair(it.value, it.formDescr) }.toTypedArray()
+        }
     }
 
     override fun setData(data: iData) {
-        value = (data as DataAbstractSelector).value
+        intValue = (data as DataAbstractSelector).intValue
+        errorValue = null
+        errorText = null
     }
 }

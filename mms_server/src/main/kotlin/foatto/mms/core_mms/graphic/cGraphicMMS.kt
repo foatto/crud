@@ -32,11 +32,11 @@ class cGraphicMMS : cAbstractForm() {
         val msfd = model as mGraphicMMS
 
         //--- выборка данных параметров для отчета
-        val selectObject = ( hmColumnData[ msfd.columnObject ] as DataInt ).value
+        val selectObject = ( hmColumnData[ msfd.columnObject ] as DataInt ).intValue
 
         val sd = GraphicStartData()
         sd.objectID = selectObject
-        sd.rangeType = ( hmColumnData[ msfd.columnShowRangeType ] as DataRadioButton ).value
+        sd.rangeType = ( hmColumnData[ msfd.columnShowRangeType ] as DataRadioButton ).intValue
 
         if( sd.rangeType == 0 ) {
             sd.begTime = ZonedDateTime.of(

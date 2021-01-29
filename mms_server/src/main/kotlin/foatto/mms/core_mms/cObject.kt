@@ -5,7 +5,7 @@ import foatto.core.link.TableCellForeColorType
 import foatto.core.util.getCurrentTimeInt
 import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.column.iColumn
-import foatto.core_server.app.server.data.DataAbstractValue
+import foatto.core_server.app.server.data.DataAbstractIntValue
 import foatto.core_server.app.server.data.DataBoolean
 import foatto.core_server.app.server.data.DataInt
 import foatto.core_server.app.server.data.iData
@@ -33,7 +33,7 @@ class cObject : cStandart() {
                 tci.foreColor = TABLE_CELL_FORE_COLOR_DISABLED
             }
             else {
-                val id = (hmColumnData[model.columnID!!] as DataInt).value
+                val id = (hmColumnData[model.columnID!!] as DataInt).intValue
 
                 val rs = stm.executeQuery(" SELECT MAX(ontime) FROM MMS_data_${id} ")
                 val lastDataTime = if (rs.next()) {
@@ -69,7 +69,7 @@ class cObject : cStandart() {
 
         val mo = model as mObject
 
-        val userID = ( hmColumnData[ mo.columnUser!! ] as DataAbstractValue ).value
+        val userID = ( hmColumnData[ mo.columnUser!! ] as DataAbstractIntValue ).intValue
         stm.executeUpdate( " UPDATE MMS_day_work SET user_id = $userID WHERE object_id = $id " )
         stm.executeUpdate( " UPDATE MMS_downtime SET user_id = $userID WHERE object_id = $id " )
 

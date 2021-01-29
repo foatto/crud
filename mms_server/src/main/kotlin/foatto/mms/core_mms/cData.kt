@@ -23,14 +23,14 @@ class cData : cMMSOneObjectParent() {
         val md = model as mData
 
         //--- прописываем глобальное/локальное время (оно прописано в поле ontime как якобы id-поле)
-        val timeUTC = (hmColumnData[md.columnID!!] as DataInt).value
+        val timeUTC = (hmColumnData[md.columnID!!] as DataInt).intValue
 
         (hmColumnData[md.columnDataOnTimeUTC] as DataDateTimeInt).setDateTime(timeUTC)
         (hmColumnData[md.columnDataOnTimeLocal] as DataDateTimeInt).setDateTime(timeUTC)
 
         //--- берём сырые бинарные данные
         val dsd = hmColumnData[md.columnDataBinary] as DataBinary
-        val bb = dsd.value
+        val bb = dsd.binaryValue
         //--- список полей прописанных датчиков
         val tmSensorColumn = md.tmSensorColumn
         //--- строка-сборник данных по прочим/непрописанным датчикам

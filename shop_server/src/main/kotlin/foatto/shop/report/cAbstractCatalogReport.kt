@@ -55,10 +55,10 @@ abstract class cAbstractCatalogReport : cAbstractReport() {
         val m = model as mSHOPReport
 
         //--- выборка данных параметров для отчета
-        hmReportParam["report_warehouse_dest"] = (hmColumnData[m.columnWarehouseDest] as DataComboBox).value
-        hmReportParam["report_document_client"] = (hmColumnData[m.columnClient] as DataInt).value
-        hmReportParam["report_document_type"] = (hmColumnData[m.columnDocumentType] as DataComboBox).value
-        hmReportParam["report_catalog_dest"] = (hmColumnData[m.columnCatalogDest] as DataInt).value
+        hmReportParam["report_warehouse_dest"] = (hmColumnData[m.columnWarehouseDest] as DataComboBox).intValue
+        hmReportParam["report_document_client"] = (hmColumnData[m.columnClient] as DataInt).intValue
+        hmReportParam["report_document_type"] = (hmColumnData[m.columnDocumentType] as DataComboBox).intValue
+        hmReportParam["report_catalog_dest"] = (hmColumnData[m.columnCatalogDest] as DataInt).intValue
 
         val begDate = (hmColumnData[m.columnBegDate] as DataDate3Int).localDate
         val endDate = (hmColumnData[m.columnEndDate] as DataDate3Int).localDate

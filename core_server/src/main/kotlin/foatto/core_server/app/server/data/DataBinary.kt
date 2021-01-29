@@ -4,14 +4,14 @@ import foatto.core.link.FormCell
 import foatto.core.link.FormCellType
 import foatto.core.link.FormData
 import foatto.core.link.TableCell
-import foatto.sql.CoreAdvancedResultSet
-import foatto.sql.CoreAdvancedStatement
 import foatto.core.util.AdvancedByteBuffer
 import foatto.core_server.app.server.column.iColumn
+import foatto.sql.CoreAdvancedResultSet
+import foatto.sql.CoreAdvancedStatement
 
-class DataBinary( aColumn: iColumn ) : DataAbstract( aColumn ) {
+class DataBinary(aColumn: iColumn) : DataAbstract(aColumn) {
 
-    lateinit var value: AdvancedByteBuffer
+    lateinit var binaryValue: AdvancedByteBuffer
         private set
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -19,38 +19,36 @@ class DataBinary( aColumn: iColumn ) : DataAbstract( aColumn ) {
     override val fieldSQLCount: Int
         get() = 1
 
-    override fun loadFromDB(rs: CoreAdvancedResultSet, aPosRS: Int ): Int {
+    override fun loadFromDB(rs: CoreAdvancedResultSet, aPosRS: Int): Int {
         var posRS = aPosRS
-        value = rs.getByteBuffer( posRS++ )
+        binaryValue = rs.getByteBuffer(posRS++)
         return posRS
     }
 
     override fun loadFromDefault() {
-        value = AdvancedByteBuffer( 0 )
+        binaryValue = AdvancedByteBuffer(0)
     }
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String, id: Int ): Boolean = true
+    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String, id: Int): Boolean = true
 
     override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int): TableCell {
-        val tc = TableCell( row, col, column.rowSpan, column.colSpan )
+        val tc = TableCell(row, col, column.rowSpan, column.colSpan)
         tc.minWidth = column.minWidth
         return tc
     }
 
-    override fun getFormCell( rootDirName: String, stm: CoreAdvancedStatement): FormCell {
-        val fci = FormCell( FormCellType.STRING )
-        fci.name = getFieldCellName( 0 )
-        fci.value = value.getHex( null, false ).toString()
-        fci.column = 16
-        fci.itPassword = false
-
-        return fci
-    }
+    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement) =
+        FormCell(FormCellType.STRING).apply {
+            name = getFieldCellName(0)
+            value = binaryValue.getHex(null, false).toString()
+            column = 16
+            itPassword = false
+        }
 
     override fun getFieldSQLValue(index: Int): String = ""
 
-    override fun setData(data: iData ) {
-        value = ( data as DataBinary ).value
+    override fun setData(data: iData) {
+        binaryValue = (data as DataBinary).binaryValue
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

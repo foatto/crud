@@ -35,7 +35,7 @@ class cTrouble : cMMSReport() {
 
         //--- выборка данных параметров для отчета
         fillReportParam(m.uodg)
-        hmReportParam["report_period"] = (hmColumnData[m.columnReportPeriod] as DataInt).value
+        hmReportParam["report_period"] = (hmColumnData[m.columnReportPeriod] as DataInt).intValue
 
         return getReport()
     }

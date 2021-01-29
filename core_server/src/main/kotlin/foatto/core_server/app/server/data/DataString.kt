@@ -18,6 +18,8 @@ class DataString(aColumn: iColumn) : DataAbstract(aColumn) {
     var text: String = ""
         set(value) {
             field = validate(value)
+            errorValue = null
+            errorText = null
         }
 
     var errorValue: String? = null
@@ -29,19 +31,33 @@ class DataString(aColumn: iColumn) : DataAbstract(aColumn) {
 
     override fun loadFromDB(rs: CoreAdvancedResultSet, aPosRS: Int): Int {
         var posRS = aPosRS
+
         text = validate(rs.getString(posRS++))
+        errorValue = null
+        errorText = null
+
         return posRS
     }
 
     override fun loadFromDefault() {
         text = validate(cs.defaultValue)
+        errorValue = null
+        errorText = null
     }
 
     override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String, id: Int): Boolean {
-        text = if (cs.rows == 0) formData.stringValue!! else formData.textValue!!
+        text = if (cs.rows == 0) {
+            formData.stringValue!!
+        } else {
+            formData.textValue!!
+        }
 
-        if (cs.isUseTrim) text = text.trim()
+        if (cs.isUseTrim) {
+            text = text.trim()
+        }
         text = text.substring(0, min(text.length, cs.maxSize))
+        errorValue = null
+        errorText = null
 
         if (cs.isRequired && text.isEmpty()) {
             errorValue = text
@@ -51,7 +67,6 @@ class DataString(aColumn: iColumn) : DataAbstract(aColumn) {
         if (column.isUnique && (column.uniqueIgnore == null || column.uniqueIgnore != text) &&
             stm.checkExist(column.tableName, column.alFieldName[0], prepareForSQL(text), fieldNameID, id)
         ) {
-
             errorValue = text
             errorText = "Это значение уже существует"
             return false
@@ -72,13 +87,18 @@ class DataString(aColumn: iColumn) : DataAbstract(aColumn) {
             aIsWordWrap = column.isWordWrap,
             aTooltip = column.caption,
 
-            aText = if (cs.isPassword) "********" else if (text.isEmpty()) cs.emptyValueString else text
+            aText = if (cs.isPassword) {
+                "********"
+            } else if (text.isEmpty()) {
+                cs.emptyValueString
+            } else {
+                text
+            }
         )
     }
 
     override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement): FormCell {
         val fci: FormCell
-
         if (cs.rows == 0) {
             fci = FormCell(FormCellType.STRING)
             fci.name = getFieldCellName(0)
@@ -100,6 +120,8 @@ class DataString(aColumn: iColumn) : DataAbstract(aColumn) {
 
     override fun setData(data: iData) {
         text = (data as DataString).text
+        errorValue = null
+        errorText = null
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

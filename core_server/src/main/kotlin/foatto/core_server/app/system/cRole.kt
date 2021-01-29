@@ -1,4 +1,3 @@
-@file:JvmName("cRole")
 package foatto.core_server.app.system
 
 import foatto.core_server.app.server.cStandart

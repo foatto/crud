@@ -30,7 +30,7 @@ class cDevice : cStandart() {
     }
 
     //--- при создании записи id = controller_id, задаваемый вручную
-    override fun getNextID(hmColumnData: Map<iColumn, iData>): Int = ( hmColumnData[ ( model as mDevice ).columnDevice ] as DataInt ).value
+    override fun getNextID(hmColumnData: Map<iColumn, iData>): Int = ( hmColumnData[ ( model as mDevice ).columnDevice ] as DataInt ).intValue
 
     override fun postAdd(id: Int, hmColumnData: Map<iColumn, iData>, hmOut: MutableMap<String, Any>): String? {
         val postURL = super.postAdd( id, hmColumnData, hmOut )
@@ -59,8 +59,8 @@ class cDevice : cStandart() {
     private fun clearOldCameraInfo( hmColumnData: Map<iColumn, iData> ) {
         val md = model as mDevice
 
-        val deviceID = ( hmColumnData[ md.columnDevice ] as DataInt ).value
-        val objectID = ( hmColumnData[ md.columnObject ] as DataInt ).value
+        val deviceID = ( hmColumnData[ md.columnDevice ] as DataInt ).intValue
+        val objectID = ( hmColumnData[ md.columnObject ] as DataInt ).intValue
 
         stm.executeUpdate( " DELETE FROM VC_camera WHERE name = '$deviceID' AND object_id <> $objectID " )
     }

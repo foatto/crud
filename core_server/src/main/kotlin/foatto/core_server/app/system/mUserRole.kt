@@ -28,21 +28,21 @@ class mUserRole : mAbstract() {
 
         val columnRoleID = ColumnInt("SYSTEM_role", "id")
         val columnRole = ColumnInt(tableName, "role_id", columnRoleID)
-        val columnRoleName = ColumnString("SYSTEM_role", "name", "Наименование роли", STRING_COLUMN_WIDTH)
-        columnRoleName.isRequired = true
+        val columnRoleName = ColumnString("SYSTEM_role", "name", "Наименование роли", STRING_COLUMN_WIDTH).apply {
+            isRequired = true
+            selectorAlias = "system_role"
+            addSelectorColumn(columnRole, columnRoleID)
+            addSelectorColumn(this)
+        }
 
         val columnLoginID = ColumnInt("SYSTEM_users", "id")
         val columnLogin = ColumnInt(tableName, "user_id", columnLoginID)
-        val columnLoginName = ColumnString("SYSTEM_users", "full_name", "Пользователь", STRING_COLUMN_WIDTH)
-        columnLoginName.isRequired = true
-
-        columnRoleName.selectorAlias = "system_role"
-        columnRoleName.addSelectorColumn(columnRole, columnRoleID)
-        columnRoleName.addSelectorColumn(columnRoleName)
-
-        columnLoginName.selectorAlias = "system_user_people"
-        columnLoginName.addSelectorColumn(columnLogin, columnLoginID)
-        columnLoginName.addSelectorColumn(columnLoginName)
+        val columnLoginName = ColumnString("SYSTEM_users", "full_name", "Пользователь", STRING_COLUMN_WIDTH).apply {
+            isRequired = true
+            selectorAlias = "system_user_people"
+            addSelectorColumn(columnLogin, columnLoginID)
+            addSelectorColumn(this)
+        }
 
         //----------------------------------------------------------------------
 

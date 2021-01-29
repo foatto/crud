@@ -55,9 +55,9 @@ class cLiquidIncDec : cMMSReport() {
             hmReportParam["report_end_hour"] = endTime.hour
             hmReportParam["report_end_minute"] = endTime.minute
 
-            hmReportParam["report_time_type"] = (hmColumnData[m.columnTimeType] as DataComboBox).value
+            hmReportParam["report_time_type"] = (hmColumnData[m.columnTimeType] as DataComboBox).intValue
 
-            hmReportParam["report_zone"] = (hmColumnData[m.columnReportZone] as DataInt).value
+            hmReportParam["report_zone"] = (hmColumnData[m.columnReportZone] as DataInt).intValue
         }
         else {
             fillReportParam(model as mUODGPZ)

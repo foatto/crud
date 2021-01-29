@@ -17,6 +17,8 @@ abstract class DataAbstractTime(aColumn: iColumn) : DataAbstract(aColumn) {
     override fun setData(data: iData) {
         val dd = data as DataAbstractTime
         localTime = LocalTime.from(dd.localTime)
+        arrErrorValue = null
+        errorText = null
     }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------

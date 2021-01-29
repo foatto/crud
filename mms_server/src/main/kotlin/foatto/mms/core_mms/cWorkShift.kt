@@ -3,7 +3,7 @@ package foatto.mms.core_mms
 import foatto.core.util.getCurrentTimeInt
 import foatto.sql.CoreAdvancedStatement
 import foatto.core_server.app.server.column.iColumn
-import foatto.core_server.app.server.data.DataAbstractValue
+import foatto.core_server.app.server.data.DataAbstractIntValue
 import foatto.core_server.app.server.data.DataBoolean
 import foatto.core_server.app.server.data.DataInt
 import foatto.core_server.app.server.data.iData
@@ -30,7 +30,7 @@ class cWorkShift : cMMSOneObjectParent() {
         super.postDelete(id, hmColumnData)
 
         val m = model as mWorkShift
-        val objectID = (hmColumnData[m.columnObject] as DataInt).value
+        val objectID = (hmColumnData[m.columnObject] as DataInt).intValue
 
         val rs = stm.executeQuery( " SELECT id FROM MMS_work_shift WHERE object_id = $objectID " )
         val isWorkShiftRest = rs.next()
@@ -45,8 +45,8 @@ class cWorkShift : cMMSOneObjectParent() {
     private fun prepareAutoWorkShift( hmColumnData: Map<iColumn, iData> ) {
         val m = model as mWorkShift
 
-        val userID = ( hmColumnData[ model.columnUser!! ] as DataAbstractValue).value
-        val objectID = (hmColumnData[m.columnObject] as DataInt).value
+        val userID = ( hmColumnData[ model.columnUser!! ] as DataAbstractIntValue).intValue
+        val objectID = (hmColumnData[m.columnObject] as DataInt).intValue
         val isAutoWorkShift = (hmColumnData[m.columnIsAutoWorkShift] as DataBoolean).value
 
         stm.executeUpdate( " UPDATE MMS_object SET is_auto_work_shift = ${if(isAutoWorkShift) 1 else 0} WHERE id = $objectID " )

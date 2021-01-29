@@ -38,7 +38,7 @@ class cOperationHistory : cAbstractReport() {
         val moh = model as mOperationHistory
 
         //--- выборка данных параметров для отчета
-        hmReportParam["report_catalog_dest"] = (hmColumnData[moh.columnCatalogDest] as DataInt).value
+        hmReportParam["report_catalog_dest"] = (hmColumnData[moh.columnCatalogDest] as DataInt).intValue
 
         return getReport()
     }

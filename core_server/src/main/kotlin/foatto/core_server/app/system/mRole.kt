@@ -28,9 +28,10 @@ class mRole : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnRoleName = ColumnString(tableName, "name", "Наименование", STRING_COLUMN_WIDTH)
-        columnRoleName.isRequired = true
-        columnRoleName.setUnique(true, null)
+        val columnRoleName = ColumnString(tableName, "name", "Наименование", STRING_COLUMN_WIDTH).apply {
+            isRequired = true
+            setUnique(true, null)
+        }
 
         //----------------------------------------------------------------------------------------
 

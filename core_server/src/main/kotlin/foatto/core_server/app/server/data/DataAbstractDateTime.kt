@@ -21,7 +21,7 @@ abstract class DataAbstractDateTime(aColumn: iColumn) : DataAbstract(aColumn) {
     var zonedDateTime = NULL_DATE_TIME
         protected set
 
-    private var arrErrorValue: Array<String>? = null
+    protected var arrErrorValue: Array<String>? = null
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -32,6 +32,8 @@ abstract class DataAbstractDateTime(aColumn: iColumn) : DataAbstract(aColumn) {
         val cdt = column as ColumnAbstractDateTime
 
         zonedDateTime = ZonedDateTime.from(cdt.default)
+        arrErrorValue = null
+        errorText = null
     }
 
     override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String, id: Int): Boolean {
@@ -60,19 +62,23 @@ abstract class DataAbstractDateTime(aColumn: iColumn) : DataAbstract(aColumn) {
     override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int): TableCell {
         val cdt = column as ColumnAbstractDateTime
 
-        return if (isShowEmptyTableCell) TableCell(row, col, column.rowSpan, column.colSpan)
-        else TableCell(
-            aRow = row,
-            aCol = col,
-            aRowSpan = column.rowSpan,
-            aColSpan = column.colSpan,
-            aAlign = column.tableAlign,
-            aMinWidth = column.minWidth,
-            aIsWordWrap = column.isWordWrap,
-            aTooltip = column.caption,
+        return if (isShowEmptyTableCell) {
+            TableCell(row, col, column.rowSpan, column.colSpan)
+        }
+        else {
+            TableCell(
+                aRow = row,
+                aCol = col,
+                aRowSpan = column.rowSpan,
+                aColSpan = column.colSpan,
+                aAlign = column.tableAlign,
+                aMinWidth = column.minWidth,
+                aIsWordWrap = column.isWordWrap,
+                aTooltip = column.caption,
 
-            aText = if (cdt.withSecond) DateTime_DMYHMS(zonedDateTime) else DateTime_DMYHM(zonedDateTime)
-        )
+                aText = if (cdt.withSecond) DateTime_DMYHMS(zonedDateTime) else DateTime_DMYHM(zonedDateTime)
+            )
+        }
     }
 
     override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement): FormCell {
@@ -107,6 +113,8 @@ abstract class DataAbstractDateTime(aColumn: iColumn) : DataAbstract(aColumn) {
     override fun setData(data: iData) {
         val ddt = data as DataAbstractDateTime
         zonedDateTime = ZonedDateTime.from(ddt.zonedDateTime)
+        arrErrorValue = null
+        errorText = null
     }
 
     override fun getFieldCellName(index: Int): String = "${getFieldName(0)}_$index".replace(".", "___")

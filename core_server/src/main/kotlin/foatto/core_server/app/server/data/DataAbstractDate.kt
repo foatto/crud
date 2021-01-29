@@ -16,7 +16,7 @@ abstract class DataAbstractDate(aColumn: iColumn) : DataAbstract(aColumn) {
     var localDate: LocalDate = NULL_DATE
         protected set
 
-    private var arrErrorValue: Array<String>? = null
+    protected var arrErrorValue: Array<String>? = null
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -68,6 +68,8 @@ abstract class DataAbstractDate(aColumn: iColumn) : DataAbstract(aColumn) {
     override fun setData(data: iData) {
         val dd = data as DataAbstractDate
         localDate = LocalDate.from(dd.localDate)
+        arrErrorValue = null
+        errorText = null
     }
 
 }

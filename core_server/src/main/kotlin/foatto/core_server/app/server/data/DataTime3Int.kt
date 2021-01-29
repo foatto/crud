@@ -21,7 +21,11 @@ class DataTime3Int(aColumn: iColumn) : DataAbstractTime(aColumn) {
         val ct = column as ColumnTime3Int
 
         var posRS = aPosRS
+
         localTime = LocalTime.of(rs.getInt(posRS++), rs.getInt(posRS++), if (ct.withSecond) rs.getInt(posRS++) else 0)
+        arrErrorValue = null
+        errorText = null
+
         return posRS
     }
 
@@ -29,6 +33,8 @@ class DataTime3Int(aColumn: iColumn) : DataAbstractTime(aColumn) {
         val ct = column as ColumnTime3Int
 
         localTime = LocalTime.from(ct.default)
+        arrErrorValue = null
+        errorText = null
     }
 
     override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String, id: Int): Boolean {
@@ -53,19 +59,27 @@ class DataTime3Int(aColumn: iColumn) : DataAbstractTime(aColumn) {
     override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int): TableCell {
         val ct = column as ColumnTime3Int
 
-        return if (isShowEmptyTableCell) TableCell(row, col, column.rowSpan, column.colSpan)
-        else TableCell(
-            aRow = row,
-            aCol = col,
-            aRowSpan = column.rowSpan,
-            aColSpan = column.colSpan,
-            aAlign = column.tableAlign,
-            aMinWidth = column.minWidth,
-            aIsWordWrap = column.isWordWrap,
-            aTooltip = column.caption,
+        return if (isShowEmptyTableCell) {
+            TableCell(row, col, column.rowSpan, column.colSpan)
+        }
+        else {
+            TableCell(
+                aRow = row,
+                aCol = col,
+                aRowSpan = column.rowSpan,
+                aColSpan = column.colSpan,
+                aAlign = column.tableAlign,
+                aMinWidth = column.minWidth,
+                aIsWordWrap = column.isWordWrap,
+                aTooltip = column.caption,
 
-            aText = if (ct.withSecond) Time_HMS(localTime) else Time_HM(localTime)
-        )
+                aText = if (ct.withSecond) {
+                    Time_HMS(localTime)
+                } else {
+                    Time_HM(localTime)
+                }
+            )
+        }
     }
 
     override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement): FormCell {

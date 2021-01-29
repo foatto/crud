@@ -89,14 +89,14 @@ class cDocContent : cAbstractReport() {
 
         val mdc = model as mDocContent
 
-        val docID = (hmColumnData[mdc.columnDocument] as DataInt).value
-        val docType = (hmColumnData[mdc.columnDocumentType] as DataComboBox).value
+        val docID = (hmColumnData[mdc.columnDocument] as DataInt).intValue
+        val docType = (hmColumnData[mdc.columnDocumentType] as DataComboBox).intValue
 
         //--- выборка данных параметров для отчета
         hmReportParam["report_document"] = docID
-        hmReportParam["report_document_client"] = (hmColumnData[mdc.columnClient] as DataInt).value
+        hmReportParam["report_document_client"] = (hmColumnData[mdc.columnClient] as DataInt).intValue
         hmReportParam["report_document_type"] = docType
-        hmReportParam["report_catalog_dest"] = (hmColumnData[mdc.columnCatalogDest] as DataInt).value
+        hmReportParam["report_catalog_dest"] = (hmColumnData[mdc.columnCatalogDest] as DataInt).intValue
 
         if (aliasConfig.alias == "shop_fiscal_doc_content") {
             //--- дополнительная проверка (вдруг ещё нажимали на кнопку в том же окне)

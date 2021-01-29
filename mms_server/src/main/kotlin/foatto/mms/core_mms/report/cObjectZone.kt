@@ -51,10 +51,10 @@ class cObjectZone : cMMSReport() {
         hmReportParam["report_end_hour"] = endTime.hour
         hmReportParam["report_end_minute"] = endTime.minute
 
-        hmReportParam["report_zone"] = (hmColumnData[m.columnReportZone] as DataInt).value
+        hmReportParam["report_zone"] = (hmColumnData[m.columnReportZone] as DataInt).intValue
 
-        hmReportParam["report_type"] = (hmColumnData[m.columnReportType] as DataComboBox).value
-        hmReportParam["report_group_type"] = (hmColumnData[m.columnReportGroupType] as DataComboBox).value
+        hmReportParam["report_type"] = (hmColumnData[m.columnReportType] as DataComboBox).intValue
+        hmReportParam["report_group_type"] = (hmColumnData[m.columnReportGroupType] as DataComboBox).intValue
 
         return getReport()
     }

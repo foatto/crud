@@ -21,7 +21,7 @@ class cTaskThread : cOfficeReport() {
         val m = model as mTask
 
         //--- выборка данных параметров для отчета
-        hmReportParam[ "report_task" ] = (hmColumnData[ m.columnReportTask ] as DataInt).value
+        hmReportParam[ "report_task" ] = (hmColumnData[ m.columnReportTask ] as DataInt).intValue
 
         return getReport()
     }

@@ -52,20 +52,32 @@ class DataFile(
     }
 
     override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int): TableCell {
-        if (isShowEmptyTableCell) return TableCell(row, col, column.rowSpan, column.colSpan)
+        if (isShowEmptyTableCell) {
+            return TableCell(row, col, column.rowSpan, column.colSpan)
+        }
 
         val alFileStoreData = getList(stm, fileID)
 
-        if (alFileStoreData.isEmpty()) return TableCell(row, col)
+        if (alFileStoreData.isEmpty()) {
+            return TableCell(row, col)
+        }
 
         val tc = TableCell(
-            aRow = row, aCol = col, aRowSpan = column.rowSpan, aColSpan = column.colSpan, aAlign = column.tableAlign, aMinWidth = 0, aTooltip = column.caption
+            aRow = row,
+            aCol = col,
+            aRowSpan = column.rowSpan,
+            aColSpan = column.colSpan,
+            aAlign = column.tableAlign,
+            aMinWidth = 0,
+            aTooltip = column.caption
         )
 
         for (fsd in alFileStoreData) {
             val url = "/$FILE_BASE/${fsd.dir}/${fsd.name}"
             tc.addCellData(
-                aText = url.substringAfterLast('/'), aUrl = url, aInNewWindow = true
+                aText = url.substringAfterLast('/'),
+                aUrl = url,
+                aInNewWindow = true
             )
         }
 
@@ -91,13 +103,17 @@ class DataFile(
         //--- по каждому добавляемому файлу
         if (hmFileAdd.isNotEmpty()) {
             //--- при создании записи установим значение fileID - только при реальной необходимости
-            if (fileID == 0) fileID = stm.getNextID("SYSTEM_file_store", "file_id")
+            if (fileID == 0) {
+                fileID = stm.getNextID("SYSTEM_file_store", "file_id")
+            }
             hmFileAdd.forEach { (id, fileName) ->
                 save(stm, rootDirName, fileID, id, fileName)
             }
         }
         //--- по каждому удаляемому файлу
-        for (deleteID in alFileRemovedID) delete(stm, rootDirName, fileID, deleteID)
+        for (deleteID in alFileRemovedID) {
+            delete(stm, rootDirName, fileID, deleteID)
+        }
     }
 
     override fun preDelete(rootDirName: String, stm: CoreAdvancedStatement) {
@@ -125,7 +141,9 @@ class DataFile(
         val alFileStoreData = mutableListOf<FileStoreData>()
 
         val rs = stm.executeQuery(" SELECT id , name , dir FROM SYSTEM_file_store WHERE file_id = $aFileID ORDER BY name ")
-        while (rs.next()) alFileStoreData.add(FileStoreData(rs.getInt(1), rs.getString(2), rs.getString(3)))
+        while (rs.next()) {
+            alFileStoreData.add(FileStoreData(rs.getInt(1), rs.getString(2), rs.getString(3)))
+        }
         rs.close()
 
         return alFileStoreData
@@ -144,7 +162,11 @@ class DataFile(
     }
 
     private fun delete(stm: CoreAdvancedStatement, rootDirName: String, aFileID: Int, aID: Int) {
-        val sbSQLDiff = if (aID == 0) "" else " AND id = $aID "
+        val sbSQLDiff = if (aID == 0) {
+            ""
+        } else {
+            " AND id = $aID "
+        }
         val sbSQL = " SELECT name , dir FROM SYSTEM_file_store WHERE file_id = $aFileID $sbSQLDiff "
 
         val rs = stm.executeQuery(sbSQL)
@@ -159,6 +181,8 @@ class DataFile(
 
     private fun deleteFile(rootDirName: String, dirName: String, fileName: String) {
         val delFile = File(rootDirName, "$FILE_BASE/$dirName/$fileName")
-        if (delFile.exists()) delFile.delete()
+        if (delFile.exists()) {
+            delFile.delete()
+        }
     }
 }

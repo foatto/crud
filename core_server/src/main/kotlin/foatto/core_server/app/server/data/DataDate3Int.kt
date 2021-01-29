@@ -12,13 +12,19 @@ class DataDate3Int(aColumn: iColumn) : DataAbstractDate(aColumn) {
 
     override fun loadFromDB(rs: CoreAdvancedResultSet, aPosRS: Int): Int {
         var posRS = aPosRS
+
         localDate = LocalDate.of(rs.getInt(posRS++), rs.getInt(posRS++), rs.getInt(posRS++))
+        arrErrorValue = null
+        errorText = null
+
         return posRS
     }
 
     override fun loadFromDefault() {
         val cd = column as ColumnDate3Int
         localDate = LocalDate.from(cd.default)
+        arrErrorValue = null
+        errorText = null
     }
 
     override fun getFieldSQLValue(index: Int): String {

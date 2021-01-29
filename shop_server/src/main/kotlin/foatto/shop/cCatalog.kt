@@ -75,8 +75,8 @@ class cCatalog : cAbstractHierarchy() {
     override fun generateColumnDataAfterFilter(hmColumnData: MutableMap<iColumn, iData>) {
         val mc = model as mCatalog
 
-        val catalogID = (hmColumnData[mc.columnID!!] as DataInt).value
-        val recordType = (hmColumnData[mc.columnRecordType] as DataComboBox).value
+        val catalogID = (hmColumnData[mc.columnID!!] as DataInt).intValue
+        val recordType = (hmColumnData[mc.columnRecordType] as DataComboBox).intValue
 
         val hsID: Set<Int>
         if (recordType == mAbstractHierarchy.RECORD_TYPE_FOLDER) {
@@ -87,23 +87,23 @@ class cCatalog : cAbstractHierarchy() {
         } else {
             hsID = mutableSetOf()
             hsID.add(catalogID)
-            (hmColumnData[mc.columnCatalogPriceIn] as DataDouble).value = PriceData.getPrice(hmPriceIn, catalogID, today)
-            (hmColumnData[mc.columnCatalogPriceOut] as DataDouble).value = PriceData.getPrice(hmPriceOut, catalogID, today)
+            (hmColumnData[mc.columnCatalogPriceIn] as DataDouble).doubleValue = PriceData.getPrice(hmPriceIn, catalogID, today)
+            (hmColumnData[mc.columnCatalogPriceOut] as DataDouble).doubleValue = PriceData.getPrice(hmPriceOut, catalogID, today)
         }
 
         var countAll = 0.0
         for (i in 0 until mc.alColumnCatalogCount.size) {
             val wc = calcCatalogCount(hmDestCount, hmSourCount, hsID, alWarehouse[i].first)
-            (hmColumnData[mc.alColumnCatalogCount[i]] as DataDouble).value = wc
+            (hmColumnData[mc.alColumnCatalogCount[i]] as DataDouble).doubleValue = wc
             countAll += wc
         }
-        (hmColumnData[mc.columnCatalogAllCount] as DataDouble).value = countAll
+        (hmColumnData[mc.columnCatalogAllCount] as DataDouble).doubleValue = countAll
     }
 
     override fun getTableColumnStyle(rowNo: Int, isNewRow: Boolean, hmColumnData: Map<iColumn, iData>, column: iColumn, tci: TableCell) {
         super.getTableColumnStyle(rowNo, isNewRow, hmColumnData, column, tci)
 
-        if (column is ColumnInt && (hmColumnData[column] as DataInt).value < 0 || column is ColumnDouble && (hmColumnData[column] as DataDouble).value < 0) {
+        if (column is ColumnInt && (hmColumnData[column] as DataInt).intValue < 0 || column is ColumnDouble && (hmColumnData[column] as DataDouble).doubleValue < 0) {
 
             tci.foreColorType = TableCellForeColorType.DEFINED
             tci.foreColor = TABLE_CELL_FORE_COLOR_CRITICAL
@@ -116,11 +116,11 @@ class cCatalog : cAbstractHierarchy() {
     override fun generateFormColumnData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {
         if (id != 0 && isMerchant) {
             val mc = model as mCatalog
-            val recordType = (hmColumnData[mc.columnRecordType] as DataComboBox).value
+            val recordType = (hmColumnData[mc.columnRecordType] as DataComboBox).intValue
 
             if (recordType == mAbstractHierarchy.RECORD_TYPE_ITEM) {
-                (hmColumnData[mc.columnCatalogPriceIn] as DataDouble).value = PriceData.getPrice(hmPriceIn, id, today)
-                (hmColumnData[mc.columnCatalogPriceOut] as DataDouble).value = PriceData.getPrice(hmPriceOut, id, today)
+                (hmColumnData[mc.columnCatalogPriceIn] as DataDouble).doubleValue = PriceData.getPrice(hmPriceIn, id, today)
+                (hmColumnData[mc.columnCatalogPriceOut] as DataDouble).doubleValue = PriceData.getPrice(hmPriceOut, id, today)
             }
         }
     }
@@ -130,12 +130,12 @@ class cCatalog : cAbstractHierarchy() {
 
         if (isMerchant) {
             val mc = model as mCatalog
-            val recordType = (hmColumnData[mc.columnRecordType] as DataComboBox).value
+            val recordType = (hmColumnData[mc.columnRecordType] as DataComboBox).intValue
 
             if (recordType == mAbstractHierarchy.RECORD_TYPE_ITEM) {
                 val priceDate = (hmColumnData[mc.columnCatalogPriceDate] as DataDate3Int).localDate.atStartOfDay(zoneId)
-                val priceIn = (hmColumnData[mc.columnCatalogPriceIn] as DataDouble).value
-                val priceOut = (hmColumnData[mc.columnCatalogPriceOut] as DataDouble).value
+                val priceIn = (hmColumnData[mc.columnCatalogPriceIn] as DataDouble).doubleValue
+                val priceOut = (hmColumnData[mc.columnCatalogPriceOut] as DataDouble).doubleValue
 
                 updateOrInsertPrice(id, priceDate, mPrice.PRICE_TYPE_IN, priceIn)
                 updateOrInsertPrice(id, priceDate, mPrice.PRICE_TYPE_OUT, priceOut)
@@ -154,12 +154,12 @@ class cCatalog : cAbstractHierarchy() {
             //--- теперь это единообразно делается в cAbstractHierarchy
             //if((hmColumnData[mc.columnToArchive] as DataBoolean).value) moveToArchive(stm, id)
 
-            val recordType = (hmColumnData[mc.columnRecordType] as DataComboBox).value
+            val recordType = (hmColumnData[mc.columnRecordType] as DataComboBox).intValue
 
             if (recordType == mAbstractHierarchy.RECORD_TYPE_ITEM) {
                 val priceDate = (hmColumnData[mc.columnCatalogPriceDate] as DataDate3Int).localDate.atStartOfDay(zoneId)
-                val priceIn = (hmColumnData[mc.columnCatalogPriceIn] as DataDouble).value
-                val priceOut = (hmColumnData[mc.columnCatalogPriceOut] as DataDouble).value
+                val priceIn = (hmColumnData[mc.columnCatalogPriceIn] as DataDouble).doubleValue
+                val priceOut = (hmColumnData[mc.columnCatalogPriceOut] as DataDouble).doubleValue
 
                 updateOrInsertPrice(id, priceDate, mPrice.PRICE_TYPE_IN, priceIn)
                 updateOrInsertPrice(id, priceDate, mPrice.PRICE_TYPE_OUT, priceOut)

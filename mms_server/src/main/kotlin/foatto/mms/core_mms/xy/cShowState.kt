@@ -25,7 +25,7 @@ class cShowState : cAbstractForm() {
         val mss = model as mShowState
 
         //--- выборка данных параметров для отчета
-        val selectObjectID = ( hmColumnData[ mss.columnObject ] as DataInt ).value
+        val selectObjectID = ( hmColumnData[ mss.columnObject ] as DataInt ).intValue
 
         val oc = (application as iMMSApplication).getObjectConfig(userConfig, selectObjectID)
 

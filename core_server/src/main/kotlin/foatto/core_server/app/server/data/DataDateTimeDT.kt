@@ -7,7 +7,11 @@ class DataDateTimeDT(aColumn: iColumn) : DataAbstractDateTime(aColumn) {
 
     override fun loadFromDB(rs: CoreAdvancedResultSet, aPosRS: Int): Int {
         var posRS = aPosRS
+
         zonedDateTime = rs.getDateTime(posRS++)?.atZone(zoneId) ?: NULL_DATE_TIME
+        arrErrorValue = null
+        errorText = null
+
         return posRS
     }
 
