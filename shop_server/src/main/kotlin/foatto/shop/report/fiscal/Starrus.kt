@@ -11,16 +11,17 @@ import kotlinx.coroutines.runBlocking
 
 class Starrus : iFiscal {
 
-    private val alLine = mutableListOf<FiscalLine>()
+    private val alItem = mutableListOf<StarrusFiscalItem>()
     private var sumCostOut = 0L
 
     override fun addLine(
         name: String,
         price: Double,
-        count: Double
+        count: Double,
+        markingCode: String?,
     ) {
-        alLine.add(
-            FiscalLine(
+        alItem.add(
+            StarrusFiscalItem(
                 Qty = (count * 1000).toInt(),
                 Price = (price * 100).toInt(),
                 Description = name
@@ -39,12 +40,11 @@ class Starrus : iFiscal {
         fiscalTaxMode: String,
         fiscalPlace: String,
     ) {
-
-        val fiscalRequest = FiscalQuery(
+        val fiscalRequest = StarrusFiscalRequest(
             Password = 1,
             ClientId = fiscalCashier,
             RequestId = docId,
-            Lines = alLine.toTypedArray(),
+            Lines = alItem.toTypedArray(),
             Cash = sumCostOut / 1000,
             NonCash = arrayOf(0),
             TaxMode = fiscalTaxMode.toInt(),
@@ -72,14 +72,14 @@ class Starrus : iFiscal {
     }
 }
 
-private class FiscalQuery(
+private class StarrusFiscalRequest(
     val Device: String = "auto",
     val Password: Int,
     val ClientId: String,
     val RequestId: String,  // обязательно уникально
 
     val DocumentType: Int = 0,      // 0 - приход, 1 - расход, 2 - возврат прихода, 3 - возврат расхода
-    val Lines: Array<FiscalLine>,
+    val Lines: Array<StarrusFiscalItem>,
 
     val Cash: Long,             // сумма наличными
     //--- оплачено карточкой (разделение по типам карточек), если только наличкой, писать [ 0 ],
@@ -98,7 +98,7 @@ private class FiscalQuery(
 //    val UserRequisite: пользовательские реквизиты
 )
 
-private class FiscalLine(
+private class StarrusFiscalItem(
     val Qty: Int,               // количество * 1000
     val Price: Int,             // цена в копейках, т.е. * 100
 //    val SubTotal: Long,         // итог по строке

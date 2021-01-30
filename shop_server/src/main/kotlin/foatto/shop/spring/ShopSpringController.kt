@@ -29,8 +29,8 @@ class ShopSpringController : CoreSpringController(), iShopApplication {
     @Value("\${fiscal_cashiers}")
     override val fiscalCashiers: Array<String> = emptyArray()
 
-    @Value("\${fiscal_tax_mode}")
-    override val fiscalTaxMode: String? = null
+    @Value("\${fiscal_tax_modes}")
+    override val fiscalTaxModes: Array<String> = emptyArray()
 
     @Value("\${fiscal_place}")
     override val fiscalPlace: String? = null

@@ -8,7 +8,8 @@ interface iFiscal {
     fun addLine(
         name: String,
         price: Double,
-        count: Double
+        count: Double,
+        markingCode: String?,
     )
 
     fun sendFiscal(

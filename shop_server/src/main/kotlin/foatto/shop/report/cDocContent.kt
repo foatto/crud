@@ -107,7 +107,7 @@ class cDocContent : cAbstractReport() {
                 rs.close()
             }
             if (isFiscable) {
-                printFiscal(0, docID)
+                printFiscal(1, docID)
             }
             return "#"
         } else return getReport()
@@ -482,8 +482,8 @@ class cDocContent : cAbstractReport() {
         val fiscalUrl = shopApplication.fiscalUrls[fiscalIndex]
         val fiscalLineCutters = shopApplication.fiscalLineCutters[fiscalIndex]
         val fiscalCashier = shopApplication.fiscalCashiers[fiscalIndex]
-        val fiscalTaxMode = shopApplication.fiscalTaxMode ?: return
-        val fiscalPlace = shopApplication.fiscalPlace ?: return
+        val fiscalTaxMode = shopApplication.fiscalTaxModes[fiscalIndex]
+        val fiscalPlace = shopApplication.fiscalPlace ?: "Магазин"
 
         val fiscal: iFiscal = when (fiscalIndex) {
             0 -> Starrus()
@@ -520,7 +520,15 @@ class cDocContent : cAbstractReport() {
             }
             val count = rs.getDouble(3)
 
-            fiscal.addLine(name, price, count)
+            fiscal.addLine(
+                name = name,
+                price = price,
+                count = count,
+                //markingCode = "MDEwMjkwMDAyNDEyNjE5MDIxLClraylTdUs+MjVEVzkxRUUwNjkyVGM0K0cwU3JXbTA2bGxmZXRZRFFoMXI4YnFqZUhzOStzT2J5Q0I3clRPWT0=",
+                //markingCode = "MDEwMjkwMDAyNDEyNjE5MDIxbXEvUGplUldLY1kxSA==",
+                //markingCode = "010290002412619021,)kk)SuK>25DW91EE0692Tc4+G0SrWm06llfetYDQh1r8bqjeHs9+sObyCB7rTOY="
+                markingCode = null,
+            )
         }
         rs.close()
 
