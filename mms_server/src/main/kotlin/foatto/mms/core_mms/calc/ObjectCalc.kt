@@ -1776,7 +1776,8 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 else -> " (неизв. фаза)"
             }
 
-        fun getPrecision(value: Double): Int {
+        fun getPrecision(aValue: Double): Int {
+            val value = abs(aValue)
             //--- updated / simplified version of the output accuracy - more cubic meters - in whole liters, less - in hundreds of milliliters / gram
             return if (value >= 1000) 0
             else if (value >= 100) 1

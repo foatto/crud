@@ -84,6 +84,7 @@ class mZone : mAbstract() {
         alChildData.add(ChildData("mms_object_zone", columnID!!))
         MMSFunction.fillChildDataForLiquidIncDecReports(columnID!!, alChildData, withIncWaybillReport = false, newGroup = true)
         MMSFunction.fillChildDataForGeoReports(columnID!!, alChildData, withMovingDetailReport = false)
+        MMSFunction.fillChildDataForEnergoOverReports(columnID!!, alChildData)
         MMSFunction.fillChildDataForOverReports(columnID!!, alChildData)
 
         //----------------------------------------------------------------------------------------

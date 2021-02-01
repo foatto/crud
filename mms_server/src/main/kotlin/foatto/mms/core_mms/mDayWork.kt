@@ -290,6 +290,7 @@ class mDayWork : mAbstract() {
         MMSFunction.fillChildDataForLiquidIncDecReports(columnID!!, alChildData, withIncWaybillReport = true, newGroup = false)
         alChildData.add(ChildData("Отчёты", "mms_report_work_detail", columnID!!, AppAction.FORM))
         MMSFunction.fillChildDataForGeoReports(columnID!!, alChildData, withMovingDetailReport = true)
+        MMSFunction.fillChildDataForEnergoOverReports(columnID!!, alChildData)
         MMSFunction.fillChildDataForOverReports(columnID!!, alChildData)
         alChildData.add(ChildData("Отчёты", "mms_report_data_out", columnID!!, AppAction.FORM))
 

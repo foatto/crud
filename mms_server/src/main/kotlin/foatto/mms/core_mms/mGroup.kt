@@ -75,6 +75,7 @@ class mGroup : mAbstract() {
         alChildData.add(ChildData("Отчёты", "mms_report_equip_service", columnID!!, AppAction.FORM))
         MMSFunction.fillChildDataForGeoReports(columnID!!, alChildData, withMovingDetailReport = false)
         alChildData.add(ChildData("Отчёты", "mms_report_downtime", columnID!!, AppAction.FORM))
+        MMSFunction.fillChildDataForEnergoOverReports(columnID!!, alChildData)
         MMSFunction.fillChildDataForOverReports(columnID!!, alChildData)
         alChildData.add(ChildData("Отчёты", "mms_report_trouble", columnID!!, AppAction.FORM))
 

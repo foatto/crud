@@ -400,19 +400,38 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
 
         if (alMenuLiquidReport.size > 0) alMenu.add(MenuData("", "Отчёты по топливу", alMenuLiquidReport.toTypedArray()))
 
+        //--- Отчёты по превышениям в энергетике --------------------------------------------------------------------------------------------------------
+
+        val alMenuEnergoOverReport = mutableListOf<MenuData>()
+
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuEnergoOverReport, "mms_report_over_energo_voltage", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuEnergoOverReport, "mms_report_over_energo_current", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuEnergoOverReport, "mms_report_over_energo_power_koef", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuEnergoOverReport, "mms_report_over_energo_power_active", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuEnergoOverReport, "mms_report_over_energo_power_reactive", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuEnergoOverReport, "mms_report_over_energo_power_full", false)
+
+        if (alMenuEnergoOverReport.size > 0) alMenu.add(MenuData("", "Отчёты по превышениям в энергетике", alMenuEnergoOverReport.toTypedArray()))
+
+        //--- Отчёты по прочим превышениям --------------------------------------------------------------------------------------------------------
+
+        val alMenuOtherOverReport = mutableListOf<MenuData>()
+
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherOverReport, "mms_report_over_mass_flow", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherOverReport, "mms_report_over_volume_flow", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherOverReport, "mms_report_over_power", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherOverReport, "mms_report_over_density", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherOverReport, "mms_report_over_weight", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherOverReport, "mms_report_over_turn", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherOverReport, "mms_report_over_pressure", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherOverReport, "mms_report_over_temperature", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherOverReport, "mms_report_over_voltage", false)
+
+        if (alMenuOtherOverReport.size > 0) alMenu.add(MenuData("", "Отчёты по прочим превышениям", alMenuOtherOverReport.toTypedArray()))
+
         //--- Прочие отчёты --------------------------------------------------------------------------------------------------------
 
         val alMenuOtherReport = mutableListOf<MenuData>()
-
-        addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherReport, "mms_report_over_mass_flow", false)
-        addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherReport, "mms_report_over_volume_flow", false)
-        addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherReport, "mms_report_over_weight", false)
-        addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherReport, "mms_report_over_turn", false)
-        addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherReport, "mms_report_over_pressure", false)
-        addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherReport, "mms_report_over_temperature", false)
-        addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherReport, "mms_report_over_voltage", false)
-
-        addSeparator(alMenuOtherReport)
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherReport, "mms_report_trouble", false)
 
@@ -420,7 +439,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherReport, "mms_report_data_out", false)
 
-        if (alMenuOtherReport.size > 6) alMenu.add(MenuData("", "Прочие отчёты", alMenuOtherReport.toTypedArray()))
+        if (alMenuOtherReport.size > 1) alMenu.add(MenuData("", "Прочие отчёты", alMenuOtherReport.toTypedArray()))
 
         //--- Графики --------------------------------------------------------------------------------------------------------
 

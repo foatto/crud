@@ -75,6 +75,7 @@ object MMSFunction {
         )
 
         fillChildDataForReports(
+            group = "Общие отчёты",
             aliases = aliases,
             columnID = columnID,
             alChildData = alChildData,
@@ -90,6 +91,7 @@ object MMSFunction {
         aliases.add("mms_report_liquid_dec")
 
         fillChildDataForReports(
+            group = "Отчёты по топливу",
             aliases = aliases,
             columnID = columnID,
             alChildData = alChildData,
@@ -107,6 +109,7 @@ object MMSFunction {
             aliases.add("mms_report_moving_detail")
         }
         fillChildDataForReports(
+            group = "Отчёты по передвижной технике",
             aliases = aliases,
             columnID = columnID,
             alChildData = alChildData,
@@ -116,9 +119,12 @@ object MMSFunction {
 
     fun fillChildDataForOverReports(columnID: ColumnInt, alChildData: MutableList<ChildData>) {
         fillChildDataForReports(
+            group = "Отчёты по прочим превышениям",
             aliases = listOf(
                 "mms_report_over_mass_flow",
                 "mms_report_over_volume_flow",
+                "mms_report_over_power",
+                "mms_report_over_density",
                 "mms_report_over_weight",
                 "mms_report_over_turn",
                 "mms_report_over_pressure",
@@ -131,12 +137,29 @@ object MMSFunction {
         )
     }
 
-    fun fillChildDataForReports(aliases: List<String>, columnID: ColumnInt, alChildData: MutableList<ChildData>, aFirstItem: Boolean) {
+    fun fillChildDataForEnergoOverReports(columnID: ColumnInt, alChildData: MutableList<ChildData>) {
+        fillChildDataForReports(
+            group = "Отчёты по превышениям в энергетике",
+            aliases = listOf(
+                "mms_report_over_energo_voltage",
+                "mms_report_over_energo_current",
+                "mms_report_over_energo_power_koef",
+                "mms_report_over_energo_power_active",
+                "mms_report_over_energo_power_reactive",
+                "mms_report_over_energo_power_full",
+            ),
+            columnID = columnID,
+            alChildData = alChildData,
+            aFirstItem = false,
+        )
+    }
+
+    fun fillChildDataForReports(group: String, aliases: List<String>, columnID: ColumnInt, alChildData: MutableList<ChildData>, aFirstItem: Boolean) {
         var firstItem = aFirstItem
         aliases.forEach {
             alChildData.add(
                 ChildData(
-                    aGroup = "Отчёты",
+                    aGroup = group,
                     aAlias = it,
                     aColumn = columnID,
                     aAction = AppAction.FORM,

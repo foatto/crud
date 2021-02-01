@@ -30,8 +30,8 @@ class LiquidGraphicHandler : AnalogGraphicHandler() {
 
         val scll = sca as SensorConfigLiquidLevel
         val liquidKoef = (rawData - prevData) * 3600 / (rawTime - prevTime)
-        return if (liquidKoef > 0 && liquidKoef > scll.detectIncKoef) lineWarningColorIndex
-        else if (liquidKoef < 0 && -liquidKoef > scll.detectDecKoef) lineCriticalColorIndex
+        return if (liquidKoef > 0 && liquidKoef > scll.detectIncKoef) lineCriticalColorIndex
+        else if (liquidKoef < 0 && -liquidKoef > scll.detectDecKoef) lineWarningColorIndex
         else lineNormalColorIndex
     }
 }
