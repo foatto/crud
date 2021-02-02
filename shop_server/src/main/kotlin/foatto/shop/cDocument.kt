@@ -32,16 +32,27 @@ class cDocument : cStandart() {
 
         //--- расчёт всех параметров накладной: кол-во строк, стоимость с учётом скидки
         fun calcDocCountAndCost(
-            stm: CoreAdvancedStatement, hmPrice: Map<Int, List<Pair<Int, Double>>>,
-            docID: Int, docType: Int, zoneId: ZoneId, ye: Int, mo: Int, da: Int, discount: Double
+            stm: CoreAdvancedStatement,
+            hmPrice: Map<Int, List<Pair<Int, Double>>>,
+            docID: Int,
+            docType: Int,
+            zoneId: ZoneId,
+            ye: Int,
+            mo: Int,
+            da: Int,
+            discount: Double
         ): Pair<Int, Double> {
             val zdt = ZonedDateTime.of(ye, mo, da, 0, 0, 0, 0, zoneId)
             return calcDocCountAndCost(stm, hmPrice, docID, docType, zdt.toEpochSecond().toInt(), discount)
         }
 
         fun calcDocCountAndCost(
-            stm: CoreAdvancedStatement, hmPrice: Map<Int, List<Pair<Int, Double>>>,
-            docID: Int, docType: Int, docTime: Int, discount: Double
+            stm: CoreAdvancedStatement,
+            hmPrice: Map<Int, List<Pair<Int, Double>>>,
+            docID: Int,
+            docType: Int,
+            docTime: Int,
+            discount: Double
         ): Pair<Int, Double> {
             val fnNum = if(DocumentTypeConfig.hsUseDestNum.contains(docType)) "dest_num" else "sour_num"
             val fnCatalog = if(DocumentTypeConfig.hsUseDestCatalog.contains(docType)) "dest_id" else "sour_id"

@@ -72,7 +72,9 @@ class mDocument : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnDocumentIsDeleted = ColumnBoolean(tableName, "is_deleted", "Не считать", false)
+        val columnDocumentIsDeleted = ColumnBoolean(tableName, "is_deleted", "Не считать", false).apply {
+            tableCaption = "Не сч."
+        }
 
         columnDocumentType = ColumnComboBox(tableName, "doc_type", "Тип накладной", docType).apply {
             isEditable = false    // это информационное поле, значение устанавливается программно
@@ -117,33 +119,40 @@ class mDocument : mAbstract() {
             ColumnInt(tableName, "dest_id", 0)
         }
 
-        columnDocumentNo = ColumnString(tableName, "doc_no", "№ накладной", STRING_COLUMN_WIDTH)
+        columnDocumentNo = ColumnString(tableName, "doc_no", "№ накладной", STRING_COLUMN_WIDTH).apply {
+            tableCaption = "№ накл."
+        }
 
         columnDocumentDate = ColumnDate3Int(tableName, "doc_ye", "doc_mo", "doc_da", "Дата")
 
         val columnClientID = ColumnInt("SHOP_client", "id")
         val columnClient = ColumnInt(tableName, "client_id", columnClientID)
-        val columnClientName = ColumnString("SHOP_client", "name", "Контрагент", STRING_COLUMN_WIDTH).apply {
+        val columnClientName = ColumnString("SHOP_client", "name", "Клиент", STRING_COLUMN_WIDTH).apply {
             selectorAlias = "shop_client"
             addSelectorColumn(columnClient, columnClientID)
             addSelectorColumn(this)
         }
 
-        val columnDocumentDescr = ColumnString(tableName, "descr", "Примечание", STRING_COLUMN_WIDTH)
+        val columnDocumentDescr = ColumnString(tableName, "descr", "Примечание", STRING_COLUMN_WIDTH).apply {
+            tableCaption = "Прим."
+        }
 
         columnDocumentDiscount = ColumnDouble(tableName, "discount", "Скидка [%]", 10, 1, 0.0).apply {
             setEmptyData(0.0, "-")
             minValue = 0.0
             maxValue = 100.0
+            tableCaption = "[%]"
             tableAlign = TableCellAlign.CENTER
         }
 
         columnDocumentRowCount = ColumnInt(tableName, "_row_count", "Кол-во наименований", 10).apply {
             isVirtual = true
+            tableCaption = "Кол-во наим."
             tableAlign = TableCellAlign.CENTER
         }
         columnDocumentCostOut = ColumnDouble(tableName, "_doc_cost_out", "Сумма [руб.]", 10, 2).apply {
             isVirtual = true
+            tableCaption = "[руб.]"
             tableAlign = TableCellAlign.RIGHT
         }
 
