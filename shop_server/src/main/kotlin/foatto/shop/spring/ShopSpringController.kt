@@ -1,6 +1,7 @@
 package foatto.shop.spring
 
 import foatto.core.link.*
+import foatto.core_server.app.AppParameter
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.shop.iShopApplication
@@ -212,7 +213,18 @@ class ShopSpringController : CoreSpringController(), iShopApplication {
 
         val alMenuDocument = mutableListOf<MenuData>()
 
+        if (checkMenuPermission(hmAliasConfig, hmAliasPerm, "shop_doc_out")) {
+            hmAliasConfig["shop_doc_out"]?.let { ac ->
+                alMenuDocument += MenuData(
+                    "${AppParameter.ALIAS}=shop_doc_out&${AppParameter.ACTION}=${AppAction.TABLE}" +
+                    "&${AppParameter.PARENT_ALIAS}=shop_warehouse&${AppParameter.PARENT_ID}=582901431", ac.descr + " [Магазин]"
+                )
+            }
+        }
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDocument, "shop_doc_out", true)
+
+        addSeparator(alMenuDocument)
+
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDocument, "shop_doc_move", true)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDocument, "shop_doc_return_out", true)
 
@@ -230,7 +242,7 @@ class ShopSpringController : CoreSpringController(), iShopApplication {
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDocument, "shop_doc_all", true)
 
-        if (alMenuDocument.size > 3) alMenu.add(MenuData("", "Накладные", alMenuDocument.toTypedArray()))
+        if (alMenuDocument.size > 4) alMenu.add(MenuData("", "Накладные", alMenuDocument.toTypedArray()))
 
         //--- Журналы --------------------------------------------------------------------------------------------------------
 

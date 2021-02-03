@@ -37,13 +37,22 @@ class mDocument : mAbstract() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
+    override fun init(
+        application: iApplication,
+        aStm: CoreAdvancedStatement,
+        aliasConfig: AliasConfig,
+        userConfig: UserConfig,
+        aHmParam: Map<String, String>,
+        hmParentData: MutableMap<String, Int>,
+        id: Int
+    ) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         val docType = DocumentTypeConfig.hmAliasDocType[aliasConfig.alias]!!
         val hmAliasConfig = AliasConfig.getConfig(stm)
         val alWarehouse = mWarehouse.fillWarehouseList(stm)
+        val parentWarehouseId = hmParentData["shop_warehouse"]
 
         //--- получить данные по правам доступа
         val hsPermission = userConfig.userPermission[aliasConfig.alias]
@@ -83,7 +92,7 @@ class mDocument : mAbstract() {
             }
         }
 
-        columnWarehouseSour = if (DocumentTypeConfig.hsUseSourWarehouse.contains(docType)) {
+        columnWarehouseSour = if (DocumentTypeConfig.hsUseSourWarehouse.contains(docType) && parentWarehouseId == null) {
             ColumnComboBox(tableName, "sour_id", if (docType == DocumentTypeConfig.TYPE_RESORT) "Склад / магазин" else "Со склада / магазина").apply {
                 if (docType == DocumentTypeConfig.TYPE_ALL) {
                     addChoice(0, "")
@@ -98,10 +107,10 @@ class mDocument : mAbstract() {
                 }
             }
         } else {
-            ColumnInt(tableName, "sour_id", 0)
+            ColumnInt(tableName, "sour_id", parentWarehouseId ?: 0)
         }
 
-        columnWarehouseDest = if (DocumentTypeConfig.hsUseDestWarehouse.contains(docType)) {
+        columnWarehouseDest = if (DocumentTypeConfig.hsUseDestWarehouse.contains(docType) && parentWarehouseId == null) {
             ColumnComboBox(tableName, "dest_id", "На склад / магазин").apply {
                 if (docType == DocumentTypeConfig.TYPE_ALL) {
                     addChoice(0, "")
@@ -116,7 +125,7 @@ class mDocument : mAbstract() {
                 }
             }
         } else {
-            ColumnInt(tableName, "dest_id", 0)
+            ColumnInt(tableName, "dest_id", parentWarehouseId ?: 0)
         }
 
         columnDocumentNo = ColumnString(tableName, "doc_no", "№ накладной", STRING_COLUMN_WIDTH).apply {
@@ -179,13 +188,13 @@ class mDocument : mAbstract() {
             alTableHiddenColumn.add(columnDocumentType)
         }
 
-        if (DocumentTypeConfig.hsUseSourWarehouse.contains(docType)) {
+        if (DocumentTypeConfig.hsUseSourWarehouse.contains(docType) && parentWarehouseId == null) {
             addTableColumn(columnWarehouseSour)
         } else {
             alTableHiddenColumn.add(columnWarehouseSour)
         }
 
-        if (DocumentTypeConfig.hsUseDestWarehouse.contains(docType)) {
+        if (DocumentTypeConfig.hsUseDestWarehouse.contains(docType) && parentWarehouseId == null) {
             addTableColumn(columnWarehouseDest)
         } else {
             alTableHiddenColumn.add(columnWarehouseDest)
@@ -230,8 +239,8 @@ class mDocument : mAbstract() {
         //--- тип накладной обычно написан в заголовке
         (if (docType == DocumentTypeConfig.TYPE_ALL) alFormColumn else alFormHiddenColumn).add(columnDocumentType)
 
-        (if (DocumentTypeConfig.hsUseSourWarehouse.contains(docType)) alFormColumn else alFormHiddenColumn).add(columnWarehouseSour)
-        (if (DocumentTypeConfig.hsUseDestWarehouse.contains(docType)) alFormColumn else alFormHiddenColumn).add(columnWarehouseDest)
+        (if (DocumentTypeConfig.hsUseSourWarehouse.contains(docType) && parentWarehouseId == null) alFormColumn else alFormHiddenColumn).add(columnWarehouseSour)
+        (if (DocumentTypeConfig.hsUseDestWarehouse.contains(docType) && parentWarehouseId == null) alFormColumn else alFormHiddenColumn).add(columnWarehouseDest)
         alFormColumn.add(columnDocumentNo)
         alFormColumn.add(columnDocumentDate)
         (if (DocumentTypeConfig.hsUseClient.contains(docType)) alFormColumn else alFormHiddenColumn).add(columnClientName)

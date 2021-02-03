@@ -88,6 +88,14 @@ class cDocument : cStandart() {
         alPermission.add(Pair(PERM_AUDIT_MODE, "20 Audit mode"))
     }
 
+    override fun fillHeader(selectorID: String?, withAnchors: Boolean, alPath: MutableList<Pair<String, String>>, hmOut: MutableMap<String, Any>) {
+        super.fillHeader(selectorID, withAnchors, alPath, hmOut)
+
+        getParentID("shop_warehouse")?.let { pid ->
+            alPath.add(Pair("", "[" + (mWarehouse.fillWarehouseMap(stm)[pid] ?: "") + "]"))
+        }
+    }
+
     override fun addSQLWhere(hsTableRenameList: Set<String>): String {
         val pid = getParentID("shop_warehouse")
 
