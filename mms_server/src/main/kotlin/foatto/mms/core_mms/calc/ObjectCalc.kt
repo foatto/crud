@@ -60,16 +60,12 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
     var sEnergoName = ""
     var sEnergoValue = ""
 
-    //    var sGroupSumEnergoName = ""
-//    var sGroupSumEnergoValue = ""
     var sAllSumEnergoName = ""
     var sAllSumEnergoValue = ""
 
     var sLiquidUsingName = ""
     var sLiquidUsingValue = ""
 
-    //    var sGroupSumLiquidName = ""
-//    var sGroupSumLiquidValue = ""
     var sAllSumLiquidName = ""
     var sAllSumLiquidValue = ""
 
@@ -315,7 +311,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 // --- you have to catch each such reset (the algorithm is somewhat similar to the search for refueling / draining),
                 // --- but skipping sudden points with zero mileage at absolutely normal coordinates.
                 if (gd.distance > 0) {
-                    if (scg!!.isAbsoluteRun) {
+                    if (scg.isAbsoluteRun) {
                         val curRun = gd.distance
 
                         if (begRun == 0) {
@@ -371,7 +367,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                     }
 
                     //--- overspeed handling
-                    overSpeed = calcOverSpeed(scg!!.maxSpeedLimit, alZoneSpeedLimit, pixPoint, gd.speed)
+                    overSpeed = calcOverSpeed(scg.maxSpeedLimit, alZoneSpeedLimit, pixPoint, gd.speed)
                     if (overSpeed > maxEnabledOverSpeed) {
                         //--- we will record the previous normal movement
                         if (normalSpeedBeginTime != 0) {
@@ -416,7 +412,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 lastTime = curTime
             }
             //--- summarize the sub-run of the last (i.e. unfinished) range
-            if (scg!!.isAbsoluteRun) run += lastRun - begRun
+            if (scg.isAbsoluteRun) run += lastRun - begRun
             //--- record of the last unclosed event
             if (movingBeginTime != 0) alMovingAndParking.add(GeoPeriodData(movingBeginTime, curTime, 1))
             if (parkingBeginTime != 0) alMovingAndParking.add(GeoPeriodData(parkingBeginTime, curTime, parkingCoord!!))
@@ -1592,7 +1588,13 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             begTime: Int,
             endTime: Int
         ): Double {
-            var sensorSum = 0.0
+            //--- counters that give absolute values in their readings can reset it on command or overflow.
+            //--- you will have to catch each such reset (the algorithm is somewhat similar to the search for refueling / draining)
+            //--- also skip sudden dots with a zero counter
+            var begValue = 0.0
+            var lastValue = 0.0
+            var value = 0.0
+
             for (pos in alRawTime.indices) {
                 val rawTime = alRawTime[pos]
 
@@ -1603,9 +1605,24 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 //--- ignore outbound values
                 if (isIgnoreSensorData(scu, sensorData)) continue
 
-                sensorSum += sensorData
+                val sensorValue = AbstractObjectStateCalc.getSensorValue(scu.alValueSensor, scu.alValueData, sensorData)
+
+                if(scu.isAbsoluteCount) {
+                    if (begValue <= 0.0) {
+                        begValue = sensorValue
+                    } else if (sensorValue < lastValue) {
+                        value += lastValue - begValue
+                        begValue = sensorValue
+                    }
+                    lastValue = sensorValue
+                } else {
+                    value += sensorValue
+                }
             }
-            return AbstractObjectStateCalc.getSensorValue(scu.alValueSensor, scu.alValueData, sensorSum)
+            if(scu.isAbsoluteCount) {
+                value += lastValue - begValue
+            }
+            return value
         }
 
 //        private fun searchGDL(aLine: GraphicDataContainer, time: Int): Double {

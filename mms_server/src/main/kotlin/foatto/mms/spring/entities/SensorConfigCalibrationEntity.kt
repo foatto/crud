@@ -16,7 +16,7 @@ class SensorConfigCalibrationEntity(
     val id: Int,
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "sensor_id", nullable = false)
+    @JoinColumn(name = "sensor_id")
     val sensor: SensorConfigEntity,
 
     @Column(name = "value_sensor")

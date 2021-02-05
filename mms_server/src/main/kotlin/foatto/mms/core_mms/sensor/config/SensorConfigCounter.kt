@@ -11,6 +11,7 @@ class SensorConfigCounter(
     aSmoothTime: Int,
     aMinIgnore: Double,
     aMaxIgnore: Double,
+    val isAbsoluteCount: Boolean,
     val liquidName: String
 ) : SensorConfigBase(
     aId = aId,

@@ -1,6 +1,8 @@
 package foatto.shop
 
 import foatto.core.link.AppAction
+import foatto.core.link.TableCell
+import foatto.core.link.TableCellForeColorType
 import foatto.core.link.XyDocumentConfig
 import foatto.core.util.getCurrentTimeInt
 import foatto.core_server.app.AppParameter
@@ -9,13 +11,7 @@ import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.column.iColumn
-import foatto.core_server.app.server.data.DataComboBox
-import foatto.core_server.app.server.data.DataDate3Int
-import foatto.core_server.app.server.data.DataDateTimeInt
-import foatto.core_server.app.server.data.DataDouble
-import foatto.core_server.app.server.data.DataInt
-import foatto.core_server.app.server.data.DataString
-import foatto.core_server.app.server.data.iData
+import foatto.core_server.app.server.data.*
 import foatto.sql.CoreAdvancedStatement
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -136,6 +132,17 @@ class cDocument : cStandart() {
         val (rowCount, docCost) = calcDocCountAndCost(stm, hmPrice, docID, rowDocType, docTime, discount)
         (hmColumnData[md.columnDocumentRowCount] as DataInt).intValue = rowCount
         (hmColumnData[md.columnDocumentCostOut] as DataDouble).doubleValue = docCost
+    }
+
+    override fun getTableColumnStyle(rowNo: Int, isNewRow: Boolean, hmColumnData: Map<iColumn, iData>, column: iColumn, tci: TableCell) {
+        super.getTableColumnStyle(rowNo, isNewRow, hmColumnData, column, tci)
+
+        val md = model as mDocument
+
+        if ((hmColumnData[md.columnDocumentIsDeleted] as DataBoolean).value) {
+            tci.foreColorType = TableCellForeColorType.DEFINED
+            tci.foreColor = TABLE_CELL_FORE_COLOR_DISABLED
+        }
     }
 
     override fun preSave(id: Int, hmColumnData: Map<iColumn, iData>) {

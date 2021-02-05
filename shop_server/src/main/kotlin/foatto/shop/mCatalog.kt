@@ -99,6 +99,10 @@ class mCatalog : mAbstractHierarchy() {
             addFormCaption(columnRecordType, "Наименование товара", setOf(RECORD_TYPE_ITEM))
         }
 
+        val columnCatalogIsMark = ColumnBoolean(tableName, "is_mark", "Маркировка", false).apply {
+            tableCaption = "Марк."
+        }
+
         val columnIsProduction = ColumnBoolean(tableName, "is_production", "Собственное производство").apply {
             addFormVisible(columnRecordType, true, setOf(RECORD_TYPE_ITEM))
             tableCaption = "Собс. пр-во"
@@ -157,6 +161,7 @@ class mCatalog : mAbstractHierarchy() {
 
         addTableColumn(columnRecordType)
         addTableColumn(columnRecordFullName)
+        addTableColumn(columnCatalogIsMark)
         addTableColumn(columnCatalogPriceOut)
         addTableColumn(columnCatalogRowCount)
         alColumnCatalogCount.forEach {
@@ -181,6 +186,7 @@ class mCatalog : mAbstractHierarchy() {
         alFormHiddenColumn.add(columnRecordType)
 
         alFormColumn.add(columnRecordFullName)
+        alFormColumn.add(columnCatalogIsMark)
         if (isMerchant) {
             alFormColumn.add(columnIsProduction)
             alFormColumn.add(columnProfitAdd)

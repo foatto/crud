@@ -16,6 +16,9 @@ class mDocument : mAbstract() {
     lateinit var columnEditTime: ColumnDateTimeInt
         private set
 
+    lateinit var columnDocumentIsDeleted: ColumnBoolean
+        private set
+
     lateinit var columnDocumentNo: ColumnString
         private set
     lateinit var columnDocumentType: ColumnComboBox
@@ -81,9 +84,7 @@ class mDocument : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnDocumentIsDeleted = ColumnBoolean(tableName, "is_deleted", "Не считать", false).apply {
-            tableCaption = "Не сч."
-        }
+        columnDocumentIsDeleted = ColumnBoolean(tableName, "is_deleted", "Не считать", false)
 
         columnDocumentType = ColumnComboBox(tableName, "doc_type", "Тип накладной", docType).apply {
             isEditable = false    // это информационное поле, значение устанавливается программно
@@ -169,6 +170,7 @@ class mDocument : mAbstract() {
 
         alTableHiddenColumn.add(columnID!!)
         alTableHiddenColumn.add(columnClient)
+        alTableHiddenColumn.add(columnDocumentIsDeleted)
 
         alTableGroupColumn.add(columnDocumentDate)
 
@@ -218,8 +220,6 @@ class mDocument : mAbstract() {
         }
 
         addTableColumn(columnDocumentCostOut)
-
-        addTableColumn(columnDocumentIsDeleted)
 
         //----------------------------------------------------------------------------------------------------------------------
 

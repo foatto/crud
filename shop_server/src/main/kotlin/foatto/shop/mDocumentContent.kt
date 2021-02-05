@@ -19,6 +19,9 @@ class mDocumentContent : mAbstract() {
     lateinit var columnEditTime: ColumnDateTimeInt
         private set
 
+    lateinit var columnDocumentContentIsDeleted: ColumnBoolean
+        private set
+
     lateinit var columnDocument: ColumnInt
         private set
     lateinit var columnDocumentType: ColumnComboBox
@@ -45,6 +48,11 @@ class mDocumentContent : mAbstract() {
     lateinit var columnDestNum: ColumnDouble
         private set
     lateinit var columnCostOut: ColumnDouble
+        private set
+
+    lateinit var columnSkipMark: ColumnBoolean
+        private set
+    lateinit var columnMarkCode: ColumnString
         private set
 
     lateinit var columnToArchive: ColumnBoolean
@@ -102,7 +110,7 @@ class mDocumentContent : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnDocumentContentIsDeleted = ColumnBoolean(tableName, "is_deleted", "Не считать", false)
+        columnDocumentContentIsDeleted = ColumnBoolean(tableName, "is_deleted", "Не считать", false)
 
         val columnDocumentID = ColumnInt("SHOP_doc", "id")
         columnDocument = ColumnInt(tableName, "doc_id", columnDocumentID, docID)
@@ -194,14 +202,28 @@ class mDocumentContent : mAbstract() {
             isEditable = false
         }
 
-        columnSourNum = ColumnDouble(tableName, "sour_num", if (docType == DocumentTypeConfig.TYPE_ALL) "Исх. кол-во" else "Кол-во", 10, -1, 0.0).apply {
+        columnSourNum = ColumnDouble(
+            aTableName = tableName,
+            aFieldName = "sour_num",
+            aCaption = if (docType == DocumentTypeConfig.TYPE_ALL) "Исх. кол-во" else "Кол-во",
+            aCols = 10,
+            aPrecision = -1,
+            aDefaultValue = 1.0
+        ).apply {
             tableAlign = TableCellAlign.CENTER
             if (isUseSourNum && docType != DocumentTypeConfig.TYPE_RESORT) {
                 minValue = 0.1
             }
         }
 
-        columnDestNum = ColumnDouble(tableName, "dest_num", if (docType == DocumentTypeConfig.TYPE_ALL) "Вх. кол-во" else "Кол-во", 10, -1, 0.0).apply {
+        columnDestNum = ColumnDouble(
+            aTableName = tableName,
+            aFieldName = "dest_num",
+            aCaption = if (docType == DocumentTypeConfig.TYPE_ALL) "Вх. кол-во" else "Кол-во",
+            aCols = 10,
+            aPrecision = -1,
+            aDefaultValue = 0.0
+        ).apply {
             tableAlign = TableCellAlign.CENTER
             if (isUseDestNum && docType != DocumentTypeConfig.TYPE_RESORT) {
                 minValue = 0.1
@@ -211,6 +233,21 @@ class mDocumentContent : mAbstract() {
         columnCostOut = ColumnDouble(tableName, "_doc_cost_out", "Сумма [руб.]", 10, 2).apply {
             isVirtual = true
             tableAlign = TableCellAlign.RIGHT
+        }
+
+        columnSkipMark = ColumnBoolean(tableName, "_skip_mark", "Пропустить маркировку", false).apply {
+            isVirtual = true
+        }
+
+        columnMarkCode = ColumnString(
+            aTableName = tableName,
+            aFieldName = "mark_code",
+            aCaption = "Код маркировки",
+            aRows = 3,
+            aCols = STRING_COLUMN_WIDTH,
+            aMaxSize = textFieldMaxSize
+        ).apply {
+            colSpan = 4
         }
 
         columnToArchive = ColumnBoolean(tableName, "_to_archive", "Перенести исх. товар в архив", false).apply {
@@ -225,6 +262,7 @@ class mDocumentContent : mAbstract() {
         //----------------------------------------------------------------------------------------------------------------------
 
         alTableHiddenColumn.add(columnID!!)
+        alTableHiddenColumn.add(columnDocumentContentIsDeleted)
         alTableHiddenColumn.add(columnDocument)
         alTableHiddenColumn.add(columnClient)
         alTableHiddenColumn.add(columnSourCatalog)
@@ -299,8 +337,10 @@ class mDocumentContent : mAbstract() {
         }
 
         addTableColumn(columnCostOut)
-        addTableColumn(columnDocumentContentIsDeleted)
 
+        addTableColumnHorizNew(columnMarkCode)
+
+        //----------------------------------------------------------------------------------------------------------------------
 
         alFormHiddenColumn.add(columnID!!)
         alFormHiddenColumn.add(columnDocument)
@@ -343,6 +383,10 @@ class mDocumentContent : mAbstract() {
         (if (isUseDestCatalog) alFormColumn else alFormHiddenColumn).add(columnDestCatalogPriceOut)
         (if (isUseSourNum) alFormColumn else alFormHiddenColumn).add(columnSourNum)
         (if (isUseDestNum) alFormColumn else alFormHiddenColumn).add(columnDestNum)
+
+        alFormColumn.add(columnSkipMark)
+        alFormColumn.add(columnMarkCode)
+
         //--- перенос в архив - только при добавлении пересортице
         (if (docType == DocumentTypeConfig.TYPE_RESORT && id == 0) alFormColumn else alFormHiddenColumn).add(columnToArchive)
         //--- преобразование пересортицы в переоценку - только при пересохранении переоценки
@@ -374,8 +418,9 @@ class mDocumentContent : mAbstract() {
         //----------------------------------------------------------------------------------------
 
         //hmParentColumn.put(  "shop_client", columnClient  ); - накуа?
-        for (an in DocumentTypeConfig.hmDocTypeAlias.values)
+        for (an in DocumentTypeConfig.hmDocTypeAlias.values) {
             hmParentColumn[an] = columnDocument
+        }
 
         //--- из-за нестандартной обработки shop_doc_content_all/move/_resort паренты от shop_catalog будут обрабатываться отдельно в addSQLWhere
         // hmParentColumn.put( "shop_catalog", columnSourCatalog );

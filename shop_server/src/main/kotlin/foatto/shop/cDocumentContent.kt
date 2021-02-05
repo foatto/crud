@@ -4,6 +4,8 @@ import foatto.core.app.ICON_NAME_PRINT
 import foatto.core.link.AppAction
 import foatto.core.link.ClientActionButton
 import foatto.core.link.ServerActionButton
+import foatto.core.link.TableCell
+import foatto.core.link.TableCellForeColorType
 import foatto.core.link.XyDocumentConfig
 import foatto.core.util.AdvancedLogger
 import foatto.core.util.DateTime_DMY
@@ -61,16 +63,16 @@ class cDocumentContent : cStandart() {
     override fun addSQLWhere(hsTableRenameList: Set<String>): String {
         //--- а нет ли парентов от иерархической номенклатуры?
         var pid = getParentID("shop_catalog")
-        if(pid == null) pid = getParentID("shop_catalog_folder")
-        if(pid == null) pid = getParentID("shop_catalog_item")
+        if (pid == null) pid = getParentID("shop_catalog_folder")
+        if (pid == null) pid = getParentID("shop_catalog_item")
         //--- если есть, то вероятно раскроем parentID группы номенклатуры в список parentID входящих элементов
         val parentWhere = StringBuilder()
-        if(pid != null) {
+        if (pid != null) {
             val hsID = expandParent("shop_catalog", pid)
-            for(tmpID in hsID)
-                parentWhere.append(if(parentWhere.isEmpty()) "" else " , ").append(tmpID)
-            parentWhere.insert(0, if(hsID.size == 1) " = " else " IN ( ")
-            if(hsID.size > 1) parentWhere.append(" ) ")
+            for (tmpID in hsID)
+                parentWhere.append(if (parentWhere.isEmpty()) "" else " , ").append(tmpID)
+            parentWhere.insert(0, if (hsID.size == 1) " = " else " IN ( ")
+            if (hsID.size > 1) parentWhere.append(" ) ")
         }
 
         val mdc = model as mDocumentContent
@@ -78,13 +80,13 @@ class cDocumentContent : cStandart() {
 
         var sSQL = ""
 
-        if(docType != DocumentTypeConfig.TYPE_ALL) {
+        if (docType != DocumentTypeConfig.TYPE_ALL) {
             val docTableName = renameTableName(hsTableRenameList, mdc.columnDocumentType.tableName)
             sSQL += " AND $docTableName.${mdc.columnDocumentType.getFieldName()} = $docType "
         }
 
         //--- добавить свои ограничения по parent-данным от shop_catalog (из-за нестандартной обработки shop_doc_all/move/_resort)
-        if(pid != null) {
+        if (pid != null) {
             val sourFieldName = mdc.columnSourCatalog.getFieldName()
             val destFieldName = mdc.columnDestCatalog.getFieldName()
             val isUseSourCatalog = DocumentTypeConfig.hsUseSourCatalog.contains(docType)
@@ -92,16 +94,16 @@ class cDocumentContent : cStandart() {
 
             sSQL += " AND "
             //--- используются оба номенклатурных поля
-            if(isUseSourCatalog && isUseDestCatalog) sSQL += " ( $tableName.$sourFieldName $parentWhere OR $tableName.$destFieldName $parentWhere ) "
-            else if(isUseSourCatalog) sSQL += " $tableName.$sourFieldName $parentWhere "
-            else if(isUseDestCatalog) sSQL += " $tableName.$destFieldName $parentWhere "
+            if (isUseSourCatalog && isUseDestCatalog) sSQL += " ( $tableName.$sourFieldName $parentWhere OR $tableName.$destFieldName $parentWhere ) "
+            else if (isUseSourCatalog) sSQL += " $tableName.$sourFieldName $parentWhere "
+            else if (isUseDestCatalog) sSQL += " $tableName.$destFieldName $parentWhere "
         }
         return super.addSQLWhere(hsTableRenameList) + sSQL
     }
 
     override fun fillHeader(selectorID: String?, withAnchors: Boolean, alPath: MutableList<Pair<String, String>>, hmOut: MutableMap<String, Any>) {
         var sHeader = aliasConfig.descr
-        if(docID != null) {
+        if (docID != null) {
             var docYe = 0
             var docMo = 0
             var docDa = 0
@@ -115,21 +117,21 @@ class cDocumentContent : cStandart() {
                     " WHERE SHOP_doc.client_id = SHOP_client.id " +
                     " AND SHOP_doc.id = $docID "
             )
-            if(rs.next()) {
+            if (rs.next()) {
                 val docNo = rs.getString(1)
                 localDocType = rs.getInt(2)
                 docYe = rs.getInt(3)
                 docMo = rs.getInt(4)
                 docDa = rs.getInt(5)
                 sHeader += ", № $docNo от ${DateTime_DMY(intArrayOf(docYe, docMo, docDa, 0, 0, 0))}"
-                if(DocumentTypeConfig.hsUseSourWarehouse.contains(docType)) sHeader += ", со склада ${hmWarehouse[rs.getInt(6)]}"
-                if(DocumentTypeConfig.hsUseDestWarehouse.contains(docType)) sHeader += ", на склад ${hmWarehouse[rs.getInt(7)]}"
+                if (DocumentTypeConfig.hsUseSourWarehouse.contains(docType)) sHeader += ", со склада ${hmWarehouse[rs.getInt(6)]}"
+                if (DocumentTypeConfig.hsUseDestWarehouse.contains(docType)) sHeader += ", на склад ${hmWarehouse[rs.getInt(7)]}"
                 val clientName = rs.getString(8)
-                if(!clientName.isEmpty()) sHeader += ", $clientName"
+                if (!clientName.isEmpty()) sHeader += ", $clientName"
                 val descr = rs.getString(9)
-                if(!descr.isEmpty()) sHeader += ", $descr"
+                if (!descr.isEmpty()) sHeader += ", $descr"
                 discount = rs.getDouble(10)
-                if(discount != 0.0) sHeader += ", скидка $discount % "
+                if (discount != 0.0) sHeader += ", скидка $discount % "
             }
             rs.close()
             //--- подсчёт стоимости накладной
@@ -151,7 +153,7 @@ class cDocumentContent : cStandart() {
         val isUseDestCatalog = DocumentTypeConfig.hsUseDestCatalog.contains(rowDocType)
         val isUseDestNum = DocumentTypeConfig.hsUseDestNum.contains(rowDocType)
 
-        if(docType == DocumentTypeConfig.TYPE_ALL) {
+        if (docType == DocumentTypeConfig.TYPE_ALL) {
             hmColumnData[mdc.columnSourCatalogName]!!.isShowEmptyTableCell = !isUseSourCatalog
             hmColumnData[mdc.columnSourCatalogPriceOut]!!.isShowEmptyTableCell = !isUseSourCatalog
             hmColumnData[mdc.columnSourNum]!!.isShowEmptyTableCell = !isUseSourNum
@@ -162,12 +164,23 @@ class cDocumentContent : cStandart() {
         }
 
         val price = PriceData.getPrice(
-            hmPrice, (hmColumnData[if(isUseDestCatalog) mdc.columnDestCatalog else mdc.columnSourCatalog] as DataInt).intValue,
+            hmPrice, (hmColumnData[if (isUseDestCatalog) mdc.columnDestCatalog else mdc.columnSourCatalog] as DataInt).intValue,
             zoneId, rowDocDate.year, rowDocDate.monthValue, rowDocDate.dayOfMonth
         )
-        (hmColumnData[if(isUseDestCatalog) mdc.columnDestCatalogPriceOut else mdc.columnSourCatalogPriceOut] as DataDouble).doubleValue = price
+        (hmColumnData[if (isUseDestCatalog) mdc.columnDestCatalogPriceOut else mdc.columnSourCatalogPriceOut] as DataDouble).doubleValue = price
 
-        (hmColumnData[mdc.columnCostOut] as DataDouble).doubleValue = (hmColumnData[if(isUseDestNum) mdc.columnDestNum else mdc.columnSourNum] as DataDouble).doubleValue * price
+        (hmColumnData[mdc.columnCostOut] as DataDouble).doubleValue = (hmColumnData[if (isUseDestNum) mdc.columnDestNum else mdc.columnSourNum] as DataDouble).doubleValue * price
+    }
+
+    override fun getTableColumnStyle(rowNo: Int, isNewRow: Boolean, hmColumnData: Map<iColumn, iData>, column: iColumn, tci: TableCell) {
+        super.getTableColumnStyle(rowNo, isNewRow, hmColumnData, column, tci)
+
+        val mdc = model as mDocumentContent
+
+        if ((hmColumnData[mdc.columnDocumentContentIsDeleted] as DataBoolean).value) {
+            tci.foreColorType = TableCellForeColorType.DEFINED
+            tci.foreColor = TABLE_CELL_FORE_COLOR_DISABLED
+        }
     }
 
     override fun getPrintButtonURL(): String = getParamURL("shop_report_doc_content", AppAction.FORM, null, 0, hmParentData, null, "")
@@ -178,14 +191,14 @@ class cDocumentContent : cStandart() {
         //--- проверяем на возможность печати чека
 //        var isFiscable = true
         var isFiscable = false
-        if(docType == DocumentTypeConfig.TYPE_OUT && docID != null && docID != 0) {
+        if (docType == DocumentTypeConfig.TYPE_OUT && docID != null && docID != 0) {
             val rs = stm.executeQuery(" SELECT is_fiscaled FROM SHOP_doc WHERE id = $docID ")
             isFiscable = rs.next() && rs.getInt(1) == 0
             rs.close()
         }
 
         //--- для накладных на реализацию добавим работу с онлайн-кассой
-        if(isFiscable) {
+        if (isFiscable) {
             alSAB.add(
                 ServerActionButton(
                     caption = "Кассовый чек",
@@ -213,7 +226,7 @@ class cDocumentContent : cStandart() {
         val alCAB = super.getClientAction()
 
         //--- для накладных на реализацию добавим клиентскую кнопку расчёта сдачи
-        if(docType == DocumentTypeConfig.TYPE_OUT) {
+        if (docType == DocumentTypeConfig.TYPE_OUT) {
             alCAB.add(
                 ClientActionButton(
                     caption = "Рассчитать",
@@ -234,14 +247,14 @@ class cDocumentContent : cStandart() {
         val mdc = model as mDocumentContent
         val rowDocType = (hmColumnData[mdc.columnDocumentType] as DataComboBox).intValue
         val isUseDestCatalog = DocumentTypeConfig.hsUseDestCatalog.contains(rowDocType)
-        val catalogID = (hmColumnData[if(isUseDestCatalog) mdc.columnDestCatalog else mdc.columnSourCatalog] as DataInt).intValue
+        val catalogID = (hmColumnData[if (isUseDestCatalog) mdc.columnDestCatalog else mdc.columnSourCatalog] as DataInt).intValue
 
-        if(catalogID != 0) {
+        if (catalogID != 0) {
             //--- может быть вывод состава по нескольким накладным
             val rowDocDate = (hmColumnData[mdc.columnDocumentDate] as DataDate3Int).localDate
 
             val price = PriceData.getPrice(hmPrice, catalogID, zoneId, rowDocDate.year, rowDocDate.monthValue, rowDocDate.dayOfMonth)
-            (hmColumnData[if(isUseDestCatalog) mdc.columnDestCatalogPriceOut else mdc.columnSourCatalogPriceOut] as DataDouble).doubleValue = price
+            (hmColumnData[if (isUseDestCatalog) mdc.columnDestCatalogPriceOut else mdc.columnSourCatalogPriceOut] as DataDouble).doubleValue = price
         }
     }
 
@@ -256,7 +269,7 @@ class cDocumentContent : cStandart() {
 
         //--- явно менять поле последнего изменения только при повторном сохранении,
         //--- при первом сохранении при создании оставлять значение по умолчанию, равное времени создания
-        if(id != 0) (hmColumnData[mdc.columnEditTime] as DataDateTimeInt).setDateTime(getCurrentTimeInt())
+        if (id != 0) (hmColumnData[mdc.columnEditTime] as DataDateTimeInt).setDateTime(getCurrentTimeInt())
         updateDocumentContentEditTime(hmColumnData, false)
 
         val sourNum = hmColumnData[mdc.columnSourNum] as DataDouble
@@ -279,14 +292,14 @@ class cDocumentContent : cStandart() {
         //        }
 
         //--- при перемещении между складами программно выставляем товар назначения в такой же
-        if(docType == DocumentTypeConfig.TYPE_MOVE) {
+        if (docType == DocumentTypeConfig.TYPE_MOVE) {
             val sourCatalog = hmColumnData[mdc.columnSourCatalog] as DataInt
             val destCatalog = hmColumnData[mdc.columnDestCatalog] as DataInt
             destCatalog.intValue = sourCatalog.intValue
         }
 
         //--- при перемещении между складами или при пересортице программно выставляем вх.кол-во равным исх. кол-ву
-        if(docType == DocumentTypeConfig.TYPE_MOVE || docType == DocumentTypeConfig.TYPE_RESORT) {
+        if (docType == DocumentTypeConfig.TYPE_MOVE || docType == DocumentTypeConfig.TYPE_RESORT) {
             val destNum = hmColumnData[mdc.columnDestNum] as DataDouble
             destNum.doubleValue = sourNum.doubleValue
         }
@@ -298,7 +311,7 @@ class cDocumentContent : cStandart() {
         val postURL = super.postAdd(id, hmColumnData, hmOut)
 
         val mdc = model as mDocumentContent
-        if(docType == DocumentTypeConfig.TYPE_RESORT && (hmColumnData[mdc.columnToArchive] as DataBoolean).value) {
+        if (docType == DocumentTypeConfig.TYPE_RESORT && (hmColumnData[mdc.columnToArchive] as DataBoolean).value) {
             // старый вариант: cCatalog.moveToArchive( stm, (hmColumnData[ mdc.columnSourCatalog ] as DataInt).value )
             cAbstractHierarchy.setActiveAndArchive(
                 AppAction.ARCHIVE,
@@ -321,7 +334,7 @@ class cDocumentContent : cStandart() {
 
         val mdc = model as mDocumentContent
         //--- преобразуем пересортицу в переоценку
-        if(docType == DocumentTypeConfig.TYPE_RESORT && (hmColumnData[mdc.columnResort2Reprice] as DataBoolean).value) {
+        if (docType == DocumentTypeConfig.TYPE_RESORT && (hmColumnData[mdc.columnResort2Reprice] as DataBoolean).value) {
             val dataDate = (hmColumnData[mdc.columnDocumentDate] as DataDate3Int).localDate
             val sourID = (hmColumnData[mdc.columnSourCatalog] as DataInt).intValue
             val destID = (hmColumnData[mdc.columnDestCatalog] as DataInt).intValue
@@ -330,14 +343,14 @@ class cDocumentContent : cStandart() {
             //--- убираем цену из названия
             val p1 = destName.lastIndexOf('(')
             val p2 = destName.lastIndexOf(')')
-            if(p1 != -1 && p2 != -1 && p1 < p2) {
+            if (p1 != -1 && p2 != -1 && p1 < p2) {
                 val priceStr = destName.substring(p1 + 1, p2)
                 try {
                     //--- если преобразование в число получилось, значит там была цена и её можно убрать из названия
                     priceStr.toDouble()
                     destName = (destName.substring(0, p1) + destName.substring(p2 + 1)).trim()
                     stm.executeUpdate(" UPDATE SHOP_catalog SET name = '$destName' WHERE id = $destID ")
-                } catch(t: Throwable) {
+                } catch (t: Throwable) {
                     AdvancedLogger.error(t)
                 }
             }
@@ -374,7 +387,7 @@ class cDocumentContent : cStandart() {
             StringBuilder(
                 " UPDATE SHOP_doc SET content_edit_time = "
             )
-                .append(if(isCurTime) getCurrentTimeInt() else (hmColumnData[mdc.columnEditTime] as DataDateTimeInt).zonedDateTime.toEpochSecond().toInt())
+                .append(if (isCurTime) getCurrentTimeInt() else (hmColumnData[mdc.columnEditTime] as DataDateTimeInt).zonedDateTime.toEpochSecond().toInt())
                 .append(" WHERE id = ").append((hmColumnData[mdc.columnDocument] as DataInt).intValue)
         )
 

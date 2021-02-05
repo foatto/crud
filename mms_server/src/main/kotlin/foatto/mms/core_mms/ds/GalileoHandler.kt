@@ -13,6 +13,7 @@ import java.nio.ByteOrder
 import java.nio.channels.SelectionKey
 import java.time.ZoneId
 import java.util.*
+import kotlin.math.roundToInt
 
 open class GalileoHandler : MMSHandler() {
 
@@ -90,23 +91,34 @@ open class GalileoHandler : MMSHandler() {
     private val tmEnergoPowerReactiveABC = TreeMap<Int, Int>()
     private val tmEnergoPowerFullABC = TreeMap<Int, Int>()
 
-    //--- массовый расход
-    private val tmMassFlow = TreeMap<Int, Float>()
-
     //--- плотность
-    private val tmDensity = TreeMap<Int, Float>()
+    private val tmDensity = TreeMap<Int, Double>()
 
     //--- температура
-    private val tmTemperature = TreeMap<Int, Float>()
+    private val tmTemperature = TreeMap<Int, Double>()
+
+    //--- массовый расход
+    private val tmMassFlow = TreeMap<Int, Double>()
 
     //--- объёмный расход
-    private val tmVolumeFlow = TreeMap<Int, Float>()
+    private val tmVolumeFlow = TreeMap<Int, Double>()
 
     //--- накопленная масса
-    private val tmAccumulatedMass = TreeMap<Int, Float>()
+    private val tmAccumulatedMass = TreeMap<Int, Double>()
 
     //--- накопленный объём
-    private val tmAccumulatedVolume = TreeMap<Int, Float>()
+    private val tmAccumulatedVolume = TreeMap<Int, Double>()
+
+    //--- датчик EuroSense Delta (4 датчика)
+    private val tmESDStatus = TreeMap<Int, Int>()
+    private val tmESDVolume = TreeMap<Int, Double>()
+    private val tmESDFlow = TreeMap<Int, Double>()
+    private val tmESDCameraVolume = TreeMap<Int, Double>()
+    private val tmESDCameraFlow = TreeMap<Int, Double>()
+    private val tmESDCameraTemperature = TreeMap<Int, Int>()
+    private val tmESDReverseCameraVolume = TreeMap<Int, Double>()
+    private val tmESDReverseCameraFlow = TreeMap<Int, Double>()
+    private val tmESDReverseCameraTemperature = TreeMap<Int, Int>()
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -333,13 +345,13 @@ open class GalileoHandler : MMSHandler() {
                 }
 
                 //--- RS-485 основные/типовые (0..2)
-                in 0x60..0x62 -> tmRS485Fuel.put(tag - 0x60, bbIn.getShort().toInt() and 0xFFFF)
+                in 0x60..0x62 -> tmRS485Fuel[tag - 0x60] = bbIn.getShort().toInt() and 0xFFFF
 
                 //--- RS-485 дополнительные/расширенные (с показаниями температуры) (3..7)
                 //--- RS-485 дополнительные/расширенные (с показаниями температуры) (8..15)
                 in 0x63..0x6F -> {
-                    tmRS485Fuel.put(tag - 0x60, bbIn.getShort().toInt() and 0xFFFF)
-                    tmRS485Temp.put(tag - 0x60, bbIn.getByte().toInt())
+                    tmRS485Fuel[tag - 0x60] = bbIn.getShort().toInt() and 0xFFFF
+                    tmRS485Temp[tag - 0x60] = bbIn.getByte().toInt()
                 }
 
                 //--- thermometer
@@ -359,7 +371,7 @@ open class GalileoHandler : MMSHandler() {
                 0x88 -> bbIn.getByte()
 
                 //--- RS-485 основные/типовые (0..2) - показания температуры
-                0x8A, 0x8B, 0x8C -> tmRS485Temp.put(tag - 0x8A, bbIn.getByte().toInt())
+                0x8A, 0x8B, 0x8C -> tmRS485Temp[tag - 0x8A] = bbIn.getByte().toInt()
 
                 //--- iButton 0
                 0x90 -> bbIn.getInt()
@@ -375,9 +387,9 @@ open class GalileoHandler : MMSHandler() {
 
                 //--- CAN
                 0xC1 -> {
-                    canFuelLevel = Math.round((bbIn.getByte().toInt() and 0xFF) * 0.4f)
+                    canFuelLevel = ((bbIn.getByte().toInt() and 0xFF) * 0.4f).roundToInt()
                     canCoolantTemperature = (bbIn.getByte().toInt() and 0xFF) - 40
-                    canEngineRPM = Math.round((bbIn.getShort().toInt() and 0xFFFF) * 0.125f)
+                    canEngineRPM = ((bbIn.getShort().toInt() and 0xFFFF) * 0.125f).roundToInt()
                 }
 
                 //--- FMS-Standart: run
@@ -442,7 +454,6 @@ open class GalileoHandler : MMSHandler() {
                         AdvancedLogger.error("deviceID = $deviceID\n Меркурий: электросчётчик напрямую прибором Galileo больше не поддерживается. Используте модуль сбора данных.")
                         bbIn.skip(userDataSize - 1)
                     } else if (userDataType == 0x03) {
-                        //--- версия данных, пока не учитываем
                         val dataVersion = bbIn.getByte().toInt() and 0xFF
                         when (dataVersion) {
                             2 -> {
@@ -462,9 +473,9 @@ open class GalileoHandler : MMSHandler() {
                                     val value = (b1.toInt() and 0xFF shl 24) or (b2.toInt() and 0xFF shl 16) or (b3.toInt() and 0xFF shl 8) or (b4.toInt() and 0xFF)
                                     //int value = bbIn.getInt();
 
-                                    val float = Float.fromBits(value)
+                                    val double = Float.fromBits(value).toDouble()
 
-                                    AdvancedLogger.error("id = ${id.toString(16)}, value = $value / 0x${value.toString(16)}, float = $float")
+                                    AdvancedLogger.error("id = ${id.toString(16)}, value = $value / 0x${value.toString(16)}, float = $double")
 
                                     when (id) {
                                         0 -> {
@@ -503,12 +514,12 @@ open class GalileoHandler : MMSHandler() {
                                         in 0x052C..0x052F -> tmEnergoPowerFullB[id - 0x052C] = value
                                         in 0x0530..0x0533 -> tmEnergoPowerFullC[id - 0x0530] = value
 
-                                        in 0x0541..0x0544 -> tmMassFlow[id - 0x0541] = float
-                                        in 0x0581..0x0584 -> tmDensity[id - 0x0581] = float
-                                        in 0x05C1..0x05C4 -> tmTemperature[id - 0x05C1] = float
-                                        in 0x0601..0x0604 -> tmVolumeFlow[id - 0x0601] = float
-                                        in 0x0641..0x0644 -> tmAccumulatedMass[id - 0x0641] = float
-                                        in 0x0681..0x0684 -> tmAccumulatedVolume[id - 0x0681] = float
+                                        in 0x0541..0x0544 -> tmMassFlow[id - 0x0541] = double
+                                        in 0x0581..0x0584 -> tmDensity[id - 0x0581] = double
+                                        in 0x05C1..0x05C4 -> tmTemperature[id - 0x05C1] = double
+                                        in 0x0601..0x0604 -> tmVolumeFlow[id - 0x0601] = double
+                                        in 0x0641..0x0644 -> tmAccumulatedMass[id - 0x0641] = double
+                                        in 0x0681..0x0684 -> tmAccumulatedVolume[id - 0x0681] = double
 
                                         in 0x0700..0x0703 -> tmEnergoPowerActiveABC[id - 0x0700] = value
                                         in 0x0710..0x0713 -> tmEnergoPowerReactiveABC[id - 0x0710] = value
@@ -521,6 +532,22 @@ open class GalileoHandler : MMSHandler() {
                             else -> {
                                 AdvancedLogger.error("deviceID = $deviceID\n модуль сбора данных: версия $dataVersion больше не поддерживается. Используйте свежий скрипт/прошивку.")
                                 return false
+                            }
+                        }
+                    } else if (userDataType == 0x07) {
+                        //--- Eurosens Delta
+                        for (groupIndex in 0..3) {
+                            val status = bbIn.getByte().toInt() and 0xFF
+                            tmESDStatus[groupIndex] = status
+                            if (status != 0) {
+                                tmESDVolume[groupIndex] = bbIn.getInt() * 0.01                      // litres
+                                tmESDFlow[groupIndex] = bbIn.getInt() * 0.1                         // litres/hour
+                                tmESDCameraVolume[groupIndex] = bbIn.getInt() * 0.01                // litres
+                                tmESDCameraFlow[groupIndex] = bbIn.getInt() * 0.1                   // litres/hour
+                                tmESDCameraTemperature[groupIndex] = bbIn.getByte().toInt()         // C
+                                tmESDReverseCameraVolume[groupIndex] = bbIn.getInt() * 0.01         // litres
+                                tmESDReverseCameraFlow[groupIndex] = bbIn.getInt() * 0.1            // litres/hour
+                                tmESDReverseCameraTemperature[groupIndex] = bbIn.getByte().toInt()  // C
                             }
                         }
                     }
@@ -560,7 +587,7 @@ open class GalileoHandler : MMSHandler() {
         //--- команда есть
         if (cmdStr != null) {
             //--- и она не пустая
-            if (!cmdStr.isEmpty()) {
+            if (cmdStr.isNotEmpty()) {
                 val dataSize = 1 + 15 + 1 + 2 + 1 + 4 + 1 + 1 + cmdStr.length
 
                 val bbOut = AdvancedByteBuffer(64)  // 64 байта в большинстве случаев хватает
@@ -701,6 +728,17 @@ open class GalileoHandler : MMSHandler() {
             putDigitalSensor(tmEnergoPowerReactiveABC, 340, 4, bbData)
             putDigitalSensor(tmEnergoPowerFullABC, 350, 4, bbData)
 
+            //--- EuroSens Delta
+            putDigitalSensor(tmESDStatus, 500, 4, bbData)
+            putDigitalSensor(tmESDVolume, 504, bbData)
+            putDigitalSensor(tmESDFlow, 508, bbData)
+            putDigitalSensor(tmESDCameraVolume, 512, bbData)
+            putDigitalSensor(tmESDCameraFlow, 516, bbData)
+            putDigitalSensor(tmESDCameraTemperature, 520, 4, bbData)
+            putDigitalSensor(tmESDReverseCameraVolume, 524, bbData)
+            putDigitalSensor(tmESDReverseCameraFlow, 528, bbData)
+            putDigitalSensor(tmESDReverseCameraTemperature, 532, 4,bbData)
+
             addPoint(dataWorker.alStm[0], pointTime, bbData, sqlBatchData)
             dataCount++
         }
@@ -783,6 +821,16 @@ open class GalileoHandler : MMSHandler() {
         tmVolumeFlow.clear()
         tmAccumulatedMass.clear()
         tmAccumulatedVolume.clear()
+
+        tmESDStatus.clear()
+        tmESDVolume.clear()
+        tmESDFlow.clear()
+        tmESDCameraVolume.clear()
+        tmESDCameraFlow.clear()
+        tmESDCameraTemperature.clear()
+        tmESDReverseCameraVolume.clear()
+        tmESDReverseCameraFlow.clear()
+        tmESDReverseCameraTemperature.clear()
     }
 
 }

@@ -315,7 +315,11 @@ class mSensor : mAbstract() {
             addFormCaption(columnSensorType, "Норматив расхода топлива [л/час]", workSensorType)
         }
 
-        //--- counting sensors --------------------------------------------------------------------------------------------------
+        //--- applies only to (fuel) counter sensors
+        val columnIsAbsoluteCount = ColumnBoolean(tableName, "is_absolute_count", "Накопительный счётчик", false).apply {
+            addFormVisible(columnSensorType, true, counterSensorTypes)
+        }
+
 
         //        ColumnDouble columnFuelUsingMax = new ColumnDouble(  tableName, "liquid_using_max", "Максимально возможный расход [л/час]", 10, 0, 100.0  );
         //            columnFuelUsingMax.addFormVisible(  new FormColumnVisibleData(  columnSensorType, true, new int[] { SensorConfig.SENSOR_LIQUID_USING }  )  );
@@ -512,6 +516,8 @@ class mSensor : mAbstract() {
             alFormColumn.add(columnSignalOn)
             alFormColumn.add(columnSignalOff)
         }
+
+        alFormColumn.add(columnIsAbsoluteCount)
 
         alFormColumn.add(columnSmoothMethod)
         alFormColumn.add(columnSmoothTime)

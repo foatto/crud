@@ -25,7 +25,7 @@ open class cStandart {
 
     companion object {
 
-        const val TABLE_CELL_FORE_COLOR_DISABLED = 0xFF_80_80_80.toInt()
+        const val TABLE_CELL_FORE_COLOR_DISABLED = 0xFF_C0_C0_C0.toInt()
         const val TABLE_CELL_FORE_COLOR_CRITICAL = 0xFF_80_00_00.toInt()
         const val TABLE_CELL_FORE_COLOR_WARNING = 0xFF_80_80_00.toInt()
         const val TABLE_CELL_FORE_COLOR_NORMAL = 0xFF_00_80_00.toInt()

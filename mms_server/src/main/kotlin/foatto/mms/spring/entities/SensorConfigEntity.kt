@@ -10,7 +10,7 @@ class SensorConfigEntity(
     val id: Int,
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "object_id", nullable = false)
+    @JoinColumn(name = "object_id")
     val obj: ObjectEntity,
 
     val name: String,       // inner/system sensor name for programmatically sensors adding
@@ -126,6 +126,11 @@ class SensorConfigEntity(
 
     @Column(name = "analog_max_limit")
     val maxLimit: Double?,
+
+    //--- (fuel) counter sensor attributes
+
+    @Column(name = "is_absolute_count")
+    val isAbsoluteCount: Int?,
 
     //--- energo sensor attributes
 
