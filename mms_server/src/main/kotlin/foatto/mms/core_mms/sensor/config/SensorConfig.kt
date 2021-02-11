@@ -1,6 +1,6 @@
 package foatto.mms.core_mms.sensor.config
 
-abstract class SensorConfig(
+open class SensorConfig(
     val id: Int,
     val name: String,       // внутреннее/системное имя датчика, необходимо для поиска/идентификации при программном добавлении датчиков ( например, из дпнных измерений )
     val group: String,      // имя группы датчиков для логической связки разнотипных датчиков в пределах одного графика/отчёта
@@ -19,7 +19,7 @@ abstract class SensorConfig(
 
         //--- логические входы с датчиков
 
-        //--- особые величины - сигнал с утройства
+        //--- особые величины - сигнал с устройства
         const val SENSOR_SIGNAL = -2   // Есть/нет
 
         //--- составной датчик - гео-данных ( координаты,скорость,пробег )
@@ -51,6 +51,9 @@ abstract class SensorConfig(
 
         //--- учётные величины - отчёты
         const val SENSOR_LIQUID_USING = 16   // расходомер/счётчик
+
+        //--- сигнальная величина - состояние расходомера/счётчика
+        const val SENSOR_LIQUID_USING_COUNTER_STATE = 17
 
         //--- electro energo counters
 
@@ -102,6 +105,7 @@ abstract class SensorConfig(
             hmSensorDescr[SENSOR_MASS_ACCUMULATED] = "Накопленная масса"
             hmSensorDescr[SENSOR_VOLUME_ACCUMULATED] = "Накопленный объём"
             hmSensorDescr[SENSOR_LIQUID_USING] = "Расход топлива (счётчик)"
+            hmSensorDescr[SENSOR_LIQUID_USING_COUNTER_STATE] = "Состояние расходомера (счётчика)"
             hmSensorDescr[SENSOR_ENERGO_COUNT_AD] = "Электроэнергия активная прямая"
             hmSensorDescr[SENSOR_ENERGO_COUNT_AR] = "Электроэнергия активная обратная"
             hmSensorDescr[SENSOR_ENERGO_COUNT_RD] = "Электроэнергия реактивная прямая"

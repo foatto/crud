@@ -40,10 +40,11 @@ class mTrouble : mAbstractReport() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnReportPeriod = ColumnInt(tableName, "limit_period", "Срок давности [дней]", 10, 1)
-        columnReportPeriod.isVirtual = true
-        columnReportPeriod.setSavedDefault(userConfig)
-        columnReportPeriod.minValue = 1
+        columnReportPeriod = ColumnInt(tableName, "limit_period", "Срок давности [дней]", 10, 1).apply {
+            isVirtual = true
+            setSavedDefault(userConfig)
+            minValue = 1
+        }
 
         //----------------------------------------------------------------------------------------------------------------------
 

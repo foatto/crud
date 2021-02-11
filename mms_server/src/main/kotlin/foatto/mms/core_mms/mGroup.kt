@@ -65,7 +65,6 @@ class mGroup : mAbstract() {
         alChildData.add(ChildData("mms_object", columnID!!, true))
         alChildData.add(ChildData("mms_day_work", columnID!!))
         alChildData.add(ChildData("mms_shift_work", columnID!!))
-        alChildData.add(ChildData("mms_downtime", columnID!!))
         //--- обычно показывается один из двух модулей
         alChildData.add(ChildData("mms_work_shift", columnID!!))
         alChildData.add(ChildData("mms_waybill", columnID!!))

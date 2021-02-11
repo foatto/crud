@@ -149,22 +149,6 @@ abstract class CoreDataClean(aConfigFileName: String) : CoreServiceWorker(aConfi
         alConn[0].commit()
         AdvancedLogger.debug("MMS_day_work = $rowCountDW rows")
 
-        rowCountDW = alStm[0].executeUpdate(
-            " DELETE FROM MMS_downtime WHERE ye < ${arrDT[0]} OR ye = ${arrDT[0]} AND mo < ${arrDT[1]} OR ye = ${arrDT[0]} AND mo = ${arrDT[1]} AND da < ${arrDT[2]} " )
-        alConn[0].commit()
-
-        //--- для H2 базы команды ALTER INDEX не реализовано
-        if(alConn[0].dialect == SQLDialect.H2) {
-        }
-        else if(alConn[0].dialect == SQLDialect.SQLITE) {
-        }
-        else if(alConn[0].dialect == SQLDialect.POSTGRESQL) alStm[0].executeUpdate(" REINDEX TABLE MMS_downtime ")
-        else alStm[0].executeUpdate(" ALTER INDEX ALL ON MMS_downtime REBUILD ")//--- у прочих диалектов просто перестраиваем индексы
-        //--- для PostgreSQL свой синтаксис
-        //--- для SQLite базы команды ALTER INDEX не реализовано
-        alConn[0].commit()
-        AdvancedLogger.debug("MMS_downtime = $rowCountDW rows")
-
         val rowCountWS = alStm[0].executeUpdate( " DELETE FROM MMS_work_shift WHERE end_dt < ${getCurrentTimeInt() - maxExpirePeriod}" )
         if(rowCountWS > 0) alStm[0].executeUpdate( " DELETE FROM MMS_work_shift_data WHERE shift_id NOT IN ( SELECT id FROM MMS_work_shift ) " )
         alConn[0].commit()

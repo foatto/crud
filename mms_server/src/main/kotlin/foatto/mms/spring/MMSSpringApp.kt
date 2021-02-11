@@ -84,7 +84,6 @@ class MMSSpringApp : CoreSpringApp() {
 
             mUser.alExtendChildData.add(ChildData("mms_object", true))
             mUser.alExtendChildData.add(ChildData("mms_day_work"))
-            mUser.alExtendChildData.add(ChildData("mms_downtime"))
             mUser.alExtendChildData.add(ChildData("mms_shift_work"))
             mUser.alExtendChildData.add(ChildData("mms_department"))
             mUser.alExtendChildData.add(ChildData("mms_group"))
@@ -98,7 +97,6 @@ class MMSSpringApp : CoreSpringApp() {
             mUser.alExtendDependData.add(DependData("SYSTEM_new", "user_id", DependData.DELETE))
             mUser.alExtendDependData.add(DependData("MMS_object", "user_id"))
             mUser.alExtendDependData.add(DependData("MMS_day_work", "user_id", DependData.DELETE))
-            mUser.alExtendDependData.add(DependData("MMS_downtime", "user_id", DependData.DELETE))
             mUser.alExtendDependData.add(DependData("MMS_department", "user_id"))
             mUser.alExtendDependData.add(DependData("MMS_group", "user_id"))
             mUser.alExtendDependData.add(DependData("MMS_work_shift", "user_id"))  // удалить нельзя, есть зависимости в MMS_work_shift_data

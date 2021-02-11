@@ -147,7 +147,7 @@ class sdcMMSMap : sdcXyMap() {
                 if (!isFound) {
                     val objectState = ObjectState.getState(stm, objectConfig)
                     //--- если текущее положение не в будущем относительно запрашиваемого периода и есть последние координаты
-                    if (objectState.time <= objectParamData.endTime && objectState.pixPoint != null) {
+                    if (objectState.lastGeoTime != null && objectState.lastGeoTime!! <= objectParamData.endTime && objectState.pixPoint != null) {
                         getMinMaxCoords(objectState.pixPoint!!, minXY, maxXY)
                         isFound = true
                     }
@@ -417,20 +417,19 @@ class sdcMMSMap : sdcXyMap() {
 
         //--- если текущее положение не в будущем относительно запрашиваемого периода
         //--- и есть последние координаты
-        if (objectState.time <= objectParamData.endTime && objectState.pixPoint != null) {
-            var sToolTip = objectNameAndModel + sLineSeparator + "Время: ${DateTime_DMYHMS(zoneId, objectState.time)}"
+        if (objectState.lastGeoTime != null && objectState.lastGeoTime!! <= objectParamData.endTime && objectState.pixPoint != null) {
+            var sToolTip = objectNameAndModel + sLineSeparator + "Время: ${DateTime_DMYHMS(zoneId, objectState.lastGeoTime!!)}"
             if (objectConfig.scg!!.isUseSpeed) {
                 sToolTip += sLineSeparator + "Скорость: ${objectState.speed} км/ч"
             }
             for (descr in objectState.tmWorkState.keys) {
                 val state = objectState.tmWorkState[descr]
-                sToolTip += sLineSeparator + descr + ": " + (if (state == null) "( неизв. )" else if (state) "ВКЛ." else "выкл.")
+                sToolTip += sLineSeparator + descr + ": " + (if (state == null) "(неизв.)" else if (state) "ВКЛ." else "выкл.")
             }
             for (descr in objectState.tmLiquidLevel.keys) {
                 val error = objectState.tmLiquidError[descr]
                 val value = objectState.tmLiquidLevel[descr]
-                val dim = objectState.tmLiquidDim[descr]
-                sToolTip += sLineSeparator + descr + ": " + (error ?: if (value == null) "( неизв. )" else (getSplittedDouble(value, 0) + ' ' + dim))
+                sToolTip += sLineSeparator + descr + ": " + (error ?: if (value == null) "(неизв.)" else getSplittedDouble(value, 0))
             }
             val objectInfo = XyElement(TYPE_OBJECT_INFO, -getRandomInt(), objectParamData.objectID)
             objectInfo.itReadOnly = true
@@ -444,10 +443,10 @@ class sdcMMSMap : sdcXyMap() {
             if (objectConfig.isDisabled) {
                 objectInfo.drawColor = 0xFF000000.toInt()
                 objectInfo.fillColor = 0xFF808080.toInt()
-            } else if (getCurrentTimeInt() - objectState.time > ObjectConfig.CRITICAL_TIME) {
+            } else if (getCurrentTimeInt() - objectState.lastGeoTime!! > ObjectConfig.CRITICAL_TIME) {
                 objectInfo.drawColor = 0xFF000000.toInt()
                 objectInfo.fillColor = 0xFFFF0000.toInt()
-            } else if (getCurrentTimeInt() - objectState.time > ObjectConfig.WARNING_TIME) {
+            } else if (getCurrentTimeInt() - objectState.lastGeoTime!! > ObjectConfig.WARNING_TIME) {
                 objectInfo.drawColor = 0xFF000000.toInt()
                 objectInfo.fillColor = 0xFFFFFF00.toInt()
             } else {
@@ -456,7 +455,7 @@ class sdcMMSMap : sdcXyMap() {
             }
             objectInfo.lineWidth = 2
             //--- если угол поворота определить все равно не удалось ( нет траектории и только одна точка cur_pos )
-            objectInfo.rotateDegree = if (objectState.objectAngle == null) 0.0 else objectState.objectAngle!!
+            objectInfo.rotateDegree = if (objectState.angle == null) 0.0 else objectState.angle!!
 
             alElement.add(objectInfo)
 

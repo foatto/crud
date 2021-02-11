@@ -122,7 +122,6 @@ class mObject : mAbstract() {
 
         alChildData.add(ChildData("Журналы...", "mms_day_work", columnID!!, AppAction.TABLE))
         alChildData.add(ChildData("Журналы...", "mms_shift_work", columnID!!, AppAction.TABLE))
-        alChildData.add(ChildData("Журналы...", "mms_downtime", columnID!!, AppAction.TABLE))
         //--- usually one of two modules is shown
         alChildData.add(ChildData("Журналы...", "mms_work_shift", columnID!!, AppAction.TABLE))
         alChildData.add(ChildData("Журналы...", "mms_waybill", columnID!!, AppAction.TABLE))
@@ -159,7 +158,6 @@ class mObject : mAbstract() {
         alDependData.add(DependData("VC_camera", "object_id"))
 
         alDependData.add(DependData("MMS_day_work", "object_id", DependData.DELETE))
-        alDependData.add(DependData("MMS_downtime", "object_id", DependData.DELETE))
         //--- cascade deletion procedure, implemented in cObject.postDelete
         //alDependData.add(  new DependData(  "MMS_work_shift", "object_id", DependData.DELETE  )  );
         //--- cascade deletion procedure, implemented in cObject.postDelete

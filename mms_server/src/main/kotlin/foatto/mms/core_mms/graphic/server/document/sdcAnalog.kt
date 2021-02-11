@@ -24,6 +24,7 @@ import foatto.mms.core_mms.graphic.server.graphic_handler.AnalogGraphicHandler
 import foatto.mms.core_mms.graphic.server.graphic_handler.iGraphicHandler
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigAnalogue
+import foatto.mms.core_mms.sensor.config.SensorConfigCounter
 import foatto.mms.core_mms.sensor.config.SensorConfigGeo
 import foatto.mms.core_mms.sensor.config.SensorConfigWork
 import foatto.mms.iMMSApplication
@@ -40,6 +41,7 @@ open class sdcAnalog : sdcAbstractGraphic() {
         val MIN_CONNECT_OFF_TIME = 15 * 60
         val MIN_NO_DATA_TIME = 5 * 60
         private val MIN_POWER_OFF_TIME = 5 * 60
+        private val MIN_LIQUID_COUNTER_STATE_TIME = 5 * 60
     }
 
     override fun doGetElements(graphicActionRequest: GraphicActionRequest): GraphicActionResponse {
@@ -365,14 +367,14 @@ open class sdcAnalog : sdcAbstractGraphic() {
         }
 
         //--- поиск значительных промежутков отсутствия основного питания ( перехода на резервное питание )
-        oc.hmSensorConfig[SensorConfig.SENSOR_VOLTAGE]?.forEach { (portNum, sc) ->
+        oc.hmSensorConfig[SensorConfig.SENSOR_VOLTAGE]?.values?.forEach { sc ->
             val sca = sc as SensorConfigAnalogue
             //--- чтобы не смешивались разные ошибки по одному датчику и одинаковые ошибки по разным датчикам,
             //--- добавляем в описание ошибки не только само описание ошибки, но и описание датчика
             checkSensorError(
                 alRawTime = alRawTime,
                 alRawData = alRawData,
-                portNum = portNum,
+                portNum = sca.portNum,
                 sensorDescr = sca.descr,
                 begTime = begTime,
                 endTime = endTime,
@@ -384,6 +386,53 @@ open class sdcAnalog : sdcAbstractGraphic() {
                 minTime = MIN_POWER_OFF_TIME,
                 alGTD = alGTD
             )
+        }
+
+        //--- поиск критических режимов работы счётчика топлива EuroSens Delta
+        oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_USING_COUNTER_STATE]?.values?.forEach { sc ->
+            listOf(
+                SensorConfigCounter.STATUS_OVERLOAD,
+                SensorConfigCounter.STATUS_CHEAT,
+                SensorConfigCounter.STATUS_REVERSE,
+                SensorConfigCounter.STATUS_INTERVENTION,
+            ).forEach { stateCode ->
+                checkSensorError(
+                    alRawTime = alRawTime,
+                    alRawData = alRawData,
+                    portNum = sc.portNum,
+                    sensorDescr = sc.descr,
+                    begTime = begTime,
+                    endTime = endTime,
+                    aFillColorIndex = GraphicColorIndex.FILL_CRITICAL,
+                    aBorderColorIndex = GraphicColorIndex.BORDER_CRITICAL,
+                    aTextColorIndex = GraphicColorIndex.TEXT_CRITICAL,
+                    troubleCode = stateCode,
+                    troubleDescr = SensorConfigCounter.hmStatusDescr[stateCode] ?: "(неизвестный код состояния)",
+                    minTime = MIN_LIQUID_COUNTER_STATE_TIME,
+                    alGTD = alGTD
+                )
+            }
+            listOf(
+                SensorConfigCounter.STATUS_UNKNOWN,
+                SensorConfigCounter.STATUS_IDLE,
+                //SensorConfigCounter.STATUS_NORMAL,
+            ).forEach { stateCode ->
+                checkSensorError(
+                    alRawTime = alRawTime,
+                    alRawData = alRawData,
+                    portNum = sc.portNum,
+                    sensorDescr = sc.descr,
+                    begTime = begTime,
+                    endTime = endTime,
+                    aFillColorIndex = GraphicColorIndex.FILL_WARNING,
+                    aBorderColorIndex = GraphicColorIndex.BORDER_WARNING,
+                    aTextColorIndex = GraphicColorIndex.TEXT_WARNING,
+                    troubleCode = stateCode,
+                    troubleDescr = SensorConfigCounter.hmStatusDescr[stateCode] ?: "(неизвестный код состояния)",
+                    minTime = MIN_LIQUID_COUNTER_STATE_TIME,
+                    alGTD = alGTD
+                )
+            }
         }
 
         aText.alGTD = alGTD.toTypedArray()

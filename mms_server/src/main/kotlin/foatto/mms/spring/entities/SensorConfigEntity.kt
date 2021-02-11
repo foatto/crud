@@ -15,9 +15,6 @@ class SensorConfigEntity(
 
     val name: String,       // inner/system sensor name for programmatically sensors adding
 
-//    @Column(name = "sum_group_name")
-//    val sumGroup: String,   // sensor group name for calculation data summaring
-
     @Column(name = "group_name")
     val group: String,      // sensor group name for sensors logical linking
 

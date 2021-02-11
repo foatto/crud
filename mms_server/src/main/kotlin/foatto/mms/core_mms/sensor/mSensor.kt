@@ -106,6 +106,8 @@ class mSensor : mAbstract() {
 
         val counterSensorTypes = setOf(SensorConfig.SENSOR_LIQUID_USING)
 
+        val counterStateSensorType = setOf(SensorConfig.SENSOR_LIQUID_USING_COUNTER_STATE)
+
         val liquidSummarySensorTypes = setOf(
             SensorConfig.SENSOR_MASS_ACCUMULATED,
             SensorConfig.SENSOR_VOLUME_ACCUMULATED,
@@ -202,14 +204,6 @@ class mSensor : mAbstract() {
             addFormVisible(columnSensorType, true, workSensorType)
         }
 
-        val columnCalcInMoving = ColumnBoolean(tableName, "calc_in_moving", "Учитывать работу в движении", true).apply {
-            addFormVisible(columnSensorType, true, workSensorType)
-        }
-
-        val columnCalcInParking = ColumnBoolean(tableName, "calc_in_parking", "Учитывать работу на стоянках", true).apply {
-            addFormVisible(columnSensorType, true, workSensorType)
-        }
-
         val columnBegWorkValue = ColumnDouble(tableName, "beg_work_value", "Наработка на момент установки датчика [мото-час]", 10, 1, 0.0).apply {
             addFormVisible(columnSensorType, true, workSensorType)
         }
@@ -263,11 +257,11 @@ class mSensor : mAbstract() {
             addChoice(SensorConfig.SMOOTH_METOD_AVERAGE, "Среднее арифметическое")
             addChoice(SensorConfig.SMOOTH_METOD_AVERAGE_SQUARE, "Среднее квадратическое")
             addChoice(SensorConfig.SMOOTH_METOD_AVERAGE_GEOMETRIC, "Среднее геометрическое")
-            addFormVisible(columnSensorType, false, signalSensorType + geoSensorType + workSensorType)
+            addFormVisible(columnSensorType, false, signalSensorType + geoSensorType + workSensorType + counterSensorTypes + counterStateSensorType)
         }
 
         val columnSmoothTime = ColumnInt(tableName, "smooth_time", "Период сглаживания [мин]", 10, 0).apply {
-            addFormVisible(columnSensorType, false, signalSensorType + geoSensorType + workSensorType)
+            addFormVisible(columnSensorType, false, signalSensorType + geoSensorType + workSensorType + counterSensorTypes + counterStateSensorType)
         }
 
         //--- common for all sensors, except for geo and total sensors --------------------------------------------------------------------------------
@@ -281,7 +275,7 @@ class mSensor : mAbstract() {
             aDefaultValue = 0.0,
         ).apply {
             formPinMode = FormPinMode.OFF
-            addFormVisible(columnSensorType, false, geoSensorType)
+            addFormVisible(columnSensorType, false, geoSensorType + counterStateSensorType)
         }
 
         val columnIgnoreMax = ColumnDouble(
@@ -292,7 +286,7 @@ class mSensor : mAbstract() {
             aPrecision = -1,
             aDefaultValue = Integer.MAX_VALUE.toDouble(),
         ).apply {
-            addFormVisible(columnSensorType, false, geoSensorType)
+            addFormVisible(columnSensorType, false, geoSensorType + counterStateSensorType)
         }
 
         //--- common for geo sensors, discrete, counting, liquid level, density, total mass and total volume
@@ -431,7 +425,7 @@ class mSensor : mAbstract() {
         //--- any calibrable sensors ---
 
         columnCalibrationText = ColumnString(tableName, "_calibration_text", "Тарировка датчика", 20, STRING_COLUMN_WIDTH, 64000).apply {
-            addFormVisible(columnSensorType, false, signalSensorType + geoSensorType + workSensorType)
+            addFormVisible(columnSensorType, false, signalSensorType + geoSensorType + workSensorType + counterStateSensorType)
             isVirtual = true
         }
 
@@ -496,8 +490,6 @@ class mSensor : mAbstract() {
             alFormHiddenColumn.add(columnActiveValue)
             alFormHiddenColumn.add(columnMinOnTime)
             alFormHiddenColumn.add(columnMinOffTime)
-            alFormHiddenColumn.add(columnCalcInMoving)
-            alFormHiddenColumn.add(columnCalcInParking)
             alFormColumn.add(columnBegWorkValue)
             alFormHiddenColumn.add(columnCommandDescrOn)
             alFormHiddenColumn.add(columnCommandDescrOff)
@@ -508,8 +500,6 @@ class mSensor : mAbstract() {
             alFormColumn.add(columnActiveValue)
             alFormColumn.add(columnMinOnTime)
             alFormColumn.add(columnMinOffTime)
-            alFormColumn.add(columnCalcInMoving)
-            alFormColumn.add(columnCalcInParking)
             alFormColumn.add(columnBegWorkValue)
             alFormColumn.add(columnCommandDescrOn)
             alFormColumn.add(columnCommandDescrOff)

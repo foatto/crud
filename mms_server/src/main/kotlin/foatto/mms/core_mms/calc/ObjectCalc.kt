@@ -109,10 +109,8 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             }
 
             //--- equipment operation sensors
-            oc.hmSensorConfig[SensorConfig.SENSOR_WORK]?.let { hmSCW ->
-                hmSCW.values.forEach { sc ->
-                    calcWork(alRawTime, alRawData, sc as SensorConfigWork, begTime, endTime, result)
-                }
+            oc.hmSensorConfig[SensorConfig.SENSOR_WORK]?.values?.forEach { sc ->
+                calcWork(alRawTime, alRawData, sc as SensorConfigWork, begTime, endTime, result)
             }
 
             //--- sensors - electricity meters
@@ -122,92 +120,72 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 SensorConfig.SENSOR_ENERGO_COUNT_RD,
                 SensorConfig.SENSOR_ENERGO_COUNT_RR
             ).forEach { sensorType ->
-                oc.hmSensorConfig[sensorType]?.let { hmSCEC ->
-                    hmSCEC.values.forEach { sc ->
-                        calcEnergo(alRawTime, alRawData, sc as SensorConfigEnergoSummary, begTime, endTime, result)
-                    }
+                oc.hmSensorConfig[sensorType]?.values?.forEach { sc ->
+                    calcEnergo(alRawTime, alRawData, sc as SensorConfigEnergoSummary, begTime, endTime, result)
                 }
             }
 
             //--- liquid calc sensor
-            val hmSCLC = oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_USING]
-            if (!hmSCLC.isNullOrEmpty()) {
-                hmSCLC.values.forEach { sc ->
-                    calcLiquidCalcSensor(alRawTime, alRawData, sc as SensorConfigCounter, begTime, endTime, result)
-                }
+            oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_USING]?.values?.forEach { sc ->
+                calcLiquidCalcSensor(alRawTime, alRawData, sc as SensorConfigCounter, begTime, endTime, result)
             }
 
             //--- volume accumulated values sensor
-            val hmSCVA = oc.hmSensorConfig[SensorConfig.SENSOR_VOLUME_ACCUMULATED]
-            if (!hmSCVA.isNullOrEmpty()) {
-                hmSCVA.values.forEach { sc ->
-                    calcLiquidSummary(alRawTime, alRawData, sc as SensorConfigLiquidSummary, begTime, endTime, result)
-                }
+            oc.hmSensorConfig[SensorConfig.SENSOR_VOLUME_ACCUMULATED]?.values?.forEach { sc ->
+                calcLiquidSummary(alRawTime, alRawData, sc as SensorConfigLiquidSummary, begTime, endTime, result)
             }
 
             //--- mass accumulated values sensor
-            val hmSCMA = oc.hmSensorConfig[SensorConfig.SENSOR_MASS_ACCUMULATED]
-            if (!hmSCMA.isNullOrEmpty()) {
-                hmSCMA.values.forEach { sc ->
-                    calcLiquidSummary(alRawTime, alRawData, sc as SensorConfigLiquidSummary, begTime, endTime, result)
-                }
+            oc.hmSensorConfig[SensorConfig.SENSOR_MASS_ACCUMULATED]?.values?.forEach { sc ->
+                calcLiquidSummary(alRawTime, alRawData, sc as SensorConfigLiquidSummary, begTime, endTime, result)
             }
 
             //--- liquid level sensors
-            val hmSCLL = oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_LEVEL]
-            if (!hmSCLL.isNullOrEmpty()) {
-                hmSCLL.values.forEach { sc ->
-                    calcLiquidLevel(alRawTime, alRawData, stm, oc, sc as SensorConfigLiquidLevel, begTime, endTime, result)
-                }
+            oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_LEVEL]?.values?.forEach { sc ->
+                calcLiquidLevel(alRawTime, alRawData, stm, oc, sc as SensorConfigLiquidLevel, begTime, endTime, result)
             }
 
             //--- some analogue sensors
-            val hmSCTemperature = oc.hmSensorConfig[SensorConfig.SENSOR_TEMPERATURE]
-            if (!hmSCTemperature.isNullOrEmpty()) {
-                hmSCTemperature.values.forEach { sc ->
-                    val sca = sc as SensorConfigAnalogue
-                    val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2)
-                    getSmoothAnalogGraphicData(
-                        alRawTime = alRawTime,
-                        alRawData = alRawData,
-                        scg = oc.scg,
-                        scsc = sca,
-                        begTime = begTime,
-                        endTime = endTime,
-                        xScale = 0,
-                        yScale = 0.0,
-                        aMinLimit = null,
-                        aMaxLimit = null,
-                        aPoint = null,
-                        aLine = aLine,
-                        gh = AnalogGraphicHandler()
-                    )
-                    result.tmTemperature[sc.descr] = aLine
-                }
+            oc.hmSensorConfig[SensorConfig.SENSOR_TEMPERATURE]?.values?.forEach { sc ->
+                val sca = sc as SensorConfigAnalogue
+                val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2)
+                getSmoothAnalogGraphicData(
+                    alRawTime = alRawTime,
+                    alRawData = alRawData,
+                    scg = oc.scg,
+                    scsc = sca,
+                    begTime = begTime,
+                    endTime = endTime,
+                    xScale = 0,
+                    yScale = 0.0,
+                    aMinLimit = null,
+                    aMaxLimit = null,
+                    aPoint = null,
+                    aLine = aLine,
+                    gh = AnalogGraphicHandler()
+                )
+                result.tmTemperature[sc.descr] = aLine
             }
 
-            val hmSCDensity = oc.hmSensorConfig[SensorConfig.SENSOR_DENSITY]
-            if (!hmSCDensity.isNullOrEmpty()) {
-                hmSCDensity.values.forEach { sc ->
-                    val sca = sc as SensorConfigAnalogue
-                    val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2)
-                    getSmoothAnalogGraphicData(
-                        alRawTime = alRawTime,
-                        alRawData = alRawData,
-                        scg = oc.scg,
-                        scsc = sca,
-                        begTime = begTime,
-                        endTime = endTime,
-                        xScale = 0,
-                        yScale = 0.0,
-                        aMinLimit = null,
-                        aMaxLimit = null,
-                        aPoint = null,
-                        aLine = aLine,
-                        gh = AnalogGraphicHandler()
-                    )
-                    result.tmDensity[sc.descr] = aLine
-                }
+            oc.hmSensorConfig[SensorConfig.SENSOR_DENSITY]?.values?.forEach { sc ->
+                val sca = sc as SensorConfigAnalogue
+                val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2)
+                getSmoothAnalogGraphicData(
+                    alRawTime = alRawTime,
+                    alRawData = alRawData,
+                    scg = oc.scg,
+                    scsc = sca,
+                    begTime = begTime,
+                    endTime = endTime,
+                    xScale = 0,
+                    yScale = 0.0,
+                    aMinLimit = null,
+                    aMaxLimit = null,
+                    aPoint = null,
+                    aLine = aLine,
+                    gh = AnalogGraphicHandler()
+                )
+                result.tmDensity[sc.descr] = aLine
             }
 
             if (oc.scg != null) {

@@ -8,6 +8,7 @@ import foatto.core.util.getCurrentTimeInt
 import foatto.core_server.ds.CoreDataServer
 import foatto.core_server.ds.CoreDataWorker
 import foatto.mms.core_mms.sensor.config.SensorConfig
+import foatto.mms.core_mms.sensor.config.SensorConfigCounter
 import foatto.sql.SQLBatch
 import java.nio.ByteOrder
 import java.nio.channels.SelectionKey
@@ -537,9 +538,17 @@ open class GalileoHandler : MMSHandler() {
                     } else if (userDataType == 0x07) {
                         //--- Eurosens Delta
                         for (groupIndex in 0..3) {
-                            val status = bbIn.getByte().toInt() and 0xFF
-                            tmESDStatus[groupIndex] = status
-                            if (status != 0) {
+                            val esdStatus = bbIn.getByte().toInt() and 0xFF
+                            //--- transform EuroSens Delta status bits to universal counter sensor status codes
+                            tmESDStatus[groupIndex] = if (esdStatus and 0x20 != 0) SensorConfigCounter.STATUS_INTERVENTION
+                            else if (esdStatus and 0x10 != 0) SensorConfigCounter.STATUS_REVERSE
+                            else if (esdStatus and 0x08 != 0) SensorConfigCounter.STATUS_CHEAT
+                            else if (esdStatus and 0x04 != 0) SensorConfigCounter.STATUS_OVERLOAD
+                            else if (esdStatus and 0x02 != 0) SensorConfigCounter.STATUS_NORMAL
+                            else if (esdStatus and 0x01 != 0) SensorConfigCounter.STATUS_IDLE
+                            else SensorConfigCounter.STATUS_UNKNOWN
+
+                            if (esdStatus != 0) {
                                 tmESDVolume[groupIndex] = bbIn.getInt() * 0.01                      // litres
                                 tmESDFlow[groupIndex] = bbIn.getInt() * 0.1                         // litres/hour
                                 tmESDCameraVolume[groupIndex] = bbIn.getInt() * 0.01                // litres

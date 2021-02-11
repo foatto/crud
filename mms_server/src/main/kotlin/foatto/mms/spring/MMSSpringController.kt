@@ -345,11 +345,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGeneral, "mms_day_work", true)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGeneral, "mms_shift_work", true)
 
-        addSeparator(alMenuGeneral)
-
-        addMenu(hmAliasConfig, hmAliasPerm, alMenuGeneral, "mms_downtime", true)
-
-        if (alMenuGeneral.size > 3) alMenu.add(MenuData("", "Учёт", alMenuGeneral.toTypedArray()))
+        if (alMenuGeneral.size > 2) alMenu.add(MenuData("", "Учёт", alMenuGeneral.toTypedArray()))
 
         //--- Общие отчёты --------------------------------------------------------------------------------------------------------
 
@@ -671,6 +667,16 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
                         aMaxIgnore = sensorEntity.maxIgnore ?: 0.0,
                         isAbsoluteCount = (sensorEntity.isAbsoluteCount ?: 0) != 0,
                         liquidName = sensorEntity.liquidName ?: "",
+                    )
+                }
+                SensorConfig.SENSOR_LIQUID_USING_COUNTER_STATE -> {
+                    hmSC[portNum] = SensorConfig(
+                        id = sensorEntity.id,
+                        name = sensorEntity.name,
+                        group = sensorEntity.group,
+                        descr = sensorEntity.descr,
+                        portNum = portNum,
+                        sensorType = sensorType,
                     )
                 }
                 SensorConfig.SENSOR_MASS_ACCUMULATED, SensorConfig.SENSOR_VOLUME_ACCUMULATED -> {

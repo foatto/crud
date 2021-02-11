@@ -290,7 +290,9 @@ class sdcMMSState : sdcXyState() {
             alignX = XyElement.Align.LT
             alignY = XyElement.Align.LT
             fillColor = 0xFF_F0_F0_F0.toInt()
-            text = "По состоянию на ${DateTime_YMDHMS(zoneId, objectState.time)}"
+            text = objectState.lastDataTime?.let { lastDataTime ->
+                "По состоянию на ${DateTime_YMDHMS(zoneId, lastDataTime)}"
+            } ?: "(нет данных)"
             textColor = 0xFF_00_00_00.toInt()
             fontSize = iCoreAppContainer.BASE_FONT_SIZE
             itFontBold = false

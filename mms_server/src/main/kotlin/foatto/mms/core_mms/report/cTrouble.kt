@@ -7,6 +7,7 @@ import foatto.core_server.app.server.data.DataInt
 import foatto.mms.core_mms.calc.AbstractObjectStateCalc
 import foatto.mms.core_mms.calc.ObjectCalc
 import foatto.mms.core_mms.sensor.config.SensorConfig
+import foatto.mms.core_mms.sensor.config.SensorConfigCounter
 import foatto.mms.core_mms.sensor.config.SensorConfigLiquidLevel
 import foatto.mms.iMMSApplication
 import jxl.CellView
@@ -14,11 +15,7 @@ import jxl.format.PageOrientation
 import jxl.format.PaperSize
 import jxl.write.Label
 import jxl.write.WritableSheet
-import java.nio.ByteOrder
-import java.time.ZonedDateTime
-import java.time.temporal.ChronoUnit
 import java.util.*
-import kotlin.math.max
 
 class cTrouble : cMMSReport() {
 
@@ -144,16 +141,6 @@ class cTrouble : cMMSReport() {
 
         val reportPeriod = (hmReportParam["report_period"] as Int) * 24 * 60 * 60
 
-        //--- загружаем дату/время последнего простоя техники
-        val hmLastDowntime = mutableMapOf<Int, Int>()
-        var rs = stm.executeQuery(" SELECT object_id, ye, mo, da FROM MMS_downtime ORDER BY ye, mo, da ")
-        while (rs.next()) {
-            val oID = rs.getInt(1)
-            val zdt = ZonedDateTime.of(rs.getInt(2), rs.getInt(3), rs.getInt(4), 0, 0, 0, 0, zoneId).plus(1, ChronoUnit.DAYS)
-
-            hmLastDowntime[oID] = zdt.toEpochSecond().toInt()
-        }
-
         val alObjectID = mutableListOf<Int>()
         //--- если объект не указан, то загрузим полный список доступных объектов
         if (reportObject == 0) loadObjectList(stm, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
@@ -165,12 +152,6 @@ class cTrouble : cMMSReport() {
             //--- отключенные объекты в отчёт попасть не должны
             if (oc.isDisabled) continue
 
-            //--- в заданный период объект не работал (простаивал, не выезжал, был в ремонте и т.п.)
-            val lastDowntime = hmLastDowntime[objectID]
-            if (lastDowntime != null && getCurrentTimeInt() - lastDowntime <= reportPeriod) continue
-            //--- в прочих ситуациях делаем проверку вида lastDowntime == null ? curTime : Math.max( lastDowntime, curTime ),
-            //--- чтобы неисправность "начиналась" ПОСЛЕ периода простоя
-
             //--- нестандартное object-info: сначала идёт имя пользователя
             val sbObjectKey = StringBuilder(getRecordUserName(oc.userId)).append('\n').append(oc.name)
             if (oc.model.isNotEmpty()) {
@@ -181,148 +162,124 @@ class cTrouble : cMMSReport() {
             }
             val objectKey = sbObjectKey.toString()
 
-            val hmSCLL = oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_LEVEL]
+            val curTime = getCurrentTimeInt()
+            val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(stm, oc, curTime - (application as iMMSApplication).expirePeriod * 7 * 24 * 60 * 60, curTime)
 
-            rs = stm.executeQuery(" SELECT ontime , sensor_data FROM MMS_data_${oc.objectId} ORDER BY ontime DESC ")
-
-            var isNoDataFinished = false
-            var isNoGeoFinished = false
-            var noGeoTime = getCurrentTimeInt()
-            val hmLLTime = mutableMapOf<Int, Int>()
-            val hmLLData = mutableMapOf<Int, Int>()
-            val hsLLFinished = mutableSetOf<Int>()
-            while (rs.next()) {
-                val curTime = rs.getInt(1)
-                val bbIn = rs.getByteBuffer(2, ByteOrder.BIG_ENDIAN)
-
-                //--- ловля отключенности контроллера по отсутствию данных - достаточно одной точки
-                if (!isNoDataFinished) {
-                    if (getCurrentTimeInt() - curTime > reportPeriod) {
-                        addTrouble(
-                            tmResult,
-                            objectKey,
-                            TroubleData(
-                                if (lastDowntime == null) curTime else max(lastDowntime, curTime),
-                                "Контроллер",
-                                "Нет данных",
-                                TroubleLevel.ERROR
-                            )
-                        )
-                    }
-                    isNoDataFinished = true
+            val lastDataTime = alRawTime.lastOrNull()
+            if (lastDataTime != null) {
+                if (curTime - lastDataTime > reportPeriod) {
+                    addTrouble(tmResult, objectKey, TroubleData(lastDataTime, "Контроллер", "Нет данных", TroubleLevel.ERROR))
                 }
-
-                //--- ловля ошибок GPS
-                if (oc.scg != null && !isNoGeoFinished) {
-                    val gd = AbstractObjectStateCalc.getGeoData(oc.scg!!, bbIn)
-
-                    if (gd == null || gd.wgs.x == 0 && gd.wgs.y == 0) noGeoTime = curTime
-                    else {
-                        if (getCurrentTimeInt() - noGeoTime > reportPeriod) {
-                            addTrouble(
-                                tmResult,
-                                objectKey,
-                                TroubleData(
-                                    if (lastDowntime == null) noGeoTime else max(lastDowntime, noGeoTime),
-                                    "Гео-датчик",
-                                    "Нет данных с гео-датчика",
-                                    TroubleLevel.ERROR
-                                )
-                            )
-                        }
-                        isNoGeoFinished = true
-                    }
-                }
-
-                //--- ловля ошибок датчика уровня топлива
-                hmSCLL?.let {
-                    hmSCLL.forEach { (portNum, sc) ->
-                        //--- этот датчик уже обработан
-                        if (!hsLLFinished.contains(portNum)) {
-                            val sca = sc as SensorConfigLiquidLevel
-                            AbstractObjectStateCalc.getSensorData(portNum, bbIn)?.toInt()?.let { sensorData ->
-
-                                val oldLLData = hmLLData[portNum]
-                                if (oldLLData == null) {
-                                    hmLLTime[portNum] = curTime
-                                    hmLLData[portNum] = sensorData
-                                } else if (oldLLData == sensorData) {
-                                    hmLLTime[portNum] = curTime
-                                } else {
-                                    if (SensorConfigLiquidLevel.hmLLErrorCodeDescr[oldLLData] != null && getCurrentTimeInt() - hmLLTime[portNum]!! > reportPeriod) {
-                                        addTrouble(
-                                            tmResult,
-                                            objectKey,
-                                            TroubleData(
-                                                if (lastDowntime == null) hmLLTime[portNum]!!
-                                                else max(lastDowntime, hmLLTime[portNum]!!),
-                                                sca.descr,
-                                                SensorConfigLiquidLevel.hmLLErrorCodeDescr[oldLLData]!!,
-                                                TroubleLevel.ERROR
-                                            )
-                                        )
-                                    }
-                                    hsLLFinished.add(portNum)
-                                }
-                            }
-                        }
-                    }
-                }
-                //--- все обработались, пока выходить
-                if (isNoDataFinished && (oc.scg == null || isNoGeoFinished) && (hmSCLL == null || hsLLFinished.size == hmSCLL.size)) break
-            }
-            rs.close()
-
-            //--- если вообще нет данных
-            if (!isNoDataFinished) {
-                if (lastDowntime == null) addTrouble(
+            } else {
+                addTrouble(
                     tmResult, objectKey, TroubleData(
                         0, "Контроллер", "Нет данных более ${(application as iMMSApplication).expirePeriod} недель(и)", TroubleLevel.ERROR
                     )
                 )
-                else addTrouble(tmResult, objectKey, TroubleData(lastDowntime, "Контроллер", "Нет данных", TroubleLevel.ERROR))
-            } else {
-                if (oc.scg != null && !isNoGeoFinished) {
-                    if (getCurrentTimeInt() - noGeoTime > reportPeriod) addTrouble(
-                        tmResult, objectKey, TroubleData(
-                            if (lastDowntime == null) noGeoTime else Math.max(lastDowntime, noGeoTime), "Гео-датчик", "Нет данных с гео-датчика", TroubleLevel.ERROR
-                        )
-                    )
-                }
-                if (hmSCLL != null) {
-                    for (portNum in hmSCLL.keys) {
-                        val sca = hmSCLL[portNum] as SensorConfigLiquidLevel
-                        //--- этот датчик так и не обработан
-                        if (!hsLLFinished.contains(portNum)) {
-                            if (hmLLTime[portNum] == null) {
-                                if (lastDowntime == null) addTrouble(tmResult, objectKey, TroubleData(0, sca.descr, "Нет данных", TroubleLevel.ERROR))
-                                else addTrouble(tmResult, objectKey, TroubleData(lastDowntime, sca.descr, "Нет данных", TroubleLevel.ERROR))
-                            } else {
-                                val oldLLData = hmLLData[portNum]
-                                if (SensorConfigLiquidLevel.hmLLErrorCodeDescr[oldLLData] != null && getCurrentTimeInt() - hmLLTime[portNum]!! > reportPeriod)
+            }
 
-                                    addTrouble(
-                                        tmResult, objectKey, TroubleData(
-                                            if (lastDowntime == null) hmLLTime[portNum]!! else Math.max(lastDowntime, hmLLTime[portNum]!!), sca.descr, SensorConfigLiquidLevel.hmLLErrorCodeDescr[oldLLData]!!, TroubleLevel.ERROR
-                                        )
-                                    )
-                            }
+            oc.scg?.let { scg ->
+                var noGeoTime: Int? = null
+                for (i in alRawTime.size - 1 downTo 0) {
+                    val time = alRawTime[i]
+                    val bbIn = alRawData[i]
+
+                    val gd = AbstractObjectStateCalc.getGeoData(scg, bbIn)
+                    if (gd == null || gd.wgs.x == 0 && gd.wgs.y == 0) {
+                        noGeoTime = time
+                    } else {
+                        if (curTime - (noGeoTime ?: time) > reportPeriod) {
+                            addTrouble(
+                                tmResult,
+                                objectKey,
+                                TroubleData(noGeoTime ?: time, "Гео-датчик", "Нет данных с гео-датчика", TroubleLevel.ERROR)
+                            )
+                        }
+                        break
+                    }
+                }
+                //--- отдельный пункт "неисправности" - передвижной объект имеет почти нулевые пробеги за заданный период
+                val objectCalc = ObjectCalc.calcObject(stm, userConfig, oc, curTime - reportPeriod, curTime)
+                //--- пробег менее 100 метров
+                if (objectCalc.gcd!!.run < 0.1) {
+                    addTrouble(tmResult, objectKey, TroubleData(curTime - reportPeriod, "Объект", "Нет пробега", TroubleLevel.ERROR))
+                }
+            }
+
+            //--- liquid level sensors
+            oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_LEVEL]?.values?.forEach { sc ->
+                val sca = sc as SensorConfigLiquidLevel
+
+                var oldLLTime: Int? = null
+                var oldLLData: Int? = null
+
+                for (i in alRawTime.size - 1 downTo 0) {
+                    val time = alRawTime[i]
+                    val bbIn = alRawData[i]
+
+                    val sensorData = AbstractObjectStateCalc.getSensorData(sca.portNum, bbIn)
+                    if (sensorData != null) {
+                        if (oldLLData == null) {
+                            oldLLTime = time
+                            oldLLData = sensorData.toInt()
+                        } else if (oldLLData == sensorData) {
+                            oldLLTime = time
+                        } else {
+                            break
+                        }
+                    }
+                }
+
+                if (oldLLTime == null) {
+                    addTrouble(tmResult, objectKey, TroubleData(0, sca.descr, "Нет данных", TroubleLevel.ERROR))
+                } else {
+                    SensorConfigLiquidLevel.hmLLErrorCodeDescr[oldLLData]?.let { errorDescr ->
+                        if (curTime - oldLLTime > reportPeriod) {
+                            addTrouble(tmResult, objectKey, TroubleData(oldLLTime, sca.descr, errorDescr, TroubleLevel.ERROR))
                         }
                     }
                 }
             }
-            //--- закроем незакрытый период по гео-датчику
-            //--- иначе закроем незакрытые периоды ошибок по гео-датчику и уровнемерам
-            //--- отдельный пункт "неисправности" - передвижной объект имеет почти нулевые пробеги за заданный период
-            if (oc.scg != null) {
-                val objectCalc = ObjectCalc.calcObject(
-                    stm, userConfig, oc, getCurrentTimeInt() - reportPeriod, getCurrentTimeInt()
-                )
-                //--- пробег менее 100 метров
-                if (objectCalc.gcd!!.run < 0.1) addTrouble(
-                    tmResult, objectKey, TroubleData(getCurrentTimeInt() - reportPeriod, "Объект", "Нет пробега", TroubleLevel.ERROR)
-                )
+
+            //--- liquid using counter's work state sensors
+            oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_USING_COUNTER_STATE]?.values?.forEach { sc ->
+                var oldLCSTime: Int? = null
+                var oldLCSData: Int? = null
+
+                for (i in alRawTime.size - 1 downTo 0) {
+                    val time = alRawTime[i]
+                    val bbIn = alRawData[i]
+
+                    val sensorData = AbstractObjectStateCalc.getSensorData(sc.portNum, bbIn)
+                    if (sensorData != null) {
+                        if (oldLCSData == null) {
+                            oldLCSTime = time
+                            oldLCSData = sensorData.toInt()
+                        } else if (oldLCSData == sensorData) {
+                            oldLCSTime = time
+                        } else {
+                            break
+                        }
+                    }
+                }
+
+                if (oldLCSTime == null) {
+                    addTrouble(tmResult, objectKey, TroubleData(0, sc.descr, "Нет данных", TroubleLevel.ERROR))
+                } else if (oldLCSData in listOf(
+                        SensorConfigCounter.STATUS_OVERLOAD,
+                        SensorConfigCounter.STATUS_CHEAT,
+                        SensorConfigCounter.STATUS_REVERSE,
+                        SensorConfigCounter.STATUS_INTERVENTION,
+                    )
+                ) {
+                    SensorConfigCounter.hmStatusDescr[oldLCSData]?.let { errorDescr ->
+                        if (curTime - oldLCSTime > reportPeriod) {
+                            addTrouble(tmResult, objectKey, TroubleData(oldLCSTime, sc.descr, errorDescr, TroubleLevel.ERROR))
+                        }
+                    }
+                }
             }
+
         }
         return tmResult
     }
@@ -337,53 +294,3 @@ class cTrouble : cMMSReport() {
     }
 
 }
-//--- еще можно добавить проверку наличия GPS/ГЛОНАСС-сигнала
-//
-//            //--- ловля пропажи основного напряжения
-//            HashMap<Integer,SensorConfig> hmSCV = oc.hmSensorConfig.get( SensorConfig.SENSOR_VOLTAGE );
-//            if( hmSCV != null )
-//                for( Integer portNum : hmSCV.keySet() ) {
-//                    SensorConfigA sca = (SensorConfigA) hmSCV.get( portNum );
-//                    //--- чтобы не смешивались разные ошибки по одному датчику и одинаковые ошибки по разным датчикам,
-//                    //--- добавляем в описание ошибки не только само описание ошибки, но и описание датчика
-//
-//                    //--- 0 - отсутствие напряжения основного питания
-//                    checkSensorError( alRawTime, alRawData, oc, portNum, sca.descr, begTime, endTime,
-//                                      TroubleData.LEVEL_WARNING, 0, "Нет питания", 5 * 60 * 1000, tmObjectResult );
-//                }
-//        if( aliasConfig.getAlias().equals( "ft_report_new_controller" ) ) {
-//            for( int autoID : alAutoID ) {
-//                AutoConfig ac = AutoConfig.getAutoConfig( stm, userConfig, autoID );
-//                //!!! MSSQL: TOP( 1 )
-//                ResultSet rs = stm.executeQuery( new StringBuilder(
-//                             " SELECT TOP( 1 ) controller_id , set_dt FROM GPS_controller_auto_history " )
-//                    .append( " WHERE auto_id = " ).append( autoID )
-//                    .append( " AND set_dt >= '" ).append( sbDate ).append( "' " )
-//                    .append( " ORDER BY set_dt DESC , controller_id DESC " ).toString() );
-//                if( rs.next() ) {
-//                    int controllerID = rs.getInt( 1 );
-//                    String setDateTime = rs.getString( 2 );
-//                    //--- "свежее" снятие контроллеров нас не интересует
-//                    if( controllerID != 0 )
-//                        alResult.add( new MonitoringCalcResult( ac.gosNo, ac.modelName, setDateTime, ac.userID ) );
-//                }
-//                rs.close();
-//            }
-//        }
-//        else if( aliasConfig.getAlias().equals( "ft_report_without_controller" ) ) {
-//            for( int autoID : alAutoID ) {
-//                AutoConfig ac = AutoConfig.getAutoConfig( stm, userConfig, autoID );
-//                //--- отключенные машины в этот отчёт выводить не надо
-//                if( ac.disabled ) continue;
-//                boolean isConnected = ac.controllerType != mTrackerConfig.TYPE_UNKNOWN;
-//                //--- возможно, этот а/м подключен к контроллеру АвтоТрекер
-//                if( ! isConnected ) {
-//                    ResultSet rs = stm.executeQuery( new StringBuilder( " SELECT module_id FROM AT_config WHERE auto_id = " )
-//                                                     .append( autoID ).toString() );
-//                    isConnected = rs.next();
-//                    rs.close();
-//                }
-//                if( ! isConnected )
-//                    alResult.add( new MonitoringCalcResult( ac.gosNo, ac.modelName, "-", ac.userID ) );
-//            }
-//        }

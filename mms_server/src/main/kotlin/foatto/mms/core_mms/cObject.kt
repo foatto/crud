@@ -71,7 +71,6 @@ class cObject : cStandart() {
 
         val userID = ( hmColumnData[ mo.columnUser!! ] as DataAbstractIntValue ).intValue
         stm.executeUpdate( " UPDATE MMS_day_work SET user_id = $userID WHERE object_id = $id " )
-        stm.executeUpdate( " UPDATE MMS_downtime SET user_id = $userID WHERE object_id = $id " )
 
         return postURL
     }

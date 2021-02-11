@@ -117,7 +117,6 @@ class ClientDBPrepare(aConfigFileName: String) : CoreServiceWorker(aConfigFileNa
         //--- зависимости первого порядка от MMS_object
         alDI.add(DependInfo("MMS_sensor", "object_id", "MMS_object", "id"))
         alDI.add(DependInfo("MMS_day_work", "object_id", "MMS_object", "id"))
-        alDI.add(DependInfo("MMS_downtime", "object_id", "MMS_object", "id"))
         alDI.add(DependInfo("MMS_work_shift", "object_id", "MMS_object", "id"))
         alDI.add(DependInfo("MMS_device", "object_id", "MMS_object", "id"))
         alDI.add(DependInfo("MMS_device_command_history", "object_id", "MMS_object", "id"))
