@@ -1,11 +1,15 @@
 package foatto.mms.core_mms.report
 
+import foatto.core.app.graphic.GraphicDataContainer
 import foatto.core.link.FormData
 import foatto.core.util.DateTime_DMY
-import foatto.core_server.app.server.data.DataBoolean
 import foatto.core_server.app.server.data.DataComboBox
 import foatto.core_server.app.server.data.DataDate3Int
 import foatto.mms.core_mms.calc.ObjectCalc
+import foatto.mms.core_mms.graphic.server.document.sdcAnalog
+import foatto.mms.core_mms.graphic.server.document.sdcLiquid
+import foatto.mms.core_mms.sensor.config.SensorConfig
+import foatto.mms.core_mms.sensor.config.SensorConfigAnalogue
 import jxl.write.Label
 import jxl.write.WritableSheet
 import java.time.ZonedDateTime
@@ -38,9 +42,7 @@ class cDayWork : cStandartPeriodSummary() {
 
         hmReportParam["report_group_type"] = (hmColumnData[m.columnReportGroupType] as DataComboBox).intValue
 
-        hmReportParam["report_out_temperature"] = (hmColumnData[m.columnOutTemperature] as DataBoolean).value
-        hmReportParam["report_out_density"] = (hmColumnData[m.columnOutDensity] as DataBoolean).value
-
+        fillReportParam(m.sros)
         fillReportParam(m.sos)
 
         return getReport()
@@ -54,8 +56,10 @@ class cDayWork : cStandartPeriodSummary() {
         val reportDepartment = hmReportParam["report_department"] as Int
         val reportGroup = hmReportParam["report_group"] as Int
         val reportGroupType = hmReportParam["report_group_type"] as Int
+        val reportKeepPlaceForComment = hmReportParam["report_keep_place_for_comment"] as Boolean
         val reportOutTemperature = hmReportParam["report_out_temperature"] as Boolean
         val reportOutDensity = hmReportParam["report_out_density"] as Boolean
+        val reportOutGroupSum = hmReportParam["report_out_group_sum"] as Boolean
         var reportSumOnly = hmReportParam["report_sum_only"] as Boolean
         val reportSumUser = hmReportParam["report_sum_user"] as Boolean
         val reportSumObject = hmReportParam["report_sum_object"] as Boolean
@@ -115,7 +119,17 @@ class cDayWork : cStandartPeriodSummary() {
                 sheet.addCell(Label(1, offsY, if (reportGroupType == mDayWork.GROUP_BY_DATE) dwcr.objectCalc.objectConfig.name else dwcr.date, wcfCellLBStdYellow))
                 sheet.mergeCells(1, offsY, getColumnCount(1), offsY)
                 offsY += 2
-                offsY = outRow(sheet, offsY, dwcr.objectCalc.objectConfig, dwcr.objectCalc, reportOutTemperature, reportOutDensity)
+                offsY = outRow(
+                    sheet = sheet,
+                    aOffsY = offsY,
+                    objectConfig = dwcr.objectCalc.objectConfig,
+                    objectCalc = dwcr.objectCalc,
+                    isOutTemperature = reportOutTemperature,
+                    isOutDensity = reportOutDensity,
+                    isKeepPlaceForComment = reportKeepPlaceForComment,
+                    troubles = dwcr.troubles,
+                    isOutGroupSum = reportOutGroupSum,
+                )
             }
         }
         daySumCollector?.let {
@@ -139,6 +153,7 @@ class cDayWork : cStandartPeriodSummary() {
         val reportEndMonth = hmReportParam["report_end_month"] as Int
         val reportEndDay = hmReportParam["report_end_day"] as Int
         val reportGroupType = hmReportParam["report_group_type"] as Int
+        val reportOutTroubles = hmReportParam["report_out_troubles"] as Boolean
 
         val zdtBeg = ZonedDateTime.of(reportBegYear, reportBegMonth, reportBegDay, 0, 0, 0, 0, zoneId)
         val zdtEnd = ZonedDateTime.of(reportEndYear, reportEndMonth, reportEndDay, 0, 0, 0, 0, zoneId).plus(1, ChronoUnit.DAYS)
@@ -153,12 +168,27 @@ class cDayWork : cStandartPeriodSummary() {
 
                 val crKey = StringBuilder().append(if (reportGroupType == mDayWork.GROUP_BY_DATE) zdtCurBeg.toEpochSecond().toInt() else objectConfig.name).append(if (reportGroupType == mDayWork.GROUP_BY_DATE) objectConfig.name else zdtCurBeg.toEpochSecond().toInt()).toString()
 
+                val t1 = zdtCurBeg.toEpochSecond().toInt()
+                val t2 = zdtCurEnd.toEpochSecond().toInt()
                 //--- заполнение первой порции результатов
-                val dwcr = DayWorkCalcResult(
-                    DateTime_DMY(zdtCurBeg), ObjectCalc.calcObject(
-                        stm, userConfig, objectConfig, zdtCurBeg.toEpochSecond().toInt(), zdtCurEnd.toEpochSecond().toInt()
-                    )
-                )
+                val dwcr = DayWorkCalcResult(DateTime_DMY(zdtCurBeg), ObjectCalc.calcObject(stm, userConfig, objectConfig, t1, t2))
+                if (reportOutTroubles) {
+                    val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(stm, objectConfig, t1, t2)
+                    val troubles = GraphicDataContainer(GraphicDataContainer.ElementType.TEXT, 0)
+                    sdcAnalog.checkCommonTrouble(alRawTime, alRawData, objectConfig, t1, t2, troubles)
+                    //--- ловим ошибки с датчиков уровня топлива
+                    objectConfig.hmSensorConfig[SensorConfig.SENSOR_LIQUID_LEVEL]?.values?.forEach { sc ->
+                        sdcLiquid.checkLiquidLevelSensorTrouble(
+                            alRawTime = alRawTime,
+                            alRawData = alRawData,
+                            sca = sc as SensorConfigAnalogue,
+                            begTime = t1,
+                            endTime = t2,
+                            aText = troubles,
+                        )
+                    }
+                    dwcr.troubles = troubles
+                }
                 tmResult[crKey] = dwcr
                 zdtCurBeg = zdtCurBeg.plus(1, ChronoUnit.DAYS)
             }
@@ -166,5 +196,7 @@ class cDayWork : cStandartPeriodSummary() {
         return tmResult
     }
 
-    private class DayWorkCalcResult(val date: String, val objectCalc: ObjectCalc)
+    private class DayWorkCalcResult(val date: String, val objectCalc: ObjectCalc) {
+        var troubles: GraphicDataContainer? = null
+    }
 }

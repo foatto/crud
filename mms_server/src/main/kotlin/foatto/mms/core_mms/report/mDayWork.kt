@@ -30,9 +30,7 @@ class mDayWork : mAbstractReport() {
     lateinit var columnReportGroupType: ColumnComboBox
         private set
 
-    lateinit var columnOutTemperature: ColumnBoolean
-        private set
-    lateinit var columnOutDensity: ColumnBoolean
+    lateinit var sros: SummaryReportOptionSelector
         private set
 
     lateinit var sos: SumOptionSelector
@@ -76,15 +74,6 @@ class mDayWork : mAbstractReport() {
             setSavedDefault(userConfig)
         }
 
-        columnOutTemperature = ColumnBoolean(tableName, "out_temperature", "Выводить показания температуры", false).apply {
-            isVirtual = true
-            setSavedDefault(userConfig)
-        }
-        columnOutDensity = ColumnBoolean(tableName, "out_density", "Выводить показания плотности", true).apply {
-            isVirtual = true
-            setSavedDefault(userConfig)
-        }
-
         //----------------------------------------------------------------------------------------------------------------------
 
         alFormHiddenColumn.add(columnID!!)
@@ -97,8 +86,9 @@ class mDayWork : mAbstractReport() {
         alFormColumn.add(columnReportBegDate)
         alFormColumn.add(columnReportEndDate)
         alFormColumn.add(columnReportGroupType)
-        alFormColumn.add(columnOutTemperature)
-        alFormColumn.add(columnOutDensity)
+
+        sros = SummaryReportOptionSelector()
+        sros.fillColumns(userConfig, tableName, alFormColumn)
 
         sos = SumOptionSelector()
         sos.fillColumns(userConfig, tableName, alFormColumn)

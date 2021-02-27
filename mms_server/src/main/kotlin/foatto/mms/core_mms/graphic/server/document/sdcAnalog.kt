@@ -11,6 +11,7 @@ import foatto.core.app.graphic.GraphicDataContainer
 import foatto.core.app.graphic.GraphicElement
 import foatto.core.app.graphic.GraphicTextData
 import foatto.core.util.AdvancedByteBuffer
+import foatto.core.util.DateTime_DMYHMS
 import foatto.core.util.getCurrentTimeInt
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.graphic.server.GraphicDocumentConfig
@@ -36,12 +37,189 @@ open class sdcAnalog : sdcAbstractGraphic() {
     companion object {
         //--- в худшем случае у нас как минимум 4 точки на мм ( 100 dpi ),
         //--- нет смысла выводить данные в каждый пиксель, достаточно в каждый мм
-        private val DOT_PER_MM = 4
+        private const val DOT_PER_MM = 4
 
-        val MIN_CONNECT_OFF_TIME = 15 * 60
-        val MIN_NO_DATA_TIME = 5 * 60
-        private val MIN_POWER_OFF_TIME = 5 * 60
-        private val MIN_LIQUID_COUNTER_STATE_TIME = 5 * 60
+        //const val MIN_CONNECT_OFF_TIME = 15 * 60
+        private const val MIN_NO_DATA_TIME = 5 * 60
+        private const val MIN_POWER_OFF_TIME = 5 * 60
+        private const val MIN_LIQUID_COUNTER_STATE_TIME = 5 * 60
+
+        //--- ловля основных/системных нештатных ситуаций, показываемых только на первом/верхнем графике:
+        //--- нет связи, нет данных и резервное питание
+        fun checkCommonTrouble(
+            alRawTime: List<Int>,
+            alRawData: List<AdvancedByteBuffer>,
+            oc: ObjectConfig,
+            begTime: Int,
+            endTime: Int,
+            aText: GraphicDataContainer
+        ) {
+            val alGTD = aText.alGTD.toMutableList()
+
+            //--- поиск значительных промежутков отсутствия данных ---
+
+            var lastDataTime = begTime
+            for (rawTime in alRawTime) {
+                //--- сразу пропускаем запредельные точки, загруженные для бесшовного сглаживания между соседними диапазонами
+                if (rawTime < begTime) continue
+                if (rawTime > endTime) break
+
+                if (rawTime - lastDataTime > MIN_NO_DATA_TIME) {
+                    alGTD += GraphicTextData(
+                        textX1 = lastDataTime,
+                        textX2 = rawTime,
+                        fillColorIndex = GraphicColorIndex.FILL_CRITICAL,
+                        borderColorIndex = GraphicColorIndex.BORDER_CRITICAL,
+                        textColorIndex = GraphicColorIndex.TEXT_CRITICAL,
+                        text = "Нет данных от контроллера",
+                        toolTip = "Нет данных от контроллера"
+                    )
+                }
+                lastDataTime = rawTime
+            }
+            if (min(lastDataTime, endTime) - lastDataTime > MIN_NO_DATA_TIME) {
+                alGTD += GraphicTextData(
+                    textX1 = lastDataTime,
+                    textX2 = min(lastDataTime, endTime),
+                    fillColorIndex = GraphicColorIndex.FILL_CRITICAL,
+                    borderColorIndex = GraphicColorIndex.BORDER_CRITICAL,
+                    textColorIndex = GraphicColorIndex.TEXT_CRITICAL,
+                    text = "Нет данных от контроллера",
+                    toolTip = "Нет данных от контроллера"
+                )
+            }
+
+            //--- поиск значительных промежутков отсутствия основного питания ( перехода на резервное питание )
+            oc.hmSensorConfig[SensorConfig.SENSOR_VOLTAGE]?.values?.forEach { sc ->
+                val sca = sc as SensorConfigAnalogue
+                //--- чтобы не смешивались разные ошибки по одному датчику и одинаковые ошибки по разным датчикам,
+                //--- добавляем в описание ошибки не только само описание ошибки, но и описание датчика
+                checkSensorError(
+                    alRawTime = alRawTime,
+                    alRawData = alRawData,
+                    portNum = sca.portNum,
+                    sensorDescr = sca.descr,
+                    begTime = begTime,
+                    endTime = endTime,
+                    aFillColorIndex = GraphicColorIndex.FILL_WARNING,
+                    aBorderColorIndex = GraphicColorIndex.BORDER_WARNING,
+                    aTextColorIndex = GraphicColorIndex.TEXT_WARNING,
+                    troubleCode = 0,
+                    troubleDescr = "Нет питания",
+                    minTime = MIN_POWER_OFF_TIME,
+                    alGTD = alGTD
+                )
+            }
+
+            //--- поиск критических режимов работы счётчика топлива EuroSens Delta
+            oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_USING_COUNTER_STATE]?.values?.forEach { sc ->
+                listOf(
+                    SensorConfigCounter.STATUS_OVERLOAD,
+                    SensorConfigCounter.STATUS_CHEAT,
+                    SensorConfigCounter.STATUS_REVERSE,
+                    SensorConfigCounter.STATUS_INTERVENTION,
+                ).forEach { stateCode ->
+                    checkSensorError(
+                        alRawTime = alRawTime,
+                        alRawData = alRawData,
+                        portNum = sc.portNum,
+                        sensorDescr = sc.descr,
+                        begTime = begTime,
+                        endTime = endTime,
+                        aFillColorIndex = GraphicColorIndex.FILL_CRITICAL,
+                        aBorderColorIndex = GraphicColorIndex.BORDER_CRITICAL,
+                        aTextColorIndex = GraphicColorIndex.TEXT_CRITICAL,
+                        troubleCode = stateCode,
+                        troubleDescr = SensorConfigCounter.hmStatusDescr[stateCode] ?: "(неизвестный код состояния)",
+                        minTime = MIN_LIQUID_COUNTER_STATE_TIME,
+                        alGTD = alGTD
+                    )
+                }
+                listOf(
+                    SensorConfigCounter.STATUS_UNKNOWN,
+                    SensorConfigCounter.STATUS_IDLE,
+                    //SensorConfigCounter.STATUS_NORMAL,
+                ).forEach { stateCode ->
+                    checkSensorError(
+                        alRawTime = alRawTime,
+                        alRawData = alRawData,
+                        portNum = sc.portNum,
+                        sensorDescr = sc.descr,
+                        begTime = begTime,
+                        endTime = endTime,
+                        aFillColorIndex = GraphicColorIndex.FILL_WARNING,
+                        aBorderColorIndex = GraphicColorIndex.BORDER_WARNING,
+                        aTextColorIndex = GraphicColorIndex.TEXT_WARNING,
+                        troubleCode = stateCode,
+                        troubleDescr = SensorConfigCounter.hmStatusDescr[stateCode] ?: "(неизвестный код состояния)",
+                        minTime = MIN_LIQUID_COUNTER_STATE_TIME,
+                        alGTD = alGTD
+                    )
+                }
+            }
+            aText.alGTD = alGTD.toTypedArray()
+        }
+
+        fun checkSensorError(
+            alRawTime: List<Int>,
+            alRawData: List<AdvancedByteBuffer>,
+            portNum: Int,
+            sensorDescr: String,
+            begTime: Int,
+            endTime: Int,
+            aFillColorIndex: GraphicColorIndex,
+            aBorderColorIndex: GraphicColorIndex,
+            aTextColorIndex: GraphicColorIndex,
+            troubleCode: Int,
+            troubleDescr: String,
+            minTime: Int,
+            alGTD: MutableList<GraphicTextData>
+        ) {
+
+            //--- в основном тексте пишем только текст ошибки, а в tooltips'e напишем вместе с описанием датчика
+            val fullTroubleDescr = StringBuilder(sensorDescr).append(": ").append(troubleDescr).toString()
+            var troubleBegTime = 0
+            var sensorData: Int
+
+            for (pos in alRawTime.indices) {
+                val rawTime = alRawTime[pos]
+                //--- сразу пропускаем запредельные точки, загруженные для бесшовного сглаживания между соседними диапазонами
+                if (rawTime < begTime) continue
+                if (rawTime > endTime) break
+
+                sensorData = AbstractObjectStateCalc.getSensorData(portNum, alRawData[pos])?.toInt() ?: continue
+                if (sensorData == troubleCode) {
+                    if (troubleBegTime == 0) {
+                        troubleBegTime = rawTime
+                    }
+                } else if (troubleBegTime != 0) {
+                    if (rawTime - troubleBegTime > minTime) {
+                        alGTD += GraphicTextData(
+                            textX1 = troubleBegTime,
+                            textX2 = rawTime,
+                            fillColorIndex = aFillColorIndex,
+                            borderColorIndex = aBorderColorIndex,
+                            textColorIndex = aTextColorIndex,
+                            text = troubleDescr,
+                            toolTip = fullTroubleDescr
+                        )
+                    }
+                    troubleBegTime = 0
+                }
+            }
+            //--- запись последней незакрытой проблемы
+            if (troubleBegTime != 0 && min(getCurrentTimeInt(), endTime) - troubleBegTime > minTime) {
+                alGTD += GraphicTextData(
+                    textX1 = troubleBegTime,
+                    textX2 = min(getCurrentTimeInt(), endTime),
+                    fillColorIndex = aFillColorIndex,
+                    borderColorIndex = aBorderColorIndex,
+                    textColorIndex = aTextColorIndex,
+                    text = troubleDescr,
+                    toolTip = fullTroubleDescr
+                )
+            }
+        }
     }
 
     override fun doGetElements(graphicActionRequest: GraphicActionRequest): GraphicActionResponse {
@@ -325,180 +503,6 @@ open class sdcAnalog : sdcAbstractGraphic() {
         }
     }
 
-    //--- ловля основных/системных нештатных ситуаций, показываемых только на первом/верхнем графике:
-    //--- нет связи, нет данных и резервное питание
-    private fun checkCommonTrouble(alRawTime: List<Int>, alRawData: List<AdvancedByteBuffer>, oc: ObjectConfig, begTime: Int, endTime: Int, aText: GraphicDataContainer) {
-        //--- дабы не загромождать код
-        val curTime = getCurrentTimeInt()
-
-        val alGTD = aText.alGTD.toMutableList()
-
-        //--- поиск значительных промежутков отсутствия данных ---
-
-        var lastDataTime = begTime
-        for (rawTime in alRawTime) {
-            //--- сразу пропускаем запредельные точки, загруженные для бесшовного сглаживания между соседними диапазонами
-            if (rawTime < begTime) continue
-            if (rawTime > endTime) break
-
-            if (rawTime - lastDataTime > MIN_NO_DATA_TIME) {
-                alGTD += GraphicTextData(
-                    textX1 = lastDataTime,
-                    textX2 = rawTime,
-                    fillColorIndex = GraphicColorIndex.FILL_CRITICAL,
-                    borderColorIndex = GraphicColorIndex.BORDER_CRITICAL,
-                    textColorIndex = GraphicColorIndex.TEXT_CRITICAL,
-                    text = "Нет данных от контроллера",
-                    toolTip = "Нет данных от контроллера"
-                )
-            }
-            lastDataTime = rawTime
-        }
-        if (min(curTime, endTime) - lastDataTime > MIN_NO_DATA_TIME) {
-            alGTD += GraphicTextData(
-                textX1 = lastDataTime,
-                textX2 = min(curTime, endTime),
-                fillColorIndex = GraphicColorIndex.FILL_CRITICAL,
-                borderColorIndex = GraphicColorIndex.BORDER_CRITICAL,
-                textColorIndex = GraphicColorIndex.TEXT_CRITICAL,
-                text = "Нет данных от контроллера",
-                toolTip = "Нет данных от контроллера"
-            )
-        }
-
-        //--- поиск значительных промежутков отсутствия основного питания ( перехода на резервное питание )
-        oc.hmSensorConfig[SensorConfig.SENSOR_VOLTAGE]?.values?.forEach { sc ->
-            val sca = sc as SensorConfigAnalogue
-            //--- чтобы не смешивались разные ошибки по одному датчику и одинаковые ошибки по разным датчикам,
-            //--- добавляем в описание ошибки не только само описание ошибки, но и описание датчика
-            checkSensorError(
-                alRawTime = alRawTime,
-                alRawData = alRawData,
-                portNum = sca.portNum,
-                sensorDescr = sca.descr,
-                begTime = begTime,
-                endTime = endTime,
-                aFillColorIndex = GraphicColorIndex.FILL_WARNING,
-                aBorderColorIndex = GraphicColorIndex.BORDER_WARNING,
-                aTextColorIndex = GraphicColorIndex.TEXT_WARNING,
-                troubleCode = 0,
-                troubleDescr = "Нет питания",
-                minTime = MIN_POWER_OFF_TIME,
-                alGTD = alGTD
-            )
-        }
-
-        //--- поиск критических режимов работы счётчика топлива EuroSens Delta
-        oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_USING_COUNTER_STATE]?.values?.forEach { sc ->
-            listOf(
-                SensorConfigCounter.STATUS_OVERLOAD,
-                SensorConfigCounter.STATUS_CHEAT,
-                SensorConfigCounter.STATUS_REVERSE,
-                SensorConfigCounter.STATUS_INTERVENTION,
-            ).forEach { stateCode ->
-                checkSensorError(
-                    alRawTime = alRawTime,
-                    alRawData = alRawData,
-                    portNum = sc.portNum,
-                    sensorDescr = sc.descr,
-                    begTime = begTime,
-                    endTime = endTime,
-                    aFillColorIndex = GraphicColorIndex.FILL_CRITICAL,
-                    aBorderColorIndex = GraphicColorIndex.BORDER_CRITICAL,
-                    aTextColorIndex = GraphicColorIndex.TEXT_CRITICAL,
-                    troubleCode = stateCode,
-                    troubleDescr = SensorConfigCounter.hmStatusDescr[stateCode] ?: "(неизвестный код состояния)",
-                    minTime = MIN_LIQUID_COUNTER_STATE_TIME,
-                    alGTD = alGTD
-                )
-            }
-            listOf(
-                SensorConfigCounter.STATUS_UNKNOWN,
-                SensorConfigCounter.STATUS_IDLE,
-                //SensorConfigCounter.STATUS_NORMAL,
-            ).forEach { stateCode ->
-                checkSensorError(
-                    alRawTime = alRawTime,
-                    alRawData = alRawData,
-                    portNum = sc.portNum,
-                    sensorDescr = sc.descr,
-                    begTime = begTime,
-                    endTime = endTime,
-                    aFillColorIndex = GraphicColorIndex.FILL_WARNING,
-                    aBorderColorIndex = GraphicColorIndex.BORDER_WARNING,
-                    aTextColorIndex = GraphicColorIndex.TEXT_WARNING,
-                    troubleCode = stateCode,
-                    troubleDescr = SensorConfigCounter.hmStatusDescr[stateCode] ?: "(неизвестный код состояния)",
-                    minTime = MIN_LIQUID_COUNTER_STATE_TIME,
-                    alGTD = alGTD
-                )
-            }
-        }
-
-        aText.alGTD = alGTD.toTypedArray()
-    }
-
-    protected fun checkSensorError(
-        alRawTime: List<Int>,
-        alRawData: List<AdvancedByteBuffer>,
-        portNum: Int,
-        sensorDescr: String,
-        begTime: Int,
-        endTime: Int,
-        aFillColorIndex: GraphicColorIndex,
-        aBorderColorIndex: GraphicColorIndex,
-        aTextColorIndex: GraphicColorIndex,
-        troubleCode: Int,
-        troubleDescr: String,
-        minTime: Int,
-        alGTD: MutableList<GraphicTextData>
-    ) {
-
-        //--- в основном тексте пишем только текст ошибки, а в tooltips'e напишем вместе с описанием датчика
-        val fullTroubleDescr = StringBuilder(sensorDescr).append(": ").append(troubleDescr).toString()
-        var troubleBegTime = 0
-        var sensorData: Int
-
-        for (pos in alRawTime.indices) {
-            val rawTime = alRawTime[pos]
-            //--- сразу пропускаем запредельные точки, загруженные для бесшовного сглаживания между соседними диапазонами
-            if (rawTime < begTime) continue
-            if (rawTime > endTime) break
-
-            sensorData = AbstractObjectStateCalc.getSensorData(portNum, alRawData[pos])?.toInt() ?: continue
-            if (sensorData == troubleCode) {
-                if (troubleBegTime == 0) {
-                    troubleBegTime = rawTime
-                }
-            } else if (troubleBegTime != 0) {
-                if (rawTime - troubleBegTime > minTime) {
-                    alGTD += GraphicTextData(
-                        textX1 = troubleBegTime,
-                        textX2 = rawTime,
-                        fillColorIndex = aFillColorIndex,
-                        borderColorIndex = aBorderColorIndex,
-                        textColorIndex = aTextColorIndex,
-                        text = troubleDescr,
-                        toolTip = fullTroubleDescr
-                    )
-                }
-                troubleBegTime = 0
-            }
-        }
-        //--- запись последней незакрытой проблемы
-        if (troubleBegTime != 0 && min(getCurrentTimeInt(), endTime) - troubleBegTime > minTime) {
-            alGTD += GraphicTextData(
-                textX1 = troubleBegTime,
-                textX2 = min(getCurrentTimeInt(), endTime),
-                fillColorIndex = aFillColorIndex,
-                borderColorIndex = aBorderColorIndex,
-                textColorIndex = aTextColorIndex,
-                text = troubleDescr,
-                toolTip = fullTroubleDescr
-            )
-        }
-    }
-
     //--- собственно вывод данных для возможности перекрытия наследниками
     protected open fun outGraphicData(alGDC: MutableList<GraphicDataContainer?>) {}
 
@@ -507,4 +511,5 @@ open class sdcAnalog : sdcAbstractGraphic() {
 //
 //    //--- вывод дополнительных графиков, не связанных напрямую со стандартно выводимыми
 //    protected fun outOtherGraphic( sbObjectInfo: StringBuilder, x1: Long, bbOut: AdvancedByteBuffer ) {}
+
 }

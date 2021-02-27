@@ -19,6 +19,39 @@ import kotlin.math.max
 
 class sdcLiquid : sdcAnalog() {
 
+    companion object {
+        //--- ловля основных/системных нештатных ситуаций, показываемых только на первом/верхнем графике:
+        //--- нет связи, нет данных и резервное питание
+        fun checkLiquidLevelSensorTrouble(
+            alRawTime: List<Int>,
+            alRawData: List<AdvancedByteBuffer>,
+            sca: SensorConfigAnalogue,
+            begTime: Int,
+            endTime: Int,
+            aText: GraphicDataContainer
+        ) {
+            //--- ловим ошибки с датчиков уровня топлива
+            val alGTD = aText.alGTD.toMutableList()
+            for (errorCode in SensorConfigLiquidLevel.hmLLErrorCodeDescr.keys)
+                checkSensorError(
+                    alRawTime = alRawTime,
+                    alRawData = alRawData,
+                    portNum = sca.portNum,
+                    sensorDescr = sca.descr,
+                    begTime = begTime,
+                    endTime = endTime,
+                    aFillColorIndex = GraphicColorIndex.FILL_CRITICAL,
+                    aBorderColorIndex = GraphicColorIndex.BORDER_CRITICAL,
+                    aTextColorIndex = GraphicColorIndex.TEXT_CRITICAL,
+                    troubleCode = errorCode,
+                    troubleDescr = SensorConfigLiquidLevel.hmLLErrorCodeDescr[errorCode]!!,
+                    minTime = SensorConfigLiquidLevel.hmLLMinSensorErrorTime[errorCode]!!,
+                    alGTD = alGTD
+                )
+            aText.alGTD = alGTD.toTypedArray()
+        }
+    }
+
     private var isLiquidFlow = false
     private var aLiquidMin: GraphicDataContainer? = null
     private var aLiquidMax: GraphicDataContainer? = null
@@ -80,24 +113,14 @@ class sdcLiquid : sdcAnalog() {
         }
         aText?.let {
             //--- ловим ошибки с датчиков уровня топлива
-            val alGTD = aText.alGTD.toMutableList()
-            for (errorCode in SensorConfigLiquidLevel.hmLLErrorCodeDescr.keys)
-                checkSensorError(
-                    alRawTime = alRawTime,
-                    alRawData = alRawData,
-                    portNum = sca.portNum,
-                    sensorDescr = sca.descr,
-                    begTime = begTime,
-                    endTime = endTime,
-                    aFillColorIndex = GraphicColorIndex.FILL_CRITICAL,
-                    aBorderColorIndex = GraphicColorIndex.BORDER_CRITICAL,
-                    aTextColorIndex = GraphicColorIndex.TEXT_CRITICAL,
-                    troubleCode = errorCode,
-                    troubleDescr = SensorConfigLiquidLevel.hmLLErrorCodeDescr[errorCode]!!,
-                    minTime = SensorConfigLiquidLevel.hmLLMinSensorErrorTime[errorCode]!!,
-                    alGTD = alGTD
-                )
-            aText.alGTD = alGTD.toTypedArray()
+            checkLiquidLevelSensorTrouble(
+                alRawTime = alRawTime,
+                alRawData = alRawData,
+                sca = sca,
+                begTime = begTime,
+                endTime = endTime,
+                aText = aText,
+            )
         }
 
         //--- расчет скорости расхода жидкости по счётчику топлива или уровнемеру

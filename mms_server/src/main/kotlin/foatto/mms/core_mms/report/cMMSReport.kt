@@ -39,7 +39,15 @@ abstract class cMMSReport : cAbstractReport() {
         hmReportParam["report_group"] = (hmColumnData[uodg.columnGroup] as DataInt).intValue
     }
 
+    protected fun fillReportParam(sros: SummaryReportOptionSelector) {
+        hmReportParam["report_keep_place_for_comment"] = (hmColumnData[sros.columnKeepPlaceForComment] as DataBoolean).value
+        hmReportParam["report_out_temperature"] = (hmColumnData[sros.columnOutTemperature] as DataBoolean).value
+        hmReportParam["report_out_density"] = (hmColumnData[sros.columnOutDensity] as DataBoolean).value
+        hmReportParam["report_out_troubles"] = (hmColumnData[sros.columnOutTroubles] as DataBoolean).value
+    }
+
     protected fun fillReportParam(sos: SumOptionSelector) {
+        hmReportParam["report_out_group_sum"] = (hmColumnData[sos.columnOutGroupSum] as DataBoolean).value
         hmReportParam["report_sum_only"] = (hmColumnData[sos.columnSumOnly] as DataBoolean).value
         hmReportParam["report_sum_user"] = (hmColumnData[sos.columnSumUser] as DataBoolean).value
         hmReportParam["report_sum_object"] = (hmColumnData[sos.columnSumObject] as DataBoolean).value
@@ -163,7 +171,7 @@ abstract class cMMSReport : cAbstractReport() {
         return offsY
     }
 
-    fun fillReportTitleWithTime(sheet: WritableSheet): Int {
+    protected fun fillReportTitleWithTime(sheet: WritableSheet): Int {
         val reportBegYear = hmReportParam["report_beg_year"] as Int
         val reportBegMonth = hmReportParam["report_beg_month"] as Int
         val reportBegDay = hmReportParam["report_beg_day"] as Int
@@ -203,7 +211,7 @@ abstract class cMMSReport : cAbstractReport() {
     }
 
     //--- универсальное заполнение заголовка отчета
-    fun fillReportHeader( reportDepartment: Int, reportGroup: Int, sheet: WritableSheet, offsX: Int, aOffsY: Int ): Int {
+    protected fun fillReportHeader( reportDepartment: Int, reportGroup: Int, sheet: WritableSheet, offsX: Int, aOffsY: Int ): Int {
         var offsY = aOffsY
         if( reportDepartment != 0 ) {
             var name = "(неизвестно)"
@@ -230,7 +238,7 @@ abstract class cMMSReport : cAbstractReport() {
         return offsY
     }
 
-    fun fillReportHeader( objectConfig: ObjectConfig, sheet: WritableSheet, aOffsY: Int ): Int {
+    protected fun fillReportHeader( objectConfig: ObjectConfig, sheet: WritableSheet, aOffsY: Int ): Int {
         var offsY = aOffsY
         for( i in objectConfig.alTitleName.indices ) {
             sheet.addCell( Label( 1, offsY + i, objectConfig.alTitleName[ i ], wcfTitleName ) )
@@ -240,7 +248,7 @@ abstract class cMMSReport : cAbstractReport() {
         return offsY
     }
 
-    fun fillReportHeader( zoneData: ZoneData?, sheet: WritableSheet, aOffsY: Int ): Int {
+    protected fun fillReportHeader( zoneData: ZoneData?, sheet: WritableSheet, aOffsY: Int ): Int {
         var offsY = aOffsY
         val zoneInfo = zoneData?.let {
             var sZone = zoneData.name

@@ -9,7 +9,7 @@ abstract class DataAbstractIntValue(aColumn: iColumn) : DataAbstract(aColumn) {
 
     var intValue = 0
 
-    protected var errorValue: String? = null
+    var errorValue: String? = null
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

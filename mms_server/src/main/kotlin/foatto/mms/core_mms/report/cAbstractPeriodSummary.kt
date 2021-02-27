@@ -1,5 +1,8 @@
 package foatto.mms.core_mms.report
 
+import foatto.core.app.graphic.GraphicColorIndex
+import foatto.core.app.graphic.GraphicDataContainer
+import foatto.core.util.DateTime_DMYHMS
 import foatto.core.util.getSplittedDouble
 import foatto.core.util.getSplittedLong
 import foatto.core.util.secondIntervalToString
@@ -19,7 +22,6 @@ import java.util.*
 abstract class cAbstractPeriodSummary : cMMSReport() {
 
     protected var isGlobalUseSpeed = false
-    protected var isGlobalUseRun = false
 
     override fun setPrintOptions() {
         printPaperSize = PaperSize.A4
@@ -69,13 +71,16 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
         return offsY
     }
 
-    protected open fun outRow(
+    protected fun outRow(
         sheet: WritableSheet,
         aOffsY: Int,
         objectConfig: ObjectConfig,
         objectCalc: ObjectCalc,
         isOutTemperature: Boolean,
         isOutDensity: Boolean,
+        isKeepPlaceForComment: Boolean,
+        troubles: GraphicDataContainer?,
+        isOutGroupSum: Boolean,
     ): Int {
         var offsY = aOffsY
         //--- geo-sensor report
@@ -132,6 +137,11 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
                     sheet.addCell(Label(offsX++, offsY, sAvgUsing, wcfCellC))
                 }
                 offsY++
+                if (isKeepPlaceForComment) {
+                    sheet.addCell(Label(1, offsY, "", wcfComment))
+                    sheet.mergeCells(1, offsY, getColumnCount(1), offsY)
+                    offsY += 2
+                }
             }
         }
 
@@ -152,6 +162,10 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
                     "-"
                 }
                 sheet.addCell(Label(3, offsY, sAvgUsing, wcfCellC))
+                if (isKeepPlaceForComment) {
+                    sheet.addCell(Label(4, offsY, "", wcfComment))
+                    sheet.mergeCells(4, offsY, getColumnCount(1), offsY)
+                }
                 offsY++
             }
             offsY++
@@ -165,6 +179,10 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
             objectCalc.tmEnergo.forEach { (energoDescr, energoValue) ->
                 sheet.addCell(Label(1, offsY, energoDescr, wcfCellC))
                 sheet.addCell(Label(2, offsY, getSplittedDouble(energoValue, ObjectCalc.getPrecision(energoValue)), wcfCellC))
+                if (isKeepPlaceForComment) {
+                    sheet.addCell(Label(3, offsY, "", wcfComment))
+                    sheet.mergeCells(3, offsY, getColumnCount(1), offsY)
+                }
                 offsY++
             }
             offsY++
@@ -178,6 +196,10 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
             objectCalc.tmLiquidUsing.forEach { (liquidDescr, totalValue) ->
                 sheet.addCell(Label(1, offsY, liquidDescr, wcfCellC))
                 sheet.addCell(Label(2, offsY, getSplittedDouble(totalValue, ObjectCalc.getPrecision(totalValue)), wcfCellC))
+                if (isKeepPlaceForComment) {
+                    sheet.addCell(Label(3, offsY, "", wcfComment))
+                    sheet.mergeCells(3, offsY, getColumnCount(1), offsY)
+                }
                 offsY++
             }
             offsY++
@@ -220,6 +242,11 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
                     )
                 )
                 offsY++
+                if (isKeepPlaceForComment) {
+                    sheet.addCell(Label(1, offsY, "", wcfComment))
+                    sheet.mergeCells(1, offsY, getColumnCount(1), offsY)
+                    offsY += 2
+                }
             }
             offsY++
         }
@@ -234,6 +261,10 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
                     sheet.addCell(Label(1, offsY, descr, wcfCellC))
                     sheet.addCell(Label(2, offsY, getSplittedDouble(lineData.alGLD.first().y, ObjectCalc.getPrecision(lineData.alGLD.first().y)), wcfCellC))
                     sheet.addCell(Label(3, offsY, getSplittedDouble(lineData.alGLD.last().y, ObjectCalc.getPrecision(lineData.alGLD.last().y)), wcfCellC))
+                    if (isKeepPlaceForComment) {
+                        sheet.addCell(Label(4, offsY, "", wcfComment))
+                        sheet.mergeCells(4, offsY, getColumnCount(1), offsY)
+                    }
                     offsY++
                 }
             }
@@ -250,14 +281,43 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
                     sheet.addCell(Label(1, offsY, descr, wcfCellC))
                     sheet.addCell(Label(2, offsY, getSplittedDouble(lineData.alGLD.first().y, ObjectCalc.getPrecision(lineData.alGLD.first().y)), wcfCellC))
                     sheet.addCell(Label(3, offsY, getSplittedDouble(lineData.alGLD.last().y, ObjectCalc.getPrecision(lineData.alGLD.last().y)), wcfCellC))
+                    if (isKeepPlaceForComment) {
+                        sheet.addCell(Label(4, offsY, "", wcfComment))
+                        sheet.mergeCells(4, offsY, getColumnCount(1), offsY)
+                    }
                     offsY++
                 }
             }
             offsY++
         }
 
+        troubles?.alGTD?.let { alGTD ->
+            if (alGTD.isNotEmpty()) {
+                sheet.addCell(Label(1, offsY, "Неисправность", wcfCaptionHC))
+                sheet.addCell(Label(2, offsY, "Время начала", wcfCaptionHC))
+                sheet.addCell(Label(3, offsY, "Время окончания", wcfCaptionHC))
+                offsY++
+                alGTD.forEach { gtd ->
+                    if (gtd.fillColorIndex == GraphicColorIndex.FILL_CRITICAL ||
+                        gtd.borderColorIndex == GraphicColorIndex.BORDER_CRITICAL ||
+                        gtd.textColorIndex == GraphicColorIndex.TEXT_CRITICAL
+                    ) {
+                        sheet.addCell(Label(1, offsY, gtd.text, wcfCellR))
+                        sheet.addCell(Label(2, offsY, DateTime_DMYHMS(zoneId, gtd.textX1), wcfCellC))
+                        sheet.addCell(Label(3, offsY, DateTime_DMYHMS(zoneId, gtd.textX2), wcfCellC))
+                        if (isKeepPlaceForComment) {
+                            sheet.addCell(Label(4, offsY, "", wcfComment))
+                            sheet.mergeCells(4, offsY, getColumnCount(1), offsY)
+                        }
+                        offsY++
+                    }
+                }
+                offsY++
+            }
+        }
+
         //--- withdrawal of the amount for each amount group
-        if (objectCalc.tmGroupSum.size > 1) {
+        if (isOutGroupSum && objectCalc.tmGroupSum.size > 1) {
             objectCalc.tmGroupSum.forEach { (sumName, sumData) ->
                 sheet.addCell(Label(1, offsY, "ИТОГО по '$sumName':", wcfCellRBStdYellow))
                 offsY++
@@ -498,7 +558,6 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
     protected fun defineGlobalFlags(oc: ObjectConfig) {
         oc.scg?.let { scg ->
             isGlobalUseSpeed = isGlobalUseSpeed or scg.isUseSpeed
-            isGlobalUseRun = isGlobalUseRun or scg.isUseRun
         }
     }
 

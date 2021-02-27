@@ -109,6 +109,8 @@ abstract class cAbstractReport : cAbstractForm() {
     protected lateinit var wcfCellRGrayStd: WritableCellFormat
     protected lateinit var wcfCellRBGrayStd: WritableCellFormat
 
+    protected lateinit var wcfComment: WritableCellFormat
+
     //    protected WritableCellFormat wcfCellCRedBack = null;
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -316,6 +318,7 @@ abstract class cAbstractReport : cAbstractForm() {
         wcfCellRGrayStd = getWCF(fontSize, false, false, Alignment.RIGHT, VerticalAlignment.CENTRE, true, true, Colour.GRAY_50)
         wcfCellRBGrayStd = getWCF(fontSize, true, false, Alignment.RIGHT, VerticalAlignment.CENTRE, true, true, Colour.GRAY_50)
 
+        wcfComment = getWCF(fontSize, false, false, Alignment.LEFT, VerticalAlignment.CENTRE, true, true, Colour.BLACK)
         //        wcfCellCRedBack = getWCF( fontSize, false, false, Alignment.CENTRE, VerticalAlignment.CENTRE, true, true );
         //        wcfCellCRedBack.setBackground( Colour.PINK );
     }

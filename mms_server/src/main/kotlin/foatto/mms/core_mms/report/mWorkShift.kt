@@ -42,9 +42,7 @@ class mWorkShift : mAbstractReport() {
     lateinit var columnAddAfter: ColumnInt
         private set
 
-    lateinit var columnOutTemperature: ColumnBoolean
-        private set
-    lateinit var columnOutDensity: ColumnBoolean
+    lateinit var sros: SummaryReportOptionSelector
         private set
 
     lateinit var sos: SumOptionSelector
@@ -140,15 +138,6 @@ class mWorkShift : mAbstractReport() {
             setSavedDefault(userConfig)
         }
 
-        columnOutTemperature = ColumnBoolean(tableName, "out_temperature", "Выводить показания температуры", false).apply {
-            isVirtual = true
-            setSavedDefault(userConfig)
-        }
-        columnOutDensity = ColumnBoolean(tableName, "out_density", "Выводить показания плотности", true).apply {
-            isVirtual = true
-            setSavedDefault(userConfig)
-        }
-
         //----------------------------------------------------------------------------------------------------------------------
 
         alFormHiddenColumn.add(columnID!!)
@@ -175,8 +164,9 @@ class mWorkShift : mAbstractReport() {
         //--- при выводе отчёт по путевому листу нет смысла группировать по времени,
         //--- т.к. помимо временного периода путёвки отличаются ещё номером и водителем
         (if (isWaybillReport) alFormHiddenColumn else alFormColumn).add(columnReportGroupType)
-        alFormColumn.add(columnOutTemperature)
-        alFormColumn.add(columnOutDensity)
+
+        sros = SummaryReportOptionSelector()
+        sros.fillColumns(userConfig, tableName, alFormColumn)
 
         sos = SumOptionSelector()
         sos.fillColumns(userConfig, tableName, alFormColumn)
