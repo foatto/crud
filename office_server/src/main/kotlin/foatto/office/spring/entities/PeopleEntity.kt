@@ -8,95 +8,95 @@
 //open class PeopleEntity(
 //
 //    @Id
-//    @Column(name = "id", unique = true, nullable = false)
+//    @Column(name = "id", unique = true)
 //    var id: Int,
 //
 //    @Basic
-//    @Column(name = "user_id", nullable = false)
+//    @Column(name = "user_id")
 //    var userId: Int,
 //
 ////    @ManyToOne(fetch = FetchType.LAZY)
-////    @JoinColumn(name = "user_id", nullable = false)
+////    @JoinColumn(name = "user_id")
 ////    var user: UserEntity
 //
 //    @Basic
-//    @Column(name = "manager_id", nullable = false)
+//    @Column(name = "manager_id")
 //    var managerId: Int,
 //
 ////    @ManyToOne(fetch = FetchType.LAZY)
-////    @JoinColumn(name = "manager_id", nullable = false)
+////    @JoinColumn(name = "manager_id")
 ////    var manager: UserEntity
 //
 //    @Basic
-//    @Column(name = "work_state", nullable = false)
+//    @Column(name = "work_state")
 //    var workState: Int,
 //
 //    @Basic  // Пользователи могут добавлять клиентов с одинаковым именем из-за специфических требований заказчика по доступу
-//    @Column(name = "name", nullable = false, /*unique = true,*/ length = 250)
+//    @Column(name = "name", /*unique = true,*/ length = 250)
 //    var name: String,
 //
 //    @Basic
-//    @Column(name = "post", nullable = false, length = 250)
+//    @Column(name = "post", length = 250)
 //    var post: String,
 //
 //    @Basic
-//    @Column(name = "e_mail", nullable = false, length = 250)
+//    @Column(name = "e_mail", length = 250)
 //    var mail: String,
 //
 //    @Basic
-//    @Column(name = "cell_no", nullable = false, length = 250)
+//    @Column(name = "cell_no", length = 250)
 //    var cell: String,
 //
 //    @Basic
-//    @Column(name = "phone_no", nullable = false, length = 250)
+//    @Column(name = "phone_no", length = 250)
 //    var phone: String,
 //
 //    @Basic
-//    @Column(name = "fax_no", nullable = false, length = 250)
+//    @Column(name = "fax_no", length = 250)
 //    var fax: String,
 //
 //    @Basic
-//    @Column(name = "assistant_name", nullable = false, length = 250)
+//    @Column(name = "assistant_name", length = 250)
 //    var assistantName: String,
 //
 //    @Basic
-//    @Column(name = "assistant_mail", nullable = false, length = 250)
+//    @Column(name = "assistant_mail", length = 250)
 //    var assistantMail: String,
 //
 //    @Basic
-//    @Column(name = "assistant_cell", nullable = false, length = 250)
+//    @Column(name = "assistant_cell", length = 250)
 //    var assistantCell: String,
 //
 //    @Basic
-//    @Column(name = "contact_info", nullable = false, length = -1)
+//    @Column(name = "contact_info", length = -1)
 //    var contactInfo: String,
 //
 //    @Basic
-//    @Column(name = "birth_ye", nullable = false)
+//    @Column(name = "birth_ye")
 //    var birthYe: Int,
 //
 //    @Basic
-//    @Column(name = "birth_mo", nullable = false)
+//    @Column(name = "birth_mo")
 //    var birthMo: Int,
 //
 //    @Basic
-//    @Column(name = "birth_da", nullable = false)
+//    @Column(name = "birth_da")
 //    var birthDa: Int,
 //
 //    @Basic
-//    @Column(name = "file_id", nullable = false)
+//    @Column(name = "file_id")
 //    var fileId: Int,
 //
 //    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "company_id", nullable = false)
+//    @JoinColumn(name = "company_id")
 //    var company: CompanyEntity,
 //
 //    @Basic
-//    @Column(name = "business_id", nullable = false)
+//    @Column(name = "business_id")
 //    var businessId: Int,
 //
 ////    @ManyToOne(fetch = FetchType.LAZY)
-////    @JoinColumn(name = "business_id", nullable = false)
+////    @JoinColumn(name = "business_id")
 ////    var business: BusinessEntity,
 //
 //    @AttributeOverrides(

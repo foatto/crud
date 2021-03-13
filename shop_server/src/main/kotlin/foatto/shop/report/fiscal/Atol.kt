@@ -2,6 +2,7 @@ package foatto.shop.report.fiscal
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import foatto.core.util.AdvancedLogger
+import foatto.shop.mCatalog
 import io.ktor.client.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
@@ -32,7 +33,7 @@ class Atol : iFiscal {
                 markingCode = markingCode?.let { AtolFiscalMarkingCode(
                     mark = Base64.getEncoder().encodeToString(
                         //--- used first 31 chars only
-                        it.substring(0, min(it.length, 32)).toByteArray()
+                        it.substring(0, min(it.length, mCatalog.MARK_CODE_LEN + 1)).toByteArray()
                     )
                 ) }
             )

@@ -8,25 +8,25 @@
 //open class PriceEntity(
 //
 //    @Id
-//    @Column(name = "id", unique = true, nullable = false)
+//    @Column(name = "id", unique = true)
 //    var id: Int,
 //
 //    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "catalog_id", nullable = false)
+//    @JoinColumn(name = "catalog_id")
 //    var catalog: CatalogEntity,
 //
 //    @Basic
-//    @Column(name = "price_type", nullable = false)
+//    @Column(name = "price_type")
 //    var type: Int,
 //
 //    var date: DateTimeField,
 //
 //    @Basic
-//    @Column(name = "price_value", nullable = false)
+//    @Column(name = "price_value")
 //    var value: Double,
 //
 //    @Basic
-//    @Column(name = "price_note", nullable = false, length = 250)
+//    @Column(name = "price_note", length = 250)
 //    var note: String
 //
 //)

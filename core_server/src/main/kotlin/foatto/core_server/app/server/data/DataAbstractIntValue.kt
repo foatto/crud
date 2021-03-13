@@ -9,7 +9,7 @@ abstract class DataAbstractIntValue(aColumn: iColumn) : DataAbstract(aColumn) {
 
     var intValue = 0
 
-    var errorValue: String? = null
+    protected var errorValue: String? = null
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -20,13 +20,23 @@ abstract class DataAbstractIntValue(aColumn: iColumn) : DataAbstract(aColumn) {
         var posRS = aPosRS
 
         intValue = rs.getInt(posRS++)
-        errorText = null
-        errorValue = null
+        clearError()
 
         return posRS
     }
 
     override fun getFieldSQLValue(index: Int): String = "$intValue"
+
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    fun setError(aErrorValue: String?, aErrorText: String?) {
+        errorValue = aErrorValue
+        errorText = aErrorText
+    }
+
+    fun clearError() {
+        setError(null, null)
+    }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

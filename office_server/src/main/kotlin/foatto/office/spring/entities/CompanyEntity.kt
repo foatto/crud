@@ -8,23 +8,23 @@
 //open class CompanyEntity(
 //
 //    @Id
-//    @Column(name = "id", unique = true, nullable = false)
+//    @Column(name = "id", unique = true)
 //    var id: Int,
 //
 //    @Basic
-//    @Column(name = "in_black_list", nullable = false)
+//    @Column(name = "in_black_list")
 //    var inBlackList: Boolean,
 //
 //    @Basic
-//    @Column(name = "name", nullable = false, unique = true, length = 250)
+//    @Column(name = "name", unique = true, length = 250)
 //    var name: String,
 //
 //    @Basic
-//    @Column(name = "address", nullable = false, length = -1)
+//    @Column(name = "address", length = -1)
 //    var address: String,
 //
 //    @Basic
-//    @Column(name = "contact_info", nullable = false, length = -1)
+//    @Column(name = "contact_info", length = -1)
 //    var contactInfo: String,
 //
 //    @AttributeOverrides(
@@ -35,11 +35,11 @@
 //    var birthDate: DateTimeField,
 //
 //    @Basic
-//    @Column(name = "file_id", nullable = false)
+//    @Column(name = "file_id")
 //    var fileId: Int,
 //
 //    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "city_id", nullable = false)
+//    @JoinColumn(name = "city_id")
 //    var catalog: CityEntity
 //
 //)

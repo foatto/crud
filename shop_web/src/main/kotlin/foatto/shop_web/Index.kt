@@ -5,6 +5,9 @@ import foatto.core_web.external.vue.Vue
 import foatto.core_web.external.vue.VueComponentOptions
 import foatto.core_web.external.vue.that
 import foatto.core_web.external.vue.vueComponentOptions
+import foatto.shop_core.app.ICON_NAME_ADD_MARKED_ITEM
+import foatto.shop_core.app.ICON_NAME_CALC
+import foatto.shop_core.app.ICON_NAME_FISCAL
 import kotlinx.browser.document
 import kotlinx.browser.localStorage
 import kotlinx.browser.window
@@ -152,6 +155,11 @@ class Index {
                 }
             )
             this.mounted = {
+                //--- marked item adding
+                hmTableIcon[ICON_NAME_ADD_MARKED_ITEM] = "/web/images/ic_line_weight_black_48dp.png"
+                hmTableIcon[ICON_NAME_FISCAL] = "/web/images/ic_theaters_black_48dp.png"
+                hmTableIcon[ICON_NAME_CALC] = "/web/images/ic_shopping_cart_black_48dp.png"
+
                 that().scaleKoef =
                     if( screenDPR <= 1 ) 1.0
                     else 0.5

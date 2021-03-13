@@ -23,12 +23,15 @@ include(
     "core_server",
     "core_web",
 
+    "mms_core",
     "mms_server",
     "mms_web",
 
+    "office_core",
     "office_server",
     "office_web",
 
+    "shop_core",
     "shop_server",
     "shop_web"
 )

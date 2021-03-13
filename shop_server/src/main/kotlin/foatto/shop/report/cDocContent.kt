@@ -98,7 +98,7 @@ class cDocContent : cAbstractReport() {
         hmReportParam["report_document_type"] = docType
         hmReportParam["report_catalog_dest"] = (hmColumnData[mdc.columnCatalogDest] as DataInt).intValue
 
-        if (aliasConfig.alias == "shop_fiscal_doc_content") {
+        return if (aliasConfig.alias == "shop_fiscal_doc_content") {
             //--- дополнительная проверка (вдруг ещё нажимали на кнопку в том же окне)
             var isFiscable = false
             if (docType == DocumentTypeConfig.TYPE_OUT && docID != 0) {
@@ -107,10 +107,12 @@ class cDocContent : cAbstractReport() {
                 rs.close()
             }
             if (isFiscable) {
-                printFiscal(1, docID)
+                printFiscal(docID)
             }
-            return "#"
-        } else return getReport()
+            "#"
+        } else {
+            getReport()
+        }
     }
 
     override fun getReport(): String {
@@ -476,8 +478,10 @@ class cDocContent : cAbstractReport() {
         } else sheet.addCell(Label(1, offsY, getPreparedAt(), wcfCellL))
     }
 
-    private fun printFiscal(fiscalIndex: Int, docId: Int) {
+    private fun printFiscal(docId: Int) {
         val shopApplication = application as iShopApplication
+
+        val fiscalIndex = shopApplication.fiscalIndex?.toIntOrNull() ?: 0
 
         val fiscalUrl = shopApplication.fiscalUrls[fiscalIndex]
         val fiscalLineCutters = shopApplication.fiscalLineCutters[fiscalIndex]
@@ -486,8 +490,8 @@ class cDocContent : cAbstractReport() {
         val fiscalPlace = shopApplication.fiscalPlace ?: "Магазин"
 
         val fiscal: iFiscal = when (fiscalIndex) {
-            0 -> Starrus()
-            1 -> Atol()
+            0 -> Atol()
+            1 -> Starrus()
             else -> throw Exception("Wrong index for fiscal = $fiscalIndex")
         }
 
@@ -506,7 +510,7 @@ class cDocContent : cAbstractReport() {
         rs.close()
 
         //--- составим мегазапрос на вывод состава накладной
-        val sSQL = " SELECT SHOP_catalog.id , SHOP_catalog.name , SHOP_doc_content.sour_num  " +
+        val sSQL = " SELECT SHOP_catalog.id , SHOP_catalog.name , SHOP_doc_content.sour_num , SHOP_doc_content.mark_code  " +
             " FROM SHOP_doc_content , SHOP_catalog " +
             " WHERE SHOP_doc_content.doc_id = $docId " +
             " AND SHOP_doc_content.is_deleted = 0 " +
@@ -519,15 +523,17 @@ class cDocContent : cAbstractReport() {
                 substring(0, min(length, fiscalLineCutters[fiscalIndex].toInt()))
             }
             val count = rs.getDouble(3)
+            val markCode = rs.getString(4)
 
             fiscal.addLine(
                 name = name,
                 price = price,
                 count = count,
-                //markingCode = "MDEwMjkwMDAyNDEyNjE5MDIxLClraylTdUs+MjVEVzkxRUUwNjkyVGM0K0cwU3JXbTA2bGxmZXRZRFFoMXI4YnFqZUhzOStzT2J5Q0I3clRPWT0=",
-                //markingCode = "MDEwMjkwMDAyNDEyNjE5MDIxbXEvUGplUldLY1kxSA==",
-                //markingCode = "010290002412619021,)kk)SuK>25DW91EE0692Tc4+G0SrWm06llfetYDQh1r8bqjeHs9+sObyCB7rTOY="
-                markingCode = null,
+                markingCode = if(markCode.isBlank()) {
+                    null
+                } else {
+                    markCode
+                }
             )
         }
         rs.close()

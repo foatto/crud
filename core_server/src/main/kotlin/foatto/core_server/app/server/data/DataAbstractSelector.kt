@@ -16,23 +16,20 @@ abstract class DataAbstractSelector(aColumn: iColumn, aFormCellType: FormCellTyp
 
     override fun loadFromDefault() {
         intValue = validate((column as ColumnAbstractSelector).defaultValue)
-        errorValue = null
-        errorText = null
+        clearError()
     }
 
     override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String, id: Int): Boolean {
         val cas = column as ColumnAbstractSelector
         cas.requiredExcept?.let {
             if (formData.comboValue!! == cas.requiredExcept) {
-                errorValue = formData.comboValue!!.toString()
-                errorText = "Обязательно для выбора"
+                setError( formData.comboValue!!.toString(), "Обязательно для выбора")
                 return false
             }
         }
 
         intValue = formData.comboValue!!
-        errorValue = null
-        errorText = null
+        clearError()
 
         return true
     }
@@ -75,7 +72,6 @@ abstract class DataAbstractSelector(aColumn: iColumn, aFormCellType: FormCellTyp
 
     override fun setData(data: iData) {
         intValue = (data as DataAbstractSelector).intValue
-        errorValue = null
-        errorText = null
+        clearError()
     }
 }

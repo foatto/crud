@@ -106,7 +106,7 @@ class cSensorCalibration : cStandart() {
                 ),
                 caption = model.getSaveButonCaption(aliasConfig),
                 iconName = ICON_NAME_SAVE,
-                withNewData = true,   // передавать ли новые данные ( для SAVE ) или передать старые данные ( для DELETE и проч. комманд )
+                withNewData = true,
                 key = BUTTON_KEY_SAVE
             )
         )

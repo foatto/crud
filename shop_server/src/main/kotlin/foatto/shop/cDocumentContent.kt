@@ -1,16 +1,13 @@
 package foatto.shop
 
+import foatto.core.app.ICON_NAME_ADD_ITEM
 import foatto.core.app.ICON_NAME_PRINT
-import foatto.core.link.AppAction
-import foatto.core.link.ClientActionButton
-import foatto.core.link.ServerActionButton
-import foatto.core.link.TableCell
-import foatto.core.link.TableCellForeColorType
-import foatto.core.link.XyDocumentConfig
+import foatto.core.link.*
 import foatto.core.util.AdvancedLogger
 import foatto.core.util.DateTime_DMY
 import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.getSplittedDouble
+import foatto.core_server.app.AppParameter
 import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
@@ -18,19 +15,23 @@ import foatto.core_server.app.server.cAbstractHierarchy
 import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.data.*
+import foatto.core_server.app.system.cRolePermission
+import foatto.shop.mDocumentContent.Companion.ADD_OVER_MARK_CODE
+import foatto.shop_core.app.ICON_NAME_ADD_MARKED_ITEM
+import foatto.shop_core.app.ICON_NAME_CALC
+import foatto.shop_core.app.ICON_NAME_FISCAL
 import foatto.sql.CoreAdvancedStatement
 import java.util.concurrent.ConcurrentHashMap
 
 class cDocumentContent : cStandart() {
 
     companion object {
-
-        val PERM_AUDIT_MODE = "audit_mode"
+        const val PERM_AUDIT_MODE = "audit_mode"
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    private var docID: Int? = null
+    private var docId: Int? = null
     private var docType = DocumentTypeConfig.TYPE_ALL
     private lateinit var hmPrice: Map<Int, List<Pair<Int, Double>>>
 
@@ -42,8 +43,8 @@ class cDocumentContent : cStandart() {
         super.init(aApplication, aStm, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
 
         for (name in DocumentTypeConfig.hmAliasDocType.keys) {
-            docID = hmParentData[name]
-            if (docID != null) break
+            docId = hmParentData[name]
+            if (docId != null) break
         }
         docType = DocumentTypeConfig.hmAliasDocType[aliasConfig.alias]!!
         hmPrice = PriceData.loadPrice(
@@ -103,7 +104,7 @@ class cDocumentContent : cStandart() {
 
     override fun fillHeader(selectorID: String?, withAnchors: Boolean, alPath: MutableList<Pair<String, String>>, hmOut: MutableMap<String, Any>) {
         var sHeader = aliasConfig.descr
-        if (docID != null) {
+        if (docId != null) {
             var docYe = 0
             var docMo = 0
             var docDa = 0
@@ -115,7 +116,7 @@ class cDocumentContent : cStandart() {
                     " SHOP_doc.sour_id , SHOP_doc.dest_id , SHOP_client.name , SHOP_doc.descr , SHOP_doc.discount " +
                     " FROM SHOP_doc , SHOP_client " +
                     " WHERE SHOP_doc.client_id = SHOP_client.id " +
-                    " AND SHOP_doc.id = $docID "
+                    " AND SHOP_doc.id = $docId "
             )
             if (rs.next()) {
                 val docNo = rs.getString(1)
@@ -135,7 +136,7 @@ class cDocumentContent : cStandart() {
             }
             rs.close()
             //--- подсчёт стоимости накладной
-            docCost = cDocument.calcDocCountAndCost(stm, hmPrice, docID!!, localDocType, zoneId, docYe, docMo, docDa, discount).second
+            docCost = cDocument.calcDocCountAndCost(stm, hmPrice, docId!!, localDocType, zoneId, docYe, docMo, docDa, discount).second
             sHeader += ", общая стоимость: ${getSplittedDouble(docCost, 2)}"
         }
         alPath.add(Pair("", sHeader))
@@ -183,19 +184,47 @@ class cDocumentContent : cStandart() {
         }
     }
 
-    override fun getPrintButtonURL(): String = getParamURL("shop_report_doc_content", AppAction.FORM, null, 0, hmParentData, null, "")
+    override fun getAddButtonURL(refererID: String, hmOut: MutableMap<String, Any>): MutableList<AddActionButton> {
+        val alAddButtonList = mutableListOf<AddActionButton>()
+
+        alAddButtonList.add(
+            AddActionButton(
+                caption = "Добавить",
+                tooltip = "Добавить",
+                icon = ICON_NAME_ADD_ITEM,
+                url = getParamURL(aliasConfig.alias, AppAction.FORM, refererID, 0, hmParentData, parentUserID, null)
+            )
+        )
+
+        if (docType in setOf(
+                DocumentTypeConfig.TYPE_OUT,
+                DocumentTypeConfig.TYPE_DESTROY,
+                DocumentTypeConfig.TYPE_RETURN_IN,
+                DocumentTypeConfig.TYPE_MOVE,
+            )
+        ) {
+            alAddButtonList.add(
+                AddActionButton(
+                    caption = "Добавить маркированный товар",
+                    tooltip = "Добавить маркированный товар",
+                    icon = ICON_NAME_ADD_MARKED_ITEM,
+                    url = getParamURL(aliasConfig.alias, AppAction.FORM, refererID, 0, hmParentData, parentUserID, "&$ADD_OVER_MARK_CODE=1")
+                )
+            )
+        }
+        return alAddButtonList
+    }
 
     override fun getServerAction(): MutableList<ServerActionButton> {
         val alSAB = super.getServerAction()
 
         //--- проверяем на возможность печати чека
-//        var isFiscable = true
-        var isFiscable = false
-        if (docType == DocumentTypeConfig.TYPE_OUT && docID != null && docID != 0) {
-            val rs = stm.executeQuery(" SELECT is_fiscaled FROM SHOP_doc WHERE id = $docID ")
-            isFiscable = rs.next() && rs.getInt(1) == 0
-            rs.close()
-        }
+        //var isFiscable = true - for fiscal testing
+        val isFiscable = docId?.let {
+            docType == DocumentTypeConfig.TYPE_OUT &&
+                it != 0 &&
+                (application as iShopApplication).isFiscable(it)
+        } ?: false
 
         //--- для накладных на реализацию добавим работу с онлайн-кассой
         if (isFiscable) {
@@ -203,7 +232,7 @@ class cDocumentContent : cStandart() {
                 ServerActionButton(
                     caption = "Кассовый чек",
                     tooltip = "Кассовый чек",
-                    icon = ICON_NAME_PRINT,
+                    icon = ICON_NAME_FISCAL,
                     url = getParamURL("shop_fiscal_doc_content", AppAction.FORM, null, 0, hmParentData, null, ""),
                     inNewWindow = true
                 )
@@ -213,7 +242,7 @@ class cDocumentContent : cStandart() {
             ServerActionButton(
                 caption = "Товарный чек",
                 tooltip = "Товарный чек",
-                icon = "",
+                icon = ICON_NAME_PRINT,
                 url = getParamURL("shop_report_doc_content", AppAction.FORM, null, 0, hmParentData, null, ""),
                 inNewWindow = true
             )
@@ -231,7 +260,7 @@ class cDocumentContent : cStandart() {
                 ClientActionButton(
                     caption = "Рассчитать",
                     tooltip = "Рассчитать сдачу",
-                    icon = "", // с иконкой пока непонятно
+                    icon = ICON_NAME_CALC,
                     className = "foatto.shop.CashCalculator",
                     param = docCost.toString()
                 )
@@ -258,11 +287,188 @@ class cDocumentContent : cStandart() {
         }
     }
 
-    override fun isAddEnabled(): Boolean = super.isAddEnabled() && docID != null
+    override fun isAddEnabled(): Boolean = super.isAddEnabled() && docId != null
 
-    override fun isEditEnabled(hmColumnData: Map<iColumn, iData>, id: Int): Boolean = super.isEditEnabled(hmColumnData, id) && docID != null
+    override fun isEditEnabled(hmColumnData: Map<iColumn, iData>, id: Int): Boolean = super.isEditEnabled(hmColumnData, id) && docId != null
 
-    override fun isDeleteEnabled(hmColumnData: Map<iColumn, iData>, id: Int): Boolean = super.isDeleteEnabled(hmColumnData, id) && docID != null
+    override fun isDeleteEnabled(hmColumnData: Map<iColumn, iData>, id: Int): Boolean = super.isDeleteEnabled(hmColumnData, id) && docId != null
+
+    override fun getSaveButtonParams(formParam: String): String {
+        var saveParams = super.getSaveButtonParams(formParam)
+        if(hmParam[ADD_OVER_MARK_CODE]?.toIntOrNull() == 1) {
+            saveParams = AppParameter.setParam(saveParams, ADD_OVER_MARK_CODE, "1")
+        }
+        return saveParams
+    }
+
+    override fun getFormValues(id: Int, alFormData: List<FormData>, alColumnList: List<iColumn>, hmColumnData: MutableMap<iColumn, iData>): Boolean {
+        if (super.getFormValues(id, alFormData, alColumnList, hmColumnData)) {
+            //--- additive checking for markable products
+            val mdc = model as mDocumentContent
+
+            val skipMarkData = hmColumnData[mdc.columnSkipMark] as DataBoolean
+            val isSkipMark = skipMarkData.value
+
+            val markData = hmColumnData[mdc.columnMarkCode] as DataString
+            val markCode = markData.text
+
+            if (isSkipMark) {
+                if (markCode.isNotEmpty()) {
+                    //--- clear mark data for avoid errorprone duplicate him
+                    markData.setError(markCode, "Удалите код, чтобы пропустить маркировку!")
+                    return false
+                }
+            } else {
+                val sourCatalogData = hmColumnData[mdc.columnSourCatalog] as DataInt
+                val destCatalogData = hmColumnData[mdc.columnDestCatalog] as DataInt
+
+                val sourNumData = hmColumnData[mdc.columnSourNum] as DataDouble
+                val destNumData = hmColumnData[mdc.columnDestNum] as DataDouble
+
+                when (docType) {
+                    //--- income or return of saled product
+                    DocumentTypeConfig.TYPE_IN,
+                    DocumentTypeConfig.TYPE_RETURN_OUT
+                    -> {
+                        val catalogId = destCatalogData.intValue
+                        val isMarkable = (application as iShopApplication).checkCatalogMarkable(catalogId)
+                        if (isMarkable) {
+                            if (markCode.length >= mCatalog.MARK_CODE_LEN) {
+                                val alreadyMarkedCatalogId = (application as iShopApplication).findIncomeCatalogIdByMark(markCode)
+                                if (alreadyMarkedCatalogId == null) {
+                                    if (destNumData.doubleValue != 1.0) {
+                                        destNumData.setError(destNumData.doubleValue.toString(), "Товар с маркировкой должен быть в единичном количестве!")
+                                        return false
+                                    }
+                                } else {
+                                    markData.setError(markCode, "Товар с такой маркировкой уже был!")
+                                    return false
+                                }
+                            } else {
+                                markData.setError(markCode, "Код маркировки неполон или отсутствует!")
+                                return false
+                            }
+                        }
+                    }
+                    DocumentTypeConfig.TYPE_OUT,
+                    DocumentTypeConfig.TYPE_DESTROY,
+                    DocumentTypeConfig.TYPE_RETURN_IN,
+                    DocumentTypeConfig.TYPE_MOVE,
+                    -> {
+                        val isAddOverMarkCode = hmParam[ADD_OVER_MARK_CODE]?.toIntOrNull() == 1
+
+                        if (isAddOverMarkCode ||    // always isMarkable
+                            (docType != DocumentTypeConfig.TYPE_MOVE && (application as iShopApplication).checkCatalogMarkable(sourCatalogData.intValue)) // check isMarkable
+                        ) {
+                            if (markCode.length >= mCatalog.MARK_CODE_LEN) {    // full mark code
+                                val incomedCatalogId = (application as iShopApplication).findIncomeCatalogIdByMark(markCode)
+                                if (incomedCatalogId != null) {
+                                    if(isAddOverMarkCode || incomedCatalogId == sourCatalogData.intValue) {
+                                        val outcomedCatalogId = (application as iShopApplication).findOutcomeCatalogIdByMark(markCode)
+                                        if (outcomedCatalogId == null) {
+                                            //--- automatically setup required values
+                                            if (isAddOverMarkCode) {
+                                                if (docType in DocumentTypeConfig.hsUseSourCatalog) {
+                                                    sourCatalogData.intValue = incomedCatalogId
+                                                }
+                                                //--- избыточно, т.к. default value уже = 1.0, но лучше перебдеть
+                                                if (docType in DocumentTypeConfig.hsUseSourNum) {
+                                                    sourNumData.doubleValue = 1.0
+                                                }
+                                                if (docType in DocumentTypeConfig.hsUseDestCatalog) {
+                                                    destCatalogData.intValue = incomedCatalogId
+                                                }
+                                                //--- избыточно, т.к. default value уже = 1.0, но лучше перебдеть
+                                                if (docType in DocumentTypeConfig.hsUseDestNum) {
+                                                    destNumData.doubleValue = 1.0
+                                                }
+                                                //--- mark code using in move operation for item search only
+                                                if(docType == DocumentTypeConfig.TYPE_MOVE) {
+                                                    markData.text = ""
+                                                }
+                                            } else {
+                                                //--- check selected item catalogId with finded over markCode
+                                                if (sourCatalogData.intValue == incomedCatalogId) {
+                                                    val numData = if (docType in DocumentTypeConfig.hsUseSourCatalog) {
+                                                        sourNumData
+                                                    } else {
+                                                        destNumData
+                                                    }
+                                                    if (numData.doubleValue != 1.0) {
+                                                        numData.setError(numData.doubleValue.toString(), "Товар с маркировкой должен быть в единичном количестве!")
+                                                        return false
+                                                    }
+                                                } else {
+                                                    markData.setError(markCode, "Код маркировки не соответствует выбранному товару!")
+                                                    return false
+                                                }
+                                            }
+                                        } else {
+                                            markData.setError(markCode, "Товар с такой маркировкой уже выведен из оборота!")
+                                            return false
+                                        }
+                                    } else {
+                                        markData.setError(markCode, "Эта маркировка принадлежит другому товару!")
+                                        return false
+                                    }
+                                } else {
+                                    markData.setError(markCode, "Товар с такой маркировкой не найден!")
+                                    return false
+                                }
+                            } else {
+                                markData.setError(markCode, "Код маркировки неполон или отсутствует!")
+                                return false
+                            }
+                        }
+                    }
+                    DocumentTypeConfig.TYPE_RESORT -> {
+                        val sourCatalogId = sourCatalogData.intValue
+                        val isSourMarkable = (application as iShopApplication).checkCatalogMarkable(sourCatalogId)
+                        if (isSourMarkable) {
+                            if (markCode.length >= mCatalog.MARK_CODE_LEN) {    // full mark code
+                                val incomedCatalogId = (application as iShopApplication).findIncomeCatalogIdByMark(markCode)
+                                if (incomedCatalogId != null) {
+                                    if(incomedCatalogId == sourCatalogData.intValue) {
+                                        val outcomedCatalogId = (application as iShopApplication).findOutcomeCatalogIdByMark(markCode)
+                                        if (outcomedCatalogId == null) {
+                                            if (sourNumData.doubleValue != 1.0) {
+                                                sourNumData.setError(sourNumData.doubleValue.toString(), "Товар с маркировкой должен быть в единичном количестве!")
+                                                return false
+                                            }
+                                        } else {
+                                            markData.setError(markCode, "Товар с такой маркировкой уже выведен из оборота!")
+                                            return false
+                                        }
+
+                                    } else {
+                                        markData.setError(markCode, "Эта маркировка принадлежит другому товару!")
+                                        return false
+                                    }
+                                } else {
+                                    markData.setError(markCode, "Товар с такой маркировкой не найден!")
+                                    return false
+                                }
+                            } else {
+                                markData.setError(markCode, "Код маркировки неполон или отсутствует!")
+                                return false
+                            }
+                        }
+                    }
+                }
+            }
+            return true
+        } else {
+            return false
+        }
+    }
+
+    override fun getInvalidFormDataUrl(id: Int, formDataID: String): String {
+        var invalidParams = super.getInvalidFormDataUrl(id, formDataID)
+        if(hmParam[ADD_OVER_MARK_CODE]?.toIntOrNull() == 1) {
+            invalidParams = AppParameter.setParam(invalidParams, ADD_OVER_MARK_CODE, "1")
+        }
+        return invalidParams
+    }
 
     override fun preSave(id: Int, hmColumnData: Map<iColumn, iData>) {
         val mdc = model as mDocumentContent

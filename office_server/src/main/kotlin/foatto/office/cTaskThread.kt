@@ -50,8 +50,6 @@ class cTaskThread : cStandart() {
         ds.text = s
     }
 
-    override fun getPrintButtonURL(): String = getParamURL( "office_report_task_thread", AppAction.FORM, null, 0, hmParentData, null, "" )
-
     override fun getServerAction(): MutableList<ServerActionButton> {
         val alSAB = super.getServerAction()
 

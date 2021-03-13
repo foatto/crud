@@ -18,11 +18,10 @@ class DataString(aColumn: iColumn) : DataAbstract(aColumn) {
     var text: String = ""
         set(value) {
             field = validate(value)
-            errorValue = null
-            errorText = null
+            clearError()
         }
 
-    var errorValue: String? = null
+    private var errorValue: String? = null
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -33,16 +32,14 @@ class DataString(aColumn: iColumn) : DataAbstract(aColumn) {
         var posRS = aPosRS
 
         text = validate(rs.getString(posRS++))
-        errorValue = null
-        errorText = null
+        clearError()
 
         return posRS
     }
 
     override fun loadFromDefault() {
         text = validate(cs.defaultValue)
-        errorValue = null
-        errorText = null
+        clearError()
     }
 
     override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String, id: Int): Boolean {
@@ -56,19 +53,16 @@ class DataString(aColumn: iColumn) : DataAbstract(aColumn) {
             text = text.trim()
         }
         text = text.substring(0, min(text.length, cs.maxSize))
-        errorValue = null
-        errorText = null
+        clearError()
 
         if (cs.isRequired && text.isEmpty()) {
-            errorValue = text
-            errorText = "Обязательно для заполнения"
+            setError(text, "Обязательно для заполнения")
             return false
         }
         if (column.isUnique && (column.uniqueIgnore == null || column.uniqueIgnore != text) &&
             stm.checkExist(column.tableName, column.alFieldName[0], prepareForSQL(text), fieldNameID, id)
         ) {
-            errorValue = text
-            errorText = "Это значение уже существует"
+            setError(text, "Это значение уже существует")
             return false
         }
         return true
@@ -120,8 +114,18 @@ class DataString(aColumn: iColumn) : DataAbstract(aColumn) {
 
     override fun setData(data: iData) {
         text = (data as DataString).text
-        errorValue = null
-        errorText = null
+        clearError()
+    }
+
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    fun setError(aErrorValue: String?, aErrorText: String?) {
+        errorValue = aErrorValue
+        errorText = aErrorText
+    }
+
+    fun clearError() {
+        setError(null, null)
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

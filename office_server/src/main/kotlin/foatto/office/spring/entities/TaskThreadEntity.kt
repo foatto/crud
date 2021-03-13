@@ -8,28 +8,28 @@
 //open class TaskThreadEntity(
 //
 //    @Id
-//    @Column(name = "id", unique = true, nullable = false)
+//    @Column(name = "id", unique = true)
 //    var id: Int,
 //
 //    @Basic
-//    @Column(name = "user_id", nullable = false)
+//    @Column(name = "user_id")
 //    var userId: Int,
 //
 ////    @ManyToOne(fetch = FetchType.LAZY)
-////    @JoinColumn(name = "user_id", nullable = false)
+////    @JoinColumn(name = "user_id")
 ////    var user: UserEntity
 //
 //    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "task_id", nullable = false)
+//    @JoinColumn(name = "task_id")
 //    var task: TaskEntity,
 //
 //    var dateTime: DateTimeField,
 //
 //    @Basic
-//    @Column(name = "message", nullable = false, length = -1)
+//    @Column(name = "message", length = -1)
 //    var message: String,
 //
 //    @Basic
-//    @Column(name = "file_id", nullable = false)
+//    @Column(name = "file_id")
 //    var fileId: Int
 //)

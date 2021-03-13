@@ -1,18 +1,25 @@
-//package foatto.shop.entity
-//
-//import javax.persistence.*
-//
-//@Entity
-//@Table(name = "SHOP_warehouse")
-//open class WarehouseEntity(
-//
-//    @Id
-//    @Column(name = "id", unique = true, nullable = false)
-//    var id: Int,
-//
-//    @Basic
-//    @Column(name = "name", nullable = false, unique = true, length = 250)
-//    var name: String
-//
-//)
-//
+package foatto.shop.spring.entities
+
+import javax.persistence.*
+
+@Entity
+@Table(name = "SHOP_warehouse")
+class WarehouseEntity(
+    @Id
+    val id: Int,
+    var name: String,
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is WarehouseEntity) return false
+
+        if (name != other.name) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return name.hashCode()
+    }
+}
+

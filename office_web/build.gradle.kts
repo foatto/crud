@@ -12,6 +12,7 @@ plugins {
 
 dependencies {
     api(project(":core_web"))
+    api(project(":office_core"))
 }
 
 kotlin {

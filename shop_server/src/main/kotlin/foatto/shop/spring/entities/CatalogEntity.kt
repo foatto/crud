@@ -9,16 +9,14 @@ class CatalogEntity(
     @Id
     val id: Int,
 
-    @Column(name = "in_active", nullable = false)
+    @Column(name = "in_active")
     val inActive: Int,
 
-    @Column(name = "in_archive", nullable = false)
+    @Column(name = "in_archive")
     val inArchive: Int,
 
-    //!!! EAGER здесь вряд ли подойдёт из-за возможного зацикливания с id == parent_id = 0 (там не null!)
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_id")
-    val parentCatalog: CatalogEntity?,
+    @Column(name = "parent_id")
+    val parentId: Int,
 
     @Column(name = "record_type")
     val recordType: Int,
@@ -28,7 +26,7 @@ class CatalogEntity(
     @Column(name = "is_production")
     val isProduction: Int,
 
-    @Column(name = "profit_add", nullable = false)
+    @Column(name = "profit_add")
     val profitAdd: Int,
 
     @Column(name = "is_mark")

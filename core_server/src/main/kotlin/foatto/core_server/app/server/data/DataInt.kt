@@ -17,39 +17,33 @@ class DataInt(aColumn: iColumn) : DataAbstractIntValue(aColumn) {
 
     override fun loadFromDefault() {
         intValue = validate((column as ColumnInt).defaultValue)
-        errorValue = null
-        errorText = null
+        clearError()
     }
 
     override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String, id: Int): Boolean {
         val strValue = formData.stringValue!!
 
         if (ci.isRequired && strValue.isBlank()) {
-            errorValue = strValue
-            errorText = "Обязательно для заполнения"
+            setError(strValue, "Обязательно для заполнения")
             return false
         }
         try {
             intValue = strValue.replace(" ", "").toInt(ci.radix)
-            errorValue = null
-            errorText = null
+            clearError()
         } catch (t: Throwable) {
             intValue = 0
-            errorValue = strValue
-            errorText = "Ошибка ввода"
+            setError(strValue, "Ошибка ввода")
             return false
         }
 
         //--- проверка на минимум
         if (ci.minValue != null && intValue < ci.minValue!!) {
-            errorValue = strValue
-            errorText = "Значение должно быть не меньше, чем ${ci.minValue}"
+            setError(strValue, "Значение должно быть не меньше, чем ${ci.minValue}")
             return false
         }
         //--- проверка на максимум
         if (ci.maxValue != null && intValue > ci.maxValue!!) {
-            errorValue = strValue
-            errorText = "Значение должно быть не больше, чем ${ci.maxValue}"
+            setError(strValue, "Значение должно быть не больше, чем ${ci.maxValue}")
             return false
         }
 
@@ -57,8 +51,7 @@ class DataInt(aColumn: iColumn) : DataAbstractIntValue(aColumn) {
             (column.uniqueIgnore == null || column.uniqueIgnore != intValue) &&
             stm.checkExist(column.tableName, column.alFieldName[0], intValue, fieldNameID, id)
         ) {
-            errorValue = strValue
-            errorText = "Это значение уже существует"
+            setError(strValue, "Это значение уже существует")
             return false
         }
 
@@ -97,8 +90,7 @@ class DataInt(aColumn: iColumn) : DataAbstractIntValue(aColumn) {
 
     override fun setData(data: iData) {
         intValue = (data as DataInt).intValue
-        errorValue = null
-        errorText = null
+        clearError()
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

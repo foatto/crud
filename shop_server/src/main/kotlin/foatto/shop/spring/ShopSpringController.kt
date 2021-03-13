@@ -1,13 +1,20 @@
 package foatto.shop.spring
 
 import foatto.core.link.*
+import foatto.core.util.AdvancedLogger
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
+import foatto.shop.DocumentTypeConfig
 import foatto.shop.iShopApplication
+import foatto.shop.spring.repositories.CatalogRepository
+import foatto.shop.spring.repositories.DocumentContentRepository
+import foatto.shop.spring.repositories.DocumentRepository
 import foatto.spring.CoreSpringController
 import foatto.sql.CoreAdvancedStatement
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -20,6 +27,9 @@ import javax.servlet.http.HttpServletResponse
 
 @RestController
 class ShopSpringController : CoreSpringController(), iShopApplication {
+
+    @Value("\${fiscal_index}")
+    override val fiscalIndex: String? = null
 
     @Value("\${fiscal_urls}")
     override val fiscalUrls: Array<String> = emptyArray()
@@ -217,7 +227,7 @@ class ShopSpringController : CoreSpringController(), iShopApplication {
             hmAliasConfig["shop_doc_out"]?.let { ac ->
                 alMenuDocument += MenuData(
                     "${AppParameter.ALIAS}=shop_doc_out&${AppParameter.ACTION}=${AppAction.TABLE}" +
-                    "&${AppParameter.PARENT_ALIAS}=shop_warehouse&${AppParameter.PARENT_ID}=582901431", ac.descr + " [Магазин]"
+                        "&${AppParameter.PARENT_ALIAS}=shop_warehouse&${AppParameter.PARENT_ID}=582901431", ac.descr + " [Магазин]"
                 )
             }
         }
@@ -319,4 +329,95 @@ class ShopSpringController : CoreSpringController(), iShopApplication {
         return alMenu
     }
 
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @Autowired
+    private lateinit var catalogRepository: CatalogRepository
+
+    @Autowired
+    private lateinit var documentRepository: DocumentRepository
+
+    @Autowired
+    private lateinit var documentContentRepository: DocumentContentRepository
+
+    override fun isFiscable(docId: Int): Boolean {
+        val doc = documentRepository.findByIdOrNull(docId)
+        return doc?.isFiscaled == 0
+    }
+
+    override fun checkCatalogMarkable(aCatalogId: Int): Boolean {
+        var catalogId = aCatalogId
+        while (true) {
+            val catalogEntity = catalogRepository.findByIdOrNull(catalogId) ?: "Catalog item not exist for catalog_id = $catalogId".let {
+                AdvancedLogger.error(it)
+                throw Exception(it)
+            }
+            //--- it's a markable node(group)/item
+            if (catalogEntity.isMark != 0) {
+                return true
+            }
+            //--- it's a top node(group)/item
+            if (catalogId == 0) {
+                return false
+            }
+            //-- level up
+            catalogId = catalogEntity.parentId
+        }
+    }
+
+    override fun findIncomeCatalogIdByMark(markCode: String): Int? {
+        val documentContentEntities = documentContentRepository.findAllByMarkCode(markCode)
+        val lastDocumentContentEntity = documentContentEntities.filter { documentContentEntity ->
+            documentContentEntity.isDeleted == 0 &&
+                documentContentEntity.document.isDeleted == 0 &&
+                documentContentEntity.document.type in setOf(
+                DocumentTypeConfig.TYPE_IN,
+                DocumentTypeConfig.TYPE_RETURN_OUT,
+                DocumentTypeConfig.TYPE_RESORT,
+            )
+        }
+            .maxByOrNull { documentContentEntity ->
+                val date = documentContentEntity.document.date
+                val type = documentContentEntity.document.type
+                date.ye * 6000 + date.mo * 400 + date.da * 10 + getIncomeDocumentTypePriority(type)
+            }
+        return lastDocumentContentEntity?.destCatalog?.id
+    }
+
+    override fun findOutcomeCatalogIdByMark(markCode: String): Int? {
+        val documentContentEntities = documentContentRepository.findAllByMarkCode(markCode)
+        val lastDocumentContentEntity = documentContentEntities.filter { documentContentEntity ->
+            documentContentEntity.isDeleted == 0 &&
+                documentContentEntity.document.isDeleted == 0 &&
+                documentContentEntity.document.type in setOf(
+                DocumentTypeConfig.TYPE_OUT,
+                DocumentTypeConfig.TYPE_DESTROY,
+                DocumentTypeConfig.TYPE_RETURN_IN,
+                //DocumentTypeConfig.TYPE_RESORT, - no rectricts at resort operations
+            )
+        }
+            .maxByOrNull { documentContentEntity ->
+                val date = documentContentEntity.document.date
+                val type = documentContentEntity.document.type
+                date.ye * 6000 + date.mo * 400 + date.da * 10 + getOutcomeDocumentTypePriority(type)
+            }
+        return lastDocumentContentEntity?.sourCatalog?.id
+    }
+
+    private fun getIncomeDocumentTypePriority(docType: Int) =
+        when (docType) {
+            DocumentTypeConfig.TYPE_IN -> 1
+            DocumentTypeConfig.TYPE_RETURN_OUT -> 2
+            DocumentTypeConfig.TYPE_RESORT -> 3
+            else -> 0
+        }
+
+    private fun getOutcomeDocumentTypePriority(docType: Int) =
+        when (docType) {
+            DocumentTypeConfig.TYPE_OUT -> 2
+            DocumentTypeConfig.TYPE_DESTROY -> 2
+            DocumentTypeConfig.TYPE_RETURN_IN -> 2
+            //DocumentTypeConfig.TYPE_RESORT -> 1   - no rectricts at resort operations
+            else -> 0
+        }
 }

@@ -27,55 +27,47 @@ class DataDouble(aColumn: iColumn) : DataAbstract(aColumn) {
         var posRS = aPosRS
 
         doubleValue = rs.getDouble(posRS++)
-        errorValue = null
-        errorText = null
+        clearError()
 
         return posRS
     }
 
     override fun loadFromDefault() {
         doubleValue = validate(cd.defaultValue)
-        errorValue = null
-        errorText = null
+        clearError()
     }
 
     override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String, id: Int): Boolean {
         val strValue = formData.stringValue!!
 
         if (cd.isRequired && strValue.isBlank()) {
-            errorValue = strValue
-            errorText = "Обязательно для заполнения"
+            setError(strValue, "Обязательно для заполнения")
             return false
         }
         try {
             doubleValue = strValue.replace(',', '.').replace(" ", "").toDouble()
-            errorValue = null
-            errorText = null
+            clearError()
         } catch (t: Throwable) {
             doubleValue = 0.0
-            errorValue = strValue
-            errorText = "Ошибка ввода"
+            setError(strValue, "Ошибка ввода")
             return false
         }
 
         //--- проверка на минимум
         if (cd.minValue != null && doubleValue < cd.minValue!!) {
-            errorValue = strValue
-            errorText = "Значение должно быть не меньше, чем ${cd.minValue}"
+            setError(strValue, "Значение должно быть не меньше, чем ${cd.minValue}")
             return false
         }
         //--- проверка на максимум
         if (cd.maxValue != null && doubleValue > cd.maxValue!!) {
-            errorValue = strValue
-            errorText = "Значение должно быть не больше, чем ${cd.maxValue}"
+            setError(strValue, "Значение должно быть не больше, чем ${cd.maxValue}")
             return false
         }
         if (column.isUnique &&
             (column.uniqueIgnore == null || column.uniqueIgnore != doubleValue) &&
             stm.checkExist(column.tableName, column.alFieldName[0], doubleValue, fieldNameID, id)
         ) {
-            errorValue = strValue
-            errorText = "Это значение уже существует"
+            setError(strValue, "Это значение уже существует")
             return false
         }
 
@@ -113,8 +105,18 @@ class DataDouble(aColumn: iColumn) : DataAbstract(aColumn) {
 
     override fun setData(data: iData) {
         doubleValue = (data as DataDouble).doubleValue
-        errorValue = null
-        errorText = null
+        clearError()
+    }
+
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    fun setError(aErrorValue: String?, aErrorText: String?) {
+        errorValue = aErrorValue
+        errorText = aErrorText
+    }
+
+    fun clearError() {
+        setError(null, null)
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -122,8 +124,7 @@ class DataDouble(aColumn: iColumn) : DataAbstract(aColumn) {
     private fun getReportString(): String =
         if (cd.emptyValue != null && cd.emptyValue == doubleValue) {
             cd.emptyText!!
-        }
-        else {
+        } else {
             getSplittedDouble(doubleValue, cd.precision)
         }
 

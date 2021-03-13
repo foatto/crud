@@ -16,6 +16,10 @@ import foatto.sql.CoreAdvancedStatement
 
 class mDocumentContent : mAbstract() {
 
+    companion object {
+        const val ADD_OVER_MARK_CODE = "add_over_mark_code"
+    }
+
     lateinit var columnEditTime: ColumnDateTimeInt
         private set
 
@@ -63,7 +67,15 @@ class mDocumentContent : mAbstract() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
+    override fun init(
+        application: iApplication,
+        aStm: CoreAdvancedStatement,
+        aliasConfig: AliasConfig,
+        userConfig: UserConfig,
+        aHmParam: Map<String, String>,
+        hmParentData: MutableMap<String, Int>,
+        id: Int,
+    ) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
@@ -90,6 +102,8 @@ class mDocumentContent : mAbstract() {
         val hsPermission = userConfig.userPermission[aliasConfig.alias]
         //--- при добавлении модуля в систему прав доступа к нему ещё нет
         val isAuditMode = hsPermission?.contains(cDocumentContent.PERM_AUDIT_MODE) ?: false
+
+        val isAddOverMarkCode = hmParam[ADD_OVER_MARK_CODE]?.toIntOrNull() == 1
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -163,11 +177,11 @@ class mDocumentContent : mAbstract() {
             aMaxSize = textFieldMaxSize
         ).apply {
             selfLinkTableName = "SHOP_catalog"  // для правильной работы селектора с подстановочной таблицей
-            isRequired = isUseSourCatalog
+            isRequired = if(isAddOverMarkCode) false else isUseSourCatalog
             selectorAlias = "shop_catalog_item"
             addSelectorColumn(columnSourCatalog, columnSourCatalogID)
             addSelectorColumn(this)//, columnCatalogName );
-            isAutoStartSelector = true
+            isAutoStartSelector = !isAddOverMarkCode
         }
 
         columnSourCatalogPriceOut = ColumnDouble(tableName, "_price_out_sour", "Цена", 10, 2).apply {
@@ -189,12 +203,12 @@ class mDocumentContent : mAbstract() {
             aMaxSize = textFieldMaxSize
         ).apply {
             selfLinkTableName = "SHOP_catalog"  // для правильной работы селектора с подстановочной таблицей
-            isRequired = isUseDestCatalog
+            isRequired = if(isAddOverMarkCode) false else isUseDestCatalog
 
             selectorAlias = "shop_catalog_item"
             addSelectorColumn(columnDestCatalog, columnDestCatalogID)
             addSelectorColumn(this)//, columnCatalogName );
-            isAutoStartSelector = true
+            isAutoStartSelector = !isAddOverMarkCode
         }
         columnDestCatalogPriceOut = ColumnDouble(tableName, "_price_out_dest", "Цена", 10, 2).apply {
             isVirtual = true
@@ -208,10 +222,10 @@ class mDocumentContent : mAbstract() {
             aCaption = if (docType == DocumentTypeConfig.TYPE_ALL) "Исх. кол-во" else "Кол-во",
             aCols = 10,
             aPrecision = -1,
-            aDefaultValue = 1.0
+            aDefaultValue = if (isUseSourNum) 1.0 else 0.0
         ).apply {
             tableAlign = TableCellAlign.CENTER
-            if (isUseSourNum && docType != DocumentTypeConfig.TYPE_RESORT) {
+            if (isUseSourNum /*&& docType != DocumentTypeConfig.TYPE_RESORT*/) {
                 minValue = 0.1
             }
         }
@@ -222,10 +236,10 @@ class mDocumentContent : mAbstract() {
             aCaption = if (docType == DocumentTypeConfig.TYPE_ALL) "Вх. кол-во" else "Кол-во",
             aCols = 10,
             aPrecision = -1,
-            aDefaultValue = 0.0
+            aDefaultValue = if (isUseDestNum) 1.0 else 0.0
         ).apply {
             tableAlign = TableCellAlign.CENTER
-            if (isUseDestNum && docType != DocumentTypeConfig.TYPE_RESORT) {
+            if (isUseDestNum /*&& docType != DocumentTypeConfig.TYPE_RESORT*/) {
                 minValue = 0.1
             }
         }
@@ -320,8 +334,11 @@ class mDocumentContent : mAbstract() {
             alTableHiddenColumn.add(columnSourCatalogPriceOut)
         }
 
-        if (isUseSourNum) addTableColumn(columnSourNum)
-        else alTableHiddenColumn.add(columnSourNum)
+        if (isUseSourNum) {
+            addTableColumn(columnSourNum)
+        } else {
+            alTableHiddenColumn.add(columnSourNum)
+        }
 
         if (isUseDestCatalog) {
             addTableColumn(columnDestCatalogName)
@@ -348,7 +365,7 @@ class mDocumentContent : mAbstract() {
         alFormHiddenColumn.add(columnSourCatalog)
         alFormHiddenColumn.add(columnDestCatalog)
 
-        if (isAuditMode) {
+        if (isAuditMode && !isAddOverMarkCode) {
             alFormColumn.add(columnCreateTime)
             alFormColumn.add(columnEditTime)
         } else {
@@ -376,23 +393,25 @@ class mDocumentContent : mAbstract() {
             alFormHiddenColumn.add(columnClientName)
             alFormHiddenColumn.add(columnDocumentDescr)
         }
-        //--- так что лучше их оставить в невидимой части
-        (if (isUseSourCatalog) alFormColumn else alFormHiddenColumn).add(columnSourCatalogName)
-        (if (isUseSourCatalog) alFormColumn else alFormHiddenColumn).add(columnSourCatalogPriceOut)
-        (if (isUseDestCatalog) alFormColumn else alFormHiddenColumn).add(columnDestCatalogName)
-        (if (isUseDestCatalog) alFormColumn else alFormHiddenColumn).add(columnDestCatalogPriceOut)
-        (if (isUseSourNum) alFormColumn else alFormHiddenColumn).add(columnSourNum)
-        (if (isUseDestNum) alFormColumn else alFormHiddenColumn).add(columnDestNum)
 
-        alFormColumn.add(columnSkipMark)
-        alFormColumn.add(columnMarkCode)
+        //--- так что лучше их оставить в невидимой части
+        (if (isUseSourCatalog && !isAddOverMarkCode) alFormColumn else alFormHiddenColumn).add(columnSourCatalogName)
+        (if (isUseSourCatalog && !isAddOverMarkCode) alFormColumn else alFormHiddenColumn).add(columnSourCatalogPriceOut)
+        (if (isUseDestCatalog && !isAddOverMarkCode) alFormColumn else alFormHiddenColumn).add(columnDestCatalogName)
+        (if (isUseDestCatalog && !isAddOverMarkCode) alFormColumn else alFormHiddenColumn).add(columnDestCatalogPriceOut)
+        (if (isUseSourNum && !isAddOverMarkCode) alFormColumn else alFormHiddenColumn).add(columnSourNum)
+        (if (isUseDestNum && !isAddOverMarkCode) alFormColumn else alFormHiddenColumn).add(columnDestNum)
+
+        (if (!isAddOverMarkCode && docType != DocumentTypeConfig.TYPE_MOVE) alFormColumn else alFormHiddenColumn).add(columnSkipMark)
+
+        (if (isAddOverMarkCode || docType != DocumentTypeConfig.TYPE_MOVE) alFormColumn else alFormHiddenColumn).add(columnMarkCode)
 
         //--- перенос в архив - только при добавлении пересортице
         (if (docType == DocumentTypeConfig.TYPE_RESORT && id == 0) alFormColumn else alFormHiddenColumn).add(columnToArchive)
         //--- преобразование пересортицы в переоценку - только при пересохранении переоценки
         (if (docType == DocumentTypeConfig.TYPE_RESORT && id != 0) alFormColumn else alFormHiddenColumn).add(columnResort2Reprice)
 
-        alFormColumn.add(columnDocumentContentIsDeleted)
+        (if (!isAddOverMarkCode) alFormColumn else alFormHiddenColumn).add(columnDocumentContentIsDeleted)
 
         //----------------------------------------------------------------------------------------------------------------------
 

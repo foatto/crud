@@ -23,6 +23,10 @@ import java.time.LocalDate
 
 class mCatalog : mAbstractHierarchy() {
 
+    companion object {
+        const val MARK_CODE_LEN = 31
+    }
+
     lateinit var columnCatalogPriceDate: ColumnDate3Int
         private set
     lateinit var columnCatalogPriceIn: ColumnDouble

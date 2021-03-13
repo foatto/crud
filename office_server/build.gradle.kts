@@ -18,6 +18,7 @@ plugins {
 
 dependencies {
     api(project(":core_server"))
+    api(project(":office_core"))
 }
 
 allOpen {

@@ -11,7 +11,7 @@ import kotlin.js.Json
 import kotlin.js.json
 import kotlin.math.max
 
-private val hmIcon = mutableMapOf(
+val hmTableIcon = mutableMapOf(
 
     ICON_NAME_SELECT to "/web/images/ic_reply_black_48dp.png",
 
@@ -36,7 +36,6 @@ private val hmIcon = mutableMapOf(
 
     //--- распечатка накладной, обсуждения поручения
     ICON_NAME_PRINT to "/web/images/ic_print_black_48dp.png"
-
 )
 
 @Suppress("UnsafeCastFromDynamic")
@@ -313,7 +312,7 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabIndex: Int 
             var addButtonID = 0
             val alAddButton = mutableListOf<AddActionButton_>()
             for( aab in tableResponse.alAddActionButton ) {
-                val icon = hmIcon[ aab.icon ] ?: ""
+                val icon = hmTableIcon[ aab.icon ] ?: ""
                 //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
                 val caption = if( aab.icon.isNotBlank() && icon.isBlank() ) aab.icon else aab.tooltip.replace( "\n", "<br>" )
                 alAddButton.add( AddActionButton_(
@@ -330,7 +329,7 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabIndex: Int 
             var serverButtonID = 0
             val alServerButton = mutableListOf<ServerActionButton_>()
             for( sab in tableResponse.alServerActionButton ) {
-                val icon = hmIcon[ sab.icon ] ?: ""
+                val icon = hmTableIcon[ sab.icon ] ?: ""
                 //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
                 val caption = if( sab.icon.isNotBlank() && icon.isBlank() ) sab.icon else sab.caption.replace( "\n", "<br>" )
                 alServerButton.add( ServerActionButton_(
@@ -348,7 +347,7 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabIndex: Int 
             var clientButtonID = 0
             val alClientButton = mutableListOf<ClientActionButton_>()
             for( cab in tableResponse.alClientActionButton ) {
-                val icon = hmIcon[ cab.icon ] ?: ""
+                val icon = hmTableIcon[ cab.icon ] ?: ""
                 //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
                 val caption = if( cab.icon.isNotBlank() && icon.isBlank() ) cab.icon else cab.caption.replace( "\n", "<br>" )
                 alClientButton.add( ClientActionButton_(
@@ -484,7 +483,7 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabIndex: Int 
                 when( tc.cellType.toString() ) {
                     TableCellType.TEXT.toString() -> {
                         for( cellData in tc.alCellData ) {
-                            val icon = hmIcon[ cellData.icon ] ?: ""
+                            val icon = hmTableIcon[ cellData.icon ] ?: ""
                             //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
                             var text = if( cellData.icon.isNotBlank() && icon.isBlank() ) cellData.icon else cellData.text.replace( "\n", "<br>" )
                             if( !tc.isWordWrap ) text = text.replace( " ", "&nbsp;" )
@@ -508,7 +507,7 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabIndex: Int 
                     TableCellType.BUTTON.toString() -> {
                         var isIcon = false
                         for( cellData in tc.alCellData ) {
-                            val icon = hmIcon[ cellData.icon ] ?: ""
+                            val icon = hmTableIcon[ cellData.icon ] ?: ""
                             //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
                             val text = if( cellData.icon.isNotBlank() && icon.isBlank() ) cellData.icon else cellData.text.replace( "\n", "<br>" )
                             alCellData.add( TableCellData(

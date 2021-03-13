@@ -66,8 +66,13 @@ open class cStandart {
         }
 
         fun getParamURL(
-            aAlias: String, aAction: String, aRefererID: String?, aID: Int?,
-            aParentData: Map<String, Int>?, aParentUserID: Int?, aAltParams: String?
+            aAlias: String,
+            aAction: String,
+            aRefererID: String?,
+            aID: Int?,
+            aParentData: Map<String, Int>?,
+            aParentUserID: Int?,
+            aAltParams: String?,
         ): String {
 
             var sResult = "${AppParameter.ALIAS}=$aAlias&${AppParameter.ACTION}=$aAction"
@@ -522,7 +527,7 @@ open class cStandart {
             }
 
             alPath.add(0, Pair(if (withAnchors) tmpURL else "", tmpText))
-            if (curParentID > 0) curParentID = newPID else break
+            if (curParentID != 0) curParentID = newPID else break
         }
     }
 
@@ -910,8 +915,7 @@ open class cStandart {
         //--- разрешено ли открытие формы для данной строки таблицы?
         val formURL = if (checkPerm(PERM_FORM, recordUserID)) {
             getParamURL(aliasConfig.alias, AppAction.FORM, refererID, valueID, hmParentData, parentUserID, null)
-        }
-        else {
+        } else {
             ""
         }
         //--- по умолчанию дабл-клик == открытию формы в том же окне
@@ -1218,32 +1222,17 @@ open class cStandart {
     protected open fun getAddButtonURL(refererID: String, hmOut: MutableMap<String, Any>): MutableList<AddActionButton> {
         val alAddButtonList = mutableListOf<AddActionButton>()
 
-        if (model is mAbstractHierarchy) {
-            (model as mAbstractHierarchy).alAddButtomParam.forEach {
-                alAddButtonList.add(
-                    AddActionButton(
-                        caption = it.caption,
-                        tooltip = it.tooltip,
-                        icon = it.icon,
-                        url = getParamURL(aliasConfig.alias, AppAction.FORM, refererID, 0, hmParentData, parentUserID, "&${it.url}")
-                    )
-                )
-            }
-        } else {
-            alAddButtonList.add(
-                AddActionButton(
-                    caption = "Добавить",
-                    tooltip = "Добавить",
-                    icon = ICON_NAME_ADD_ITEM,
-                    url = getParamURL(aliasConfig.alias, AppAction.FORM, refererID, 0, hmParentData, parentUserID, null)
-                )
+        alAddButtonList.add(
+            AddActionButton(
+                caption = "Добавить",
+                tooltip = "Добавить",
+                icon = ICON_NAME_ADD_ITEM,
+                url = getParamURL(aliasConfig.alias, AppAction.FORM, refererID, 0, hmParentData, parentUserID, null)
             )
-        }
+        )
 
         return alAddButtonList
     }
-
-    protected open fun getPrintButtonURL(): String = ""
 
     protected open fun getServerAction(): MutableList<ServerActionButton> {
         return mutableListOf()
@@ -1268,9 +1257,9 @@ open class cStandart {
             refererURL = chmSession[AppParameter.REFERER + refererID] as? String
         }
 
-        //--- подготовка "чистого" appParam для кнопок формы
-        //--- ( простое клонирование исходного hmParam здесь не годится,
-        //--- т.к. придёт много попутных мусорных параметров, которые могут внезапно выстрелить где-нибудь
+        //--- preparing a "clean" appParam for form buttons
+        //--- (simple cloning of the original hmParam won't do here,
+        //--- since a lot of associated garbage parameters will come, which can suddenly fire somewhere)
         val formParam = getFormParam()
 
         var hmColumnData: MutableMap<iColumn, iData>? = null
@@ -1342,20 +1331,18 @@ open class cStandart {
                 //--- кнопки селектора ( если есть )
                 fci.selectorSetURL = if (column.selectorAlias == null) {
                     ""
-                }
-                else {
+                } else {
                     getFormSelector(formParam, false, id, refererID, column, hmColumnData, hmOut)
                 }
                 fci.selectorClearURL = if (column.selectorAlias == null) {
                     ""
-                }
-                else {
+                } else {
                     getFormSelector(formParam, true, id, refererID, column, hmColumnData, hmOut)
                 }
                 //--- определяем автозапуск селектора
                 fci.itAutoStartSelector = column.isAutoStartSelector
                 //--- текст сообщения об ошибке ввода ( если есть )
-                fci.errorMessage = hmColumnData[column]!!.errorText ?: ""
+                fci.errorMessage = hmColumnData[column]!!.getError() ?: ""
             }
             alFormCell.add(fci)
         }
@@ -1364,7 +1351,7 @@ open class cStandart {
         if (isEditEnabled) {
             alFormButton.add(
                 FormButton(
-                    url = AppParameter.setParam(formParam, AppParameter.ACTION, AppAction.SAVE),
+                    url = getSaveButtonParams(formParam),
                     caption = model.getSaveButonCaption(aliasConfig),
                     iconName = getOkButtonIconName(),
                     withNewData = true,   // передавать ли новые данные (для SAVE) или передать старые данные (для DELETE и проч. комманд)
@@ -1410,7 +1397,7 @@ open class cStandart {
         if (refererURL != null) {
             alFormButton.add(
                 FormButton(
-                    url = if (id > 0) AppParameter.setParam(refererURL, AppParameter.ID, Integer.toString(id)) else refererURL,
+                    url = if (id != 0) AppParameter.setParam(refererURL, AppParameter.ID, id.toString()) else refererURL,
                     caption = "Выйти",
                     iconName = ICON_NAME_EXIT,
                     withNewData = false,
@@ -1502,6 +1489,8 @@ open class cStandart {
 
         return AppParameter.setParam(AppParameter.setParam(formParam, AppParameter.ACTION, AppAction.SAVE), AppParameter.FORM_SELECTOR, selectorID)
     }
+
+    protected open fun getSaveButtonParams(formParam: String): String = AppParameter.setParam(formParam, AppParameter.ACTION, AppAction.SAVE)
 
     protected open fun getOkButtonIconName(): String = ICON_NAME_SAVE
 
@@ -1666,8 +1655,7 @@ open class cStandart {
                 id
             )
             if (result) {
-                dataVersionNo.errorValue = dataVersionNo.text
-                dataVersionNo.errorText = "Это значение уже существует"
+                dataVersionNo.setError(dataVersionNo.text, "Это значение уже существует")
                 isValidFormData = false
             }
         }
@@ -1702,7 +1690,7 @@ open class cStandart {
         } else if (!isValidFormData) {
             val formDataID = getRandomInt().toString()
             hmOut[AppParameter.FORM_DATA + formDataID] = hmColumnData
-            return getParamURL(aliasConfig.alias, AppAction.FORM, hmParam[AppParameter.REFERER], id, hmParentData, parentUserID, "&${AppParameter.FORM_DATA}=$formDataID")
+            return getInvalidFormDataUrl(id, formDataID)
         } else return null
     }
 
@@ -1718,6 +1706,9 @@ open class cStandart {
         }
         return isValid
     }
+
+    protected open fun getInvalidFormDataUrl(id: Int, formDataID: String): String =
+        getParamURL(aliasConfig.alias, AppAction.FORM, hmParam[AppParameter.REFERER], id, hmParentData, parentUserID, "&${AppParameter.FORM_DATA}=$formDataID")
 
     //--- для классов-наследников - пред-обработка сохранения
     protected open fun preSave(id: Int, hmColumnData: Map<iColumn, iData>) {}

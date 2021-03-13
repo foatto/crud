@@ -12,7 +12,6 @@ interface iData {
     val column: iColumn
     //--- показывать пустышку вместо ячейки таблицы
     var isShowEmptyTableCell: Boolean
-    val errorText: String?
     val fieldSQLCount: Int
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -32,6 +31,8 @@ interface iData {
     fun preDelete( rootDirName: String, stm: CoreAdvancedStatement)
 
     fun setData(data: iData )
+
+    fun getError(): String?
 
     fun clone(): Any
 }

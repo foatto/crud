@@ -12,6 +12,7 @@ plugins {
 
 dependencies {
     api(project(":core_web"))
+    api(project(":mms_core"))
 }
 
 kotlin {

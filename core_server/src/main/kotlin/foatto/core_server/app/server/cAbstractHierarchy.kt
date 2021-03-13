@@ -1,5 +1,6 @@
 package foatto.core_server.app.server
 
+import foatto.core.link.AddActionButton
 import foatto.core.link.AppAction
 import foatto.core.link.FormData
 import foatto.core.link.TableCell
@@ -23,11 +24,11 @@ open class cAbstractHierarchy : cStandart() {
 
     override fun getParentID(alias: String?): Int? {
         val pID = super.getParentID(alias)
-        if(pID != null) return pID
+        if (pID != null) return pID
 
         val mah = model as mAbstractHierarchy
 
-        if(alias == mah.commonAliasName || alias == mah.folderAliasName || alias == mah.itemAliasName) {
+        if (alias == mah.commonAliasName || alias == mah.folderAliasName || alias == mah.itemAliasName) {
             return hmParentData[mah.commonAliasName] ?: hmParentData[mah.folderAliasName] ?: hmParentData[mah.itemAliasName]
         }
         return null
@@ -41,12 +42,29 @@ open class cAbstractHierarchy : cStandart() {
 
     override fun doExpand(pid: Int) = expandCatalog(stm, model.tableName, pid, false)
 
+    override fun getAddButtonURL(refererID: String, hmOut: MutableMap<String, Any>): MutableList<AddActionButton> {
+        val alAddButtonList = mutableListOf<AddActionButton>()
+
+        (model as mAbstractHierarchy).alAddButtomParam.forEach {
+            alAddButtonList.add(
+                AddActionButton(
+                    caption = it.caption,
+                    tooltip = it.tooltip,
+                    icon = it.icon,
+                    url = getParamURL(aliasConfig.alias, AppAction.FORM, refererID, 0, hmParentData, parentUserID, "&${it.url}")
+                )
+            )
+        }
+
+        return alAddButtonList
+    }
+
     override fun getTableRowSelectButton(row: Int, col: Int, selectorParam: SelectorParameter, hmColumnData: Map<iColumn, iData>, hmOut: MutableMap<String, Any>): TableCell {
         val m = model as mAbstractHierarchy
 
         val dataRecordType = hmColumnData[m.columnRecordType] as DataComboBox
 
-        return if(
+        return if (
             dataRecordType.intValue == mAbstractHierarchy.RECORD_TYPE_FOLDER && m.isSelectableFolder ||
             dataRecordType.intValue != mAbstractHierarchy.RECORD_TYPE_FOLDER && m.isSelectableItem
         ) {
@@ -59,9 +77,9 @@ open class cAbstractHierarchy : cStandart() {
     override fun getTableRowGoto(selectorID: String?, hmColumnData: Map<iColumn, iData>, indexChild: Int, alPopupData: MutableList<TablePopupData>): String? {
         val m = model as mAbstractHierarchy
         val childAlias = model.alChildData[indexChild].alias as String
-        if(childAlias == aliasConfig.alias) {
+        if (childAlias == aliasConfig.alias) {
             val dataRecordType = hmColumnData[m.columnRecordType] as DataComboBox
-            return if(dataRecordType.intValue == mAbstractHierarchy.RECORD_TYPE_FOLDER) {
+            return if (dataRecordType.intValue == mAbstractHierarchy.RECORD_TYPE_FOLDER) {
                 super.getTableRowGoto(selectorID, hmColumnData, indexChild, alPopupData)
             } else {
                 null
@@ -81,7 +99,7 @@ open class cAbstractHierarchy : cStandart() {
         //--- 1. это не селектор (т.е. не надо возвращать значений из текущей строки)
         //--- 2. это селектор, но это строка с папкой (в этом случае производится вход в папку, а не возврат значений из текущей строки)
         //--- 3. это селектор и это строка-элемент (не папка), но текущий алиас == выбор папки, поэтому не нужен значений из текущей строки
-        return if(selectorParam == null || dataRecordType.intValue == mAbstractHierarchy.RECORD_TYPE_FOLDER || aliasConfig.alias == m.folderAliasName) {
+        return if (selectorParam == null || dataRecordType.intValue == mAbstractHierarchy.RECORD_TYPE_FOLDER || aliasConfig.alias == m.folderAliasName) {
             null
         } else {
             //--- в остальных случаях перекрываем на стандартный возврат значения из селектора
@@ -105,14 +123,13 @@ open class cAbstractHierarchy : cStandart() {
     override fun getFormValues(id: Int, alFormData: List<FormData>, alColumnList: List<iColumn>, hmColumnData: MutableMap<iColumn, iData>): Boolean {
         val isValid = super.getFormValues(id, alFormData, alColumnList, hmColumnData)
         //--- совпасть может только при редактировании (при добавлении записи ещё нет)
-        if(id != 0) {
+        if (id != 0) {
             val mah = model as mAbstractHierarchy
 
             val dataParentID = hmColumnData[mah.columnParent] as DataInt
-            if(dataParentID.intValue == id) {
+            if (dataParentID.intValue == id) {
                 val dataParentFullName = hmColumnData[mah.columnParentFullName] as DataString
-                dataParentFullName.errorValue = dataParentFullName.text
-                dataParentFullName.errorText = "Значение совпадает с ${mah.columnParentFullName.caption} ! "
+                dataParentFullName.setError(dataParentFullName.text, "Значение совпадает с ${mah.columnParentFullName.caption} ! ")
                 return false
             }
         }
@@ -123,7 +140,7 @@ open class cAbstractHierarchy : cStandart() {
         val postURL = super.postEdit(action, id, hmColumnData, hmOut)
 
         //--- дополнительно в иерархических структурах
-        if(model.columnActive != null && model.columnArchive != null) {
+        if (model.columnActive != null && model.columnArchive != null) {
             setActiveAndArchive(
                 action,
                 id,
@@ -147,11 +164,11 @@ open class cAbstractHierarchy : cStandart() {
         //--- загрузка полной структуры каталога: key = parent_id, value = list of ids
         fun getCatalogParent(stm: CoreAdvancedStatement, tableName: String): Map<Int, List<Int>> {
             val hmCatalogParent = mutableMapOf<Int, MutableList<Int>>()
-            val rs = stm.executeQuery( " SELECT parent_id , id FROM $tableName WHERE id <> 0 ORDER BY parent_id , id " )
-            while( rs.next() ) {
-                val parentID = rs.getInt( 1 )
-                val alID = hmCatalogParent.getOrPut( parentID ) { mutableListOf() }
-                alID.add( rs.getInt( 2 ) )
+            val rs = stm.executeQuery(" SELECT parent_id , id FROM $tableName WHERE id <> 0 ORDER BY parent_id , id ")
+            while (rs.next()) {
+                val parentID = rs.getInt(1)
+                val alID = hmCatalogParent.getOrPut(parentID) { mutableListOf() }
+                alID.add(rs.getInt(2))
             }
             rs.close()
 
@@ -159,31 +176,30 @@ open class cAbstractHierarchy : cStandart() {
         }
 
         //--- выгрузка всех подэлементов заданного узла в линейный список
-        fun expandCatalog(stm: CoreAdvancedStatement, tableName: String, pid: Int, isItemsOnly: Boolean ): Set<Int> {
-            val hmCatalogParent = getCatalogParent( stm, tableName )
+        fun expandCatalog(stm: CoreAdvancedStatement, tableName: String, pid: Int, isItemsOnly: Boolean): Set<Int> {
+            val hmCatalogParent = getCatalogParent(stm, tableName)
 
             //--- генерируем полный список подузлов
             val alId = mutableListOf<Int>()
-            alId.add( pid )
-            for( i in alId.indices ) {  // именно через i и indices, т.к. в процессе перебора идёт дозаполнение списка
-                val alItem = hmCatalogParent[ alId[ i ] ]
-                if( alItem != null ) alId.addAll( alItem )
+            alId.add(pid)
+            for (i in alId.indices) {  // именно через i и indices, т.к. в процессе перебора идёт дозаполнение списка
+                val alItem = hmCatalogParent[alId[i]]
+                if (alItem != null) alId.addAll(alItem)
             }
             //--- начальный pid убираем из списка
-            alId.removeAt( 0 )
+            alId.removeAt(0)
 
             //--- убираем папки, если не нужны
             //--- (на случай оптимизаторского зуда: фигурные скобки обязательны, чтобы внутренний if не спутался со внешним else)
-            val hsResult = if( isItemsOnly ) {
-                alId.filterNot { hmCatalogParent.containsKey( it ) }.toMutableSet()
-            }
-            else {
+            val hsResult = if (isItemsOnly) {
+                alId.filterNot { hmCatalogParent.containsKey(it) }.toMutableSet()
+            } else {
                 alId.toMutableSet()
             }
 
             //--- если список пустой, то одно из двух - или pid не узел или в нём нет вложенных элементов.
             //--- тогда надо вернуть хотя бы исходный pid
-            if( hsResult.isEmpty() ) hsResult.add( pid )
+            if (hsResult.isEmpty()) hsResult.add(pid)
 
             return hsResult
         }
@@ -202,37 +218,37 @@ open class cAbstractHierarchy : cStandart() {
             //--- устанавливаем только один соответствующий флаг в вышестоящих узлах
             //--- (т.е. вышестоящие узлы становятся "также и в архиве")
             var curId = id
-            while(true) {
+            while (true) {
                 val rs = stm.executeQuery(" SELECT $parentFieldName FROM $tableName WHERE $idFieldName = $curId ")
-                val parentId = if(rs.next()) rs.getInt(1) else 0
+                val parentId = if (rs.next()) rs.getInt(1) else 0
                 rs.close()
 
-                if(parentId == 0) break
+                if (parentId == 0) break
 
                 stm.executeUpdate(
                     " UPDATE $tableName " +
-                    " SET ${if(action == AppAction.ARCHIVE) archiveFieldName else activeFieldName} = 1 " +
-                    " WHERE $idFieldName = $parentId "
+                        " SET ${if (action == AppAction.ARCHIVE) archiveFieldName else activeFieldName} = 1 " +
+                        " WHERE $idFieldName = $parentId "
                 )
                 curId = parentId
             }
 
-            if(isNode) {
+            if (isNode) {
                 //--- если элемент - узел, то устанавливаем оба флага в нижележащих узлах и элементах
                 //--- (т.е. все нижележащие узлы и элементы становятся "только/полностью в архиве)
                 val alId = mutableListOf<Int>()
 
                 var alCurId = mutableListOf(id)
-                while(true) {
+                while (true) {
                     val alNewId = mutableListOf<Int>()
 
                     alCurId.forEach {
                         val rs = stm.executeQuery(" SELECT $idFieldName FROM $tableName WHERE $parentFieldName = $it ")
-                        while(rs.next()) alNewId.add(rs.getInt(1))
+                        while (rs.next()) alNewId.add(rs.getInt(1))
                         rs.close()
                     }
 
-                    if(alNewId.isEmpty()) break
+                    if (alNewId.isEmpty()) break
 
                     alId.addAll(alNewId)
                     alCurId = alNewId
@@ -241,9 +257,9 @@ open class cAbstractHierarchy : cStandart() {
                 alId.forEach {
                     stm.executeUpdate(
                         " UPDATE $tableName " +
-                        " SET ${if(action == AppAction.ARCHIVE) archiveFieldName else activeFieldName} = 1 " +
-                        "  ,  ${if(action == AppAction.ARCHIVE) activeFieldName else archiveFieldName} = 0 " +
-                        " WHERE $idFieldName = $it "
+                            " SET ${if (action == AppAction.ARCHIVE) archiveFieldName else activeFieldName} = 1 " +
+                            "  ,  ${if (action == AppAction.ARCHIVE) activeFieldName else archiveFieldName} = 0 " +
+                            " WHERE $idFieldName = $it "
                     )
                 }
             }
