@@ -4,6 +4,9 @@ import foatto.core_server.app.iApplication
 
 interface iShopApplication : iApplication {
 
+    val discountLimits: Array<String>
+    val discountValues: Array<String>
+
     val fiscalIndex: String?
     val fiscalUrls: Array<String>
     val fiscalLineCutters: Array<String>
@@ -11,7 +14,10 @@ interface iShopApplication : iApplication {
     val fiscalTaxModes: Array<String>
     val fiscalPlace: String?
 
-    fun isFiscable(docId: Int): Boolean
+    fun getDocumentDate(docId:Int): Triple<Int, Int, Int>
+    fun setDocumentDiscount(docId:Int, discount: Double)
+    fun isDocumentFiscable(docId: Int): Boolean
+
     fun checkCatalogMarkable(aCatalogId: Int): Boolean
     fun findIncomeCatalogIdByMark(markCode: String): Int?
     fun findOutcomeCatalogIdByMark(markCode: String): Int?

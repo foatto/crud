@@ -166,6 +166,8 @@ class mDocument : mAbstract() {
             tableAlign = TableCellAlign.RIGHT
         }
 
+        val columnIsFiscaled = ColumnBoolean(tableName, "is_fiscaled", "", false)
+
         //----------------------------------------------------------------------------------------------------------------------
 
         alTableHiddenColumn.add(columnID!!)
@@ -225,6 +227,7 @@ class mDocument : mAbstract() {
 
         alFormHiddenColumn.add(columnID!!)
         alFormHiddenColumn.add(columnClient)
+        alFormHiddenColumn.add(columnIsFiscaled)
 
         if (isAuditMode) {
             alFormColumn.add(columnCreateTime)

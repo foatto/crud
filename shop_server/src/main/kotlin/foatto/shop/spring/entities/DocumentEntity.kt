@@ -50,7 +50,7 @@ class DocumentEntity(
 
     val descr: String,
 
-    val discount: Double,
+    var discount: Double,
 
     @Column(name = "is_fiscaled")
     val isFiscaled: Int?,

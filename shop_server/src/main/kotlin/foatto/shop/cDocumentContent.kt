@@ -15,7 +15,6 @@ import foatto.core_server.app.server.cAbstractHierarchy
 import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.data.*
-import foatto.core_server.app.system.cRolePermission
 import foatto.shop.mDocumentContent.Companion.ADD_OVER_MARK_CODE
 import foatto.shop_core.app.ICON_NAME_ADD_MARKED_ITEM
 import foatto.shop_core.app.ICON_NAME_CALC
@@ -128,11 +127,11 @@ class cDocumentContent : cStandart() {
                 if (DocumentTypeConfig.hsUseSourWarehouse.contains(docType)) sHeader += ", со склада ${hmWarehouse[rs.getInt(6)]}"
                 if (DocumentTypeConfig.hsUseDestWarehouse.contains(docType)) sHeader += ", на склад ${hmWarehouse[rs.getInt(7)]}"
                 val clientName = rs.getString(8)
-                if (!clientName.isEmpty()) sHeader += ", $clientName"
+                if (clientName.isNotEmpty()) sHeader += ", $clientName"
                 val descr = rs.getString(9)
-                if (!descr.isEmpty()) sHeader += ", $descr"
+                if (descr.isNotEmpty()) sHeader += ", $descr"
                 discount = rs.getDouble(10)
-                if (discount != 0.0) sHeader += ", скидка $discount % "
+                /*if (discount != 0.0) */sHeader += ", скидка $discount % "
             }
             rs.close()
             //--- подсчёт стоимости накладной
@@ -223,7 +222,7 @@ class cDocumentContent : cStandart() {
         val isFiscable = docId?.let {
             docType == DocumentTypeConfig.TYPE_OUT &&
                 it != 0 &&
-                (application as iShopApplication).isFiscable(it)
+                (application as iShopApplication).isDocumentFiscable(it)
         } ?: false
 
         //--- для накладных на реализацию добавим работу с онлайн-кассой
@@ -531,6 +530,7 @@ class cDocumentContent : cStandart() {
                 stm
             )
         }
+        autoUpdateDiscount()
 
         return postURL
     }
@@ -577,6 +577,7 @@ class cDocumentContent : cStandart() {
             //--- удаляем старый товар
             stm.executeUpdate(" DELETE FROM SHOP_catalog WHERE id = $sourID ")
         }
+        autoUpdateDiscount()
 
         return postURL
     }
@@ -584,6 +585,7 @@ class cDocumentContent : cStandart() {
     override fun postDelete(id: Int, hmColumnData: Map<iColumn, iData>) {
         super.postDelete(id, hmColumnData)
         updateDocumentContentEditTime(hmColumnData, true)
+        autoUpdateDiscount()
     }
 
     private fun updateDocumentContentEditTime(hmColumnData: Map<iColumn, iData>, isCurTime: Boolean) {
@@ -597,5 +599,26 @@ class cDocumentContent : cStandart() {
                 .append(" WHERE id = ").append((hmColumnData[mdc.columnDocument] as DataInt).intValue)
         )
 
+    }
+
+    private fun autoUpdateDiscount() {
+        docId?.let { docId ->
+            if(docType == DocumentTypeConfig.TYPE_OUT) {
+                val (docYe, docMo, docDa) = (application as iShopApplication).getDocumentDate(docId)
+                docCost = cDocument.calcDocCountAndCost(stm, hmPrice, docId, docType, zoneId, docYe, docMo, docDa, 0.0).second
+
+                val discountLimits = (application as iShopApplication).discountLimits.map { it.toDouble() }
+                val discountValues = (application as iShopApplication).discountValues.map { it.toDouble() }
+
+                var discount = 0.0
+                discountLimits.forEachIndexed DL@{ index, limit ->
+                    if(docCost <= limit) {
+                        return@DL
+                    }
+                    discount = discountValues[index]
+                }
+                (application as iShopApplication).setDocumentDiscount(docId, discount)
+            }
+        }
     }
 }

@@ -28,6 +28,12 @@ import javax.servlet.http.HttpServletResponse
 @RestController
 class ShopSpringController : CoreSpringController(), iShopApplication {
 
+    @Value("\${discount_limits}")
+    override val discountLimits: Array<String> = emptyArray()
+
+    @Value("\${discount_values}")
+    override val discountValues: Array<String> = emptyArray()
+
     @Value("\${fiscal_index}")
     override val fiscalIndex: String? = null
 
@@ -340,9 +346,21 @@ class ShopSpringController : CoreSpringController(), iShopApplication {
     @Autowired
     private lateinit var documentContentRepository: DocumentContentRepository
 
-    override fun isFiscable(docId: Int): Boolean {
+    override fun getDocumentDate(docId: Int): Triple<Int, Int, Int> =
+        documentRepository.findByIdOrNull(docId)?.let { doc ->
+            Triple(doc.date.ye, doc.date.mo, doc.date.da)
+        } ?: Triple(0, 1, 1)
+
+    override fun setDocumentDiscount(docId: Int, discount: Double) {
+        documentRepository.findByIdOrNull(docId)?.let { doc ->
+            doc.discount = discount
+            documentRepository.save(doc)
+        }
+    }
+
+    override fun isDocumentFiscable(docId: Int): Boolean {
         val doc = documentRepository.findByIdOrNull(docId)
-        return doc?.isFiscaled == 0
+        return (doc?.isFiscaled ?: 0) == 0
     }
 
     override fun checkCatalogMarkable(aCatalogId: Int): Boolean {
