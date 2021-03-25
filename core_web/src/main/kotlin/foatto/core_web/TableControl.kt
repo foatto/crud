@@ -441,8 +441,8 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabIndex: Int 
                 val backColor =
                     when( tc.backColorType.toString() ) {
                         TableCellBackColorType.DEFINED.toString() -> getColorFromInt( tc.backColor )
-                        TableCellBackColorType.GROUP_0.toString() -> COLOR_GROUP_BACK_0
-                        TableCellBackColorType.GROUP_1.toString() -> COLOR_GROUP_BACK_1
+                        TableCellBackColorType.GROUP_0.toString() -> colorGroupBack0
+                        TableCellBackColorType.GROUP_1.toString() -> colorGroupBack1
                         else                                      -> if( tc.row % 2 == 0 ) COLOR_TABLE_ROW_0_BACK else COLOR_TABLE_ROW_1_BACK
                     }
                 val textColor =

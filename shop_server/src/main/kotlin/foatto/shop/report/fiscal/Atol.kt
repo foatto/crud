@@ -86,6 +86,38 @@ class Atol : iFiscal {
         }
     }
 
+    override fun closeShift(
+        objectMapper: ObjectMapper,
+        httpClient: HttpClient,
+        fiscalUrl: String,
+    ) {
+        val fiscalRequest = AtolWebFiscalCloseShiftRequest(
+            uuid = UUID.randomUUID().toString(),
+            request = arrayOf(
+                AtolJsonFiscalCloseShift()
+            ),
+        )
+
+        if (AdvancedLogger.isDebugEnabled) {
+            AdvancedLogger.debug(objectMapper.writeValueAsString(fiscalRequest))
+        }
+        runBlocking {
+            val fiscalResponse = httpClient.post<HttpResponse>(fiscalUrl) {
+                contentType(ContentType.Application.Json)
+
+                body = fiscalRequest
+
+                timeout {
+                    socketTimeoutMillis = 60_000
+                }
+            }
+            AdvancedLogger.debug("Fiscal reponse = ${fiscalResponse.status.value}, '${fiscalResponse.status.description}'")
+            if (fiscalResponse.status != HttpStatusCode.Created) {
+                AdvancedLogger.error("Fiscal error = '${fiscalResponse.readText()}'")
+                throw Exception("Fiscal error = '${fiscalResponse.readText()}'")
+            }
+        }
+    }
 }
 
 private class AtolWebFiscalRequest(
@@ -134,3 +166,17 @@ private class AtolFiscalMarkingCode(
 //   val  type: String = "other", - default
     val mark: String,                           // base64 of mark code
 )
+
+private class AtolWebFiscalCloseShiftRequest(
+    val uuid: String,                           
+    val request: Array<AtolJsonFiscalCloseShift>  //  must be one item only!
+)
+
+private class AtolJsonFiscalCloseShift(
+    val type: String = "closeShift",
+//      "operator": {
+//        "name": "Иванов",
+//        "vatin": "123654789507"
+//      }
+)
+

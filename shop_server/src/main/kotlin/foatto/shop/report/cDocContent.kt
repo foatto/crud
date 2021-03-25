@@ -21,6 +21,7 @@ import foatto.shop.mWarehouse
 import foatto.shop.report.fiscal.Atol
 import foatto.shop.report.fiscal.Starrus
 import foatto.shop.report.fiscal.iFiscal
+import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedStatement
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
@@ -70,8 +71,8 @@ class cDocContent : cAbstractReport() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun init(aApplication: iApplication, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig) {
-        super.init(aApplication, aStm, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
+    override fun init(aApplication: iApplication, aConn: CoreAdvancedConnection, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig) {
+        super.init(aApplication, aConn, aStm, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
 
         hmPrice = PriceData.loadPrice(stm, mPrice.PRICE_TYPE_OUT)
     }
@@ -489,6 +490,8 @@ class cDocContent : cAbstractReport() {
         val fiscalTaxMode = shopApplication.fiscalTaxModes[fiscalIndex]
         val fiscalPlace = shopApplication.fiscalPlace ?: "Магазин"
 
+        val fiscalOnceOnly = shopApplication.fiscalOnceOnly?.toBoolean() ?: false
+
         val fiscal: iFiscal = when (fiscalIndex) {
             0 -> Atol()
             1 -> Starrus()
@@ -547,43 +550,10 @@ class cDocContent : cAbstractReport() {
             fiscalTaxMode = fiscalTaxMode,
             fiscalPlace = fiscalPlace,
         )
-        stm.executeUpdate(" UPDATE SHOP_doc SET is_fiscaled = 1 WHERE id = $docId ")
+        if(fiscalOnceOnly) {
+            stm.executeUpdate(" UPDATE SHOP_doc SET is_fiscaled = 1 WHERE id = $docId ")
+        }
     }
 
 }
 
-//    fun sendFiscal(fiscalURL: String, query: FiscalQuery) {
-//
-//        //--- создание подключения
-//        val url = URL(fiscalURL)
-//        val urlConn = url.openConnection() as HttpURLConnection
-//
-//        //--- настройка подключения
-//        urlConn.requestMethod = "POST"
-//        urlConn.allowUserInteraction = true
-//        urlConn.doOutput = true
-//        urlConn.doInput = true
-//        urlConn.useCaches = false
-//        urlConn.setRequestProperty("Content-type", "application/json")
-//
-//        urlConn.connect()
-//
-//        val os = urlConn.outputStream
-//        os.write(query.toJson().toByteArray())
-////        os.write( JSON.stringify( query ).toByteArray())
-//        os.flush()
-//        os.close()
-//
-//        val responseCode = urlConn.responseCode
-//        AdvancedLogger.error(responseCode.toString())
-//        AdvancedLogger.error(urlConn.responseMessage)
-//
-//        val br = BufferedReader(InputStreamReader(if (responseCode >= 400) urlConn.errorStream else urlConn.inputStream))
-//        while (true) {
-//            val sReturned = br.readLine()
-//            if (sReturned == null) break
-//            else AdvancedLogger.error(sReturned)
-//        }
-//        br.close()
-//        urlConn.disconnect()
-//    }

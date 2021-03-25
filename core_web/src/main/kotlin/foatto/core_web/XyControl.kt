@@ -183,7 +183,7 @@ fun doXyMounted( that: dynamic, xyResponse: XyResponse, tabIndex: Int, titleBarN
     val svgTitlebar = document.getElementById( "${titleBarNamePrefix}_$tabIndex" )!!
     val svgToolbar = document.getElementById( "${toolBarNamePrefix}_$tabIndex" )!!
 
-    that.svg_height = kotlin.browser.window.innerHeight - ( svgTabPanel.clientHeight + svgTitlebar.clientHeight + svgToolbar.clientHeight )
+    that.svg_height = kotlinx.browser.window.innerHeight - ( svgTabPanel.clientHeight + svgTitlebar.clientHeight + svgToolbar.clientHeight )
 
     that.`$root`.setWait( true )
     invokeXy(

@@ -34,6 +34,9 @@ class ShopSpringController : CoreSpringController(), iShopApplication {
     @Value("\${discount_values}")
     override val discountValues: Array<String> = emptyArray()
 
+    @Value("\${fiscal_once_only}")
+    override val fiscalOnceOnly: String? = null
+
     @Value("\${fiscal_index}")
     override val fiscalIndex: String? = null
 
@@ -309,6 +312,14 @@ class ShopSpringController : CoreSpringController(), iShopApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDir, "shop_price_out", true)
 
         if (alMenuDir.size > 1) alMenu.add(MenuData("", "Справочники", alMenuDir.toTypedArray()))
+
+        //--- Касса --------------------------------------------------------------------------------------------------------
+
+        val alMenuFiscal = mutableListOf<MenuData>()
+
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuFiscal, "shop_fiscal_shift_close", false)
+
+        if (alMenuFiscal.size > 0) alMenu.add(MenuData("", "Касса", alMenuFiscal.toTypedArray()))
 
         //--- Система --------------------------------------------------------------------------------------------------------
 

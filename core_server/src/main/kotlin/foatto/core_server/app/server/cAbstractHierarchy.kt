@@ -5,6 +5,7 @@ import foatto.core.link.AppAction
 import foatto.core.link.FormData
 import foatto.core.link.TableCell
 import foatto.core.link.TablePopupData
+import foatto.core_server.app.AppParameter
 import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.data.DataComboBox
 import foatto.core_server.app.server.data.DataInt
@@ -42,16 +43,41 @@ open class cAbstractHierarchy : cStandart() {
 
     override fun doExpand(pid: Int) = expandCatalog(stm, model.tableName, pid, false)
 
+    override fun setSelectorParent(selectorParam: SelectorParameter) {
+        super.setSelectorParent(selectorParam)
+        //--- when editing when selecting from hierarchical tables at the start of the selector, you must set the desired parentID
+        //--- parentID defined in selectID (i.e. edit mode)
+        if (selectorParam.selectedId != 0) {
+            hmParentData[aliasConfig.alias] = getSelfParentID(selectorParam.selectedId)
+            //--- so that with further passes through the hierarchy, this starting installation no longer works
+            selectorParam.selectedId = 0
+        } else if (selectorParam.selectedParentId != 0) {
+            hmParentData[aliasConfig.alias] = selectorParam.selectedParentId
+            //--- so that with further passes through the hierarchy, this starting installation no longer works
+            selectorParam.selectedParentId = 0
+        }
+        //--- always save last parentId at hierarchical selector
+        hmParentData[aliasConfig.alias]?.let {
+            chmSession[AppParameter.SAVED_SELECTOR_PARENT + aliasConfig.alias] = it
+        }
+    }
+
     override fun getAddButtonURL(refererID: String, hmOut: MutableMap<String, Any>): MutableList<AddActionButton> {
         val alAddButtonList = mutableListOf<AddActionButton>()
 
         (model as mAbstractHierarchy).alAddButtomParam.forEach {
-            alAddButtonList.add(
-                AddActionButton(
-                    caption = it.caption,
-                    tooltip = it.tooltip,
-                    icon = it.icon,
-                    url = getParamURL(aliasConfig.alias, AppAction.FORM, refererID, 0, hmParentData, parentUserID, "&${it.url}")
+            alAddButtonList += AddActionButton(
+                caption = it.caption,
+                tooltip = it.tooltip,
+                icon = it.icon,
+                url = getParamURL(
+                    aAlias = aliasConfig.alias,
+                    aAction = AppAction.FORM,
+                    aRefererID = refererID,
+                    aID = 0,
+                    aParentData = hmParentData,
+                    aParentUserID = parentUserID,
+                    aAltParams = "&${it.url}"
                 )
             )
         }

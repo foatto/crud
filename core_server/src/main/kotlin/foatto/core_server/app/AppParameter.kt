@@ -9,7 +9,6 @@ object AppParameter {
     const val ALIAS = "alias"
 
     const val REFERER = "referer" // через него передается referer_id=ХХХ, по которому берется значение referer
-    //    public static final String MESSAGE = "message"; // через него передается message_id=ХХХ, по которому берется ссылка на MessageData
 
     const val ID = "id"
 
@@ -25,6 +24,8 @@ object AppParameter {
 
     const val FORM_DATA = "form_data"         // (предварительно) заполненные данные формы
     const val FORM_SELECTOR = "form_selector" // номер запускаемого селектора в форме
+
+    const val SAVED_SELECTOR_PARENT = "saved_selector_parent"
 
     //--- через него передается graphic_start_data_id=ХХХ, по которому берется значение graphic_start_data
     const val GRAPHIC_START_DATA = "graphic_start_data"
@@ -53,7 +54,7 @@ object AppParameter {
 
     fun collectParam( hmParam: Map<String, String> ): String {
         var param = ""
-        hmParam.forEach { key, value ->  param += "&$key=$value" }
+        hmParam.forEach { (key, value) ->  param += "&$key=$value" }
         return param.substring( 1 ) // пропускаем первый &
     }
 

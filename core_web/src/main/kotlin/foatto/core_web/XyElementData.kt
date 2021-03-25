@@ -737,10 +737,10 @@ fun getXyEmptyElementData( scaleKoef: Double, elementConfig: XyElementConfig) : 
                 typeName = "mms_zone",
                 alAddInfo = listOf(
                     Pair( "zone_name", {
-                        ( kotlin.browser.window.prompt( "Введите наименование геозоны" )?.trim() ?: "" ).ifEmpty { "-" }
+                        ( kotlinx.browser.window.prompt( "Введите наименование геозоны" )?.trim() ?: "" ).ifEmpty { "-" }
                     } ),
                     Pair( "zone_descr", {
-                        ( kotlin.browser.window.prompt( "Введите описание геозоны" )?.trim() ?: "" ).ifEmpty { "-" }
+                        ( kotlinx.browser.window.prompt( "Введите описание геозоны" )?.trim() ?: "" ).ifEmpty { "-" }
                     } )
                 )
             )

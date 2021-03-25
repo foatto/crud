@@ -155,6 +155,10 @@ class Index {
                 }
             )
             this.mounted = {
+                //--- бледно-голубая группировка (по пожеланиям продавцов :)
+                colorGroupBack0 = "#c0eeee"
+                colorGroupBack1 = "#c0ffff"
+
                 //--- marked item adding
                 hmTableIcon[ICON_NAME_ADD_MARKED_ITEM] = "/web/images/ic_line_weight_black_48dp.png"
                 hmTableIcon[ICON_NAME_FISCAL] = "/web/images/ic_theaters_black_48dp.png"

@@ -13,6 +13,7 @@ import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.data.*
+import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedResultSet
 import foatto.sql.CoreAdvancedStatement
 import java.time.ZoneId
@@ -25,7 +26,7 @@ open class cStandart {
 
     companion object {
 
-        const val TABLE_CELL_FORE_COLOR_DISABLED = 0xFF_C0_C0_C0.toInt()
+        const val TABLE_CELL_FORE_COLOR_DISABLED = 0xFF_D0_D0_D0.toInt()
         const val TABLE_CELL_FORE_COLOR_CRITICAL = 0xFF_80_00_00.toInt()
         const val TABLE_CELL_FORE_COLOR_WARNING = 0xFF_80_80_00.toInt()
         const val TABLE_CELL_FORE_COLOR_NORMAL = 0xFF_00_80_00.toInt()
@@ -54,10 +55,11 @@ open class cStandart {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         fun checkPerm(aUserConfig: UserConfig, aHsPermission: Set<String>, permName: String, recordUserID: Int): Boolean {
-            for ((relName, _) in UserRelation.arrNameDescr)
-                if (aUserConfig.getUserIDList(relName).contains(recordUserID))
+            for ((relName, _) in UserRelation.arrNameDescr) {
+                if (aUserConfig.getUserIDList(relName).contains(recordUserID)) {
                     return aHsPermission.contains("${permName}_$relName")
-
+                }
+            }
             //--- если userID таки не найден во всех списках пользователей
             //--- (хотя такого быть не должно, но может возникнуть при удалении пользователя, на которого еще есть записи,
             //--- да и для повышения общей ошибкоустойчивости допустим),
@@ -81,7 +83,7 @@ open class cStandart {
             if (aID != null)
                 sResult += "&${AppParameter.ID}=$aID"
 
-            if (aParentData != null && !aParentData.isEmpty()) {
+            if (!aParentData.isNullOrEmpty()) {
                 var sAlias = ""
                 var sID = ""
                 for ((a, id) in aParentData) {
@@ -104,6 +106,7 @@ open class cStandart {
     //--- common part ---
 
     protected lateinit var application: iApplication
+    protected lateinit var conn: CoreAdvancedConnection
     protected lateinit var stm: CoreAdvancedStatement
     protected lateinit var chmSession: ConcurrentHashMap<String, Any>
     protected lateinit var hmParam: Map<String, String>
@@ -140,6 +143,7 @@ open class cStandart {
 
     open fun init(
         aApplication: iApplication,
+        aConn: CoreAdvancedConnection,
         aStm: CoreAdvancedStatement,
         aChmSession: ConcurrentHashMap<String, Any>,
         aHmParam: Map<String, String>,
@@ -150,6 +154,7 @@ open class cStandart {
     ) {
 
         application = aApplication
+        conn = aConn
         stm = aStm
         chmSession = aChmSession
         hmParam = aHmParam
@@ -251,8 +256,12 @@ open class cStandart {
         id != 0 && checkPerm(PERM_DELETE, getRecordUserID(hmColumnData, id)) && !isExistDepencies(id)
 
     protected fun checkPerm(permName: String, recordUserID: Int): Boolean =
-        if (!model.isUseParentUserID() && model.columnUser == null) hsPermission.contains(permName)
-        else checkPerm(userConfig, hsPermission, permName, if (model.isUseParentUserID()) parentUserID else recordUserID)
+        if (!model.isUseParentUserID() && model.columnUser == null) {
+            hsPermission.contains(permName)
+        }
+        else {
+            checkPerm(userConfig, hsPermission, permName, if (model.isUseParentUserID()) parentUserID else recordUserID)
+        }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -397,7 +406,7 @@ open class cStandart {
                 if (m.isExpandable()) {
                     //!!! можно ли как-то обойтись без создания объекта?
                     val page = Class.forName(ac.controlClassName).getConstructor().newInstance() as cStandart
-                    page.init(application, stm, chmSession, emptyMap(), hmAliasConfig, ac, hmXyDocumentConfig, userConfig)
+                    page.init(application, conn, stm, chmSession, emptyMap(), hmAliasConfig, ac, hmXyDocumentConfig, userConfig)
                     return page.doExpand(pID)
                 }
             }
@@ -411,19 +420,31 @@ open class cStandart {
 
     protected open fun getColumnData(rs: CoreAdvancedResultSet?, isForTable: Boolean, alColumnList: List<iColumn>): MutableMap<iColumn, iData>? {
         //--- предварительная проверка на права доступа
-        val permName: String = if (isForTable) PERM_TABLE else PERM_FORM
+        val permName: String = if (isForTable) {
+            PERM_TABLE
+        } else {
+            PERM_FORM
+        }
         //--- перегон объектов из Map в типизированное Data Object Storage
         val hmColumnData = mutableMapOf<iColumn, iData>()
         var posRS = 1  // нумерация полей в CoreAdvancedResultSet начинается с 1
         for (column in alColumnList) {
             val data = column.getData()
-            if (column.isVirtual) data.loadFromDefault()
-            else posRS = data.loadFromDB(rs!!, posRS)
+            if (column.isVirtual) {
+                data.loadFromDefault()
+            }
+            else {
+                posRS = data.loadFromDB(rs!!, posRS)
+            }
             hmColumnData[column] = data
         }
         val recordUserID = getRecordUserID(hmColumnData)
 
-        return if (checkPerm(permName, recordUserID)) hmColumnData else null
+        return if (checkPerm(permName, recordUserID)) {
+            hmColumnData
+        } else {
+            null
+        }
     }
 
     protected fun getSelfParentID(id: Int): Int {
@@ -587,7 +608,9 @@ open class cStandart {
                 alTableSortDirect.add(model.alTableSortDirect[i])
             }
         }
-        if (model.alTableGroupColumn.size > 0) arrCurGroupValue = arrayOfNulls(model.alTableGroupColumn.size)
+        if (model.alTableGroupColumn.size > 0) {
+            arrCurGroupValue = arrayOfNulls(model.alTableGroupColumn.size)
+        }
 
         //--- appParam придётся генерировать заново/обратно, поскольку в явном виде он отсутствует
         val urlReferer = AppParameter.collectParam(hmParam)
@@ -595,26 +618,27 @@ open class cStandart {
         hmOut[AppParameter.REFERER + refererID] = urlReferer
 
         val finderID = hmParam[AppParameter.FINDER]
-        val alFindWord = if (finderID == null) null else chmSession[AppParameter.FINDER + finderID] as? List<String>
+        val alFindWord = if (finderID == null) {
+            null
+        } else {
+            chmSession[AppParameter.FINDER + finderID] as? List<String>?
+        }
 
-        val pageNo = if (aliasConfig.pageSize > 0) try {
-            hmParam[AppParameter.PAGE]!!.toInt()
-        } catch (t: Throwable) {
+        val pageNo = if (aliasConfig.pageSize > 0) {
+            try {
+                hmParam[AppParameter.PAGE]!!.toInt()
+            } catch (t: Throwable) {
+                0
+            }
+        } else {
             0
-        } else 0
+        }
 
-        //--- если эта таблица вызвана для выбора из формы
+        //--- if this table called for select from edit form
         val selectorID = hmParam[AppParameter.SELECTOR]
         val selectorParam = chmSession[AppParameter.SELECTOR + selectorID] as? SelectorParameter
         if (selectorParam != null) {
-            //--- при редактировании при выборе из иерархических таблиц при старте селектора надо установить нужный parentID
-            if (selectorParam.selectID != 0 &&                      // если задан parentID в виде selectID
-                getParentID(aliasConfig.alias) != null
-            ) {   // иерархическая таблица ? ( иерархическая таблица всегда имеет себя в парентах )
-
-                hmParentData[aliasConfig.alias] = getSelfParentID(selectorParam.selectID)
-                selectorParam.selectID = 0 // чтобы при дальнейших проходах по иерархии это стартовая установка уже не срабатывала
-            }
+            setSelectorParent(selectorParam)
         }
 
         //--- заголовок таблицы
@@ -625,11 +649,22 @@ open class cStandart {
         val alCaption = mutableListOf<Pair<String, String>>()
         getTableCaption(selectorParam != null, urlReferer, sort, alCaption)
 
-        var rs: CoreAdvancedResultSet? = null
+        //--- используем отдельный Statement для открытия табличного ResultSet'a,
+        //--- т.к. в процессе загрузки могут открываться другие ResultSet'ы от стандартного Statement'a
+        var stmTable: CoreAdvancedStatement? = null
+        var rsTable: CoreAdvancedResultSet? = null
         if (model.tableName != mAbstract.FAKE_TABLE_NAME) {
-            val sqlStr = getSQLString(true, 0, alColumnList, alTableSortColumn, alTableSortDirect, alFindWord)
-            //AdvancedLogger.error(  "sqlStr = " + sqlStr  );
-            rs = stm.executeQuery(sqlStr)
+            val sqlStr = getSQLString(
+                isForTable = true,
+                id = 0,
+                alColumnList = alColumnList,
+                alSortColumn = alTableSortColumn,
+                alSortDirect = alTableSortDirect,
+                alFindWord = alFindWord
+            )
+            //AdvancedLogger.error("sqlStr = $sqlStr")
+            stmTable = conn.createStatement()
+            rsTable = stmTable.executeQuery(sqlStr)
         }
 
         var dataRowCount = 0    // счетчик логических строк ( без учета отображения группировок )
@@ -640,17 +675,21 @@ open class cStandart {
 
         val currentRowID = getIDFromParam()    // id текущей строки ( если вообще задан )
         var currentRowNo = -1                  // номер текущей строки
-        while (isNextDataInTable(rs)) {
-            val hmColumnData = getColumnData(rs, true, alColumnList) ?: continue
+        while (isNextDataInTable(rsTable)) {
+            val hmColumnData = getColumnData(rsTable, true, alColumnList) ?: continue
             //--- строка не проходит по правам доступа
             //--- возможная догенерация данных перед фильтрами поиска и страничной разбивки
             generateColumnDataBeforeFilter(hmColumnData)
             //--- поиск по строке
-            if (alFindWord != null && alFindWord.size > 1 && !findInTableRow(hmColumnData, alFindWord)) continue
+            if (alFindWord != null && alFindWord.size > 1 && !findInTableRow(hmColumnData, alFindWord)) {
+                continue
+            }
             //--- если строчка по поиску проходит ( т.е. засчитывается в состав искомых строк ),
             //--- но пропускается как "строка из предыдущих страниц", то возвращаем пустую строку
             val rowCount: Int
-            if (aliasConfig.pageSize > 0 && dataRowCount < pageNo * aliasConfig.pageSize) rowCount = 0
+            if (aliasConfig.pageSize > 0 && dataRowCount < pageNo * aliasConfig.pageSize) {
+                rowCount = 0
+            }
             else {
                 //--- возможная догенерация данных после фильтров поиска и страничной разбивки
                 generateColumnDataAfterFilter(hmColumnData)
@@ -659,21 +698,29 @@ open class cStandart {
             //--- вынесено сюда, чтобы нумерация строк работала независимо от наличия постраничной разбивки
             dataRowCount++
             tableRowCount += rowCount
-            if (model.columnID != null && (hmColumnData[model.columnID!!] as DataInt).intValue == currentRowID) currentRowNo = tableRowCount - 1
+            if (model.columnID != null && (hmColumnData[model.columnID!!] as DataInt).intValue == currentRowID) {
+                currentRowNo = tableRowCount - 1
+            }
             if (aliasConfig.pageSize > 0 && dataRowCount >= (pageNo + 1) * aliasConfig.pageSize) {
                 nextPageExist = true
                 break
             }
         }
-        rs?.close()
+        rsTable?.close()
+        stmTable?.close()
 
         //--- кнопка отмены выбора
         val selectorCancelURL = if (selectorParam != null) {
             val formDataID = getRandomInt().toString()
             hmOut[AppParameter.FORM_DATA + formDataID] = selectorParam.hmColumnData
             getParamURL(
-                selectorParam.formAlias, AppAction.FORM, selectorParam.refererID, selectorParam.recordID, selectorParam.hmParentData,
-                selectorParam.parentUserID, "&${AppParameter.FORM_DATA}=$formDataID"
+                aAlias = selectorParam.formAlias,
+                aAction = AppAction.FORM,
+                aRefererID = selectorParam.refererId,
+                aID = selectorParam.recordId,
+                aParentData = selectorParam.hmParentData,
+                aParentUserID = selectorParam.parentUserId,
+                aAltParams = "&${AppParameter.FORM_DATA}=$formDataID"
             )
         } else ""
 
@@ -723,6 +770,8 @@ open class cStandart {
             alPageButton = alPageButton.toTypedArray()
         )
     }
+
+    protected open fun setSelectorParent(selectorParam: SelectorParameter) {}
 
     protected fun getTableCaption(forSelect: Boolean, urlReferer: String, sort: Int, alCaption: MutableList<Pair<String, String>>) {
         //--- пустой заголовок для нумератора строк
@@ -789,12 +838,17 @@ open class cStandart {
         val recordUserName = getRecordUserName(recordUserID)
 
         val hmColumnCell = mutableMapOf<iColumn, TableCell>()
-        for ((column, data) in hmColumnData) hmColumnCell[column] = data.getTableCell(application.rootDirName, stm, -1, -1)
+        for ((column, data) in hmColumnData) {
+            //!!! потенциально опасное место - передача Statement в метод при открытом ResultSet'e от этого Statement'a
+            hmColumnCell[column] = data.getTableCell(application.rootDirName, stm, -1, -1)
+        }
 
         val sbFind = StringBuilder(recordUserName).append(' ')
 
         for (column in model.alTableGroupColumn) {
-            if (!column.isSearchable) continue
+            if (!column.isSearchable) {
+                continue
+            }
             hmColumnCell[column]!!.alCellData.forEach { cellData ->
                 sbFind.append(if (column is ColumnInt || column is ColumnDouble) cellData.text.replace(" ", "") else cellData.text).append(' ')
             }
@@ -803,10 +857,12 @@ open class cStandart {
         //--- сами поля данных
         val tableRowCount = model.getTableColumnRowCount()
         val tableColCount = model.getTableColumnColCount()
-        for (row in 0 until tableRowCount)
+        for (row in 0 until tableRowCount) {
             for (col in 0 until tableColCount) {
                 val column = model.getTableColumn(row, col)
-                if (column == null || !column.isSearchable) continue
+                if (column == null || !column.isSearchable) {
+                    continue
+                }
                 val tci = hmColumnCell[column]
                 if (tci!!.cellType == TableCellType.TEXT) {
                     tci.alCellData.forEach { cellData ->
@@ -814,6 +870,7 @@ open class cStandart {
                     }
                 }
             }
+        }
         //--- переводим все в нижний регистр
         val strLowCaseFind = sbFind.toString().toLowerCase(locale)
         //--- 0-й индекс в alFindWord - полная строка поиска
@@ -822,8 +879,12 @@ open class cStandart {
             val findStr = alFindWord[i]
             //--- если искомое слово имеет префикс отрицания ( одиночный символ "!" рассматривается как обычная поисковая строка )
             if (findStr[0] == '!' && findStr.length > 1) {
-                if (strLowCaseFind.contains(findStr.substring(1))) return false
-            } else if (!strLowCaseFind.contains(findStr)) return false
+                if (strLowCaseFind.contains(findStr.substring(1))) {
+                    return false
+                }
+            } else if (!strLowCaseFind.contains(findStr)) {
+                return false
+            }
         }
         return true
     }
@@ -875,7 +936,9 @@ open class cStandart {
                 if (selectorParam != null) alTableCell.add(TableCell(row, col++))
                 //--- пустые ячейки в строке группы ( по предыдущим уровням ) до наименования группы
                 //--- ( передаем именно свежесозданный CoreTableCellInfo, т.к. у него будут меняться настройки стиля )
-                for (i in 0 until gi) alTableCell.add(setTableGroupColumnStyle(hmColumnData, model.alTableGroupColumn[i], TableCell(row, col++)))
+                for (i in 0 until gi) {
+                    alTableCell.add(setTableGroupColumnStyle(hmColumnData, model.alTableGroupColumn[i], TableCell(row, col++)))
+                }
                 //--- посчитаем насколько там надо заспанить (прим.: без общих скобок компилятор Котлина не воспринимает это как общее выражение!)
                 val spanCellCount = (1   // собственная ячейка
                     + model.alTableGroupColumn.size
@@ -887,7 +950,9 @@ open class cStandart {
                 //--- наименование группы
                 alTableCell.add(
                     setTableGroupColumnStyle(
-                        hmColumnData, curGroupColumn, TableCell(
+                        hmColumnData = hmColumnData,
+                        column = curGroupColumn,
+                        tci = TableCell(
                             aRow = row,
                             aCol = col,
                             aRowSpan = 1,
@@ -914,7 +979,15 @@ open class cStandart {
         }
         //--- разрешено ли открытие формы для данной строки таблицы?
         val formURL = if (checkPerm(PERM_FORM, recordUserID)) {
-            getParamURL(aliasConfig.alias, AppAction.FORM, refererID, valueID, hmParentData, parentUserID, null)
+            getParamURL(
+                aAlias = aliasConfig.alias,
+                aAction = AppAction.FORM,
+                aRefererID = refererID,
+                aID = valueID,
+                aParentData = hmParentData,
+                aParentUserID = parentUserID,
+                aAltParams = null
+            )
         } else {
             ""
         }
@@ -930,8 +1003,7 @@ open class cStandart {
             val defaultOperationURL = getTableRowGoto(selectorID, hmColumnData, i, alPopupData)
             if (defaultOperationURL != null) {
                 rowURL = defaultOperationURL
-                //--- для иерархических таблиц операция по умолчанию - проход вглубь по иерархии,
-                //--- а она делается внутри одного/текущего окна
+                //--- для иерархических таблиц операция по умолчанию - проход вглубь по иерархии, а она делается внутри одного/текущего окна
                 itRowURLInNewWindow = isOpenFormURLInNewWindow()
                 //--- специально для кнопки перехода
                 gotoURL = rowURL
@@ -1094,7 +1166,6 @@ open class cStandart {
         hmOut: MutableMap<String, Any>
     ): TableCell {
         //--- глубокая копия column-data с данными селекта
-        //        Map<iColumn,iData> hmNewColumnData = ( Map<iColumn,iData> ) selectorParam.hmColumnData.clone();
         val hmNewColumnData = selectorParam.hmColumnData.map { (column, data) ->
             column to data.clone() as iData
         }.toMap().toMutableMap()
@@ -1110,14 +1181,14 @@ open class cStandart {
             }
             //AdvancedLogger.error(  "columnFrom = " + columnFrom.getTableName() + "." + columnFrom.getFieldName(  0  )  );
             val dataFrom = hmColumnData[columnFrom]
-            //--- вернём прежнее имя таблицы
+            //--- вернём прежнее имя таблицы ПОСЛЕ получения dataFrom
             columnFrom.tableName = oldTableName
 
             val columnTo = selectorParam.alColumnTo[i]
             //AdvancedLogger.error(  "columnTo = " + columnTo.getTableName() + "." + columnTo.getFieldName(  0  )  );
-            val dataTo = hmNewColumnData[columnTo]
-
-            dataTo!!.setData(dataFrom!!)
+            dataFrom?.let {
+                hmNewColumnData[columnTo]?.setData(it)
+            }
         }
 
         val formDataID = getRandomInt().toString()
@@ -1137,10 +1208,10 @@ open class cStandart {
             aUrl = getParamURL(
                 aAlias = selectorParam.formAlias,
                 aAction = AppAction.FORM,
-                aRefererID = selectorParam.refererID,
-                aID = selectorParam.recordID,
+                aRefererID = selectorParam.refererId,
+                aID = selectorParam.recordId,
                 aParentData = selectorParam.hmParentData,
-                aParentUserID = selectorParam.parentUserID,
+                aParentUserID = selectorParam.parentUserId,
                 aAltParams = "&${AppParameter.FORM_DATA}=$formDataID"
             ),
             aInNewWindow = false
@@ -1266,7 +1337,7 @@ open class cStandart {
         //--- возврат с ошибками ввода в форме или после выбора из справочника
         val formDataID = hmParam[AppParameter.FORM_DATA]
         if (formDataID != null) {
-            hmColumnData = chmSession[AppParameter.FORM_DATA + formDataID] as? MutableMap<iColumn, iData>
+            hmColumnData = chmSession[AppParameter.FORM_DATA + formDataID] as? MutableMap<iColumn, iData>?
         }
 
         //--- это первый запуск формы
@@ -1277,14 +1348,20 @@ open class cStandart {
                 hmColumnData = getFormDefaultValues(alColumnList, true)
                 //--- заполним авто-парентами
                 for (column in alColumnList) {
-                    if (column.selectorAlias == null) continue
+                    if (column.selectorAlias == null) {
+                        continue
+                    }
                     val pID = getParentID(column.selectorAlias)
-                    if (pID != null && pID != 0) (hmColumnData[column.getSelectTo()[0]] as DataInt).intValue = pID
+                    if (pID != null && pID != 0) {
+                        (hmColumnData[column.getSelectTo()[0]] as DataInt).intValue = pID
+                    }
                 }
                 //--- для модулей с виртуальными таблицами служебную запись не делаем
                 if (model.tableName != mAbstract.FAKE_TABLE_NAME) {
                     //--- заполним или создадим 0-ю служебную запись с этими данными
-                    if (doUpdate(0, alColumnList, hmColumnData) == 0) doInsert(0, alColumnList, hmColumnData)
+                    if (doUpdate(0, alColumnList, hmColumnData) == 0) {
+                        doInsert(0, alColumnList, hmColumnData)
+                    }
                 }
             }
             //--- для модулей с виртуальными таблицами чтение не делаем
@@ -1295,13 +1372,17 @@ open class cStandart {
                 //System.out.println(  "--- getForm ------------------------------------------------"  );
                 //AdvancedLogger.error(  "sqlStr = " + sqlStr  );
                 val rs = stm.executeQuery(sqlStr)
-                if (rs.next()) hmColumnData = getColumnData(rs, false, alColumnList)
+                if (rs.next()) {
+                    hmColumnData = getColumnData(rs, false, alColumnList)
+                }
                 rs.close()
                 //--- добавить свою "прочитанность"
                 addIsReaded(id)
             }
             //--- служебную запись вернем в максимально "нулевое" состояние
-            if (id == 0 && model.tableName != mAbstract.FAKE_TABLE_NAME) doUpdate(0, alColumnList, getFormDefaultValues(alColumnList, false))
+            if (id == 0 && model.tableName != mAbstract.FAKE_TABLE_NAME) {
+                doUpdate(0, alColumnList, getFormDefaultValues(alColumnList, false))
+            }
         }
         if (hmColumnData == null) {
             throw BusinessException("Просмотр данных в форме не разрешен.")
@@ -1332,12 +1413,28 @@ open class cStandart {
                 fci.selectorSetURL = if (column.selectorAlias == null) {
                     ""
                 } else {
-                    getFormSelector(formParam, false, id, refererID, column, hmColumnData, hmOut)
+                    getFormSelector(
+                        formParam = formParam,
+                        forClear = false,
+                        id = id,
+                        refererID = refererID,
+                        column = column,
+                        hmColumnData = hmColumnData,
+                        hmOut = hmOut
+                    )
                 }
                 fci.selectorClearURL = if (column.selectorAlias == null) {
                     ""
                 } else {
-                    getFormSelector(formParam, true, id, refererID, column, hmColumnData, hmOut)
+                    getFormSelector(
+                        formParam = formParam,
+                        forClear = true,
+                        id = id,
+                        refererID = refererID,
+                        column = column,
+                        hmColumnData = hmColumnData,
+                        hmOut = hmOut
+                    )
                 }
                 //--- определяем автозапуск селектора
                 fci.itAutoStartSelector = column.isAutoStartSelector
@@ -1467,20 +1564,26 @@ open class cStandart {
     }
 
     protected fun getFormSelector(
-        formParam: String, forClear: Boolean, id: Int, refererID: String?, column: iColumn, hmColumnData: Map<iColumn, iData>,
-        hmOut: MutableMap<String, Any>
+        formParam: String,
+        forClear: Boolean,
+        id: Int,
+        refererID: String?,
+        column: iColumn,
+        hmColumnData: Map<iColumn, iData>,
+        hmOut: MutableMap<String, Any>,
     ): String {
         val selectorParam = SelectorParameter()
         selectorParam.forClear = forClear
 
         selectorParam.formAlias = aliasConfig.alias
-        selectorParam.recordID = id
-        selectorParam.refererID = refererID
+        selectorParam.recordId = id
+        selectorParam.refererId = refererID
         selectorParam.hmParentData = hmParentData
-        selectorParam.parentUserID = parentUserID
+        selectorParam.parentUserId = parentUserID
 
         selectorParam.selectorAlias = column.selectorAlias!!
-        selectorParam.selectID = (hmColumnData[column.getSelectTo()[0]] as DataInt).intValue
+        selectorParam.selectedId = (hmColumnData[column.getSelectTo()[0]] as DataInt).intValue
+        selectorParam.selectedParentId = chmSession[AppParameter.SAVED_SELECTOR_PARENT + column.selectorAlias] as? Int ?: 0
         selectorParam.alColumnTo = column.getSelectTo()
         selectorParam.alColumnFrom = column.getSelectFrom()
 
@@ -1531,7 +1634,7 @@ open class cStandart {
                 break
             }
             val tmpStr = findStr.substring(begPos + 1, endPos)
-            if (!tmpStr.isEmpty()) alWord.add(tmpStr.toLowerCase(locale))
+            if (tmpStr.isNotEmpty()) alWord.add(tmpStr.toLowerCase(locale))
 
             startPos = endPos + 1
         }
@@ -1680,12 +1783,25 @@ open class cStandart {
                 val formDataID = getRandomInt().toString()
                 hmOut[AppParameter.FORM_DATA + formDataID] = hmColumnData
                 return getParamURL(
-                    selectorParam.formAlias, AppAction.FORM, selectorParam.refererID, selectorParam.recordID, selectorParam.hmParentData, selectorParam.parentUserID,
-                    "&${AppParameter.FORM_DATA}=$formDataID"
+                    aAlias = selectorParam.formAlias,
+                    aAction = AppAction.FORM,
+                    aRefererID = selectorParam.refererId,
+                    aID = selectorParam.recordId,
+                    aParentData = selectorParam.hmParentData,
+                    aParentUserID = selectorParam.parentUserId,
+                    aAltParams = "&${AppParameter.FORM_DATA}=$formDataID"
                 )
             } else {
                 selectorParam.hmColumnData = hmColumnData
-                return getParamURL(selectorParam.selectorAlias, AppAction.TABLE, null, null, null, null, "&${AppParameter.SELECTOR}=$selectorID")
+                return getParamURL(
+                    aAlias = selectorParam.selectorAlias,
+                    aAction = AppAction.TABLE,
+                    aRefererID = null,
+                    aID = null,
+                    aParentData = null,
+                    aParentUserID = null,
+                    aAltParams = "&${AppParameter.SELECTOR}=$selectorID"
+                )
             }
         } else if (!isValidFormData) {
             val formDataID = getRandomInt().toString()

@@ -13,6 +13,7 @@ import foatto.core_server.app.server.mAbstractHierarchy
 import foatto.shop.PriceData
 import foatto.shop.mPrice
 import foatto.shop.mWarehouse
+import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedStatement
 import jxl.format.PageOrientation
 import jxl.format.PaperSize
@@ -41,8 +42,8 @@ abstract class cAbstractCatalogReport : cAbstractReport() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun init(aApplication: iApplication, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig) {
-        super.init(aApplication, aStm, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
+    override fun init(aApplication: iApplication, aConn: CoreAdvancedConnection, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig) {
+        super.init(aApplication, aConn, aStm, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
 
         hmPrice = PriceData.loadPrice(stm, mPrice.PRICE_TYPE_OUT)
     }

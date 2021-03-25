@@ -204,7 +204,7 @@ abstract class CoreSpringController : iApplication {
                                 throw BusinessException("Доступ к модулю '${aliasConfig.descr}' не разрешён.")
 
                             val page = Class.forName(aliasConfig.controlClassName).getConstructor().newInstance() as cStandart
-                            page.init(this, stm, chmSession, hmParam, hmAliasConfig, aliasConfig, CoreSpringApp.hmXyDocumentConfig, userConfig)
+                            page.init(this, conn, stm, chmSession, hmParam, hmAliasConfig, aliasConfig, CoreSpringApp.hmXyDocumentConfig, userConfig)
                             when (appRequest.action) {
                                 AppAction.TABLE -> {
                                     if (CoreSpringApp.userLogMode == CoreSpringApp.SYSTEM_LOG_ALL) logQuery(hmParam)

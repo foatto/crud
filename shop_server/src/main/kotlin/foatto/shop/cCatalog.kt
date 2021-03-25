@@ -21,6 +21,7 @@ import foatto.core_server.app.server.data.DataInt
 import foatto.core_server.app.server.data.DataString
 import foatto.core_server.app.server.data.iData
 import foatto.core_server.app.server.mAbstractHierarchy
+import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedStatement
 import java.time.ZonedDateTime
 import java.util.concurrent.ConcurrentHashMap
@@ -41,9 +42,9 @@ class cCatalog : cAbstractHierarchy() {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     override fun init(
-        aApplication: iApplication, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig
+        aApplication: iApplication, aConn: CoreAdvancedConnection, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig
     ) {
-        super.init(aApplication, aStm, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
+        super.init(aApplication, aConn, aStm, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
 
         hmPriceIn = PriceData.loadPrice(stm, mPrice.PRICE_TYPE_IN)
         hmPriceOut = PriceData.loadPrice(stm, mPrice.PRICE_TYPE_OUT)

@@ -19,6 +19,7 @@ import foatto.shop.mDocumentContent.Companion.ADD_OVER_MARK_CODE
 import foatto.shop_core.app.ICON_NAME_ADD_MARKED_ITEM
 import foatto.shop_core.app.ICON_NAME_CALC
 import foatto.shop_core.app.ICON_NAME_FISCAL
+import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedStatement
 import java.util.concurrent.ConcurrentHashMap
 
@@ -26,6 +27,8 @@ class cDocumentContent : cStandart() {
 
     companion object {
         const val PERM_AUDIT_MODE = "audit_mode"
+
+        const val TABLE_CELL_FORE_COLOR_MARK_CODE = 0xFF_A0_A0_A0.toInt()
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -38,8 +41,8 @@ class cDocumentContent : cStandart() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun init(aApplication: iApplication, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig) {
-        super.init(aApplication, aStm, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
+    override fun init(aApplication: iApplication, aConn: CoreAdvancedConnection, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig) {
+        super.init(aApplication, aConn, aStm, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
 
         for (name in DocumentTypeConfig.hmAliasDocType.keys) {
             docId = hmParentData[name]
@@ -180,6 +183,9 @@ class cDocumentContent : cStandart() {
         if ((hmColumnData[mdc.columnDocumentContentIsDeleted] as DataBoolean).value) {
             tci.foreColorType = TableCellForeColorType.DEFINED
             tci.foreColor = TABLE_CELL_FORE_COLOR_DISABLED
+        } else if(column == mdc.columnMarkCode) {
+            tci.foreColorType = TableCellForeColorType.DEFINED
+            tci.foreColor = TABLE_CELL_FORE_COLOR_MARK_CODE
         }
     }
 

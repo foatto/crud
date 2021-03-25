@@ -70,6 +70,14 @@ class Starrus : iFiscal {
             }
         }
     }
+
+    override fun closeShift(
+        objectMapper: ObjectMapper,
+        httpClient: HttpClient,
+        fiscalUrl: String,
+    ) {
+        // shift closed automatically by fiscal printer itself
+    }
 }
 
 private class StarrusFiscalRequest(

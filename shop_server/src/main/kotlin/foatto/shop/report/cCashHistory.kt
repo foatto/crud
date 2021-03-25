@@ -15,6 +15,7 @@ import foatto.shop.PriceData
 import foatto.shop.cDocument
 import foatto.shop.mPrice
 import foatto.shop.mWarehouse
+import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedStatement
 import jxl.CellView
 import jxl.format.PageOrientation
@@ -29,8 +30,8 @@ class cCashHistory : cAbstractReport() {
 
     private lateinit var hmPrice: Map<Int, List<Pair<Int, Double>>>
 
-    override fun init(aApplication: iApplication, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig) {
-        super.init(aApplication, aStm, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
+    override fun init(aApplication: iApplication, aConn: CoreAdvancedConnection, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig) {
+        super.init(aApplication, aConn, aStm, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
 
         hmPrice = PriceData.loadPrice(stm, mPrice.PRICE_TYPE_OUT)
     }

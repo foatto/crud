@@ -7,6 +7,7 @@ interface iShopApplication : iApplication {
     val discountLimits: Array<String>
     val discountValues: Array<String>
 
+    val fiscalOnceOnly: String?
     val fiscalIndex: String?
     val fiscalUrls: Array<String>
     val fiscalLineCutters: Array<String>

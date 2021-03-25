@@ -21,4 +21,10 @@ interface iFiscal {
         fiscalTaxMode: String,
         fiscalPlace: String,
     )
+
+    fun closeShift(
+        objectMapper: ObjectMapper,
+        httpClient: HttpClient,
+        fiscalUrl: String,
+    )
 }
