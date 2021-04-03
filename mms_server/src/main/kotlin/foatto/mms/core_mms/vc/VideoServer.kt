@@ -1,4 +1,3 @@
-//@file:JvmName("VideoServer")
 //package foatto.mms.core_mms.vc
 //
 //import foatto.core.util.AdvancedByteBuffer

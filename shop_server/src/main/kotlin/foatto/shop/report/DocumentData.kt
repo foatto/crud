@@ -1,11 +1,10 @@
-@file:JvmName("DocumentData")
 package foatto.shop.report
 
 import foatto.sql.CoreAdvancedStatement
 import java.util.ArrayList
 
-class DocumentData( @JvmField val id: Int, @JvmField val type: Int, @JvmField val whSour: Int, @JvmField val whDest: Int, @JvmField val docNo: String,
-                    @JvmField val arrDT: IntArray, @JvmField val clientID: Int, @JvmField val discount: Double, @JvmField val descr: String ) {
+class DocumentData( val id: Int, val type: Int, val whSour: Int, val whDest: Int, val docNo: String,
+                    val arrDT: IntArray, val clientID: Int, val discount: Double, val descr: String ) {
 
 //  create_time       INT,
 //  edit_time         INT,
@@ -15,7 +14,6 @@ class DocumentData( @JvmField val id: Int, @JvmField val type: Int, @JvmField va
     lateinit var alDCD: ArrayList<DocumentContentData>
 
     companion object {
-        @JvmStatic
         fun loadDocumentData( stm: CoreAdvancedStatement): ArrayList<DocumentData> {
             val alDD = ArrayList<DocumentData>()
 

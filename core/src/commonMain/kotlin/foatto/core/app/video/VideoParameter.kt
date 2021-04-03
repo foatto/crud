@@ -1,4 +1,3 @@
-//@file:JvmName("VideoParameter")
 //package foatto.core.app.video
 //
 //object VideoParameter {

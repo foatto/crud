@@ -1,9 +1,8 @@
-@file:JvmName("PLADeviceInfo")
 package foatto.mms.core_mms.ds
 
 import foatto.core.util.AdvancedByteBuffer
 
-class PLADeviceInfo( byteBuffer: AdvancedByteBuffer ) {
+class PLADeviceInfo(byteBuffer: AdvancedByteBuffer) {
     var ringHeadPos = 0        // голова кольцевого буфера
     var ringTailPos = 0        // хвост кольцевого буфера
     var ringCount = 0        // кол-во кругов (износ флэш)
@@ -30,11 +29,11 @@ class PLADeviceInfo( byteBuffer: AdvancedByteBuffer ) {
         temperature = byteBuffer.getShort().toInt()    // температура - величина со знаком
         signalStrength = byteBuffer.getByte().toInt() and 0xFF
         trafficCount = byteBuffer.getInt()
-        travelDistance = Math.round( byteBuffer.getFloat().toDouble() * 1.852 * 1000.0 ).toInt()  // в милях, переводим в метры
+        travelDistance = Math.round(byteBuffer.getFloat().toDouble() * 1.852 * 1000.0).toInt()  // в милях, переводим в метры
         accelLevel = byteBuffer.getByte().toInt() and 0xFF
 
         //--- пропускаем 100 резервных байт
-        for( i in 0..99 ) byteBuffer.getByte()
+        for (i in 0..99) byteBuffer.getByte()
         // попробовать byteBuffer.get( new byte[ 100 ] );
     }
 }

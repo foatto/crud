@@ -1,17 +1,14 @@
-@file:JvmName("CoreDataWorker")
 package foatto.core_server.ds
 
-import foatto.sql.CoreAdvancedConnection
-import foatto.sql.CoreAdvancedStatement
 import foatto.core.util.AdvancedLogger
 import foatto.core.util.getCurrentTimeInt
-import java.util.ArrayList
+import foatto.sql.CoreAdvancedConnection
+import foatto.sql.CoreAdvancedStatement
+import java.util.*
 
-abstract class CoreDataWorker protected constructor( val dataServer: CoreDataServer ) : Thread() {
+abstract class CoreDataWorker protected constructor(val dataServer: CoreDataServer) : Thread() {
 
-    @JvmField
     val alConn = ArrayList<CoreAdvancedConnection>()
-    @JvmField
     val alStm = ArrayList<CoreAdvancedStatement>()
 
     init {
@@ -19,7 +16,7 @@ abstract class CoreDataWorker protected constructor( val dataServer: CoreDataSer
         //--- нельзя увеличивать счётчик до открытия базы - т.к. открытие базы может обломиться (SQLite),
         //--- а счётчик уже увеличен
         dataServer.workerCount++
-        AdvancedLogger.info( "--- DataWorker started = ${dataServer.workerCount}" )
+        AdvancedLogger.info("--- DataWorker started = ${dataServer.workerCount}")
     }
 
     override fun run() {
@@ -27,18 +24,18 @@ abstract class CoreDataWorker protected constructor( val dataServer: CoreDataSer
             var sleepTime = 0
             var lastSQLCheck = getCurrentTimeInt()
 
-            while( true ) {
+            while (true) {
                 //--- проверка SQL-соединения на живость
-                lastSQLCheck = checkDB( lastSQLCheck )
+                lastSQLCheck = checkDB(lastSQLCheck)
 
                 val handler = dataServer.getHandler()
 
-                if( handler == null )
-                    synchronized( dataServer.lock ) {
+                if (handler == null)
+                    synchronized(dataServer.lock) {
                         try {
-                            dataServer.lock.wait( (++sleepTime) * 1000L )
+                            dataServer.lock.wait((++sleepTime) * 1000L)
+                        } catch (e: InterruptedException) {
                         }
-                        catch( e: InterruptedException ) {}
                     }
                 else {
                     sleepTime = 0
@@ -47,49 +44,45 @@ abstract class CoreDataWorker protected constructor( val dataServer: CoreDataSer
                         var isOk = true
 
                         val begTime = getCurrentTimeInt()
-                        while( isOk && !handler.clqIn.isEmpty() ) isOk = handler.work( this )
+                        while (isOk && !handler.clqIn.isEmpty()) isOk = handler.work(this)
                         dataServer.workTime += getCurrentTimeInt() - begTime
 
-                        if( isOk ) dataServer.putHandler( handler )
-                        else dataServer.putForClose( handler )
-                    }
-                    catch( t: Throwable ) {
-                        AdvancedLogger.error( t )
-                        dataServer.putForClose( handler )
+                        if (isOk) dataServer.putHandler(handler)
+                        else dataServer.putForClose(handler)
+                    } catch (t: Throwable) {
+                        AdvancedLogger.error(t)
+                        dataServer.putForClose(handler)
                         //--- выходим из цикла обработки
                         break
                     }
                 }
             }
-        }
-        catch( t: Throwable ) {
-            AdvancedLogger.error( t )
+        } catch (t: Throwable) {
+            AdvancedLogger.error(t)
         }
 
         //--- закрываем соединения
         try {
             closeDB()
-        }
-        catch( t: Throwable ) {
-            AdvancedLogger.error( t )
+        } catch (t: Throwable) {
+            AdvancedLogger.error(t)
         }
 
         dataServer.workerCount--
-        AdvancedLogger.info( "--- DataWorker stopped = ${dataServer.workerCount}" )
+        AdvancedLogger.info("--- DataWorker stopped = ${dataServer.workerCount}")
     }
 
     //--- проверка живости соединения с базой -
     //--- особенно актуально для работы с сетевыми базами данных
-    private fun checkDB( aLastSQLCheck: Int ): Int {
+    private fun checkDB(aLastSQLCheck: Int): Int {
         var lastSQLCheck = aLastSQLCheck
-        if( getCurrentTimeInt() - lastSQLCheck > dataServer.dbPingInterval ) {
+        if (getCurrentTimeInt() - lastSQLCheck > dataServer.dbPingInterval) {
             try {
-                val rs = alStm[ 0 ].executeQuery( dataServer.dbPingQuery )
+                val rs = alStm[0].executeQuery(dataServer.dbPingQuery)
                 rs.next()
                 rs.close()
-            }
-            catch( t: Throwable ) {
-                AdvancedLogger.error( t )
+            } catch (t: Throwable) {
+                AdvancedLogger.error(t)
                 //--- переоткрыть соединение к базе, при ошибке - закрываем обработчик, т.к. база недоступна
                 closeDB()
                 openDB()
@@ -104,33 +97,31 @@ abstract class CoreDataWorker protected constructor( val dataServer: CoreDataSer
         alConn.clear()
         alStm.clear()
 
-        for( i in dataServer.alDBConfig.indices ) {
-            val conn = openConnection( i )
+        for (i in dataServer.alDBConfig.indices) {
+            val conn = openConnection(i)
 
-            alConn.add( conn )
-            alStm.add( conn.createStatement() )
+            alConn.add(conn)
+            alStm.add(conn.createStatement())
         }
     }
 
     //--- открытие коннектов к базе - имеет свои особенности на разных платформах
-    protected abstract fun openConnection( dbIndex: Int ): CoreAdvancedConnection
+    protected abstract fun openConnection(dbIndex: Int): CoreAdvancedConnection
 
     //--- закрытие баз - своих особенностей на разных платформах не обнаружилось
     private fun closeDB() {
-        for( stm in alStm )
+        for (stm in alStm)
             try {
                 stm.close()
-            }
-            catch( re: Throwable ) {
-                AdvancedLogger.error( re )
+            } catch (re: Throwable) {
+                AdvancedLogger.error(re)
             }
 
-        for( conn in alConn )
+        for (conn in alConn)
             try {
                 conn.close()
-            }
-            catch( re: Throwable ) {
-                AdvancedLogger.error( re )
+            } catch (re: Throwable) {
+                AdvancedLogger.error(re)
             }
     }
 }

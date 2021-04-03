@@ -1,7 +1,6 @@
-@file:JvmName("DependData")
 package foatto.core_server.app.server
 
-class DependData constructor( val destTableName: String, val destFieldName: String, val type: Int, val valueForSet: Int ) {
+class DependData(val destTableName: String, val destFieldName: String, val type: Int, val valueForSet: Int) {
 
     companion object {
         const val CHECK = 0
@@ -9,8 +8,8 @@ class DependData constructor( val destTableName: String, val destFieldName: Stri
         const val SET = 2
     }
 
-    constructor( aDestTableName: String, aDestFieldName: String ) : this( aDestTableName, aDestFieldName, CHECK, 0 )
+    constructor(aDestTableName: String, aDestFieldName: String) : this(aDestTableName, aDestFieldName, CHECK, 0)
 
-    constructor( aDestTableName: String, aDestFieldName: String, aType: Int ) : this( aDestTableName, aDestFieldName, aType, 0 )
+    constructor(aDestTableName: String, aDestFieldName: String, aType: Int) : this(aDestTableName, aDestFieldName, aType, 0)
 
 }

@@ -16,7 +16,6 @@ interface iShopApplication : iApplication {
     val fiscalPlace: String?
 
     fun getDocumentDate(docId:Int): Triple<Int, Int, Int>
-    fun setDocumentDiscount(docId:Int, discount: Double)
     fun isDocumentFiscable(docId: Int): Boolean
 
     fun checkCatalogMarkable(aCatalogId: Int): Boolean

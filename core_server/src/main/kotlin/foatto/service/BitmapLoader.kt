@@ -38,7 +38,6 @@
 //
 //    companion object {
 //
-//        @JvmStatic
 //        fun main(args: Array<String>) {
 //            var exitCode = 0   // нормальный выход с прерыванием цикла запусков
 //            try {

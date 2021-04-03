@@ -1,10 +1,9 @@
-//@file:JvmName("VideoViewCoord")
 //package foatto.core.app.video
 //
 //class VideoViewCoord( aT1: Long, aT2: Long ) {
 //
-//    @JvmField var t1: Long = 0
-//    @JvmField var t2: Long = 0
+//    var t1: Long = 0
+//    var t2: Long = 0
 //
 //    //----------------------------------------------------------------------------------------------------------------------
 //

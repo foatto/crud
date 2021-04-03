@@ -1,4 +1,3 @@
-//@file:JvmName("CameraDef")
 //package foatto.core.app.video
 //
 //import foatto.core.util.AdvancedByteBuffer
@@ -10,19 +9,19 @@
 //class CameraDef {
 //
 //    //--- общие/одинаковые для всех определения (удобно задать их здесь для каждой камеры)
-//    @JvmField var dirVideoRoot: String
-//    @JvmField var objectID = 0
+//    var dirVideoRoot: String
+//    var objectID = 0
 //
 //    //--- общее для всех режимов, но для каждой камеры своё
-//    @JvmField var descr: String
+//    var descr: String
 //
 //    //--- только для онлайн-режима
-//    @JvmField var imageURL: String
-//    @JvmField var login: String
-//    @JvmField var password: String
+//    var imageURL: String
+//    var login: String
+//    var password: String
 //
 //    //--- только для показа архива
-//    @JvmField var alStream: ArrayList<StreamDef>
+//    var alStream: ArrayList<StreamDef>
 //
 ////-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //
@@ -89,7 +88,7 @@
 //
 //    companion object {
 //
-//        @JvmStatic fun getCameraImageInputStream( urlImage: String, cameraLogin: String, cameraPassword: String ): InputStream {
+//        fun getCameraImageInputStream( urlImage: String, cameraLogin: String, cameraPassword: String ): InputStream {
 //            val urlConn = URL( urlImage ).openConnection() as HttpURLConnection
 //            //--- настройка подключения
 //            urlConn.requestMethod = "GET"

@@ -1,4 +1,3 @@
-//@file:JvmName("StreamDef")
 //package foatto.core.app.video
 //
 //import foatto.core.util.AdvancedByteBuffer
@@ -6,9 +5,9 @@
 //
 //class StreamDef {
 //
-//    @JvmField var alFileBeg: ArrayList<Long>
-//    @JvmField var alFileEnd: ArrayList<Long>
-//    @JvmField var alFileName: ArrayList<String>
+//    var alFileBeg: ArrayList<Long>
+//    var alFileEnd: ArrayList<Long>
+//    var alFileName: ArrayList<String>
 //
 //    constructor() {
 //        //--- типовой интервал - сутки, итого файлов с типовой 5-минутной нарезкой = 288 шт.

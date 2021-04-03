@@ -183,7 +183,7 @@ class cDocumentContent : cStandart() {
         if ((hmColumnData[mdc.columnDocumentContentIsDeleted] as DataBoolean).value) {
             tci.foreColorType = TableCellForeColorType.DEFINED
             tci.foreColor = TABLE_CELL_FORE_COLOR_DISABLED
-        } else if(column == mdc.columnMarkCode) {
+        } else if (column == mdc.columnMarkCode) {
             tci.foreColorType = TableCellForeColorType.DEFINED
             tci.foreColor = TABLE_CELL_FORE_COLOR_MARK_CODE
         }
@@ -300,7 +300,7 @@ class cDocumentContent : cStandart() {
 
     override fun getSaveButtonParams(formParam: String): String {
         var saveParams = super.getSaveButtonParams(formParam)
-        if(hmParam[ADD_OVER_MARK_CODE]?.toIntOrNull() == 1) {
+        if (hmParam[ADD_OVER_MARK_CODE]?.toIntOrNull() == 1) {
             saveParams = AppParameter.setParam(saveParams, ADD_OVER_MARK_CODE, "1")
         }
         return saveParams
@@ -368,7 +368,7 @@ class cDocumentContent : cStandart() {
                             if (markCode.length >= mCatalog.MARK_CODE_LEN) {    // full mark code
                                 val incomedCatalogId = (application as iShopApplication).findIncomeCatalogIdByMark(markCode)
                                 if (incomedCatalogId != null) {
-                                    if(isAddOverMarkCode || incomedCatalogId == sourCatalogData.intValue) {
+                                    if (isAddOverMarkCode || incomedCatalogId == sourCatalogData.intValue) {
                                         val outcomedCatalogId = (application as iShopApplication).findOutcomeCatalogIdByMark(markCode)
                                         if (outcomedCatalogId == null) {
                                             //--- automatically setup required values
@@ -388,7 +388,7 @@ class cDocumentContent : cStandart() {
                                                     destNumData.doubleValue = 1.0
                                                 }
                                                 //--- mark code using in move operation for item search only
-                                                if(docType == DocumentTypeConfig.TYPE_MOVE) {
+                                                if (docType == DocumentTypeConfig.TYPE_MOVE) {
                                                     markData.text = ""
                                                 }
                                             } else {
@@ -433,7 +433,7 @@ class cDocumentContent : cStandart() {
                             if (markCode.length >= mCatalog.MARK_CODE_LEN) {    // full mark code
                                 val incomedCatalogId = (application as iShopApplication).findIncomeCatalogIdByMark(markCode)
                                 if (incomedCatalogId != null) {
-                                    if(incomedCatalogId == sourCatalogData.intValue) {
+                                    if (incomedCatalogId == sourCatalogData.intValue) {
                                         val outcomedCatalogId = (application as iShopApplication).findOutcomeCatalogIdByMark(markCode)
                                         if (outcomedCatalogId == null) {
                                             if (sourNumData.doubleValue != 1.0) {
@@ -469,7 +469,7 @@ class cDocumentContent : cStandart() {
 
     override fun getInvalidFormDataUrl(id: Int, formDataID: String): String {
         var invalidParams = super.getInvalidFormDataUrl(id, formDataID)
-        if(hmParam[ADD_OVER_MARK_CODE]?.toIntOrNull() == 1) {
+        if (hmParam[ADD_OVER_MARK_CODE]?.toIntOrNull() == 1) {
             invalidParams = AppParameter.setParam(invalidParams, ADD_OVER_MARK_CODE, "1")
         }
         return invalidParams
@@ -609,7 +609,7 @@ class cDocumentContent : cStandart() {
 
     private fun autoUpdateDiscount() {
         docId?.let { docId ->
-            if(docType == DocumentTypeConfig.TYPE_OUT) {
+            if (docType == DocumentTypeConfig.TYPE_OUT) {
                 val (docYe, docMo, docDa) = (application as iShopApplication).getDocumentDate(docId)
                 docCost = cDocument.calcDocCountAndCost(stm, hmPrice, docId, docType, zoneId, docYe, docMo, docDa, 0.0).second
 
@@ -618,12 +618,12 @@ class cDocumentContent : cStandart() {
 
                 var discount = 0.0
                 discountLimits.forEachIndexed DL@{ index, limit ->
-                    if(docCost <= limit) {
+                    if (docCost <= limit) {
                         return@DL
                     }
                     discount = discountValues[index]
                 }
-                (application as iShopApplication).setDocumentDiscount(docId, discount)
+                stm.executeUpdate(" UPDATE SHOP_doc SET discount = $discount WHERE id = $docId")
             }
         }
     }

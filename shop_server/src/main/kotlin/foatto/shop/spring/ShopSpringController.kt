@@ -362,13 +362,6 @@ class ShopSpringController : CoreSpringController(), iShopApplication {
             Triple(doc.date.ye, doc.date.mo, doc.date.da)
         } ?: Triple(0, 1, 1)
 
-    override fun setDocumentDiscount(docId: Int, discount: Double) {
-        documentRepository.findByIdOrNull(docId)?.let { doc ->
-            doc.discount = discount
-            documentRepository.save(doc)
-        }
-    }
-
     override fun isDocumentFiscable(docId: Int): Boolean {
         val doc = documentRepository.findByIdOrNull(docId)
         return (doc?.isFiscaled ?: 0) == 0

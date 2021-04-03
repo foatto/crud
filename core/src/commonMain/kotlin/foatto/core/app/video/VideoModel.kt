@@ -1,4 +1,3 @@
-//@file:JvmName("VideoModel")
 //package foatto.core.app.video
 //
 //import foatto.core.app.iCoreAppContainer
@@ -23,33 +22,33 @@
 //    //--- параметры, генерируемые и/или загружаемые с сервера
 //    lateinit var startParamID: String
 //    lateinit var startTitle: String
-//    @JvmField var isOnlineMode = false
+//    var isOnlineMode = false
 //
-//    @JvmField var scaleKoef = 1
-//    @JvmField var isLocalServer = false
+//    var scaleKoef = 1
+//    var isLocalServer = false
 //
 ////-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //
 //    //--- текущий режим работы
-//    @JvmField var curMode = WorkMode.PAUSE
-//    @JvmField var vcViewCoord = VideoViewCoord( 0, 0 )
+//    var curMode = WorkMode.PAUSE
+//    var vcViewCoord = VideoViewCoord( 0, 0 )
 //    @Volatile
-//    @JvmField var curTime: Long = 0
+//    var curTime: Long = 0
 //
 //    //--- редко бывает больше 16 камер одновременно
-//    @JvmField var alCameraDef = ArrayList<CameraDef>( 16 )
+//    var alCameraDef = ArrayList<CameraDef>( 16 )
 //
 //    //--- режим показа по каждой камере: индекс - режим показа, внутри элемента массива - список индексов камер.
 //    //--- (используется именно ArrayList, т.к. важен порядок индексов)
-//    @JvmField var tsShowModeHidden = TreeSet<Int>()
-//    @JvmField var tsShowModePreview = TreeSet<Int>()
-//    @JvmField var tsShowModeFull = TreeSet<Int>()
+//    var tsShowModeHidden = TreeSet<Int>()
+//    var tsShowModePreview = TreeSet<Int>()
+//    var tsShowModeFull = TreeSet<Int>()
 //
 //    //--- экранная позиция курсора
-//    @JvmField var cursorX = -1
+//    var cursorX = -1
 //    //--- экранные X-позиции рамки выбора области
-//    @JvmField var selectorX1 = -1
-//    @JvmField var selectorX2 = -1
+//    var selectorX1 = -1
+//    var selectorX2 = -1
 //
 ////-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //
