@@ -268,6 +268,7 @@ class ShopSpringController : CoreSpringController(), iShopApplication {
         val alMenuJournal = mutableListOf<MenuData>()
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuJournal, "shop_cash", true)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuJournal, "shop_gift", true)
 
         if (alMenuJournal.size > 0) alMenu.add(MenuData("", "Журналы", alMenuJournal.toTypedArray()))
 

@@ -33,7 +33,11 @@ include(
 
     "shop_core",
     "shop_server",
-    "shop_web"
+    "shop_web",
+
+    "ts_core",
+    "ts_server",
+    "ts_web"
 )
 
 

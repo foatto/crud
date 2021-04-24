@@ -10,6 +10,7 @@ class ClientDBPrepare(aConfigFileName: String) : CoreServiceWorker(aConfigFileNa
 
     companion object {
 
+        private const val CONFIG_ADMIN_ID = "admin_id"
         private const val CONFIG_USER_ID = "user_id"
 
         //----------------------------------------------------------------------------------------------------------------------------------------
@@ -31,7 +32,8 @@ class ClientDBPrepare(aConfigFileName: String) : CoreServiceWorker(aConfigFileNa
         }
     }
 
-    //--- список оставляемых пользователей
+    //--- список оставляемых админов и пользователей
+    private var adminIdList = ""
     private var userIdList = ""
 
     override val isRunOnce: Boolean
@@ -42,6 +44,7 @@ class ClientDBPrepare(aConfigFileName: String) : CoreServiceWorker(aConfigFileNa
     override fun loadConfig() {
         super.loadConfig()
 
+        adminIdList = hmConfig[CONFIG_ADMIN_ID]!!
         userIdList = hmConfig[CONFIG_USER_ID]!!
     }
 
@@ -57,7 +60,19 @@ class ClientDBPrepare(aConfigFileName: String) : CoreServiceWorker(aConfigFileNa
 
     override fun cycle() {
 
+        val alAdminIDDest = adminIdList.split(' ', ',', ';').filter { it.isNotEmpty() }.map { it.toInt() }.toMutableList()
         val alUserIDDest = userIdList.split(' ', ',', ';').filter { it.isNotEmpty() }.map { it.toInt() }.toMutableList()
+
+        //--- расширяем список оставляемых пользователей (на случай, если там заданы id подразделений/групп пользователей)
+        // alUserIDDest.forEach { - даёт ConcurrentModifException, т.к. дополняется на ходу, только через индексы
+        for (i in 0 until alAdminIDDest.size) {
+            val rs = alStm[0].executeQuery(" SELECT id FROM SYSTEM_users WHERE id <> 0 AND parent_id = ${alAdminIDDest[i]} ")
+            while (rs.next()) {
+                alAdminIDDest.add(rs.getInt(1))
+            }
+            rs.close()
+        }
+        val sAdminIDList = alAdminIDDest.distinct().joinToString()
 
         //--- расширяем список оставляемых пользователей (на случай, если там заданы id подразделений/групп пользователей)
         // alUserIDDest.forEach { - даёт ConcurrentModifException, т.к. дополняется на ходу, только через индексы
@@ -68,7 +83,6 @@ class ClientDBPrepare(aConfigFileName: String) : CoreServiceWorker(aConfigFileNa
             }
             rs.close()
         }
-
         val sUserIDList = alUserIDDest.distinct().joinToString()
 
         //--- составляем список ID удаляемых объектов
@@ -166,10 +180,10 @@ class ClientDBPrepare(aConfigFileName: String) : CoreServiceWorker(aConfigFileNa
         AdvancedLogger.info("MMS_device")
 
         //--- зачистка ненужных пользователей
-        alStm[0].executeUpdate(" DELETE FROM SYSTEM_users WHERE id <> 0 AND id NOT IN ( $sUserIDList ) ")
-        alStm[0].executeUpdate(" DELETE FROM SYSTEM_user_role WHERE id <> 0 AND user_id <> 0 AND user_id NOT IN ( $sUserIDList ) ")
-        alStm[0].executeUpdate(" DELETE FROM SYSTEM_user_property WHERE id <> 0 AND user_id <> 0 AND user_id NOT IN ( $sUserIDList ) ")
-        alStm[0].executeUpdate(" DELETE FROM SYSTEM_new WHERE id <> 0 AND user_id <> 0 AND user_id NOT IN ( $sUserIDList ) ")
+        alStm[0].executeUpdate(" DELETE FROM SYSTEM_users WHERE id <> 0 AND id NOT IN ( $sAdminIDList , $sUserIDList ) ")
+        alStm[0].executeUpdate(" DELETE FROM SYSTEM_user_role WHERE id <> 0 AND user_id <> 0 AND user_id NOT IN ( SELECT id FROM SYSTEM_users ) ")
+        alStm[0].executeUpdate(" DELETE FROM SYSTEM_user_property WHERE user_id <> 0 AND user_id NOT IN ( SELECT id FROM SYSTEM_users ) ")
+        alStm[0].executeUpdate(" DELETE FROM SYSTEM_new WHERE user_id <> 0 AND user_id NOT IN ( SELECT id FROM SYSTEM_users ) ")
         alConn[0].commit()
         AdvancedLogger.info("SYSTEM_users")
 

@@ -187,9 +187,6 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
 
 //-------------------------------------------------------------------------------------------------
 
-//    @Autowired
-//    private lateinit var sensorConfigRepository: SensorConfigRepository
-
     @PostMapping("/api/app")
     @Transactional
     override fun app(
@@ -228,16 +225,6 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
     ): XyActionResponse {
         return super.xy(xyActionRequest)
     }
-
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-//    @PostMapping("/api/update")
-//    override fun update(
-//        @RequestBody
-//        updateRequest: UpdateRequest
-//    ): UpdateResponse {
-//        return super.update( updateRequest )
-//    }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
