@@ -27,6 +27,7 @@ abstract class CoreReplicator(aConfigFileName: String) : CoreServiceWorker(aConf
         private val ROLE_RECEIVER = 1
 
         private val CONFIG_DEST_NAME_ = "dest_name_"
+        private val CONFIG_DEST_PROTOCOL_ = "dest_protocol_"
         private val CONFIG_DEST_IP_ = "dest_ip_"
         private val CONFIG_DEST_PORT_ = "dest_port_"
         private val CONFIG_DEST_ROLE_ = "dest_role_"
@@ -41,6 +42,7 @@ abstract class CoreReplicator(aConfigFileName: String) : CoreServiceWorker(aConf
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     private val alDestName = mutableListOf<String>()
+    private val alDestProtocol = mutableListOf<String>()
     private val alDestIP = mutableListOf<String>()
     private val alDestPort = mutableListOf<Int>()
     private val alDestRole = mutableListOf<Int?>()
@@ -61,6 +63,7 @@ abstract class CoreReplicator(aConfigFileName: String) : CoreServiceWorker(aConf
             val destName = hmConfig[CONFIG_DEST_NAME_ + index] ?: break
 
             alDestName.add(destName)
+            alDestProtocol += hmConfig[CONFIG_DEST_PROTOCOL_ + index] ?: "HTTP"
             alDestIP += hmConfig[CONFIG_DEST_IP_ + index]!!
             alDestPort += hmConfig[CONFIG_DEST_PORT_ + index]!!.toInt()
             //--- если роль репликатора не указана явно, то он выполняет обе роли - и отправителя и получателя
@@ -86,9 +89,9 @@ abstract class CoreReplicator(aConfigFileName: String) : CoreServiceWorker(aConf
                 install(HttpTimeout)
 
                 defaultRequest {
+                    url.protocol = if(alDestProtocol.last().toUpperCase() == "HTTPS") URLProtocol.HTTPS else URLProtocol.HTTP
                     host = alDestIP.last()
                     port = alDestPort.last()
-                    url.protocol = URLProtocol.HTTP //URLProtocol.HTTPS
                 }
             }
         }
@@ -192,13 +195,13 @@ abstract class CoreReplicator(aConfigFileName: String) : CoreServiceWorker(aConf
                     }
                 }
             } catch (ioe: IOException) {
-                //--- на всякий случай, хотя на этом этапе ещё не было изменений в локальной базе
-                //alConn.get( 0 ).rollback();
+                alConn[0].rollback()
                 AdvancedLogger.error(ioe)
             } catch (t: Throwable) {
-                t.printStackTrace()
+                alConn[0].rollback()
                 //--- вывести/сохранить SQL-запрос, при котором (возможно) получена ошибка
                 AdvancedLogger.error(sqlLog)
+                t.printStackTrace()
                 //--- передаём ошибку дальше
                 throw t
             }

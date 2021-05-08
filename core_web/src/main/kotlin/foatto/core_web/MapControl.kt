@@ -237,8 +237,8 @@ getXyElementTemplate( tabIndex,
                     //--- и сохраненяем новое состояние в view
                     val checkedView = getXyViewCoord(
                         aScale = checkXyScale(
-                            minScale = xyResponse.documentConfig.alElementConfig.minBy { it.second.scaleMin }!!.second.scaleMin,
-                            maxScale = xyResponse.documentConfig.alElementConfig.maxBy { it.second.scaleMax }!!.second.scaleMax,
+                            minScale = xyResponse.documentConfig.alElementConfig.minByOrNull { it.second.scaleMin }!!.second.scaleMin,
+                            maxScale = xyResponse.documentConfig.alElementConfig.maxByOrNull { it.second.scaleMax }!!.second.scaleMax,
                             itScaleAlign = xyResponse.documentConfig.itScaleAlign,
                             curScale = curViewCoord.scale,
                             newScale = aView.scale,
@@ -723,8 +723,8 @@ getXyElementTemplate( tabIndex,
 
                 //--- новый сдвиг относительно центра для нового масштаба
                 val newScale = checkXyScale(
-                    minScale = xyResponse.documentConfig.alElementConfig.minBy { it.second.scaleMin }!!.second.scaleMin,
-                    maxScale = xyResponse.documentConfig.alElementConfig.maxBy { it.second.scaleMax }!!.second.scaleMax,
+                    minScale = xyResponse.documentConfig.alElementConfig.minByOrNull { it.second.scaleMin }!!.second.scaleMin,
+                    maxScale = xyResponse.documentConfig.alElementConfig.maxByOrNull { it.second.scaleMax }!!.second.scaleMax,
                     itScaleAlign = xyResponse.documentConfig.itScaleAlign,
                     curScale = viewCoord.scale,
                     newScale = if( deltaY < 0 ) viewCoord.scale / 2 else viewCoord.scale * 2,
@@ -818,8 +818,8 @@ getXyElementTemplate( tabIndex,
             val viewCoord = that().viewCoord.unsafeCast<XyViewCoord>()
             //--- проверить масштаб
             val newScale = checkXyScale(
-                minScale = xyResponse.documentConfig.alElementConfig.minBy { it.second.scaleMin }!!.second.scaleMin,
-                maxScale = xyResponse.documentConfig.alElementConfig.maxBy { it.second.scaleMax }!!.second.scaleMax,
+                minScale = xyResponse.documentConfig.alElementConfig.minByOrNull { it.second.scaleMin }!!.second.scaleMin,
+                maxScale = xyResponse.documentConfig.alElementConfig.maxByOrNull { it.second.scaleMax }!!.second.scaleMax,
                 itScaleAlign = xyResponse.documentConfig.itScaleAlign,
                 curScale = viewCoord.scale,
                 newScale = viewCoord.scale / 2,
@@ -835,8 +835,8 @@ getXyElementTemplate( tabIndex,
             val viewCoord = that().viewCoord.unsafeCast<XyViewCoord>()
             //--- проверить масштаб
             val newScale = checkXyScale(
-                minScale = xyResponse.documentConfig.alElementConfig.minBy { it.second.scaleMin }!!.second.scaleMin,
-                maxScale = xyResponse.documentConfig.alElementConfig.maxBy { it.second.scaleMax }!!.second.scaleMax,
+                minScale = xyResponse.documentConfig.alElementConfig.minByOrNull { it.second.scaleMin }!!.second.scaleMin,
+                maxScale = xyResponse.documentConfig.alElementConfig.maxByOrNull { it.second.scaleMax }!!.second.scaleMax,
                 itScaleAlign = xyResponse.documentConfig.itScaleAlign,
                 curScale = viewCoord.scale,
                 newScale = viewCoord.scale * 2,
@@ -922,7 +922,7 @@ getXyElementTemplate( tabIndex,
         //--- подготовка данных для меню добавления
         that().arrAddEC = xyResponse.documentConfig.alElementConfig.filter { it.second.descrForAction.isNotEmpty() }.map { it.second }.toTypedArray()
 
-        doXyMounted( that(), xyResponse, tabIndex, "map_title", "map_toolbar", startExpandKoef, xyResponse.documentConfig.alElementConfig.minBy { it.second.scaleMin }!!.second.scaleMin )
+        doXyMounted( that(), xyResponse, tabIndex, "map_title", "map_toolbar", startExpandKoef, xyResponse.documentConfig.alElementConfig.minByOrNull { it.second.scaleMin }!!.second.scaleMin )
 
         that().setMode( MapWorkMode.PAN )
     }

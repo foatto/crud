@@ -381,14 +381,14 @@ abstract class sdcXyMap : sdcXyAbstract() {
 
     protected fun putElement(xyElement: XyElement, isAddElement: Boolean) {
         //--- определим крайние координаты
-        val minX = xyElement.alPoint.minBy { it.x }!!.x
-        val minY = xyElement.alPoint.minBy { it.y }!!.y
-        val maxX = xyElement.alPoint.maxBy { it.x }!!.x
-        val maxY = xyElement.alPoint.maxBy { it.y }!!.y
+        val minX = xyElement.alPoint.minByOrNull { it.x }!!.x
+        val minY = xyElement.alPoint.minByOrNull { it.y }!!.y
+        val maxX = xyElement.alPoint.maxByOrNull { it.x }!!.x
+        val maxY = xyElement.alPoint.maxByOrNull { it.y }!!.y
 
         //--- сначала запишем в hex-поле, сколько влезет
         val maxHexPointCount = stm.dialect.binaryFieldMaxSize / POINT_SIZE_IN_BIN
-        val hexPointCount = Math.min(xyElement.alPoint.size, maxHexPointCount)
+        val hexPointCount = xyElement.alPoint.size.coerceAtMost(maxHexPointCount)
         val bbPoint = AdvancedByteBuffer(hexPointCount * POINT_SIZE_IN_BIN)
         for (i in 0 until hexPointCount) {
             val p = xyElement.alPoint[i]

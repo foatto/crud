@@ -234,7 +234,7 @@ class cCashHistory : cAbstractReport() {
 
     //--- расчёт суммы нескольких документов
     fun calcOut(aWarehouseID: Int, arrDT: IntArray): Double {
-        val stm = stm
+        val stmCalc = conn.createStatement()
 
         //--- получаем список документов
         val alDocID = ArrayList<Int>()
@@ -242,7 +242,7 @@ class cCashHistory : cAbstractReport() {
         val alDocDiscount = ArrayList<Double>()
 
         //--- для всех продаж
-        var rs = stm.executeQuery(
+        var rs = stmCalc.executeQuery(
             " SELECT id , discount FROM SHOP_doc WHERE is_deleted = 0 AND sour_id = $aWarehouseID AND doc_type = ${DocumentTypeConfig.TYPE_OUT} " +
                 " AND doc_ye = ${arrDT[0]} AND doc_mo = ${arrDT[1]} AND doc_da = ${arrDT[2]} "
         )
@@ -254,7 +254,7 @@ class cCashHistory : cAbstractReport() {
         rs.close()
 
         //--- для всех возвратов от покупателя
-        rs = stm.executeQuery(
+        rs = stmCalc.executeQuery(
             " SELECT id , discount FROM SHOP_doc WHERE is_deleted = 0 AND dest_id = $aWarehouseID AND doc_type = ${DocumentTypeConfig.TYPE_RETURN_OUT} " +
                 " AND doc_ye = ${arrDT[0]} AND doc_mo = ${arrDT[1]} AND doc_da = ${arrDT[2]} "
         )
@@ -273,10 +273,10 @@ class cCashHistory : cAbstractReport() {
             val discount = alDocDiscount[i]
 
             result += (if(docType == DocumentTypeConfig.TYPE_OUT) 1 else -1) *
-                cDocument.calcDocCountAndCost(stm, hmPrice, docID, docType, zoneId, arrDT[0], arrDT[1], arrDT[2], discount).second
+                cDocument.calcDocCountAndCost(stmCalc, hmPrice, docID, docType, zoneId, arrDT[0], arrDT[1], arrDT[2], discount).second
         }
 
-        stm.close()
+        stmCalc.close()
 
         return result
     }

@@ -259,10 +259,10 @@ abstract class MMSHandler : AbstractHandler() {
 
     protected fun roundSpeed(speed: Double): Short {
         when (deviceConfig!!.speedRoundRule) {
-            SensorConfigGeo.SPEED_ROUND_RULE_LESS -> return floor(speed).toShort()
-            SensorConfigGeo.SPEED_ROUND_RULE_GREATER -> return ceil(speed).toShort()
-            SensorConfigGeo.SPEED_ROUND_RULE_STANDART -> return round(speed).toShort()
-            else -> return round(speed).toShort()
+            SensorConfigGeo.SPEED_ROUND_RULE_LESS -> return floor(speed).toInt().toShort()
+            SensorConfigGeo.SPEED_ROUND_RULE_GREATER -> return ceil(speed).toInt().toShort()
+            SensorConfigGeo.SPEED_ROUND_RULE_STANDART -> return round(speed).toInt().toShort()
+            else -> return round(speed).toInt().toShort()
         }
     }
 
