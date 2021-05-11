@@ -231,60 +231,12 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabIndex: Int 
                 </template>
             </div>
 
-            <ul v-if="isShowPopupMenu"
-                v-bind:style="[style_popup_menu_start, style_popup_menu_pos, style_popup_menu_list]"
+            <div v-if="isShowPopupMenu"
+                v-bind:style="[style_popup_menu_start, style_popup_menu_pos]"
                 v-on:mouseleave="isShowPopupMenu=false"
             >
-                <li v-for="( menuData_0, index ) in arrCurPopupData"
-                    v-bind:style="[ style_popup_menu_item,
-                                    { 'background-color' : ( menuData_0.isHover ? '$COLOR_MENU_BACK_HOVER' : '$COLOR_MENU_BACK' ) },
-                                    { 'text-decoration' : ( menuData_0.url || menuData_0.text ? '' : 'line-through' ) },
-                                    { 'color' : ( menuData_0.url || menuData_0.text ? '$COLOR_TEXT' : '$COLOR_MENU_DELIMITER' ) }
-                                  ]"
-                    v-on:click.stop="menuData_0.url ? popupMenuClick( menuData_0 ) : setPopupMenuShow( 0, index )"
-                    v-on:mouseenter="menuData_0.text ? menuData_0.isHover=true : menuData_0.isHover=false"
-                    v-on:mouseleave="menuData_0.isHover=false">
-
-                    {{ menuData_0.url ? menuData_0.text : ( menuData_0.text ? menuData_0.text + " &gt;" : "$MENU_DELIMITER" ) }}
-
-                    <template v-if="menuData_0.alSubMenu">
-                        <ul v-bind:style="style_popup_menu_list" v-show="arrShowMenu[ 0 ][ index ]">
-
-                            <li v-for="( menuData_1, index ) in menuData_0.alSubMenu"
-                                v-bind:style="[ style_popup_menu_item,
-                                                { 'background-color' : ( menuData_1.isHover ? '$COLOR_MENU_BACK_HOVER' : '$COLOR_MENU_BACK' ) },
-                                                { 'text-decoration' : ( menuData_1.url || menuData_1.text ? '' : 'line-through' ) },
-                                                { 'color' : ( menuData_1.url || menuData_1.text ? '$COLOR_TEXT' : '$COLOR_MENU_DELIMITER' ) }
-                                              ]"
-                                v-on:click.stop="menuData_1.url ? popupMenuClick( menuData_1 ) : setPopupMenuShow( 1, index )"
-                                v-on:mouseenter="menuData_1.text ? menuData_1.isHover=true : menuData_1.isHover=false"
-                                v-on:mouseleave="menuData_1.isHover=false">
-
-                                {{ menuData_1.url ? menuData_1.text : ( menuData_1.text ? menuData_1.text + " &gt;" : "$MENU_DELIMITER" ) }}
-
-                                <template v-if="menuData_1.alSubMenu">
-                                    <ul v-bind:style="style_popup_menu_list" v-show="arrShowMenu[ 1 ][ index ]">
-
-                                        <li v-for="( menuData_2, index ) in menuData_1.alSubMenu"
-                                            v-bind:style="[ style_popup_menu_item,
-                                                            { 'background-color' : ( menuData_2.isHover ? '$COLOR_MENU_BACK_HOVER' : '$COLOR_MENU_BACK' ) },
-                                                            { 'text-decoration' : ( menuData_2.url || menuData_2.text ? '' : 'line-through' ) },
-                                                            { 'color' : ( menuData_2.url || menuData_2.text ? '$COLOR_TEXT' : '$COLOR_MENU_DELIMITER' ) }
-                                                          ]"
-                                            v-on:click.stop="menuData_2.url ? popupMenuClick( menuData_2 ) : setPopupMenuShow( 2, index )""
-                                            v-on:mouseenter="menuData_2.text ? menuData_2.isHover=true : menuData_2.isHover=false"
-                                            v-on:mouseleave="menuData_2.isHover=false">
-
-                                            {{menuData_2.text}}
-                                            {{menuData_2.url ? "" : "&gt;&gt;&gt;"}}
-                                        </li>
-                                    </ul>
-                                </template>
-                            </li>
-                        </ul>
-                    </template>
-                </li>
-            </ul>
+                ${menuGenerateBody("arrCurPopupData", "popupMenuClick", "")}
+            </div>
         </div>
     """
 
@@ -671,9 +623,6 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabIndex: Int 
 
                 that().arrCurPopupData = convertPopupMenuData( arrRowData[ row ].alPopupData )
 
-                val arrShowMenu = Array( 5 ) { BooleanArray( 100 ) { false } }
-                that().arrShowMenu = arrShowMenu
-
                 //--- в данной ситуации clientX/Y == pageX/Y, offsetX/Y идёт от текущего элемента (ячейки таблицы), screenX/Y - от начала экрана
                 that().style_popup_menu_pos = json( menuSide to menuPos )
                 that().isShowPopupMenu = true
@@ -684,11 +633,6 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabIndex: Int 
             that().isShowPopupMenu = false
             that().invoke( menuData.url, menuData.inNewWindow )
         },
-        "setPopupMenuShow" to { level: Int, index: Int ->
-            val oldValue = that().arrShowMenu[ level ][ index ].unsafeCast<Boolean>()
-            that().arrShowMenu[ level ].splice( index, 1, !oldValue )
-        }
-
     )
 
     this.mounted = {
@@ -737,7 +681,6 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabIndex: Int 
             "arrRowData" to arrayOf<TableRowData>(),
             "arrCurPopupData" to null,
             "isShowPopupMenu" to false,
-            "arrShowMenu" to "[]",
             "currentRow" to -1,
 
             "style_table" to json(
@@ -830,6 +773,7 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabIndex: Int 
             ),
             "style_popup_menu_start" to json(
                 "position" to "absolute",
+                "background" to COLOR_MENU_BACK,
                 "border" to "1px solid $COLOR_MENU_BORDER",
                 "border-radius" to BORDER_RADIUS,
                 "top" to "20%",
@@ -842,14 +786,21 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabIndex: Int 
             ),
             "style_popup_menu_pos" to json(
             ),
-            "style_popup_menu_list" to json(
-                "list-style-type" to "none",
-                "background" to COLOR_MENU_BACK
+            "style_menu_summary_0" to json(
+                "padding" to styleMenuItemPadding_0(),
             ),
-            "style_popup_menu_item" to json(
-                //"padding-right" to "1rem" - появляется лишняя вертикальная жёлтая полоса на всё подменю
+            "style_menu_summary_1" to json(
+                "padding" to styleMenuItemPadding_1(),
+            ),
+            "style_menu_item_0" to json(
                 "padding" to styleMenuItemPadding_0()
-            )
+            ),
+            "style_menu_item_1" to json(
+                "padding" to styleMenuItemPadding_1()
+            ),
+            "style_menu_item_2" to json(
+                "padding" to styleMenuItemPadding_2()
+            ),
         )
     }
 }

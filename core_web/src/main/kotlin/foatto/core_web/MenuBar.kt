@@ -40,39 +40,7 @@ fun menuBar(arrMenuData: Array<MenuData>) = vueComponentOptions().apply {
             >
 
             <div v-bind:style="style_menu_start" v-show="isShowMainMenu">
-
-                <template v-for="menuData_0 in arrMenuData">
-                    <template v-if="menuData_0.alSubMenu">
-                        <details>
-                            <summary ${generateSummaryTag(0)}>
-                                {{menuData_0.text}}
-                            </summary>
-
-                            <template v-for="menuData_1 in menuData_0.alSubMenu">
-                                <template v-if="menuData_1.alSubMenu">
-                                    <details>
-                                        <summary ${generateSummaryTag(1)}>
-                                            {{menuData_1.text}}
-                                        </summary>
-
-                                        <template v-for="menuData_2 in menuData_1.alSubMenu">
-                                            ${generateMenuItem(2)}
-                                        </template>
-                                        
-                                    </details>
-                                </template>
-                                <template v-else>
-                                    ${generateMenuItem(1)}
-                                </template>
-                            </template>
-
-                        </details>
-                    </template>
-                    <template v-else>
-                        ${generateMenuItem(0)}
-                    </template>
-                </template>
-
+                ${menuGenerateBody("arrMenuData", "menuClick", ".url")}
             </div>
         </span>
     """
@@ -156,11 +124,11 @@ fun menuBar(arrMenuData: Array<MenuData>) = vueComponentOptions().apply {
                 "top" to styleMenuStartTop(),
                 "width" to styleMenuWidth(),
                 "height" to "80%",
+                "background" to COLOR_MENU_BACK,
                 "border" to "1px solid $COLOR_MENU_BORDER",
                 "border-radius" to BORDER_RADIUS,
                 "font-size" to styleMenuFontSize(),
                 "padding" to styleMenuStartPadding(),
-                "background" to COLOR_MENU_BACK,
                 "overflow" to "auto",
                 "cursor" to "pointer"
             ),
@@ -221,34 +189,6 @@ private fun addClientMenu(arrMenuData: Array<MenuData>): Array<MenuData> {
     alMenuData.add(MenuData("", "Дополнительно", alSubMenu.toTypedArray()))
 
     return alMenuData.toTypedArray()
-}
-
-private fun generateSummaryTag(summaryLevel: Int): String {
-    val menuDataName = "menuData_$summaryLevel"
-    return """
-        v-bind:style="[ style_menu_summary_$summaryLevel,
-                        { 'background-color' : ( $menuDataName.isHover? '$COLOR_MENU_BACK_HOVER' : '$COLOR_MENU_BACK' ) }
-                      ]"
-            v-on:mouseenter="$menuDataName.isHover = true"
-            v-on:mouseleave="$menuDataName.isHover = false"
-    """
-}
-
-private fun generateMenuItem(menuLevel: Int): String {
-    val menuDataName = "menuData_$menuLevel"
-    return """
-        <div v-bind:style="[ style_menu_item_$menuLevel,
-                        { 'background-color' : ( $menuDataName.isHover? '$COLOR_MENU_BACK_HOVER' : '$COLOR_MENU_BACK' ) },
-                        { 'text-decoration' : ( $menuDataName.url || $menuDataName.text ? '' : 'line-through' ) },
-                        { 'color' : ( $menuDataName.url || $menuDataName.text ? '$COLOR_TEXT' : '$COLOR_MENU_DELIMITER' ) }
-                      ]"
-            v-on:click="$menuDataName.url ? menuClick( $menuDataName.url ) : null"
-            v-on:mouseenter="$menuDataName.text ? $menuDataName.isHover = true : $menuDataName.isHover = false"
-            v-on:mouseleave="$menuDataName.isHover = false"
-        >
-            {{ $menuDataName.url ? $menuDataName.text : ( $menuDataName.text ? $menuDataName.text + " &gt;" : "$MENU_DELIMITER" ) }}
-        </div>
-    """
 }
 
 //    private fun passwordChangeDialog(): Optional<Pair<String, String>>? {
