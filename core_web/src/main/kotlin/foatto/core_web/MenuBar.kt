@@ -33,66 +33,50 @@ fun menuBar(arrMenuData: Array<MenuData>) = vueComponentOptions().apply {
     //--- убрать этот вложенный ужас, переделать на циклические шаблоны
     this.template = """
         <span>
-            <img src="/web/images/ic_menu_black_48dp.png" 
+            <img src="/web/images/ic_menu_black_48dp.png"
                  v-bind:style="style_menu_button"
                  v-on:click="isShowMainMenu=!isShowMainMenu"
                  title="Главное меню"
             >
 
-            <ul v-bind:style="[style_menu_start, style_menu_list]" v-show="isShowMainMenu" v-on:mouseleave="isShowMainMenu=false">
+            <div v-bind:style="style_menu_start" v-show="isShowMainMenu">
 
-                <li v-for="( menuData_0, index ) in arrMenuData"
-                    v-bind:style="[ style_menu_item,
-                                    { 'background-color' : ( menuData_0.isHover? '$COLOR_MENU_BACK_HOVER' : '$COLOR_MENU_BACK' ) },
-                                    { 'text-decoration' : ( menuData_0.url || menuData_0.text ? '' : 'line-through' ) },
-                                    { 'color' : ( menuData_0.url || menuData_0.text ? '$COLOR_TEXT' : '$COLOR_MENU_DELIMITER' ) }
-                                  ]"
-                    v-on:click.stop="menuData_0.url ? menuClick( menuData_0.url ) : setMenuShow( 0, index )"
-                    v-on:mouseenter="menuData_0.text ? menuData_0.isHover = true : menuData_0.isHover = false"
-                    v-on:mouseleave="menuData_0.isHover = false">
-
-                    {{ menuData_0.url ? menuData_0.text : ( menuData_0.text ? menuData_0.text + " &gt;" : "$MENU_DELIMITER" ) }}
-                                                                                
+                <template v-for="menuData_0 in arrMenuData">
                     <template v-if="menuData_0.alSubMenu">
-                        <ul v-bind:style="style_menu_list" v-show="arrShowMenu[ 0 ][ index ]">
+                        <details>
+                            <summary ${generateSummaryTag(0)}>
+                                {{menuData_0.text}}
+                            </summary>
 
-                            <li v-for="( menuData_1, index ) in menuData_0.alSubMenu"
-                                v-bind:style="[ style_menu_item,
-                                                { 'background-color' : ( menuData_1.isHover? '$COLOR_MENU_BACK_HOVER' : '$COLOR_MENU_BACK' ) },
-                                                { 'text-decoration' : ( menuData_1.url || menuData_1.text ? '' : 'line-through' ) },
-                                                { 'color' : ( menuData_1.url || menuData_1.text ? '$COLOR_TEXT' : '$COLOR_MENU_DELIMITER' ) }
-                                               ]"
-                                v-on:click.stop="menuData_1.url ? menuClick( menuData_1.url ) : setMenuShow( 1, index )"
-                                v-on:mouseenter="menuData_1.text ? menuData_1.isHover=true : menuData_1.isHover=false"
-                                v-on:mouseleave="menuData_1.isHover=false">
-
-                                {{ menuData_1.url ? menuData_1.text : ( menuData_1.text ? menuData_1.text + " &gt;" : "$MENU_DELIMITER" ) }}
-
+                            <template v-for="menuData_1 in menuData_0.alSubMenu">
                                 <template v-if="menuData_1.alSubMenu">
-                                    <ul v-bind:style="style_menu_list" v-show="arrShowMenu[ 1 ][ index ]">
+                                    <details>
+                                        <summary ${generateSummaryTag(1)}>
+                                            {{menuData_1.text}}
+                                        </summary>
 
-                                        <li v-for="( menuData_2, index ) in menuData_1.alSubMenu"
-                                            v-bind:style="[ style_menu_item,
-                                                            { 'background-color' : ( menuData_2.isHover? '$COLOR_MENU_BACK_HOVER' : '$COLOR_MENU_BACK' ) },
-                                                            { 'text-decoration' : ( menuData_2.url || menuData_2.text ? '' : 'line-through' ) },
-                                                            { 'color' : ( menuData_2.url || menuData_2.text ? '$COLOR_TEXT' : '$COLOR_MENU_DELIMITER' ) }
-                                                          ]"
-                                            v-on:click.stop="menuData_2.url ? menuClick( menuData_2.url ) : setMenuShow( 2, index )""
-                                            v-on:mouseenter="menuData_2.text ? menuData_2.isHover=true : menuData_2.isHover=false"
-                                            v-on:mouseleave="menuData_2.isHover=false">
-
-                                            {{menuData_2.text}}
-                                            {{menuData_2.url ? "" : "&gt;&gt;&gt;"}}
-                                        </li>
-                                    </ul>
+                                        <template v-for="menuData_2 in menuData_1.alSubMenu">
+                                            ${generateMenuItem(2)}
+                                        </template>
+                                        
+                                    </details>
                                 </template>
-                            </li>
-                        </ul>
+                                <template v-else>
+                                    ${generateMenuItem(1)}
+                                </template>
+                            </template>
+
+                        </details>
                     </template>
-                </li>
-            </ul>
+                    <template v-else>
+                        ${generateMenuItem(0)}
+                    </template>
+                </template>
+
+            </div>
         </span>
     """
+
     this.methods = json(
         "menuClick" to { url: String ->
             that().isShowMainMenu = false
@@ -142,25 +126,17 @@ fun menuBar(arrMenuData: Array<MenuData>) = vueComponentOptions().apply {
                 invokeSaveUserProperty(SaveUserPropertyRequest(UP_TIME_OFFSET, newTimeOffsetInSec.toString()))
             } else that().`$root`.openTab(url)
         },
-        "setMenuShow" to { level: Int, index: Int ->
-            val oldValue = that().arrShowMenu[level][index].unsafeCast<Boolean>()
-            that().arrShowMenu[level].splice(index, 1, !oldValue)
-        }
     )
 
     this.mounted = {
         //--- добавить клиентское меню и преобразовать в локальную структуру
         that().arrMenuData = addClientMenu(arrMenuData)
-
-        val arrShowMenu = Array(5) { BooleanArray(100) { false } }
-        that().arrShowMenu = arrShowMenu
     }
 
     this.data = {
         json(
             "arrMenuData" to "[]",
             "isShowMainMenu" to false,
-            "arrShowMenu" to "[]",
 
             "style_menu_button" to json(
                 "flex-grow" to 0,
@@ -178,23 +154,31 @@ fun menuBar(arrMenuData: Array<MenuData>) = vueComponentOptions().apply {
                 "z-index" to "999",
                 "position" to "absolute",
                 "top" to styleMenuStartTop(),
+                "width" to styleMenuWidth(),
+                "height" to "80%",
                 "border" to "1px solid $COLOR_MENU_BORDER",
                 "border-radius" to BORDER_RADIUS,
                 "font-size" to styleMenuFontSize(),
                 "padding" to styleMenuStartPadding(),
-                "width" to styleMenuWidth(),
-                "height" to "80%",
+                "background" to COLOR_MENU_BACK,
                 "overflow" to "auto",
                 "cursor" to "pointer"
             ),
-            "style_menu_list" to json(
-                "list-style-type" to "none",
-                "background" to COLOR_MENU_BACK
+            "style_menu_summary_0" to json(
+                "padding" to styleMenuItemPadding_0(),
             ),
-            "style_menu_item" to json(
-                //"padding-right" to "1rem" - появляется лишняя вертикальная жёлтая полоса на всё подменю, другие padding здесь тоже лишние
-                "padding" to styleMenuItemPadding()
-            )
+            "style_menu_summary_1" to json(
+                "padding" to styleMenuItemPadding_1(),
+            ),
+            "style_menu_item_0" to json(
+                "padding" to styleMenuItemPadding_0()
+            ),
+            "style_menu_item_1" to json(
+                "padding" to styleMenuItemPadding_1()
+            ),
+            "style_menu_item_2" to json(
+                "padding" to styleMenuItemPadding_2()
+            ),
         )
     }
 }
@@ -237,6 +221,34 @@ private fun addClientMenu(arrMenuData: Array<MenuData>): Array<MenuData> {
     alMenuData.add(MenuData("", "Дополнительно", alSubMenu.toTypedArray()))
 
     return alMenuData.toTypedArray()
+}
+
+private fun generateSummaryTag(summaryLevel: Int): String {
+    val menuDataName = "menuData_$summaryLevel"
+    return """
+        v-bind:style="[ style_menu_summary_$summaryLevel,
+                        { 'background-color' : ( $menuDataName.isHover? '$COLOR_MENU_BACK_HOVER' : '$COLOR_MENU_BACK' ) }
+                      ]"
+            v-on:mouseenter="$menuDataName.isHover = true"
+            v-on:mouseleave="$menuDataName.isHover = false"
+    """
+}
+
+private fun generateMenuItem(menuLevel: Int): String {
+    val menuDataName = "menuData_$menuLevel"
+    return """
+        <div v-bind:style="[ style_menu_item_$menuLevel,
+                        { 'background-color' : ( $menuDataName.isHover? '$COLOR_MENU_BACK_HOVER' : '$COLOR_MENU_BACK' ) },
+                        { 'text-decoration' : ( $menuDataName.url || $menuDataName.text ? '' : 'line-through' ) },
+                        { 'color' : ( $menuDataName.url || $menuDataName.text ? '$COLOR_TEXT' : '$COLOR_MENU_DELIMITER' ) }
+                      ]"
+            v-on:click="$menuDataName.url ? menuClick( $menuDataName.url ) : null"
+            v-on:mouseenter="$menuDataName.text ? $menuDataName.isHover = true : $menuDataName.isHover = false"
+            v-on:mouseleave="$menuDataName.isHover = false"
+        >
+            {{ $menuDataName.url ? $menuDataName.text : ( $menuDataName.text ? $menuDataName.text + " &gt;" : "$MENU_DELIMITER" ) }}
+        </div>
+    """
 }
 
 //    private fun passwordChangeDialog(): Optional<Pair<String, String>>? {

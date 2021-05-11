@@ -848,7 +848,7 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabIndex: Int 
             ),
             "style_popup_menu_item" to json(
                 //"padding-right" to "1rem" - появляется лишняя вертикальная жёлтая полоса на всё подменю
-                "padding" to styleMenuItemPadding()
+                "padding" to styleMenuItemPadding_0()
             )
         )
     }

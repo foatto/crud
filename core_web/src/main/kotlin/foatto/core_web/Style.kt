@@ -234,17 +234,21 @@ fun styleTabOtherCloserPadding() = "${sTabCloserTopPadding()}rem ${sTabCloserSid
 //--- Popup Menu
 
 private fun styleMenuItemTopBottomPad() = if (screenDPR <= 1.0) 0.8 else 0.8
-private fun styleMenuItemSidePad() = if (screenDPR <= 1.0) 0.1 else 0.1
+private fun styleMenuItemSidePad_0() = if (screenDPR <= 1.0) 0.0 else 0.0   // 0.1
+private fun styleMenuItemSidePad_1() = if (screenDPR <= 1.0) 1.0 else 1.0
+private fun styleMenuItemSidePad_2() = if (screenDPR <= 1.0) 2.0 else 2.0
 
-fun styleMenuStartTop() = "${if (screenDPR <= 1.0) 2.4 else 2.4}rem"
+fun styleMenuStartTop() = "${if (screenDPR <= 1.0) 3.4 else 3.4}rem"
 fun styleMenuStartPadding() = "${if (screenDPR <= 1.0) 1.0 else 1.0}rem " +
     "${if (screenDPR <= 1.0) 1.0 else 1.0}rem " +
-    "${if (screenDPR <= 1.0) 1.0 else 1.0}rem " +        // 3.0
-    "${if (screenDPR <= 1.0) 1.0 else 1.0}rem"           // 3.0
+    "${if (screenDPR <= 1.0) 1.0 else 1.0}rem " +
+    "${if (screenDPR <= 1.0) 1.0 else 1.0}rem"
 
 fun styleMenuWidth() = if (!styleIsNarrowScreen) "auto" else "85%"
-fun styleMenuFontSize() = "${if (screenDPR <= 1.0) 1.0 else 1.0}rem"               // 2.4
-fun styleMenuItemPadding() = "${styleMenuItemTopBottomPad()}rem ${styleMenuItemSidePad()}rem ${styleMenuItemTopBottomPad()}rem ${styleMenuItemSidePad()}rem"
+fun styleMenuFontSize() = "${if (screenDPR <= 1.0) 1.0 else 1.0}rem"
+fun styleMenuItemPadding_0() = "${styleMenuItemTopBottomPad()}rem ${styleMenuItemSidePad_0()}rem ${styleMenuItemTopBottomPad()}rem ${styleMenuItemSidePad_0()}rem"
+fun styleMenuItemPadding_1() = "${styleMenuItemTopBottomPad()}rem ${styleMenuItemSidePad_1()}rem ${styleMenuItemTopBottomPad()}rem ${styleMenuItemSidePad_1()}rem"
+fun styleMenuItemPadding_2() = "${styleMenuItemTopBottomPad()}rem ${styleMenuItemSidePad_2()}rem ${styleMenuItemTopBottomPad()}rem ${styleMenuItemSidePad_2()}rem"
 
 //--- Table
 
