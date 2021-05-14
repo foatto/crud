@@ -773,16 +773,16 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabIndex: Int 
             ),
             "style_popup_menu_start" to json(
                 "position" to "absolute",
-                "background" to COLOR_MENU_BACK,
-                "border" to "1px solid $COLOR_MENU_BORDER",
-                "border-radius" to BORDER_RADIUS,
                 "top" to "20%",
                 "bottom" to if( styleIsNarrowScreen ) "20%" else "10%",
                 "width" to styleMenuWidth(),
-                "overflow" to "auto",
+                "background" to COLOR_MENU_BACK,
+                "border" to "1px solid $COLOR_MENU_BORDER",
+                "border-radius" to BORDER_RADIUS,
                 "font-size" to styleMenuFontSize(),
                 "padding" to styleMenuStartPadding(),
-                "cursor" to "pointer"
+                "overflow" to "auto",
+                "cursor" to "pointer",
             ),
             "style_popup_menu_pos" to json(
             ),

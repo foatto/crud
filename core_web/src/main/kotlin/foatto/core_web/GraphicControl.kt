@@ -32,6 +32,7 @@ import kotlin.math.round
 import kotlin.math.roundToInt
 
 private const val MARGIN_LEFT = 100
+
 //private val MARGIN_RIGHT = 40
 private const val MARGIN_TOP = 40
 private const val MARGIN_BOTTOM = 60
@@ -94,7 +95,7 @@ private enum class GraphicWorkMode {
 */
 
 @Suppress("UnsafeCastFromDynamic")
-fun graphicControl( graphicResponse: GraphicResponse, tabIndex: Int ) = vueComponentOptions().apply {
+fun graphicControl(graphicResponse: GraphicResponse, tabIndex: Int) = vueComponentOptions().apply {
 
     this.template = """
         <div>
@@ -137,7 +138,7 @@ fun graphicControl( graphicResponse: GraphicResponse, tabIndex: Int ) = vueCompo
                 </span>
     """ +
 
-        if( !styleIsNarrowScreen ) {
+        if (!styleIsNarrowScreen) {
             """
                 <span v-bind:style="style_toolbar_block">
                     <input v-bind:style="style_htp_checkbox"
@@ -172,14 +173,13 @@ fun graphicControl( graphicResponse: GraphicResponse, tabIndex: Int ) = vueCompo
                     </span>
                 </span>
             """
-        }
-        else {
+        } else {
             """
 
             """
         } +
 
-    """
+        """
                 <span v-bind:style="style_toolbar_block">
                     <img src="/web/images/ic_sync_black_48dp.png"
                          v-bind:style="style_icon_button"
@@ -366,51 +366,31 @@ fun graphicControl( graphicResponse: GraphicResponse, tabIndex: Int ) = vueCompo
             val that = aThat ?: that()
 
             val newView =
-                if( aView != null ) {
+                if (aView != null) {
                     //--- обновляем, только если изменилось (оптимизируем цепочку реактивных изменений)
                     that.viewCoord = aView
                     aView
-                }
-                else {
+                } else {
                     that.viewCoord.unsafeCast<GraphicViewCoord>()
                 }
 
             val timeOffset = that.`$root`.timeOffset.unsafeCast<Int>()
             val scaleKoef = that.`$root`.scaleKoef.unsafeCast<Double>()
 
-            val svgTabPanel = document.getElementById( "tab_panel" )!!
-            val svgGraphicTitle = document.getElementById( "graphic_title_$tabIndex" )!!
-            val svgGraphicToolbar = document.getElementById( "graphic_toolbar_$tabIndex" )!!
-            val svgAxisElement = document.getElementById( "svg_axis_$tabIndex" )!!
-            val svgBodyElement = document.getElementById( "svg_body_$tabIndex" )!!
+            val svgCoords = defineGraphicSvgCoords(tabIndex)
 
-            val svgAxisWidth = svgAxisElement.clientWidth
-//            val svgAxisHeight = svgAxisElement.clientHeight
-
-//println( "svgAxisWidth = $svgAxisWidth" )
-//println( "svgAxisHeight = $svgAxisHeight" )
-
-            val svgBodyLeft = svgAxisWidth  //svgBodyElement.clientLeft - BUG: всегда даёт 0
-            val svgBodyTop = svgTabPanel.clientHeight + svgGraphicTitle.clientHeight + svgGraphicToolbar.clientHeight  //svgBodyElement.clientTop - BUG: всегда даёт 0
-            val svgBodyWidth = svgBodyElement.clientWidth
-            val svgBodyHeight = svgBodyElement.clientHeight
-
-//println( "svgBodyLeft = $svgBodyLeft" )
-//println( "svgBodyTop = $svgBodyTop" )
-//println( "svgBodyWidth = $svgBodyWidth" )
-//println( "svgBodyHeight = $svgBodyHeight" )
-
-            that.`$root`.setWait( true )
+            that.`$root`.setWait(true)
             invokeGraphic(
                 GraphicActionRequest(
                     documentTypeName = graphicResponse.documentTypeName,
                     action = GraphicAction.GET_ELEMENTS,
                     startParamID = graphicResponse.startParamID,
-                    graphicCoords = Pair( newView.t1, newView.t2 ),
+                    graphicCoords = Pair(newView.t1, newView.t2),
                     //--- передавая полную ширину компоненты (без учёта margin по бокам/сверху/снизу для отрисовки шкалы/полей/заголовков),
                     //--- мы делаем сглаживание/масштабирование чуть точнее, чем надо, но на момент запроса величины margin неизвестны :/,
                     //--- а от "лишней" точности хуже не будет
-                    viewSize = Pair( ( svgBodyWidth / scaleKoef ).roundToInt(), ( svgBodyHeight / scaleKoef ).roundToInt() ) ),
+                    viewSize = Pair((svgCoords.bodyWidth / scaleKoef).roundToInt(), (svgCoords.bodyHeight / scaleKoef).roundToInt())
+                ),
 
                 { graphicActionResponse: GraphicActionResponse ->
 
@@ -419,31 +399,31 @@ fun graphicControl( graphicResponse: GraphicResponse, tabIndex: Int ) = vueCompo
                     //--- по которому будет управляться видимость графиков
                     val alVisibleElement = graphicActionResponse.alVisibleElement!!
 
-                    val hmIndexColor = mutableMapOf<String, MutableMap<String,String>>()
+                    val hmIndexColor = mutableMapOf<String, MutableMap<String, String>>()
 
-                    var maxMarginLeft = ( MARGIN_LEFT * scaleKoef ).roundToInt()
+                    var maxMarginLeft = (MARGIN_LEFT * scaleKoef).roundToInt()
                     //--- определить hard/soft-высоты графиков ( для распределения области окна между графиками )
                     var sumHard = 0        // сумма жестко заданных высот
                     var sumSoft = 0        // сумма мягко/относительно заданных высот
-                    for( entry in alElement ) {
+                    for (entry in alElement) {
                         val key = entry.first
                         val cge = entry.second
 
 //!!! // переделать в коллекционные методы
-                        val hmIC = mutableMapOf<String,String>()
-                        for( e in cge.alIndexColor )
-                            hmIC[ e.first.toString() ] = getColorFromInt( e.second )
-                        hmIndexColor[ key ] = hmIC
+                        val hmIC = mutableMapOf<String, String>()
+                        for (e in cge.alIndexColor)
+                            hmIC[e.first.toString()] = getColorFromInt(e.second)
+                        hmIndexColor[key] = hmIC
 
                         //--- переинициализировать значение левого поля
-                        maxMarginLeft = max( maxMarginLeft, ( cge.alAxisYData.size * MARGIN_LEFT * scaleKoef ).roundToInt() )
+                        maxMarginLeft = max(maxMarginLeft, (cge.alAxisYData.size * MARGIN_LEFT * scaleKoef).roundToInt())
 
                         val grHeight = cge.graphicHeight.toInt()
-                        if( grHeight > 0 ) sumHard += ( grHeight * scaleKoef ).roundToInt()     // "положительная" высота - жестко заданная
+                        if (grHeight > 0) sumHard += (grHeight * scaleKoef).roundToInt()     // "положительная" высота - жестко заданная
                         else sumSoft += -grHeight                                               // "отрицательная" высота - относительная ( в долях от экрана )
                     }
                     //--- реальная высота одной единицы относительной высоты
-                    val oneSoftHeight = if( sumSoft == 0 ) 0 else ( svgBodyHeight - sumHard ) / sumSoft
+                    val oneSoftHeight = if (sumSoft == 0) 0 else (svgCoords.bodyHeight - sumHard) / sumSoft
 
                     var pixStartY = 0
 
@@ -451,18 +431,18 @@ fun graphicControl( graphicResponse: GraphicResponse, tabIndex: Int ) = vueCompo
 
                     val alGraphicElement = mutableListOf<GraphicElementData>()
                     val alYData = mutableListOf<YData>()
-                    for( e in alElement ) {
+                    for (e in alElement) {
                         val element = e.second
 
                         val grHeight = element.graphicHeight.toInt()
-                        val pixRealHeight = if( grHeight > 0 ) ( grHeight * scaleKoef ).roundToInt()
-                                            else max( ( GRAPHIC_MIN_HEIGHT * scaleKoef ).roundToInt(), -grHeight * oneSoftHeight )
+                        val pixRealHeight = if (grHeight > 0) (grHeight * scaleKoef).roundToInt()
+                        else max((GRAPHIC_MIN_HEIGHT * scaleKoef).roundToInt(), -grHeight * oneSoftHeight)
                         outElement(
                             timeOffset = timeOffset,
                             scaleKoef = scaleKoef,
                             hmIndexColor = hmIndexColor,
-                            svgAxisWidth = svgAxisWidth,
-                            svgBodyWidth = svgBodyWidth,
+                            svgAxisWidth = svgCoords.axisWidth,
+                            svgBodyWidth = svgCoords.bodyWidth,
                             t1 = newView.t1,
                             t2 = newView.t2,
                             element = element,
@@ -494,8 +474,8 @@ fun graphicControl( graphicResponse: GraphicResponse, tabIndex: Int ) = vueCompo
                     that.pixStartY = pixStartY
 
                     //--- сбрасываем горизонтальный скроллинг/смещение
-                    val arrViewBoxBody = getGraphicViewBoxBody( that )
-                    setGraphicViewBoxBody( that, intArrayOf( 0, arrViewBoxBody[ 1 ], arrViewBoxBody[ 2 ], arrViewBoxBody[ 3 ] ) )
+                    val arrViewBoxBody = getGraphicViewBoxBody(that)
+                    setGraphicViewBoxBody(that, intArrayOf(0, arrViewBoxBody[1], arrViewBoxBody[2], arrViewBoxBody[3]))
 
                     that.arrGraphicElement = alGraphicElement.map {
                         GraphicElementData_(
@@ -509,13 +489,13 @@ fun graphicControl( graphicResponse: GraphicResponse, tabIndex: Int ) = vueCompo
                             arrGraphicText = it.alGraphicText.toTypedArray()
                         )
                     }
-                    .toTypedArray()
+                        .toTypedArray()
 
-                    setGraphicTextOffset( that, svgBodyLeft, svgBodyTop )
+                    setGraphicTextOffset(that, svgCoords.bodyLeft, svgCoords.bodyTop)
 
                     that.arrYData = alYData.toTypedArray()
 
-                    that.`$root`.setWait( false )
+                    that.`$root`.setWait(false)
                 }
             )
         },
@@ -525,34 +505,32 @@ fun graphicControl( graphicResponse: GraphicResponse, tabIndex: Int ) = vueCompo
             val mouseY = mouseEvent.offsetY.toInt()
 
             val scaleKoef = that().`$root`.scaleKoef.unsafeCast<Double>()
-            val arrViewBoxBody = getGraphicViewBoxBody( that() )
+            val arrViewBoxBody = getGraphicViewBoxBody(that())
 
-            if( graphicElement is SvgLine ) {
+            if (graphicElement is SvgLine) {
                 val arrYData = that().arrYData.unsafeCast<Array<YData>>()
-                val yData = arrYData[ graphicElement.tooltip.toInt() ]
+                val yData = arrYData[graphicElement.tooltip.toInt()]
                 //--- именно в таком порядке, чтобы не нарваться на 0 при целочисленном делении
                 //--- (yData.y1 - нижняя/большая координата, yData.y2 - верхняя/меньшая координата)
-                val value = ( yData.value2 - yData.value1 ) * ( yData.y1 - ( mouseY + arrViewBoxBody[ 1 ] ) ) / ( yData.y1 - yData.y2 ) + yData.value1
-                val tooltipValue = getSplittedDouble( value, yData.prec )
+                val value = (yData.value2 - yData.value1) * (yData.y1 - (mouseY + arrViewBoxBody[1])) / (yData.y1 - yData.y2) + yData.value1
+                val tooltipValue = getSplittedDouble(value, yData.prec)
 
-                val tooltipX = mouseEvent.clientX + ( 8 * scaleKoef ).roundToInt()
-                val tooltipY = mouseEvent.clientY + ( 0 * scaleKoef ).roundToInt()
+                val tooltipX = mouseEvent.clientX + (8 * scaleKoef).roundToInt()
+                val tooltipY = mouseEvent.clientY + (0 * scaleKoef).roundToInt()
 
                 that().tooltipVisible = true
                 that().tooltipText = tooltipValue
-                that().style_tooltip_pos = json( "left" to "${tooltipX}px", "top" to "${tooltipY}px" )
+                that().style_tooltip_pos = json("left" to "${tooltipX}px", "top" to "${tooltipY}px")
                 that().tooltipOffTime = Date().getTime() + 3000
-            }
-            else if( graphicElement.tooltip.isNotEmpty() ) {
-                val tooltipX = mouseEvent.clientX + ( 8 * scaleKoef ).roundToInt()
-                val tooltipY = mouseEvent.clientY + ( 0 * scaleKoef ).roundToInt()
+            } else if (graphicElement.tooltip.isNotEmpty()) {
+                val tooltipX = mouseEvent.clientX + (8 * scaleKoef).roundToInt()
+                val tooltipY = mouseEvent.clientY + (0 * scaleKoef).roundToInt()
 
                 that().tooltipVisible = true
-                that().tooltipText = graphicElement.tooltip.replace( "\n", "<br>" )
-                that().style_tooltip_pos = json( "left" to "${tooltipX}px", "top" to "${tooltipY}px" )
+                that().tooltipText = graphicElement.tooltip.replace("\n", "<br>")
+                that().style_tooltip_pos = json("left" to "${tooltipX}px", "top" to "${tooltipY}px")
                 that().tooltipOffTime = Date().getTime() + 3000
-            }
-            else {
+            } else {
                 that().tooltipVisible = false
             }
         },
@@ -561,12 +539,12 @@ fun graphicControl( graphicResponse: GraphicResponse, tabIndex: Int ) = vueCompo
             //--- причина: баг (?) в том, что mouseleave вызывается сразу после mouseenter,
             //--- причём после ухода с графика других mouseleave не вызывается.
             val that = that()
-            window.setTimeout( {
+            window.setTimeout({
                 val tooltipOffTime = that.tooltipOffTime.unsafeCast<Double>()
-                if( Date().getTime() > tooltipOffTime ) {
+                if (Date().getTime() > tooltipOffTime) {
                     that.tooltipVisible = false
                 }
-            }, 3000 )
+            }, 3000)
         },
         "onMousePressed" to { isNeedOffsetCompensation: Boolean, aMouseX: Double, aMouseY: Double ->
             var mouseX = aMouseX.toInt()
@@ -577,40 +555,34 @@ fun graphicControl( graphicResponse: GraphicResponse, tabIndex: Int ) = vueCompo
             val viewCoord = that().viewCoord.unsafeCast<GraphicViewCoord>()
             val curMode = that().curMode.unsafeCast<GraphicWorkMode>()
 
-            val svgTabPanel = document.getElementById( "tab_panel" )!!
-            val svgGraphicTitle = document.getElementById( "graphic_title_$tabIndex" )!!
-            val svgGraphicToolbar = document.getElementById( "graphic_toolbar_$tabIndex" )!!
-            val svgAxisElement = document.getElementById( "svg_axis_$tabIndex" )!!
-            val svgBodyElement = document.getElementById( "svg_body_$tabIndex" )!!
+            val svgCoords = defineGraphicSvgCoords(tabIndex)
 
-            val svgBodyLeft = svgAxisElement.clientWidth  //svgBodyElement.clientLeft - BUG: всегда даёт 0
-            val svgBodyTop = svgTabPanel.clientHeight + svgGraphicTitle.clientHeight + svgGraphicToolbar.clientHeight  //svgBodyElement.clientTop - BUG: всегда даёт 0
-            val svgBodyWidth = svgBodyElement.clientWidth
-
-            if( isNeedOffsetCompensation ) {
-                mouseX -= svgBodyLeft
-                mouseY -= svgBodyTop
+            if (isNeedOffsetCompensation) {
+                mouseX -= svgCoords.bodyLeft
+                mouseY -= svgCoords.bodyTop
             }
 
             //--- при нажатой кнопке мыши положение курсора не отслеживается
-            disableCursorLinesAndLabels( that() )
+            disableCursorLinesAndLabels(that())
 
-            when( curMode ) {
+            when (curMode) {
                 GraphicWorkMode.PAN -> {
                     that().panPointOldX = mouseX
                     that().panPointOldY = mouseY
                     that().panDX = 0
                 }
                 GraphicWorkMode.ZOOM_BOX -> {
-                //            case SELECT_FOR_PRINT:
-                    val arrViewBoxBody = getGraphicViewBoxBody( that() )
+                    //            case SELECT_FOR_PRINT:
+                    val arrViewBoxBody = getGraphicViewBoxBody(that())
                     val arrTimeLabel = that().arrTimeLabel.unsafeCast<Array<TimeLabelData>>()
 
-                    that().mouseRect = MouseRectData( true, mouseX, arrViewBoxBody[ 1 ], mouseX,
-                        arrViewBoxBody[ 1 ] + arrViewBoxBody[ 3 ] - scaleKoef.roundToInt(), max( 1, scaleKoef.roundToInt() ) )
+                    that().mouseRect = MouseRectData(
+                        true, mouseX, arrViewBoxBody[1], mouseX,
+                        arrViewBoxBody[1] + arrViewBoxBody[3] - scaleKoef.roundToInt(), max(1, scaleKoef.roundToInt())
+                    )
 
-                    setTimeLabel( timeOffset, viewCoord, svgBodyLeft, svgBodyWidth, mouseX, arrTimeLabel[ 1 ] )
-                    setTimeLabel( timeOffset, viewCoord, svgBodyLeft, svgBodyWidth, mouseX, arrTimeLabel[ 2 ] )
+                    setTimeLabel(timeOffset, viewCoord, svgCoords.bodyLeft, svgCoords.bodyWidth, mouseX, arrTimeLabel[1])
+                    setTimeLabel(timeOffset, viewCoord, svgCoords.bodyLeft, svgCoords.bodyWidth, mouseX, arrTimeLabel[2])
                 }
 //                else  -> super.handle( event )
             }
@@ -630,91 +602,80 @@ fun graphicControl( graphicResponse: GraphicResponse, tabIndex: Int ) = vueCompo
             val panPointOldY = that().panPointOldY.unsafeCast<Int>()
             val panDX = that().panDX.unsafeCast<Int>()
 
-            val svgTabPanel = document.getElementById( "tab_panel" )!!
-            val svgGraphicTitle = document.getElementById( "graphic_title_$tabIndex" )!!
-            val svgGraphicToolbar = document.getElementById( "graphic_toolbar_$tabIndex" )!!
-            val svgAxisElement = document.getElementById( "svg_axis_$tabIndex" )!!
-            val svgBodyElement = document.getElementById( "svg_body_$tabIndex" )!!
+            val svgCoords = defineGraphicSvgCoords(tabIndex)
 
-            val svgBodyLeft = svgAxisElement.clientWidth  //svgBodyElement.clientLeft - BUG: всегда даёт 0
-            val svgBodyTop = svgTabPanel.clientHeight + svgGraphicTitle.clientHeight + svgGraphicToolbar.clientHeight  //svgBodyElement.clientTop - BUG: всегда даёт 0
-            val svgBodyWidth = svgBodyElement.clientWidth
-            val svgBodyHeight = svgBodyElement.clientHeight
-
-            if( isNeedOffsetCompensation ) {
-                mouseX -= svgBodyLeft
-                mouseY -= svgBodyTop
+            if (isNeedOffsetCompensation) {
+                mouseX -= svgCoords.bodyLeft
+                mouseY -= svgCoords.bodyTop
             }
 
             //--- mouse dragged
-            if( isMouseDown ) {
-                when( curMode ) {
+            if (isMouseDown) {
+                when (curMode) {
                     GraphicWorkMode.PAN -> {
                         var dx = mouseX - panPointOldX
                         var dy = mouseY - panPointOldY
 
                         //--- чтобы убрать раздражающую диагональную прокрутку, нормализуем dx и dy - выбираем только один из них
-                        if( abs( dx ) >= abs( dy ) ) dy = 0 else dx = 0
+                        if (abs(dx) >= abs(dy)) dy = 0 else dx = 0
 
-                        val arrViewBoxAxis = getGraphicViewBoxAxis( that() )
-                        val arrViewBoxBody = getGraphicViewBoxBody( that() )
+                        val arrViewBoxAxis = getGraphicViewBoxAxis(that())
+                        val arrViewBoxBody = getGraphicViewBoxBody(that())
 
-                        arrViewBoxBody[ 0 ] -= dx
+                        arrViewBoxBody[0] -= dx
 
-                        if( dy > 0 ) {
-                            arrViewBoxAxis[ 1 ] -= dy
-                            if( arrViewBoxAxis[ 1 ] < 0 ) arrViewBoxAxis[ 1 ] = 0
+                        if (dy > 0) {
+                            arrViewBoxAxis[1] -= dy
+                            if (arrViewBoxAxis[1] < 0) arrViewBoxAxis[1] = 0
 
-                            arrViewBoxBody[ 1 ] -= dy
-                            if( arrViewBoxBody[ 1 ] < 0 ) arrViewBoxBody[ 1 ] = 0
-                        }
-                        else if( dy < 0 && pixStartY - arrViewBoxAxis[ 1 ] > svgBodyHeight ) {
-                            arrViewBoxAxis[ 1 ] -= dy
+                            arrViewBoxBody[1] -= dy
+                            if (arrViewBoxBody[1] < 0) arrViewBoxBody[1] = 0
+                        } else if (dy < 0 && pixStartY - arrViewBoxAxis[1] > svgCoords.bodyHeight) {
+                            arrViewBoxAxis[1] -= dy
 
-                            arrViewBoxBody[ 1 ] -= dy
+                            arrViewBoxBody[1] -= dy
                         }
 
                         that().panPointOldX = mouseX
                         that().panPointOldY = mouseY
                         that().panDX = panDX + dx
 
-                        setGraphicViewBoxAxis( that(), intArrayOf( arrViewBoxAxis[ 0 ], arrViewBoxAxis[ 1 ], arrViewBoxAxis[ 2 ], arrViewBoxAxis[ 3 ] ) )
-                        setGraphicViewBoxBody( that(), intArrayOf( arrViewBoxBody[ 0 ], arrViewBoxBody[ 1 ], arrViewBoxBody[ 2 ], arrViewBoxBody[ 3 ] ) )
+                        setGraphicViewBoxAxis(that(), intArrayOf(arrViewBoxAxis[0], arrViewBoxAxis[1], arrViewBoxAxis[2], arrViewBoxAxis[3]))
+                        setGraphicViewBoxBody(that(), intArrayOf(arrViewBoxBody[0], arrViewBoxBody[1], arrViewBoxBody[2], arrViewBoxBody[3]))
 
-                        setGraphicTextOffset( that(), svgBodyLeft, svgBodyTop )
+                        setGraphicTextOffset(that(), svgCoords.bodyLeft, svgCoords.bodyTop)
                     }
                     GraphicWorkMode.ZOOM_BOX -> {
                         //            case SELECT_FOR_PRINT:
                         val mouseRect = that().mouseRect.unsafeCast<MouseRectData>()
                         val arrTimeLabel = that().arrTimeLabel.unsafeCast<Array<TimeLabelData>>()
 
-                        if( mouseRect.isVisible && mouseX >= 0 && mouseX <= svgBodyWidth ) {
+                        if (mouseRect.isVisible && mouseX >= 0 && mouseX <= svgCoords.bodyWidth) {
                             mouseRect.x2 = mouseX
-                            setTimeLabel( timeOffset, viewCoord, svgBodyLeft, svgBodyWidth, mouseX, arrTimeLabel[ 2 ] )
+                            setTimeLabel(timeOffset, viewCoord, svgCoords.bodyLeft, svgCoords.bodyWidth, mouseX, arrTimeLabel[2])
                         }
                     }
-    //                else -> super.handle( event )
+                    //                else -> super.handle( event )
                 }
             }
             //--- mouse moved
             else {
-                when( curMode ) {
+                when (curMode) {
                     GraphicWorkMode.PAN, GraphicWorkMode.ZOOM_BOX -> {
                         //                    case SELECT_FOR_PRINT:
-                        if( mouseX in 0..svgBodyWidth ) {
-                            val arrViewBoxBody = getGraphicViewBoxBody( that() )
+                        if (mouseX in 0..svgCoords.bodyWidth) {
+                            val arrViewBoxBody = getGraphicViewBoxBody(that())
                             val timeLine = that().timeLine.unsafeCast<LineData>()
                             val arrTimeLabel = that().arrTimeLabel.unsafeCast<Array<TimeLabelData>>()
 
                             timeLine.isVisible = true
                             timeLine.x1 = mouseX
-                            timeLine.y1 = arrViewBoxBody[ 1 ]
+                            timeLine.y1 = arrViewBoxBody[1]
                             timeLine.x2 = mouseX
-                            timeLine.y2 = arrViewBoxBody[ 1 ] + arrViewBoxBody[ 3 ]
+                            timeLine.y2 = arrViewBoxBody[1] + arrViewBoxBody[3]
 
-                            setTimeLabel( timeOffset, viewCoord, svgBodyLeft, svgBodyWidth, mouseX, arrTimeLabel[ 0 ] )
-                        }
-                        else disableCursorLinesAndLabels( that() )
+                            setTimeLabel(timeOffset, viewCoord, svgCoords.bodyLeft, svgCoords.bodyWidth, mouseX, arrTimeLabel[0])
+                        } else disableCursorLinesAndLabels(that())
                     }
 //                    else -> super.handle( event )
                 }
@@ -727,19 +688,18 @@ fun graphicControl( graphicResponse: GraphicResponse, tabIndex: Int ) = vueCompo
             val curMode = that().curMode.unsafeCast<GraphicWorkMode>()
             val panDX = that().panDX.unsafeCast<Int>()
 
-            val svgBodyElement = document.getElementById( "svg_body_$tabIndex" )!!
-            val svgBodyWidth = svgBodyElement.clientWidth
+            val svgCoords = defineGraphicSvgCoords(tabIndex)
 
-            when( curMode ) {
+            when (curMode) {
                 GraphicWorkMode.PAN -> {
                     //--- перезагружаем график, только если был горизонтальный сдвиг
-                    if( abs( panDX ) >= 1 ) {
+                    if (abs(panDX) >= 1) {
                         //--- именно в этом порядке операндов, чтобы:
                         //--- не было всегда 0 из-за целочисленного деления panDX / svgBodyWidth
                         //--- и не было возможного переполнения из-за умножения viewCoord.width * panDX
-                        val deltaT = getTimeFromX( -panDX, svgBodyWidth, 0, viewCoord.width )
-                        viewCoord.moveRel( deltaT )
-                        that().refreshView( null, viewCoord )
+                        val deltaT = getTimeFromX(-panDX, svgCoords.bodyWidth, 0, viewCoord.width)
+                        viewCoord.moveRel(deltaT)
+                        that().refreshView(null, viewCoord)
                     }
                     that().panPointOldX = 0
                     that().panPointOldY = 0
@@ -751,22 +711,23 @@ fun graphicControl( graphicResponse: GraphicResponse, tabIndex: Int ) = vueCompo
                     val arrTimeLabel = that().arrTimeLabel.unsafeCast<Array<TimeLabelData>>()
 
                     //            case SELECT_FOR_PRINT:
-                    if( mouseRect.isVisible ) {
+                    if (mouseRect.isVisible) {
                         mouseRect.isVisible = false
-                        arrTimeLabel[ 1 ].isVisible = false
-                        arrTimeLabel[ 2 ].isVisible = false
+                        arrTimeLabel[1].isVisible = false
+                        arrTimeLabel[2].isVisible = false
 
                         //--- если размер прямоугольника меньше 8 pix, то это видимо ошибка - игнорируем
-                        if( abs( mouseRect.x2 - mouseRect.x1 ) >= ( MIN_USER_RECT_SIZE * scaleKoef ).roundToInt() &&
-                            abs( mouseRect.y2 - mouseRect.y1 ) >= ( MIN_USER_RECT_SIZE * scaleKoef ).roundToInt() ) {
+                        if (abs(mouseRect.x2 - mouseRect.x1) >= (MIN_USER_RECT_SIZE * scaleKoef).roundToInt() &&
+                            abs(mouseRect.y2 - mouseRect.y1) >= (MIN_USER_RECT_SIZE * scaleKoef).roundToInt()
+                        ) {
 
                             //--- именно в этом порядке операндов, чтобы:
                             //--- не было всегда 0 из-за целочисленного деления min( mouseRect.x1, mouseRect.x2 ) / svgBodyWidth
                             //--- и не было возможного переполнения из-за умножения viewCoord.width * min( mouseRect.x1, mouseRect.x2 )
-                            val newT1 = getTimeFromX( min( mouseRect.x1, mouseRect.x2 ), svgBodyWidth, viewCoord.t1, viewCoord.width )
-                            val newT2 = getTimeFromX( max( mouseRect.x1, mouseRect.x2 ), svgBodyWidth, viewCoord.t1, viewCoord.width )
-                            if( newT2 - newT1 >= MIN_SCALE_X ) {
-                                if( curMode == GraphicWorkMode.ZOOM_BOX ) that().refreshView( null, GraphicViewCoord( newT1, newT2 ) )
+                            val newT1 = getTimeFromX(min(mouseRect.x1, mouseRect.x2), svgCoords.bodyWidth, viewCoord.t1, viewCoord.width)
+                            val newT2 = getTimeFromX(max(mouseRect.x1, mouseRect.x2), svgCoords.bodyWidth, viewCoord.t1, viewCoord.width)
+                            if (newT2 - newT1 >= MIN_SCALE_X) {
+                                if (curMode == GraphicWorkMode.ZOOM_BOX) that().refreshView(null, GraphicViewCoord(newT1, newT2))
                                 else {
                                     //!!! пока пусть будет сразу печать с текущими границами, без возможности их отдельного определения перед печатью ( а оно надо ли ? )
                                     //outRect = mouseRectangle.getBoundsReal(  null  );
@@ -796,56 +757,46 @@ fun graphicControl( graphicResponse: GraphicResponse, tabIndex: Int ) = vueCompo
 
             val isMouseDown = that().isMouseDown.unsafeCast<Boolean>()
 
-            val svgTabPanel = document.getElementById( "tab_panel" )!!
-            val svgGraphicTitle = document.getElementById( "graphic_title_$tabIndex" )!!
-            val svgGraphicToolbar = document.getElementById( "graphic_toolbar_$tabIndex" )!!
-            val svgAxisElement = document.getElementById( "svg_axis_$tabIndex" )!!
-            val svgBodyElement = document.getElementById( "svg_body_$tabIndex" )!!
+            val svgCoords = defineGraphicSvgCoords(tabIndex)
 
-            val svgBodyLeft = svgAxisElement.clientWidth  //svgBodyElement.clientLeft - BUG: всегда даёт 0
-            val svgBodyTop = svgTabPanel.clientHeight + svgGraphicTitle.clientHeight + svgGraphicToolbar.clientHeight  //svgBodyElement.clientTop - BUG: всегда даёт 0
-            val svgBodyWidth = svgBodyElement.clientWidth
-            val svgBodyHeight = svgBodyElement.clientHeight
-
-            if( curMode == GraphicWorkMode.PAN && !isMouseDown || curMode == GraphicWorkMode.ZOOM_BOX && !isMouseDown ) {
+            if (curMode == GraphicWorkMode.PAN && !isMouseDown || curMode == GraphicWorkMode.ZOOM_BOX && !isMouseDown) {
                 //|| grControl.curMode == GraphicModel.WorkMode.SELECT_FOR_PRINT && grControl.selectorX1 < 0  ) {
                 //--- масштабирование
-                if( isCtrl ) {
+                if (isCtrl) {
                     val t1 = viewCoord.t1
                     val t2 = viewCoord.t2
                     //--- вычисляем текущую координату курсора в реальных координатах
-                    val curT = getTimeFromX( mouseX, svgBodyWidth, t1, viewCoord.width )
+                    val curT = getTimeFromX(mouseX, svgCoords.bodyWidth, t1, viewCoord.width)
 
-                    val newT1 = if( deltaY < 0 ) curT - ( curT - t1 ) / 2 else curT - ( curT - t1 ) * 2
-                    val newT2 = if( deltaY < 0 ) curT + ( t2 - curT ) / 2 else curT + ( t2 - curT ) * 2
+                    val newT1 = if (deltaY < 0) curT - (curT - t1) / 2 else curT - (curT - t1) * 2
+                    val newT2 = if (deltaY < 0) curT + (t2 - curT) / 2 else curT + (t2 - curT) * 2
 
-                    if( newT2 - newT1 in MIN_SCALE_X..MAX_SCALE_X )
-                        that().refreshView( null, GraphicViewCoord( newT1, newT2 ) )
+                    if (newT2 - newT1 in MIN_SCALE_X..MAX_SCALE_X)
+                        that().refreshView(null, GraphicViewCoord(newT1, newT2))
                 }
                 //--- вертикальная прокрутка
                 else {
-                    val arrViewBoxAxis = getGraphicViewBoxAxis( that() )
-                    val arrViewBoxBody = getGraphicViewBoxBody( that() )
+                    val arrViewBoxAxis = getGraphicViewBoxAxis(that())
+                    val arrViewBoxBody = getGraphicViewBoxBody(that())
 
-                    val dy = ( deltaY * scaleKoef ).roundToInt()
+                    val dy = (deltaY * scaleKoef).roundToInt()
 
-                    if( dy < 0 ) {
-                        arrViewBoxAxis[ 1 ] += dy
-                        if( arrViewBoxAxis[ 1 ] < 0 ) arrViewBoxAxis[ 1 ] = 0
+                    if (dy < 0) {
+                        arrViewBoxAxis[1] += dy
+                        if (arrViewBoxAxis[1] < 0) arrViewBoxAxis[1] = 0
 
-                        arrViewBoxBody[ 1 ] += dy
-                        if( arrViewBoxBody[ 1 ] < 0 ) arrViewBoxBody[ 1 ] = 0
+                        arrViewBoxBody[1] += dy
+                        if (arrViewBoxBody[1] < 0) arrViewBoxBody[1] = 0
+                    } else if (dy > 0 && pixStartY - arrViewBoxAxis[1] > svgCoords.bodyHeight) {
+                        arrViewBoxAxis[1] += dy
+
+                        arrViewBoxBody[1] += dy
                     }
-                    else if( dy > 0 && pixStartY - arrViewBoxAxis[ 1 ] > svgBodyHeight ) {
-                        arrViewBoxAxis[ 1 ] += dy
 
-                        arrViewBoxBody[ 1 ] += dy
-                    }
+                    setGraphicViewBoxAxis(that(), intArrayOf(arrViewBoxAxis[0], arrViewBoxAxis[1], arrViewBoxAxis[2], arrViewBoxAxis[3]))
+                    setGraphicViewBoxBody(that(), intArrayOf(arrViewBoxBody[0], arrViewBoxBody[1], arrViewBoxBody[2], arrViewBoxBody[3]))
 
-                    setGraphicViewBoxAxis( that(), intArrayOf( arrViewBoxAxis[ 0 ], arrViewBoxAxis[ 1 ], arrViewBoxAxis[ 2 ], arrViewBoxAxis[ 3 ] ) )
-                    setGraphicViewBoxBody( that(), intArrayOf( arrViewBoxBody[ 0 ], arrViewBoxBody[ 1 ], arrViewBoxBody[ 2 ], arrViewBoxBody[ 3 ] ) )
-
-                    setGraphicTextOffset( that(), svgBodyLeft, svgBodyTop )
+                    setGraphicTextOffset(that(), svgCoords.bodyLeft, svgCoords.bodyTop)
                 }
             }
         },
@@ -879,8 +830,8 @@ fun graphicControl( graphicResponse: GraphicResponse, tabIndex: Int ) = vueCompo
             val newT1 = t1 + grWidth / 4
             val newT2 = t2 - grWidth / 4
 
-            if( newT2 - newT1 >= MIN_SCALE_X ) {
-                that().refreshView( null, GraphicViewCoord( newT1, newT2 ) )
+            if (newT2 - newT1 >= MIN_SCALE_X) {
+                that().refreshView(null, GraphicViewCoord(newT1, newT2))
             }
 
         },
@@ -893,17 +844,17 @@ fun graphicControl( graphicResponse: GraphicResponse, tabIndex: Int ) = vueCompo
 
             val newT1 = t1 - grWidth / 2
             val newT2 = t2 + grWidth / 2
-            if( newT2 - newT1 <= MAX_SCALE_X ) {
-                that().refreshView( null, GraphicViewCoord( newT1, newT2 ) )
+            if (newT2 - newT1 <= MAX_SCALE_X) {
+                that().refreshView(null, GraphicViewCoord(newT1, newT2))
             }
         },
         "setShowPoint" to {
             val that = that()
             val isShowPoint = that().isShowPoint.unsafeCast<Boolean>()
             invokeSaveUserProperty(
-                SaveUserPropertyRequest( UP_GRAPHIC_SHOW_POINT, (!isShowPoint).toString() ),
+                SaveUserPropertyRequest(UP_GRAPHIC_SHOW_POINT, (!isShowPoint).toString()),
                 {
-                    that.refreshView( that, null )
+                    that.refreshView(that, null)
                 }
             )
         },
@@ -911,9 +862,9 @@ fun graphicControl( graphicResponse: GraphicResponse, tabIndex: Int ) = vueCompo
             val that = that()
             val isShowLine = that().isShowLine.unsafeCast<Boolean>()
             invokeSaveUserProperty(
-                SaveUserPropertyRequest( UP_GRAPHIC_SHOW_LINE, (!isShowLine).toString() ),
+                SaveUserPropertyRequest(UP_GRAPHIC_SHOW_LINE, (!isShowLine).toString()),
                 {
-                    that.refreshView( that, null )
+                    that.refreshView(that, null)
                 }
             )
         },
@@ -921,9 +872,9 @@ fun graphicControl( graphicResponse: GraphicResponse, tabIndex: Int ) = vueCompo
             val that = that()
             val isShowText = that().isShowText.unsafeCast<Boolean>()
             invokeSaveUserProperty(
-                SaveUserPropertyRequest( UP_GRAPHIC_SHOW_TEXT, (!isShowText).toString() ),
+                SaveUserPropertyRequest(UP_GRAPHIC_SHOW_TEXT, (!isShowText).toString()),
                 {
-                    that.refreshView( that, null )
+                    that.refreshView(that, null)
                 }
             )
         }
@@ -1002,7 +953,7 @@ fun graphicControl( graphicResponse: GraphicResponse, tabIndex: Int ) = vueCompo
         val scaleKoef = that().`$root`.scaleKoef.unsafeCast<Double>()
 
         that().fullTitle = graphicResponse.fullTitle
-        that().`$root`.addTabInfo( tabIndex, graphicResponse.shortTitle, graphicResponse.fullTitle )
+        that().`$root`.addTabInfo(tabIndex, graphicResponse.shortTitle, graphicResponse.fullTitle)
 
 //        //--- показ точек по умолчанию выключен, если не указано явно иное
 //        val pointShowMode = appContainer.getUserProperty( iCoreAppContainer.UP_GRAPHIC_SHOW_POINT )
@@ -1014,20 +965,16 @@ fun graphicControl( graphicResponse: GraphicResponse, tabIndex: Int ) = vueCompo
 //        val textShowMode = appContainer.getUserProperty( iCoreAppContainer.UP_GRAPHIC_SHOW_TEXT )
 //        chShowText.isSelected = textShowMode == null || java.lang.Boolean.parseBoolean( textShowMode )
 
-
         that().setModePan()
 
         //--- установка динамической (зависящей от scaleKoef) ширины области с вертикальными осями
-        that().svg_axis_width = ( MARGIN_LEFT * 2 * scaleKoef ).roundToInt()
+        that().svg_axis_width = (MARGIN_LEFT * 2 * scaleKoef).roundToInt()
 
         //--- принудительная установка полной высоты svg-элементов
         //--- (BUG: иначе высота либо равна 150px - если не указывать высоту,
         //--- либо равно width, если указать height="100%")
-        val svgTabPanel = document.getElementById( "tab_panel" )!!
-        val svgGraphicTitle = document.getElementById( "graphic_title_$tabIndex" )!!
-        val svgGraphicToolbar = document.getElementById( "graphic_toolbar_$tabIndex" )!!
-
-        that().svg_height = window.innerHeight - (svgTabPanel.clientHeight + svgGraphicTitle.clientHeight + svgGraphicToolbar.clientHeight)
+        val svgCoords = defineGraphicSvgCoords(tabIndex)
+        that().svg_height = window.innerHeight - svgCoords.bodyTop
 
         that().style_graphic_text = json(
             "font-size" to "${1.0 * scaleKoef}rem"
@@ -1035,30 +982,31 @@ fun graphicControl( graphicResponse: GraphicResponse, tabIndex: Int ) = vueCompo
 
         //--- для проброса this внутрь лямбд
         val that = that()
-        that.`$root`.setWait( true )
+        that.`$root`.setWait(true)
         invokeGraphic(
             GraphicActionRequest(
                 documentTypeName = graphicResponse.documentTypeName,
                 action = GraphicAction.GET_COORDS,
-                startParamID = graphicResponse.startParamID ),
+                startParamID = graphicResponse.startParamID
+            ),
             { graphicActionResponse: GraphicActionResponse ->
 
-                val svgAxisElement = document.getElementById( "svg_axis_$tabIndex" )!!
+                val svgAxisElement = document.getElementById("svg_axis_$tabIndex")!!
                 val svgAxisWidth = svgAxisElement.clientWidth
                 val svgAxisHeight = svgAxisElement.clientHeight
 
-                setGraphicViewBoxAxis( that, intArrayOf( 0, 0, svgAxisWidth, svgAxisHeight ) )
+                setGraphicViewBoxAxis(that, intArrayOf(0, 0, svgAxisWidth, svgAxisHeight))
 
-                val svgBodyElement = document.getElementById( "svg_body_$tabIndex" )!!
+                val svgBodyElement = document.getElementById("svg_body_$tabIndex")!!
                 val svgBodyWidth = svgBodyElement.clientWidth
                 val svgBodyHeight = svgBodyElement.clientHeight
 
-                setGraphicViewBoxBody( that, intArrayOf( 0, 0, svgBodyWidth, svgBodyHeight ) )
+                setGraphicViewBoxBody(that, intArrayOf(0, 0, svgBodyWidth, svgBodyHeight))
 
-                val newViewCoord = GraphicViewCoord( graphicActionResponse.begTime!!, graphicActionResponse.endTime!! )
+                val newViewCoord = GraphicViewCoord(graphicActionResponse.begTime!!, graphicActionResponse.endTime!!)
                 //--- именно до refreshView, чтобы не сбросить сразу после включения
-                that.`$root`.setWait( false )
-                that.refreshView( that, newViewCoord )
+                that.`$root`.setWait(false)
+                that.refreshView(that, newViewCoord)
             }
         )
     }
@@ -1069,8 +1017,8 @@ fun graphicControl( graphicResponse: GraphicResponse, tabIndex: Int ) = vueCompo
 
             "svg_axis_width" to 0,
             "svg_height" to "100%",
-            
-            "viewCoord" to GraphicViewCoord( 0, 0 ),
+
+            "viewCoord" to GraphicViewCoord(0, 0),
             "arrGraphicElement" to arrayOf<GraphicElement>(),
             "arrYData" to arrayOf<YData>(),
             "curMode" to GraphicWorkMode.PAN,
@@ -1090,16 +1038,16 @@ fun graphicControl( graphicResponse: GraphicResponse, tabIndex: Int ) = vueCompo
             "panDX" to 0,
             "tooltipOffTime" to 0.0,
 
-            "mouseRect" to MouseRectData( false, 0, 0, 0, 0, 1 ),
-            "timeLine" to LineData( false, 0, 0, 0, 0, 1 ),
+            "mouseRect" to MouseRectData(false, 0, 0, 0, 0, 1),
+            "timeLine" to LineData(false, 0, 0, 0, 0, 1),
 
-            "arrTimeLabel" to arrayOf( TimeLabelData(), TimeLabelData(), TimeLabelData() ),
+            "arrTimeLabel" to arrayOf(TimeLabelData(), TimeLabelData(), TimeLabelData()),
 
             "tooltipVisible" to false,
             "tooltipText" to "",
 
             "style_header" to json(
-                "border-top" to if( !styleIsNarrowScreen ) "none" else "1px solid $COLOR_BUTTON_BORDER"
+                "border-top" to if (!styleIsNarrowScreen) "none" else "1px solid $COLOR_BUTTON_BORDER"
             ),
             "style_toolbar" to json(
                 "display" to "flex",
@@ -1117,7 +1065,7 @@ fun graphicControl( graphicResponse: GraphicResponse, tabIndex: Int ) = vueCompo
                 "justify-content" to "center",
                 "align-items" to "center"        // "baseline" ?
             ),
-            "style_title" to json (
+            "style_title" to json(
                 "font-size" to styleControlTitleTextFontSize(),
                 "padding" to styleControlTitlePadding()
             ),
@@ -1130,7 +1078,7 @@ fun graphicControl( graphicResponse: GraphicResponse, tabIndex: Int ) = vueCompo
                 "margin" to styleCommonMargin(),
                 "cursor" to "pointer"
             ),
-            "style_htp_checkbox" to json (
+            "style_htp_checkbox" to json(
                 "border" to "1px solid $COLOR_BUTTON_BORDER",
                 "border-radius" to BORDER_RADIUS_SMALL,
                 "transform" to styleControlCheckBoxTransform(),
@@ -1149,7 +1097,7 @@ fun graphicControl( graphicResponse: GraphicResponse, tabIndex: Int ) = vueCompo
                 "border" to "1px solid $COLOR_GRAPHIC_LABEL_BORDER",
                 "border-radius" to BORDER_RADIUS,
                 "padding" to styleControlTooltipPadding(),
-                "user-select" to if( styleIsNarrowScreen ) "none" else "auto"
+                "user-select" to if (styleIsNarrowScreen) "none" else "auto"
             ),
             "style_tooltip_pos" to json(
                 "left" to "",
@@ -1159,9 +1107,39 @@ fun graphicControl( graphicResponse: GraphicResponse, tabIndex: Int ) = vueCompo
     }
 }
 
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-private class GraphicElementData (
+private class GraphicSvgCoords(
+    val axisWidth: Int,
+    val bodyLeft: Int,
+    val bodyTop: Int,
+    val bodyWidth: Int,
+    val bodyHeight: Int,
+)
+
+private fun defineGraphicSvgCoords(tabIndex: Int): GraphicSvgCoords {
+    val menuBarElement = document.getElementById(MENU_BAR_ID)
+    val svgTabPanel = document.getElementById("tab_panel")!!
+    val svgGraphicTitle = document.getElementById("graphic_title_$tabIndex")!!
+    val svgGraphicToolbar = document.getElementById("graphic_toolbar_$tabIndex")!!
+    val svgAxisElement = document.getElementById("svg_axis_$tabIndex")!!
+    val svgBodyElement = document.getElementById("svg_body_$tabIndex")!!
+
+    val menuBarWidth = menuBarElement?.clientWidth ?: 0
+    val svgAxisWidth = svgAxisElement.clientWidth
+
+    return GraphicSvgCoords(
+        axisWidth = svgAxisWidth,
+        bodyLeft = menuBarWidth + svgAxisWidth,  //svgBodyElement.clientLeft - BUG: всегда даёт 0
+        bodyTop = svgTabPanel.clientHeight + svgGraphicTitle.clientHeight + svgGraphicToolbar.clientHeight,  //svgBodyElement.clientTop - BUG: всегда даёт 0
+        bodyWidth = svgBodyElement.clientWidth,
+        bodyHeight = svgBodyElement.clientHeight,
+    )
+}
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+private class GraphicElementData(
     val title: SvgText,
     val alAxisYLine: MutableList<SvgLine>,
     val alAxisYText: MutableList<SvgText>,
@@ -1171,7 +1149,8 @@ private class GraphicElementData (
     val alGraphicPoint: MutableList<SvgCircle>,
     val alGraphicText: MutableList<GraphicTextData>
 )
-private class GraphicElementData_ (
+
+private class GraphicElementData_(
     val title: SvgText,
     val arrAxisYLine: Array<SvgLine>,
     val arrAxisYText: Array<SvgText>,
@@ -1182,7 +1161,7 @@ private class GraphicElementData_ (
     val arrGraphicText: Array<GraphicTextData>
 )
 
-private class LineData (
+private class LineData(
     var isVisible: Boolean,
     var x1: Int,
     var y1: Int,
@@ -1191,7 +1170,7 @@ private class LineData (
     var width: Int
 )
 
-private class YData (
+private class YData(
     val y1: Int,
     val y2: Int,
     val value1: Double,
@@ -1199,7 +1178,7 @@ private class YData (
     val prec: Int
 )
 
-private class GraphicTextData (
+private class GraphicTextData(
     var isVisible: Boolean,
     val x: Int,
     val y: Int,
@@ -1207,11 +1186,11 @@ private class GraphicTextData (
     val style: Json,
     val text: String,
     tooltip: String
-) : SvgElement ( tooltip )
+) : SvgElement(tooltip)
 
-private class TimeLabelData (
+private class TimeLabelData(
     var isVisible: Boolean = false,
-    var pos: Json = json( "" to "" ),
+    var pos: Json = json("" to ""),
     val style: Json = json(
         "position" to "absolute",
         "text-align" to "center",
@@ -1220,41 +1199,41 @@ private class TimeLabelData (
         "border" to "1px solid $COLOR_GRAPHIC_LABEL_BORDER",
         "border-radius" to BORDER_RADIUS,
         "padding" to styleGraphicTimeLabelPadding(),
-        "user-select" to if( styleIsNarrowScreen ) "none" else "auto"
+        "user-select" to if (styleIsNarrowScreen) "none" else "auto"
     ),
     var text: String = ""
 )
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-private fun getGraphicViewBoxAxis( that: dynamic ): IntArray {
+private fun getGraphicViewBoxAxis(that: dynamic): IntArray {
     val sViewBox = that.viewBoxAxis.unsafeCast<String>()
-    return sViewBox.split( ' ' ).map { it.toInt() }.toIntArray()
+    return sViewBox.split(' ').map { it.toInt() }.toIntArray()
 }
 
-private fun setGraphicViewBoxAxis( that: dynamic, arrViewBox: IntArray ) {
-    that.viewBoxAxis = "${arrViewBox[ 0 ]} ${arrViewBox[ 1 ]} ${arrViewBox[ 2 ]} ${arrViewBox[ 3 ]}"
+private fun setGraphicViewBoxAxis(that: dynamic, arrViewBox: IntArray) {
+    that.viewBoxAxis = "${arrViewBox[0]} ${arrViewBox[1]} ${arrViewBox[2]} ${arrViewBox[3]}"
 }
 
-private fun getGraphicViewBoxBody( that: dynamic ): IntArray {
+private fun getGraphicViewBoxBody(that: dynamic): IntArray {
     val sViewBox = that.viewBoxBody.unsafeCast<String>()
-    return sViewBox.split( ' ' ).map { it.toInt() }.toIntArray()
+    return sViewBox.split(' ').map { it.toInt() }.toIntArray()
 }
 
-private fun setGraphicViewBoxBody( that: dynamic, arrViewBox: IntArray ) {
-    that.viewBoxBody = "${arrViewBox[ 0 ]} ${arrViewBox[ 1 ]} ${arrViewBox[ 2 ]} ${arrViewBox[ 3 ]}"
+private fun setGraphicViewBoxBody(that: dynamic, arrViewBox: IntArray) {
+    that.viewBoxBody = "${arrViewBox[0]} ${arrViewBox[1]} ${arrViewBox[2]} ${arrViewBox[3]}"
 }
 
-private fun setGraphicTextOffset( that: dynamic, svgBodyLeft: Int, svgBodyTop: Int ) {
+private fun setGraphicTextOffset(that: dynamic, svgBodyLeft: Int, svgBodyTop: Int) {
     val arrGraphicElement = that.arrGraphicElement.unsafeCast<Array<GraphicElementData_>>()
-    val arrViewBoxBody = getGraphicViewBoxBody( that )
+    val arrViewBoxBody = getGraphicViewBoxBody(that)
 
-    for( grElement in arrGraphicElement ) {
-        for( grTextData in grElement.arrGraphicText ) {
-            val newX = grTextData.x - arrViewBoxBody[ 0 ]
-            val newY = grTextData.y - arrViewBoxBody[ 1 ]
+    for (grElement in arrGraphicElement) {
+        for (grTextData in grElement.arrGraphicText) {
+            val newX = grTextData.x - arrViewBoxBody[0]
+            val newY = grTextData.y - arrViewBoxBody[1]
 
-            grTextData.isVisible = newX >= 0 && newY >= 0 && newX < arrViewBoxBody[ 2 ] && newY < arrViewBoxBody[ 3 ]
+            grTextData.isVisible = newX >= 0 && newY >= 0 && newX < arrViewBoxBody[2] && newY < arrViewBoxBody[3]
 
             grTextData.pos = json(
                 "left" to "${svgBodyLeft + newX}px",
@@ -1264,21 +1243,21 @@ private fun setGraphicTextOffset( that: dynamic, svgBodyLeft: Int, svgBodyTop: I
     }
 }
 
-private fun setTimeLabel( timeOffset: Int, viewCoord: GraphicViewCoord, svgBodyLeft: Int, svgBodyWidth: Int, x: Int, timeLabelData: TimeLabelData ) {
-    val cursorTime = getTimeFromX( x, svgBodyWidth, viewCoord.t1, viewCoord.width )
+private fun setTimeLabel(timeOffset: Int, viewCoord: GraphicViewCoord, svgBodyLeft: Int, svgBodyWidth: Int, x: Int, timeLabelData: TimeLabelData) {
+    val cursorTime = getTimeFromX(x, svgBodyWidth, viewCoord.t1, viewCoord.width)
 
     timeLabelData.isVisible = true
-    timeLabelData.text = DateTime_DMYHMS( timeOffset, cursorTime ).replace( " ", "<br>" )
+    timeLabelData.text = DateTime_DMYHMS(timeOffset, cursorTime).replace(" ", "<br>")
     timeLabelData.pos = json(
         "bottom" to "0",
-        ( if( x > svgBodyWidth * 7 / 8 ) "right" else "left" ) to ( if( x > svgBodyWidth * 7 / 8 ) "${svgBodyWidth - x}px" else "${svgBodyLeft + x}px" )
+        (if (x > svgBodyWidth * 7 / 8) "right" else "left") to (if (x > svgBodyWidth * 7 / 8) "${svgBodyWidth - x}px" else "${svgBodyLeft + x}px")
     )
 }
 
 //--- в double и обратно из-за ошибок округления
-private fun getTimeFromX( pixX: Int, pixWidth: Int, timeStart: Int, timeWidth: Int ): Int = ( 1.0 * timeWidth * pixX / pixWidth + timeStart ).roundToInt()
+private fun getTimeFromX(pixX: Int, pixWidth: Int, timeStart: Int, timeWidth: Int): Int = (1.0 * timeWidth * pixX / pixWidth + timeStart).roundToInt()
 
-private fun disableCursorLinesAndLabels( that: dynamic ) {
+private fun disableCursorLinesAndLabels(that: dynamic) {
     val timeLine = that.timeLine.unsafeCast<LineData>()
     val arrTimeLabel = that.arrTimeLabel.unsafeCast<Array<TimeLabelData>>()
 
@@ -1293,7 +1272,7 @@ private fun disableCursorLinesAndLabels( that: dynamic ) {
 private fun outElement(
     timeOffset: Int,
     scaleKoef: Double,
-    hmIndexColor: Map<String,Map<String,String>>,
+    hmIndexColor: Map<String, Map<String, String>>,
     svgAxisWidth: Int,
     svgBodyWidth: Int,
     t1: Int,
@@ -1305,9 +1284,9 @@ private fun outElement(
     alYData: MutableList<YData>
 ) {
     //--- maxMarginLeft уходит на левую панель, к оси Y
-    val pixDrawHeight = pixRealHeight - ( ( MARGIN_TOP + MARGIN_BOTTOM ) * scaleKoef ).roundToInt()
-    val pixDrawY0 = pixStartY + pixRealHeight - ( MARGIN_BOTTOM * scaleKoef ).roundToInt()   // "нулевая" ось Y
-    val pixDrawTopY = pixStartY + ( MARGIN_TOP * scaleKoef ).roundToInt()  // верхний край графика
+    val pixDrawHeight = pixRealHeight - ((MARGIN_TOP + MARGIN_BOTTOM) * scaleKoef).roundToInt()
+    val pixDrawY0 = pixStartY + pixRealHeight - (MARGIN_BOTTOM * scaleKoef).roundToInt()   // "нулевая" ось Y
+    val pixDrawTopY = pixStartY + (MARGIN_TOP * scaleKoef).roundToInt()  // верхний край графика
 
     val alAxisYLine = mutableListOf<SvgLine>()
     val alAxisYText = mutableListOf<SvgText>()
@@ -1320,8 +1299,8 @@ private fun outElement(
     //--- заголовок
 
     val titleData = SvgText(
-        x = ( MIN_GRID_STEP_X * scaleKoef ).roundToInt(),
-        y = ( pixDrawTopY - 4 * scaleKoef ).roundToInt(),
+        x = (MIN_GRID_STEP_X * scaleKoef).roundToInt(),
+        y = (pixDrawTopY - 4 * scaleKoef).roundToInt(),
         text = element.graphicTitle,
         stroke = COLOR_GRAPHIC_TITLE,
         hAlign = "start",
@@ -1345,8 +1324,8 @@ private fun outElement(
     //--- оси Y
 
     val alAxisYDataIndex = mutableListOf<Int>()
-    for( i in element.alAxisYData.indices ) {
-        val ayd = element.alAxisYData[ i ]
+    for (i in element.alAxisYData.indices) {
+        val ayd = element.alAxisYData[i]
 
         val precY = drawAxisY(
             scaleKoef = scaleKoef,
@@ -1364,15 +1343,16 @@ private fun outElement(
         )
 
         val axisYDataIndex = alYData.size
-        alAxisYDataIndex.add( axisYDataIndex )
+        alAxisYDataIndex.add(axisYDataIndex)
 
-        alYData.add( YData(
-            y1 = pixDrawY0,
-            y2 = pixDrawTopY,
-            value1 = ayd.min,
-            value2 = ayd.max,
-            prec = precY
-        )
+        alYData.add(
+            YData(
+                y1 = pixDrawY0,
+                y2 = pixDrawTopY,
+                value1 = ayd.min,
+                value2 = ayd.max,
+                prec = precY
+            )
         )
     }
 
@@ -1394,19 +1374,21 @@ private fun outElement(
                 val ayd = element.alAxisYData[axisYIndex]
                 val graphicHeight = ayd.max - ayd.min
 
-                for( gld in cagdc.alGLD ) {
+                for (gld in cagdc.alGLD) {
                     val drawX = (svgBodyWidthDouble * (gld.x - t1) / (t2 - t1)).toInt()
                     val drawY = pixDrawY0 - pixDrawHeight * (gld.y - ayd.min) / graphicHeight
                     prevDrawColorIndex?.let {
-                        alGraphicLine.add( SvgLine(
-                            x1 = prevDrawX,
-                            y1 = prevDrawY.toInt(),
-                            x2 = drawX,
-                            y2 = drawY.toInt(),
-                            stroke = hmCurIndexColor[ gld.colorIndex.toString() ]!!,
-                            width = ( cagdc.lineWidth * scaleKoef ).roundToInt(),
-                            tooltip = alAxisYDataIndex[ axisYIndex ].toString()
-                        ) )
+                        alGraphicLine.add(
+                            SvgLine(
+                                x1 = prevDrawX,
+                                y1 = prevDrawY.toInt(),
+                                x2 = drawX,
+                                y2 = drawY.toInt(),
+                                stroke = hmCurIndexColor[gld.colorIndex.toString()]!!,
+                                width = (cagdc.lineWidth * scaleKoef).roundToInt(),
+                                tooltip = alAxisYDataIndex[axisYIndex].toString()
+                            )
+                        )
                     }
                     prevDrawX = drawX
                     prevDrawY = drawY
@@ -1414,96 +1396,102 @@ private fun outElement(
                 }
             }
             GraphicDataContainer.ElementType.POINT.toString() -> {
-                val hmCurIndexColor = hmIndexColor[ element.graphicTitle ]!!
-                val ayd = element.alAxisYData[ cagdc.axisYIndex ]
+                val hmCurIndexColor = hmIndexColor[element.graphicTitle]!!
+                val ayd = element.alAxisYData[cagdc.axisYIndex]
                 val graphicHeight = ayd.max - ayd.min
 
-                for( gpd in cagdc.alGPD ) {
-                    val drawX = svgBodyWidth * ( gpd.x - t1 ) / ( t2 - t1 )
-                    val drawY = pixDrawY0 - pixDrawHeight * ( gpd.y - ayd.min ) / graphicHeight
+                for (gpd in cagdc.alGPD) {
+                    val drawX = svgBodyWidth * (gpd.x - t1) / (t2 - t1)
+                    val drawY = pixDrawY0 - pixDrawHeight * (gpd.y - ayd.min) / graphicHeight
 
-                    alGraphicPoint.add( SvgCircle(
-                        cx = drawX,
-                        cy = drawY.toInt(),
-                        radius = max( 1, scaleKoef.roundToInt() ),
-                        fill = hmCurIndexColor[ gpd.colorIndex.toString() ]!!,
-                        tooltip = getSplittedDouble( gpd.y, alYData[ alAxisYDataIndex[ axisYIndex ] ].prec )
-                    ) )
+                    alGraphicPoint.add(
+                        SvgCircle(
+                            cx = drawX,
+                            cy = drawY.toInt(),
+                            radius = max(1, scaleKoef.roundToInt()),
+                            fill = hmCurIndexColor[gpd.colorIndex.toString()]!!,
+                            tooltip = getSplittedDouble(gpd.y, alYData[alAxisYDataIndex[axisYIndex]].prec)
+                        )
+                    )
                 }
             }
-            GraphicDataContainer.ElementType.TEXT.toString()  -> {
-                val hmCurIndexColor = hmIndexColor[ element.graphicTitle ]!!
+            GraphicDataContainer.ElementType.TEXT.toString() -> {
+                val hmCurIndexColor = hmIndexColor[element.graphicTitle]!!
 
-                for( gtd in cagdc.alGTD ) {
-                    val drawX1 = svgBodyWidth * ( gtd.textX1 - t1 ) / ( t2 - t1 )
-                    val drawX2 = svgBodyWidth * ( gtd.textX2 - t1 ) / ( t2 - t1 )
+                for (gtd in cagdc.alGTD) {
+                    val drawX1 = svgBodyWidth * (gtd.textX1 - t1) / (t2 - t1)
+                    val drawX2 = svgBodyWidth * (gtd.textX2 - t1) / (t2 - t1)
                     val drawWidth = drawX2 - drawX1
-                    val drawHeight = ( GRAPHIC_TEXT_HEIGHT * scaleKoef ).roundToInt()
+                    val drawHeight = (GRAPHIC_TEXT_HEIGHT * scaleKoef).roundToInt()
 
                     //--- смысла нет показывать коротенькие блоки
-                    if( drawWidth <= ( GRAPHIC_TEXT_MIN_VISIBLE_WIDTH * scaleKoef ).roundToInt() ) continue
+                    if (drawWidth <= (GRAPHIC_TEXT_MIN_VISIBLE_WIDTH * scaleKoef).roundToInt()) continue
 
-                    val rect = XyRect( drawX1, pixDrawTopY, drawWidth, drawHeight )
+                    val rect = XyRect(drawX1, pixDrawTopY, drawWidth, drawHeight)
 
                     //--- обеспечим отсутствие накладок текстов/прямоугольников
                     //--- ( многопроходной алгоритм, учитывающий "смену обстановки" после очередного сдвига )
-                    while( true ) {
+                    while (true) {
                         var crossNotFound = true
-                        for( otherRect in alPrevTextBounds ) {
+                        for (otherRect in alPrevTextBounds) {
                             //System.out.println(  "Bounds = " + b  );
                             //--- если блок текста пересекается с кем-то предыдущим, опустимся ниже его
-                            if( rect.isIntersects( otherRect ) ) {
+                            if (rect.isIntersects(otherRect)) {
                                 rect.y += rect.height
                                 crossNotFound = false
                                 break
                             }
                         }
-                        if( crossNotFound ) break
+                        if (crossNotFound) break
                     }
                     //--- для следующих текстов
-                    alPrevTextBounds.add( rect )
-                    alGraphicText.add( GraphicTextData(
-                        isVisible = false,
-                        x = rect.x,
-                        y = rect.y,
-                        pos = json(
-                            "left" to "0px",
-                            "top" to "0px"
-                        ),
-                        style = json(
-                            "position" to "absolute",
-                            "padding-top" to "0.0rem",      // иначе прямоугольники текста налезают друг на друга по вертикали
-                            "padding-bottom" to "0.0rem",
-                            "padding-left" to "0.0rem",     // иначе прямоугольники текста налезают друг на друга по горизонтали
-                            "padding-right" to "0.0rem",
-                            "overflow" to "hidden",
-                            "width" to "${rect.width - 2 * scaleKoef}px",   // чтобы избежать некрасивого перекрытия прямоугольников
-                            "height" to "${rect.height - 2 * scaleKoef}px",
-                            "border-radius" to "${2 * scaleKoef}px",
-                            "border" to "${1 * scaleKoef}px solid ${hmCurIndexColor[ gtd.borderColorIndex.toString() ]!!}",
-                            "color" to hmCurIndexColor[ gtd.textColorIndex.toString() ]!!,
-                            "background" to hmCurIndexColor[ gtd.fillColorIndex.toString() ]!!,
-                            "font-size" to "${1.0 * scaleKoef}rem",
-                            "user-select" to if( styleIsNarrowScreen ) "none" else "auto"
-                        ),
-                        text = gtd.text,
-                        tooltip = gtd.text
-                    ) )
+                    alPrevTextBounds.add(rect)
+                    alGraphicText.add(
+                        GraphicTextData(
+                            isVisible = false,
+                            x = rect.x,
+                            y = rect.y,
+                            pos = json(
+                                "left" to "0px",
+                                "top" to "0px"
+                            ),
+                            style = json(
+                                "position" to "absolute",
+                                "padding-top" to "0.0rem",      // иначе прямоугольники текста налезают друг на друга по вертикали
+                                "padding-bottom" to "0.0rem",
+                                "padding-left" to "0.0rem",     // иначе прямоугольники текста налезают друг на друга по горизонтали
+                                "padding-right" to "0.0rem",
+                                "overflow" to "hidden",
+                                "width" to "${rect.width - 2 * scaleKoef}px",   // чтобы избежать некрасивого перекрытия прямоугольников
+                                "height" to "${rect.height - 2 * scaleKoef}px",
+                                "border-radius" to "${2 * scaleKoef}px",
+                                "border" to "${1 * scaleKoef}px solid ${hmCurIndexColor[gtd.borderColorIndex.toString()]!!}",
+                                "color" to hmCurIndexColor[gtd.textColorIndex.toString()]!!,
+                                "background" to hmCurIndexColor[gtd.fillColorIndex.toString()]!!,
+                                "font-size" to "${1.0 * scaleKoef}rem",
+                                "user-select" to if (styleIsNarrowScreen) "none" else "auto"
+                            ),
+                            text = gtd.text,
+                            tooltip = gtd.text
+                        )
+                    )
                 }
             }
         }
     }
 
-    alGraphicElement.add( GraphicElementData(
-        title = titleData,
-        alAxisYLine = alAxisYLine,
-        alAxisYText = alAxisYText,
-        alAxisXLine = alAxisXLine,
-        alAxisXText = alAxisXText,
-        alGraphicLine = alGraphicLine,
-        alGraphicPoint = alGraphicPoint,
-        alGraphicText = alGraphicText
-    ) )
+    alGraphicElement.add(
+        GraphicElementData(
+            title = titleData,
+            alAxisYLine = alAxisYLine,
+            alAxisYText = alAxisYText,
+            alAxisXLine = alAxisXLine,
+            alAxisXText = alAxisXText,
+            alGraphicLine = alGraphicLine,
+            alGraphicPoint = alGraphicPoint,
+            alGraphicText = alGraphicText
+        )
+    )
 }
 
 private fun drawTimePane(
@@ -1524,65 +1512,67 @@ private fun drawTimePane(
     val timeWidth = t2 - t1
 
     //--- сетка, насечки, надписи по оси X
-    val minStepX: Int = ( timeWidth * MIN_GRID_STEP_X * scaleKoef / pixWidth ).roundToInt()
+    val minStepX: Int = (timeWidth * MIN_GRID_STEP_X * scaleKoef / pixWidth).roundToInt()
     var notchStepX = 0   // шаг насечек
     var labelStepX = 0   // шаг подписей под насечками
-    for( i in arrGridStepX.indices ) {
-        if( arrGridStepX[ i ] >= minStepX ) {
-            notchStepX = arrGridStepX[ i ]
+    for (i in arrGridStepX.indices) {
+        if (arrGridStepX[i] >= minStepX) {
+            notchStepX = arrGridStepX[i]
             //--- подписи по шкале X делаются реже, чем насечки
-            labelStepX = arrGridStepX[ if( i == arrGridStepX.size - 1 ) i else i + 1 ]
+            labelStepX = arrGridStepX[if (i == arrGridStepX.size - 1) i else i + 1]
             break
         }
     }
     //--- если подходящий шаг насечек не нашелся, берем максимальный (хотя такой ситуации не должно быть)
-    if( notchStepX == 0 ) {
-        notchStepX = arrGridStepX[ arrGridStepX.size - 1 ]
-        labelStepX = arrGridStepX[ arrGridStepX.size - 1 ]
+    if (notchStepX == 0) {
+        notchStepX = arrGridStepX[arrGridStepX.size - 1]
+        labelStepX = arrGridStepX[arrGridStepX.size - 1]
     }
 
-    var notchX = ( t1 + timeOffset ) / notchStepX * notchStepX - timeOffset
-    while(notchX <= t2) {
+    var notchX = (t1 + timeOffset) / notchStepX * notchStepX - timeOffset
+    while (notchX <= t2) {
 
-        if( notchX < t1 ) {
+        if (notchX < t1) {
             notchX += notchStepX
             continue
         }
         //--- в double и обратно из-за ошибок округления
-        val pixDrawX = ( 1.0 * pixWidth * ( notchX - t1 ) / timeWidth ).roundToInt()
+        val pixDrawX = (1.0 * pixWidth * (notchX - t1) / timeWidth).roundToInt()
         //--- вертикальная линия сетки, переходящая в насечку
         val line = SvgLine(
             x1 = pixDrawX,
             y1 = pixDrawTopY,
             x2 = pixDrawX,
-            y2 = pixDrawY0 + ( 2 * scaleKoef ).roundToInt(),
+            y2 = pixDrawY0 + (2 * scaleKoef).roundToInt(),
             stroke = COLOR_GRAPHIC_AXIS_DEFAULT,
-            width = max( 1, scaleKoef.roundToInt() ),
+            width = max(1, scaleKoef.roundToInt()),
             //--- если насечка переходит в линию сетки, то возможно меняется стиль линии
-            dash = if( pixDrawTopY < pixDrawY0 && ( notchX + timeOffset ) % labelStepX != 0 ) "${scaleKoef * 2},${scaleKoef * 2}" else ""
+            dash = if (pixDrawTopY < pixDrawY0 && (notchX + timeOffset) % labelStepX != 0) "${scaleKoef * 2},${scaleKoef * 2}" else ""
         )
-        alAxisLine.add( line )
+        alAxisLine.add(line)
 
         //--- текст метки по оси X
-        if( ( notchX + timeOffset ) % labelStepX == 0 ) {
-            val alTextLine = DateTime_DMYHMS( timeOffset, notchX ).split( ' ' )
+        if ((notchX + timeOffset) % labelStepX == 0) {
+            val alTextLine = DateTime_DMYHMS(timeOffset, notchX).split(' ')
             val alTextSpan = mutableListOf<SVGTextSpan>()
-            for( i in alTextLine.indices ) {
-                alTextSpan.add( SVGTextSpan(
-                    dy = "${( if( i == 0 ) 0.2 else 1.0 ) * scaleKoef}rem",
-                    text = alTextLine[ i ].trim()
-                ) )
+            for (i in alTextLine.indices) {
+                alTextSpan.add(
+                    SVGTextSpan(
+                        dy = "${(if (i == 0) 0.2 else 1.0) * scaleKoef}rem",
+                        text = alTextLine[i].trim()
+                    )
+                )
             }
             val axisText = SvgMultiLineText(
                 x = pixDrawX,
-                y = pixDrawY0 + ( scaleKoef * 2 ).roundToInt(),
+                y = pixDrawY0 + (scaleKoef * 2).roundToInt(),
                 arrText = alTextSpan.toTypedArray(),
-                stroke =COLOR_GRAPHIC_AXIS_DEFAULT,
+                stroke = COLOR_GRAPHIC_AXIS_DEFAULT,
                 hAlign = "middle",
                 vAlign = "hanging"
             )
 
-            alAxisText.add( axisText )
+            alAxisText.add(axisText)
         }
         notchX += notchStepX
     }
@@ -1597,17 +1587,17 @@ private fun drawTimePane(
         x2 = pixWidth,
         y2 = pixDrawY0,
         stroke = COLOR_GRAPHIC_AXIS_DEFAULT,
-        width = max( 1, scaleKoef.roundToInt() ),
+        width = max(1, scaleKoef.roundToInt()),
         //--- если насечка переходит в линию сетки, то возможно меняется стиль линии
-        dash = if( pixDrawTopY < pixDrawY0 && ( notchX + timeOffset ) % labelStepX != 0 ) "${scaleKoef * 2},${scaleKoef * 2}" else ""
+        dash = if (pixDrawTopY < pixDrawY0 && (notchX + timeOffset) % labelStepX != 0) "${scaleKoef * 2},${scaleKoef * 2}" else ""
     )
-    alAxisLine.add( line )
+    alAxisLine.add(line)
 }
 
 private fun drawAxisY(
     scaleKoef: Double,
 
-    hmIndexColor: Map<String,Map<String,String>>,
+    hmIndexColor: Map<String, Map<String, String>>,
 
     element: GraphicElement,
     axisIndex: Int,
@@ -1623,17 +1613,17 @@ private fun drawAxisY(
     alBodyLine: MutableList<SvgLine>
 ): Int {
 
-    val ayd = element.alAxisYData[ axisIndex ]
+    val ayd = element.alAxisYData[axisIndex]
     val grHeight = ayd.max - ayd.min
-    val axisX = ( pixDrawWidth - axisIndex * MARGIN_LEFT * scaleKoef ).roundToInt()
+    val axisX = (pixDrawWidth - axisIndex * MARGIN_LEFT * scaleKoef).roundToInt()
 
     //--- сетка, насечки, надписи по оси Y
     val minGraphicStepY = grHeight * MIN_GRID_STEP_Y * scaleKoef / pixDrawHeight
     var notchGraphicStepY = 0.0   // шаг насечек
     var labelGraphicStepY = 0.0   // шаг подписей под насечками
     var precY = 0
-    for( i in arrGridStepY.indices ) {
-        val gridStepY = arrGridStepY[ i ]
+    for (i in arrGridStepY.indices) {
+        val gridStepY = arrGridStepY[i]
         if (gridStepY >= minGraphicStepY) {
             notchGraphicStepY = gridStepY
             //--- подписи по шкале Y делаются на каждой насечке
@@ -1657,41 +1647,43 @@ private fun drawAxisY(
     var notchY = floor(ayd.min / notchGraphicStepY) * notchGraphicStepY
     while (notchY <= ayd.max) {
 
-        if( notchY < ayd.min ) {
+        if (notchY < ayd.min) {
             notchY += notchGraphicStepY
             continue
         }
-        val drawY = pixDrawY0 - pixDrawHeight * ( notchY - ayd.min ) / grHeight
+        val drawY = pixDrawY0 - pixDrawHeight * (notchY - ayd.min) / grHeight
         //--- горизонтальная линия сетки, переходящая в насечку
         val line = SvgLine(
-            x1 = axisX - ( MARGIN_LEFT * scaleKoef / 2 ).roundToInt(),
+            x1 = axisX - (MARGIN_LEFT * scaleKoef / 2).roundToInt(),
             y1 = drawY.toInt(),
             x2 = /*if( axisIndex == 0 ) pixDrawWidth else*/ axisX,
             y2 = drawY.toInt(),
             stroke = COLOR_GRAPHIC_AXIS_DEFAULT,
-            width = max( 1, scaleKoef.roundToInt() ),
+            width = max(1, scaleKoef.roundToInt()),
             //--- если насечка переходит в линию сетки, то возможно меняется стиль линии
             dash = "${scaleKoef * 2},${scaleKoef * 2}"
         )
-        alAxisLine.add( line )
+        alAxisLine.add(line)
 
         //--- горизонтальная линия сетки на основном графике
-        if( axisIndex == 0 ) {
-            alBodyLine.add( SvgLine(
-                x1 = 0,
-                y1 = drawY.toInt(),
-                x2 = pixBodyWidth,
-                y2 = drawY.toInt(),
-                stroke = COLOR_GRAPHIC_AXIS_DEFAULT,
-                width = max( 1, scaleKoef.roundToInt() ),
-                //--- если насечка переходит в линию сетки, то возможно меняется стиль линии
-                dash = "${scaleKoef * 2},${scaleKoef * 2}"
-            ) )
+        if (axisIndex == 0) {
+            alBodyLine.add(
+                SvgLine(
+                    x1 = 0,
+                    y1 = drawY.toInt(),
+                    x2 = pixBodyWidth,
+                    y2 = drawY.toInt(),
+                    stroke = COLOR_GRAPHIC_AXIS_DEFAULT,
+                    width = max(1, scaleKoef.roundToInt()),
+                    //--- если насечка переходит в линию сетки, то возможно меняется стиль линии
+                    dash = "${scaleKoef * 2},${scaleKoef * 2}"
+                )
+            )
         }
 
         //--- текст метки по оси Y
 
-        if( round( notchY * mult ).toInt() % round( labelGraphicStepY * mult ).toInt() == 0 ) {
+        if (round(notchY * mult).toInt() % round(labelGraphicStepY * mult).toInt() == 0) {
             val axisText = SvgText(
                 x = axisX - (2 * scaleKoef).roundToInt(),
                 y = drawY.toInt() - (2 * scaleKoef).roundToInt(),
@@ -1710,13 +1702,13 @@ private fun drawAxisY(
         y1 = pixDrawY0,
         x2 = axisX,
         y2 = pixDrawTopY,
-        stroke = hmIndexColor[ element.graphicTitle ]!![ ayd.colorIndex.toString() ]!!,
-        width = max( 1, scaleKoef.roundToInt() )
+        stroke = hmIndexColor[element.graphicTitle]!![ayd.colorIndex.toString()]!!,
+        width = max(1, scaleKoef.roundToInt())
     )
-    alAxisLine.add( line )
+    alAxisLine.add(line)
 
     //--- подпись оси Y - подпись отодвинем подальше от цифр, чтобы не перекрывались
-    val axisTextX = axisX - ( MARGIN_LEFT * scaleKoef * 5 / 6 ).roundToInt()
+    val axisTextX = axisX - (MARGIN_LEFT * scaleKoef * 5 / 6).roundToInt()
     val axisTextY = pixDrawY0 - pixDrawHeight / 2
     val axisText = SvgText(
         x = axisTextX,

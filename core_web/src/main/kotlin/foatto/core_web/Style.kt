@@ -1,5 +1,6 @@
 package foatto.core_web
 
+import kotlinx.browser.localStorage
 import kotlinx.browser.window
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -71,6 +72,8 @@ const val COLOR_LOADER_2 = COLOR_MAIN_LOADER_2
 const val COLOR_LOADER_3 = COLOR_MAIN_LOADER_3
 
 //--- Menu -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+const val IS_HIDDEN_MENU_BAR = "is_hidden_menu_bar"
 
 const val COLOR_MENU_BACK = COLOR_MAIN_BACK_1
 const val COLOR_MENU_BACK_HOVER = COLOR_MAIN_BACK_HOVER_0   //COLOR_MAIN_BACK_HOVER_1
@@ -184,6 +187,10 @@ fun styleControlTooltipPadding() = "$CONTROL_PADDING $CONTROL_SIDE_PADDING $CONT
 
 fun styleCommonMargin() = "0 $CONTROL_MARGIN 0 $CONTROL_MARGIN"
 
+//--- MenuBar
+
+var styleIsHiddenMenuBar = localStorage.getItem(IS_HIDDEN_MENU_BAR)?.toBooleanStrictOrNull() ?: true
+
 //--- Logon
 
 fun styleLogonTextLen() = if (!styleIsNarrowScreen) 40 else scaledScreenWidth / 16
@@ -244,7 +251,7 @@ fun styleMenuStartPadding() = "${if (screenDPR <= 1.0) 1.0 else 1.0}rem " +
     "${if (screenDPR <= 1.0) 1.0 else 1.0}rem " +
     "${if (screenDPR <= 1.0) 1.0 else 1.0}rem"
 
-fun styleMenuWidth() = if (!styleIsNarrowScreen) "auto" else "85%"
+fun styleMenuWidth() = if (styleIsNarrowScreen) "85%" else if(!styleIsHiddenMenuBar) "20rem" else "auto"
 fun styleMenuFontSize() = "${if (screenDPR <= 1.0) 1.0 else 1.0}rem"
 fun styleMenuItemPadding_0() = "${styleMenuItemTopBottomPad()}rem ${styleMenuItemSidePad_0()}rem ${styleMenuItemTopBottomPad()}rem ${styleMenuItemSidePad_0()}rem"
 fun styleMenuItemPadding_1() = "${styleMenuItemTopBottomPad()}rem ${styleMenuItemSidePad_1()}rem ${styleMenuItemTopBottomPad()}rem ${styleMenuItemSidePad_1()}rem"

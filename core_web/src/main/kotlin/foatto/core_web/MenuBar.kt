@@ -11,6 +11,8 @@ import kotlinx.browser.localStorage
 import kotlinx.browser.window
 import kotlin.js.json
 
+const val MENU_BAR_ID = "menu_bar"
+
 private const val CMD_SET_START_PAGE = "set_start_page"
 private const val CMD_CLEAR_START_PAGE = "clear_start_page"
 private const val CMD_CHANGE_PASSWORD = "change_password"
@@ -30,20 +32,27 @@ val arrRbmiTZ = arrayOf(
 @Suppress("UnsafeCastFromDynamic")
 fun menuBar(arrMenuData: Array<MenuData>) = vueComponentOptions().apply {
 
-    //--- убрать этот вложенный ужас, переделать на циклические шаблоны
-    this.template = """
-        <span>
-            <img src="/web/images/ic_menu_black_48dp.png"
-                 v-bind:style="style_menu_button"
-                 v-on:click="isShowMainMenu=!isShowMainMenu"
-                 title="Главное меню"
-            >
-
-            <div v-bind:style="style_menu_start" v-show="isShowMainMenu">
+    this.template = if (styleIsNarrowScreen || styleIsHiddenMenuBar) {
+        """
+            <span>
+                <img src="/web/images/ic_menu_black_48dp.png"
+                     v-bind:style="style_menu_button"
+                     v-on:click="isShowMainMenu=!isShowMainMenu"
+                     title="Главное меню"
+                >
+    
+                <div v-bind:style="[style_menu_start, style_menu_is_hidden]" v-show="isShowMainMenu">
+                    ${menuGenerateBody("arrMenuData", "menuClick", ".url")}
+                </div>
+            </span>
+        """
+    } else {
+        """
+            <div id="$MENU_BAR_ID" v-bind:style="style_menu_start">
                 ${menuGenerateBody("arrMenuData", "menuClick", ".url")}
             </div>
-        </span>
-    """
+        """
+    }
 
     this.methods = json(
         "menuClick" to { url: String ->
@@ -61,8 +70,8 @@ fun menuBar(arrMenuData: Array<MenuData>) = vueComponentOptions().apply {
                     val password2 = window.prompt("Введите ещё раз")
                     password2?.let {
                         //--- проверка нового пароля
-                        if (password1 != password2) window.alert("Вы ввели разные пароли.\nПопробуйте ввести еще раз.")
-                        else if (password1.length <= 3) window.alert("Слишком короткий пароль.\nПопробуйте ввести еще раз.")
+                        if (password1 != password2) window.alert("Вы ввели разные пароли.\nПопробуйте ввести ещё раз.")
+                        else if (password1.length <= 3) window.alert("Слишком короткий пароль.\nПопробуйте ввести ещё раз.")
                         else {
                             //--- проверку комплексности пароля пока пропустим. Не любят этого пользователи.
                             //if(  pwd.length() < 8  ) return false;
@@ -76,7 +85,7 @@ fun menuBar(arrMenuData: Array<MenuData>) = vueComponentOptions().apply {
                             //    }
                             //return haveDigit;
                             invokeChangePassword(ChangePasswordRequest(encodePassword(password1)))
-                            window.alert("Пароль успешно сменен.")
+                            window.alert("Пароль успешно сменён.")
                         }
                     }
                 }
@@ -119,18 +128,21 @@ fun menuBar(arrMenuData: Array<MenuData>) = vueComponentOptions().apply {
                 "cursor" to "pointer"
             ),
             "style_menu_start" to json(
-                "z-index" to "999",
-                "position" to "absolute",
-                "top" to styleMenuStartTop(),
                 "width" to styleMenuWidth(),
-                "height" to "80%",
+                "min-width" to styleMenuWidth(),
                 "background" to COLOR_MENU_BACK,
                 "border" to "1px solid $COLOR_MENU_BORDER",
                 "border-radius" to BORDER_RADIUS,
                 "font-size" to styleMenuFontSize(),
                 "padding" to styleMenuStartPadding(),
                 "overflow" to "auto",
-                "cursor" to "pointer"
+                "cursor" to "pointer",
+            ),
+            "style_menu_is_hidden" to json(
+                "z-index" to "999",
+                "position" to "absolute",
+                "top" to styleMenuStartTop(),
+                "bottom" to if (styleIsNarrowScreen) "20%" else "10%", //"height" to "80%",
             ),
             "style_menu_summary_0" to json(
                 "padding" to styleMenuItemPadding_0(),

@@ -18,8 +18,8 @@ import kotlin.js.json
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-fun getXyElementTemplate( tabIndex: Int, specificSvg: String ) =
-"""
+fun getXyElementTemplate(tabIndex: Int, specificSvg: String) =
+    """
     <svg id="svg_body_$tabIndex"
          width="100%"
          v-bind:height="svg_height"
@@ -139,9 +139,9 @@ fun getXyElementTemplate( tabIndex: Int, specificSvg: String ) =
         </template>
 """ +
 
-specificSvg +
+        specificSvg +
 
-"""
+        """
     </svg>
 
     <template v-for="arrElement in arrXyElement">
@@ -166,38 +166,64 @@ specificSvg +
 
 """
 
-fun doXyMounted( that: dynamic, xyResponse: XyResponse, tabIndex: Int, titleBarNamePrefix: String, toolBarNamePrefix: String, startExpandKoef: Double, curScale: Int ) {
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+class XySvgCoords(
+    val bodyLeft: Int,
+    val bodyTop: Int,
+    val bodyWidth: Int,
+    val bodyHeight: Int,
+)
+
+fun defineXySvgCoords(elementPrefix: String, tabIndex: Int): XySvgCoords {
+    val menuBarElement = document.getElementById(MENU_BAR_ID)
+    val svgTabPanel = document.getElementById("tab_panel")!!
+    val svgXyTitle = document.getElementById("${elementPrefix}_title_$tabIndex")!!
+    val svgXyToolbar = document.getElementById("${elementPrefix}_toolbar_$tabIndex")!!
+    val svgBodyElement = document.getElementById("svg_body_$tabIndex")!!
+
+    val menuBarWidth = menuBarElement?.clientWidth ?: 0
+
+    return XySvgCoords(
+        bodyLeft = menuBarWidth,  //svgBodyElement.clientLeft - BUG: всегда даёт 0
+        bodyTop = svgTabPanel.clientHeight + svgXyTitle.clientHeight + svgXyToolbar.clientHeight,  //svgBodyElement.clientTop - BUG: всегда даёт 0
+        bodyWidth = svgBodyElement.clientWidth,
+        bodyHeight = svgBodyElement.clientHeight,
+    )
+}
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+fun doXyMounted(that: dynamic, xyResponse: XyResponse, tabIndex: Int, elementPrefix: String, startExpandKoef: Double, curScale: Int) {
     that.documentConfig = xyResponse.documentConfig
     that.startParamID = xyResponse.startParamID
     that.fullTitle = xyResponse.fullTitle
     that.parentObjectID = xyResponse.parentObjectID
     that.parentObjectInfo = xyResponse.parentObjectInfo
 
-    that.`$root`.addTabInfo( tabIndex, xyResponse.shortTitle, xyResponse.fullTitle )
+    that.`$root`.addTabInfo(tabIndex, xyResponse.shortTitle, xyResponse.fullTitle)
 
     val scaleKoef = that.`$root`.scaleKoef.unsafeCast<Double>()
     //--- принудительная установка полной высоты svg-элементов
     //--- (BUG: иначе высота либо равна 150px - если не указывать высоту,
     //--- либо равно width, если указать height="100%")
-    val svgTabPanel = document.getElementById( "tab_panel" )!!
-    val svgTitlebar = document.getElementById( "${titleBarNamePrefix}_$tabIndex" )!!
-    val svgToolbar = document.getElementById( "${toolBarNamePrefix}_$tabIndex" )!!
+    val svgCoords = defineXySvgCoords(elementPrefix, tabIndex)
+    that.svg_height = window.innerHeight - svgCoords.bodyTop
 
-    that.svg_height = kotlinx.browser.window.innerHeight - ( svgTabPanel.clientHeight + svgTitlebar.clientHeight + svgToolbar.clientHeight )
-
-    that.`$root`.setWait( true )
+    that.`$root`.setWait(true)
     invokeXy(
         XyActionRequest(
             documentTypeName = xyResponse.documentConfig.name,
             action = XyAction.GET_COORDS,
-            startParamID = xyResponse.startParamID ),
+            startParamID = xyResponse.startParamID
+        ),
         { xyActionResponse: XyActionResponse ->
 
-            val svgBodyElement = document.getElementById( "svg_body_$tabIndex" )!!
+            val svgBodyElement = document.getElementById("svg_body_$tabIndex")!!
             val svgBodyWidth = svgBodyElement.clientWidth
             val svgBodyHeight = svgBodyElement.clientHeight
 
-            setXyViewBoxBody( that, intArrayOf( 0, 0, svgBodyWidth, svgBodyHeight ) )
+            setXyViewBoxBody(that, intArrayOf(0, 0, svgBodyWidth, svgBodyHeight))
 
             val newViewCoord = getXyCoordsDone(
                 scaleKoef = scaleKoef,
@@ -210,8 +236,8 @@ fun doXyMounted( that: dynamic, xyResponse: XyResponse, tabIndex: Int, titleBarN
             )
 
             //--- именно до refreshView, чтобы не сбросить сразу после включения
-            that.`$root`.setWait( false )
-            that.refreshView( that, newViewCoord )
+            that.`$root`.setWait(false)
+            that.refreshView(that, newViewCoord)
         }
     )
 }
@@ -223,27 +249,27 @@ fun readXyElements(
     alElement: Array<XyElement>
 ): Array<Array<XyElementData>> {
 
-    val hmLayer = mutableMapOf<Int,MutableList<XyElementData>>()
+    val hmLayer = mutableMapOf<Int, MutableList<XyElementData>>()
     alElement.forEach { element ->
         val elementConfig = documentConfig.alElementConfig.find { it.first == element.typeName }!!.second
-        val alLayer = hmLayer.getOrPut( elementConfig.layer ) { mutableListOf() }
+        val alLayer = hmLayer.getOrPut(elementConfig.layer) { mutableListOf() }
 
-        readXyElementData( scaleKoef, viewCoord, elementConfig, element, alLayer )
+        readXyElementData(scaleKoef, viewCoord, elementConfig, element, alLayer)
     }
 
     return hmLayer.toList().sortedBy { it.first }.map { it.second.toTypedArray() }.toTypedArray()
 }
 
-fun getXyViewBoxBody( that: dynamic ): IntArray {
+fun getXyViewBoxBody(that: dynamic): IntArray {
     val sViewBox = that.viewBoxBody.unsafeCast<String>()
-    return sViewBox.split( ' ' ).map { it.toInt() }.toIntArray()
+    return sViewBox.split(' ').map { it.toInt() }.toIntArray()
 }
 
-fun setXyViewBoxBody( that: dynamic, arrViewBox: IntArray ) {
-    that.viewBoxBody = "${arrViewBox[ 0 ]} ${arrViewBox[ 1 ]} ${arrViewBox[ 2 ]} ${arrViewBox[ 3 ]}"
+fun setXyViewBoxBody(that: dynamic, arrViewBox: IntArray) {
+    that.viewBoxBody = "${arrViewBox[0]} ${arrViewBox[1]} ${arrViewBox[2]} ${arrViewBox[3]}"
 }
 
-fun getXyCoordsDone(scaleKoef: Double, startExpandKoef: Double, viewWidth: Int, viewHeight: Int, curScale: Int, minCoord: XyPoint, maxCoord: XyPoint ): XyViewCoord {
+fun getXyCoordsDone(scaleKoef: Double, startExpandKoef: Double, viewWidth: Int, viewHeight: Int, curScale: Int, minCoord: XyPoint, maxCoord: XyPoint): XyViewCoord {
     var x1 = minCoord.x
     var y1 = minCoord.y
     var x2 = maxCoord.x
@@ -254,29 +280,29 @@ fun getXyCoordsDone(scaleKoef: Double, startExpandKoef: Double, viewWidth: Int, 
     val tmpH = y2 - y1
     //--- если пришли граничные координаты только одной точки,
     //--- то оставим текущий масштаб
-    if( tmpW == 0 && tmpH == 0 ) scale = curScale
+    if (tmpW == 0 && tmpH == 0) scale = curScale
     else {
         //--- прибавим по краям startExpandKoef, чтобы искомые элементы не тёрлись об края экрана
-        x1 -= ( tmpW * startExpandKoef ).toInt()
-        y1 -= ( tmpH * startExpandKoef ).toInt()
-        x2 += ( tmpW * startExpandKoef ).toInt()
-        y2 += ( tmpH * startExpandKoef ).toInt()
+        x1 -= (tmpW * startExpandKoef).toInt()
+        y1 -= (tmpH * startExpandKoef).toInt()
+        x2 += (tmpW * startExpandKoef).toInt()
+        y2 += (tmpH * startExpandKoef).toInt()
         //--- масштаб вычисляется исходя из размеров docView (аналогично zoomBox)
-        scale = calcXyScale( scaleKoef, viewWidth, viewHeight, x1, y1, x2, y2 )
+        scale = calcXyScale(scaleKoef, viewWidth, viewHeight, x1, y1, x2, y2)
     }
-    return XyViewCoord( scale, x1, y1, x2, y2 )
+    return XyViewCoord(scale, x1, y1, x2, y2)
 }
 
-fun calcXyScale( scaleKoef: Double, viewWidth: Int, viewHeight: Int, x1: Int, y1: Int, x2: Int, y2: Int ): Int =
-    max( ( x2 - x1 ) * scaleKoef / viewWidth, ( y2 - y1 ) * scaleKoef / viewHeight ).roundToInt()
+fun calcXyScale(scaleKoef: Double, viewWidth: Int, viewHeight: Int, x1: Int, y1: Int, x2: Int, y2: Int): Int =
+    max((x2 - x1) * scaleKoef / viewWidth, (y2 - y1) * scaleKoef / viewHeight).roundToInt()
 
-fun getXyViewCoord( aScale: Int, aViewWidth: Int, aViewHeight: Int, aCenterX: Int, aCenterY: Int, scaleKoef: Double ): XyViewCoord {
+fun getXyViewCoord(aScale: Int, aViewWidth: Int, aViewHeight: Int, aCenterX: Int, aCenterY: Int, scaleKoef: Double): XyViewCoord {
     val vc = XyViewCoord()
 
     vc.scale = aScale
 
-    val rw = ( aViewWidth * aScale / scaleKoef ).roundToInt()
-    val rh = ( aViewHeight * aScale / scaleKoef ).roundToInt()
+    val rw = (aViewWidth * aScale / scaleKoef).roundToInt()
+    val rh = (aViewHeight * aScale / scaleKoef).roundToInt()
 
     vc.x1 = aCenterX - rw / 2
     vc.y1 = aCenterY - rh / 2
@@ -289,25 +315,25 @@ fun getXyViewCoord( aScale: Int, aViewWidth: Int, aViewHeight: Int, aCenterX: In
 }
 
 //--- проверка масштаба на минимальный/максимальный и на кратность степени двойки
-fun checkXyScale( minScale: Int, maxScale: Int, itScaleAlign: Boolean, curScale: Int, newScale: Int, isAdaptive: Boolean ): Int {
+fun checkXyScale(minScale: Int, maxScale: Int, itScaleAlign: Boolean, curScale: Int, newScale: Int, isAdaptive: Boolean): Int {
 
-    if( newScale < minScale ) return minScale
-    if( newScale > maxScale ) return maxScale
+    if (newScale < minScale) return minScale
+    if (newScale > maxScale) return maxScale
 
     //--- нужно ли выравнивание масштаба к степени двойки?
-    if( itScaleAlign ) {
+    if (itScaleAlign) {
         //--- ПРОТЕСТИРОВАНО: нельзя допускать наличие масштабов, не являющихся степенью двойки,
         //--- иначе при приведении (растягивании/сжимании) произвольного масштаба к выровненному (степени 2)
         //--- получается битмап-карта отвратного качества
 
         //--- адаптивный алгоритм - "докручивает" масштаб до ожидаемого пользователем
-        if( isAdaptive ) {
+        if (isAdaptive) {
             //--- если идёт процесс увеличения масштаба (удаление от пользователя),
             //--- то поможем ему - округлим масштаб в бОльшую сторону
-            if( newScale >= curScale ) {
+            if (newScale >= curScale) {
                 var scale = minScale
-                while( scale <= maxScale ) {
-                    if( newScale <= scale ) return scale
+                while (scale <= maxScale) {
+                    if (newScale <= scale) return scale
                     scale *= 2
                 }
             }
@@ -315,8 +341,8 @@ fun checkXyScale( minScale: Int, maxScale: Int, itScaleAlign: Boolean, curScale:
             //--- то поможем ему - округлим масштаб в меньшую сторону
             else {
                 var scale = maxScale
-                while( scale >= minScale ) {
-                    if( newScale >= scale ) return scale
+                while (scale >= minScale) {
+                    if (newScale >= scale) return scale
                     scale /= 2
                 }
             }
@@ -324,28 +350,27 @@ fun checkXyScale( minScale: Int, maxScale: Int, itScaleAlign: Boolean, curScale:
         //--- обычный алгоритм - просто даёт больший или равный масштаб, чтобы всё гарантированно уместилось
         else {
             var scale = minScale
-            while( scale <= maxScale ) {
-                if( newScale <= scale ) return scale
+            while (scale <= maxScale) {
+                if (newScale <= scale) return scale
                 scale *= 2
             }
         }
-    }
-    else return newScale
+    } else return newScale
     //--- такого быть не должно, но всё-таки для проверки вернём 0, чтобы получить деление на 0
     return 0   //XyConfig.MAX_SCALE;
 }
 
-fun setXyTextOffset( that: dynamic, svgBodyLeft: Int, svgBodyTop: Int ) {
+fun setXyTextOffset(that: dynamic, svgBodyLeft: Int, svgBodyTop: Int) {
     val arrXyElement = that.arrXyElement.unsafeCast<Array<Array<XyElementData>>>()
-    val arrViewBoxBody = getXyViewBoxBody( that )
+    val arrViewBoxBody = getXyViewBoxBody(that)
 
-    for( arrLayer in arrXyElement ) {
-        for( xyElement in arrLayer ) {
-            if( xyElement.type == XyElementDataType.TEXT ) {
-                val newX = xyElement.x!! - arrViewBoxBody[ 0 ]
-                val newY = xyElement.y!! - arrViewBoxBody[ 1 ]
+    for (arrLayer in arrXyElement) {
+        for (xyElement in arrLayer) {
+            if (xyElement.type == XyElementDataType.TEXT) {
+                val newX = xyElement.x!! - arrViewBoxBody[0]
+                val newY = xyElement.y!! - arrViewBoxBody[1]
 
-                xyElement.isVisible = newX >= 0 && newY >= 0 && newX < arrViewBoxBody[ 2 ] && newY < arrViewBoxBody[ 3 ]
+                xyElement.isVisible = newX >= 0 && newY >= 0 && newX < arrViewBoxBody[2] && newY < arrViewBoxBody[3]
 
                 xyElement.pos = json(
                     "left" to "${svgBodyLeft + newX}px",
@@ -356,37 +381,36 @@ fun setXyTextOffset( that: dynamic, svgBodyLeft: Int, svgBodyTop: Int ) {
     }
 }
 
-fun onXyMouseOver( that: dynamic, mouseEvent: MouseEvent, xyElement: XyElementData ) {
+fun onXyMouseOver(that: dynamic, mouseEvent: MouseEvent, xyElement: XyElementData) {
     val scaleKoef = that.`$root`.scaleKoef.unsafeCast<Double>()
 
-    if( ! xyElement.tooltip.isNullOrBlank() ) {
-        val tooltipX = mouseEvent.clientX + ( 16 * scaleKoef ).roundToInt()
-        val tooltipY = mouseEvent.clientY + ( 16 * scaleKoef ).roundToInt()
+    if (!xyElement.tooltip.isNullOrBlank()) {
+        val tooltipX = mouseEvent.clientX + (16 * scaleKoef).roundToInt()
+        val tooltipY = mouseEvent.clientY + (16 * scaleKoef).roundToInt()
 
         that.tooltipVisible = true
-        that.tooltipText = xyElement.tooltip.replace( "\n", "<br>" )
-        that.style_tooltip_pos = json( "left" to "${tooltipX}px", "top" to "${tooltipY}px" )
+        that.tooltipText = xyElement.tooltip.replace("\n", "<br>")
+        that.style_tooltip_pos = json("left" to "${tooltipX}px", "top" to "${tooltipY}px")
         that.tooltipOffTime = Date().getTime() + 3000
-    }
-    else {
+    } else {
         that.tooltipVisible = false
     }
 }
 
-fun onXyMouseOut( that: dynamic ) {
+fun onXyMouseOut(that: dynamic) {
     //--- через 3 сек выключить тултип, если не было других активаций тултипов
     //--- причина: баг (?) в том, что mouseleave вызывается сразу после mouseenter,
     //--- причём после ухода с графика других mouseleave не вызывается.
-    window.setTimeout( {
+    window.setTimeout({
         val tooltipOffTime = that.tooltipOffTime.unsafeCast<Double>()
-        if( Date().getTime() > tooltipOffTime ) {
+        if (Date().getTime() > tooltipOffTime) {
             that.tooltipVisible = false
         }
-    }, 3000 )
+    }, 3000)
 }
 
-fun getXyElements( that: dynamic, xyResponse: XyResponse, scaleKoef: Double, newView: XyViewCoord, mapBitmapTypeName: String, svgBodyLeft: Int, svgBodyTop: Int ) {
-    that.`$root`.setWait( true )
+fun getXyElements(that: dynamic, xyResponse: XyResponse, scaleKoef: Double, newView: XyViewCoord, mapBitmapTypeName: String, svgBodyLeft: Int, svgBodyTop: Int) {
+    that.`$root`.setWait(true)
     invokeXy(
         XyActionRequest(
             documentTypeName = xyResponse.documentConfig.name,
@@ -398,8 +422,8 @@ fun getXyElements( that: dynamic, xyResponse: XyResponse, scaleKoef: Double, new
         { xyActionResponse: XyActionResponse ->
 
             //--- сбрасываем горизонтальный и вертикальный скроллинг/смещение
-            val arrViewBoxBody = getXyViewBoxBody( that )
-            setXyViewBoxBody( that, intArrayOf( 0, 0, arrViewBoxBody[ 2 ], arrViewBoxBody[ 3 ] ) )
+            val arrViewBoxBody = getXyViewBoxBody(that)
+            setXyViewBoxBody(that, intArrayOf(0, 0, arrViewBoxBody[2], arrViewBoxBody[3]))
 
             that.arrXyElement = readXyElements(
                 documentConfig = xyResponse.documentConfig,
@@ -408,9 +432,9 @@ fun getXyElements( that: dynamic, xyResponse: XyResponse, scaleKoef: Double, new
                 alElement = xyActionResponse.alElement!!
             )
 
-            setXyTextOffset( that, svgBodyLeft, svgBodyTop )
+            setXyTextOffset(that, svgBodyLeft, svgBodyTop)
 
-            that.`$root`.setWait( false )
+            that.`$root`.setWait(false)
         }
     )
 }
@@ -442,21 +466,21 @@ fun getXyElements( that: dynamic, xyResponse: XyResponse, scaleKoef: Double, new
 //    return alResult.asReversed()
 //}
 
-fun getXyElementList( that: dynamic, rect: XyRect): List<XyElementData> {
+fun getXyElementList(that: dynamic, rect: XyRect): List<XyElementData> {
     val arrXyElement = that.arrXyElement.unsafeCast<Array<Array<XyElementData>>>()
     val alResult = mutableListOf<XyElementData>()
     arrXyElement.forEach { arrXyElementIn ->
         arrXyElementIn.forEach { xyElement ->
             //--- небольшой хак: список элементов нужен только для интерактива, поэтмоу прежде чем тратить время на проверки геометрии - проверяем, а надо ли вообще проверять
-            if( !xyElement.itReadOnly && xyElement.isIntersects( rect ) )
-                alResult.add( xyElement )
+            if (!xyElement.itReadOnly && xyElement.isIntersects(rect))
+                alResult.add(xyElement)
         }
     }
 
     return alResult.asReversed()
 }
 
-fun xyDeselectAll( that: dynamic ) {
+fun xyDeselectAll(that: dynamic) {
     val arrXyElement = that.arrXyElement.unsafeCast<Array<Array<XyElementData>>>()
     arrXyElement.forEach { arrXyElementIn ->
         arrXyElementIn.forEach { xyElement ->
@@ -465,7 +489,7 @@ fun xyDeselectAll( that: dynamic ) {
     }
 }
 
-fun getXyClickRect( mouseX: Int, mouseY: Int ): XyRect = XyRect( mouseX - MIN_USER_RECT_SIZE / 2, mouseY - MIN_USER_RECT_SIZE / 2, MIN_USER_RECT_SIZE, MIN_USER_RECT_SIZE )
+fun getXyClickRect(mouseX: Int, mouseY: Int): XyRect = XyRect(mouseX - MIN_USER_RECT_SIZE / 2, mouseY - MIN_USER_RECT_SIZE / 2, MIN_USER_RECT_SIZE, MIN_USER_RECT_SIZE)
 
 fun getXyComponentData(): Json {
     return json(
@@ -477,7 +501,7 @@ fun getXyComponentData(): Json {
 
         "svg_height" to "100%",
 
-        "viewCoord" to XyViewCoord( 1, 0, 0, 1, 1 ),        // XyViewCoord( 1, 0, 0, 0, 0 ), в StateControl ???
+        "viewCoord" to XyViewCoord(1, 0, 0, 1, 1),        // XyViewCoord( 1, 0, 0, 0, 0 ), в StateControl ???
         "arrXyElement" to arrayOf<Array<XyElementData>>(),
 
         "viewBoxBody" to "0 0 1 1",
@@ -487,7 +511,7 @@ fun getXyComponentData(): Json {
         "tooltipText" to "",
 
         "style_header" to json(
-            "border-top" to if( !styleIsNarrowScreen ) "none" else "1px solid $COLOR_BUTTON_BORDER"
+            "border-top" to if (!styleIsNarrowScreen) "none" else "1px solid $COLOR_BUTTON_BORDER"
         ),
         "style_toolbar" to json(
             "display" to "flex",
@@ -505,7 +529,7 @@ fun getXyComponentData(): Json {
             "justify-content" to "center",
             "align-items" to "center"        // "baseline" ?
         ),
-        "style_title" to json (
+        "style_title" to json(
             "font-size" to styleControlTitleTextFontSize(),
             "padding" to styleControlTitlePadding()
         ),
@@ -534,7 +558,7 @@ fun getXyComponentData(): Json {
             "border" to "1px solid $COLOR_XY_LABEL_BORDER",
             "border-radius" to BORDER_RADIUS,
             "padding" to styleControlTooltipPadding(),
-            "user-select" to if( styleIsNarrowScreen ) "none" else "auto"
+            "user-select" to if (styleIsNarrowScreen) "none" else "auto"
         ),
         "style_tooltip_pos" to json(
             "left" to "",

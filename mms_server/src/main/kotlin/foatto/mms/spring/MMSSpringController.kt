@@ -322,17 +322,13 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGeneral, "mms_object", true)
 
-        addSeparator(alMenuGeneral)
-
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGeneral, "mms_work_shift", true)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGeneral, "mms_waybill", true)
-
-        addSeparator(alMenuGeneral)
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGeneral, "mms_day_work", true)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGeneral, "mms_shift_work", true)
 
-        if (alMenuGeneral.size > 2) alMenu.add(MenuData("", "Учёт", alMenuGeneral.toTypedArray()))
+        if (alMenuGeneral.size > 0) alMenu.add(MenuData("", "Учёт", alMenuGeneral.toTypedArray()))
 
         //--- Общие отчёты --------------------------------------------------------------------------------------------------------
 
@@ -351,18 +347,14 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuMobileReport, "mms_report_waybill", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuMobileReport, "mms_report_waybill_compare", false)
 
-        addSeparator(alMenuMobileReport)
-
         addMenu(hmAliasConfig, hmAliasPerm, alMenuMobileReport, "mms_report_over_speed", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuMobileReport, "mms_report_parking", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuMobileReport, "mms_report_object_zone", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuMobileReport, "mms_report_moving_detail", false)
 
-        addSeparator(alMenuMobileReport)
-
         addMenu(hmAliasConfig, hmAliasPerm, alMenuMobileReport, "mms_report_downtime", false)
 
-        if (alMenuMobileReport.size > 2) alMenu.add(MenuData("", "Отчёты по передвижной технике", alMenuMobileReport.toTypedArray()))
+        if (alMenuMobileReport.size > 0) alMenu.add(MenuData("", "Отчёты по передвижной технике", alMenuMobileReport.toTypedArray()))
 
         //--- Отчёты по оборудованию --------------------------------------------------------------------------------------------------------
 
@@ -418,11 +410,9 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherReport, "mms_report_trouble", false)
 
-        addSeparator(alMenuOtherReport)
-
         addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherReport, "mms_report_data_out", false)
 
-        if (alMenuOtherReport.size > 1) alMenu.add(MenuData("", "Прочие отчёты", alMenuOtherReport.toTypedArray()))
+        if (alMenuOtherReport.size > 0) alMenu.add(MenuData("", "Отчёты прочие", alMenuOtherReport.toTypedArray()))
 
         //--- Графики --------------------------------------------------------------------------------------------------------
 
@@ -486,12 +476,10 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDir, "mms_group", true)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDir, "mms_worker", true)
 
-        addSeparator(alMenuDir)
-
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDir, "mms_zone", true)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDir, "mms_user_zone", true)
 
-        if (alMenuDir.size > 1) alMenu.add(MenuData("", "Справочники", alMenuDir.toTypedArray()))
+        if (alMenuDir.size > 0) alMenu.add(MenuData("", "Справочники", alMenuDir.toTypedArray()))
 
         //--- Устройства ------------------------------------------------------------------------------------------------------
 
@@ -499,16 +487,12 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDevice, "mms_service_order", true)
 
-        addSeparator(alMenuDevice)
-
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDevice, "mms_device", true)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDevice, "mms_device_command_history", true)
 
-        addSeparator(alMenuDevice)
-
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDevice, "mms_log_journal", true)
 
-        if (alMenuDevice.size > 2) alMenu.add(MenuData("", "Контроллеры", alMenuDevice.toTypedArray()))
+        if (alMenuDevice.size > 0) alMenu.add(MenuData("", "Контроллеры", alMenuDevice.toTypedArray()))
 
         //--- Система --------------------------------------------------------------------------------------------------------
 

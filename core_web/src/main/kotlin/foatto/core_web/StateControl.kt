@@ -4,7 +4,6 @@ import foatto.core.app.xy.XyViewCoord
 import foatto.core.link.XyResponse
 import foatto.core_web.external.vue.that
 import foatto.core_web.external.vue.vueComponentOptions
-import kotlinx.browser.document
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.MouseEvent
 import kotlin.js.json
@@ -23,10 +22,10 @@ import kotlin.js.json
 private const val startExpandKoef = 0.0
 
 @Suppress("UnsafeCastFromDynamic")
-fun stateControl( xyResponse: XyResponse, tabIndex: Int ) = vueComponentOptions().apply {
+fun stateControl(xyResponse: XyResponse, tabIndex: Int) = vueComponentOptions().apply {
 
     this.template =
-"""
+        """
         <div>
             <div id="state_title_$tabIndex" v-bind:style="[ style_toolbar, style_header ]">
                 <span v-bind:style="style_toolbar_block">
@@ -49,9 +48,9 @@ fun stateControl( xyResponse: XyResponse, tabIndex: Int ) = vueComponentOptions(
 
 """ +
 
-getXyElementTemplate( tabIndex, "" ) +
+            getXyElementTemplate(tabIndex, "") +
 
-"""
+            """
         </div>
 """
 
@@ -59,38 +58,27 @@ getXyElementTemplate( tabIndex, "" ) +
         //--- метод может вызываться из лямбд, поэтому возможен проброс ему "истинного" this
         "refreshView" to { aThat: dynamic, aView: XyViewCoord? ->
             val that = aThat ?: that()
-
             val scaleKoef = that.`$root`.scaleKoef.unsafeCast<Double>()
-
-            val svgTabPanel = document.getElementById( "tab_panel" )!!
-            val svgStateTitle = document.getElementById( "state_title_$tabIndex" )!!
-            val svgStateToolbar = document.getElementById( "state_toolbar_$tabIndex" )!!
-            val svgBodyElement = document.getElementById( "svg_body_$tabIndex" )!!
-
-            val svgBodyLeft = 0
-            val svgBodyTop = svgTabPanel.clientHeight + svgStateTitle.clientHeight + svgStateToolbar.clientHeight  //svgBodyElement.clientTop - BUG: всегда даёт 0
-            val svgBodyWidth = svgBodyElement.clientWidth
-            val svgBodyHeight = svgBodyElement.clientHeight
+            val svgCoords = defineXySvgCoords("state", tabIndex)
 
             val newView =
-                if( aView != null ) {
+                if (aView != null) {
                     //--- принимаем новый ViewCoord как есть, но корректируем масштаб в зависимости от текущего размера выводимой области
-                    aView.scale = calcXyScale( scaleKoef, svgBodyWidth, svgBodyHeight, aView.x1, aView.y1, aView.x2, aView.y2 )
+                    aView.scale = calcXyScale(scaleKoef, svgCoords.bodyWidth, svgCoords.bodyHeight, aView.x1, aView.y1, aView.x2, aView.y2)
                     //--- обновляем, только если изменилось (оптимизируем цепочку реактивных изменений)
                     that.viewCoord = aView
                     aView
-                }
-                else {
+                } else {
                     that.viewCoord.unsafeCast<XyViewCoord>()
                 }
 
-            getXyElements( that, xyResponse, scaleKoef, newView, "", svgBodyLeft, svgBodyTop )
+            getXyElements(that, xyResponse, scaleKoef, newView, "", svgCoords.bodyLeft, svgCoords.bodyTop)
         },
         "onMouseOver" to { event: Event, xyElement: XyElementData ->
-            onXyMouseOver( that(), event as MouseEvent, xyElement )
+            onXyMouseOver(that(), event as MouseEvent, xyElement)
         },
         "onMouseOut" to {
-            onXyMouseOut( that() )
+            onXyMouseOut(that())
         },
         "onMousePressed" to { isNeedOffsetCompensation: Boolean, aMouseX: Double, aMouseY: Double ->
 //            when( xyModel.curMode ) {
@@ -129,15 +117,17 @@ getXyElementTemplate( tabIndex, "" ) +
 
     this.mounted = {
 
-        doXyMounted( that(), xyResponse, tabIndex, "state_title", "state_toolbar", startExpandKoef, 1 )
+        doXyMounted(that(), xyResponse, tabIndex, "state", startExpandKoef, 1)
 
 //        cursor = Cursor.HAND
-     }
+    }
 
     this.data = {
-        getXyComponentData().add( json(
+        getXyComponentData().add(
+            json(
 
-        ) )
+            )
+        )
     }
 
 }
