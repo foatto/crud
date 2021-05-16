@@ -58,7 +58,8 @@ class cTaskThread : cStandart() {
             tooltip = "Распечатать",
             icon = ICON_NAME_PRINT,
             url = getParamURL( "office_report_task_thread", AppAction.FORM, null, 0, hmParentData, null, "" ),
-            inNewWindow = true
+            inNewWindow = true,
+            isForWideScreenOnly = false,
         ) )
 
         return alSAB

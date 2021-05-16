@@ -39,7 +39,7 @@ val hmTableIcon = mutableMapOf(
 )
 
 @Suppress("UnsafeCastFromDynamic")
-fun tableControl( appParam: String, tableResponse: TableResponse, tabId: Int ) = vueComponentOptions().apply {
+fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = vueComponentOptions().apply {
 
     this.template = """
         <div v-bind:style="style_table">
@@ -118,8 +118,8 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabId: Int ) =
                 </span>
                 
                 <span v-bind:style="style_toolbar_block">
-                    <button v-show="!${styleIsNarrowScreen} || !isFindTextVisible" 
-                            v-for="serverButton in arrServerButton"
+                    <button v-for="serverButton in arrServerButton"
+                            v-show="!${styleIsNarrowScreen} || (!isFindTextVisible && !serverButton.isForWideScreenOnly)" 
                             v-bind:key="'sb'+serverButton.id"
                             v-on:click="invoke( serverButton.url, serverButton.inNewWindow )"
                             v-bind:style="[ style_icon_button, style_button_with_border ]"
@@ -129,12 +129,14 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabId: Int ) =
                         <span v-else>
                             {{serverButton.caption}}
                         </span>
+                    
+                        
                     </button>
                 </span>
 
                 <span v-bind:style="style_toolbar_block">
-                    <button v-show="!${styleIsNarrowScreen} || !isFindTextVisible" 
-                            v-for="clientButton in arrClientButton"
+                    <button v-for="clientButton in arrClientButton"
+                            v-show="!${styleIsNarrowScreen} || (!isFindTextVisible && !clientButton.isForWideScreenOnly)" 
                             v-bind:key="'cb'+clientButton.id"
                             v-bind:style="[ style_icon_button, style_button_with_border ]"
                     >
@@ -247,69 +249,77 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabId: Int ) =
             //--- загрузка заголовка таблицы/формы
             var titleID = 0
             val alTitleData = mutableListOf<TableTitleData>()
-            for( headerData in tableResponse.alHeader ) {
+            for (headerData in tableResponse.alHeader) {
                 val url = headerData.first
                 val text = headerData.second
 
-                tabToolTip += ( if( tabToolTip.isEmpty() ) "" else " | " ) + text
-                alTitleData.add( TableTitleData( titleID++, url, text ) )
+                tabToolTip += (if (tabToolTip.isEmpty()) "" else " | ") + text
+                alTitleData.add(TableTitleData(titleID++, url, text))
 
 //                //--- запомним последнюю кнопку заголовка в табличном режиме как кнопку отмены или возврата на уровень выше
 //                butTableCancel = button
             }
-            that().`$root`.setTabInfo( tabId, tableResponse.tab, tabToolTip )
+            that().`$root`.setTabInfo(tabId, tableResponse.tab, tabToolTip)
             that().arrTitleData = alTitleData.toTypedArray()
         },
         "readAddButtons" to {
             var addButtonID = 0
             val alAddButton = mutableListOf<AddActionButton_>()
-            for( aab in tableResponse.alAddActionButton ) {
-                val icon = hmTableIcon[ aab.icon ] ?: ""
+            for (aab in tableResponse.alAddActionButton) {
+                val icon = hmTableIcon[aab.icon] ?: ""
                 //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
-                val caption = if( aab.icon.isNotBlank() && icon.isBlank() ) aab.icon else aab.tooltip.replace( "\n", "<br>" )
-                alAddButton.add( AddActionButton_(
-                    id = addButtonID++,
-                    caption = caption,
-                    tooltip = aab.tooltip,
-                    icon = icon,
-                    url = aab.url
-                ) )
+                val caption = if (aab.icon.isNotBlank() && icon.isBlank()) aab.icon else aab.tooltip.replace("\n", "<br>")
+                alAddButton.add(
+                    AddActionButton_(
+                        id = addButtonID++,
+                        caption = caption,
+                        tooltip = aab.tooltip,
+                        icon = icon,
+                        url = aab.url
+                    )
+                )
             }
             that().arrAddButton = alAddButton.toTypedArray()
         },
         "readServerButtons" to {
             var serverButtonID = 0
             val alServerButton = mutableListOf<ServerActionButton_>()
-            for( sab in tableResponse.alServerActionButton ) {
-                val icon = hmTableIcon[ sab.icon ] ?: ""
+            for (sab in tableResponse.alServerActionButton) {
+                val icon = hmTableIcon[sab.icon] ?: ""
                 //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
-                val caption = if( sab.icon.isNotBlank() && icon.isBlank() ) sab.icon else sab.caption.replace( "\n", "<br>" )
-                alServerButton.add( ServerActionButton_(
-                    id = serverButtonID++,
-                    caption = caption,
-                    tooltip = sab.tooltip,
-                    icon = icon,
-                    url = sab.url,
-                    inNewWindow = sab.inNewWindow
-                ) )
+                val caption = if (sab.icon.isNotBlank() && icon.isBlank()) sab.icon else sab.caption.replace("\n", "<br>")
+                alServerButton.add(
+                    ServerActionButton_(
+                        id = serverButtonID++,
+                        caption = caption,
+                        tooltip = sab.tooltip,
+                        icon = icon,
+                        url = sab.url,
+                        inNewWindow = sab.inNewWindow,
+                        isForWideScreenOnly = sab.isForWideScreenOnly,
+                    )
+                )
             }
             that().arrServerButton = alServerButton.toTypedArray()
         },
         "readClientButtons" to {
             var clientButtonID = 0
             val alClientButton = mutableListOf<ClientActionButton_>()
-            for( cab in tableResponse.alClientActionButton ) {
-                val icon = hmTableIcon[ cab.icon ] ?: ""
+            for (cab in tableResponse.alClientActionButton) {
+                val icon = hmTableIcon[cab.icon] ?: ""
                 //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
-                val caption = if( cab.icon.isNotBlank() && icon.isBlank() ) cab.icon else cab.caption.replace( "\n", "<br>" )
-                alClientButton.add( ClientActionButton_(
-                    id = clientButtonID++,
-                    caption = caption,
-                    tooltip = cab.tooltip,
-                    icon = icon,
-                    className = cab.className,
-                    param = cab.param
-                ) )
+                val caption = if (cab.icon.isNotBlank() && icon.isBlank()) cab.icon else cab.caption.replace("\n", "<br>")
+                alClientButton.add(
+                    ClientActionButton_(
+                        id = clientButtonID++,
+                        caption = caption,
+                        tooltip = cab.tooltip,
+                        icon = icon,
+                        className = cab.className,
+                        param = cab.param,
+                        isForWideScreenOnly = cab.isForWideScreenOnly,
+                    )
+                )
             }
             that().arrClientButton = alClientButton.toTypedArray()
         },
@@ -320,11 +330,11 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabId: Int ) =
             var pageButtonID = 0
             val alPageButton = mutableListOf<PageButton>()
             //--- вывести новую разметку страниц
-            for( value in tableResponse.alPageButton ) {
+            for (value in tableResponse.alPageButton) {
                 val url = value.first
                 val text = value.second
 
-                alPageButton.add( PageButton( pageButtonID++, url, text ) )
+                alPageButton.add(PageButton(pageButtonID++, url, text))
 
 //                if( url.isEmpty() ) {
 //                    isEmptyPassed = true
@@ -335,9 +345,9 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabId: Int ) =
 //                }
             }
 
-            val pageButtonStyle = json (
-                "width" to styleTablePageButtonWidth( tableResponse.alPageButton.size ),
-                "font-size" to styleTablePageButtonFontSize( tableResponse.alPageButton.size )
+            val pageButtonStyle = json(
+                "width" to styleTablePageButtonWidth(tableResponse.alPageButton.size),
+                "font-size" to styleTablePageButtonFontSize(tableResponse.alPageButton.size)
             )
 
             that().arrPageButton = alPageButton.toTypedArray()
@@ -349,7 +359,7 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabId: Int ) =
             var startRow = 0
 
             //--- заголовки столбцов таблицы
-            for( ( index, value ) in tableResponse.alColumnCaption.withIndex() ) {
+            for ((index, value) in tableResponse.alColumnCaption.withIndex()) {
                 val url = value.first
                 val text = value.second
                 val cellData = TableCellData(
@@ -358,7 +368,7 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabId: Int ) =
                 val captionCell = TableGridData(
                     id = gridCellID++,
                     cellType = TableCellType.TEXT,
-                    cellStyle = json (
+                    cellStyle = json(
                         "grid-area" to "${startRow + 1} / ${index + 1} / ${startRow + 2} / ${index + 2}",
                         "justify-self" to "stretch",
                         "align-self" to "stretch",
@@ -366,7 +376,7 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabId: Int ) =
                         "border-top" to "none",
                         "border-right" to "0.5px solid $COLOR_TAB_BORDER",
                         "border-bottom" to "1px solid $COLOR_TAB_BORDER",
-                        "cursor" to if( url.isBlank() ) "default" else "pointer",
+                        "cursor" to if (url.isBlank()) "default" else "pointer",
                         "display" to "flex",
                         "justify-content" to "center",
                         "align-items" to "center",
@@ -381,33 +391,33 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabId: Int ) =
                     ),
                     rowSpan = 1,
                     backColor = COLOR_PANEL_BACK,
-                    tooltip = if( url.isBlank() ) "" else "Сортировать по этому столбцу",
-                    arrCellData = arrayOf( cellData ),
+                    tooltip = if (url.isBlank()) "" else "Сортировать по этому столбцу",
+                    arrCellData = arrayOf(cellData),
                     bool = false,
                     row = -1            // специальный номер строки, флаг что это заголовок таблицы
                 )
                 captionCell.cellURL = url
-                alGridData.add( captionCell )
+                alGridData.add(captionCell)
             }
             startRow++
             var maxRow = 0
             var maxCol = tableResponse.alColumnCaption.size
 
-            for( tc in tableResponse.alTableCell ) {
+            for (tc in tableResponse.alTableCell) {
                 val backColor =
-                    when( tc.backColorType.toString() ) {
-                        TableCellBackColorType.DEFINED.toString() -> getColorFromInt( tc.backColor )
+                    when (tc.backColorType.toString()) {
+                        TableCellBackColorType.DEFINED.toString() -> getColorFromInt(tc.backColor)
                         TableCellBackColorType.GROUP_0.toString() -> colorGroupBack0
                         TableCellBackColorType.GROUP_1.toString() -> colorGroupBack1
-                        else                                      -> if( tc.row % 2 == 0 ) COLOR_TABLE_ROW_0_BACK else COLOR_TABLE_ROW_1_BACK
+                        else -> if (tc.row % 2 == 0) COLOR_TABLE_ROW_0_BACK else COLOR_TABLE_ROW_1_BACK
                     }
                 val textColor =
-                    when( tc.foreColorType.toString() ) {
-                        TableCellForeColorType.DEFINED.toString() -> getColorFromInt( tc.foreColor )
-                        else                                      -> COLOR_TEXT
+                    when (tc.foreColorType.toString()) {
+                        TableCellForeColorType.DEFINED.toString() -> getColorFromInt(tc.foreColor)
+                        else -> COLOR_TEXT
                     }
                 val align =
-                    when( tc.cellType.toString() ) {
+                    when (tc.cellType.toString()) {
                         TableCellType.BUTTON.toString() -> {
                             "center"
                         }
@@ -417,69 +427,75 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabId: Int ) =
                         //--- на самом деле нет других вариантов
                         //TableCellType.TEXT.toString() -> {
                         else -> {
-                            when( tc.align.toString() ) {
-                                TableCellAlign.LEFT.toString()   -> "flex-start"
+                            when (tc.align.toString()) {
+                                TableCellAlign.LEFT.toString() -> "flex-start"
                                 TableCellAlign.CENTER.toString() -> "center"
-                                TableCellAlign.RIGHT.toString()  -> "flex-end"
-                                else                             -> "center"
+                                TableCellAlign.RIGHT.toString() -> "flex-end"
+                                else -> "center"
                             }
                         }
                     }
-                val cellStyle = json (
+                val cellStyle = json(
                     "grid-area" to "${startRow + tc.row + 1} / ${tc.col + 1} / ${startRow + tc.row + 1 + tc.rowSpan} / ${tc.col + 1 + tc.colSpan}",
                     "justify-self" to "stretch",
                     "align-self" to "stretch",
                     //"background" to backColor,
                     //--- пока не будем менять размер вместе с толщиной шрифта (потом сделаем явную передачу увеличения размера шрифта)
-                    "font-weight" to ( if( tc.fontStyle == 0 ) "normal" else "bold" ),
+                    "font-weight" to (if (tc.fontStyle == 0) "normal" else "bold"),
                     "padding" to styleControlPadding()
                 )
                 lateinit var elementStyle: Json
                 val alCellData = mutableListOf<TableCellData>()
-                when( tc.cellType.toString() ) {
+                when (tc.cellType.toString()) {
                     TableCellType.TEXT.toString() -> {
-                        for( cellData in tc.alCellData ) {
-                            val icon = hmTableIcon[ cellData.icon ] ?: ""
+                        for (cellData in tc.alCellData) {
+                            val icon = hmTableIcon[cellData.icon] ?: ""
                             //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
-                            var text = if( cellData.icon.isNotBlank() && icon.isBlank() ) cellData.icon else cellData.text.replace( "\n", "<br>" )
-                            if( !tc.isWordWrap ) text = text.replace( " ", "&nbsp;" )
-                            alCellData.add( TableCellData(
-                                icon = icon,
-                                image = cellData.image,
-                                text = text
-                            ) )
+                            var text = if (cellData.icon.isNotBlank() && icon.isBlank()) cellData.icon else cellData.text.replace("\n", "<br>")
+                            if (!tc.isWordWrap) text = text.replace(" ", "&nbsp;")
+                            alCellData.add(
+                                TableCellData(
+                                    icon = icon,
+                                    image = cellData.image,
+                                    text = text
+                                )
+                            )
                         }
-                        cellStyle.add( json(
-                            "display" to "flex",
-                            "justify-content" to align,
-                            "align-items" to "center"
-                        ) )
+                        cellStyle.add(
+                            json(
+                                "display" to "flex",
+                                "justify-content" to align,
+                                "align-items" to "center"
+                            )
+                        )
                         elementStyle = json(
                             "color" to textColor,
                             "font-size" to styleTableTextFontSize(),
-                            "user-select" to if( styleIsTouchScreen() ) "none" else "auto"
+                            "user-select" to if (styleIsTouchScreen()) "none" else "auto"
                         )
                     }
                     TableCellType.BUTTON.toString() -> {
                         var isIcon = false
-                        for( cellData in tc.alCellData ) {
-                            val icon = hmTableIcon[ cellData.icon ] ?: ""
+                        for (cellData in tc.alCellData) {
+                            val icon = hmTableIcon[cellData.icon] ?: ""
                             //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
-                            val text = if( cellData.icon.isNotBlank() && icon.isBlank() ) cellData.icon else cellData.text.replace( "\n", "<br>" )
-                            alCellData.add( TableCellData(
-                                icon = icon,
-                                image = cellData.image,
-                                text = text,
-                                url = cellData.url,
-                                inNewWindow = cellData.inNewWindow
-                            ) )
+                            val text = if (cellData.icon.isNotBlank() && icon.isBlank()) cellData.icon else cellData.text.replace("\n", "<br>")
+                            alCellData.add(
+                                TableCellData(
+                                    icon = icon,
+                                    image = cellData.image,
+                                    text = text,
+                                    url = cellData.url,
+                                    inNewWindow = cellData.inNewWindow
+                                )
+                            )
                             isIcon = icon.isNotBlank()
                         }
                         elementStyle = json(
                             "border" to "1px solid $COLOR_TAB_BORDER",
                             "border-radius" to BORDER_RADIUS,
                             "background" to COLOR_BUTTON_BACK,
-                            "color" to if( isIcon ) COLOR_TABLE_BUTTON else textColor,
+                            "color" to if (isIcon) COLOR_TABLE_BUTTON else textColor,
                             "font-size" to styleCommonButtonFontSize(),
                             "padding" to styleTextButtonPadding(),
                             "cursor" to "pointer"
@@ -488,31 +504,35 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabId: Int ) =
                     //--- на самом деле нет других вариантов
                     //TableCellType.CHECKBOX.toString() -> {
                     else -> {
-                        cellStyle.add( json(
-                            "display" to "flex",
-                            "justify-content" to align,
-                            "align-items" to "center"
-                        ) )
+                        cellStyle.add(
+                            json(
+                                "display" to "flex",
+                                "justify-content" to align,
+                                "align-items" to "center"
+                            )
+                        )
                         elementStyle = json(
                             "color" to textColor,
                             "transform" to styleControlCheckBoxTransform()
                         )
                     }
                 }
-                alGridData.add( TableGridData(
-                    id = gridCellID++,
-                    cellType = tc.cellType,
-                    cellStyle = cellStyle,
-                    elementStyle = elementStyle,
-                    rowSpan = tc.rowSpan,
-                    backColor = backColor,
-                    tooltip = tc.tooltip,
-                    arrCellData = alCellData.toTypedArray(),
-                    bool = tc.booleanValue,
-                    row = tc.row
-                ) )
-                maxRow = max( maxRow, startRow + tc.row + tc.rowSpan )
-                maxCol = max( maxCol, tc.col + tc.colSpan )
+                alGridData.add(
+                    TableGridData(
+                        id = gridCellID++,
+                        cellType = tc.cellType,
+                        cellStyle = cellStyle,
+                        elementStyle = elementStyle,
+                        rowSpan = tc.rowSpan,
+                        backColor = backColor,
+                        tooltip = tc.tooltip,
+                        arrCellData = alCellData.toTypedArray(),
+                        bool = tc.booleanValue,
+                        row = tc.row
+                    )
+                )
+                maxRow = max(maxRow, startRow + tc.row + tc.rowSpan)
+                maxCol = max(maxCol, tc.col + tc.colSpan)
             }
             maxRow++
 
@@ -533,16 +553,15 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabId: Int ) =
         "doFind" to { isClear: Boolean ->
             val isFindTextVisible = that().isFindTextVisible.unsafeCast<Boolean>()
 
-            if( isClear ) that().findText = ""
+            if (isClear) that().findText = ""
 
-            if( !isClear && !isFindTextVisible ) {
+            if (!isClear && !isFindTextVisible) {
                 that().isFindTextVisible = true
-            }
-            else {
+            } else {
                 val findURL = that().findURL.unsafeCast<String>()
                 val findText = that().findText.unsafeCast<String>()
 
-                that().`$parent`.invoke( AppRequest( action = findURL, find = findText.trim() ) )
+                that().`$parent`.invoke(AppRequest(action = findURL, find = findText.trim()))
             }
         },
         "doForm" to {
@@ -550,31 +569,31 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabId: Int ) =
             val currentRow = that().currentRow.unsafeCast<Int>()
 
             //--- проверка лишней не будет
-            if( currentRow >= 0 && arrRowData[ currentRow ].formURL.isNotEmpty() )
-                that().invoke( arrRowData[ currentRow ].formURL, false )
+            if (currentRow >= 0 && arrRowData[currentRow].formURL.isNotEmpty())
+                that().invoke(arrRowData[currentRow].formURL, false)
         },
         "doGoto" to {
             val arrRowData = that().arrRowData.unsafeCast<Array<TableRowData>>()
             val currentRow = that().currentRow.unsafeCast<Int>()
 
             //--- проверка лишней не будет
-            if( currentRow >= 0 && arrRowData[ currentRow ].gotoURL.isNotEmpty() )
-                that().invoke( arrRowData[ currentRow ].gotoURL, arrRowData[ currentRow ].itGotoURLInNewWindow )
+            if (currentRow >= 0 && arrRowData[currentRow].gotoURL.isNotEmpty())
+                that().invoke(arrRowData[currentRow].gotoURL, arrRowData[currentRow].itGotoURLInNewWindow)
         },
         "doPopup" to {
             val arrRowData = that().arrRowData.unsafeCast<Array<TableRowData>>()
             val currentRow = that().currentRow.unsafeCast<Int>()
 
             //--- проверка лишней не будет
-            if( currentRow >= 0 && arrRowData[ currentRow ].alPopupData.isNotEmpty() )
-                that().showPopupMenu( currentRow, null )
+            if (currentRow >= 0 && arrRowData[currentRow].alPopupData.isNotEmpty())
+                that().showPopupMenu(currentRow, null)
         },
         "setCurrentRow" to { rowNo: Int ->
             val arrRowData = that().arrRowData.unsafeCast<Array<TableRowData>>()
-            
-            that().isFormButtonVisible = rowNo >= 0 && arrRowData[ rowNo ].formURL.isNotEmpty()
-            that().isGotoButtonVisible = rowNo >= 0 && arrRowData[ rowNo ].gotoURL.isNotEmpty()
-            that().isPopupButtonVisible = rowNo >= 0 && arrRowData[ rowNo ].alPopupData.isNotEmpty()
+
+            that().isFormButtonVisible = rowNo >= 0 && arrRowData[rowNo].formURL.isNotEmpty()
+            that().isGotoButtonVisible = rowNo >= 0 && arrRowData[rowNo].gotoURL.isNotEmpty()
+            that().isPopupButtonVisible = rowNo >= 0 && arrRowData[rowNo].alPopupData.isNotEmpty()
 
             that().currentRow = rowNo
             that().isShowPopupMenu = false
@@ -596,46 +615,43 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabId: Int ) =
 //            }
 //        },
         "invoke" to { newAppParam: String, inNewWindow: Boolean ->
-            if( inNewWindow )
-                that().`$root`.openTab( newAppParam )
+            if (inNewWindow)
+                that().`$root`.openTab(newAppParam)
             else
-                that().`$parent`.invoke( AppRequest( action = newAppParam ) )
+                that().`$parent`.invoke(AppRequest(action = newAppParam))
         },
         "showPopupMenu" to { row: Int, event: Event ->
             //--- чтобы строчка выделялась и по правой кнопке мыши тоже
-            that().setCurrentRow( row )
+            that().setCurrentRow(row)
 
             val mouseEvent = event as? MouseEvent
             val mouseX = mouseEvent?.pageX ?: window.innerWidth.toDouble() / 3
 
             val arrRowData = that().arrRowData.unsafeCast<Array<TableRowData>>()
-            if( arrRowData[ row ].alPopupData.isNotEmpty() ) {
+            if (arrRowData[row].alPopupData.isNotEmpty()) {
                 var menuSide = ""
                 var menuPos = ""
-                if( styleIsNarrowScreen ) {
+                if (styleIsNarrowScreen) {
                     menuSide = "left"
                     menuPos = "5%"
-                }
-                else if( mouseX <= window.innerWidth / 2 ) {
+                } else if (mouseX <= window.innerWidth / 2) {
                     menuSide = "left"
                     menuPos = "${mouseX}px"
-                }
-                else {
+                } else {
                     menuSide = "right"
                     menuPos = "${window.innerWidth - mouseX}px"
                 }
 
-                that().arrCurPopupData = convertPopupMenuData( arrRowData[ row ].alPopupData )
+                that().arrCurPopupData = convertPopupMenuData(arrRowData[row].alPopupData)
 
                 //--- в данной ситуации clientX/Y == pageX/Y, offsetX/Y идёт от текущего элемента (ячейки таблицы), screenX/Y - от начала экрана
-                that().style_popup_menu_pos = json( menuSide to menuPos )
+                that().style_popup_menu_pos = json(menuSide to menuPos)
                 that().isShowPopupMenu = true
-            }
-            else that().isShowPopupMenu = false
+            } else that().isShowPopupMenu = false
         },
         "popupMenuClick" to { menuData: PopupMenuData ->
             that().isShowPopupMenu = false
-            that().invoke( menuData.url, menuData.inNewWindow )
+            that().invoke(menuData.url, menuData.inNewWindow)
         },
     )
 
@@ -654,7 +670,7 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabId: Int ) =
         that().readTable()
 
         //--- установка текущей строки
-        that().setCurrentRow( tableResponse.selectedRow )
+        that().setCurrentRow(tableResponse.selectedRow)
 
         //--- запоминаем текущий appParam для возможной установки в виде стартовой
         that().`$root`.curAppParam = appParam
@@ -692,7 +708,7 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabId: Int ) =
                 "flex-shrink" to 1,
                 "display" to "flex",
                 "flex-direction" to "column",
-                "height" to "100%" 
+                "height" to "100%"
             ),
             "style_header" to json(
                 "flex-grow" to 0,
@@ -702,7 +718,7 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabId: Int ) =
                 "flex-wrap" to "wrap",
                 "justify-content" to "center",
                 "align-items" to "center",        // "baseline" ?
-                "border-top" to if( !styleIsNarrowScreen ) "none" else "1px solid $COLOR_BUTTON_BORDER",
+                "border-top" to if (!styleIsNarrowScreen) "none" else "1px solid $COLOR_BUTTON_BORDER",
                 "padding" to styleControlPadding(),
                 "background" to COLOR_PANEL_BACK
             ),
@@ -737,7 +753,7 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabId: Int ) =
                 "padding" to styleTablePageBarPadding(),
                 "background" to COLOR_PANEL_BACK
             ),
-            "style_title" to json (
+            "style_title" to json(
                 "font-size" to styleControlTitleTextFontSize(),
                 "padding" to styleControlTitlePadding()
             ),
@@ -755,22 +771,22 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabId: Int ) =
                 "margin" to styleCommonMargin(),
                 "cursor" to "pointer"
             ),
-            "style_button_with_border" to json (
+            "style_button_with_border" to json(
                 "border" to "1px solid $COLOR_BUTTON_BORDER",
                 "border-radius" to BORDER_RADIUS
             ),
-            "style_button_no_border" to json (
+            "style_button_no_border" to json(
                 "border" to "none"
             ),
             "style_find_editor_len" to styleTableFindEditLength(),
-            "style_find_editor" to json (
+            "style_find_editor" to json(
                 "border" to "1px solid $COLOR_BUTTON_BORDER",
                 "border-radius" to BORDER_RADIUS,
                 "font-size" to styleTableFindEditorFontSize(),
                 "padding" to styleCommonEditorPadding(),
                 "margin" to styleCommonMargin()
             ),
-            "style_page_button" to json (
+            "style_page_button" to json(
                 //--- определяются в зависимости от кол-ва кнопок
                 //"width" to styleTablePageButtonWidth(),
                 //"font-size" to styleTablePageButtonFontSize()
@@ -778,7 +794,7 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabId: Int ) =
             "style_popup_menu_start" to json(
                 "position" to "absolute",
                 "top" to "20%",
-                "bottom" to if( styleIsNarrowScreen ) "20%" else "10%",
+                "bottom" to if (styleIsNarrowScreen) "20%" else "10%",
                 "width" to styleMenuWidth(),
                 "background" to COLOR_MENU_GROUP_BACK,
                 "border" to "1px solid $COLOR_MENU_BORDER",
@@ -809,7 +825,7 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabId: Int ) =
     }
 }
 
-private class TableTitleData( val id: Int, val url: String, val text: String )
+private class TableTitleData(val id: Int, val url: String, val text: String)
 private class AddActionButton_(
     val id: Int,
     val caption: String,
@@ -817,23 +833,28 @@ private class AddActionButton_(
     val icon: String,
     val url: String
 )
+
 private class ServerActionButton_(
     val id: Int,
     val caption: String,
     val tooltip: String,
     val icon: String,
     val url: String,
-    val inNewWindow: Boolean
+    val inNewWindow: Boolean,
+    val isForWideScreenOnly: Boolean,
 )
+
 private class ClientActionButton_(
     val id: Int,
     val caption: String,
     val tooltip: String,
     val icon: String,
     val className: String,
-    val param: String
+    val param: String,
+    val isForWideScreenOnly: Boolean,
 )
-private class PageButton( val id: Int, val url: String, val text: String )
+
+private class PageButton(val id: Int, val url: String, val text: String)
 private class TableGridData(
     val id: Int,
     val cellType: TableCellType,
@@ -865,28 +886,27 @@ private class PopupMenuData(
     val isHover: Boolean = false
 )
 
-private fun convertPopupMenuData( arrMenuData: Array<TablePopupData> ): Array<PopupMenuData> {
+private fun convertPopupMenuData(arrMenuData: Array<TablePopupData>): Array<PopupMenuData> {
     val alPopupMenuData = mutableListOf<PopupMenuData>()
     var i = 0
-    while( i < arrMenuData.size ) {
-        val menuData = arrMenuData[ i ]
+    while (i < arrMenuData.size) {
+        val menuData = arrMenuData[i]
 
-        if( menuData.group.isEmpty() ) {
-            alPopupMenuData.add( PopupMenuData( menuData.url, menuData.text, null, menuData.inNewWindow ) )
+        if (menuData.group.isEmpty()) {
+            alPopupMenuData.add(PopupMenuData(menuData.url, menuData.text, null, menuData.inNewWindow))
             i++
-        }
-        else {
+        } else {
             val groupName = menuData.group
 
             val alPopupSubMenuData = mutableListOf<PopupMenuData>()
-            while( i < arrMenuData.size ) {
-                val subMenuData = arrMenuData[ i ]
-                if( subMenuData.group.isEmpty() || subMenuData.group != groupName ) break
+            while (i < arrMenuData.size) {
+                val subMenuData = arrMenuData[i]
+                if (subMenuData.group.isEmpty() || subMenuData.group != groupName) break
 
-                alPopupSubMenuData.add( PopupMenuData( subMenuData.url, subMenuData.text, null, subMenuData.inNewWindow ) )
+                alPopupSubMenuData.add(PopupMenuData(subMenuData.url, subMenuData.text, null, subMenuData.inNewWindow))
                 i++
             }
-            alPopupMenuData.add( PopupMenuData( "", groupName, alPopupSubMenuData.toTypedArray(), false ) )
+            alPopupMenuData.add(PopupMenuData("", groupName, alPopupSubMenuData.toTypedArray(), false))
         }
     }
     return alPopupMenuData.toTypedArray()

@@ -239,7 +239,8 @@ class cDocumentContent : cStandart() {
                     tooltip = "Кассовый чек",
                     icon = ICON_NAME_FISCAL,
                     url = getParamURL("shop_fiscal_doc_content", AppAction.FORM, null, 0, hmParentData, null, ""),
-                    inNewWindow = true
+                    inNewWindow = true,
+                    isForWideScreenOnly = true,
                 )
             )
         }
@@ -249,7 +250,8 @@ class cDocumentContent : cStandart() {
                 tooltip = "Товарный чек",
                 icon = ICON_NAME_PRINT,
                 url = getParamURL("shop_report_doc_content", AppAction.FORM, null, 0, hmParentData, null, ""),
-                inNewWindow = true
+                inNewWindow = true,
+                isForWideScreenOnly = true,
             )
         )
 
@@ -267,7 +269,8 @@ class cDocumentContent : cStandart() {
                     tooltip = "Рассчитать сдачу",
                     icon = ICON_NAME_CALC,
                     className = "foatto.shop.CashCalculator",
-                    param = docCost.toString()
+                    param = docCost.toString(),
+                    isForWideScreenOnly = true,
                 )
             )
         }

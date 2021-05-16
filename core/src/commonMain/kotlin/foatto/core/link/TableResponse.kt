@@ -28,7 +28,8 @@ class ServerActionButton(
     val tooltip: String,
     val icon: String,
     val url: String,
-    val inNewWindow: Boolean
+    val inNewWindow: Boolean,
+    val isForWideScreenOnly: Boolean,
 )
 
 class ClientActionButton(
@@ -36,7 +37,8 @@ class ClientActionButton(
     val tooltip: String,
     val icon: String,
     val className: String,
-    val param: String
+    val param: String,
+    val isForWideScreenOnly: Boolean,
 )
 
 class TableCell( val row: Int, val col: Int ) {
