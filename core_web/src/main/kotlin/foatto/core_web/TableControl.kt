@@ -371,7 +371,11 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabId: Int ) =
                         "justify-content" to "center",
                         "align-items" to "center",
                         "font-size" to styleTableTextFontSize(),
-                        "padding" to styleControlPadding()
+                        "padding" to styleControlPadding(),
+                        //--- sticky header
+                        "position" to "sticky",
+                        "top" to "0",
+                        "z-index" to "1",   // workaround for bug with CheckBoxes in table, which above, than typical cell, include "sticky" table headers
                     ),
                     elementStyle = json(
                     ),
