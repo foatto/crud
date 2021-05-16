@@ -36,7 +36,7 @@ private fun menuGenerateSummaryTag(summaryLevel: Int): String {
     val menuDataName = "menuData_$summaryLevel"
     return """
         v-bind:style="[ style_menu_summary_$summaryLevel,
-                        { 'background-color' : ( $menuDataName.isHover? '$COLOR_MENU_BACK_HOVER' : '$COLOR_MENU_BACK' ) }
+                        { 'background-color' : ( $menuDataName.isHover? '$COLOR_MENU_BACK_HOVER' : '$COLOR_MENU_GROUP_BACK' ) }
                       ]"
             v-on:mouseenter="$menuDataName.isHover = true"
             v-on:mouseleave="$menuDataName.isHover = false"
@@ -47,7 +47,7 @@ private fun menuGenerateItem(menuLevel: Int, clickFunctionName: String, menuData
     val menuDataName = "menuData_$menuLevel"
     return """
         <div v-bind:style="[ style_menu_item_$menuLevel,
-                        { 'background-color' : ( $menuDataName.isHover? '$COLOR_MENU_BACK_HOVER' : '$COLOR_MENU_BACK' ) },
+                        { 'background-color' : ( $menuDataName.isHover? '$COLOR_MENU_BACK_HOVER' : '$COLOR_MENU_ITEM_BACK' ) },
                         { 'text-decoration' : ( $menuDataName.url || $menuDataName.text ? '' : 'line-through' ) },
                         { 'color' : ( $menuDataName.url || $menuDataName.text ? '$COLOR_TEXT' : '$COLOR_MENU_DELIMITER' ) }
                       ]"

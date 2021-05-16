@@ -22,12 +22,12 @@ import kotlin.js.json
 private const val startExpandKoef = 0.0
 
 @Suppress("UnsafeCastFromDynamic")
-fun stateControl(xyResponse: XyResponse, tabIndex: Int) = vueComponentOptions().apply {
+fun stateControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply {
 
     this.template =
         """
         <div>
-            <div id="state_title_$tabIndex" v-bind:style="[ style_toolbar, style_header ]">
+            <div id="state_title_$tabId" v-bind:style="[ style_toolbar, style_header ]">
                 <span v-bind:style="style_toolbar_block">
                 </span>
                 <span v-bind:style="[style_toolbar_block, style_title]">
@@ -36,7 +36,7 @@ fun stateControl(xyResponse: XyResponse, tabIndex: Int) = vueComponentOptions().
                 <span v-bind:style="style_toolbar_block">
                 </span>
             </div>
-            <div id="state_toolbar_$tabIndex" v-bind:style="style_toolbar">
+            <div id="state_toolbar_$tabId" v-bind:style="style_toolbar">
                 <span v-bind:style="style_toolbar_block">
                     <img src="/web/images/ic_sync_black_48dp.png"
                          v-bind:style="style_icon_button"
@@ -48,7 +48,7 @@ fun stateControl(xyResponse: XyResponse, tabIndex: Int) = vueComponentOptions().
 
 """ +
 
-            getXyElementTemplate(tabIndex, "") +
+            getXyElementTemplate(tabId, "") +
 
             """
         </div>
@@ -59,7 +59,7 @@ fun stateControl(xyResponse: XyResponse, tabIndex: Int) = vueComponentOptions().
         "refreshView" to { aThat: dynamic, aView: XyViewCoord? ->
             val that = aThat ?: that()
             val scaleKoef = that.`$root`.scaleKoef.unsafeCast<Double>()
-            val svgCoords = defineXySvgCoords("state", tabIndex)
+            val svgCoords = defineXySvgCoords("state", tabId)
 
             val newView =
                 if (aView != null) {
@@ -117,7 +117,7 @@ fun stateControl(xyResponse: XyResponse, tabIndex: Int) = vueComponentOptions().
 
     this.mounted = {
 
-        doXyMounted(that(), xyResponse, tabIndex, "state", startExpandKoef, 1)
+        doXyMounted(that(), xyResponse, tabId, "state", startExpandKoef, 1)
 
 //        cursor = Cursor.HAND
     }

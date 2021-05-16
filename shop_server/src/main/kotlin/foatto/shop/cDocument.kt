@@ -158,13 +158,11 @@ class cDocument : cStandart() {
                 " SELECT doc_no FROM SHOP_doc WHERE doc_type = $docType AND doc_ye = ${ZonedDateTime.now().year} "
             )
             while(rs.next()) {
-                try {
-                    //--- номер накладной может быть в свободной строкой форме,
-                    //--- поэтому учитываем только цифровые значения
-                    maxDocNo = max(maxDocNo, rs.getString(1).toInt())
-                } catch(nfe: Throwable) {
-                }
+                //--- номер накладной может быть в свободной строковой форме,
+                //--- поэтому учитываем только цифровые значения
+                maxDocNo = max(maxDocNo, rs.getString(1).toIntOrNull() ?: 0)
             }
+            rs.close()
             //--- дополняем номер нулями спереди, чтобы сортировка не сбивалась
             //--- (стандартный padStart( 5, '0' ) не пойдёт, т.к. он обрезает более длинную строку до 5 символов
             val sb = StringBuilder().append(maxDocNo + 1)

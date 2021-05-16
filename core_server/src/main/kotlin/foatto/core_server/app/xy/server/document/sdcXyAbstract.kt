@@ -11,6 +11,7 @@ import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.xy.XyStartData
 import foatto.core_server.app.xy.XyStartObjectParsedData
+import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedStatement
 import java.time.ZoneId
 import java.util.concurrent.ConcurrentHashMap
@@ -28,6 +29,7 @@ abstract class sdcXyAbstract {
     }
 
     protected lateinit var application: iApplication
+    protected lateinit var conn: CoreAdvancedConnection
     protected lateinit var stm: CoreAdvancedStatement
     protected lateinit var chmSession: ConcurrentHashMap<String, Any>
     protected lateinit var userConfig: UserConfig
@@ -41,9 +43,17 @@ abstract class sdcXyAbstract {
     //--- таблица преобразований типов графических элементов в бизнес-алиасы
     protected val hmOutElementTypeAlias = mutableMapOf<String, String>() //??? пока никак не используется...
 
-    open fun init(aApplication: iApplication, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aUserConfig: UserConfig, aDocumentConfig: XyDocumentConfig) {
+    open fun init(
+        aApplication: iApplication,
+        aConn: CoreAdvancedConnection,
+        aStm: CoreAdvancedStatement,
+        aChmSession: ConcurrentHashMap<String, Any>,
+        aUserConfig: UserConfig,
+        aDocumentConfig: XyDocumentConfig
+    ) {
 
         application = aApplication
+        conn = aConn
         stm = aStm
         chmSession = aChmSession
         //--- получить конфигурацию по подключенному пользователю

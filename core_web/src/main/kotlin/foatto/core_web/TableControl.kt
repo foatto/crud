@@ -39,7 +39,7 @@ val hmTableIcon = mutableMapOf(
 )
 
 @Suppress("UnsafeCastFromDynamic")
-fun tableControl( appParam: String, tableResponse: TableResponse, tabIndex: Int ) = vueComponentOptions().apply {
+fun tableControl( appParam: String, tableResponse: TableResponse, tabId: Int ) = vueComponentOptions().apply {
 
     this.template = """
         <div v-bind:style="style_table">
@@ -257,7 +257,7 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabIndex: Int 
 //                //--- запомним последнюю кнопку заголовка в табличном режиме как кнопку отмены или возврата на уровень выше
 //                butTableCancel = button
             }
-            that().`$root`.addTabInfo( tabIndex, tableResponse.tab, tabToolTip )
+            that().`$root`.setTabInfo( tabId, tableResponse.tab, tabToolTip )
             that().arrTitleData = alTitleData.toTypedArray()
         },
         "readAddButtons" to {
@@ -776,7 +776,7 @@ fun tableControl( appParam: String, tableResponse: TableResponse, tabIndex: Int 
                 "top" to "20%",
                 "bottom" to if( styleIsNarrowScreen ) "20%" else "10%",
                 "width" to styleMenuWidth(),
-                "background" to COLOR_MENU_BACK,
+                "background" to COLOR_MENU_GROUP_BACK,
                 "border" to "1px solid $COLOR_MENU_BORDER",
                 "border-radius" to BORDER_RADIUS,
                 "font-size" to styleMenuFontSize(),

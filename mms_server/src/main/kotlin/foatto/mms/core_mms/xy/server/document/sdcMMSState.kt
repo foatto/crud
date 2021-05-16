@@ -25,6 +25,7 @@ import foatto.mms.core_mms.sensor.config.SensorConfigSignal
 import foatto.mms.core_mms.sensor.config.SensorConfigWork
 import foatto.mms.core_mms.sensor.config.SignalConfig
 import foatto.mms.iMMSApplication
+import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedStatement
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -67,7 +68,14 @@ class sdcMMSState : sdcXyState() {
         private val chmElementPort = ConcurrentHashMap<Int, Int>()
     }
 
-    override fun init(aApplication: iApplication, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aUserConfig: UserConfig, aDocumentConfig: XyDocumentConfig) {
+    override fun init(
+        aApplication: iApplication,
+        aConn: CoreAdvancedConnection,
+        aStm: CoreAdvancedStatement,
+        aChmSession: ConcurrentHashMap<String, Any>,
+        aUserConfig: UserConfig,
+        aDocumentConfig: XyDocumentConfig
+    ) {
 
         //--- схемы ---
 
@@ -93,7 +101,7 @@ class sdcMMSState : sdcXyState() {
         hmOutElementTypeAlias[TYPE_STATE_S_FIGURE_25D] = "mms_object"
         hmOutElementTypeAlias[TYPE_STATE_S_TEXT_25D] = "mms_object"
 
-        super.init(aApplication, aStm, aChmSession, aUserConfig, aDocumentConfig)
+        super.init(aApplication, aConn, aStm, aChmSession, aUserConfig, aDocumentConfig)
     }
 
     override fun getCoords(startParamID: String): XyActionResponse {

@@ -35,12 +35,12 @@ private const val startExpandKoef = 0.05
 private val mapBitmapTypeName = XyBitmapType.MS   // на текущий момент MapSurfer - наиболее правильная карта
 
 @Suppress("UnsafeCastFromDynamic")
-fun mapControl(xyResponse: XyResponse, tabIndex: Int) = vueComponentOptions().apply {
+fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply {
 
     this.template =
         """
     <div>
-        <div id="map_title_$tabIndex" v-bind:style="[ style_toolbar, style_header ]">
+        <div id="map_title_$tabId" v-bind:style="[ style_toolbar, style_header ]">
             <span v-bind:style="style_toolbar_block">
             </span>
             <span v-bind:style="[style_toolbar_block, style_title]">
@@ -49,7 +49,7 @@ fun mapControl(xyResponse: XyResponse, tabIndex: Int) = vueComponentOptions().ap
             <span v-bind:style="style_toolbar_block">
             </span>
         </div>
-        <div id="map_toolbar_$tabIndex" v-bind:style="style_toolbar">
+        <div id="map_toolbar_$tabId" v-bind:style="style_toolbar">
             <span v-bind:style="style_toolbar_block">
                 <img src="/web/images/ic_open_with_black_48dp.png" 
                      v-on:click="setMode( '${MapWorkMode.PAN}' )"
@@ -151,7 +151,7 @@ fun mapControl(xyResponse: XyResponse, tabIndex: Int) = vueComponentOptions().ap
 """ +
 
             getXyElementTemplate(
-                tabIndex,
+                tabId,
 
                 """
         <template v-if="mouseRect.isVisible">
@@ -218,7 +218,7 @@ fun mapControl(xyResponse: XyResponse, tabIndex: Int) = vueComponentOptions().ap
             val that = aThat ?: that()
             val scaleKoef = that.`$root`.scaleKoef.unsafeCast<Double>()
             val curViewCoord = that().viewCoord.unsafeCast<XyViewCoord>()
-            val svgCoords = defineXySvgCoords("map", tabIndex)
+            val svgCoords = defineXySvgCoords("map", tabId)
 
             val newView =
                 if (aView != null) {
@@ -271,7 +271,7 @@ fun mapControl(xyResponse: XyResponse, tabIndex: Int) = vueComponentOptions().ap
 
             val scaleKoef = that().`$root`.scaleKoef.unsafeCast<Double>()
             val curMode = that().curMode.unsafeCast<MapWorkMode>()
-            val svgCoords = defineXySvgCoords("map", tabIndex)
+            val svgCoords = defineXySvgCoords("map", tabId)
 
             if (isNeedOffsetCompensation) {
                 mouseX -= svgCoords.bodyLeft
@@ -339,7 +339,7 @@ fun mapControl(xyResponse: XyResponse, tabIndex: Int) = vueComponentOptions().ap
             val panDX = that().panDX.unsafeCast<Int>()
             val panDY = that().panDY.unsafeCast<Int>()
 
-            val svgCoords = defineXySvgCoords("map", tabIndex)
+            val svgCoords = defineXySvgCoords("map", tabId)
 
             if (isNeedOffsetCompensation) {
                 mouseX -= svgCoords.bodyLeft
@@ -470,7 +470,7 @@ fun mapControl(xyResponse: XyResponse, tabIndex: Int) = vueComponentOptions().ap
             val panDX = that().panDX.unsafeCast<Int>()
             val panDY = that().panDY.unsafeCast<Int>()
 
-            val svgCoords = defineXySvgCoords("map", tabIndex)
+            val svgCoords = defineXySvgCoords("map", tabId)
 
             if (isNeedOffsetCompensation) {
                 mouseX -= svgCoords.bodyLeft
@@ -683,7 +683,7 @@ fun mapControl(xyResponse: XyResponse, tabIndex: Int) = vueComponentOptions().ap
             val viewCoord = that().viewCoord.unsafeCast<XyViewCoord>()
             val curMode = that().curMode.unsafeCast<MapWorkMode>()
 
-            val svgBodyElement = document.getElementById("svg_body_$tabIndex")!!
+            val svgBodyElement = document.getElementById("svg_body_$tabId")!!
 
             val svgBodyWidth = svgBodyElement.clientWidth
             val svgBodyHeight = svgBodyElement.clientHeight
@@ -904,7 +904,7 @@ fun mapControl(xyResponse: XyResponse, tabIndex: Int) = vueComponentOptions().ap
         //--- подготовка данных для меню добавления
         that().arrAddEC = xyResponse.documentConfig.alElementConfig.filter { it.second.descrForAction.isNotEmpty() }.map { it.second }.toTypedArray()
 
-        doXyMounted(that(), xyResponse, tabIndex, "map", startExpandKoef, xyResponse.documentConfig.alElementConfig.minByOrNull { it.second.scaleMin }!!.second.scaleMin)
+        doXyMounted(that(), xyResponse, tabId, "map", startExpandKoef, xyResponse.documentConfig.alElementConfig.minByOrNull { it.second.scaleMin }!!.second.scaleMin)
 
         that().setMode(MapWorkMode.PAN)
     }

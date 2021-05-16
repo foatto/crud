@@ -17,7 +17,7 @@ const val LOCAL_STORAGE_LOGIN = "login"
 const val LOCAL_STORAGE_PASSWORD = "password"
 
 @Suppress("UnsafeCastFromDynamic")
-fun appControl(startAppParam: String, tabIndex: Int) = vueComponentOptions().apply {
+fun appControl(startAppParam: String, tabId: Int) = vueComponentOptions().apply {
 
     this.template = """
         <div v-bind:style="style_app_control">
@@ -83,12 +83,14 @@ fun appControl(startAppParam: String, tabIndex: Int) = vueComponentOptions().app
 
             //--- пустое урло, ничего не делаем
             if (appRequest.action.isEmpty()) {
-                if (isAutoClose) that().`$root`.closeTab(tabIndex)
+                if (isAutoClose) that().`$root`.closeTabById(tabId)
             }
             //--- файловое урло
             else if (appRequest.action.startsWith("/")) {
                 that().`$root`.openTab(appRequest.action)
-                if (isAutoClose) that().`$root`.closeTab(tabIndex)
+                if (isAutoClose) {
+                    that().`$root`.closeTabById(tabId)
+                }
             } else {
                 //--- для проброса this внутрь лямбд
                 val that = that()
@@ -137,23 +139,23 @@ fun appControl(startAppParam: String, tabIndex: Int) = vueComponentOptions().app
                             that.invoke(AppRequest(appResponse.redirect!!))
                         }
                         ResponseCode.TABLE.toString() -> {
-                            that.curControl = tableControl(appRequest.action, appResponse.table!!, tabIndex)
+                            that.curControl = tableControl(appRequest.action, appResponse.table!!, tabId)
                             that.responseCode = appResponse.code
                         }
                         ResponseCode.FORM.toString() -> {
-                            that.curControl = formControl(appResponse.form!!, tabIndex)
+                            that.curControl = formControl(appResponse.form!!, tabId)
                             that.responseCode = appResponse.code
                         }
                         ResponseCode.GRAPHIC.toString() -> {
-                            that.curControl = graphicControl(appResponse.graphic!!, tabIndex)
+                            that.curControl = graphicControl(appResponse.graphic!!, tabId)
                             that.responseCode = appResponse.code
                         }
                         ResponseCode.XY.toString() -> {
                             appResponse.xy?.let { xy ->
                                 that.curControl = when (xy.documentConfig.clientType.toString()) {
-                                    XyDocumentClientType.MAP.toString() -> mapControl(xy, tabIndex)
-                                    XyDocumentClientType.STATE.toString() -> stateControl(xy, tabIndex)
-                                    else -> mapControl(xy, tabIndex)
+                                    XyDocumentClientType.MAP.toString() -> mapControl(xy, tabId)
+                                    XyDocumentClientType.STATE.toString() -> stateControl(xy, tabId)
+                                    else -> mapControl(xy, tabId)
                                 }
                             }
                             that.responseCode = appResponse.code

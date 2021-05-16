@@ -35,6 +35,7 @@ import foatto.mms.core_mms.calc.OverSpeedPeriodData
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigWork
 import foatto.mms.iMMSApplication
+import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedStatement
 import java.nio.ByteOrder
 import java.util.*
@@ -64,6 +65,7 @@ class sdcMMSMap : sdcXyMap() {
 
     override fun init(
         aApplication: iApplication,
+        aConn: CoreAdvancedConnection,
         aStm: CoreAdvancedStatement,
         aChmSession: ConcurrentHashMap<String, Any>,
         aUserConfig: UserConfig,
@@ -88,7 +90,7 @@ class sdcMMSMap : sdcXyMap() {
 
         //------
 
-        super.init(aApplication, aStm, aChmSession, aUserConfig, aDocumentConfig)
+        super.init(aApplication, aConn, aStm, aChmSession, aUserConfig, aDocumentConfig)
     }
 
     override fun getCoords(startParamID: String): XyActionResponse {

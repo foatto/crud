@@ -34,7 +34,7 @@ private val hmFormIcon = mutableMapOf(
 )
 
 @Suppress("UnsafeCastFromDynamic")
-fun formControl(formResponse: FormResponse, tabIndex: Int) = vueComponentOptions().apply {
+fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().apply {
 
     this.template = """
         <div v-bind:style="style_form">
@@ -77,7 +77,7 @@ fun formControl(formResponse: FormResponse, tabIndex: Int) = vueComponentOptions
                            v-on:focus="selectAllText( ${'$'}event )"
                            v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true ) : null"
                            v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
-                           v-on:keyup.f4="closeTab()"
+                           v-on:keyup.f4="closeTabById()"
                     >
 
                     <textarea v-else-if="gridData.cellType == '${FormCellType_.TEXT}'"
@@ -89,7 +89,7 @@ fun formControl(formResponse: FormResponse, tabIndex: Int) = vueComponentOptions
                               v-bind:autofocus="gridData.itAutoFocus"
                               v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true ) : null"
                               v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
-                              v-on:keyup.f4="closeTab()"
+                              v-on:keyup.f4="closeTabById()"
                     >
                     </textarea>
 
@@ -102,7 +102,7 @@ fun formControl(formResponse: FormResponse, tabIndex: Int) = vueComponentOptions
                            v-bind:autofocus="gridData.itAutoFocus"
                            v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true ) : null"
                            v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
-                           v-on:keyup.f4="closeTab()"
+                           v-on:keyup.f4="closeTabById()"
                     >
 
                     <template v-else-if="gridData.cellType == '${FormCellType_.DATE}' || gridData.cellType == '${FormCellType_.TIME}' || gridData.cellType == '${FormCellType_.DATE_TIME}'">
@@ -115,7 +115,7 @@ fun formControl(formResponse: FormResponse, tabIndex: Int) = vueComponentOptions
                                v-bind:autofocus="gridData.itAutoFocus"
                                v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true ) : null"
                                v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
-                               v-on:keyup.f4="closeTab()"
+                               v-on:keyup.f4="closeTabById()"
                         >
                     </template>
 
@@ -127,7 +127,7 @@ fun formControl(formResponse: FormResponse, tabIndex: Int) = vueComponentOptions
                                 v-bind:autofocus="gridData.itAutoFocus"
                                 v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true ) : null"
                                 v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
-                                v-on:keyup.f4="closeTab()"
+                                v-on:keyup.f4="closeTabById()"
                         >
                             <option v-for="comboData in gridData.arrComboData"
                                     v-bind:value="comboData.value"
@@ -148,7 +148,7 @@ fun formControl(formResponse: FormResponse, tabIndex: Int) = vueComponentOptions
                                    v-bind:autofocus="gridData.itAutoFocus"
                                    v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true ) : null"
                                    v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
-                                   v-on:keyup.f4="closeTab()"
+                                   v-on:keyup.f4="closeTabById()"
                             >
                             <span v-bind:style="style_form_row_radio_label"
                             >
@@ -169,7 +169,7 @@ fun formControl(formResponse: FormResponse, tabIndex: Int) = vueComponentOptions
                                     title="Показать файл"                                                                        
                                     v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true ) : null"
                                     v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
-                                    v-on:keyup.f4="closeTab()"
+                                    v-on:keyup.f4="closeTabById()"
                             >
                                 <span v-html="fileData.text">
                                 </span>
@@ -195,7 +195,7 @@ fun formControl(formResponse: FormResponse, tabIndex: Int) = vueComponentOptions
                                 title="Добавить файл(ы)"                                                                        
                                 v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true ) : null"
                                 v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
-                                v-on:keyup.f4="closeTab()"
+                                v-on:keyup.f4="closeTabById()"
                         >
                             Добавить файл(ы)
                         </button>
@@ -254,7 +254,7 @@ fun formControl(formResponse: FormResponse, tabIndex: Int) = vueComponentOptions
                 tabToolTip += (if (tabToolTip.isEmpty()) "" else " | ") + text
                 alTitleData.add(FormTitleData(titleID++, url, text))
             }
-            that().`$root`.addTabInfo(tabIndex, formResponse.tab, tabToolTip)
+            that().`$root`.setTabInfo(tabId, formResponse.tab, tabToolTip)
             that().arrTitleData = alTitleData.toTypedArray()
         },
         "selectAllText" to { event: Event ->
@@ -262,8 +262,8 @@ fun formControl(formResponse: FormResponse, tabIndex: Int) = vueComponentOptions
             if (!styleIsTouchScreen())
                 (event.target as? HTMLInputElement)?.select()
         },
-        "closeTab" to {
-            that().`$root`.closeTab(tabIndex)
+        "closeTabById" to {
+            that().`$root`.closeTabById(tabId)
         },
         "doVisibleAndCaptionChange" to { gdMaster: FormGridData ->
             //Vue.nextTick { - понадобится, если вместо v-on:change применить v-on:click

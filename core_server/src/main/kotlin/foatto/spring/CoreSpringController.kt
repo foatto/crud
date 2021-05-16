@@ -305,7 +305,7 @@ abstract class CoreSpringController : iApplication {
         val userConfig: UserConfig = chmSession[iApplication.USER_CONFIG] as? UserConfig ?: throw BusinessException("Не найден пользователь в сессии!")
         val serverDocumentControlClassName = GraphicDocumentConfig.hmConfig[graphicActionRequest.documentTypeName]!!.serverControlClassName
         val doc = Class.forName(serverDocumentControlClassName).getConstructor().newInstance() as sdcAbstractGraphic
-        doc.init(this, stm, chmSession, userConfig, graphicActionRequest.documentTypeName)
+        doc.init(this, conn, stm, chmSession, userConfig, graphicActionRequest.documentTypeName)
 
         val graphicActionResponse =
             when (graphicActionRequest.action) {
@@ -368,7 +368,7 @@ abstract class CoreSpringController : iApplication {
         val xyDocConfig = CoreSpringApp.hmXyDocumentConfig[docTypeName]!!
 
         val doc = Class.forName(xyDocConfig.serverClassName).getConstructor().newInstance() as sdcXyAbstract
-        doc.init(this, stm, chmSession, userConfig, xyDocConfig)
+        doc.init(this, conn, stm, chmSession, userConfig, xyDocConfig)
 
         val xyActionResponse =
             when (xyActionRequest.action) {

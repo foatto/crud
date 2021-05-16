@@ -95,11 +95,11 @@ private enum class GraphicWorkMode {
 */
 
 @Suppress("UnsafeCastFromDynamic")
-fun graphicControl(graphicResponse: GraphicResponse, tabIndex: Int) = vueComponentOptions().apply {
+fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentOptions().apply {
 
     this.template = """
         <div>
-            <div id="graphic_title_$tabIndex" v-bind:style="[ style_toolbar, style_header ]">
+            <div id="graphic_title_$tabId" v-bind:style="[ style_toolbar, style_header ]">
                 <span v-bind:style="style_toolbar_block">
                 </span>
                 <span v-bind:style="[style_toolbar_block, style_title]">
@@ -108,7 +108,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabIndex: Int) = vueCompone
                 <span v-bind:style="style_toolbar_block">
                 </span>
             </div>
-            <div id="graphic_toolbar_$tabIndex" v-bind:style="style_toolbar">
+            <div id="graphic_toolbar_$tabId" v-bind:style="style_toolbar">
                 <span v-bind:style="style_toolbar_block">
                     <img src="/web/images/ic_open_with_black_48dp.png" 
                          v-on:click="setModePan()"
@@ -192,7 +192,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabIndex: Int) = vueCompone
             <div style="display: flex;"
                  v-on:mousewheel.stop.prevent="onMouseWheel( ${'$'}event )">
 
-                <svg id="svg_axis_$tabIndex"
+                <svg id="svg_axis_$tabId"
                      v-bind:width="svg_axis_width"
                      v-bind:height="svg_height"
                      v-bind:viewBox="viewBoxAxis"
@@ -224,7 +224,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabIndex: Int) = vueCompone
                     </template>
                 </svg>
 
-                <svg id="svg_body_$tabIndex" width="100%" v-bind:height="svg_height" v-bind:viewBox="viewBoxBody"
+                <svg id="svg_body_$tabId" width="100%" v-bind:height="svg_height" v-bind:viewBox="viewBoxBody"
                      v-on:mousedown.stop.prevent="onMousePressed( false, ${'$'}event.offsetX, ${'$'}event.offsetY )"
                      v-on:mousemove.stop.prevent="onMouseMove( false, ${'$'}event.offsetX, ${'$'}event.offsetY )"
                      v-on:mouseup.stop.prevent="onMouseReleased( false, ${'$'}event.offsetX, ${'$'}event.offsetY, ${'$'}event.shiftKey, ${'$'}event.ctrlKey, ${'$'}event.altKey )"
@@ -377,7 +377,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabIndex: Int) = vueCompone
             val timeOffset = that.`$root`.timeOffset.unsafeCast<Int>()
             val scaleKoef = that.`$root`.scaleKoef.unsafeCast<Double>()
 
-            val svgCoords = defineGraphicSvgCoords(tabIndex)
+            val svgCoords = defineGraphicSvgCoords(tabId)
 
             that.`$root`.setWait(true)
             invokeGraphic(
@@ -555,7 +555,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabIndex: Int) = vueCompone
             val viewCoord = that().viewCoord.unsafeCast<GraphicViewCoord>()
             val curMode = that().curMode.unsafeCast<GraphicWorkMode>()
 
-            val svgCoords = defineGraphicSvgCoords(tabIndex)
+            val svgCoords = defineGraphicSvgCoords(tabId)
 
             if (isNeedOffsetCompensation) {
                 mouseX -= svgCoords.bodyLeft
@@ -602,7 +602,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabIndex: Int) = vueCompone
             val panPointOldY = that().panPointOldY.unsafeCast<Int>()
             val panDX = that().panDX.unsafeCast<Int>()
 
-            val svgCoords = defineGraphicSvgCoords(tabIndex)
+            val svgCoords = defineGraphicSvgCoords(tabId)
 
             if (isNeedOffsetCompensation) {
                 mouseX -= svgCoords.bodyLeft
@@ -688,7 +688,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabIndex: Int) = vueCompone
             val curMode = that().curMode.unsafeCast<GraphicWorkMode>()
             val panDX = that().panDX.unsafeCast<Int>()
 
-            val svgCoords = defineGraphicSvgCoords(tabIndex)
+            val svgCoords = defineGraphicSvgCoords(tabId)
 
             when (curMode) {
                 GraphicWorkMode.PAN -> {
@@ -757,7 +757,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabIndex: Int) = vueCompone
 
             val isMouseDown = that().isMouseDown.unsafeCast<Boolean>()
 
-            val svgCoords = defineGraphicSvgCoords(tabIndex)
+            val svgCoords = defineGraphicSvgCoords(tabId)
 
             if (curMode == GraphicWorkMode.PAN && !isMouseDown || curMode == GraphicWorkMode.ZOOM_BOX && !isMouseDown) {
                 //|| grControl.curMode == GraphicModel.WorkMode.SELECT_FOR_PRINT && grControl.selectorX1 < 0  ) {
@@ -953,7 +953,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabIndex: Int) = vueCompone
         val scaleKoef = that().`$root`.scaleKoef.unsafeCast<Double>()
 
         that().fullTitle = graphicResponse.fullTitle
-        that().`$root`.addTabInfo(tabIndex, graphicResponse.shortTitle, graphicResponse.fullTitle)
+        that().`$root`.setTabInfo(tabId, graphicResponse.shortTitle, graphicResponse.fullTitle)
 
 //        //--- показ точек по умолчанию выключен, если не указано явно иное
 //        val pointShowMode = appContainer.getUserProperty( iCoreAppContainer.UP_GRAPHIC_SHOW_POINT )
@@ -973,7 +973,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabIndex: Int) = vueCompone
         //--- принудительная установка полной высоты svg-элементов
         //--- (BUG: иначе высота либо равна 150px - если не указывать высоту,
         //--- либо равно width, если указать height="100%")
-        val svgCoords = defineGraphicSvgCoords(tabIndex)
+        val svgCoords = defineGraphicSvgCoords(tabId)
         that().svg_height = window.innerHeight - svgCoords.bodyTop
 
         that().style_graphic_text = json(
@@ -991,13 +991,13 @@ fun graphicControl(graphicResponse: GraphicResponse, tabIndex: Int) = vueCompone
             ),
             { graphicActionResponse: GraphicActionResponse ->
 
-                val svgAxisElement = document.getElementById("svg_axis_$tabIndex")!!
+                val svgAxisElement = document.getElementById("svg_axis_$tabId")!!
                 val svgAxisWidth = svgAxisElement.clientWidth
                 val svgAxisHeight = svgAxisElement.clientHeight
 
                 setGraphicViewBoxAxis(that, intArrayOf(0, 0, svgAxisWidth, svgAxisHeight))
 
-                val svgBodyElement = document.getElementById("svg_body_$tabIndex")!!
+                val svgBodyElement = document.getElementById("svg_body_$tabId")!!
                 val svgBodyWidth = svgBodyElement.clientWidth
                 val svgBodyHeight = svgBodyElement.clientHeight
 
@@ -1117,13 +1117,13 @@ private class GraphicSvgCoords(
     val bodyHeight: Int,
 )
 
-private fun defineGraphicSvgCoords(tabIndex: Int): GraphicSvgCoords {
+private fun defineGraphicSvgCoords(tabId: Int): GraphicSvgCoords {
     val menuBarElement = document.getElementById(MENU_BAR_ID)
     val svgTabPanel = document.getElementById("tab_panel")!!
-    val svgGraphicTitle = document.getElementById("graphic_title_$tabIndex")!!
-    val svgGraphicToolbar = document.getElementById("graphic_toolbar_$tabIndex")!!
-    val svgAxisElement = document.getElementById("svg_axis_$tabIndex")!!
-    val svgBodyElement = document.getElementById("svg_body_$tabIndex")!!
+    val svgGraphicTitle = document.getElementById("graphic_title_$tabId")!!
+    val svgGraphicToolbar = document.getElementById("graphic_toolbar_$tabId")!!
+    val svgAxisElement = document.getElementById("svg_axis_$tabId")!!
+    val svgBodyElement = document.getElementById("svg_body_$tabId")!!
 
     val menuBarWidth = menuBarElement?.clientWidth ?: 0
     val svgAxisWidth = svgAxisElement.clientWidth

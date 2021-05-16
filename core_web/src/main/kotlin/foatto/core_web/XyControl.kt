@@ -18,9 +18,9 @@ import kotlin.js.json
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-fun getXyElementTemplate(tabIndex: Int, specificSvg: String) =
+fun getXyElementTemplate(tabId: Int, specificSvg: String) =
     """
-    <svg id="svg_body_$tabIndex"
+    <svg id="svg_body_$tabId"
          width="100%"
          v-bind:height="svg_height"
          v-bind:viewBox="viewBoxBody"
@@ -175,12 +175,12 @@ class XySvgCoords(
     val bodyHeight: Int,
 )
 
-fun defineXySvgCoords(elementPrefix: String, tabIndex: Int): XySvgCoords {
+fun defineXySvgCoords(elementPrefix: String, tabId: Int): XySvgCoords {
     val menuBarElement = document.getElementById(MENU_BAR_ID)
     val svgTabPanel = document.getElementById("tab_panel")!!
-    val svgXyTitle = document.getElementById("${elementPrefix}_title_$tabIndex")!!
-    val svgXyToolbar = document.getElementById("${elementPrefix}_toolbar_$tabIndex")!!
-    val svgBodyElement = document.getElementById("svg_body_$tabIndex")!!
+    val svgXyTitle = document.getElementById("${elementPrefix}_title_$tabId")!!
+    val svgXyToolbar = document.getElementById("${elementPrefix}_toolbar_$tabId")!!
+    val svgBodyElement = document.getElementById("svg_body_$tabId")!!
 
     val menuBarWidth = menuBarElement?.clientWidth ?: 0
 
@@ -194,20 +194,20 @@ fun defineXySvgCoords(elementPrefix: String, tabIndex: Int): XySvgCoords {
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-fun doXyMounted(that: dynamic, xyResponse: XyResponse, tabIndex: Int, elementPrefix: String, startExpandKoef: Double, curScale: Int) {
+fun doXyMounted(that: dynamic, xyResponse: XyResponse, tabId: Int, elementPrefix: String, startExpandKoef: Double, curScale: Int) {
     that.documentConfig = xyResponse.documentConfig
     that.startParamID = xyResponse.startParamID
     that.fullTitle = xyResponse.fullTitle
     that.parentObjectID = xyResponse.parentObjectID
     that.parentObjectInfo = xyResponse.parentObjectInfo
 
-    that.`$root`.addTabInfo(tabIndex, xyResponse.shortTitle, xyResponse.fullTitle)
+    that.`$root`.setTabInfo(tabId, xyResponse.shortTitle, xyResponse.fullTitle)
 
     val scaleKoef = that.`$root`.scaleKoef.unsafeCast<Double>()
     //--- принудительная установка полной высоты svg-элементов
     //--- (BUG: иначе высота либо равна 150px - если не указывать высоту,
     //--- либо равно width, если указать height="100%")
-    val svgCoords = defineXySvgCoords(elementPrefix, tabIndex)
+    val svgCoords = defineXySvgCoords(elementPrefix, tabId)
     that.svg_height = window.innerHeight - svgCoords.bodyTop
 
     that.`$root`.setWait(true)
@@ -219,7 +219,7 @@ fun doXyMounted(that: dynamic, xyResponse: XyResponse, tabIndex: Int, elementPre
         ),
         { xyActionResponse: XyActionResponse ->
 
-            val svgBodyElement = document.getElementById("svg_body_$tabIndex")!!
+            val svgBodyElement = document.getElementById("svg_body_$tabId")!!
             val svgBodyWidth = svgBodyElement.clientWidth
             val svgBodyHeight = svgBodyElement.clientHeight
 

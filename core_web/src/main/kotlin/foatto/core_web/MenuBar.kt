@@ -130,7 +130,7 @@ fun menuBar(arrMenuData: Array<MenuData>) = vueComponentOptions().apply {
             "style_menu_start" to json(
                 "width" to styleMenuWidth(),
                 "min-width" to styleMenuWidth(),
-                "background" to COLOR_MENU_BACK,
+                "background" to COLOR_MENU_GROUP_BACK,
                 "border" to "1px solid $COLOR_MENU_BORDER",
                 "border-radius" to BORDER_RADIUS,
                 "font-size" to styleMenuFontSize(),

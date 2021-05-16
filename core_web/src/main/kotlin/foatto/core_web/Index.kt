@@ -54,7 +54,7 @@ open class Index {
                         <img src="/web/images/ic_close_black_48dp.png" 
                              v-show="arrTabInfo.length > 0"
                              v-bind:style="style_tab_closer_button"
-                             v-on:click="closeTab( currentTabIndex )"
+                             v-on:click="closeTabByIndex( currentTabIndex )"
                              title="Закрыть вкладку"
                         >
                     """
@@ -72,7 +72,7 @@ open class Index {
                                  height=16
                                  v-show="tab.text"
                                  v-bind:style="currentTabIndex == index ? style_tab_current_closer : style_tab_other_closer"
-                                 v-on:click="closeTab( index )"
+                                 v-on:click="closeTabByIndex( index )"
                                  v-bind:key="'c'+tab.id"
                                  title="Закрыть вкладку"
                             >
@@ -81,7 +81,8 @@ open class Index {
                 } +
                 """
                         </div>
-                        <template v-if="arrTabComp.length>0">
+
+                        <template v-if="currentTabIndex >= 0 && arrTabComp.length > 0">
                             <keep-alive>
                                 <component v-bind:is="arrTabComp[ currentTabIndex ].comp">
                                 </component>
@@ -115,22 +116,30 @@ open class Index {
                     that().menuBar = menuData
                 },
                 "addTabComp" to { appParam: String ->
-                    val currentTabID = that().lastTabID.unsafeCast<Int>() + 1
-                    val currentTabIndex = that().currentTabIndex.unsafeCast<Int>() + 1
+                    val newTabID = that().lastTabID.unsafeCast<Int>() + 1
 
-                    that().arrTabInfo.splice(currentTabIndex, 0, TabInfo(currentTabID, "", ""))
-                    that().arrTabComp.splice(currentTabIndex, 0, TabComp(appControl(appParam, currentTabIndex)))
+                    that().arrTabInfo.push(TabInfo(newTabID, "", ""))
+                    that().arrTabComp.push(TabComp(appControl(appParam, newTabID)))
 
-                    that().currentTabIndex = currentTabIndex
-                    that().lastTabID = currentTabID
-                },
-                "addTabInfo" to { tabIndex: Int, tabText: String, tabToolTip: String ->
                     val arrTabInfo = that().arrTabInfo.unsafeCast<Array<TabInfo>>()
-                    arrTabInfo[tabIndex].text =
-                        if (tabText.length > styleTabComboTextLen())
+                    that().currentTabIndex = arrTabInfo.lastIndex
+
+                    that().lastTabID = newTabID
+                },
+                "setTabInfo" to { tabId: Int, tabText: String, tabToolTip: String ->
+                    val arrTabInfo = that().arrTabInfo.unsafeCast<Array<TabInfo>>()
+
+                    arrTabInfo.find { tabInfo ->
+                        tabInfo.id == tabId
+                    }?.let { tabInfo ->
+                        tabInfo.text = if (tabText.length > styleTabComboTextLen()) {
                             tabText.substring(0, styleTabComboTextLen()) + "..."
-                        else tabText
-                    arrTabInfo[tabIndex].tooltip = tabToolTip
+                        } else {
+                            tabText
+                        }
+                        tabInfo.tooltip = tabToolTip
+                    }
+
                     that().arrTabInfo = arrTabInfo
                 },
                 "openTab" to { newAppParam: String ->
@@ -140,21 +149,33 @@ open class Index {
                     else
                         that().addTabComp(newAppParam)
                 },
-                "closeTab" to { tabIndex: Int ->
-                    that().arrTabInfo.splice(tabIndex, 1)
-                    that().arrTabComp.splice(tabIndex, 1)
-
-                    var currentTabIndex = that().currentTabIndex.unsafeCast<Int>()
+                "closeTabByIndex" to { indexForClose: Int ->
+                    val currentTabIndex = that().currentTabIndex.unsafeCast<Int>()
                     val arrTabInfo = that().arrTabInfo.unsafeCast<Array<TabInfo>>()
 
-                    if (tabIndex <= currentTabIndex) {
-                        currentTabIndex--
+                    //--- for last tab removing case
+                    if( currentTabIndex == arrTabInfo.lastIndex ) {
+                        that().currentTabIndex = currentTabIndex - 1
                     }
 
-                    if (currentTabIndex < 0 && arrTabInfo.isNotEmpty())
-                        currentTabIndex = 0
+                    that().arrTabComp.splice(indexForClose, 1)
+                    that().arrTabInfo.splice(indexForClose, 1)
+                },
+                "closeTabById" to { tabId: Int ->
+                    val currentTabIndex = that().currentTabIndex.unsafeCast<Int>()
+                    val arrTabInfo = that().arrTabInfo.unsafeCast<Array<TabInfo>>()
 
-                    that().currentTabIndex = currentTabIndex
+                    //--- for last tab removing case
+                    if( currentTabIndex == arrTabInfo.lastIndex ) {
+                        that().currentTabIndex = currentTabIndex - 1
+                    }
+
+                    val indexForClose = arrTabInfo.indexOfFirst { tabInfo ->
+                        tabInfo.id == tabId
+                    }
+
+                    that().arrTabComp.splice(indexForClose, 1)
+                    that().arrTabInfo.splice(indexForClose, 1)
                 },
                 "setWait" to { isWait: Boolean ->
                     val waitCount = that().waitCount.unsafeCast<Int>()

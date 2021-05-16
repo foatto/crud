@@ -76,19 +76,19 @@ abstract class sdcXyMap : sdcXyAbstract() {
                 " ORDER BY element_id "
 
             //--- загрузка двух наборов - point и property
-//            val stmPoint = dataWorker.alConn.get(0).createStatement()
-//            val stmProperty = dataWorker.alConn.get(0).createStatement()
+            val stmPoint = conn.createStatement()
+            val stmProperty = conn.createStatement()
 
-            val rsPoint = stm.executeQuery(sPoint)
-            val rsProperty = stm.executeQuery(sProperty)
+            val rsPoint = stmPoint.executeQuery(sPoint)
+            val rsProperty = stmProperty.executeQuery(sProperty)
 
             loadPointsAndProperties(sd, viewCoord.scale, rsPoint, rsProperty, hsReadOnlyObject, alElementData)
 
             rsPoint.close()
             rsProperty.close()
 
-//            stmPoint.close()
-//            stmProperty.close()
+            stmPoint.close()
+            stmProperty.close()
         }
 
         val alElement = alElementData.map { it.first }.toMutableList()
@@ -139,8 +139,8 @@ abstract class sdcXyMap : sdcXyAbstract() {
             " WHERE element_id = $elementID "
 
         //--- загрузка двух наборов - point и property
-//            val stmPoint = dataWorker.alConn.get(0).createStatement()
-//            val stmProperty = dataWorker.alConn.get(0).createStatement()
+        val stmPoint = conn.createStatement()
+        val stmProperty = conn.createStatement()
 
         val rsPoint = stm.executeQuery(sPoint)
         val rsProperty = stm.executeQuery(sProperty)
@@ -150,8 +150,9 @@ abstract class sdcXyMap : sdcXyAbstract() {
         rsPoint.close()
         rsProperty.close()
 
-//            stmPoint.close()
-//            stmProperty.close()
+        stmPoint.close()
+        stmProperty.close()
+
         return XyActionResponse(element = alElementData.first().first)
     }
 
