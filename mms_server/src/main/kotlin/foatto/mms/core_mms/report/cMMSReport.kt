@@ -13,7 +13,7 @@ import foatto.core_server.app.server.data.DataTime3Int
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.UODGSelector
 import foatto.mms.core_mms.ZoneData
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 import jxl.write.Label
 import jxl.write.WritableSheet
 
@@ -154,17 +154,20 @@ abstract class cMMSReport : cAbstractReport() {
         )
     }
 
-    private fun fillReportTitle( reportTitle: String,
-                         reportBegYear: Int, reportBegMonth: Int, reportBegDay: Int,
-                         reportEndYear: Int, reportEndMonth: Int, reportEndDay: Int,
-                         sheet: WritableSheet, offsX: Int, aOffsY: Int ): Int {
+    private fun fillReportTitle(
+        reportTitle: String,
+        reportBegYear: Int, reportBegMonth: Int, reportBegDay: Int,
+        reportEndYear: Int, reportEndMonth: Int, reportEndDay: Int,
+        sheet: WritableSheet, offsX: Int, aOffsY: Int
+    ): Int {
         var offsY = aOffsY
 
-        sheet.addCell( Label( offsX, offsY++, reportTitle, wcfTitleL ) )
-        sheet.addCell(Label(
+        sheet.addCell(Label(offsX, offsY++, reportTitle, wcfTitleL))
+        sheet.addCell(
+            Label(
                 offsX, offsY++,
-                "за период с ${DateTime_DMY( intArrayOf( reportBegYear, reportBegMonth, reportBegDay, 0, 0, 0 ) )}" +
-                " по ${DateTime_DMY( intArrayOf( reportEndYear, reportEndMonth, reportEndDay, 0, 0, 0 ) )}",
+                "за период с ${DateTime_DMY(intArrayOf(reportBegYear, reportBegMonth, reportBegDay, 0, 0, 0))}" +
+                    " по ${DateTime_DMY(intArrayOf(reportEndYear, reportEndMonth, reportEndDay, 0, 0, 0))}",
                 wcfTitleL
             )
         )
@@ -192,17 +195,20 @@ abstract class cMMSReport : cAbstractReport() {
         )
     }
 
-    private fun fillReportTitle(reportTitle: String,
-                        reportBegYear: Int, reportBegMonth: Int, reportBegDay: Int, reportBegHour: Int, reportBegMinute: Int,
-                        reportEndYear: Int, reportEndMonth: Int, reportEndDay: Int, reportEndHour: Int, reportEndMinute: Int,
-                        sheet: WritableSheet, offsX: Int, aOffsY: Int ): Int {
+    private fun fillReportTitle(
+        reportTitle: String,
+        reportBegYear: Int, reportBegMonth: Int, reportBegDay: Int, reportBegHour: Int, reportBegMinute: Int,
+        reportEndYear: Int, reportEndMonth: Int, reportEndDay: Int, reportEndHour: Int, reportEndMinute: Int,
+        sheet: WritableSheet, offsX: Int, aOffsY: Int
+    ): Int {
         var offsY = aOffsY
 
-        sheet.addCell( Label( offsX, offsY++, reportTitle, wcfTitleL ) )
-        sheet.addCell(Label(
+        sheet.addCell(Label(offsX, offsY++, reportTitle, wcfTitleL))
+        sheet.addCell(
+            Label(
                 offsX, offsY++,
-                "за период с ${DateTime_DMYHMS( intArrayOf( reportBegYear, reportBegMonth, reportBegDay, reportBegHour, reportBegMinute, 0 ) )}" +
-                " по ${DateTime_DMYHMS( intArrayOf( reportEndYear, reportEndMonth, reportEndDay, reportEndHour, reportEndMinute, 0 ) )}",
+                "за период с ${DateTime_DMYHMS(intArrayOf(reportBegYear, reportBegMonth, reportBegDay, reportBegHour, reportBegMinute, 0))}" +
+                    " по ${DateTime_DMYHMS(intArrayOf(reportEndYear, reportEndMonth, reportEndDay, reportEndHour, reportEndMinute, 0))}",
                 wcfTitleL
             )
         )
@@ -211,26 +217,26 @@ abstract class cMMSReport : cAbstractReport() {
     }
 
     //--- универсальное заполнение заголовка отчета
-    protected fun fillReportHeader( reportDepartment: Int, reportGroup: Int, sheet: WritableSheet, offsX: Int, aOffsY: Int ): Int {
+    protected fun fillReportHeader(reportDepartment: Int, reportGroup: Int, sheet: WritableSheet, offsX: Int, aOffsY: Int): Int {
         var offsY = aOffsY
-        if( reportDepartment != 0 ) {
+        if (reportDepartment != 0) {
             var name = "(неизвестно)"
-            val rs = stm.executeQuery( " SELECT name FROM MMS_department WHERE id = $reportDepartment " )
-            if( rs.next() ) name = rs.getString( 1 )
+            val rs = stm.executeQuery(" SELECT name FROM MMS_department WHERE id = $reportDepartment ")
+            if (rs.next()) name = rs.getString(1)
             rs.close()
 
-            sheet.addCell( Label( offsX, offsY, "Подразделение:", wcfTitleName ) )
-            sheet.addCell( Label( offsX + 1, offsY, name, wcfTitleValue ) )
+            sheet.addCell(Label(offsX, offsY, "Подразделение:", wcfTitleName))
+            sheet.addCell(Label(offsX + 1, offsY, name, wcfTitleValue))
             offsY++
         }
-        if( reportGroup != 0 ) {
+        if (reportGroup != 0) {
             var name = "(неизвестно)"
-            val rs = stm.executeQuery( " SELECT name FROM MMS_group WHERE id = $reportGroup " )
-            if( rs.next() ) name = rs.getString( 1 )
+            val rs = stm.executeQuery(" SELECT name FROM MMS_group WHERE id = $reportGroup ")
+            if (rs.next()) name = rs.getString(1)
             rs.close()
 
-            sheet.addCell( Label( offsX, offsY, "Группа:", wcfTitleName ) )
-            sheet.addCell( Label( offsX + 1, offsY, name, wcfTitleValue ) )
+            sheet.addCell(Label(offsX, offsY, "Группа:", wcfTitleName))
+            sheet.addCell(Label(offsX + 1, offsY, name, wcfTitleValue))
             offsY++
         }
         offsY++    // еще одна пустая строчка снизу
@@ -238,17 +244,17 @@ abstract class cMMSReport : cAbstractReport() {
         return offsY
     }
 
-    protected fun fillReportHeader( objectConfig: ObjectConfig, sheet: WritableSheet, aOffsY: Int ): Int {
+    protected fun fillReportHeader(objectConfig: ObjectConfig, sheet: WritableSheet, aOffsY: Int): Int {
         var offsY = aOffsY
-        for( i in objectConfig.alTitleName.indices ) {
-            sheet.addCell( Label( 1, offsY + i, objectConfig.alTitleName[ i ], wcfTitleName ) )
-            sheet.addCell( Label( 2, offsY + i, objectConfig.alTitleValue[ i ], wcfTitleValue ) )
+        for (i in objectConfig.alTitleName.indices) {
+            sheet.addCell(Label(1, offsY + i, objectConfig.alTitleName[i], wcfTitleName))
+            sheet.addCell(Label(2, offsY + i, objectConfig.alTitleValue[i], wcfTitleValue))
         }
         offsY += objectConfig.alTitleName.size + 1 // + пропуск строки между заголовком и шапкой отчета
         return offsY
     }
 
-    protected fun fillReportHeader( zoneData: ZoneData?, sheet: WritableSheet, aOffsY: Int ): Int {
+    protected fun fillReportHeader(zoneData: ZoneData?, sheet: WritableSheet, aOffsY: Int): Int {
         var offsY = aOffsY
         val zoneInfo = zoneData?.let {
             var sZone = zoneData.name
@@ -288,30 +294,32 @@ abstract class cMMSReport : cAbstractReport() {
         //    }
 
         private var objectAliasID = 0
-        fun loadObjectList(stm: CoreAdvancedStatement, userConfig: UserConfig, userID: Int, departmentID: Int, groupID: Int, alObject: MutableList<Int> ) {
+        fun loadObjectList(conn: CoreAdvancedConnection, userConfig: UserConfig, userID: Int, departmentID: Int, groupID: Int, alObject: MutableList<Int>) {
+            val stm = conn.createStatement()
             //--- однократная инициализация aliasID
-            if( objectAliasID == 0 ) {
-                val rs = stm.executeQuery( " SELECT id FROM SYSTEM_alias WHERE name = 'mms_object' " )
-                if( rs.next() ) objectAliasID = rs.getInt( 1 )
+            if (objectAliasID == 0) {
+                val rs = stm.executeQuery(" SELECT id FROM SYSTEM_alias WHERE name = 'mms_object' ")
+                if (rs.next()) objectAliasID = rs.getInt(1)
                 rs.close()
             }
-            val hsObjectPermission = userConfig.userPermission[ "mms_object" ]!!
+            val hsObjectPermission = userConfig.userPermission["mms_object"]!!
 
-            val sb = StringBuilder( " SELECT id , user_id FROM MMS_object WHERE id <> 0 " )
-            if( userID != 0 ) sb.append( " AND user_id = " ).append( userID )
-            if( departmentID != 0 ) sb.append( " AND department_id = " ).append( departmentID )
-            if( groupID != 0 ) sb.append( " AND group_id = " ).append( groupID )
-            sb.append( " ORDER BY name " )
+            val sb = StringBuilder(" SELECT id , user_id FROM MMS_object WHERE id <> 0 ")
+            if (userID != 0) sb.append(" AND user_id = ").append(userID)
+            if (departmentID != 0) sb.append(" AND department_id = ").append(departmentID)
+            if (groupID != 0) sb.append(" AND group_id = ").append(groupID)
+            sb.append(" ORDER BY name ")
 
-            val rs = stm.executeQuery( sb.toString() )
-            while( rs.next() ) {
-                val aID = rs.getInt( 1 )
-                val uID = rs.getInt( 2 )
+            val rs = stm.executeQuery(sb.toString())
+            while (rs.next()) {
+                val aID = rs.getInt(1)
+                val uID = rs.getInt(2)
 
-                if( userID != 0 || checkPerm( userConfig, hsObjectPermission, PERM_TABLE, OtherOwnerData.getOtherOwner( stm, objectAliasID, aID, uID, userConfig.userID ) ) )
-                    alObject.add( aID )
+                if (userID != 0 || checkPerm(userConfig, hsObjectPermission, PERM_TABLE, OtherOwnerData.getOtherOwner(stm, objectAliasID, aID, uID, userConfig.userID)))
+                    alObject.add(aID)
             }
             rs.close()
+            stm.close()
         }
     }
 }

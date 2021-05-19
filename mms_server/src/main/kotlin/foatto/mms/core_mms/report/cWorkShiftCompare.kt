@@ -532,8 +532,11 @@ class cWorkShiftCompare : cMMSReport() {
         else {
             val alObjectID = ArrayList<Int>()
             //--- если объект не указан, то загрузим полный список доступных объектов
-            if (reportObject == 0) cMMSReport.loadObjectList(stm, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
-            else alObjectID.add(reportObject)
+            if (reportObject == 0) {
+                loadObjectList(conn, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
+            } else {
+                alObjectID.add(reportObject)
+            }
 
             sbSQL.append(" AND MMS_work_shift.object_id IN ( ").append(getSBFromIterable(alObjectID, " , ")).append(" ) ")
                 //--- пока будем брать путевки, только полностью входящие в требуемый диапазон

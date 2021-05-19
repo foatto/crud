@@ -28,12 +28,12 @@ class cLiquidIncDec : cMMSReport() {
 
     override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
         val returnURL = super.doSave(action, alFormData, hmOut)
-        if(returnURL != null) return returnURL
+        if (returnURL != null) return returnURL
 
         //--- это отчёт по заправкам вне путевых листов?
         isWaybill = aliasConfig.alias == "mms_report_liquid_inc_waybill"
 
-        if(isWaybill) {
+        if (isWaybill) {
             val m = model as mLiquidIncWaybill
 
             fillReportParam(m.uodg)
@@ -42,13 +42,13 @@ class cLiquidIncDec : cMMSReport() {
             val begTime = (hmColumnData[m.columnReportBegTime] as DataTime3Int).localTime
             val endDate = (hmColumnData[m.columnReportEndDate] as DataDate3Int).localDate
             val endTime = (hmColumnData[m.columnReportEndTime] as DataTime3Int).localTime
-    
+
             hmReportParam["report_beg_year"] = begDate.year
             hmReportParam["report_beg_month"] = begDate.monthValue
             hmReportParam["report_beg_day"] = begDate.dayOfMonth
             hmReportParam["report_beg_hour"] = begTime.hour
             hmReportParam["report_beg_minute"] = begTime.minute
-    
+
             hmReportParam["report_end_year"] = endDate.year
             hmReportParam["report_end_month"] = endDate.monthValue
             hmReportParam["report_end_day"] = endDate.dayOfMonth
@@ -58,8 +58,7 @@ class cLiquidIncDec : cMMSReport() {
             hmReportParam["report_time_type"] = (hmColumnData[m.columnTimeType] as DataComboBox).intValue
 
             hmReportParam["report_zone"] = (hmColumnData[m.columnReportZone] as DataInt).intValue
-        }
-        else {
+        } else {
             fillReportParam(model as mUODGPZ)
 
             hmReportParam["report_time_type"] = mWorkShiftCompare.TIME_TYPE_DOC
@@ -100,7 +99,7 @@ class cLiquidIncDec : cMMSReport() {
 
         offsY = fillReportHeader(reportDepartment, reportGroup, sheet, 1, offsY)
 
-        offsY = fillReportHeader(if(reportZone == 0) null else hmZoneData[reportZone], sheet, offsY)
+        offsY = fillReportHeader(if (reportZone == 0) null else hmZoneData[reportZone], sheet, offsY)
 
         //--- установка размеров заголовков (общая ширина = 90 для А4-портрет поля по 10 мм)
         val alDim = mutableListOf<Int>()
@@ -112,7 +111,7 @@ class cLiquidIncDec : cMMSReport() {
         alDim.add(7)    // "Объём"
         alDim.add(34)    // "Место"
 
-        for(i in alDim.indices) {
+        for (i in alDim.indices) {
             val cvNN = CellView()
             cvNN.size = alDim[i] * 256
             sheet.setColumnView(i, cvNN)
@@ -130,14 +129,14 @@ class cLiquidIncDec : cMMSReport() {
         offsY++
 
         var countNN = 1
-        for(tmLIDD in alResult) {
-            if(tmLIDD.isEmpty()) continue
+        for (tmLIDD in alResult) {
+            if (tmLIDD.isEmpty()) continue
 
             sheet.addCell(Label(1, offsY, tmLIDD.firstEntry().value.objectConfig!!.name, wcfCellCB))
             sheet.mergeCells(1, offsY, 6, offsY + 2)
             offsY += 3
 
-            for(lidd in tmLIDD.values) {
+            for (lidd in tmLIDD.values) {
                 offsX = 0
 
                 val levelDiff = Math.abs(lidd.begLevel - lidd.endLevel)
@@ -187,43 +186,46 @@ class cLiquidIncDec : cMMSReport() {
 
         val alObjectID = ArrayList<Int>()
         //--- если объект не указан, то загрузим полный список доступных объектов
-        if(reportObject == 0) loadObjectList(stm, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
-        else alObjectID.add(reportObject)
+        if (reportObject == 0) {
+            loadObjectList(conn, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
+        } else {
+            alObjectID.add(reportObject)
+        }
 
         //--- общий обработчик на всех
-        for(objectID in alObjectID) {
+        for (objectID in alObjectID) {
             val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
             val hmSCLL = oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_LEVEL]
             //--- уровнемеры не прописаны
-            if(hmSCLL == null || hmSCLL.isEmpty()) continue
+            if (hmSCLL == null || hmSCLL.isEmpty()) continue
 
             //--- загрузим информацию по путевым листам
             val alBeg = ArrayList<Int>()
             val alEnd = ArrayList<Int>()
-            if(isWaybill) {
+            if (isWaybill) {
                 val rs = stm.executeQuery(
                     " SELECT beg_dt , end_dt , beg_dt_fact , end_dt_fact FROM MMS_work_shift " +
-                    " WHERE object_id = $objectID"
+                        " WHERE object_id = $objectID"
                 )
-                while(rs.next()) {
-                    alBeg.add(rs.getInt(if(reportTimeType == mWorkShiftCompare.TIME_TYPE_DOC) 1 else 3))
-                    alEnd.add(rs.getInt(if(reportTimeType == mWorkShiftCompare.TIME_TYPE_DOC) 2 else 4))
+                while (rs.next()) {
+                    alBeg.add(rs.getInt(if (reportTimeType == mWorkShiftCompare.TIME_TYPE_DOC) 1 else 3))
+                    alEnd.add(rs.getInt(if (reportTimeType == mWorkShiftCompare.TIME_TYPE_DOC) 2 else 4))
                 }
                 rs.close()
             }
 
             //--- единоразово загрузим данные по всем датчикам объекта
-            val ( alRawTime, alRawData ) = ObjectCalc.loadAllSensorData(stm, oc, begTime, endTime)
+            val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(stm, oc, begTime, endTime)
 
             val tmObjectResult = TreeMap<String, LiquidIncDecData>()
-            for(portNum in hmSCLL.keys) {
+            for (portNum in hmSCLL.keys) {
                 val sca = hmSCLL[portNum] as SensorConfigLiquidLevel
                 //--- собираем заправки или сливы по одному датчику
                 val alSCAResult = ObjectCalc.calcIncDec(
-                    stm, alRawTime, alRawData, oc, sca, begTime, endTime, isWaybill, alBeg, alEnd, if(isInc) 1 else -1, hmZoneData, reportZone
+                    stm, alRawTime, alRawData, oc, sca, begTime, endTime, isWaybill, alBeg, alEnd, if (isInc) 1 else -1, hmZoneData, reportZone
                 )
                 //--- для этого отчёта суммируем данные по всему объекту с сортировкой по времени события
-                for(lidd in alSCAResult) tmObjectResult[StringBuilder().append(lidd.begTime).append(lidd.endTime).toString()] = lidd
+                for (lidd in alSCAResult) tmObjectResult[StringBuilder().append(lidd.begTime).append(lidd.endTime).toString()] = lidd
             }
             alResult.add(tmObjectResult)
         }

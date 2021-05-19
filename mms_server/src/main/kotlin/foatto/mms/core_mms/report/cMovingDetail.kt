@@ -92,7 +92,7 @@ class cMovingDetail : cMMSReport() {
         val alObjectID = mutableListOf<Int>()
         //--- если объект не указан, то загрузим полный список доступных объектов
         if (reportObject == 0) {
-            loadObjectList(stm, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
+            loadObjectList(conn, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
         } else {
             alObjectID.add(reportObject)
         }

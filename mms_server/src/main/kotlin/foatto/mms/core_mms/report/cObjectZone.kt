@@ -19,7 +19,6 @@ import jxl.format.PageOrientation
 import jxl.format.PaperSize
 import jxl.write.Label
 import jxl.write.WritableSheet
-import java.util.*
 
 class cObjectZone : cMMSReport() {
 
@@ -27,7 +26,7 @@ class cObjectZone : cMMSReport() {
 
     override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
         val returnURL = super.doSave(action, alFormData, hmOut)
-        if(returnURL != null) return returnURL
+        if (returnURL != null) return returnURL
 
         val m = model as mObjectZone
 
@@ -92,19 +91,19 @@ class cObjectZone : cMMSReport() {
         val reportGroupType = hmReportParam["report_group_type"] as Int
 
         //--- если отчет получается слишком длинный, то убираем лишние строки (т.к. нет режима вывода только сумм)
-        while(alDraftResult.size > java.lang.Short.MAX_VALUE) alDraftResult.removeAt(alDraftResult.size - 1)
+        while (alDraftResult.size > java.lang.Short.MAX_VALUE) alDraftResult.removeAt(alDraftResult.size - 1)
 
         //--- чистовой отсортированный список результатов
         val alSortedResult = mutableListOf<ObjectZoneCalcResult>()
-        for(ozcr1 in alDraftResult) {
-            val groupName1 = if(reportGroupType == mObjectZone.GROUP_BY_OBJECT) ozcr1.oc.name else ozcr1.zoneName
-            val detailName1 = if(reportGroupType == mObjectZone.GROUP_BY_OBJECT) ozcr1.zoneName else ozcr1.oc.name
+        for (ozcr1 in alDraftResult) {
+            val groupName1 = if (reportGroupType == mObjectZone.GROUP_BY_OBJECT) ozcr1.oc.name else ozcr1.zoneName
+            val detailName1 = if (reportGroupType == mObjectZone.GROUP_BY_OBJECT) ozcr1.zoneName else ozcr1.oc.name
 
             var pos = 0
-            while(pos < alSortedResult.size) {
+            while (pos < alSortedResult.size) {
                 val ozcr2 = alSortedResult[pos]
-                val groupName2 = if(reportGroupType == mObjectZone.GROUP_BY_OBJECT) ozcr2.oc.name else ozcr2.zoneName
-                val detailName2 = if(reportGroupType == mObjectZone.GROUP_BY_OBJECT) ozcr2.zoneName else ozcr2.oc.name
+                val groupName2 = if (reportGroupType == mObjectZone.GROUP_BY_OBJECT) ozcr2.oc.name else ozcr2.zoneName
+                val detailName2 = if (reportGroupType == mObjectZone.GROUP_BY_OBJECT) ozcr2.zoneName else ozcr2.oc.name
 
                 val groupSortResult = groupName1.compareTo(groupName2)
                 if (groupSortResult < 0) break
@@ -113,10 +112,10 @@ class cObjectZone : cMMSReport() {
                 ) break
                 pos++
             }
-            if(reportType == mObjectZone.TYPE_DETAIL) alSortedResult.add(pos, ozcr1)
+            if (reportType == mObjectZone.TYPE_DETAIL) alSortedResult.add(pos, ozcr1)
             else {
                 //--- позиция для вставки в конце списка
-                if(pos >= alSortedResult.size) alSortedResult.add(pos, ObjectZoneCalcResult(ozcr1))
+                if (pos >= alSortedResult.size) alSortedResult.add(pos, ObjectZoneCalcResult(ozcr1))
                 else {
                     val ozcr2 = alSortedResult[pos]
                     val groupName2 = if (reportGroupType == mObjectZone.GROUP_BY_OBJECT) ozcr2.oc.name else ozcr2.zoneName
@@ -135,7 +134,7 @@ class cObjectZone : cMMSReport() {
         //--- установка размеров заголовков (общая ширина = 90 для А4 портрет и 140 для А4 ландшафт поля по 10 мм)
         val alDim = mutableListOf<Int>()
         alDim.add(5)    // "N п/п"
-        alDim.add(if(reportType == mObjectZone.TYPE_DETAIL) 29 else 34)    // "Объект/Геозона"
+        alDim.add(if (reportType == mObjectZone.TYPE_DETAIL) 29 else 34)    // "Объект/Геозона"
         if (reportType == mObjectZone.TYPE_DETAIL) {
             alDim.add(9)    // "Въезд" - дата и время в две строки как в сравнительном отчёте
             alDim.add(9)    // "Выезд" - дата и время в две строки как в сравнительном отчёте
@@ -158,14 +157,13 @@ class cObjectZone : cMMSReport() {
         sheet.addCell(Label(offsX++, offsY, "№ п/п", wcfCaptionHC))
         sheet.addCell(
             Label(
-                offsX++, offsY, if(reportGroupType == mObjectZone.GROUP_BY_OBJECT) "Геозона" else "Объект", wcfCaptionHC
+                offsX++, offsY, if (reportGroupType == mObjectZone.GROUP_BY_OBJECT) "Геозона" else "Объект", wcfCaptionHC
             )
         )
-        if(reportType == mObjectZone.TYPE_DETAIL) {
+        if (reportType == mObjectZone.TYPE_DETAIL) {
             sheet.addCell(Label(offsX++, offsY, "Въезд", wcfCaptionHC))
             sheet.addCell(Label(offsX++, offsY, "Выезд", wcfCaptionHC))
-        }
-        else sheet.addCell(Label(offsX++, offsY, "Кол-во вх./вых.", wcfCaptionHC))
+        } else sheet.addCell(Label(offsX++, offsY, "Кол-во вх./вых.", wcfCaptionHC))
         sheet.addCell(Label(offsX++, offsY, "Продолжительность", wcfCaptionHC))
         sheet.addCell(Label(offsX++, offsY, "Пробег [км]", wcfCaptionHC))
         sheet.addCell(Label(offsX++, offsY, "Оборудование", wcfCaptionHC))
@@ -178,13 +176,13 @@ class cObjectZone : cMMSReport() {
         var countNN = 1
         var lastGroupName = ""
 
-        for(cr in alSortedResult) {
+        for (cr in alSortedResult) {
             offsX = 0
 
             val curGroupName = if (reportGroupType == mObjectZone.GROUP_BY_OBJECT) cr.oc.name else cr.zoneName
-            if(lastGroupName != curGroupName) {
+            if (lastGroupName != curGroupName) {
                 sheet.addCell(Label(1, offsY, curGroupName, wcfCellCB))
-                sheet.mergeCells(1, offsY, if(reportType == mObjectZone.TYPE_DETAIL) 9 else 8, offsY + 2)
+                sheet.mergeCells(1, offsY, if (reportType == mObjectZone.TYPE_DETAIL) 9 else 8, offsY + 2)
                 offsY += 3
 
                 lastGroupName = curGroupName
@@ -193,7 +191,7 @@ class cObjectZone : cMMSReport() {
             sheet.addCell(Label(offsX++, offsY, (countNN++).toString(), wcfNN))
             sheet.addCell(
                 Label(
-                    offsX++, offsY, if(reportGroupType == mObjectZone.GROUP_BY_OBJECT) cr.zoneName
+                    offsX++, offsY, if (reportGroupType == mObjectZone.GROUP_BY_OBJECT) cr.zoneName
                     else cr.oc.name, wcfCellC
                 )
             )
@@ -218,7 +216,7 @@ class cObjectZone : cMMSReport() {
         offsY++
 
         //offsY += 2;
-        sheet.addCell(Label(if(reportType == mObjectZone.TYPE_DETAIL) 8 else 7, offsY, getPreparedAt(), wcfCellL))
+        sheet.addCell(Label(if (reportType == mObjectZone.TYPE_DETAIL) 8 else 7, offsY, getPreparedAt(), wcfCellL))
         //sheet.mergeCells( 3, offsY, 4, offsY );
     }
 
@@ -238,16 +236,19 @@ class cObjectZone : cMMSReport() {
 
         val alObjectID = ArrayList<Int>()
         //--- если объект не указан, то загрузим полный список доступных объектов
-        if(reportObject == 0) loadObjectList(stm, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
-        else alObjectID.add(reportObject)
+        if (reportObject == 0) {
+            loadObjectList(conn, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
+        } else {
+            alObjectID.add(reportObject)
+        }
 
         //--- загрузить данные по зонам
         val hmZoneData = ZoneData.getZoneData(stm, userConfig, reportZone)
 
-        for(objectID in alObjectID) {
+        for (objectID in alObjectID) {
             val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
             //--- гео-датчик не прописан
-            if(oc.scg == null) continue
+            if (oc.scg == null) continue
 
             //--- список активных/обрабатываемых зон
             val alZoneCalc = ArrayList<ObjectZoneCalcResult>()
@@ -258,16 +259,16 @@ class cObjectZone : cMMSReport() {
             val alRawData = pair.component2()
 
             var curTime = 0
-            for(timeIndex in alRawTime.indices) {
+            for (timeIndex in alRawTime.indices) {
                 curTime = alRawTime[timeIndex]
                 //--- данные до запрашиваемого диапазона (расширенные для сглаживания)
                 //--- в данном случае не интересны и их можно пропустить
-                if(curTime < begTime) continue
+                if (curTime < begTime) continue
                 //--- данные после запрашиваемого диапазона (расширенные для сглаживания)
                 //--- в данном случае не интересны и можно прекращать обработку
-                if(curTime > endTime) {
+                if (curTime > endTime) {
                     //--- точка за краем диапазона нам не нужна, возвращаем предыдущую точку
-                    if(timeIndex > 0) curTime = alRawTime[timeIndex - 1]
+                    if (timeIndex > 0) curTime = alRawTime[timeIndex - 1]
                     break
                 }
 
@@ -278,20 +279,19 @@ class cObjectZone : cMMSReport() {
 
                 //--- составление списка зон для данной точки (работаем с name, а не ID, для удобства последующей группировки/сортировки)
                 val hsZoneName = HashSet<String>()
-                for( zd in hmZoneData.values ) {
-                    if(zd.polygon!!.isContains(pixPoint)) hsZoneName.add(zd.name)
+                for (zd in hmZoneData.values) {
+                    if (zd.polygon!!.isContains(pixPoint)) hsZoneName.add(zd.name)
                 }
 
                 //--- по каждой обрабатываемой сейчас зоне для данного автомобиля
                 var i = 0
-                while(i < alZoneCalc.size) {
+                while (i < alZoneCalc.size) {
                     val cr = alZoneCalc[i]
                     //--- а/м все еще в этой зоне
-                    if(hsZoneName.contains(cr.zoneName)) {
+                    if (hsZoneName.contains(cr.zoneName)) {
                         hsZoneName.remove(cr.zoneName)   // убрать обработанную зону из списка
                         i++
-                    }
-                    else {
+                    } else {
                         cr.endTime = curTime
                         cr.calc = ObjectCalc.calcObject(stm, userConfig, oc, cr.begTime, cr.endTime)
 
@@ -300,12 +300,12 @@ class cObjectZone : cMMSReport() {
                     }//--- а/м вышел из этой зоны
                 }
                 //--- обработка оставшихся в списке новых зон
-                for(zoneName in hsZoneName) alZoneCalc.add(ObjectZoneCalcResult(oc, zoneName, curTime))
+                for (zoneName in hsZoneName) alZoneCalc.add(ObjectZoneCalcResult(oc, zoneName, curTime))
             }
 
             //--- "завершить" зоны, реальный выход из которых находится за пределами заданного временного периода
             //--- по каждой обрабатываемой сейчас зоне для данного автомобиля
-            for(cr in alZoneCalc) {
+            for (cr in alZoneCalc) {
                 cr.endTime = curTime
                 cr.calc = ObjectCalc.calcObject(stm, userConfig, oc, cr.begTime, cr.endTime)
 

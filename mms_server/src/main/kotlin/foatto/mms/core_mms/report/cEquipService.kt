@@ -14,7 +14,6 @@ import jxl.write.Label
 import jxl.write.WritableSheet
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
-import java.util.*
 
 class cEquipService : cMMSReport() {
 
@@ -55,8 +54,11 @@ class cEquipService : cMMSReport() {
 
         val alObjectID = ArrayList<Int>()
         //--- если объект не указан, то загрузим полный список доступных объектов
-        if (reportObject == 0) loadObjectList(stm, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
-        else alObjectID.add(reportObject)
+        if (reportObject == 0) {
+            loadObjectList(conn, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
+        } else {
+            alObjectID.add(reportObject)
+        }
 
         defineFormats(8, 2, 0)
 

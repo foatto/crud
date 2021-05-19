@@ -56,14 +56,22 @@ abstract class CoreAdvancedStatement(val conn: CoreAdvancedConnection) {
         while (true) {
             nextID = getRandomInt()
             if (nextID == 0) continue
-            for (i in arrTableName.indices) if (checkExist(arrTableName[i], arrFieldID[i], nextID, null, 0)) continue@OUT
+            for (i in arrTableName.indices) {
+                if (checkExist(arrTableName[i], arrFieldID[i], nextID, null, 0)) {
+                    continue@OUT
+                }
+            }
             return nextID
         }
     }
 
     fun checkExist(aTableName: String, aFieldCheck: String, aValue: Any, aFieldID: String? = null, id: Int = 0): Boolean {
         val stringBound = if (aValue is String) "'" else ""
-        val andFieldIDCheck = if (aFieldID != null) " AND $aFieldID <> $id " else ""
+        val andFieldIDCheck = if (aFieldID != null) {
+            " AND $aFieldID <> $id "
+        } else {
+            ""
+        }
 
         val rs = executeQuery(" SELECT $aFieldCheck FROM $aTableName WHERE $aFieldCheck = $stringBound$aValue$stringBound $andFieldIDCheck ")
         val isExist = rs.next()
