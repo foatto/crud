@@ -2,8 +2,6 @@ package foatto.core.util
 
 import java.io.BufferedWriter
 import java.io.File
-import java.io.PrintWriter
-import java.io.StringWriter
 import java.time.ZoneId
 import java.util.concurrent.LinkedBlockingQueue
 
@@ -49,31 +47,31 @@ class AdvancedLogger : Thread() {
         }
 
         fun error(t: Throwable, subDir: String = "") {
-            if(isErrorEnabled) log(subDir, "[ERROR]", t)
+            if (isErrorEnabled) log(subDir, "[ERROR]", t)
         }
 
         fun info(t: Throwable, subDir: String = "") {
-            if(isInfoEnabled) log(subDir, "[INFO]", t)
+            if (isInfoEnabled) log(subDir, "[INFO]", t)
         }
 
         fun debug(t: Throwable, subDir: String = "") {
-            if(isDebugEnabled) log(subDir, "[DEBUG]", t)
+            if (isDebugEnabled) log(subDir, "[DEBUG]", t)
         }
 
         fun error(message: String, subDir: String = "") {
-            if(isErrorEnabled) log(subDir, "[ERROR]", message)
+            if (isErrorEnabled) log(subDir, "[ERROR]", message)
         }
 
         fun info(message: String, subDir: String = "") {
-            if(isInfoEnabled) log(subDir, "[INFO]", message)
+            if (isInfoEnabled) log(subDir, "[INFO]", message)
         }
 
         fun debug(message: String, subDir: String = "") {
-            if(isDebugEnabled) log(subDir, "[DEBUG]", message)
+            if (isDebugEnabled) log(subDir, "[DEBUG]", message)
         }
 
         fun close(isWait: Boolean = true) {
-            while(isWait && lbqLog.isNotEmpty()) {
+            while (isWait && lbqLog.isNotEmpty()) {
                 sleep(1000L)
             }
             inWork = false
@@ -82,9 +80,7 @@ class AdvancedLogger : Thread() {
         //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         private fun log(subDir: String, prefix: String, t: Throwable) {
-            val sw = StringWriter()
-            t.printStackTrace(PrintWriter(sw))
-            lbqLog.put(LoggerData(subDir, prefix, sw.toString()))
+            lbqLog.put(LoggerData(subDir, prefix, t.stackTraceToString()))
         }
 
         private fun log(subDir: String, prefix: String, message: String) {
@@ -96,7 +92,7 @@ class AdvancedLogger : Thread() {
     private var hmCurrentName = mutableMapOf<String, String>()
 
     override fun run() {
-        while(inWork) {
+        while (inWork) {
             try {
                 val logData = lbqLog.take()
 
@@ -108,12 +104,12 @@ class AdvancedLogger : Thread() {
                 //--- открытие (другого) файла для записи при необходимости
                 var out = hmBufferedWriter[subDir]
                 val curFileName = hmCurrentName[subDir]
-                if(out == null || curFileName != logFileName) {
+                if (out == null || curFileName != logFileName) {
                     hmCurrentName[subDir] = logFileName
 
                     out?.close()
                     val logFile =
-                        if(subDir != "") {
+                        if (subDir != "") {
                             val logDir = File(logPath, subDir)
                             logDir.mkdirs()
 
@@ -132,7 +128,7 @@ class AdvancedLogger : Thread() {
                     newLine()
                     flush()
                 }
-            } catch(t: Throwable) {
+            } catch (t: Throwable) {
                 t.printStackTrace()
                 //--- обнулим список лог-файлов, для последующего переоткрытия
                 hmBufferedWriter.clear()
@@ -140,14 +136,14 @@ class AdvancedLogger : Thread() {
                 //--- небольшая пауза, чтобы не загрузить систему в случае циклической ошибки
                 try {
                     sleep(100_000)
-                } catch(t2: Throwable) {
+                } catch (t2: Throwable) {
                 }
             }
         }
         hmBufferedWriter.forEach { (_, out) ->
             try {
                 out.close()
-            } catch(t: Throwable) {
+            } catch (t: Throwable) {
                 t.printStackTrace()
             }
         }

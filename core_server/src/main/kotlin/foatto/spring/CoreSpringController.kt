@@ -522,12 +522,15 @@ abstract class CoreSpringController : iApplication {
 
         val tmFile = conn.getReplicationList(getReplicationRequest.destName)
         //--- нельзя удалить файл из списка, пока не получено подтверждение
-        var timeKey = if (tmFile.isEmpty()) -1 else tmFile.firstKey()
+        var timeKey = if (tmFile.isEmpty()) {
+            -1
+        } else {
+            tmFile.firstKey()
+        }
         if (timeKey != -1L && timeKey == getReplicationRequest.prevTimeKey) {
-            val alFile = tmFile[timeKey]!!
             //--- окончательно удаляем файл из очереди и его самого
-            tmFile.remove(timeKey)
-            for (file in alFile) file.delete()
+            val alFile = tmFile.remove(timeKey)
+            alFile?.forEach(File::delete)
 
             timeKey = if (tmFile.isEmpty()) -1 else tmFile.firstKey()
         }
@@ -536,8 +539,10 @@ abstract class CoreSpringController : iApplication {
             getReplicationResponse.timeKey = timeKey
 
             val bbIn = AdvancedByteBuffer(CoreAdvancedConnection.START_REPLICATION_SIZE)
-            for (file in alFile)
+            //--- skip a manually deleted files
+            alFile.filter(File::exists).forEach { file ->
                 readFileToBuffer(file, bbIn, false)
+            }
 
             bbIn.flip()
             while (bbIn.hasRemaining()) {

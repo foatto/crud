@@ -132,7 +132,13 @@ abstract class CoreReplicator(aConfigFileName: String) : CoreServiceWorker(aConf
                                 alSQL.add(bbIn.getLongString())
                         }
 
-                        val putReplicationRequest = PutReplicationRequest(destName, alDBConfig[0].name, alConn[0].dialect.dialect, timeKey, alSQL)
+                        val putReplicationRequest = PutReplicationRequest(
+                            destName = destName,
+                            sourName = alDBConfig[0].name,
+                            sourDialect = alConn[0].dialect.dialect,
+                            timeKey = timeKey,
+                            alSQL = alSQL
+                        )
 
                         runBlocking {
                             val putReplicationResponse: PutReplicationResponse = alHttpClient[destIndex].post("/api/put_replication") {

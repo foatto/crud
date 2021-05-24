@@ -792,6 +792,7 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                 //"font-size" to styleTablePageButtonFontSize()
             ),
             "style_popup_menu_start" to json(
+                "z-index" to "2",   // popup menu must be above than table headers
                 "position" to "absolute",
                 "top" to "20%",
                 "bottom" to if (styleIsNarrowScreen) "20%" else "10%",
