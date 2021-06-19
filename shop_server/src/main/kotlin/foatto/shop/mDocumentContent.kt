@@ -74,7 +74,7 @@ class mDocumentContent : mAbstract() {
         userConfig: UserConfig,
         aHmParam: Map<String, String>,
         hmParentData: MutableMap<String, Int>,
-        id: Int,
+        id: Int?,
     ) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
@@ -275,7 +275,7 @@ class mDocumentContent : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID!!)
+        alTableHiddenColumn.add(columnID)
         alTableHiddenColumn.add(columnDocumentContentIsDeleted)
         alTableHiddenColumn.add(columnDocument)
         alTableHiddenColumn.add(columnClient)
@@ -359,7 +359,7 @@ class mDocumentContent : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alFormHiddenColumn.add(columnID!!)
+        alFormHiddenColumn.add(columnID)
         alFormHiddenColumn.add(columnDocument)
         alFormHiddenColumn.add(columnClient)
         alFormHiddenColumn.add(columnSourCatalog)

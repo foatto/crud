@@ -124,7 +124,7 @@ class cDocument : cStandart() {
     override fun generateColumnDataAfterFilter(hmColumnData: MutableMap<iColumn, iData>) {
         val md = model as mDocument
 
-        val docID = (hmColumnData[md.columnID!!] as DataInt).intValue
+        val docID = (hmColumnData[md.columnID] as DataInt).intValue
         //--- именно тип документа из строки, а не общий (т.к. м.б. == TYPE_ALL)
         val rowDocType = (hmColumnData[md.columnDocumentType] as DataComboBox).intValue
         val docTime = (hmColumnData[md.columnDocumentDate] as DataDate3Int).localDate.atStartOfDay(zoneId).toEpochSecond().toInt()
@@ -172,7 +172,9 @@ class cDocument : cStandart() {
 
         //--- явно менять поле последнего изменения только при повторном сохранении,
         //--- при первом сохранении при создании оставлять значение по умолчанию, равное времени создания
-        if(id != 0) (hmColumnData[md.columnEditTime] as DataDateTimeInt).setDateTime(getCurrentTimeInt())
+        if(id != 0) {
+            (hmColumnData[md.columnEditTime] as DataDateTimeInt).setDateTime(getCurrentTimeInt())
+        }
 
         //--- при пересортице программно выставляем "На склад" = "Со склада"
         if(docType == DocumentTypeConfig.TYPE_RESORT) {

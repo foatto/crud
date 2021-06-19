@@ -22,7 +22,7 @@ class mPrice : mAbstract() {
 
     lateinit var columnPriceType: ColumnComboBox
 
-    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
+    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
@@ -57,7 +57,7 @@ class mPrice : mAbstract() {
 
         //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add( columnID!! )
+        alTableHiddenColumn.add( columnID )
         alTableHiddenColumn.add( columnCatalog )
 
         alTableGroupColumn.add( columnPriceDate )
@@ -67,7 +67,7 @@ class mPrice : mAbstract() {
         addTableColumn( columnPriceValue )
         addTableColumn( columnPriceNote )
 
-        alFormHiddenColumn.add( columnID!! )
+        alFormHiddenColumn.add( columnID )
         alFormHiddenColumn.add( columnCatalog )
 
         alFormColumn.add( columnCatalogName )

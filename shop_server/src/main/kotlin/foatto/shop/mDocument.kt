@@ -47,7 +47,7 @@ class mDocument : mAbstract() {
         userConfig: UserConfig,
         aHmParam: Map<String, String>,
         hmParentData: MutableMap<String, Int>,
-        id: Int
+        id: Int?
     ) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
@@ -170,7 +170,7 @@ class mDocument : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID!!)
+        alTableHiddenColumn.add(columnID)
         alTableHiddenColumn.add(columnClient)
         alTableHiddenColumn.add(columnDocumentIsDeleted)
 
@@ -225,7 +225,7 @@ class mDocument : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alFormHiddenColumn.add(columnID!!)
+        alFormHiddenColumn.add(columnID)
         alFormHiddenColumn.add(columnClient)
         alFormHiddenColumn.add(columnIsFiscaled)
 
@@ -268,8 +268,8 @@ class mDocument : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData(DocumentTypeConfig.hmAliasChild[aliasConfig.alias]!!, columnID!!, true, true))
-        alChildData.add(ChildData("Отчёты", "shop_report_doc_content", columnID!!, AppAction.FORM, true))
+        alChildData.add(ChildData(DocumentTypeConfig.hmAliasChild[aliasConfig.alias]!!, columnID, true, true))
+        alChildData.add(ChildData("Отчёты", "shop_report_doc_content", columnID, AppAction.FORM, true))
 
         //----------------------------------------------------------------------------------------------------------------------
 

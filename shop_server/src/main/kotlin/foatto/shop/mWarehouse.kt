@@ -13,7 +13,7 @@ import foatto.sql.CoreAdvancedStatement
 
 class mWarehouse : mAbstract() {
 
-    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
+    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
@@ -34,11 +34,11 @@ class mWarehouse : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID!!)
+        alTableHiddenColumn.add(columnID)
 
         addTableColumn(columnWarehouseName)
 
-        alFormHiddenColumn.add(columnID!!)
+        alFormHiddenColumn.add(columnID)
 
         alFormColumn.add(columnWarehouseName)
 
@@ -50,11 +50,11 @@ class mWarehouse : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        DocumentTypeConfig.fillDocChild(alChildData, columnID!!)
-        alChildData.add(ChildData("shop_cash", columnID!!, true))
-        alChildData.add(ChildData("Отчёты", "shop_report_warehouse_state", columnID!!, AppAction.FORM, true))
-        alChildData.add(ChildData("Отчёты", "shop_report_operation_summary", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Отчёты", "shop_report_cash_history", columnID!!, AppAction.FORM))
+        DocumentTypeConfig.fillDocChild(alChildData, columnID)
+        alChildData.add(ChildData("shop_cash", columnID, true))
+        alChildData.add(ChildData("Отчёты", "shop_report_warehouse_state", columnID, AppAction.FORM, true))
+        alChildData.add(ChildData("Отчёты", "shop_report_operation_summary", columnID, AppAction.FORM))
+        alChildData.add(ChildData("Отчёты", "shop_report_cash_history", columnID, AppAction.FORM))
 
         //----------------------------------------------------------------------------------------
 

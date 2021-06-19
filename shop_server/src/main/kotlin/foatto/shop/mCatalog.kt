@@ -62,7 +62,7 @@ class mCatalog : mAbstractHierarchy() {
         userConfig: UserConfig,
         aHmParam: Map<String, String>,
         hmParentData: MutableMap<String, Int>,
-        id: Int
+        id: Int?
     ) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
@@ -212,14 +212,14 @@ class mCatalog : mAbstractHierarchy() {
 
         //--- определён в предке
         //alChildData.add( new ChildData( aliasConfig.getAlias(), columnID, true, true ) );
-        alChildData.add(ChildData("shop_price", columnID!!, true))
-        alChildData.add(ChildData("shop_price_in", columnID!!))
-        alChildData.add(ChildData("shop_price_out", columnID!!))
-        alChildData.add(ChildData("shop_report_warehouse_state", columnID!!, AppAction.FORM, true))
-        alChildData.add(ChildData("shop_report_operation_summary", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("shop_report_doc_content", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("shop_report_operation_history", columnID!!, AppAction.FORM))
-        DocumentTypeConfig.fillDocContentChild(alChildData, columnID!!)
+        alChildData.add(ChildData("shop_price", columnID, true))
+        alChildData.add(ChildData("shop_price_in", columnID))
+        alChildData.add(ChildData("shop_price_out", columnID))
+        alChildData.add(ChildData("shop_report_warehouse_state", columnID, AppAction.FORM, true))
+        alChildData.add(ChildData("shop_report_operation_summary", columnID, AppAction.FORM))
+        alChildData.add(ChildData("shop_report_doc_content", columnID, AppAction.FORM))
+        alChildData.add(ChildData("shop_report_operation_history", columnID, AppAction.FORM))
+        DocumentTypeConfig.fillDocContentChild(alChildData, columnID)
 
         //--- определён в предке
         //alDependData.add( new DependData( tableName, columnParent.getFieldName() ) );

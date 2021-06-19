@@ -76,7 +76,7 @@ class cCatalog : cAbstractHierarchy() {
     override fun generateColumnDataAfterFilter(hmColumnData: MutableMap<iColumn, iData>) {
         val mc = model as mCatalog
 
-        val catalogID = (hmColumnData[mc.columnID!!] as DataInt).intValue
+        val catalogID = (hmColumnData[mc.columnID] as DataInt).intValue
         val recordType = (hmColumnData[mc.columnRecordType] as DataComboBox).intValue
 
         val hsID: Set<Int>
