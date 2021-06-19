@@ -1,6 +1,8 @@
 package foatto.core.app
 
 const val UP_TIME_OFFSET = "time_offset"
+const val UP_IS_USE_THOUSANDS_DIVIDER = "is_use_thousands_divider"
+const val UP_DECIMAL_DIVIDER = "decimal_divider"
 
 const val ICON_NAME_ADD_FOLDER = "add_folder"
 const val ICON_NAME_ADD_ITEM = "add_item"
