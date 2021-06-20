@@ -37,7 +37,7 @@ fun getSplittedLong(value: Long, radix: Int = 10): String {
     return sOut
 }
 
-fun getSplittedDouble(value: Double, precision: Int): String {
+fun getSplittedDouble(value: Double, precision: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): String {
 //    println("--------------------------------------")
 //    println("value = $value")
 //    println("precision = $precision")
@@ -64,24 +64,34 @@ fun getSplittedDouble(value: Double, precision: Int): String {
             "$intPart.$fracPart"
         }
 
-    val dotPos = strValue.indexOf(".")
-    val groupCount = (if (dotPos == -1) strValue.length else dotPos) / 3 // number of groups of numbers (full 3 characters each)
-    val groupLead = (if (dotPos == -1) strValue.length else dotPos) % 3  // number of digits in the first incomplete group
-    var strOut = ""
-    if (groupLead > 0) {
-        strOut += strValue.substring(0, groupLead)
-    }
-    for (i in 0 until groupCount) {
-        if (strOut.isNotEmpty()) {
-            strOut += ' '
+    val dividedValue = if (isUseThousandsDivider) {
+        val dotPos = strValue.indexOf(".")
+        val groupCount = (if (dotPos == -1) strValue.length else dotPos) / 3 // number of groups of numbers (full 3 characters each)
+        val groupLead = (if (dotPos == -1) strValue.length else dotPos) % 3  // number of digits in the first incomplete group
+        var strOut = ""
+        if (groupLead > 0) {
+            strOut += strValue.substring(0, groupLead)
         }
-        val pos = groupLead + i * 3
-        strOut += strValue.substring(pos, pos + 3)
+        for (i in 0 until groupCount) {
+            if (strOut.isNotEmpty()) {
+                strOut += ' '
+            }
+            val pos = groupLead + i * 3
+            strOut += strValue.substring(pos, pos + 3)
+        }
+        //--- add fractional remainder, if any (note: dotPos == 0 cannot be)
+        if (dotPos > 0) {
+            strOut += strValue.substring(dotPos, strValue.length)
+        }
+        strOut
+    } else {
+        strValue
     }
-    //--- add fractional remainder, if any (note: dotPos == 0 cannot be)
-    if (dotPos > 0) {
-        strOut += strValue.substring(dotPos, strValue.length)
+
+    return if (decimalDivider == '.') {
+        dividedValue
+    } else {
+        dividedValue.replace('.', decimalDivider)
     }
-//    println("strOut = strOut")
-    return strOut
+
 }
