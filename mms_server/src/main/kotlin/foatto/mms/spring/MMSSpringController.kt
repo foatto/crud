@@ -25,6 +25,7 @@ import org.springframework.web.client.RestTemplate
 import org.springframework.web.multipart.MultipartFile
 import java.net.URI
 import java.net.URISyntaxException
+import java.util.concurrent.ConcurrentHashMap
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -498,6 +499,10 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
 
         val alMenuSystem = mutableListOf<MenuData>()
 
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuSystem, "system_user_property", false)
+
+        addSeparator(alMenuSystem)
+
         addMenu(hmAliasConfig, hmAliasPerm, alMenuSystem, "system_user", true)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuSystem, "system_role", true)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuSystem, "system_alias", true)
@@ -512,7 +517,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuSystem, "system_log_user", true)
 
-        if (alMenuSystem.size > 2) alMenu.add(MenuData("", "Система", alMenuSystem.toTypedArray()))
+        if (alMenuSystem.size > 3) alMenu.add(MenuData("", "Система", alMenuSystem.toTypedArray()))
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -563,7 +568,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
             val sensorType = sensorEntity.sensorType
             val portNum = sensorEntity.portNum
 
-            val hmSC = objectConfig.hmSensorConfig.getOrPut(sensorType, { mutableMapOf() })
+            val hmSC = objectConfig.hmSensorConfig.getOrPut(sensorType) { mutableMapOf() }
             when (sensorType) {
                 SensorConfig.SENSOR_SIGNAL -> {
                     hmSC[portNum] = SensorConfigSignal(
@@ -776,5 +781,90 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
 
         return objectConfig
     }
+
+
+//    //--- 1000 секунд = примерно 16-17 мин
+//    private val DEVICE_CONFIG_OUT_PERIOD = 1_000
+//
+//    private val chmDeviceConfigData = ConcurrentHashMap<String, DeviceConfig>()
+//    private val chmDeviceConfigTime = ConcurrentHashMap<String, Int>()
+//
+//    private fun loadDeviceConfig(stm: CoreAdvancedStatement, serialNo: String): DeviceConfig? {
+//        //--- во избежание многократной перезагрузки конфигурации прибора в случае,
+//        //--- когда в каждом пакете данных идёт IMEI-код.
+//        //--- и раз в 16-17 мин перезагружаем конфигурацию контроллера на случай его перепривязки к другому объекту
+//        if (chmDeviceConfigTime[serialNo] == null || getCurrentTimeInt() - chmDeviceConfigTime[serialNo]!! > DEVICE_CONFIG_OUT_PERIOD) {
+//            val deviceConfig = DeviceConfig.getDeviceConfig(stm, serialNo)
+//            //--- неизвестный контроллер
+//            if (deviceConfig == null) {
+//                writeError(dataWorker.conn, dataWorker.stm, "Unknown serial No = $serialNo")
+//                writeJournal()
+//                return null
+//            }
+//            chmDeviceConfigData[serialNo] = deviceConfig
+//        }
+//        chmDeviceConfigTime[serialNo] = getCurrentTimeInt()
+////            sbStatus.append("ID;")
+//        return chmDeviceConfigData[serialNo]!!
+//    }
+//
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//
+//    @PostMapping("/tm/XXX")
+//    fun tmUds(
+//        @RequestBody
+//        udsRawPacket: UDSRawPacket
+//    ): TMResponse {
+//        var status = "DataRead;"
+//
+//        val serialNo = udsRawPacket.udsId
+//        loadDeviceConfig(dataWorker)
+////
+////            val pointTime = getDateTimeInt(YMDHMS_DateTime(zoneId, udsRawPacket.datetime))
+////
+////            //--- если объект прописан, то записываем точки, иначе просто пропускаем
+////            //--- также пропускаем точки из будущего и далёкого прошлого
+////            val curTime = getCurrentTimeInt()
+////            if(deviceConfig?.objectID != 0 && pointTime > curTime - MAX_PAST_TIME && pointTime < curTime + MAX_FUTURE_TIME) {
+////                fwVersion = udsRawPacket.version ?: ""
+////                val udsDataPacket = udsRawPacket.normalize(zoneId)
+////                val bbData = dataToByteBuffer(dataWorker, udsDataPacket)
+////
+////                addPoint(dataWorker.stm, pointTime, bbData, sqlBatchData)
+////                dataCount++
+////
+////                if (firstPointTime == 0) {
+////                    firstPointTime = pointTime
+////                }
+////                lastPointTime = pointTime
+////            }
+////            dataCountAll++
+////
+////            //--- есть ли ещё данные в пакете
+////            packetEndPos = sbData.indexOf("\r\n")
+////            if (packetEndPos < 0) {
+////                break
+////            }
+////        }
+////        sqlBatchData.execute(dataWorker.stm)
+////
+////        //--- данные успешно переданы - теперь можно завершить транзакцию
+////        sbStatus.append("Ok;")
+////        errorText = null
+////        writeSession(dataWorker.conn, dataWorker.stm, true)
+////
+////        //--- для возможного режима постоянного/длительного соединения
+////        bbIn.compact()     // нельзя .clear(), т.к. копятся данные следующего пакета
+////
+////        begTime = 0
+////        sbStatus.setLength(0)
+////        dataCount = 0
+////        dataCountAll = 0
+////        firstPointTime = 0
+////        lastPointTime = 0
+//
+//        return TMResponse()
+//    }
+
 
 }
