@@ -21,12 +21,20 @@ import foatto.sql.CoreAdvancedStatement
 
 class mSensor : mAbstract() {
 
-    lateinit var columnSensorType: ColumnComboBox   //ColumnRadioButton
+    lateinit var columnSensorType: ColumnComboBox
         private set
     lateinit var columnCalibrationText: ColumnString
         private set
 
-    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
+    override fun init(
+        application: iApplication,
+        aStm: CoreAdvancedStatement,
+        aliasConfig: AliasConfig,
+        userConfig: UserConfig,
+        aHmParam: Map<String, String>,
+        hmParentData: MutableMap<String, Int>,
+        id: Int?
+    ) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
@@ -52,7 +60,9 @@ class mSensor : mAbstract() {
             val rs = stm.executeQuery(
                 " SELECT DISTINCT group_name FROM $tableName WHERE object_id = $parentObjectID AND group_name IS NOT NULL AND group_name <> '' ORDER BY group_name "
             )
-            while (rs.next()) addCombo(rs.getString(1).trim())
+            while (rs.next()) {
+                addCombo(rs.getString(1).trim())
+            }
             rs.close()
         }
 
@@ -86,7 +96,9 @@ class mSensor : mAbstract() {
             }
             rs.close()
             //--- add leftovers from unpopular sensors
-            for ((sensorType, descr) in hmSensorDescr) addChoice(sensorType, descr)
+            hmSensorDescr.forEach { (sensorType, descr) ->
+                addChoice(sensorType, descr)
+            }
         }
 
         val columnSensorSerialNo = ColumnString(tableName, "serial_no", "Серийный номер", STRING_COLUMN_WIDTH).apply {
@@ -314,7 +326,6 @@ class mSensor : mAbstract() {
             addFormVisible(columnSensorType, true, counterSensorTypes)
         }
 
-
         //        ColumnDouble columnFuelUsingMax = new ColumnDouble(  tableName, "liquid_using_max", "Максимально возможный расход [л/час]", 10, 0, 100.0  );
         //            columnFuelUsingMax.addFormVisible(  new FormColumnVisibleData(  columnSensorType, true, new int[] { SensorConfig.SENSOR_LIQUID_USING }  )  );
         //
@@ -431,7 +442,7 @@ class mSensor : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID!!)
+        alTableHiddenColumn.add(columnID)
         alTableHiddenColumn.add(columnSensorName)
         alTableHiddenColumn.add(columnCommandOn)
         alTableHiddenColumn.add(columnCommandOff)
@@ -452,7 +463,7 @@ class mSensor : mAbstract() {
             addTableColumn(columnBegWorkValue)
         }
 
-        alFormHiddenColumn.add(columnID!!)
+        alFormHiddenColumn.add(columnID)
         alFormHiddenColumn.add(columnSensorName)
         alFormHiddenColumn.add(columnCommandOn)
         alFormHiddenColumn.add(columnCommandOff)
@@ -460,7 +471,17 @@ class mSensor : mAbstract() {
         //----------------------------------------------------------------------------------------------------------------------------------------
 
         val os = ObjectSelector()
-        os.fillColumns(this, true, !isEquip, alTableHiddenColumn, alFormHiddenColumn, alFormColumn, hmParentColumn, true, -1)
+        os.fillColumns(
+            model = this,
+            isRequired = true,
+            isSelector = !isEquip,
+            alTableHiddenColumn = alTableHiddenColumn,
+            alFormHiddenColumn = alFormHiddenColumn,
+            alFormColumn = alFormColumn,
+            hmParentColumn = hmParentColumn,
+            aSingleObjectMode = true,
+            addedStaticColumnCount = -1
+        )
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -564,10 +585,10 @@ class mSensor : mAbstract() {
         //----------------------------------------------------------------------------------------------------------------------------------------
 
         if (isEquip) {
-            alChildData.add(ChildData("mms_equip_service_shedule", columnID!!, true))
-            alChildData.add(ChildData("mms_equip_service_history", columnID!!))
+            alChildData.add(ChildData("mms_equip_service_shedule", columnID, true))
+            alChildData.add(ChildData("mms_equip_service_history", columnID))
         } else {
-            alChildData.add(ChildData("mms_sensor_calibration", columnID!!, true))
+            alChildData.add(ChildData("mms_sensor_calibration", columnID, true))
         }
 
         //----------------------------------------------------------------------------------------------------------------------------------------

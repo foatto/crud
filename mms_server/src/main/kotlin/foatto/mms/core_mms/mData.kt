@@ -30,9 +30,9 @@ class mData : mAbstract() {
     lateinit var columnDataSensorOther: ColumnString
         private set
 
-    val hmSensorPortType = HashMap<Int, Int>()
+    val hmSensorPortType = mutableMapOf<Int, Int>()
 
-    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
+    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
@@ -60,18 +60,19 @@ class mData : mAbstract() {
 
         //--- соберём все номера портов
         val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
-        for((sensorType, hmSC) in oc.hmSensorConfig)
-        //--- генерируем виртуальные поля по объявленным портам
-            for(portNum in hmSC.keys) {
+        oc.hmSensorConfig.forEach { (sensorType, hmSC) ->
+            //--- генерируем виртуальные поля по объявленным портам
+            hmSC.keys.forEach { portNum ->
                 val cd = ColumnString(tableName, portNum.toString(), portNum.toString(), STRING_COLUMN_WIDTH)
                 cd.isVirtual = true
                 cd.isSearchable = false
                 tmSensorColumn[portNum] = cd
                 hmSensorPortType[portNum] = sensorType
             }
+        }
 
         //--- отдельно доберём geo-датчик, если есть
-        if(oc.scg != null) {
+        if (oc.scg != null) {
             val portNum = oc.scg!!.portNum
 
             val cd = ColumnString(tableName, portNum.toString(), portNum.toString(), STRING_COLUMN_WIDTH)
@@ -87,27 +88,27 @@ class mData : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID!!)
+        alTableHiddenColumn.add(columnID)
         alTableHiddenColumn.add(columnDataBinary)
 
         addTableColumn(columnDataOnTimeUTC)
         addTableColumn(columnDataOnTimeLocal)
-        for(sc in tmSensorColumn.values) addTableColumn(sc)
+        tmSensorColumn.values.forEach { sc -> addTableColumn(sc) }
         addTableColumn(columnDataSensorOther)
 
 
-        alFormHiddenColumn.add(columnID!!)
+        alFormHiddenColumn.add(columnID)
         alFormHiddenColumn.add(columnDataBinary)
 
         alFormColumn.add(columnDataOnTimeUTC)
         alFormColumn.add(columnDataOnTimeLocal)
-        for(sc in tmSensorColumn.values) alFormColumn.add(sc)
+        tmSensorColumn.values.forEach { sc -> alFormColumn.add(sc) }
         alFormColumn.add(columnDataSensorOther)
 
         //----------------------------------------------------------------------------------------------------------------------
 
         //--- поля для сортировки
-        alTableSortColumn.add(columnID!!)
+        alTableSortColumn.add(columnID)
         alTableSortDirect.add("DESC")
     }
 }

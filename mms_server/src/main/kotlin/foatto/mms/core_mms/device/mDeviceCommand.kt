@@ -14,7 +14,7 @@ import foatto.sql.CoreAdvancedStatement
 
 class mDeviceCommand : mAbstract() {
 
-    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
+    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
@@ -40,14 +40,14 @@ class mDeviceCommand : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID!!)
+        alTableHiddenColumn.add(columnID)
 
         addTableColumn(columnDeviceType)
         addTableColumn(columnName)
         addTableColumn(columnDescr)
         addTableColumn(columnCommand)
 
-        alFormHiddenColumn.add(columnID!!)
+        alFormHiddenColumn.add(columnID)
 
         alFormColumn.add(columnDeviceType)
         alFormColumn.add(columnName)
@@ -62,7 +62,7 @@ class mDeviceCommand : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData("mms_device_command_history", columnID!!))
+        alChildData.add(ChildData("mms_device_command_history", columnID))
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 

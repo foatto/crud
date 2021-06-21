@@ -13,7 +13,7 @@ import foatto.sql.CoreAdvancedStatement
 
 class mEquipServiceHistory : mAbstract() {
 
-    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
+    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
@@ -44,7 +44,7 @@ class mEquipServiceHistory : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID!!)
+        alTableHiddenColumn.add(columnID)
         alTableHiddenColumn.add(columnEquip)
 
         addTableColumn(columnServiceName)
@@ -52,7 +52,7 @@ class mEquipServiceHistory : mAbstract() {
         addTableColumn(columnServiceWork)
         addTableColumn(columnServiceDescr)
 
-        alFormHiddenColumn.add(columnID!!)
+        alFormHiddenColumn.add(columnID)
         alFormHiddenColumn.add(columnEquip)
 
         alFormColumn.add(columnServiceName)

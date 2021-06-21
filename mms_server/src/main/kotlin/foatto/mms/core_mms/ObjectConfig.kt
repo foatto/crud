@@ -4,7 +4,6 @@ import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigGeo
 
 class ObjectConfig(
-
     val objectId: Int,
     val userId: Int,
     val isDisabled: Boolean,

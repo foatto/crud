@@ -13,9 +13,10 @@ class cSensor : cMMSOneObjectParent() {
 
     override fun addSQLWhere(hsTableRenameList: Set<String>): String {
         var s = super.addSQLWhere(hsTableRenameList)
-        if (aliasConfig.alias == "mms_equip")
+        if (aliasConfig.alias == "mms_equip") {
             s += " AND ${renameTableName(hsTableRenameList, model.tableName)}." +
                 "${(model as mSensor).columnSensorType.getFieldName()} = ${SensorConfig.SENSOR_WORK} "
+        }
         return s
     }
 
@@ -25,8 +26,9 @@ class cSensor : cMMSOneObjectParent() {
 
             val sb = StringBuilder()
             val rs = stm.executeQuery(" SELECT value_sensor , value_data FROM MMS_sensor_calibration WHERE sensor_id = $id ORDER BY value_sensor ")
-            while (rs.next())
+            while (rs.next()) {
                 sb.append(rs.getDouble(1)).append(" = ").append(rs.getDouble(2)).append('\n')
+            }
             rs.close()
 
             (hmColumnData[ms.columnCalibrationText] as DataString).text = sb.toString()

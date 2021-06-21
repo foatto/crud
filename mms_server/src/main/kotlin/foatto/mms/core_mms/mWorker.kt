@@ -13,7 +13,7 @@ import foatto.sql.CoreAdvancedStatement
 class mWorker : mAbstract() {
 
     override fun init(
-        application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int
+        application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?
     ) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
@@ -35,13 +35,13 @@ class mWorker : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID!!)
+        alTableHiddenColumn.add(columnID)
         alTableHiddenColumn.add(columnUser!!)
 
         addTableColumn(columnTabNo)
         addTableColumn(columnWorkerName)
 
-        alFormHiddenColumn.add(columnID!!)
+        alFormHiddenColumn.add(columnID)
         alFormHiddenColumn.add(columnUser!!)
 
         alFormColumn.add(columnTabNo)
@@ -55,8 +55,8 @@ class mWorker : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData("mms_work_shift", columnID!!, true))
-        alChildData.add(ChildData("mms_waybill", columnID!!, true))
+        alChildData.add(ChildData("mms_work_shift", columnID, true))
+        alChildData.add(ChildData("mms_waybill", columnID, true))
 
         //----------------------------------------------------------------------------------------
 

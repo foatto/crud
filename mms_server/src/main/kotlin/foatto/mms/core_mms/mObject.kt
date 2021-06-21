@@ -17,7 +17,7 @@ class mObject : mAbstract() {
     lateinit var columnDisabled: ColumnBoolean
     lateinit var columnObjectName: ColumnString
 
-    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
+    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
@@ -77,7 +77,7 @@ class mObject : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID!!)
+        alTableHiddenColumn.add(columnID)
         alTableHiddenColumn.add(columnUser!!)
         alTableHiddenColumn.add(columnDisabled)   // нужен для раскраски
         alTableHiddenColumn.add(columnGroup)
@@ -91,7 +91,7 @@ class mObject : mAbstract() {
         addTableColumn(columnObjectInfo)
         addTableColumn(columnEmail)
 
-        alFormHiddenColumn.add(columnID!!)
+        alFormHiddenColumn.add(columnID)
         alFormHiddenColumn.add(columnUser!!)
         alFormHiddenColumn.add(columnGroup)
         alFormHiddenColumn.add(columnDepartment)
@@ -120,38 +120,38 @@ class mObject : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData("Журналы...", "mms_day_work", columnID!!, AppAction.TABLE))
-        alChildData.add(ChildData("Журналы...", "mms_shift_work", columnID!!, AppAction.TABLE))
+        alChildData.add(ChildData("Журналы...", "mms_day_work", columnID, AppAction.TABLE))
+        alChildData.add(ChildData("Журналы...", "mms_shift_work", columnID, AppAction.TABLE))
         //--- usually one of two modules is shown
-        alChildData.add(ChildData("Журналы...", "mms_work_shift", columnID!!, AppAction.TABLE))
-        alChildData.add(ChildData("Журналы...", "mms_waybill", columnID!!, AppAction.TABLE))
+        alChildData.add(ChildData("Журналы...", "mms_work_shift", columnID, AppAction.TABLE))
+        alChildData.add(ChildData("Журналы...", "mms_waybill", columnID, AppAction.TABLE))
 
-        MMSFunction.fillChildDataForPeriodicReports(columnID!!, alChildData)
-        MMSFunction.fillChildDataForLiquidIncDecReports(columnID!!, alChildData, withIncWaybillReport = true, newGroup = false)
-        alChildData.add(ChildData("Отчёты", "mms_report_equip_service", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Отчёты", "mms_report_work_detail", columnID!!, AppAction.FORM))
-        MMSFunction.fillChildDataForGeoReports(columnID!!, alChildData, withMovingDetailReport = true)
-        alChildData.add(ChildData("Отчёты", "mms_report_downtime", columnID!!, AppAction.FORM))
-        MMSFunction.fillChildDataForEnergoOverReports(columnID!!, alChildData)
-        MMSFunction.fillChildDataForOverReports(columnID!!, alChildData)
-        alChildData.add(ChildData("Отчёты", "mms_report_trouble", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Отчёты", "mms_report_data_out", columnID!!, AppAction.FORM))
+        MMSFunction.fillChildDataForPeriodicReports(columnID, alChildData)
+        MMSFunction.fillChildDataForLiquidIncDecReports(columnID, alChildData, withIncWaybillReport = true, newGroup = false)
+        alChildData.add(ChildData("Отчёты", "mms_report_equip_service", columnID, AppAction.FORM))
+        alChildData.add(ChildData("Отчёты", "mms_report_work_detail", columnID, AppAction.FORM))
+        MMSFunction.fillChildDataForGeoReports(columnID, alChildData, withMovingDetailReport = true)
+        alChildData.add(ChildData("Отчёты", "mms_report_downtime", columnID, AppAction.FORM))
+        MMSFunction.fillChildDataForEnergoOverReports(columnID, alChildData)
+        MMSFunction.fillChildDataForOverReports(columnID, alChildData)
+        alChildData.add(ChildData("Отчёты", "mms_report_trouble", columnID, AppAction.FORM))
+        alChildData.add(ChildData("Отчёты", "mms_report_data_out", columnID, AppAction.FORM))
 
-        MMSFunction.fillAllChildDataForGraphics(columnID!!, alChildData)
+        MMSFunction.fillAllChildDataForGraphics(columnID, alChildData)
 
-        alChildData.add(ChildData("Карты...", "mms_show_object", columnID!!, AppAction.FORM, true))
-        alChildData.add(ChildData("Карты...", "mms_show_trace", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Карты...", "mms_object_zone", columnID!!, AppAction.TABLE))
+        alChildData.add(ChildData("Карты...", "mms_show_object", columnID, AppAction.FORM, true))
+        alChildData.add(ChildData("Карты...", "mms_show_trace", columnID, AppAction.FORM))
+        alChildData.add(ChildData("Карты...", "mms_object_zone", columnID, AppAction.TABLE))
 
-        alChildData.add(ChildData("mms_show_state", columnID!!, AppAction.FORM, true))
+        alChildData.add(ChildData("mms_show_state", columnID, AppAction.FORM, true))
 
-        alChildData.add(ChildData("mms_sensor", columnID!!, AppAction.TABLE, true))
-        alChildData.add(ChildData("mms_equip", columnID!!, AppAction.TABLE))
-        alChildData.add(ChildData("mms_log_session", columnID!!, AppAction.TABLE))
-        alChildData.add(ChildData("mms_data", columnID!!, AppAction.TABLE))
-        alChildData.add(ChildData("mms_device", columnID!!, AppAction.TABLE))
+        alChildData.add(ChildData("mms_sensor", columnID, AppAction.TABLE, true))
+        alChildData.add(ChildData("mms_equip", columnID, AppAction.TABLE))
+        alChildData.add(ChildData("mms_log_session", columnID, AppAction.TABLE))
+        alChildData.add(ChildData("mms_data", columnID, AppAction.TABLE))
+        alChildData.add(ChildData("mms_device", columnID, AppAction.TABLE))
 
-        alChildData.add(ChildData("Служебные...", "mms_device_command_history", columnID!!, AppAction.TABLE))
+        alChildData.add(ChildData("Служебные...", "mms_device_command_history", columnID, AppAction.TABLE))
 
         //----------------------------------------------------------------------------------------
 

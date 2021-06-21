@@ -75,7 +75,7 @@ class mDayWork : mAbstract() {
 
     //----------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
+    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
@@ -196,12 +196,12 @@ class mDayWork : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID!!)
+        alTableHiddenColumn.add(columnID)
         alTableHiddenColumn.add(columnUser!!)
 
         alTableGroupColumn.add(columnDate)
 
-        alFormHiddenColumn.add(columnID!!)
+        alFormHiddenColumn.add(columnID)
         alFormHiddenColumn.add(columnUser!!)
 
         //----------------------------------------------------------------------------------------------------------------------------------------
@@ -282,23 +282,23 @@ class mDayWork : mAbstract() {
             (hsPermissionSW == null || !hsPermissionSW.contains(cStandart.PERM_ACCESS))
 
         if (isMovingMode) {
-            alChildData.add(ChildData("mms_show_trace", columnID!!, AppAction.FORM, true, true))
-            alChildData.add(ChildData("mms_show_object", columnID!!, AppAction.FORM))
+            alChildData.add(ChildData("mms_show_trace", columnID, AppAction.FORM, true, true))
+            alChildData.add(ChildData("mms_show_object", columnID, AppAction.FORM))
         }
 
-        MMSFunction.fillChildDataForPeriodicReports(columnID!!, alChildData)
-        MMSFunction.fillChildDataForLiquidIncDecReports(columnID!!, alChildData, withIncWaybillReport = true, newGroup = false)
-        alChildData.add(ChildData("Отчёты", "mms_report_work_detail", columnID!!, AppAction.FORM))
-        MMSFunction.fillChildDataForGeoReports(columnID!!, alChildData, withMovingDetailReport = true)
-        MMSFunction.fillChildDataForEnergoOverReports(columnID!!, alChildData)
-        MMSFunction.fillChildDataForOverReports(columnID!!, alChildData)
-        alChildData.add(ChildData("Отчёты", "mms_report_data_out", columnID!!, AppAction.FORM))
+        MMSFunction.fillChildDataForPeriodicReports(columnID, alChildData)
+        MMSFunction.fillChildDataForLiquidIncDecReports(columnID, alChildData, withIncWaybillReport = true, newGroup = false)
+        alChildData.add(ChildData("Отчёты", "mms_report_work_detail", columnID, AppAction.FORM))
+        MMSFunction.fillChildDataForGeoReports(columnID, alChildData, withMovingDetailReport = true)
+        MMSFunction.fillChildDataForEnergoOverReports(columnID, alChildData)
+        MMSFunction.fillChildDataForOverReports(columnID, alChildData)
+        alChildData.add(ChildData("Отчёты", "mms_report_data_out", columnID, AppAction.FORM))
 
-        MMSFunction.fillAllChildDataForGraphics(columnID!!, alChildData)
+        MMSFunction.fillAllChildDataForGraphics(columnID, alChildData)
 
         if (!isMovingMode) {
-            alChildData.add(ChildData("mms_show_object", columnID!!, AppAction.FORM, true))
-            alChildData.add(ChildData("mms_show_trace", columnID!!, AppAction.FORM))
+            alChildData.add(ChildData("mms_show_object", columnID, AppAction.FORM, true))
+            alChildData.add(ChildData("mms_show_trace", columnID, AppAction.FORM))
         }
     }
 }

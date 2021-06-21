@@ -15,7 +15,7 @@ open class mUODGP : mP() {
 
     //----------------------------------------------------------------------------------------------------------------------
 
-    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
+    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
@@ -42,7 +42,7 @@ open class mUODGP : mP() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alFormHiddenColumn.add(columnID!!)
+        alFormHiddenColumn.add(columnID)
 
         //----------------------------------------------------------------------------------------------------------------------
 

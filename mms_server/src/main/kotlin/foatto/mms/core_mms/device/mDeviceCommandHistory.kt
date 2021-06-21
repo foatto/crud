@@ -19,7 +19,7 @@ class mDeviceCommandHistory : mAbstract() {
     lateinit var columnEditTime: ColumnDateTimeInt
         private set
 
-    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
+    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
@@ -50,20 +50,20 @@ class mDeviceCommandHistory : mAbstract() {
         //----------------------------------------------------------------------------------------------------------------------
 
         val columnDevice = ColumnComboBox(tableName, "device_id", "Номер устройства")
-        if(parentDeviceID != null) {
+        if (parentDeviceID != null) {
             columnDevice.defaultValue = parentDeviceID
-            columnDevice.addChoice(parentDeviceID, Integer.toString(parentDeviceID))
-        } else if(parentObjectID != null) {
+            columnDevice.addChoice(parentDeviceID, parentDeviceID.toString())
+        } else if (parentObjectID != null) {
             val rs = stm.executeQuery(" SELECT id FROM MMS_device WHERE object_id = $parentObjectID ORDER BY device_index ")
             //--- первая строка станет дефолтным значение
-            if(rs.next()) {
+            if (rs.next()) {
                 val deviceID = rs.getInt(1)
                 columnDevice.defaultValue = deviceID
-                columnDevice.addChoice(deviceID, Integer.toString(deviceID))
+                columnDevice.addChoice(deviceID, deviceID.toString())
             }
-            while(rs.next()) {
+            while (rs.next()) {
                 val deviceID = rs.getInt(1)
-                columnDevice.addChoice(deviceID, Integer.toString(deviceID))
+                columnDevice.addChoice(deviceID, deviceID.toString())
             }
             rs.close()
         }
@@ -101,19 +101,19 @@ class mDeviceCommandHistory : mAbstract() {
 
         val columnObjectUserName = ColumnComboBox("MMS_object", "user_id", "Пользователь")
         columnObjectUserName.addChoice(0, "")
-        for((userID, userName) in userConfig.hmUserFullNames)
-            columnObjectUserName.addChoice(userID, if(userID == userConfig.userID || userName.trim().isEmpty()) "" else userName)
+        for ((userID, userName) in userConfig.hmUserFullNames)
+            columnObjectUserName.addChoice(userID, if (userID == userConfig.userID || userName.trim().isEmpty()) "" else userName)
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID!!)
+        alTableHiddenColumn.add(columnID)
         alTableHiddenColumn.add(columnUser!!)
         alTableHiddenColumn.add(columnCommand)
 
         addTableColumn(columnDevice)
         addTableColumn(columnObjectUserName)
 
-        alFormHiddenColumn.add(columnID!!)
+        alFormHiddenColumn.add(columnID)
         alFormHiddenColumn.add(columnUser!!)
         alFormHiddenColumn.add(columnCommand)
 

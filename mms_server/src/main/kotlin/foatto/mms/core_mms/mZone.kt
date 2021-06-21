@@ -19,7 +19,7 @@ class mZone : mAbstract() {
         private set
 
     override fun init(
-        application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int
+        application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?
     ) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
@@ -52,14 +52,14 @@ class mZone : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID!!)
+        alTableHiddenColumn.add(columnID)
         alTableHiddenColumn.add(columnUser!!)
 
         addTableColumn(columnZoneName)
         addTableColumn(columnZoneDescr)
         addTableColumn(columnZoneOuterID)
 
-        alFormHiddenColumn.add(columnID!!)
+        alFormHiddenColumn.add(columnID)
         alFormHiddenColumn.add(columnUser!!)
 
         alFormColumn.add(columnUserName)
@@ -79,13 +79,13 @@ class mZone : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData("mms_show_zone", columnID!!, AppAction.FORM, true))
-        alChildData.add(ChildData("mms_user_zone", columnID!!))
-        alChildData.add(ChildData("mms_object_zone", columnID!!))
-        MMSFunction.fillChildDataForLiquidIncDecReports(columnID!!, alChildData, withIncWaybillReport = false, newGroup = true)
-        MMSFunction.fillChildDataForGeoReports(columnID!!, alChildData, withMovingDetailReport = false)
-        MMSFunction.fillChildDataForEnergoOverReports(columnID!!, alChildData)
-        MMSFunction.fillChildDataForOverReports(columnID!!, alChildData)
+        alChildData.add(ChildData("mms_show_zone", columnID, AppAction.FORM, true))
+        alChildData.add(ChildData("mms_user_zone", columnID))
+        alChildData.add(ChildData("mms_object_zone", columnID))
+        MMSFunction.fillChildDataForLiquidIncDecReports(columnID, alChildData, withIncWaybillReport = false, newGroup = true)
+        MMSFunction.fillChildDataForGeoReports(columnID, alChildData, withMovingDetailReport = false)
+        MMSFunction.fillChildDataForEnergoOverReports(columnID, alChildData)
+        MMSFunction.fillChildDataForOverReports(columnID, alChildData)
 
         //----------------------------------------------------------------------------------------
 

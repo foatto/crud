@@ -34,7 +34,7 @@ open class mShow : mAbstract() {
 
     override fun getSaveButonCaption(aAliasConfig: AliasConfig): String = "Показать"
 
-    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
+    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
@@ -90,12 +90,22 @@ open class mShow : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------
 
-        alFormHiddenColumn.add(columnID!!)
+        alFormHiddenColumn.add(columnID)
 
         //----------------------------------------------------------------------------------------------------------------------
 
         os = ObjectSelector()
-        os.fillColumns(this, true, true, alTableHiddenColumn, alFormHiddenColumn, alFormColumn, hmParentColumn, false, -1)
+        os.fillColumns(
+            model = this,
+            isRequired = true,
+            isSelector = true,
+            alTableHiddenColumn = alTableHiddenColumn,
+            alFormHiddenColumn = alFormHiddenColumn,
+            alFormColumn = alFormColumn,
+            hmParentColumn = hmParentColumn,
+            aSingleObjectMode = false,
+            addedStaticColumnCount = -1
+        )
 
         //----------------------------------------------------------------------------------------------------------------------
 

@@ -20,7 +20,7 @@ class mUODGPZ : mP() {
     //----------------------------------------------------------------------------------------------------------------------
 
     override fun init(
-        application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int
+        application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?
     ) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
@@ -52,7 +52,7 @@ class mUODGPZ : mP() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alFormHiddenColumn.add(columnID!!)
+        alFormHiddenColumn.add(columnID)
         alFormHiddenColumn.add(columnReportZone)
 
         uodg = UODGSelector()

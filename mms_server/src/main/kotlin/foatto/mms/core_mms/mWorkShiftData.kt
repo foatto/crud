@@ -15,7 +15,7 @@ class mWorkShiftData : mAbstract() {
     lateinit var columnDataType: ColumnInt
         private set
 
-    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
+    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
@@ -73,7 +73,7 @@ class mWorkShiftData : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID!!)
+        alTableHiddenColumn.add(columnID)
         alTableHiddenColumn.add(columnShift)
         alTableHiddenColumn.add(columnDataType)
         alTableHiddenColumn.add(columnName)
@@ -81,7 +81,7 @@ class mWorkShiftData : mAbstract() {
         addTableColumn(columnDescr)
         addTableColumn(columnValue)
 
-        alFormHiddenColumn.add(columnID!!)
+        alFormHiddenColumn.add(columnID)
         alFormHiddenColumn.add(columnShift)
         alFormHiddenColumn.add(columnDataType)
         alFormHiddenColumn.add(columnName)

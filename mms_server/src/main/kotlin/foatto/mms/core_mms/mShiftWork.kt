@@ -45,7 +45,7 @@ class mShiftWork : mAbstract() {
     //----------------------------------------------------------------------------------------------------------------------
 
     override fun init(
-        application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int
+        application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?
     ) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
@@ -131,11 +131,11 @@ class mShiftWork : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID!!)
+        alTableHiddenColumn.add(columnID)
         alTableHiddenColumn.add(columnUser!!)
         //        alTableHiddenColumn.add( columnWorker );
 
-        alFormHiddenColumn.add(columnID!!)
+        alFormHiddenColumn.add(columnID)
         alFormHiddenColumn.add(columnUser!!)
         //        alFormHiddenColumn.add( columnWorker );
 
@@ -206,13 +206,13 @@ class mShiftWork : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData("Отчёты", "mms_report_work_shift", columnID!!, AppAction.FORM, true))
-        alChildData.add(ChildData("Отчёты", "mms_report_work_detail", columnID!!, AppAction.FORM))
-        alChildData.add(ChildData("Отчёты", "mms_report_data_out", columnID!!, AppAction.FORM))
+        alChildData.add(ChildData("Отчёты", "mms_report_work_shift", columnID, AppAction.FORM, true))
+        alChildData.add(ChildData("Отчёты", "mms_report_work_detail", columnID, AppAction.FORM))
+        alChildData.add(ChildData("Отчёты", "mms_report_data_out", columnID, AppAction.FORM))
 
-        MMSFunction.fillAllChildDataForGraphics(columnID!!, alChildData)
+        MMSFunction.fillAllChildDataForGraphics(columnID, alChildData)
 
-        alChildData.add(ChildData("mms_show_object", columnID!!, AppAction.FORM, true))
+        alChildData.add(ChildData("mms_show_object", columnID, AppAction.FORM, true))
         //        alChildData.add( new ChildData( "mms_show_trace", columnID, AppAction.FORM ) );
     }
 }
