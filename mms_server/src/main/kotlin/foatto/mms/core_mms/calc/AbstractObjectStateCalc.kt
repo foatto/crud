@@ -66,8 +66,11 @@ object AbstractObjectStateCalc {
         //--- (that is, it is a special case of two values, one of which is "0-> 0")
         if (alValueSensor.size == 1 || alValueData.size == 1) {
             //--- meaningless one-to-one calibration or reduction to 0-th ADC, we can get division by 0, skip
-            return if (alValueSensor[0] == alValueData[0] || alValueSensor[0] == 0.0) sensorValue
-            else sensorValue / alValueSensor[0] * alValueData[0]
+            return if (alValueSensor[0] == alValueData[0] || alValueSensor[0] == 0.0) {
+                sensorValue
+            } else {
+                sensorValue / alValueSensor[0] * alValueData[0]
+            }
         }
 
         if (sensorValue < alValueSensor[0]) {
@@ -99,14 +102,18 @@ object AbstractObjectStateCalc {
                 sensorValue = "x = ${gd.wgs.x}\ny = ${gd.wgs.y}\nскорость = ${gd.speed}\nпробег = ${gd.distance}"
             }
 
-            else -> if (dataSize == 1) sensorValue = (bb.getByte().toInt() and 0xFF).toString()
-            else if (dataSize == 2) sensorValue = (bb.getShort().toInt() and 0xFFFF).toString()
-            else if (dataSize == 3) sensorValue = bb.getInt3().toString()
-            else if (dataSize == 4) sensorValue = bb.getInt().toString()
-            else if (dataSize == 8) sensorValue = bb.getDouble().toString()
-            else {
-                sensorValue = StringBuilder()
-                for (i in 0 until dataSize) byteToHex(bb.getByte(), sensorValue, false)
+            else -> {
+                when (dataSize) {
+                    1 -> sensorValue = (bb.getByte().toInt() and 0xFF).toString()
+                    2 -> sensorValue = (bb.getShort().toInt() and 0xFFFF).toString()
+                    3 -> sensorValue = bb.getInt3().toString()
+                    4 -> sensorValue = bb.getInt().toString()
+                    8 -> sensorValue = bb.getDouble().toString()
+                    else -> {
+                        sensorValue = StringBuilder()
+                        for (i in 0 until dataSize) byteToHex(bb.getByte(), sensorValue, false)
+                    }
+                }
             }
         }
 

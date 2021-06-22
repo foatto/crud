@@ -6,7 +6,7 @@ open class SensorConfig(
     val group: String,      // имя группы датчиков для логической связки разнотипных датчиков в пределах одного графика/отчёта
     val descr: String,      // видимое/выводимое описание датчика
     val portNum: Int,
-    val sensorType: Int
+    val sensorType: Int,
 ) {
 
     companion object {

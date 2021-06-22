@@ -16,9 +16,9 @@ import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.xy.XyStartData
 import foatto.core_server.app.xy.XyStartObjectParsedData
 import foatto.core_server.app.xy.server.document.sdcXyState
+import foatto.core_server.ds.AbstractTelematicHandler
 import foatto.mms.core_mms.cObject
 import foatto.mms.core_mms.calc.ObjectState
-import foatto.mms.core_mms.ds.MMSHandler
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigLiquidLevel
 import foatto.mms.core_mms.sensor.config.SensorConfigSignal
@@ -147,7 +147,7 @@ class sdcMMSState : sdcXyState() {
         val commandID = chmElementCommand[elementID]
         if (commandID != 0) {
             var deviceID = 0
-            val deviceIndex = chmElementPort[elementID]!! / MMSHandler.MAX_PORT_PER_DEVICE
+            val deviceIndex = chmElementPort[elementID]!! / AbstractTelematicHandler.MAX_PORT_PER_DEVICE
             val rs = stm.executeQuery(" SELECT id FROM MMS_device WHERE object_id = $objectID AND device_index = $deviceIndex")
             if (rs.next()) deviceID = rs.getInt(1)
             rs.close()
@@ -378,8 +378,8 @@ class sdcMMSState : sdcXyState() {
     private fun addLL25D(objectID: Int, sc: SensorConfigLiquidLevel, scale: Int, x: Int, y: Int, curLevel: Double, tankName: String, alResult: MutableList<XyElement>) {
 
         val percent = curLevel / if (sc.maxView == 0.0) curLevel else sc.maxView
-        val totalVolumeText = getSplittedDouble(sc.maxView, 0)
-        val currentVolumeText = " ${getSplittedDouble(curLevel, 0)}"
+        val totalVolumeText = getSplittedDouble(sc.maxView, 0, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
+        val currentVolumeText = " ${getSplittedDouble(curLevel, 0, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)}"
 
         //--- используем логарифмическую шкалу показа относительных ёмкостей,
         //--- т.к. нельзя использовать линейную шкалу - объёмы могут быть от 100 до 50 000 л

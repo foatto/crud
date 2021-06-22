@@ -32,11 +32,12 @@ class cSensorCalibration : cStandart() {
         val id = getIDFromParam()
         //--- мегаформа ввода калибровок открывается только при попытке их создания,
         //--- иначе запускаем обычную привычную форму
-        if (id != 0) return super.getForm(hmOut)
+        if (id != 0) {
+            return super.getForm(hmOut)
+        }
 
         val refererID = hmParam[AppParameter.REFERER]
-        var refererURL: String? = null
-        if (refererID != null) refererURL = chmSession[AppParameter.REFERER + refererID] as String
+        val refererURL = refererID?.let { chmSession[AppParameter.REFERER + it] as String }
 
         //--- подготовка "чистого" appParam для кнопок формы
         //--- ( простое клонирование исходного hmParam здесь не годится,
@@ -80,7 +81,13 @@ class cSensorCalibration : cStandart() {
             val sensorValue = alSensorValue[rowIndex]
             var fci = FormCell(FormCellType.STRING)
             fci.name = StringBuilder(SENSOR_FIELD_PREFIX).append(rowIndex).toString()
-            fci.value = if (sensorValue == null) "" else getSplittedLong(sensorValue.toLong())
+            fci.value = if (sensorValue == null) {
+                ""
+            } else if (userConfig.upIsUseThousandsDivider) {
+                getSplittedLong(sensorValue.toLong())
+            } else {
+                sensorValue.toString()
+            }
             fci.column = 10
             fci.itEditable = true
             fci.caption = " "  // совсем нулевая строка даст невидимое поле
@@ -90,7 +97,11 @@ class cSensorCalibration : cStandart() {
             val dataValue = alDataValue[rowIndex]
             fci = FormCell(FormCellType.STRING)
             fci.name = StringBuilder(DATA_FIELD_PREFIX).append(rowIndex).toString()
-            fci.value = if (dataValue == null) "" else getSplittedDouble(dataValue, 1)
+            fci.value = if (dataValue == null) {
+                ""
+            } else {
+                getSplittedDouble(dataValue, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
+            }
             fci.column = 10
             fci.itEditable = true
             fci.caption = " "  // совсем нулевая строка даст невидимое поле
@@ -138,7 +149,9 @@ class cSensorCalibration : cStandart() {
         val id = getIDFromParam()
         //--- мегаформа ввода калибровок сохраняет только при попытке их создания,
         //--- иначе запускаем обычный процесс сохранения
-        if (id != 0) return super.doSave(action, alFormData, hmOut)
+        if (id != 0) {
+            return super.doSave(action, alFormData, hmOut)
+        }
 
         val sensorID = hmParam[SENSOR_ID]!!.toInt()
         //--- удалить старые записи
@@ -166,6 +179,6 @@ class cSensorCalibration : cStandart() {
             )
         }
 
-        return AppParameter.setParam(chmSession[AppParameter.REFERER + hmParam[AppParameter.REFERER]] as String, AppParameter.ID, Integer.toString(id))
+        return AppParameter.setParam(chmSession[AppParameter.REFERER + hmParam[AppParameter.REFERER]] as String, AppParameter.ID, id.toString())
     }
 }

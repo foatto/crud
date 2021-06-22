@@ -431,7 +431,11 @@ class sdcMMSMap : sdcXyMap() {
             for (descr in objectState.tmLiquidLevel.keys) {
                 val error = objectState.tmLiquidError[descr]
                 val value = objectState.tmLiquidLevel[descr]
-                sToolTip += sLineSeparator + descr + ": " + (error ?: if (value == null) "(неизв.)" else getSplittedDouble(value, 0))
+                sToolTip += sLineSeparator + descr + ": " + (error ?: if (value == null) {
+                    "(неизв.)"
+                } else {
+                    getSplittedDouble(value, 0, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
+                })
             }
             val objectInfo = XyElement(TYPE_OBJECT_INFO, -getRandomInt(), objectParamData.objectID)
             objectInfo.itReadOnly = true
