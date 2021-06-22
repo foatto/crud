@@ -1,6 +1,5 @@
 package foatto.mms.core_mms.calc
 
-import foatto.core.app.UP_TIME_OFFSET
 import foatto.core.app.graphic.GraphicColorIndex
 import foatto.core.app.graphic.GraphicDataContainer
 import foatto.core.app.graphic.GraphicLineData
@@ -12,7 +11,6 @@ import foatto.core.util.DateTime_DMYHMS
 import foatto.core.util.getSBFromIterable
 import foatto.core.util.getSplittedDouble
 import foatto.core.util.getSplittedLong
-import foatto.core.util.getZoneId
 import foatto.core.util.secondIntervalToString
 import foatto.core_server.app.server.UserConfig
 import foatto.mms.core_mms.ObjectConfig
@@ -24,7 +22,6 @@ import foatto.mms.core_mms.graphic.server.graphic_handler.iGraphicHandler
 import foatto.mms.core_mms.sensor.config.*
 import foatto.sql.CoreAdvancedStatement
 import java.nio.ByteOrder
-import java.time.ZoneId
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.max
@@ -100,7 +97,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
 
             val result = ObjectCalc(oc)
 
-            val zoneId = getZoneId(userConfig.getUserProperty(UP_TIME_OFFSET)?.toIntOrNull())
+            val zoneId = userConfig.upZoneId
             val (alRawTime, alRawData) = loadAllSensorData(stm, oc, begTime, endTime)
 
             //--- if geo-sensors are registered - we sum up the mileage
@@ -189,12 +186,12 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             }
 
             if (oc.scg != null) {
-                fillGeoString(zoneId, result)
+                fillGeoString(userConfig, result)
             }
-            fillWorkString(result)
-            fillEnergoString(result)
-            fillLiquidUsingString(result)
-            fillLiquidLevelString(result)
+            fillWorkString(userConfig, result)
+            fillEnergoString(userConfig, result)
+            fillLiquidUsingString(userConfig, result)
+            fillLiquidLevelString(userConfig, result)
 
             return result
         }
@@ -1585,7 +1582,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
 
                 val sensorValue = AbstractObjectStateCalc.getSensorValue(scu.alValueSensor, scu.alValueData, sensorData)
 
-                if(scu.isAbsoluteCount) {
+                if (scu.isAbsoluteCount) {
                     if (begValue <= 0.0) {
                         begValue = sensorValue
                     } else if (sensorValue < lastValue) {
@@ -1597,7 +1594,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                     value += sensorValue
                 }
             }
-            if(scu.isAbsoluteCount) {
+            if (scu.isAbsoluteCount) {
                 value += lastValue - begValue
             }
             return value
@@ -1631,16 +1628,23 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
 
         //--- filling in standard output lines (for tabular forms and reports) ---------------------------
 
-        fun fillGeoString(zoneId: ZoneId, result: ObjectCalc) {
+        fun fillGeoString(userConfig: UserConfig, result: ObjectCalc) {
+            val zoneId = userConfig.upZoneId
             result.gcd?.let { gcd ->
                 result.sGeoName += gcd.descr
-                result.sGeoRun += if (gcd.run < 0) '-' else getSplittedDouble(gcd.run, 1)
+                result.sGeoRun += if (gcd.run < 0) '-' else getSplittedDouble(gcd.run, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
                 result.sGeoOutTime += if (gcd.outTime == 0) "-" else DateTime_DMYHMS(zoneId, gcd.outTime)
                 result.sGeoInTime += if (gcd.inTime == 0) "-" else DateTime_DMYHMS(zoneId, gcd.inTime)
                 result.sGeoWayTime += if (gcd.outTime == 0 || gcd.inTime == 0) '-' else secondIntervalToString(gcd.outTime, gcd.inTime)
                 result.sGeoMovingTime += if (gcd.movingTime < 0) '-' else secondIntervalToString(gcd.movingTime)
                 result.sGeoParkingTime += if (gcd.parkingTime < 0) '-' else secondIntervalToString(gcd.parkingTime)
-                result.sGeoParkingCount += if (gcd.parkingCount < 0) '-' else getSplittedLong(gcd.parkingCount.toLong())
+                result.sGeoParkingCount += if (gcd.parkingCount < 0) {
+                    '-'
+                } else if (userConfig.upIsUseThousandsDivider) {
+                    getSplittedLong(gcd.parkingCount.toLong())
+                } else {
+                    gcd.parkingCount.toString()
+                }
             }
         }
 
@@ -1652,13 +1656,13 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
 //            return getSBFromIterable(tsZoneName, ", ")
 //        }
 
-        fun fillWorkString(result: ObjectCalc) {
-            val workPair = fillWorkString(result.tmWork)
+        fun fillWorkString(userConfig: UserConfig, result: ObjectCalc) {
+            val workPair = fillWorkString(userConfig, result.tmWork)
             result.sWorkName = workPair.first
             result.sWorkValue = workPair.second
         }
 
-        fun fillWorkString(tmWork: TreeMap<String, WorkCalcData>): Pair<String, String> {
+        fun fillWorkString(userConfig: UserConfig, tmWork: TreeMap<String, WorkCalcData>): Pair<String, String> {
             var sWorkName = ""
             var sWorkTotal = ""
             tmWork.forEach { (workName, wcd) ->
@@ -1667,19 +1671,19 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                     sWorkTotal += '\n'
                 }
                 sWorkName += workName
-                sWorkTotal += getSplittedDouble(wcd.onTime.toDouble() / 60.0 / 60.0, 1)
+                sWorkTotal += getSplittedDouble(wcd.onTime.toDouble() / 60.0 / 60.0, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
             }
             return Pair(sWorkName, sWorkTotal)
         }
 
-        fun fillEnergoString(result: ObjectCalc) {
+        fun fillEnergoString(userConfig: UserConfig, result: ObjectCalc) {
             result.tmEnergo.forEach { (descr, e) ->
                 if (result.sEnergoName.isNotEmpty()) {
                     result.sEnergoName += '\n'
                     result.sEnergoValue += '\n'
                 }
                 result.sEnergoName += descr
-                result.sEnergoValue += getSplittedDouble(e, getPrecision(e))
+                result.sEnergoValue += getSplittedDouble(e, getPrecision(e), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
             }
 
             result.allSumData.tmEnergo.forEach { (sensorType, dataByPhase) ->
@@ -1689,23 +1693,23 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                         result.sAllSumEnergoValue += '\n'
                     }
                     result.sAllSumEnergoName += (SensorConfig.hmSensorDescr[sensorType] ?: "(неизв. тип датчика)") + getPhaseDescr(phase)
-                    result.sEnergoValue += getSplittedDouble(value, getPrecision(value))
+                    result.sEnergoValue += getSplittedDouble(value, getPrecision(value), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
                 }
             }
 
         }
 
-        fun fillLiquidUsingString(result: ObjectCalc) {
-            val liquidPair = fillLiquidUsingString(result.tmLiquidUsing)
+        fun fillLiquidUsingString(userConfig: UserConfig, result: ObjectCalc) {
+            val liquidPair = fillLiquidUsingString(userConfig, result.tmLiquidUsing)
             result.sLiquidUsingName = liquidPair.first
             result.sLiquidUsingValue = liquidPair.second
 
-            val allSumLiquidPair = fillLiquidUsingString(result.allSumData.tmLiquidUsing)
+            val allSumLiquidPair = fillLiquidUsingString(userConfig, result.allSumData.tmLiquidUsing)
             result.sAllSumLiquidName = allSumLiquidPair.first
             result.sAllSumLiquidValue = allSumLiquidPair.second
         }
 
-        fun fillLiquidUsingString(tmLiquidUsing: TreeMap<String, Double>): Pair<String, String> {
+        fun fillLiquidUsingString(userConfig: UserConfig, tmLiquidUsing: TreeMap<String, Double>): Pair<String, String> {
             var sLiquidUsingName = ""
             var sLiquidUsing = ""
             tmLiquidUsing.forEach { (name, total) ->
@@ -1714,12 +1718,12 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                     sLiquidUsing += '\n'
                 }
                 sLiquidUsingName += name
-                sLiquidUsing += getSplittedDouble(total, getPrecision(total))
+                sLiquidUsing += getSplittedDouble(total, getPrecision(total), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
             }
             return Pair(sLiquidUsingName, sLiquidUsing)
         }
 
-        private fun fillLiquidLevelString(result: ObjectCalc) {
+        private fun fillLiquidLevelString(userConfig: UserConfig, result: ObjectCalc) {
             val isUsingCalc = result.tmLiquidLevel.values.any { it.usingCalc > 0.0 }
 
             result.tmLiquidLevel.forEach { (liquidName, llcd) ->
@@ -1735,17 +1739,17 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                     }
                 }
                 result.sLiquidLevelName += liquidName
-                result.sLiquidLevelBeg += getSplittedDouble(llcd.begLevel, getPrecision(llcd.begLevel))
-                result.sLiquidLevelEnd += getSplittedDouble(llcd.endLevel, getPrecision(llcd.endLevel))
-                result.sLiquidLevelIncTotal += getSplittedDouble(llcd.incTotal, getPrecision(llcd.incTotal))
-                result.sLiquidLevelDecTotal += getSplittedDouble(llcd.decTotal, getPrecision(llcd.decTotal))
-                result.sLiquidLevelUsingTotal += getSplittedDouble(llcd.usingTotal, getPrecision(llcd.usingTotal))
+                result.sLiquidLevelBeg += getSplittedDouble(llcd.begLevel, getPrecision(llcd.begLevel), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
+                result.sLiquidLevelEnd += getSplittedDouble(llcd.endLevel, getPrecision(llcd.endLevel), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
+                result.sLiquidLevelIncTotal += getSplittedDouble(llcd.incTotal, getPrecision(llcd.incTotal), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
+                result.sLiquidLevelDecTotal += getSplittedDouble(llcd.decTotal, getPrecision(llcd.decTotal), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
+                result.sLiquidLevelUsingTotal += getSplittedDouble(llcd.usingTotal, getPrecision(llcd.usingTotal), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
                 if (isUsingCalc) {
                     result.sLiquidLevelUsingCalc +=
                         if (llcd.usingCalc <= 0.0) {
                             "-"
                         } else {
-                            getSplittedDouble(llcd.usingCalc, getPrecision(llcd.usingCalc))
+                            getSplittedDouble(llcd.usingCalc, getPrecision(llcd.usingCalc), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
                         }
                 }
             }
@@ -1757,8 +1761,8 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                     result.sLiquidLevelLiquidDec += '\n'
                 }
                 result.sLiquidLevelLiquidName += liquidName
-                result.sLiquidLevelLiquidInc += getSplittedDouble(pairIncDec.first, getPrecision(pairIncDec.first))
-                result.sLiquidLevelLiquidDec += getSplittedDouble(pairIncDec.second, getPrecision(pairIncDec.second))
+                result.sLiquidLevelLiquidInc += getSplittedDouble(pairIncDec.first, getPrecision(pairIncDec.first), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
+                result.sLiquidLevelLiquidDec += getSplittedDouble(pairIncDec.second, getPrecision(pairIncDec.second), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
             }
         }
 
