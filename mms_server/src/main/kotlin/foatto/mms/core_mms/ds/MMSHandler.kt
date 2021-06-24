@@ -8,6 +8,7 @@ import foatto.core.util.getDateTimeArray
 import foatto.core.util.getFileWriter
 import foatto.core_server.app.server.column.ColumnRadioButton
 import foatto.core_server.ds.AbstractHandler
+import foatto.core_server.ds.AbstractTelematicHandler
 import foatto.core_server.ds.CoreDataServer
 import foatto.core_server.ds.CoreDataWorker
 import foatto.mms.core_mms.cWorkShift
@@ -25,12 +26,9 @@ import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.round
 
-abstract class MMSHandler : AbstractHandler() {
+abstract class MMSHandler : AbstractTelematicHandler() {
 
     companion object {
-
-        private val CONFIG_SESSION_LOG_PATH = "mms_log_session"
-        private val CONFIG_JOURNAL_LOG_PATH = "mms_log_journal"
 
         const val DEVICE_ID_DIVIDER = 10_000_000
 
@@ -44,22 +42,8 @@ abstract class MMSHandler : AbstractHandler() {
         const val DEVICE_TYPE_MIELTA = 8
         const val DEVICE_TYPE_ADM = 9
 
-        //--- учитывая возможность подключения нескольких контроллеров к одному объекту,
-        //--- каждому контроллеру дадим по 1000 портов
-        val MAX_PORT_PER_DEVICE = 1000
-
-        //--- ограничения по приему данных из будущего и прошлого:
-        //--- не более чем за сутки из будущего и не более года из прошлого
-        const val MAX_FUTURE_TIME = 24 * 60 * 60
-        const val MAX_PAST_TIME = 365 * 24 * 60 * 60
-
         private val chmLastDayWork = ConcurrentHashMap<Int, IntArray>()
         private val chmLastWorkShift = ConcurrentHashMap<Int, Int>()
-
-        //--- 1000 секунд = примерно 16-17 мин
-        protected val DEVICE_CONFIG_OUT_PERIOD = 1_000
-
-        protected var zoneId = ZoneId.systemDefault()
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -106,17 +90,8 @@ abstract class MMSHandler : AbstractHandler() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override var startBufSize: Int = 1024
-
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    protected var lastDeviceConfigOutTime = getCurrentTimeInt()
-
-    private lateinit var dirSessionLog: File
-    private lateinit var dirJournalLog: File
-
-    //--- тип прибора - должен переопределяться в наследниках
-    protected var deviceType = -1
+    override val configSessionLogPath: String = "mms_log_session"
+    override val configJournalLogPath: String = "mms_log_journal"
 
     //--- ID прибора - до сих пор всегда целое число
     protected var deviceID = 0
@@ -127,49 +102,10 @@ abstract class MMSHandler : AbstractHandler() {
     //--- конфигурация устройства
     protected var deviceConfig: DeviceConfig? = null
 
-    //--- время начала сессии
-    protected var begTime = 0
-
-    //--- запись состояния сессии
-    protected var sbStatus = StringBuilder()
-
-    //--- текст ошибки
-    protected var errorText: String? = null
-
-    //--- количество записанных блоков данных (например, точек)
-    protected var dataCount = 0
-
-    //--- количество считанных блоков данных (например, точек)
-    protected var dataCountAll = 0
-
-    //--- время первого и последнего блока данных (например, точки)
-    protected var firstPointTime = 0
-    protected var lastPointTime = 0
-
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun init(aDataServer: CoreDataServer, aSelectionKey: SelectionKey) {
-        super.init(aDataServer, aSelectionKey)
-
-        dirSessionLog = File(dataServer.hmConfig[CONFIG_SESSION_LOG_PATH])
-        dirJournalLog = File(dataServer.hmConfig[CONFIG_JOURNAL_LOG_PATH])
-
-        begTime = getCurrentTimeInt()
-        sbStatus.append("Init;")
-    }
-
-    override fun work(dataWorker: CoreDataWorker): Boolean {
-        if (begTime == 0) begTime = getCurrentTimeInt()
-
-        return super.work(dataWorker)
-    }
-
-    override fun preWork() {
-        sbStatus.append("Start;")
-    }
-
     override fun prepareErrorCommand(dataWorker: CoreDataWorker) {
-        writeError(dataWorker.alConn, dataWorker.alStm[0], " Disconnect from device ID = $deviceID")
+        writeError(dataWorker.conn, dataWorker.stm, " Disconnect from device ID = $deviceID")
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -179,10 +115,10 @@ abstract class MMSHandler : AbstractHandler() {
         //--- когда в каждом пакете данных идёт IMEI-код.
         //--- и раз в 16-17 мин перезагружаем конфигурацию контроллера на случай его перепривязки к другому объекту
         if (deviceConfig == null || getCurrentTimeInt() - lastDeviceConfigOutTime > DEVICE_CONFIG_OUT_PERIOD) {
-            deviceConfig = DeviceConfig.getDeviceConfig(dataWorker.alStm[0], deviceID)
+            deviceConfig = DeviceConfig.getDeviceConfig(dataWorker.stm, deviceID)
             //--- неизвестный контроллер
             if (deviceConfig == null) {
-                writeError(dataWorker.alConn, dataWorker.alStm[0], "Unknown device ID = $deviceID")
+                writeError(dataWorker.conn, dataWorker.stm, "Unknown device ID = $deviceID")
                 writeJournal()
                 return false
             }
@@ -192,28 +128,16 @@ abstract class MMSHandler : AbstractHandler() {
         return true
     }
 
-    protected fun writeError(alConn: ArrayList<CoreAdvancedConnection>, stm: CoreAdvancedStatement, aError: String) {
+    protected fun writeError(conn: CoreAdvancedConnection, stm: CoreAdvancedStatement, aError: String) {
         sbStatus.append("Error;")
         errorText = aError
-        if (deviceConfig != null && deviceID != 0) writeSession(alConn, stm, false)
+        if (deviceConfig != null && deviceID != 0) {
+            writeSession(conn, stm, false)
+        }
         AdvancedLogger.error(aError)
     }
 
-    protected fun writeJournal() {
-        //--- какое д.б. имя лог-файла для текущего дня и часа
-        val logTime = DateTime_YMDHMS(zoneId, getCurrentTimeInt())
-        val curLogFileName = logTime.substring(0, 13).replace('.', '-').replace(' ', '-')
-
-        val out = getFileWriter(File(dirJournalLog, curLogFileName), true)
-        //--- SocketChannel.getRemoteAddress(), который есть в Oracle Java, не существует в Android Java,
-        //--- поэтому используем более общий метод SocketChannel.socket().getLocalAddress()
-        out.write("$logTime ${(selectionKey!!.channel() as SocketChannel).socket().localAddress} $errorText")
-        out.newLine()
-        out.flush()
-        out.close()
-    }
-
-    protected fun writeSession(alConn: ArrayList<CoreAdvancedConnection>, stm: CoreAdvancedStatement, isOk: Boolean) {
+    protected fun writeSession(conn: CoreAdvancedConnection, stm: CoreAdvancedStatement, isOk: Boolean) {
         //--- какое д.б. имя лог-файла для текущего дня и часа
         val logTime = DateTime_YMDHMS(zoneId, getCurrentTimeInt())
         val curLogFileName = logTime.substring(0, 13).replace('.', '-').replace(' ', '-')
@@ -228,7 +152,9 @@ abstract class MMSHandler : AbstractHandler() {
                 .append(" Время последней точки: ").append(DateTime_YMDHMS(zoneId, lastPointTime))
         sbText.append(" Статус: ").append(sbStatus).append(' ')
         if (isOk || errorText == null) {
-        } else sbText.append(" Ошибка: ").append(errorText).toString()
+        } else {
+            sbText.append(" Ошибка: ").append(errorText).toString()
+        }
         val text = sbText.toString()
 
         val dirDeviceSessionLog = File(dirSessionLog, "device/$deviceID")
@@ -252,7 +178,7 @@ abstract class MMSHandler : AbstractHandler() {
                 " last_session_error = '${if (isOk || errorText == null) "" else errorText}' WHERE device_id = $deviceID "
         )
 
-        for (conn in alConn) conn.commit()
+        conn.commit()
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -268,57 +194,7 @@ abstract class MMSHandler : AbstractHandler() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    protected fun putBitSensor(bitValue: Int, startPortNum: Int, sensorCount: Int, bbData: AdvancedByteBuffer) {
-        for (i in 0 until sensorCount) {
-            putSensorData(startPortNum + i, 1, bitValue.ushr(i) and 0x1, bbData)
-        }
-    }
-
-    protected fun putDigitalSensor(tmDigitalSensor: TreeMap<Int, Int>, startPortNum: Int, sensorDataSize: Int, bbData: AdvancedByteBuffer) {
-        tmDigitalSensor.forEach { (index, value) ->
-            putSensorData(startPortNum + index, sensorDataSize, value, bbData)
-        }
-    }
-
-    protected fun putDigitalSensor(tmDigitalSensor: TreeMap<Int, Double>, startPortNum: Int, bbData: AdvancedByteBuffer) {
-        tmDigitalSensor.forEach { (index, value) ->
-            putSensorData(startPortNum + index, value, bbData)
-        }
-    }
-
-    //!!! ещё не мешало бы проверить корректность записи данных
-    //    protected void putDigitalSensor( int[][] arrDigitalSensor, int startPortNum, int sensorDataSize, AdvancedByteBuffer bbData ) throws Throwable {
-    //        for( int i = 0; i < arrDigitalSensor.length; i++ )
-    //            putSensorData( startPortNum + i, sensorDataSize, arrDigitalSensor[ i ], bbData );
-    //    }
-
-    protected fun putSensorData(portNum: Int, dataSize: Int, dataValue: Int, bbData: AdvancedByteBuffer) {
-        putSensorPortNumAndDataSize(portNum, dataSize, bbData)
-
-        if (dataSize == 1) bbData.putByte(dataValue)
-        else if (dataSize == 2) bbData.putShort(dataValue)
-        else if (dataSize == 3) bbData.putInt3(dataValue)
-        else if (dataSize == 4) bbData.putInt(dataValue)
-    }
-
-    protected fun putSensorData(portNum: Int, dataValue: Double, bbData: AdvancedByteBuffer) {
-        //--- не будем хранить float в 4-х байтах, т.к. это будет путаться с 4-байтовым int'ом
-        putSensorPortNumAndDataSize(portNum, 8, bbData)
-
-        bbData.putDouble(dataValue)
-    }
-    //!!! ещё не мешало бы проверить корректность записи данных
-    //    protected void putSensorData( int portNum, int dataSize, int[] arrDataValue, AdvancedByteBuffer bbData ) throws Throwable {
-    //        putSensorPortNumAndDataSize( portNum, dataSize, bbData );
-    //
-    //        for( int i = 0; i < arrDataValue.length; i++ )
-    //                 if( dataSize == 1 ) bbData.putByte( arrDataValue[ i ] );
-    //            else if( dataSize == 2 ) bbData.putShort( arrDataValue[ i ] );
-    //            else if( dataSize == 3 ) bbData.putInt3( arrDataValue[ i ] );
-    //            else if( dataSize == 4 ) bbData.putInt( arrDataValue[ i ] );
-    //    }
-
-    protected fun putSensorPortNumAndDataSize(portNum: Int, dataSize: Int, bbData: AdvancedByteBuffer) {
+    override fun putSensorPortNumAndDataSize(portNum: Int, dataSize: Int, bbData: AdvancedByteBuffer) {
         bbData.putShort(deviceConfig!!.index * MAX_PORT_PER_DEVICE + portNum).putShort(dataSize - 1)
     }
 
@@ -356,7 +232,7 @@ abstract class MMSHandler : AbstractHandler() {
                         "${stm.getNextID("MMS_day_work", "id")} , ${deviceConfig!!.userID} , ${deviceConfig!!.objectID} , ${arrDT[0]} , ${arrDT[1]} , ${arrDT[2]} ); "
                 )
 
-            chmLastDayWork.put(deviceConfig!!.objectID, arrDT)
+            chmLastDayWork[deviceConfig!!.objectID] = arrDT
         }
     }
 
