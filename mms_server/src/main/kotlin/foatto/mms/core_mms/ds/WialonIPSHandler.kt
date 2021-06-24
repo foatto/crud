@@ -238,7 +238,7 @@ abstract class WialonIPSHandler : MMSHandler() {
         // v2.0: #L#protocol_version;imei;itPassword;crc16\r\n
         sbStatus.append( "DataRead;" )
 
-        for( stm in dataWorker.alStm ) sqlBatchData.execute( stm )
+        sqlBatchData.execute( dataWorker.stm )
 
         //--- отправка ответа
         val bbOut = AdvancedByteBuffer( answer.length, byteOrder )
@@ -248,7 +248,7 @@ abstract class WialonIPSHandler : MMSHandler() {
         //--- данные успешно переданы - теперь можно завершить транзакцию
         sbStatus.append( "Ok;" )
         errorText = null
-        writeSession( dataWorker.alConn, dataWorker.alStm[ 0 ], true )
+        writeSession( dataWorker.conn, dataWorker.stm, true )
 
         //--- для возможного режима постоянного/длительного соединения
         bbIn.compact()     // нельзя .clear(), т.к. копятся данные следующего пакета
@@ -271,7 +271,7 @@ abstract class WialonIPSHandler : MMSHandler() {
         val curTime = getCurrentTimeInt()
         if( pointTime > curTime - MAX_PAST_TIME && pointTime < curTime + MAX_FUTURE_TIME ) {
             //--- два символа - один бинарный байт, поэтому getTextFieldMaxSize() / 2
-            val bbData = AdvancedByteBuffer( dataWorker.alConn[ 0 ].dialect.textFieldMaxSize / 2 )
+            val bbData = AdvancedByteBuffer( dataWorker.conn.dialect.textFieldMaxSize / 2 )
 
             //            putBitSensor( bitSensor, 0, 8, bbData );
             //            //--- напряжения основного и резервного питаний
@@ -298,7 +298,7 @@ abstract class WialonIPSHandler : MMSHandler() {
             //            //--- значения мощности (активная/реактивная суммарная и пофазно)
             //            if( arrEnergoPower != null ) putDigitalSensor( arrEnergoPower, 100, 4, bbData );
 
-            addPoint( dataWorker.alStm[ 0 ], pointTime, bbData, sqlBatchData )
+            addPoint( dataWorker.stm, pointTime, bbData, sqlBatchData )
             dataCount++
         }
         dataCountAll++

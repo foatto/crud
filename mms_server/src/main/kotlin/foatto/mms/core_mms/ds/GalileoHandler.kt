@@ -159,11 +159,11 @@ open class GalileoHandler : MMSHandler() {
                 bbIn.getInt()      // время отправки пакета
 
                 if (packetHeader.toInt() != 0x01) {
-                    writeError(dataWorker.alConn, dataWorker.alStm[0], "Wrong Iridium protocol version = $packetHeader for IMEI = $iridiumIMEI")
+                    writeError(dataWorker.conn, dataWorker.stm, "Wrong Iridium protocol version = $packetHeader for IMEI = $iridiumIMEI")
                     return false
                 }
                 if (iridiumStatusSession < 0 || iridiumStatusSession > 2) {
-                    writeError(dataWorker.alConn, dataWorker.alStm[0], "Wrong Iridium session status = $iridiumStatusSession for IMEI = $iridiumIMEI")
+                    writeError(dataWorker.conn, dataWorker.stm, "Wrong Iridium session status = $iridiumStatusSession for IMEI = $iridiumIMEI")
                     return false
                 }
 
@@ -189,7 +189,7 @@ open class GalileoHandler : MMSHandler() {
                     val b2 = bbIn.getByte()
                     packetSize = (b1.toInt() and 0xFF shl 8) or (b2.toInt() and 0xFF)
                 } else {
-                    writeError(dataWorker.alConn, dataWorker.alStm[0], "Unknown Iridium tag = $tag for IMEI = $iridiumIMEI")
+                    writeError(dataWorker.conn, dataWorker.stm, "Unknown Iridium tag = $tag for IMEI = $iridiumIMEI")
                     return false
                 }
             }
@@ -211,7 +211,7 @@ open class GalileoHandler : MMSHandler() {
                 packetSize = packetSize and 0x7FFF
 
                 if (packetHeader.toInt() != 0x01) {
-                    writeError(dataWorker.alConn, dataWorker.alStm[0], "Wrong packet header = $packetHeader for device ID = $deviceID")
+                    writeError(dataWorker.conn, dataWorker.stm, "Wrong packet header = $packetHeader for device ID = $deviceID")
                     return false
                 }
             }
@@ -241,13 +241,13 @@ open class GalileoHandler : MMSHandler() {
                 //--- версия прибора/железа
                 0x01 -> {
                     val hwVersion = bbIn.getByte().toInt() and 0xFF // хрен знает, что с ней делать
-                    AdvancedLogger.debug("hardware version = " + hwVersion)
+                    AdvancedLogger.debug("hardware version = $hwVersion")
                 }
 
                 //--- версия прошивки
                 0x02 -> {
                     fwVersion = bbIn.getByte().toInt() and 0xFF
-                    AdvancedLogger.debug("firmware version = " + fwVersion)
+                    AdvancedLogger.debug("firmware version = $fwVersion")
                 }
 
                 //--- IMEI
@@ -257,7 +257,7 @@ open class GalileoHandler : MMSHandler() {
                     val imei = String(arrIMEI)
 
                     deviceID = Integer.parseInt(imei.substring(imei.length - 7))
-                    AdvancedLogger.debug("deviceID = " + deviceID)
+                    AdvancedLogger.debug("deviceID = $deviceID")
 
                     if (!loadDeviceConfig(dataWorker)) return false
                 }
@@ -271,7 +271,9 @@ open class GalileoHandler : MMSHandler() {
                 //--- date time
                 0x20 -> {
                     //--- если была предыдущая точка, то запишем её
-                    if (pointTime != 0) savePoint(dataWorker, pointTime, sqlBatchData)
+                    if (pointTime != 0) {
+                        savePoint(dataWorker, pointTime, sqlBatchData)
+                    }
                     //--- даже с учётом игнорирования/обнуления старшего/знакового бита, этого нам хватит еще до 2038 года
                     pointTime = (bbIn.getInt() and 0x7F_FF_FF_FF)
                 }
@@ -582,16 +584,18 @@ open class GalileoHandler : MMSHandler() {
         sbStatus.append("DataRead;")
 
         //--- здесь имеет смысл сохранить данные по последней точке, если таковая была считана
-        if (pointTime != 0) savePoint(dataWorker, pointTime, sqlBatchData)
+        if (pointTime != 0) {
+            savePoint(dataWorker, pointTime, sqlBatchData)
+        }
 
-        for (stm in dataWorker.alStm) sqlBatchData.execute(stm)
+        sqlBatchData.execute(dataWorker.stm)
 
         //--- при передаче через iridium отвечать не надо
         if (!isIridium) sendAccept(crc)
 
         //--- проверка на наличие команды терминалу
 
-        val (cmdID, cmdStr) = getCommand(dataWorker.alStm[0], deviceID)
+        val (cmdID, cmdStr) = getCommand(dataWorker.stm, deviceID)
 
         //--- команда есть
         if (cmdStr != null) {
@@ -623,14 +627,14 @@ open class GalileoHandler : MMSHandler() {
                 outBuf(bbOut)
             }
             //--- отметим успешную отправку команды
-            setCommandSended(dataWorker.alStm[0], cmdID)
+            setCommandSended(dataWorker.stm, cmdID)
             sbStatus.append("CommandSend;")
         }
 
         //--- данные успешно переданы - теперь можно завершить транзакцию
         sbStatus.append("Ok;")
         errorText = null
-        writeSession(dataWorker.alConn, dataWorker.alStm[0], true)
+        writeSession(dataWorker.conn, dataWorker.stm, true)
 
         //--- для возможного режима постоянного/длительного соединения
         bbIn.clear()   // других данных быть не должно, именно .clear(), а не .compact()
@@ -651,7 +655,7 @@ open class GalileoHandler : MMSHandler() {
         val curTime = getCurrentTimeInt()
         AdvancedLogger.debug("pointTime = ${DateTime_YMDHMS(ZoneId.systemDefault(), pointTime)}")
         if (pointTime > curTime - MAX_PAST_TIME && pointTime < curTime + MAX_FUTURE_TIME) {
-            val bbData = AdvancedByteBuffer(dataWorker.alConn[0].dialect.textFieldMaxSize / 2)
+            val bbData = AdvancedByteBuffer(dataWorker.conn.dialect.textFieldMaxSize / 2)
 
             //--- напряжения основного и резервного питаний
             putSensorData(8, 2, powerVoltage, bbData)
@@ -746,9 +750,9 @@ open class GalileoHandler : MMSHandler() {
             putDigitalSensor(tmESDCameraTemperature, 520, 4, bbData)
             putDigitalSensor(tmESDReverseCameraVolume, 524, bbData)
             putDigitalSensor(tmESDReverseCameraFlow, 528, bbData)
-            putDigitalSensor(tmESDReverseCameraTemperature, 532, 4,bbData)
+            putDigitalSensor(tmESDReverseCameraTemperature, 532, 4, bbData)
 
-            addPoint(dataWorker.alStm[0], pointTime, bbData, sqlBatchData)
+            addPoint(dataWorker.stm, pointTime, bbData, sqlBatchData)
             dataCount++
         }
         dataCountAll++

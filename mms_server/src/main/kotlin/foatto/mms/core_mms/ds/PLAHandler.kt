@@ -19,10 +19,12 @@ class PLAHandler : MMSHandler() {
     companion object {
         //    public static final int CMD_NONE                    =-1;
         val CMD_READ_ID = 0  // (empty)  => (ControllerIDData)
+
         //    public static final int CMD_READ_CUR_POS_SMS        = 1;  // (empty)  => (ReadCurrentPositionDataSMS)
         val CMD_READ_COORDS = 2  // (ReadCoordinatesData)  => (N)*(GPSPointData)
         val CMD_CLEAR_COORDS = 3  // (empty)  => (empty)
         val CMD_WRITE_CONFIG = 4  // (ControllerConfigData)  => (empty)
+
         //    public static final int CMD_WRITE_FIRMWARE          = 5;  // (FirmwareData)+(BUFFER:[BYTE*N])  => (empty)
         //    public static final int CMD_RESET_FIRMWARE          = 6;  // (empty)  => (empty)
         val CMD_SEND_DELAY = 7  // (DelaySecondsData)  => (empty)
@@ -52,32 +54,32 @@ class PLAHandler : MMSHandler() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun init( aDataServer: CoreDataServer, aSelectionKey: SelectionKey ) {
-        deviceType = MMSHandler.DEVICE_TYPE_PETROLINE
+    override fun init(aDataServer: CoreDataServer, aSelectionKey: SelectionKey) {
+        deviceType = DEVICE_TYPE_PETROLINE
 
-        super.init( aDataServer, aSelectionKey )
+        super.init(aDataServer, aSelectionKey)
     }
 
     override fun preWork() {
         super.preWork()
 
-        send( CMD_READ_ID, false )
+        send(CMD_READ_ID, false)
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun oneWork( dataWorker: CoreDataWorker ): Boolean {
+    override fun oneWork(dataWorker: CoreDataWorker): Boolean {
 
         //--- сначала дождёмся заголовка
-        if( packetHeader == null ) {
-            if( bbIn.remaining() < 4 ) {
+        if (packetHeader == null) {
+            if (bbIn.remaining() < 4) {
                 bbIn.compact()
                 return true
             }
-            packetHeader = PacketHeader( bbIn )
+            packetHeader = PacketHeader(bbIn)
 
-            if( packetHeader!!.signature != PacketHeader.PACKET_SIGNATURE ) {
-                writeError( dataWorker.alConn, dataWorker.alStm[ 0 ], " Wrong signature = ${packetHeader!!.signature} for device ID = $deviceID" )
+            if (packetHeader!!.signature != PacketHeader.PACKET_SIGNATURE) {
+                writeError(dataWorker.conn, dataWorker.stm, " Wrong signature = ${packetHeader!!.signature} for device ID = $deviceID")
                 return false
             }
             //--- проверку на packetID пропускаем, ибо не используем
@@ -86,17 +88,17 @@ class PLAHandler : MMSHandler() {
             //if( CRC.crc16_modbus( byteBuffer.array(), byteBuffer.arrayOffset() + byteBuffer.position(), 4 + packetHeader.packetSize + 2 /*CRC16*/ ) ! =0 ) ...
         }
         //--- заголовок сообщает об ошибке
-        if( packetHeader!!.error != 0 ) {
-            if( bbIn.remaining() < 1 ) {
+        if (packetHeader!!.error != 0) {
+            if (bbIn.remaining() < 1) {
                 bbIn.compact()
                 return true
             }
             val errorCode = bbIn.getByte().toInt() and 0xFF
-            writeError( dataWorker.alConn, dataWorker.alStm[ 0 ], " Error code = $errorCode from device ID = $deviceID" )
+            writeError(dataWorker.conn, dataWorker.stm, " Error code = $errorCode from device ID = $deviceID")
             return false
         }
         //--- ошибки нет, дожидаемся обещанного объёма данных + CRC16
-        if( bbIn.remaining() < packetHeader!!.packetSize + 2 ) {
+        if (bbIn.remaining() < packetHeader!!.packetSize + 2) {
             bbIn.compact()
             return true
         }
@@ -107,67 +109,67 @@ class PLAHandler : MMSHandler() {
         var p: PLAPoint
         var bbData: AdvancedByteBuffer
 
-        when( packetHeader!!.command ) {
-            CMD_READ_ID      -> {
-                if( packetHeader!!.packetSize != 7 ) {
-                    writeError( dataWorker.alConn, dataWorker.alStm[ 0 ], " Wrong READ_ID packetSize = $packetHeader!!.packetSize for device ID = $deviceID" )
+        when (packetHeader!!.command) {
+            CMD_READ_ID -> {
+                if (packetHeader!!.packetSize != 7) {
+                    writeError(dataWorker.conn, dataWorker.stm, " Wrong READ_ID packetSize = $packetHeader!!.packetSize for device ID = $deviceID")
                     return false
                 }
                 deviceID = bbIn.getShort().toInt() and 0xFFFF
                 fwVersion = bbIn.getShort().toInt() and 0xFFFF
                 /*recordSize =*/ bbIn.getByte()// & 0xFF; SKIP Record Size
                 recordCount = bbIn.getShort().toInt() and 0xFFFF
-                if( deviceID <= 0 ) {
-                    writeError( dataWorker.alConn, dataWorker.alStm[ 0 ], " Wrong device ID = $deviceID" )
+                if (deviceID <= 0) {
+                    writeError(dataWorker.conn, dataWorker.stm, " Wrong device ID = $deviceID")
                     return false
                 }
-                if( fwVersion < 0x400 ) {
-                    writeError( dataWorker.alConn, dataWorker.alStm[ 0 ], " Old version = ${Integer.toHexString( fwVersion )} for device ID = $deviceID" )
+                if (fwVersion < 0x400) {
+                    writeError(dataWorker.conn, dataWorker.stm, " Old version = ${Integer.toHexString(fwVersion)} for device ID = $deviceID")
                     return false
                 }
                 //--- наше петромапское извращение - записываем HEX-номер версии прошивки в как бы десятичном виде
-                fwVersion = Integer.parseInt( Integer.toHexString( fwVersion ), 10 )
-                deviceConfig = DeviceConfig.getDeviceConfig( dataWorker.alStm[ 0 ], deviceID )
+                fwVersion = Integer.parseInt(Integer.toHexString(fwVersion), 10)
+                deviceConfig = DeviceConfig.getDeviceConfig(dataWorker.stm, deviceID)
                 //--- неизвестный контроллер
-                if( deviceConfig == null ) {
+                if (deviceConfig == null) {
                     sendDelay()
-                    writeError( dataWorker.alConn, dataWorker.alStm[ 0 ], " Unknown device ID = $deviceID" )
+                    writeError(dataWorker.conn, dataWorker.stm, " Unknown device ID = $deviceID")
                     writeJournal()
                     return false
                 }
-                chmDeviceDelay.remove( deviceID )
+                chmDeviceDelay.remove(deviceID)
 
-                send( CMD_READ_CUR_POS, false )
-                sbStatus.append( "ID;" )
+                send(CMD_READ_CUR_POS, false)
+                sbStatus.append("ID;")
             }
 
             CMD_READ_CUR_POS -> {
-                if( packetHeader!!.packetSize != 40 + 128 ) {
-                    writeError( dataWorker.alConn, dataWorker.alStm[ 0 ], " Wrong CUR_POS packetSize = ${packetHeader!!.packetSize} for device ID = $deviceID" )
+                if (packetHeader!!.packetSize != 40 + 128) {
+                    writeError(dataWorker.conn, dataWorker.stm, " Wrong CUR_POS packetSize = ${packetHeader!!.packetSize} for device ID = $deviceID")
                     return false
                 }
-                p = PLAPoint( this, bbIn )
-                di = PLADeviceInfo( bbIn )
+                p = PLAPoint(this, bbIn)
+                di = PLADeviceInfo(bbIn)
 
                 val curTime = getCurrentTimeInt()
-                if( p.time > curTime - MAX_PAST_TIME && p.time < curTime + MAX_FUTURE_TIME ) {
-                    bbData = AdvancedByteBuffer( dataWorker.alConn[ 0 ].dialect.textFieldMaxSize / 2 )
+                if (p.time > curTime - MAX_PAST_TIME && p.time < curTime + MAX_FUTURE_TIME) {
+                    bbData = AdvancedByteBuffer(dataWorker.conn.dialect.textFieldMaxSize / 2)
 
-                    putBitSensor( p.d, 0, 8, bbData )
-                    putSensorData( 8, 2, di!!.systemVoltage, bbData )
-                    putSensorData( 9, 2, di!!.batteryVoltage, bbData )
-                    putDigitalSensor( p.tmA, 10, 2, bbData )
-                    putSensorData( 18, 2, di!!.temperature, bbData )
+                    putBitSensor(p.d, 0, 8, bbData)
+                    putSensorData(8, 2, di!!.systemVoltage, bbData)
+                    putSensorData(9, 2, di!!.batteryVoltage, bbData)
+                    putDigitalSensor(p.tmA, 10, 2, bbData)
+                    putSensorData(18, 2, di!!.temperature, bbData)
 
-                    putSensorPortNumAndDataSize( SensorConfig.GEO_PORT_NUM, SensorConfig.GEO_DATA_SIZE, bbData )
-                    bbData.putInt( p.wgsX ).putInt( p.wgsY ).putShort( p.speed ).putInt( p.dist )
+                    putSensorPortNumAndDataSize(SensorConfig.GEO_PORT_NUM, SensorConfig.GEO_DATA_SIZE, bbData)
+                    bbData.putInt(p.wgsX).putInt(p.wgsY).putShort(p.speed).putInt(p.dist)
 
                     sqlBatchData = SQLBatch()
-                    addPoint( dataWorker.alStm[ 0 ], p.time, bbData, sqlBatchData )
-                    for( stm in dataWorker.alStm ) sqlBatchData.execute( stm )
-                    for( conn in dataWorker.alConn ) conn.commit()
+                    addPoint(dataWorker.stm, p.time, bbData, sqlBatchData)
+                    sqlBatchData.execute(dataWorker.stm)
+                    dataWorker.conn.commit()
                 }
-                sbStatus.append( "CurPos;" )
+                sbStatus.append("CurPos;")
 
                 //--- вместо recordStart используем общий dataCount
                 dataCount = 1
@@ -177,72 +179,71 @@ class PLAHandler : MMSHandler() {
                 ////        boolean isUpdateFirmware = deviceConfig.isUpdateFirmware;
                 //            //--- проверим смену конфига
                 //            if( deviceConfig.isUpdateConfig ) {
-                //                if( ! sendConfig( dataWorker.alConn.get( 0 ), dataWorker.alStm.get( 0 ) ) ) return false;
+                //                if( ! sendConfig( dataWorker.conn.get( 0 ), dataWorker.alStm.get( 0 ) ) ) return false;
                 //            }
                 //--- запросить первый набор точек, если они есть
-                if( recordCount > 0 /*&& cc.autoID != 0*/) {
+                if (recordCount > 0 /*&& cc.autoID != 0*/) {
                     sendReadCoords()
-                }
-                else {
-                    sbStatus.append( "Ok;" )
+                } else {
+                    sbStatus.append("Ok;")
                     errorText = null
-                    writeSession( dataWorker.alConn, dataWorker.alStm[ 0 ], true )
+                    writeSession(dataWorker.conn, dataWorker.stm, true)
                     return false
                 }
             }
 
             CMD_WRITE_CONFIG -> {
-                sbStatus.append( "Configured;Ok;" )
+                sbStatus.append("Configured;Ok;")
                 errorText = null
-                writeSession( dataWorker.alConn, dataWorker.alStm[ 0 ], true )
+                writeSession(dataWorker.conn, dataWorker.stm, true)
                 //--- закрываем соединение от греха подальше :)
                 return false
             }
-        //break;
+            //break;
 
-            CMD_READ_COORDS  -> {
-                if( packetHeader!!.packetSize % 40 != 0 ) {
-                    writeError( dataWorker.alConn, dataWorker.alStm[ 0 ], " Wrong READ_COORDS packetSize = ${packetHeader!!.packetSize} for device ID = $deviceID" )
+            CMD_READ_COORDS -> {
+                if (packetHeader!!.packetSize % 40 != 0) {
+                    writeError(dataWorker.conn, dataWorker.stm, " Wrong READ_COORDS packetSize = ${packetHeader!!.packetSize} for device ID = $deviceID")
                     return false
                 }
                 val pc = packetHeader!!.packetSize / 40
 
                 sqlBatchData = SQLBatch()
                 val curTime = getCurrentTimeInt()
-                for( i in 0 until pc ) {
-                    p = PLAPoint( this, bbIn )
-                    if( p.time > curTime - MAX_PAST_TIME && p.time < curTime + MAX_FUTURE_TIME ) {
-                        bbData = AdvancedByteBuffer( dataWorker.alConn[ 0 ].dialect.textFieldMaxSize / 2 )
+                for (i in 0 until pc) {
+                    p = PLAPoint(this, bbIn)
+                    if (p.time > curTime - MAX_PAST_TIME && p.time < curTime + MAX_FUTURE_TIME) {
+                        bbData = AdvancedByteBuffer(dataWorker.conn.dialect.textFieldMaxSize / 2)
 
-                        putBitSensor( p.d, 0, 8, bbData )
-                        putSensorData( 8, 2, di!!.systemVoltage, bbData )
-                        putSensorData( 9, 2, di!!.batteryVoltage, bbData )
-                        putDigitalSensor( p.tmA, 10, 2, bbData )
-                        putSensorData( 18, 2, di!!.temperature, bbData )
+                        putBitSensor(p.d, 0, 8, bbData)
+                        putSensorData(8, 2, di!!.systemVoltage, bbData)
+                        putSensorData(9, 2, di!!.batteryVoltage, bbData)
+                        putDigitalSensor(p.tmA, 10, 2, bbData)
+                        putSensorData(18, 2, di!!.temperature, bbData)
 
-                        putSensorPortNumAndDataSize( SensorConfig.GEO_PORT_NUM, SensorConfig.GEO_DATA_SIZE, bbData )
-                        bbData.putInt( p.wgsX ).putInt( p.wgsY ).putShort( p.speed ).putInt( p.dist )
+                        putSensorPortNumAndDataSize(SensorConfig.GEO_PORT_NUM, SensorConfig.GEO_DATA_SIZE, bbData)
+                        bbData.putInt(p.wgsX).putInt(p.wgsY).putShort(p.speed).putInt(p.dist)
 
-                        addPoint( dataWorker.alStm[ 0 ], p.time, bbData, sqlBatchData )
+                        addPoint(dataWorker.stm, p.time, bbData, sqlBatchData)
                     }
-                    if( firstPointTime == 0 ) firstPointTime = p.time
+                    if (firstPointTime == 0) firstPointTime = p.time
                     lastPointTime = p.time
                 }
-                for( stm in dataWorker.alStm ) sqlBatchData.execute( stm )
-                for( conn in dataWorker.alConn ) conn.commit()
+                sqlBatchData.execute(dataWorker.stm)
+                dataWorker.conn.commit()
 
                 //--- есть/остались ещё точки? (используем -1, т.к. dataCount  у нас начинается с 1 - первой точкой становится CUR_COORD)
-                if( dataCount - 1 < recordCount ) sendReadCoords()
+                if (dataCount - 1 < recordCount) sendReadCoords()
                 else {
-                    send( CMD_CLEAR_COORDS, true )
-                    sbStatus.append( "DataRead;" )
+                    send(CMD_CLEAR_COORDS, true)
+                    sbStatus.append("DataRead;")
                 }//--- точек больше нет, пора закругляться
             }
 
             CMD_CLEAR_COORDS -> {
-                sbStatus.append( "Ok;" )
+                sbStatus.append("Ok;")
                 errorText = null
-                writeSession( dataWorker.alConn, dataWorker.alStm[ 0 ], true )
+                writeSession(dataWorker.conn, dataWorker.stm, true)
                 //--- закрываем соединение от греха подальше :)
                 return false
             }
@@ -264,59 +265,59 @@ class PLAHandler : MMSHandler() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    private fun send( cmd: Int, withWriteControl: Boolean ) {
-        val bbOut = AdvancedByteBuffer( 8, byteOrder ) // хватит и 6 байт, но для кеширования сделаем 8
+    private fun send(cmd: Int, withWriteControl: Boolean) {
+        val bbOut = AdvancedByteBuffer(8, byteOrder) // хватит и 6 байт, но для кеширования сделаем 8
 
         //--- отправка первоначальной команды (на получения deviceID)
         //--- packetID у меня не используется, на всякий случай отправляю commandCode
-        PacketHeader( cmd, 0, cmd, 0 ).write( bbOut )
+        PacketHeader(cmd, 0, cmd, 0).write(bbOut)
 
-        send( bbOut, withWriteControl )
+        send(bbOut, withWriteControl)
     }
 
-    private fun send( bbOut: AdvancedByteBuffer, withWriteControl: Boolean ) {
+    private fun send(bbOut: AdvancedByteBuffer, withWriteControl: Boolean) {
 
-        if( withWriteControl ) outBuf( bbOut )
+        if (withWriteControl) outBuf(bbOut)
         else {
             bbOut.flip()
-            clqOut.offer( DataMessage( byteBuffer = bbOut ) )
-            dataServer.putForWrite( this )
+            clqOut.offer(DataMessage(byteBuffer = bbOut))
+            dataServer.putForWrite(this)
         }
     }
 
     private fun sendDelay() {
-        var delay: Int? = chmDeviceDelay[ deviceID ]
-        delay = if( delay == null ) 1 else delay + 1
-        chmDeviceDelay.put( deviceID, delay )
+        var delay: Int? = chmDeviceDelay[deviceID]
+        delay = if (delay == null) 1 else delay + 1
+        chmDeviceDelay.put(deviceID, delay)
 
         //--- не более чем на 540 мин (9 часов), чтобы секундами не переполнить signed short в минус
-        val second = Math.min( delay, 540 ) * 60 + 0x04    // в качестве причины указываем "Нет регистрации в Мск"
+        val second = Math.min(delay, 540) * 60 + 0x04    // в качестве причины указываем "Нет регистрации в Мск"
 
-        val bbOut = AdvancedByteBuffer( 6 + 2, byteOrder )
+        val bbOut = AdvancedByteBuffer(6 + 2, byteOrder)
 
-        val ph = PacketHeader( CMD_SEND_DELAY, 0, CMD_SEND_DELAY, 2 )
-        ph.write( bbOut )
+        val ph = PacketHeader(CMD_SEND_DELAY, 0, CMD_SEND_DELAY, 2)
+        ph.write(bbOut)
         //--- дополняем данными для последующего вычисления CRC
-        bbOut.putShort( second.toShort() )
-        bbOut.putShort( crc16_modbus( bbOut.array(), bbOut.arrayOffset(), 4 + ph.packetSize, false ).toShort() )
+        bbOut.putShort(second.toShort())
+        bbOut.putShort(crc16_modbus(bbOut.array(), bbOut.arrayOffset(), 4 + ph.packetSize, false).toShort())
 
-        send( bbOut, false )
+        send(bbOut, false)
     }
 
     private fun sendReadCoords() {
         //--- вместо recordStart используем общий dataCount
-        val recordReadCount = if( dataCount - 1 + RECORD_PAGE_SIZE < recordCount ) RECORD_PAGE_SIZE else recordCount - ( dataCount - 1 )
+        val recordReadCount = if (dataCount - 1 + RECORD_PAGE_SIZE < recordCount) RECORD_PAGE_SIZE else recordCount - (dataCount - 1)
 
-        val bbOut = AdvancedByteBuffer( 16, byteOrder )    // для работы хватит 10 байт, но мы сделаем 16 для кеширования
+        val bbOut = AdvancedByteBuffer(16, byteOrder)    // для работы хватит 10 байт, но мы сделаем 16 для кеширования
 
-        val ph = PacketHeader( CMD_READ_COORDS, 0, CMD_READ_COORDS, 4 )
-        ph.write( bbOut )
+        val ph = PacketHeader(CMD_READ_COORDS, 0, CMD_READ_COORDS, 4)
+        ph.write(bbOut)
         //--- дополняем данными для последующего вычисления CRC
-        bbOut.putShort( ( dataCount - 1 ).toShort() )
-        bbOut.putShort( recordReadCount.toShort() )
-        bbOut.putShort( crc16_modbus( bbOut.array(), bbOut.arrayOffset(), 4 + ph.packetSize, false ).toShort() )
+        bbOut.putShort((dataCount - 1).toShort())
+        bbOut.putShort(recordReadCount.toShort())
+        bbOut.putShort(crc16_modbus(bbOut.array(), bbOut.arrayOffset(), 4 + ph.packetSize, false).toShort())
 
-        send( bbOut, true )
+        send(bbOut, true)
 
         dataCount += recordReadCount
         dataCountAll += recordReadCount
@@ -475,7 +476,7 @@ class PLAHandler : MMSHandler() {
         var packetID: Int = 0   // byte 0..255
         var packetSize: Int = 0 // short
 
-        internal constructor( byteBuffer: AdvancedByteBuffer ) {
+        internal constructor(byteBuffer: AdvancedByteBuffer) {
             val b = byteBuffer.getByte().toInt()
 
             command = b and 15
@@ -486,7 +487,7 @@ class PLAHandler : MMSHandler() {
             packetSize = byteBuffer.getShort().toInt()
         }
 
-        internal constructor( aCommand: Int, aError: Int, aPacketID: Int, aPacketSize: Int ) {
+        internal constructor(aCommand: Int, aError: Int, aPacketID: Int, aPacketSize: Int) {
             command = aCommand
             error = aError
             signature = PACKET_SIGNATURE
@@ -495,21 +496,21 @@ class PLAHandler : MMSHandler() {
         }
 
         //--- запись команды с дополнительными данными, но без CRC
-        fun write( byteBuffer: AdvancedByteBuffer ) {
-            val b = signature shl 5 or ( error shl 4 ) or command
+        fun write(byteBuffer: AdvancedByteBuffer) {
+            val b = signature shl 5 or (error shl 4) or command
 
-            byteBuffer.putByte( b.toByte() )
-            byteBuffer.putByte( packetID.toByte() )
-            byteBuffer.putShort( packetSize.toShort() )
+            byteBuffer.putByte(b.toByte())
+            byteBuffer.putByte(packetID.toByte())
+            byteBuffer.putShort(packetSize.toShort())
 
-            if( packetSize == 0 ) byteBuffer.putShort( crc16_modbus( byteBuffer.array(), byteBuffer.arrayOffset(), 4, false ).toShort() )
+            if (packetSize == 0) byteBuffer.putShort(crc16_modbus(byteBuffer.array(), byteBuffer.arrayOffset(), 4, false).toShort())
         }
 
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    private class PLAPoint constructor( aPLAHandler: PLAHandler, byteBuffer: AdvancedByteBuffer ) {
+    private class PLAPoint constructor(aPLAHandler: PLAHandler, byteBuffer: AdvancedByteBuffer) {
 
         companion object {
             private val STATUS_WRONG_COORD = 0x0001    // Неправильные координаты
@@ -540,43 +541,42 @@ class PLAHandler : MMSHandler() {
             //--- преобразование наших ёбнутых координат, скоростей и дистанций
             val tmpX = gpsX / 1000000
             val tmpY = gpsY / 1000000
-            wgsX = ( ( tmpX + ( gpsX - tmpX * 1000000 ).toDouble() / 10_000.0 / 60.0) * XyProjection.WGS_KOEF_i ).toInt()
-            wgsY = ( ( tmpY + ( gpsY - tmpY * 1000000 ).toDouble() / 10_000.0 / 60.0) * XyProjection.WGS_KOEF_i ).toInt()
+            wgsX = ((tmpX + (gpsX - tmpX * 1000000).toDouble() / 10_000.0 / 60.0) * XyProjection.WGS_KOEF_i).toInt()
+            wgsY = ((tmpY + (gpsY - tmpY * 1000000).toDouble() / 10_000.0 / 60.0) * XyProjection.WGS_KOEF_i).toInt()
 
             //--- скорость в формате xxx.xx [миль/час==узлы]
-            speed = aPLAHandler.roundSpeed( ( byteBuffer.getShort().toInt() and 0xFFFF ) / 100.0 * 1.852 )
+            speed = aPLAHandler.roundSpeed((byteBuffer.getShort().toInt() and 0xFFFF) / 100.0 * 1.852)
 
             //if( speed < 0 ) speed = 0;
             //if( speed > 255 ) speed = 255;
             //--- дистанция - в милях, переводим в метры
-            dist = Math.round( byteBuffer.getFloat().toDouble() * 1.852 * 1000.0 ).toInt()
+            dist = Math.round(byteBuffer.getFloat().toDouble() * 1.852 * 1000.0).toInt()
 
             byteBuffer.getShort()  // SKIP azimuth
             var status = byteBuffer.getShort().toInt() and 0xFFFF
             val event = byteBuffer.getByte().toInt() and 0xFF
 
             d = byteBuffer.getByte().toInt() and 0xFF
-            for( i in 0 until ANALOG_INPUT_COUNT ) tmA.put( i, byteBuffer.getShort().toInt() and 0xFFFF )
+            for (i in 0 until ANALOG_INPUT_COUNT) tmA.put(i, byteBuffer.getShort().toInt() and 0xFFFF)
 
             //--- дополнительная обработка данных по полю status ---
 
             //--- нулевые координаты указывают на ошибку GPS
-            if( gpsX == 0 && gpsY == 0 ) status = status or STATUS_WRONG_COORD
+            if (gpsX == 0 && gpsY == 0) status = status or STATUS_WRONG_COORD
             //--- при неправильных GPS-данных всё = 0
-            if( status and ( STATUS_WRONG_COORD or STATUS_GPS_FAIL ) != 0 ) {
+            if (status and (STATUS_WRONG_COORD or STATUS_GPS_FAIL) != 0) {
                 dist = 0
                 wgsY = dist
                 wgsX = wgsY
                 speed = 0.toShort()
-            }
-            else {
+            } else {
                 //--- пробег на событиях не имеет значения
-                if( event != 0 ) dist = 0
+                if (event != 0) dist = 0
                 //--- на стоянке скорость = 0
-                if( status and STATUS_PARKING != 0 ) speed = 0
+                if (status and STATUS_PARKING != 0) speed = 0
                 //--- установка знака координат в зависимости от статуса
-                if( status and STATUS_NS_COORD == 0 ) wgsX = -wgsX
-                if( status and STATUS_EW_COORD == 0 ) wgsY = -wgsY
+                if (status and STATUS_NS_COORD == 0) wgsX = -wgsX
+                if (status and STATUS_EW_COORD == 0) wgsY = -wgsY
             }
         }
     }

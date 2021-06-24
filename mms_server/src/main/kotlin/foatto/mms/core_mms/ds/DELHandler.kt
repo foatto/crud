@@ -52,7 +52,7 @@ class DELHandler : MMSHandler() {
             packetHeader = PacketHeader(bbIn)
 
             if (packetHeader!!.signature != PacketHeader.SIGNATURE) {
-                writeError(dataWorker.alConn, dataWorker.alStm[0], " Wrong signature = $packetHeader!!.signature for device ID = $deviceID")
+                writeError(dataWorker.conn, dataWorker.stm, " Wrong signature = $packetHeader!!.signature for device ID = $deviceID")
                 return false
             }
             //--- проверку на packetID пропускаем, ибо не используем
@@ -67,10 +67,10 @@ class DELHandler : MMSHandler() {
             //                return true;
             //            }
             //            int errorCode = bbIn.getByte() & 0xFF;
-            //            writeError( dataWorker.alConn, dataWorker.alStm.get( 0 ),
+            //            writeError( dataWorker.conn, dataWorker.alStm.get( 0 ),
             //                                                    new StringBuilder( " Error code = " ).append( errorCode )
             //                                                              .append( " from device ID = " ).append( deviceID ).toString() );
-            writeError(dataWorker.alConn, dataWorker.alStm[0], " Error from device ID = $deviceID")
+            writeError(dataWorker.conn, dataWorker.stm, " Error from device ID = $deviceID")
             return false
         }
         //--- ошибки нет, дожидаемся обещанного объёма данных + CRC16
@@ -88,7 +88,7 @@ class DELHandler : MMSHandler() {
         when (packetHeader!!.command) {
             PacketHeader.CMD_READ_ID -> {
                 if (packetHeader!!.packetSize != 10) {
-                    writeError(dataWorker.alConn, dataWorker.alStm[0], " Wrong READ_ID packetSize = ${packetHeader!!.packetSize} for device ID = $deviceID")
+                    writeError(dataWorker.conn, dataWorker.stm, " Wrong READ_ID packetSize = ${packetHeader!!.packetSize} for device ID = $deviceID")
                     return false
                 }
                 deviceID = bbIn.getInt()
@@ -96,20 +96,20 @@ class DELHandler : MMSHandler() {
                 fwVersion = bbIn.getShort().toInt() and 0xFFFF
                 measureCount = bbIn.getShort().toInt() and 0xFFFF
                 if (deviceID <= 0) {
-                    writeError(dataWorker.alConn, dataWorker.alStm[0], " Wrong device ID = $deviceID")
+                    writeError(dataWorker.conn, dataWorker.stm, " Wrong device ID = $deviceID")
                     return false
                 }
                 //            if( fwVersion < 0x1053 ) {  // предположительный номер версии с поддержкой пульсара
-                //                writeError( dataWorker.alConn, dataWorker.alStm.get( 0 ), new StringBuilder( " Old version = " ).append( Integer.toHexString( fwVersion ) )
+                //                writeError( dataWorker.conn, dataWorker.alStm.get( 0 ), new StringBuilder( " Old version = " ).append( Integer.toHexString( fwVersion ) )
                 //                                                                       .append( " for device ID = " ).append( deviceID ).toString() );
                 //                return false;
                 //            }
                 //--- общее петролайновское извращение - записываем HEX-номер версии прошивки в как бы десятичном виде
                 fwVersion = Integer.parseInt(Integer.toHexString(fwVersion), 10)
-                deviceConfig = DeviceConfig.getDeviceConfig(dataWorker.alStm[0], deviceID)
+                deviceConfig = DeviceConfig.getDeviceConfig(dataWorker.stm, deviceID)
                 //--- неизвестный контроллер
                 if (deviceConfig == null) {
-                    writeError(dataWorker.alConn, dataWorker.alStm[0], " Unknown device ID = $deviceID")
+                    writeError(dataWorker.conn, dataWorker.stm, " Unknown device ID = $deviceID")
                     writeJournal()
                     return false
                 }
@@ -214,7 +214,7 @@ class DELHandler : MMSHandler() {
 
 //        case CMD_READ_CUR_POS:
 //            if( packetHeader.packetSize != 40 + 128 ) {
-//                writeError( dataWorker.alConn, dataWorker.alStm.get( 0 ), new StringBuilder( " Wrong CUR_POS packetSize = " ).append( packetHeader.packetSize )
+//                writeError( dataWorker.conn, dataWorker.alStm.get( 0 ), new StringBuilder( " Wrong CUR_POS packetSize = " ).append( packetHeader.packetSize )
 //                                                                       .append( " for device ID = " ).append( deviceID ).toString() );
 //                return false;
 //            }
@@ -223,7 +223,7 @@ class DELHandler : MMSHandler() {
 //
 //            long curTime = System.currentTimeMillis();
 //            if( p.time > curTime - MAX_PAST_TIME && p.time < curTime + MAX_FUTURE_TIME ) {
-//                bbData = new AdvancedByteBuffer( dataWorker.alConn.get( 0 ).getTextFieldMaxSize() / 2 );
+//                bbData = new AdvancedByteBuffer( dataWorker.conn.get( 0 ).getTextFieldMaxSize() / 2 );
 //
 //                putBitSensor( p.d, 0, 8, bbData );
 //                putSensorData( 8, 2, di.systemVoltage, bbData );
@@ -237,7 +237,7 @@ class DELHandler : MMSHandler() {
 //                sqlBatchData = new SQLBatch( 1 );
 //                addPoint( dataWorker.alStm.get( 0 ), p.time, bbData, sqlBatchData );
 //                for( CoreAdvancedStatement stm : dataWorker.alStm ) sqlBatchData.execute( stm );
-//                for( CoreAdvancedConnection conn : dataWorker.alConn ) conn.commit();
+//                for( CoreAdvancedConnection conn : dataWorker.conn ) conn.commit();
 //            }
 //            sbStatus.append( "CurPos;" );
 //
@@ -249,7 +249,7 @@ class DELHandler : MMSHandler() {
 //////        boolean isUpdateFirmware = deviceConfig.isUpdateFirmware;
 ////            //--- проверим смену конфига
 ////            if( deviceConfig.isUpdateConfig ) {
-////                if( ! sendConfig( dataWorker.alConn.get( 0 ), dataWorker.alStm.get( 0 ) ) ) return false;
+////                if( ! sendConfig( dataWorker.conn.get( 0 ), dataWorker.alStm.get( 0 ) ) ) return false;
 ////            }
 //            //--- запросить первый набор точек, если они есть
 //            if( recordCount > 0 /*&& cc.autoID != 0*/ ) {
@@ -258,7 +258,7 @@ class DELHandler : MMSHandler() {
 //            else {
 //                sbStatus.append( "Ok;" );
 //                errorText = null;
-//                writeSession( dataWorker.alConn, dataWorker.alStm.get( 0 ), true );
+//                writeSession( dataWorker.conn, dataWorker.alStm.get( 0 ), true );
 //                return false;
 //            }
 //            break;
@@ -266,14 +266,14 @@ class DELHandler : MMSHandler() {
 //        case CMD_WRITE_CONFIG:
 //            sbStatus.append( "Configured;Ok;" );
 //            errorText = null;
-//            writeSession( dataWorker.alConn, dataWorker.alStm.get( 0 ), true );
+//            writeSession( dataWorker.conn, dataWorker.alStm.get( 0 ), true );
 //            //--- закрываем соединение от греха подальше :)
 //            return false;
 //            //break;
 //
 //        case CMD_READ_COORDS:
 //            if( packetHeader.packetSize % 40 != 0 ) {
-//                writeError( dataWorker.alConn, dataWorker.alStm.get( 0 ), new StringBuilder( " Wrong READ_COORDS packetSize = " ).append( packetHeader.packetSize )
+//                writeError( dataWorker.conn, dataWorker.alStm.get( 0 ), new StringBuilder( " Wrong READ_COORDS packetSize = " ).append( packetHeader.packetSize )
 //                                                                       .append( " for device ID = " ).append( deviceID ).toString() );
 //                return false;
 //            }
@@ -284,7 +284,7 @@ class DELHandler : MMSHandler() {
 //            for( int i = 0; i < pc; i++ ) {
 //                p = new PLAPoint( this, bbIn );
 //                if( p.time > curTime - MAX_PAST_TIME && p.time < curTime + MAX_FUTURE_TIME ) {
-//                    bbData = new AdvancedByteBuffer( dataWorker.alConn.get( 0 ).getTextFieldMaxSize() / 2 );
+//                    bbData = new AdvancedByteBuffer( dataWorker.conn.get( 0 ).getTextFieldMaxSize() / 2 );
 //
 //                    putBitSensor( p.d, 0, 8, bbData );
 //                    putSensorData( 8, 2, di.systemVoltage, bbData );
@@ -299,7 +299,7 @@ class DELHandler : MMSHandler() {
 //                }
 //            }
 //            for( CoreAdvancedStatement stm : dataWorker.alStm ) sqlBatchData.execute( stm );
-//            for( CoreAdvancedConnection conn : dataWorker.alConn ) conn.commit();
+//            for( CoreAdvancedConnection conn : dataWorker.conn ) conn.commit();
 //
 //            //--- есть/остались ещё точки? (используем -1, т.к. dataCount  у нас начинается с 1 - первой точкой становится CUR_COORD)
 //            if( ( dataCount - 1 ) < recordCount ) sendReadCoords();
@@ -313,7 +313,7 @@ class DELHandler : MMSHandler() {
 //        case CMD_CLEAR_COORDS:
 //            sbStatus.append( "Ok;" );
 //            errorText = null;
-//            writeSession( dataWorker.alConn, dataWorker.alStm.get( 0 ), true );
+//            writeSession( dataWorker.conn, dataWorker.alStm.get( 0 ), true );
 //            //--- закрываем соединение от греха подальше :)
 //            return false;
 //            //break;
