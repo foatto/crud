@@ -132,8 +132,18 @@ class cMovingDetail : cMMSReport() {
                 sheet.addCell(Label(offsX++, offsY, secondIntervalToString(gpd.begTime, gpd.endTime), wcfCellC))
                 sheet.addCell(
                     Label(
-                        offsX++, offsY, if (gpd.getState() != 0) getSplittedDouble(calc.gcd!!.run, 1)
-                        else "-", if (gpd.getState() != 0) wcfCellR else wcfCellC
+                        offsX++,
+                        offsY,
+                        if (gpd.getState() != 0) {
+                            getSplittedDouble(calc.gcd!!.run, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
+                        } else {
+                            "-"
+                        },
+                        if (gpd.getState() != 0) {
+                            wcfCellR
+                        } else {
+                            wcfCellC
+                        }
                     )
                 )
                 sheet.addCell(Label(offsX++, offsY, calc.sWorkName, wcfCellC))
@@ -151,14 +161,22 @@ class cMovingDetail : cMMSReport() {
             sheet.mergeCells(1, offsY, 3, offsY)
             offsX = 4
             sheet.addCell(Label(offsX++, offsY, secondIntervalToString(calcSum.gcd!!.movingTime), wcfCellC))
-            sheet.addCell(Label(offsX++, offsY, getSplittedDouble(calcSum.gcd!!.run, 1), wcfCellC))
+            sheet.addCell(Label(offsX++, offsY, getSplittedDouble(calcSum.gcd!!.run, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
             offsY++
 
             sheet.addCell(Label(1, offsY, "На стоянках:", wcfCellRB))
             sheet.mergeCells(1, offsY, 3, offsY)
             offsX = 4
             sheet.addCell(Label(offsX++, offsY, secondIntervalToString(calcSum.gcd!!.parkingTime), wcfCellC))
-            sheet.addCell(Label(offsX++, offsY, getSplittedLong(calcSum.gcd!!.parkingCount.toLong()), wcfCellC))
+            sheet.addCell(
+                Label(
+                    offsX++, offsY, if (userConfig.upIsUseThousandsDivider) {
+                        getSplittedLong(calcSum.gcd!!.parkingCount.toLong())
+                    } else {
+                        calcSum.gcd!!.parkingCount.toString()
+                    }, wcfCellC
+                )
+            )
             offsY++
 
             sheet.addCell(Label(1, offsY, "Общее:", wcfCellRB))

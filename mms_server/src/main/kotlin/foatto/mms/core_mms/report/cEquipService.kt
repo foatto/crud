@@ -145,8 +145,8 @@ class cEquipService : cMMSReport() {
                     val curWork = scw.begWorkValue + wcd.onTime.toDouble() / 60.0 / 60.0
                     sheet.addCell(Label(1, offsY, scw.descr, wcfCellL))
                     sheet.addCell(Label(2, offsY, esd.name, wcfCellL))
-                    sheet.addCell(Label(3, offsY, getSplittedDouble(esd.period, 1), wcfCellC))
-                    sheet.addCell(Label(4, offsY, getSplittedDouble(curWork, 1), wcfCellC))
+                    sheet.addCell(Label(3, offsY, getSplittedDouble(esd.period, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
+                    sheet.addCell(Label(4, offsY, getSplittedDouble(curWork, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
                     sheet.addCell(
                         Label(
                             5, offsY, if (esd.lastWorkTime == null) "-" else DateTime_DMY(esd.lastWorkTime!!), wcfCellC
@@ -154,9 +154,12 @@ class cEquipService : cMMSReport() {
                     )
                     sheet.addCell(
                         Label(
-                            6, offsY, getSplittedDouble(
-                                esd.lastWorkValue, 1
-                            ), wcfCellC
+                            6,
+                            offsY,
+                            getSplittedDouble(
+                                esd.lastWorkValue, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider
+                            ),
+                            wcfCellC
                         )
                     )
 
@@ -175,7 +178,7 @@ class cEquipService : cMMSReport() {
                     )
                     sheet.addCell(
                         Label(
-                            8, offsY, if (futureWorkTime == null) "-" else getSplittedDouble(esd.lastWorkValue + esd.period, 1), wcfCellC
+                            8, offsY, if (futureWorkTime == null) "-" else getSplittedDouble(esd.lastWorkValue + esd.period, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC
                         )
                     )
 

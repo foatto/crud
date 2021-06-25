@@ -130,7 +130,7 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
                 if (scg.isUseRun) {
                     val tmLiquidUsing = objectCalc.tmGroupSum[scg.group]?.tmLiquidUsing
                     val sAvgUsing = if (tmLiquidUsing?.size == 1 && objectCalc.gcd!!.run > 0.0) {
-                        getSplittedDouble(100.0 * tmLiquidUsing.firstEntry().value / objectCalc.gcd!!.run, 1)
+                        getSplittedDouble(100.0 * tmLiquidUsing.firstEntry().value / objectCalc.gcd!!.run, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
                     } else {
                         "-"
                     }
@@ -153,11 +153,11 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
             offsY++
             objectCalc.tmWork.forEach { (workDescr, wcd) ->
                 sheet.addCell(Label(1, offsY, workDescr, wcfCellC))
-                sheet.addCell(Label(2, offsY, getSplittedDouble(wcd.onTime.toDouble() / 60.0 / 60.0, 1), wcfCellC))
+                sheet.addCell(Label(2, offsY, getSplittedDouble(wcd.onTime.toDouble() / 60.0 / 60.0, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
                 val tmWork = objectCalc.tmGroupSum[wcd.group]?.tmWork
                 val tmLiquidUsing = objectCalc.tmGroupSum[wcd.group]?.tmLiquidUsing
                 val sAvgUsing = if (tmWork?.size == 1 && tmLiquidUsing?.size == 1 && wcd.onTime > 0) {
-                    getSplittedDouble(tmLiquidUsing.firstEntry().value / (wcd.onTime.toDouble() / 60.0 / 60.0), 1)
+                    getSplittedDouble(tmLiquidUsing.firstEntry().value / (wcd.onTime.toDouble() / 60.0 / 60.0), 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
                 } else {
                     "-"
                 }
@@ -178,7 +178,7 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
             offsY++
             objectCalc.tmEnergo.forEach { (energoDescr, energoValue) ->
                 sheet.addCell(Label(1, offsY, energoDescr, wcfCellC))
-                sheet.addCell(Label(2, offsY, getSplittedDouble(energoValue, ObjectCalc.getPrecision(energoValue)), wcfCellC))
+                sheet.addCell(Label(2, offsY, getSplittedDouble(energoValue, ObjectCalc.getPrecision(energoValue), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
                 if (isKeepPlaceForComment) {
                     sheet.addCell(Label(3, offsY, "", wcfComment))
                     sheet.mergeCells(3, offsY, getColumnCount(1), offsY)
@@ -195,7 +195,7 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
             offsY++
             objectCalc.tmLiquidUsing.forEach { (liquidDescr, totalValue) ->
                 sheet.addCell(Label(1, offsY, liquidDescr, wcfCellC))
-                sheet.addCell(Label(2, offsY, getSplittedDouble(totalValue, ObjectCalc.getPrecision(totalValue)), wcfCellC))
+                sheet.addCell(Label(2, offsY, getSplittedDouble(totalValue, ObjectCalc.getPrecision(totalValue), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
                 if (isKeepPlaceForComment) {
                     sheet.addCell(Label(3, offsY, "", wcfComment))
                     sheet.mergeCells(3, offsY, getColumnCount(1), offsY)
@@ -229,16 +229,16 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
 
             objectCalc.tmLiquidLevel.forEach { (liquidName, llcd) ->
                 sheet.addCell(Label(1, offsY, liquidName, wcfCellC))
-                sheet.addCell(Label(2, offsY, getSplittedDouble(llcd.begLevel, ObjectCalc.getPrecision(llcd.begLevel)), wcfCellC))
-                sheet.addCell(Label(3, offsY, getSplittedDouble(llcd.endLevel, ObjectCalc.getPrecision(llcd.endLevel)), wcfCellC))
-                sheet.addCell(Label(4, offsY, getSplittedDouble(llcd.incTotal, ObjectCalc.getPrecision(llcd.incTotal)), wcfCellC))
-                sheet.addCell(Label(5, offsY, getSplittedDouble(llcd.decTotal, ObjectCalc.getPrecision(llcd.decTotal)), wcfCellC))
-                sheet.addCell(Label(6, offsY, getSplittedDouble(llcd.usingTotal, ObjectCalc.getPrecision(llcd.usingTotal)), wcfCellC))
+                sheet.addCell(Label(2, offsY, getSplittedDouble(llcd.begLevel, ObjectCalc.getPrecision(llcd.begLevel), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
+                sheet.addCell(Label(3, offsY, getSplittedDouble(llcd.endLevel, ObjectCalc.getPrecision(llcd.endLevel), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
+                sheet.addCell(Label(4, offsY, getSplittedDouble(llcd.incTotal, ObjectCalc.getPrecision(llcd.incTotal), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
+                sheet.addCell(Label(5, offsY, getSplittedDouble(llcd.decTotal, ObjectCalc.getPrecision(llcd.decTotal), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
+                sheet.addCell(Label(6, offsY, getSplittedDouble(llcd.usingTotal, ObjectCalc.getPrecision(llcd.usingTotal), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
 
                 if (isUsingCalc) sheet.addCell(
                     Label(
                         7, offsY, if (llcd.usingCalc <= 0) "-"
-                        else getSplittedDouble(llcd.usingCalc, ObjectCalc.getPrecision(llcd.usingCalc)), wcfCellC
+                        else getSplittedDouble(llcd.usingCalc, ObjectCalc.getPrecision(llcd.usingCalc), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC
                     )
                 )
                 offsY++
@@ -259,8 +259,8 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
             objectCalc.tmTemperature.forEach { (descr, lineData) ->
                 if (lineData.alGLD.isNotEmpty()) {
                     sheet.addCell(Label(1, offsY, descr, wcfCellC))
-                    sheet.addCell(Label(2, offsY, getSplittedDouble(lineData.alGLD.first().y, ObjectCalc.getPrecision(lineData.alGLD.first().y)), wcfCellC))
-                    sheet.addCell(Label(3, offsY, getSplittedDouble(lineData.alGLD.last().y, ObjectCalc.getPrecision(lineData.alGLD.last().y)), wcfCellC))
+                    sheet.addCell(Label(2, offsY, getSplittedDouble(lineData.alGLD.first().y, ObjectCalc.getPrecision(lineData.alGLD.first().y), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
+                    sheet.addCell(Label(3, offsY, getSplittedDouble(lineData.alGLD.last().y, ObjectCalc.getPrecision(lineData.alGLD.last().y), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
                     if (isKeepPlaceForComment) {
                         sheet.addCell(Label(4, offsY, "", wcfComment))
                         sheet.mergeCells(4, offsY, getColumnCount(1), offsY)
@@ -279,8 +279,8 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
             objectCalc.tmDensity.forEach { (descr, lineData) ->
                 if (lineData.alGLD.isNotEmpty()) {
                     sheet.addCell(Label(1, offsY, descr, wcfCellC))
-                    sheet.addCell(Label(2, offsY, getSplittedDouble(lineData.alGLD.first().y, ObjectCalc.getPrecision(lineData.alGLD.first().y)), wcfCellC))
-                    sheet.addCell(Label(3, offsY, getSplittedDouble(lineData.alGLD.last().y, ObjectCalc.getPrecision(lineData.alGLD.last().y)), wcfCellC))
+                    sheet.addCell(Label(2, offsY, getSplittedDouble(lineData.alGLD.first().y, ObjectCalc.getPrecision(lineData.alGLD.first().y), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
+                    sheet.addCell(Label(3, offsY, getSplittedDouble(lineData.alGLD.last().y, ObjectCalc.getPrecision(lineData.alGLD.last().y), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
                     if (isKeepPlaceForComment) {
                         sheet.addCell(Label(4, offsY, "", wcfComment))
                         sheet.mergeCells(4, offsY, getColumnCount(1), offsY)
@@ -350,10 +350,10 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
             sumData.tmEnergo.forEach { (sensorType, dataByPhase) ->
                 dataByPhase.forEach { (phase, value) ->
                     sheet.addCell(Label(1, offsY, (SensorConfig.hmSensorDescr[sensorType] ?: "(неизв. тип датчика)") + getPhaseDescr(phase), wcfCellRBStdYellow))
-                    sheet.addCell(Label(2, offsY, getSplittedDouble(value, ObjectCalc.getPrecision(value)), wcfCellC))
+                    sheet.addCell(Label(2, offsY, getSplittedDouble(value, ObjectCalc.getPrecision(value), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
                     val tmLiquidUsing = sumData.tmLiquidUsing
                     val sAvgUsing = if (tmLiquidUsing.size == 1 && value > 0) {
-                        getSplittedDouble(tmLiquidUsing.firstEntry().value / value, 1)
+                        getSplittedDouble(tmLiquidUsing.firstEntry().value / value, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
                     } else {
                         "-"
                     }
@@ -372,7 +372,7 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
 
             sumData.tmLiquidUsing.forEach { (name, using) ->
                 sheet.addCell(Label(1, offsY, name, wcfCellRBStdYellow))
-                sheet.addCell(Label(2, offsY, getSplittedDouble(using, ObjectCalc.getPrecision(using)), wcfCellC))
+                sheet.addCell(Label(2, offsY, getSplittedDouble(using, ObjectCalc.getPrecision(using), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
                 offsY++
             }
         }
@@ -443,10 +443,16 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
 
         //--- сумма пробегов, времени и стоянок имеет смысл только в разрезе конкретной единицы оборудования
         scg?.let {
-            val sGeoRun = if (sumData.run < 0) "-" else getSplittedDouble(sumData.run, 1)
+            val sGeoRun = if (sumData.run < 0) "-" else getSplittedDouble(sumData.run, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
             val sGeoMovingTime = if (sumData.movingTime < 0) "-" else secondIntervalToString(sumData.movingTime)
             val sGeoParkingTime = if (sumData.parkingTime < 0) "-" else secondIntervalToString(sumData.parkingTime)
-            val sGeoParkingCount = if (sumData.parkingCount < 0) "-" else getSplittedLong(sumData.parkingCount.toLong())
+            val sGeoParkingCount = if (sumData.parkingCount < 0) {
+                "-"
+            } else if (userConfig.upIsUseThousandsDivider) {
+                getSplittedLong(sumData.parkingCount.toLong())
+            } else {
+                sumData.parkingCount.toString()
+            }
 
             var offsX = 1
             sheet.addCell(Label(offsX, offsY, "Датчик ГЛОНАСС/GPS", wcfCaptionHC))
@@ -487,7 +493,7 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
             offsY++
             sumData.tmWork.forEach { (workDescr, onTime) ->
                 sheet.addCell(Label(1, offsY, workDescr, wcfCellC))
-                sheet.addCell(Label(2, offsY, getSplittedDouble(onTime.toDouble() / 60.0 / 60.0, 1), wcfCellC))
+                sheet.addCell(Label(2, offsY, getSplittedDouble(onTime.toDouble() / 60.0 / 60.0, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
                 offsY++
             }
         }
@@ -510,7 +516,7 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
                         Label(
                             2,
                             offsY,
-                            getSplittedDouble(value, ObjectCalc.getPrecision(value)),
+                            getSplittedDouble(value, ObjectCalc.getPrecision(value), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider),
                             if (isManyObjects) wcfCellCBStdYellow else wcfCellC
                         )
                     )
@@ -525,7 +531,7 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
             offsY++
             sumData.tmLiquidUsing.forEach { (liquidDescr, total) ->
                 sheet.addCell(Label(1, offsY, liquidDescr, if (isManyObjects) wcfCellCBStdYellow else wcfCellC))
-                sheet.addCell(Label(2, offsY, getSplittedDouble(total, ObjectCalc.getPrecision(total)), if (isManyObjects) wcfCellCBStdYellow else wcfCellC))
+                sheet.addCell(Label(2, offsY, getSplittedDouble(total, ObjectCalc.getPrecision(total), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), if (isManyObjects) wcfCellCBStdYellow else wcfCellC))
                 offsY++
             }
             offsY++
@@ -538,8 +544,8 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
             offsY++
             sumData.tmLiquidIncDec.forEach { (liquidDescr, pairIncDec) ->
                 sheet.addCell(Label(1, offsY, liquidDescr, if (isManyObjects) wcfCellCBStdYellow else wcfCellC))
-                sheet.addCell(Label(2, offsY, getSplittedDouble(pairIncDec.first, ObjectCalc.getPrecision(pairIncDec.first)), if (isManyObjects) wcfCellCBStdYellow else wcfCellC))
-                sheet.addCell(Label(3, offsY, getSplittedDouble(pairIncDec.second, ObjectCalc.getPrecision(pairIncDec.second)), if (isManyObjects) wcfCellCBStdYellow else wcfCellC))
+                sheet.addCell(Label(2, offsY, getSplittedDouble(pairIncDec.first, ObjectCalc.getPrecision(pairIncDec.first), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), if (isManyObjects) wcfCellCBStdYellow else wcfCellC))
+                sheet.addCell(Label(3, offsY, getSplittedDouble(pairIncDec.second, ObjectCalc.getPrecision(pairIncDec.second), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), if (isManyObjects) wcfCellCBStdYellow else wcfCellC))
                 offsY++
             }
             offsY++

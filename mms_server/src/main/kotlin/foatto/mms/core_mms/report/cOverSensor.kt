@@ -130,16 +130,22 @@ class cOverSensor : cMMSReport() {
                 sheet.addCell(Label(offsX++, offsY, secondIntervalToString(ospd.begTime, ospd.endTime), wcfCellC))
                 sheet.addCell(
                     Label(
-                        offsX++, offsY, getSplittedDouble(
-                            ospd.maxOverSensorMax, ObjectCalc.getPrecision(ospd.maxOverSensorMax)
-                        ).toString(), wcfCellR
+                        offsX++,
+                        offsY,
+                        getSplittedDouble(
+                            ospd.maxOverSensorMax, ObjectCalc.getPrecision(ospd.maxOverSensorMax), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider
+                        ),
+                        wcfCellR
                     )
                 )
                 sheet.addCell(
                     Label(
-                        offsX++, offsY, getSplittedDouble(
-                            ospd.maxOverSensorDiff, ObjectCalc.getPrecision(ospd.maxOverSensorDiff)
-                        ).toString(), wcfCellR
+                        offsX++,
+                        offsY,
+                        getSplittedDouble(
+                            ospd.maxOverSensorDiff, ObjectCalc.getPrecision(ospd.maxOverSensorDiff), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider
+                        ),
+                        wcfCellR
                     )
                 )
                 sheet.addCell(Label(offsX++, offsY, ospd.sbZoneName!!.toString(), wcfCellL))

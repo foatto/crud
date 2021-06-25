@@ -201,10 +201,10 @@ class cObjectZone : cMMSReport() {
             } else sheet.addCell(Label(offsX++, offsY, cr.count.toString(), wcfCellR))
 
             sheet.addCell(Label(offsX++, offsY, secondIntervalToString(cr.begTime, cr.endTime), wcfCellC))
-            sheet.addCell(Label(offsX++, offsY, getSplittedDouble(cr.calc!!.gcd!!.run, 1), wcfCellR))
+            sheet.addCell(Label(offsX++, offsY, getSplittedDouble(cr.calc!!.gcd!!.run, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellR))
 
-            val (sWorkDescr, sWorkTotal) = ObjectCalc.fillWorkString(cr.calc!!.tmWork)
-            val (sLiquidUsingName, sLiquidUsingTotal) = ObjectCalc.fillLiquidUsingString(cr.calc!!.tmLiquidUsing)
+            val (sWorkDescr, sWorkTotal) = ObjectCalc.fillWorkString(userConfig, cr.calc!!.tmWork)
+            val (sLiquidUsingName, sLiquidUsingTotal) = ObjectCalc.fillLiquidUsingString(userConfig, cr.calc!!.tmLiquidUsing)
 
             sheet.addCell(Label(offsX++, offsY, sWorkDescr, wcfCellC))
             sheet.addCell(Label(offsX++, offsY, sWorkTotal, wcfCellR))

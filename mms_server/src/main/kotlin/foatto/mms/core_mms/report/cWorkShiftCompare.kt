@@ -357,25 +357,47 @@ class cWorkShiftCompare : cMMSReport() {
         val runCellStyle1 = if (isWrongRow) wcfCellRGrayStd else if (isOverRun) wcfCellRRedStd else wcfCellR
         val runCellStyle2 = if (isWrongRow) wcfCellRGrayStd else if (isOverRun) wcfCellRBRedStd else wcfCellR
 
-        sheet.addCell(Label(startX, offsY, getSplittedDouble(wRun, 1).toString(), runCellStyle1))
         sheet.addCell(
             Label(
-                startX + 1, offsY,
-                getSplittedDouble(cRunWK, 1).toString() + if (isOutWOK) "\n(" + getSplittedDouble(cRunWOK, 1).toString() + ")" else "",
+                startX,
+                offsY,
+                getSplittedDouble(wRun, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider),
                 runCellStyle1
             )
         )
         sheet.addCell(
             Label(
-                startX + 2, offsY,
-                getSplittedDouble(wRun - cRunWK, 1).toString() + if (isOutWOK) "\n(" + getSplittedDouble(wRun - cRunWOK, 1).toString() + ")" else "",
+                startX + 1,
+                offsY,
+                getSplittedDouble(cRunWK, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider) + if (isOutWOK) {
+                    "\n(" + getSplittedDouble(cRunWOK, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider) + ")"
+                } else {
+                    ""
+                },
+                runCellStyle1
+            )
+        )
+        sheet.addCell(
+            Label(
+                startX + 2,
+                offsY,
+                getSplittedDouble(wRun - cRunWK, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider) + if (isOutWOK) {
+                    "\n(" + getSplittedDouble(wRun - cRunWOK, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider) + ")"
+                } else {
+                    ""
+                },
                 runCellStyle2
             )
         )
         sheet.addCell(
             Label(
-                startX + 3, offsY,
-                getSplittedDouble(percentWK, 1).toString() + if (isOutWOK) "\n(" + getSplittedDouble(percentWOK, 1).toString() + ")" else "",
+                startX + 3,
+                offsY,
+                getSplittedDouble(percentWK, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider) + if (isOutWOK) {
+                    "\n(" + getSplittedDouble(percentWOK, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider) + ")"
+                } else {
+                    ""
+                },
                 runCellStyle2
             )
         )
@@ -397,7 +419,7 @@ class cWorkShiftCompare : cMMSReport() {
             }
             val wWorkHour = tmWorkHourW[workDescr]!!
             sbWorkDescr.append(workDescr)
-            sbWorkShiftWork.append(getSplittedDouble(wWorkHour, 1))
+            sbWorkShiftWork.append(getSplittedDouble(wWorkHour, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider))
 
             val cWorkHour = tmWorkHourC[workDescr]
             if (cWorkHour == null || cWorkHour < 0) {
@@ -406,11 +428,11 @@ class cWorkShiftCompare : cMMSReport() {
                 sbDiffWorkPercent.append('-')
                 isRed = true
             } else {
-                sbCalcWork.append(getSplittedDouble(cWorkHour, 1))
-                sbDiffWorkValue.append(getSplittedDouble(wWorkHour - cWorkHour, 1))
+                sbCalcWork.append(getSplittedDouble(cWorkHour, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider))
+                sbDiffWorkValue.append(getSplittedDouble(wWorkHour - cWorkHour, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider))
                 sbDiffWorkPercent.append(
                     if (cWorkHour == 0.0) "100"
-                    else getSplittedDouble((wWorkHour - cWorkHour) / cWorkHour * 100.0, 1)
+                    else getSplittedDouble((wWorkHour - cWorkHour) / cWorkHour * 100.0, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
                 )
                 isRed = isRed or (cWorkHour == 0.0 || Math.abs(wWorkHour - cWorkHour) / cWorkHour * 100.0 > reportMaxDiff)
             }
@@ -428,7 +450,7 @@ class cWorkShiftCompare : cMMSReport() {
             val cWorkHour = tmWorkHourC[workDescr]!!
             sbWorkDescr.append(workDescr)
             sbWorkShiftWork.append('-')
-            sbCalcWork.append(getSplittedDouble(cWorkHour, 1))
+            sbCalcWork.append(getSplittedDouble(cWorkHour, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider))
             sbDiffWorkValue.append('-')
             sbDiffWorkPercent.append('-')
             isRed = true
@@ -456,7 +478,7 @@ class cWorkShiftCompare : cMMSReport() {
             }
             val wLiquidUsing = tmLiquidUsingW[liquidDescr]!!
             sbLiquidDescr.append(liquidDescr)
-            sbWorkShiftLiquidUsing.append(getSplittedDouble(wLiquidUsing, 1))
+            sbWorkShiftLiquidUsing.append(getSplittedDouble(wLiquidUsing, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider))
 
             val cLiquidUsing = tmLiquidUsingC[liquidDescr]
             if (cLiquidUsing == null || cLiquidUsing < 0) {
@@ -465,11 +487,11 @@ class cWorkShiftCompare : cMMSReport() {
                 sbDiffLiquidUsingPercent.append('-')
                 isRed = true
             } else {
-                sbCalcLiquidUsing.append(getSplittedDouble(cLiquidUsing, 1))
-                sbDiffLiquidUsingValue.append(getSplittedDouble(wLiquidUsing - cLiquidUsing, 1))
+                sbCalcLiquidUsing.append(getSplittedDouble(cLiquidUsing, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider))
+                sbDiffLiquidUsingValue.append(getSplittedDouble(wLiquidUsing - cLiquidUsing, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider))
                 sbDiffLiquidUsingPercent.append(
                     if (cLiquidUsing == 0.0) "100"
-                    else getSplittedDouble((wLiquidUsing - cLiquidUsing) / cLiquidUsing * 100.0, 1)
+                    else getSplittedDouble((wLiquidUsing - cLiquidUsing) / cLiquidUsing * 100.0, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
                 )
                 isRed = isRed or (cLiquidUsing == 0.0 || Math.abs(wLiquidUsing - cLiquidUsing) / cLiquidUsing * 100.0 > reportMaxDiff)
             }
@@ -487,7 +509,7 @@ class cWorkShiftCompare : cMMSReport() {
             val cLiquidUsing = tmLiquidUsingC[liquidDescr]!!
             sbLiquidDescr.append(liquidDescr)
             sbWorkShiftLiquidUsing.append('-')
-            sbCalcLiquidUsing.append(getSplittedDouble(cLiquidUsing, 1))
+            sbCalcLiquidUsing.append(getSplittedDouble(cLiquidUsing, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider))
             sbDiffLiquidUsingValue.append('-')
             sbDiffLiquidUsingPercent.append('-')
             isRed = true

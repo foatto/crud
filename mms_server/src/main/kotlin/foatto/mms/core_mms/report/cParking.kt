@@ -111,8 +111,8 @@ class cParking : cMMSReport() {
                 sheet.addCell(Label(offsX++, offsY, DateTime_DMYHMS(zoneId, gpd.endTime), wcfCellC))
                 sheet.addCell(Label(offsX++, offsY, secondIntervalToString(gpd.begTime, gpd.endTime), wcfCellC))
 
-                val (sWorkDescr, sWorkTotal) = ObjectCalc.fillWorkString(gpd.calc!!.tmWork)
-                val (sLiquidUsingName, sLiquidUsingTotal) = ObjectCalc.fillLiquidUsingString(gpd.calc!!.tmLiquidUsing)
+                val (sWorkDescr, sWorkTotal) = ObjectCalc.fillWorkString(userConfig, gpd.calc!!.tmWork)
+                val (sLiquidUsingName, sLiquidUsingTotal) = ObjectCalc.fillLiquidUsingString(userConfig, gpd.calc!!.tmLiquidUsing)
 
                 sheet.addCell(Label(offsX++, offsY, sWorkDescr, wcfCellC))
                 sheet.addCell(Label(offsX++, offsY, sWorkTotal, wcfCellR))
