@@ -1,6 +1,6 @@
 package foatto.shop.report
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import foatto.core.link.FormData
 import foatto.core_server.app.server.cAbstractReport
 import foatto.shop.iShopApplication
@@ -17,7 +17,8 @@ import jxl.write.WritableSheet
 
 class cFiscalShiftClose : cAbstractReport() {
 
-    private val objectMapper: ObjectMapper = ObjectMapper().findAndRegisterModules()
+    // private val objectMapper: ObjectMapper = ObjectMapper().findAndRegisterModules()
+    private val objectMapper = jacksonObjectMapper()
 
     private val httpClient = HttpClient(Apache).config {
         install(JsonFeature) {
@@ -45,7 +46,9 @@ class cFiscalShiftClose : cAbstractReport() {
 
     override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
         val returnURL = super.doSave(action, alFormData, hmOut)
-        if (returnURL != null) return returnURL
+        if (returnURL != null) {
+            return returnURL
+        }
 
         closeFiscalShift()
 

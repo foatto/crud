@@ -51,7 +51,7 @@ class cPriceList : cAbstractCatalogReport() {
         alDim.add(76)    // "Наименование"
         alDim.add(9)     // "Цена"
 
-        for(i in alDim.indices) {
+        for (i in alDim.indices) {
             val cvNN = CellView()
             cvNN.size = alDim[i] * 256
             sheet.setColumnView(i, cvNN)
@@ -75,11 +75,11 @@ class cPriceList : cAbstractCatalogReport() {
     //--- рекурсивный расчёт
     private fun calcItem(ci: CalcItem) {
         //--- если это папка, пройдёмся рекурсивно по подпапкам и элементам
-        if(ci.ii.isFolder) {
+        if (ci.ii.isFolder) {
             ci.tmSubItem = TreeMap()
             val alSubID = hmCatalogParent[ci.ii.id]
-            if(alSubID != null)
-                for(subID in alSubID) {
+            if (alSubID != null)
+                for (subID in alSubID) {
                     val ciNew = CalcItem(hmItemInfo[subID]!!, ci.ii.name)
                     ci.tmSubItem!![ciNew.ii.name] = ciNew
                     tmItem[ciNew.ii.name] = ciNew
@@ -90,10 +90,10 @@ class cPriceList : cAbstractCatalogReport() {
         else {
             val isUseDestCatalog = DocumentTypeConfig.hsUseDestCatalog.contains(DocumentTypeConfig.TYPE_ALL)
             val isUseSourCatalog = DocumentTypeConfig.hsUseSourCatalog.contains(DocumentTypeConfig.TYPE_ALL)
-            for((name, wid) in tmWarehouseID) {
+            for ((name, wid) in tmWarehouseID) {
                 //--- специфика подсчёта отличается в зависимости от типа накладной
                 //--- ( иначе сумма перемещённых товаров всегда будет == 0, т.к. там всегда сколько ушло, столько и пришло )
-                val wcCount = cCatalog.calcCatalogCount(if(isUseDestCatalog) hmDestCount else null, if(isUseSourCatalog) hmSourCount else null, ci.ii.id, wid)
+                val wcCount = cCatalog.calcCatalogCount(if (isUseDestCatalog) hmDestCount else null, if (isUseSourCatalog) hmSourCount else null, ci.ii.id, wid)
                 //--- если тип накладной не указан, то это чистое суммирование ( т.е. состояние склада ),
                 //--- иначе сумма по накладным/операциям
                 //--- в отчёте по состоянию склада считаются все типы накладных
@@ -102,17 +102,17 @@ class cPriceList : cAbstractCatalogReport() {
             }
             //--- просуммируем для всех родителей
             var parentName = ci.parentName
-            while(parentName != null) {
+            while (parentName != null) {
                 val parentItem = tmItem[parentName]
                 var itemCount = 0
-                for(name in ci.tmWHCount.keys) {
+                for (name in ci.tmWHCount.keys) {
                     val parentCount = parentItem!!.tmWHCount[name]
                     parentItem.tmWHCount[name] = (parentCount ?: 0.0) + ci.tmWHCount[name]!!
                     //--- отдельно отслеживаем общее операционное кол-во по всем складам
                     itemCount += ci.tmWHCount[name]!!.toInt()
                 }
                 //--- если кол-во отлично от 0 - увеличиваем счётчик кол-ва наименований
-                if(itemCount != 0) parentItem!!.subItemCount++
+                if (itemCount != 0) parentItem!!.subItemCount++
                 parentName = parentItem!!.parentName
             }
         }
@@ -123,37 +123,46 @@ class cPriceList : cAbstractCatalogReport() {
         var offsY = aOffsY
         //--- пропускаем строки с полностью нулевыми количествами
         var isExist = false
-        for(wName in tmWarehouseID.keys) {
+        for (wName in tmWarehouseID.keys) {
             val count = ci.tmWHCount[wName]
-            if(count != null && count != 0.0) {
+            if (count != null && count != 0.0) {
                 isExist = true
                 break
             }
         }
-        if(!isExist) return offsY
+        if (!isExist) return offsY
 
         //--- при выводе прайс-листа первую строку "ВСЕГО" не выводим
-        if(ci.ii.name == ROOT_ITEM_NAME) {
+        if (ci.ii.name == ROOT_ITEM_NAME) {
         } else {
             //--- пишем номер строки только для товара
-            if(!ci.ii.isFolder) sheet.addCell(Label(0, offsY, (countNN++).toString(), wcfNN))
+            if (!ci.ii.isFolder) sheet.addCell(Label(0, offsY, (countNN++).toString(), wcfNN))
 
-            val appendStr = if(ci.ii.isFolder && (ci.parentName == null || ci.parentName == ROOT_ITEM_NAME)) "\n" else ""
-            sheet.addCell(Label(1, offsY, "$appendStr${ci.ii.name}$appendStr", if(ci.ii.isFolder) wcfCellLBStdYellow else wcfCellL))
+            val appendStr = if (ci.ii.isFolder && (ci.parentName == null || ci.parentName == ROOT_ITEM_NAME)) "\n" else ""
+            sheet.addCell(Label(1, offsY, "$appendStr${ci.ii.name}$appendStr", if (ci.ii.isFolder) wcfCellLBStdYellow else wcfCellL))
 
-            if(!ci.ii.isFolder) sheet.addCell(Label(2, offsY, getSplittedDouble(PriceData.getPrice(hmPrice, ci.ii.id, getCurrentTimeInt()), 2).toString(), wcfCellR))
+            if (!ci.ii.isFolder) {
+                sheet.addCell(
+                    Label(
+                        2,
+                        offsY,
+                        getSplittedDouble(PriceData.getPrice(hmPrice, ci.ii.id, getCurrentTimeInt()), 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider),
+                        wcfCellR
+                    )
+                )
+            }
             offsY++
         }
 
-        if(ci.tmSubItem != null) {
+        if (ci.tmSubItem != null) {
             //--- сначала выводим элементы из своей папки, только потом подпапки
-            for(name in ci.tmSubItem!!.keys) {
+            for (name in ci.tmSubItem!!.keys) {
                 val ciSub = ci.tmSubItem!![name]!!
-                if(ciSub.tmSubItem == null) offsY = outItem(sheet, offsY, ciSub)
+                if (ciSub.tmSubItem == null) offsY = outItem(sheet, offsY, ciSub)
             }
-            for(name in ci.tmSubItem!!.keys) {
+            for (name in ci.tmSubItem!!.keys) {
                 val ciSub = ci.tmSubItem!![name]!!
-                if(ciSub.tmSubItem != null) offsY = outItem(sheet, offsY, ciSub)
+                if (ciSub.tmSubItem != null) offsY = outItem(sheet, offsY, ciSub)
             }
         }
         return offsY

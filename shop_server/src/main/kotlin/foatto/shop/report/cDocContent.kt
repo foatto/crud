@@ -1,6 +1,6 @@
 package foatto.shop.report
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import foatto.core.link.FormData
 import foatto.core.link.XyDocumentConfig
 import foatto.core.util.DateTime_DMY
@@ -34,16 +34,17 @@ import jxl.format.PageOrientation
 import jxl.format.PaperSize
 import jxl.write.Label
 import jxl.write.WritableSheet
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.set
+import kotlin.math.ceil
 import kotlin.math.min
 
 class cDocContent : cAbstractReport() {
 
     private val arrDocTitle = arrayOf("ИП Карипова Гульнара Дамировна", "ИНН 165007039790  ОГРН 318169000001873")
 
-    private val objectMapper: ObjectMapper = ObjectMapper().findAndRegisterModules()
+    // private val objectMapper: ObjectMapper = ObjectMapper().findAndRegisterModules()
+    private val objectMapper = jacksonObjectMapper()
 
     private val httpClient = HttpClient(Apache).config {
         install(JsonFeature) {
@@ -412,23 +413,28 @@ class cDocContent : cAbstractReport() {
                 if (isRowUseSourCatalog) priceOut = PriceData.getPrice(hmPrice, rs.getInt(10), zoneId, docYe, docMo, docDa)
 
                 sheet.addCell(Label(offsX++, offsY, if (isRowUseSourCatalog) rs.getString(11) else "", wcfCellL))
-                sheet.addCell(Label(offsX++, offsY, if (isRowUseSourCatalog) getSplittedDouble(priceOut, 2).toString() else "", wcfCellR))
+                sheet.addCell(Label(offsX++, offsY, if (isRowUseSourCatalog) getSplittedDouble(priceOut, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider) else "", wcfCellR))
             }
             if (isUseSourNum) {
                 if (isRowUseSourNum) num = rs.getDouble(12)
-                sheet.addCell(Label(offsX++, offsY, if (isRowUseSourNum) getSplittedDouble(num, -1).toString() else "", wcfCellC))
+                sheet.addCell(Label(offsX++, offsY, if (isRowUseSourNum) getSplittedDouble(num, -1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider) else "", wcfCellC))
             }
             if (isUseDestCatalog) {
                 if (isRowUseDestCatalog) priceOut = PriceData.getPrice(hmPrice, rs.getInt(13), zoneId, docYe, docMo, docDa)
 
                 sheet.addCell(Label(offsX++, offsY, if (isRowUseDestCatalog) rs.getString(14) else "", wcfCellL))
-                sheet.addCell(Label(offsX++, offsY, if (isRowUseDestCatalog) getSplittedDouble(priceOut, 2).toString() else "", wcfCellR))
+                sheet.addCell(Label(offsX++, offsY, if (isRowUseDestCatalog) getSplittedDouble(priceOut, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider) else "", wcfCellR))
             }
             if (isUseDestNum) {
                 if (isRowUseDestNum) num = rs.getDouble(15)
-                sheet.addCell(Label(offsX++, offsY, if (isRowUseDestNum) getSplittedDouble(num, -1).toString() else "", wcfCellC))
+                sheet.addCell(Label(
+                    offsX++,
+                    offsY,
+                    if (isRowUseDestNum) getSplittedDouble(num, -1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider) else "",
+                    wcfCellC
+                ))
             }
-            sheet.addCell(Label(offsX++, offsY, getSplittedDouble(priceOut * num, 2).toString(), wcfCellR))
+            sheet.addCell(Label(offsX++, offsY, getSplittedDouble(priceOut * num, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellR))
 
             offsY++
 
@@ -442,21 +448,36 @@ class cDocContent : cAbstractReport() {
         var discountedCost = 0.0
         if (reportDocumentType != DocumentTypeConfig.TYPE_ALL) {
             sheet.addCell(Label(1, offsY, "ИТОГО:", wcfTextRB))
-            sheet.addCell(Label(alCaption.size - 2, offsY, getSplittedDouble(sumNum, -1).toString(), wcfTextCB))
-            sheet.addCell(Label(alCaption.size - 1, offsY, getSplittedDouble(sumCostOut, 2).toString(), wcfTextRB))
+            sheet.addCell(Label(alCaption.size - 2, offsY, getSplittedDouble(sumNum, -1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfTextCB))
+            sheet.addCell(Label(alCaption.size - 1, offsY, getSplittedDouble(sumCostOut, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfTextRB))
             offsY++
             if (reportDocument != 0 && reportDocumentType == DocumentTypeConfig.TYPE_OUT) {
                 sheet.addCell(Label(1, offsY, "Скидка:", wcfTextRB))
 
-                sheet.addCell(Label(alCaption.size - 2, offsY, getSplittedDouble(discount, 1) + " %", wcfTextCB))
-                sheet.addCell(Label(alCaption.size - 1, offsY, getSplittedDouble(Math.ceil(sumCostOut * discount / 100), 2).toString(), wcfTextRB))
+                sheet.addCell(Label(
+                    alCaption.size - 2,
+                    offsY,
+                    getSplittedDouble(discount, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider) + " %",
+                    wcfTextCB
+                ))
+                sheet.addCell(Label(
+                    alCaption.size - 1,
+                    offsY,
+                    getSplittedDouble(ceil(sumCostOut * discount / 100), 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider),
+                    wcfTextRB
+                ))
                 offsY++
 
                 //--- пригодится для вывода текстовой суммы
                 discountedCost = Math.floor(sumCostOut * (1 - discount / 100))
 
                 sheet.addCell(Label(1, offsY, "Стоимость со скидкой:", wcfTextRB))
-                sheet.addCell(Label(alCaption.size - 1, offsY, getSplittedDouble(discountedCost, 2).toString(), wcfTextRB))
+                sheet.addCell(Label(
+                    alCaption.size - 1,
+                    offsY,
+                    getSplittedDouble(discountedCost, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider),
+                    wcfTextRB
+                ))
                 offsY++
             }
             offsY++
@@ -532,10 +553,8 @@ class cDocContent : cAbstractReport() {
                 name = name,
                 price = price,
                 count = count,
-                markingCode = if(markCode.isBlank()) {
+                markingCode = markCode.ifBlank {
                     null
-                } else {
-                    markCode
                 }
             )
         }
@@ -550,7 +569,7 @@ class cDocContent : cAbstractReport() {
             fiscalTaxMode = fiscalTaxMode,
             fiscalPlace = fiscalPlace,
         )
-        if(fiscalOnceOnly) {
+        if (fiscalOnceOnly) {
             stm.executeUpdate(" UPDATE SHOP_doc SET is_fiscaled = 1 WHERE id = $docId ")
         }
     }

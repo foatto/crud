@@ -127,10 +127,10 @@ class cOperationHistory : cAbstractReport() {
             for((_, wID) in tmWarehouseID) {
                 val num = ohr.hmHWState[wID]!!
 
-                sheet.addCell(Label(offsX++, offsY, getSplittedDouble(num, -1).toString(), if(num < 0) wcfCellCBStdRed else wcfCellC))
+                sheet.addCell(Label(offsX++, offsY, getSplittedDouble(num, -1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), if(num < 0) wcfCellCBStdRed else wcfCellC))
                 whSum += num
             }
-            sheet.addCell(Label(offsX++, offsY, getSplittedDouble(whSum, -1).toString(), if(whSum < 0) wcfCellCBStdRed else wcfCellCBStdYellow))
+            sheet.addCell(Label(offsX++, offsY, getSplittedDouble(whSum, -1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), if(whSum < 0) wcfCellCBStdRed else wcfCellCBStdYellow))
             offsY++
 
             offsX = 0
@@ -150,7 +150,7 @@ class cOperationHistory : cAbstractReport() {
             wcfNum.setBackground(docColour)
 
             sheet.addCell(Label(offsX++, offsY, "${hmAliasConfig[DocumentTypeConfig.hmDocTypeAlias[ohr.type]]?.descr ?: "Переоценка"}    ${ohr.date}\n${ohr.doc}", wcfDoc))
-            sheet.addCell(Label(offsX++, offsY, getSplittedDouble(ohr.operNum, -1).toString(), wcfNum))
+            sheet.addCell(Label(offsX++, offsY, getSplittedDouble(ohr.operNum, -1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfNum))
 
             offsY++
         }
@@ -231,7 +231,7 @@ class cOperationHistory : cAbstractReport() {
                     alResult.add(
                         0, OperationHistoryResult(
                             -1, priceDate,
-                            "${if(priceData.priceType == mPrice.PRICE_TYPE_IN) "Закупочная" else "Розничная"} цена = ${getSplittedDouble(priceData.priceValue, 2)}",
+                            "${if(priceData.priceType == mPrice.PRICE_TYPE_IN) "Закупочная" else "Розничная"} цена = ${getSplittedDouble(priceData.priceValue, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)}",
                             0.0, hmCurrentHWState
                         )
                     )
@@ -283,7 +283,7 @@ class cOperationHistory : cAbstractReport() {
             alResult.add(
                 0, OperationHistoryResult(
                     -1, priceDate,
-                    "${if(priceData.priceType == mPrice.PRICE_TYPE_IN) "Закупочная" else "Розничная"} цена = ${getSplittedDouble(priceData.priceValue, 2)}",
+                    "${if(priceData.priceType == mPrice.PRICE_TYPE_IN) "Закупочная" else "Розничная"} цена = ${getSplittedDouble(priceData.priceValue, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)}",
                     0.0, hmCurrentHWState
                 )
             )

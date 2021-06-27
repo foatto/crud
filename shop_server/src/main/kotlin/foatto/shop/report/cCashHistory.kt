@@ -23,7 +23,6 @@ import jxl.format.PaperSize
 import jxl.write.Label
 import jxl.write.WritableSheet
 import java.time.ZonedDateTime
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 class cCashHistory : cAbstractReport() {
@@ -99,8 +98,8 @@ class cCashHistory : cAbstractReport() {
         offsY++
         sheet.addCell(
             Label(
-                1, offsY++, "с ${if(reportBegDay < 10) "0" else ""}$reportBegDay.${if(reportBegMonth < 10) "0" else ""}$reportBegMonth.$reportBegYear" +
-                    " по ${if(reportEndDay < 10) "0" else ""}$reportEndDay.${if(reportEndMonth < 10) "0" else ""}$reportEndMonth.$reportEndYear", wcfTitleL
+                1, offsY++, "с ${if (reportBegDay < 10) "0" else ""}$reportBegDay.${if (reportBegMonth < 10) "0" else ""}$reportBegMonth.$reportBegYear" +
+                    " по ${if (reportEndDay < 10) "0" else ""}$reportEndDay.${if (reportEndMonth < 10) "0" else ""}$reportEndMonth.$reportEndYear", wcfTitleL
             )
         )
         offsY++
@@ -138,14 +137,14 @@ class cCashHistory : cAbstractReport() {
         alCaption.add("Примечания")
         alDim.add(33)
 
-        for(i in alDim.indices) {
+        for (i in alDim.indices) {
             val cvNN = CellView()
             cvNN.size = alDim[i] * 256
             sheet.setColumnView(i, cvNN)
         }
         //--- вывод заголовков
         var offsX = 0
-        for(caption in alCaption) sheet.addCell(Label(offsX++, offsY, caption, wcfCaptionHC))
+        for (caption in alCaption) sheet.addCell(Label(offsX++, offsY, caption, wcfCaptionHC))
 
         offsY++
 
@@ -162,7 +161,7 @@ class cCashHistory : cAbstractReport() {
         val rs = stm.executeQuery(
             " SELECT ye , mo , da , cash_put , cash_used , debt_out , debt_in , cash_rest , descr FROM SHOP_cash WHERE warehouse_id = $reportWarehouse ORDER BY ye , mo , da "
         )
-        while(rs.next()) {
+        while (rs.next()) {
             //--- данные по сдаче наличности по журналу
             val ye = rs.getInt(1)
             val mo = rs.getInt(2)
@@ -176,7 +175,7 @@ class cCashHistory : cAbstractReport() {
 
             gcCur = ZonedDateTime.of(ye, mo, da, 0, 0, 0, 0, zoneId)
 
-            if(gcCur.isAfter(gcEnd)) break
+            if (gcCur.isAfter(gcEnd)) break
 
             //--- реализация на дату по накладным
             val arrDT = intArrayOf(ye, mo, da, 0, 0, 0)
@@ -185,22 +184,22 @@ class cCashHistory : cAbstractReport() {
             val cashDiff = cashRestCalc - cashRest
             //--- нужна сумма за ВСЁ время
             //--- (поправка: за ВСЁ время - приходит много ранних ошибок, суммируем только с 01.01.2019)
-            if(gcCur.isAfter(gcDiffSumStart)) sumDiff += cashDiff
+            if (gcCur.isAfter(gcDiffSumStart)) sumDiff += cashDiff
 
             //--- запрашиваемый период
-            if(!gcCur.isBefore(gcBeg)) {
+            if (!gcCur.isBefore(gcBeg)) {
 
                 sheet.addCell(Label(0, offsY, (countNN++).toString(), wcfNN))
                 sheet.addCell(Label(1, offsY, DateTime_DMY(arrDT), wcfCellC))
-                sheet.addCell(Label(2, offsY, getSplittedDouble(cashRestPrev, 2).toString(), wcfCellR))
-                sheet.addCell(Label(3, offsY, getSplittedDouble(cashOut, 2).toString(), wcfCellR))
-                sheet.addCell(Label(4, offsY, getSplittedDouble(cashPut, 2).toString(), wcfCellR))
-                sheet.addCell(Label(5, offsY, getSplittedDouble(cashUsed, 2).toString(), wcfCellR))
-                sheet.addCell(Label(6, offsY, getSplittedDouble(debtOut, 2).toString(), wcfCellR))
-                sheet.addCell(Label(7, offsY, getSplittedDouble(debtIn, 2).toString(), wcfCellR))
-                sheet.addCell(Label(8, offsY, getSplittedDouble(cashRestCalc, 2).toString(), wcfCellR))
-                sheet.addCell(Label(9, offsY, getSplittedDouble(cashRest, 2).toString(), wcfCellR))
-                sheet.addCell(Label(10, offsY, getSplittedDouble(cashDiff, 2).toString(), wcfCellR))
+                sheet.addCell(Label(2, offsY, getSplittedDouble(cashRestPrev, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellR))
+                sheet.addCell(Label(3, offsY, getSplittedDouble(cashOut, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellR))
+                sheet.addCell(Label(4, offsY, getSplittedDouble(cashPut, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellR))
+                sheet.addCell(Label(5, offsY, getSplittedDouble(cashUsed, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellR))
+                sheet.addCell(Label(6, offsY, getSplittedDouble(debtOut, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellR))
+                sheet.addCell(Label(7, offsY, getSplittedDouble(debtIn, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellR))
+                sheet.addCell(Label(8, offsY, getSplittedDouble(cashRestCalc, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellR))
+                sheet.addCell(Label(9, offsY, getSplittedDouble(cashRest, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellR))
+                sheet.addCell(Label(10, offsY, getSplittedDouble(cashDiff, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellR))
                 sheet.addCell(Label(11, offsY, cashDescr, wcfCellC))
 
                 offsY++
@@ -219,12 +218,12 @@ class cCashHistory : cAbstractReport() {
         offsY++
 
         sheet.addCell(Label(2, offsY, "ИТОГО:", wcfCellR))
-        sheet.addCell(Label(3, offsY, getSplittedDouble(sumOut, 2).toString(), wcfCellRBStdYellow))
-        sheet.addCell(Label(4, offsY, getSplittedDouble(sumPut, 2).toString(), wcfCellRBStdYellow))
-        sheet.addCell(Label(5, offsY, getSplittedDouble(sumUsed, 2).toString(), wcfCellRBStdYellow))
-        sheet.addCell(Label(6, offsY, getSplittedDouble(sumDebtOut, 2).toString(), wcfCellRBStdYellow))
-        sheet.addCell(Label(7, offsY, getSplittedDouble(sumDebtIn, 2).toString(), wcfCellRBStdYellow))
-        sheet.addCell(Label(10, offsY, getSplittedDouble(sumDiff, 2).toString(), wcfCellRBStdYellow))
+        sheet.addCell(Label(3, offsY, getSplittedDouble(sumOut, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellRBStdYellow))
+        sheet.addCell(Label(4, offsY, getSplittedDouble(sumPut, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellRBStdYellow))
+        sheet.addCell(Label(5, offsY, getSplittedDouble(sumUsed, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellRBStdYellow))
+        sheet.addCell(Label(6, offsY, getSplittedDouble(sumDebtOut, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellRBStdYellow))
+        sheet.addCell(Label(7, offsY, getSplittedDouble(sumDebtIn, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellRBStdYellow))
+        sheet.addCell(Label(10, offsY, getSplittedDouble(sumDiff, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellRBStdYellow))
 
         offsY += 2
 
@@ -246,7 +245,7 @@ class cCashHistory : cAbstractReport() {
             " SELECT id , discount FROM SHOP_doc WHERE is_deleted = 0 AND sour_id = $aWarehouseID AND doc_type = ${DocumentTypeConfig.TYPE_OUT} " +
                 " AND doc_ye = ${arrDT[0]} AND doc_mo = ${arrDT[1]} AND doc_da = ${arrDT[2]} "
         )
-        while(rs.next()) {
+        while (rs.next()) {
             alDocID.add(rs.getInt(1))
             alDocType.add(DocumentTypeConfig.TYPE_OUT)
             alDocDiscount.add(rs.getDouble(2))
@@ -258,7 +257,7 @@ class cCashHistory : cAbstractReport() {
             " SELECT id , discount FROM SHOP_doc WHERE is_deleted = 0 AND dest_id = $aWarehouseID AND doc_type = ${DocumentTypeConfig.TYPE_RETURN_OUT} " +
                 " AND doc_ye = ${arrDT[0]} AND doc_mo = ${arrDT[1]} AND doc_da = ${arrDT[2]} "
         )
-        while(rs.next()) {
+        while (rs.next()) {
             alDocID.add(rs.getInt(1))
             alDocType.add(DocumentTypeConfig.TYPE_RETURN_OUT)
             alDocDiscount.add(rs.getDouble(2))
@@ -267,12 +266,12 @@ class cCashHistory : cAbstractReport() {
 
         //--- теперь для каждого документа
         var result = 0.0
-        for(i in alDocID.indices) {
+        for (i in alDocID.indices) {
             val docID = alDocID[i]
             val docType = alDocType[i]
             val discount = alDocDiscount[i]
 
-            result += (if(docType == DocumentTypeConfig.TYPE_OUT) 1 else -1) *
+            result += (if (docType == DocumentTypeConfig.TYPE_OUT) 1 else -1) *
                 cDocument.calcDocCountAndCost(stmCalc, hmPrice, docID, docType, zoneId, arrDT[0], arrDT[1], arrDT[2], discount).second
         }
 

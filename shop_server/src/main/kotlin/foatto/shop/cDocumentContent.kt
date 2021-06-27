@@ -139,7 +139,7 @@ class cDocumentContent : cStandart() {
             rs.close()
             //--- подсчёт стоимости накладной
             docCost = cDocument.calcDocCountAndCost(stm, hmPrice, docId!!, localDocType, zoneId, docYe, docMo, docDa, discount).second
-            sHeader += ", общая стоимость: ${getSplittedDouble(docCost, 2)}"
+            sHeader += ", общая стоимость: ${getSplittedDouble(docCost, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)}"
         }
         alPath.add(Pair("", sHeader))
     }
@@ -483,7 +483,9 @@ class cDocumentContent : cStandart() {
 
         //--- явно менять поле последнего изменения только при повторном сохранении,
         //--- при первом сохранении при создании оставлять значение по умолчанию, равное времени создания
-        if (id != 0) (hmColumnData[mdc.columnEditTime] as DataDateTimeInt).setDateTime(getCurrentTimeInt())
+        if (id != 0) {
+            (hmColumnData[mdc.columnEditTime] as DataDateTimeInt).setDateTime(getCurrentTimeInt())
+        }
         updateDocumentContentEditTime(hmColumnData, false)
 
         val sourNum = hmColumnData[mdc.columnSourNum] as DataDouble

@@ -46,8 +46,8 @@ class cPriceTag : cAbstractReport() {
         val mpt = model as mPriceTag
 
         //--- выборка данных параметров для отчета
-        for(i in 0 until mPriceTag.ROWS)
-            for(j in 0 until mPriceTag.COLS) {
+        for (i in 0 until mPriceTag.ROWS)
+            for (j in 0 until mPriceTag.COLS) {
                 val paramName = "report_catalog_$i$j"
                 hmReportParam[paramName] = (hmColumnData[mpt.getColumnCatalog(i, j)] as DataInt).intValue
             }
@@ -116,28 +116,28 @@ class cPriceTag : cAbstractReport() {
         //        wcfSignR.setWrap(  true  );
         //        wcfSignR.setBorder(  Border.RIGHT, BorderLineStyle.THIN  );
 
-        for(i in 0 until mPriceTag.COLS) {
+        for (i in 0 until mPriceTag.COLS) {
             val cvNN = CellView()
             cvNN.size = 96 / mPriceTag.COLS * 256
             sheet.setColumnView(i, cvNN)
         }
 
         //--- загрузка стартовых параметров
-        for(i in 0 until mPriceTag.ROWS)
-            for(j in 0 until mPriceTag.COLS) {
+        for (i in 0 until mPriceTag.ROWS)
+            for (j in 0 until mPriceTag.COLS) {
                 val paramName = "report_catalog_$i$j"
                 val catalogID = hmReportParam[paramName] as Int
                 var catalogName = ""
                 var catalogPrice = 0.0
 
-                if(catalogID != 0) {
+                if (catalogID != 0) {
                     val rs = stm.executeQuery(" SELECT name FROM SHOP_catalog WHERE id = $catalogID ")
-                    if(rs.next()) {
+                    if (rs.next()) {
                         catalogName = rs.getString(1)
 
                         //--- убрираем из названия цену - последнее слово в скобках
                         val pos = catalogName.lastIndexOf('(')
-                        if(pos != -1) catalogName = catalogName.substring(0, pos).trim()
+                        if (pos != -1) catalogName = catalogName.substring(0, pos).trim()
                     }
                     rs.close()
                     //--- могут быть пустые ячейки ценников, устанавливаем здесь, когда ясно, что catalogID != 0
@@ -149,7 +149,7 @@ class cPriceTag : cAbstractReport() {
                 sheet.addCell(Label(j, i * TAG_HEIGHT, catalogName, wcfName))
                 sheet.mergeCells(j, i * TAG_HEIGHT, j, i * TAG_HEIGHT + 5)
 
-                sheet.addCell(Label(j, i * TAG_HEIGHT + 6, getSplittedDouble(catalogPrice, 2).toString(), wcfPrice))
+                sheet.addCell(Label(j, i * TAG_HEIGHT + 6, getSplittedDouble(catalogPrice, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfPrice))
                 sheet.mergeCells(j, i * TAG_HEIGHT + 6, j, i * TAG_HEIGHT + 8)
 
 //                sheet.addCell( Label( j, i * TAG_HEIGHT + 13, "( 1 шт. )", wcfDim ) )
