@@ -15,7 +15,7 @@ import foatto.sql.CoreAdvancedStatement
 
 class mCompany : mAbstract() {
 
-    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
+    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
@@ -47,7 +47,7 @@ class mCompany : mAbstract() {
 
         //----------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID!!)
+        alTableHiddenColumn.add(columnID)
         alTableHiddenColumn.add(columnCity)
         //--- показывать не надо, но для селектора необходимо наличие в выборке
         alTableHiddenColumn.add(columnCityPhoneCode)
@@ -60,7 +60,7 @@ class mCompany : mAbstract() {
         addTableColumn(columnCityName)
         //        addTableColumn( columnFile );
 
-        alFormHiddenColumn.add(columnID!!)
+        alFormHiddenColumn.add(columnID)
         alFormHiddenColumn.add(columnCity)
 
         alFormColumn.add(columnCompanyBlackList)
@@ -84,19 +84,19 @@ class mCompany : mAbstract() {
 
         //----------------------------------------------------------------------------------------
 
-//        alChildData.add(ChildData("office_reminder", columnID!!, true))
-//        alChildData.add(ChildData("office_reminder_call", columnID!!))
-//        alChildData.add(ChildData("office_reminder_meet", columnID!!))
-//        alChildData.add(ChildData("office_reminder_call_remember", columnID!!))
-//        alChildData.add(ChildData("office_reminder_input_call", columnID!!))
+//        alChildData.add(ChildData("office_reminder", columnID, true))
+//        alChildData.add(ChildData("office_reminder_call", columnID))
+//        alChildData.add(ChildData("office_reminder_meet", columnID))
+//        alChildData.add(ChildData("office_reminder_call_remember", columnID))
+//        alChildData.add(ChildData("office_reminder_input_call", columnID))
 //        //alChildData.add( new ChildData( "office_reminder_meeting" , columnID ) ); - неприменимо для совещаний
-//        alChildData.add(ChildData("office_reminder_other", columnID!!))
+//        alChildData.add(ChildData("office_reminder_other", columnID))
 
-        alChildData.add(ChildData("office_people", columnID!!, true))
-//        alChildData.add(ChildData("office_client_not_need", columnID!!))
-//        alChildData.add(ChildData("office_client_in_work", columnID!!))
-//        alChildData.add(ChildData("office_client_out_work", columnID!!))
-//        alChildData.add(ChildData("office_client_work_view", columnID!!, true))
+        alChildData.add(ChildData("office_people", columnID, true))
+//        alChildData.add(ChildData("office_client_not_need", columnID))
+//        alChildData.add(ChildData("office_client_in_work", columnID))
+//        alChildData.add(ChildData("office_client_out_work", columnID))
+//        alChildData.add(ChildData("office_client_work_view", columnID, true))
 
         //----------------------------------------------------------------------------------------
 

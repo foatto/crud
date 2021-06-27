@@ -40,7 +40,7 @@ class mPeople : mAbstract() {
         userConfig: UserConfig,
         aHmParam: Map<String, String>,
         hmParentData: MutableMap<String, Int>,
-        id: Int
+        id: Int?
     ) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
@@ -211,7 +211,7 @@ class mPeople : mAbstract() {
 
         //---------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID!!)
+        alTableHiddenColumn.add(columnID)
         alTableHiddenColumn.add(columnUser!!)
         if (!isPeople) alTableHiddenColumn.add(columnUser_!!)
         if (isPeople) alTableHiddenColumn.add(columnPeopleManager!!)
@@ -260,7 +260,7 @@ class mPeople : mAbstract() {
         addTableColumn(columnFile)
 
 
-        alFormHiddenColumn.add(columnID!!)
+        alFormHiddenColumn.add(columnID)
         if (!isPeople) alFormHiddenColumn.add(columnUser_!!)
         if (isPeople) alFormHiddenColumn.add(columnPeopleManager!!)
         alFormHiddenColumn.add(columnCompany)
@@ -321,16 +321,16 @@ class mPeople : mAbstract() {
         //----------------------------------------------------------------------------------------
 
         if (isPeople) {
-            alChildData.add(ChildData("office_reminder", columnID!!, true))
-            alChildData.add(ChildData("office_reminder_call", columnID!!))
-            alChildData.add(ChildData("office_reminder_meet", columnID!!))
-            alChildData.add(ChildData("office_reminder_call_remember", columnID!!))
-            alChildData.add(ChildData("office_reminder_input_call", columnID!!))
+            alChildData.add(ChildData("office_reminder", columnID, true))
+            alChildData.add(ChildData("office_reminder_call", columnID))
+            alChildData.add(ChildData("office_reminder_meet", columnID))
+            alChildData.add(ChildData("office_reminder_call_remember", columnID))
+            alChildData.add(ChildData("office_reminder_input_call", columnID))
             //alChildData.add( new ChildData( "office_reminder_meeting" , columnID ) ); - неприменимо для совещаний
-            alChildData.add(ChildData("office_reminder_other", columnID!!))
-            alChildData.add(ChildData("office_client_work_view", columnID!!, true))
+            alChildData.add(ChildData("office_reminder_other", columnID))
+            alChildData.add(ChildData("office_client_work_view", columnID, true))
         } else {
-            alChildData.add(ChildData("office_client_work_history", columnID!!, true, true))
+            alChildData.add(ChildData("office_client_work_history", columnID, true, true))
         }
 
         //----------------------------------------------------------------------------------------

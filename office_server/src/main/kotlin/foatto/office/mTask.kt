@@ -32,7 +32,7 @@ class mTask : mAbstract() {
         return ALERT_TAG
     }
 
-    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int) {
+    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
@@ -77,7 +77,7 @@ class mTask : mAbstract() {
 
         //------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID!!)
+        alTableHiddenColumn.add(columnID)
         alTableHiddenColumn.add(columnUser!!)
         alTableHiddenColumn.add(columnActive!!)
         alTableHiddenColumn.add(columnArchive!!)
@@ -89,7 +89,7 @@ class mTask : mAbstract() {
         addTableColumn(columnTaskSubj)
         addTableColumn(columnFile)
 
-        alFormHiddenColumn.add(columnID!!)
+        alFormHiddenColumn.add(columnID)
         alFormHiddenColumn.add(columnUser!!)
         alFormHiddenColumn.add(columnOtherUser)
         alFormHiddenColumn.add(columnActive!!)
@@ -117,8 +117,8 @@ class mTask : mAbstract() {
 
         //----------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData("office_task_thread", columnID!!, true, true))
-        alChildData.add(ChildData("office_report_task_thread", columnID!!, AppAction.FORM, true))
+        alChildData.add(ChildData("office_task_thread", columnID, true, true))
+        alChildData.add(ChildData("office_report_task_thread", columnID, AppAction.FORM, true))
 
         //----------------------------------------------------------------------------------------
 
