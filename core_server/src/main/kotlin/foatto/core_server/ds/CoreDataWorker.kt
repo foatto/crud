@@ -4,12 +4,11 @@ import foatto.core.util.AdvancedLogger
 import foatto.core.util.getCurrentTimeInt
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedStatement
-import java.util.*
 
 abstract class CoreDataWorker protected constructor(val dataServer: CoreDataServer) : Thread() {
 
-    val alConn = ArrayList<CoreAdvancedConnection>()
-    val alStm = ArrayList<CoreAdvancedStatement>()
+    lateinit var conn: CoreAdvancedConnection
+    lateinit var stm: CoreAdvancedStatement
 
     init {
         openDB()
@@ -78,7 +77,7 @@ abstract class CoreDataWorker protected constructor(val dataServer: CoreDataServ
         var lastSQLCheck = aLastSQLCheck
         if (getCurrentTimeInt() - lastSQLCheck > dataServer.dbPingInterval) {
             try {
-                val rs = alStm[0].executeQuery(dataServer.dbPingQuery)
+                val rs = stm.executeQuery(dataServer.dbPingQuery)
                 rs.next()
                 rs.close()
             } catch (t: Throwable) {
@@ -93,35 +92,25 @@ abstract class CoreDataWorker protected constructor(val dataServer: CoreDataServ
     }
 
     private fun openDB() {
-        //--- на случай переоткрытия баз - надёжнее именно здесь
-        alConn.clear()
-        alStm.clear()
-
-        for (i in dataServer.alDBConfig.indices) {
-            val conn = openConnection(i)
-
-            alConn.add(conn)
-            alStm.add(conn.createStatement())
-        }
+        conn = openConnection()
+        stm = conn.createStatement()
     }
 
     //--- открытие коннектов к базе - имеет свои особенности на разных платформах
-    protected abstract fun openConnection(dbIndex: Int): CoreAdvancedConnection
+    protected abstract fun openConnection(): CoreAdvancedConnection
 
     //--- закрытие баз - своих особенностей на разных платформах не обнаружилось
     private fun closeDB() {
-        for (stm in alStm)
-            try {
-                stm.close()
-            } catch (re: Throwable) {
-                AdvancedLogger.error(re)
-            }
+        try {
+            stm.close()
+        } catch (re: Throwable) {
+            AdvancedLogger.error(re)
+        }
 
-        for (conn in alConn)
-            try {
-                conn.close()
-            } catch (re: Throwable) {
-                AdvancedLogger.error(re)
-            }
+        try {
+            conn.close()
+        } catch (re: Throwable) {
+            AdvancedLogger.error(re)
+        }
     }
 }

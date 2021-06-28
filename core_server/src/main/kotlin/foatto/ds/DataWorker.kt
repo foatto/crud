@@ -7,7 +7,7 @@ import foatto.sql.CoreAdvancedConnection
 
 class DataWorker constructor(aDataServer: CoreDataServer) : CoreDataWorker(aDataServer) {
 
-    override fun openConnection(dbIndex: Int): CoreAdvancedConnection {
-        return AdvancedConnection(dataServer.alDBConfig[dbIndex])
+    override fun openConnection(): CoreAdvancedConnection {
+        return AdvancedConnection(dataServer.dBConfig)
     }
 }
