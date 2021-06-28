@@ -17,9 +17,9 @@ class DataStatic( aColumn: iColumn ) : DataAbstract( aColumn ) {
     override fun loadFromDB(rs: CoreAdvancedResultSet, aPosRS: Int ) = 0
 
     override fun loadFromDefault() {}
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String, id: Int ) = true
+    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String?, id: Int ) = true
 
-    override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int ): TableCell =
+    override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell =
         if( isShowEmptyTableCell ) TableCell( row, col, column.rowSpan, column.colSpan  )
         else TableCell(
             aRow = row,
@@ -34,7 +34,7 @@ class DataStatic( aColumn: iColumn ) : DataAbstract( aColumn ) {
             aText = ( column as ColumnStatic ).staticValue
         )
 
-    override fun getFormCell( rootDirName: String, stm: CoreAdvancedStatement) = FormCell( FormCellType.STRING )
+    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement, isUseThousandsDivider: Boolean, decimalDivider: Char) = FormCell( FormCellType.STRING )
 
     override fun getFieldSQLValue(index: Int ): String = ""
 

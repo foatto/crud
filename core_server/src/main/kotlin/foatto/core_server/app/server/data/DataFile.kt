@@ -39,7 +39,7 @@ class DataFile(
 
     override fun loadFromDefault() {}
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String, id: Int): Boolean {
+    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String?, id: Int): Boolean {
         //--- на всякий случай, не тестировал
         hmFileAdd.clear()
         alFileRemovedID.clear()
@@ -51,7 +51,7 @@ class DataFile(
         return true
     }
 
-    override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int): TableCell {
+    override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell {
         if (isShowEmptyTableCell) {
             return TableCell(row, col, column.rowSpan, column.colSpan)
         }
@@ -84,7 +84,7 @@ class DataFile(
         return tc
     }
 
-    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement): FormCell {
+    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement, isUseThousandsDivider: Boolean, decimalDivider: Char): FormCell {
         val fci = FormCell(FormCellType.FILE)
         fci.fileName = getFieldCellName(0)
         fci.fileID = fileID

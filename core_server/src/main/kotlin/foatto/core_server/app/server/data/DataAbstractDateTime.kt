@@ -36,7 +36,7 @@ abstract class DataAbstractDateTime(aColumn: iColumn) : DataAbstract(aColumn) {
         errorText = null
     }
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String, id: Int): Boolean {
+    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String?, id: Int): Boolean {
         val cdt = column as ColumnAbstractDateTime
 
         val sDa = formData.alDateTimeValue!![0]
@@ -59,7 +59,7 @@ abstract class DataAbstractDateTime(aColumn: iColumn) : DataAbstract(aColumn) {
         return true
     }
 
-    override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int): TableCell {
+    override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell {
         val cdt = column as ColumnAbstractDateTime
 
         return if (isShowEmptyTableCell) {
@@ -81,7 +81,7 @@ abstract class DataAbstractDateTime(aColumn: iColumn) : DataAbstract(aColumn) {
         }
     }
 
-    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement): FormCell {
+    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement, isUseThousandsDivider: Boolean, decimalDivider: Char): FormCell {
         val cdt = column as ColumnDateTimeInt
 
         val fci = FormCell(FormCellType.DATE_TIME)

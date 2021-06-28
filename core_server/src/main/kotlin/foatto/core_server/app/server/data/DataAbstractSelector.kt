@@ -19,7 +19,7 @@ abstract class DataAbstractSelector(aColumn: iColumn, aFormCellType: FormCellTyp
         clearError()
     }
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String, id: Int): Boolean {
+    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String?, id: Int): Boolean {
         val cas = column as ColumnAbstractSelector
         cas.requiredExcept?.let {
             if (formData.comboValue!! == cas.requiredExcept) {
@@ -34,7 +34,7 @@ abstract class DataAbstractSelector(aColumn: iColumn, aFormCellType: FormCellTyp
         return true
     }
 
-    override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int): TableCell =
+    override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell =
         if (isShowEmptyTableCell) {
             TableCell(row, col, column.rowSpan, column.colSpan)
         } else {
@@ -56,7 +56,7 @@ abstract class DataAbstractSelector(aColumn: iColumn, aFormCellType: FormCellTyp
             )
         }
 
-    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement): FormCell {
+    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement, isUseThousandsDivider: Boolean, decimalDivider: Char): FormCell {
         val cas = column as ColumnAbstractSelector
 
         return FormCell(formCellType).apply {

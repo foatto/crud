@@ -29,12 +29,12 @@ class DataBoolean(aColumn: iColumn) : DataAbstract(aColumn) {
         value = validate(cb.defaultValue)
     }
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String, id: Int): Boolean {
+    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String?, id: Int): Boolean {
         value = formData.booleanValue!!
         return true
     }
 
-    override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int): TableCell =
+    override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell =
         if(isShowEmptyTableCell) TableCell(row, col, column.rowSpan, column.colSpan)
         else TableCell(
             aRow = row,
@@ -48,7 +48,7 @@ class DataBoolean(aColumn: iColumn) : DataAbstract(aColumn) {
             aBooleanValue = value
         )
 
-    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement) = FormCell(getFieldCellName(0), value)
+    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement, isUseThousandsDivider: Boolean, decimalDivider: Char) = FormCell(getFieldCellName(0), value)
 
     override fun getFieldSQLValue(index: Int): String = if(value) "1" else "0"
 

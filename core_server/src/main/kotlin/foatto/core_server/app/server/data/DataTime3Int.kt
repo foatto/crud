@@ -37,7 +37,7 @@ class DataTime3Int(aColumn: iColumn) : DataAbstractTime(aColumn) {
         errorText = null
     }
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String, id: Int): Boolean {
+    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String?, id: Int): Boolean {
         val ct = column as ColumnTime3Int
 
         val sHo = formData.alDateTimeValue!![0]
@@ -56,7 +56,7 @@ class DataTime3Int(aColumn: iColumn) : DataAbstractTime(aColumn) {
         }
     }
 
-    override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int): TableCell {
+    override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell {
         val ct = column as ColumnTime3Int
 
         return if (isShowEmptyTableCell) {
@@ -82,7 +82,7 @@ class DataTime3Int(aColumn: iColumn) : DataAbstractTime(aColumn) {
         }
     }
 
-    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement): FormCell {
+    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement, isUseThousandsDivider: Boolean, decimalDivider: Char): FormCell {
         val ct = column as ColumnTime3Int
 
         val fci = FormCell(FormCellType.TIME)

@@ -20,7 +20,7 @@ abstract class DataAbstractDate(aColumn: iColumn) : DataAbstract(aColumn) {
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String, id: Int): Boolean {
+    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String?, id: Int): Boolean {
         val sDa = formData.alDateTimeValue!![0]
         val sMo = formData.alDateTimeValue!![1]
         val sYe = formData.alDateTimeValue!![2]
@@ -38,7 +38,7 @@ abstract class DataAbstractDate(aColumn: iColumn) : DataAbstract(aColumn) {
         }
     }
 
-    override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int): TableCell =
+    override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell =
         if (isShowEmptyTableCell) TableCell(row, col, column.rowSpan, column.colSpan)
         else TableCell(
             aRow = row,
@@ -53,7 +53,7 @@ abstract class DataAbstractDate(aColumn: iColumn) : DataAbstract(aColumn) {
             aText = DateTime_DMY(localDate)
         )
 
-    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement): FormCell {
+    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement, isUseThousandsDivider: Boolean, decimalDivider: Char): FormCell {
         val fci = FormCell(FormCellType.DATE)
 
         //--- данные ye/mo/da для пользователя выводим как da/mo/ye

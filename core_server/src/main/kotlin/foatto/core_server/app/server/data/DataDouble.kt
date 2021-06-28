@@ -33,11 +33,11 @@ class DataDouble(aColumn: iColumn) : DataAbstract(aColumn) {
     }
 
     override fun loadFromDefault() {
-        doubleValue = validate(cd.defaultValue)
+        doubleValue = cd.defaultValue ?: 0.0
         clearError()
     }
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String, id: Int): Boolean {
+    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String?, id: Int): Boolean {
         val strValue = formData.stringValue!!
 
         if (cd.isRequired && strValue.isBlank()) {
@@ -74,7 +74,7 @@ class DataDouble(aColumn: iColumn) : DataAbstract(aColumn) {
         return true
     }
 
-    override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int): TableCell =
+    override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell =
         if (isShowEmptyTableCell) TableCell(row, col, column.rowSpan, column.colSpan)
         else TableCell(
             aRow = row,
@@ -86,14 +86,18 @@ class DataDouble(aColumn: iColumn) : DataAbstract(aColumn) {
             aIsWordWrap = column.isWordWrap,
             aTooltip = column.caption,
 
-            aText = getReportString()
+            aText = if (cd.emptyValue != null && cd.emptyValue == doubleValue) {
+                cd.emptyText!!
+            } else {
+                getSplittedDouble(doubleValue, cd.precision, isUseThousandsDivider, decimalDivider)
+            }
         )
 
-    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement): FormCell =
+    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement, isUseThousandsDivider: Boolean, decimalDivider: Char): FormCell =
         FormCell(FormCellType.DOUBLE).apply {
             name = getFieldCellName(0)
             value = if (errorText == null) {
-                getSplittedDouble(doubleValue, cd.precision)
+                getSplittedDouble(doubleValue, cd.precision, isUseThousandsDivider, decimalDivider)
             } else {
                 errorValue!!
             }
@@ -118,15 +122,4 @@ class DataDouble(aColumn: iColumn) : DataAbstract(aColumn) {
     fun clearError() {
         setError(null, null)
     }
-
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    private fun getReportString(): String =
-        if (cd.emptyValue != null && cd.emptyValue == doubleValue) {
-            cd.emptyText!!
-        } else {
-            getSplittedDouble(doubleValue, cd.precision)
-        }
-
-    private fun validate(obj: Double?) = obj ?: 0.0
 }

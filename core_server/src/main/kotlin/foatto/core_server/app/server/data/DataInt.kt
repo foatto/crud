@@ -20,7 +20,7 @@ class DataInt(aColumn: iColumn) : DataAbstractIntValue(aColumn) {
         clearError()
     }
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String, id: Int): Boolean {
+    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String?, id: Int): Boolean {
         val strValue = formData.stringValue!!
 
         if (ci.isRequired && strValue.isBlank()) {
@@ -58,7 +58,7 @@ class DataInt(aColumn: iColumn) : DataAbstractIntValue(aColumn) {
         return true
     }
 
-    override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int): TableCell =
+    override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell =
         if (isShowEmptyTableCell) {
             TableCell(row, col, column.rowSpan, column.colSpan)
         } else {
@@ -72,15 +72,30 @@ class DataInt(aColumn: iColumn) : DataAbstractIntValue(aColumn) {
                 aIsWordWrap = column.isWordWrap,
                 aTooltip = column.caption,
 
-                aText = getReportString()
+                aText =
+                if (ci.emptyValue != null && ci.emptyValue == intValue) {
+                    ci.emptyText!!
+                } else {
+                    if(isUseThousandsDivider) {
+                        getSplittedLong(intValue.toLong(), ci.radix)
+                    }
+                    else {
+                        intValue.toString(ci.radix)
+                    }
+                }
             )
         }
 
-    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement) =
+    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement, isUseThousandsDivider: Boolean, decimalDivider: Char) =
         FormCell(FormCellType.INT).apply {
             name = getFieldCellName(0)
             value = if (errorText == null) {
-                getSplittedLong(intValue.toLong(), ci.radix)
+                if(isUseThousandsDivider) {
+                    getSplittedLong(intValue.toLong(), ci.radix)
+                }
+                else {
+                    intValue.toString(ci.radix)
+                }
             } else {
                 errorValue!!
             }
@@ -92,14 +107,4 @@ class DataInt(aColumn: iColumn) : DataAbstractIntValue(aColumn) {
         intValue = (data as DataInt).intValue
         clearError()
     }
-
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    private fun getReportString() =
-        if (ci.emptyValue != null && ci.emptyValue == intValue) {
-            ci.emptyText!!
-        } else {
-            getSplittedLong(intValue.toLong(), ci.radix)
-        }
-
 }

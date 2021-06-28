@@ -29,15 +29,15 @@ class DataBinary(aColumn: iColumn) : DataAbstract(aColumn) {
         binaryValue = AdvancedByteBuffer(0)
     }
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String, id: Int): Boolean = true
+    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String?, id: Int): Boolean = true
 
-    override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int): TableCell {
+    override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell {
         val tc = TableCell(row, col, column.rowSpan, column.colSpan)
         tc.minWidth = column.minWidth
         return tc
     }
 
-    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement) =
+    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement, isUseThousandsDivider: Boolean, decimalDivider: Char) =
         FormCell(FormCellType.STRING).apply {
             name = getFieldCellName(0)
             value = binaryValue.getHex(null, false).toString()

@@ -42,7 +42,7 @@ class DataString(aColumn: iColumn) : DataAbstract(aColumn) {
         clearError()
     }
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String, id: Int): Boolean {
+    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String?, id: Int): Boolean {
         text = if (cs.rows == 0) {
             formData.stringValue!!
         } else {
@@ -68,7 +68,7 @@ class DataString(aColumn: iColumn) : DataAbstract(aColumn) {
         return true
     }
 
-    override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int): TableCell {
+    override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell {
         if (isShowEmptyTableCell) return TableCell(row, col, column.rowSpan, column.colSpan)
 
         return TableCell(
@@ -91,7 +91,7 @@ class DataString(aColumn: iColumn) : DataAbstract(aColumn) {
         )
     }
 
-    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement): FormCell {
+    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement, isUseThousandsDivider: Boolean, decimalDivider: Char): FormCell {
         val fci: FormCell
         if (cs.rows == 0) {
             fci = FormCell(FormCellType.STRING)
