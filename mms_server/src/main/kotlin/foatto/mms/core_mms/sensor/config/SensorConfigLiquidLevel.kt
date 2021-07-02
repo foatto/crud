@@ -11,6 +11,7 @@ class SensorConfigLiquidLevel(
     aSmoothTime: Int,
     aMinIgnore: Double,
     aMaxIgnore: Double,
+    val containerType: Int,
     val liquidName: String,
     aMinView: Double,
     aMaxView: Double,
@@ -46,6 +47,9 @@ class SensorConfigLiquidLevel(
 ) {
 
     companion object {
+
+        val CONTAINER_TYPE_MAIN = 0     // основная ёмкость
+        val CONTAINER_TYPE_WORK = 1     // рабочая/расходная ёмкость
 
         val hmLLErrorCodeDescr = mutableMapOf<Int, String>()
 

@@ -17,6 +17,7 @@ import foatto.core_server.app.server.mAbstract
 import foatto.mms.core_mms.ObjectSelector
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigGeo
+import foatto.mms.core_mms.sensor.config.SensorConfigLiquidLevel
 import foatto.sql.CoreAdvancedStatement
 
 class mSensor : mAbstract() {
@@ -352,9 +353,8 @@ class mSensor : mAbstract() {
             addFormVisible(columnSensorType, true, analogSensorTypes)
         }
 
-        val columnAnalogMaxView = ColumnDouble(tableName, "analog_max_view", "-", 10, 3, 100.0).apply {
+        val columnAnalogMaxView = ColumnDouble(tableName, "analog_max_view", "Максимальное отображаемое значение", 10, 3, 100.0).apply {
             addFormVisible(columnSensorType, true, analogSensorTypes)
-            addFormCaption(columnSensorType, "Максимальное отображаемое значение", analogSensorTypes)
         }
 
         val columnAnalogMinLimit = ColumnDouble(tableName, "analog_min_limit", "Минимальное рабочее значение", 10, 3, 0.0).apply {
@@ -373,64 +373,57 @@ class mSensor : mAbstract() {
 
         //--- while they are only used for liquid (fuel) level sensors
 
-        val columnAnalogUsingMinLen = ColumnInt(tableName, "analog_using_min_len", "-", 10, 1).apply {
+        val columnLiquidLevelContainerType = ColumnRadioButton(tableName, "container_type", "Тип ёмкости", SensorConfigLiquidLevel.CONTAINER_TYPE_WORK).apply {
+            addChoice(SensorConfigLiquidLevel.CONTAINER_TYPE_MAIN, "Основная ёмкость")
+            addChoice(SensorConfigLiquidLevel.CONTAINER_TYPE_WORK, "Рабочая/расходная ёмкость")
+            addFormVisible(columnSensorType, true, liquidLevelSensorType)
+        }
+        val columnAnalogUsingMinLen = ColumnInt(tableName, "analog_using_min_len", "Минимальная продолжительность расхода [сек]", 10, 1).apply {
             formPinMode = FormPinMode.OFF
             addFormVisible(columnSensorType, true, liquidLevelSensorType)
-            addFormCaption(columnSensorType, "Минимальная продолжительность расхода [сек]", liquidLevelSensorType)
         }
-        val columnAnalogIsUsingCalc = ColumnBoolean(tableName, "analog_is_using_calc", "-", false).apply {
+        val columnAnalogIsUsingCalc = ColumnBoolean(tableName, "analog_is_using_calc", "Использовать расчётный расход за время заправки/слива", false).apply {
             addFormVisible(columnSensorType, true, liquidLevelSensorType)
-            addFormCaption(columnSensorType, "Использовать расчётный расход за время заправки/слива", liquidLevelSensorType)
         }
 
-        val columnAnalogDetectInc = ColumnDouble(tableName, "analog_detect_inc", "-", 10, 0, 1.0).apply {
+        val columnAnalogDetectInc = ColumnDouble(tableName, "analog_detect_inc", "Детектор заправки [л/час]", 10, 0, 1.0).apply {
             addFormVisible(columnSensorType, true, liquidLevelSensorType)
-            addFormCaption(columnSensorType, "Детектор заправки [л/час]", liquidLevelSensorType)
         }
-        val columnAnalogDetectIncMinDiff = ColumnDouble(tableName, "analog_detect_inc_min_diff", "-", 10, 0, 0.0).apply {
+        val columnAnalogDetectIncMinDiff = ColumnDouble(tableName, "analog_detect_inc_min_diff", "Минимальный объём заправки", 10, 0, 0.0).apply {
             formPinMode = FormPinMode.ON
             addFormVisible(columnSensorType, true, liquidLevelSensorType)
-            addFormCaption(columnSensorType, "Минимальный объём заправки", liquidLevelSensorType)
         }
-        val columnAnalogDetectIncMinLen = ColumnInt(tableName, "analog_detect_inc_min_len", "-", 10, 1).apply {
+        val columnAnalogDetectIncMinLen = ColumnInt(tableName, "analog_detect_inc_min_len", "Минимальная продолжительность заправки [сек]", 10, 1).apply {
             formPinMode = FormPinMode.ON
             addFormVisible(columnSensorType, true, liquidLevelSensorType)
-            addFormCaption(columnSensorType, "Минимальная продолжительность заправки [сек]", liquidLevelSensorType)
         }
-        val columnAnalogIncAddTimeBefore = ColumnInt(tableName, "analog_inc_add_time_before", "-", 10, 0).apply {
+        val columnAnalogIncAddTimeBefore = ColumnInt(tableName, "analog_inc_add_time_before", "Добавить время к началу заправки [сек]", 10, 0).apply {
             formPinMode = FormPinMode.ON
             addFormVisible(columnSensorType, true, liquidLevelSensorType)
-            addFormCaption(columnSensorType, "Добавить время к началу заправки [сек]", liquidLevelSensorType)
         }
-        val columnAnalogIncAddTimeAfter = ColumnInt(tableName, "analog_inc_add_time_after", "-", 10, 0).apply {
+        val columnAnalogIncAddTimeAfter = ColumnInt(tableName, "analog_inc_add_time_after", "Добавить время к концу заправки [сек]", 10, 0).apply {
             formPinMode = FormPinMode.ON
             addFormVisible(columnSensorType, true, liquidLevelSensorType)
-            addFormCaption(columnSensorType, "Добавить время к концу заправки [сек]", liquidLevelSensorType)
         }
 
-        val columnAnalogDetectDec = ColumnDouble(tableName, "analog_detect_dec", "-", 10, 0, 1.0).apply {
+        val columnAnalogDetectDec = ColumnDouble(tableName, "analog_detect_dec", "Детектор слива [л/час]", 10, 0, 1.0).apply {
             addFormVisible(columnSensorType, true, liquidLevelSensorType)
-            addFormCaption(columnSensorType, "Детектор слива [л/час]", liquidLevelSensorType)
         }
-        val columnAnalogDetectDecMinDiff = ColumnDouble(tableName, "analog_detect_dec_min_diff", "-", 10, 0, 0.0).apply {
+        val columnAnalogDetectDecMinDiff = ColumnDouble(tableName, "analog_detect_dec_min_diff", "Минимальный объём слива", 10, 0, 0.0).apply {
             formPinMode = FormPinMode.ON
             addFormVisible(columnSensorType, true, liquidLevelSensorType)
-            addFormCaption(columnSensorType, "Минимальный объём слива", liquidLevelSensorType)
         }
-        val columnAnalogDetectDecMinLen = ColumnInt(tableName, "analog_detect_dec_min_len", "-", 10, 1).apply {
+        val columnAnalogDetectDecMinLen = ColumnInt(tableName, "analog_detect_dec_min_len", "Минимальная продолжительность слива [сек]", 10, 1).apply {
             formPinMode = FormPinMode.ON
             addFormVisible(columnSensorType, true, liquidLevelSensorType)
-            addFormCaption(columnSensorType, "Минимальная продолжительность слива [сек]", liquidLevelSensorType)
         }
-        val columnAnalogDecAddTimeBefore = ColumnInt(tableName, "analog_dec_add_time_before", "-", 10, 0).apply {
+        val columnAnalogDecAddTimeBefore = ColumnInt(tableName, "analog_dec_add_time_before", "Добавить время к началу слива [сек]", 10, 0).apply {
             formPinMode = FormPinMode.ON
             addFormVisible(columnSensorType, true, liquidLevelSensorType)
-            addFormCaption(columnSensorType, "Добавить время к началу слива [сек]", liquidLevelSensorType)
         }
-        val columnAnalogDecAddTimeAfter = ColumnInt(tableName, "analog_dec_add_time_after", "-", 10, 0).apply {
+        val columnAnalogDecAddTimeAfter = ColumnInt(tableName, "analog_dec_add_time_after", "Добавить время к концу слива [сек]", 10, 0).apply {
             formPinMode = FormPinMode.ON
             addFormVisible(columnSensorType, true, liquidLevelSensorType)
-            addFormCaption(columnSensorType, "Добавить время к концу слива [сек]", liquidLevelSensorType)
         }
 
         //--- any calibrable sensors ---
@@ -555,6 +548,7 @@ class mSensor : mAbstract() {
         alFormColumn.add(columnAnalogMinLimit)
         alFormColumn.add(columnAnalogMaxLimit)
 
+        alFormColumn.add(columnLiquidLevelContainerType)
         alFormColumn.add(columnAnalogUsingMinLen)
         alFormColumn.add(columnAnalogIsUsingCalc)
         alFormColumn.add(columnAnalogDetectInc)

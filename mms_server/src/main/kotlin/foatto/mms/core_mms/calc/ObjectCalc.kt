@@ -31,16 +31,16 @@ import kotlin.math.sqrt
 class ObjectCalc(val objectConfig: ObjectConfig) {
 
     var gcd: GeoCalcData? = null
-    val tmWork = TreeMap<String, WorkCalcData>()
-    val tmEnergo = TreeMap<String, Double>()
-    val tmLiquidUsing = TreeMap<String, Double>()   // liquid using by sensor descr
-    val tmLiquidLevel = TreeMap<String, LiquidLevelCalcData>()
+    val tmWork = sortedMapOf<String, WorkCalcData>()
+    val tmEnergo = sortedMapOf<String, Double>()
+    val tmLiquidUsing = sortedMapOf<String, Double>()   // liquid using by sensor descr
+    val tmLiquidLevel = sortedMapOf<String, LiquidLevelCalcData>()
 
-    val tmGroupSum = TreeMap<String, CalcSumData>() // sums by group
+    val tmGroupSum = sortedMapOf<String, CalcSumData>() // sums by group
     val allSumData = CalcSumData()                  // overall sum
 
-    val tmTemperature = TreeMap<String, GraphicDataContainer>()
-    val tmDensity = TreeMap<String, GraphicDataContainer>()
+    val tmTemperature = sortedMapOf<String, GraphicDataContainer>()
+    val tmDensity = sortedMapOf<String, GraphicDataContainer>()
 
     var sGeoName = ""
     var sGeoRun = ""
@@ -97,7 +97,6 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
 
             val result = ObjectCalc(oc)
 
-            val zoneId = userConfig.upZoneId
             val (alRawTime, alRawData) = loadAllSensorData(stm, oc, begTime, endTime)
 
             //--- if geo-sensors are registered - we sum up the mileage
@@ -554,7 +553,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             val alLSPD = mutableListOf<LiquidStatePeriodData>()
             getSmoothLiquidGraphicData(alRawTime, alRawData, oc.scg, sca, begTime, endTime, aLine, alLSPD)
 
-            val llcd = LiquidLevelCalcData(aLine, alLSPD)
+            val llcd = LiquidLevelCalcData(sca.containerType, aLine, alLSPD)
             calcLiquidUsingByLevel(sca, llcd, stm, oc, begTime, endTime)
 
             return llcd
@@ -970,7 +969,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             val alLSPD = mutableListOf<LiquidStatePeriodData>()
             getSmoothLiquidGraphicData(alRawTime, alRawData, oc.scg, sca, begTime, endTime, aLine, alLSPD)
 
-            val llcd = LiquidLevelCalcData(aLine, alLSPD)
+            val llcd = LiquidLevelCalcData(sca.containerType, aLine, alLSPD)
             calcLiquidUsingByLevel(sca, llcd, stm, oc, begTime, endTime)
 
             for (lspd in llcd.alLSPD!!) {
@@ -1119,11 +1118,11 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
 
             //--- calculate the group amount
             val groupSum = result.tmGroupSum.getOrPut(sces.group) { CalcSumData() }
-            val byType = groupSum.tmEnergo.getOrPut(sces.sensorType) { TreeMap<Int, Double>() }
+            val byType = groupSum.tmEnergo.getOrPut(sces.sensorType) { sortedMapOf<Int, Double>() }
             val byPhase = byType[sces.phase] ?: 0.0
             byType[sces.phase] = byPhase + e
 
-            val byTypeAll = result.allSumData.tmEnergo.getOrPut(sces.sensorType) { TreeMap<Int, Double>() }
+            val byTypeAll = result.allSumData.tmEnergo.getOrPut(sces.sensorType) { sortedMapOf<Int, Double>() }
             val byPhaseAll = byTypeAll[sces.phase] ?: 0.0
             byTypeAll[sces.phase] = byPhaseAll + e
         }
@@ -1662,7 +1661,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             result.sWorkValue = workPair.second
         }
 
-        fun fillWorkString(userConfig: UserConfig, tmWork: TreeMap<String, WorkCalcData>): Pair<String, String> {
+        fun fillWorkString(userConfig: UserConfig, tmWork: SortedMap<String, WorkCalcData>): Pair<String, String> {
             var sWorkName = ""
             var sWorkTotal = ""
             tmWork.forEach { (workName, wcd) ->
@@ -1709,7 +1708,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             result.sAllSumLiquidValue = allSumLiquidPair.second
         }
 
-        fun fillLiquidUsingString(userConfig: UserConfig, tmLiquidUsing: TreeMap<String, Double>): Pair<String, String> {
+        fun fillLiquidUsingString(userConfig: UserConfig, tmLiquidUsing: SortedMap<String, Double>): Pair<String, String> {
             var sLiquidUsingName = ""
             var sLiquidUsing = ""
             tmLiquidUsing.forEach { (name, total) ->

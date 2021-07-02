@@ -6,19 +6,19 @@ class CalcSumData {
 
     //--- only for calculating the average fuel consumption (to check that the equipment is the only one in the group)
 
-    var tmWork = TreeMap<String, Int>()
+    var tmWork = sortedMapOf<String, Int>()
 
     //--- energo using by type and phase
 
-    val tmEnergo = TreeMap<Int, TreeMap<Int, Double>>()
+    val tmEnergo = sortedMapOf<Int, SortedMap<Int, Double>>()
 
     //--- liquid using by liquid name
 
-    val tmLiquidUsing = TreeMap<String, Double>()
+    val tmLiquidUsing = sortedMapOf<String, Double>()
 
     //--- liquid level
 
-    val tmLiquidIncDec = TreeMap<String, Pair<Double, Double>>()
+    val tmLiquidIncDec = sortedMapOf<String, Pair<Double, Double>>()
 
     //--------------------------------------------------------------
 

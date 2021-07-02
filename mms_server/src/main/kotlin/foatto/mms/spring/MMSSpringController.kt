@@ -741,6 +741,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
                         aSmoothTime = (sensorEntity.smoothTime ?: 0) * 60,
                         aMinIgnore = sensorEntity.minIgnore ?: 0.0,
                         aMaxIgnore = sensorEntity.maxIgnore ?: 0.0,
+                        containerType = sensorEntity.containerType ?: SensorConfigLiquidLevel.CONTAINER_TYPE_WORK,
                         liquidName = sensorEntity.liquidName ?: "",
                         aMinView = sensorEntity.minView ?: 0.0,
                         aMaxView = sensorEntity.maxView ?: 0.0,

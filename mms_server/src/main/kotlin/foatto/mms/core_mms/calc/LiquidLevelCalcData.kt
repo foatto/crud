@@ -1,8 +1,11 @@
 package foatto.mms.core_mms.calc
 
 import foatto.core.app.graphic.GraphicDataContainer
+import foatto.mms.core_mms.sensor.config.SensorConfigLiquidLevel
 
 class LiquidLevelCalcData {
+
+    var containerType = SensorConfigLiquidLevel.CONTAINER_TYPE_WORK
 
     var begLevel = 0.0
     var endLevel = 0.0
@@ -16,7 +19,8 @@ class LiquidLevelCalcData {
     var aLine: GraphicDataContainer? = null
     var alLSPD: List<LiquidStatePeriodData>? = null
 
-    constructor(aALine: GraphicDataContainer, aAlLSPD: List<LiquidStatePeriodData>) {
+    constructor(aContainerType: Int, aALine: GraphicDataContainer, aAlLSPD: List<LiquidStatePeriodData>) {
+        containerType = aContainerType
         aLine = aALine
         alLSPD = aAlLSPD
 

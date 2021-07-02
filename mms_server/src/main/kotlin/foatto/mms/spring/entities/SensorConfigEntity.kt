@@ -136,6 +136,9 @@ class SensorConfigEntity(
 
     //--- liquid level sensors only
 
+    @Column(name = "container_type")
+    val containerType: Int?,
+
     @Column(name = "analog_using_min_len")
     val usingMinLen: Int?,
 
