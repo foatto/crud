@@ -424,7 +424,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                             val text = alDistancerText.last()
                             text.x = (line.x1 + line.x2!!) / 2
                             text.y = (line.y1 + line.y2!!) / 2
-                            text.text = getSplittedDouble(dist, 1)
+                            text.text = getSplittedDouble(dist, 1, true, '.')
                             text.pos = json(
                                 "left" to "${svgCoords.bodyLeft + text.x!!}px",
                                 "top" to "${svgCoords.bodyTop + text.y!!}px"
@@ -435,7 +435,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                             //--- иногда вышибает округлятор в getSplittedDouble
                             distancerSumText.text =
                                 try {
-                                    getSplittedDouble(distancerSumDist, 1)
+                                    getSplittedDouble(distancerSumDist, 1, true, '.')
                                 } catch (t: Throwable) {
                                     distancerSumText.text
                                 }

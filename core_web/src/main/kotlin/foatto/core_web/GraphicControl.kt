@@ -513,7 +513,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                 //--- именно в таком порядке, чтобы не нарваться на 0 при целочисленном делении
                 //--- (yData.y1 - нижняя/большая координата, yData.y2 - верхняя/меньшая координата)
                 val value = (yData.value2 - yData.value1) * (yData.y1 - (mouseY + arrViewBoxBody[1])) / (yData.y1 - yData.y2) + yData.value1
-                val tooltipValue = getSplittedDouble(value, yData.prec)
+                val tooltipValue = getSplittedDouble(value, yData.prec, true, '.')
 
                 val tooltipX = mouseEvent.clientX + (8 * scaleKoef).roundToInt()
                 val tooltipY = mouseEvent.clientY + (0 * scaleKoef).roundToInt()
@@ -1410,7 +1410,7 @@ private fun outElement(
                             cy = drawY.toInt(),
                             radius = max(1, scaleKoef.roundToInt()),
                             fill = hmCurIndexColor[gpd.colorIndex.toString()]!!,
-                            tooltip = getSplittedDouble(gpd.y, alYData[alAxisYDataIndex[axisYIndex]].prec)
+                            tooltip = getSplittedDouble(gpd.y, alYData[alAxisYDataIndex[axisYIndex]].prec, true, '.')
                         )
                     )
                 }
@@ -1687,7 +1687,7 @@ private fun drawAxisY(
             val axisText = SvgText(
                 x = axisX - (2 * scaleKoef).roundToInt(),
                 y = drawY.toInt() - (2 * scaleKoef).roundToInt(),
-                text = getSplittedDouble(notchY, precY),
+                text = getSplittedDouble(notchY, precY, true, '.'),
                 stroke = hmIndexColor[element.graphicTitle]!![ayd.colorIndex.toString()]!!,
                 hAlign = "end",
                 vAlign = "text-bottom"
