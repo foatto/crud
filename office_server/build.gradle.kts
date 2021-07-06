@@ -44,7 +44,7 @@ tasks {
         doLast {
             delete("/home/foatto/OfficeServerSpring/lib")
             copy {
-                from("build/libs/office_server.jar", configurations["runtimeClasspath"])
+                from("build/libs/office_server-plain.jar", configurations["runtimeClasspath"])
                 into("/home/foatto/OfficeServerSpring/lib")
             }
         }

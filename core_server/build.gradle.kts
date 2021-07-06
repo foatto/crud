@@ -85,11 +85,11 @@ tasks {
             suppressWarnings = isBuildSupressWarning.toBoolean()
         }
     }
-    jar {
-        enabled = true
-    }
     bootJar {
         enabled = false
-        mainClassName = "foatto.ds.DataServer"  // BUG: bootJar disabled, but mainClassName is required
+        mainClassName = "foatto.ds.DataServer"  // implicit select one main class from others
+    }
+    jar {
+        enabled = true
     }
 }

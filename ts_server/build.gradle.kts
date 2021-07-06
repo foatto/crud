@@ -44,7 +44,7 @@ tasks {
         doLast {
             delete("/home/foatto/TSServerSpring/lib")
             copy {
-                from("build/libs/ts_server.jar", configurations["runtimeClasspath"])
+                from("build/libs/ts_server-plain.jar", configurations["runtimeClasspath"])
                 into("/home/foatto/TSServerSpring/lib")
             }
         }

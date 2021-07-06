@@ -44,7 +44,7 @@ tasks {
         doLast {
             delete("/home/foatto/ShopServerSpring/lib")
             copy {
-                from("build/libs/shop_server.jar", configurations["runtimeClasspath"])
+                from("build/libs/shop_server-plain.jar", configurations["runtimeClasspath"])
                 into("/home/foatto/ShopServerSpring/lib")
             }
         }
