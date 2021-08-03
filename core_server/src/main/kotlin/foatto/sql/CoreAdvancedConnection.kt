@@ -30,21 +30,20 @@ abstract class CoreAdvancedConnection(dbConfig: DBConfig) {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     init {
-        var dbReplicationFilter = dbConfig.replFilter
         //--- без имён реплицируемых серверов репликация считается выключенной
         if (dbConfig.replName != null) {
-            val stRN = StringTokenizer(dbConfig.replName, ", ")
-            if (stRN.hasMoreTokens()) {
-                while (stRN.hasMoreTokens())
-                    alReplicationName.add(stRN.nextToken())
+            val replicationNames = dbConfig.replName.split(",", " ").filter { it.isNotBlank() }
+            if(replicationNames.isNotEmpty()) {
+                alReplicationName.addAll(replicationNames)
                 //--- фильтр начинается с символа "!" = фильтр - чёрный список, иначе фильтр - белый список
-                if (dbReplicationFilter != null && !dbReplicationFilter.isEmpty()) {
+                var dbReplicationFilter = dbConfig.replFilter
+                if (!dbReplicationFilter.isNullOrEmpty()) {
                     if (dbReplicationFilter.first() == '!') {
                         dbReplicationFilter = dbReplicationFilter.substring(1)
                         replicationFilterIsBlackList = true
                     }
-                    val stRF = StringTokenizer(dbReplicationFilter, ", ")
-                    while (stRF.hasMoreTokens()) alReplicationFilter.add(stRF.nextToken())
+                    val replicationFilterTables = dbReplicationFilter.split(",", " ").filter { it.isNotBlank() }
+                    alReplicationFilter.addAll(replicationFilterTables)
                 }
             }
         }
@@ -62,15 +61,17 @@ abstract class CoreAdvancedConnection(dbConfig: DBConfig) {
         //--- коммит обязательно должен быть общий, чтобы реплики не пропускались ни в коем случае
         //--- conn.commit();
 
-        if (!alReplicationSQL.isEmpty()) {
-            //--- один буфер на всех
-            val bbOut = getReplicationData(alReplicationSQL)
+        if(alReplicationName.isNotEmpty()) {
+            if (alReplicationSQL.isNotEmpty()) {
+                //--- один буфер на всех
+                val bbOut = getReplicationData(alReplicationSQL)
 
-            //--- для каждого репликанта
-            for (name in alReplicationName)
-                saveReplication(name, bbOut)
+                //--- для каждого репликанта
+                for (name in alReplicationName)
+                    saveReplication(name, bbOut)
+            }
+            alReplicationSQL.clear()
         }
-        alReplicationSQL.clear()
 
         //--- commit делается платформозависимо в классах-наследниках
         //conn.commit();
