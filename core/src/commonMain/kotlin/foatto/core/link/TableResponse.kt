@@ -36,8 +36,8 @@ class ClientActionButton(
     val caption: String,
     val tooltip: String,
     val icon: String,
-    val className: String,
-    val param: String,
+    val action: String,
+    val params: Array<Pair<String,String>>,
     val isForWideScreenOnly: Boolean,
 )
 

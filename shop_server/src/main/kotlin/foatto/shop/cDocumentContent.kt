@@ -16,9 +16,13 @@ import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.data.*
 import foatto.shop.mDocumentContent.Companion.ADD_OVER_MARK_CODE
+import foatto.shop_core.app.ACTION_CASH_CALCULATOR
 import foatto.shop_core.app.ICON_NAME_ADD_MARKED_ITEM
 import foatto.shop_core.app.ICON_NAME_CALC
 import foatto.shop_core.app.ICON_NAME_FISCAL
+import foatto.shop_core.app.PARAM_DOC_COST
+import foatto.shop_core.app.PARAM_FISCAL_URL
+import foatto.shop_core.app.PARAM_PRINT_URL
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedStatement
 import java.util.concurrent.ConcurrentHashMap
@@ -97,9 +101,15 @@ class cDocumentContent : cStandart() {
 
             sSQL += " AND "
             //--- используются оба номенклатурных поля
-            if (isUseSourCatalog && isUseDestCatalog) sSQL += " ( $tableName.$sourFieldName $parentWhere OR $tableName.$destFieldName $parentWhere ) "
-            else if (isUseSourCatalog) sSQL += " $tableName.$sourFieldName $parentWhere "
-            else if (isUseDestCatalog) sSQL += " $tableName.$destFieldName $parentWhere "
+            if (isUseSourCatalog && isUseDestCatalog) {
+                sSQL += " ( $tableName.$sourFieldName $parentWhere OR $tableName.$destFieldName $parentWhere ) "
+            }
+            else if (isUseSourCatalog) {
+                sSQL += " $tableName.$sourFieldName $parentWhere "
+            }
+            else if (isUseDestCatalog) {
+                sSQL += " $tableName.$destFieldName $parentWhere "
+            }
         }
         return super.addSQLWhere(hsTableRenameList) + sSQL
     }
@@ -127,14 +137,23 @@ class cDocumentContent : cStandart() {
                 docMo = rs.getInt(4)
                 docDa = rs.getInt(5)
                 sHeader += ", № $docNo от ${DateTime_DMY(intArrayOf(docYe, docMo, docDa, 0, 0, 0))}"
-                if (DocumentTypeConfig.hsUseSourWarehouse.contains(docType)) sHeader += ", со склада ${hmWarehouse[rs.getInt(6)]}"
-                if (DocumentTypeConfig.hsUseDestWarehouse.contains(docType)) sHeader += ", на склад ${hmWarehouse[rs.getInt(7)]}"
+                if (DocumentTypeConfig.hsUseSourWarehouse.contains(docType)) {
+                    sHeader += ", со склада ${hmWarehouse[rs.getInt(6)]}"
+                }
+                if (DocumentTypeConfig.hsUseDestWarehouse.contains(docType)) {
+                    sHeader += ", на склад ${hmWarehouse[rs.getInt(7)]}"
+                }
                 val clientName = rs.getString(8)
-                if (clientName.isNotEmpty()) sHeader += ", $clientName"
+                if (clientName.isNotEmpty()) {
+                    sHeader += ", $clientName"
+                }
                 val descr = rs.getString(9)
-                if (descr.isNotEmpty()) sHeader += ", $descr"
+                if (descr.isNotEmpty()) {
+                    sHeader += ", $descr"
+                }
                 discount = rs.getDouble(10)
-                /*if (discount != 0.0) */sHeader += ", скидка $discount % "
+                /*if (discount != 0.0) */
+                sHeader += ", скидка $discount % "
             }
             rs.close()
             //--- подсчёт стоимости накладной
@@ -268,8 +287,12 @@ class cDocumentContent : cStandart() {
                     caption = "Рассчитать",
                     tooltip = "Рассчитать сдачу",
                     icon = ICON_NAME_CALC,
-                    className = "foatto.shop.CashCalculator",
-                    param = docCost.toString(),
+                    action = ACTION_CASH_CALCULATOR,
+                    params = arrayOf(
+                        PARAM_FISCAL_URL to getParamURL("shop_fiscal_doc_content", AppAction.FORM, null, 0, hmParentData, null, ""),
+                        PARAM_PRINT_URL to getParamURL("shop_report_doc_content", AppAction.FORM, null, 0, hmParentData, null, ""),
+                        PARAM_DOC_COST to docCost.toString(),
+                    ),
                     isForWideScreenOnly = true,
                 )
             )

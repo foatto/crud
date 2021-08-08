@@ -38,6 +38,11 @@ val hmTableIcon = mutableMapOf(
     ICON_NAME_PRINT to "/web/images/ic_print_black_48dp.png"
 )
 
+var tableTemplateAdd: String = ""
+var tableClientActionFun: (action: String, params: Array<Pair<String, String>>, that: dynamic) -> Unit = { _: String, _: Array<Pair<String, String>>, _: dynamic -> }
+var tableMethodsAdd: Json = json()
+var tableDataAdd: Json = json()
+
 @Suppress("UnsafeCastFromDynamic")
 fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = vueComponentOptions().apply {
 
@@ -129,8 +134,6 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                         <span v-else>
                             {{serverButton.caption}}
                         </span>
-                    
-                        
                     </button>
                 </span>
 
@@ -138,7 +141,9 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                     <button v-for="clientButton in arrClientButton"
                             v-show="!${styleIsNarrowScreen} || (!isFindTextVisible && !clientButton.isForWideScreenOnly)" 
                             v-bind:key="'cb'+clientButton.id"
+                            v-on:click="clientAction( clientButton.action, clientButton.params )"
                             v-bind:style="[ style_icon_button, style_button_with_border ]"
+                            v-bind:title="clientButton.tooltip"
                     >
                         <img v-if="clientButton.icon" v-bind:src="clientButton.icon">
                         <span v-else>
@@ -239,6 +244,9 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
             >
                 ${menuGenerateBody("arrCurPopupData", "popupMenuClick", "")}
             </div>
+    """ +
+        tableTemplateAdd +
+        """
         </div>
     """
 
@@ -315,8 +323,8 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                         caption = caption,
                         tooltip = cab.tooltip,
                         icon = icon,
-                        className = cab.className,
-                        param = cab.param,
+                        action = cab.action,
+                        params = cab.params,
                         isForWideScreenOnly = cab.isForWideScreenOnly,
                     )
                 )
@@ -451,8 +459,14 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                         for (cellData in tc.alCellData) {
                             val icon = hmTableIcon[cellData.icon] ?: ""
                             //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
-                            var text = if (cellData.icon.isNotBlank() && icon.isBlank()) cellData.icon else cellData.text.replace("\n", "<br>")
-                            if (!tc.isWordWrap) text = text.replace(" ", "&nbsp;")
+                            var text = if (cellData.icon.isNotBlank() && icon.isBlank()) {
+                                cellData.icon
+                            } else {
+                                cellData.text.replace("\n", "<br>")
+                            }
+                            if (!tc.isWordWrap) {
+                                text = text.replace(" ", "&nbsp;")
+                            }
                             alCellData.add(
                                 TableCellData(
                                     icon = icon,
@@ -479,7 +493,11 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                         for (cellData in tc.alCellData) {
                             val icon = hmTableIcon[cellData.icon] ?: ""
                             //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
-                            val text = if (cellData.icon.isNotBlank() && icon.isBlank()) cellData.icon else cellData.text.replace("\n", "<br>")
+                            val text = if (cellData.icon.isNotBlank() && icon.isBlank()) {
+                                cellData.icon
+                            } else {
+                                cellData.text.replace("\n", "<br>")
+                            }
                             alCellData.add(
                                 TableCellData(
                                     icon = icon,
@@ -620,6 +638,9 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
             else
                 that().`$parent`.invoke(AppRequest(action = newAppParam))
         },
+        "clientAction" to { action: String, params: Array<Pair<String, String>> ->
+            tableClientActionFun(action, params, that())
+        },
         "showPopupMenu" to { row: Int, event: Event ->
             //--- чтобы строчка выделялась и по правой кнопке мыши тоже
             that().setCurrentRow(row)
@@ -653,6 +674,8 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
             that().isShowPopupMenu = false
             that().invoke(menuData.url, menuData.inNewWindow)
         },
+    ).add(
+        tableMethodsAdd
     )
 
     this.mounted = {
@@ -822,6 +845,8 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
             "style_menu_item_2" to json(
                 "padding" to styleMenuItemPadding_2()
             ),
+        ).add(
+            tableDataAdd
         )
     }
 }
@@ -850,8 +875,8 @@ private class ClientActionButton_(
     val caption: String,
     val tooltip: String,
     val icon: String,
-    val className: String,
-    val param: String,
+    val action: String,
+    val params: Array<Pair<String, String>>,
     val isForWideScreenOnly: Boolean,
 )
 
