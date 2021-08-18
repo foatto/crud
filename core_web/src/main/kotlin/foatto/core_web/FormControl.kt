@@ -758,7 +758,7 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
             "style_form_row_error" to json(
                 "color" to "red",
                 "font-size" to styleControlTextFontSize(),
-                "font-weigth" to "bold",
+                "font-weight" to "bold",
                 "margin" to styleCommonMargin()
             )
         )

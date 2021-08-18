@@ -38,6 +38,7 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql:$postgresJdbcVersion")
     runtimeOnly("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonModuleKotlinVersion")
 
+    api("com.sun.mail:javax.mail:$javaxMailApiVersion")
     api("javax.mail:javax.mail-api:$javaxMailApiVersion")
     api("net.sourceforge.jexcelapi:jxl:$jExcelApiVersion")
 

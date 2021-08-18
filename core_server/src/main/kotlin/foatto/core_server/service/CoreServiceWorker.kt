@@ -90,7 +90,6 @@ abstract class CoreServiceWorker(private val configFileName: String) {
             //--- разовый запуск
             if (isRunOnce) cycle()
             else {
-                val startDay = getCurrentTimeInt() / (24 * 60 * 60)
                 while (true) {
                     //--- рестарт по обнаружению рестарт-файла
                     if (fileRestartFlag.exists()) {

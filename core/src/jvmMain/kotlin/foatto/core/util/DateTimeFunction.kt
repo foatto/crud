@@ -8,15 +8,22 @@ import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
+import kotlin.math.abs
 
 fun getZoneId(timeOffset: Int?) = ZoneOffset.ofTotalSeconds(
     //--- если смещение не задано, то используем UTC-время напрямую (чтобы и с ошибкой не вылетало и было заметно, что что-то не так со временем :)
-    if(timeOffset == null) 0
+    if(timeOffset == null) {
+        0
+    }
     //--- если смещение <= максимально возможного смещения в секундах (43 200 сек), значит оно задано в секундах (логично)
-    else if(timeOffset <= 12 * 60 * 60) timeOffset
+    else if(abs(timeOffset) <= 12 * 60 * 60) {
+        timeOffset
+    }
     //--- в противном случае смещение задано в старом варианте - в миллисекундах
     //--- (минимальное значение будет начинаться с 1 час * 60 * 60 * 1000 = 3 600 000 мс, что всяко не совпадает с верхней границей в 43 200 от предущего варианта)
-    else timeOffset / 1000
+    else {
+        timeOffset / 1000
+    }
 )
 
 fun getCurrentTimeInt() = (System.currentTimeMillis() / 1000).toInt()
@@ -30,6 +37,19 @@ fun getNextDayStart(zoneId: ZoneId): ZonedDateTime {
 }
 //        val begTime = gc.toEpochSecond().toInt()
 //        val endTime = gc.plus(1, ChronoUnit.DAYS).toEpochSecond().toInt()
+
+// "2000-11-15 14:54:50"
+fun YMDHMS_DateTime(zoneId: ZoneId, ymdhms: String): ZonedDateTime =
+    ZonedDateTime.of(
+        ymdhms.substring(0..3).toInt(),
+        ymdhms.substring(5..6).toInt(),
+        ymdhms.substring(8..9).toInt(),
+        ymdhms.substring(11..12).toInt(),
+        ymdhms.substring(14..15).toInt(),
+        ymdhms.substring(17..18).toInt(),
+        0,
+        zoneId
+    )
 
 fun getDateTime(zoneId: ZoneId, second: Int) = ZonedDateTime.ofInstant(Instant.ofEpochSecond(second.toLong()), zoneId)
 fun getDateTime(zoneId: ZoneId, arrDT: IntArray) = ZonedDateTime.of(arrDT[0], arrDT[1], arrDT[2], arrDT[3], arrDT[4], arrDT[5], 0, zoneId)
