@@ -27,7 +27,7 @@ class cZone : cStandart() {
         //--- загрузить список всех доступных по правам доступа зон
         val hmZoneData = ZoneData.getZoneData(stm, userConfig, 0)
 
-        for(zoneID in hmZoneData.keys) sd.alStartObjectData.add(XyStartObjectData(zoneID, "mms_zone", false, false, hmZoneData[zoneID]!!.hmUserRO[userConfig.userID]!!))
+        for(zoneID in hmZoneData.keys) sd.alStartObjectData.add(XyStartObjectData(zoneID, "mms_zone", false, false, hmZoneData[zoneID]!!.hmUserRO[userConfig.userId]!!))
 
         sd.shortTitle = "Создание геозоны"
         sd.sbTitle = StringBuilder("Создание геозоны")

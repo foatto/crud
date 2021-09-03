@@ -32,7 +32,7 @@ class mObject : mAbstract() {
         //----------------------------------------------------------------------------------------------------------------------
 
         val columnUserID = ColumnInt("SYSTEM_users", "id")
-        columnUser = ColumnInt(tableName, "user_id", columnUserID, userConfig.userID)
+        columnUser = ColumnInt(tableName, "user_id", columnUserID, userConfig.userId)
         val columnUserName = ColumnString("SYSTEM_users", "full_name", "Владелец", STRING_COLUMN_WIDTH).apply {
             if (userConfig.isAdmin) {
                 selectorAlias = "system_user_people"

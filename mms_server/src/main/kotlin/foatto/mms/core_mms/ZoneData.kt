@@ -28,7 +28,7 @@ class ZoneData( val id: Int, val userID: Int, val name: String, val descr: Strin
                 if( zoneID == 0 ) {
                     for( ( curZoneID, zd ) in hmAllZoneData ) {
                         if( cStandart.checkPerm( userConfig, hsZonePermission, cStandart.PERM_TABLE, zd.userID ) ) {
-                            zd.hmUserRO[ userConfig.userID ] = !cStandart.checkPerm( userConfig, hsZonePermission, cStandart.PERM_EDIT, zd.userID )
+                            zd.hmUserRO[ userConfig.userId ] = !cStandart.checkPerm( userConfig, hsZonePermission, cStandart.PERM_EDIT, zd.userID )
                             hmZoneData[ curZoneID ] = zd
                         }
                     }
@@ -36,7 +36,7 @@ class ZoneData( val id: Int, val userID: Int, val name: String, val descr: Strin
                 else {
                     val zd = hmAllZoneData[ zoneID ]!!
                     if( cStandart.checkPerm( userConfig, hsZonePermission, cStandart.PERM_TABLE, zd.userID ) ) {
-                        zd.hmUserRO[ userConfig.userID ] = !cStandart.checkPerm( userConfig, hsZonePermission, cStandart.PERM_EDIT, zd.userID )
+                        zd.hmUserRO[ userConfig.userId ] = !cStandart.checkPerm( userConfig, hsZonePermission, cStandart.PERM_EDIT, zd.userID )
                         hmZoneData[ zoneID ] = zd
                     }
                 }

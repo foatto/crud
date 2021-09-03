@@ -89,8 +89,15 @@ class mDevice : mAbstract() {
 
         val columnObjectUserName = ColumnComboBox("MMS_object", "user_id", "Пользователь").apply {
             addChoice(0, "")
-            userConfig.hmUserFullNames.forEach { (userID, userName) ->
-                addChoice(userID, if (userID == userConfig.userID || userName.isBlank()) "" else userName)
+            UserConfig.hmUserFullNames.forEach { (userID, userName) ->
+                addChoice(
+                    value = userID,
+                    tableDescr = if (userID == userConfig.userId || userName.isBlank()) {
+                        ""
+                    } else {
+                        userName
+                    }
+                )
             }
         }
 

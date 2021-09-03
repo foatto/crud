@@ -34,11 +34,11 @@ class cShowZone : cAbstractForm() {
         sd.shortTitle = aliasConfig.descr
         sd.sbTitle = StringBuilder( "Геозона: " ).append( zoneData.name ).append( " [" ).append( zoneData.descr ).append( ']' )
         //--- информация по зоне
-        sd.alStartObjectData.add( XyStartObjectData( showZoneID, "mms_zone", true, false, zoneData.hmUserRO[ userConfig.userID ]!! ) )
+        sd.alStartObjectData.add( XyStartObjectData( showZoneID, "mms_zone", true, false, zoneData.hmUserRO[ userConfig.userId ]!! ) )
 
         val hmAllZone = mutableMapOf<Int, Boolean>()
         for( ( zoneID, zd ) in hmZoneData )
-            hmAllZone[ zoneID ] = zd.hmUserRO[ userConfig.userID ]!!
+            hmAllZone[ zoneID ] = zd.hmUserRO[ userConfig.userId ]!!
 
         for( zoneID in hmAllZone.keys )
             if( zoneID != showZoneID )

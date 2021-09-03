@@ -154,7 +154,7 @@ class sdcMMSState : sdcXyState() {
 
             if (deviceID != 0) stm.executeUpdate(
                 " INSERT INTO MMS_device_command_history ( id , user_id , device_id , object_id , command_id , edit_time , for_send , send_time ) VALUES ( " +
-                    "${stm.getNextID("MMS_device_command_history", "id")} , ${userConfig.userID} , $deviceID , $objectID , $commandID , " +
+                    "${stm.getNextID("MMS_device_command_history", "id")} , ${userConfig.userId} , $deviceID , $objectID , $commandID , " +
                     "${getCurrentTimeInt()} , 1 , 0 ) "
             )
         }

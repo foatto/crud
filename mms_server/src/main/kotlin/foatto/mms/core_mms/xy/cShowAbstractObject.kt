@@ -87,14 +87,14 @@ abstract class cShowAbstractObject : cAbstractForm() {
                 )
                 for (alZoneLimit in hmZoneLimit.values) {
                     for (zld in alZoneLimit)
-                        hmActualZone[zld.zoneData!!.id] = zld.zoneData!!.hmUserRO[userConfig.userID]!!
+                        hmActualZone[zld.zoneData!!.id] = zld.zoneData!!.hmUserRO[userConfig.userId]!!
                 }
             }
         }
         //--- загрузить список всех доступных по правам доступа зон
         if (showZoneType == ZONE_SHOW_ALL)
             for (zoneID in hmZoneData!!.keys)
-                hmAllZone[zoneID] = hmZoneData[zoneID]!!.hmUserRO[userConfig.userID]!!
+                hmAllZone[zoneID] = hmZoneData[zoneID]!!.hmUserRO[userConfig.userId]!!
 
         for (zoneID in hmActualZone.keys) {
             sd.alStartObjectData.add(

@@ -45,7 +45,7 @@ class mDeviceCommandHistory : mAbstract() {
         //----------------------------------------------------------------------------------------------------------------------
 
         columnID = ColumnInt(tableName, "id")
-        columnUser = ColumnInt(tableName, "user_id", userConfig.userID)
+        columnUser = ColumnInt(tableName, "user_id", userConfig.userId)
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -101,8 +101,16 @@ class mDeviceCommandHistory : mAbstract() {
 
         val columnObjectUserName = ColumnComboBox("MMS_object", "user_id", "Пользователь")
         columnObjectUserName.addChoice(0, "")
-        for ((userID, userName) in userConfig.hmUserFullNames)
-            columnObjectUserName.addChoice(userID, if (userID == userConfig.userID || userName.trim().isEmpty()) "" else userName)
+        for ((userID, userName) in UserConfig.hmUserFullNames) {
+            columnObjectUserName.addChoice(
+                userID,
+                if (userID == userConfig.userId || userName.trim().isEmpty()) {
+                    ""
+                } else {
+                    userName
+                }
+            )
+        }
 
         //----------------------------------------------------------------------------------------------------------------------
 
