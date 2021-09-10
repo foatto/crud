@@ -2,7 +2,6 @@ package foatto.mms
 
 import foatto.core.util.AdvancedLogger
 import foatto.core.util.getCurrentTimeInt
-import foatto.core.util.tokenize
 import foatto.core_server.service.CoreServiceWorker
 import foatto.sql.AdvancedConnection
 import java.util.*
@@ -63,19 +62,17 @@ class ObjectMonitor(aConfigFileName: String) : CoreServiceWorker(aConfigFileName
 
     //----------------------------------------------------------------------------------------------------------------------------------------
 
-    override val isRunOnce: Boolean
-        get() = true
+    override val isRunOnce = true
 
     override fun loadConfig() {
         super.loadConfig()
 
         noDataCheckPeriod = (hmConfig[NO_DATA_CHECK_PERIOD]?.toIntOrNull() ?: 1 ) * 60 * 60
 
-        alDefaultEmail = hmConfig[DEFAULT_EMAIL]?.tokenize( " ,;" ) ?: emptyList()
+        alDefaultEmail = hmConfig[DEFAULT_EMAIL]?.split( " ", ",", ";" )?.filter { it.isNotEmpty() } ?: emptyList()
 
         smtpServer = hmConfig[CONFIG_SMTP_SERVER]!!
-        smtpPort = Integer.parseInt(hmConfig[CONFIG_SMTP_PORT])
-
+        smtpPort = hmConfig[CONFIG_SMTP_PORT]!!.toInt()
         smtpLogin = hmConfig[CONFIG_SMTP_LOGIN]!!
         smtpPassword = hmConfig[CONFIG_SMTP_PASSWORD]!!
 
@@ -104,7 +101,7 @@ class ObjectMonitor(aConfigFileName: String) : CoreServiceWorker(aConfigFileName
         while( rs.next() ) {
             val email = rs.getString( 1 )
             if( email.isNotBlank() )
-                hmObjectEmail[ rs.getInt( 2 ) ] = email.tokenize( " ,;" )
+                hmObjectEmail[ rs.getInt( 2 ) ] = email.split( " ", ",", ";" ).filter { it.isNotEmpty() }
         }
         rs.close()
 
@@ -113,7 +110,7 @@ class ObjectMonitor(aConfigFileName: String) : CoreServiceWorker(aConfigFileName
         while( rs.next() ) {
             val email = rs.getString( 1 )
             if( email.isNotBlank() )
-                hmUserEmail[ rs.getInt( 2 ) ] = email.tokenize( " ,;" )
+                hmUserEmail[ rs.getInt( 2 ) ] = email.split( " ", ",", ";" ).filter { it.isNotEmpty() }
         }
         rs.close()
 
@@ -163,7 +160,9 @@ class ObjectMonitor(aConfigFileName: String) : CoreServiceWorker(aConfigFileName
     //--- отправка письма
     private fun sendMail(alEmail: List<String>, subj: String, body: String) {
         val props = System.getProperties()
-        for(key in hmSmtpOption.keys) props[key] = hmSmtpOption[key]
+        hmSmtpOption.keys.forEach { key ->
+            props[key] = hmSmtpOption[key]
+        }
 
         val session = Session.getDefaultInstance(props, null)
         val transport = session.getTransport("smtp")

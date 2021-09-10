@@ -295,7 +295,6 @@ abstract class cMMSReport : cAbstractReport() {
 
         private var objectAliasID = 0
         fun loadObjectList(conn: CoreAdvancedConnection, userConfig: UserConfig, userID: Int, departmentID: Int, groupID: Int, alObject: MutableList<Int>) {
-            val stmCheckPerm = conn.createStatement()
             val stm = conn.createStatement()
 
             //--- однократная инициализация aliasID
@@ -320,15 +319,13 @@ abstract class cMMSReport : cAbstractReport() {
                 val uID = rs.getInt(2)
 
                 if (userID != 0 ||
-                    checkPerm(userConfig, hsObjectPermission, PERM_TABLE, OtherOwnerData.getOtherOwner(stmCheckPerm, objectAliasID, aID, uID, userConfig.userID))
+                    checkPerm(userConfig, hsObjectPermission, PERM_TABLE, OtherOwnerData.getOtherOwner(conn, objectAliasID, aID, uID, userConfig.userId))
                 ) {
                     alObject.add(aID)
                 }
             }
             rs.close()
             stm.close()
-
-            stmCheckPerm.close()
         }
     }
 }
