@@ -186,23 +186,6 @@ class OfficeSpringController : CoreSpringController() {
         val alMenu = mutableListOf<MenuData>()
         val hmAliasPerm = userConfig.userPermission
 
-        //--- напоминания -------------------------------------------------------------------------------------------------------
-
-//        val alMenuReminder = mutableListOf<MenuData>()
-//
-//        addMenu( hmAliasConfig, hmAliasPerm, alMenuReminder, "office_reminder_call", true )
-//        addMenu( hmAliasConfig, hmAliasPerm, alMenuReminder, "office_reminder_meet", true )
-//        addMenu( hmAliasConfig, hmAliasPerm, alMenuReminder, "office_reminder_call_remember", true )
-//        addMenu( hmAliasConfig, hmAliasPerm, alMenuReminder, "office_reminder_input_call", true )
-//        addMenu( hmAliasConfig, hmAliasPerm, alMenuReminder, "office_reminder_meeting", true )
-//        addMenu( hmAliasConfig, hmAliasPerm, alMenuReminder, "office_reminder_other", true )
-//
-//        addSeparator( alMenuReminder )
-//
-//        addMenu( hmAliasConfig, hmAliasPerm, alMenuReminder, "office_reminder", true )
-//
-//        if( alMenuReminder.size > 1 ) alMenu.add( MenuData( "", "Напоминания", alMenuReminder ) )
-
         //--- Поручения --------------------------------------------------------------------------------------------------------
 
         val alMenuTask = mutableListOf<MenuData>()
@@ -215,8 +198,41 @@ class OfficeSpringController : CoreSpringController() {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuTask, "office_task_out_archive", true)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuTask, "office_task_in_archive", true)
 
-        if (alMenuTask.size > 1)
+        if (alMenuTask.size > 1) {
             alMenu.add(MenuData("", "Поручения", alMenuTask.toTypedArray()))
+        }
+
+        //--- напоминания -------------------------------------------------------------------------------------------------------
+
+        val alMenuReminder = mutableListOf<MenuData>()
+
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuReminder, "office_reminder_call", true)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuReminder, "office_reminder_meet", true)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuReminder, "office_reminder_call_remember", true)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuReminder, "office_reminder_input_call", true)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuReminder, "office_reminder_meeting", true)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuReminder, "office_reminder_other", true)
+
+        addSeparator(alMenuReminder)
+
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuReminder, "office_reminder", true)
+
+        addSeparator(alMenuReminder)
+
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuReminder, "office_reminder_call_archive", true)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuReminder, "office_reminder_meet_archive", true)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuReminder, "office_reminder_call_remember_archive", true)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuReminder, "office_reminder_input_call_archive", true)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuReminder, "office_reminder_meeting_archive", true)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuReminder, "office_reminder_other_archive", true)
+
+        addSeparator(alMenuReminder)
+
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuReminder, "office_reminder_archive", true)
+
+        if (alMenuReminder.size > 3) {
+            alMenu.add(MenuData("", "Напоминания", alMenuReminder.toTypedArray()))
+        }
 
 ////--- Сопровождение клиентов -------------------------------------------------------------------------------------------
 //
@@ -266,14 +282,14 @@ class OfficeSpringController : CoreSpringController() {
 
         //--- Отчёты --------------------------------------------------------------------------------------------------------
 
-//        val alMenuReport = mutableListOf<MenuData>()
-//
+        val alMenuReport = mutableListOf<MenuData>()
+
 //        addMenu( hmAliasConfig, hmAliasPerm, alMenuReport, "office_report_reminder", false )
-//        addMenu( hmAliasConfig, hmAliasPerm, alMenuReport, "office_report_task", false )
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuReport, "office_report_task", false)
 //        addMenu( hmAliasConfig, hmAliasPerm, alMenuReport, "office_report_task_day_state", false )
 //        addMenu( hmAliasConfig, hmAliasPerm, alMenuReport, "office_report_client_work_state", false )
-//
-//        if( alMenuReport.size > 0 ) alMenu.add( MenuData( "", "Отчёты", alMenuReport ) )
+
+        if (alMenuReport.size > 0) alMenu.add(MenuData("", "Отчёты", alMenuReport.toTypedArray()))
 
         //--- Справочники --------------------------------------------------------------------------------------------------------
 
@@ -289,6 +305,10 @@ class OfficeSpringController : CoreSpringController() {
 
         val alMenuSystem = mutableListOf<MenuData>()
 
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuSystem, "system_user_property", false)
+
+        addSeparator(alMenuSystem)
+
         addMenu(hmAliasConfig, hmAliasPerm, alMenuSystem, "system_user", true)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuSystem, "system_role", true)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuSystem, "system_alias", true)
@@ -303,7 +323,7 @@ class OfficeSpringController : CoreSpringController() {
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuSystem, "system_log_user", true)
 
-        if (alMenuSystem.size > 2) alMenu.add(MenuData("", "Система", alMenuSystem.toTypedArray()))
+        if (alMenuSystem.size > 3) alMenu.add(MenuData("", "Система", alMenuSystem.toTypedArray()))
 
         //----------------------------------------------------------------------------------------------------------------------
 
