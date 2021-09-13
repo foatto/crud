@@ -27,7 +27,7 @@ private class MMSIndex : Index() {
 
     init {
         //--- constantly showed menu bar
-        styleIsHiddenMenuBar = localStorage.getItem(IS_HIDDEN_MENU_BAR)?.toBooleanStrictOrNull() ?: false
+//        styleIsHiddenMenuBar = localStorage.getItem(IS_HIDDEN_MENU_BAR)?.toBooleanStrictOrNull() ?: false
     }
 
 }
