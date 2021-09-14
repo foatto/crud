@@ -1,5 +1,6 @@
 package foatto.mms.core_mms.graphic.server.document
 
+import foatto.core.app.UP_GRAPHIC_SHOW_BACK
 import foatto.core.app.UP_GRAPHIC_SHOW_LINE
 import foatto.core.app.UP_GRAPHIC_SHOW_POINT
 import foatto.core.app.UP_GRAPHIC_SHOW_TEXT
@@ -11,7 +12,6 @@ import foatto.core.app.graphic.GraphicDataContainer
 import foatto.core.app.graphic.GraphicElement
 import foatto.core.app.graphic.GraphicTextData
 import foatto.core.util.AdvancedByteBuffer
-import foatto.core.util.DateTime_DMYHMS
 import foatto.core.util.getCurrentTimeInt
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.graphic.server.GraphicDocumentConfig
@@ -237,10 +237,13 @@ open class sdcAnalog : sdcAbstractGraphic() {
         val viewWidth = graphicActionRequest.viewSize!!.first
         val viewHeight = graphicActionRequest.viewSize!!.second
 
+        val smBack = userConfig.getUserProperty(UP_GRAPHIC_SHOW_BACK)
         val smPoint = userConfig.getUserProperty(UP_GRAPHIC_SHOW_POINT)
         val smLine = userConfig.getUserProperty(UP_GRAPHIC_SHOW_LINE)
         val smText = userConfig.getUserProperty(UP_GRAPHIC_SHOW_TEXT)
 
+        //--- показ фона по умолчанию включен, если не указано явно иное
+        val isShowBack = smBack?.toBoolean() ?: true
         //--- показ точек по умолчанию выключен, если не указано явно иное
         val isShowPoint = smPoint?.toBoolean() ?: false
         //--- показ линий по умолчанию включен, если не указано явно иное
@@ -278,22 +281,52 @@ open class sdcAnalog : sdcAbstractGraphic() {
                 val strGraphicVisible = userConfig.getUserProperty(graphicVisibilityKey)
                 val isGraphicVisible = strGraphicVisible?.toBoolean() ?: true
 
-                if (!isGraphicVisible) continue
+                if (!isGraphicVisible) {
+                    continue
+                }
 
                 val alAxisYData = mutableListOf<AxisYData>()
 
                 //--- Максимальный размер массива = кол-во точек по горизонтали = 3840 ( максимальная ширина 4K-экрана ), окгруляем до 4000
-                val aMinLimit = if (agh.isStaticMinLimit(sca)) GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1)
-                else if (agh.isDynamicMinLimit(sca)) GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1) else null
+                val aMinLimit = if (agh.isStaticMinLimit(sca)) {
+                    GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1)
+                }
+                else if (agh.isDynamicMinLimit(sca)) {
+                    GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1)
+                } else {
+                    null
+                }
 
-                val aMaxLimit = if (agh.isStaticMaxLimit(sca)) GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1)
-                else if (agh.isDynamicMaxLimit(sca)) GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1) else null
+                val aMaxLimit = if (agh.isStaticMaxLimit(sca)) {
+                    GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1)
+                }
+                else if (agh.isDynamicMaxLimit(sca)) {
+                    GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1)
+                } else {
+                    null
+                }
 
-                //--- Если включён показ линий и выключено сглаживание, то точки можно не показывать,
-                //--- их всё равно не будет видно за покрывающей их линией
-                val aPoint = if (isShowPoint && (!isShowLine || sca.smoothTime > 0)) GraphicDataContainer(GraphicDataContainer.ElementType.POINT, 0) else null
-                val aLine = if (isShowLine) GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 3) else null
-                val aText = if (isShowText) GraphicDataContainer(GraphicDataContainer.ElementType.TEXT, 0) else null
+                val aBack = if (isShowBack) {
+                    GraphicDataContainer(GraphicDataContainer.ElementType.BACK, 0)
+                } else {
+                    null
+                }
+                //--- Если включён показ линий и выключено сглаживание, то точки можно не показывать, их всё равно не будет видно за покрывающей их линией
+                val aPoint = if (isShowPoint && (!isShowLine || sca.smoothTime > 0)) {
+                    GraphicDataContainer(GraphicDataContainer.ElementType.POINT, 0)
+                } else {
+                    null
+                }
+                val aLine = if (isShowLine) {
+                    GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 3)
+                } else {
+                    null
+                }
+                val aText = if (isShowText) {
+                    GraphicDataContainer(GraphicDataContainer.ElementType.TEXT, 0)
+                } else {
+                    null
+                }
 
                 //--- данные по гео-датчику показываем до работы оборудования
                 if (!isGeoSensorShowed && aText != null && oc.scg != null && oc.scg!!.isUseSpeed) {
@@ -311,12 +344,10 @@ open class sdcAnalog : sdcAbstractGraphic() {
                     endTime = x2,
                     xScale = if (viewWidth == 0) 0 else (x2 - x1) / (viewWidth / DOT_PER_MM),
                     yScale = if (viewHeight == 0) 0.0 else (sca.maxView - sca.minView) / (viewHeight / DOT_PER_MM),
-                    isShowPoint = isShowPoint,
-                    isShowLine = isShowLine,
-                    isShowText = isShowText,
                     alAxisYData = alAxisYData,
                     aMinLimit = aMinLimit,
                     aMaxLimit = aMaxLimit,
+                    aBack = aBack,
                     aPoint = aPoint,
                     aLine = aLine,
                     aText = aText
@@ -459,12 +490,10 @@ open class sdcAnalog : sdcAbstractGraphic() {
         endTime: Int,
         xScale: Int,
         yScale: Double,
-        isShowPoint: Boolean,
-        isShowLine: Boolean,
-        isShowText: Boolean,
         alAxisYData: MutableList<AxisYData>,
         aMinLimit: GraphicDataContainer?,
         aMaxLimit: GraphicDataContainer?,
+        aBack: GraphicDataContainer?,
         aPoint: GraphicDataContainer?,
         aLine: GraphicDataContainer?,
         aText: GraphicDataContainer?
@@ -475,7 +504,7 @@ open class sdcAnalog : sdcAbstractGraphic() {
         ObjectCalc.getSmoothAnalogGraphicData(alRawTime, alRawData, oc.scg, sca, begTime, endTime, xScale, yScale, aMinLimit, aMaxLimit, aPoint, aLine, graphicHandler)
 
         //--- если вывод текстов задан, сделаем вывод режимов работы оборудования
-        if (aText != null) {
+        aText?.let {
             val hmSC = oc.hmSensorConfig[SensorConfig.SENSOR_WORK]
             if (!hmSC.isNullOrEmpty()) {
                 val alGTD = aText.alGTD.toMutableList()
