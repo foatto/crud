@@ -155,6 +155,7 @@ class cWorkShift : cAbstractPeriodSummary() {
         val reportEndDay = hmReportParam["report_end_day"] as Int
         val reportGroupType = hmReportParam["report_group_type"] as Int
         val reportKeepPlaceForComment = hmReportParam["report_keep_place_for_comment"] as Boolean
+        val reportOutLiquidLevelMainContainerUsing = hmReportParam["report_out_liquid_level_main_container_using"] as Boolean
         val reportOutTemperature = hmReportParam["report_out_temperature"] as Boolean
         val reportOutDensity = hmReportParam["report_out_density"] as Boolean
         val reportOutGroupSum = hmReportParam["report_out_group_sum"] as Boolean
@@ -231,6 +232,7 @@ class cWorkShift : cAbstractPeriodSummary() {
                     aOffsY = offsY,
                     objectConfig = wscr.objectCalc.objectConfig,
                     objectCalc = wscr.objectCalc,
+                    isOutLiquidLevelMainContainerUsing = reportOutLiquidLevelMainContainerUsing,
                     isOutTemperature = reportOutTemperature,
                     isOutDensity = reportOutDensity,
                     isKeepPlaceForComment = reportKeepPlaceForComment,

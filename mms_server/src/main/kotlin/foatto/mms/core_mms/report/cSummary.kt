@@ -35,6 +35,7 @@ class cSummary : cStandartPeriodSummary() {
         val reportDepartment = hmReportParam["report_department"] as Int
         val reportGroup = hmReportParam["report_group"] as Int
         val reportKeepPlaceForComment = hmReportParam["report_keep_place_for_comment"] as Boolean
+        val reportOutLiquidLevelMainContainerUsing = hmReportParam["report_out_liquid_level_main_container_using"] as Boolean
         val reportOutTemperature = hmReportParam["report_out_temperature"] as Boolean
         val reportOutDensity = hmReportParam["report_out_density"] as Boolean
         val reportOutGroupSum = hmReportParam["report_out_group_sum"] as Boolean
@@ -86,6 +87,7 @@ class cSummary : cStandartPeriodSummary() {
                 aOffsY = offsY,
                 objectConfig = objectConfig,
                 objectCalc = objectCalc,
+                isOutLiquidLevelMainContainerUsing = reportOutLiquidLevelMainContainerUsing,
                 isOutTemperature = reportOutTemperature,
                 isOutDensity = reportOutDensity,
                 isKeepPlaceForComment = reportKeepPlaceForComment,

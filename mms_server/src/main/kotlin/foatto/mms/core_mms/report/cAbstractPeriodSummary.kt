@@ -77,6 +77,7 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
         aOffsY: Int,
         objectConfig: ObjectConfig,
         objectCalc: ObjectCalc,
+        isOutLiquidLevelMainContainerUsing: Boolean,
         isOutTemperature: Boolean,
         isOutDensity: Boolean,
         isKeepPlaceForComment: Boolean,
@@ -222,11 +223,11 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
             var allEndLevelSum = 0.0
             var mainDecMinusWorkInc = 0.0
 
-            listOf(SensorConfigLiquidLevel.CONTAINER_TYPE_MAIN, SensorConfigLiquidLevel.CONTAINER_TYPE_WORK). forEach { containerType ->
-                if( objectCalc.tmLiquidLevel.any { (_, llcd) ->
+            listOf(SensorConfigLiquidLevel.CONTAINER_TYPE_MAIN, SensorConfigLiquidLevel.CONTAINER_TYPE_WORK).forEach { containerType ->
+                if (objectCalc.tmLiquidLevel.any { (_, llcd) ->
                         llcd.containerType == containerType
-                }) {
-                    val containerTypeDescr = if(containerType == SensorConfigLiquidLevel.CONTAINER_TYPE_MAIN) {
+                    }) {
+                    val containerTypeDescr = if (containerType == SensorConfigLiquidLevel.CONTAINER_TYPE_MAIN) {
                         "основной"
                     } else {
                         "рабочей/расходной"
@@ -237,9 +238,13 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
                     sheet.addCell(Label(3, offsY, "Остаток на конец периода", wcfCaptionHC))
                     sheet.addCell(Label(4, offsY, "Заправка", wcfCaptionHC))
                     sheet.addCell(Label(5, offsY, "Слив", wcfCaptionHC))
-                    sheet.addCell(Label(6, offsY, "Расход", wcfCaptionHC))
-                    if (isUsingCalc) {
-                        sheet.addCell(Label(7, offsY, "В т.ч. расчётный расход", wcfCaptionHC))
+                    if (containerType == SensorConfigLiquidLevel.CONTAINER_TYPE_WORK ||
+                        containerType == SensorConfigLiquidLevel.CONTAINER_TYPE_MAIN && isOutLiquidLevelMainContainerUsing
+                    ) {
+                        sheet.addCell(Label(6, offsY, "Расход", wcfCaptionHC))
+                        if (isUsingCalc) {
+                            sheet.addCell(Label(7, offsY, "В т.ч. расчётный расход", wcfCaptionHC))
+                        }
                     }
                     offsY++
 
@@ -259,14 +264,18 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
                             sheet.addCell(Label(3, offsY, getSplittedDouble(llcd.endLevel, ObjectCalc.getPrecision(llcd.endLevel), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
                             sheet.addCell(Label(4, offsY, getSplittedDouble(llcd.incTotal, ObjectCalc.getPrecision(llcd.incTotal), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
                             sheet.addCell(Label(5, offsY, getSplittedDouble(llcd.decTotal, ObjectCalc.getPrecision(llcd.decTotal), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
-                            sheet.addCell(Label(6, offsY, getSplittedDouble(llcd.usingTotal, ObjectCalc.getPrecision(llcd.usingTotal), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
+                            if (containerType == SensorConfigLiquidLevel.CONTAINER_TYPE_WORK ||
+                                containerType == SensorConfigLiquidLevel.CONTAINER_TYPE_MAIN && isOutLiquidLevelMainContainerUsing
+                            ) {
+                                sheet.addCell(Label(6, offsY, getSplittedDouble(llcd.usingTotal, ObjectCalc.getPrecision(llcd.usingTotal), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
 
-                            if (isUsingCalc) sheet.addCell(
-                                Label(
-                                    7, offsY, if (llcd.usingCalc <= 0) "-"
-                                    else getSplittedDouble(llcd.usingCalc, ObjectCalc.getPrecision(llcd.usingCalc), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC
+                                if (isUsingCalc) sheet.addCell(
+                                    Label(
+                                        7, offsY, if (llcd.usingCalc <= 0) "-"
+                                        else getSplittedDouble(llcd.usingCalc, ObjectCalc.getPrecision(llcd.usingCalc), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC
+                                    )
                                 )
-                            )
+                            }
                             offsY++
                             if (isKeepPlaceForComment) {
                                 sheet.addCell(Label(1, offsY, "", wcfComment))
@@ -275,16 +284,16 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
                             }
 
                             begLevelSum += llcd.begLevel
-                            endLevelSum  += llcd.endLevel
-                            incTotalSum  += llcd.incTotal
-                            decTotalSum  += llcd.decTotal
+                            endLevelSum += llcd.endLevel
+                            incTotalSum += llcd.incTotal
+                            decTotalSum += llcd.decTotal
                             usingTotalSum += llcd.usingTotal
 
                             allBegLevelSum += llcd.begLevel
-                            allEndLevelSum  += llcd.endLevel
+                            allEndLevelSum += llcd.endLevel
                         }
 
-                    if(containerType == SensorConfigLiquidLevel.CONTAINER_TYPE_MAIN) {
+                    if (containerType == SensorConfigLiquidLevel.CONTAINER_TYPE_MAIN) {
                         mainDecMinusWorkInc += decTotalSum
                     } else {
                         mainDecMinusWorkInc -= incTotalSum
@@ -295,8 +304,11 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
                     sheet.addCell(Label(3, offsY, getSplittedDouble(endLevelSum, ObjectCalc.getPrecision(endLevelSum), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
                     sheet.addCell(Label(4, offsY, getSplittedDouble(incTotalSum, ObjectCalc.getPrecision(incTotalSum), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
                     sheet.addCell(Label(5, offsY, getSplittedDouble(decTotalSum, ObjectCalc.getPrecision(decTotalSum), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
-                    sheet.addCell(Label(6, offsY, getSplittedDouble(usingTotalSum, ObjectCalc.getPrecision(usingTotalSum), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
-
+                    if (containerType == SensorConfigLiquidLevel.CONTAINER_TYPE_WORK ||
+                        containerType == SensorConfigLiquidLevel.CONTAINER_TYPE_MAIN && isOutLiquidLevelMainContainerUsing
+                    ) {
+                        sheet.addCell(Label(6, offsY, getSplittedDouble(usingTotalSum, ObjectCalc.getPrecision(usingTotalSum), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
+                    }
                     offsY += 2
                 }
             }

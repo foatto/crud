@@ -41,6 +41,7 @@ abstract class cMMSReport : cAbstractReport() {
 
     protected fun fillReportParam(sros: SummaryReportOptionSelector) {
         hmReportParam["report_keep_place_for_comment"] = (hmColumnData[sros.columnKeepPlaceForComment] as DataBoolean).value
+        hmReportParam["report_out_liquid_level_main_container_using"] = (hmColumnData[sros.columnOutLiquidLevelMainContainerUsing] as DataBoolean).value
         hmReportParam["report_out_temperature"] = (hmColumnData[sros.columnOutTemperature] as DataBoolean).value
         hmReportParam["report_out_density"] = (hmColumnData[sros.columnOutDensity] as DataBoolean).value
         hmReportParam["report_out_troubles"] = (hmColumnData[sros.columnOutTroubles] as DataBoolean).value
