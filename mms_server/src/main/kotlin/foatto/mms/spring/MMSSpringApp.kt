@@ -94,7 +94,6 @@ class MMSSpringApp : CoreSpringApp() {
             mUser.alExtendChildData.add(ChildData("mms_user_zone"))
             mUser.alExtendChildData.add(ChildData("mms_device_command_history"))
 
-            mUser.alExtendDependData.add(DependData("SYSTEM_new", "user_id", DependData.DELETE))
             mUser.alExtendDependData.add(DependData("MMS_object", "user_id"))
             mUser.alExtendDependData.add(DependData("MMS_day_work", "user_id", DependData.DELETE))
             mUser.alExtendDependData.add(DependData("MMS_department", "user_id"))

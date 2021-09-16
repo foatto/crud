@@ -511,7 +511,7 @@ open class sdcAnalog : sdcAbstractGraphic() {
                 hmSC.values.forEach { sc ->
                     val scw = sc as SensorConfigWork
                     //--- пропускаем датчики работы оборудования не из своей группы
-                    if (sca.group == scw.group) {
+                    if (scw.group == sca.group) {
                         val alWork = ObjectCalc.calcWorkSensor(alRawTime, alRawData, scw, begTime, endTime).alWorkOnOff
                         for (apd in alWork) {
                             val workDescr = StringBuilder(scw.descr).append(" : ").append(if (apd.getState() != 0) "ВКЛ" else "выкл").toString()

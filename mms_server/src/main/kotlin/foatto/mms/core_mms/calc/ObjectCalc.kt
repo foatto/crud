@@ -478,7 +478,9 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                         delayBeginTime = 0
                     }
                     //--- Beginning of work
-                    if (workBeginTime == 0) workBeginTime = curTime
+                    if (workBeginTime == 0) {
+                        workBeginTime = curTime
+                    }
                 } else {
                     //--- record of previous work
                     if (workBeginTime != 0) {
@@ -486,14 +488,20 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                         workBeginTime = 0
                     }
                     //--- start of downtime
-                    if (delayBeginTime == 0) delayBeginTime = curTime
+                    if (delayBeginTime == 0) {
+                        delayBeginTime = curTime
+                    }
                 }
                 lastTime = curTime
             }
 
             //--- record of the last unclosed event
-            if (workBeginTime != 0) alResult.add(WorkPeriodData(workBeginTime, curTime, 1))
-            if (delayBeginTime != 0) alResult.add(WorkPeriodData(delayBeginTime, curTime, 0))
+            if (workBeginTime != 0) {
+                alResult.add(WorkPeriodData(workBeginTime, curTime, 1))
+            }
+            if (delayBeginTime != 0) {
+                alResult.add(WorkPeriodData(delayBeginTime, curTime, 0))
+            }
 
             //--- merging of work / downtime periods according to minimum durations
             mergePeriods(alResult, scw.minOnTime, scw.minOffTime)
@@ -1284,11 +1292,17 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                                 //i++ - do not need to be done, since the current period is now new with an unknown duration
                             }
                             isShortFound = true    // deletion was, it makes sense to go through the chain again
-                        } else i++ // no long neighbors found - let's move on
-                    } else i++
+                        } else {
+                            i++ // no long neighbors found - let's move on
+                        }
+                    } else {
+                        i++
+                    }
                 }
                 //--- nothing more to throw away and connect
-                if (!isShortFound) break
+                if (!isShortFound) {
+                    break
+                }
             }
         }
 

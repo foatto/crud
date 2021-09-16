@@ -7,7 +7,7 @@ class WorkCalcData(
 
     var onTime = alWorkOnOff.filter {
         it.getState() != 0
-    }.sumBy {
+    }.sumOf {
         it.endTime - it.begTime
     }
 }
