@@ -67,8 +67,9 @@ abstract class CoreAdvancedConnection(dbConfig: DBConfig) {
                 val bbOut = getReplicationData(alReplicationSQL)
 
                 //--- для каждого репликанта
-                for (name in alReplicationName)
+                for (name in alReplicationName) {
                     saveReplication(name, bbOut)
+                }
             }
             alReplicationSQL.clear()
         }
@@ -92,35 +93,40 @@ abstract class CoreAdvancedConnection(dbConfig: DBConfig) {
     //--- различные вариации организации ограничения кол-ва возвращаемых строк
     fun getPreLimit(limit: Int): StringBuilder {
         val sb = StringBuilder()
-        if (dialect == SQLDialect.MSSQL)
+        if (dialect == SQLDialect.MSSQL) {
             sb.append(" TOP( ").append(limit).append(" ) ")
+        }
         return sb
     }
 
     fun getMidLimit(limit: Int): StringBuilder {
         val sb = StringBuilder()
-        if (dialect == SQLDialect.ORACLE)
+        if (dialect == SQLDialect.ORACLE) {
             sb.append(" AND ROWNUM <= ").append(limit)
+        }
         return sb
     }
 
     fun getPostLimit(limit: Int): StringBuilder {
         val sb = StringBuilder()
-        if (dialect == SQLDialect.H2 || dialect == SQLDialect.POSTGRESQL || dialect == SQLDialect.SQLITE)
+        if (dialect == SQLDialect.H2 || dialect == SQLDialect.POSTGRESQL || dialect == SQLDialect.SQLITE) {
             sb.append(" LIMIT ").append(limit)
+        }
         return sb
     }
 
     fun addReplicationSQL(sql: String) {
         //--- для черного списка результат по умолчанию положительный, для белого - отрицательный
         var checkResult = alReplicationFilter.isEmpty() || replicationFilterIsBlackList
-        for (filter in alReplicationFilter)
+        for (filter in alReplicationFilter) {
             if (sql.contains(filter)) {
                 checkResult = !replicationFilterIsBlackList
                 break
             }
-        if (checkResult)
+        }
+        if (checkResult) {
             alReplicationSQL.add(sql)
+        }
     }
 
     fun saveReplication(replicationName: String, bbOut: AdvancedByteBuffer) {
@@ -129,7 +135,9 @@ abstract class CoreAdvancedConnection(dbConfig: DBConfig) {
         var file: File
         while (true) {
             file = File(dir, getRandomInt().toString())
-            if (!file.exists()) break
+            if (!file.exists()) {
+                break
+            }
         }
         //--- сохраняем репликацию в файле
         val fileChannel = FileOutputStream(file).channel
@@ -139,12 +147,8 @@ abstract class CoreAdvancedConnection(dbConfig: DBConfig) {
         bbOut.rewind()
     }
 
-    fun getReplicationList(replicationName: String): TreeMap<Long, MutableList<File>> {
-        var tmFile: TreeMap<Long, MutableList<File>>? = chmReplicationFile[replicationName]
-        if (tmFile == null) {
-            tmFile = TreeMap()
-            chmReplicationFile[replicationName] = tmFile
-        }
+    fun getReplicationList(replicationName: String): SortedMap<Long, MutableList<File>> {
+        val tmFile = chmReplicationFile.getOrPut(replicationName) { sortedMapOf() }
         if (tmFile.isEmpty()) {
             Files.walkFileTree(Paths.get(replicationPath, replicationName), ReplicationFileVisitor(tmFile, MAX_REPLICATION_LIST_SIZE))
         }
@@ -153,7 +157,7 @@ abstract class CoreAdvancedConnection(dbConfig: DBConfig) {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    private class ReplicationFileVisitor(val tmFile: TreeMap<Long, MutableList<File>>, val maxSize: Int) : SimpleFileVisitor<Path>() {
+    private class ReplicationFileVisitor(val tmFile: SortedMap<Long, MutableList<File>>, val maxSize: Int) : SimpleFileVisitor<Path>() {
         override fun visitFile(path: Path, fileAttributes: BasicFileAttributes): FileVisitResult {
             if (fileAttributes.isRegularFile) {
                 //--- игнорируем (не удаляем! этот файл возможно ещё записывается!) файлы реплик с нулевым размером/длиной
@@ -161,14 +165,12 @@ abstract class CoreAdvancedConnection(dbConfig: DBConfig) {
                     val fileTime = fileAttributes.lastModifiedTime().toMillis()
 
                     if (tmFile.size < maxSize || fileTime <= tmFile.lastKey()) {
-                        var alFile = tmFile[fileTime]
-                        if (alFile == null) {
-                            alFile = ArrayList()
-                            tmFile[fileTime] = alFile
-                        }
+                        val alFile = tmFile.getOrPut(fileTime) { mutableListOf() }
                         alFile.add(path.toFile())
                     }
-                    if (tmFile.size > maxSize) tmFile.remove(tmFile.lastKey())
+                    if (tmFile.size > maxSize) {
+                        tmFile.remove(tmFile.lastKey())
+                    }
                 }
             }
             return FileVisitResult.CONTINUE
@@ -186,12 +188,14 @@ abstract class CoreAdvancedConnection(dbConfig: DBConfig) {
 
         //--- ConcurrentHashMap - потому что для разных репликантов могут придти одновременные запросы
         //--- PriorityQueue - потому что для одного конкретного репликанта запросы идут строго последовательно
-        private val chmReplicationFile = ConcurrentHashMap<String, TreeMap<Long, MutableList<File>>>()
+        private val chmReplicationFile = ConcurrentHashMap<String, SortedMap<Long, MutableList<File>>>()
 
         fun getReplicationData(alReplicationSQL: List<String>): AdvancedByteBuffer {
             val bbOut = AdvancedByteBuffer(START_REPLICATION_SIZE)
             bbOut.putInt(alReplicationSQL.size)
-            for (sql in alReplicationSQL) bbOut.putLongString(sql)
+            for (sql in alReplicationSQL) {
+                bbOut.putLongString(sql)
+            }
             bbOut.flip()
 
             return bbOut
@@ -202,13 +206,17 @@ abstract class CoreAdvancedConnection(dbConfig: DBConfig) {
         fun convertDialect(aSql: String, sourDialect: SQLDialect, destDialect: SQLDialect): String {
             var sql = aSql
             //--- одинаковые диалекты не конвертируем
-            if (sourDialect == destDialect) return sql
+            if (sourDialect == destDialect) {
+                return sql
+            }
 
             sql = sql.replace(sourDialect.integerFieldTypeName, destDialect.integerFieldTypeName)
                 .replace(sourDialect.hexFieldTypeName, destDialect.hexFieldTypeName)
             //--- частный случай - убираем clustered-index только в mssql-варианте
-            //--- (обязательной необходимости зеркальной операций - добавления clustered-опции - не определено)
-            if (sourDialect == SQLDialect.MSSQL) sql = sql.replace(sourDialect.createClusteredIndex, destDialect.createClusteredIndex)
+            //--- (обязательной необходимости зеркальной операции - добавления clustered-опции - не определено)
+            if (sourDialect == SQLDialect.MSSQL) {
+                sql = sql.replace(sourDialect.createClusteredIndex, destDialect.createClusteredIndex)
+            }
 
             return sql
         }

@@ -30,8 +30,9 @@ abstract class CoreAdvancedStatement(val conn: CoreAdvancedConnection) {
     fun executeUpdate(sql: CharSequence, withReplication: Boolean = true): Int {
         val s = sql.toString()
         val result = executeUpdate(s)
-        if (withReplication)
+        if (withReplication) {
             conn.addReplicationSQL(s)
+        }
         return result
     }
 

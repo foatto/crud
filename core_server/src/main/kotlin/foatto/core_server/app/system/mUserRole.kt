@@ -11,7 +11,7 @@ import foatto.sql.CoreAdvancedStatement
 class mUserRole : mAbstract() {
 
     override fun init(
-        application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int
+        application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?
     ) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
@@ -46,7 +46,7 @@ class mUserRole : mAbstract() {
 
         //----------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID!!)
+        alTableHiddenColumn.add(columnID)
         alTableHiddenColumn.add(columnRole)
         alTableHiddenColumn.add(columnLogin)
 
@@ -54,7 +54,7 @@ class mUserRole : mAbstract() {
 
         addTableColumn(columnLoginName)
 
-        alFormHiddenColumn.add(columnID!!)
+        alFormHiddenColumn.add(columnID)
         alFormHiddenColumn.add(columnRole)
         alFormHiddenColumn.add(columnLogin)
 

@@ -13,7 +13,7 @@ import foatto.sql.CoreAdvancedStatement
 class mPermission : mAbstract() {
 
     override fun init(
-        application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int
+        application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?
     ) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
@@ -40,7 +40,7 @@ class mPermission : mAbstract() {
 
         //---------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID!!)
+        alTableHiddenColumn.add(columnID)
         alTableHiddenColumn.add(columnClass)
 
         alTableGroupColumn.add(columnClassDescr)
@@ -48,7 +48,7 @@ class mPermission : mAbstract() {
         addTableColumn(columnPermissionName)
         addTableColumn(columnPermissionDescr)
 
-        alFormHiddenColumn.add(columnID!!)
+        alFormHiddenColumn.add(columnID)
         alFormHiddenColumn.add(columnClass)
 
         alFormColumn.add(columnClassDescr)
@@ -69,7 +69,7 @@ class mPermission : mAbstract() {
 
         //----------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData("system_role_permission", columnID!!))
+        alChildData.add(ChildData("system_role_permission", columnID))
 
         //----------------------------------------------------------------------------------------
 

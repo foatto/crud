@@ -51,10 +51,12 @@ class cUserProperty : cStandart() {
 
         val mup = model as mUserProperty
 
-        userConfig.saveUserProperty(stm, UP_TIME_OFFSET, (hmColumnData[mup.columnTimeShift] as DataComboBox).intValue.toString())
-        userConfig.saveUserProperty(stm, UP_IS_USE_THOUSANDS_DIVIDER, (hmColumnData[mup.columnDivideThousands] as DataBoolean).value.toString())
+        userConfig.saveUserProperty(conn, UP_TIME_OFFSET, (hmColumnData[mup.columnTimeShift] as DataComboBox).intValue.toString())
+        userConfig.saveUserProperty(conn, UP_IS_USE_THOUSANDS_DIVIDER, (hmColumnData[mup.columnDivideThousands] as DataBoolean).value.toString())
         userConfig.saveUserProperty(
-            stm, UP_DECIMAL_DIVIDER, if ((hmColumnData[mup.columnDividerChar] as DataRadioButton).intValue == 0) {
+            conn,
+            UP_DECIMAL_DIVIDER,
+            if ((hmColumnData[mup.columnDividerChar] as DataRadioButton).intValue == 0) {
                 "."
             } else {
                 ","

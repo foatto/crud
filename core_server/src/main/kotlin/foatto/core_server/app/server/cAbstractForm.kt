@@ -10,10 +10,10 @@ open class cAbstractForm : cStandart() {
     protected var hmColumnData = mutableMapOf<iColumn, iData>()
 
     override fun definePermission() {
-        alPermission.add( Pair( PERM_ACCESS, "01 Access" ) )
-        alPermission.add( Pair( PERM_TABLE, "02 Table" ) )
-        alPermission.add( Pair( PERM_ADD, "03 Add" ) )
-        alPermission.add( Pair( PERM_FORM, "04 Form" ) )
+        alPermission.add(Pair(PERM_ACCESS, "01 Access"))
+        alPermission.add(Pair(PERM_TABLE, "02 Table"))
+        alPermission.add(Pair(PERM_ADD, "03 Add"))
+        alPermission.add(Pair(PERM_FORM, "04 Form"))
     }
 
     override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
@@ -22,16 +22,18 @@ open class cAbstractForm : cStandart() {
         alColumnList.addAll(model.alFormHiddenColumn)
         alColumnList.addAll(model.alFormColumn)
 
-        val id = getIDFromParam()
+        val id = getIDFromParam()!!
 
         //--- ошибки ввода в форме
         val returnURL = checkInput(id, alFormData, alColumnList, hmColumnData, hmOut)
 
         //--- если нет ошибок, то сохраним значения saved-default-values
         if (returnURL == null) {
-            for (column in hmColumnData.keys)
-                if (column.isSavedDefault)
-                    column.saveDefault(stm, userConfig, hmColumnData)
+            for (column in hmColumnData.keys) {
+                if (column.isSavedDefault) {
+                    column.saveDefault(conn, userConfig, hmColumnData)
+                }
+            }
         }
         return returnURL
     }

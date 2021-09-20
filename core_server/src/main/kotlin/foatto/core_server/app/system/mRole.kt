@@ -13,7 +13,7 @@ import foatto.sql.CoreAdvancedStatement
 class mRole : mAbstract() {
 
     override fun init(
-        application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int
+        application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?
     ) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
@@ -35,11 +35,11 @@ class mRole : mAbstract() {
 
         //----------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID!!)
+        alTableHiddenColumn.add(columnID)
 
         addTableColumn(columnRoleName)
 
-        alFormHiddenColumn.add(columnID!!)
+        alFormHiddenColumn.add(columnID)
 
         alFormColumn.add(columnRoleName)
 
@@ -51,8 +51,8 @@ class mRole : mAbstract() {
 
         //----------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData("system_role_permission", columnID!!))
-        alChildData.add(ChildData("system_user_role", columnID!!))
+        alChildData.add(ChildData("system_role_permission", columnID))
+        alChildData.add(ChildData("system_user_role", columnID))
 
         //----------------------------------------------------------------------------------------
 

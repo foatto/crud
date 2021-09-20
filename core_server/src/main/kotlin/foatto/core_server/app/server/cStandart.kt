@@ -5,7 +5,6 @@ import foatto.core.link.*
 import foatto.core.util.BusinessException
 import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.getRandomInt
-import foatto.core.util.getZoneId
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.column.ColumnDouble
@@ -168,7 +167,7 @@ open class cStandart {
         //--- получить конфигурацию пользователя
         userConfig = aUserConfig   //( UserConfig ) aUserConfig.clone();
 
-        zoneId = getZoneId(userConfig.getUserProperty(UP_TIME_OFFSET)?.toIntOrNull())
+        zoneId = userConfig.upZoneId
 
         //--- получение/инициализация parent-данных
         initParent()
@@ -177,7 +176,7 @@ open class cStandart {
         //--- то список прав доступа == null, что чревато ошибками, поэтому установим пустой список прав доступа)
         hsPermission = userConfig.userPermission[aliasConfig.alias] ?: emptySet()
         //--- инициализация модели
-        initModel(getIDFromParam())
+        initModel()
         //--- определение набора прав доступа ( зависит от модели, поэтому после нее )
         definePermission()
     }
@@ -193,17 +192,19 @@ open class cStandart {
 
         //--- если никакие паренты не заданы и если при отсутствии прочих парентов должен быть парент-пользователь,
         //--- то считаем, что просто работаем со своими записями
-        if (hmParentData.isEmpty() && aliasConfig.isDefaultParentUser) hmParentData["system_user"] = userConfig.userID
+        if (hmParentData.isEmpty() && aliasConfig.isDefaultParentUser) hmParentData["system_user"] = userConfig.userId
 
         //--- попытка загрузки parentUserID
         parentUserID = hmParam[AppParameter.PARENT_USER_ID]?.toIntOrNull() ?: 0
     }
 
-    protected fun initModel(id: Int) {
+    protected fun initModel() {
         model = Class.forName(aliasConfig.modelClassName).getConstructor().newInstance() as mAbstract
         //--- если для иерархической таблицы парент от себя не задан, то самостоятельно задаем 0-й уровень структуры иерархической таблицы
-        if (model.isExpandable() && getParentID(aliasConfig.alias) == null) hmParentData[aliasConfig.alias] = 0
-        model.init(application, stm, aliasConfig, userConfig, hmParam, hmParentData, id)
+        if (model.isExpandable() && getParentID(aliasConfig.alias) == null) {
+            hmParentData[aliasConfig.alias] = 0
+        }
+        model.init(application, stm, aliasConfig, userConfig, hmParam, hmParentData, getIDFromParam())
     }
 
 //--- permission part -----------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -244,7 +245,11 @@ open class cStandart {
     protected open fun isAddEnabled(): Boolean = if (model.isUseParentUserID()) checkPerm(PERM_ADD, parentUserID) else hsPermission.contains(PERM_ADD)
 
     protected open fun isEditEnabled(hmColumnData: Map<iColumn, iData>, id: Int): Boolean =
-        if (id == 0) isAddEnabled() else checkPerm(PERM_EDIT, getRecordUserID(hmColumnData, id))
+        if (id == 0) {
+            isAddEnabled()
+        } else {
+            checkPerm(PERM_EDIT, getRecordUserID(hmColumnData, id))
+        }
 
     protected open fun isArchiveEnabled(hmColumnData: Map<iColumn, iData>, id: Int): Boolean =
         id != 0 && !model.isArchiveAlias && checkPerm(PERM_ARCHIVE, getRecordUserID(hmColumnData, id))
@@ -258,8 +263,7 @@ open class cStandart {
     protected fun checkPerm(permName: String, recordUserID: Int): Boolean =
         if (!model.isUseParentUserID() && model.columnUser == null) {
             hsPermission.contains(permName)
-        }
-        else {
+        } else {
             checkPerm(userConfig, hsPermission, permName, if (model.isUseParentUserID()) parentUserID else recordUserID)
         }
 
@@ -269,7 +273,7 @@ open class cStandart {
     //--- различные алиасы одного класса равны между собой в смысле parent-отношений
     protected open fun isAliasesEquals(alias1: String, alias2: String): Boolean = alias1 == alias2
 
-    protected fun getIDFromParam(): Int = hmParam[AppParameter.ID]?.toInt() ?: -1
+    protected fun getIDFromParam(): Int? = hmParam[AppParameter.ID]?.toIntOrNull()
 
     protected open fun getParentID(alias: String?): Int? = hmParentData[alias]
 
@@ -292,7 +296,7 @@ open class cStandart {
             val linkColumn = column.linkColumn
             if (linkColumn?.selfLinkTableName != null) hsTableRenameList.add(linkColumn.selfLinkTableName!!)
         }
-        val idFieldName = if (model.columnID == null) null else " ${renameTableName(hsTableRenameList, model.tableName)}.${model.columnID!!.getFieldName()} "
+        val idFieldName = " ${renameTableName(hsTableRenameList, model.tableName)}.${model.columnID.getFieldName()} "
 
         alRenamedSelectedFields = mutableListOf()
         hsSelectTables.add(
@@ -304,7 +308,7 @@ open class cStandart {
 
         if (isForTable) {
             //--- пропускаем служебные записи ( если id-поле вообще задано )
-            if (idFieldName != null) wherePart += " $idFieldName <> 0 "
+            wherePart += " $idFieldName <> 0 "
 
             if (optimizedTableUserID != 0) {
                 val userIDFieldName = "${renameTableName(hsTableRenameList, model.columnUser!!.tableName)}.${model.columnUser!!.getFieldName()}"
@@ -432,8 +436,7 @@ open class cStandart {
             val data = column.getData()
             if (column.isVirtual) {
                 data.loadFromDefault()
-            }
-            else {
+            } else {
                 posRS = data.loadFromDB(rs!!, posRS)
             }
             hmColumnData[column] = data
@@ -448,7 +451,7 @@ open class cStandart {
     }
 
     protected fun getSelfParentID(id: Int): Int {
-        val sql = " SELECT ${model.hmParentColumn[aliasConfig.alias]!!.getFieldName(0)} FROM ${model.tableName} WHERE ${model.columnID!!.getFieldName()} = $id"
+        val sql = " SELECT ${model.hmParentColumn[aliasConfig.alias]!!.getFieldName(0)} FROM ${model.tableName} WHERE ${model.columnID.getFieldName()} = $id"
         //System.out.println(  sb.toString()  );
         val rs = stm.executeQuery(sql)
         val result = if (rs.next()) rs.getInt(1) else 0
@@ -483,30 +486,30 @@ open class cStandart {
 
     //--- для случаев, когда id записи не задан явным образом, а находится в общем списке данных ( например, в табличных формах )
     private fun getRecordUserID(hmColumnData: Map<iColumn, iData>): Int {
-        if (model.columnUser == null || model.columnID == null) return 0
+        if (model.columnUser == null) return 0
 
         val userID = (hmColumnData[model.columnUser!!] as DataAbstractIntValue).intValue
-        val rowID = (hmColumnData[model.columnID!!] as DataInt).intValue
+        val rowID = (hmColumnData[model.columnID] as DataInt).intValue
         //--- проверка на совладельца
-        return OtherOwnerData.getOtherOwner(stm, aliasConfig.id, rowID, userID, userConfig.userID)
+        return OtherOwnerData.getOtherOwner(conn, aliasConfig.id, rowID, userID, userConfig.userId)
     }
 
     //--- для случаев, когда id записи задаётся явным/особым образом ( например, в формах просмотра/редактирования/удаления одиночной записи )
     private fun getRecordUserID(hmColumnData: Map<iColumn, iData>, id: Int): Int {
-        if (model.columnUser == null || model.columnID == null) return 0
+        if (model.columnUser == null) return 0
 
         val userID = (hmColumnData[model.columnUser!!] as DataAbstractIntValue).intValue
         //--- проверка на совладельца
-        return OtherOwnerData.getOtherOwner(stm, aliasConfig.id, id, userID, userConfig.userID)
+        return OtherOwnerData.getOtherOwner(conn, aliasConfig.id, id, userID, userConfig.userId)
     }
 
     protected fun getRecordUserName(recordUserID: Int): String {
         var recordUserName: String?
         if (recordUserID == 0) recordUserName = "(общее)"
-        else if (recordUserID == userConfig.userID) recordUserName = ""
+        else if (recordUserID == userConfig.userId) recordUserName = ""
         else {
-            recordUserName = userConfig.hmUserShortNames[recordUserID]
-            if (recordUserName.isNullOrEmpty()) recordUserName = userConfig.hmUserFullNames[recordUserID]
+            recordUserName = UserConfig.hmUserShortNames[recordUserID]
+            if (recordUserName.isNullOrEmpty()) recordUserName = UserConfig.hmUserFullNames[recordUserID]
             if (recordUserName == null) recordUserName = "(неизвестно)"
         }
         return recordUserName
@@ -521,11 +524,7 @@ open class cStandart {
     }
 
     //--- в базовой реализации возвращает исходный pid
-    open fun doExpand(pid: Int): Set<Int> {
-        val hsResult = mutableSetOf<Int>()
-        hsResult.add(pid)
-        return hsResult
-    }
+    open fun doExpand(pid: Int): Set<Int> = setOf(pid)
 
     protected fun getExpandPath(selectorID: String?, withAnchors: Boolean, alPath: MutableList<Pair<String, String>>) {
 
@@ -554,7 +553,7 @@ open class cStandart {
 
     protected fun getExpandPathItem(curParentID: Int): Pair<Int, String> {
         val sqlStr = " SELECT ${model.expandParentIDColumn!!.getFieldName()} , ${model.expandParentNameColumn!!.getFieldName()} " +
-            " FROM ${model.tableName} WHERE ${model.columnID!!.getFieldName()} = $curParentID "
+            " FROM ${model.tableName} WHERE ${model.columnID.getFieldName()} = $curParentID "
         val rs = stm.executeQuery(sqlStr)
         rs.next()
         val pID = rs.getInt(1)
@@ -574,12 +573,12 @@ open class cStandart {
 
         optimizedTableUserID = 0
         //--- для модулей, использующих parentUserID, оптимизация userID недопустима, т.к. userID у них не существует
-        if (model.columnUser != null && !OtherOwnerData.checkOtherOwner(stm, aliasConfig.id, userConfig.userID)) {
+        if (model.columnUser != null && !OtherOwnerData.checkOtherOwner(conn, aliasConfig.id, userConfig.userId)) {
             val hsTableUserID = mutableSetOf<Int>()
             for ((relName, _) in UserRelation.arrNameDescr) {
                 if (hsPermission.contains("${PERM_TABLE}_$relName")) hsTableUserID.addAll(userConfig.getUserIDList(relName))
             }
-            if (hsTableUserID.size == 1) optimizedTableUserID = userConfig.userID
+            if (hsTableUserID.size == 1) optimizedTableUserID = userConfig.userId
         }
 
         //--- готовятся отдельно, т.к. в разных ситуациях вызова getSQLString разные требования по сортировке
@@ -689,8 +688,7 @@ open class cStandart {
             val rowCount: Int
             if (aliasConfig.pageSize > 0 && dataRowCount < pageNo * aliasConfig.pageSize) {
                 rowCount = 0
-            }
-            else {
+            } else {
                 //--- возможная догенерация данных после фильтров поиска и страничной разбивки
                 generateColumnDataAfterFilter(hmColumnData)
                 rowCount = getTableRow(hmColumnData, dataRowCount + 1, tableRowCount, selectorID, selectorParam, refererID, alTableCell, alTableRowData, hmOut)
@@ -698,7 +696,7 @@ open class cStandart {
             //--- вынесено сюда, чтобы нумерация строк работала независимо от наличия постраничной разбивки
             dataRowCount++
             tableRowCount += rowCount
-            if (model.columnID != null && (hmColumnData[model.columnID!!] as DataInt).intValue == currentRowID) {
+            if (model.columnID != null && (hmColumnData[model.columnID] as DataInt).intValue == currentRowID) {
                 currentRowNo = tableRowCount - 1
             }
             if (aliasConfig.pageSize > 0 && dataRowCount >= (pageNo + 1) * aliasConfig.pageSize) {
@@ -840,7 +838,7 @@ open class cStandart {
         val hmColumnCell = mutableMapOf<iColumn, TableCell>()
         for ((column, data) in hmColumnData) {
             //!!! потенциально опасное место - передача Statement в метод при открытом ResultSet'e от этого Statement'a
-            hmColumnCell[column] = data.getTableCell(application.rootDirName, stm, -1, -1)
+            hmColumnCell[column] = data.getTableCell(application.rootDirName, stm, -1, -1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
         }
 
         val sbFind = StringBuilder(recordUserName).append(' ')
@@ -915,18 +913,22 @@ open class cStandart {
         //--- для внешнего суммирования реального кол-ва выведенных строк
         var rowCount = 0
 
-        val valueID = if (model.columnID == null) {
-            null
-        } else {
-            (hmColumnData[model.columnID!!] as DataInt).intValue
-        }
+        val valueID = (hmColumnData[model.columnID] as DataInt).intValue
+
         //--- обработка для выделения isNew строки, если есть
-        val isNewRow = aliasConfig.isNewable && userConfig.userID != UserConfig.USER_GUEST && !getTableRowIsReaded(valueID)
+        val isNewRow = aliasConfig.isNewable && userConfig.userId != UserConfig.USER_GUEST && !getTableRowIsReaded(valueID)
 
         //--- обработка группировочных полей
         for (gi in 0 until model.alTableGroupColumn.size) {
             val curGroupColumn = model.alTableGroupColumn[gi]
-            val curValue = hmColumnData[curGroupColumn]!!.getTableCell(application.rootDirName, stm, -1, -1).alCellData.first().text
+            val curValue = hmColumnData[curGroupColumn]!!.getTableCell(
+                rootDirName = application.rootDirName,
+                stm = stm,
+                row = -1,
+                col = -1,
+                isUseThousandsDivider = userConfig.upIsUseThousandsDivider,
+                decimalDivider = userConfig.upDecimalDivider
+            ).alCellData.first().text
             if (curValue != arrCurGroupValue!![gi]) {
                 val row = tableRowStart + rowCount
                 var col = 0
@@ -1100,8 +1102,18 @@ open class cStandart {
                     if (!cellIsVisible) break
                 }
                 //--- передаем именно свежесозданный CoreTableCellInfo, т.к. у него будут меняться настройки стиля
-                val tci = if (cellIsVisible) hmColumnData[column]!!.getTableCell(application.rootDirName, stm, row, col + colIndex)
-                else TableCell(row, col + colIndex)
+                val tci = if (cellIsVisible) {
+                    hmColumnData[column]!!.getTableCell(
+                        rootDirName = application.rootDirName,
+                        stm = stm,
+                        row = row,
+                        col = col + colIndex,
+                        isUseThousandsDivider = userConfig.upIsUseThousandsDivider,
+                        decimalDivider = userConfig.upDecimalDivider
+                    )
+                } else {
+                    TableCell(row, col + colIndex)
+                }
                 //--- стиль столбца ( возможно перекрытие из описания самого класса )
                 getTableColumnStyle(dataRowNo, isNewRow, hmColumnData, column, tci)
                 alTableCell.add(tci)
@@ -1120,7 +1132,9 @@ open class cStandart {
         }
 
         //--- необходимо "прочитывать" строки уже сразу после их вывода в таблице, без обязательного входа в форму
-        if (aliasConfig.isNewAutoRead && isNewRow) addIsReaded(valueID!!)
+        if (aliasConfig.isNewAutoRead && isNewRow) {
+            addIsReaded(valueID)
+        }
 
         return rowCount
     }
@@ -1130,7 +1144,7 @@ open class cStandart {
 
         val rs = stm.executeQuery(
             " SELECT ${stm.getPreLimit(1)} row_id FROM SYSTEM_new " +
-                " WHERE table_name = '${model.tableName}' AND row_id = $valueID AND user_id = ${userConfig.userID} " +
+                " WHERE table_name = '${model.tableName}' AND row_id = $valueID AND user_id = ${userConfig.userId} " +
                 " ${stm.getMidLimit(1)} ${stm.getPostLimit(1)} "
         )
         val isReaded = rs.next()
@@ -1316,17 +1330,14 @@ open class cStandart {
 //--- form part -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     open fun getForm(hmOut: MutableMap<String, Any>): FormResponse {
-        val id = getIDFromParam()
+        val id = getIDFromParam()!!
 
         val alColumnList = mutableListOf<iColumn>()
         alColumnList.addAll(model.alFormHiddenColumn)
         alColumnList.addAll(model.alFormColumn)
 
         val refererID = hmParam[AppParameter.REFERER]
-        var refererURL: String? = null
-        if (refererID != null) {
-            refererURL = chmSession[AppParameter.REFERER + refererID] as? String
-        }
+        val refererURL = refererID?.let { chmSession[AppParameter.REFERER + it] as String }
 
         //--- preparing a "clean" appParam for form buttons
         //--- (simple cloning of the original hmParam won't do here,
@@ -1452,7 +1463,11 @@ open class cStandart {
                     caption = model.getSaveButonCaption(aliasConfig),
                     iconName = getOkButtonIconName(),
                     withNewData = true,   // передавать ли новые данные (для SAVE) или передать старые данные (для DELETE и проч. комманд)
-                    key = if (isFormAutoClick()) BUTTON_KEY_AUTOCLICK else BUTTON_KEY_SAVE
+                    key = if (isFormAutoClick()) {
+                        BUTTON_KEY_AUTOCLICK
+                    } else {
+                        BUTTON_KEY_SAVE
+                    }
                 )
             )
         }
@@ -1494,7 +1509,11 @@ open class cStandart {
         if (refererURL != null) {
             alFormButton.add(
                 FormButton(
-                    url = if (id != 0) AppParameter.setParam(refererURL, AppParameter.ID, id.toString()) else refererURL,
+                    url = if (id != 0) {
+                        AppParameter.setParam(refererURL, AppParameter.ID, id.toString())
+                    } else {
+                        refererURL
+                    },
                     caption = "Выйти",
                     iconName = ICON_NAME_EXIT,
                     withNewData = false,
@@ -1542,7 +1561,7 @@ open class cStandart {
     protected open fun generateFormColumnData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {}
 
     protected fun getFormCell(column: iColumn, hmColumnData: Map<iColumn, iData>, isEditable: Boolean): FormCell {
-        val fci = hmColumnData[column]!!.getFormCell(application.rootDirName, stm)
+        val fci = hmColumnData[column]!!.getFormCell(application.rootDirName, stm, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
         fci.itEditable = isEditable && column.isEditable && column.tableName == model.tableName
         fci.formPinMode = column.formPinMode
         //--- эту чисто серверную часть нежелательно передавать в клиенто-ориентированный FormCellInfo
@@ -1663,12 +1682,14 @@ open class cStandart {
             it.isUnique = false     // уникальность проверяется по комбинации columnVersionId & columnVersionNo
         }
 
-        var id = getIDFromParam()
+        var id = getIDFromParam()!!
 
         //--- ошибки ввода в форме
         val returnURL = checkInput(id, alFormData, alColumnList, hmColumnData, hmOut)
         //--- урло на возврат с ошибкой
-        if (returnURL != null) return returnURL
+        if (returnURL != null) {
+            return returnURL
+        }
 
         //--- определить изменения номера версии в версионном поле
         val isVersionChanged = if (model.columnVersionNo != null && id != 0) {
@@ -1754,7 +1775,7 @@ open class cStandart {
                     Pair(model.columnVersionId!!.getFieldName(), dataVersionId.intValue),
                     Pair(model.columnVersionNo!!.getFieldName(), dataVersionNo.text)
                 ),
-                model.columnID!!.getFieldName(),
+                model.columnID.getFieldName(),
                 id
             )
             if (result) {
@@ -1815,9 +1836,12 @@ open class cStandart {
         //--- перегон объектов из AdvancedByteBuffer в типизированное Data Object Storage
         var formDataIndex = 0
         for (column in alColumnList) {
-            if (column == model.columnID) continue // свое id-поле пропускаем, т.к. оно задается особым образом
+            // свое id-поле пропускаем, т.к. оно задается особым образом
+            if (column == model.columnID) {
+                continue
+            }
             val data = column.getData()
-            isValid = isValid and data.loadFromForm(stm, alFormData[formDataIndex++], model.columnID!!.getFieldName(), id)
+            isValid = isValid and data.loadFromForm(stm, alFormData[formDataIndex++], model.columnID.getFieldName(), id)
             hmColumnData[column] = data
         }
         return isValid
@@ -1830,19 +1854,25 @@ open class cStandart {
     protected open fun preSave(id: Int, hmColumnData: Map<iColumn, iData>) {}
 
     protected open fun getNextID(hmColumnData: Map<iColumn, iData>): Int {
-        return stm.getNextID(model.tableName, model.columnID!!.getFieldName())
+        return stm.getNextID(model.tableName, model.columnID.getFieldName())
     }
 
-    protected fun doInsert(id: Int, alColumnList: List<iColumn>, hmColumnData: Map<iColumn, iData>): Int {
-        var sFieldList = model.columnID!!.getFieldName()
+    protected open fun doInsert(id: Int, alColumnList: List<iColumn>, hmColumnData: Map<iColumn, iData>): Int {
+        var sFieldList = model.columnID.getFieldName()
         var sValueList = "$id"
         for (column in alColumnList) {
             //--- свое id-поле пропускаем, т.к. оно задается особым образом
-            if (column == model.columnID) continue
+            if (column == model.columnID) {
+                continue
+            }
             //--- сохраняем значение запоминаемого поля
-            if (column.isSavedDefault) column.saveDefault(stm, userConfig, hmColumnData)
+            if (column.isSavedDefault) {
+                column.saveDefault(conn, userConfig, hmColumnData)
+            }
             //--- виртуальные поля не записываем
-            if (column.isVirtual) continue
+            if (column.isVirtual) {
+                continue
+            }
 
             //--- записываем поля только из "своей" таблицы
             if (column.tableName == model.tableName) {
@@ -1859,21 +1889,32 @@ open class cStandart {
     protected fun doUpdate(id: Int, alColumnList: List<iColumn>, hmColumnData: Map<iColumn, iData>): Int {
         var sFieldList = ""
         for (column in alColumnList) {
-            //--- свое id-поле пропускаем, т.к. оно задается особым образом
-            if (column == model.columnID) continue
+            //--- своё id-поле пропускаем, т.к. оно задается особым образом
+            if (column == model.columnID) {
+                continue
+            }
             //--- сохраняем значение запоминаемого поля
-            if (column.isSavedDefault) column.saveDefault(stm, userConfig, hmColumnData)
+            if (column.isSavedDefault) {
+                column.saveDefault(conn, userConfig, hmColumnData)
+            }
             //--- виртуальные поля не записываем
-            if (column.isVirtual) continue
+            if (column.isVirtual) {
+                continue
+            }
 
             //--- записываем поля только из "своей" таблицы
             if (column.tableName == model.tableName) {
                 val data = hmColumnData[column]!!
-                for (j in 0 until data.fieldSQLCount)
-                    sFieldList += (if (sFieldList.isEmpty()) "" else " , ") + "${column.getFieldName(j)} = ${data.getFieldSQLValue(j)} "
+                for (j in 0 until data.fieldSQLCount) {
+                    sFieldList += if (sFieldList.isEmpty()) {
+                        ""
+                    } else {
+                        " , "
+                    } + "${column.getFieldName(j)} = ${data.getFieldSQLValue(j)} "
+                }
             }
         }
-        return stm.executeUpdate(" UPDATE ${model.tableName} SET $sFieldList WHERE ${model.columnID!!.getFieldName()} = $id ")
+        return stm.executeUpdate(" UPDATE ${model.tableName} SET $sFieldList WHERE ${model.columnID.getFieldName()} = $id ")
     }
 
     //--- для классов-наследников - пост-обработка после добавления
@@ -1918,7 +1959,7 @@ open class cStandart {
 //--- delete part ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     fun doDelete(alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String {
-        val id = getIDFromParam()
+        val id = getIDFromParam()!!
 
         val alColumnList = mutableListOf<iColumn>()
         alColumnList.addAll(model.alFormHiddenColumn)
@@ -1942,7 +1983,7 @@ open class cStandart {
             }
         }
 
-        stm.executeUpdate(" DELETE FROM ${model.tableName} WHERE ${model.columnID!!.getFieldName()} = $id ")
+        stm.executeUpdate(" DELETE FROM ${model.tableName} WHERE ${model.columnID.getFieldName()} = $id ")
 
         deleteIsReaded(id, true)
         postDelete(id, hmColumnData)
@@ -1965,7 +2006,7 @@ open class cStandart {
 
     protected fun addIsReaded(id: Int) {
         if (aliasConfig.isNewable) {
-            stm.executeUpdate(" INSERT INTO SYSTEM_new ( table_name, row_id, user_id ) VALUES ( '${model.tableName}' , $id , ${userConfig.userID} ) ")
+            stm.executeUpdate(" INSERT INTO SYSTEM_new ( table_name, row_id, user_id ) VALUES ( '${model.tableName}' , $id , ${userConfig.userId} ) ")
         }
     }
 
@@ -1973,7 +2014,7 @@ open class cStandart {
         if (aliasConfig.isNewable) {
             stm.executeUpdate(
                 " DELETE FROM SYSTEM_new WHERE table_name = '${model.tableName}' AND row_id = $id " +
-                    if (deleteAll) "" else " AND user_id <> ${userConfig.userID}"
+                    if (deleteAll) "" else " AND user_id <> ${userConfig.userId}"
             )
         }
     }

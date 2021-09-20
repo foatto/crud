@@ -88,7 +88,7 @@ abstract class sdcAbstractGraphic {
         //--- наименование типа документа (алиас)
         documentTypeName = aDocumentTypeName
 
-        zoneId = getZoneId(userConfig.getUserProperty(UP_TIME_OFFSET)?.toIntOrNull())
+        zoneId = userConfig.upZoneId
     }
 
     open fun doGetCoords(startParamID: String): GraphicActionResponse {

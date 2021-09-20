@@ -1,7 +1,5 @@
 package foatto.core_server.app.server
 
-import foatto.core.app.UP_TIME_OFFSET
-import foatto.core.util.getZoneId
 import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.column.ColumnBoolean
 import foatto.core_server.app.server.column.ColumnInt
@@ -27,7 +25,7 @@ abstract class mAbstract {
 
     lateinit var tableName: String
         protected set
-    var columnID: ColumnInt? = null
+    lateinit var columnID: ColumnInt
 
     //--- задается поле для userID, если есть (может быть ColumnInt (вместе с селектором) или ColumnComboBox для частных случаев)
     var columnUser: ColumnSimple? = null
@@ -78,13 +76,13 @@ abstract class mAbstract {
         userConfig: UserConfig,
         aHmParam: Map<String, String>,
         hmParentData: MutableMap<String, Int>,
-        id: Int
+        id: Int?
     ) {
         stm = aStm
 
         isArchiveAlias = aliasConfig.alias.endsWith(ALIAS_NAME_ARCHIVE_POSTFIX)
 
-        zoneId = getZoneId(userConfig.getUserProperty(UP_TIME_OFFSET)?.toIntOrNull())
+        zoneId = userConfig.upZoneId
 
         hmParam = aHmParam
 
@@ -110,8 +108,8 @@ abstract class mAbstract {
     //--- сколько всего физических строк в этой логической строке
     fun getTableColumnRowCount(): Int {
         var lastRow = 0
-        for((row, tmRow) in tmTableColumn)
-            for(column in tmRow.values)
+        for ((row, tmRow) in tmTableColumn)
+            for (column in tmRow.values)
                 lastRow = Math.max(lastRow, row + column.rowSpan - 1)
         return lastRow + 1
     }
@@ -119,8 +117,8 @@ abstract class mAbstract {
     //--- сколько всего столбцов - новая версия с учётом colSpan
     fun getTableColumnColCount(): Int {
         var lastCol = 0
-        for(tmRow in tmTableColumn.values)
-            for((col, column) in tmRow)
+        for (tmRow in tmTableColumn.values)
+            for ((col, column) in tmRow)
                 lastCol = Math.max(lastCol, col + column.colSpan - 1)
         return lastCol + 1
     }
@@ -128,20 +126,20 @@ abstract class mAbstract {
     //--- сколько логических столбцов в заданном столбце
     fun getTableColumnColCount(colNo: Int): Int {
         var colCount = 0
-        for(tmRow in tmTableColumn.values)
-            for((col, column) in tmRow)
-                if(colNo >= col && colNo <= col + column.colSpan - 1)
+        for (tmRow in tmTableColumn.values)
+            for ((col, column) in tmRow)
+                if (colNo >= col && colNo <= col + column.colSpan - 1)
                     colCount++
         return colCount
     }
 
     fun getTableColumn(row: Int, col: Int): iColumn? {
         val tmRow = tmTableColumn[row]
-        return if(tmRow == null) null else tmRow[col]
+        return if (tmRow == null) null else tmRow[col]
     }
 
     fun fillTableColumn(alColumnList: MutableList<iColumn>) {
-        for(tmRow in tmTableColumn.values)
+        for (tmRow in tmTableColumn.values)
             alColumnList.addAll(tmRow.values)
     }
 
@@ -153,7 +151,7 @@ abstract class mAbstract {
         val col: Int
 
         val tmRow: TreeMap<Int, iColumn>
-        if(tmTableColumn.isEmpty()) {
+        if (tmTableColumn.isEmpty()) {
             tmRow = TreeMap()
             row = 0
             tmTableColumn[row] = tmRow
@@ -162,12 +160,12 @@ abstract class mAbstract {
             tmRow = tmTableColumn[row]!!
         }
 
-        if(tmRow.isEmpty()) col = 0
+        if (tmRow.isEmpty()) col = 0
         else {
             val lastKey = tmRow.lastKey()!!
             col = lastKey + tmRow[lastKey]!!.colSpan
         }
-        for(i in arrColumn.indices) tmRow[col + i] = arrColumn[i]
+        for (i in arrColumn.indices) tmRow[col + i] = arrColumn[i]
         return Pair(row, col)
     }
 
@@ -190,11 +188,11 @@ abstract class mAbstract {
     fun addTableColumnHorizAdd(vararg arrColumn: iColumn): Int {
         var lastRow = 0
         var lastCol = 0
-        for((row, tmRow) in tmTableColumn)
-            for((col, column) in tmRow) {
+        for ((row, tmRow) in tmTableColumn)
+            for ((col, column) in tmRow) {
                 val lr = row + column.rowSpan - 1
                 //--- нам нужен _последний/обновлённый_ максимум, поэтому используем >=
-                if(lr >= lastRow) {
+                if (lr >= lastRow) {
                     lastRow = lr
                     lastCol = col
                 }
@@ -208,11 +206,11 @@ abstract class mAbstract {
     fun addTableColumnVertAdd(vararg arrColumn: iColumn): Int {
         var lastRow = 0
         var lastCol = 0
-        for((row, tmRow) in tmTableColumn)
-            for((col, column) in tmRow) {
+        for ((row, tmRow) in tmTableColumn)
+            for ((col, column) in tmRow) {
                 val lc = col + column.colSpan - 1
                 //--- нам нужен _последний/обновлённый_ максимум, поэтому используем >=
-                if(lc >= lastCol) {
+                if (lc >= lastCol) {
                     lastRow = row
                     lastCol = lc
                 }
@@ -225,18 +223,18 @@ abstract class mAbstract {
     private fun addTableColumnHoriz(row: Int, col: Int, vararg arrColumn: iColumn) {
         var tmRow: TreeMap<Int, iColumn>? = tmTableColumn[row]
         //--- возможное добавление/вставка новой строки
-        if(tmRow == null) {
+        if (tmRow == null) {
             tmRow = TreeMap()
             tmTableColumn[row] = tmRow
         }
-        for(i in arrColumn.indices) tmRow[col + i] = arrColumn[i]
+        for (i in arrColumn.indices) tmRow[col + i] = arrColumn[i]
     }
 
     private fun addTableColumnVert(row: Int, col: Int, vararg arrColumn: iColumn) {
-        for(i in arrColumn.indices) {
+        for (i in arrColumn.indices) {
             var tmRow: TreeMap<Int, iColumn>? = tmTableColumn[row + i]
             //--- возможное добавление/вставка новой строки
-            if(tmRow == null) {
+            if (tmRow == null) {
                 tmRow = TreeMap()
                 tmTableColumn[row + i] = tmRow
             }

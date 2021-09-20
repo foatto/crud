@@ -13,7 +13,7 @@ import foatto.sql.CoreAdvancedStatement
 class mAlias : mAbstract() {
 
     override fun init(
-        application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int
+        application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?
     ) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
@@ -45,7 +45,7 @@ class mAlias : mAbstract() {
         val columnClassNewAutoRead = ColumnBoolean(tableName, "new_auto_read", "Автопрочитка новых строк", false)
         val columnClassDefaultParentUser = ColumnBoolean(tableName, "default_parent_user", "Фильтр на текущего пользователя по умолчанию", false)
 
-        alTableHiddenColumn.add(columnID!!)
+        alTableHiddenColumn.add(columnID)
 
         addTableColumn(columnClassAlias)
         addTableColumn(columnClassControlName)
@@ -59,7 +59,7 @@ class mAlias : mAbstract() {
         addTableColumn(columnClassNewAutoRead)
         addTableColumn(columnClassDefaultParentUser)
 
-        alFormHiddenColumn.add(columnID!!)
+        alFormHiddenColumn.add(columnID)
 
         alFormColumn.add(columnClassAlias)
         alFormColumn.add(columnClassControlName)
@@ -81,8 +81,8 @@ class mAlias : mAbstract() {
 
         //----------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData("system_role_permission", columnID!!))
-        alChildData.add(ChildData("system_permission", columnID!!))
+        alChildData.add(ChildData("system_role_permission", columnID))
+        alChildData.add(ChildData("system_permission", columnID))
 
         //----------------------------------------------------------------------------------------
 

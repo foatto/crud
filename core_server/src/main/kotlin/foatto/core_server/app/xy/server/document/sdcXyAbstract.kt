@@ -61,7 +61,7 @@ abstract class sdcXyAbstract {
         //--- получить конфигурацию
         documentConfig = aDocumentConfig
 
-        zoneId = getZoneId(userConfig.getUserProperty(UP_TIME_OFFSET)?.toIntOrNull())
+        zoneId = userConfig.upZoneId
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

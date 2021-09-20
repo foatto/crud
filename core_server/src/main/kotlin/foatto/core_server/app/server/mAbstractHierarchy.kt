@@ -56,7 +56,7 @@ open class mAbstractHierarchy : mAbstract() {
         userConfig: UserConfig,
         aHmParam: Map<String, String>,
         hmParentData: MutableMap<String, Int>,
-        id: Int
+        id: Int?
     ) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
@@ -77,9 +77,9 @@ open class mAbstractHierarchy : mAbstract() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID!!)
+        alTableHiddenColumn.add(columnID)
 
-        alFormHiddenColumn.add(columnID!!)
+        alFormHiddenColumn.add(columnID)
         alFormHiddenColumn.add(columnParent)
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -90,7 +90,7 @@ open class mAbstractHierarchy : mAbstract() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData(aliasConfig.alias, columnID!!, aNewGroup = true, aDefaultOperation = true))
+        alChildData.add(ChildData(aliasConfig.alias, columnID, aNewGroup = true, aDefaultOperation = true))
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -101,12 +101,16 @@ open class mAbstractHierarchy : mAbstract() {
         expandParentIDColumn = columnParent
     }
 
-    protected fun getRecordType(id: Int, recordTypeFieldName: String, defaultRecordType: Int): Int {
-        return if(id == 0) {
+    protected fun getRecordType(id: Int?, recordTypeFieldName: String, defaultRecordType: Int): Int {
+        return if(id == null || id == 0) {
             hmParam[RECORD_TYPE_PARAM]?.toIntOrNull() ?: defaultRecordType
         } else {
             val rs = stm.executeQuery(" SELECT $recordTypeFieldName FROM $tableName WHERE id = $id ")
-            val result = if(rs.next()) rs.getInt(1) else defaultRecordType
+            val result = if(rs.next()) {
+                rs.getInt(1)
+            } else {
+                defaultRecordType
+            }
             rs.close()
             result
         }

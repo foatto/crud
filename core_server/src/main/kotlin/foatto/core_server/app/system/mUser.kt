@@ -61,7 +61,7 @@ class mUser : mAbstractHierarchy() {
         userConfig: UserConfig,
         aHmParam: Map<String, String>,
         hmParentData: MutableMap<String, Int>,
-        id: Int
+        id: Int?
     ) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
@@ -198,11 +198,11 @@ class mUser : mAbstractHierarchy() {
 
         //----------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData("system_user_role", columnID!!))
-        alChildData.add(ChildData("system_log_user", columnID!!))
+        alChildData.add(ChildData("system_user_role", columnID))
+        alChildData.add(ChildData("system_log_user", columnID))
 
         for (cd in alExtendChildData)
-            alChildData.add(ChildData(cd.alias, columnID!!, cd.isNewGroup))
+            alChildData.add(ChildData(cd.alias, columnID, cd.isNewGroup))
 
         //----------------------------------------------------------------------------------------
 

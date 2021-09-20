@@ -36,7 +36,7 @@ open class cAbstractHierarchy : cStandart() {
     }
 
     override fun addSQLWhere(hsTableRenameList: Set<String>): String {
-        return super.addSQLWhere(hsTableRenameList) + " AND ${renameTableName(hsTableRenameList, model.tableName)}.${model.columnID!!.getFieldName()} > 0 "
+        return super.addSQLWhere(hsTableRenameList) + " AND ${renameTableName(hsTableRenameList, model.tableName)}.${model.columnID.getFieldName()} > 0 "
     }
 
     override fun isOpenFormURLInNewWindow(): Boolean = false
@@ -171,7 +171,7 @@ open class cAbstractHierarchy : cStandart() {
                 action,
                 id,
                 model.tableName,
-                model.columnID!!.getFieldName(),
+                model.columnID.getFieldName(),
                 model.columnActive!!.getFieldName(),
                 model.columnArchive!!.getFieldName(),
                 (model as mAbstractHierarchy).columnParent.getFieldName(),
