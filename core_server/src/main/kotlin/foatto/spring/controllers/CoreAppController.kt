@@ -1,4 +1,4 @@
-package foatto.spring
+package foatto.spring.controllers
 
 import foatto.core.app.graphic.GraphicAction
 import foatto.core.app.graphic.GraphicActionRequest
@@ -6,13 +6,16 @@ import foatto.core.app.graphic.GraphicActionResponse
 import foatto.core.app.xy.XyAction
 import foatto.core.app.xy.XyActionRequest
 import foatto.core.app.xy.XyActionResponse
-import foatto.core.link.*
-import foatto.core.util.AdvancedByteBuffer
+import foatto.core.link.AppAction
+import foatto.core.link.AppRequest
+import foatto.core.link.AppResponse
+import foatto.core.link.GraphicResponse
+import foatto.core.link.MenuData
+import foatto.core.link.ResponseCode
+import foatto.core.link.XyResponse
 import foatto.core.util.AdvancedLogger
 import foatto.core.util.BusinessException
 import foatto.core.util.getCurrentTimeInt
-import foatto.core.util.readFileToBuffer
-import foatto.core.util.separateUnixPath
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.graphic.server.GraphicDocumentConfig
 import foatto.core_server.app.graphic.server.GraphicStartData
@@ -24,25 +27,20 @@ import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.xy.XyStartData
 import foatto.core_server.app.xy.server.document.sdcXyAbstract
+import foatto.spring.CoreSpringApp
 import foatto.sql.AdvancedConnection
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedStatement
-import foatto.sql.SQLDialect
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.web.multipart.MultipartFile
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.net.URLConnection
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.ConcurrentHashMap
-import javax.servlet.http.HttpServletResponse
+import kotlin.math.min
 
 //--- добавлять у каждого наследника
 //@RestController
-abstract class CoreSpringController : iApplication {
+abstract class CoreAppController : iApplication {
 
     @Value("\${root_dir}")
     override val rootDirName: String = ""
@@ -50,21 +48,19 @@ abstract class CoreSpringController : iApplication {
     @Value("\${temp_dir}")
     override val tempDirName: String = ""
 
+    @Value("\${client_alias}")
+    override val alClientAlias: Array<String> = emptyArray()
+
+    @Value("\${client_parent_id}")
+    override val alClientParentId: Array<String> = emptyArray()
+
+    @Value("\${client_role_id}")
+    override val alClientRoleId: Array<String> = emptyArray()
+
     override val hmAliasLogDir: MutableMap<String, String>
         get() = CoreSpringApp.hmAliasLogDir
 
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    protected fun download(response: HttpServletResponse, path: String) {
-        val file = File(path)
-        val mimeType = URLConnection.guessContentTypeFromName(file.name)
-
-        response.contentType = mimeType
-        response.setContentLength(file.length().toInt())
-        response.outputStream.write(file.readBytes())
-    }
-
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     //--- прописывать у каждого наследника
 //    @PostMapping("/api/app")
@@ -101,7 +97,7 @@ abstract class CoreSpringController : iApplication {
 
             AppAction.LOGON -> {
                 val logonRequest = appRequest.logon!!
-                val logonResult = checkLogon(stm, logonRequest.login, logonRequest.password, chmSession)
+                val logonResult = checkLogon(conn, logonRequest.login, logonRequest.password, chmSession)
 
                 appResponse = AppResponse(logonResult)
 
@@ -110,12 +106,12 @@ abstract class CoreSpringController : iApplication {
                     val userConfig = chmSession[iApplication.USER_CONFIG] as UserConfig
 
                     //--- временно используем List вместо Map, т.к. в Kotlin/JS нет возможности десериализовать Map (а List десериализуется в Array)
-                    appResponse.hmUserProperty = userConfig.userProperty.toList().toTypedArray()
+                    appResponse.hmUserProperty = userConfig.hmUserProperty.toList().toTypedArray()
                     appResponse.alMenuData = menuInit(stm, hmAliasConfig, userConfig).toTypedArray()
 
                     for ((upKey, upValue) in appRequest.logon!!.hmSystemProperties) {
                         //println( "$upKey = $upValue" )
-                        userConfig.saveUserProperty(stm, upKey, upValue)
+                        userConfig.saveUserProperty(conn, upKey, upValue)
                     }
 
 //                    logQuery( "Logon result: $logonResult" )
@@ -137,7 +133,7 @@ abstract class CoreSpringController : iApplication {
                                 documentTypeName = aliasName,
                                 startParamID = graphicStartDataID,
                                 shortTitle = sd.shortTitle,
-                                fullTitle = sd.sbTitle.substring(0, Math.min(32000, sd.sbTitle.length))
+                                fullTitle = sd.sbTitle.substring(0, min(32000, sd.sbTitle.length))
                             )
                         )
                     }
@@ -154,7 +150,7 @@ abstract class CoreSpringController : iApplication {
                                 documentConfig = CoreSpringApp.hmXyDocumentConfig[docTypeName]!!,
                                 startParamID = xyStartDataID,
                                 shortTitle = sd.shortTitle,
-                                fullTitle = sd.sbTitle.substring(0, Math.min(32000, sd.sbTitle.length)),
+                                fullTitle = sd.sbTitle.substring(0, min(32000, sd.sbTitle.length)),
                                 parentObjectID = sd.parentObjectID,
                                 parentObjectInfo = sd.parentObjectInfo
                             )
@@ -191,12 +187,12 @@ abstract class CoreSpringController : iApplication {
                         //--- то подгрузим хотя бы гостевой логин
                         if (!aliasConfig.isAuthorization && userConfig == null) {
                             //--- при отсутствии оного загрузим гостевой логин
-                            userConfig = UserConfig.getConfig(stm, UserConfig.USER_GUEST)
+                            userConfig = UserConfig.getConfig(conn, UserConfig.USER_GUEST)
                             hmOut[iApplication.USER_CONFIG] = userConfig // уйдет в сессию
                         }
                         //--- если класс требует обязательную аутентификацию,
                         //--- а юзер не залогинен или имеет гостевой логин, то запросим авторизацию
-                        if (aliasConfig.isAuthorization && (userConfig == null || userConfig.userID == UserConfig.USER_GUEST))
+                        if (aliasConfig.isAuthorization && (userConfig == null || userConfig.userId == UserConfig.USER_GUEST))
                             appResponse = AppResponse(ResponseCode.LOGON_NEED)
                         else {
                             //--- проверим права доступа на класс
@@ -276,6 +272,74 @@ abstract class CoreSpringController : iApplication {
         return appResponse
     }
 
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    //--- прописывать у каждого наследника
+//    @PostMapping("/api/xy")
+//    @Transactional
+    open fun xy(
+        //@RequestBody
+        xyActionRequest: XyActionRequest
+    ): XyActionResponse {
+        val xyBegTime = getCurrentTimeInt()
+
+        val conn = AdvancedConnection(CoreSpringApp.dbConfig)
+        val stm = conn.createStatement()
+
+        //--- загрузка/создании сессии
+        val chmSession = CoreSpringApp.chmSessionStore.getOrPut(xyActionRequest.sessionID) { ConcurrentHashMap() }
+
+        //--- набор для накопления выходных параметров.
+        //--- выходные параметры будут записаны в сессию, только если транзакция пройдет успешно.
+        val hmOut = mutableMapOf<String, Any>()
+        //--- ссылка на файл, удаляемый после завершения транзакции
+        //--- (и, возможно, после успешной контролируемой передачи данных)
+        //--- (пока нигде не применяется)
+        //File fileForDeleteAfterCommit = null;
+
+//                        if( userLogMode == SYSTEM_LOG_ALL ) logQuery( hmParam )
+        val userConfig: UserConfig = chmSession[iApplication.USER_CONFIG] as? UserConfig ?: throw BusinessException("Не найден пользователь в сессии!")
+        val docTypeName = xyActionRequest.documentTypeName
+        val xyDocConfig = CoreSpringApp.hmXyDocumentConfig[docTypeName]!!
+
+        val doc = Class.forName(xyDocConfig.serverClassName).getConstructor().newInstance() as sdcXyAbstract
+        doc.init(this, conn, stm, chmSession, userConfig, xyDocConfig)
+
+        val xyActionResponse =
+            when (xyActionRequest.action) {
+                XyAction.GET_COORDS -> doc.getCoords(xyActionRequest.startParamID)
+                XyAction.GET_ELEMENTS -> doc.getElements(xyActionRequest)
+                XyAction.GET_ONE_ELEMENT -> doc.getOneElement(xyActionRequest)
+                XyAction.CLICK_ELEMENT -> doc.clickElement(xyActionRequest)
+                XyAction.ADD_ELEMENT -> doc.addElement(xyActionRequest, userConfig.userId)
+                XyAction.EDIT_ELEMENT_POINT -> doc.editElementPoint(xyActionRequest)
+                XyAction.MOVE_ELEMENTS -> doc.moveElements(xyActionRequest)
+            }
+
+        //--- зафиксировать любые изменения в базе/
+        conn.commit()
+
+        stm.close()
+        conn.close()
+
+        //--- обновить данные в сессии только после успешной записи данных
+        chmSession.putAll(hmOut)
+        //--- после успешного коммита можно и удалить файл, если указан
+        //--- (пока нигде не применяется)
+        //if( fileForDeleteAfterCommit != null ) fileForDeleteAfterCommit.delete();
+
+        //--- если запрос длился/обрабатывался дольше MAX_TIME_PER_REQUEST, покажем его
+        if (getCurrentTimeInt() - xyBegTime > CoreSpringApp.MAX_TIME_PER_REQUEST) {
+            AdvancedLogger.error("--- Long Xy Query = " + (getCurrentTimeInt() - xyBegTime))
+            AdvancedLogger.error(xyActionRequest.toString())
+        }
+        //AdvancedLogger.error( "Query time = " + ( System.currentTimeMillis() - appBegTime ) / 1000 );
+
+        return xyActionResponse
+    }
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     //--- прописывать у каждого наследника
 //    @PostMapping("/api/graphic")
 //    @Transactional
@@ -335,75 +399,7 @@ abstract class CoreSpringController : iApplication {
         return graphicActionResponse
     }
 
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    //--- прописывать у каждого наследника
-//    @PostMapping("/api/xy")
-//    @Transactional
-    open fun xy(
-        //authentication: Authentication,
-        //@RequestBody
-        xyActionRequest: XyActionRequest
-        //@CookieValue("SESSION") sessionId: String
-    ): XyActionResponse {
-        val xyBegTime = getCurrentTimeInt()
-
-        val conn = AdvancedConnection(CoreSpringApp.dbConfig)
-        val stm = conn.createStatement()
-
-        //--- загрузка/создании сессии
-        val chmSession = CoreSpringApp.chmSessionStore.getOrPut(xyActionRequest.sessionID) { ConcurrentHashMap() }
-
-        //--- набор для накопления выходных параметров.
-        //--- выходные параметры будут записаны в сессию, только если транзакция пройдет успешно.
-        val hmOut = mutableMapOf<String, Any>()
-        //--- ссылка на файл, удаляемый после завершения транзакции
-        //--- (и, возможно, после успешной контролируемой передачи данных)
-        //--- (пока нигде не применяется)
-        //File fileForDeleteAfterCommit = null;
-
-//                        if( userLogMode == SYSTEM_LOG_ALL ) logQuery( hmParam )
-        val userConfig: UserConfig = chmSession[iApplication.USER_CONFIG] as? UserConfig ?: throw BusinessException("Не найден пользователь в сессии!")
-        val docTypeName = xyActionRequest.documentTypeName
-        val xyDocConfig = CoreSpringApp.hmXyDocumentConfig[docTypeName]!!
-
-        val doc = Class.forName(xyDocConfig.serverClassName).getConstructor().newInstance() as sdcXyAbstract
-        doc.init(this, conn, stm, chmSession, userConfig, xyDocConfig)
-
-        val xyActionResponse =
-            when (xyActionRequest.action) {
-                XyAction.GET_COORDS -> doc.getCoords(xyActionRequest.startParamID)
-                XyAction.GET_ELEMENTS -> doc.getElements(xyActionRequest)
-                XyAction.GET_ONE_ELEMENT -> doc.getOneElement(xyActionRequest)
-                XyAction.CLICK_ELEMENT -> doc.clickElement(xyActionRequest)
-                XyAction.ADD_ELEMENT -> doc.addElement(xyActionRequest, userConfig.userID)
-                XyAction.EDIT_ELEMENT_POINT -> doc.editElementPoint(xyActionRequest)
-                XyAction.MOVE_ELEMENTS -> doc.moveElements(xyActionRequest)
-            }
-
-        //--- зафиксировать любые изменения в базе/
-        conn.commit()
-
-        stm.close()
-        conn.close()
-
-        //--- обновить данные в сессии только после успешной записи данных
-        chmSession.putAll(hmOut)
-        //--- после успешного коммита можно и удалить файл, если указан
-        //--- (пока нигде не применяется)
-        //if( fileForDeleteAfterCommit != null ) fileForDeleteAfterCommit.delete();
-
-        //--- если запрос длился/обрабатывался дольше MAX_TIME_PER_REQUEST, покажем его
-        if (getCurrentTimeInt() - xyBegTime > CoreSpringApp.MAX_TIME_PER_REQUEST) {
-            AdvancedLogger.error("--- Long Xy Query = " + (getCurrentTimeInt() - xyBegTime))
-            AdvancedLogger.error(xyActionRequest.toString())
-        }
-        //AdvancedLogger.error( "Query time = " + ( System.currentTimeMillis() - appBegTime ) / 1000 );
-
-        return xyActionResponse
-    }
-
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 //--- прописывать у каждого наследника
 //    @PostMapping("/api/update")
@@ -451,319 +447,9 @@ abstract class CoreSpringController : iApplication {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    //--- прописывать у каждого наследника
-//    @PostMapping("/api/get_file")
-    open fun getFile(
-        //@RequestBody
-        getFileRequest: GetFileRequest
-    ): GetFileResponse {
-        val getFileBegTime = getCurrentTimeInt()
-
-        val file = File(getFileRequest.altServerDirName ?: rootDirName, getFileRequest.fullFileName)
-        val getFileResponse = GetFileResponse(if (file.exists()) FileInputStream(file).readAllBytes() else null)
-        //--- если запрос длился/обрабатывался дольше MAX_TIME_PER_REQUEST, покажем его
-        if (getCurrentTimeInt() - getFileBegTime > CoreSpringApp.MAX_TIME_PER_REQUEST) {
-            AdvancedLogger.error("--- Long Get File Query = " + (getCurrentTimeInt() - getFileBegTime))
-            AdvancedLogger.error(getFileRequest.toString())
-        }
-        //AdvancedLogger.error( "Query time = " + ( System.currentTimeMillis() - appBegTime ) / 1000 );
-
-        return getFileResponse
-    }
-
-    //--- прописывать у каждого наследника
-//    @PostMapping("/api/put_file")
-    open fun putFile(
-        //@RequestBody
-        putFileRequest: PutFileRequest
-    ): PutFileResponse {
-        val putFileBegTime = getCurrentTimeInt()
-
-        val uploadFileName = putFileRequest.fullFileName
-
-        //--- для правильного срабатывания mkdirs надо выделить путь из общего имени файла
-        val (dirName, fileName) = separateUnixPath(uploadFileName)
-        val dir = File(rootDirName, dirName)
-        val file = File(dir, fileName)
-
-        dir.mkdirs()
-        val fos = FileOutputStream(file)
-        fos.write(putFileRequest.fileData)
-        fos.close()
-        //--- SocketChannel.getRemoteAddress(), который есть в Oracle Java, не существует в Android Java,
-        //--- поэтому используем более общий метод SocketChannel.socket().getInetAddress()
-        //AdvancedLogger.debug( "FILE: file = $uploadFileName received from ${( selectionKey!!.channel() as SocketChannel ).socket().inetAddress}" )
-
-        //--- если запрос длился/обрабатывался дольше MAX_TIME_PER_REQUEST, покажем его
-        if (getCurrentTimeInt() - putFileBegTime > CoreSpringApp.MAX_TIME_PER_REQUEST) {
-            AdvancedLogger.error("--- Long Put File Query = " + (getCurrentTimeInt() - putFileBegTime))
-            AdvancedLogger.error(putFileRequest.toString())
-        }
-        //AdvancedLogger.error( "Query time = " + ( System.currentTimeMillis() - appBegTime ) / 1000 );
-
-        return PutFileResponse()
-    }
-
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    //--- прописывать у каждого наследника
-//    @PostMapping("/api/get_replication")
-//    @Transactional
-    open fun getReplication(
-        //@RequestBody
-        getReplicationRequest: GetReplicationRequest
-    ): GetReplicationResponse {
-        val getReplicationBegTime = getCurrentTimeInt()
-
-        val conn = AdvancedConnection(CoreSpringApp.dbConfig)
+    private fun checkLogon(conn: CoreAdvancedConnection, aLogin: String, aPassword: String, chmSession: ConcurrentHashMap<String, Any>): ResponseCode {
         val stm = conn.createStatement()
 
-        val getReplicationResponse = GetReplicationResponse(conn.dialect.dialect)
-
-        val tmFile = conn.getReplicationList(getReplicationRequest.destName)
-        //--- нельзя удалить файл из списка, пока не получено подтверждение
-        var timeKey = if (tmFile.isEmpty()) {
-            -1
-        } else {
-            tmFile.firstKey()
-        }
-        if (timeKey != -1L && timeKey == getReplicationRequest.prevTimeKey) {
-            //--- окончательно удаляем файл из очереди и его самого
-            val alFile = tmFile.remove(timeKey)
-            alFile?.forEach(File::delete)
-
-            timeKey = if (tmFile.isEmpty()) -1 else tmFile.firstKey()
-        }
-        if (timeKey != -1L) {
-            val alFile = tmFile[timeKey]!!
-            getReplicationResponse.timeKey = timeKey
-
-            val bbIn = AdvancedByteBuffer(CoreAdvancedConnection.START_REPLICATION_SIZE)
-            //--- skip a manually deleted files
-            alFile.filter(File::exists).forEach { file ->
-                readFileToBuffer(file, bbIn, false)
-            }
-
-            bbIn.flip()
-            while (bbIn.hasRemaining()) {
-                val sqlCount = bbIn.getInt()
-                for (i in 0 until sqlCount)
-                    getReplicationResponse.alSQL.add(bbIn.getLongString())
-            }
-        }
-
-        //--- зафиксировать любые изменения в базе/
-        conn.commit()
-
-        stm.close()
-        conn.close()
-
-        //--- если запрос длился/обрабатывался дольше MAX_TIME_PER_REQUEST, покажем его
-        if (getCurrentTimeInt() - getReplicationBegTime > CoreSpringApp.MAX_TIME_PER_REQUEST) {
-            AdvancedLogger.error("--- Long Update Query = " + (getCurrentTimeInt() - getReplicationBegTime))
-            AdvancedLogger.error(getReplicationRequest.toString())
-        }
-        //AdvancedLogger.error( "Query time = " + ( System.currentTimeMillis() - appBegTime ) / 1000 );
-
-        return getReplicationResponse
-    }
-
-    //--- прописывать у каждого наследника
-//    @PostMapping("/api/put_replication")
-//    @Transactional
-    open fun putReplication(
-        //@RequestBody
-        putReplicationRequest: PutReplicationRequest
-    ): PutReplicationResponse {
-        val putReplicationBegTime = getCurrentTimeInt()
-
-        val destName = putReplicationRequest.destName
-        val sourName = putReplicationRequest.sourName
-        val sourDialect = putReplicationRequest.sourDialect
-        val timeKey = putReplicationRequest.timeKey
-
-        val conn = AdvancedConnection(CoreSpringApp.dbConfig)
-        val stm = conn.createStatement()
-
-        val alReplicationSQL = putReplicationRequest.alSQL.map {
-            CoreAdvancedConnection.convertDialect(it, SQLDialect.hmDialect[sourDialect]!!, conn.dialect)
-        }
-
-        //--- проверка на приём этой реплики в предыдущей сессии связи
-        val rs = stm.executeQuery(" SELECT 1 FROM SYSTEM_replication_send WHERE dest_name = '$destName' AND sour_name = '$sourName' AND time_key = $timeKey")
-        val isAlReadyReceived = rs.next()
-        rs.close()
-        //--- такую реплику мы ещё не получали
-        if (!isAlReadyReceived) {
-            //--- реплика предназначена этому серверу - работаем как обычно
-            if (CoreSpringApp.dbConfig.name == destName) {
-                //--- выполнить реплику, возможно, с последующей перерепликацией:
-                //--- если партнёр безымянный, то считаем, что к другим серверам-партнёрам в кластере он уже
-                //--- не будет обращаться (т.е. ведёт себя как типовая клиентская программа) -
-                //--- поэтому передадим реплику другим именованым партнёрам
-                for (sql in alReplicationSQL) {
-                    stm.executeUpdate(sql, sourName.isEmpty())
-                    //                            //--- на время отладки репликатора
-                    //                            AdvancedLogger.debug( sql );
-                }
-            }
-            //--- реплика предназначена другому серверу - её надо просто отложить в соответствующую папку
-            else if (alReplicationSQL.isNotEmpty()) {
-                val bbReplicationData = CoreAdvancedConnection.getReplicationData(alReplicationSQL)
-                conn.saveReplication(destName, bbReplicationData)
-            }
-
-            //--- и в этой же транзакции запомним имя/номер реплики
-            if (stm.executeUpdate(" UPDATE SYSTEM_replication_send SET time_key = $timeKey WHERE dest_name = '$destName' AND sour_name = '$sourName' ", false) == 0) {
-
-                stm.executeUpdate(" INSERT INTO SYSTEM_replication_send ( dest_name , sour_name , time_key ) VALUES ( '$destName' , '$sourName' , $timeKey ) ", false)
-            }
-        }
-        //--- просто ответ
-        val putReplicationResponse = PutReplicationResponse(timeKey)
-
-        //--- зафиксировать любые изменения в базе
-        conn.commit()
-
-        stm.close()
-        conn.close()
-
-        //--- если запрос длился/обрабатывался дольше MAX_TIME_PER_REQUEST, покажем его
-        if (getCurrentTimeInt() - putReplicationBegTime > CoreSpringApp.MAX_TIME_PER_REQUEST) {
-            AdvancedLogger.error("--- Long Put Replication Query = " + (getCurrentTimeInt() - putReplicationBegTime))
-            AdvancedLogger.error(putReplicationRequest.toString())
-        }
-        //AdvancedLogger.error( "Query time = " + ( System.currentTimeMillis() - appBegTime ) / 1000 );
-
-        return putReplicationResponse
-    }
-
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    //--- прописывать у каждого наследника
-//    @PostMapping("/api/save_user_property")
-//    @Transactional
-    open fun saveUserProperty(
-        //@RequestBody
-        saveUserPropertyRequest: SaveUserPropertyRequest
-    ): SaveUserPropertyResponse {
-        val saveUserPropertyBegTime = getCurrentTimeInt()
-
-        val conn = AdvancedConnection(CoreSpringApp.dbConfig)
-        val stm = conn.createStatement()
-
-//        logQuery( hmParam )
-        val upName = saveUserPropertyRequest.name
-        val upValue = saveUserPropertyRequest.value
-
-        //--- загрузка/создании сессии
-        val chmSession = CoreSpringApp.chmSessionStore.getOrPut(saveUserPropertyRequest.sessionID) { ConcurrentHashMap() }
-        val userConfig: UserConfig? = chmSession[iApplication.USER_CONFIG] as? UserConfig
-
-        if (userConfig != null)
-            userConfig.saveUserProperty(stm, upName, upValue)
-        else
-            AdvancedLogger.error("User config not defined for saved property, name = '$upName', value = '$upValue'.")
-
-        //--- зафиксировать любые изменения в базе/
-        conn.commit()
-
-        stm.close()
-        conn.close()
-
-        //--- если запрос длился/обрабатывался дольше MAX_TIME_PER_REQUEST, покажем его
-        if (getCurrentTimeInt() - saveUserPropertyBegTime > CoreSpringApp.MAX_TIME_PER_REQUEST) {
-            AdvancedLogger.error("--- Long Save User Property Query = " + (getCurrentTimeInt() - saveUserPropertyBegTime))
-            AdvancedLogger.error(saveUserPropertyRequest.toString())
-        }
-        //AdvancedLogger.error( "Query time = " + ( System.currentTimeMillis() - appBegTime ) / 1000 );
-
-        return SaveUserPropertyResponse()
-    }
-
-    //--- прописывать у каждого наследника
-//    @PostMapping("/api/change_password")
-//    @Transactional
-    open fun changePassword(
-        //@RequestBody
-        changePasswordRequest: ChangePasswordRequest
-    ): ChangePasswordResponse {
-        val changePasswordBegTime = getCurrentTimeInt()
-
-        val conn = AdvancedConnection(CoreSpringApp.dbConfig)
-        val stm = conn.createStatement()
-
-//        logQuery( hmParam )
-
-        val newPassword = changePasswordRequest.password
-        val toDay = ZonedDateTime.now()
-
-        //--- загрузка/создании сессии
-        val chmSession = CoreSpringApp.chmSessionStore.getOrPut(changePasswordRequest.sessionID) { ConcurrentHashMap() }
-        val userConfig: UserConfig? = chmSession[iApplication.USER_CONFIG] as? UserConfig
-
-        if (userConfig != null)
-            stm.executeUpdate(
-                " UPDATE SYSTEM_users SET pwd = '$newPassword' , " +
-                    " pwd_ye = ${toDay.year} , pwd_mo = ${toDay.monthValue} , pwd_da = ${toDay.dayOfMonth}" +
-                    " WHERE id = ${userConfig.userID} "
-            )
-
-        //--- зафиксировать любые изменения в базе/
-        conn.commit()
-
-        stm.close()
-        conn.close()
-
-        //--- если запрос длился/обрабатывался дольше MAX_TIME_PER_REQUEST, покажем его
-        if (getCurrentTimeInt() - changePasswordBegTime > CoreSpringApp.MAX_TIME_PER_REQUEST) {
-            AdvancedLogger.error("--- Long Change Password Query = " + (getCurrentTimeInt() - changePasswordBegTime))
-            AdvancedLogger.error(changePasswordRequest.toString())
-        }
-        //AdvancedLogger.error( "Query time = " + ( System.currentTimeMillis() - appBegTime ) / 1000 );
-
-        return ChangePasswordResponse()
-    }
-
-    //--- прописывать у каждого наследника
-//    @PostMapping("/api/logoff")
-    open fun logoff(
-        //@RequestBody
-        logoffRequest: LogoffRequest
-    ): LogoffResponse {
-        val logoffBegTime = getCurrentTimeInt()
-
-        CoreSpringApp.chmSessionStore.remove(logoffRequest.sessionID)
-
-        //--- если запрос длился/обрабатывался дольше MAX_TIME_PER_REQUEST, покажем его
-        if (getCurrentTimeInt() - logoffBegTime > CoreSpringApp.MAX_TIME_PER_REQUEST) {
-            AdvancedLogger.error("--- Long Logoff Query = " + (getCurrentTimeInt() - logoffBegTime))
-            AdvancedLogger.error(logoffRequest.toString())
-        }
-        //AdvancedLogger.error( "Query time = " + ( System.currentTimeMillis() - appBegTime ) / 1000 );
-
-        return LogoffResponse()
-    }
-
-    //--- прописывать у каждого наследника
-//    @PostMapping("/api/upload_form_file")
-    open fun uploadFormFile(
-//        @RequestParam("form_file_ids")
-        arrFormFileId: Array<String>, // со стороны web-клиента ограничение на передачу массива или только строк или только файлов
-//        @RequestParam("form_file_blobs")
-        arrFormFileBlob: Array<MultipartFile>
-    ): FormFileUploadResponse {
-
-        arrFormFileId.forEachIndexed { i, id ->
-            arrFormFileBlob[i].transferTo(File(tempDirName, id))
-        }
-
-        return FormFileUploadResponse()
-    }
-
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    private fun checkLogon(stm: CoreAdvancedStatement, aLogin: String, aPassword: String, chmSession: ConcurrentHashMap<String, Any>): ResponseCode {
         //--- загрузка данных по активному пользователю с данным логином
         var userID = 0
         var isDisabled = false
@@ -805,10 +491,15 @@ abstract class CoreSpringController : iApplication {
 
         //--- исключение из правил: сразу же записываем в сессию информацию по успешно залогиненному пользователю,
         //--- т.к. эта инфа понадобится в той же команде (для выдачи меню и т.п.)
-        chmSession[iApplication.USER_CONFIG] = UserConfig.getConfig(stm, userID)
+        chmSession[iApplication.USER_CONFIG] = UserConfig.getConfig(conn, userID)
 
+        stm.close()
         //--- проверяем просроченность пароля
-        return if (toDay.isAfter(pwdDay)) ResponseCode.LOGON_SUCCESS_BUT_OLD else ResponseCode.LOGON_SUCCESS
+        return if (toDay.isAfter(pwdDay)) {
+            ResponseCode.LOGON_SUCCESS_BUT_OLD
+        } else {
+            ResponseCode.LOGON_SUCCESS
+        }
     }
 
     private fun setAttemptData(stm: CoreAdvancedStatement, incCount: Boolean, toDay: ZonedDateTime, userID: Int) {
