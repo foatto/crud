@@ -24,7 +24,9 @@ class DataClean(aConfigFileName: String) : CoreDataClean(aConfigFileName) {
                 if (args.size == 1) {
                     DataClean(args[0]).run()
                     exitCode = 1
-                } else println("Usage: $serviceWorkerName <ini-file-name>")
+                } else {
+                    println("Usage: $serviceWorkerName <ini-file-name>")
+                }
             }
             catch(t: Throwable) {
                 t.printStackTrace()
