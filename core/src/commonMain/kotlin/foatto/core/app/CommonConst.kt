@@ -28,6 +28,7 @@ const val BUTTON_KEY_EXIT = 1
 const val BUTTON_KEY_SAVE = 2
 const val BUTTON_KEY_AUTOCLICK = 3
 
+const val UP_GRAPHIC_SHOW_BACK = "graphic_show_back"
 const val UP_GRAPHIC_SHOW_POINT = "graphic_show_point"
 const val UP_GRAPHIC_SHOW_LINE = "graphic_show_line"
 const val UP_GRAPHIC_SHOW_TEXT = "graphic_show_text"

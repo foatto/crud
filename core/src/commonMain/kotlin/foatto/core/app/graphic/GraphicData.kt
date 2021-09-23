@@ -7,14 +7,21 @@ class GraphicDataContainer(
     val axisYIndex: Int,
     val lineWidth: Int = 0,
 ) {
-    enum class ElementType { LINE, POINT, TEXT }
+    enum class ElementType { BACK, LINE, POINT, TEXT }
 
+    var alGBD: Array<GraphicBackData> = arrayOf()
     var alGLD: Array<GraphicLineData> = arrayOf()
     var alGPD: Array<GraphicPointData> = arrayOf()
     var alGTD: Array<GraphicTextData> = arrayOf()
 
-    fun itNotEmpty() = alGLD.isNotEmpty() || alGPD.isNotEmpty() || alGTD.isNotEmpty()
+    fun itNotEmpty() = alGBD.isNotEmpty() || alGLD.isNotEmpty() || alGPD.isNotEmpty() || alGTD.isNotEmpty()
 }
+
+class GraphicBackData(
+    val x1: Int,
+    val x2: Int,
+    val color: Int,
+)
 
 class GraphicLineData(
     val x: Int,

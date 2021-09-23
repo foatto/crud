@@ -23,13 +23,17 @@ class CalcSumData {
     //--------------------------------------------------------------
 
     fun addLiquidUsing(liquidName: String, using: Double) {
-        val curUsing = tmLiquidUsing[liquidName] ?: 0.0
-        tmLiquidUsing[liquidName] = curUsing + using
+        if(liquidName.isNotBlank()) {
+            val curUsing = tmLiquidUsing[liquidName] ?: 0.0
+            tmLiquidUsing[liquidName] = curUsing + using
+        }
     }
 
     fun addLiquidLevel(liquidName: String, inc: Double, dec: Double) {
-        val (curInc, curDec) = tmLiquidIncDec[liquidName] ?: Pair(0.0, 0.0)
-        tmLiquidIncDec[liquidName] = Pair(curInc + inc, curDec + dec)
+        if(liquidName.isNotBlank()) {
+            val (curInc, curDec) = tmLiquidIncDec[liquidName] ?: Pair(0.0, 0.0)
+            tmLiquidIncDec[liquidName] = Pair(curInc + inc, curDec + dec)
+        }
     }
 
 }
