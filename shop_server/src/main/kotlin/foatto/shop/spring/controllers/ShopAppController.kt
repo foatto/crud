@@ -1,4 +1,4 @@
-package foatto.shop.spring
+package foatto.shop.spring.controllers
 
 import foatto.core.link.*
 import foatto.core.util.AdvancedLogger
@@ -10,23 +10,18 @@ import foatto.shop.iShopApplication
 import foatto.shop.spring.repositories.CatalogRepository
 import foatto.shop.spring.repositories.DocumentContentRepository
 import foatto.shop.spring.repositories.DocumentRepository
-import foatto.spring.CoreSpringController
+import foatto.spring.controllers.CoreAppController
 import foatto.sql.CoreAdvancedStatement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.multipart.MultipartFile
-import javax.servlet.http.HttpServletResponse
 
 @RestController
-class ShopSpringController : CoreSpringController(), iShopApplication {
+class ShopAppController : CoreAppController(), iShopApplication {
 
     @Value("\${discount_limits}")
     override val discountLimits: Array<String> = emptyArray()
@@ -55,78 +50,12 @@ class ShopSpringController : CoreSpringController(), iShopApplication {
     @Value("\${fiscal_place}")
     override val fiscalPlace: String? = null
 
-//!!! сделать статику через nginx и убрать в проекте привязку к tomcat-embed-core-XXX.jar ---
-
-    @GetMapping(value = ["/"])
-    fun downloadRoot(response: HttpServletResponse) {
-        download(response, "${rootDirName}/web/index.html")
-    }
-
-    @GetMapping(value = ["/reports/{fileName:.+}"])
-    fun downloadReports(
-        response: HttpServletResponse,
-        @PathVariable("fileName")
-        fileName: String
-    ) {
-        download(response, "${rootDirName}/reports/$fileName")
-    }
-
-    @GetMapping(value = ["/web/{fileName:.+}"])
-    fun downloadWeb(
-        response: HttpServletResponse,
-        @PathVariable("fileName")
-        fileName: String
-    ) {
-        download(response, "${rootDirName}/web/$fileName")
-    }
-
-    @GetMapping(value = ["/web/images/{fileName:.+}"])
-    fun downloadWebImages(
-        response: HttpServletResponse,
-        @PathVariable("fileName")
-        fileName: String
-    ) {
-        download(response, "${rootDirName}/web/images/$fileName")
-    }
-
-    @GetMapping(value = ["/web/js/{fileName:.+}"])
-    fun downloadWebJS(
-        response: HttpServletResponse,
-        @PathVariable("fileName")
-        fileName: String
-    ) {
-        download(response, "${rootDirName}/web/js/$fileName")
-    }
-
-    @GetMapping(value = ["/web/lib/{fileName:.+}"])
-    fun downloadWebLib(
-        response: HttpServletResponse,
-        @PathVariable("fileName")
-        fileName: String
-    ) {
-        download(response, "${rootDirName}/web/lib/$fileName")
-    }
-
-    @GetMapping(value = ["/files/{dirName:.+}/{fileName:.+}"])
-    fun downloadFile(
-        response: HttpServletResponse,
-        @PathVariable("dirName")
-        dirName: String,
-        @PathVariable("fileName")
-        fileName: String
-    ) {
-        download(response, "${rootDirName}/files/$dirName/$fileName")
-    }
-
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @PostMapping("/api/app")
-    @Transactional
     override fun app(
-        //authentication: Authentication,
         @RequestBody
         appRequest: AppRequest
-        //@CookieValue("SESSION") sessionId: String
     ): AppResponse {
         return super.app(appRequest)
     }
@@ -140,78 +69,6 @@ class ShopSpringController : CoreSpringController(), iShopApplication {
 //    ): UpdateResponse {
 //        return super.update( updateRequest )
 //    }
-
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @PostMapping("/api/get_file")
-    override fun getFile(
-        @RequestBody
-        getFileRequest: GetFileRequest
-    ): GetFileResponse {
-        return super.getFile(getFileRequest)
-    }
-
-    @PostMapping("/api/put_file")
-    override fun putFile(
-        @RequestBody
-        putFileRequest: PutFileRequest
-    ): PutFileResponse {
-        return super.putFile(putFileRequest)
-    }
-
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @PostMapping("/api/get_replication")
-    override fun getReplication(
-        @RequestBody
-        getReplicationRequest: GetReplicationRequest
-    ): GetReplicationResponse {
-        return super.getReplication(getReplicationRequest)
-    }
-
-    @PostMapping("/api/put_replication")
-    override fun putReplication(
-        @RequestBody
-        putReplicationRequest: PutReplicationRequest
-    ): PutReplicationResponse {
-        return super.putReplication(putReplicationRequest)
-    }
-
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @PostMapping("/api/save_user_property")
-    override fun saveUserProperty(
-        @RequestBody
-        saveUserPropertyRequest: SaveUserPropertyRequest
-    ): SaveUserPropertyResponse {
-        return super.saveUserProperty(saveUserPropertyRequest)
-    }
-
-    @PostMapping("/api/change_password")
-    override fun changePassword(
-        @RequestBody
-        changePasswordRequest: ChangePasswordRequest
-    ): ChangePasswordResponse {
-        return super.changePassword(changePasswordRequest)
-    }
-
-    @PostMapping("/api/logoff")
-    override fun logoff(
-        @RequestBody
-        logoffRequest: LogoffRequest
-    ): LogoffResponse {
-        return super.logoff(logoffRequest)
-    }
-
-    @PostMapping("/api/upload_form_file")
-    override fun uploadFormFile(
-        @RequestParam("form_file_ids")
-        arrFormFileId: Array<String>,
-        @RequestParam("form_file_blobs")
-        arrFormFileBlob: Array<MultipartFile>
-    ): FormFileUploadResponse {
-        return super.uploadFormFile(arrFormFileId, arrFormFileBlob)
-    }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
