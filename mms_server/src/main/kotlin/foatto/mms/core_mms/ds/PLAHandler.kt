@@ -11,6 +11,7 @@ import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.sql.SQLBatch
 import java.nio.ByteOrder
 import java.nio.channels.SelectionKey
+import java.nio.channels.SocketChannel
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
@@ -79,7 +80,23 @@ class PLAHandler : MMSHandler() {
             packetHeader = PacketHeader(bbIn)
 
             if (packetHeader!!.signature != PacketHeader.PACKET_SIGNATURE) {
-                writeError(dataWorker.conn, dataWorker.stm, " Wrong signature = ${packetHeader!!.signature} for device ID = $deviceID")
+                    writeError(
+                        conn = dataWorker.conn,
+                        stm = dataWorker.stm,
+                        dirSessionLog = dirSessionLog,
+                        zoneId = zoneId,
+                        deviceId = deviceId,
+                        deviceConfig = deviceConfig,
+                        fwVersion = fwVersion,
+                        begTime = begTime,
+                        address = (selectionKey!!.channel() as SocketChannel).localAddress.toString(),
+                        status = status,
+                        errorText = "Wrong signature = ${packetHeader!!.signature} for device ID = $deviceId",
+                        dataCount = dataCount,
+                        dataCountAll = dataCountAll,
+                        firstPointTime = firstPointTime,
+                        lastPointTime = lastPointTime,
+                    )
                 return false
             }
             //--- проверку на packetID пропускаем, ибо не используем
@@ -94,7 +111,23 @@ class PLAHandler : MMSHandler() {
                 return true
             }
             val errorCode = bbIn.getByte().toInt() and 0xFF
-            writeError(dataWorker.conn, dataWorker.stm, " Error code = $errorCode from device ID = $deviceID")
+                    writeError(
+                        conn = dataWorker.conn,
+                        stm = dataWorker.stm,
+                        dirSessionLog = dirSessionLog,
+                        zoneId = zoneId,
+                        deviceId = deviceId,
+                        deviceConfig = deviceConfig,
+                        fwVersion = fwVersion,
+                        begTime = begTime,
+                        address = (selectionKey!!.channel() as SocketChannel).localAddress.toString(),
+                        status = status,
+                        errorText = "Error code = $errorCode from device ID = $deviceId",
+                        dataCount = dataCount,
+                        dataCountAll = dataCountAll,
+                        firstPointTime = firstPointTime,
+                        lastPointTime = lastPointTime,
+                    )
             return false
         }
         //--- ошибки нет, дожидаемся обещанного объёма данных + CRC16
@@ -112,40 +145,124 @@ class PLAHandler : MMSHandler() {
         when (packetHeader!!.command) {
             CMD_READ_ID -> {
                 if (packetHeader!!.packetSize != 7) {
-                    writeError(dataWorker.conn, dataWorker.stm, " Wrong READ_ID packetSize = $packetHeader!!.packetSize for device ID = $deviceID")
+                    writeError(
+                        conn = dataWorker.conn,
+                        stm = dataWorker.stm,
+                        dirSessionLog = dirSessionLog,
+                        zoneId = zoneId,
+                        deviceId = deviceId,
+                        deviceConfig = deviceConfig,
+                        fwVersion = fwVersion,
+                        begTime = begTime,
+                        address = (selectionKey!!.channel() as SocketChannel).localAddress.toString(),
+                        status = status,
+                        errorText = "Wrong READ_ID packetSize = $packetHeader!!.packetSize for device ID = $deviceId",
+                        dataCount = dataCount,
+                        dataCountAll = dataCountAll,
+                        firstPointTime = firstPointTime,
+                        lastPointTime = lastPointTime,
+                    )
                     return false
                 }
-                deviceID = bbIn.getShort().toInt() and 0xFFFF
-                fwVersion = bbIn.getShort().toInt() and 0xFFFF
+                deviceId = bbIn.getShort().toInt() and 0xFFFF
+                fwVersion = (bbIn.getShort().toInt() and 0xFFFF).toString()
                 /*recordSize =*/ bbIn.getByte()// & 0xFF; SKIP Record Size
                 recordCount = bbIn.getShort().toInt() and 0xFFFF
-                if (deviceID <= 0) {
-                    writeError(dataWorker.conn, dataWorker.stm, " Wrong device ID = $deviceID")
+                if (deviceId <= 0) {
+                    writeError(
+                        conn = dataWorker.conn,
+                        stm = dataWorker.stm,
+                        dirSessionLog = dirSessionLog,
+                        zoneId = zoneId,
+                        deviceId = deviceId,
+                        deviceConfig = deviceConfig,
+                        fwVersion = fwVersion,
+                        begTime = begTime,
+                        address = (selectionKey!!.channel() as SocketChannel).localAddress.toString(),
+                        status = status,
+                        errorText = "Wrong device ID = $deviceId",
+                        dataCount = dataCount,
+                        dataCountAll = dataCountAll,
+                        firstPointTime = firstPointTime,
+                        lastPointTime = lastPointTime,
+                    )
                     return false
                 }
-                if (fwVersion < 0x400) {
-                    writeError(dataWorker.conn, dataWorker.stm, " Old version = ${Integer.toHexString(fwVersion)} for device ID = $deviceID")
+                if (fwVersion.toInt() < 0x400) {
+                    writeError(
+                        conn = dataWorker.conn,
+                        stm = dataWorker.stm,
+                        dirSessionLog = dirSessionLog,
+                        zoneId = zoneId,
+                        deviceId = deviceId,
+                        deviceConfig = deviceConfig,
+                        fwVersion = fwVersion,
+                        begTime = begTime,
+                        address = (selectionKey!!.channel() as SocketChannel).localAddress.toString(),
+                        status = status,
+                        errorText = "Old version = $fwVersion for device ID = $deviceId",
+                        dataCount = dataCount,
+                        dataCountAll = dataCountAll,
+                        firstPointTime = firstPointTime,
+                        lastPointTime = lastPointTime,
+                    )
                     return false
                 }
                 //--- наше петромапское извращение - записываем HEX-номер версии прошивки в как бы десятичном виде
-                fwVersion = Integer.parseInt(Integer.toHexString(fwVersion), 10)
-                deviceConfig = DeviceConfig.getDeviceConfig(dataWorker.stm, deviceID)
+                deviceConfig = DeviceConfig.getDeviceConfig(dataWorker.stm, deviceId)
                 //--- неизвестный контроллер
                 if (deviceConfig == null) {
                     sendDelay()
-                    writeError(dataWorker.conn, dataWorker.stm, " Unknown device ID = $deviceID")
-                    writeJournal()
+                    writeError(
+                        conn = dataWorker.conn,
+                        stm = dataWorker.stm,
+                        dirSessionLog = dirSessionLog,
+                        zoneId = zoneId,
+                        deviceId = deviceId,
+                        deviceConfig = deviceConfig,
+                        fwVersion = fwVersion,
+                        begTime = begTime,
+                        address = (selectionKey!!.channel() as SocketChannel).localAddress.toString(),
+                        status = status,
+                        errorText = "Unknown device ID = $deviceId",
+                        dataCount = dataCount,
+                        dataCountAll = dataCountAll,
+                        firstPointTime = firstPointTime,
+                        lastPointTime = lastPointTime,
+                    )
+                    writeJournal(
+                        dirJournalLog = dirJournalLog,
+                        zoneId = zoneId,
+                        address = (selectionKey!!.channel() as SocketChannel).localAddress.toString(),
+                        errorText = "Unknown device ID = $deviceId",
+                    )
                     return false
                 }
-                chmDeviceDelay.remove(deviceID)
+                chmDeviceDelay.remove(deviceId)
 
                 send(CMD_READ_CUR_POS, false)
-                sbStatus.append("ID;")
+                status += " ID;"
             }
 
             CMD_READ_CUR_POS -> {
                 if (packetHeader!!.packetSize != 40 + 128) {
-                    writeError(dataWorker.conn, dataWorker.stm, " Wrong CUR_POS packetSize = ${packetHeader!!.packetSize} for device ID = $deviceID")
+                    writeError(
+                        conn = dataWorker.conn,
+                        stm = dataWorker.stm,
+                        dirSessionLog = dirSessionLog,
+                        zoneId = zoneId,
+                        deviceId = deviceId,
+                        deviceConfig = deviceConfig,
+                        fwVersion = fwVersion,
+                        begTime = begTime,
+                        address = (selectionKey!!.channel() as SocketChannel).localAddress.toString(),
+                        status = status,
+                        errorText = "Wrong CUR_POS packetSize = ${packetHeader!!.packetSize} for device ID = $deviceId",
+                        dataCount = dataCount,
+                        dataCountAll = dataCountAll,
+                        firstPointTime = firstPointTime,
+                        lastPointTime = lastPointTime,
+                    )
                     return false
                 }
                 p = PLAPoint(this, bbIn)
@@ -155,21 +272,21 @@ class PLAHandler : MMSHandler() {
                 if (p.time > curTime - MAX_PAST_TIME && p.time < curTime + MAX_FUTURE_TIME) {
                     bbData = AdvancedByteBuffer(dataWorker.conn.dialect.textFieldMaxSize / 2)
 
-                    putBitSensor(p.d, 0, 8, bbData)
-                    putSensorData(8, 2, di!!.systemVoltage, bbData)
-                    putSensorData(9, 2, di!!.batteryVoltage, bbData)
-                    putDigitalSensor(p.tmA, 10, 2, bbData)
-                    putSensorData(18, 2, di!!.temperature, bbData)
+                    putBitSensor(deviceConfig!!.index, p.d, 0, 8, bbData)
+                    putSensorData(deviceConfig!!.index, 8, 2, di!!.systemVoltage, bbData)
+                    putSensorData(deviceConfig!!.index, 9, 2, di!!.batteryVoltage, bbData)
+                    putDigitalSensor(deviceConfig!!.index, p.tmA, 10, 2, bbData)
+                    putSensorData(deviceConfig!!.index, 18, 2, di!!.temperature, bbData)
 
-                    putSensorPortNumAndDataSize(SensorConfig.GEO_PORT_NUM, SensorConfig.GEO_DATA_SIZE, bbData)
+                    putSensorPortNumAndDataSize(deviceConfig!!.index, SensorConfig.GEO_PORT_NUM, SensorConfig.GEO_DATA_SIZE, bbData)
                     bbData.putInt(p.wgsX).putInt(p.wgsY).putShort(p.speed).putInt(p.dist)
 
                     sqlBatchData = SQLBatch()
-                    addPoint(dataWorker.stm, p.time, bbData, sqlBatchData)
+                    addPoint(dataWorker.stm, deviceConfig!!, p.time, bbData, sqlBatchData)
                     sqlBatchData.execute(dataWorker.stm)
                     dataWorker.conn.commit()
                 }
-                sbStatus.append("CurPos;")
+                status += " CurPos;"
 
                 //--- вместо recordStart используем общий dataCount
                 dataCount = 1
@@ -185,17 +302,51 @@ class PLAHandler : MMSHandler() {
                 if (recordCount > 0 /*&& cc.autoID != 0*/) {
                     sendReadCoords()
                 } else {
-                    sbStatus.append("Ok;")
-                    errorText = null
-                    writeSession(dataWorker.conn, dataWorker.stm, true)
+                    status += " Ok;"
+                    errorText = ""
+                    writeSession(
+                        conn = dataWorker.conn,
+                        stm = dataWorker.stm,
+                        dirSessionLog = dirSessionLog,
+                        zoneId = zoneId,
+                        deviceId = deviceId,
+                        deviceConfig = deviceConfig!!,
+                        fwVersion = fwVersion,
+                        begTime = begTime,
+                        address = (selectionKey!!.channel() as SocketChannel).toString(),
+                        status = status,
+                        errorText = errorText,
+                        dataCount = dataCount,
+                        dataCountAll = dataCountAll,
+                        firstPointTime = firstPointTime,
+                        lastPointTime = lastPointTime,
+                        isOk = true,
+                    )
                     return false
                 }
             }
 
             CMD_WRITE_CONFIG -> {
-                sbStatus.append("Configured;Ok;")
-                errorText = null
-                writeSession(dataWorker.conn, dataWorker.stm, true)
+                status += " Configured;Ok;"
+                errorText = ""
+                writeSession(
+                    conn = dataWorker.conn,
+                    stm = dataWorker.stm,
+                    dirSessionLog = dirSessionLog,
+                    zoneId = zoneId,
+                    deviceId = deviceId,
+                    deviceConfig = deviceConfig!!,
+                    fwVersion = fwVersion,
+                    begTime = begTime,
+                    address = (selectionKey!!.channel() as SocketChannel).toString(),
+                    status = status,
+                    errorText = errorText,
+                    dataCount = dataCount,
+                    dataCountAll = dataCountAll,
+                    firstPointTime = firstPointTime,
+                    lastPointTime = lastPointTime,
+                    isOk = true,
+                )
                 //--- закрываем соединение от греха подальше :)
                 return false
             }
@@ -203,7 +354,23 @@ class PLAHandler : MMSHandler() {
 
             CMD_READ_COORDS -> {
                 if (packetHeader!!.packetSize % 40 != 0) {
-                    writeError(dataWorker.conn, dataWorker.stm, " Wrong READ_COORDS packetSize = ${packetHeader!!.packetSize} for device ID = $deviceID")
+                    writeError(
+                        conn = dataWorker.conn,
+                        stm = dataWorker.stm,
+                        dirSessionLog = dirSessionLog,
+                        zoneId = zoneId,
+                        deviceId = deviceId,
+                        deviceConfig = deviceConfig,
+                        fwVersion = fwVersion,
+                        begTime = begTime,
+                        address = (selectionKey!!.channel() as SocketChannel).localAddress.toString(),
+                        status = status,
+                        errorText = " Wrong READ_COORDS packetSize = ${packetHeader!!.packetSize} for device ID = $deviceId",
+                        dataCount = dataCount,
+                        dataCountAll = dataCountAll,
+                        firstPointTime = firstPointTime,
+                        lastPointTime = lastPointTime,
+                    )
                     return false
                 }
                 val pc = packetHeader!!.packetSize / 40
@@ -215,16 +382,16 @@ class PLAHandler : MMSHandler() {
                     if (p.time > curTime - MAX_PAST_TIME && p.time < curTime + MAX_FUTURE_TIME) {
                         bbData = AdvancedByteBuffer(dataWorker.conn.dialect.textFieldMaxSize / 2)
 
-                        putBitSensor(p.d, 0, 8, bbData)
-                        putSensorData(8, 2, di!!.systemVoltage, bbData)
-                        putSensorData(9, 2, di!!.batteryVoltage, bbData)
-                        putDigitalSensor(p.tmA, 10, 2, bbData)
-                        putSensorData(18, 2, di!!.temperature, bbData)
+                        putBitSensor(deviceConfig!!.index, p.d, 0, 8, bbData)
+                        putSensorData(deviceConfig!!.index, 8, 2, di!!.systemVoltage, bbData)
+                        putSensorData(deviceConfig!!.index, 9, 2, di!!.batteryVoltage, bbData)
+                        putDigitalSensor(deviceConfig!!.index, p.tmA, 10, 2, bbData)
+                        putSensorData(deviceConfig!!.index, 18, 2, di!!.temperature, bbData)
 
-                        putSensorPortNumAndDataSize(SensorConfig.GEO_PORT_NUM, SensorConfig.GEO_DATA_SIZE, bbData)
+                        putSensorPortNumAndDataSize(deviceConfig!!.index, SensorConfig.GEO_PORT_NUM, SensorConfig.GEO_DATA_SIZE, bbData)
                         bbData.putInt(p.wgsX).putInt(p.wgsY).putShort(p.speed).putInt(p.dist)
 
-                        addPoint(dataWorker.stm, p.time, bbData, sqlBatchData)
+                        addPoint(dataWorker.stm, deviceConfig!!, p.time, bbData, sqlBatchData)
                     }
                     if (firstPointTime == 0) firstPointTime = p.time
                     lastPointTime = p.time
@@ -236,14 +403,31 @@ class PLAHandler : MMSHandler() {
                 if (dataCount - 1 < recordCount) sendReadCoords()
                 else {
                     send(CMD_CLEAR_COORDS, true)
-                    sbStatus.append("DataRead;")
+                    status += " DataRead;"
                 }//--- точек больше нет, пора закругляться
             }
 
             CMD_CLEAR_COORDS -> {
-                sbStatus.append("Ok;")
-                errorText = null
-                writeSession(dataWorker.conn, dataWorker.stm, true)
+                status += " Ok;"
+                errorText = ""
+                writeSession(
+                    conn = dataWorker.conn,
+                    stm = dataWorker.stm,
+                    dirSessionLog = dirSessionLog,
+                    zoneId = zoneId,
+                    deviceId = deviceId,
+                    deviceConfig = deviceConfig!!,
+                    fwVersion = fwVersion,
+                    begTime = begTime,
+                    address = (selectionKey!!.channel() as SocketChannel).toString(),
+                    status = status,
+                    errorText = errorText,
+                    dataCount = dataCount,
+                    dataCountAll = dataCountAll,
+                    firstPointTime = firstPointTime,
+                    lastPointTime = lastPointTime,
+                    isOk = true,
+                )
                 //--- закрываем соединение от греха подальше :)
                 return false
             }
@@ -286,9 +470,9 @@ class PLAHandler : MMSHandler() {
     }
 
     private fun sendDelay() {
-        var delay: Int? = chmDeviceDelay[deviceID]
+        var delay: Int? = chmDeviceDelay[deviceId]
         delay = if (delay == null) 1 else delay + 1
-        chmDeviceDelay.put(deviceID, delay)
+        chmDeviceDelay.put(deviceId, delay)
 
         //--- не более чем на 540 мин (9 часов), чтобы секундами не переполнить signed short в минус
         val second = Math.min(delay, 540) * 60 + 0x04    // в качестве причины указываем "Нет регистрации в Мск"

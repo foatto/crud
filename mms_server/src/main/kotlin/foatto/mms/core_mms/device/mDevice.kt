@@ -66,7 +66,7 @@ class mDevice : mAbstract() {
         val columnDeviceCell = ColumnString(tableName, "cell_num", "Номер телефона", STRING_COLUMN_WIDTH)
         val columnDeviceCell2 = ColumnString(tableName, "cell_num_2", "Номер телефона 2", STRING_COLUMN_WIDTH)
 
-        val columnDeviceFWVer = ColumnInt(tableName, "fw_version", "Версия прошивки", 10).apply {
+        val columnDeviceFwVer = ColumnString(tableName, "fw_version", "Версия прошивки", 10).apply {
             isEditable = false
             formPinMode = FormPinMode.OFF
         }
@@ -127,14 +127,14 @@ class mDevice : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        addTableColumn(columnDeviceFWVer)
+        addTableColumn(columnDeviceFwVer)
         addTableColumn(columnDeviceLastSessionTime)
         addTableColumn(columnDeviceLastSessionStatusText)
         addTableColumn(columnDeviceLastSessionErrorText)
         addTableColumn(columnDeviceOfflineMode)
         addTableColumn(columnDeviceWorkBegin)
 
-        alFormColumn.add(columnDeviceFWVer)
+        alFormColumn.add(columnDeviceFwVer)
         alFormColumn.add(columnDeviceLastSessionTime)
         alFormColumn.add(columnDeviceLastSessionStatusText)
         alFormColumn.add(columnDeviceLastSessionErrorText)

@@ -10,10 +10,11 @@ import foatto.core_server.ds.CoreDataWorker
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigCounter
 import foatto.sql.SQLBatch
+import io.ktor.util.network.*
 import java.nio.ByteOrder
 import java.nio.channels.SelectionKey
+import java.nio.channels.SocketChannel
 import java.time.ZoneId
-import java.util.*
 import kotlin.math.roundToInt
 
 open class GalileoHandler : MMSHandler() {
@@ -45,81 +46,81 @@ open class GalileoHandler : MMSHandler() {
     private var canEngineRPM = 0
 
     //--- 8 универсальных датчиков самого галилео
-    private val tmUniversalSensor = TreeMap<Int, Int>()
-    private val tmRS485Fuel = TreeMap<Int, Int>()
-    private val tmRS485Temp = TreeMap<Int, Int>()
+    private val tmUniversalSensor = sortedMapOf<Int, Int>()
+    private val tmRS485Fuel = sortedMapOf<Int, Int>()
+    private val tmRS485Temp = sortedMapOf<Int, Int>()
 
     //--- пользовательские данные одиночными значениями
-    private val tmUserData = TreeMap<Int, Int>()
+    private val tmUserData = sortedMapOf<Int, Int>()
 
     //--- по 16 типизированных датчиков от юриковского радиоудлиннителя
-    private val tmLevelSensor = TreeMap<Int, Int>()
-    private val tmVoltageSensor = TreeMap<Int, Int>()
-    private val tmCountSensor = TreeMap<Int, Int>()
+    private val tmLevelSensor = sortedMapOf<Int, Int>()
+    private val tmVoltageSensor = sortedMapOf<Int, Int>()
+    private val tmCountSensor = sortedMapOf<Int, Int>()
 
     //--- 4 вида счётчиков энергии от сброса (активная прямая, активная обратная, реактивная прямая, реактивная обратная)
-    private val tmEnergoCountActiveDirect = TreeMap<Int, Int>()
-    private val tmEnergoCountActiveReverse = TreeMap<Int, Int>()
-    private val tmEnergoCountReactiveDirect = TreeMap<Int, Int>()
-    private val tmEnergoCountReactiveReverse = TreeMap<Int, Int>()
+    private val tmEnergoCountActiveDirect = sortedMapOf<Int, Int>()
+    private val tmEnergoCountActiveReverse = sortedMapOf<Int, Int>()
+    private val tmEnergoCountReactiveDirect = sortedMapOf<Int, Int>()
+    private val tmEnergoCountReactiveReverse = sortedMapOf<Int, Int>()
 
     //--- напряжение по фазам
-    private val tmEnergoVoltageA = TreeMap<Int, Int>()
-    private val tmEnergoVoltageB = TreeMap<Int, Int>()
-    private val tmEnergoVoltageC = TreeMap<Int, Int>()
+    private val tmEnergoVoltageA = sortedMapOf<Int, Int>()
+    private val tmEnergoVoltageB = sortedMapOf<Int, Int>()
+    private val tmEnergoVoltageC = sortedMapOf<Int, Int>()
 
     //--- ток по фазам
-    private val tmEnergoCurrentA = TreeMap<Int, Int>()
-    private val tmEnergoCurrentB = TreeMap<Int, Int>()
-    private val tmEnergoCurrentC = TreeMap<Int, Int>()
+    private val tmEnergoCurrentA = sortedMapOf<Int, Int>()
+    private val tmEnergoCurrentB = sortedMapOf<Int, Int>()
+    private val tmEnergoCurrentC = sortedMapOf<Int, Int>()
 
     //--- коэффициент мощности по фазам
-    private val tmEnergoPowerKoefA = TreeMap<Int, Int>()
-    private val tmEnergoPowerKoefB = TreeMap<Int, Int>()
-    private val tmEnergoPowerKoefC = TreeMap<Int, Int>()
+    private val tmEnergoPowerKoefA = sortedMapOf<Int, Int>()
+    private val tmEnergoPowerKoefB = sortedMapOf<Int, Int>()
+    private val tmEnergoPowerKoefC = sortedMapOf<Int, Int>()
 
     //--- energy power (active, reactive, full/summary) by phase by 4 indicators
-    private val tmEnergoPowerActiveA = TreeMap<Int, Int>()
-    private val tmEnergoPowerActiveB = TreeMap<Int, Int>()
-    private val tmEnergoPowerActiveC = TreeMap<Int, Int>()
-    private val tmEnergoPowerReactiveA = TreeMap<Int, Int>()
-    private val tmEnergoPowerReactiveB = TreeMap<Int, Int>()
-    private val tmEnergoPowerReactiveC = TreeMap<Int, Int>()
-    private val tmEnergoPowerFullA = TreeMap<Int, Int>()
-    private val tmEnergoPowerFullB = TreeMap<Int, Int>()
-    private val tmEnergoPowerFullC = TreeMap<Int, Int>()
-    private val tmEnergoPowerActiveABC = TreeMap<Int, Int>()
-    private val tmEnergoPowerReactiveABC = TreeMap<Int, Int>()
-    private val tmEnergoPowerFullABC = TreeMap<Int, Int>()
+    private val tmEnergoPowerActiveA = sortedMapOf<Int, Int>()
+    private val tmEnergoPowerActiveB = sortedMapOf<Int, Int>()
+    private val tmEnergoPowerActiveC = sortedMapOf<Int, Int>()
+    private val tmEnergoPowerReactiveA = sortedMapOf<Int, Int>()
+    private val tmEnergoPowerReactiveB = sortedMapOf<Int, Int>()
+    private val tmEnergoPowerReactiveC = sortedMapOf<Int, Int>()
+    private val tmEnergoPowerFullA = sortedMapOf<Int, Int>()
+    private val tmEnergoPowerFullB = sortedMapOf<Int, Int>()
+    private val tmEnergoPowerFullC = sortedMapOf<Int, Int>()
+    private val tmEnergoPowerActiveABC = sortedMapOf<Int, Int>()
+    private val tmEnergoPowerReactiveABC = sortedMapOf<Int, Int>()
+    private val tmEnergoPowerFullABC = sortedMapOf<Int, Int>()
 
     //--- плотность
-    private val tmDensity = TreeMap<Int, Double>()
+    private val tmDensity = sortedMapOf<Int, Double>()
 
     //--- температура
-    private val tmTemperature = TreeMap<Int, Double>()
+    private val tmTemperature = sortedMapOf<Int, Double>()
 
     //--- массовый расход
-    private val tmMassFlow = TreeMap<Int, Double>()
+    private val tmMassFlow = sortedMapOf<Int, Double>()
 
     //--- объёмный расход
-    private val tmVolumeFlow = TreeMap<Int, Double>()
+    private val tmVolumeFlow = sortedMapOf<Int, Double>()
 
     //--- накопленная масса
-    private val tmAccumulatedMass = TreeMap<Int, Double>()
+    private val tmAccumulatedMass = sortedMapOf<Int, Double>()
 
     //--- накопленный объём
-    private val tmAccumulatedVolume = TreeMap<Int, Double>()
+    private val tmAccumulatedVolume = sortedMapOf<Int, Double>()
 
     //--- датчик EuroSense Delta (4 датчика)
-    private val tmESDStatus = TreeMap<Int, Int>()
-    private val tmESDVolume = TreeMap<Int, Double>()
-    private val tmESDFlow = TreeMap<Int, Double>()
-    private val tmESDCameraVolume = TreeMap<Int, Double>()
-    private val tmESDCameraFlow = TreeMap<Int, Double>()
-    private val tmESDCameraTemperature = TreeMap<Int, Int>()
-    private val tmESDReverseCameraVolume = TreeMap<Int, Double>()
-    private val tmESDReverseCameraFlow = TreeMap<Int, Double>()
-    private val tmESDReverseCameraTemperature = TreeMap<Int, Int>()
+    private val tmESDStatus = sortedMapOf<Int, Int>()
+    private val tmESDVolume = sortedMapOf<Int, Double>()
+    private val tmESDFlow = sortedMapOf<Int, Double>()
+    private val tmESDCameraVolume = sortedMapOf<Int, Double>()
+    private val tmESDCameraFlow = sortedMapOf<Int, Double>()
+    private val tmESDCameraTemperature = sortedMapOf<Int, Int>()
+    private val tmESDReverseCameraVolume = sortedMapOf<Int, Double>()
+    private val tmESDReverseCameraFlow = sortedMapOf<Int, Double>()
+    private val tmESDReverseCameraTemperature = sortedMapOf<Int, Int>()
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -159,11 +160,43 @@ open class GalileoHandler : MMSHandler() {
                 bbIn.getInt()      // время отправки пакета
 
                 if (packetHeader.toInt() != 0x01) {
-                    writeError(dataWorker.conn, dataWorker.stm, "Wrong Iridium protocol version = $packetHeader for IMEI = $iridiumIMEI")
+                    writeError(
+                        conn = dataWorker.conn,
+                        stm = dataWorker.stm,
+                        dirSessionLog = dirSessionLog,
+                        zoneId = zoneId,
+                        deviceId = deviceId,
+                        deviceConfig = deviceConfig,
+                        fwVersion = fwVersion,
+                        begTime = begTime,
+                        address = (selectionKey!!.channel() as SocketChannel).localAddress.hostname,
+                        status = status,
+                        errorText = "Wrong Iridium protocol version = $packetHeader for IMEI = $iridiumIMEI",
+                        dataCount = dataCount,
+                        dataCountAll = dataCountAll,
+                        firstPointTime = firstPointTime,
+                        lastPointTime = lastPointTime,
+                    )
                     return false
                 }
                 if (iridiumStatusSession < 0 || iridiumStatusSession > 2) {
-                    writeError(dataWorker.conn, dataWorker.stm, "Wrong Iridium session status = $iridiumStatusSession for IMEI = $iridiumIMEI")
+                    writeError(
+                        conn = dataWorker.conn,
+                        stm = dataWorker.stm,
+                        dirSessionLog = dirSessionLog,
+                        zoneId = zoneId,
+                        deviceId = deviceId,
+                        deviceConfig = deviceConfig,
+                        fwVersion = fwVersion,
+                        begTime = begTime,
+                        address = (selectionKey!!.channel() as SocketChannel).localAddress.hostname,
+                        status = status,
+                        errorText = "Wrong Iridium session status = $iridiumStatusSession for IMEI = $iridiumIMEI",
+                        dataCount = dataCount,
+                        dataCountAll = dataCountAll,
+                        firstPointTime = firstPointTime,
+                        lastPointTime = lastPointTime,
+                    )
                     return false
                 }
 
@@ -189,7 +222,23 @@ open class GalileoHandler : MMSHandler() {
                     val b2 = bbIn.getByte()
                     packetSize = (b1.toInt() and 0xFF shl 8) or (b2.toInt() and 0xFF)
                 } else {
-                    writeError(dataWorker.conn, dataWorker.stm, "Unknown Iridium tag = $tag for IMEI = $iridiumIMEI")
+                    writeError(
+                        conn = dataWorker.conn,
+                        stm = dataWorker.stm,
+                        dirSessionLog = dirSessionLog,
+                        zoneId = zoneId,
+                        deviceId = deviceId,
+                        deviceConfig = deviceConfig,
+                        fwVersion = fwVersion,
+                        begTime = begTime,
+                        address = (selectionKey!!.channel() as SocketChannel).localAddress.hostname,
+                        status = status,
+                        errorText = "Unknown Iridium tag = $tag for IMEI = $iridiumIMEI",
+                        dataCount = dataCount,
+                        dataCountAll = dataCountAll,
+                        firstPointTime = firstPointTime,
+                        lastPointTime = lastPointTime,
+                    )
                     return false
                 }
             }
@@ -211,7 +260,23 @@ open class GalileoHandler : MMSHandler() {
                 packetSize = packetSize and 0x7FFF
 
                 if (packetHeader.toInt() != 0x01) {
-                    writeError(dataWorker.conn, dataWorker.stm, "Wrong packet header = $packetHeader for device ID = $deviceID")
+                    writeError(
+                        conn = dataWorker.conn,
+                        stm = dataWorker.stm,
+                        dirSessionLog = dirSessionLog,
+                        zoneId = zoneId,
+                        deviceId = deviceId,
+                        deviceConfig = deviceConfig,
+                        fwVersion = fwVersion,
+                        begTime = begTime,
+                        address = (selectionKey!!.channel() as SocketChannel).localAddress.hostname,
+                        status = status,
+                        errorText = "Wrong packet header = $packetHeader for device ID = $deviceId",
+                        dataCount = dataCount,
+                        dataCountAll = dataCountAll,
+                        firstPointTime = firstPointTime,
+                        lastPointTime = lastPointTime,
+                    )
                     return false
                 }
             }
@@ -246,7 +311,7 @@ open class GalileoHandler : MMSHandler() {
 
                 //--- версия прошивки
                 0x02 -> {
-                    fwVersion = bbIn.getByte().toInt() and 0xFF
+                    fwVersion = (bbIn.getByte().toInt() and 0xFF).toString()
                     AdvancedLogger.debug("firmware version = $fwVersion")
                 }
 
@@ -256,8 +321,8 @@ open class GalileoHandler : MMSHandler() {
                     bbIn.get(arrIMEI)
                     val imei = String(arrIMEI)
 
-                    deviceID = Integer.parseInt(imei.substring(imei.length - 7))
-                    AdvancedLogger.debug("deviceID = $deviceID")
+                    deviceId = Integer.parseInt(imei.substring(imei.length - 7))
+                    AdvancedLogger.debug("deviceID = $deviceId")
 
                     if (!loadDeviceConfig(dataWorker)) return false
                 }
@@ -334,7 +399,7 @@ open class GalileoHandler : MMSHandler() {
 
                 //--- данные рефрижераторной установки
                 0x5B -> {
-                    AdvancedLogger.error("deviceID = $deviceID\n unsupported tag = 0x${Integer.toHexString(tag)}\n disable refrigerator data, please")
+                    AdvancedLogger.error("deviceID = $deviceId\n unsupported tag = 0x${Integer.toHexString(tag)}\n disable refrigerator data, please")
                     return false
                 }
 
@@ -428,9 +493,9 @@ open class GalileoHandler : MMSHandler() {
                     val arrAnswer = ByteArray(answerLen)
                     bbIn.get(arrAnswer)
                     val answer = String(arrAnswer)
-                    sbStatus.append("AnswerReceive=").append(answer).append(';')
+                    status += " AnswerReceive=$answer;"
                     AdvancedLogger.debug("Answer")
-                    AdvancedLogger.debug("deviceID = $deviceID\n Answer = $answer")
+                    AdvancedLogger.debug("deviceID = $deviceId\n Answer = $answer")
                 }
 
                 //--- пользовательские данные в виде одиночных значений
@@ -441,7 +506,7 @@ open class GalileoHandler : MMSHandler() {
                     //AdvancedLogger.debug( "deviceID = " + deviceID + "\n user data time = " + StringFunction.DateTime_YMDHMS( timeZone, pointTime ) );
 
                     val userDataSize = bbIn.getByte().toInt() and 0xFF // размер данных
-                    AdvancedLogger.debug("deviceID = $deviceID\n userDataSize = $userDataSize")
+                    AdvancedLogger.debug("deviceID = $deviceId\n userDataSize = $userDataSize")
 
                     //                StringBuilder sbHex = new StringBuilder( " 0xEA =" );
                     //                for( int i = 0; i < userDataSize; i++ ) {
@@ -454,7 +519,7 @@ open class GalileoHandler : MMSHandler() {
                     //AdvancedLogger.debug( "deviceID = " + deviceID + "\n userDataType = " + userDataType );
                     //--- данные от электрического счетчика "Меркурий"
                     if (userDataType == 0x02) {
-                        AdvancedLogger.error("deviceID = $deviceID\n Меркурий: электросчётчик напрямую прибором Galileo больше не поддерживается. Используте модуль сбора данных.")
+                        AdvancedLogger.error("deviceID = $deviceId\n Меркурий: электросчётчик напрямую прибором Galileo больше не поддерживается. Используте модуль сбора данных.")
                         bbIn.skip(userDataSize - 1)
                     } else if (userDataType == 0x03) {
                         val dataVersion = bbIn.getByte().toInt() and 0xFF
@@ -477,8 +542,6 @@ open class GalileoHandler : MMSHandler() {
                                     //int value = bbIn.getInt();
 
                                     val double = Float.fromBits(value).toDouble()
-
-                                    AdvancedLogger.error("id = ${id.toString(16)}, value = $value / 0x${value.toString(16)}, float = $double")
 
                                     when (id) {
                                         0 -> {
@@ -528,12 +591,12 @@ open class GalileoHandler : MMSHandler() {
                                         in 0x0710..0x0713 -> tmEnergoPowerReactiveABC[id - 0x0710] = value
                                         in 0x0720..0x0723 -> tmEnergoPowerFullABC[id - 0x0720] = value
 
-                                        else -> AdvancedLogger.error("deviceID = $deviceID\n модуль сбора данных: неизвестный id = ${id.toString(16)}.")
+                                        else -> AdvancedLogger.error("deviceID = $deviceId\n модуль сбора данных: неизвестный id = ${id.toString(16)}.")
                                     }
                                 }
                             }
                             else -> {
-                                AdvancedLogger.error("deviceID = $deviceID\n модуль сбора данных: версия $dataVersion больше не поддерживается. Используйте свежий скрипт/прошивку.")
+                                AdvancedLogger.error("deviceID = $deviceId\n модуль сбора данных: версия $dataVersion больше не поддерживается. Используйте свежий скрипт/прошивку.")
                                 return false
                             }
                         }
@@ -542,13 +605,21 @@ open class GalileoHandler : MMSHandler() {
                         for (groupIndex in 0..3) {
                             val esdStatus = bbIn.getByte().toInt() and 0xFF
                             //--- transform EuroSens Delta status bits to universal counter sensor status codes
-                            tmESDStatus[groupIndex] = if (esdStatus and 0x20 != 0) SensorConfigCounter.STATUS_INTERVENTION
-                            else if (esdStatus and 0x10 != 0) SensorConfigCounter.STATUS_REVERSE
-                            else if (esdStatus and 0x08 != 0) SensorConfigCounter.STATUS_CHEAT
-                            else if (esdStatus and 0x04 != 0) SensorConfigCounter.STATUS_OVERLOAD
-                            else if (esdStatus and 0x02 != 0) SensorConfigCounter.STATUS_NORMAL
-                            else if (esdStatus and 0x01 != 0) SensorConfigCounter.STATUS_IDLE
-                            else SensorConfigCounter.STATUS_UNKNOWN
+                            tmESDStatus[groupIndex] = if (esdStatus and 0x20 != 0) {
+                                SensorConfigCounter.STATUS_INTERVENTION
+                            } else if (esdStatus and 0x10 != 0) {
+                                SensorConfigCounter.STATUS_REVERSE
+                            } else if (esdStatus and 0x08 != 0) {
+                                SensorConfigCounter.STATUS_CHEAT
+                            } else if (esdStatus and 0x04 != 0) {
+                                SensorConfigCounter.STATUS_OVERLOAD
+                            } else if (esdStatus and 0x02 != 0) {
+                                SensorConfigCounter.STATUS_NORMAL
+                            } else if (esdStatus and 0x01 != 0) {
+                                SensorConfigCounter.STATUS_IDLE
+                            } else {
+                                SensorConfigCounter.STATUS_UNKNOWN
+                            }
 
                             if (esdStatus != 0) {
                                 tmESDVolume[groupIndex] = bbIn.getInt() * 0.01                      // litres
@@ -564,7 +635,7 @@ open class GalileoHandler : MMSHandler() {
                     }
                     //--- неизвестные данные, пропускаем их
                     else {
-                        AdvancedLogger.error("deviceID = $deviceID\n Неизвестный тип пользовательских данных = $userDataType")
+                        AdvancedLogger.error("deviceID = $deviceId\n Неизвестный тип пользовательских данных = $userDataType")
                         bbIn.skip(userDataSize - 1)
                     }
                 }
@@ -573,15 +644,19 @@ open class GalileoHandler : MMSHandler() {
                 0xF0, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7, 0xF8, 0xF9 -> bbIn.getInt()
 
                 else -> {
-                    AdvancedLogger.error("deviceID = $deviceID\n unknown tag = 0x${Integer.toHexString(tag)}")
+                    AdvancedLogger.error("deviceID = $deviceId\n unknown tag = 0x${Integer.toHexString(tag)}")
                     return false
                 }
             }
         }
         //--- при передаче через iridium crc-код возвращать не надо
-        val crc = if (isIridium) 0 else bbIn.getShort()
+        val crc = if (isIridium) {
+            0
+        } else {
+            bbIn.getShort()
+        }
         //AdvancedLogger.debug( "remaining = " + bbIn.remaining() );
-        sbStatus.append("DataRead;")
+        status += " DataRead;"
 
         //--- здесь имеет смысл сохранить данные по последней точке, если таковая была считана
         if (pointTime != 0) {
@@ -591,11 +666,13 @@ open class GalileoHandler : MMSHandler() {
         sqlBatchData.execute(dataWorker.stm)
 
         //--- при передаче через iridium отвечать не надо
-        if (!isIridium) sendAccept(crc)
+        if (!isIridium) {
+            sendAccept(crc)
+        }
 
         //--- проверка на наличие команды терминалу
 
-        val (cmdID, cmdStr) = getCommand(dataWorker.stm, deviceID)
+        val (cmdID, cmdStr) = getCommand(dataWorker.stm, deviceId)
 
         //--- команда есть
         if (cmdStr != null) {
@@ -628,18 +705,35 @@ open class GalileoHandler : MMSHandler() {
             }
             //--- отметим успешную отправку команды
             setCommandSended(dataWorker.stm, cmdID)
-            sbStatus.append("CommandSend;")
+            status += " CommandSend;"
         }
 
         //--- данные успешно переданы - теперь можно завершить транзакцию
-        sbStatus.append("Ok;")
-        errorText = null
-        writeSession(dataWorker.conn, dataWorker.stm, true)
+        status += " Ok;"
+        errorText = ""
+        writeSession(
+            conn = dataWorker.conn,
+            stm = dataWorker.stm,
+            dirSessionLog = dirSessionLog,
+            zoneId = zoneId,
+            deviceId = deviceId,
+            deviceConfig = deviceConfig!!,
+            fwVersion = fwVersion,
+            begTime = begTime,
+            address = (selectionKey!!.channel() as SocketChannel).localAddress.hostname,
+            status = status,
+            errorText = errorText,
+            dataCount = dataCount,
+            dataCountAll = dataCountAll,
+            firstPointTime = firstPointTime,
+            lastPointTime = lastPointTime,
+            isOk = true,
+        )
 
         //--- для возможного режима постоянного/длительного соединения
         bbIn.clear()   // других данных быть не должно, именно .clear(), а не .compact()
         begTime = 0
-        sbStatus.setLength(0)
+        status = ""
         dataCount = 0
         dataCountAll = 0
         firstPointTime = 0
@@ -649,7 +743,7 @@ open class GalileoHandler : MMSHandler() {
         return true
     }
 
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     private fun savePoint(dataWorker: CoreDataWorker, pointTime: Int, sqlBatchData: SQLBatch) {
         val curTime = getCurrentTimeInt()
@@ -658,105 +752,107 @@ open class GalileoHandler : MMSHandler() {
             val bbData = AdvancedByteBuffer(dataWorker.conn.dialect.textFieldMaxSize / 2)
 
             //--- напряжения основного и резервного питаний
-            putSensorData(8, 2, powerVoltage, bbData)
-            putSensorData(9, 2, accumVoltage, bbData)
+            putSensorData(deviceConfig!!.index, 8, 2, powerVoltage, bbData)
+            putSensorData(deviceConfig!!.index, 9, 2, accumVoltage, bbData)
             //--- универсальные входы (аналоговые/частотные/счётные)
-            putDigitalSensor(tmUniversalSensor, 10, 2, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmUniversalSensor, 10, 2, bbData)
             //--- температура контроллера
-            putSensorData(18, 2, controllerTemperature, bbData)
+            putSensorData(deviceConfig!!.index, 18, 2, controllerTemperature, bbData)
             //--- гео-данные
-            putSensorPortNumAndDataSize(SensorConfig.GEO_PORT_NUM, SensorConfig.GEO_DATA_SIZE, bbData)
+            putSensorPortNumAndDataSize(deviceConfig!!.index, SensorConfig.GEO_PORT_NUM, SensorConfig.GEO_DATA_SIZE, bbData)
             bbData.putInt(if (isCoordOk) wgsX else 0).putInt(if (isCoordOk) wgsY else 0)
                 .putShort(if (isCoordOk && !isParking) speed else 0).putInt(if (isCoordOk) absoluteRun else 0)
 
             //--- 16 RS485-датчиков уровня топлива, по 2 байта
-            putDigitalSensor(tmRS485Fuel, 20, 2, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmRS485Fuel, 20, 2, bbData)
 
             //--- CAN: уровень топлива в %
-            putSensorData(36, 1, canFuelLevel, bbData)
+            putSensorData(deviceConfig!!.index, 36, 1, canFuelLevel, bbData)
             //--- CAN: температура охлаждающей жидкости - сохраняется в виде 4 байт,
             //--- чтобы сохранить знак числа, не попадая под переделку в unsigned short в виде & 0xFFFF
-            putSensorData(37, 4, canCoolantTemperature, bbData)
+            putSensorData(deviceConfig!!.index, 37, 4, canCoolantTemperature, bbData)
             //--- CAN: обороты двигателя, об/мин
-            putSensorData(38, 2, canEngineRPM, bbData)
+            putSensorData(deviceConfig!!.index, 38, 2, canEngineRPM, bbData)
 
             //--- 39-й порт пока свободен
 
             //--- 16 RS485-датчиков температуры, по 4 байта - пишем как int,
             //--- чтобы при чтении не потерялся +- температуры
-            putDigitalSensor(tmRS485Temp, 40, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmRS485Temp, 40, 4, bbData)
 
-            putDigitalSensor(tmUserData, 100, 4, bbData)
-            putDigitalSensor(tmCountSensor, 110, 4, bbData)
-            putDigitalSensor(tmLevelSensor, 120, 4, bbData)
-            putDigitalSensor(tmVoltageSensor, 140, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmUserData, 100, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmCountSensor, 110, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmLevelSensor, 120, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmVoltageSensor, 140, 4, bbData)
 
             //--- данные по электросчётчику ---
 
             //--- значения счётчиков от последнего сброса (активная/реактивная прямая/обратная)
-            putDigitalSensor(tmEnergoCountActiveDirect, 160, 4, bbData)
-            putDigitalSensor(tmEnergoCountActiveReverse, 164, 4, bbData)
-            putDigitalSensor(tmEnergoCountReactiveDirect, 168, 4, bbData)
-            putDigitalSensor(tmEnergoCountReactiveReverse, 172, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoCountActiveDirect, 160, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoCountActiveReverse, 164, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoCountReactiveDirect, 168, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoCountReactiveReverse, 172, 4, bbData)
 
             //--- напряжение по фазам A1..4, B1..4, C1..4
-            putDigitalSensor(tmEnergoVoltageA, 180, 4, bbData)
-            putDigitalSensor(tmEnergoVoltageB, 184, 4, bbData)
-            putDigitalSensor(tmEnergoVoltageC, 188, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoVoltageA, 180, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoVoltageB, 184, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoVoltageC, 188, 4, bbData)
 
             //--- ток по фазам A1..4, B1..4, C1..4
-            putDigitalSensor(tmEnergoCurrentA, 200, 4, bbData)
-            putDigitalSensor(tmEnergoCurrentB, 204, 4, bbData)
-            putDigitalSensor(tmEnergoCurrentC, 208, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoCurrentA, 200, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoCurrentB, 204, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoCurrentC, 208, 4, bbData)
 
             //--- коэффициент мощности по фазам A1..4, B1..4, C1..4
-            putDigitalSensor(tmEnergoPowerKoefA, 220, 4, bbData)
-            putDigitalSensor(tmEnergoPowerKoefB, 224, 4, bbData)
-            putDigitalSensor(tmEnergoPowerKoefC, 228, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerKoefA, 220, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerKoefB, 224, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerKoefC, 228, 4, bbData)
 
             //--- активная мощность по фазам A1..4, B1..4, C1..4
-            putDigitalSensor(tmEnergoPowerActiveA, 232, 4, bbData)
-            putDigitalSensor(tmEnergoPowerActiveB, 236, 4, bbData)
-            putDigitalSensor(tmEnergoPowerActiveC, 240, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerActiveA, 232, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerActiveB, 236, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerActiveC, 240, 4, bbData)
 
             //--- реактивная мощность по фазам A1..4, B1..4, C1..4
-            putDigitalSensor(tmEnergoPowerReactiveA, 244, 4, bbData)
-            putDigitalSensor(tmEnergoPowerReactiveB, 248, 4, bbData)
-            putDigitalSensor(tmEnergoPowerReactiveC, 252, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerReactiveA, 244, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerReactiveB, 248, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerReactiveC, 252, 4, bbData)
 
             //--- полная мощность по фазам A1..4, B1..4, C1..4
-            putDigitalSensor(tmEnergoPowerFullA, 256, 4, bbData)
-            putDigitalSensor(tmEnergoPowerFullB, 260, 4, bbData)
-            putDigitalSensor(tmEnergoPowerFullC, 264, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerFullA, 256, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerFullB, 260, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerFullC, 264, 4, bbData)
 
-            putDigitalSensor(tmMassFlow, 270, bbData)
-            putDigitalSensor(tmDensity, 280, bbData)
-            putDigitalSensor(tmTemperature, 290, bbData)
-            putDigitalSensor(tmVolumeFlow, 300, bbData)
-            putDigitalSensor(tmAccumulatedMass, 310, bbData)
-            putDigitalSensor(tmAccumulatedVolume, 320, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmMassFlow, 270, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmDensity, 280, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmTemperature, 290, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmVolumeFlow, 300, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmAccumulatedMass, 310, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmAccumulatedVolume, 320, bbData)
 
             //--- мощность по трём фазам: активная, реактивная, суммарная
-            putDigitalSensor(tmEnergoPowerActiveABC, 330, 4, bbData)
-            putDigitalSensor(tmEnergoPowerReactiveABC, 340, 4, bbData)
-            putDigitalSensor(tmEnergoPowerFullABC, 350, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerActiveABC, 330, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerReactiveABC, 340, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerFullABC, 350, 4, bbData)
 
             //--- EuroSens Delta
-            putDigitalSensor(tmESDStatus, 500, 4, bbData)
-            putDigitalSensor(tmESDVolume, 504, bbData)
-            putDigitalSensor(tmESDFlow, 508, bbData)
-            putDigitalSensor(tmESDCameraVolume, 512, bbData)
-            putDigitalSensor(tmESDCameraFlow, 516, bbData)
-            putDigitalSensor(tmESDCameraTemperature, 520, 4, bbData)
-            putDigitalSensor(tmESDReverseCameraVolume, 524, bbData)
-            putDigitalSensor(tmESDReverseCameraFlow, 528, bbData)
-            putDigitalSensor(tmESDReverseCameraTemperature, 532, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmESDStatus, 500, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmESDVolume, 504, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmESDFlow, 508, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmESDCameraVolume, 512, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmESDCameraFlow, 516, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmESDCameraTemperature, 520, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmESDReverseCameraVolume, 524, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmESDReverseCameraFlow, 528, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmESDReverseCameraTemperature, 532, 4, bbData)
 
-            addPoint(dataWorker.stm, pointTime, bbData, sqlBatchData)
+            addPoint(dataWorker.stm, deviceConfig!!, pointTime, bbData, sqlBatchData)
             dataCount++
         }
         dataCountAll++
-        if (firstPointTime == 0) firstPointTime = pointTime
+        if (firstPointTime == 0) {
+            firstPointTime = pointTime
+        }
         lastPointTime = pointTime
         //--- массивы данных по датчикам очищаем независимо от записываемости точек
         clearSensorArrays()
