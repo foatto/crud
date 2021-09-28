@@ -43,7 +43,7 @@ class DelSpringController {
         return (resp.body ?: "").toByteArray(Charsets.UTF_8)
     }
 
-    @GetMapping(value = ["/del_web/{fileName:.+}"])
+    @GetMapping(value = ["/del_web/{fileName}"])
     fun downloadDelWeb(
         response: HttpServletResponse,
         @PathVariable("fileName")
@@ -52,7 +52,7 @@ class DelSpringController {
         download(response, "${rootDirName}/del_web/$fileName")
     }
 
-    @GetMapping(value = ["/del_web/fonts/{fileName:.+}"])
+    @GetMapping(value = ["/del_web/fonts/{fileName}"])
     fun downloadDelWebFonts(
         response: HttpServletResponse,
         @PathVariable("fileName")
@@ -61,7 +61,7 @@ class DelSpringController {
         download(response, "${rootDirName}/del_web/fonts/$fileName")
     }
 
-    @GetMapping(value = ["/del_web/images/{fileName:.+}"])
+    @GetMapping(value = ["/del_web/images/{fileName}"])
     fun downloadDelWebImages(
         response: HttpServletResponse,
         @PathVariable("fileName")
@@ -70,7 +70,7 @@ class DelSpringController {
         download(response, "${rootDirName}/del_web/images/$fileName")
     }
 
-    @GetMapping(value = ["/del_web/js/{fileName:.+}"])
+    @GetMapping(value = ["/del_web/js/{fileName}"])
     fun downloadDelWebJS(
         response: HttpServletResponse,
         @PathVariable("fileName")
@@ -79,7 +79,7 @@ class DelSpringController {
         download(response, "${rootDirName}/del_web/js/$fileName")
     }
 
-    @GetMapping(value = ["/del_web/lib/{fileName:.+}"])
+    @GetMapping(value = ["/del_web/lib/{fileName}"])
     fun downloadDelWebLib(
         response: HttpServletResponse,
         @PathVariable("fileName")
@@ -88,7 +88,7 @@ class DelSpringController {
         download(response, "${rootDirName}/del_web/lib/$fileName")
     }
 
-    @GetMapping(value = ["/del_web/style/{fileName:.+}"])
+    @GetMapping(value = ["/del_web/style/{fileName}"])
     fun downloadDelWebStyle(
         response: HttpServletResponse,
         @PathVariable("fileName")

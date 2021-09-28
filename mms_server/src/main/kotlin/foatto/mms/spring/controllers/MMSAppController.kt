@@ -1,4 +1,4 @@
-package foatto.mms.spring
+package foatto.mms.spring.controllers
 
 import foatto.core.app.graphic.GraphicActionRequest
 import foatto.core.app.graphic.GraphicActionResponse
@@ -12,25 +12,16 @@ import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.sensor.config.*
 import foatto.mms.iMMSApplication
 import foatto.mms.spring.repositories.ObjectRepository
-import foatto.spring.CoreSpringController
+import foatto.spring.controllers.CoreAppController
 import foatto.sql.CoreAdvancedStatement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpMethod
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.client.RestTemplate
-import org.springframework.web.multipart.MultipartFile
-import java.net.URI
-import java.net.URISyntaxException
-import java.util.concurrent.ConcurrentHashMap
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 
 @RestController
-class MMSSpringController : CoreSpringController(), iMMSApplication {
+class MMSAppController : CoreAppController(), iMMSApplication {
 
     @Value("\${max_enabled_over_speed}")
     override val maxEnabledOverSpeed: Int = 0
@@ -38,272 +29,37 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
     @Value("\${expire_period}")
     override val expirePeriod: Int = 0
 
-    //!!! временная шняга на время разработки del-web -------------------------------
-
-    @RequestMapping(value = ["/json/tnoconnect", "/json/tnoserverinfo", "/json/tnoping"])
-    @ResponseBody
-    @Throws(URISyntaxException::class)
-    fun proxyTNOConnect(
-        @RequestBody
-        body: String, method: HttpMethod, request: HttpServletRequest, response: HttpServletResponse
-    ): ByteArray {
-//println( "request = '$body' " )
-
-        val thirdPartyApi = URI("http", null, "tcn-test.pla.ru", 17997, request.requestURI, request.queryString, null)
-
-        val resp = RestTemplate().exchange(thirdPartyApi, method, HttpEntity(body), String::class.java)
-//println( "response = '${resp.body}' " )
-
-        //--- именно с таким явнозаданным извратом, иначе слетает кодировка
-        return (resp.body ?: "").toByteArray(Charsets.UTF_8)
-    }
-
-    @GetMapping(value = ["/del_web/{fileName:.+}"])
-    fun downloadDelWeb(
-        response: HttpServletResponse,
-        @PathVariable("fileName")
-        fileName: String
-    ) {
-        download(response, "${rootDirName}/del_web/$fileName")
-    }
-
-    @GetMapping(value = ["/del_web/fonts/{fileName:.+}"])
-    fun downloadDelWebFonts(
-        response: HttpServletResponse,
-        @PathVariable("fileName")
-        fileName: String
-    ) {
-        download(response, "${rootDirName}/del_web/fonts/$fileName")
-    }
-
-    @GetMapping(value = ["/del_web/images/{fileName:.+}"])
-    fun downloadDelWebImages(
-        response: HttpServletResponse,
-        @PathVariable("fileName")
-        fileName: String
-    ) {
-        download(response, "${rootDirName}/del_web/images/$fileName")
-    }
-
-    @GetMapping(value = ["/del_web/js/{fileName:.+}"])
-    fun downloadDelWebJS(
-        response: HttpServletResponse,
-        @PathVariable("fileName")
-        fileName: String
-    ) {
-        download(response, "${rootDirName}/del_web/js/$fileName")
-    }
-
-    @GetMapping(value = ["/del_web/lib/{fileName:.+}"])
-    fun downloadDelWebLib(
-        response: HttpServletResponse,
-        @PathVariable("fileName")
-        fileName: String
-    ) {
-        download(response, "${rootDirName}/del_web/lib/$fileName")
-    }
-
-    @GetMapping(value = ["/del_web/style/{fileName:.+}"])
-    fun downloadDelWebStyle(
-        response: HttpServletResponse,
-        @PathVariable("fileName")
-        fileName: String
-    ) {
-        download(response, "${rootDirName}/del_web/style/$fileName")
-    }
-
-//-------------------------------------------------------------------------------------------------
-
-//!!! сделать статику через nginx и убрать в проекте привязку к tomcat-embed-core-9.0.12.jar ---
-
-    @GetMapping(value = ["/"])
-    fun downloadRoot(response: HttpServletResponse) {
-        download(response, "${rootDirName}/web/index.html")
-    }
-
-    @GetMapping(value = ["/files/{dirName:.+}/{fileName:.+}"])
-    fun downloadFile(
-        response: HttpServletResponse,
-        @PathVariable("dirName")
-        dirName: String,
-        @PathVariable("fileName")
-        fileName: String
-    ) {
-        download(response, "${rootDirName}/files/$dirName/$fileName")
-    }
-
-    @GetMapping(value = ["/map/{fileName:.+}"])
-    fun downloadMaps(
-        response: HttpServletResponse,
-        @PathVariable("fileName")
-        fileName: String
-    ) {
-        download(response, "${rootDirName}/map/$fileName")
-    }
-
-    @GetMapping(value = ["/reports/{fileName:.+}"])
-    fun downloadReports(
-        response: HttpServletResponse,
-        @PathVariable("fileName")
-        fileName: String
-    ) {
-        download(response, "${rootDirName}/reports/$fileName")
-    }
-
-    @GetMapping(value = ["/web/{fileName:.+}"])
-    fun downloadWeb(
-        response: HttpServletResponse,
-        @PathVariable("fileName")
-        fileName: String
-    ) {
-        download(response, "${rootDirName}/web/$fileName")
-    }
-
-    @GetMapping(value = ["/web/images/{fileName:.+}"])
-    fun downloadWebImages(
-        response: HttpServletResponse,
-        @PathVariable("fileName")
-        fileName: String
-    ) {
-        download(response, "${rootDirName}/web/images/$fileName")
-    }
-
-    @GetMapping(value = ["/web/js/{fileName:.+}"])
-    fun downloadWebJS(
-        response: HttpServletResponse,
-        @PathVariable("fileName")
-        fileName: String
-    ) {
-        download(response, "${rootDirName}/web/js/$fileName")
-    }
-
-    @GetMapping(value = ["/web/lib/{fileName:.+}"])
-    fun downloadWebLib(
-        response: HttpServletResponse,
-        @PathVariable("fileName")
-        fileName: String
-    ) {
-        download(response, "${rootDirName}/web/lib/$fileName")
-    }
-
 //-------------------------------------------------------------------------------------------------
 
     @PostMapping("/api/app")
-    @Transactional
     override fun app(
-        //authentication: Authentication,
         @RequestBody
         appRequest: AppRequest
-        //@CookieValue("SESSION") sessionId: String
     ): AppResponse {
-
-//        val sensorConfigRepository = Introspector.getBeanInfo(): SensorConfigRepository
-//        val sensorConfigEntity = sensorConfigRepository.findByObjectId(0)
-//        println("------------------------------------")
-//        println(sensorConfigEntity)
-
         return super.app(appRequest)
     }
 
-    @PostMapping("/api/graphic")
-    @Transactional
-    override fun graphic(
-        //authentication: Authentication,
-        @RequestBody
-        graphicActionRequest: GraphicActionRequest
-        //@CookieValue("SESSION") sessionId: String
-    ): GraphicActionResponse {
-        return super.graphic(graphicActionRequest)
-    }
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @PostMapping("/api/xy")
-    @Transactional
     override fun xy(
-        //authentication: Authentication,
         @RequestBody
         xyActionRequest: XyActionRequest
-        //@CookieValue("SESSION") sessionId: String
     ): XyActionResponse {
         return super.xy(xyActionRequest)
     }
 
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    @PostMapping("/api/get_file")
-    override fun getFile(
+    @PostMapping("/api/graphic")
+    override fun graphic(
         @RequestBody
-        getFileRequest: GetFileRequest
-    ): GetFileResponse {
-        return super.getFile(getFileRequest)
+        graphicActionRequest: GraphicActionRequest
+    ): GraphicActionResponse {
+        return super.graphic(graphicActionRequest)
     }
 
-    @PostMapping("/api/put_file")
-    override fun putFile(
-        @RequestBody
-        putFileRequest: PutFileRequest
-    ): PutFileResponse {
-        return super.putFile(putFileRequest)
-    }
-
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @PostMapping("/api/get_replication")
-    @Transactional
-    override fun getReplication(
-        @RequestBody
-        getReplicationRequest: GetReplicationRequest
-    ): GetReplicationResponse {
-        return super.getReplication(getReplicationRequest)
-    }
-
-    @PostMapping("/api/put_replication")
-    @Transactional
-    override fun putReplication(
-        @RequestBody
-        putReplicationRequest: PutReplicationRequest
-    ): PutReplicationResponse {
-        return super.putReplication(putReplicationRequest)
-    }
-
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @PostMapping("/api/save_user_property")
-    @Transactional
-    override fun saveUserProperty(
-        @RequestBody
-        saveUserPropertyRequest: SaveUserPropertyRequest
-    ): SaveUserPropertyResponse {
-        return super.saveUserProperty(saveUserPropertyRequest)
-    }
-
-    @PostMapping("/api/change_password")
-    @Transactional
-    override fun changePassword(
-        @RequestBody
-        changePasswordRequest: ChangePasswordRequest
-    ): ChangePasswordResponse {
-        return super.changePassword(changePasswordRequest)
-    }
-
-    @PostMapping("/api/logoff")
-    override fun logoff(
-        @RequestBody
-        logoffRequest: LogoffRequest
-    ): LogoffResponse {
-        return super.logoff(logoffRequest)
-    }
-
-    @PostMapping("/api/upload_form_file")
-    override fun uploadFormFile(
-        @RequestParam("form_file_ids")
-        arrFormFileId: Array<String>,
-        @RequestParam("form_file_blobs")
-        arrFormFileBlob: Array<MultipartFile>
-    ): FormFileUploadResponse {
-        return super.uploadFormFile(arrFormFileId, arrFormFileBlob)
-    }
-
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     //--- пропускаем логи по запуску модулей из 1С, отчётов, графиков, показов картографии
     override fun checkLogSkipAliasPrefix(alias: String): Boolean {
@@ -329,7 +85,9 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGeneral, "mms_day_work", true)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGeneral, "mms_shift_work", true)
 
-        if (alMenuGeneral.size > 0) alMenu.add(MenuData("", "Учёт", alMenuGeneral.toTypedArray()))
+        if (alMenuGeneral.size > 0) {
+            alMenu.add(MenuData("", "Учёт", alMenuGeneral.toTypedArray()))
+        }
 
         //--- Общие отчёты --------------------------------------------------------------------------------------------------------
 
@@ -339,7 +97,9 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuCommonReport, "mms_report_day_work", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuCommonReport, "mms_report_work_shift", false)
 
-        if (alMenuCommonReport.size > 0) alMenu.add(MenuData("", "Общие отчёты", alMenuCommonReport.toTypedArray()))
+        if (alMenuCommonReport.size > 0) {
+            alMenu.add(MenuData("", "Общие отчёты", alMenuCommonReport.toTypedArray()))
+        }
 
         //--- Отчёты по передвижной технике --------------------------------------------------------------------------------------------------------
 
@@ -355,7 +115,9 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuMobileReport, "mms_report_downtime", false)
 
-        if (alMenuMobileReport.size > 0) alMenu.add(MenuData("", "Отчёты по передвижной технике", alMenuMobileReport.toTypedArray()))
+        if (alMenuMobileReport.size > 0) {
+            alMenu.add(MenuData("", "Отчёты по передвижной технике", alMenuMobileReport.toTypedArray()))
+        }
 
         //--- Отчёты по оборудованию --------------------------------------------------------------------------------------------------------
 
@@ -364,7 +126,9 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuWorkReport, "mms_report_equip_service", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuWorkReport, "mms_report_work_detail", false)
 
-        if (alMenuWorkReport.size > 0) alMenu.add(MenuData("", "Отчёты по оборудованию", alMenuWorkReport.toTypedArray()))
+        if (alMenuWorkReport.size > 0) {
+            alMenu.add(MenuData("", "Отчёты по оборудованию", alMenuWorkReport.toTypedArray()))
+        }
 
         //--- Отчёты по топливу --------------------------------------------------------------------------------------------------------
 
@@ -374,7 +138,9 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuLiquidReport, "mms_report_liquid_inc_waybill", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuLiquidReport, "mms_report_liquid_dec", false)
 
-        if (alMenuLiquidReport.size > 0) alMenu.add(MenuData("", "Отчёты по топливу", alMenuLiquidReport.toTypedArray()))
+        if (alMenuLiquidReport.size > 0) {
+            alMenu.add(MenuData("", "Отчёты по топливу", alMenuLiquidReport.toTypedArray()))
+        }
 
         //--- Отчёты по превышениям в энергетике --------------------------------------------------------------------------------------------------------
 
@@ -387,7 +153,9 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuEnergoOverReport, "mms_report_over_energo_power_reactive", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuEnergoOverReport, "mms_report_over_energo_power_full", false)
 
-        if (alMenuEnergoOverReport.size > 0) alMenu.add(MenuData("", "Отчёты по превышениям в энергетике", alMenuEnergoOverReport.toTypedArray()))
+        if (alMenuEnergoOverReport.size > 0) {
+            alMenu.add(MenuData("", "Отчёты по превышениям в энергетике", alMenuEnergoOverReport.toTypedArray()))
+        }
 
         //--- Отчёты по прочим превышениям --------------------------------------------------------------------------------------------------------
 
@@ -403,7 +171,9 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherOverReport, "mms_report_over_temperature", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherOverReport, "mms_report_over_voltage", false)
 
-        if (alMenuOtherOverReport.size > 0) alMenu.add(MenuData("", "Отчёты по прочим превышениям", alMenuOtherOverReport.toTypedArray()))
+        if (alMenuOtherOverReport.size > 0) {
+            alMenu.add(MenuData("", "Отчёты по прочим превышениям", alMenuOtherOverReport.toTypedArray()))
+        }
 
         //--- Прочие отчёты --------------------------------------------------------------------------------------------------------
 
@@ -413,7 +183,9 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherReport, "mms_report_data_out", false)
 
-        if (alMenuOtherReport.size > 0) alMenu.add(MenuData("", "Отчёты прочие", alMenuOtherReport.toTypedArray()))
+        if (alMenuOtherReport.size > 0) {
+            alMenu.add(MenuData("", "Отчёты прочие", alMenuOtherReport.toTypedArray()))
+        }
 
         //--- Графики --------------------------------------------------------------------------------------------------------
 
@@ -445,7 +217,9 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "mms_graphic_speed", false)
 
-        if (alMenuGraphic.size > 2) alMenu.add(MenuData("", "Графики", alMenuGraphic.toTypedArray()))
+        if (alMenuGraphic.size > 2) {
+            alMenu.add(MenuData("", "Графики", alMenuGraphic.toTypedArray()))
+        }
 
         //--- Карта --------------------------------------------------------------------------------------------------------
 
@@ -457,7 +231,9 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         //
         //            addMenu(  hmAliasConfig, hmAliasPerm, alMenuMap, "mms_graphic_weight", false  );
 
-        if (alMenuMap.size > 0) alMenu.add(MenuData("", "Карта", alMenuMap.toTypedArray()))
+        if (alMenuMap.size > 0) {
+            alMenu.add(MenuData("", "Карта", alMenuMap.toTypedArray()))
+        }
 
         //--- Контроль --------------------------------------------------------------------------------------------------------
 
@@ -468,7 +244,9 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         //
         //            addMenu(  hmAliasConfig, hmAliasPerm, alMenuMap, "mms_graphic_weight", false  );
 
-        if (alMenuControl.size > 0) alMenu.add(MenuData("", "Контроль", alMenuControl.toTypedArray()))
+        if (alMenuControl.size > 0) {
+            alMenu.add(MenuData("", "Контроль", alMenuControl.toTypedArray()))
+        }
 
         //--- Справочники --------------------------------------------------------------------------------------------------------
 
@@ -480,7 +258,9 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDir, "mms_zone", true)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDir, "mms_user_zone", true)
 
-        if (alMenuDir.size > 0) alMenu.add(MenuData("", "Справочники", alMenuDir.toTypedArray()))
+        if (alMenuDir.size > 0) {
+            alMenu.add(MenuData("", "Справочники", alMenuDir.toTypedArray()))
+        }
 
         //--- Устройства ------------------------------------------------------------------------------------------------------
 
@@ -493,7 +273,9 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDevice, "mms_log_journal", true)
 
-        if (alMenuDevice.size > 0) alMenu.add(MenuData("", "Контроллеры", alMenuDevice.toTypedArray()))
+        if (alMenuDevice.size > 0) {
+            alMenu.add(MenuData("", "Контроллеры", alMenuDevice.toTypedArray()))
+        }
 
         //--- Система --------------------------------------------------------------------------------------------------------
 
@@ -517,7 +299,9 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuSystem, "system_log_user", true)
 
-        if (alMenuSystem.size > 3) alMenu.add(MenuData("", "Система", alMenuSystem.toTypedArray()))
+        if (alMenuSystem.size > 3) {
+            alMenu.add(MenuData("", "Система", alMenuSystem.toTypedArray()))
+        }
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -536,7 +320,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
         }
 
         //--- add the name of the object with its short login name
-        val shortUserName = userConfig.hmUserShortNames[objectEntity.userId]
+        val shortUserName = UserConfig.hmUserShortNames[objectEntity.userId]
 
         val objectConfig = ObjectConfig(
             objectId = objectId,
@@ -551,7 +335,7 @@ class MMSSpringController : CoreSpringController(), iMMSApplication {
 
         //--- fill report title
         objectConfig.alTitleName.add("Владелец:")
-        objectConfig.alTitleValue.add(userConfig.hmUserFullNames[objectConfig.userId] ?: "(неизвестно)")
+        objectConfig.alTitleValue.add(UserConfig.hmUserFullNames[objectConfig.userId] ?: "(неизвестно)")
         objectConfig.alTitleName.add("Наименование:")
         objectConfig.alTitleValue.add(objectConfig.name)
         objectConfig.alTitleName.add("Модель:")
