@@ -6,7 +6,7 @@ import foatto.core_server.app.server.FormColumnCaptionData
 import foatto.core_server.app.server.FormColumnVisibleData
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.data.iData
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 
 interface iColumn {
 
@@ -60,7 +60,7 @@ interface iColumn {
     fun setUnique(aIsUnique: Boolean, aUniqueIgnore: Any? = null)
 
     fun setSavedDefault(userConfig: UserConfig)
-    fun saveDefault(stm: CoreAdvancedStatement, userConfig: UserConfig, hmColumnData: Map<iColumn, iData>)
+    fun saveDefault(conn: CoreAdvancedConnection, userConfig: UserConfig, hmColumnData: Map<iColumn, iData>)
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -1,11 +1,11 @@
 package foatto.core_server.app.server.column
 
-import foatto.sql.CoreAdvancedStatement
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.data.DataString
 import foatto.core_server.app.server.data.iData
+import foatto.sql.CoreAdvancedConnection
 
-class ColumnString( aTableName: String, aFieldName: String, aCaption: String, aRows: Int, aCols: Int, aMaxSize: Int ) : ColumnSimple() {
+class ColumnString(aTableName: String, aFieldName: String, aCaption: String, aRows: Int, aCols: Int, aMaxSize: Int) : ColumnSimple() {
 
     var cols = 0
     var rows = 0       // одновременно как флаг отображения: > 0 - отображать как многострочный текст
@@ -21,12 +21,12 @@ class ColumnString( aTableName: String, aFieldName: String, aCaption: String, aR
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    constructor( aTableName: String, aFieldName: String, aCaption: String, aCols: Int, aMaxSize: Int ) : this( aTableName, aFieldName, aCaption, 0, aCols, aMaxSize )
-    constructor( aTableName: String, aFieldName: String, aCaption: String, aCols: Int ) : this( aTableName, aFieldName, aCaption, 0, aCols, 250 )
+    constructor(aTableName: String, aFieldName: String, aCaption: String, aCols: Int, aMaxSize: Int) : this(aTableName, aFieldName, aCaption, 0, aCols, aMaxSize)
+    constructor(aTableName: String, aFieldName: String, aCaption: String, aCols: Int) : this(aTableName, aFieldName, aCaption, 0, aCols, 250)
 
     init {
         tableName = aTableName
-        addFieldName( aFieldName )
+        addFieldName(aFieldName)
         caption = aCaption
 
         rows = aRows
@@ -36,15 +36,15 @@ class ColumnString( aTableName: String, aFieldName: String, aCaption: String, aR
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun setSavedDefault( userConfig: UserConfig ) {
+    override fun setSavedDefault(userConfig: UserConfig) {
         isSavedDefault = true
-        defaultValue = userConfig.getUserProperty( savedDefaultPropertyName )
+        defaultValue = userConfig.getUserProperty(savedDefaultPropertyName)
     }
 
-    override fun saveDefault(stm: CoreAdvancedStatement, userConfig: UserConfig, hmColumnData: Map<iColumn, iData> ) {
-        userConfig.saveUserProperty( stm, savedDefaultPropertyName, ( hmColumnData[ this ] as DataString ).text )
+    override fun saveDefault(conn: CoreAdvancedConnection, userConfig: UserConfig, hmColumnData: Map<iColumn, iData>) {
+        userConfig.saveUserProperty(conn, savedDefaultPropertyName, (hmColumnData[this] as DataString).text)
     }
 
-    override fun getData() = DataString( this )
+    override fun getData() = DataString(this)
 
 }

@@ -3,9 +3,9 @@ package foatto.core_server.app.server.column
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.data.DataInt
 import foatto.core_server.app.server.data.iData
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 
-class ColumnInt( aTableName: String, aFieldName: String, aCaption: String = "", aCols: Int = 0, aDefaultValue: Int? = null ) : ColumnSimple() {
+class ColumnInt(aTableName: String, aFieldName: String, aCaption: String = "", aCols: Int = 0, aDefaultValue: Int? = null) : ColumnSimple() {
 
     companion object {
         val BIN = 2
@@ -31,16 +31,16 @@ class ColumnInt( aTableName: String, aFieldName: String, aCaption: String = "", 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     //--- hidden-поле
-    constructor( aTableName: String, aFieldName: String, aDefaultValue: Int? ) : this( aTableName, aFieldName, "", 0, aDefaultValue )
+    constructor(aTableName: String, aFieldName: String, aDefaultValue: Int?) : this(aTableName, aFieldName, "", 0, aDefaultValue)
 
     //--- link-поле
-    constructor( aTableName: String, aFieldName: String, aLinkColumn: ColumnInt, aDefaultValue: Int? = null ) : this( aTableName, aFieldName, "", 0, aDefaultValue ) {
+    constructor(aTableName: String, aFieldName: String, aLinkColumn: ColumnInt, aDefaultValue: Int? = null) : this(aTableName, aFieldName, "", 0, aDefaultValue) {
         linkColumn = aLinkColumn
     }
 
     init {
         tableName = aTableName
-        addFieldName( aFieldName )
+        addFieldName(aFieldName)
         caption = aCaption
 
         cols = aCols
@@ -52,20 +52,20 @@ class ColumnInt( aTableName: String, aFieldName: String, aCaption: String = "", 
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun setSavedDefault( userConfig: UserConfig ) {
+    override fun setSavedDefault(userConfig: UserConfig) {
         isSavedDefault = true
-        defaultValue = userConfig.getUserProperty( savedDefaultPropertyName )?.toIntOrNull( radix )
+        defaultValue = userConfig.getUserProperty(savedDefaultPropertyName)?.toIntOrNull(radix)
     }
 
-    override fun saveDefault(stm: CoreAdvancedStatement, userConfig: UserConfig, hmColumnData: Map<iColumn, iData> ) {
-        userConfig.saveUserProperty( stm, savedDefaultPropertyName, ( hmColumnData[ this ] as DataInt ).intValue.toString( radix ) )
+    override fun saveDefault(conn: CoreAdvancedConnection, userConfig: UserConfig, hmColumnData: Map<iColumn, iData>) {
+        userConfig.saveUserProperty(conn, savedDefaultPropertyName, (hmColumnData[this] as DataInt).intValue.toString(radix))
     }
 
-    override fun getData() = DataInt( this )
+    override fun getData() = DataInt(this)
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    fun setEmptyData( aEmptyValue: Int, aEmptyText: String ) {
+    fun setEmptyData(aEmptyValue: Int, aEmptyText: String) {
         emptyValue = aEmptyValue
         emptyText = aEmptyText
     }

@@ -3,12 +3,13 @@ package foatto.core_server.app.server.column
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.data.DataDouble
 import foatto.core_server.app.server.data.iData
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 
-class ColumnDouble( aTableName: String, aFieldName: String, aCaption: String = "", aCols: Int = 0, aPrecision: Int = -1, aDefaultValue: Double? = null ) : ColumnSimple() {
+class ColumnDouble(aTableName: String, aFieldName: String, aCaption: String = "", aCols: Int = 0, aPrecision: Int = -1, aDefaultValue: Double? = null) : ColumnSimple() {
 
     var cols = 0
     var defaultValue: Double? = null
+
     //--- == -1 : кол-во цифр после запятой определяется автоматически (последние нули убираются)
     var precision = -1
 
@@ -24,11 +25,11 @@ class ColumnDouble( aTableName: String, aFieldName: String, aCaption: String = "
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    constructor( aTableName: String, aFieldName: String, aDefaultValue: Double? ) : this( aTableName, aFieldName, "", 0, -1, aDefaultValue )
+    constructor(aTableName: String, aFieldName: String, aDefaultValue: Double?) : this(aTableName, aFieldName, "", 0, -1, aDefaultValue)
 
     init {
         tableName = aTableName
-        addFieldName( aFieldName )
+        addFieldName(aFieldName)
         caption = aCaption
 
         cols = aCols
@@ -41,20 +42,20 @@ class ColumnDouble( aTableName: String, aFieldName: String, aCaption: String = "
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun setSavedDefault( userConfig: UserConfig ) {
+    override fun setSavedDefault(userConfig: UserConfig) {
         isSavedDefault = true
-        defaultValue = userConfig.getUserProperty( savedDefaultPropertyName )?.toDoubleOrNull()
+        defaultValue = userConfig.getUserProperty(savedDefaultPropertyName)?.toDoubleOrNull()
     }
 
-    override fun saveDefault(stm: CoreAdvancedStatement, userConfig: UserConfig, hmColumnData: Map<iColumn, iData>) {
-        userConfig.saveUserProperty( stm, savedDefaultPropertyName, ( hmColumnData[ this ] as DataDouble ).doubleValue.toString() )
+    override fun saveDefault(conn: CoreAdvancedConnection, userConfig: UserConfig, hmColumnData: Map<iColumn, iData>) {
+        userConfig.saveUserProperty(conn, savedDefaultPropertyName, (hmColumnData[this] as DataDouble).doubleValue.toString())
     }
 
-    override fun getData() = DataDouble( this )
+    override fun getData() = DataDouble(this)
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    fun setEmptyData( aEmptyValue: Double, aEmptyText: String ) {
+    fun setEmptyData(aEmptyValue: Double, aEmptyText: String) {
         emptyValue = aEmptyValue
         emptyText = aEmptyText
     }
