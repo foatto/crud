@@ -293,7 +293,7 @@ abstract class MMSHandler : AbstractTelematicHandler() {
             deviceConfig = deviceConfig,
             fwVersion = fwVersion,
             begTime = begTime,
-            address = (selectionKey!!.channel() as SocketChannel).localAddress.toString(),
+            address = (selectionKey!!.channel() as SocketChannel).remoteAddress.toString() + " -> " + (selectionKey!!.channel() as SocketChannel).localAddress.toString(),
             status = status,
             errorText = " Disconnect from device ID = $deviceId",
             dataCount = dataCount,
@@ -318,7 +318,7 @@ abstract class MMSHandler : AbstractTelematicHandler() {
                 deviceConfig = deviceConfig,
                 fwVersion = fwVersion,
                 begTime = begTime,
-                address = (selectionKey!!.channel() as SocketChannel).localAddress.toString(),
+                address = (selectionKey!!.channel() as SocketChannel).remoteAddress.toString() + " -> " + (selectionKey!!.channel() as SocketChannel).localAddress.toString(),
                 status = status,
                 errorText = "Unknown device ID = $deviceId",
                 dataCount = dataCount,
@@ -329,7 +329,7 @@ abstract class MMSHandler : AbstractTelematicHandler() {
             writeJournal(
                 dirJournalLog = dirJournalLog,
                 zoneId = zoneId,
-                address = (selectionKey!!.channel() as SocketChannel).localAddress.toString(),
+                address = (selectionKey!!.channel() as SocketChannel).remoteAddress.toString() + " -> " + (selectionKey!!.channel() as SocketChannel).localAddress.toString(),
                 errorText = "Unknown device ID = $deviceId",
             )
             return false
