@@ -75,7 +75,7 @@ open class CoreSpringApp {
     val dbReplicationName: String = ""
 
     @Value("\${db_replication_filter}")
-    val dbReplicatiionFilter: String = ""
+    val dbReplicationFilter: String = ""
 
     @Value("\${db_replication_path}")
     val dbReplicationPath: String = ""
@@ -114,7 +114,7 @@ open class CoreSpringApp {
 
         dirUserLog = File(userLogPath)
         userLogMode = sUserLogMode.toIntOrNull() ?: SYSTEM_LOG_NONE
-        dbConfig = DBConfig(dbName, dataSourceURL, dataSourceUser, dataSourcePassword, dbReplicationName, dbReplicatiionFilter, dbReplicationPath)
+        dbConfig = DBConfig(dbName, dataSourceURL, dataSourceUser, dataSourcePassword, dbReplicationName, dbReplicationFilter, dbReplicationPath)
 
         for (i in 0 until min(logShowAliases.size, logShowDirs.size)) {
             hmAliasLogDir[logShowAliases[i]] = logShowDirs[i]

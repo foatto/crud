@@ -132,7 +132,9 @@ class DataString(aColumn: iColumn) : DataAbstract(aColumn) {
 
     private fun validate(obj: Any?): String {
         var tmp = obj?.toString() ?: ""
-        if (cs.isUseTrim) tmp = tmp.trim()
+        if (cs.isUseTrim) {
+            tmp = tmp.trim()
+        }
         return tmp
     }
 }

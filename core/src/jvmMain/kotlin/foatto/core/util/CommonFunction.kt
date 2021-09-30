@@ -81,7 +81,9 @@ fun readChannelToBuffer(socketChannel: SocketChannel, aBbIn: AdvancedByteBuffer?
 fun readFileToBuffer(file: File, bbIn: AdvancedByteBuffer, isWriteSize: Boolean) {
     val fileSize = file.length().toInt()
 
-    if (isWriteSize) bbIn.putInt(fileSize)
+    if (isWriteSize) {
+        bbIn.putInt(fileSize)
+    }
 
     //--- перед чтением проверяем/расширяем буфер, т.к. fileChannel.read этого делать не будет
     bbIn.checkSize(fileSize)
@@ -145,11 +147,16 @@ fun replaceFileRoot(sourPath: String, newRoot: File): Pair<File, File> {
 
 fun clearOldFiles(path: File, expirePeriod: Int) {
     val arrFile = path.listFiles()
-    if (arrFile != null)
+    if (arrFile != null) {
         for (file in arrFile) {
-            if (file.isDirectory) clearOldFiles(file, expirePeriod)
-            else if (file.lastModified() < getCurrentTimeInt() - expirePeriod) file.delete()
+            if (file.isDirectory) {
+                clearOldFiles(file, expirePeriod)
+            }
+            else if (file.lastModified() < getCurrentTimeInt() - expirePeriod) {
+                file.delete()
+            }
         }
+    }
 }
 
 fun clearStorage(storageRoot: File, hsStorageExt: Set<String>, needFreeSpaceByte: Long, needFreeSpacePercent: Int, isDeleteEmptyDir: Boolean) {
@@ -181,20 +188,34 @@ fun collectFileQueue(hsStorageRoot: TreeSet<File>, hsStorageExt: Set<String>?, i
     for (dir in alDir) {
         val arrDir = dir.listFiles()
         //--- всякие там спец/системные/служебные папки
-        if (arrDir == null) continue
+        if (arrDir == null) {
+            continue
+        }
         else if (arrDir.isEmpty()) {
             //--- если можно удалять пустые папки и они не являются корневыми/заданными папками
-            if (isDeleteEmptyDir && !hsStorageRoot.contains(dir)) dir.delete()
-        } else for (file in arrDir) if (file.isDirectory) alDir.add(file)
-        else {
-            val fileName = file.name
-            //--- если список расширений не задан, то по нему не фильтруем
-            if (hsStorageExt == null || hsStorageExt.isEmpty()) pqFile.offer(file)
-            else {
-                val dotPos = fileName.indexOf('.')
-                if (dotPos != -1) {
-                    val ext = fileName.substring(dotPos + 1).toLowerCase()
-                    if (hsStorageExt.contains(ext)) pqFile.offer(file)
+            if (isDeleteEmptyDir && !hsStorageRoot.contains(dir)) {
+                dir.delete()
+            }
+        } else {
+            for (file in arrDir) {
+                if (file.isDirectory) {
+                    alDir.add(file)
+                }
+                else {
+                    val fileName = file.name
+                    //--- если список расширений не задан, то по нему не фильтруем
+                    if (hsStorageExt == null || hsStorageExt.isEmpty()) {
+                        pqFile.offer(file)
+                    }
+                    else {
+                        val dotPos = fileName.indexOf('.')
+                        if (dotPos != -1) {
+                            val ext = fileName.substring(dotPos + 1).lowercase(Locale.getDefault())
+                            if (hsStorageExt.contains(ext)) {
+                                pqFile.offer(file)
+                            }
+                        }
+                    }
                 }
             }
         }

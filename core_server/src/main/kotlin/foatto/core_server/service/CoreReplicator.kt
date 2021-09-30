@@ -18,6 +18,7 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 import java.io.IOException
+import java.util.*
 
 abstract class CoreReplicator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
 
@@ -78,18 +79,19 @@ abstract class CoreReplicator(aConfigFileName: String) : CoreServiceWorker(aConf
 
                 install(Logging) {
                     logger = Logger.DEFAULT
-                    level = when {
-                        logOptions.contains("debug") -> LogLevel.ALL
-                        logOptions.contains("error") -> LogLevel.HEADERS
-                        logOptions.contains("info") -> LogLevel.INFO
-                        else -> LogLevel.NONE
-                    }
+                    level = LogLevel.NONE
+//                    when {
+//                        logOptions.contains("debug") -> LogLevel.ALL
+//                        logOptions.contains("error") -> LogLevel.HEADERS
+//                        logOptions.contains("info") -> LogLevel.INFO
+//                        else -> LogLevel.NONE
+//                    }
                 }
 
                 install(HttpTimeout)
 
                 defaultRequest {
-                    url.protocol = if(alDestProtocol.last().toUpperCase() == "HTTPS") URLProtocol.HTTPS else URLProtocol.HTTP
+                    url.protocol = if (alDestProtocol.last().uppercase(Locale.getDefault()) == "HTTPS") URLProtocol.HTTPS else URLProtocol.HTTP
                     host = alDestIP.last()
                     port = alDestPort.last()
                 }
@@ -121,15 +123,17 @@ abstract class CoreReplicator(aConfigFileName: String) : CoreServiceWorker(aConf
                         val alFile = tmFile[timeKey]!!
 
                         val bbIn = AdvancedByteBuffer(CoreAdvancedConnection.START_REPLICATION_SIZE)
-                        for (file in alFile)
+                        for (file in alFile) {
                             readFileToBuffer(file, bbIn, false)
+                        }
 
                         bbIn.flip()
                         val alSQL = mutableListOf<String>()
                         while (bbIn.hasRemaining()) {
                             val sqlCount = bbIn.getInt()
-                            for (i in 0 until sqlCount)
+                            for (i in 0 until sqlCount) {
                                 alSQL.add(bbIn.getLongString())
+                            }
                         }
 
                         val putReplicationRequest = PutReplicationRequest(
@@ -154,7 +158,9 @@ abstract class CoreReplicator(aConfigFileName: String) : CoreServiceWorker(aConf
                             //--- окончательно удаляем файл из очереди и его самого
                             if (timeKey == putReplicationResponse.timeKey) {
                                 tmFile.remove(timeKey)
-                                for (file in alFile) file.delete()
+                                for (file in alFile) {
+                                    file.delete()
+                                }
                             }
                         }
                     }
@@ -164,15 +170,18 @@ abstract class CoreReplicator(aConfigFileName: String) : CoreServiceWorker(aConf
                     sqlLog = ""
 
                     //--- что мы успешно получили в прошлый раз?
-                    var prevTimeKey: Long = -1
                     val rs = alStm[0].executeQuery(" SELECT time_key FROM SYSTEM_replication_receive WHERE dest_name = '$destName' ")
-                    if (rs.next()) prevTimeKey = rs.getLong(1)
+                    val prevTimeKey = if (rs.next()) {
+                        rs.getLong(1)
+                    } else {
+                        -1
+                    }
                     rs.close()
 
                     val getReplicationRequest = GetReplicationRequest(alDBConfig[0].name, prevTimeKey)
 
-                    runBlocking {
-                        val getReplicationResponse: GetReplicationResponse = alHttpClient[destIndex].post("/api/get_replication") {
+                    val getReplicationResponse: GetReplicationResponse = runBlocking {
+                        alHttpClient[destIndex].post("/api/get_replication") {
                             contentType(ContentType.Application.Json)
 
                             body = getReplicationRequest
@@ -181,23 +190,25 @@ abstract class CoreReplicator(aConfigFileName: String) : CoreServiceWorker(aConf
                                 socketTimeoutMillis = 600_000   // сервер может долго подбирать самые старые/первые реплики для передачи
                             }
                         }
+                    }
+                    val sourDialect = SQLDialect.hmDialect[getReplicationResponse.dialect]!!
+                    val timeKey = getReplicationResponse.timeKey
+                    if (timeKey != -1L) {
+                        isWorked = true
 
-                        val sourDialect = SQLDialect.hmDialect[getReplicationResponse.dialect]!!
-                        val timeKey = getReplicationResponse.timeKey
-                        if (timeKey != -1L) {
-                            isWorked = true
+                        getReplicationResponse.alSQL.forEach {
+                            //--- на время отладки репликатора
+                            //AdvancedLogger.debug( it )
+                            //println("SQL = '$it'")
 
-                            getReplicationResponse.alSQL.forEach {
-                                sqlLog += (if (sqlLog.isEmpty()) "" else "\n") + it
-                                alStm[0].executeUpdate(CoreAdvancedConnection.convertDialect(it, sourDialect, alConn[0].dialect), false)
-                                //                                //--- на время отладки репликатора
-                                //                                AdvancedLogger.debug( sql );
-                            }
-                            //--- и в этой же транзакции запомним имя/номер реплики
-                            if (alStm[0].executeUpdate(" UPDATE SYSTEM_replication_receive SET time_key = $timeKey WHERE dest_name = '$destName' ", false) == 0)
-                                alStm[0].executeUpdate(" INSERT INTO SYSTEM_replication_receive ( dest_name , time_key ) VALUES ( '$destName' , $timeKey ) ", false)
-                            alConn[0].commit()
+                            sqlLog += (if (sqlLog.isEmpty()) "" else "\n") + it
+                            alStm[0].executeUpdate(CoreAdvancedConnection.convertDialect(it, sourDialect, alConn[0].dialect), false)
                         }
+                        //--- и в этой же транзакции запомним имя/номер реплики
+                        if (alStm[0].executeUpdate(" UPDATE SYSTEM_replication_receive SET time_key = $timeKey WHERE dest_name = '$destName' ", false) == 0) {
+                            alStm[0].executeUpdate(" INSERT INTO SYSTEM_replication_receive ( dest_name , time_key ) VALUES ( '$destName' , $timeKey ) ", false)
+                        }
+                        alConn[0].commit()
                     }
                 }
             } catch (ioe: IOException) {

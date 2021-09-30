@@ -20,7 +20,6 @@ abstract class CoreReplicationController {
 
     //--- прописывать у каждого наследника
 //    @PostMapping("/api/get_replication")
-//    @Transactional
     open fun getReplication(
         //@RequestBody
         getReplicationRequest: GetReplicationRequest
@@ -86,7 +85,6 @@ abstract class CoreReplicationController {
 
     //--- прописывать у каждого наследника
 //    @PostMapping("/api/put_replication")
-//    @Transactional
     open fun putReplication(
         //@RequestBody
         putReplicationRequest: PutReplicationRequest

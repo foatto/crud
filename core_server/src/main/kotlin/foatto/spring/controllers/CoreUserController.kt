@@ -21,7 +21,6 @@ abstract class CoreUserController {
 
     //--- прописывать у каждого наследника
 //    @PostMapping("/api/save_user_property")
-//    @Transactional
     open fun saveUserProperty(
         //@RequestBody
         saveUserPropertyRequest: SaveUserPropertyRequest
@@ -64,7 +63,6 @@ abstract class CoreUserController {
 
     //--- прописывать у каждого наследника
 //    @PostMapping("/api/change_password")
-//    @Transactional
     open fun changePassword(
         //@RequestBody
         changePasswordRequest: ChangePasswordRequest

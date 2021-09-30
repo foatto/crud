@@ -64,12 +64,9 @@ abstract class CoreAppController : iApplication {
 
     //--- прописывать у каждого наследника
 //    @PostMapping("/api/app")
-//    @Transactional
     open fun app(
-        //authentication: Authentication,
         //@RequestBody
         appRequest: AppRequest
-        //@CookieValue("SESSION") sessionId: String
     ): AppResponse {
         val appBegTime = getCurrentTimeInt()
 
@@ -276,7 +273,6 @@ abstract class CoreAppController : iApplication {
 
     //--- прописывать у каждого наследника
 //    @PostMapping("/api/xy")
-//    @Transactional
     open fun xy(
         //@RequestBody
         xyActionRequest: XyActionRequest
@@ -342,12 +338,9 @@ abstract class CoreAppController : iApplication {
 
     //--- прописывать у каждого наследника
 //    @PostMapping("/api/graphic")
-//    @Transactional
     open fun graphic(
-        //authentication: Authentication,
         //@RequestBody
         graphicActionRequest: GraphicActionRequest
-        //@CookieValue("SESSION") sessionId: String
     ): GraphicActionResponse {
         val graphicBegTime = getCurrentTimeInt()
 
