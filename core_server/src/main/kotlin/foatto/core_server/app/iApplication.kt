@@ -5,6 +5,10 @@ interface iApplication {
     val rootDirName: String
     val tempDirName: String
 
+    val alClientAlias: Array<String>
+    val alClientParentId: Array<String>
+    val alClientRoleId: Array<String>
+
     val hmAliasLogDir: MutableMap<String, String>
 
     companion object {
