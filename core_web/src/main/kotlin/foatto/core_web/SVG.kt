@@ -2,13 +2,27 @@ package foatto.core_web
 
 const val MIN_USER_RECT_SIZE = 8
 
-abstract class SvgElement( val tooltip: String )
+abstract class SvgElement(val tooltip: String)
 
-class SvgCircle( val cx: Int, val cy: Int, val radius: Int, val stroke: String = "", val fill: String = "",
-                 tooltip: String = "" ) : SvgElement( tooltip )
+class SvgCircle(
+    val cx: Int,
+    val cy: Int,
+    val radius: Int,
+    val stroke: String = "",
+    val fill: String = "",
+    tooltip: String = ""
+) : SvgElement(tooltip)
 
-class SvgLine( val x1: Int, val y1: Int, val x2: Int, val y2: Int, val stroke: String, val width: Int, val dash: String = "",
-               tooltip: String = "" ) : SvgElement( tooltip )
+class SvgLine(
+    val x1: Int,
+    val y1: Int,
+    val x2: Int,
+    val y2: Int,
+    val stroke: String,
+    val width: Int,
+    val dash: String = "",
+    tooltip: String = ""
+) : SvgElement(tooltip)
 
 //<rect x="0" y="0" width="200" height="100" fill="#BBC42A" rx="5" ry="10"/>
 class SvgRect(
@@ -16,13 +30,13 @@ class SvgRect(
     val y: Int,
     val width: Int,
     val height: Int,
-    val stroke: String,
-    val fill: String,
-    val strokeWidth: Int = 1,
+    val stroke: String = "none",
+    val fill: String = "none",
+    val strokeWidth: Int = 0,
     val rx: String = "",    // м.б. в виде 0.1rem или типа того
     val ry: String = "",
     tooltip: String = ""
-) : SvgElement( tooltip )
+) : SvgElement(tooltip)
 
 class SvgText(
     val x: Int,
@@ -33,7 +47,7 @@ class SvgText(
     val vAlign: String,
     val transform: String = "",
     tooltip: String = ""
-) : SvgElement( tooltip )
+) : SvgElement(tooltip)
 
 class SvgMultiLineText(
     val x: Int,
@@ -43,7 +57,7 @@ class SvgMultiLineText(
     var hAlign: String,
     val vAlign: String,
     tooltip: String = ""
-) : SvgElement( tooltip )
+) : SvgElement(tooltip)
 
 class SVGTextSpan(
     val dy: String,
@@ -52,7 +66,7 @@ class SVGTextSpan(
 
 //--- пусть будет общим для Graphic & Xy ------------------------------------------------------------
 
-class MouseRectData (
+class MouseRectData(
     var isVisible: Boolean,
     var x1: Int,
     var y1: Int,

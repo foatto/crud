@@ -144,7 +144,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             //--- some analogue sensors
             oc.hmSensorConfig[SensorConfig.SENSOR_TEMPERATURE]?.values?.forEach { sc ->
                 val sca = sc as SensorConfigAnalogue
-                val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2)
+                val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2, false)
                 getSmoothAnalogGraphicData(
                     alRawTime = alRawTime,
                     alRawData = alRawData,
@@ -165,7 +165,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
 
             oc.hmSensorConfig[SensorConfig.SENSOR_DENSITY]?.values?.forEach { sc ->
                 val sca = sc as SensorConfigAnalogue
-                val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2)
+                val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2, false)
                 getSmoothAnalogGraphicData(
                     alRawTime = alRawTime,
                     alRawData = alRawData,
@@ -557,7 +557,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             endTime: Int,
         ): LiquidLevelCalcData {
 
-            val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2)
+            val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2, false)
             val alLSPD = mutableListOf<LiquidStatePeriodData>()
             getSmoothLiquidGraphicData(alRawTime, alRawData, oc.scg, sca, begTime, endTime, aLine, alLSPD)
 
@@ -973,7 +973,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
         ): List<LiquidIncDecData> {
             val alLIDD = mutableListOf<LiquidIncDecData>()
 
-            val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2)
+            val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2, false)
             val alLSPD = mutableListOf<LiquidStatePeriodData>()
             getSmoothLiquidGraphicData(alRawTime, alRawData, oc.scg, sca, begTime, endTime, aLine, alLSPD)
 
@@ -1531,7 +1531,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 //--- let's extend the period into the past with a two-fold margin - this will not greatly affect the processing speed
                 val (alRawTimeExt, alRawDataExt) = loadAllSensorData(stm, oc, begTime - MAX_CALC_PREV_NORMAL_PERIOD * 2, endTime)
 
-                val aLineExt = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2)
+                val aLineExt = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2, false)
                 val alLSPDExt = mutableListOf<LiquidStatePeriodData>()
                 getSmoothLiquidGraphicData(alRawTimeExt, alRawDataExt, oc.scg, sca, begTime - MAX_CALC_PREV_NORMAL_PERIOD * 2, endTime, aLineExt, alLSPDExt)
 

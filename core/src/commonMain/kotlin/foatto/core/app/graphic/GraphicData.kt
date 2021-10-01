@@ -6,6 +6,7 @@ class GraphicDataContainer(
     val type: ElementType,
     val axisYIndex: Int,
     val lineWidth: Int = 0,
+    val itReversedY: Boolean,
 ) {
     enum class ElementType { BACK, LINE, POINT, TEXT }
 
@@ -25,14 +26,14 @@ class GraphicBackData(
 
 class GraphicLineData(
     val x: Int,
-    val y: Double,
+    var y: Double,
     var colorIndex: GraphicColorIndex,
     val coord: XyPoint? = null
 )
 
 class GraphicPointData(
     val x: Int,
-    val y: Double,
+    var y: Double,
     val colorIndex: GraphicColorIndex
 )
 

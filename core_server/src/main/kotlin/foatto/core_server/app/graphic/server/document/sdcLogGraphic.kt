@@ -90,15 +90,15 @@ class sdcLogGraphic : sdcAbstractGraphic() {
 
         val tmElement = TreeMap<String, GraphicElement>()
 
-        val aWorkers = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 3)
+        val aWorkers = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 3, false)
         getGraphicData(tmWorkers, GraphicColorIndex.LINE_NORMAL_0, aWorkers)
 
-        val aHandlers = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 1, 1)
+        val aHandlers = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 1, 1, false)
         getGraphicData(tmHandlers, GraphicColorIndex.LINE_NORMAL_1, aHandlers)
 
         var alAxisYData = mutableListOf<AxisYData>()
-        alAxisYData.add(AxisYData("Workers", 0.0, max(4, maxWorkers).toDouble(), GraphicColorIndex.AXIS_0))
-        alAxisYData.add(AxisYData("Handlers", 0.0, max(4, maxHandlers).toDouble(), GraphicColorIndex.AXIS_1))
+        alAxisYData.add(AxisYData("Workers", 0.0, max(4, maxWorkers).toDouble(), GraphicColorIndex.AXIS_0, false))
+        alAxisYData.add(AxisYData("Handlers", 0.0, max(4, maxHandlers).toDouble(), GraphicColorIndex.AXIS_1, false))
 
         val gewh = GraphicElement(
             graphicTitle = "Workers & Handlers",
@@ -112,15 +112,15 @@ class sdcLogGraphic : sdcAbstractGraphic() {
 
         //--- график Memory
 
-        val aMemoryUsed = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 3)
+        val aMemoryUsed = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 3, false)
         getGraphicData(tmMemoryUsed, GraphicColorIndex.LINE_NORMAL_0, aMemoryUsed)
 
-        val aMemoryTotal = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 1, 1)
+        val aMemoryTotal = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 1, 1, false)
         getGraphicData(tmMemoryTotal, GraphicColorIndex.LINE_NORMAL_1, aMemoryTotal)
 
         alAxisYData = mutableListOf()
-        alAxisYData.add(AxisYData("Memory Used", 0.0, max(1, maxMemory).toDouble(), GraphicColorIndex.AXIS_0))
-        alAxisYData.add(AxisYData("Memory Total", 0.0, max(1, maxMemory).toDouble(), GraphicColorIndex.AXIS_1))
+        alAxisYData.add(AxisYData("Memory Used", 0.0, max(1, maxMemory).toDouble(), GraphicColorIndex.AXIS_0, false))
+        alAxisYData.add(AxisYData("Memory Total", 0.0, max(1, maxMemory).toDouble(), GraphicColorIndex.AXIS_1, false))
 
         val gem = GraphicElement(
             graphicTitle = "Memory Used & Total",

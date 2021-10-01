@@ -83,26 +83,50 @@ class sdcSpeed : sdcAbstractGraphic() {
                 //--- Типовой размер массива = кол-во точек по горизонтали = 3840 ( максимальная ширина экрана ), пусть будет 4000
                 //--- Если включён показ линий и выключено сглаживание, то точки можно не показывать,
                 //--- их всё равно не будет видно за покрывающей их линией
-                val aMaxLimit = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1)
-                val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 3)
+                val aMaxLimit = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1, false)
+                val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 3, false)
                 //--- показывать график пробега только чистому админу -
                 //--- в отладочных целях для быстрого поиска точек с неправильными пробегами
-                val aDistance = if (userConfig.isAdmin && userConfig.roleCount == 1) GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 1, 1)
+                val aDistance = if (userConfig.isAdmin && userConfig.roleCount == 1) GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 1, 1, false)
                 else null
-                val aZone = if (isShowText) GraphicDataContainer(GraphicDataContainer.ElementType.TEXT, 0) else null
+                val aZone = if (isShowText) {
+                    GraphicDataContainer(GraphicDataContainer.ElementType.TEXT, 0, 0, false)
+                } else {
+                    null
+                }
 
                 getSmoothSpeedGraphicData(
-                    alRawTime, alRawData, oc, x1, x2, if (viewWidth == 0) 0 else (x2 - x1) / viewWidth,
-                    if (viewHeight == 0) 0.0 else 200.0 / viewHeight, maxEnabledOverSpeed, alZoneSpeedLimit, hmZoneData, aMaxLimit, aLine, aDistance, aZone
+                    alRawTime = alRawTime,
+                    alRawData = alRawData,
+                    oc = oc,
+                    begTime = x1,
+                    endTime = x2,
+                    xScale = if (viewWidth == 0) {
+                        0
+                    } else {
+                        (x2 - x1) / viewWidth
+                    },
+                    yScale = if (viewHeight == 0) {
+                        0.0
+                    } else {
+                        200.0 / viewHeight
+                    },
+                    maxEnabledOverSpeed = maxEnabledOverSpeed,
+                    alZoneSpeedLimit = alZoneSpeedLimit,
+                    hmZoneData = hmZoneData,
+                    aMaxLimit = aMaxLimit,
+                    aSpeed = aLine,
+                    aDistance = aDistance,
+                    aZone = aZone
                 )
 
                 val alAxisYData = mutableListOf<AxisYData>()
-                alAxisYData.add(AxisYData("${SensorConfig.hmSensorDescr[SensorConfig.SENSOR_GEO]}, [ км/ч ]", 0.0, 200.0, GraphicColorIndex.AXIS_0))
+                alAxisYData.add(AxisYData("${SensorConfig.hmSensorDescr[SensorConfig.SENSOR_GEO]}, [ км/ч ]", 0.0, 200.0, GraphicColorIndex.AXIS_0, false))
                 //--- динамическая верхняя граница
                 if (aDistance != null) {
                     var maxDistance = 0.0
                     for (gld in aDistance.alGLD) maxDistance = Math.max(maxDistance, gld.y)
-                    alAxisYData.add(AxisYData("Пробег в точке, [ м ]", 0.0, maxDistance, GraphicColorIndex.AXIS_1))
+                    alAxisYData.add(AxisYData("Пробег в точке, [ м ]", 0.0, maxDistance, GraphicColorIndex.AXIS_1, false))
                 }
 
                 val ge = GraphicElement(

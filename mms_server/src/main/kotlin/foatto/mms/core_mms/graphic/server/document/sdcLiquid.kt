@@ -121,9 +121,9 @@ class sdcLiquid : sdcAnalog() {
 
         //--- расчет скорости расхода жидкости по счётчику топлива или уровнемеру
         isLiquidFlow = false
-        aLiquidMin = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 1, 1)
-        aLiquidMax = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 1, 1)
-        aLiquidFlow = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 1, 2)
+        aLiquidMin = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 1, 1, false)
+        aLiquidMax = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 1, 1, false)
+        aLiquidFlow = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 1, 2, false)
 
         aLine?.let {
 
@@ -221,7 +221,7 @@ class sdcLiquid : sdcAnalog() {
         xScale: Int,
         yScale: Double
     ) {
-        alAxisYData.add(AxisYData("${SensorConfig.hmSensorDescr[scaf.sensorType]}", scaf.minView, scaf.maxView, GraphicColorIndex.AXIS_1))
+        alAxisYData.add(AxisYData("${SensorConfig.hmSensorDescr[scaf.sensorType]}", scaf.minView, scaf.maxView, GraphicColorIndex.AXIS_1, false))
 
         val isLimit = scaf.maxLimit > scaf.minLimit
         if (isLimit) {
@@ -315,7 +315,7 @@ class sdcLiquid : sdcAnalog() {
         yScale: Double,
         alGLD: Array<GraphicLineData>
     ) {
-        alAxisYData.add(AxisYData("${SensorConfig.hmSensorDescr[scaf.sensorType]}", scaf.minView, scaf.maxView, GraphicColorIndex.AXIS_1))
+        alAxisYData.add(AxisYData("${SensorConfig.hmSensorDescr[scaf.sensorType]}", scaf.minView, scaf.maxView, GraphicColorIndex.AXIS_1, false))
 
         val isLimit = scaf.maxLimit != scaf.minLimit
         if (isLimit) {

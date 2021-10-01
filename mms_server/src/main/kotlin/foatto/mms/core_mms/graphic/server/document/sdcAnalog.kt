@@ -289,41 +289,41 @@ open class sdcAnalog : sdcAbstractGraphic() {
 
                 //--- Максимальный размер массива = кол-во точек по горизонтали = 3840 ( максимальная ширина 4K-экрана ), окгруляем до 4000
                 val aMinLimit = if (agh.isStaticMinLimit(sca)) {
-                    GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1)
+                    GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1, false)
                 }
                 else if (agh.isDynamicMinLimit(sca)) {
-                    GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1)
+                    GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1, false)
                 } else {
                     null
                 }
 
                 val aMaxLimit = if (agh.isStaticMaxLimit(sca)) {
-                    GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1)
+                    GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1, false)
                 }
                 else if (agh.isDynamicMaxLimit(sca)) {
-                    GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1)
+                    GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1, false)
                 } else {
                     null
                 }
 
                 val aBack = if (isShowBack) {
-                    GraphicDataContainer(GraphicDataContainer.ElementType.BACK, 0)
+                    GraphicDataContainer(GraphicDataContainer.ElementType.BACK, 0, 0, false)
                 } else {
                     null
                 }
                 //--- Если включён показ линий и выключено сглаживание, то точки можно не показывать, их всё равно не будет видно за покрывающей их линией
                 val aPoint = if (isShowPoint && (!isShowLine || sca.smoothTime > 0)) {
-                    GraphicDataContainer(GraphicDataContainer.ElementType.POINT, 0)
+                    GraphicDataContainer(GraphicDataContainer.ElementType.POINT, 0, 0, false)
                 } else {
                     null
                 }
                 val aLine = if (isShowLine) {
-                    GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 3)
+                    GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 3, false)
                 } else {
                     null
                 }
                 val aText = if (isShowText) {
-                    GraphicDataContainer(GraphicDataContainer.ElementType.TEXT, 0)
+                    GraphicDataContainer(GraphicDataContainer.ElementType.TEXT, 0, 0, false)
                 } else {
                     null
                 }
@@ -499,7 +499,7 @@ open class sdcAnalog : sdcAbstractGraphic() {
         aText: GraphicDataContainer?
     ) {
 
-        alAxisYData.add(AxisYData(sca.descr, sca.minView, sca.maxView, GraphicColorIndex.AXIS_0))
+        alAxisYData.add(AxisYData(sca.descr, sca.minView, sca.maxView, GraphicColorIndex.AXIS_0, false))
 
         ObjectCalc.getSmoothAnalogGraphicData(alRawTime, alRawData, oc.scg, sca, begTime, endTime, xScale, yScale, aMinLimit, aMaxLimit, aPoint, aLine, graphicHandler)
 

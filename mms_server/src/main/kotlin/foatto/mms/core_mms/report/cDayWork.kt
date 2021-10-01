@@ -176,7 +176,7 @@ class cDayWork : cStandartPeriodSummary() {
                 val dwcr = DayWorkCalcResult(DateTime_DMY(zdtCurBeg), ObjectCalc.calcObject(stm, userConfig, objectConfig, t1, t2))
                 if (reportOutTroubles) {
                     val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(stm, objectConfig, t1, t2)
-                    val troubles = GraphicDataContainer(GraphicDataContainer.ElementType.TEXT, 0)
+                    val troubles = GraphicDataContainer(GraphicDataContainer.ElementType.TEXT, 0, 0, false)
                     sdcAnalog.checkCommonTrouble(alRawTime, alRawData, objectConfig, t1, t2, troubles)
                     //--- ловим ошибки с датчиков уровня топлива
                     objectConfig.hmSensorConfig[SensorConfig.SENSOR_LIQUID_LEVEL]?.values?.forEach { sc ->

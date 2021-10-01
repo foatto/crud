@@ -1,5 +1,6 @@
 package foatto.core_web
 
+import foatto.core.app.UP_GRAPHIC_SHOW_BACK
 import foatto.core.app.UP_GRAPHIC_SHOW_LINE
 import foatto.core.app.UP_GRAPHIC_SHOW_POINT
 import foatto.core.app.UP_GRAPHIC_SHOW_TEXT
@@ -31,7 +32,7 @@ import kotlin.math.min
 import kotlin.math.round
 import kotlin.math.roundToInt
 
-private const val MARGIN_LEFT = 100
+private const val MARGIN_LEFT = 100     // на каждую ось Y
 
 //private val MARGIN_RIGHT = 40
 private const val MARGIN_TOP = 40
@@ -49,9 +50,9 @@ private const val GRAPHIC_TEXT_HEIGHT = 20              // высота текс
 private const val GRAPHIC_TEXT_MIN_VISIBLE_WIDTH = 4    // минимальная ширина видимого текстового блока
 
 private val arrGridStepX = arrayOf(
-    1, 5, 15,          // 1 - 5 - 15 сек
-    1 * 60, 5 * 60, 15 * 60,     // 1 - 5 - 15 мин
-    1 * 3_600, 3 * 3_600, 6 * 3_600,  // 1 - 3 - 6 час
+    1, 5, 15,                           // 1 - 5 - 15 сек
+    1 * 60, 5 * 60, 15 * 60,            // 1 - 5 - 15 мин
+    1 * 3_600, 3 * 3_600, 6 * 3_600,    // 1 - 3 - 6 час
     1 * 86_400, 3 * 86_400, 9 * 86_400, // 1 - 3 - 9 суток
     27 * 86_400, 81 * 86_400
 )
@@ -141,6 +142,16 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
         if (!styleIsNarrowScreen) {
             """
                 <span v-bind:style="style_toolbar_block">
+                    <input v-bind:style="style_htp_checkbox"
+                           v-on:click="setShowBack()"
+                           v-model="isShowBack"
+                           title="Включить/выключить отображение фона графиков"
+                           type="checkbox"
+                    >
+                    </input>
+                    <span v-bind:style="style_htp_checkbox_label">
+                        Фон
+                    </span>
                     <input v-bind:style="style_htp_checkbox"
                            v-on:click="setShowPoint()"
                            v-model="isShowPoint"
@@ -245,6 +256,14 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                             {{ element.title.text }}
                         </text>
 
+                        <rect v-for="graphicBack in element.arrGraphicBack"
+                              v-bind:x="graphicBack.x"
+                              v-bind:y="graphicBack.y"
+                              v-bind:width="graphicBack.width"
+                              v-bind:height="graphicBack.height"
+                              v-bind:fill="graphicBack.fill"
+                        />
+                        
                         <line v-for="axisLine in element.arrAxisXLine"
                               v-bind:x1="axisLine.x1" v-bind:y1="axisLine.y1" v-bind:x2="axisLine.x2" v-bind:y2="axisLine.y2"
                               v-bind:stroke="axisLine.stroke" v-bind:stroke-width="axisLine.width" v-bind:stroke-dasharray="axisLine.dash" />
@@ -267,7 +286,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                                 v-bind:cx="graphicPoint.cx" v-bind:cy="graphicPoint.cy" v-bind:r="graphicPoint.radius" v-bind:fill="graphicPoint.fill"
                                 v-on:mouseenter="onMouseOver( ${'$'}event, graphicPoint )" v-on:mouseleave="onMouseOut()" />
 
-<!-- может ещё пригодиться для других прямоугольников
+<!-- текст теперь выводится по-другому, но может ещё пригодиться для других прямоугольников
                         <rect v-for="graphicText in element.arrGraphicText"
                               v-bind:x="graphicText.x"
                               v-bind:y="graphicText.y"
@@ -402,28 +421,61 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                     val hmIndexColor = mutableMapOf<String, MutableMap<String, String>>()
 
                     var maxMarginLeft = (MARGIN_LEFT * scaleKoef).roundToInt()
-                    //--- определить hard/soft-высоты графиков ( для распределения области окна между графиками )
+                    //--- определить hard/soft-высоты графиков (для распределения области окна между графиками)
                     var sumHard = 0        // сумма жестко заданных высот
                     var sumSoft = 0        // сумма мягко/относительно заданных высот
-                    for (entry in alElement) {
-                        val key = entry.first
-                        val cge = entry.second
+                    alElement.forEach { pair ->
+                        val key = pair.first
+                        val cge = pair.second
+                        //--- prerare data for Y-reversed charts
+                        cge.alAxisYData.forEach { axisYData ->
+                            if (axisYData.itReversedY) {
+                                //--- во избежание перекрёстных изменений
+                                val minY = axisYData.min
+                                val maxY = axisYData.max
+                                axisYData.min = -maxY
+                                axisYData.max = -minY
+                            }
+                        }
+                        cge.alGDC.forEach { gdc ->
+                            if (gdc.itReversedY) {
+                                when (gdc.type.toString()) {
+                                    GraphicDataContainer.ElementType.LINE.toString() -> {
+                                        gdc.alGLD.forEach { gld ->
+                                            gld.y = -gld.y
+                                        }
+                                    }
+                                    GraphicDataContainer.ElementType.POINT.toString() -> {
+                                        gdc.alGPD.forEach { gpd ->
+                                            gpd.y = -gpd.y
+                                        }
+                                    }
+                                }
+                            }
+                        }
 
-//!!! // переделать в коллекционные методы
-                        val hmIC = mutableMapOf<String, String>()
-                        for (e in cge.alIndexColor)
-                            hmIC[e.first.toString()] = getColorFromInt(e.second)
-                        hmIndexColor[key] = hmIC
+                        hmIndexColor[key] = cge.alIndexColor.associate { e ->
+                            e.first.toString() to getColorFromInt(e.second)
+                        }.toMutableMap()
 
                         //--- переинициализировать значение левого поля
                         maxMarginLeft = max(maxMarginLeft, (cge.alAxisYData.size * MARGIN_LEFT * scaleKoef).roundToInt())
 
                         val grHeight = cge.graphicHeight.toInt()
-                        if (grHeight > 0) sumHard += (grHeight * scaleKoef).roundToInt()     // "положительная" высота - жестко заданная
-                        else sumSoft += -grHeight                                               // "отрицательная" высота - относительная ( в долях от экрана )
+                        if (grHeight > 0) {
+                            //--- "положительная" высота - жестко заданная
+                            sumHard += (grHeight * scaleKoef).roundToInt()
+                        } else {
+                            //--- "отрицательная" высота - относительная ( в долях от экрана )
+                            sumSoft += -grHeight
+                        }
                     }
                     //--- реальная высота одной единицы относительной высоты
-                    val oneSoftHeight = if (sumSoft == 0) 0 else (svgCoords.bodyHeight - sumHard) / sumSoft
+                    val oneSoftHeight = if (sumSoft == 0) {
+                        0
+                    } else {
+                        (svgCoords.bodyHeight - sumHard) / sumSoft
+                    }
 
                     var pixStartY = 0
 
@@ -435,8 +487,11 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                         val element = e.second
 
                         val grHeight = element.graphicHeight.toInt()
-                        val pixRealHeight = if (grHeight > 0) (grHeight * scaleKoef).roundToInt()
-                        else max((GRAPHIC_MIN_HEIGHT * scaleKoef).roundToInt(), -grHeight * oneSoftHeight)
+                        val pixRealHeight = if (grHeight > 0) {
+                            (grHeight * scaleKoef).roundToInt()
+                        } else {
+                            max((GRAPHIC_MIN_HEIGHT * scaleKoef).roundToInt(), -grHeight * oneSoftHeight)
+                        }
                         outElement(
                             timeOffset = timeOffset,
                             scaleKoef = scaleKoef,
@@ -484,6 +539,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                             arrAxisYText = it.alAxisYText.toTypedArray(),
                             arrAxisXLine = it.alAxisXLine.toTypedArray(),
                             arrAxisXText = it.alAxisXText.toTypedArray(),
+                            arrGraphicBack = it.alGraphicBack.toTypedArray(),
                             arrGraphicLine = it.alGraphicLine.toTypedArray(),
                             arrGraphicPoint = it.alGraphicPoint.toTypedArray(),
                             arrGraphicText = it.alGraphicText.toTypedArray()
@@ -512,7 +568,10 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                 val yData = arrYData[graphicElement.tooltip.toInt()]
                 //--- именно в таком порядке, чтобы не нарваться на 0 при целочисленном делении
                 //--- (yData.y1 - нижняя/большая координата, yData.y2 - верхняя/меньшая координата)
-                val value = (yData.value2 - yData.value1) * (yData.y1 - (mouseY + arrViewBoxBody[1])) / (yData.y1 - yData.y2) + yData.value1
+                var value = (yData.value2 - yData.value1) * (yData.y1 - (mouseY + arrViewBoxBody[1])) / (yData.y1 - yData.y2) + yData.value1
+                if (yData.itReversedY) {
+                    value = -value
+                }
                 val tooltipValue = getSplittedDouble(value, yData.prec, true, '.')
 
                 val tooltipX = mouseEvent.clientX + (8 * scaleKoef).roundToInt()
@@ -848,6 +907,16 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                 that().refreshView(null, GraphicViewCoord(newT1, newT2))
             }
         },
+        "setShowBack" to {
+            val that = that()
+            val isShowBack = that().isShowBack.unsafeCast<Boolean>()
+            invokeSaveUserProperty(
+                SaveUserPropertyRequest(UP_GRAPHIC_SHOW_BACK, (!isShowBack).toString()),
+                {
+                    that.refreshView(that, null)
+                }
+            )
+        },
         "setShowPoint" to {
             val that = that()
             val isShowPoint = that().isShowPoint.unsafeCast<Boolean>()
@@ -1025,6 +1094,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
             "isPanButtonDisabled" to true,
             "isZoomButtonDisabled" to false,
 
+            "isShowBack" to true,
             "isShowPoint" to false,
             "isShowLine" to true,
             "isShowText" to true,
@@ -1145,6 +1215,7 @@ private class GraphicElementData(
     val alAxisYText: MutableList<SvgText>,
     val alAxisXLine: MutableList<SvgLine>,
     val alAxisXText: MutableList<SvgMultiLineText>,
+    val alGraphicBack: MutableList<SvgRect>,
     val alGraphicLine: MutableList<SvgLine>,
     val alGraphicPoint: MutableList<SvgCircle>,
     val alGraphicText: MutableList<GraphicTextData>
@@ -1156,6 +1227,7 @@ private class GraphicElementData_(
     val arrAxisYText: Array<SvgText>,
     val arrAxisXLine: Array<SvgLine>,
     val arrAxisXText: Array<SvgMultiLineText>,
+    val arrGraphicBack: Array<SvgRect>,
     val arrGraphicLine: Array<SvgLine>,
     val arrGraphicPoint: Array<SvgCircle>,
     val arrGraphicText: Array<GraphicTextData>
@@ -1175,7 +1247,8 @@ private class YData(
     val y2: Int,
     val value1: Double,
     val value2: Double,
-    val prec: Int
+    val prec: Int,
+    val itReversedY: Boolean
 )
 
 private class GraphicTextData(
@@ -1250,7 +1323,15 @@ private fun setTimeLabel(timeOffset: Int, viewCoord: GraphicViewCoord, svgBodyLe
     timeLabelData.text = DateTime_DMYHMS(timeOffset, cursorTime).replace(" ", "<br>")
     timeLabelData.pos = json(
         "bottom" to "0",
-        (if (x > svgBodyWidth * 7 / 8) "right" else "left") to (if (x > svgBodyWidth * 7 / 8) "${svgBodyWidth - x}px" else "${svgBodyLeft + x}px")
+        (if (x > svgBodyWidth * 7 / 8) {
+            "right"
+        } else {
+            "left"
+        }) to (if (x > svgBodyWidth * 7 / 8) {
+            "${svgBodyWidth - x}px"
+        } else {
+            "${svgBodyLeft + x}px"
+        })
     )
 }
 
@@ -1292,6 +1373,7 @@ private fun outElement(
     val alAxisYText = mutableListOf<SvgText>()
     val alAxisXLine = mutableListOf<SvgLine>()
     val alAxisXText = mutableListOf<SvgMultiLineText>()
+    val alGraphicBack = mutableListOf<SvgRect>()
     val alGraphicLine = mutableListOf<SvgLine>()
     val alGraphicPoint = mutableListOf<SvgCircle>()
     val alGraphicText = mutableListOf<GraphicTextData>()
@@ -1351,7 +1433,8 @@ private fun outElement(
                 y2 = pixDrawTopY,
                 value1 = ayd.min,
                 value2 = ayd.max,
-                prec = precY
+                prec = precY,
+                itReversedY = ayd.itReversedY,
             )
         )
     }
@@ -1362,15 +1445,33 @@ private fun outElement(
 
     //--- для преодоления целочисленного переполнения
     val svgBodyWidthDouble = svgBodyWidth.toDouble()
+    val hmCurIndexColor = hmIndexColor[element.graphicTitle]!!
+
     for (cagdc in element.alGDC) {
         val axisYIndex = cagdc.axisYIndex
 
         when (cagdc.type.toString()) {
+            GraphicDataContainer.ElementType.BACK.toString() -> {
+                for (grd in cagdc.alGBD) {
+                    val drawX1 = (svgBodyWidthDouble * (grd.x1 - t1) / (t2 - t1)).toInt()
+                    val drawX2 = (svgBodyWidthDouble * (grd.x2 - t1) / (t2 - t1)).toInt()
+
+                    alGraphicBack.add(
+                        SvgRect(
+                            x = drawX1,
+                            y = pixDrawTopY,
+                            width = drawX2 - drawX1,
+                            height = pixDrawY0 - pixDrawTopY,
+                            fill = getColorFromInt(grd.color),
+                        )
+                    )
+                }
+            }
+
             GraphicDataContainer.ElementType.LINE.toString() -> {
                 var prevDrawX = -1
                 var prevDrawY = -1.0
                 var prevDrawColorIndex: GraphicColorIndex? = null
-                val hmCurIndexColor = hmIndexColor[element.graphicTitle]!!
                 val ayd = element.alAxisYData[axisYIndex]
                 val graphicHeight = ayd.max - ayd.min
 
@@ -1395,8 +1496,8 @@ private fun outElement(
                     prevDrawColorIndex = gld.colorIndex
                 }
             }
+
             GraphicDataContainer.ElementType.POINT.toString() -> {
-                val hmCurIndexColor = hmIndexColor[element.graphicTitle]!!
                 val ayd = element.alAxisYData[cagdc.axisYIndex]
                 val graphicHeight = ayd.max - ayd.min
 
@@ -1404,20 +1505,25 @@ private fun outElement(
                     val drawX = svgBodyWidth * (gpd.x - t1) / (t2 - t1)
                     val drawY = pixDrawY0 - pixDrawHeight * (gpd.y - ayd.min) / graphicHeight
 
+                    val value = if (cagdc.itReversedY) {
+                        -gpd.y
+                    } else {
+                        gpd.y
+                    }
+
                     alGraphicPoint.add(
                         SvgCircle(
                             cx = drawX,
                             cy = drawY.toInt(),
                             radius = max(1, scaleKoef.roundToInt()),
                             fill = hmCurIndexColor[gpd.colorIndex.toString()]!!,
-                            tooltip = getSplittedDouble(gpd.y, alYData[alAxisYDataIndex[axisYIndex]].prec, true, '.')
+                            tooltip = getSplittedDouble(value, alYData[alAxisYDataIndex[axisYIndex]].prec, true, '.')
                         )
                     )
                 }
             }
-            GraphicDataContainer.ElementType.TEXT.toString() -> {
-                val hmCurIndexColor = hmIndexColor[element.graphicTitle]!!
 
+            GraphicDataContainer.ElementType.TEXT.toString() -> {
                 for (gtd in cagdc.alGTD) {
                     val drawX1 = svgBodyWidth * (gtd.textX1 - t1) / (t2 - t1)
                     val drawX2 = svgBodyWidth * (gtd.textX2 - t1) / (t2 - t1)
@@ -1425,7 +1531,9 @@ private fun outElement(
                     val drawHeight = (GRAPHIC_TEXT_HEIGHT * scaleKoef).roundToInt()
 
                     //--- смысла нет показывать коротенькие блоки
-                    if (drawWidth <= (GRAPHIC_TEXT_MIN_VISIBLE_WIDTH * scaleKoef).roundToInt()) continue
+                    if (drawWidth <= (GRAPHIC_TEXT_MIN_VISIBLE_WIDTH * scaleKoef).roundToInt()) {
+                        continue
+                    }
 
                     val rect = XyRect(drawX1, pixDrawTopY, drawWidth, drawHeight)
 
@@ -1487,9 +1595,10 @@ private fun outElement(
             alAxisYText = alAxisYText,
             alAxisXLine = alAxisXLine,
             alAxisXText = alAxisXText,
+            alGraphicBack = alGraphicBack,
             alGraphicLine = alGraphicLine,
             alGraphicPoint = alGraphicPoint,
-            alGraphicText = alGraphicText
+            alGraphicText = alGraphicText,
         )
     )
 }
@@ -1633,7 +1742,7 @@ private fun drawAxisY(
             break
         }
     }
-    //--- если подходящий шаг насечек не нашелся, берем максимальный ( хотя такой ситуации не должно быть )
+    //--- если подходящий шаг насечек не нашелся, берем максимальный (хотя такой ситуации не должно быть)
     if (notchGraphicStepY <= 0.0) {
         notchGraphicStepY = arrGridStepY.last()
         labelGraphicStepY = arrGridStepY.last()
@@ -1684,10 +1793,15 @@ private fun drawAxisY(
         //--- текст метки по оси Y
 
         if (round(notchY * mult).toInt() % round(labelGraphicStepY * mult).toInt() == 0) {
+            val value = if (ayd.itReversedY) {
+                -notchY
+            } else {
+                notchY
+            }
             val axisText = SvgText(
                 x = axisX - (2 * scaleKoef).roundToInt(),
                 y = drawY.toInt() - (2 * scaleKoef).roundToInt(),
-                text = getSplittedDouble(notchY, precY, true, '.'),
+                text = getSplittedDouble(value, precY, true, '.'),
                 stroke = hmIndexColor[element.graphicTitle]!![ayd.colorIndex.toString()]!!,
                 hAlign = "end",
                 vAlign = "text-bottom"
