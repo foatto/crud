@@ -123,7 +123,6 @@ class MMSSpringApp : CoreSpringApp() {
             descr = "Карта",
             serverClassName = "foatto.mms.core_mms.xy.server.document.sdcMMSMap",
             clientType = XyDocumentClientType.MAP,
-//            "foatto.app_client.XyMapControl", "foatto.app.MapControl",
             itScaleAlign = true,
             alElementConfig = initMapElementConfig(MAP_MIN_SCALE, MAP_MAX_SCALE).toList().toTypedArray()
         )
@@ -133,7 +132,6 @@ class MMSSpringApp : CoreSpringApp() {
             descr = "Состояние объекта",
             serverClassName = "foatto.mms.core_mms.xy.server.document.sdcMMSState",
             clientType = XyDocumentClientType.STATE,
-//            "foatto.app_client.XyStateControl", "foatto.app.StateControl",
             itScaleAlign = false,
             alElementConfig = initStateElementConfig(1, 1024 * 1024 * 1024).toList().toTypedArray()
         )
@@ -141,58 +139,82 @@ class MMSSpringApp : CoreSpringApp() {
 
     private fun initMapElementConfig(minScale: Int, maxScale: Int): MutableMap<String, XyElementConfig> {
 
-        val hmElementConfig = initXyElementConfig(10, minScale, maxScale)
+        val hmElementConfig = initXyElementConfig(level = 10, minScale = minScale, maxScale = maxScale)
 
         //--- прикладные топо-элементы, программно добавляемые в картографию на серверной стороне
 
         hmElementConfig[sdcMMSMap.TYPE_OBJECT_TRACE] = XyElementConfig(
-            sdcMMSMap.TYPE_OBJECT_TRACE,
-            XyElementClientType.TRACE,
-            //"foatto.app_client.xy.element.XyTrace", "foatto.app.xy.element.fxTrace",
-            11, minScale, maxScale, "",
-            itRotatable = false, itMoveable = false, itEditablePoint = false
+            name = sdcMMSMap.TYPE_OBJECT_TRACE,
+            clientType = XyElementClientType.TRACE,
+            layer = 11,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            itRotatable = false,
+            itMoveable = false,
+            itEditablePoint = false
         )
 
         hmElementConfig[sdcMMSMap.TYPE_OBJECT_PARKING] = XyElementConfig(
-            sdcMMSMap.TYPE_OBJECT_PARKING,
-            XyElementClientType.TEXT,
-            //"foatto.app_client.xy.element.XyText", "foatto.app.xy.element.fxText",
-            12, minScale, maxScale, "",
-            itRotatable = false, itMoveable = false, itEditablePoint = false
+            name = sdcMMSMap.TYPE_OBJECT_PARKING,
+            clientType = XyElementClientType.TEXT,
+            layer = 12,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            itRotatable = false,
+            itMoveable = false,
+            itEditablePoint = false
         )
 
         hmElementConfig[sdcMMSMap.TYPE_OBJECT_OVER_SPEED] = XyElementConfig(
-            sdcMMSMap.TYPE_OBJECT_OVER_SPEED,
-            XyElementClientType.TEXT,
-            //"foatto.app_client.xy.element.XyText", "foatto.app.xy.element.fxText",
-            13, minScale, maxScale, "",
-            itRotatable = false, itMoveable = false, itEditablePoint = false
+            name = sdcMMSMap.TYPE_OBJECT_OVER_SPEED,
+            clientType = XyElementClientType.TEXT,
+            layer = 13,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            itRotatable = false,
+            itMoveable = false,
+            itEditablePoint = false
         )
 
         hmElementConfig[sdcMMSMap.TYPE_OBJECT_TRACE_INFO] = XyElementConfig(
-            sdcMMSMap.TYPE_OBJECT_TRACE_INFO,
-            XyElementClientType.TEXT,
-            //"foatto.app_client.xy.element.XyText", "foatto.app.xy.element.fxText",
-            14, minScale, maxScale, "",
-            itRotatable = false, itMoveable = false, itEditablePoint = false
+            name = sdcMMSMap.TYPE_OBJECT_TRACE_INFO,
+            clientType = XyElementClientType.TEXT,
+            layer = 14,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            itRotatable = false,
+            itMoveable = false,
+            itEditablePoint = false
         )
 
         hmElementConfig[sdcMMSMap.TYPE_OBJECT_INFO] = XyElementConfig(
-            sdcMMSMap.TYPE_OBJECT_INFO,
-            XyElementClientType.MARKER,
-            //"foatto.app_client.xy.element.XyMarker", "foatto.app.xy.element.fxMarker",
-            15, minScale, maxScale, "",
-            itRotatable = false, itMoveable = false, itEditablePoint = false
+            name = sdcMMSMap.TYPE_OBJECT_INFO,
+            clientType = XyElementClientType.MARKER,
+            layer = 15,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            itRotatable = false,
+            itMoveable = false,
+            itEditablePoint = false
         )
 
         //--- прикладные топо-объекты, добавляемые пользователем вручную на карте
 
         hmElementConfig[sdcMMSMap.ELEMENT_TYPE_ZONE] = XyElementConfig(
-            sdcMMSMap.ELEMENT_TYPE_ZONE,
-            XyElementClientType.ZONE,
-            //"foatto.app_client.xy.element.XyPoly", "foatto.app.xy.element.fxZone",
-            10, minScale, maxScale, "Геозона",
-            itRotatable = false, itMoveable = true, itEditablePoint = true
+            name = sdcMMSMap.ELEMENT_TYPE_ZONE,
+            clientType = XyElementClientType.ZONE,
+            layer = 10,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "Геозона",
+            itRotatable = false,
+            itMoveable = true,
+            itEditablePoint = true
         )
 
         //        hmElementConfig.put(  sdcMMSMap.TYPE_ZONE_LINEAR, new XyElementConfig(
@@ -205,118 +227,174 @@ class MMSSpringApp : CoreSpringApp() {
 
     private fun initStateElementConfig(minScale: Int, maxScale: Int): MutableMap<String, XyElementConfig> {
 
-        val hmElementConfig = initXyElementConfig(10, minScale, maxScale)
+        val hmElementConfig = initXyElementConfig(level = 10, minScale = minScale, maxScale = maxScale)
 
         hmElementConfig[sdcMMSState.TYPE_STATE_SUM_GROUP_BOX_25D] = XyElementConfig(
-            sdcMMSState.TYPE_STATE_SUM_GROUP_BOX_25D,
-            XyElementClientType.POLY,
-            //"foatto.app_client.xy.element.XyPoly", "foatto.app.xy.element.fxPoly",
-            11, minScale, maxScale, "",
-            itRotatable = false, itMoveable = false, itEditablePoint = false
+            name = sdcMMSState.TYPE_STATE_SUM_GROUP_BOX_25D,
+            clientType = XyElementClientType.POLY,
+            layer = 11,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            itRotatable = false,
+            itMoveable = false,
+            itEditablePoint = false
         )
 
         hmElementConfig[sdcMMSState.TYPE_STATE_SUM_GROUP_TEXT_25D] = XyElementConfig(
-            sdcMMSState.TYPE_STATE_SUM_GROUP_TEXT_25D,
-            XyElementClientType.TEXT,
-            //"foatto.app_client.xy.element.XyText", "foatto.app.xy.element.fxText",
-            12, minScale, maxScale, "",
-            itRotatable = false, itMoveable = false, itEditablePoint = false
+            name = sdcMMSState.TYPE_STATE_SUM_GROUP_TEXT_25D,
+            clientType = XyElementClientType.TEXT,
+            layer = 12,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            itRotatable = false,
+            itMoveable = false,
+            itEditablePoint = false
         )
 
         hmElementConfig[sdcMMSState.TYPE_STATE_GROUP_BOX_25D] = XyElementConfig(
-            sdcMMSState.TYPE_STATE_GROUP_BOX_25D,
-            XyElementClientType.POLY,
-            //"foatto.app_client.xy.element.XyPoly", "foatto.app.xy.element.fxPoly",
-            12, minScale, maxScale, "",
-            itRotatable = false, itMoveable = false, itEditablePoint = false
+            name = sdcMMSState.TYPE_STATE_GROUP_BOX_25D,
+            clientType = XyElementClientType.POLY,
+            layer = 12,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            itRotatable = false,
+            itMoveable = false,
+            itEditablePoint = false
         )
 
         hmElementConfig[sdcMMSState.TYPE_STATE_GROUP_TEXT_25D] = XyElementConfig(
-            sdcMMSState.TYPE_STATE_GROUP_TEXT_25D,
-            XyElementClientType.TEXT,
-            //"foatto.app_client.xy.element.XyText", "foatto.app.xy.element.fxText",
-            13, minScale, maxScale, "",
-            itRotatable = false, itMoveable = false, itEditablePoint = false
+            name = sdcMMSState.TYPE_STATE_GROUP_TEXT_25D,
+            clientType = XyElementClientType.TEXT,
+            layer = 13,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            itRotatable = false,
+            itMoveable = false,
+            itEditablePoint = false
         )
 
         hmElementConfig[sdcMMSState.TYPE_STATE_LL_BOTTOM_25D] = XyElementConfig(
-            sdcMMSState.TYPE_STATE_LL_BOTTOM_25D,
-            XyElementClientType.MARKER,
-            //"foatto.app_client.xy.element.XyMarker", "foatto.app.xy.element.fxMarker",
-            14, minScale, maxScale, "",
-            itRotatable = false, itMoveable = false, itEditablePoint = false
+            name = sdcMMSState.TYPE_STATE_LL_BOTTOM_25D,
+            clientType = XyElementClientType.MARKER,
+            layer = 14,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            itRotatable = false,
+            itMoveable = false,
+            itEditablePoint = false
         )
 
         hmElementConfig[sdcMMSState.TYPE_STATE_LL_VOLUME_25D] = XyElementConfig(
-            sdcMMSState.TYPE_STATE_LL_VOLUME_25D,
-            XyElementClientType.POLY,
-            //"foatto.app_client.xy.element.XyPoly", "foatto.app.xy.element.fxPoly",
-            15, minScale, maxScale, "",
-            itRotatable = false, itMoveable = false, itEditablePoint = false
+            name = sdcMMSState.TYPE_STATE_LL_VOLUME_25D,
+            clientType = XyElementClientType.POLY,
+            layer = 15,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            itRotatable = false,
+            itMoveable = false,
+            itEditablePoint = false
         )
 
         hmElementConfig[sdcMMSState.TYPE_STATE_LL_LEVEL_25D] = XyElementConfig(
-            sdcMMSState.TYPE_STATE_LL_LEVEL_25D,
-            XyElementClientType.MARKER,
-            //"foatto.app_client.xy.element.XyMarker", "foatto.app.xy.element.fxMarker",
-            16, minScale, maxScale, "",
-            itRotatable = false, itMoveable = false, itEditablePoint = false
+            name = sdcMMSState.TYPE_STATE_LL_LEVEL_25D,
+            clientType = XyElementClientType.MARKER,
+            layer = 16,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            itRotatable = false,
+            itMoveable = false,
+            itEditablePoint = false
         )
 
         hmElementConfig[sdcMMSState.TYPE_STATE_LL_TANK_WALL_25D] = XyElementConfig(
-            sdcMMSState.TYPE_STATE_LL_TANK_WALL_25D,
-            XyElementClientType.POLY,
-            //"foatto.app_client.xy.element.XyPoly", "foatto.app.xy.element.fxPoly",
-            17, minScale, maxScale, "",
-            itRotatable = false, itMoveable = false, itEditablePoint = false
+            name = sdcMMSState.TYPE_STATE_LL_TANK_WALL_25D,
+            clientType = XyElementClientType.POLY,
+            layer = 17,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            itRotatable = false,
+            itMoveable = false,
+            itEditablePoint = false
         )
 
         hmElementConfig[sdcMMSState.TYPE_STATE_LL_TANK_TOP_25D] = XyElementConfig(
-            sdcMMSState.TYPE_STATE_LL_TANK_TOP_25D,
-            XyElementClientType.MARKER,
-            //"foatto.app_client.xy.element.XyMarker", "foatto.app.xy.element.fxMarker",
-            17, minScale, maxScale, "",
-            itRotatable = false, itMoveable = false, itEditablePoint = false
+            name = sdcMMSState.TYPE_STATE_LL_TANK_TOP_25D,
+            clientType = XyElementClientType.MARKER,
+            layer = 17,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            itRotatable = false,
+            itMoveable = false,
+            itEditablePoint = false
         )
 
         hmElementConfig[sdcMMSState.TYPE_STATE_LL_TEXT_25D] = XyElementConfig(
-            sdcMMSState.TYPE_STATE_LL_TEXT_25D,
-            XyElementClientType.TEXT,
-            //"foatto.app_client.xy.element.XyText", "foatto.app.xy.element.fxText",
-            17, minScale, maxScale, "",
-            itRotatable = false, itMoveable = false, itEditablePoint = false
+            name = sdcMMSState.TYPE_STATE_LL_TEXT_25D,
+            clientType = XyElementClientType.TEXT,
+            layer = 17,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            itRotatable = false,
+            itMoveable = false,
+            itEditablePoint = false
         )
 
         hmElementConfig[sdcMMSState.TYPE_STATE_W_FIGURE_25D] = XyElementConfig(
-            sdcMMSState.TYPE_STATE_W_FIGURE_25D,
-            XyElementClientType.POLY,
-            //"foatto.app_client.xy.element.XyPoly", "foatto.app.xy.element.fxPoly",
-            18, minScale, maxScale, "",
-            itRotatable = false, itMoveable = false, itEditablePoint = false
+            name = sdcMMSState.TYPE_STATE_W_FIGURE_25D,
+            clientType = XyElementClientType.POLY,
+            layer = 18,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            itRotatable = false,
+            itMoveable = false,
+            itEditablePoint = false
         )
 
         hmElementConfig[sdcMMSState.TYPE_STATE_W_TEXT_25D] = XyElementConfig(
-            sdcMMSState.TYPE_STATE_W_TEXT_25D,
-            XyElementClientType.TEXT,
-            //"foatto.app_client.xy.element.XyText", "foatto.app.xy.element.fxText",
-            18, minScale, maxScale, "",
-            itRotatable = false, itMoveable = false, itEditablePoint = false
+            name = sdcMMSState.TYPE_STATE_W_TEXT_25D,
+            clientType = XyElementClientType.TEXT,
+            layer = 18,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            itRotatable = false,
+            itMoveable = false,
+            itEditablePoint = false
         )
 
         hmElementConfig[sdcMMSState.TYPE_STATE_S_FIGURE_25D] = XyElementConfig(
-            sdcMMSState.TYPE_STATE_S_FIGURE_25D,
-            XyElementClientType.MARKER,
-            //"foatto.app_client.xy.element.XyMarker", "foatto.app.xy.element.fxMarker",
-            19, minScale, maxScale, "",
-            itRotatable = false, itMoveable = false, itEditablePoint = false
+            name = sdcMMSState.TYPE_STATE_S_FIGURE_25D,
+            clientType = XyElementClientType.MARKER,
+            layer = 19,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            itRotatable = false,
+            itMoveable = false,
+            itEditablePoint = false
         )
 
         hmElementConfig[sdcMMSState.TYPE_STATE_S_TEXT_25D] = XyElementConfig(
-            sdcMMSState.TYPE_STATE_S_TEXT_25D,
-            XyElementClientType.TEXT,
-            //"foatto.app_client.xy.element.XyText", "foatto.app.xy.element.fxText",
-            19, minScale, maxScale, "",
-            itRotatable = false, itMoveable = false, itEditablePoint = false
+            name = sdcMMSState.TYPE_STATE_S_TEXT_25D,
+            clientType = XyElementClientType.TEXT,
+            layer = 19,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            itRotatable = false,
+            itMoveable = false,
+            itEditablePoint = false
         )
 
         return hmElementConfig

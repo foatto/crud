@@ -1,12 +1,10 @@
 package foatto.core_server.app.xy.server.document
 
-import foatto.core.app.UP_TIME_OFFSET
 import foatto.core.app.xy.XyActionRequest
 import foatto.core.app.xy.XyActionResponse
 import foatto.core.app.xy.XyElement
 import foatto.core.link.XyDocumentConfig
 import foatto.core.util.getCurrentTimeInt
-import foatto.core.util.getZoneId
 import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.xy.XyStartData
@@ -19,7 +17,6 @@ import java.util.concurrent.ConcurrentHashMap
 abstract class sdcXyAbstract {
 
     companion object {
-
         val BITMAP = "bitmap"
         val ICON = "icon"
         val MARKER = "marker"
@@ -87,12 +84,12 @@ abstract class sdcXyAbstract {
 
         val alObjectParamData = mutableListOf<XyStartObjectParsedData>()
 
-        for(sod in sd.alStartObjectData) {
+        for (sod in sd.alStartObjectData) {
             //--- обрабатываем только параметры с заданным префиксом
-            if(isStartObjectOnly && !sod.isStart) continue
+            if (isStartObjectOnly && !sod.isStart) continue
 
             //--- собираем список объектов "только для чтения/просмотра"
-            if(sod.isReadOnly) hsReadOnlyObject.add(sod.objectID)
+            if (sod.isReadOnly) hsReadOnlyObject.add(sod.objectID)
 
             //--- разбор параметров
             val objectParamData = XyStartObjectParsedData(sod.objectID)
@@ -105,8 +102,8 @@ abstract class sdcXyAbstract {
             }
 
             //--- пройдемся по временному интервалу
-            if(sod.isTimed) {
-                if(sd.rangeType == -1) {
+            if (sod.isTimed) {
+                if (sd.rangeType == -1) {
                     objectParamData.begTime = sd.begTime
                     objectParamData.endTime = sd.endTime
                 } else {

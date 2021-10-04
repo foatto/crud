@@ -37,7 +37,7 @@ import kotlin.math.roundToInt
 class sdcMMSState : sdcXyState() {
 
     companion object {
-        //--- располагаем по возрастанию уровня расположения
+        //--- arrange in ascending order of the level of location
         const val TYPE_STATE_SUM_GROUP_BOX_25D = "mms_state_sum_group_box_25d"
         const val TYPE_STATE_SUM_GROUP_TEXT_25D = "mms_state_sum_group_text_25d"
         const val TYPE_STATE_GROUP_BOX_25D = "mms_state_group_box_25d"
@@ -56,15 +56,15 @@ class sdcMMSState : sdcXyState() {
 
         private const val CRITICAL_LL_PERCENT = 0.1
 
-        //--- опытным путём выяснено, что при слишком малой величине шага начинаются побочные эффекты от целочисленного деления
-        //--- и края схемы могут вплотную примкнуть к краям окна/экрана.
-        //--- Шаг в 1 млн. "точек" позволяет уместить до 2000 элементов схемы ( 2 млрд MAX_INTEGER / 1 млн = 2000) с достаточной точностью.
+        //--- it was empirically found that if the step size is too small, side effects from integer division begin
+        //--- and the edges of the outline can flush against the edges of the window / screen.
+        //--- A step of 1 million points allows you to fit up to 2000 circuit elements (2 billion MAX_INTEGER / 1 million = 2000) with sufficient accuracy.
         private const val GRID_STEP = 1024 * 1024
 
-        //--- привязка элемента и команды на нём
+        //--- binding an element and a command on it
         private val chmElementCommand = ConcurrentHashMap<Int, Int>()
 
-        //--- привязка элемента и номера порта на нём (для последующего определения deviceID, которое избыточно определять при отрисовке)
+        //--- binding an element and a port number on it (for the subsequent determination of the deviceID, which is redundant to determine when rendering)
         private val chmElementPort = ConcurrentHashMap<Int, Int>()
     }
 
@@ -77,7 +77,7 @@ class sdcMMSState : sdcXyState() {
         aDocumentConfig: XyDocumentConfig
     ) {
 
-        //--- схемы ---
+        //--- schemes
 
         hmInAliasElementType["mms_object"] = arrayOf(
             TYPE_STATE_SUM_GROUP_BOX_25D, TYPE_STATE_SUM_GROUP_TEXT_25D, TYPE_STATE_GROUP_BOX_25D, TYPE_STATE_GROUP_TEXT_25D,
@@ -107,10 +107,10 @@ class sdcMMSState : sdcXyState() {
     override fun getCoords(startParamID: String): XyActionResponse {
         val sd = chmSession[AppParameter.XY_START_DATA + startParamID] as XyStartData
 
-        var prjX1 = Integer.MAX_VALUE
-        var prjY1 = Integer.MAX_VALUE
-        var prjX2 = Integer.MIN_VALUE
-        var prjY2 = Integer.MIN_VALUE
+        var prjX1 = Int.MAX_VALUE
+        var prjY1 = Int.MAX_VALUE
+        var prjX2 = Int.MIN_VALUE
+        var prjY2 = Int.MIN_VALUE
 
         //--- разбор входных параметров
         val alObjectParamData = parseObjectParam(true /*isStartObjectsDefined*/, sd, mutableSetOf())
@@ -166,7 +166,7 @@ class sdcMMSState : sdcXyState() {
     override fun editElementPoint(xyActionRequest: XyActionRequest) = XyActionResponse()
     override fun moveElements(xyActionRequest: XyActionRequest) = XyActionResponse()
 
-    //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     override fun loadDynamicElements(scale: Int, objectParamData: XyStartObjectParsedData, alElement: MutableList<XyElement>) {
         //--- получить данные по правам доступа
@@ -182,7 +182,7 @@ class sdcMMSState : sdcXyState() {
 
         //--- составляем иерархию ёмкостей и оборудования
 
-        val tmSumGroup = TreeMap<String, TreeMap<String, MutableList<SensorConfig>>>()
+        val tmSumGroup = sortedMapOf<String, SortedMap<String, MutableList<SensorConfig>>>()
 
         val hmSCLL = objectConfig.hmSensorConfig[SensorConfig.SENSOR_LIQUID_LEVEL]
         if (hmSCLL != null)
@@ -264,7 +264,7 @@ class sdcMMSState : sdcXyState() {
                         xS += GRID_STEP * 8
                     }
                 }
-                x = Math.max(Math.max(xLL, xW), xS)
+                x = max(max(xLL, xW), xS)
 
                 addGroupLabel25D(
                     objectID = objectParamData.objectID,
@@ -569,8 +569,8 @@ class sdcMMSState : sdcXyState() {
         return arrElementID
     }
 
-    private fun addS25D(objectID: Int, scale: Int, x: Int, y: Int, state: Int, text: String, alResult: MutableList<XyElement>) {
-        val marker = XyElement(TYPE_STATE_S_FIGURE_25D, -getRandomInt(), objectID).apply {
+    private fun addS25D(objectId: Int, scale: Int, x: Int, y: Int, state: Int, text: String, alResult: MutableList<XyElement>) {
+        val marker = XyElement(TYPE_STATE_S_FIGURE_25D, -getRandomInt(), objectId).apply {
             itReadOnly = true
             alPoint = arrayOf(XyPoint(x + GRID_STEP * 2, y + GRID_STEP * 2))
             toolTipText = text
@@ -586,7 +586,7 @@ class sdcMMSState : sdcXyState() {
         //--- метка/текст оборудования
         val textY = y + GRID_STEP * 4
 
-        val label = XyElement(TYPE_STATE_W_TEXT_25D, -getRandomInt(), objectID).apply {
+        val label = XyElement(TYPE_STATE_W_TEXT_25D, -getRandomInt(), objectId).apply {
             itReadOnly = true
             alPoint = arrayOf(XyPoint(x, textY))
             //--- ограничиваем вывод текста по ширине
@@ -717,17 +717,3 @@ class sdcMMSState : sdcXyState() {
     }
 
 }
-//--- для тестов:
-//7 - "Буровая бригада №1" - ООО `СБК-Техносервис` - тест с сигнальными лампами
-
-//13 - "КАТойл Дриллинг"
-//
-//"Бригада № 8"
-
-//"Буровая установка ZJ-20"
-//
-//"Буровая бригада №19"
-//"Бригада Гиматудинова"
-//"ДГУ 36 кВт"
-//"МБУ бр№9"
-//"Отчет показаний расхода ДТ на Буровой Установке Т-502"

@@ -8,19 +8,20 @@ import foatto.core_server.app.xy.XyStartData
 
 abstract class sdcXyState : sdcXyAbstract() {
 
-    override fun getElements(xyActionRequest: XyActionRequest ): XyActionResponse {
+    override fun getElements(xyActionRequest: XyActionRequest): XyActionResponse {
 
         val xyStartDataID = xyActionRequest.startParamID
         val sd = chmSession[AppParameter.XY_START_DATA + xyStartDataID] as XyStartData
 
         //--- разбор входных параметров
         val hsReadOnlyObject = mutableSetOf<Int>()
-        val alObjectParamData = parseObjectParam( false, sd, hsReadOnlyObject )
+        val alObjectParamData = parseObjectParam(false, sd, hsReadOnlyObject)
 
         val alElement = mutableListOf<XyElement>()
         //--- загрузка динамических объектов
-        for( objectParamData in alObjectParamData )
-            loadDynamicElements( xyActionRequest.viewCoord!!.scale, objectParamData, alElement )
+        for (objectParamData in alObjectParamData) {
+            loadDynamicElements(xyActionRequest.viewCoord!!.scale, objectParamData, alElement)
+        }
 
         return XyActionResponse(alElement = alElement.toTypedArray())
     }

@@ -47,27 +47,39 @@ class AdvancedLogger : Thread() {
         }
 
         fun error(t: Throwable, subDir: String = "") {
-            if (isErrorEnabled) log(subDir, "[ERROR]", t)
+            if (isErrorEnabled) {
+                log(subDir, "[ERROR]", t)
+            }
         }
 
         fun info(t: Throwable, subDir: String = "") {
-            if (isInfoEnabled) log(subDir, "[INFO]", t)
+            if (isInfoEnabled) {
+                log(subDir, "[INFO]", t)
+            }
         }
 
         fun debug(t: Throwable, subDir: String = "") {
-            if (isDebugEnabled) log(subDir, "[DEBUG]", t)
+            if (isDebugEnabled) {
+                log(subDir, "[DEBUG]", t)
+            }
         }
 
         fun error(message: String, subDir: String = "") {
-            if (isErrorEnabled) log(subDir, "[ERROR]", message)
+            if (isErrorEnabled) {
+                log(subDir, "[ERROR]", message)
+            }
         }
 
         fun info(message: String, subDir: String = "") {
-            if (isInfoEnabled) log(subDir, "[INFO]", message)
+            if (isInfoEnabled) {
+                log(subDir, "[INFO]", message)
+            }
         }
 
         fun debug(message: String, subDir: String = "") {
-            if (isDebugEnabled) log(subDir, "[DEBUG]", message)
+            if (isDebugEnabled) {
+                log(subDir, "[DEBUG]", message)
+            }
         }
 
         fun close(isWait: Boolean = true) {

@@ -137,51 +137,75 @@ open class CoreSpringApp {
         val hmElementConfig = mutableMapOf<String, XyElementConfig>()
 
         hmElementConfig[sdcXyAbstract.BITMAP] = XyElementConfig(
-            sdcXyAbstract.BITMAP,
-            XyElementClientType.BITMAP,
-            //"foatto.app_client.xy.element.XyBitmap", "foatto.app.xy.element.fxBitmap",
-            0, minScale, maxScale, "",
-            itRotatable = false, itMoveable = true, itEditablePoint = false
+            name = sdcXyAbstract.BITMAP,
+            clientType = XyElementClientType.BITMAP,
+            layer = 0,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            itRotatable = false,
+            itMoveable = true,
+            itEditablePoint = false
         )
 
         hmElementConfig[sdcXyAbstract.ICON] = XyElementConfig(
-            sdcXyAbstract.ICON,
-            XyElementClientType.ICON,
-            //"foatto.app_client.xy.element.XyIcon", "foatto.app.xy.element.fxIcon",
-            level, minScale, maxScale, "",
-            itRotatable = true, itMoveable = true, itEditablePoint = false
+            name = sdcXyAbstract.ICON,
+            clientType = XyElementClientType.ICON,
+            layer = level,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            itRotatable = true,
+            itMoveable = true,
+            itEditablePoint = false
         )
 
         hmElementConfig[sdcXyAbstract.MARKER] = XyElementConfig(
-            sdcXyAbstract.MARKER,
-            XyElementClientType.MARKER,
-            //"foatto.app_client.xy.element.XyMarker", "foatto.app.xy.element.fxMarker",
-            level, minScale, maxScale, "",
-            itRotatable = true, itMoveable = true, itEditablePoint = false
+            name = sdcXyAbstract.MARKER,
+            clientType = XyElementClientType.MARKER,
+            layer = level,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            itRotatable = true,
+            itMoveable = true,
+            itEditablePoint = false
         )
 
         hmElementConfig[sdcXyAbstract.POLY] = XyElementConfig(
-            sdcXyAbstract.POLY,
-            XyElementClientType.POLY,
-            //"foatto.app_client.xy.element.XyPoly", "foatto.app.xy.element.fxPoly",
-            level, minScale, maxScale, "",
-            itRotatable = false, itMoveable = true, itEditablePoint = true
+            name = sdcXyAbstract.POLY,
+            clientType = XyElementClientType.POLY,
+            layer = level,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            itRotatable = false,
+            itMoveable = true,
+            itEditablePoint = true
         )
 
         hmElementConfig[sdcXyAbstract.TEXT] = XyElementConfig(
-            sdcXyAbstract.TEXT,
-            XyElementClientType.TEXT,
-            //"foatto.app_client.xy.element.XyText", "foatto.app.xy.element.fxText",
-            level, minScale, maxScale, "",
-            itRotatable = true, itMoveable = true, itEditablePoint = false
+            name = sdcXyAbstract.TEXT,
+            clientType = XyElementClientType.TEXT,
+            layer = level,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            itRotatable = true,
+            itMoveable = true,
+            itEditablePoint = false
         )
 
         hmElementConfig[sdcXyAbstract.TRACE] = XyElementConfig(
-            sdcXyAbstract.TRACE,
-            XyElementClientType.TRACE,
-            //"foatto.app_client.xy.element.XyTrace", "foatto.app.xy.element.fxTrace",
-            level, minScale, maxScale, "",
-            itRotatable = false, itMoveable = true, itEditablePoint = true
+            name = sdcXyAbstract.TRACE,
+            clientType = XyElementClientType.TRACE,
+            layer = level,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            itRotatable = false,
+            itMoveable = true,
+            itEditablePoint = true
         )
 
         return hmElementConfig
