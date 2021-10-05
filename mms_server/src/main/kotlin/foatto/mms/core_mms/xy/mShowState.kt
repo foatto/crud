@@ -36,6 +36,16 @@ class mShowState : mAbstract() {
         //----------------------------------------------------------------------------------------------------------------------
 
         os = ObjectSelector()
-        os.fillColumns(this, true, true, alTableHiddenColumn, alFormHiddenColumn, alFormColumn, hmParentColumn, false, -1)
+        os.fillColumns(
+            model = this,
+            isRequired = true,
+            isSelector = true,
+            alTableHiddenColumn = alTableHiddenColumn,
+            alFormHiddenColumn = alFormHiddenColumn,
+            alFormColumn = alFormColumn,
+            hmParentColumn = hmParentColumn,
+            aSingleObjectMode = false,
+            addedStaticColumnCount = -1
+        )
     }
 }
