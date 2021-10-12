@@ -85,38 +85,36 @@ open class SensorConfig(
         const val SMOOTH_METOD_AVERAGE_GEOMETRIC = 3
 
         //--- названия датчиков
-        val hmSensorDescr = mutableMapOf<Int, String>()
-
-        init {
-            hmSensorDescr[SENSOR_SIGNAL] = "Сигнал"
-            hmSensorDescr[SENSOR_GEO] = "Гео-данные"
-            hmSensorDescr[SENSOR_WORK] = "Работа оборудования"
-            hmSensorDescr[SENSOR_LIQUID_FLOW_CALC] = "Скорость расхода топлива (расчётная)"
-            hmSensorDescr[SENSOR_LIQUID_LEVEL] = "Уровень топлива"
-            hmSensorDescr[SENSOR_WEIGHT] = "Вес"
-            hmSensorDescr[SENSOR_TURN] = "Обороты"
-            hmSensorDescr[SENSOR_PRESSURE] = "Давление"
-            hmSensorDescr[SENSOR_TEMPERATURE] = "Температура"
-            hmSensorDescr[SENSOR_VOLTAGE] = "Напряжение"
-            hmSensorDescr[SENSOR_POWER] = "Мощность"
-            hmSensorDescr[SENSOR_DENSITY] = "Плотность"
-            hmSensorDescr[SENSOR_MASS_FLOW] = "Массовый расход"
-            hmSensorDescr[SENSOR_VOLUME_FLOW] = "Объёмный расход"
-            hmSensorDescr[SENSOR_MASS_ACCUMULATED] = "Накопленная масса"
-            hmSensorDescr[SENSOR_VOLUME_ACCUMULATED] = "Накопленный объём"
-            hmSensorDescr[SENSOR_LIQUID_USING] = "Расход топлива (счётчик)"
-            hmSensorDescr[SENSOR_LIQUID_USING_COUNTER_STATE] = "Состояние расходомера (счётчика)"
-            hmSensorDescr[SENSOR_ENERGO_COUNT_AD] = "Электроэнергия активная прямая"
-            hmSensorDescr[SENSOR_ENERGO_COUNT_AR] = "Электроэнергия активная обратная"
-            hmSensorDescr[SENSOR_ENERGO_COUNT_RD] = "Электроэнергия реактивная прямая"
-            hmSensorDescr[SENSOR_ENERGO_COUNT_RR] = "Электроэнергия реактивная обратная"
-            hmSensorDescr[SENSOR_ENERGO_VOLTAGE] = "Электрическое напряжение"
-            hmSensorDescr[SENSOR_ENERGO_CURRENT] = "Электрический ток"
-            hmSensorDescr[SENSOR_ENERGO_POWER_KOEF] = "Коэффициент мощности"
-            hmSensorDescr[SENSOR_ENERGO_POWER_ACTIVE] = "Активная мощность"
-            hmSensorDescr[SENSOR_ENERGO_POWER_REACTIVE] = "Реактивная мощность"
-            hmSensorDescr[SENSOR_ENERGO_POWER_FULL] = "Полная мощность"
-        }
+        val hmSensorDescr = mutableMapOf(
+            SENSOR_SIGNAL to "Сигнал",
+            SENSOR_GEO to "Гео-данные",
+            SENSOR_WORK to "Работа оборудования",
+            SENSOR_LIQUID_FLOW_CALC to "Скорость расхода топлива (расчётная)",
+            SENSOR_LIQUID_LEVEL to "Уровень топлива",
+            SENSOR_WEIGHT to "Вес",
+            SENSOR_TURN to "Обороты",
+            SENSOR_PRESSURE to "Давление",
+            SENSOR_TEMPERATURE to "Температура",
+            SENSOR_VOLTAGE to "Напряжение",
+            SENSOR_POWER to "Мощность",
+            SENSOR_DENSITY to "Плотность",
+            SENSOR_MASS_FLOW to "Массовый расход",
+            SENSOR_VOLUME_FLOW to "Объёмный расход",
+            SENSOR_MASS_ACCUMULATED to "Накопленная масса",
+            SENSOR_VOLUME_ACCUMULATED to "Накопленный объём",
+            SENSOR_LIQUID_USING to "Расход топлива (счётчик)",
+            SENSOR_LIQUID_USING_COUNTER_STATE to "Состояние расходомера (счётчика)",
+            SENSOR_ENERGO_COUNT_AD to "Электроэнергия активная прямая",
+            SENSOR_ENERGO_COUNT_AR to "Электроэнергия активная обратная",
+            SENSOR_ENERGO_COUNT_RD to "Электроэнергия реактивная прямая",
+            SENSOR_ENERGO_COUNT_RR to "Электроэнергия реактивная обратная",
+            SENSOR_ENERGO_VOLTAGE to "Электрическое напряжение",
+            SENSOR_ENERGO_CURRENT to "Электрический ток",
+            SENSOR_ENERGO_POWER_KOEF to "Коэффициент мощности",
+            SENSOR_ENERGO_POWER_ACTIVE to "Активная мощность",
+            SENSOR_ENERGO_POWER_REACTIVE to "Реактивная мощность",
+            SENSOR_ENERGO_POWER_FULL to "Полная мощность",
+        )
     }
 }
 

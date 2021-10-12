@@ -36,8 +36,8 @@ class ObjectState {
 
     companion object {
 
-        //--- the beginning of the time interval - no more than a year
-        private const val DEFAULT_VIEW_PERIOD = 365 * 24 * 60 * 60
+        //--- the beginning of the time interval - no more than a month
+        private const val DEFAULT_VIEW_PERIOD = 30 * 24 * 60 * 60
 
         fun getState(
             stm: CoreAdvancedStatement,

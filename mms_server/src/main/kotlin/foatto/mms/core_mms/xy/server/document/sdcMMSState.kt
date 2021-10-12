@@ -116,8 +116,7 @@ class sdcMMSState : sdcXyState() {
         val alObjectParamData = parseObjectParam(true /*isStartObjectsDefined*/, sd, mutableSetOf())
 
         //--- получить данные по правам доступа
-        val hsPermission = userConfig.userPermission["mms_object"]
-        val isRemoteControlPermission = hsPermission?.contains(cObject.PERM_REMOTE_CONTROL) ?: false
+        val isRemoteControlPermission = userConfig.userPermission["mms_object"]?.contains(cObject.PERM_REMOTE_CONTROL) ?: false
 
         //--- отдельная обработка динамических объектов
         for (objectParamData in alObjectParamData) {
@@ -170,8 +169,7 @@ class sdcMMSState : sdcXyState() {
 
     override fun loadDynamicElements(scale: Int, objectParamData: XyStartObjectParsedData, alElement: MutableList<XyElement>) {
         //--- получить данные по правам доступа
-        val hsPermission = userConfig.userPermission["mms_object"]
-        val isRemoteControlPermission = hsPermission?.contains(cObject.PERM_REMOTE_CONTROL) ?: false
+        val isRemoteControlPermission = userConfig.userPermission["mms_object"]?.contains(cObject.PERM_REMOTE_CONTROL) ?: false
 
         alElement.addAll(getElementList(scale, objectParamData, isRemoteControlPermission))
     }
@@ -252,10 +250,10 @@ class sdcMMSState : sdcXyState() {
                         )
                         for (elementID in arrElementID) {
                             //--- пропишем/обнулим команду на этот элемент
-                            chmElementCommand.put(elementID, commandID)
+                            chmElementCommand[elementID] = commandID
                             //--- пропишем/обнулим номер порта датчика на этот элемент
                             //--- (для последующего определения device_id для отправки команды)
-                            chmElementPort.put(elementID, sc.portNum)
+                            chmElementPort[elementID] = sc.portNum
                         }
                         xW += GRID_STEP * 8
                     } else if (sc is SensorConfigSignal) {
