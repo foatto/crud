@@ -147,15 +147,33 @@ class sdcMMSState : sdcXyState() {
         if (commandID != 0) {
             var deviceID = 0
             val deviceIndex = chmElementPort[elementID]!! / AbstractTelematicHandler.MAX_PORT_PER_DEVICE
-            val rs = stm.executeQuery(" SELECT id FROM MMS_device WHERE object_id = $objectID AND device_index = $deviceIndex")
-            if (rs.next()) deviceID = rs.getInt(1)
+            val rs = stm.executeQuery(
+                """
+                    SELECT id 
+                    FROM MMS_device 
+                    WHERE object_id = $objectID 
+                    AND device_index = $deviceIndex
+                """
+            )
+            if (rs.next()) {
+                deviceID = rs.getInt(1)
+            }
             rs.close()
 
-            if (deviceID != 0) stm.executeUpdate(
-                " INSERT INTO MMS_device_command_history ( id , user_id , device_id , object_id , command_id , edit_time , for_send , send_time ) VALUES ( " +
-                    "${stm.getNextID("MMS_device_command_history", "id")} , ${userConfig.userId} , $deviceID , $objectID , $commandID , " +
-                    "${getCurrentTimeInt()} , 1 , 0 ) "
-            )
+            if (deviceID != 0) {
+                stm.executeUpdate(
+                    """
+                        INSERT INTO MMS_device_command_history ( id , 
+                            user_id , device_id , object_id , 
+                            command_id , edit_time , 
+                            for_send , send_time ) VALUES ( 
+                            ${stm.getNextID("MMS_device_command_history", "id")} , 
+                            ${userConfig.userId} , $deviceID , $objectID , 
+                            $commandID , ${getCurrentTimeInt()} , 
+                            1 , 0 ) 
+                    """
+                )
+            }
         }
 
         return XyActionResponse()
@@ -537,13 +555,22 @@ class sdcMMSState : sdcXyState() {
     private fun addW25D(objectID: Int, x: Int, y: Int, state: Int, isControlEnabled: Boolean, text: String, toolTip: String, alResult: MutableList<XyElement>): Array<Int> {
 
         val arrElementID = drawCube(
-            objectID, TYPE_STATE_W_FIGURE_25D, !isControlEnabled, toolTip,
-            x, y, GRID_STEP * 4, GRID_STEP * 2, GRID_STEP, GRID_STEP * 4,
-            if (state < 0) 2 else 0, if (state < 0) 0xFF_FF_00_00.toInt() else 0,
-            if (state > 0) 0xFF_00_FF_00.toInt() else 0xFF_D0_D0_D0.toInt(),
-            if (state > 0) 0xFF_00_E0_00.toInt() else 0xFF_C0_C0_C0.toInt(),
-            if (state > 0) 0xFF_00_C0_00.toInt() else 0xFF_B0_B0_B0.toInt(),
-            alResult
+            objectID = objectID,
+            elementType = TYPE_STATE_W_FIGURE_25D,
+            isReadOnly = !isControlEnabled,
+            toolTip = toolTip,
+            x = x,
+            y = y,
+            w = GRID_STEP * 4,
+            h = GRID_STEP * 2,
+            dw = GRID_STEP,
+            dh = GRID_STEP * 4,
+            lineWidth = if (state < 0) 2 else 0,
+            drawColor = if (state < 0) 0xFF_FF_00_00.toInt() else 0,
+            topFillColor = if (state > 0) 0xFF_00_FF_00.toInt() else 0xFF_D0_D0_D0.toInt(),
+            frontFillColor = if (state > 0) 0xFF_00_E0_00.toInt() else 0xFF_C0_C0_C0.toInt(),
+            sideFillColor = if (state > 0) 0xFF_00_C0_00.toInt() else 0xFF_B0_B0_B0.toInt(),
+            alResult = alResult
         )
 
         val label = XyElement(TYPE_STATE_W_TEXT_25D, -getRandomInt(), objectID).apply {
@@ -685,8 +712,9 @@ class sdcMMSState : sdcXyState() {
 
     private fun getSignalEnabled(objectState: ObjectState, hmSCS: Map<Int, SensorConfig>, signalConfig: SignalConfig): Boolean {
         //--- если разрешителей не прописано - то можно по умолчанию
-        if (signalConfig.alPort.isEmpty()) return true
-        else {
+        if (signalConfig.alPort.isEmpty()) {
+            return true
+        } else {
             for (portNum in signalConfig.alPort) {
                 val scs = hmSCS[portNum] as SensorConfigSignal
                 val signalState = objectState.tmSignalState[scs.descr]

@@ -618,8 +618,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                         var editElement: XyElementData? = null
                         var itMoveable = false
                         val alMoveElement = mutableListOf<XyElementData>()
-                        for (element in getXyElementList(that(), mouseXyRect)) {
-                            //if( !element.element.itReadOnly ) { - уже проверяется в getXyElementList
+                        for (element in getXyElementList(that(), mouseXyRect, true)) {
                             element.itSelected = when (selectOption) {
                                 SelectOption.SET,
                                 SelectOption.ADD -> true

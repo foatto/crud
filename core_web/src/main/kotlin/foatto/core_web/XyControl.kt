@@ -466,18 +466,11 @@ fun getXyElements(that: dynamic, xyResponse: XyResponse, scaleKoef: Double, newV
 //    return alResult.asReversed()
 //}
 
-fun getXyElementList(that: dynamic, rect: XyRect): List<XyElementData> {
+fun getXyElementList(that: dynamic, rect: XyRect, isCollectEditableOnly: Boolean): List<XyElementData> {
     val arrXyElement = that.arrXyElement.unsafeCast<Array<Array<XyElementData>>>()
-    val alResult = mutableListOf<XyElementData>()
-    arrXyElement.forEach { arrXyElementIn ->
-        arrXyElementIn.forEach { xyElement ->
-            //--- небольшой хак: список элементов нужен только для интерактива, поэтмоу прежде чем тратить время на проверки геометрии - проверяем, а надо ли вообще проверять
-            if (!xyElement.itReadOnly && xyElement.isIntersects(rect))
-                alResult.add(xyElement)
-        }
-    }
-
-    return alResult.asReversed()
+    return arrXyElement.flatten().filter { xyElement ->
+        isCollectEditableOnly.xor(xyElement.itReadOnly) && xyElement.isIntersects(rect)
+    }.asReversed()
 }
 
 fun xyDeselectAll(that: dynamic) {
