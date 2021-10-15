@@ -39,7 +39,7 @@ class mSensor : mAbstract() {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
-        val parentObjectID = hmParentData["mms_object"]
+        val parentObjectId = hmParentData["mms_object"]
 
         //--- this is "equipment" (for users) or full "sensors" (for installers)?
         val isEquip = aliasConfig.alias == "mms_equip"
@@ -59,7 +59,7 @@ class mSensor : mAbstract() {
         val columnSensorGroup = ColumnString(tableName, "group_name", "Группа датчиков", STRING_COLUMN_WIDTH).apply {
             addCombo("")
             val rs = stm.executeQuery(
-                " SELECT DISTINCT group_name FROM $tableName WHERE object_id = $parentObjectID AND group_name IS NOT NULL AND group_name <> '' ORDER BY group_name "
+                " SELECT DISTINCT group_name FROM $tableName WHERE object_id = $parentObjectId AND group_name IS NOT NULL AND group_name <> '' ORDER BY group_name "
             )
             while (rs.next()) {
                 addCombo(rs.getString(1).trim())

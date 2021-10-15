@@ -104,8 +104,8 @@ class sdcMMSState : sdcXyState() {
         super.init(aApplication, aConn, aStm, aChmSession, aUserConfig, aDocumentConfig)
     }
 
-    override fun getCoords(startParamID: String): XyActionResponse {
-        val sd = chmSession[AppParameter.XY_START_DATA + startParamID] as XyStartData
+    override fun getCoords(startParamId: String): XyActionResponse {
+        val sd = chmSession[AppParameter.XY_START_DATA + startParamId] as XyStartData
 
         var prjX1 = Int.MAX_VALUE
         var prjY1 = Int.MAX_VALUE
@@ -140,18 +140,18 @@ class sdcMMSState : sdcXyState() {
     override fun getOneElement(xyActionRequest: XyActionRequest) = XyActionResponse()
 
     override fun clickElement(xyActionRequest: XyActionRequest): XyActionResponse {
-        val elementID = xyActionRequest.elementID!!
-        val objectID = xyActionRequest.objectID!!
+        val elementId = xyActionRequest.elementId!!
+        val objectId = xyActionRequest.objectId!!
 
-        val commandID = chmElementCommand[elementID]
+        val commandID = chmElementCommand[elementId]
         if (commandID != 0) {
             var deviceID = 0
-            val deviceIndex = chmElementPort[elementID]!! / AbstractTelematicHandler.MAX_PORT_PER_DEVICE
+            val deviceIndex = chmElementPort[elementId]!! / AbstractTelematicHandler.MAX_PORT_PER_DEVICE
             val rs = stm.executeQuery(
                 """
                     SELECT id 
                     FROM MMS_device 
-                    WHERE object_id = $objectID 
+                    WHERE object_id = $objectId 
                     AND device_index = $deviceIndex
                 """
             )
@@ -168,7 +168,7 @@ class sdcMMSState : sdcXyState() {
                             command_id , edit_time , 
                             for_send , send_time ) VALUES ( 
                             ${stm.getNextID("MMS_device_command_history", "id")} , 
-                            ${userConfig.userId} , $deviceID , $objectID , 
+                            ${userConfig.userId} , $deviceID , $objectId , 
                             $commandID , ${getCurrentTimeInt()} , 
                             1 , 0 ) 
                     """
@@ -193,7 +193,7 @@ class sdcMMSState : sdcXyState() {
     }
 
     private fun getElementList(scale: Int, objectParamData: XyStartObjectParsedData, isRemoteControlPermission: Boolean): List<XyElement> {
-        val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, objectParamData.objectID)
+        val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, objectParamData.objectId)
         val objectState = ObjectState.getState(stm, objectConfig)
 
         //--- составляем иерархию ёмкостей и оборудования
@@ -243,7 +243,7 @@ class sdcMMSState : sdcXyState() {
                         val liquidLevel = objectState.tmLiquidLevel[sc.descr]
                         val curLevel = if (liquidError == null && liquidLevel != null) liquidLevel else 0.0
                         addLL25D(
-                            objectParamData.objectID, sc, scale, xLL, GRID_STEP * 3, curLevel,
+                            objectParamData.objectId, sc, scale, xLL, GRID_STEP * 3, curLevel,
                             StringBuilder(sc.descr).append(if (liquidError == null) "" else '\n').append(liquidError ?: "").toString(), alResult
                         )
                         xLL += GRID_STEP * 8
@@ -262,28 +262,28 @@ class sdcMMSState : sdcXyState() {
                                 toolTip = "Включить $toolTip"
                             }
                         }
-                        val arrElementID = addW25D(
-                            objectParamData.objectID, xW, GRID_STEP * 8, if (workState == null) -1 else if (workState) 1 else 0, commandID != 0,
+                        val arrelementId = addW25D(
+                            objectParamData.objectId, xW, GRID_STEP * 8, if (workState == null) -1 else if (workState) 1 else 0, commandID != 0,
                             sc.descr, toolTip, alResult
                         )
-                        for (elementID in arrElementID) {
+                        for (elementId in arrelementId) {
                             //--- пропишем/обнулим команду на этот элемент
-                            chmElementCommand[elementID] = commandID
+                            chmElementCommand[elementId] = commandID
                             //--- пропишем/обнулим номер порта датчика на этот элемент
                             //--- (для последующего определения device_id для отправки команды)
-                            chmElementPort[elementID] = sc.portNum
+                            chmElementPort[elementId] = sc.portNum
                         }
                         xW += GRID_STEP * 8
                     } else if (sc is SensorConfigSignal) {
                         val signalState = objectState.tmSignalState[sc.descr]
-                        addS25D(objectParamData.objectID, scale, xS, GRID_STEP * 16, if (signalState == null) -1 else if (signalState) 1 else 0, sc.descr, alResult)
+                        addS25D(objectParamData.objectId, scale, xS, GRID_STEP * 16, if (signalState == null) -1 else if (signalState) 1 else 0, sc.descr, alResult)
                         xS += GRID_STEP * 8
                     }
                 }
                 x = max(max(xLL, xW), xS)
 
                 addGroupLabel25D(
-                    objectID = objectParamData.objectID,
+                    objectId = objectParamData.objectId,
                     x = groupX - GRID_STEP,
                     y = GRID_STEP * 1,
                     limitWidth = x - groupX - GRID_STEP * 2,
@@ -293,7 +293,7 @@ class sdcMMSState : sdcXyState() {
                 )
             }
             addSumGroupLabel25D(
-                objectID = objectParamData.objectID,
+                objectId = objectParamData.objectId,
                 x = sumGroupX - GRID_STEP * 2,
                 y = 0,
                 limitWidth = x - sumGroupX,
@@ -329,15 +329,15 @@ class sdcMMSState : sdcXyState() {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     //--- метка/текст группы
-    private fun addSumGroupLabel25D(objectID: Int, x: Int, y: Int, limitWidth: Int, limitHeight: Int, text: String, alResult: MutableList<XyElement>) {
+    private fun addSumGroupLabel25D(objectId: Int, x: Int, y: Int, limitWidth: Int, limitHeight: Int, text: String, alResult: MutableList<XyElement>) {
 
         drawCube(
-            objectID, TYPE_STATE_SUM_GROUP_BOX_25D, true, "",
+            objectId, TYPE_STATE_SUM_GROUP_BOX_25D, true, "",
             x, y, limitWidth, limitHeight, GRID_STEP * 4, GRID_STEP * 2,
             0, 0, 0xFF_F0_F0_F0.toInt(), 0xFF_E0_E0_E0.toInt(), 0xFF_D0_D0_D0.toInt(), alResult
         )
 
-        val label = XyElement(TYPE_STATE_SUM_GROUP_TEXT_25D, -getRandomInt(), objectID).apply {
+        val label = XyElement(TYPE_STATE_SUM_GROUP_TEXT_25D, -getRandomInt(), objectId).apply {
             itReadOnly = true
             alPoint = arrayOf(XyPoint(x, y + limitHeight))
 
@@ -360,15 +360,15 @@ class sdcMMSState : sdcXyState() {
     }
 
     //--- метка/текст группы
-    private fun addGroupLabel25D(objectID: Int, x: Int, y: Int, limitWidth: Int, limitHeight: Int, text: String, alResult: MutableList<XyElement>) {
+    private fun addGroupLabel25D(objectId: Int, x: Int, y: Int, limitWidth: Int, limitHeight: Int, text: String, alResult: MutableList<XyElement>) {
 
         drawCube(
-            objectID, TYPE_STATE_GROUP_BOX_25D, true, "",
+            objectId, TYPE_STATE_GROUP_BOX_25D, true, "",
             x, y, limitWidth, limitHeight, GRID_STEP * 7 / 2, GRID_STEP * 2,
             0, 0, 0xFF_E0_E0_E0.toInt(), 0xFF_D0_D0_D0.toInt(), 0xFF_C0_C0_C0.toInt(), alResult
         )
 
-        val label = XyElement(TYPE_STATE_GROUP_TEXT_25D, -getRandomInt(), objectID).apply {
+        val label = XyElement(TYPE_STATE_GROUP_TEXT_25D, -getRandomInt(), objectId).apply {
             itReadOnly = true
             alPoint = arrayOf(XyPoint(x, y + limitHeight))
 
@@ -391,7 +391,7 @@ class sdcMMSState : sdcXyState() {
     }
 
     //--- объём в литрах ---
-    private fun addLL25D(objectID: Int, sc: SensorConfigLiquidLevel, scale: Int, x: Int, y: Int, curLevel: Double, tankName: String, alResult: MutableList<XyElement>) {
+    private fun addLL25D(objectId: Int, sc: SensorConfigLiquidLevel, scale: Int, x: Int, y: Int, curLevel: Double, tankName: String, alResult: MutableList<XyElement>) {
 
         val percent = curLevel / if (sc.maxView == 0.0) curLevel else sc.maxView
         val totalVolumeText = getSplittedDouble(sc.maxView, 0, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
@@ -411,7 +411,7 @@ class sdcMMSState : sdcXyState() {
         val tankDrawColor = if (percent < CRITICAL_LL_PERCENT) 0xFF_FF_00_00.toInt() else 0xFF_00_00_00.toInt()
 
         //--- дно ёмкости
-        val bottom = XyElement(TYPE_STATE_LL_BOTTOM_25D, -getRandomInt(), objectID).apply {
+        val bottom = XyElement(TYPE_STATE_LL_BOTTOM_25D, -getRandomInt(), objectId).apply {
             itReadOnly = true
             alPoint = arrayOf(XyPoint(x, y))
             toolTipText = tankName
@@ -426,7 +426,7 @@ class sdcMMSState : sdcXyState() {
         alResult.add(bottom)
 
         //--- объём жидкости
-        val volume = XyElement(TYPE_STATE_LL_VOLUME_25D, -getRandomInt(), objectID).apply {
+        val volume = XyElement(TYPE_STATE_LL_VOLUME_25D, -getRandomInt(), objectId).apply {
             itReadOnly = true
 
             itClosed = true
@@ -444,7 +444,7 @@ class sdcMMSState : sdcXyState() {
         alResult.add(volume)
 
         //--- уровень жидкости
-        val level = XyElement(TYPE_STATE_LL_LEVEL_25D, -getRandomInt(), objectID).apply {
+        val level = XyElement(TYPE_STATE_LL_LEVEL_25D, -getRandomInt(), objectId).apply {
             itReadOnly = true
             alPoint = arrayOf(XyPoint(x, y - levelHeight))
             toolTipText = tankName
@@ -458,7 +458,7 @@ class sdcMMSState : sdcXyState() {
         alResult.add(level)
 
         //--- стенки ёмкости
-        val tankWall1 = XyElement(TYPE_STATE_LL_TANK_WALL_25D, -getRandomInt(), objectID).apply {
+        val tankWall1 = XyElement(TYPE_STATE_LL_TANK_WALL_25D, -getRandomInt(), objectId).apply {
             itReadOnly = true
 
             itClosed = false
@@ -469,7 +469,7 @@ class sdcMMSState : sdcXyState() {
         }
         alResult.add(tankWall1)
 
-        val tankWall2 = XyElement(TYPE_STATE_LL_TANK_WALL_25D, -getRandomInt(), objectID).apply {
+        val tankWall2 = XyElement(TYPE_STATE_LL_TANK_WALL_25D, -getRandomInt(), objectId).apply {
             itReadOnly = true
 
             itClosed = false
@@ -481,7 +481,7 @@ class sdcMMSState : sdcXyState() {
         alResult.add(tankWall2)
 
         //--- верх ёмкости
-        val tankTop = XyElement(TYPE_STATE_LL_TANK_TOP_25D, -getRandomInt(), objectID).apply {
+        val tankTop = XyElement(TYPE_STATE_LL_TANK_TOP_25D, -getRandomInt(), objectId).apply {
             itReadOnly = true
             alPoint = arrayOf(XyPoint(x, y - tankHeight))
             toolTipText = tankName
@@ -495,7 +495,7 @@ class sdcMMSState : sdcXyState() {
         alResult.add(tankTop)
 
         //--- общая ёмкость
-        val topLevelLabel = XyElement(TYPE_STATE_LL_TEXT_25D, -getRandomInt(), objectID).apply {
+        val topLevelLabel = XyElement(TYPE_STATE_LL_TEXT_25D, -getRandomInt(), objectId).apply {
             itReadOnly = true
             alPoint = arrayOf(XyPoint(x - GRID_STEP * 2, y - tankHeight - GRID_STEP * 4))
             //--- НЕ ограничиваем вывод текста по ширине
@@ -514,7 +514,7 @@ class sdcMMSState : sdcXyState() {
         alResult.add(topLevelLabel)
 
         //--- текущий уровень
-        val currentLevelLabel = XyElement(TYPE_STATE_LL_TEXT_25D, -getRandomInt(), objectID).apply {
+        val currentLevelLabel = XyElement(TYPE_STATE_LL_TEXT_25D, -getRandomInt(), objectId).apply {
             itReadOnly = true
             alPoint = arrayOf(XyPoint(x + GRID_STEP * 2, y - levelHeight))
             //--- НЕ ограничиваем вывод текста по ширине
@@ -533,7 +533,7 @@ class sdcMMSState : sdcXyState() {
         alResult.add(currentLevelLabel)
 
         //--- наименование ёмкости
-        val nameLabel = XyElement(TYPE_STATE_LL_TEXT_25D, -getRandomInt(), objectID).apply {
+        val nameLabel = XyElement(TYPE_STATE_LL_TEXT_25D, -getRandomInt(), objectId).apply {
             itReadOnly = true
             alPoint = arrayOf(XyPoint(x - GRID_STEP * 2, y + GRID_STEP * 2))
             //--- ограничиваем вывод текста по ширине
@@ -552,10 +552,10 @@ class sdcMMSState : sdcXyState() {
         alResult.add(nameLabel)
     }
 
-    private fun addW25D(objectID: Int, x: Int, y: Int, state: Int, isControlEnabled: Boolean, text: String, toolTip: String, alResult: MutableList<XyElement>): Array<Int> {
+    private fun addW25D(objectId: Int, x: Int, y: Int, state: Int, isControlEnabled: Boolean, text: String, toolTip: String, alResult: MutableList<XyElement>): Array<Int> {
 
-        val arrElementID = drawCube(
-            objectID = objectID,
+        val arrelementId = drawCube(
+            objectId = objectId,
             elementType = TYPE_STATE_W_FIGURE_25D,
             isReadOnly = !isControlEnabled,
             toolTip = toolTip,
@@ -573,7 +573,7 @@ class sdcMMSState : sdcXyState() {
             alResult = alResult
         )
 
-        val label = XyElement(TYPE_STATE_W_TEXT_25D, -getRandomInt(), objectID).apply {
+        val label = XyElement(TYPE_STATE_W_TEXT_25D, -getRandomInt(), objectId).apply {
             itReadOnly = true
             alPoint = arrayOf(XyPoint(x, y + GRID_STEP * 7))
             //--- ограничиваем вывод текста по ширине
@@ -591,7 +591,7 @@ class sdcMMSState : sdcXyState() {
         }
         alResult.add(label)
 
-        return arrElementID
+        return arrelementId
     }
 
     private fun addS25D(objectId: Int, scale: Int, x: Int, y: Int, state: Int, text: String, alResult: MutableList<XyElement>) {
@@ -633,7 +633,7 @@ class sdcMMSState : sdcXyState() {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     private fun drawCube(
-        objectID: Int,
+        objectId: Int,
         elementType: String,
         isReadOnly: Boolean,
         toolTip: String,
@@ -651,7 +651,7 @@ class sdcMMSState : sdcXyState() {
         alResult: MutableList<XyElement>
     ): Array<Int> {
         //--- top panel
-        val top = XyElement(elementType, -getRandomInt(), objectID).apply {
+        val top = XyElement(elementType, -getRandomInt(), objectId).apply {
             itReadOnly = isReadOnly
             toolTipText = toolTip
 
@@ -670,7 +670,7 @@ class sdcMMSState : sdcXyState() {
         alResult.add(top)
 
         //--- front panel
-        val front = XyElement(elementType, -getRandomInt(), objectID).apply {
+        val front = XyElement(elementType, -getRandomInt(), objectId).apply {
             itReadOnly = isReadOnly
             toolTipText = toolTip
 
@@ -689,7 +689,7 @@ class sdcMMSState : sdcXyState() {
         alResult.add(front)
 
         //--- side panel
-        val side = XyElement(elementType, -getRandomInt(), objectID).apply {
+        val side = XyElement(elementType, -getRandomInt(), objectId).apply {
             itReadOnly = isReadOnly
             toolTipText = toolTip
 
@@ -707,7 +707,7 @@ class sdcMMSState : sdcXyState() {
         }
         alResult.add(side)
 
-        return arrayOf(top.elementID, front.elementID, side.elementID)
+        return arrayOf(top.elementId, front.elementId, side.elementId)
     }
 
     private fun getSignalEnabled(objectState: ObjectState, hmSCS: Map<Int, SensorConfig>, signalConfig: SignalConfig): Boolean {

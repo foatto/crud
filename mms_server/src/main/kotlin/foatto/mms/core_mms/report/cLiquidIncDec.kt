@@ -187,17 +187,17 @@ class cLiquidIncDec : cMMSReport() {
 
         val (begTime, endTime) = getBegEndTimeFromParam()
 
-        val alObjectID = ArrayList<Int>()
+        val alobjectId = ArrayList<Int>()
         //--- если объект не указан, то загрузим полный список доступных объектов
         if (reportObject == 0) {
-            loadObjectList(conn, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
+            loadObjectList(conn, userConfig, reportObjectUser, reportDepartment, reportGroup, alobjectId)
         } else {
-            alObjectID.add(reportObject)
+            alobjectId.add(reportObject)
         }
 
         //--- общий обработчик на всех
-        for (objectID in alObjectID) {
-            val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
+        for (objectId in alobjectId) {
+            val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectId)
             val hmSCLL = oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_LEVEL]
             //--- уровнемеры не прописаны
             if (hmSCLL == null || hmSCLL.isEmpty()) continue
@@ -208,7 +208,7 @@ class cLiquidIncDec : cMMSReport() {
             if (isWaybill) {
                 val rs = stm.executeQuery(
                     " SELECT beg_dt , end_dt , beg_dt_fact , end_dt_fact FROM MMS_work_shift " +
-                        " WHERE object_id = $objectID"
+                        " WHERE object_id = $objectId"
                 )
                 while (rs.next()) {
                     alBeg.add(rs.getInt(if (reportTimeType == mWorkShiftCompare.TIME_TYPE_DOC) 1 else 3))

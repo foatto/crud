@@ -21,8 +21,8 @@
 //        super.init( dataWorker, aliasConfig, userConfig, hmParentData, id );
 //
 ////        //--- может быть null при вызове из "Модули системы"
-////        Integer objectID = hmParentData.get( "mms_object" );
-////        if( objectID == null ) objectID = 0;
+////        Integer objectId = hmParentData.get( "mms_object" );
+////        if( objectId == null ) objectId = 0;
 //
 ////----------------------------------------------------------------------------------------------------------------------
 //

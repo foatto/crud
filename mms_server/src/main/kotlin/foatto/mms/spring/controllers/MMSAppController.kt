@@ -610,7 +610,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
 ////            //--- если объект прописан, то записываем точки, иначе просто пропускаем
 ////            //--- также пропускаем точки из будущего и далёкого прошлого
 ////            val curTime = getCurrentTimeInt()
-////            if(deviceConfig?.objectID != 0 && pointTime > curTime - MAX_PAST_TIME && pointTime < curTime + MAX_FUTURE_TIME) {
+////            if(deviceConfig?.objectId != 0 && pointTime > curTime - MAX_PAST_TIME && pointTime < curTime + MAX_FUTURE_TIME) {
 ////                fwVersion = udsRawPacket.version ?: ""
 ////                val udsDataPacket = udsRawPacket.normalize(zoneId)
 ////                val bbData = dataToByteBuffer(dataWorker, udsDataPacket)

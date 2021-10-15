@@ -27,12 +27,12 @@ class UODGSelector {
         for (uID in userConfig.getUserIDList(UserRelation.WORKER))
             columnObjectUser.addChoice(uID, UserConfig.hmUserFullNames[uID]!!)
 
-        val columnObjectID = ColumnInt("MMS_object", "id")
-        columnObject = ColumnInt(tableUODG, "object_id", columnObjectID)
+        val columnobjectId = ColumnInt("MMS_object", "id")
+        columnObject = ColumnInt(tableUODG, "object_id", columnobjectId)
         val columnObjectName = ColumnString("MMS_object", "name", "Наименование объекта", mAbstract.STRING_COLUMN_WIDTH)
         val columnObjectModel = ColumnString("MMS_object", "model", "Модель", mAbstract.STRING_COLUMN_WIDTH)
         columnObjectName.selectorAlias = "mms_object"
-        columnObjectName.addSelectorColumn(columnObject, columnObjectID)
+        columnObjectName.addSelectorColumn(columnObject, columnobjectId)
         columnObjectName.addSelectorColumn(columnObjectName)
         columnObjectName.addSelectorColumn(columnObjectModel)
 

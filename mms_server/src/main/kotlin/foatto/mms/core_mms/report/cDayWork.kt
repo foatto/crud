@@ -160,7 +160,7 @@ class cDayWork : cStandartPeriodSummary() {
         val zdtBeg = ZonedDateTime.of(reportBegYear, reportBegMonth, reportBegDay, 0, 0, 0, 0, zoneId)
         val zdtEnd = ZonedDateTime.of(reportEndYear, reportEndMonth, reportEndDay, 0, 0, 0, 0, zoneId).plus(1, ChronoUnit.DAYS)
 
-        for (objectIndex in alObjectID.indices) {
+        for (objectIndex in alobjectId.indices) {
             val objectConfig = alObjectConfig[objectIndex]
 
             var zdtCurBeg = ZonedDateTime.from(zdtBeg)

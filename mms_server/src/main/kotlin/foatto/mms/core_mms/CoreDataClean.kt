@@ -101,11 +101,11 @@ abstract class CoreDataClean(aConfigFileName: String) : CoreServiceWorker(aConfi
 
         //--- теперь по каждому объекту
         var rowSum = 0
-        for (objectID in hmObject.keys) {
+        for (objectId in hmObject.keys) {
             //--- стираем старые данные
             var row = 0
             for (i in alDBConfig.indices) {
-                row += alStm[i].executeUpdate(" DELETE FROM MMS_data_$objectID WHERE ontime < ${alExpireTime[i]} ")
+                row += alStm[i].executeUpdate(" DELETE FROM MMS_data_$objectId WHERE ontime < ${alExpireTime[i]} ")
                 alConn[i].commit()
             }
 
@@ -118,7 +118,7 @@ abstract class CoreDataClean(aConfigFileName: String) : CoreServiceWorker(aConfi
             //--- для MMS_data_NNN в PostgreSQL периодически делаем специфическую "кластерную" переиндексацию,
             else if (alConn[0].dialect == SQLDialect.POSTGRESQL) {
                 for (i in alDBConfig.indices) {
-                    alStm[i].executeUpdate(" CLUSTER MMS_data_$objectID USING MMS_data_${objectID}_ontime ")
+                    alStm[i].executeUpdate(" CLUSTER MMS_data_$objectId USING MMS_data_${objectId}_ontime ")
                     alConn[i].commit()
                 }
             }
@@ -126,12 +126,12 @@ abstract class CoreDataClean(aConfigFileName: String) : CoreServiceWorker(aConfi
             //--- т.к. она не сохраняется по времени
             else {
                 for (i in alDBConfig.indices) {
-                    alStm[i].executeUpdate(" ALTER INDEX ALL ON MMS_data_$objectID REBUILD ")
+                    alStm[i].executeUpdate(" ALTER INDEX ALL ON MMS_data_$objectId REBUILD ")
                     alConn[i].commit()
                 }
             }
 
-            AdvancedLogger.debug("MMS_data_$objectID: ${hmObject[objectID]} = $row rows")
+            AdvancedLogger.debug("MMS_data_$objectId: ${hmObject[objectId]} = $row rows")
             rowSum += row
         }
         AdvancedLogger.debug("MMS_data_ALL = $rowSum rows")

@@ -85,7 +85,7 @@ class cWorkShift : cAbstractPeriodSummary() {
             .append(" MMS_work_shift.shift_no , MMS_worker.name ")
             .append(" FROM MMS_work_shift , MMS_worker ")
             .append(" WHERE MMS_work_shift.worker_id = MMS_worker.id ")
-        val alObjectID = mutableListOf<Int>()
+        val alobjectId = mutableListOf<Int>()
         alWSD = mutableListOf()
 
         //--- если указана рабочая смена/путевой лист, то загрузим только его
@@ -94,12 +94,12 @@ class cWorkShift : cAbstractPeriodSummary() {
         } else {
             //--- если объект не указан, то загрузим полный список доступных объектов
             if (reportObject == 0) {
-                loadObjectList(conn, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
+                loadObjectList(conn, userConfig, reportObjectUser, reportDepartment, reportGroup, alobjectId)
             } else {
-                alObjectID.add(reportObject)
+                alobjectId.add(reportObject)
             }
 
-            sbSQL.append(" AND MMS_work_shift.object_id IN ( ").append(getSBFromIterable(alObjectID, " , ")).append(" ) ")
+            sbSQL.append(" AND MMS_work_shift.object_id IN ( ").append(getSBFromIterable(alobjectId, " , ")).append(" ) ")
                 //--- пока будем брать путевки, только полностью входящие в требуемый диапазон
                 .append(" AND MMS_work_shift.beg_dt >= ").append(begTime).append(" AND MMS_work_shift.end_dt <= ").append(endTime)
             //--- применим именно такое "обратное" условие, если потребуется перехватить все путевки,
@@ -113,12 +113,12 @@ class cWorkShift : cAbstractPeriodSummary() {
 
         val rs = stm.executeQuery(sbSQL.toString())
         while (rs.next()) {
-            val objectID = rs.getInt(1)
+            val objectId = rs.getInt(1)
             //--- если список не был ранее заполнен (для варианта с явно указанным reportWorkShift)
-            if (alObjectID.isEmpty()) alObjectID.add(objectID)
+            if (alobjectId.isEmpty()) alobjectId.add(objectId)
             alWSD.add(
                 WorkShiftData(
-                    objectID = objectID,
+                    objectId = objectId,
                     begTimeDoc = rs.getInt(2),
                     endTimeDoc = rs.getInt(3),
                     begTimeFact = rs.getInt(4),
@@ -131,8 +131,8 @@ class cWorkShift : cAbstractPeriodSummary() {
         rs.close()
 
         //--- в отдельном цикле, т.к. будут открываться новые ResultSet'ы в этом же Statement'e
-        for (objectID in alObjectID) {
-            val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
+        for (objectId in alobjectId) {
+            val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectId)
             defineGlobalFlags(oc)
         }
 
@@ -261,7 +261,7 @@ class cWorkShift : cAbstractPeriodSummary() {
         val reportOutTroubles = hmReportParam["report_out_troubles"] as Boolean
 
         for (wsd in alWSD) {
-            val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, wsd.objectID)
+            val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, wsd.objectId)
 
             val t1 = wsd.begTimeDoc - reportAddBefore
             val t2 = wsd.endTimeDoc + reportAddAfter
@@ -294,7 +294,7 @@ class cWorkShift : cAbstractPeriodSummary() {
     }
 
     private class WorkShiftData(
-        val objectID: Int,
+        val objectId: Int,
         val begTimeDoc: Int,
         val endTimeDoc: Int,
         val begTimeFact: Int,

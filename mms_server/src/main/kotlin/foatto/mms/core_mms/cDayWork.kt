@@ -16,13 +16,13 @@ class cDayWork : cStandart() {
     override fun generateColumnDataAfterFilter(hmColumnData: MutableMap<iColumn, iData>) {
         val mODW = model as mDayWork
 
-        val objectID = (hmColumnData[mODW.columnObject] as DataInt).intValue
+        val objectId = (hmColumnData[mODW.columnObject] as DataInt).intValue
         val dd = hmColumnData[mODW.columnDate] as DataDate3Int
         val gc = dd.localDate.atStartOfDay(zoneId)
         val begTime = gc.toEpochSecond().toInt()
         val endTime = gc.plus(1, ChronoUnit.DAYS).toEpochSecond().toInt()
 
-        val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
+        val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectId)
         try {
             val calc = ObjectCalc.calcObject(stm, userConfig, oc, begTime, endTime)
 
@@ -55,7 +55,7 @@ class cDayWork : cStandart() {
             (hmColumnData[mODW.columnLevelLiquidInc] as DataString).text = calc.sLiquidLevelLiquidInc
             (hmColumnData[mODW.columnLevelLiquidDec] as DataString).text = calc.sLiquidLevelLiquidDec
         } catch (t: Throwable) {
-            println("objectID = $objectID")
+            println("objectId = $objectId")
             println("dayOfMonth = ${gc.dayOfMonth}")
             AdvancedLogger.error(t)
             t.printStackTrace()

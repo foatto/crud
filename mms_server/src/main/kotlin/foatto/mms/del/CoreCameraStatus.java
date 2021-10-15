@@ -26,7 +26,7 @@
 ////---------------------------------------------------------------------------------------------------------------
 //
 //    private long lastConfigReloadTime = 0;
-//    private ArrayList<Integer> alCameraObjectID = new ArrayList<>();
+//    private ArrayList<Integer> alCameraobjectId = new ArrayList<>();
 //    private ArrayList<String> alCameraDescr = new ArrayList<>();
 //    private ArrayList<Long> alCameraDuration = new ArrayList<>();
 //
@@ -65,7 +65,7 @@
 //
 //        //--- периодически перезагружаем/обновляем определения камер и информацию по объекту
 //        if( System.currentTimeMillis() - lastConfigReloadTime > CONFIG_RELOAD_INTERVAL ) {
-//            alCameraObjectID.clear();
+//            alCameraobjectId.clear();
 //            alCameraDescr.clear();
 //            alCameraDuration.clear();
 //
@@ -73,7 +73,7 @@
 //                        " SELECT object_id , descr , duration , url_time , login , pwd  FROM VC_camera WHERE id <> 0 ORDER BY descr " );
 //            while( rs.next() ) {
 //                int p = 1;
-//                alCameraObjectID.add( rs.getInt( p++ ) );
+//                alCameraobjectId.add( rs.getInt( p++ ) );
 //                alCameraDescr.add( rs.getString( p++ ) );
 //                alCameraDuration.add( rs.getInt( p++ ) * 1000L );
 //                String urlTime = rs.getString( p++ );
@@ -89,8 +89,8 @@
 //        }
 //
 //        //--- по каждой папке из списка видеохранилищ
-//        for( int cIndex = 0; cIndex < alCameraObjectID.size(); cIndex++ ) {
-//            File dirCamera = VideoFunction.getCameraDir( dirVideoRoot, alCameraObjectID.get( cIndex ), alCameraDescr.get( cIndex ) );
+//        for( int cIndex = 0; cIndex < alCameraobjectId.size(); cIndex++ ) {
+//            File dirCamera = VideoFunction.getCameraDir( dirVideoRoot, alCameraobjectId.get( cIndex ), alCameraDescr.get( cIndex ) );
 //            File dirStream = new File( dirCamera, "0" );
 //
 //            File lastFile = null;

@@ -93,8 +93,8 @@ class sdcMMSMap : sdcXyMap() {
         super.init(aApplication, aConn, aStm, aChmSession, aUserConfig, aDocumentConfig)
     }
 
-    override fun getCoords(startParamID: String): XyActionResponse {
-        val sd = chmSession[AppParameter.XY_START_DATA + startParamID] as XyStartData
+    override fun getCoords(startParamId: String): XyActionResponse {
+        val sd = chmSession[AppParameter.XY_START_DATA + startParamId] as XyStartData
 
         var isFound = false
         val minXY = XyPoint(Integer.MAX_VALUE, Integer.MAX_VALUE)
@@ -107,16 +107,16 @@ class sdcMMSMap : sdcXyMap() {
         val alObjectParamData = parseObjectParam(isStartObjectsDefined, sd, mutableSetOf())
 
         //--- отдельная групповая обработка статических объектов
-        val sbStaticObjectID = StringBuilder()
+        val sbStaticobjectId = StringBuilder()
         //--- статические объекты - зоны
         alObjectParamData.filter { it.begTime == 0 }.forEach {
-            sbStaticObjectID.append(if (sbStaticObjectID.isEmpty()) "" else " , ").append(it.objectID)
+            sbStaticobjectId.append(if (sbStaticobjectId.isEmpty()) "" else " , ").append(it.objectId)
         }
-        if (sbStaticObjectID.isNotEmpty()) {
+        if (sbStaticobjectId.isNotEmpty()) {
             //--- именно MIN/MAX, т.к. одному статическому объекту может соответствовать несколько элементов
             //--- (нельзя убирать проверку на COUNT, т.к. при отсутствии выборки все равно вернется строка с null-значениями)
             val inRs = stm.executeQuery(
-                " SELECT COUNT( * ) , MIN( prj_x1 ) , MIN( prj_y1 ) , MAX( prj_x2 ) , MAX( prj_y2 ) FROM XY_element WHERE object_id IN ( $sbStaticObjectID ) "
+                " SELECT COUNT( * ) , MIN( prj_x1 ) , MIN( prj_y1 ) , MAX( prj_x2 ) , MAX( prj_y2 ) FROM XY_element WHERE object_id IN ( $sbStaticobjectId ) "
             )
             if (inRs.next() && inRs.getInt(1) > 0) {
                 getMinMaxCoords(XyPoint(inRs.getInt(2), inRs.getInt(3)), minXY, maxXY)
@@ -129,12 +129,12 @@ class sdcMMSMap : sdcXyMap() {
         //--- отдельная обработка динамических объектов
         alObjectParamData.filter { it.begTime != 0 }.forEach { objectParamData ->
             //--- нужен хотя бы один гео-датчик
-            val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, objectParamData.objectID)
+            val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, objectParamData.objectId)
             objectConfig.scg?.let {
                 //--- если траекторные элементы глобально не запрещены
                 if (objectParamData.begTime < objectParamData.endTime) {
                     val inRs = stm.executeQuery(
-                        " SELECT sensor_data FROM MMS_data_${objectParamData.objectID} WHERE ontime >= ${objectParamData.begTime} AND ontime <= ${objectParamData.endTime} "
+                        " SELECT sensor_data FROM MMS_data_${objectParamData.objectId} WHERE ontime >= ${objectParamData.begTime} AND ontime <= ${objectParamData.endTime} "
                     )
                     while (inRs.next()) {
                         val bbSensor = inRs.getByteBuffer(1, ByteOrder.BIG_ENDIAN)
@@ -174,31 +174,31 @@ class sdcMMSMap : sdcXyMap() {
     override fun clickElement(xyActionRequest: XyActionRequest) = XyActionResponse()
 
     override fun addElement(xyActionRequest: XyActionRequest, userID: Int): XyActionResponse {
-        val xyStartDataID = xyActionRequest.startParamID
+        val xyStartDataID = xyActionRequest.startParamId
         val sd = chmSession[AppParameter.XY_START_DATA + xyStartDataID] as XyStartData
 
         val xyElement = xyActionRequest.xyElement!!
-        xyElement.elementID = stm.getNextID("XY_element", "id")
-        xyElement.objectID = stm.getNextID(arrayOf("MMS_object", "MMS_zone"), arrayOf("id", "id"))
+        xyElement.elementId = stm.getNextID("XY_element", "id")
+        xyElement.objectId = stm.getNextID(arrayOf("MMS_object", "MMS_zone"), arrayOf("id", "id"))
 
         val zoneName = xyActionRequest.hmParam[PARAM_ZONE_NAME] ?: "-"
         val zoneDescr = xyActionRequest.hmParam[PARAM_ZONE_DESCR] ?: "-"
 
         stm.executeUpdate(
-            " INSERT INTO MMS_zone ( id , user_id , name , descr, outer_id ) VALUES ( ${xyElement.objectID} , $userID , '${prepareForSQL(zoneName)}' , '${prepareForSQL(zoneDescr)}' , '' ) "
+            " INSERT INTO MMS_zone ( id , user_id , name , descr, outer_id ) VALUES ( ${xyElement.objectId} , $userID , '${prepareForSQL(zoneName)}' , '${prepareForSQL(zoneDescr)}' , '' ) "
         )
 
         putElement(xyElement, true)
 
         stm.executeUpdate(
             " INSERT INTO XY_property ( element_id , property_name , property_value ) VALUES ( " +
-                "${xyElement.elementID} , '${XyProperty.TOOL_TIP_TEXT}' , '${getZoneTooltip(zoneName, zoneDescr)}' ) "
+                "${xyElement.elementId} , '${XyProperty.TOOL_TIP_TEXT}' , '${getZoneTooltip(zoneName, zoneDescr)}' ) "
         )
 
 //        //Integer routeID = (Integer) hmParam.get( XyParameter.PARENT_OBJECT_ID );
-//        //linkToRoute( arrConn, stm, hmParam, routeID, zoneObjectID );
+//        //linkToRoute( arrConn, stm, hmParam, routeID, zoneobjectId );
 
-        sd.alStartObjectData.add(XyStartObjectData(xyElement.objectID, "mms_zone", false, false, false))
+        sd.alStartObjectData.add(XyStartObjectData(xyElement.objectId, "mms_zone", false, false, false))
 
         return XyActionResponse()
     }
@@ -206,7 +206,7 @@ class sdcMMSMap : sdcXyMap() {
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     override fun loadDynamicElements(scale: Int, objectParamData: XyStartObjectParsedData, alElement: MutableList<XyElement>) {
-        val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, objectParamData.objectID)
+        val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, objectParamData.objectId)
         if (objectConfig.scg == null) return
 
         val hmZoneLimit = ZoneLimitData.getZoneLimit(
@@ -259,7 +259,7 @@ class sdcMMSMap : sdcXyMap() {
                             }
                     }
                 }
-                val objectTrace = XyElement(TYPE_OBJECT_TRACE, -getRandomInt(), objectParamData.objectID).apply {
+                val objectTrace = XyElement(TYPE_OBJECT_TRACE, -getRandomInt(), objectParamData.objectId).apply {
                     val alPoint_ = mutableListOf<XyPoint>()
                     val alDrawColor_ = mutableListOf<Int>()
                     val alFillColor_ = mutableListOf<Int>()
@@ -297,7 +297,7 @@ class sdcMMSMap : sdcXyMap() {
                 alElement.add(objectTrace)
 
                 //--- знак начала траектории
-                val objectTraceText1 = XyElement(TYPE_OBJECT_TRACE_INFO, -getRandomInt(), objectParamData.objectID).apply {
+                val objectTraceText1 = XyElement(TYPE_OBJECT_TRACE_INFO, -getRandomInt(), objectParamData.objectId).apply {
                     itReadOnly = true
                     alPoint = arrayOf(gcd.alPointXY[0])
                     anchorX = XyElement.Anchor.LT
@@ -321,7 +321,7 @@ class sdcMMSMap : sdcXyMap() {
                 alElement.add(objectTraceText1)
 
                 //--- знак конца траектории
-                val objectTraceText2 = XyElement(TYPE_OBJECT_TRACE_INFO, -getRandomInt(), objectParamData.objectID).apply {
+                val objectTraceText2 = XyElement(TYPE_OBJECT_TRACE_INFO, -getRandomInt(), objectParamData.objectId).apply {
                     itReadOnly = true
                     alPoint = arrayOf(gcd.alPointXY[gcd.alPointXY.size - 1])
                     anchorX = XyElement.Anchor.LT
@@ -369,7 +369,7 @@ class sdcMMSMap : sdcXyMap() {
                 for ((descr, wt) in tmWorkTime)
                     sbToolTip.append(sLineSeparator).append(descr).append(": ").append(secondIntervalToString(wt))
 
-                val objectParking = XyElement(TYPE_OBJECT_PARKING, -getRandomInt(), objectParamData.objectID).apply {
+                val objectParking = XyElement(TYPE_OBJECT_PARKING, -getRandomInt(), objectParamData.objectId).apply {
                     itReadOnly = true
                     alPoint = arrayOf(mpd.parkingCoord!!)
                     anchorX = XyElement.Anchor.LT
@@ -395,7 +395,7 @@ class sdcMMSMap : sdcXyMap() {
                     .append(ospd.maxOverSpeedMax).append(" км/ч").append(sLineSeparator).append("Максимальное превышение на участке: ")
                     .append(ospd.maxOverSpeedDiff).append(" км/ч")
 
-                val objectOverSpeed = XyElement(TYPE_OBJECT_OVER_SPEED, -getRandomInt(), objectParamData.objectID).apply {
+                val objectOverSpeed = XyElement(TYPE_OBJECT_OVER_SPEED, -getRandomInt(), objectParamData.objectId).apply {
                     itReadOnly = true
                     alPoint = arrayOf(ospd.maxOverSpeedCoord!!)
                     anchorX = XyElement.Anchor.LT
@@ -437,7 +437,7 @@ class sdcMMSMap : sdcXyMap() {
                     getSplittedDouble(value, 0, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
                 })
             }
-            val objectInfo = XyElement(TYPE_OBJECT_INFO, -getRandomInt(), objectParamData.objectID)
+            val objectInfo = XyElement(TYPE_OBJECT_INFO, -getRandomInt(), objectParamData.objectId)
             objectInfo.itReadOnly = true
             objectInfo.alPoint = arrayOf(objectState.pixPoint!!)
             objectInfo.toolTipText = sToolTip
@@ -497,15 +497,15 @@ class sdcMMSMap : sdcXyMap() {
 //!!!MAP
 //    protected byte[] doLinkToParentObject(  Connection[  ] alConn, HashMap<String,Object> hmParam  ) throws Throwable {
 //
-//        Integer objectID = ( Integer ) hmParam.get(  XyParameter.OBJECT_ID  );
+//        Integer objectId = ( Integer ) hmParam.get(  XyParameter.OBJECT_ID  );
 //        Statement stm = DBFunction.createStatement(  alConn.get(  0  )  );
-//        semZone.linkToRoute(  alConn, stm, hmParam, ( Integer ) hmParam.get(  XyParameter.PARENT_OBJECT_ID  ), objectID  );
+//        semZone.linkToRoute(  alConn, stm, hmParam, ( Integer ) hmParam.get(  XyParameter.PARENT_OBJECT_ID  ), objectId  );
 //        stm.close();
 //
 //        String xyStartDataID = ( String ) hmParam.get(  XyParameter.XY_START_DATA  );
 //        XyStartData sd = ( XyStartData ) hmParam.get(  XyParameter.XY_START_DATA + xyStartDataID  );
 //        for(  XyStartObjectData sod : sd.alStartObjectData  )
-//            if(  sod.objectID == objectID  ) {
+//            if(  sod.objectId == objectId  ) {
 //                sod.isStart = true;
 //                break;
 //            }
@@ -523,7 +523,7 @@ class sdcMMSMap : sdcXyMap() {
 //        String xyStartDataID = ( String ) hmParam.get(  XyParameter.XY_START_DATA  );
 //        XyStartData sd = ( XyStartData ) hmParam.get(  XyParameter.XY_START_DATA + xyStartDataID  );
 //        for(  XyStartObjectData sod : sd.alStartObjectData  )
-//            if(  hsZoneID.contains(  sod.objectID  )  )
+//            if(  hsZoneID.contains(  sod.objectId  )  )
 //                sod.isStart = false;
 //
 //        return null;

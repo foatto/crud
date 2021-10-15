@@ -89,18 +89,18 @@ class cMovingDetail : cMMSReport() {
         sheet.addCell(Label(offsX++, offsY, "Расход", wcfCaptionHC))
         offsY++
 
-        val alObjectID = mutableListOf<Int>()
+        val alobjectId = mutableListOf<Int>()
         //--- если объект не указан, то загрузим полный список доступных объектов
         if (reportObject == 0) {
-            loadObjectList(conn, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
+            loadObjectList(conn, userConfig, reportObjectUser, reportDepartment, reportGroup, alobjectId)
         } else {
-            alObjectID.add(reportObject)
+            alobjectId.add(reportObject)
         }
 
         var countNNObject = 1
-        for (objectID in alObjectID) {
+        for (objectId in alobjectId) {
 
-            val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
+            val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, objectId)
             //--- если не прописаны гео-датчики - выходим тут же
             if (objectConfig.scg == null) continue
 

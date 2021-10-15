@@ -35,7 +35,7 @@ class cGraphicMMS : cAbstractForm() {
         val selectObject = (hmColumnData[msfd.columnObject] as DataInt).intValue
 
         val sd = GraphicStartData()
-        sd.objectID = selectObject
+        sd.objectId = selectObject
         sd.rangeType = (hmColumnData[msfd.columnShowRangeType] as DataRadioButton).intValue
 
         if (sd.rangeType == 0) {

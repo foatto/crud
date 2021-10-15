@@ -52,12 +52,12 @@ class cEquipService : cMMSReport() {
         val zdtEnd = ZonedDateTime.now(zoneId)    // на текущий момент
         //gcEnd.add( GregorianCalendar.DAY_OF_MONTH, 1 ); // на всякий случай добавим денёк вперёд
 
-        val alObjectID = ArrayList<Int>()
+        val alobjectId = ArrayList<Int>()
         //--- если объект не указан, то загрузим полный список доступных объектов
         if (reportObject == 0) {
-            loadObjectList(conn, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
+            loadObjectList(conn, userConfig, reportObjectUser, reportDepartment, reportGroup, alobjectId)
         } else {
-            alObjectID.add(reportObject)
+            alobjectId.add(reportObject)
         }
 
         defineFormats(8, 2, 0)
@@ -98,8 +98,8 @@ class cEquipService : cMMSReport() {
         offsY++
 
         var countNN = 1
-        for (objectID in alObjectID) {
-            val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
+        for (objectId in alobjectId) {
+            val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, objectId)
 
             //--- пропускаем, если нет датчиков оборудования
             val hmSCW = objectConfig.hmSensorConfig[SensorConfig.SENSOR_WORK]

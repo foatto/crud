@@ -112,53 +112,53 @@
 //            chmSession = new ConcurrentHashMap<>();
 //            int logonResult = checkLogon( dataWorker, hmParam.get( PARAM_LOGIN ), StringFunctionJVMKt.encodePassword( hmParam.get( PARAM_PASSWORD ) ) );
 //            if( logonResult == ResponseCode.LOGON_SUCCESS_BUT_OLD || logonResult == ResponseCode.LOGON_SUCCESS ) {
-//                long sessionID = CommonFunction.getRandomLong();
-//                dataServer.chmSessionStore.put( sessionID, chmSession );
+//                long sessionId = CommonFunction.getRandomLong();
+//                dataServer.chmSessionStore.put( sessionId, chmSession );
 //                //--- обновляем время обращения к сессии при каждом запросе,
 //                //--- т.к. соединение может работать очень долго
-//                dataServer.chmSessionTime.put( sessionID, System.currentTimeMillis() );
+//                dataServer.chmSessionTime.put( sessionId, System.currentTimeMillis() );
 //
 //                //--- после успешного входа грузим полную/рабочую страницу
-//                getMainMenu( sessionID, sb );
+//                getMainMenu( sessionId, sb );
 //            }
 //            else getLoginPage( logonResult, sb );
 //        }
 //        //--- на функционал, выполняемый после входа в систему, всегда требуется сессия
 //        else {
-//            long sessionID = 0;
+//            long sessionId = 0;
 //            try {
-//                sessionID = Long.parseLong( hmParam.get( PARAM_SESSION_ID ) );
+//                sessionId = Long.parseLong( hmParam.get( PARAM_SESSION_ID ) );
 //            }
 //            catch( Throwable t ) {}
-//            chmSession = dataServer.chmSessionStore.get( sessionID );
+//            chmSession = dataServer.chmSessionStore.get( sessionId );
 //
 //            //--- сессия не найдена, требуется вход
 //            if( chmSession == null ) getLoginPage( ResponseCode.LOGON_NEED, sb );
-//            else if( alias.equals( ALIAS_MAIN_MENU ) ) getMainMenu( sessionID, sb );
-//            else if( alias.equals( ALIAS_TIME_FORM ) ) getTimeForm( sessionID, sb );
+//            else if( alias.equals( ALIAS_MAIN_MENU ) ) getMainMenu( sessionId, sb );
+//            else if( alias.equals( ALIAS_TIME_FORM ) ) getTimeForm( sessionId, sb );
 //            else if( alias.equals( ALIAS_TIME_SAVE ) ) {
 //                setTime( dataWorker, hmParam );
-//                getMainMenu( sessionID, sb );
+//                getMainMenu( sessionId, sb );
 //            }
-//            else if( alias.equals( ALIAS_VC_FORM ) ) getVCForm( sessionID, sb );
+//            else if( alias.equals( ALIAS_VC_FORM ) ) getVCForm( sessionId, sb );
 //            else if( alias.equals( ALIAS_VC_SAVE ) ) {
 //                setVCParam( hmParam );
-//                getMainMenu( sessionID, sb );
+//                getMainMenu( sessionId, sb );
 //            }
-//            else if( alias.equals( ALIAS_DEL_FORM ) ) getDelForm( sessionID, sb );
+//            else if( alias.equals( ALIAS_DEL_FORM ) ) getDelForm( sessionId, sb );
 //            else if( alias.equals( ALIAS_DEL_SAVE ) ) {
 //                setDelParam( hmParam );
-//                getMainMenu( sessionID, sb );
+//                getMainMenu( sessionId, sb );
 //            }
-//            else if( alias.equals( ALIAS_CAMERA_LIST ) ) getCameraList( dataWorker, sessionID, sb );
-//            else if( alias.equals( ALIAS_CAMERA_FORM ) ) getCameraForm( dataWorker, hmParam, sessionID, null, sb );
-//            else if( alias.equals( ALIAS_CAMERA_SAVE ) ) saveCamera( dataWorker, hmParam, sessionID, sb );
-//            else if( alias.equals( ALIAS_CAMERA_DELETE ) ) deleteCamera( dataWorker, hmParam, sessionID, sb );
+//            else if( alias.equals( ALIAS_CAMERA_LIST ) ) getCameraList( dataWorker, sessionId, sb );
+//            else if( alias.equals( ALIAS_CAMERA_FORM ) ) getCameraForm( dataWorker, hmParam, sessionId, null, sb );
+//            else if( alias.equals( ALIAS_CAMERA_SAVE ) ) saveCamera( dataWorker, hmParam, sessionId, sb );
+//            else if( alias.equals( ALIAS_CAMERA_DELETE ) ) deleteCamera( dataWorker, hmParam, sessionId, sb );
 //            else if( alias.equals( ALIAS_REBOOT ) ) doReboot();
 //
 //            //--- обновляем время обращения к сессии при каждом запросе,
 //            //--- т.к. соединение может работать очень долго
-//            dataServer.chmSessionTime.put( sessionID, System.currentTimeMillis() );
+//            dataServer.chmSessionTime.put( sessionId, System.currentTimeMillis() );
 //        }
 //
 //        return sb;
@@ -215,17 +215,17 @@
 //        outPageEnd( sb );
 //    }
 //
-//    private void getMainMenu( long sessionID, StringBuilder sb ) {
+//    private void getMainMenu( long sessionId, StringBuilder sb ) {
 //        UserConfig userConfig = (UserConfig) chmSession.get( USER_CONFIG );
 //
 //        outPageBegin( "Главное меню", sb );
 //        outTableBegin( sb );
 //
-//        outMainPageRow( sessionID, ALIAS_TIME_FORM, "Установка системного времени", sb );
-//        if( userConfig.isAdmin() ) outMainPageRow( sessionID, ALIAS_VC_FORM, "Настройки регистратора", sb );
-//        outMainPageRow( sessionID, ALIAS_DEL_FORM, "Настройки ДЭЛ", sb );
-//        outMainPageRow( sessionID, ALIAS_CAMERA_LIST, "Настройки видеокамер", sb );
-//        outMainPageRow( sessionID, ALIAS_REBOOT, "Перезагрузить регистратор", sb );
+//        outMainPageRow( sessionId, ALIAS_TIME_FORM, "Установка системного времени", sb );
+//        if( userConfig.isAdmin() ) outMainPageRow( sessionId, ALIAS_VC_FORM, "Настройки регистратора", sb );
+//        outMainPageRow( sessionId, ALIAS_DEL_FORM, "Настройки ДЭЛ", sb );
+//        outMainPageRow( sessionId, ALIAS_CAMERA_LIST, "Настройки видеокамер", sb );
+//        outMainPageRow( sessionId, ALIAS_REBOOT, "Перезагрузить регистратор", sb );
 //
 //        //--- статистика по дискам
 //        int mb = 1024 * 1024;
@@ -251,12 +251,12 @@
 //        outPageEnd( sb );
 //    }
 //
-//    private void getTimeForm( long sessionID, StringBuilder sb ) {
+//    private void getTimeForm( long sessionId, StringBuilder sb ) {
 //        String[] arrLabel = { "Год:", "Месяц:", "День:", "Час:", "Минута:", "Секунда:" };
 //        int[] arrDT = StringFunction.DateTime_Arr( new GregorianCalendar() );
 //
 //        outPageBegin( "Установка времени", sb );
-//        outFormBegin( sb, PARAM_SESSION_ID, Long.toString( sessionID ), PARAM_ALIAS, ALIAS_TIME_SAVE );
+//        outFormBegin( sb, PARAM_SESSION_ID, Long.toString( sessionId ), PARAM_ALIAS, ALIAS_TIME_SAVE );
 //
 //        int tabIndex = 1;
 //        for( int i = 0; i < arrLabel.length; i++ ) {
@@ -289,12 +289,12 @@
 //        VideoFunction.setTime( dataWorker.alStm.get( 0 ), timeSystem, arrDT );
 //    }
 //
-//    private void getVCForm( long sessionID, StringBuilder sb ) {
+//    private void getVCForm( long sessionId, StringBuilder sb ) {
 //        HashMap<String,String> hmSerialNoConfig = CommonFunction.loadConfig( serialNoIniFileName );
 //        String serialNo = hmSerialNoConfig.get( VideoFunction.CONFIG_SERIAL_NO );
 //
 //        outPageBegin( "Настройки регистратора", sb );
-//        outFormBegin( sb, PARAM_SESSION_ID, Long.toString( sessionID ), PARAM_ALIAS, ALIAS_VC_SAVE );
+//        outFormBegin( sb, PARAM_SESSION_ID, Long.toString( sessionId ), PARAM_ALIAS, ALIAS_VC_SAVE );
 //
 //        int tabIndex = 1;
 //        //if( error != null ) outFormRowString( tabIndex++, "Ошибка ввода:", "error", error, 250, sb );
@@ -323,7 +323,7 @@
 //        serialNoCommandFile.setExecutable( true );
 //    }
 //
-//    private void getDelForm( long sessionID, StringBuilder sb ) {
+//    private void getDelForm( long sessionId, StringBuilder sb ) {
 //        HashMap<String,String> hmDelConfig = CommonFunction.loadConfig( delIniFileName );
 //        String staticDel = hmDelConfig.get( CoreDELAsker.CONFIG_STATIC_DEL );
 //        String delIP = hmDelConfig.get( CoreDELAsker.CONFIG_DEL_IP );
@@ -344,7 +344,7 @@
 //        }
 //
 //        outPageBegin( "Настройки ДЭЛ", sb );
-//        outFormBegin( sb, PARAM_SESSION_ID, Long.toString( sessionID ), PARAM_ALIAS, ALIAS_DEL_SAVE );
+//        outFormBegin( sb, PARAM_SESSION_ID, Long.toString( sessionId ), PARAM_ALIAS, ALIAS_DEL_SAVE );
 //
 //        int tabIndex = 1;
 //        //if( error != null ) outFormRowString( tabIndex++, "Ошибка ввода:", "error", error, 250, sb );
@@ -396,11 +396,11 @@
 //        CommonFunction.saveConfig( hmDelInfo, delInfoFileName );
 //    }
 //
-//    private void getCameraList( CoreDataWorker dataWorker, long sessionID, StringBuilder sb ) throws Throwable {
+//    private void getCameraList( CoreDataWorker dataWorker, long sessionId, StringBuilder sb ) throws Throwable {
 //        outPageBegin( "Список видеокамер", sb );
 //        outTableBegin( sb );
 //
-//        outMainPageRow( sessionID, ALIAS_MAIN_MENU, "В главное меню", sb );
+//        outMainPageRow( sessionId, ALIAS_MAIN_MENU, "В главное меню", sb );
 //
 //        outCameraListHeader( sb );
 //
@@ -410,20 +410,20 @@
 //            " SELECT id , descr , login , pwd , url_0 , url_1 , url_mjpeg , url_image , url_time , " )
 //            .append( " video_codec , audio_codec , duration FROM VC_camera WHERE id <> 0 ORDER BY descr " ) );
 //        while( rs.next() )
-//            outCameraListRow( sessionID, rs, sb );
+//            outCameraListRow( sessionId, rs, sb );
 //        rs.close();
 //
 //        TreeMap<Integer,CameraModelData> tmCMD = VideoFunction.loadCameraModelData( dataServer.hmConfig );
 //        for( Integer mID : tmCMD.keySet() )
-//            outCameraAddRow( sessionID, mID, tmCMD.get( mID ).name, sb );
+//            outCameraAddRow( sessionId, mID, tmCMD.get( mID ).name, sb );
 //
-//        outCameraAddRow( sessionID, -1, null, sb );
+//        outCameraAddRow( sessionId, -1, null, sb );
 //
 //        outTableEnd( sb );
 //        outPageEnd( sb );
 //    }
 //
-//    private void getCameraForm( CoreDataWorker dataWorker, HashMap<String,String> hmParam, long sessionID,
+//    private void getCameraForm( CoreDataWorker dataWorker, HashMap<String,String> hmParam, long sessionId,
 //                                String error, StringBuilder sb )  {
 //        String id = hmParam.get( PARAM_ID );
 //        String sModelID = hmParam.get( PARAM_CAMERA_MODEL );
@@ -432,7 +432,7 @@
 //        int p = 1;
 //
 //        outPageBegin( "Настройки камеры", sb );
-//        outFormBegin( sb, PARAM_SESSION_ID, Long.toString( sessionID ), PARAM_ALIAS, ALIAS_CAMERA_SAVE, PARAM_ID, id,
+//        outFormBegin( sb, PARAM_SESSION_ID, Long.toString( sessionId ), PARAM_ALIAS, ALIAS_CAMERA_SAVE, PARAM_ID, id,
 //                      PARAM_CAMERA_MODEL, sModelID );
 //
 //        //--- object_id всегда = 1
@@ -477,7 +477,7 @@
 //            sb.append( "&nbsp;" );
 //        else
 //            sb.append( "<a href='/" )
-//              .append( '?' ).append( PARAM_SESSION_ID ).append( '=' ).append( sessionID )
+//              .append( '?' ).append( PARAM_SESSION_ID ).append( '=' ).append( sessionId )
 //              .append( '&' ).append( PARAM_ALIAS ).append( '=' ).append( ALIAS_CAMERA_DELETE )
 //              .append( '&' ).append( PARAM_ID ).append( '=' ).append( id )
 //              .append( "'>" )
@@ -492,7 +492,7 @@
 //        outPageEnd( sb );
 //    }
 //
-//    private void saveCamera( CoreDataWorker dataWorker, HashMap<String,String> hmParam, long sessionID, StringBuilder sb ) throws Throwable {
+//    private void saveCamera( CoreDataWorker dataWorker, HashMap<String,String> hmParam, long sessionId, StringBuilder sb ) throws Throwable {
 //        int orderNo = 0;
 //        try {
 //            orderNo = Integer.parseInt( hmParam.get( "order_no" ) );
@@ -510,7 +510,7 @@
 //        if( modelID == -1 ) {
 //            url0 = url0.trim();
 //            if( url0.isEmpty() ) {
-//                getCameraForm( dataWorker, hmParam, sessionID, "URL основного видеопотока должен быть всегда заполнен!", sb );
+//                getCameraForm( dataWorker, hmParam, sessionId, "URL основного видеопотока должен быть всегда заполнен!", sb );
 //                return;
 //            }
 //        }
@@ -522,24 +522,24 @@
 //        try {
 //            duration = Integer.parseInt( hmParam.get( "duration" ) );
 //            if( duration < 5 || duration > 3600 ) {
-//                getCameraForm( dataWorker, hmParam, sessionID, "Продолжительность нарезки должна быть в диапазоне от 5 до 3600 сек!", sb );
+//                getCameraForm( dataWorker, hmParam, sessionId, "Продолжительность нарезки должна быть в диапазоне от 5 до 3600 сек!", sb );
 //                return;
 //            }
 //        }
 //        catch( NumberFormatException nfe ) {
-//            getCameraForm( dataWorker, hmParam, sessionID, "Ошибка ввода продолжительности нарезки!", sb );
+//            getCameraForm( dataWorker, hmParam, sessionId, "Ошибка ввода продолжительности нарезки!", sb );
 //            return;
 //        }
 //        int id = Integer.parseInt( hmParam.get( PARAM_ID ) );
-//        int objectID = 1;
+//        int objectId = 1;
 //
 //        StringBuilder sbErrorValue = new StringBuilder();
 //        StringBuilder sbErrorText = new StringBuilder();
 //
-//        boolean isValid = cVideoCamera.checkDescr( dataWorker, cameraDescr, id, objectID, sbErrorValue, sbErrorText );
+//        boolean isValid = cVideoCamera.checkDescr( dataWorker, cameraDescr, id, objectId, sbErrorValue, sbErrorText );
 //
 //        if( ! isValid ) {
-//            getCameraForm( dataWorker, hmParam, sessionID, sbErrorText.toString(), sb );
+//            getCameraForm( dataWorker, hmParam, sessionId, sbErrorText.toString(), sb );
 //            return;
 //        }
 //
@@ -608,7 +608,7 @@
 //            cVideoCamera.addCamera( dataWorker, dataServer.rootDirName, dataServer.tempDirName, dirVideoRoot,
 //                                    ffmpegPath, ffmpegMetaData, ffmpegExtraCommand,
 //                                    taskSystem, taskPath, taskManager, taskUser, taskPassword, doorGPIO, tmDisplayButtonGPIO, playerName,
-//                                    objectID, cameraDescr, arrURL, duration, videoCodec, audioCodec,
+//                                    objectId, cameraDescr, arrURL, duration, videoCodec, audioCodec,
 //                                    cameraShowScriptFileName, displayButtonScriptFileName );
 //        }
 //        else {
@@ -631,7 +631,7 @@
 //            cVideoCamera.editCamera( dataWorker, dataServer.rootDirName, dataServer.tempDirName, dirVideoRoot,
 //                                     ffmpegPath, ffmpegMetaData, ffmpegExtraCommand,
 //                                     taskSystem, taskPath, taskManager, doorGPIO, tmDisplayButtonGPIO, playerName,
-//                                     objectID, cameraDescr, arrURL, duration, videoCodec, audioCodec,
+//                                     objectId, cameraDescr, arrURL, duration, videoCodec, audioCodec,
 //                                     cameraShowScriptFileName, displayButtonScriptFileName );
 //        }
 //        //--- обновить current_del.info
@@ -657,10 +657,10 @@
 //        hmDelInfo.put( "camera_count", Integer.toString( cameraNo ) );
 //        saveConfigForHuentsov( hmDelInfo, delInfoFileName );
 //
-//        getCameraList( dataWorker, sessionID, sb );
+//        getCameraList( dataWorker, sessionId, sb );
 //    }
 //
-//    private void deleteCamera( CoreDataWorker dataWorker, HashMap<String,String> hmParam, long sessionID, StringBuilder sb ) throws Throwable {
+//    private void deleteCamera( CoreDataWorker dataWorker, HashMap<String,String> hmParam, long sessionId, StringBuilder sb ) throws Throwable {
 //        //--- собственно сохранение
 //        int taskSystem = Integer.parseInt( dataServer.hmConfig.get( VideoFunction.CONFIG_TASK_SYSTEM ) );
 //        String taskPath = dataServer.hmConfig.get( VideoFunction.CONFIG_TASK_PATH );
@@ -672,13 +672,13 @@
 //        String displayButtonScriptFileName = dataServer.hmConfig.get( VideoFunction.CONFIG_DISPLAY_BUTTON_SCRIPT_FILE_NAME );
 //
 //        int id = Integer.parseInt( hmParam.get( PARAM_ID ) );
-//        int objectID;
+//        int objectId;
 //        String cameraDescr;
 //
 //        CoreAdvancedResultSet rs = dataWorker.alStm.get( 0 ).executeQuery( new StringBuilder(
 //            " SELECT object_id, descr FROM VC_camera WHERE id = " ).append( id ).toString() );
 //        rs.next();
-//        objectID = rs.getInt( 1 );
+//        objectId = rs.getInt( 1 );
 //        cameraDescr = rs.getString( 2 );
 //        rs.close();
 //
@@ -688,9 +688,9 @@
 //        cVideoCamera.deleteCamera( dataWorker, dataServer.rootDirName, dataServer.tempDirName,
 //                                   taskSystem, taskPath, taskManager,
 //                                   doorGPIO, tmDisplayButtonGPIO, playerName,
-//                                   objectID, cameraDescr, cameraShowScriptFileName, displayButtonScriptFileName );
+//                                   objectId, cameraDescr, cameraShowScriptFileName, displayButtonScriptFileName );
 //
-//        getCameraList( dataWorker, sessionID, sb );
+//        getCameraList( dataWorker, sessionId, sb );
 //    }
 //
 //    private void doReboot() {
@@ -808,11 +808,11 @@
 //
 ////----------------------------------------------------------------------------------------------------------------------------------------
 //
-//    private void outMainPageRow( long sessionID, String alias, String caption, StringBuilder sb ) {
+//    private void outMainPageRow( long sessionId, String alias, String caption, StringBuilder sb ) {
 ////        sb.append( "<tr><td colspan='4'>" )
 //        sb.append( "<tr><td>" )
 //          .append( "<a href='/" )
-//          .append( '?' ).append( PARAM_SESSION_ID ).append( '=' ).append( sessionID )
+//          .append( '?' ).append( PARAM_SESSION_ID ).append( '=' ).append( sessionId )
 //          .append( '&' ).append( PARAM_ALIAS ).append( '=' ).append( alias )
 //          .append( "'>" )
 //          .append( caption )
@@ -859,14 +859,14 @@
 //        sb.append( "</tr>" );
 //    }
 //
-//    private void outCameraListRow( long sessionID, CoreAdvancedResultSet rs, StringBuilder sb ) throws Throwable {
+//    private void outCameraListRow( long sessionId, CoreAdvancedResultSet rs, StringBuilder sb ) throws Throwable {
 //        //--- динамический индекс поля, чтоб каждый раз не менять
 //        int p = 1;
 //        sb.append( "<tr>" )
 //
 //          .append( "<td>" )
 //          .append( "<a href='/" )
-//          .append( '?' ).append( PARAM_SESSION_ID ).append( '=' ).append( sessionID )
+//          .append( '?' ).append( PARAM_SESSION_ID ).append( '=' ).append( sessionId )
 //          .append( '&' ).append( PARAM_ALIAS ).append( '=' ).append( ALIAS_CAMERA_FORM )
 //          .append( '&' ).append( PARAM_ID ).append( '=' ).append( rs.getInt( p++ ) )
 //          .append( '&' ).append( PARAM_CAMERA_MODEL ).append( '=' ).append( -1 )
@@ -913,14 +913,14 @@
 //        sb.append( "</tr>" );
 //    }
 //
-//    private void outCameraAddRow( long sessionID, int cameraModelID, String cameraModelName, StringBuilder sb ) throws Throwable {
+//    private void outCameraAddRow( long sessionId, int cameraModelID, String cameraModelName, StringBuilder sb ) throws Throwable {
 //        sb.append( "<tr>" )
 //          .append( "<td>" )
 //          .append( "&nbsp;" )
 //          .append( "</td>" )
 //          .append( "<td colspan='4'>" )
 //          .append( "<a href='/" )
-//          .append( '?' ).append( PARAM_SESSION_ID ).append( '=' ).append( sessionID )
+//          .append( '?' ).append( PARAM_SESSION_ID ).append( '=' ).append( sessionId )
 //          .append( '&' ).append( PARAM_ALIAS ).append( '=' ).append( ALIAS_CAMERA_FORM )
 //          .append( '&' ).append( PARAM_ID ).append( '=' ).append( 0 )
 //          .append( '&' ).append( PARAM_CAMERA_MODEL ).append( '=' ).append( cameraModelID )
@@ -960,7 +960,7 @@
 ////
 ////            else if( action.equals( AppAction.LOGOFF ) ) {
 ////                chmSession = new ConcurrentHashMap<>();
-////                dataServer.chmSessionStore.put( sessionID, chmSession );
+////                dataServer.chmSessionStore.put( sessionId, chmSession );
 ////            }
 ////            //--- команды, для которых требуется вход в систему и данные о пользователе
 ////            else {

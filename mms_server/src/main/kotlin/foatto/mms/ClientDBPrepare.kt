@@ -87,10 +87,10 @@ class ClientDBPrepare(aConfigFileName: String) : CoreServiceWorker(aConfigFileNa
 
         //--- составляем список ID удаляемых объектов
 
-        val alObjectID = mutableListOf<Int>()
+        val alobjectId = mutableListOf<Int>()
         val rs = alStm[0].executeQuery(" SELECT id FROM MMS_object WHERE id <> 0 AND user_id NOT IN ( $sUserIDList ) ")
         while (rs.next()) {
-            alObjectID.add(rs.getInt(1))
+            alobjectId.add(rs.getInt(1))
         }
         rs.close()
 
@@ -98,8 +98,8 @@ class ClientDBPrepare(aConfigFileName: String) : CoreServiceWorker(aConfigFileNa
 
         //--- удаляем data-таблицы согласно списка
 
-        for (objectID in alObjectID) {
-            alStm[0].executeUpdate(" DROP TABLE MMS_data_$objectID ")
+        for (objectId in alobjectId) {
+            alStm[0].executeUpdate(" DROP TABLE MMS_data_$objectId ")
             alConn[0].commit()
         }
         AdvancedLogger.info("MMS_data_XXX")

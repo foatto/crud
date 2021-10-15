@@ -67,23 +67,23 @@ class cZone : cStandart() {
     }
 
     private fun updateZoneInfo(id: Int, zoneInfo: String) {
-        var elementID = 0
+        var elementId = 0
 
-        //--- найдем соответствующий elementID
+        //--- найдем соответствующий elementId
         val rs = stm.executeQuery(
             " SELECT id FROM XY_element " +
             " WHERE type_name = '${sdcMMSMap.ELEMENT_TYPE_ZONE}' AND object_id = $id " )
-        if(rs.next()) elementID = rs.getInt(1)
+        if(rs.next()) elementId = rs.getInt(1)
         rs.close()
         //--- графическая зона существует, надо обновить информацию
-        if(elementID != 0) {
+        if(elementId != 0) {
             if(stm.executeUpdate(
-                " UPDATE XY_property SET property_value = '$zoneInfo' WHERE element_id = $elementID AND property_name = '${XyProperty.TOOL_TIP_TEXT}' " ) == 0
+                " UPDATE XY_property SET property_value = '$zoneInfo' WHERE element_id = $elementId AND property_name = '${XyProperty.TOOL_TIP_TEXT}' " ) == 0
             ) {
 
                 stm.executeUpdate(
                     " INSERT INTO XY_property ( element_id , property_name , property_value ) VALUES ( " +
-                    " $elementID , '${XyProperty.TOOL_TIP_TEXT}' , '$zoneInfo' ) " )
+                    " $elementId , '${XyProperty.TOOL_TIP_TEXT}' , '$zoneInfo' ) " )
             }
         }
     }

@@ -30,37 +30,37 @@ class cWorkShift : cMMSOneObjectParent() {
         super.postDelete(id, hmColumnData)
 
         val m = model as mWorkShift
-        val objectID = (hmColumnData[m.columnObject] as DataInt).intValue
+        val objectId = (hmColumnData[m.columnObject] as DataInt).intValue
 
-        val rs = stm.executeQuery( " SELECT id FROM MMS_work_shift WHERE object_id = $objectID " )
+        val rs = stm.executeQuery( " SELECT id FROM MMS_work_shift WHERE object_id = $objectId " )
         val isWorkShiftRest = rs.next()
         rs.close()
 
         //--- если рабочих смен не осталось, то обнулим флаг автосоздания,
         //--- т.к. не осталось шаблона для автосоздания
         if(!isWorkShiftRest)
-            stm.executeUpdate( " UPDATE MMS_object SET is_auto_work_shift = 0 WHERE id = $objectID " )
+            stm.executeUpdate( " UPDATE MMS_object SET is_auto_work_shift = 0 WHERE id = $objectId " )
     }
 
     private fun prepareAutoWorkShift( hmColumnData: Map<iColumn, iData> ) {
         val m = model as mWorkShift
 
         val userID = ( hmColumnData[ model.columnUser!! ] as DataAbstractIntValue).intValue
-        val objectID = (hmColumnData[m.columnObject] as DataInt).intValue
+        val objectId = (hmColumnData[m.columnObject] as DataInt).intValue
         val isAutoWorkShift = (hmColumnData[m.columnIsAutoWorkShift] as DataBoolean).value
 
-        stm.executeUpdate( " UPDATE MMS_object SET is_auto_work_shift = ${if(isAutoWorkShift) 1 else 0} WHERE id = $objectID " )
+        stm.executeUpdate( " UPDATE MMS_object SET is_auto_work_shift = ${if(isAutoWorkShift) 1 else 0} WHERE id = $objectId " )
 
-        if(isAutoWorkShift) autoCreateWorkShift(stm, userID, objectID)
+        if(isAutoWorkShift) autoCreateWorkShift(stm, userID, objectId)
     }
 
     companion object {
 
-        fun autoCreateWorkShift(stm: CoreAdvancedStatement, userID: Int, objectID: Int): Int? {
+        fun autoCreateWorkShift(stm: CoreAdvancedStatement, userID: Int, objectId: Int): Int? {
             //--- найдем последнюю рабочую смену
             var begTime = 0
             var endTime = 0
-            val rs = stm.executeQuery(" SELECT beg_dt , end_dt FROM MMS_work_shift WHERE object_id = $objectID ORDER BY end_dt DESC ")
+            val rs = stm.executeQuery(" SELECT beg_dt , end_dt FROM MMS_work_shift WHERE object_id = $objectId ORDER BY end_dt DESC ")
             if(rs.next()) {
                 begTime = rs.getInt(1)
                 endTime = rs.getInt(2)
@@ -80,7 +80,7 @@ class cWorkShift : cMMSOneObjectParent() {
                         )
                             .append(" id , user_id , object_id , beg_dt , end_dt , beg_dt_fact , end_dt_fact , worker_id , shift_no , run ) VALUES ( ")
                             .append(stm.getNextID("MMS_work_shift", "id")).append(" , ")
-                            .append(userID).append(" , ").append(objectID).append(" , ")
+                            .append(userID).append(" , ").append(objectId).append(" , ")
                             //--- при автосоздании примем фактическое время == документальному времени
                             .append(begTime).append(" , ").append(endTime).append(" , ")
                             .append(begTime).append(" , ").append(endTime).append(" , ")

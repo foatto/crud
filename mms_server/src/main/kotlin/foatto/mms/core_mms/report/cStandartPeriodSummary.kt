@@ -5,7 +5,7 @@ import foatto.mms.iMMSApplication
 
 abstract class cStandartPeriodSummary : cAbstractPeriodSummary() {
 
-    protected lateinit var alObjectID: MutableList<Int>
+    protected lateinit var alobjectId: MutableList<Int>
     protected lateinit var alObjectConfig: MutableList<ObjectConfig>
 
     override fun getReport(): String {
@@ -16,17 +16,17 @@ abstract class cStandartPeriodSummary : cAbstractPeriodSummary() {
         val reportDepartment = hmReportParam["report_department"] as Int
         val reportGroup = hmReportParam["report_group"] as Int
 
-        alObjectID = mutableListOf()
+        alobjectId = mutableListOf()
         //--- если объект не указан, то загрузим полный список доступных объектов
         if (reportObject == 0) {
-            loadObjectList(conn, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
+            loadObjectList(conn, userConfig, reportObjectUser, reportDepartment, reportGroup, alobjectId)
         } else {
-            alObjectID.add(reportObject)
+            alobjectId.add(reportObject)
         }
 
         alObjectConfig = mutableListOf()
-        for (objectID in alObjectID) {
-            alObjectConfig.add((application as iMMSApplication).getObjectConfig(userConfig, objectID))
+        for (objectId in alobjectId) {
+            alObjectConfig.add((application as iMMSApplication).getObjectConfig(userConfig, objectId))
         }
 
         alObjectConfig.forEach { oc ->

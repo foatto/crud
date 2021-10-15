@@ -35,8 +35,8 @@ class ObjectSelector {
         hmParentColumn: MutableMap<String, iColumn>, aSingleObjectMode: Boolean, addedStaticColumnCount: Int
     ) {
 
-        val columnObjectID = ColumnInt("MMS_object", "id")
-        columnObject = ColumnInt(model.tableName, fieldObject, columnObjectID)
+        val columnobjectId = ColumnInt("MMS_object", "id")
+        columnObject = ColumnInt(model.tableName, fieldObject, columnobjectId)
 
         columnObjectName = ColumnString("MMS_object", "name", "Наименование объекта", mAbstract.STRING_COLUMN_WIDTH)
         columnObjectName.isRequired = isRequired
@@ -58,7 +58,7 @@ class ObjectSelector {
             }
             //--- только для "родного" алиаса
             if (selectorAlias == null) {
-                columnObjectName.addSelectorColumn(columnObject, columnObjectID)
+                columnObjectName.addSelectorColumn(columnObject, columnobjectId)
             }
             else {
                 columnObjectName.addSelectorColumn(selectorColumnTo!!, selectorColumnFrom!!)

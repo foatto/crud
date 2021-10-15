@@ -135,23 +135,23 @@ class cOverSpeed : cMMSReport() {
 
         val maxEnabledOverSpeed = (application as iMMSApplication).maxEnabledOverSpeed
 
-        val alObjectID = ArrayList<Int>()
+        val alobjectId = ArrayList<Int>()
         //--- если объект не указан, то загрузим полный список доступных объектов
         if (reportObject == 0) {
-            loadObjectList(conn, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
+            loadObjectList(conn, userConfig, reportObjectUser, reportDepartment, reportGroup, alobjectId)
         } else {
-            alObjectID.add(reportObject)
+            alobjectId.add(reportObject)
         }
 
-        for (objectID in alObjectID) {
-            val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
+        for (objectId in alobjectId) {
+            val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectId)
             //--- гео-датчик не прописан
             if (oc.scg == null) continue
 
             val hmZoneLimit = ZoneLimitData.getZoneLimit(
                 stm = stm,
                 userConfig = userConfig,
-                objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, objectID),
+                objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, objectId),
                 hmZoneData = hmZoneData,
                 zoneType = ZoneLimitData.TYPE_LIMIT_SPEED
             )

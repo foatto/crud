@@ -60,8 +60,8 @@ class cDevice : cStandart() {
         val md = model as mDevice
 
         val deviceID = ( hmColumnData[ md.columnDevice ] as DataInt ).intValue
-        val objectID = ( hmColumnData[ md.columnObject ] as DataInt ).intValue
+        val objectId = ( hmColumnData[ md.columnObject ] as DataInt ).intValue
 
-        stm.executeUpdate( " DELETE FROM VC_camera WHERE name = '$deviceID' AND object_id <> $objectID " )
+        stm.executeUpdate( " DELETE FROM VC_camera WHERE name = '$deviceID' AND object_id <> $objectId " )
     }
 }

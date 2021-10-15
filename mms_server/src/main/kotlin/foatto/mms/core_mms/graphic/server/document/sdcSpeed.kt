@@ -27,7 +27,7 @@ class sdcSpeed : sdcAbstractGraphic() {
         //int sensorType = mmsgdc.sensorType;
         //AnalogGraphicHandler agh = ( AnalogGraphicHandler ) mmsgdc.graphicHandler;
 
-        val graphicStartDataID = graphicActionRequest.startParamID
+        val graphicStartDataID = graphicActionRequest.startParamId
         val sd = chmSession[AppParameter.GRAPHIC_START_DATA + graphicStartDataID] as GraphicStartData
 
         val x1 = graphicActionRequest.graphicCoords!!.first
@@ -46,7 +46,7 @@ class sdcSpeed : sdcAbstractGraphic() {
         //--- загрузить данные по зонам
         val hmZoneData = ZoneData.getZoneData(stm, userConfig, 0)
 
-        val oc = (application as iMMSApplication).getObjectConfig(userConfig, sd.objectID)
+        val oc = (application as iMMSApplication).getObjectConfig(userConfig, sd.objectId)
         //--- загрузка заголовочной информации по объекту
         val sbObjectInfo = StringBuilder(oc.name)
 
@@ -59,7 +59,7 @@ class sdcSpeed : sdcAbstractGraphic() {
         //--- если гео-датчика нет или в нём отключено использование понятия "скорости"
         if (oc.scg != null || !oc.scg!!.isUseSpeed) {
             //--- заранее заполняем список опеределений видимости графиков
-            val graphicVisibilityKey = "$UP_GRAPHIC_VISIBLE${sd.objectID}_19"
+            val graphicVisibilityKey = "$UP_GRAPHIC_VISIBLE${sd.objectId}_19"
             tmElementVisibleConfig[oc.scg!!.descr] = graphicVisibilityKey
 
             //--- а сейчас уже можно и нужно проверять на видимость графика

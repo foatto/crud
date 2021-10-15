@@ -53,13 +53,13 @@ class mShiftWork : mAbstract() {
         //        //--- это "путевой лист" или "рабочая смена"? (mms_waybill vs. mms_work_shift)
         //        boolean isWaybill = aliasConfig.getAlias().equals( "mms_waybill" );
 
-        val parentObjectID = hmParentData["mms_object"]
+        val parentObjectId = hmParentData["mms_object"]
 
         //        //--- определим опцию автосоздания рабочих смен
         //        Boolean isAutoWorkShift = false;
-        //        if( ! isWaybill && parentObjectID != null ) {
+        //        if( ! isWaybill && parentObjectId != null ) {
         //            CoreAdvancedResultSet rs = dataWorker.alStm.get( 0 ).executeQuery( new StringBuilder(
-        //                " SELECT is_auto_work_shift FROM MMS_object WHERE id = " ).append( parentObjectID ) );
+        //                " SELECT is_auto_work_shift FROM MMS_object WHERE id = " ).append( parentObjectId ) );
         //            if( rs.next() ) isAutoWorkShift = rs.getInt( 1 ) != 0;
         //            rs.close();
         //        }
@@ -99,35 +99,35 @@ class mShiftWork : mAbstract() {
         columnObjectShiftWorkRun = ColumnString(tableName, "_run", "Пробег [км]", STRING_COLUMN_WIDTH)
         columnObjectShiftWorkRun.isVirtual = true
         columnObjectShiftWorkRun.isSearchable = false
-        columnObjectShiftWorkRun.rowSpan = if(parentObjectID == null) 3 else 4
+        columnObjectShiftWorkRun.rowSpan = if(parentObjectId == null) 3 else 4
         columnObjectShiftWorkHourName = ColumnString(tableName, "_work_name", "Оборудование", STRING_COLUMN_WIDTH)
         columnObjectShiftWorkHourName.isVirtual = true
         columnObjectShiftWorkHourName.isSearchable = false
-        columnObjectShiftWorkHourName.rowSpan = if(parentObjectID == null) 3 else 4
+        columnObjectShiftWorkHourName.rowSpan = if(parentObjectId == null) 3 else 4
         columnObjectShiftWorkHourValue = ColumnString(tableName, "_work_hour", "Работа [час]", STRING_COLUMN_WIDTH)
         columnObjectShiftWorkHourValue.isVirtual = true
         columnObjectShiftWorkHourValue.isSearchable = false
-        columnObjectShiftWorkHourValue.rowSpan = if(parentObjectID == null) 3 else 4
+        columnObjectShiftWorkHourValue.rowSpan = if(parentObjectId == null) 3 else 4
         columnObjectShiftWorkLiquidName = ColumnString(tableName, "_liquid_name", "Топливо", STRING_COLUMN_WIDTH)
         columnObjectShiftWorkLiquidName.isVirtual = true
         columnObjectShiftWorkLiquidName.isSearchable = false
-        columnObjectShiftWorkLiquidName.rowSpan = if (parentObjectID == null) 3 else 4
+        columnObjectShiftWorkLiquidName.rowSpan = if (parentObjectId == null) 3 else 4
         columnObjectShiftWorkLiquidValue = ColumnString(tableName, "_liquid_value", "Расход", STRING_COLUMN_WIDTH)
         columnObjectShiftWorkLiquidValue.isVirtual = true
         columnObjectShiftWorkLiquidValue.isSearchable = false
-        columnObjectShiftWorkLiquidValue.rowSpan = if(parentObjectID == null) 3 else 4
+        columnObjectShiftWorkLiquidValue.rowSpan = if(parentObjectId == null) 3 else 4
         columnObjectShiftWorkLevelName = ColumnString(tableName, "_level_name", "Ёмкость", STRING_COLUMN_WIDTH)
         columnObjectShiftWorkLevelName.isVirtual = true
         columnObjectShiftWorkLevelName.isSearchable = false
-        columnObjectShiftWorkLevelName.rowSpan = if(parentObjectID == null) 3 else 4
+        columnObjectShiftWorkLevelName.rowSpan = if(parentObjectId == null) 3 else 4
         columnObjectShiftWorkLevelBeg = ColumnString(tableName, "_level_beg", "Нач.остаток", STRING_COLUMN_WIDTH)
         columnObjectShiftWorkLevelBeg.isVirtual = true
         columnObjectShiftWorkLevelBeg.isSearchable = false
-        columnObjectShiftWorkLevelBeg.rowSpan = if(parentObjectID == null) 3 else 4
+        columnObjectShiftWorkLevelBeg.rowSpan = if(parentObjectId == null) 3 else 4
         columnObjectShiftWorkLevelEnd = ColumnString(tableName, "_level_end", "Кон.остаток", STRING_COLUMN_WIDTH)
         columnObjectShiftWorkLevelEnd.isVirtual = true
         columnObjectShiftWorkLevelEnd.isSearchable = false
-        columnObjectShiftWorkLevelEnd.rowSpan = if(parentObjectID == null) 3 else 4
+        columnObjectShiftWorkLevelEnd.rowSpan = if(parentObjectId == null) 3 else 4
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -143,14 +143,14 @@ class mShiftWork : mAbstract() {
 
         os = ObjectSelector()
         os.fillColumns(
-            this, true, true, alTableHiddenColumn, alFormHiddenColumn, alFormColumn, hmParentColumn, false, if(parentObjectID == null) 0 else 1
+            this, true, true, alTableHiddenColumn, alFormHiddenColumn, alFormColumn, hmParentColumn, false, if(parentObjectId == null) 0 else 1
         )
 
         //----------------------------------------------------------------------------------------------------------------------
 
         //        if( isWaybill ) addTableColumn( columnShiftNo );
         //        else alTableHiddenColumn.add( columnShiftNo );
-        if(parentObjectID == null) {
+        if(parentObjectId == null) {
             alTableGroupColumn.add(columnShiftBegDoc)
             addTableColumnVertNew(columnShiftEndDoc, columnShiftBegFact, columnShiftEndFact)
         } else addTableColumnVertNew(columnShiftBegDoc, columnShiftEndDoc, columnShiftBegFact, columnShiftEndFact)

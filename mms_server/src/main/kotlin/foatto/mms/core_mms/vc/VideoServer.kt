@@ -52,7 +52,7 @@
 //    private var inBufSize: Int = 0
 //
 //    private var deviceID: String? = null // выведено наружу исключительно для prepareErrorCommand
-//    private var objectID = 0
+//    private var objectId = 0
 //
 ////-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //
@@ -156,11 +156,11 @@
 //
 //                    //--- определем объект по device_id
 //                    val rs = dataWorker.alStm[ 0 ].executeQuery( " SELECT object_id FROM MMS_device WHERE device_id = $deviceID" )
-//                    objectID = if( rs.next() ) rs.getInt( 1 ) else 0
+//                    objectId = if( rs.next() ) rs.getInt( 1 ) else 0
 //                    rs.close()
 //
 //                    //--- неизвестный прибор
-//                    if( objectID == 0 ) {
+//                    if( objectId == 0 ) {
 //                        AdvancedLogger.error( "Unknown device ID = $deviceID" )
 //                        return false
 //                    }
@@ -169,7 +169,7 @@
 //                    hmCameraDir.clear()
 //
 //                    //--- обновляем (пересоздаём) описание _только_ своих камер
-//                    dataWorker.alStm[ 0 ].executeUpdate( " DELETE FROM VC_camera WHERE name = '$deviceID' AND object_id = $objectID" )
+//                    dataWorker.alStm[ 0 ].executeUpdate( " DELETE FROM VC_camera WHERE name = '$deviceID' AND object_id = $objectId" )
 //
 //                    var cIndex = 0
 //                    while( true ) {
@@ -177,12 +177,12 @@
 //
 //                        dataWorker.alStm[ 0 ].executeUpdate(
 //                            " INSERT INTO VC_camera ( id , object_id , name , descr , login , pwd , url_0 , url_1 , url_mjpeg , url_image , url_time , video_codec , audio_codec , duration ) VALUES ( " +
-//                            dataWorker.alStm[ 0 ].getNextID( "VC_camera", "id" ) + " , $objectID , '$deviceID' , '$descr' , '' , '' , '' , '' , '' , '' , '' , 1 , 0 , 0 ) " )
+//                            dataWorker.alStm[ 0 ].getNextID( "VC_camera", "id" ) + " , $objectId , '$deviceID' , '$descr' , '' , '' , '' , '' , '' , '' , '' , 1 , 0 , 0 ) " )
 //
 //                        sbCameraDescr.append( if( sbCameraDescr.isEmpty() ) "" else " , " ).append( '\'' ).append( descr ).append( '\'' )
 //
 //                        //--- создадим папки под онлайн-кадры и видео
-//                        val dirCamera = VideoFunction.getCameraDir( dirVideoRoot, objectID, descr )
+//                        val dirCamera = VideoFunction.getCameraDir( dirVideoRoot, objectId, descr )
 //                        //dirCamera.mkdirs(); - достаточно последующего dirStream.mkdirs()
 //                        hmCameraDir.put( descr, dirCamera )
 //                        //--- для каждого потока
@@ -207,7 +207,7 @@
 //                    val fileSize = bbIn.getInt()
 //                    if( fileSize > 0 ) {
 //                        //--- загрузим текущий индекс файла
-//                        val rs = dataWorker.alStm[ 0 ].executeQuery( " SELECT file_index FROM VC_job_image WHERE object_id = $objectID AND descr = '$descr' " )
+//                        val rs = dataWorker.alStm[ 0 ].executeQuery( " SELECT file_index FROM VC_job_image WHERE object_id = $objectId AND descr = '$descr' " )
 //                        //--- переключаем индекс файла - если был 0, станет 1 и наоборот
 //                        rs.next()
 //                        val newFileIndex = 1 - rs.getInt( 1 )
@@ -222,7 +222,7 @@
 //                        fos.close()
 //
 //                        //--- переключаем индекс файла на новый
-//                        dataWorker.alStm[ 0 ].executeUpdate( " UPDATE VC_job_image SET file_index = $newFileIndex WHERE object_id = $objectID AND descr = '$descr' " )
+//                        dataWorker.alStm[ 0 ].executeUpdate( " UPDATE VC_job_image SET file_index = $newFileIndex WHERE object_id = $objectId AND descr = '$descr' " )
 //                    }
 //                }
 //                dataWorker.alConn[ 0 ].commit()
@@ -245,7 +245,7 @@
 //        tsJobDescr.clear()
 //        if( !sbCameraDescr.isEmpty() ) {
 //            val rs = dataWorker.alStm[ 0 ].executeQuery(
-//                " SELECT descr FROM VC_job_image WHERE object_id = $objectID AND descr IN ( $sbCameraDescr )  AND last_time > ${System.currentTimeMillis() / 1000 - IMAGE_JOB_LIFETIME}" )
+//                " SELECT descr FROM VC_job_image WHERE object_id = $objectId AND descr IN ( $sbCameraDescr )  AND last_time > ${System.currentTimeMillis() / 1000 - IMAGE_JOB_LIFETIME}" )
 //            while( rs.next() ) tsJobDescr.add( rs.getString( 1 ) )
 //            rs.close()
 //        }

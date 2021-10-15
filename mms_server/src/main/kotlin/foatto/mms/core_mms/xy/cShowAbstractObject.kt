@@ -54,7 +54,7 @@ abstract class cShowAbstractObject : cAbstractForm() {
 
             //--- заполнение текста заголовка информацией по а/м
             if (objectIndex > 0) sd.sbTitle.append(", ")
-            val oc = (application as iMMSApplication).getObjectConfig(userConfig, sod.objectID)
+            val oc = (application as iMMSApplication).getObjectConfig(userConfig, sod.objectId)
             sd.sbTitle.append(oc.name)
             if (oc.model.isNotEmpty()) sd.sbTitle.append(", ").append(oc.model)
         }
@@ -76,12 +76,12 @@ abstract class cShowAbstractObject : cAbstractForm() {
         if (showZoneType != ZONE_SHOW_NONE) {
             hmZoneData = ZoneData.getZoneData(stm, userConfig, 0)
             for (objectIndex in sd.alStartObjectData.indices) {
-                val objectID = sd.alStartObjectData[objectIndex].objectID
+                val objectId = sd.alStartObjectData[objectIndex].objectId
                 //--- загрузить список зон, непосредственно-привязанных и привязанных через путевые листы - маршруты
                 val hmZoneLimit = ZoneLimitData.getZoneLimit(
                     stm = stm,
                     userConfig = userConfig,
-                    objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, objectID),
+                    objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, objectId),
                     hmZoneData = hmZoneData,
                     zoneType = 0
                 )
@@ -99,7 +99,7 @@ abstract class cShowAbstractObject : cAbstractForm() {
         for (zoneID in hmActualZone.keys) {
             sd.alStartObjectData.add(
                 XyStartObjectData(
-                    objectID = zoneID,
+                    objectId = zoneID,
                     typeName = "mms_zone",
                     isStart = true,
                     isTimed = false,
@@ -111,7 +111,7 @@ abstract class cShowAbstractObject : cAbstractForm() {
             if (!hmActualZone.containsKey(zoneID))
                 sd.alStartObjectData.add(
                     XyStartObjectData(
-                        objectID = zoneID,
+                        objectId = zoneID,
                         typeName = "mms_zone",
                         isStart = false,
                         isTimed = false,

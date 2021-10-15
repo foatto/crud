@@ -229,7 +229,7 @@ open class sdcAnalog : sdcAbstractGraphic() {
         val sensorType = mmsgdc.sensorType
         val agh = mmsgdc.graphicHandler as AnalogGraphicHandler
 
-        val graphicStartDataID = graphicActionRequest.startParamID
+        val graphicStartDataID = graphicActionRequest.startParamId
         val sd = chmSession[AppParameter.GRAPHIC_START_DATA + graphicStartDataID] as GraphicStartData
 
         val x1 = graphicActionRequest.graphicCoords!!.first
@@ -251,7 +251,7 @@ open class sdcAnalog : sdcAbstractGraphic() {
         //--- показ текстов по умолчанию включен, если не указано явно иное
         val isShowText = smText?.toBoolean() ?: true
 
-        val oc = (application as iMMSApplication).getObjectConfig(userConfig, sd.objectID)
+        val oc = (application as iMMSApplication).getObjectConfig(userConfig, sd.objectId)
         //--- загрузка заголовочной информации по объекту
         var sObjectInfo = oc.name
 
@@ -274,7 +274,7 @@ open class sdcAnalog : sdcAbstractGraphic() {
                 val sca = hmSensorConfig[portNum] as SensorConfigAnalogue
 
                 //--- заранее заполняем список опеределений видимости графиков
-                val graphicVisibilityKey = "$UP_GRAPHIC_VISIBLE${sd.objectID}_${sca.portNum}"
+                val graphicVisibilityKey = "$UP_GRAPHIC_VISIBLE${sd.objectId}_${sca.portNum}"
                 tmElementVisibleConfig[sca.descr] = graphicVisibilityKey
 
                 //--- а сейчас уже можно и нужно проверять на видимость графика

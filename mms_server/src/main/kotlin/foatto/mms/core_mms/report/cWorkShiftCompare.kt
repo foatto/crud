@@ -552,15 +552,15 @@ class cWorkShiftCompare : cMMSReport() {
         //--- если указана рабочая смена/путевой лист, то загрузим только его
         if (reportWorkShift != 0) sbSQL.append(" AND MMS_work_shift.id = ").append(reportWorkShift)
         else {
-            val alObjectID = ArrayList<Int>()
+            val alobjectId = ArrayList<Int>()
             //--- если объект не указан, то загрузим полный список доступных объектов
             if (reportObject == 0) {
-                loadObjectList(conn, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
+                loadObjectList(conn, userConfig, reportObjectUser, reportDepartment, reportGroup, alobjectId)
             } else {
-                alObjectID.add(reportObject)
+                alobjectId.add(reportObject)
             }
 
-            sbSQL.append(" AND MMS_work_shift.object_id IN ( ").append(getSBFromIterable(alObjectID, " , ")).append(" ) ")
+            sbSQL.append(" AND MMS_work_shift.object_id IN ( ").append(getSBFromIterable(alobjectId, " , ")).append(" ) ")
                 //--- пока будем брать путевки, только полностью входящие в требуемый диапазон
                 //--- для выборки из диапазона используем только номинальное/документальное время начала/окончания путёвки
                 .append(" AND MMS_work_shift.beg_dt >= ").append(begTime).append(" AND MMS_work_shift.end_dt <= ").append(endTime)
@@ -621,7 +621,7 @@ class cWorkShiftCompare : cMMSReport() {
         }
 
         for (wsd in alWSD) {
-            val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, wsd.objectID)
+            val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, wsd.objectId)
 
             tmResult[StringBuilder().append(wsd.begTime).append(objectConfig.name).toString()] = WorkShiftCalcResult(wsd, ObjectCalc.calcObject(stm, userConfig, objectConfig, wsd.begTime - reportAddBefore, wsd.endTime + reportAddAfter))
         }
@@ -642,7 +642,7 @@ class cWorkShiftCompare : cMMSReport() {
 
     //--------------------------------------------------------------------------------------------------------------
 
-    private class WorkShiftData(val objectID: Int, val shiftID: Int, val shiftNo: String, val begTime: Int, val endTime: Int, val run: Double, val workerName: String) {
+    private class WorkShiftData(val objectId: Int, val shiftID: Int, val shiftNo: String, val begTime: Int, val endTime: Int, val run: Double, val workerName: String) {
         var tmWorkHour = TreeMap<String, Double>()
         var tmLiquidUsing = TreeMap<String, Double>()
     }

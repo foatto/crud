@@ -177,16 +177,16 @@ class cOverSensor : cMMSReport() {
 
         val graphicHandler = AnalogGraphicHandler()
 
-        val alObjectID = mutableListOf<Int>()
+        val alobjectId = mutableListOf<Int>()
         //--- если объект не указан, то загрузим полный список доступных объектов
         if (reportObject == 0) {
-            loadObjectList(conn, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
+            loadObjectList(conn, userConfig, reportObjectUser, reportDepartment, reportGroup, alobjectId)
         } else {
-            alObjectID.add(reportObject)
+            alobjectId.add(reportObject)
         }
 
-        for (objectID in alObjectID) {
-            val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
+        for (objectId in alobjectId) {
+            val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, objectId)
 
             val hmSensorConfig = objectConfig.hmSensorConfig[sensorType]
             if (hmSensorConfig == null || hmSensorConfig.isEmpty()) continue

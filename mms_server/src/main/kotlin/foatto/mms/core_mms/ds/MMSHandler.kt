@@ -163,7 +163,7 @@ abstract class MMSHandler : AbstractTelematicHandler() {
                     //--- при отсутствии самих рабочих смен - поэтому достаточно выключить в локальных настройках,
                     //--- этого хватит для продолжения нормальной работы
                     //sqlBatch.add( new StringBuilder(
-                    //    " UPDATE MMS_object SET is_auto_work_shift = 0 WHERE id = " ).append( deviceConfig.objectID ) );
+                    //    " UPDATE MMS_object SET is_auto_work_shift = 0 WHERE id = " ).append( deviceConfig.objectId ) );
                     deviceConfig.isAutoWorkShift = false
                 }
                 chmLastWorkShift[deviceConfig.objectId] = lastTime!!

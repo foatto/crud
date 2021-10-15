@@ -32,7 +32,7 @@ class ObjectEntity(
 
     /*
             if (rs.next()) {
-                objectConfig.objectID = aObjectID
+                objectConfig.objectId = aobjectId
                 objectConfig.userID = rs.getInt(1)
                 objectConfig.isDisabled = rs.getInt(2) != 0
                 val sbObjectInfo = StringBuilder(rs.getString(3))
@@ -46,7 +46,7 @@ class ObjectEntity(
                 if (shortUserName != null && !shortUserName.isEmpty()) sbObjectInfo.append(" ( ").append(shortUserName).append(" ) ")
                 objectConfig.name = sbObjectInfo.toString()
             } else {
-                AdvancedLogger.error("ObjectConfig not exist for object_id = $aObjectID")
+                AdvancedLogger.error("ObjectConfig not exist for object_id = $aobjectId")
             }
 
      */

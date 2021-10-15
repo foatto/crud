@@ -42,24 +42,24 @@ class mWorkShiftData : mAbstract() {
 
         val columnDescr = ColumnString(tableName, "descr", if (isWorkData) "Оборудование" else if (isLiquidData) "Топливо" else "", STRING_COLUMN_WIDTH)
         if (shiftID != null) {
-            var objectID = 0
+            var objectId = 0
             var rs = stm.executeQuery(" SELECT object_id FROM MMS_work_shift WHERE id = $shiftID ")
-            if (rs.next()) objectID = rs.getInt(1)
+            if (rs.next()) objectId = rs.getInt(1)
             rs.close()
 
-            if (objectID != 0) {
+            if (objectId != 0) {
                 if (isWorkData) {
                     //--- DISTINCT deliberately will not be set,
                     //--- let repetitions be detected in equipment names
                     rs = stm.executeQuery(
-                        " SELECT descr FROM MMS_sensor WHERE sensor_type = ${SensorConfig.SENSOR_WORK} AND object_id = $objectID ORDER BY descr "
+                        " SELECT descr FROM MMS_sensor WHERE sensor_type = ${SensorConfig.SENSOR_WORK} AND object_id = $objectId ORDER BY descr "
                     )
                     while (rs.next()) columnDescr.addCombo(rs.getString(1))
                     rs.close()
                 }
                 if (isLiquidData) {
                     //--- set DISTINCT to remove duplication of the same fuel names
-                    rs = stm.executeQuery(" SELECT DISTINCT liquid_name FROM MMS_sensor WHERE object_id = $objectID ORDER BY liquid_name ")
+                    rs = stm.executeQuery(" SELECT DISTINCT liquid_name FROM MMS_sensor WHERE object_id = $objectId ORDER BY liquid_name ")
                     while (rs.next()) columnDescr.addCombo(rs.getString(1))
                     rs.close()
                 }

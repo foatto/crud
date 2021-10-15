@@ -63,10 +63,10 @@ class ZoneData( val id: Int, val userID: Int, val name: String, val descr: Strin
             rs.close()
 
             //--- загрузим точки по зонам
-            for( zoneObjectID in hmZoneDataDraft.keys ) {
-                rs = stm.executeQuery( " SELECT id , prj_x1 , prj_y1 , point_data FROM XY_element WHERE type_name = '${sdcMMSMap.ELEMENT_TYPE_ZONE}' AND object_id = $zoneObjectID " )
+            for( zoneobjectId in hmZoneDataDraft.keys ) {
+                rs = stm.executeQuery( " SELECT id , prj_x1 , prj_y1 , point_data FROM XY_element WHERE type_name = '${sdcMMSMap.ELEMENT_TYPE_ZONE}' AND object_id = $zoneobjectId " )
                 rs.next()
-                val zoneElementID = rs.getInt( 1 )
+                val zoneelementId = rs.getInt( 1 )
                 val prjX = rs.getInt( 2 )
                 val prjY = rs.getInt( 3 )
                 val bbPoint = rs.getByteBuffer( 4, ByteOrder.BIG_ENDIAN )
@@ -78,15 +78,15 @@ class ZoneData( val id: Int, val userID: Int, val name: String, val descr: Strin
                 //--- если кол-во точек равно максимальной вместимости поля point_data,
                 //--- то возможно что в XY_point лежат ещё точки
                 if( polygon.alPoint.size >= stm.dialect.binaryFieldMaxSize / sdcXyMap.POINT_SIZE_IN_BIN ) {
-                    rs = stm.executeQuery( " SELECT prj_x , prj_y FROM XY_point WHERE element_id = $zoneElementID ORDER BY sort_id " )
+                    rs = stm.executeQuery( " SELECT prj_x , prj_y FROM XY_point WHERE element_id = $zoneelementId ORDER BY sort_id " )
                     while( rs.next() ) polygon.alPoint.add(XyPoint(prjX + rs.getInt(1), prjY + rs.getInt(2)))
                     rs.close()
                 }
                 //--- в чистовой список заносим только зоны с ненулевым кол-вом точек
                 if( polygon.alPoint.size > 0 ) {
-                    val zd = hmZoneDataDraft[ zoneObjectID ]!!
+                    val zd = hmZoneDataDraft[ zoneobjectId ]!!
                     zd.polygon = polygon
-                    hmAllZoneData[ zoneObjectID ] = zd
+                    hmAllZoneData[ zoneobjectId ] = zd
                 }
             }
 

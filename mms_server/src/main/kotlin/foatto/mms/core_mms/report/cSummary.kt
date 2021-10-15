@@ -52,7 +52,7 @@ class cSummary : cStandartPeriodSummary() {
 
         val allSumCollector = ReportSumCollector()
         var countNN = 1
-        for (objectIndex in alObjectID.indices) {
+        for (objectIndex in alobjectId.indices) {
             val objectConfig = alObjectConfig[objectIndex]
             val objectCalc = ObjectCalc.calcObject(stm, userConfig, objectConfig, begTime, endTime)
 

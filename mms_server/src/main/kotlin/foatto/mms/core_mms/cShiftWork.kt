@@ -15,11 +15,11 @@ class cShiftWork : cStandart() {
     override fun generateColumnDataAfterFilter(hmColumnData: MutableMap<iColumn, iData>) {
         val m = model as mShiftWork
 
-        val objectID = (hmColumnData[m.columnObject] as DataInt).intValue
+        val objectId = (hmColumnData[m.columnObject] as DataInt).intValue
         val begTime = (hmColumnData[m.columnShiftBegDoc] as DataDateTimeInt).zonedDateTime.toEpochSecond().toInt()
         val endTime = (hmColumnData[m.columnShiftEndDoc] as DataDateTimeInt).zonedDateTime.toEpochSecond().toInt()
 
-        val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
+        val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectId)
         val calc = ObjectCalc.calcObject(stm, userConfig, oc, begTime, endTime)
 
         (hmColumnData[m.columnObjectShiftWorkRun] as DataString).text = calc.sGeoRun

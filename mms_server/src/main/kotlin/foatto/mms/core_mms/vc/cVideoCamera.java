@@ -59,14 +59,14 @@
 //        //--- фильтрация/экранирование символов в descr с последующей проверкой на пустоту и уникальность
 //        if( isValid ) {
 //            mVideoCamera mvc = (mVideoCamera) model;
-//            int objectID = ( (DataInt) hmColumnData.get( mvc.getObjectSelector().getColumnObject() ) ).getValue();
+//            int objectId = ( (DataInt) hmColumnData.get( mvc.getObjectSelector().getColumnObject() ) ).getValue();
 //            DataString dataDescr = (DataString) hmColumnData.get( mvc.getColumnDescr() );
 //            String cameraDescr = dataDescr.getText().trim();
 //
 //            StringBuilder sbErrorValue = new StringBuilder();
 //            StringBuilder sbErrorText = new StringBuilder();
 //
-//            isValid = checkDescr( dataWorker, cameraDescr, id, objectID, sbErrorValue, sbErrorText );
+//            isValid = checkDescr( dataWorker, cameraDescr, id, objectId, sbErrorValue, sbErrorText );
 //
 //            if( isValid ) dataDescr.setText( cameraDescr );
 //            else {
@@ -98,7 +98,7 @@
 //
 //        mVideoCamera mvc = (mVideoCamera) model;
 //
-//        int objectID = ( (DataInt) hmColumnData.get( mvc.getObjectSelector().getColumnObject() ) ).getValue();
+//        int objectId = ( (DataInt) hmColumnData.get( mvc.getObjectSelector().getColumnObject() ) ).getValue();
 //        String cameraDescr = ( (DataString) hmColumnData.get( mvc.getColumnDescr() ) ).getText();
 //        //--- ffmpeg нервно реагирует на наличие символа '&' в rstp-url - воспринимает его как следующую команду на выполнение
 //        //--- (согласно linux-правилам), поэтому обернём rstp-url в двойные кавычки
@@ -119,7 +119,7 @@
 //                   ffmpegPath, ffmpegMetaData, ffmpegExtraCommand,
 //                   taskSystem, taskPath, taskManager, taskUser, taskPassword,
 //                   doorGPIO, tmDisplayButtonGPIO, playerName,
-//                   objectID, cameraDescr, arrURL, duration, videoCodec, audioCodec,
+//                   objectId, cameraDescr, arrURL, duration, videoCodec, audioCodec,
 //                   cameraShowScriptFileName, displayButtonScriptFileName );
 //
 //        return postURL;
@@ -144,7 +144,7 @@
 //        //--- стартуем или останавливаем задание в зависимости от изменения значения isEnabled
 //        mVideoCamera mvc = (mVideoCamera) model;
 //
-//        int objectID = ( (DataInt) hmColumnData.get( mvc.getObjectSelector().getColumnObject() ) ).getValue();
+//        int objectId = ( (DataInt) hmColumnData.get( mvc.getObjectSelector().getColumnObject() ) ).getValue();
 //        String cameraDescr = ( (DataString) hmColumnData.get( mvc.getColumnDescr() ) ).getText();
 //        //--- ffmpeg нервно реагирует на наличие символа '&' в rstp-url - воспринимает его как следующую команду на выполнение
 //        //--- (согласно linux-правилам), поэтому обернём rstp-url в двойные кавычки
@@ -165,7 +165,7 @@
 //                    ffmpegPath, ffmpegMetaData, ffmpegExtraCommand,
 //                    taskSystem, taskPath, taskManager,
 //                    doorGPIO, tmDisplayButtonGPIO, playerName,
-//                    objectID, cameraDescr, arrURL, duration, videoCodec, audioCodec,
+//                    objectId, cameraDescr, arrURL, duration, videoCodec, audioCodec,
 //                    cameraShowScriptFileName, displayButtonScriptFileName );
 //
 //        return postURL;
@@ -185,16 +185,16 @@
 //
 //        mVideoCamera mvc = (mVideoCamera) model;
 //
-//        int objectID = ( (DataInt) hmColumnData.get( mvc.getObjectSelector().getColumnObject() ) ).getValue();
+//        int objectId = ( (DataInt) hmColumnData.get( mvc.getObjectSelector().getColumnObject() ) ).getValue();
 //        String cameraDescr = ( (DataString) hmColumnData.get( mvc.getColumnDescr() ) ).getText();
 //
 //        deleteCamera( dataWorker, dataServer.rootDirName, dataServer.tempDirName, taskSystem, taskPath, taskManager, doorGPIO, tmDisplayButtonGPIO, playerName,
-//                      objectID, cameraDescr, cameraShowScriptFileName, displayButtonScriptFileName );
+//                      objectId, cameraDescr, cameraShowScriptFileName, displayButtonScriptFileName );
 //    }
 //
 ////----------------------------------------------------------------------------------------------------------------------------------------
 //
-//    public static boolean checkDescr( CoreDataWorker aDataWorker, String inDescr, int id, int objectID,
+//    public static boolean checkDescr( CoreDataWorker aDataWorker, String inDescr, int id, int objectId,
 //                                      StringBuilder sbErrorValue, StringBuilder sbErrorText ) {
 //        if( inDescr.trim().isEmpty() ) {
 //            sbErrorValue.append( inDescr );
@@ -211,7 +211,7 @@
 //
 //        //--- проверка на уникальность описания среди камер этого объекта
 //        CoreAdvancedResultSet rs = aDataWorker.alStm.get( 0 ).executeQuery( new StringBuilder(
-//                " SELECT id FROM VC_camera WHERE object_id = " ).append( objectID )
+//                " SELECT id FROM VC_camera WHERE object_id = " ).append( objectId )
 //                .append( " AND descr = '" ).append( inDescr ).append( "' " )
 //                .append( " AND id <> " ).append( id ) );
 //        boolean isExist = rs.next();
@@ -246,15 +246,15 @@
 //                                  String ffmpegPath, String ffmpegMetaData, String ffmpegExtraCommand,
 //                                  int taskSystem, String taskPath, String taskManager, String taskUser, String taskPassword,
 //                                  Integer doorGPIO, TreeMap<Integer,Integer> tmDisplayButtonGPIO, String playerName,
-//                                  int objectID, String cameraDescr, String[] arrURL,
+//                                  int objectId, String cameraDescr, String[] arrURL,
 //                                  int duration, int videoCodec, int audioCodec,
 //                                  String cameraShowScriptFileName, String displayButtonScriptFileName ) throws Throwable {
 //
-//        File dirCamera = VideoFunction.getCameraDir( dirVideoRoot, objectID, cameraDescr );
+//        File dirCamera = VideoFunction.getCameraDir( dirVideoRoot, objectId, cameraDescr );
 //
 //        //--- для каждого потока
 //        for( int streamIndex = 0; streamIndex < VideoFunction.VIDEO_STREAM_COUNT; streamIndex++ ) {
-//            StringBuilder sbStreamName = VideoFunction.getStreamName( objectID, cameraDescr, streamIndex );
+//            StringBuilder sbStreamName = VideoFunction.getStreamName( objectId, cameraDescr, streamIndex );
 //            String streamName = sbStreamName.toString();
 //
 //            //--- создаём записывающий скрипт (независимо от указания URL потока)
@@ -310,15 +310,15 @@
 //                                   String ffmpegPath, String ffmpegMetaData, String ffmpegExtraCommand,
 //                                   int taskSystem, String taskPath, String taskManager,
 //                                   Integer doorGPIO, TreeMap<Integer,Integer> tmDisplayButtonGPIO, String playerName,
-//                                   int objectID, String cameraDescr, String[] arrURL,
+//                                   int objectId, String cameraDescr, String[] arrURL,
 //                                   int duration, int videoCodec, int audioCodec,
 //                                   String cameraShowScriptFileName, String displayButtonScriptFileName ) throws Throwable {
 //
-//        File dirCamera = VideoFunction.getCameraDir( dirVideoRoot, objectID, cameraDescr );
+//        File dirCamera = VideoFunction.getCameraDir( dirVideoRoot, objectId, cameraDescr );
 //
 //        //--- для каждого потока
 //        for( int streamIndex = 0; streamIndex < VideoFunction.VIDEO_STREAM_COUNT; streamIndex++ ) {
-//            StringBuilder sbStreamName = VideoFunction.getStreamName( objectID, cameraDescr, streamIndex );
+//            StringBuilder sbStreamName = VideoFunction.getStreamName( objectId, cameraDescr, streamIndex );
 //            String streamName = sbStreamName.toString();
 //
 //            //--- обновим записывающий скрипт
@@ -379,11 +379,11 @@
 //    public static void deleteCamera( CoreDataWorker aDataWorker, String rootDirName, String tempDirName,
 //                                     int taskSystem, String taskPath, String taskManager,
 //                                     Integer doorGPIO, TreeMap<Integer,Integer> tmDisplayButtonGPIO, String playerName,
-//                                     int objectID, String cameraDescr,
+//                                     int objectId, String cameraDescr,
 //                                     String cameraShowScriptFileName, String displayButtonScriptFileName ) throws Throwable {
 //        //--- для каждого потока
 //        for( int streamIndex = 0; streamIndex < VideoFunction.VIDEO_STREAM_COUNT; streamIndex++ ) {
-//            StringBuilder sbStreamName = VideoFunction.getStreamName( objectID, cameraDescr, streamIndex );
+//            StringBuilder sbStreamName = VideoFunction.getStreamName( objectId, cameraDescr, streamIndex );
 //            String streamName = sbStreamName.toString();
 //
 //            switch( taskSystem ) {

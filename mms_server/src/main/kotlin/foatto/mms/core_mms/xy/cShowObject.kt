@@ -21,16 +21,16 @@ class cShowObject : cShowAbstractObject() {
         val selectDepartment = (hmColumnData[msa.uodg.columnDepartment] as DataInt).intValue
         val selectGroup = (hmColumnData[msa.uodg.columnGroup] as DataInt).intValue
 
-        val alObjectID = mutableListOf<Int>()
+        val alobjectId = mutableListOf<Int>()
         if (selectObject == 0) {
-            cMMSReport.loadObjectList(conn, userConfig, selectObjectUser, selectDepartment, selectGroup, alObjectID)
+            cMMSReport.loadObjectList(conn, userConfig, selectObjectUser, selectDepartment, selectGroup, alobjectId)
         } else {
-            alObjectID.add(selectObject)
+            alobjectId.add(selectObject)
         }
 
         val sd = XyStartData()
-        for (objectID in alObjectID)
-            sd.alStartObjectData.add(XyStartObjectData(objectID))
+        for (objectId in alobjectId)
+            sd.alStartObjectData.add(XyStartObjectData(objectId))
         sd.rangeType = (hmColumnData[msa.columnShowRangeType] as DataRadioButton).intValue
 
         //--- обработка динамических диапазонов - здесь не нужна, будет постоянно производиться при запросах траектории

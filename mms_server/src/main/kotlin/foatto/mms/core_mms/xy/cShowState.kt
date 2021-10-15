@@ -31,9 +31,9 @@ class cShowState : cAbstractForm() {
         val mss = model as mShowState
 
         //--- выборка данных параметров для отчета
-        val selectObjectID = (hmColumnData[mss.columnObject] as DataInt).intValue
+        val selectobjectId = (hmColumnData[mss.columnObject] as DataInt).intValue
 
-        val oc = (application as iMMSApplication).getObjectConfig(userConfig, selectObjectID)
+        val oc = (application as iMMSApplication).getObjectConfig(userConfig, selectobjectId)
 
         val sd = XyStartData()
 
@@ -43,7 +43,7 @@ class cShowState : cAbstractForm() {
             sd.sbTitle.append(", ").append(oc.model)
         }
 
-        sd.alStartObjectData.add(XyStartObjectData(selectObjectID, "mms_object", true, false, true))
+        sd.alStartObjectData.add(XyStartObjectData(selectobjectId, "mms_object", true, false, true))
 
         val paramID = getRandomInt()
         hmOut[AppParameter.XY_START_DATA + paramID] = sd

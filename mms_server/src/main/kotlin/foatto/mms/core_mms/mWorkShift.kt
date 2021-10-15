@@ -32,12 +32,12 @@ class mWorkShift : mAbstract() {
         //--- это "путевой лист" или "рабочая смена"? (mms_waybill vs. mms_work_shift)
         val isWaybill = aliasConfig.alias == "mms_waybill"
 
-        val parentObjectID = hmParentData["mms_object"]
+        val parentObjectId = hmParentData["mms_object"]
 
         //--- определим опцию автосоздания рабочих смен
         var isAutoWorkShift: Boolean? = false
-        if(!isWaybill && parentObjectID != null) {
-            val rs = stm.executeQuery(" SELECT is_auto_work_shift FROM MMS_object WHERE id = $parentObjectID ")
+        if(!isWaybill && parentObjectId != null) {
+            val rs = stm.executeQuery(" SELECT is_auto_work_shift FROM MMS_object WHERE id = $parentObjectId ")
             if(rs.next()) isAutoWorkShift = rs.getInt(1) != 0
             rs.close()
         }
@@ -98,7 +98,7 @@ class mWorkShift : mAbstract() {
         alTableHiddenColumn.add(columnUser!!)
         alTableHiddenColumn.add(columnWorker)
 
-        if(parentObjectID == null)
+        if(parentObjectId == null)
             alTableGroupColumn.add(columnShiftBegDoc)
         else
             addTableColumn(columnShiftBegDoc)

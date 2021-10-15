@@ -155,16 +155,16 @@ class cParking : cMMSReport() {
 
         val (begTime, endTime) = getBegEndTimeFromParam()
 
-        val alObjectID = mutableListOf<Int>()
+        val alobjectId = mutableListOf<Int>()
         //--- если объект не указан, то загрузим полный список доступных объектов
         if (reportObject == 0) {
-            loadObjectList(conn, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectID)
+            loadObjectList(conn, userConfig, reportObjectUser, reportDepartment, reportGroup, alobjectId)
         } else {
-            alObjectID.add(reportObject)
+            alobjectId.add(reportObject)
         }
 
-        for (objectID in alObjectID) {
-            val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
+        for (objectId in alobjectId) {
+            val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectId)
             //--- гео-датчик не прописан
             if (oc.scg == null) continue
 

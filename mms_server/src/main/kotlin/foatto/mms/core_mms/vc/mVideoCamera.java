@@ -45,7 +45,7 @@
 //        super.init(appController, aliasConfig, userConfig, hmParentData, id);
 //
 ////        //--- этот метод может быть запущен из "Модули системы", безо всяких parent data
-////        Integer objectID = hmParentData.get( "mms_object" );
+////        Integer objectId = hmParentData.get( "mms_object" );
 ////        AutoConfig ac = autoID == null ? null : AutoConfig.getAutoConfig( conn, userConfig, autoID );
 //
 //        TreeMap<Integer,CameraModelData> tmCMD = VideoFunction.loadCameraModelData( appController.hmConfig );

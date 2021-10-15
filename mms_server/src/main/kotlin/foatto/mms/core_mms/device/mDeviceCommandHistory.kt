@@ -25,17 +25,17 @@ class mDeviceCommandHistory : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        var parentObjectID = hmParentData["mms_object"]
+        var parentObjectId = hmParentData["mms_object"]
         val parentDeviceID = hmParentData["mms_device"]
 
         //--- если переход из списка контроллеров, то подгрузим соответствующий объект ( если прикреплён )
-        if (parentObjectID == null && parentDeviceID != null) {
+        if (parentObjectId == null && parentDeviceID != null) {
             val rs = stm.executeQuery(" SELECT object_id FROM MMS_device WHERE id = $parentDeviceID ")
             rs.next()
-            parentObjectID = rs.getInt(1)
+            parentObjectId = rs.getInt(1)
             rs.close()
 
-            hmParentData["mms_object"] = parentObjectID
+            hmParentData["mms_object"] = parentObjectId
         }
 
         //----------------------------------------------------------------------------------------------------------------------
@@ -53,8 +53,8 @@ class mDeviceCommandHistory : mAbstract() {
         if (parentDeviceID != null) {
             columnDevice.defaultValue = parentDeviceID
             columnDevice.addChoice(parentDeviceID, parentDeviceID.toString())
-        } else if (parentObjectID != null) {
-            val rs = stm.executeQuery(" SELECT id FROM MMS_device WHERE object_id = $parentObjectID ORDER BY device_index ")
+        } else if (parentObjectId != null) {
+            val rs = stm.executeQuery(" SELECT id FROM MMS_device WHERE object_id = $parentObjectId ORDER BY device_index ")
             //--- первая строка станет дефолтным значение
             if (rs.next()) {
                 val deviceID = rs.getInt(1)

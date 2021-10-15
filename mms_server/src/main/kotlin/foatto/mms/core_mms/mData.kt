@@ -39,11 +39,11 @@ class mData : mAbstract() {
         val zoneId0 = getZoneId(0)
 
         //--- может быть null при вызове из "Модули системы"
-        val objectID = hmParentData["mms_object"] ?: 0
+        val objectId = hmParentData["mms_object"] ?: 0
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "MMS_data_$objectID"
+        tableName = "MMS_data_$objectId"
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -59,7 +59,7 @@ class mData : mAbstract() {
         columnDataBinary = ColumnBinary(tableName, "sensor_data")
 
         //--- соберём все номера портов
-        val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectID)
+        val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectId)
         oc.hmSensorConfig.forEach { (sensorType, hmSC) ->
             //--- генерируем виртуальные поля по объявленным портам
             hmSC.keys.forEach { portNum ->
