@@ -7,7 +7,8 @@ import java.time.ZoneId
 
 class DeviceConfig {
 
-    var objectID = 0
+    var deviceId = 0
+    var objectId = 0
     var userID = 0
 
     var index = 0
@@ -20,16 +21,20 @@ class DeviceConfig {
             var dc: DeviceConfig? = null
 
             var rs = stm.executeQuery(
-                " SELECT TS_object.id , TS_object.user_id , TS_device.device_index " +
-                    " FROM TS_object , TS_device " +
-                    " WHERE TS_object.id = TS_device.object_id AND TS_device.serial_no = '$serialNo'"
+                """
+                    SELECT TS_device.id , TS_object.id , TS_object.user_id , TS_device.device_index 
+                    FROM TS_object , TS_device 
+                    WHERE TS_object.id = TS_device.object_id 
+                    AND TS_device.serial_no = '$serialNo'
+                """
             )
 
             if (rs.next()) {
                 dc = DeviceConfig()
-                dc.objectID = rs.getInt(1)
-                dc.userID = rs.getInt(2)
-                dc.index = rs.getInt(3)
+                dc.deviceId = rs.getInt(1)
+                dc.objectId = rs.getInt(2)
+                dc.userID = rs.getInt(3)
+                dc.index = rs.getInt(4)
             }
             rs.close()
 

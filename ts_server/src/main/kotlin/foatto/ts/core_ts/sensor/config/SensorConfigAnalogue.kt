@@ -1,6 +1,6 @@
 package foatto.ts.core_ts.sensor.config
 
-open class SensorConfigAnalogue(
+class SensorConfigAnalogue(
     aId: Int,
     aName: String,
     aGroup: String,

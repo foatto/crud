@@ -15,25 +15,25 @@ class UDSDataPacket(
     val load: Double,               // "0"
 
     // Дата и время начала следующей чистки
-    val ncc: Int,                // "0001-01-01 00:00:00"
+    val nextCleanindDateTime: Int,                // "0001-01-01 00:00:00"
 
     // Глубина чистки (параметр настройки)
-    val cds: Double,                // "1000"
+    val cleaningDepth: Double,                // "1000"
 
     // Период чистки (параметр настройки)
-    val cps: Int,                // "30"
+    val cleaningPeriod: Int,                // "30"
 
     // Скорость чистки (параметр настройки)
-    val css: Double,                // "441"
+    val cleaningSpeed: Double,                // "441"
 
     // Уровень сигнала сотовой связи
-    val linkLevel: Double,          // "22"
+    val signalLevel: Double,          // "22"
 
     // Счётчик количества перезагрузок модема
     val mrc: Int,                // "4"
 
     // Ограничение нагрузки на привод (параметр настройки)
-    val cls: Double,                // "150"
+    val driveLoadRestrict: Double,                // "150"
 
     // Строка с содержимым результата AT-команды запроса баланса (если баланс не запрашивался, указывается “-1”)
     val balance: Double,    // "-1"

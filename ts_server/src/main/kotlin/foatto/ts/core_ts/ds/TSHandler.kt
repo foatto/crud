@@ -133,7 +133,7 @@ abstract class TSHandler : AbstractTelematicHandler() {
         }
         val text = sbText.toString()
 
-        val dirDeviceSessionLog = File(dirSessionLog, "device/$serialNo")
+        val dirDeviceSessionLog = File(dirSessionLog, "device/${deviceConfig!!.deviceId}")
         dirDeviceSessionLog.mkdirs()
         var out = getFileWriter(File(dirDeviceSessionLog, curLogFileName), true)
         out.write(text)
@@ -141,7 +141,7 @@ abstract class TSHandler : AbstractTelematicHandler() {
         out.flush()
         out.close()
 
-        val dirObjectSessionLog = File(dirSessionLog, "object/${deviceConfig!!.objectID}")
+        val dirObjectSessionLog = File(dirSessionLog, "object/${deviceConfig!!.objectId}")
         dirObjectSessionLog.mkdirs()
         out = getFileWriter(File(dirObjectSessionLog, curLogFileName), true)
         out.write(text)
@@ -150,8 +150,14 @@ abstract class TSHandler : AbstractTelematicHandler() {
         out.close()
 
         stm.executeUpdate(
-            " UPDATE TS_device SET fw_version = '$fwVersion' , last_session_time = ${getCurrentTimeInt()} , last_session_status = '$status' , " +
-                " last_session_error = '${if (isOk || errorText == null) "" else errorText}' WHERE serial_no = '$serialNo' "
+            """
+                UPDATE TS_device SET 
+                fw_version = '$fwVersion' , 
+                last_session_time = ${getCurrentTimeInt()} , 
+                last_session_status = '$status' ,
+                last_session_error = '${if (isOk || errorText.isEmpty()) "" else errorText}' 
+                WHERE id = '${deviceConfig!!.deviceId}'
+            """
         )
 
         conn.commit()
@@ -163,9 +169,9 @@ abstract class TSHandler : AbstractTelematicHandler() {
         //--- если возможен режим оффлайн-загрузки данных по этому контроллеру (например, через android-посредника),
         //--- то возможно и повторение точек. В этом случае надо удалить предыдущую(ие) точку(и) с таким же временем.
         //--- Поскольку это очень затратная операция, то по умолчанию режим оффлайн-загрузки данных не включен
-        //if (deviceConfig!!.isOfflineMode) sqlBatchData.add(" DELETE FROM TS_data_${deviceConfig!!.objectID} WHERE ontime = $time ; ")
+        //if (deviceConfig!!.isOfflineMode) sqlBatchData.add(" DELETE FROM TS_data_${deviceConfig!!.objectId} WHERE ontime = $time ; ")
         bbData.flip()
-        sqlBatchData.add(" INSERT INTO TS_data_${deviceConfig!!.objectID} ( ontime , sensor_data ) VALUES ( $time , ${stm.getHexValue(bbData)} ); ")
+        sqlBatchData.add(" INSERT INTO TS_data_${deviceConfig!!.objectId} ( ontime , sensor_data ) VALUES ( $time , ${stm.getHexValue(bbData)} ); ")
     }
 
 }

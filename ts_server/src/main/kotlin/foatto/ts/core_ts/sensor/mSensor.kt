@@ -34,7 +34,7 @@ class mSensor : mAbstract() {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
-        val parentObjectID = hmParentData["ts_object"]
+        val parentObjectId = hmParentData["ts_object"]
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -51,7 +51,7 @@ class mSensor : mAbstract() {
         val columnSensorGroup = ColumnString(tableName, "group_name", "Группа датчиков", STRING_COLUMN_WIDTH).apply {
             addCombo("")
             val rs = stm.executeQuery(
-                " SELECT DISTINCT group_name FROM $tableName WHERE object_id = $parentObjectID AND group_name IS NOT NULL AND group_name <> '' ORDER BY group_name "
+                " SELECT DISTINCT group_name FROM $tableName WHERE object_id = $parentObjectId AND group_name IS NOT NULL AND group_name <> '' ORDER BY group_name "
             )
             while (rs.next()) {
                 addCombo(rs.getString(1).trim())
@@ -74,7 +74,14 @@ class mSensor : mAbstract() {
             //--- arrange the types of sensors depending on their "popularity" (ie frequency of use)
             val hmSensorDescr = mutableMapOf<Int, String>()
             hmSensorDescr.putAll(SensorConfig.hmSensorDescr)
-            val rs = stm.executeQuery(" SELECT sensor_type, COUNT( * ) AS aaa FROM TS_sensor GROUP BY sensor_type ORDER BY aaa DESC ")
+            val rs = stm.executeQuery(
+                """
+                     SELECT sensor_type, COUNT( * ) AS aaa 
+                     FROM TS_sensor 
+                     GROUP BY sensor_type 
+                     ORDER BY aaa DESC 
+                """
+            )
             while (rs.next()) {
                 val sensorType = rs.getInt(1)
                 //--- theoretically, incorrect / non-existent / obsolete (including zero) types of sensors are possible
@@ -83,7 +90,9 @@ class mSensor : mAbstract() {
                 addChoice(sensorType, sensorDescr)
                 hmSensorDescr.remove(sensorType)
                 //--- the most popular sensor type is set as the default type
-                if (defaultValue == null) defaultValue = sensorType
+                if (defaultValue == null) {
+                    defaultValue = sensorType
+                }
             }
             rs.close()
             //--- add leftovers from unpopular sensors
