@@ -57,7 +57,18 @@ class SensorConfigEntity(
     @OneToMany(mappedBy = "sensor", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     var calibration: MutableSet<SensorConfigCalibrationEntity> = mutableSetOf(),
 
-    ) {
+    //--- setup/config sensor attributes
+
+    @Column(name = "show_pos")
+    val showPos: Int?,
+
+    @Column(name = "value_type")
+    val valueType: Int?,
+
+    @Column(name = "prec")
+    val prec: Int?,
+
+) {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
