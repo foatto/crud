@@ -35,7 +35,7 @@ abstract class CoreUserController {
         val upValue = saveUserPropertyRequest.value
 
         //--- загрузка/создании сессии
-        val chmSession = CoreSpringApp.chmSessionStore.getOrPut(saveUserPropertyRequest.sessionID) { ConcurrentHashMap() }
+        val chmSession = CoreSpringApp.chmSessionStore.getOrPut(saveUserPropertyRequest.sessionId) { ConcurrentHashMap() }
         val userConfig: UserConfig? = chmSession[iApplication.USER_CONFIG] as? UserConfig
 
         if (userConfig != null) {
@@ -78,7 +78,7 @@ abstract class CoreUserController {
         val toDay = ZonedDateTime.now()
 
         //--- загрузка/создании сессии
-        val chmSession = CoreSpringApp.chmSessionStore.getOrPut(changePasswordRequest.sessionID) { ConcurrentHashMap() }
+        val chmSession = CoreSpringApp.chmSessionStore.getOrPut(changePasswordRequest.sessionId) { ConcurrentHashMap() }
         val userConfig: UserConfig? = chmSession[iApplication.USER_CONFIG] as? UserConfig
 
         if (userConfig != null)
@@ -112,7 +112,7 @@ abstract class CoreUserController {
     ): LogoffResponse {
         val logoffBegTime = getCurrentTimeInt()
 
-        CoreSpringApp.chmSessionStore.remove(logoffRequest.sessionID)
+        CoreSpringApp.chmSessionStore.remove(logoffRequest.sessionId)
 
         //--- если запрос длился/обрабатывался дольше MAX_TIME_PER_REQUEST, покажем его
         if (getCurrentTimeInt() - logoffBegTime > CoreSpringApp.MAX_TIME_PER_REQUEST) {

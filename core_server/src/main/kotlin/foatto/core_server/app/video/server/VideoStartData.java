@@ -4,7 +4,7 @@
 //
 //public class VideoStartData {
 //
-//    public int objectID = 0;
+//    public int objectId = 0;
 //
 //    //--- для показа онлайн-видео
 //    public ArrayList<String> alCameraDescr = null;
@@ -21,8 +21,8 @@
 //
 //    public StringBuilder sbTitle = new StringBuilder();
 //
-//    public VideoStartData( int aObjectID ) {
-//        objectID = aObjectID;
+//    public VideoStartData( int aobjectId ) {
+//        objectId = aobjectId;
 //
 //        alCameraDescr = new ArrayList<>( 16 );
 //        alCameraName = new ArrayList<>( 16 );

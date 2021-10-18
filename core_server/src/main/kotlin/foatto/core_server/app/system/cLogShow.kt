@@ -26,7 +26,7 @@ class cLogShow : cAbstractForm() {
 
         //--- выборка данных параметров для отчета
         val sd = GraphicStartData()
-        //sd.objectID = selectObject;
+        //sd.objectId = selectObject;
         sd.rangeType = ( hmColumnData[ msfd.columnShowRangeType ] as DataRadioButton ).intValue
 
         if( sd.rangeType == 0 ) {

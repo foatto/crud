@@ -89,16 +89,16 @@
 //
 ////----------------------------------------------------------------------------------------------------------------------------------------
 //
-//    public static File getObjectDir( String dirVideoRoot, int objectID ) {
-//        return new File( dirVideoRoot, Integer.toString( objectID ) );
+//    public static File getObjectDir( String dirVideoRoot, int objectId ) {
+//        return new File( dirVideoRoot, Integer.toString( objectId ) );
 //    }
 //
-//    public static File getCameraDir( String dirVideoRoot, int objectID, String cameraDescr ) {
-//        return new File( getObjectDir( dirVideoRoot, objectID ), cameraDescr );
+//    public static File getCameraDir( String dirVideoRoot, int objectId, String cameraDescr ) {
+//        return new File( getObjectDir( dirVideoRoot, objectId ), cameraDescr );
 //    }
 //
-//    public static StringBuilder getStreamName( int objectID, String cameraDescr, int streamIndex ) {
-//        return new StringBuilder().append( objectID ).append( '-' ).append( cameraDescr ).append( '-' ).append( streamIndex );
+//    public static StringBuilder getStreamName( int objectId, String cameraDescr, int streamIndex ) {
+//        return new StringBuilder().append( objectId ).append( '-' ).append( cameraDescr ).append( '-' ).append( streamIndex );
 //    }
 //
 //    public static void getImageFromCamera( String ffmpegPath, String urlVideo, String urlImage,

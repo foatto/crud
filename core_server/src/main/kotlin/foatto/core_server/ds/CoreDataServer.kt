@@ -313,14 +313,14 @@ abstract class CoreDataServer protected constructor(private val configFileName: 
                 }
                 //--- периодическая очистка залежавшихся сессий
                 if (getCurrentTimeInt() - lastSessionCheckTime > maxSessionInactiveTime) {
-                    val alSessionID = ArrayList<Long>(chmSessionTime.size)
+                    val alsessionId = ArrayList<Long>(chmSessionTime.size)
                     //--- чтобы не получить ошибку при удалении во время перебора -
-                    //--- просто запишем sessionID, а удалять будем позже по списку
-                    for (sessionID in chmSessionTime.keys)
-                        if (getCurrentTimeInt() - chmSessionTime[sessionID]!! > maxSessionInactiveTime) alSessionID.add(sessionID)
-                    for (sessionID in alSessionID) {
-                        chmSessionTime.remove(sessionID)
-                        chmSessionStore.remove(sessionID)
+                    //--- просто запишем sessionId, а удалять будем позже по списку
+                    for (sessionId in chmSessionTime.keys)
+                        if (getCurrentTimeInt() - chmSessionTime[sessionId]!! > maxSessionInactiveTime) alsessionId.add(sessionId)
+                    for (sessionId in alsessionId) {
+                        chmSessionTime.remove(sessionId)
+                        chmSessionStore.remove(sessionId)
                     }
                     lastSessionCheckTime = getCurrentTimeInt()
                 }

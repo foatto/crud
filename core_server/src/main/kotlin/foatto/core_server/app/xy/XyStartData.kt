@@ -10,19 +10,22 @@ class XyStartData {
 
     var shortTitle = ""
     var sbTitle = StringBuilder()
-
-    var parentObjectID = 0
-    var parentObjectInfo = ""
 }
 
-class XyStartObjectData(val objectID: Int, var typeName: String = "", var isStart: Boolean = false, var isTimed: Boolean = false, var isReadOnly: Boolean = false)
+class XyStartObjectData(
+    val objectId: Int,
+    var typeName: String = "",
+    var isStart: Boolean = false,
+    var isTimed: Boolean = false,
+    var isReadOnly: Boolean = false
+)
 //{
-//    constructor( aObjectID: Int ) {
-//        objectID = aObjectID
+//    constructor( aobjectId: Int ) {
+//        objectId = aobjectId
 //    }
 //}
 
-class XyStartObjectParsedData(val objectID: Int) {
+class XyStartObjectParsedData(val objectId: Int) {
     val hsType = mutableSetOf<String>()
     var begTime = 0
     var endTime = 0

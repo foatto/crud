@@ -19,7 +19,7 @@
 //        try {
 //            int ai = 0;
 //            String videoRoot = args[ ai++ ];
-//            String objectID = args[ ai++ ];
+//            String objectId = args[ ai++ ];
 //            String cameraDescr = args[ ai++ ];
 //            String streamIndex = args[ ai++ ];
 //
@@ -31,7 +31,7 @@
 //            String audioCodec = args[ ai++ ];
 //            String videoFileExt = args[ ai++ ];
 //
-//            File dirCamera = new File( new File( videoRoot, objectID ), cameraDescr );
+//            File dirCamera = new File( new File( videoRoot, objectId ), cameraDescr );
 //            File dirStream = new File( dirCamera, streamIndex );
 //
 //            int[] arrBeg = StringFunction.DateTime_Arr( timeZone, System.currentTimeMillis() );

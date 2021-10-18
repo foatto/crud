@@ -10,7 +10,7 @@ abstract class sdcXyState : sdcXyAbstract() {
 
     override fun getElements(xyActionRequest: XyActionRequest): XyActionResponse {
 
-        val xyStartDataID = xyActionRequest.startParamID
+        val xyStartDataID = xyActionRequest.startParamId
         val sd = chmSession[AppParameter.XY_START_DATA + xyStartDataID] as XyStartData
 
         //--- разбор входных параметров

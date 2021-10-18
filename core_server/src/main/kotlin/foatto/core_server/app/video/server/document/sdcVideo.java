@@ -89,20 +89,20 @@
 //        //--- online-mode
 //        if( vsd.rangeType == -1 ) {
 //            for( int cIndex = 0; cIndex < vsd.alCameraDescr.size(); cIndex++ )
-//                alCameraDef.add( new CameraDef( dirVideoRoot, vsd.objectID, vsd.alCameraDescr.get( cIndex ),
+//                alCameraDef.add( new CameraDef( dirVideoRoot, vsd.objectId, vsd.alCameraDescr.get( cIndex ),
 //                                vsd.alCameraURLImage.get( cIndex ), vsd.alCameraLogin.get( cIndex ), vsd.alCameraPassword.get( cIndex ) ) );
 //        }
 //        else {
 //            long x1 = bbIn.getInt() * 1000L;
 //            long x2 = bbIn.getInt() * 1000L;
 //
-//            File dirObject = VideoFunction.getObjectDir( dirVideoRoot, vsd.objectID );
+//            File dirObject = VideoFunction.getObjectDir( dirVideoRoot, vsd.objectId );
 //            File[] arrDirCamera = dirObject.listFiles();
 //            //--- для каждой найденной папки с архивом
 //            for( File dirCamera : arrDirCamera ) {
 //                if( ! dirCamera.isDirectory() ) continue;
 //
-//                CameraDef cameraDef = new CameraDef( dirVideoRoot, vsd.objectID, dirCamera.getName(), VideoFunction.VIDEO_STREAM_COUNT );
+//                CameraDef cameraDef = new CameraDef( dirVideoRoot, vsd.objectId, dirCamera.getName(), VideoFunction.VIDEO_STREAM_COUNT );
 //                //--- для каждого потока
 //                for( int streamIndex = 0; streamIndex < VideoFunction.VIDEO_STREAM_COUNT; streamIndex++ ) {
 //                    StreamDef streamDef = new StreamDef();
@@ -185,7 +185,7 @@
 //            int imageWidth = bbIn.getShort();
 //            int imageHeight = bbIn.getShort();
 //
-//            int objectID = vsd.objectID;
+//            int objectId = vsd.objectId;
 //            String descr = vsd.alCameraDescr.get( cIndex );
 //
 //            //--- загрузка для этой камеры не требуется
@@ -211,26 +211,26 @@
 //                    //--- обновляем (добавляем если не было) актуальное время задания
 //                    if( dataWorker.alStm.get( 0 ).executeUpdate( new StringBuilder(
 //                        " UPDATE VC_job_image SET last_time = " ).append( System.currentTimeMillis() / 1000 )
-//                        .append( " WHERE object_id = " ).append( objectID )
+//                        .append( " WHERE object_id = " ).append( objectId )
 //                        .append( " AND descr = '" ).append( descr ).append( "' " ) ) == 0 )
 //
 //                        dataWorker.alStm.get( 0 ).executeUpdate( new StringBuilder(
 //                                " INSERT INTO VC_job_image ( object_id , descr , last_time , file_index ) VALUES ( " )
-//                                .append( objectID ).append( " , '" ).append( descr ).append( "' , " )
+//                                .append( objectId ).append( " , '" ).append( descr ).append( "' , " )
 //                                .append( System.currentTimeMillis() / 1000 ).append( " , " ).append( 0 ).append( " ) " ) );
 //
 //                    //--- берём текущий индекс файла, который можно загружать
 //                    //--- загрузим текущий индекс файла
 //                    CoreAdvancedResultSet rs = dataWorker.alStm.get( 0 ).executeQuery( new StringBuilder(
 //                        " SELECT file_index FROM VC_job_image " )
-//                        .append( " WHERE object_id = " ).append( objectID )
+//                        .append( " WHERE object_id = " ).append( objectId )
 //                        .append( " AND descr = '" ).append( descr ).append( "' " ) );
 //                    rs.next();
 //                    int fileIndex = rs.getInt( 1 );
 //                    rs.close();
 //
 //                    File fileSour = new File( VideoFunction.getCameraDir( dataServer.hmConfig.get( VideoFunction.CONFIG_VIDEO_DIR ),
-//                                                                          objectID, descr ),
+//                                                                          objectId, descr ),
 //                                              new StringBuilder().append( fileIndex ).append( ".jpg" ).toString() );
 //
 //                    if( fileSour.exists() ) {

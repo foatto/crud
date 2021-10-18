@@ -91,11 +91,11 @@ abstract class sdcAbstractGraphic {
         zoneId = userConfig.upZoneId
     }
 
-    open fun doGetCoords(startParamID: String): GraphicActionResponse {
+    open fun doGetCoords(startParamId: String): GraphicActionResponse {
         val begTime: Int
         val endTime: Int
 
-        val sd = chmSession[AppParameter.GRAPHIC_START_DATA + startParamID] as GraphicStartData
+        val sd = chmSession[AppParameter.GRAPHIC_START_DATA + startParamId] as GraphicStartData
 
         if(sd.rangeType == 0) {
             begTime = sd.begTime

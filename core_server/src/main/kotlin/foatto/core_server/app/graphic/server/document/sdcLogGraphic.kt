@@ -19,7 +19,7 @@ class sdcLogGraphic : sdcAbstractGraphic() {
 
     override fun doGetElements(graphicActionRequest: GraphicActionRequest): GraphicActionResponse {
 
-        val sd = chmSession[AppParameter.GRAPHIC_START_DATA + graphicActionRequest.startParamID] as GraphicStartData
+        val sd = chmSession[AppParameter.GRAPHIC_START_DATA + graphicActionRequest.startParamId] as GraphicStartData
 
         val x1 = graphicActionRequest.graphicCoords!!.first
         val x2 = graphicActionRequest.graphicCoords!!.second

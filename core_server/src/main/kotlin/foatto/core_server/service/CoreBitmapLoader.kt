@@ -66,7 +66,7 @@
 //        proxyPass = hmConfig[CONFIG_PROXY_PASS] ?: ""
 //
 //        //--- загрузка/выгрузка картинок - специфическая функция, и чтобы не засорять хранилище сессий,
-//        //--- установим sessionID в "как бы служебное" значение 0
+//        //--- установим sessionId в "как бы служебное" значение 0
 //        if(hmConfig[CONFIG_SERVER_IP] != null) {
 //            appLink = AppLink( 0 )
 //            appLink!!.addServer( hmConfig[ CONFIG_SERVER_IP ]!!,

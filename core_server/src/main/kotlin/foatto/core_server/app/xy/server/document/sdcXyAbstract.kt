@@ -63,7 +63,7 @@ abstract class sdcXyAbstract {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    abstract fun getCoords(startParamID: String): XyActionResponse
+    abstract fun getCoords(startParamId: String): XyActionResponse
 
     abstract fun getElements(xyActionRequest: XyActionRequest): XyActionResponse
 
@@ -89,10 +89,10 @@ abstract class sdcXyAbstract {
             if (isStartObjectOnly && !sod.isStart) continue
 
             //--- собираем список объектов "только для чтения/просмотра"
-            if (sod.isReadOnly) hsReadOnlyObject.add(sod.objectID)
+            if (sod.isReadOnly) hsReadOnlyObject.add(sod.objectId)
 
             //--- разбор параметров
-            val objectParamData = XyStartObjectParsedData(sod.objectID)
+            val objectParamData = XyStartObjectParsedData(sod.objectId)
 
             //--- список типов элементов для данного бизнес-объекта
             //--- (их может быть несколько, например, траектория а/м -
@@ -128,31 +128,31 @@ abstract class sdcXyAbstract {
 //
 //    protected byte[] doRotateElement( Connection[] alConn, HashMap<String,Object> hmParam ) throws Throwable {
 //        int[] arrElementKey = cemXyElement.parseElementKey( (String) hmParam.get( XyParameter.ROTATE_ELEMENT_KEY ) );
-//        int objectID = arrElementKey[ 0 ];
-//        int elementID = arrElementKey[ 1 ];
+//        int objectId = arrElementKey[ 0 ];
+//        int elementId = arrElementKey[ 1 ];
 //        Double rotateDegree = (Double) hmParam.get( XyParameter.ROTATE_DEGREE );
 //
 //        int[] arrX = (int[]) hmParam.get( XyParameter.ROTATE_X_POINTS );
 //        int[] arrY = (int[]) hmParam.get( XyParameter.ROTATE_Y_POINTS );
 //
-//        semXyElement.putPoints( alConn, 0, objectID, elementID, arrScale, arrX, arrY );
+//        semXyElement.putPoints( alConn, 0, objectId, elementId, arrScale, arrX, arrY );
 //
-//        Statement stm = DBFunction.createStatement( alConn[ objectID != 0 ? 0 : 1 ] );
+//        Statement stm = DBFunction.createStatement( alConn[ objectId != 0 ? 0 : 1 ] );
 //        if( rotateDegree != null ) {
 //            if( DBFunction.executeUpdate( stm, new StringBuilder( " UPDATE XY_property " )
 //                                   .append( " SET v_double = " ).append( rotateDegree )
-//                                   .append( " WHERE element_id = " ).append( elementID )
-//                                   .append( " AND name = '" ).append( XyProperty.ROTATE_DEGREE ).append( "' " ).toString(), objectID != 0 ) == 0 ) {
+//                                   .append( " WHERE element_id = " ).append( elementId )
+//                                   .append( " AND name = '" ).append( XyProperty.ROTATE_DEGREE ).append( "' " ).toString(), objectId != 0 ) == 0 ) {
 //
 //                DBFunction.executeUpdate( stm, new StringBuilder( " INSERT INTO XY_property " )
-//                    .append( " ( element_id , name , v_double ) VALUES ( " ).append( elementID ).append( " , '" )
-//                    .append( XyProperty.ROTATE_DEGREE ).append( "' , " ).append( rotateDegree ).append( " ) " ).toString(), objectID != 0 );
+//                    .append( " ( element_id , name , v_double ) VALUES ( " ).append( elementId ).append( " , '" )
+//                    .append( XyProperty.ROTATE_DEGREE ).append( "' , " ).append( rotateDegree ).append( " ) " ).toString(), objectId != 0 );
 //            }
 //        }
 //        //--- удаление устаревших тайл-файлов топографии
-//        if( objectID == 0 ) {
+//        if( objectId == 0 ) {
 //            HashSet<Integer> hsID = new HashSet<Integer>();
-//            hsID.add( elementID );
+//            hsID.add( elementId );
 //            deleteTiles( stm, hsID );
 //        }
 //        stm.close();
@@ -161,8 +161,8 @@ abstract class sdcXyAbstract {
 //
 //    protected byte[] doEditElementText( Connection[] alConn, HashMap<String,Object> hmParam ) throws Throwable {
 //        int[] arrElementKey = cemXyElement.parseElementKey( (String) hmParam.get( XyParameter.EDIT_ELEMENT_KEY ) );
-//        int objectID = arrElementKey[ 0 ];
-//        int elementID = arrElementKey[ 1 ];
+//        int objectId = arrElementKey[ 0 ];
+//        int elementId = arrElementKey[ 1 ];
 //
 //        String textName = null;
 //        String textValue = null;
@@ -176,20 +176,20 @@ abstract class sdcXyAbstract {
 //            textValue = (String) hmParam.get( XyParameter.EDIT_TEXT );
 //        }
 //
-//        Statement stm = DBFunction.createStatement( alConn[ objectID != 0 ? 0 : 1 ] );
+//        Statement stm = DBFunction.createStatement( alConn[ objectId != 0 ? 0 : 1 ] );
 //        if( DBFunction.executeUpdate( stm, new StringBuilder( " UPDATE XY_property " )
 //                               .append( " SET v_string = '" ).append( textValue ).append( "' " )
-//                               .append( " WHERE element_id = " ).append( elementID )
-//                               .append( " AND name = '" ).append( textName ).append( "' " ).toString(), objectID != 0 ) == 0 ) {
+//                               .append( " WHERE element_id = " ).append( elementId )
+//                               .append( " AND name = '" ).append( textName ).append( "' " ).toString(), objectId != 0 ) == 0 ) {
 //
 //            DBFunction.executeUpdate( stm, new StringBuilder( " INSERT INTO XY_property " )
-//                .append( " ( element_id , name , v_string ) VALUES ( " ).append( elementID ).append( " , '" )
-//                .append( textName ).append( "' , '" ).append( textValue ).append( "' ) " ).toString(), objectID != 0 );
+//                .append( " ( element_id , name , v_string ) VALUES ( " ).append( elementId ).append( " , '" )
+//                .append( textName ).append( "' , '" ).append( textValue ).append( "' ) " ).toString(), objectId != 0 );
 //        }
 //        //--- удаление устаревших тайл-файлов топографии
-//        if( objectID == 0 ) {
+//        if( objectId == 0 ) {
 //            HashSet<Integer> hsID = new HashSet<Integer>();
-//            hsID.add( elementID );
+//            hsID.add( elementId );
 //            deleteTiles( stm, hsID );
 //        }
 //        stm.close();
@@ -213,21 +213,21 @@ abstract class sdcXyAbstract {
 //
 //        Statement[] alStm = { DBFunction.createStatement( alConn.get( 0 ) ), DBFunction.createStatement( alConn.get( 1 ) ) };
 //
-//        for( Integer objectID : hmObjectElement.keySet() ) {
-//            HashSet<Integer> hsElement = hmObjectElement.get( objectID );
-//            StringBuilder sbElementID = StringFunction.getStringFromSet( hsElement, " , " );
+//        for( Integer objectId : hmObjectElement.keySet() ) {
+//            HashSet<Integer> hsElement = hmObjectElement.get( objectId );
+//            StringBuilder sbelementId = StringFunction.getStringFromSet( hsElement, " , " );
 //
-//            StringBuilder sb = new StringBuilder( " DELETE FROM XY_property " ).append( " WHERE element_id IN ( " ).append( sbElementID ).append( " ) " );
-//            DBFunction.executeUpdate( alStm[ objectID != 0 ? 0 : 1 ], sb.toString(), objectID != 0 );
+//            StringBuilder sb = new StringBuilder( " DELETE FROM XY_property " ).append( " WHERE element_id IN ( " ).append( sbelementId ).append( " ) " );
+//            DBFunction.executeUpdate( alStm[ objectId != 0 ? 0 : 1 ], sb.toString(), objectId != 0 );
 //
-//            sb = new StringBuilder( " DELETE FROM XY_point " ).append( " WHERE element_id IN ( " ).append( sbElementID ).append( " ) " );
-//            DBFunction.executeUpdate( alStm[ objectID != 0 ? 0 : 1 ], sb.toString(), objectID != 0 );
+//            sb = new StringBuilder( " DELETE FROM XY_point " ).append( " WHERE element_id IN ( " ).append( sbelementId ).append( " ) " );
+//            DBFunction.executeUpdate( alStm[ objectId != 0 ? 0 : 1 ], sb.toString(), objectId != 0 );
 //
 //            //--- удаление устаревших тайл-файлов топографии до удаления самих элементов (иначе prj_-координаты потеряем)
-//            if( objectID == 0 ) deleteTiles( alStm.get( 1 ), hsElement );
+//            if( objectId == 0 ) deleteTiles( alStm.get( 1 ), hsElement );
 //
-//            sb = new StringBuilder( " DELETE FROM XY_element " ).append( " WHERE id IN ( " ).append( sbElementID ).append( " ) " );
-//            DBFunction.executeUpdate( alStm[ objectID != 0 ? 0 : 1 ], sb.toString(), objectID != 0 );
+//            sb = new StringBuilder( " DELETE FROM XY_element " ).append( " WHERE id IN ( " ).append( sbelementId ).append( " ) " );
+//            DBFunction.executeUpdate( alStm[ objectId != 0 ? 0 : 1 ], sb.toString(), objectId != 0 );
 //        }
 //        for( Statement stm : alStm ) stm.close();
 //
@@ -240,9 +240,9 @@ abstract class sdcXyAbstract {
 ////            StringTokenizer st = new StringTokenizer( objectParam, " ," );
 ////            st.nextToken(); // paramType
 ////            st.nextToken(); // objectAlias
-////            int objectID = Integer.parseInt( st.nextToken() );
+////            int objectId = Integer.parseInt( st.nextToken() );
 ////            //--- если данного стартового объекта нет в списке удаляемых, добавим его в новый/возвращаемый список
-////            if( hmObjectElement.get( objectID ) == null ) alObjectParamNew.add( objectParam );
+////            if( hmObjectElement.get( objectId ) == null ) alObjectParamNew.add( objectParam );
 ////        }
 ////
 ////        //--- выгрузка ответа в выходной поток байтов
@@ -260,17 +260,17 @@ abstract class sdcXyAbstract {
 //
 //    protected byte[] doChangeTypeOfElement( Connection[] alConn, HashMap<String,Object> hmParam ) throws Throwable {
 //        Integer newElementTypeID = (Integer) hmParam.get( XyParameter.CHANGE_TYPE_NEW_ID );
-//        HashSet<Integer> hsElementID = (HashSet<Integer>) hmParam.get( XyParameter.CHANGE_TYPE_ELEMENT_ID );
+//        HashSet<Integer> hselementId = (HashSet<Integer>) hmParam.get( XyParameter.CHANGE_TYPE_ELEMENT_ID );
 //
 //        StringBuilder sbID = new StringBuilder();
-//        for( Integer id : hsElementID ) sbID.append( sbID.length() == 0 ? "" : " , " ).append( id );
+//        for( Integer id : hselementId ) sbID.append( sbID.length() == 0 ? "" : " , " ).append( id );
 //
 //        Statement stm = DBFunction.createStatement( alConn.get( 1 ) );
 //        DBFunction.executeUpdate( stm, new StringBuilder( " UPDATE XY_element SET element_type_id = " ).append( newElementTypeID )
 //                           .append( " WHERE id IN ( " ).append( sbID ).append( " ) " ).toString(), false );
 //
 //        //--- удаление устаревших тайл-файлов топографии
-//        deleteTiles( stm, hsElementID );
+//        deleteTiles( stm, hselementId );
 //        stm.close();
 //        return null;
 //    }

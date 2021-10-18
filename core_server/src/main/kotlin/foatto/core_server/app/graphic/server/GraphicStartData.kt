@@ -1,7 +1,7 @@
 package foatto.core_server.app.graphic.server
 
 class GraphicStartData {
-    var objectID = 0
+    var objectId = 0
 
     var rangeType = 0
     var begTime = 0
