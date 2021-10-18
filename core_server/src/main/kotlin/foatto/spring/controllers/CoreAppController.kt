@@ -76,7 +76,7 @@ abstract class CoreAppController : iApplication {
         val stm = conn.createStatement()
 
         //--- загрузка/создании сессии
-        val chmSession = CoreSpringApp.chmSessionStore.getOrPut(appRequest.sessionID) { ConcurrentHashMap() }
+        val chmSession = CoreSpringApp.chmSessionStore.getOrPut(appRequest.sessionId) { ConcurrentHashMap() }
 
         //--- строка параметров (или только одна команда, зависит от содержимого строки)
         val hmParam = mutableMapOf<String, String>()
@@ -128,7 +128,7 @@ abstract class CoreAppController : iApplication {
                             code = ResponseCode.GRAPHIC,
                             graphic = GraphicResponse(
                                 documentTypeName = aliasName,
-                                startParamID = graphicStartDataID,
+                                startParamId = graphicStartDataID,
                                 shortTitle = sd.shortTitle,
                                 fullTitle = sd.sbTitle.substring(0, min(32000, sd.sbTitle.length))
                             )
@@ -140,16 +140,13 @@ abstract class CoreAppController : iApplication {
                         val xyStartDataID = hmParam[AppParameter.XY_START_DATA]!!
 
                         val sd = chmSession[AppParameter.XY_START_DATA + xyStartDataID] as XyStartData
-
                         appResponse = AppResponse(
                             code = ResponseCode.XY,
                             xy = XyResponse(
                                 documentConfig = CoreSpringApp.hmXyDocumentConfig[docTypeName]!!,
-                                startParamID = xyStartDataID,
+                                startParamId = xyStartDataID,
                                 shortTitle = sd.shortTitle,
                                 fullTitle = sd.sbTitle.substring(0, min(32000, sd.sbTitle.length)),
-                                parentObjectID = sd.parentObjectID,
-                                parentObjectInfo = sd.parentObjectInfo
                             )
                         )
 
@@ -283,7 +280,7 @@ abstract class CoreAppController : iApplication {
         val stm = conn.createStatement()
 
         //--- загрузка/создании сессии
-        val chmSession = CoreSpringApp.chmSessionStore.getOrPut(xyActionRequest.sessionID) { ConcurrentHashMap() }
+        val chmSession = CoreSpringApp.chmSessionStore.getOrPut(xyActionRequest.sessionId) { ConcurrentHashMap() }
 
         //--- набор для накопления выходных параметров.
         //--- выходные параметры будут записаны в сессию, только если транзакция пройдет успешно.
@@ -303,7 +300,7 @@ abstract class CoreAppController : iApplication {
 
         val xyActionResponse =
             when (xyActionRequest.action) {
-                XyAction.GET_COORDS -> doc.getCoords(xyActionRequest.startParamID)
+                XyAction.GET_COORDS -> doc.getCoords(xyActionRequest.startParamId)
                 XyAction.GET_ELEMENTS -> doc.getElements(xyActionRequest)
                 XyAction.GET_ONE_ELEMENT -> doc.getOneElement(xyActionRequest)
                 XyAction.CLICK_ELEMENT -> doc.clickElement(xyActionRequest)
@@ -348,7 +345,7 @@ abstract class CoreAppController : iApplication {
         val stm = conn.createStatement()
 
         //--- загрузка/создании сессии
-        val chmSession = CoreSpringApp.chmSessionStore.getOrPut(graphicActionRequest.sessionID) { ConcurrentHashMap() }
+        val chmSession = CoreSpringApp.chmSessionStore.getOrPut(graphicActionRequest.sessionId) { ConcurrentHashMap() }
 
         //--- набор для накопления выходных параметров.
         //--- выходные параметры будут записаны в сессию, только если транзакция пройдет успешно.
@@ -366,7 +363,7 @@ abstract class CoreAppController : iApplication {
 
         val graphicActionResponse =
             when (graphicActionRequest.action) {
-                GraphicAction.GET_COORDS -> doc.doGetCoords(graphicActionRequest.startParamID)
+                GraphicAction.GET_COORDS -> doc.doGetCoords(graphicActionRequest.startParamId)
                 GraphicAction.GET_ELEMENTS -> doc.doGetElements(graphicActionRequest)
             }
 
