@@ -20,7 +20,7 @@
 //    lateinit var appLink: AppLinkOld
 //
 //    //--- параметры, генерируемые и/или загружаемые с сервера
-//    lateinit var startParamID: String
+//    lateinit var startParamId: String
 //    lateinit var startTitle: String
 //    var isOnlineMode = false
 //
@@ -60,8 +60,8 @@
 //        isLocalServer = appLink.isLocalServer
 //    }
 //
-//    fun setVideoParam( aStartParamID: String, aPrintTitle: String, aIsOnlineMode: Boolean ) {
-//        startParamID = aStartParamID
+//    fun setVideoParam( astartParamId: String, aPrintTitle: String, aIsOnlineMode: Boolean ) {
+//        startParamId = astartParamId
 //        startTitle = aPrintTitle
 //        isOnlineMode = aIsOnlineMode
 //        //--- при изменении не забудь поправить соответствующий writeGraphicParam
@@ -74,7 +74,7 @@
 //
 //        bbParam.putShortString( AppAction.VIDEO_ACTION )
 //        bbParam.putShortString( VideoParameter.ACTION_GET_COORDS )
-//        bbParam.putShortString( startParamID )
+//        bbParam.putShortString( startParamId )
 //
 //        return bbParam
 //    }
@@ -91,7 +91,7 @@
 //
 //        bbParam.putShortString( AppAction.VIDEO_ACTION )
 //        bbParam.putShortString( VideoParameter.ACTION_GET_FILE_LIST )
-//        bbParam.putShortString( startParamID )
+//        bbParam.putShortString( startParamId )
 //
 //        if( !isOnlineMode ) {
 //            bbParam.putInt( ( vcViewCoord.t1 / 1000 ).toInt() )
@@ -129,7 +129,7 @@
 //
 //        bbParam.putShortString( AppAction.VIDEO_ACTION )
 //        bbParam.putShortString( VideoParameter.ACTION_LOAD_IMAGE )
-//        bbParam.putShortString( startParamID )
+//        bbParam.putShortString( startParamId )
 //
 //        return bbParam
 //    }
@@ -212,7 +212,7 @@
 ////-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //
 //    fun writeGraphicParam( bbOut: AdvancedByteBuffer ) {
-//        bbOut.putShortString( startParamID )
+//        bbOut.putShortString( startParamId )
 //        bbOut.putShortString( startTitle )
 //        bbOut.putBoolean( isOnlineMode )
 //    }

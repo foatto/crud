@@ -3,19 +3,19 @@ package foatto.core.app.xy
 class XyActionRequest(
     val documentTypeName: String,
     val action: XyAction,
-    val startParamID: String,
+    val startParamId: String,
 
     //--- GET_ELEMENTS, GET_ONE_ELEMENT
     val viewCoord: XyViewCoord? = null,
 
     //--- GET_ONE_ELEMENT, ACTION_CLICK_ELEMENT
-    val elementID: Int? = null,
+    val elementId: Int? = null,
 
     //--- GET_ELEMENTS
     val bitmapTypeName: String? = null,
 
     //--- CLICK_ELEMENT
-    val objectID: Int? = null,
+    val objectId: Int? = null,
 
     //--- ADD_ELEMENT, EDIT_ELEMENT_POINT
     val xyElement: XyElement? = null,
@@ -26,7 +26,7 @@ class XyActionRequest(
     val dy: Int? = null
 
 ) {
-    var sessionID: Long = 0
+    var sessionId: Long = 0
 
     val hmParam = mutableMapOf<String, String>()
 }

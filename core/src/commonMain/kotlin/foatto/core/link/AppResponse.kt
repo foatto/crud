@@ -38,4 +38,4 @@ enum class ResponseCode {
 
 class MenuData(val url: String, val text: String, val alSubMenu: Array<MenuData>? = null, val isHover: Boolean = false)
 
-data class GraphicResponse(val documentTypeName: String, val startParamID: String, val shortTitle: String, val fullTitle: String)
+data class GraphicResponse(val documentTypeName: String, val startParamId: String, val shortTitle: String, val fullTitle: String)

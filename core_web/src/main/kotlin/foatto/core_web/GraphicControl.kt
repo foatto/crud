@@ -403,7 +403,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                 GraphicActionRequest(
                     documentTypeName = graphicResponse.documentTypeName,
                     action = GraphicAction.GET_ELEMENTS,
-                    startParamID = graphicResponse.startParamID,
+                    startParamId = graphicResponse.startParamId,
                     graphicCoords = Pair(newView.t1, newView.t2),
                     //--- передавая полную ширину компоненты (без учёта margin по бокам/сверху/снизу для отрисовки шкалы/полей/заголовков),
                     //--- мы делаем сглаживание/масштабирование чуть точнее, чем надо, но на момент запроса величины margin неизвестны :/,
@@ -1056,7 +1056,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
             GraphicActionRequest(
                 documentTypeName = graphicResponse.documentTypeName,
                 action = GraphicAction.GET_COORDS,
-                startParamID = graphicResponse.startParamID
+                startParamId = graphicResponse.startParamId
             ),
             { graphicActionResponse: GraphicActionResponse ->
 

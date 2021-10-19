@@ -24,19 +24,19 @@ class PutReplicationRequest(
 class PutReplicationResponse(val timeKey: Long)
 
 class SaveUserPropertyRequest(val name: String, val value: String) {
-    var sessionID: Long = 0
+    var sessionId: Long = 0
 }
 
 class SaveUserPropertyResponse
 
 class ChangePasswordRequest(val password: String) {
-    var sessionID: Long = 0
+    var sessionId: Long = 0
 }
 
 class ChangePasswordResponse
 
 class LogoffRequest {
-    var sessionID: Long = 0
+    var sessionId: Long = 0
 }
 
 class LogoffResponse

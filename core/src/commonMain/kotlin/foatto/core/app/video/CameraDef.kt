@@ -10,7 +10,7 @@
 //
 //    //--- общие/одинаковые для всех определения (удобно задать их здесь для каждой камеры)
 //    var dirVideoRoot: String
-//    var objectID = 0
+//    var objectId = 0
 //
 //    //--- общее для всех режимов, но для каждой камеры своё
 //    var descr: String
@@ -25,9 +25,9 @@
 //
 ////-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //
-//    constructor( aDirVideoRoot: String, aObjectID: Int, aDescr: String, aImageURL: String, aLogin: String, aPassword: String ) {
+//    constructor( aDirVideoRoot: String, aobjectId: Int, aDescr: String, aImageURL: String, aLogin: String, aPassword: String ) {
 //        dirVideoRoot = aDirVideoRoot
-//        objectID = aObjectID
+//        objectId = aobjectId
 //
 //        descr = aDescr
 //
@@ -38,9 +38,9 @@
 //        alStream = ArrayList( 0 )
 //    }
 //
-//    constructor( aDirVideoRoot: String, aObjectID: Int, aDescr: String, streamCount: Int ) {
+//    constructor( aDirVideoRoot: String, aobjectId: Int, aDescr: String, streamCount: Int ) {
 //        dirVideoRoot = aDirVideoRoot
-//        objectID = aObjectID
+//        objectId = aobjectId
 //
 //        descr = aDescr
 //
@@ -53,7 +53,7 @@
 //
 //    constructor( bbIn: AdvancedByteBuffer ) {
 //        dirVideoRoot = bbIn.getShortString()
-//        objectID = bbIn.getInt()
+//        objectId = bbIn.getInt()
 //
 //        descr = bbIn.getShortString()
 //
@@ -70,7 +70,7 @@
 //
 //    fun write( bbOut: AdvancedByteBuffer ) {
 //        bbOut.putShortString( dirVideoRoot )
-//        bbOut.putInt( objectID )
+//        bbOut.putInt( objectId )
 //
 //        bbOut.putShortString( descr )
 //

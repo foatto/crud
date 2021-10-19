@@ -9,7 +9,7 @@ import kotlinx.browser.window
 import org.w3c.xhr.XMLHttpRequest
 import kotlin.random.Random
 
-private val sessionID = Random.nextLong()
+private val sessionId = Random.nextLong()
 
 fun invokeApp(
     appRequest: AppRequest,
@@ -37,7 +37,7 @@ fun invokeApp(
         }
         setRequestHeader("Content-Type", "application/json")
 
-        appRequest.sessionID = sessionID
+        appRequest.sessionId = sessionId
         //--- печально, но, в отличие от JSON.parse, не работает
         //send(JSON.stringify(requestData))
 //println( "requestData.toJson = ${appRequest.toJson()}" )
@@ -71,7 +71,7 @@ fun invokeGraphic(
         }
         setRequestHeader("Content-Type", "application/json")
 
-        graphicActionRequest.sessionID = sessionID
+        graphicActionRequest.sessionId = sessionId
         //--- печально, но, в отличие от JSON.parse, не работает
         //send(JSON.stringify(requestData))
 //println( "requestData.toJson = ${graphicActionRequest.toJson()}" )
@@ -105,7 +105,7 @@ fun invokeXy(
         }
         setRequestHeader("Content-Type", "application/json")
 
-        xyActionRequest.sessionID = sessionID
+        xyActionRequest.sessionId = sessionId
         //--- печально, но, в отличие от JSON.parse, не работает
         //send(JSON.stringify(requestData))
 //println( "requestData.toJson = ${graphicActionRequest.toJson()}" )
@@ -139,7 +139,7 @@ fun invokeSaveUserProperty(
         }
         setRequestHeader("Content-Type", "application/json")
 
-        saveUserPropertyRequest.sessionID = sessionID
+        saveUserPropertyRequest.sessionId = sessionId
         //--- печально, но, в отличие от JSON.parse, не работает
         //send(JSON.stringify(requestData))
 //println( "requestData.toJson = ${graphicActionRequest.toJson()}" )
@@ -173,7 +173,7 @@ fun invokeChangePassword(
         }
         setRequestHeader("Content-Type", "application/json")
 
-        changePasswordRequest.sessionID = sessionID
+        changePasswordRequest.sessionId = sessionId
         //--- печально, но, в отличие от JSON.parse, не работает
         //send(JSON.stringify(requestData))
 //println( "requestData.toJson = ${graphicActionRequest.toJson()}" )
@@ -207,7 +207,7 @@ fun invokeLogoff(
         }
         setRequestHeader("Content-Type", "application/json")
 
-        logoffRequest.sessionID = sessionID
+        logoffRequest.sessionId = sessionId
         //--- печально, но, в отличие от JSON.parse, не работает
         //send(JSON.stringify(requestData))
 //println( "requestData.toJson = ${graphicActionRequest.toJson()}" )
