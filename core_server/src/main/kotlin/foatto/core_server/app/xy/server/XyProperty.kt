@@ -31,5 +31,4 @@ object XyProperty {
     const val TEXT_COLOR = "text_color"
     const val FONT_SIZE = "font_size"
     const val FONT_BOLD = "font_bold"
-    const val FONT_ITALIC = "font_italic"
 }

@@ -2,11 +2,9 @@ package foatto.core.link
 
 class XyResponse(
     val documentConfig: XyDocumentConfig,
-    val startParamID: String,
+    val startParamId: String,
     val shortTitle: String,
     val fullTitle: String,
-    val parentObjectID: Int,
-    val parentObjectInfo: String
 )
 
 class XyDocumentConfig(

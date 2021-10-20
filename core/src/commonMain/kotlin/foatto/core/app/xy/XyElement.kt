@@ -1,11 +1,12 @@
 package foatto.core.app.xy
 
+import foatto.core.app.iCoreAppContainer
 import foatto.core.app.xy.geom.XyPoint
 
 class XyElement(
     val typeName: String,
-    var elementID: Int,
-    var objectID: Int
+    var elementId: Int,
+    var objectId: Int,
 ) {
 
     companion object {
@@ -60,9 +61,8 @@ class XyElement(
     //--- Text
     var text = ""
     var textColor = 0
-    var fontSize = 12
+    var fontSize = iCoreAppContainer.BASE_FONT_SIZE
     var itFontBold = false
-    var itFontItalic = false
 
     //--- text restrictions
     var limitWidth = 0

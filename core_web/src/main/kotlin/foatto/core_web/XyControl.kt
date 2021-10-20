@@ -151,6 +151,8 @@ fun getXyElementTemplate(tabId: Int, specificSvg: String) =
                      v-bind:style="[element.pos, element.style]"
                      v-on:mouseenter="onMouseOver( ${'$'}event, element )"
                      v-on:mouseleave="onMouseOut()"
+                     v-on:mousedown.prevent="onTextPressed( ${'$'}event, element )"
+                     v-on:touchstart.prevent="onTextPressed( ${'$'}event, element )"
                      v-html="element.text"
                 >
                 </div>
@@ -196,10 +198,8 @@ fun defineXySvgCoords(elementPrefix: String, tabId: Int): XySvgCoords {
 
 fun doXyMounted(that: dynamic, xyResponse: XyResponse, tabId: Int, elementPrefix: String, startExpandKoef: Double, curScale: Int) {
     that.documentConfig = xyResponse.documentConfig
-    that.startParamID = xyResponse.startParamID
+    that.startParamId = xyResponse.startParamId
     that.fullTitle = xyResponse.fullTitle
-    that.parentObjectID = xyResponse.parentObjectID
-    that.parentObjectInfo = xyResponse.parentObjectInfo
 
     that.`$root`.setTabInfo(tabId, xyResponse.shortTitle, xyResponse.fullTitle)
 
@@ -215,7 +215,7 @@ fun doXyMounted(that: dynamic, xyResponse: XyResponse, tabId: Int, elementPrefix
         XyActionRequest(
             documentTypeName = xyResponse.documentConfig.name,
             action = XyAction.GET_COORDS,
-            startParamID = xyResponse.startParamID
+            startParamId = xyResponse.startParamId
         ),
         { xyActionResponse: XyActionResponse ->
 
@@ -280,7 +280,9 @@ fun getXyCoordsDone(scaleKoef: Double, startExpandKoef: Double, viewWidth: Int, 
     val tmpH = y2 - y1
     //--- если пришли граничные координаты только одной точки,
     //--- то оставим текущий масштаб
-    if (tmpW == 0 && tmpH == 0) scale = curScale
+    if (tmpW == 0 && tmpH == 0) {
+        scale = curScale
+    }
     else {
         //--- прибавим по краям startExpandKoef, чтобы искомые элементы не тёрлись об края экрана
         x1 -= (tmpW * startExpandKoef).toInt()
@@ -415,7 +417,7 @@ fun getXyElements(that: dynamic, xyResponse: XyResponse, scaleKoef: Double, newV
         XyActionRequest(
             documentTypeName = xyResponse.documentConfig.name,
             action = XyAction.GET_ELEMENTS,
-            startParamID = xyResponse.startParamID,
+            startParamId = xyResponse.startParamId,
             viewCoord = newView,
             bitmapTypeName = mapBitmapTypeName
         ),
@@ -487,10 +489,8 @@ fun getXyClickRect(mouseX: Int, mouseY: Int): XyRect = XyRect(mouseX - MIN_USER_
 fun getXyComponentData(): Json {
     return json(
         "documentConfig" to null,
-        "startParamID" to "",
+        "startParamId" to "",
         "fullTitle" to "",
-        "parentObjectID" to 0,
-        "parentObjectInfo" to "",
 
         "svg_height" to "100%",
 
