@@ -10,6 +10,7 @@ import foatto.core.app.xy.geom.XyPoint
 import foatto.core.app.xy.geom.XyRect
 import foatto.core.link.XyElementConfig
 import foatto.core.link.XyResponse
+import foatto.core.util.getRandomInt
 import foatto.core.util.getSplittedDouble
 import foatto.core_web.external.vue.that
 import foatto.core_web.external.vue.vueComponentOptions
@@ -23,6 +24,7 @@ import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.random.Random
 
 private enum class MapWorkMode {
     PAN, ZOOM_BOX, SELECT_FOR_ACTION, DISTANCER, ACTION_ADD, ACTION_EDIT_POINT, ACTION_MOVE
@@ -528,6 +530,8 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                     if (alDistancerLine.isEmpty()) {
                         that().distancerSumText = XyElementData(
                             type = XyElementDataType.TEXT,
+                            elementId = -getRandomInt(),
+                            objectId = 0,
                             x = mouseX,
                             y = mouseY,
                             text = "0.0",
@@ -553,6 +557,8 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                     alDistancerLine.add(
                         XyElementData(
                             type = XyElementDataType.LINE,
+                            elementId = -getRandomInt(),
+                            objectId = 0,
                             x1 = mouseX,
                             y1 = mouseY,
                             x2 = mouseX,
@@ -568,6 +574,8 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                     alDistancerText.add(
                         XyElementData(
                             type = XyElementDataType.TEXT,
+                            elementId = -getRandomInt(),
+                            objectId = 0,
                             x = mouseX,
                             y = mouseY,
                             text = "0.0",
@@ -664,7 +672,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                     }
                 }
                 MapWorkMode.ACTION_MOVE -> {
-                    doMoveElements(that(), xyResponse.documentConfig.name, xyResponse.startParamID, scaleKoef, viewCoord)
+                    doMoveElements(that(), xyResponse.documentConfig.name, xyResponse.startParamId, scaleKoef, viewCoord)
                     that().setMode(MapWorkMode.SELECT_FOR_ACTION)
                 }
             }
@@ -722,6 +730,8 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                 val newView = getXyViewCoord(newScale, svgBodyWidth, svgBodyHeight, newCenterX, newCenterY, scaleKoef)
                 that().refreshView(null, newView)
             }
+        },
+        "onTextPressed" to { event: Event, xyElement: XyElementData ->
         },
         "setMode" to { newMode: MapWorkMode ->
             val curMode = that().curMode.unsafeCast<MapWorkMode>()
@@ -853,12 +863,12 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
             when (curMode.toString()) {
                 MapWorkMode.ACTION_ADD.toString() -> {
                     val addElement = that().addElement.unsafeCast<XyElementData>()
-                    addElement.doAddElement(that(), xyResponse.documentConfig.name, xyResponse.startParamID, scaleKoef, viewCoord)
+                    addElement.doAddElement(that(), xyResponse.documentConfig.name, xyResponse.startParamId, scaleKoef, viewCoord)
                     that().addElement = null
                 }
                 MapWorkMode.ACTION_EDIT_POINT.toString() -> {
                     val editElement = that().editElement.unsafeCast<XyElementData>()
-                    editElement.doEditElementPoint(that(), xyResponse.documentConfig.name, xyResponse.startParamID, scaleKoef, viewCoord)
+                    editElement.doEditElementPoint(that(), xyResponse.documentConfig.name, xyResponse.startParamId, scaleKoef, viewCoord)
                 }
             }
             //that().refreshView( null, null ) - делается внути методов doAdd/doEdit/doMove по завершении операций
@@ -1008,11 +1018,12 @@ private fun editOnePoint(that: dynamic) {
 //    if( isRemovable && ( !actionElement!!.element.itClosed || actionElement!!.element.alPoint.size > 3 ) )
 
     //--- сейчас работаем только с полигонами. Если сейчас больше трёх точек, значит после удаления останется как минимум 3 точки, что достаточно.
-    if (isRemovable && editElement.alPoint.size > 3)
+    if (isRemovable && editElement.alPoint.size > 3) {
         editElement.removePoint(editPointIndex)
+    }
 }
 
-private fun doMoveElements(that: dynamic, documentTypeName: String, startParamID: String, scaleKoef: Double, viewCoord: XyViewCoord) {
+private fun doMoveElements(that: dynamic, documentTypeName: String, startParamId: String, scaleKoef: Double, viewCoord: XyViewCoord) {
     val arrMoveElement = that.arrMoveElement.unsafeCast<Array<XyElementData>>()
     val moveStartPoint = that.moveStartPoint.unsafeCast<XyPoint>()
     val moveEndPoint = that.moveEndPoint.unsafeCast<XyPoint>()
@@ -1020,9 +1031,9 @@ private fun doMoveElements(that: dynamic, documentTypeName: String, startParamID
     val xyActionRequest = XyActionRequest(
         documentTypeName = documentTypeName,
         action = XyAction.MOVE_ELEMENTS,
-        startParamID = startParamID,
+        startParamId = startParamId,
 
-        alActionElementIds = arrMoveElement.map { it.elementID!! },
+        alActionElementIds = arrMoveElement.map { it.elementId!! },
         dx = ((moveEndPoint.x - moveStartPoint.x) * viewCoord.scale / scaleKoef).roundToInt(),
         dy = ((moveEndPoint.y - moveStartPoint.y) * viewCoord.scale / scaleKoef).roundToInt()
     )
