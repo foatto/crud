@@ -21,17 +21,28 @@ class LiquidGraphicHandler : AnalogGraphicHandler() {
 
     //----------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun getLineColorIndex(sca: SensorConfigAnalogue, rawTime: Int, rawData: Double, prevTime: Int, prevData: Double): GraphicColorIndex {
+    override fun getLineColorIndex(axisIndex: Int, sca: SensorConfigAnalogue, rawTime: Int, rawData: Double, prevTime: Int, prevData: Double): GraphicColorIndex {
         //--- checking for coincidence of the start / end points, so that there is no division by zero later
-        if (rawTime == prevTime) return lineNormalColorIndex
+        if (rawTime == prevTime) {
+            return getLineNormalColorIndex(axisIndex)
+        }
 
         //--- too large spacing between points
-        if (rawTime - prevTime > ObjectCalc.MAX_WORK_TIME_INTERVAL) return lineNoneColorIndex
+        if (rawTime - prevTime > ObjectCalc.MAX_WORK_TIME_INTERVAL) {
+            return getLineNoneColorIndex(axisIndex)
+        }
 
         val scll = sca as SensorConfigLiquidLevel
         val liquidKoef = (rawData - prevData) * 3600 / (rawTime - prevTime)
-        return if (liquidKoef > 0 && liquidKoef > scll.detectIncKoef) lineCriticalColorIndex
-        else if (liquidKoef < 0 && -liquidKoef > scll.detectDecKoef) lineWarningColorIndex
-        else lineNormalColorIndex
+
+        return if (liquidKoef > 0 && liquidKoef > scll.detectIncKoef) {
+            getLineAboveColorIndex(axisIndex)
+        }
+        else if (liquidKoef < 0 && -liquidKoef > scll.detectDecKoef) {
+            getLineBelowColorIndex(axisIndex)
+        }
+        else {
+            getLineNormalColorIndex(axisIndex)
+        }
     }
 }

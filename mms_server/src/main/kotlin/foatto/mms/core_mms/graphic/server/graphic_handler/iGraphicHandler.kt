@@ -7,17 +7,10 @@ import foatto.mms.core_mms.sensor.config.SensorConfigAnalogue
 
 interface iGraphicHandler {
 
-    //--- empirically found out - it is not worth averaging over X,
-    //--- since in this case, sharp transitions between levels are too straightened,
-    //--- since run / average intermediate points to multiple neighboring points,
-    //--- and the refueling detector starts to make mistakes (not counting the start of refueling),
-    //--- since the midpoint ran too far to the right and the proper amount of l / h does not work
-    //boolean useAverageX();
-
-    val lineNoneColorIndex: GraphicColorIndex
-    val lineNormalColorIndex: GraphicColorIndex
-    val lineWarningColorIndex: GraphicColorIndex
-    val lineCriticalColorIndex: GraphicColorIndex
+    fun getLineNoneColorIndex(axisIndex: Int): GraphicColorIndex
+    fun getLineNormalColorIndex(axisIndex: Int): GraphicColorIndex
+    fun getLineBelowColorIndex(axisIndex: Int): GraphicColorIndex
+    fun getLineAboveColorIndex(axisIndex: Int): GraphicColorIndex
 
     //----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -47,5 +40,5 @@ interface iGraphicHandler {
 
     fun getRawData(sca: SensorConfigAnalogue, bb: AdvancedByteBuffer): Double?
 
-    fun getLineColorIndex(sca: SensorConfigAnalogue, rawTime: Int, rawData: Double, prevTime: Int, prevData: Double): GraphicColorIndex
+    fun getLineColorIndex(axisIndex: Int, sca: SensorConfigAnalogue, rawTime: Int, rawData: Double, prevTime: Int, prevData: Double): GraphicColorIndex
 }

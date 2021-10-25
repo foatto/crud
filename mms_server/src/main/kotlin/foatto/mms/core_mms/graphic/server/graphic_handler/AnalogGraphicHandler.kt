@@ -3,6 +3,10 @@ package foatto.mms.core_mms.graphic.server.graphic_handler
 import foatto.core.app.graphic.GraphicColorIndex
 import foatto.core.app.graphic.GraphicDataContainer
 import foatto.core.app.graphic.GraphicLineData
+import foatto.core.app.graphic.graphicLineAboveColorIndexes
+import foatto.core.app.graphic.graphicLineBelowColorIndexes
+import foatto.core.app.graphic.graphicLineNoneColorIndexes
+import foatto.core.app.graphic.graphicLineNormalColorIndexes
 import foatto.core.util.AdvancedByteBuffer
 import foatto.mms.core_mms.calc.AbstractObjectStateCalc
 import foatto.mms.core_mms.calc.ObjectCalc
@@ -10,18 +14,16 @@ import foatto.mms.core_mms.sensor.config.SensorConfigAnalogue
 
 open class AnalogGraphicHandler : iGraphicHandler {
 
-    //----------------------------------------------------------------------------------------------------------------------------------------
-
-    override val lineNoneColorIndex: GraphicColorIndex = GraphicColorIndex.LINE_NONE_0
-    override val lineNormalColorIndex: GraphicColorIndex = GraphicColorIndex.LINE_NORMAL_0
-    override val lineWarningColorIndex: GraphicColorIndex = GraphicColorIndex.LINE_BELOW_0
-    override val lineCriticalColorIndex: GraphicColorIndex = GraphicColorIndex.LINE_ABOVE_0
+    override fun getLineNoneColorIndex(axisIndex: Int): GraphicColorIndex = graphicLineNoneColorIndexes[axisIndex]
+    override fun getLineNormalColorIndex(axisIndex: Int): GraphicColorIndex = graphicLineNormalColorIndexes[axisIndex]
+    override fun getLineBelowColorIndex(axisIndex: Int): GraphicColorIndex = graphicLineBelowColorIndexes[axisIndex]
+    override fun getLineAboveColorIndex(axisIndex: Int): GraphicColorIndex = graphicLineAboveColorIndexes[axisIndex]
 
     //----------------------------------------------------------------------------------------------------------------------------------------
 
     //--- если заданы пределы ( максимум > минимума ), то включено
-    override fun isStaticMinLimit(sca: SensorConfigAnalogue) = sca.maxLimit > sca.minLimit
-    override fun isStaticMaxLimit(sca: SensorConfigAnalogue) = sca.maxLimit > sca.minLimit
+    override fun isStaticMinLimit(sca: SensorConfigAnalogue) = sca.maxLimit != sca.minLimit
+    override fun isStaticMaxLimit(sca: SensorConfigAnalogue) = sca.maxLimit != sca.minLimit
 
     override fun getStaticMinLimit(sca: SensorConfigAnalogue) = sca.minLimit
     override fun getStaticMaxLimit(sca: SensorConfigAnalogue) = sca.maxLimit
@@ -67,18 +69,18 @@ open class AnalogGraphicHandler : iGraphicHandler {
         }
     }
 
-    override fun getLineColorIndex(sca: SensorConfigAnalogue, rawTime: Int, rawData: Double, prevTime: Int, prevData: Double): GraphicColorIndex {
+    override fun getLineColorIndex(axisIndex: Int, sca: SensorConfigAnalogue, rawTime: Int, rawData: Double, prevTime: Int, prevData: Double): GraphicColorIndex {
         val avgDynamicMinLimit = getDynamicMinLimit(sca, rawTime, rawData)
         val avgDynamicMaxLimit = getDynamicMaxLimit(sca, rawTime, rawData)
 
-        var colorIndex = lineNormalColorIndex
+        var colorIndex = getLineNormalColorIndex(axisIndex)
         if (isStaticMinLimit(sca)) {
             colorIndex = if (rawData > avgDynamicMaxLimit) {
-                lineCriticalColorIndex
+                getLineAboveColorIndex(axisIndex)
             } else if (rawData < avgDynamicMinLimit) {
-                lineWarningColorIndex
+                getLineBelowColorIndex(axisIndex)
             } else {
-                lineNormalColorIndex
+                getLineNormalColorIndex(axisIndex)
             }
         }
         return colorIndex

@@ -138,7 +138,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
 
             //--- liquid level sensors
             oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_LEVEL]?.values?.forEach { sc ->
-                calcLiquidLevel(alRawTime, alRawData, stm, oc, sc as SensorConfigLiquidLevel, begTime, endTime, result)
+                calcLiquidLevel(alRawTime, alRawData, stm, oc, sc as SensorConfigLiquidLevel, begTime, endTime, 0, result)
             }
 
             //--- some analogue sensors
@@ -149,16 +149,17 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                     alRawTime = alRawTime,
                     alRawData = alRawData,
                     scg = oc.scg,
-                    scsc = sca,
+                    sca = sca,
                     begTime = begTime,
                     endTime = endTime,
                     xScale = 0,
                     yScale = 0.0,
+                    axisIndex = 0,
                     aMinLimit = null,
                     aMaxLimit = null,
                     aPoint = null,
                     aLine = aLine,
-                    gh = AnalogGraphicHandler()
+                    graphicHandler = AnalogGraphicHandler()
                 )
                 result.tmTemperature[sc.descr] = aLine
             }
@@ -170,16 +171,17 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                     alRawTime = alRawTime,
                     alRawData = alRawData,
                     scg = oc.scg,
-                    scsc = sca,
+                    sca = sca,
                     begTime = begTime,
                     endTime = endTime,
                     xScale = 0,
                     yScale = 0.0,
+                    axisIndex = 0,
                     aMinLimit = null,
                     aMaxLimit = null,
                     aPoint = null,
                     aLine = aLine,
-                    gh = AnalogGraphicHandler()
+                    graphicHandler = AnalogGraphicHandler()
                 )
                 result.tmDensity[sc.descr] = aLine
             }
@@ -555,14 +557,15 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             sca: SensorConfigLiquidLevel,
             begTime: Int,
             endTime: Int,
+            axisIndex: Int,
         ): LiquidLevelCalcData {
 
             val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2, false)
             val alLSPD = mutableListOf<LiquidStatePeriodData>()
-            getSmoothLiquidGraphicData(alRawTime, alRawData, oc.scg, sca, begTime, endTime, aLine, alLSPD)
+            getSmoothLiquidGraphicData(alRawTime, alRawData, oc.scg, sca, begTime, endTime, axisIndex, aLine, alLSPD)
 
             val llcd = LiquidLevelCalcData(sca.containerType, aLine, alLSPD)
-            calcLiquidUsingByLevel(sca, llcd, stm, oc, begTime, endTime)
+            calcLiquidUsingByLevel(sca, llcd, stm, oc, begTime, endTime, axisIndex)
 
             return llcd
         }
@@ -596,31 +599,33 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             alRawTime: List<Int>,
             alRawData: List<AdvancedByteBuffer>,
             scg: SensorConfigGeo?,
-            scsc: SensorConfigAnalogue,
+            sca: SensorConfigAnalogue,
             begTime: Int,
             endTime: Int,
             xScale: Int,
             yScale: Double,
+            axisIndex: Int,
             aMinLimit: GraphicDataContainer?,
             aMaxLimit: GraphicDataContainer?,
             aPoint: GraphicDataContainer?,
             aLine: GraphicDataContainer?,
-            gh: iGraphicHandler
+            graphicHandler: iGraphicHandler
         ) {
-
-            val isStaticMinLimit = gh.isStaticMinLimit(scsc)
-            val isStaticMaxLimit = gh.isStaticMaxLimit(scsc)
-            val isDynamicMinLimit = gh.isDynamicMinLimit(scsc)
-            val isDynamicMaxLimit = gh.isDynamicMaxLimit(scsc)
+            val isStaticMinLimit = graphicHandler.isStaticMinLimit(sca)
+            val isStaticMaxLimit = graphicHandler.isStaticMaxLimit(sca)
+            val isDynamicMinLimit = graphicHandler.isDynamicMinLimit(sca)
+            val isDynamicMaxLimit = graphicHandler.isDynamicMaxLimit(sca)
 
             //--- immediately add / set static (permanent) constraints if required / supported
-            if (gh.isStaticMinLimit(scsc)) gh.setStaticMinLimit(scsc, begTime, endTime, aMinLimit)
-            if (gh.isStaticMaxLimit(scsc)) gh.setStaticMaxLimit(scsc, begTime, endTime, aMaxLimit)
+            if (graphicHandler.isStaticMinLimit(sca)) graphicHandler.setStaticMinLimit(sca, begTime, endTime, aMinLimit)
+            if (graphicHandler.isStaticMaxLimit(sca)) graphicHandler.setStaticMaxLimit(sca, begTime, endTime, aMaxLimit)
 
             //--- for smoothing, you may need data before and after the time of the current point,
             //--- therefore, we overload / translate data in advance
             val alSensorData = mutableListOf<Double?>()
-            for (bb in alRawData) alSensorData.add(gh.getRawData(scsc, bb))
+            for (bb in alRawData) {
+                alSensorData.add(graphicHandler.getRawData(sca, bb))
+            }
 
             val alGPD = aPoint?.alGPD?.toMutableList() ?: mutableListOf()
             val alGLD = aLine?.alGLD?.toMutableList() ?: mutableListOf()
@@ -630,8 +635,12 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             for (pos in alRawTime.indices) {
                 val rawTime = alRawTime[pos]
                 //--- immediately skip outrageous points loaded for seamless smoothing between adjacent ranges
-                if (rawTime < begTime) continue
-                if (rawTime > endTime) break
+                if (rawTime < begTime) {
+                    continue
+                }
+                if (rawTime > endTime) {
+                    break
+                }
 
                 //--- insert the first and last pseudo-points for seamless connection between periods
 
@@ -641,28 +650,39 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 //--- adding dynamic boundaries / value limits
                 if (isDynamicMinLimit) {
                     //--- if the line point is far enough from the previous one (or just the first one :)
-                    if (aMinLimit!!.alGLD.isEmpty() || rawTime - aMinLimit.alGLD[aMinLimit.alGLD.size - 1].x > xScale)
-                        gh.addDynamicMinLimit(rawTime, gh.getDynamicMinLimit(scsc, rawTime, rawData), aMinLimit)
+                    if (aMinLimit!!.alGLD.isEmpty() || rawTime - aMinLimit.alGLD[aMinLimit.alGLD.size - 1].x > xScale) {
+                        graphicHandler.addDynamicMinLimit(rawTime, graphicHandler.getDynamicMinLimit(sca, rawTime, rawData), aMinLimit)
+                    }
                 }
                 if (isDynamicMaxLimit) {
                     //--- if the line point is far enough from the previous one (or just the first one :)
-                    if (aMaxLimit!!.alGLD.isEmpty() || rawTime - aMaxLimit.alGLD[aMaxLimit.alGLD.size - 1].x > xScale)
-                        gh.addDynamicMaxLimit(rawTime, gh.getDynamicMaxLimit(scsc, rawTime, rawData), aMaxLimit)
+                    if (aMaxLimit!!.alGLD.isEmpty() || rawTime - aMaxLimit.alGLD[aMaxLimit.alGLD.size - 1].x > xScale) {
+                        graphicHandler.addDynamicMaxLimit(rawTime, graphicHandler.getDynamicMaxLimit(sca, rawTime, rawData), aMaxLimit)
+                    }
                 }
 
                 //--- if points are shown
                 aPoint?.let {
-                    val colorIndex = if (isStaticMinLimit && rawData < gh.getStaticMinLimit(scsc) ||
-                        isStaticMaxLimit && rawData > gh.getStaticMaxLimit(scsc) ||
-                        isDynamicMinLimit && rawData < gh.getDynamicMinLimit(scsc, rawTime, rawData) ||
-                        isDynamicMaxLimit && rawData > gh.getDynamicMaxLimit(scsc, rawTime, rawData)
-                    ) GraphicColorIndex.POINT_ABOVE
-                    else GraphicColorIndex.POINT_NORMAL
+                    val colorIndex = if (isStaticMinLimit && rawData < graphicHandler.getStaticMinLimit(sca) ||
+                        isStaticMaxLimit && rawData > graphicHandler.getStaticMaxLimit(sca) ||
+                        isDynamicMinLimit && rawData < graphicHandler.getDynamicMinLimit(sca, rawTime, rawData) ||
+                        isDynamicMaxLimit && rawData > graphicHandler.getDynamicMaxLimit(sca, rawTime, rawData)
+                    ) {
+                        GraphicColorIndex.POINT_ABOVE
+                    }
+                    else {
+                        GraphicColorIndex.POINT_NORMAL
+                    }
 
-                    val gpdLast = if (alGPD.isEmpty()) null else alGPD[alGPD.size - 1]
+                    val gpdLast = if (alGPD.isEmpty()) {
+                        null
+                    } else {
+                        alGPD.last()
+                    }
 
-                    if (gpdLast == null || rawTime - gpdLast.x > xScale || abs(rawData - gpdLast.y) > yScale || colorIndex != gpdLast.colorIndex)
+                    if (gpdLast == null || rawTime - gpdLast.x > xScale || abs(rawData - gpdLast.y) > yScale || colorIndex != gpdLast.colorIndex) {
                         alGPD.add(GraphicPointData(rawTime, rawData, colorIndex))
+                    }
                 }
 
                 //--- if lines are shown
@@ -670,13 +690,17 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                     //--- finding the left border of the smoothing range
                     var pos1 = pos - 1
                     while (pos1 >= 0) {
-                        if (rawTime - alRawTime[pos1] > scsc.smoothTime) break
+                        if (rawTime - alRawTime[pos1] > sca.smoothTime) {
+                            break
+                        }
                         pos1--
                     }
                     //--- finding the right border of the smoothing range
                     var pos2 = pos + 1
                     while (pos2 < alRawTime.size) {
-                        if (alRawTime[pos2] - rawTime > scsc.smoothTime) break
+                        if (alRawTime[pos2] - rawTime > sca.smoothTime) {
+                            break
+                        }
                         pos2++
                     }
 
@@ -684,7 +708,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                     var sumValue: Double
                     var countValue: Int
                     val avgValue: Double
-                    when (scsc.smoothMethod) {
+                    when (sca.smoothMethod) {
                         //--- since pos1 and pos2 are OUTSIDE the smoothing range,
                         //--- then we skip them, starting from pos1 + 1 and ending BEFORE pos2
 
@@ -743,13 +767,13 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                         else -> avgValue = 0.0
                     }
 
-                    val gldLast = if (alGLD.isEmpty()) null else alGLD[alGLD.size - 1]
+                    val gldLast = alGLD.lastOrNull()
 
                     //--- if boundary values are set, we look at the averaged avgValue,
                     //--- so the typical getDynamicXXX from the beginning of the cycle does not suit us
                     val prevTime = (gldLast?.x ?: rawTime)
                     val prevData = gldLast?.y ?: avgValue
-                    val curColorIndex = gh.getLineColorIndex(scsc, rawTime, avgValue, prevTime, prevData)
+                    val curColorIndex = graphicHandler.getLineColorIndex(axisIndex, sca, rawTime, avgValue, prevTime, prevData)
 
                     if (gldLast == null || rawTime - gldLast.x > xScale || abs(rawData - gldLast.y) > yScale || curColorIndex != gldLast.colorIndex) {
                         val gd = scg?.let {
@@ -767,13 +791,14 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
         //--- we collect periods of liquid level states (refueling, draining, consumption) and apply filters for refueling / draining / consumption
         fun getLiquidStatePeriodData(
             sca: SensorConfigLiquidLevel,
+            axisIndex: Int,
             aLine: GraphicDataContainer,
             alLSPD: MutableList<LiquidStatePeriodData>,
             gh: LiquidGraphicHandler
         ) {
             //--- zero pass: collecting periods from points; we start from the 1st point, because 0th point is always "normal"
             var begPos = 0
-            var curColorIndex = gh.lineNormalColorIndex
+            var curColorIndex = gh.getLineNormalColorIndex(axisIndex)
             for (i in 1 until aLine.alGLD.size) {
                 val gdl = aLine.alGLD[i]
                 val newColorIndex = gdl.colorIndex
@@ -782,7 +807,9 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                     //--- the previous period ended at the previous point
                     val endPos = i - 1
                     //--- there must be at least two points in the period, we discard one-point periods (usually this is the starting point in the "normal" state)
-                    if (begPos < endPos) alLSPD.add(LiquidStatePeriodData(begPos, endPos, curColorIndex))
+                    if (begPos < endPos) {
+                        alLSPD.add(LiquidStatePeriodData(begPos, endPos, curColorIndex))
+                    }
                     //--- the new period actually starts from the previous point
                     begPos = i - 1
                     curColorIndex = newColorIndex
@@ -790,7 +817,9 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             }
             //--- let's finish the last period
             val endPos = aLine.alGLD.size - 1
-            if (begPos < endPos) alLSPD.add(LiquidStatePeriodData(begPos, endPos, curColorIndex))
+            if (begPos < endPos) {
+                alLSPD.add(LiquidStatePeriodData(begPos, endPos, curColorIndex))
+            }
 
             //--- first pass: turn insignificant fillings / drains into "normal" consumption
             run {
@@ -798,20 +827,21 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 while (pos < alLSPD.size) {
                     val lspd = alLSPD[pos]
                     //--- skip empty or normal periods immediately
-                    if (lspd.colorIndex == gh.lineNoneColorIndex || lspd.colorIndex == gh.lineNormalColorIndex) {
+                    if (lspd.colorIndex == gh.getLineNoneColorIndex(axisIndex) || lspd.colorIndex == gh.getLineNormalColorIndex(axisIndex)) {
                         pos++
                         continue
                     }
                     //--- determine the insignificance of filling / draining
                     val begGDL = aLine.alGLD[lspd.begPos]
                     val endGDL = aLine.alGLD[lspd.endPos]
-                    var isFound = false
-                    if (lspd.colorIndex == gh.lineCriticalColorIndex) {
+                    val isFound = if (lspd.colorIndex == gh.getLineAboveColorIndex(axisIndex)) {
                         //--- at the same time we catch periods with zero length
-                        isFound = endGDL.y - begGDL.y < sca.detectIncMinDiff || endGDL.x - begGDL.x < max(sca.detectIncMinLen, 1)
-                    } else if (lspd.colorIndex == gh.lineWarningColorIndex) {
+                        endGDL.y - begGDL.y < sca.detectIncMinDiff || endGDL.x - begGDL.x < max(sca.detectIncMinLen, 1)
+                    } else if (lspd.colorIndex == gh.getLineBelowColorIndex(axisIndex)) {
                         //--- at the same time we catch periods with zero length
-                        isFound = -(endGDL.y - begGDL.y) < sca.detectDecMinDiff || endGDL.x - begGDL.x < max(sca.detectDecMinLen, 1)
+                        -(endGDL.y - begGDL.y) < sca.detectDecMinDiff || endGDL.x - begGDL.x < max(sca.detectDecMinLen, 1)
+                    } else {
+                        false
                     }
                     //--- insignificant fill / drain found
                     if (isFound) {
@@ -820,11 +850,15 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                         var nextNormalLSPD: LiquidStatePeriodData? = null
                         if (pos > 0) {
                             prevNormalLSPD = alLSPD[pos - 1]
-                            if (prevNormalLSPD.colorIndex != gh.lineNormalColorIndex) prevNormalLSPD = null
+                            if (prevNormalLSPD.colorIndex != gh.getLineNormalColorIndex(axisIndex)) {
+                                prevNormalLSPD = null
+                            }
                         }
                         if (pos < alLSPD.size - 1) {
                             nextNormalLSPD = alLSPD[pos + 1]
-                            if (nextNormalLSPD.colorIndex != gh.lineNormalColorIndex) nextNormalLSPD = null
+                            if (nextNormalLSPD.colorIndex != gh.getLineNormalColorIndex(axisIndex)) {
+                                nextNormalLSPD = null
+                            }
                         }
                         //--- both adjacent periods are normal, all three are merged into one
                         if (prevNormalLSPD != null && nextNormalLSPD != null) {
@@ -844,11 +878,13 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                             alLSPD.removeAt(pos)
                             pos++
                         } else {                                //--- the left period is normal, we merge with it
-                            lspd.colorIndex = gh.lineNormalColorIndex
+                            lspd.colorIndex = gh.getLineNormalColorIndex(axisIndex)
                             pos++
                         }
                         //--- in any case, normalize "our" points of the smoothed graph
-                        for (i in lspd.begPos + 1..lspd.endPos) aLine.alGLD[i].colorIndex = gh.lineNormalColorIndex
+                        for (i in lspd.begPos + 1..lspd.endPos) {
+                            aLine.alGLD[i].colorIndex = gh.getLineNormalColorIndex(axisIndex)
+                        }
                     } else pos++    //--- otherwise just go to the next period
                 }
             }
@@ -857,21 +893,29 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             for (pos in alLSPD.indices) {
                 val lspd = alLSPD[pos]
                 //--- skip empty or normal periods immediately
-                if (lspd.colorIndex == gh.lineNoneColorIndex || lspd.colorIndex == gh.lineNormalColorIndex) continue
+                if (lspd.colorIndex == gh.getLineNoneColorIndex(axisIndex) || lspd.colorIndex == gh.getLineNormalColorIndex(axisIndex)) {
+                    continue
+                }
 
                 //--- looking for a normal period on the left, if necessary
-                val addTimeBefore = if (lspd.colorIndex == gh.lineCriticalColorIndex) sca.incAddTimeBefore
-                else sca.decAddTimeBefore
+                val addTimeBefore = if (lspd.colorIndex == gh.getLineAboveColorIndex(axisIndex)) {
+                    sca.incAddTimeBefore
+                }
+                else {
+                    sca.decAddTimeBefore
+                }
                 if (addTimeBefore > 0 && pos > 0) {
                     val prevNormalLSPD = alLSPD[pos - 1]
-                    if (prevNormalLSPD.colorIndex == gh.lineNormalColorIndex) {
+                    if (prevNormalLSPD.colorIndex == gh.getLineNormalColorIndex(axisIndex)) {
                         val bt = aLine.alGLD[lspd.begPos].x
                         // --- lengthen the beginning of our period, shorten the previous normal period from the end
                         // --- namely>, not> =, in order to prevent single-point normal periods (begPos == endPos)
                         // --- after lengthening the current abnormal
                         var p = prevNormalLSPD.endPos - 1
                         while (p > prevNormalLSPD.begPos) {
-                            if (bt - aLine.alGLD[p].x > addTimeBefore) break
+                            if (bt - aLine.alGLD[p].x > addTimeBefore) {
+                                break
+                            }
                             p--
                         }
                         //--- the previous position is valid
@@ -881,23 +925,31 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                             prevNormalLSPD.endPos = p
                             lspd.begPos = p
                             //--- in any case, let's re-mark "our" points of the smoothed graph
-                            for (i in lspd.begPos + 1..lspd.endPos) aLine.alGLD[i].colorIndex = lspd.colorIndex
+                            for (i in lspd.begPos + 1..lspd.endPos) {
+                                aLine.alGLD[i].colorIndex = lspd.colorIndex
+                            }
                         }
                     }
                 }
                 //--- looking for a normal period on the right, if necessary
-                val addTimeAfter = if (lspd.colorIndex == gh.lineCriticalColorIndex) sca.incAddTimeAfter
-                else sca.decAddTimeAfter
+                val addTimeAfter = if (lspd.colorIndex == gh.getLineAboveColorIndex(axisIndex)) {
+                    sca.incAddTimeAfter
+                }
+                else {
+                    sca.decAddTimeAfter
+                }
                 if (addTimeAfter > 0 && pos < alLSPD.size - 1) {
                     val nextNormalLSPD = alLSPD[pos + 1]
-                    if (nextNormalLSPD.colorIndex == gh.lineNormalColorIndex) {
+                    if (nextNormalLSPD.colorIndex == gh.getLineNormalColorIndex(axisIndex)) {
                         val et = aLine.alGLD[lspd.endPos].x
                         //--- lengthen the end of our period, shorten the next normal period from the beginning
                         //--- exactly <, not <=, in order to prevent single-point normal periods (begPos == endPos)
                         //--- after lengthening the current abnormal
                         var p = nextNormalLSPD.begPos + 1
                         while (p < nextNormalLSPD.endPos) {
-                            if (aLine.alGLD[p].x - et > addTimeAfter) break
+                            if (aLine.alGLD[p].x - et > addTimeAfter) {
+                                break
+                            }
                             p++
                         }
                         //--- the previous position is valid
@@ -907,7 +959,9 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                             nextNormalLSPD.begPos = p
                             lspd.endPos = p
                             //--- in any case, let's re-mark "our" points of the smoothed graph
-                            for (i in lspd.begPos + 1..lspd.endPos) aLine.alGLD[i].colorIndex = lspd.colorIndex
+                            for (i in lspd.begPos + 1..lspd.endPos) {
+                                aLine.alGLD[i].colorIndex = lspd.colorIndex
+                            }
                         }
                     }
                 }
@@ -918,7 +972,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             while (pos < alLSPD.size) {
                 val lspd = alLSPD[pos]
                 //--- skip abnormal periods immediately
-                if (lspd.colorIndex != gh.lineNormalColorIndex) {
+                if (lspd.colorIndex != gh.getLineNormalColorIndex(axisIndex)) {
                     pos++
                     continue
                 }
@@ -932,11 +986,15 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                     var nextAbnormalLSPD: LiquidStatePeriodData? = null
                     if (pos > 0) {
                         prevAbnormalLSPD = alLSPD[pos - 1]
-                        if (prevAbnormalLSPD.colorIndex == gh.lineNormalColorIndex) prevAbnormalLSPD = null
+                        if (prevAbnormalLSPD.colorIndex == gh.getLineNormalColorIndex(axisIndex)) {
+                            prevAbnormalLSPD = null
+                        }
                     }
                     if (pos < alLSPD.size - 1) {
                         nextAbnormalLSPD = alLSPD[pos + 1]
-                        if (nextAbnormalLSPD.colorIndex == gh.lineNormalColorIndex) nextAbnormalLSPD = null
+                        if (nextAbnormalLSPD.colorIndex == gh.getLineNormalColorIndex(axisIndex)) {
+                            nextAbnormalLSPD = null
+                        }
                     }
 
                     //--- both neighboring periods are equally abnormal, all three are merged into one (two neighboring differently abnormal periods cannot be merged)
@@ -949,7 +1007,9 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                         //--- after merging three periods, pos already points to the next position, there is no need to increase the counter
                         //pos++;
                         //--- denormalize "our" points of the smoothed graph
-                        for (i in lspd.begPos + 1..lspd.endPos) aLine.alGLD[i].colorIndex = prevAbnormalLSPD.colorIndex
+                        for (i in lspd.begPos + 1..lspd.endPos) {
+                            aLine.alGLD[i].colorIndex = prevAbnormalLSPD.colorIndex
+                        }
                     } else pos++    //--- otherwise just go to the next period
                 } else pos++    //--- otherwise just go to the next period
             }
@@ -969,16 +1029,17 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             alEnd: List<Int>,
             calcMode: Int,
             hmZoneData: Map<Int, ZoneData>,
-            calcZoneID: Int
+            calcZoneID: Int,
+            axisIndex: Int,
         ): List<LiquidIncDecData> {
             val alLIDD = mutableListOf<LiquidIncDecData>()
 
             val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2, false)
             val alLSPD = mutableListOf<LiquidStatePeriodData>()
-            getSmoothLiquidGraphicData(alRawTime, alRawData, oc.scg, sca, begTime, endTime, aLine, alLSPD)
+            getSmoothLiquidGraphicData(alRawTime, alRawData, oc.scg, sca, begTime, endTime, axisIndex, aLine, alLSPD)
 
             val llcd = LiquidLevelCalcData(sca.containerType, aLine, alLSPD)
-            calcLiquidUsingByLevel(sca, llcd, stm, oc, begTime, endTime)
+            calcLiquidUsingByLevel(sca, llcd, stm, oc, begTime, endTime, axisIndex)
 
             for (lspd in llcd.alLSPD!!) {
                 val begGLD = llcd.aLine!!.alGLD[lspd.begPos]
@@ -1176,9 +1237,10 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             scll: SensorConfigLiquidLevel,
             begTime: Int,
             endTime: Int,
+            axisIndex: Int,
             result: ObjectCalc
         ) {
-            val llcd = calcLiquidLevelSensor(alRawTime, alRawData, stm, oc, scll, begTime, endTime)
+            val llcd = calcLiquidLevelSensor(alRawTime, alRawData, stm, oc, scll, begTime, endTime, axisIndex)
 
             result.tmLiquidLevel[scll.descr] = llcd
 
@@ -1442,12 +1504,34 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             sca: SensorConfigLiquidLevel,
             begTime: Int,
             endTime: Int,
+            axisIndex: Int,
             aLine: GraphicDataContainer,
             alLSPD: MutableList<LiquidStatePeriodData>
         ) {
             val gh = LiquidGraphicHandler()
-            getSmoothAnalogGraphicData(alRawTime, alRawData, scg, sca, begTime, endTime, 0, 0.0, null, null, null, aLine, gh)
-            getLiquidStatePeriodData(sca, aLine, alLSPD, gh)
+            getSmoothAnalogGraphicData(
+                alRawTime = alRawTime,
+                alRawData = alRawData,
+                scg = scg,
+                sca = sca,
+                begTime = begTime,
+                endTime = endTime,
+                xScale = 0,
+                yScale = 0.0,
+                axisIndex = axisIndex,
+                aMinLimit = null,
+                aMaxLimit = null,
+                aPoint = null,
+                aLine = aLine,
+                graphicHandler = gh
+            )
+            getLiquidStatePeriodData(
+                sca = sca,
+                axisIndex = axisIndex,
+                aLine = aLine,
+                alLSPD = alLSPD,
+                gh = gh
+            )
         }
 
         private fun calcLiquidUsingByLevel(
@@ -1456,7 +1540,8 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             stm: CoreAdvancedStatement,
             oc: ObjectConfig,
             begTime: Int,
-            endTime: Int
+            endTime: Int,
+            axisIndex: Int,
         ) {
             val aLine = llcd.aLine
             val alLSPD = llcd.alLSPD
@@ -1475,7 +1560,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                             llcd.incTotal += endGDL.y - begGDL.y
                             if (sca.isUsingCalc) {
                                 //--- looking for the previous normal period
-                                val avgUsing = getPrevNormalPeriodAverageUsing(llcd, i, stm, oc, sca, begTime, endTime)
+                                val avgUsing = getPrevNormalPeriodAverageUsing(llcd, i, stm, oc, sca, begTime, endTime, axisIndex)
                                 val calcUsing = avgUsing * (endGDL.x - begGDL.x)
                                 llcd.usingCalc += calcUsing
                                 llcd.usingTotal += calcUsing
@@ -1485,7 +1570,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                             llcd.decTotal += begGDL.y - endGDL.y
                             if (sca.isUsingCalc) {
                                 //--- looking for the previous normal period
-                                val avgUsing = getPrevNormalPeriodAverageUsing(llcd, i, stm, oc, sca, begTime, endTime)
+                                val avgUsing = getPrevNormalPeriodAverageUsing(llcd, i, stm, oc, sca, begTime, endTime, axisIndex)
                                 val calcUsing = avgUsing * (endGDL.x - begGDL.x)
                                 llcd.usingCalc += calcUsing
                                 llcd.usingTotal += calcUsing
@@ -1504,7 +1589,8 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             oc: ObjectConfig,
             sca: SensorConfigLiquidLevel,
             begTime: Int,
-            endTime: Int
+            endTime: Int,
+            axisIndex: Int,
         ): Double {
 
             var lspdPrevNorm: LiquidStatePeriodData? = null
@@ -1533,7 +1619,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
 
                 val aLineExt = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2, false)
                 val alLSPDExt = mutableListOf<LiquidStatePeriodData>()
-                getSmoothLiquidGraphicData(alRawTimeExt, alRawDataExt, oc.scg, sca, begTime - MAX_CALC_PREV_NORMAL_PERIOD * 2, endTime, aLineExt, alLSPDExt)
+                getSmoothLiquidGraphicData(alRawTimeExt, alRawDataExt, oc.scg, sca, begTime - MAX_CALC_PREV_NORMAL_PERIOD * 2, endTime, axisIndex, aLineExt, alLSPDExt)
 
                 //--- the current period in the current range
                 val lspdCur = alLSPD!![curPos]
