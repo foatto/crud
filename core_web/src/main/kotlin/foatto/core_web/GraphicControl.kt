@@ -32,6 +32,9 @@ import kotlin.math.min
 import kotlin.math.round
 import kotlin.math.roundToInt
 
+//--- (считаем что больше трёх графиков не будет)
+private const val MAX_AXIS_COUNT = 3
+
 private const val MARGIN_LEFT = 100     // на каждую ось Y
 
 //private val MARGIN_RIGHT = 40
@@ -50,11 +53,11 @@ private const val GRAPHIC_TEXT_HEIGHT = 20              // высота текс
 private const val GRAPHIC_TEXT_MIN_VISIBLE_WIDTH = 4    // минимальная ширина видимого текстового блока
 
 private val arrGridStepX = arrayOf(
-    1, 5, 15,                           // 1 - 5 - 15 сек
-    1 * 60, 5 * 60, 15 * 60,            // 1 - 5 - 15 мин
-    1 * 3_600, 3 * 3_600, 6 * 3_600,    // 1 - 3 - 6 час
-    1 * 86_400, 3 * 86_400, 9 * 86_400, // 1 - 3 - 9 суток
-    27 * 86_400, 81 * 86_400
+    1, 5, 15,                           // 1 - 5 - 15 seconds
+    1 * 60, 5 * 60, 15 * 60,            // 1 - 5 - 15 minutes
+    1 * 3_600, 3 * 3_600, 6 * 3_600,    // 1 - 3 - 6 hours
+    1 * 86_400, 3 * 86_400, 9 * 86_400, // 1 - 3 - 9 days
+    27 * 86_400, 81 * 86_400            // 27 - 81 days
 )
 
 private val arrGridStepY = arrayOf(
@@ -67,7 +70,8 @@ private val arrGridStepY = arrayOf(
     1_000.0, 2_000.0, 2_500.0, 5_000.0,
     10_000.0, 20_000.0, 25_000.0, 50_000.0,
     100_000.0, 200_000.0, 250_000.0, 500_000.0,
-    1_000_000.0
+    1_000_000.0, 2_000_000.0, 2_500_000.0, 5_000_000.0,
+    10_000_000.0, 20_000_000.0, 25_000_000.0, 50_000_000.0,
 )
 
 private val arrPrecY = arrayOf(
@@ -80,7 +84,8 @@ private val arrPrecY = arrayOf(
     0, 0, 0, 0,
     0, 0, 0, 0,
     0, 0, 0, 0,
-    0
+    0, 0, 0, 0,
+    0, 0, 0, 0,
 )
 
 private enum class GraphicWorkMode {
@@ -231,7 +236,6 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                         >
                             {{ axisText.text }}
                         </text>
-
                     </template>
                 </svg>
 
@@ -1037,7 +1041,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
         that().setModePan()
 
         //--- установка динамической (зависящей от scaleKoef) ширины области с вертикальными осями
-        that().svg_axis_width = (MARGIN_LEFT * 2 * scaleKoef).roundToInt()
+        that().svg_axis_width = (MARGIN_LEFT * MAX_AXIS_COUNT * scaleKoef).roundToInt()
 
         //--- принудительная установка полной высоты svg-элементов
         //--- (BUG: иначе высота либо равна 150px - если не указывать высоту,
@@ -1505,19 +1509,13 @@ private fun outElement(
                     val drawX = svgBodyWidth * (gpd.x - t1) / (t2 - t1)
                     val drawY = pixDrawY0 - pixDrawHeight * (gpd.y - ayd.min) / graphicHeight
 
-                    val value = if (cagdc.itReversedY) {
-                        -gpd.y
-                    } else {
-                        gpd.y
-                    }
-
                     alGraphicPoint.add(
                         SvgCircle(
                             cx = drawX,
                             cy = drawY.toInt(),
                             radius = max(1, scaleKoef.roundToInt()),
                             fill = hmCurIndexColor[gpd.colorIndex.toString()]!!,
-                            tooltip = getSplittedDouble(value, alYData[alAxisYDataIndex[axisYIndex]].prec, true, '.')
+                            tooltip = getSplittedDouble(gpd.y, alYData[alAxisYDataIndex[axisYIndex]].prec, true, '.')
                         )
                     )
                 }

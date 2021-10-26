@@ -8,6 +8,7 @@ import foatto.core_server.app.server.data.DataComboBox
 import foatto.core_server.app.server.data.DataDate3Int
 import foatto.core_server.app.server.data.DataInt
 import foatto.mms.core_mms.calc.ObjectCalc
+import foatto.mms.core_mms.graphic.server.document.sdcAbstractAnalog
 import foatto.mms.core_mms.graphic.server.document.sdcAnalog
 import foatto.mms.core_mms.graphic.server.document.sdcLiquid
 import foatto.mms.core_mms.sensor.config.SensorConfig
@@ -269,7 +270,7 @@ class cWorkShift : cAbstractPeriodSummary() {
             if (reportOutTroubles) {
                 val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(stm, objectConfig, t1, t2)
                 val troubles = GraphicDataContainer(GraphicDataContainer.ElementType.TEXT, 0, 0, false)
-                sdcAnalog.checkCommonTrouble(alRawTime, alRawData, objectConfig, t1, t2, troubles)
+                sdcAbstractAnalog.checkCommonTrouble(alRawTime, alRawData, objectConfig, t1, t2, troubles)
                 //--- ловим ошибки с датчиков уровня топлива
                 objectConfig.hmSensorConfig[SensorConfig.SENSOR_LIQUID_LEVEL]?.values?.forEach { sc ->
                     sdcLiquid.checkLiquidLevelSensorTrouble(

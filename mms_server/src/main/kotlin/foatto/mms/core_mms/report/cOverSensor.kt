@@ -200,10 +200,25 @@ class cOverSensor : cMMSReport() {
                 val scsc = hmSensorConfig[portNum] as SensorConfigAnalogue
 
                 val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1, false)
-                ObjectCalc.getSmoothAnalogGraphicData(alRawTime, alRawData, objectConfig.scg!!, scsc, begTime, endTime, 0, 0.0, null, null, null, aLine, graphicHandler)
+                ObjectCalc.getSmoothAnalogGraphicData(
+                    alRawTime = alRawTime,
+                    alRawData = alRawData,
+                    scg = objectConfig.scg!!,
+                    sca = scsc,
+                    begTime = begTime,
+                    endTime = endTime,
+                    xScale = 0,
+                    yScale = 0.0,
+                    axisIndex = 0,
+                    aMinLimit = null,
+                    aMaxLimit = null,
+                    aPoint = null,
+                    aLine = aLine,
+                    graphicHandler = graphicHandler,
+                )
 
                 var begPos = 0
-                var curColorIndex = graphicHandler.lineNormalColorIndex
+                var curColorIndex = graphicHandler.getLineNormalColorIndex(0)
                 for (i in 1 until aLine.alGLD.size) {
                     val gdl = aLine.alGLD[i]
                     val newColorIndex = gdl.colorIndex
@@ -215,7 +230,7 @@ class cOverSensor : cMMSReport() {
                         //--- (this is usually the starting point in the "normal" state)
                         if (begPos < endPos) {
                             //--- the previous "abnormal" period has ended
-                            if (newColorIndex == graphicHandler.lineNormalColorIndex) {
+                            if (newColorIndex == graphicHandler.getLineNormalColorIndex(0)) {
                                 calcOverSensor(reportZone, hmZoneData, graphicHandler, objectConfig, scsc, aLine, begPos, endPos, curColorIndex, alObjectResult)
                             }
                         }
@@ -227,7 +242,7 @@ class cOverSensor : cMMSReport() {
                 //--- let's finish the last period
                 val endPos = aLine.alGLD.size - 1
                 //--- ending the previous "abnormal" period
-                if (curColorIndex != graphicHandler.lineNormalColorIndex) {
+                if (curColorIndex != graphicHandler.getLineNormalColorIndex(0)) {
                     calcOverSensor(reportZone, hmZoneData, graphicHandler, objectConfig, scsc, aLine, begPos, endPos, curColorIndex, alObjectResult)
                 }
             }
@@ -255,7 +270,11 @@ class cOverSensor : cMMSReport() {
         var maxOverSensorDiff = 0.0
         for (pos in begPos..endPos) {
             val y = aLine.alGLD[pos].y
-            val over = if (curColorIndex == graphicHandler.lineCriticalColorIndex) y - scsc.maxLimit else scsc.minLimit - y
+            val over = if (curColorIndex == graphicHandler.getLineAboveColorIndex(0)) {
+                y - scsc.maxLimit
+            } else {
+                scsc.minLimit - y
+            }
             if (over > maxOverSensorDiff) {
                 maxOverSensorTime = aLine.alGLD.get(pos).x
                 maxOverSensorCoord = aLine.alGLD.get(pos).coord

@@ -200,7 +200,9 @@ class cLiquidIncDec : cMMSReport() {
             val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectId)
             val hmSCLL = oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_LEVEL]
             //--- уровнемеры не прописаны
-            if (hmSCLL == null || hmSCLL.isEmpty()) continue
+            if (hmSCLL == null || hmSCLL.isEmpty()) {
+                continue
+            }
 
             //--- загрузим информацию по путевым листам
             val alBeg = ArrayList<Int>()
@@ -225,10 +227,25 @@ class cLiquidIncDec : cMMSReport() {
                 val sca = hmSCLL[portNum] as SensorConfigLiquidLevel
                 //--- собираем заправки или сливы по одному датчику
                 val alSCAResult = ObjectCalc.calcIncDec(
-                    stm, alRawTime, alRawData, oc, sca, begTime, endTime, isWaybill, alBeg, alEnd, if (isInc) 1 else -1, hmZoneData, reportZone
+                    stm = stm,
+                    alRawTime = alRawTime,
+                    alRawData = alRawData,
+                    oc = oc,
+                    sca = sca,
+                    begTime = begTime,
+                    endTime = endTime,
+                    isWaybill = isWaybill,
+                    alBeg = alBeg,
+                    alEnd = alEnd,
+                    calcMode = if (isInc) 1 else -1,
+                    hmZoneData = hmZoneData,
+                    calcZoneID = reportZone,
+                    axisIndex = 0,
                 )
                 //--- для этого отчёта суммируем данные по всему объекту с сортировкой по времени события
-                for (lidd in alSCAResult) tmObjectResult[StringBuilder().append(lidd.begTime).append(lidd.endTime).toString()] = lidd
+                for (lidd in alSCAResult) {
+                    tmObjectResult[StringBuilder().append(lidd.begTime).append(lidd.endTime).toString()] = lidd
+                }
             }
             alResult.add(tmObjectResult)
         }

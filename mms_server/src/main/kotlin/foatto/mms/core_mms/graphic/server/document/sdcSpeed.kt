@@ -50,9 +50,15 @@ class sdcSpeed : sdcAbstractGraphic() {
         //--- загрузка заголовочной информации по объекту
         val sbObjectInfo = StringBuilder(oc.name)
 
-        if (oc.model.isNotEmpty()) sbObjectInfo.append(", ").append(oc.model)
-        if (oc.groupName.isNotEmpty()) sbObjectInfo.append(", ").append(oc.groupName)
-        if (oc.departmentName.isNotEmpty()) sbObjectInfo.append(", ").append(oc.departmentName)
+        if (oc.model.isNotEmpty()) {
+            sbObjectInfo.append(", ").append(oc.model)
+        }
+        if (oc.groupName.isNotEmpty()) {
+            sbObjectInfo.append(", ").append(oc.groupName)
+        }
+        if (oc.departmentName.isNotEmpty()) {
+            sbObjectInfo.append(", ").append(oc.departmentName)
+        }
 
         val tmElement = TreeMap<String, GraphicElement>()
         val tmElementVisibleConfig = TreeMap<String, String>()
@@ -76,9 +82,7 @@ class sdcSpeed : sdcAbstractGraphic() {
                 val alZoneSpeedLimit = hmZoneLimit[ZoneLimitData.TYPE_LIMIT_SPEED]
 
                 //--- единоразово загрузим данные по объекту
-                val pair = ObjectCalc.loadAllSensorData(stm, oc, x1, x2)
-                val alRawTime = pair.component1()
-                val alRawData = pair.component2()
+                val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(stm, oc, x1, x2)
 
                 //--- Типовой размер массива = кол-во точек по горизонтали = 3840 ( максимальная ширина экрана ), пусть будет 4000
                 //--- Если включён показ линий и выключено сглаживание, то точки можно не показывать,
@@ -87,8 +91,12 @@ class sdcSpeed : sdcAbstractGraphic() {
                 val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 3, false)
                 //--- показывать график пробега только чистому админу -
                 //--- в отладочных целях для быстрого поиска точек с неправильными пробегами
-                val aDistance = if (userConfig.isAdmin && userConfig.roleCount == 1) GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 1, 1, false)
-                else null
+                val aDistance = if (userConfig.isAdmin && userConfig.roleCount == 1) {
+                    GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 1, 1, false)
+                }
+                else {
+                    null
+                }
                 val aZone = if (isShowText) {
                     GraphicDataContainer(GraphicDataContainer.ElementType.TEXT, 0, 0, false)
                 } else {
