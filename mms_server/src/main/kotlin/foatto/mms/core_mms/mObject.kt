@@ -155,7 +155,7 @@ class mObject : mAbstract() {
 
         //----------------------------------------------------------------------------------------
 
-        alDependData.add(DependData("VC_camera", "object_id"))
+//        alDependData.add(DependData("VC_camera", "object_id"))
 
         alDependData.add(DependData("MMS_day_work", "object_id", DependData.DELETE))
         //--- cascade deletion procedure, implemented in cObject.postDelete

@@ -130,7 +130,7 @@ class ClientDBPrepare(aConfigFileName: String) : CoreServiceWorker(aConfigFileNa
         alDI.add(DependInfo("MMS_work_shift", "object_id", "MMS_object", "id"))
         alDI.add(DependInfo("MMS_device", "object_id", "MMS_object", "id"))
         alDI.add(DependInfo("MMS_device_command_history", "object_id", "MMS_object", "id"))
-        alDI.add(DependInfo("VC_camera", "object_id", "MMS_object", "id"))
+//        alDI.add(DependInfo("VC_camera", "object_id", "MMS_object", "id"))
         //--- зависимости от MMS_sensor
         alDI.add(DependInfo("MMS_sensor_calibration", "sensor_id", "MMS_sensor", "id"))
         alDI.add(DependInfo("MMS_equip_service_shedule", "equip_id", "MMS_sensor", "id"))
