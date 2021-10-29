@@ -19,6 +19,18 @@ import kotlin.math.roundToInt
 
 open class GalileoHandler : MMSHandler() {
 
+    companion object {
+        val PORT_NUM_ESD_STATUS = 500
+        val PORT_NUM_ESD_VOLUME = 504
+        val PORT_NUM_ESD_FLOW = 508
+        val PORT_NUM_ESD_CAMERA_VOLUME = 512
+        val PORT_NUM_ESD_CAMERA_FLOW = 516
+        val PORT_NUM_ESD_CAMERA_TEMPERATURE = 520
+        val PORT_NUM_ESD_REVERSE_CAMERA_VOLUME = 524
+        val PORT_NUM_ESD_REVERSE_CAMERA_FLOW = 528
+        val PORT_NUM_ESD_REVERSE_CAMERA_TEMPERATURE = 532
+    }
+
     override val byteOrder: ByteOrder = ByteOrder.LITTLE_ENDIAN
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -321,10 +333,12 @@ open class GalileoHandler : MMSHandler() {
                     bbIn.get(arrIMEI)
                     val imei = String(arrIMEI)
 
-                    deviceId = Integer.parseInt(imei.substring(imei.length - 7))
+                    deviceId = imei.substring(imei.length - 7).toInt()
                     AdvancedLogger.debug("deviceID = $deviceId")
 
-                    if (!loadDeviceConfig(dataWorker)) return false
+                    if (!loadDeviceConfig(dataWorker)) {
+                        return false
+                    }
                 }
 
                 //--- нужен только для отправки команды терминалу, обычно он одинаков у всех приборов
@@ -717,7 +731,7 @@ open class GalileoHandler : MMSHandler() {
             dirSessionLog = dirSessionLog,
             zoneId = zoneId,
             deviceId = deviceId,
-            deviceConfig = deviceConfig!!,
+            deviceConfig = deviceConfig,
             fwVersion = fwVersion,
             begTime = begTime,
             address = (selectionKey!!.channel() as SocketChannel).localAddress.hostname,
@@ -836,15 +850,15 @@ open class GalileoHandler : MMSHandler() {
             putDigitalSensor(deviceConfig!!.index, tmEnergoPowerFullABC, 350, 4, bbData)
 
             //--- EuroSens Delta
-            putDigitalSensor(deviceConfig!!.index, tmESDStatus, 500, 4, bbData)
-            putDigitalSensor(deviceConfig!!.index, tmESDVolume, 504, bbData)
-            putDigitalSensor(deviceConfig!!.index, tmESDFlow, 508, bbData)
-            putDigitalSensor(deviceConfig!!.index, tmESDCameraVolume, 512, bbData)
-            putDigitalSensor(deviceConfig!!.index, tmESDCameraFlow, 516, bbData)
-            putDigitalSensor(deviceConfig!!.index, tmESDCameraTemperature, 520, 4, bbData)
-            putDigitalSensor(deviceConfig!!.index, tmESDReverseCameraVolume, 524, bbData)
-            putDigitalSensor(deviceConfig!!.index, tmESDReverseCameraFlow, 528, bbData)
-            putDigitalSensor(deviceConfig!!.index, tmESDReverseCameraTemperature, 532, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmESDStatus, PORT_NUM_ESD_STATUS, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmESDVolume, PORT_NUM_ESD_VOLUME, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmESDFlow, PORT_NUM_ESD_FLOW, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmESDCameraVolume, PORT_NUM_ESD_CAMERA_VOLUME, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmESDCameraFlow, PORT_NUM_ESD_CAMERA_FLOW, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmESDCameraTemperature, PORT_NUM_ESD_CAMERA_TEMPERATURE, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmESDReverseCameraVolume, PORT_NUM_ESD_REVERSE_CAMERA_VOLUME, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmESDReverseCameraFlow, PORT_NUM_ESD_REVERSE_CAMERA_FLOW, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmESDReverseCameraTemperature, PORT_NUM_ESD_REVERSE_CAMERA_TEMPERATURE, 4, bbData)
 
             addPoint(dataWorker.stm, deviceConfig!!, pointTime, bbData, sqlBatchData)
             dataCount++

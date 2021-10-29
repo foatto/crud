@@ -21,14 +21,24 @@ import foatto.sql.CoreAdvancedStatement
 class mDevice : mAbstract() {
 
     companion object {
+        val MAX_PORT_PER_SENSOR = 4
+
         //--- 65 устройств по 1000 портов = 65000 портов, что уместится при нумерации от 0 до 65535
         private val MAX_DEVICE_COUNT_PER_OBJECT = 65
     }
 
+    lateinit var columnDeviceIndex: ColumnInt
+        private set
     lateinit var columnDevice: ColumnInt
         private set
     lateinit var columnDeviceLastSessionTime: ColumnDateTimeInt
         private set
+
+    lateinit var columnESDCreatingEnabled: ColumnBoolean
+        private set
+    val alColumnESDGroupName = mutableListOf<ColumnString>()
+    val alColumnESDDescrPrefix = mutableListOf<ColumnString>()
+    val alColumnESDDescrPostfix = mutableListOf<ColumnString>()
 
     private lateinit var os: ObjectSelector
 
@@ -49,7 +59,7 @@ class mDevice : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnDeviceIndex = ColumnInt(tableName, "device_index", "Порядковый номер устройства на объекте", 10, 0).apply {
+        columnDeviceIndex = ColumnInt(tableName, "device_index", "Порядковый номер устройства на объекте", 10, 0).apply {
             minValue = 0
             maxValue = MAX_DEVICE_COUNT_PER_OBJECT - 1
         }
@@ -85,7 +95,7 @@ class mDevice : mAbstract() {
 
         val columnDeviceWorkBegin = ColumnDate3Int(tableName, "beg_ye", "beg_mo", "beg_da", "Дата начала эксплуатации")  // есть ещё очень старые приборы
 
-        //--- вручную добавленное поле для обозначения владельца а/м ---
+        //--- вручную добавленное поле для обозначения владельца объекта ---
 
         val columnObjectUserName = ColumnComboBox("MMS_object", "user_id", "Пользователь").apply {
             addChoice(0, "")
@@ -101,9 +111,27 @@ class mDevice : mAbstract() {
             }
         }
 
+        columnESDCreatingEnabled = ColumnBoolean(tableName, "_esd_create_enabled", "Автосоздание датчиков Euro Sens Data", false).apply {
+            isVirtual = true
+        }
+        (1..MAX_PORT_PER_SENSOR).forEach { si ->
+            alColumnESDGroupName += ColumnString(tableName, "_esd_group_name_$si", "Наименование группы датчиков $si", STRING_COLUMN_WIDTH).apply {
+                isVirtual = true
+                addFormVisible(columnESDCreatingEnabled, true, setOf(1))
+            }
+            alColumnESDDescrPrefix += ColumnString(tableName, "_esd_descr_prefix_$si", "Префикс наименования датчика $si", STRING_COLUMN_WIDTH).apply {
+                isVirtual = true
+                addFormVisible(columnESDCreatingEnabled, true, setOf(1))
+            }
+            alColumnESDDescrPostfix += ColumnString(tableName, "_esd_descr_postfix_$si", "Постфикс наименования датчика $si", STRING_COLUMN_WIDTH).apply {
+                isVirtual = true
+                addFormVisible(columnESDCreatingEnabled, true, setOf(1))
+            }
+        }
+
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn += columnID
 
         addTableColumn(columnDeviceIndex)
         addTableColumn(columnDeviceType)
@@ -112,18 +140,28 @@ class mDevice : mAbstract() {
         addTableColumn(columnDeviceCell2)
         addTableColumn(columnObjectUserName)
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn += columnID
 
-        alFormColumn.add(columnDeviceIndex)
-        alFormColumn.add(columnDeviceType)
-        alFormColumn.add(columnDevice)
-        alFormColumn.add(columnDeviceCell)
-        alFormColumn.add(columnDeviceCell2)
+        alFormColumn += columnDeviceIndex
+        alFormColumn += columnDeviceType
+        alFormColumn += columnDevice
+        alFormColumn += columnDeviceCell
+        alFormColumn += columnDeviceCell2
 
         //----------------------------------------------------------------------------------------------------------------------
 
         os = ObjectSelector()
-        os.fillColumns(this, false, true, alTableHiddenColumn, alFormHiddenColumn, alFormColumn, hmParentColumn, false, -1)
+        os.fillColumns(
+            model = this,
+            isRequired = false,
+            isSelector = true,
+            alTableHiddenColumn = alTableHiddenColumn,
+            alFormHiddenColumn = alFormHiddenColumn,
+            alFormColumn = alFormColumn,
+            hmParentColumn = hmParentColumn,
+            aSingleObjectMode = false,
+            addedStaticColumnCount = -1
+        )
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -134,26 +172,33 @@ class mDevice : mAbstract() {
         addTableColumn(columnDeviceOfflineMode)
         addTableColumn(columnDeviceWorkBegin)
 
-        alFormColumn.add(columnDeviceFwVer)
-        alFormColumn.add(columnDeviceLastSessionTime)
-        alFormColumn.add(columnDeviceLastSessionStatusText)
-        alFormColumn.add(columnDeviceLastSessionErrorText)
-        alFormColumn.add(columnDeviceOfflineMode)
-        alFormColumn.add(columnDeviceWorkBegin)
+        alFormColumn += columnDeviceFwVer
+        alFormColumn += columnDeviceLastSessionTime
+        alFormColumn += columnDeviceLastSessionStatusText
+        alFormColumn += columnDeviceLastSessionErrorText
+        alFormColumn += columnDeviceOfflineMode
+        alFormColumn += columnDeviceWorkBegin
+
+        alFormColumn += columnESDCreatingEnabled
+        for(si in 0 until MAX_PORT_PER_SENSOR) {
+            alFormColumn += alColumnESDGroupName[si]
+            alFormColumn += alColumnESDDescrPrefix[si]
+            alFormColumn += alColumnESDDescrPostfix[si]
+        }
 
         //----------------------------------------------------------------------------------------------------------------------
 
         //--- поля для сортировки
-        alTableSortColumn.add(columnDevice)
-        alTableSortDirect.add("ASC")
+        alTableSortColumn += columnDevice
+        alTableSortDirect += "ASC"
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData("mms_log_session", columnID))
-        alChildData.add(ChildData("mms_device_command_history", columnID))
+        alChildData += ChildData("mms_log_session", columnID)
+        alChildData += ChildData("mms_device_command_history", columnID)
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        alDependData.add(DependData("MMS_device_command_history", "device_id", DependData.DELETE))
+        alDependData += DependData("MMS_device_command_history", "device_id", DependData.DELETE)
     }
 }
