@@ -1,12 +1,12 @@
 package foatto.ts.core_ts.device
 
-import foatto.core.link.AppAction
 import foatto.core.link.FormPinMode
 import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.ChildData
 import foatto.core_server.app.server.DependData
 import foatto.core_server.app.server.UserConfig
+import foatto.core_server.app.server.column.ColumnBoolean
 import foatto.core_server.app.server.column.ColumnComboBox
 import foatto.core_server.app.server.column.ColumnDateTimeInt
 import foatto.core_server.app.server.column.ColumnInt
@@ -28,6 +28,9 @@ class mDevice : mAbstract() {
     lateinit var columnSerialNo: ColumnString
         private set
     lateinit var columnDeviceLastSessionTime: ColumnDateTimeInt
+        private set
+
+    lateinit var columnSensorCreatingEnabled: ColumnBoolean
         private set
 
     private lateinit var os: ObjectSelector
@@ -80,6 +83,10 @@ class mDevice : mAbstract() {
             isEditable = false
         }
 
+        columnSensorCreatingEnabled = ColumnBoolean(tableName, "_sensor_create_enabled", "Автосоздание датчиков", false).apply {
+            isVirtual = true
+        }
+
         //--- вручную добавленное поле для обозначения владельца а/м ---
 
         val columnObjectUserName = ColumnComboBox("TS_object", "user_id", "Пользователь").apply {
@@ -98,7 +105,7 @@ class mDevice : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn += columnID
 
         addTableColumn(columnDeviceIndex)
         addTableColumn(columnDeviceType)
@@ -106,12 +113,12 @@ class mDevice : mAbstract() {
         addTableColumn(columnDeviceCell)
         addTableColumn(columnObjectUserName)
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn += columnID
 
-        alFormColumn.add(columnDeviceIndex)
-        alFormColumn.add(columnDeviceType)
-        alFormColumn.add(columnSerialNo)
-        alFormColumn.add(columnDeviceCell)
+        alFormColumn += columnDeviceIndex
+        alFormColumn += columnDeviceType
+        alFormColumn += columnSerialNo
+        alFormColumn += columnDeviceCell
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -125,24 +132,25 @@ class mDevice : mAbstract() {
         addTableColumn(columnDeviceLastSessionStatusText)
         addTableColumn(columnDeviceLastSessionErrorText)
 
-        alFormColumn.add(columnDeviceFwVer)
-        alFormColumn.add(columnDeviceLastSessionTime)
-        alFormColumn.add(columnDeviceLastSessionStatusText)
-        alFormColumn.add(columnDeviceLastSessionErrorText)
+        alFormColumn += columnDeviceFwVer
+        alFormColumn += columnDeviceLastSessionTime
+        alFormColumn += columnDeviceLastSessionStatusText
+        alFormColumn += columnDeviceLastSessionErrorText
+        alFormColumn += columnSensorCreatingEnabled
 
         //----------------------------------------------------------------------------------------------------------------------
 
         //--- поля для сортировки
-        alTableSortColumn.add(columnSerialNo)
-        alTableSortDirect.add("ASC")
+        alTableSortColumn += columnSerialNo
+        alTableSortDirect += "ASC"
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData("ts_log_session", columnID))
-        alChildData.add(ChildData("ts_device_command_history", columnID))
+        alChildData += ChildData("ts_log_session", columnID)
+        alChildData += ChildData("ts_device_command_history", columnID)
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        alDependData.add(DependData("TS_device_command_history", "device_id", DependData.DELETE))
+        alDependData += DependData("TS_device_command_history", "device_id", DependData.DELETE)
     }
 }

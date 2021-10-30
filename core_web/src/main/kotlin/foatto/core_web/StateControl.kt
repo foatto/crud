@@ -1,23 +1,19 @@
 package foatto.core_web
 
+import foatto.core.app.xy.XyAction
+import foatto.core.app.xy.XyActionRequest
 import foatto.core.app.xy.XyViewCoord
 import foatto.core.link.XyResponse
 import foatto.core_web.external.vue.that
 import foatto.core_web.external.vue.vueComponentOptions
+import kotlinx.browser.window
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.MouseEvent
 import kotlin.js.json
 
-//    companion object {
-//        //--- константы цветов
-//        val COLOR_LINE = Color.CYAN       // безусловная линия/прямоугольник
-//
-//        const private val USER_MOUSE_RECT = 4
-//    }
-//
-//    //--- слоёный набор xy-элементов
-//    @Volatile
-//    var alMapLayer = mutableListOf<MutableSet<FXElement>>()   // каждый слой - набор элементов
+private enum class StateWorkMode {
+    PAN
+}
 
 private const val startExpandKoef = 0.0
 
@@ -81,38 +77,41 @@ fun stateControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().app
             onXyMouseOut(that())
         },
         "onMousePressed" to { isNeedOffsetCompensation: Boolean, aMouseX: Double, aMouseY: Double ->
-//            when( xyModel.curMode ) {
-//                XyModel.WorkMode.PAN -> {
-//                    val alElement = getElementList( event.x, event.y )
-//                    for( fxElement in alElement ) {
-//                        //--- пока используем флаг read-only как флаг возможности интерактива
-//                        if( !fxElement.isReadOnly ) {
-//                            if( showConfirmation( "Подтверждение", null, fxElement.element.toolTipText + " ?" ) ) {
-//
-//                                val xyActionRequest = XyActionRequest(
-//                                    documentTypeName = xyModel.documentConfig.name,
-//                                    action = XyAction.CLICK_ELEMENT,
-//                                    startParamID = xyModel.startParamID,
-//                                    elementID = fxElement.element.elementID,
-//                                    objectID = fxElement.element.objectID
-//                                )
-//
-//                                Thread( XyActionOperator( xyActionRequest ) ).start()
-//                            }
-//                            //--- работаем только с одним кликабельным элементом
-//                            break
-//                        }
-//                    }
-//                }
-//                else -> super.handle( event )
-//            }
         },
         "onMouseMove" to { isNeedOffsetCompensation: Boolean, aMouseX: Double, aMouseY: Double ->
         },
         "onMouseReleased" to { isNeedOffsetCompensation: Boolean, aMouseX: Double, aMouseY: Double, shiftKey: Boolean, ctrlKey: Boolean, altKey: Boolean ->
         },
         "onMouseWheel" to { event: Event ->
-        }
+        },
+        "onTextPressed" to { event: Event, xyElement: XyElementData ->
+            val that = that()
+
+            val curMode = that().curMode.unsafeCast<StateWorkMode>()
+
+            when (curMode) {
+                StateWorkMode.PAN -> {
+                    if (window.confirm(xyElement.tooltip ?: "(не определено)")) {
+                        val xyActionRequest = XyActionRequest(
+                            documentTypeName = xyResponse.documentConfig.name,
+                            action = XyAction.CLICK_ELEMENT,
+                            startParamId = xyResponse.startParamId,
+                            elementId = xyElement.elementId,
+                            objectId = xyElement.objectId
+                        )
+
+                        that.`$root`.setWait(true)
+                        invokeXy(
+                            xyActionRequest,
+                            {
+                                that.`$root`.setWait(false)
+                                window.alert("Действие выполнено!")
+                            }
+                        )
+                    }
+                }
+            }
+        },
     )
 
     this.mounted = {
@@ -125,8 +124,8 @@ fun stateControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().app
     this.data = {
         getXyComponentData().add(
             json(
-
-            )
+                "curMode" to StateWorkMode.PAN,
+                )
         )
     }
 

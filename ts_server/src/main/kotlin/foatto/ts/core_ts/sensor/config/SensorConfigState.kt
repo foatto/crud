@@ -10,54 +10,65 @@ class SensorConfigState(
 ) : SensorConfig(aId, aName, aGroup, aDescr, aPortNum, aSensorType) {
 
     companion object {
-        val COLOR_UNKNOWN_FORE = 0x40_00_FF_FF.toInt()
-        val COLOR_UNKNOWN_BACK = 0x40_00_80_80.toInt()
+        val STATE_DOWN = 2
+        val STATE_UP = 5
+        val STATE_PARKING = 7
+        val STATE_WAIT_CLEAN = 10
+        val STATE_WAIT_ECN = 14
+        val STATE_UNPASS_DOWN = 20
+        val STATE_UNPASS_UP = 21
+        val STATE_WIRE_RUNOUT = 22
+        val STATE_DRIVE_PROTECT = 23
 
-        val COLOR_RED_FORE = 0x40_FF_00_00.toInt()
-        val COLOR_RED_BACK = 0x40_FF_80_80.toInt()
+        val COLOR_UNKNOWN_BRIGHT = 0xFF_FF_00_00.toInt()
+        val COLOR_UNKNOWN_DARK = 0xFF_80_00_00.toInt()
 
-        val COLOR_GREEN_FORE = 0x40_00_FF_00.toInt()
-        val COLOR_GREEN_BACK = 0x40_80_FF_80.toInt()
+        val COLOR_RED_BRIGHT = 0xFF_E8_A8_A8.toInt()
+        val COLOR_RED_DARK = 0x40_D0_50_50.toInt()
 
-        val COLOR_BLUE_FORE = 0x40_00_00_FF.toInt()
-        val COLOR_BLUE_BACK = 0x40_80_80_FF.toInt()
+        val COLOR_GREEN_BRIGHT = 0xFF_C0_DD_C0.toInt()
+        val COLOR_GREEN_DARK = 0x40_88_BB_88.toInt()
 
-        val COLOR_GRAY_FORE = 0x40_60_60_60.toInt()
-        val COLOR_GRAY_BACK = 0x40_A0_A0_A0.toInt()
+        val COLOR_BLUE_BRIGHT = 0xFF_B0_CA_FF.toInt()
+        val COLOR_BLUE_DARK = 0x40_64_96_ED.toInt()
 
-        val COLOR_BROWN_FORE = 0x40_60_60_00.toInt()
-        val COLOR_BROWN_BACK = 0x40_A0_A0_00.toInt()
+        val COLOR_GRAY_BRIGHT = 0xFF_B0_C0_C0.toInt()
+        val COLOR_GRAY_DARK = 0x40_60_70_70.toInt()
 
-        val COLOR_PURPLE_FORE = 0x40_60_00_60.toInt()
-        val COLOR_PURPLE_BACK = 0x40_A0_00_A0.toInt()
+        val COLOR_ORANGE_BRIGHT = 0xFF_FF_CC_99.toInt()
+        val COLOR_ORANGE_DARK = 0x40_FF_99_33.toInt()
+
+        val COLOR_PURPLE_BRIGHT = 0xFF_B0_A0_C0.toInt()
+        val COLOR_PURPLE_DARK = 0x40_60_48_7A.toInt()
 
         val hmStateInfo = mapOf(
-            0 to StateInfo("Слепой подъём", COLOR_PURPLE_FORE, COLOR_PURPLE_BACK),
-            1 to StateInfo("Непроход вверх: спуск на 1 метр", COLOR_BROWN_FORE, COLOR_BROWN_BACK),
-            2 to StateInfo("Спуск", COLOR_GREEN_FORE, COLOR_GREEN_BACK),
-            3 to StateInfo("Непроход вниз: пауза", COLOR_BROWN_FORE, COLOR_BROWN_BACK),
-            4 to StateInfo("Непроход вниз: подъём на 1 метр", COLOR_BROWN_FORE, COLOR_BROWN_BACK),
-            5 to StateInfo("Подъём", COLOR_GREEN_FORE, COLOR_GREEN_BACK),
-            6 to StateInfo("Непроход вверх: спуск на 1 метр", COLOR_BROWN_FORE, COLOR_BROWN_BACK),
-            7 to StateInfo("Парковка", COLOR_GREEN_FORE, COLOR_GREEN_BACK),
-            8 to StateInfo("Непроход вниз: пауза", COLOR_BROWN_FORE, COLOR_BROWN_BACK),
-            9 to StateInfo("Непроход вниз: подъём на 1 метр", COLOR_BROWN_FORE, COLOR_BROWN_BACK),
-            10 to StateInfo("Ожидание чистки", COLOR_BLUE_FORE, COLOR_BLUE_BACK),
-            11 to StateInfo("Ручной режим: остановка", COLOR_GRAY_FORE, COLOR_GRAY_BACK),
-            12 to StateInfo("Ручной режим: подъём", COLOR_GRAY_FORE, COLOR_GRAY_BACK),
-            13 to StateInfo("Ручной режим: спуск", COLOR_GRAY_FORE, COLOR_GRAY_BACK),
-            14 to StateInfo("Ожидание включения ЭЦН", COLOR_BLUE_FORE, COLOR_BLUE_BACK),
-            15 to StateInfo("Нейтраль", COLOR_BLUE_FORE, COLOR_BLUE_BACK),
-            20 to StateInfo("Непроход вниз", COLOR_RED_FORE, COLOR_RED_BACK),
-            21 to StateInfo("Непроход вверх", COLOR_RED_FORE, COLOR_RED_BACK),
-            22 to StateInfo("Обрыв проволоки", COLOR_RED_FORE, COLOR_RED_BACK),
-            23 to StateInfo("Ошибка привода", COLOR_RED_FORE, COLOR_RED_BACK),
+            0 to StateInfo("Слепой подъём", COLOR_PURPLE_BRIGHT, COLOR_PURPLE_DARK),
+            1 to StateInfo("Непроход вверх: спуск на 1 метр", COLOR_ORANGE_BRIGHT, COLOR_ORANGE_DARK),
+            STATE_DOWN to StateInfo("Спуск", COLOR_GREEN_BRIGHT, COLOR_GREEN_DARK),
+            3 to StateInfo("Непроход вниз: пауза", COLOR_ORANGE_BRIGHT, COLOR_ORANGE_DARK),
+            4 to StateInfo("Непроход вниз: подъём на 1 метр", COLOR_ORANGE_BRIGHT, COLOR_ORANGE_DARK),
+            STATE_UP to StateInfo("Подъём", COLOR_GREEN_BRIGHT, COLOR_GREEN_DARK),
+            6 to StateInfo("Непроход вверх: спуск на 1 метр", COLOR_ORANGE_BRIGHT, COLOR_ORANGE_DARK),
+            STATE_PARKING to StateInfo("Парковка", COLOR_GREEN_BRIGHT, COLOR_GREEN_DARK),
+            8 to StateInfo("Непроход вниз: пауза", COLOR_ORANGE_BRIGHT, COLOR_ORANGE_DARK),
+            9 to StateInfo("Непроход вниз: подъём на 1 метр", COLOR_ORANGE_BRIGHT, COLOR_ORANGE_DARK),
+            STATE_WAIT_CLEAN to StateInfo("Ожидание чистки", COLOR_BLUE_BRIGHT, COLOR_BLUE_DARK),
+            11 to StateInfo("Ручной режим: остановка", COLOR_GRAY_BRIGHT, COLOR_GRAY_DARK),
+            12 to StateInfo("Ручной режим: подъём", COLOR_GRAY_BRIGHT, COLOR_GRAY_DARK),
+            13 to StateInfo("Ручной режим: спуск", COLOR_GRAY_BRIGHT, COLOR_GRAY_DARK),
+            STATE_WAIT_ECN to StateInfo("Ожидание включения ЭЦН", COLOR_BLUE_BRIGHT, COLOR_BLUE_DARK),
+            15 to StateInfo("Нейтраль", COLOR_BLUE_BRIGHT, COLOR_BLUE_DARK),
+            STATE_UNPASS_DOWN to StateInfo("Непроход вниз", COLOR_RED_BRIGHT, COLOR_RED_DARK),
+            STATE_UNPASS_UP to StateInfo("Непроход вверх", COLOR_RED_BRIGHT, COLOR_RED_DARK),
+            STATE_WIRE_RUNOUT to StateInfo("Выбег проволоки", COLOR_RED_BRIGHT, COLOR_RED_DARK),
+            STATE_DRIVE_PROTECT to StateInfo("Защита привода", COLOR_RED_BRIGHT, COLOR_RED_DARK),
+            24 to StateInfo("Остановка с сервера", COLOR_RED_BRIGHT, COLOR_RED_DARK),
         )
     }
 }
 
 class StateInfo(
     val descr: String,
-    val foreColor: Int,
-    val backColor: Int,
+    val brightColor: Int,
+    val darkColor: Int,
 )

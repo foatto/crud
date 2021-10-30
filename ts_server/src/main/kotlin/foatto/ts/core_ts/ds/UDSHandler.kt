@@ -4,14 +4,12 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import foatto.core.util.AdvancedByteBuffer
 import foatto.core.util.AdvancedLogger
-import foatto.core.util.DateTime_YMDHMS
 import foatto.core.util.YMDHMS_DateTime
 import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.getDateTimeInt
 import foatto.core_server.ds.CoreDataWorker
 import foatto.sql.SQLBatch
 import java.nio.ByteOrder
-import java.time.ZoneId
 
 class UDSHandler : TSHandler() {
 
@@ -51,7 +49,7 @@ class UDSHandler : TSHandler() {
         }
 
         val sqlBatchData = SQLBatch()
-        while(true) {
+        while (true) {
             val strPacket = sbData.substring(0, packetEndPos)
             AdvancedLogger.debug("data = $strPacket")
 
@@ -69,7 +67,7 @@ class UDSHandler : TSHandler() {
             //--- если объект прописан, то записываем точки, иначе просто пропускаем
             //--- также пропускаем точки из будущего и далёкого прошлого
             val curTime = getCurrentTimeInt()
-            if(deviceConfig?.objectID != 0 && pointTime > curTime - MAX_PAST_TIME && pointTime < curTime + MAX_FUTURE_TIME) {
+            if (deviceConfig?.objectId != 0 && pointTime > curTime - MAX_PAST_TIME && pointTime < curTime + MAX_FUTURE_TIME) {
                 fwVersion = udsRawPacket.version ?: ""
                 val udsDataPacket = udsRawPacket.normalize(zoneId)
                 val bbData = dataToByteBuffer(dataWorker, udsDataPacket)
@@ -91,6 +89,53 @@ class UDSHandler : TSHandler() {
             }
         }
         sqlBatchData.execute(dataWorker.stm)
+
+//        //--- ищем последнюю команду на отправку, независимо от статуса
+//        val rs = dataWorker.stm.executeQuery(
+//            """
+//                SELECT id , send_status , command
+//                FROM TS_device_command_history
+//                WHERE device_id = ${deviceConfig!!.deviceId}
+//                ORDER BY create_time DESC
+//            """
+//        )
+//        var commandId = 0
+//        var sendStatus = true   // default (for 'not founded', for example0 as sended already
+//        var command = ""
+//        if (rs.next()) {
+//            commandId = rs.getInt(1)
+//            sendStatus = rs.getInt(2) != 0
+//            command = rs.getString(3)
+//        }
+//        rs.close()
+//        //--- если команда ещё не отправлена - работаем дальше.
+//        //--- независимо от этого все предыдущие неотправленные команды игнориуем как устаревшие
+//        val commandData = CommandData(
+//            id = serialNo.toInt(),
+//            state = if (!sendStatus) {
+//                command
+//            } else {
+//                ""
+//            },
+//        )
+//        val commandDataString = objectMapper.writeValueAsString(commandData)
+//AdvancedLogger.debug("commandDataString = '$commandDataString'")
+//        //--- send command
+//        val bbOut = AdvancedByteBuffer(commandDataString.length, byteOrder)
+//        bbOut.put(commandDataString.toByteArray())
+//        outBuf(bbOut)
+//        //--- write send status & time
+//        if(!sendStatus) {
+//            dataWorker.stm.executeUpdate(
+//                """
+//                    UPDATE TS_device_command_history SET
+//                    send_status = 1 ,
+//                    send_time = ${getCurrentTimeInt()}
+//                    WHERE id = $commandId
+//                """
+//            )
+//            status += " Command Send;"
+//        }
 
         //--- данные успешно переданы - теперь можно завершить транзакцию
         status += " Ok;"
@@ -124,26 +169,26 @@ class UDSHandler : TSHandler() {
         // Нагрузка на привод (%)
         putSensorData(deviceConfig!!.index, 3, udsDataPacket.load, bbData)
         // Дата и время начала следующей чистки
-        putSensorData(deviceConfig!!.index, 4, 4, udsDataPacket.ncc, bbData)
+        putSensorData(deviceConfig!!.index, 4, 4, udsDataPacket.nextCleanindDateTime, bbData)
         // Глубина чистки (параметр настройки)
-        putSensorData(deviceConfig!!.index, 5, udsDataPacket.cds, bbData)
+        putSensorData(deviceConfig!!.index, 5, udsDataPacket.cleaningDepth, bbData)
         // Период чистки (параметр настройки)
-        putSensorData(deviceConfig!!.index, 6, 4, udsDataPacket.cps, bbData)
+        putSensorData(deviceConfig!!.index, 6, 4, udsDataPacket.cleaningPeriod, bbData)
         // Скорость чистки (параметр настройки)
-        putSensorData(deviceConfig!!.index, 7, udsDataPacket.css, bbData)
+        putSensorData(deviceConfig!!.index, 7, udsDataPacket.cleaningSpeed, bbData)
         // Уровень сигнала сотовой связи
-        putSensorData(deviceConfig!!.index, 8, udsDataPacket.linkLevel, bbData)
+        putSensorData(deviceConfig!!.index, 8, udsDataPacket.signalLevel, bbData)
         // Счётчик количества перезагрузок модема
         putSensorData(deviceConfig!!.index, 9, 4, udsDataPacket.mrc, bbData)
         // Ограничение нагрузки на привод (параметр настройки)
-        putSensorData(deviceConfig!!.index, 10, udsDataPacket.cls, bbData)
+        putSensorData(deviceConfig!!.index, 10, udsDataPacket.driveLoadRestrict, bbData)
         // Строка с содержимым результата AT-команды запроса баланса (если баланс не запрашивался, указывается “-1”)
         putSensorData(deviceConfig!!.index, 11, udsDataPacket.balance, bbData)
         // Глубина парковки скребка (параметр настройки)
         putSensorData(deviceConfig!!.index, 12, udsDataPacket.parkDepth, bbData)
         // Количество попыток прохода препятствия (параметр настройки)
         putSensorData(deviceConfig!!.index, 13, 4, udsDataPacket.passAttempt, bbData)
-        // Синхронизация с запуском ЭЦН  (параметр настройки)
+        // Синхронизация с запуском ЭЦН (параметр настройки)
         putSensorData(deviceConfig!!.index, 14, 4, udsDataPacket.ecnStart, bbData)
         // Пауза между проходами препятствия (параметр настройки)
         putSensorData(deviceConfig!!.index, 15, 4, udsDataPacket.passDelay, bbData)
@@ -156,17 +201,26 @@ class UDSHandler : TSHandler() {
         // Уровень температуры снаружи (параметр настройки)
         putSensorData(deviceConfig!!.index, 19, udsDataPacket.setPoint2, bbData)
         // Работает или не работает реле №1 (температура)
-        putSensorData(deviceConfig!!.index, 20, 1, if(udsDataPacket.relay1State) 1 else 0, bbData)
+        putSensorData(deviceConfig!!.index, 20, 1, if (udsDataPacket.relay1State) 1 else 0, bbData)
         // Работает или не работает реле №2 (температура)
-        putSensorData(deviceConfig!!.index, 21, 1, if(udsDataPacket.relay2State) 1 else 0, bbData)
+        putSensorData(deviceConfig!!.index, 21, 1, if (udsDataPacket.relay2State) 1 else 0, bbData)
         // Работает или не работает канал №1
-        putSensorData(deviceConfig!!.index, 22, 1, if(udsDataPacket.channel1Error) 1 else 0, bbData)
+        putSensorData(deviceConfig!!.index, 22, 1, if (udsDataPacket.channel1Error) 1 else 0, bbData)
         // Работает или не работает канал №2
-        putSensorData(deviceConfig!!.index, 23, 1, if(udsDataPacket.channel2Error) 1 else 0, bbData)
+        putSensorData(deviceConfig!!.index, 23, 1, if (udsDataPacket.channel2Error) 1 else 0, bbData)
         // Работает или не работает модуль ТРМ (общее управление температурными датчиками)
-        putSensorData(deviceConfig!!.index, 24, 1, if(udsDataPacket.trmFail) 1 else 0, bbData)
+        putSensorData(deviceConfig!!.index, 24, 1, if (udsDataPacket.trmFail) 1 else 0, bbData)
 
         return bbData
     }
 
 }
+
+private class CommandData(
+    val id: Int,
+    val pass: String = "bb9ec852de3e8f7609d3676ede4444fa",  //--- for compatibility, removed later
+    val state: String,
+    //--- for compatibility, removed later
+    val crc16L: Int = 0,
+    val crc16H: Int = 0,
+)
