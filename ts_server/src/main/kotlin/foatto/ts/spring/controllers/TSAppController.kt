@@ -87,6 +87,7 @@ class TSAppController : CoreAppController(), iTSApplication {
 
         val alMenuGraphic = mutableListOf<MenuData>()
 
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "ts_graphic_dsltt", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "ts_graphic_depth", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "ts_graphic_speed", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "ts_graphic_load", false)
@@ -211,7 +212,8 @@ class TSAppController : CoreAppController(), iTSApplication {
                     )
                 }
                 SensorConfig.SENSOR_DEPTH, SensorConfig.SENSOR_SPEED, SensorConfig.SENSOR_LOAD,
-                SensorConfig.SENSOR_TEMPERATURE_IN, SensorConfig.SENSOR_TEMPERATURE_OUT -> {
+                SensorConfig.SENSOR_TEMPERATURE_IN, SensorConfig.SENSOR_TEMPERATURE_OUT,
+                SensorConfig.SENSOR_SIGNAL_LEVEL, SensorConfig.SENSOR_NEXT_CLEAN_DATETIME -> {
                     hmSC[portNum] = SensorConfigAnalogue(
                         aId = sensorEntity.id,
                         aName = sensorEntity.name,

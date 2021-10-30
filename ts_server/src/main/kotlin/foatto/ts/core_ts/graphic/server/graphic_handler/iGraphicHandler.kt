@@ -7,10 +7,10 @@ import foatto.ts.core_ts.sensor.config.SensorConfigAnalogue
 
 interface iGraphicHandler {
 
-    val lineNoneColorIndex: GraphicColorIndex
-    val lineNormalColorIndex: GraphicColorIndex
-    val lineWarningColorIndex: GraphicColorIndex
-    val lineCriticalColorIndex: GraphicColorIndex
+    fun getLineNoneColorIndex(axisIndex: Int): GraphicColorIndex
+    fun getLineNormalColorIndex(axisIndex: Int): GraphicColorIndex
+    fun getLineBelowColorIndex(axisIndex: Int): GraphicColorIndex
+    fun getLineAboveColorIndex(axisIndex: Int): GraphicColorIndex
 
     //----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -40,5 +40,5 @@ interface iGraphicHandler {
 
     fun getRawData(sca: SensorConfigAnalogue, bb: AdvancedByteBuffer): Double?
 
-    fun getLineColorIndex(sca: SensorConfigAnalogue, rawTime: Int, rawData: Double, prevTime: Int, prevData: Double): GraphicColorIndex
+    fun getLineColorIndex(axisIndex: Int, sca: SensorConfigAnalogue, rawTime: Int, rawData: Double, prevTime: Int, prevData: Double): GraphicColorIndex
 }
