@@ -1,23 +1,25 @@
-package foatto.mms.spring.controllers
+package foatto.spring.controllers
 
-import foatto.mms.core_mms.ds.PulsarData
-import foatto.spring.controllers.CoreDownloadController
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import java.io.File
+import java.net.URLConnection
 import javax.servlet.http.HttpServletResponse
 
 @RestController
-class MMSDownloadController : CoreDownloadController() {
+class CoreStaticFileDownloadController {
 
-//!!! сделать статику через nginx и убрать в проекте привязку к tomcat-embed-core-9.0.12.jar ---
+    @Value("\${root_dir}")
+    val rootDirName: String = ""
 
     @GetMapping(value = ["/"])
     fun downloadRoot(response: HttpServletResponse) {
         download(response, "${rootDirName}/web/index.html")
     }
+
+    //--------------------------------------------------------------------------------
 
     @GetMapping(value = ["/files/{dirName}/{fileName}"])
     fun downloadFile(
@@ -30,23 +32,7 @@ class MMSDownloadController : CoreDownloadController() {
         download(response, "${rootDirName}/files/$dirName/$fileName")
     }
 
-    @GetMapping(value = ["/map/{fileName}"])
-    fun downloadMaps(
-        response: HttpServletResponse,
-        @PathVariable("fileName")
-        fileName: String
-    ) {
-        download(response, "${rootDirName}/map/$fileName")
-    }
-
-    @GetMapping(value = ["/reports/{fileName}"])
-    fun downloadReports(
-        response: HttpServletResponse,
-        @PathVariable("fileName")
-        fileName: String
-    ) {
-        download(response, "${rootDirName}/reports/$fileName")
-    }
+    //--------------------------------------------------------------------------------
 
     @GetMapping(value = ["/web/{fileName}"])
     fun downloadWeb(
@@ -82,6 +68,39 @@ class MMSDownloadController : CoreDownloadController() {
         fileName: String
     ) {
         download(response, "${rootDirName}/web/lib/$fileName")
+    }
+
+    //--------------------------------------------------------------------------------
+
+    @GetMapping(value = ["/reports/{fileName}"])
+    fun downloadReports(
+        response: HttpServletResponse,
+        @PathVariable("fileName")
+        fileName: String
+    ) {
+        download(response, "${rootDirName}/reports/$fileName")
+    }
+
+    //--------------------------------------------------------------------------------
+
+    @GetMapping(value = ["/map/{fileName}"])
+    fun downloadMaps(
+        response: HttpServletResponse,
+        @PathVariable("fileName")
+        fileName: String
+    ) {
+        download(response, "${rootDirName}/map/$fileName")
+    }
+
+    //--------------------------------------------------------------------------------
+
+    protected fun download(response: HttpServletResponse, path: String) {
+        val file = File(path)
+        val mimeType = URLConnection.guessContentTypeFromName(file.name)
+
+        response.contentType = mimeType
+        response.setContentLength(file.length().toInt())
+        response.outputStream.write(file.readBytes())
     }
 
 }

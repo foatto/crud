@@ -12,16 +12,17 @@ import foatto.spring.CoreSpringApp
 import foatto.sql.AdvancedConnection
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.SQLDialect
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RestController
 import java.io.File
 
-//--- добавлять у каждого наследника
-//@RestController
-abstract class CoreReplicationController {
+@RestController
+class CoreReplicationController {
 
-    //--- прописывать у каждого наследника
-//    @PostMapping("/api/get_replication")
-    open fun getReplication(
-        //@RequestBody
+    @PostMapping("/api/get_replication")
+    fun getReplication(
+        @RequestBody
         getReplicationRequest: GetReplicationRequest
     ): GetReplicationResponse {
         val getReplicationBegTime = getCurrentTimeInt()
@@ -83,10 +84,9 @@ abstract class CoreReplicationController {
         return getReplicationResponse
     }
 
-    //--- прописывать у каждого наследника
-//    @PostMapping("/api/put_replication")
-    open fun putReplication(
-        //@RequestBody
+    @PostMapping("/api/put_replication")
+    fun putReplication(
+        @RequestBody
         putReplicationRequest: PutReplicationRequest
     ): PutReplicationResponse {
         val putReplicationBegTime = getCurrentTimeInt()

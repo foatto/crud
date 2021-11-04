@@ -19,7 +19,9 @@ import org.springframework.boot.runApplication
 import org.springframework.context.event.EventListener
 import org.springframework.web.servlet.config.annotation.EnableWebMvc
 
-@SpringBootApplication
+@SpringBootApplication(
+    scanBasePackages = ["foatto.spring", "foatto.ts.spring"],
+)
 @EnableWebMvc
 class TSSpringApp : CoreSpringApp() {
 

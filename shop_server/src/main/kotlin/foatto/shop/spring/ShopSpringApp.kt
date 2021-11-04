@@ -9,7 +9,9 @@ import org.springframework.boot.runApplication
 import org.springframework.context.event.EventListener
 import org.springframework.web.servlet.config.annotation.EnableWebMvc
 
-@SpringBootApplication
+@SpringBootApplication(
+    scanBasePackages = ["foatto.spring", "foatto.shop.spring"],
+)
 @EnableWebMvc
 class ShopSpringApp : CoreSpringApp() {
     companion object {
@@ -34,7 +36,7 @@ class ShopSpringApp : CoreSpringApp() {
             //        mUser.alExtendChildData.add(  new ChildData(  "ft_zone", null  )  );
             //        mUser.alExtendChildData.add(  new ChildData(  "ft_route", null  )  );
 
-            mUser.alExtendDependData.add( DependData( "SYSTEM_new", "user_id", DependData.DELETE ) )
+            mUser.alExtendDependData.add(DependData("SYSTEM_new", "user_id", DependData.DELETE))
             //        mUser.alExtendDependData.add(  new DependData(  "PLA_auto", "user_id"  )  );
             //        mUser.alExtendDependData.add(  new DependData(  "PM_auto_day_run", "user_id", DependData.DELETE  )  );
             //        mUser.alExtendDependData.add(  new DependData(  "PLA_auto_fuel", "user_id"  )  );

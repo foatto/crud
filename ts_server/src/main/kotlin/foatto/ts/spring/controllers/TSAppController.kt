@@ -4,7 +4,9 @@ import foatto.core.app.graphic.GraphicActionRequest
 import foatto.core.app.graphic.GraphicActionResponse
 import foatto.core.app.xy.XyActionRequest
 import foatto.core.app.xy.XyActionResponse
-import foatto.core.link.*
+import foatto.core.link.AppRequest
+import foatto.core.link.AppResponse
+import foatto.core.link.MenuData
 import foatto.core.util.AdvancedLogger
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
@@ -21,7 +23,6 @@ import foatto.ts.spring.repositories.ObjectRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
-import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController

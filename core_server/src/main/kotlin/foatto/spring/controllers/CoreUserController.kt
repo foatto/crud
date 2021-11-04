@@ -12,17 +12,18 @@ import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.UserConfig
 import foatto.spring.CoreSpringApp
 import foatto.sql.AdvancedConnection
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RestController
 import java.time.ZonedDateTime
 import java.util.concurrent.ConcurrentHashMap
 
-//--- добавлять у каждого наследника
-//@RestController
+@RestController
 abstract class CoreUserController {
 
-    //--- прописывать у каждого наследника
-//    @PostMapping("/api/save_user_property")
-    open fun saveUserProperty(
-        //@RequestBody
+    @PostMapping("/api/save_user_property")
+    fun saveUserProperty(
+        @RequestBody
         saveUserPropertyRequest: SaveUserPropertyRequest
     ): SaveUserPropertyResponse {
         val saveUserPropertyBegTime = getCurrentTimeInt()
@@ -61,10 +62,9 @@ abstract class CoreUserController {
         return SaveUserPropertyResponse()
     }
 
-    //--- прописывать у каждого наследника
-//    @PostMapping("/api/change_password")
-    open fun changePassword(
-        //@RequestBody
+    @PostMapping("/api/change_password")
+    fun changePassword(
+        @RequestBody
         changePasswordRequest: ChangePasswordRequest
     ): ChangePasswordResponse {
         val changePasswordBegTime = getCurrentTimeInt()
@@ -104,10 +104,9 @@ abstract class CoreUserController {
         return ChangePasswordResponse()
     }
 
-    //--- прописывать у каждого наследника
-//    @PostMapping("/api/logoff")
-    open fun logoff(
-        //@RequestBody
+    @PostMapping("/api/logoff")
+    fun logoff(
+        @RequestBody
         logoffRequest: LogoffRequest
     ): LogoffResponse {
         val logoffBegTime = getCurrentTimeInt()

@@ -1,93 +1,23 @@
-package foatto.office.spring
+package foatto.office.spring.controllers
 
-import foatto.core.link.*
+import foatto.core.link.AppRequest
+import foatto.core.link.AppResponse
+import foatto.core.link.MenuData
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
-import foatto.spring.CoreSpringController
+import foatto.spring.controllers.CoreAppController
 import foatto.sql.CoreAdvancedStatement
-import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.multipart.MultipartFile
-import javax.servlet.http.HttpServletResponse
 
 @RestController
-class OfficeSpringController : CoreSpringController() {
-
-    @GetMapping(value = ["/"])
-    fun downloadRoot(response: HttpServletResponse) {
-        download(response, "${rootDirName}/web/index.html")
-    }
-
-    @GetMapping(value = ["/reports/{fileName:.+}"])
-    fun downloadReports(
-        response: HttpServletResponse,
-        @PathVariable("fileName")
-        fileName: String
-    ) {
-        download(response, "${rootDirName}/reports/$fileName")
-    }
-
-    @GetMapping(value = ["/web/{fileName:.+}"])
-    fun downloadWeb(
-        response: HttpServletResponse,
-        @PathVariable("fileName")
-        fileName: String
-    ) {
-        download(response, "${rootDirName}/web/$fileName")
-    }
-
-    @GetMapping(value = ["/web/images/{fileName:.+}"])
-    fun downloadWebImages(
-        response: HttpServletResponse,
-        @PathVariable("fileName")
-        fileName: String
-    ) {
-        download(response, "${rootDirName}/web/images/$fileName")
-    }
-
-    @GetMapping(value = ["/web/js/{fileName:.+}"])
-    fun downloadWebJS(
-        response: HttpServletResponse,
-        @PathVariable("fileName")
-        fileName: String
-    ) {
-        download(response, "${rootDirName}/web/js/$fileName")
-    }
-
-    @GetMapping(value = ["/web/lib/{fileName:.+}"])
-    fun downloadWebLib(
-        response: HttpServletResponse,
-        @PathVariable("fileName")
-        fileName: String
-    ) {
-        download(response, "${rootDirName}/web/lib/$fileName")
-    }
-
-    @GetMapping(value = ["/files/{dirName:.+}/{fileName:.+}"])
-    fun downloadFile(
-        response: HttpServletResponse,
-        @PathVariable("dirName")
-        dirName: String,
-        @PathVariable("fileName")
-        fileName: String
-    ) {
-        download(response, "${rootDirName}/files/$dirName/$fileName")
-    }
-
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+class OfficeAppController : CoreAppController() {
 
     @PostMapping("/api/app")
-    @Transactional
     override fun app(
-        //authentication: Authentication,
         @RequestBody
         appRequest: AppRequest
-        //@CookieValue("SESSION") sessionId: String
     ): AppResponse {
         return super.app(appRequest)
     }
@@ -101,78 +31,6 @@ class OfficeSpringController : CoreSpringController() {
 //    ): UpdateResponse {
 //        return super.update( updateRequest )
 //    }
-
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @PostMapping("/api/get_file")
-    override fun getFile(
-        @RequestBody
-        getFileRequest: GetFileRequest
-    ): GetFileResponse {
-        return super.getFile(getFileRequest)
-    }
-
-    @PostMapping("/api/put_file")
-    override fun putFile(
-        @RequestBody
-        putFileRequest: PutFileRequest
-    ): PutFileResponse {
-        return super.putFile(putFileRequest)
-    }
-
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @PostMapping("/api/get_replication")
-    override fun getReplication(
-        @RequestBody
-        getReplicationRequest: GetReplicationRequest
-    ): GetReplicationResponse {
-        return super.getReplication(getReplicationRequest)
-    }
-
-    @PostMapping("/api/put_replication")
-    override fun putReplication(
-        @RequestBody
-        putReplicationRequest: PutReplicationRequest
-    ): PutReplicationResponse {
-        return super.putReplication(putReplicationRequest)
-    }
-
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @PostMapping("/api/save_user_property")
-    override fun saveUserProperty(
-        @RequestBody
-        saveUserPropertyRequest: SaveUserPropertyRequest
-    ): SaveUserPropertyResponse {
-        return super.saveUserProperty(saveUserPropertyRequest)
-    }
-
-    @PostMapping("/api/change_password")
-    override fun changePassword(
-        @RequestBody
-        changePasswordRequest: ChangePasswordRequest
-    ): ChangePasswordResponse {
-        return super.changePassword(changePasswordRequest)
-    }
-
-    @PostMapping("/api/logoff")
-    override fun logoff(
-        @RequestBody
-        logoffRequest: LogoffRequest
-    ): LogoffResponse {
-        return super.logoff(logoffRequest)
-    }
-
-    @PostMapping("/api/upload_form_file")
-    override fun uploadFormFile(
-        @RequestParam("form_file_ids")
-        arrFormFileId: Array<String>,
-        @RequestParam("form_file_blobs")
-        arrFormFileBlob: Array<MultipartFile>
-    ): FormFileUploadResponse {
-        return super.uploadFormFile(arrFormFileId, arrFormFileBlob)
-    }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -284,12 +142,14 @@ class OfficeSpringController : CoreSpringController() {
 
         val alMenuReport = mutableListOf<MenuData>()
 
-//        addMenu( hmAliasConfig, hmAliasPerm, alMenuReport, "office_report_reminder", false )
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuReport, "office_report_reminder", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuReport, "office_report_task", false)
-//        addMenu( hmAliasConfig, hmAliasPerm, alMenuReport, "office_report_task_day_state", false )
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuReport, "office_report_task_day_state", false)
 //        addMenu( hmAliasConfig, hmAliasPerm, alMenuReport, "office_report_client_work_state", false )
 
-        if (alMenuReport.size > 0) alMenu.add(MenuData("", "Отчёты", alMenuReport.toTypedArray()))
+        if (alMenuReport.size > 0) {
+            alMenu.add(MenuData("", "Отчёты", alMenuReport.toTypedArray()))
+        }
 
         //--- Справочники --------------------------------------------------------------------------------------------------------
 
@@ -299,7 +159,9 @@ class OfficeSpringController : CoreSpringController() {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDir, "office_company", true)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDir, "office_city", true)
 
-        if (alMenuDir.size > 0) alMenu.add(MenuData("", "Справочники", alMenuDir.toTypedArray()))
+        if (alMenuDir.size > 0) {
+            alMenu.add(MenuData("", "Справочники", alMenuDir.toTypedArray()))
+        }
 
         //--- Система --------------------------------------------------------------------------------------------------------
 
@@ -323,7 +185,9 @@ class OfficeSpringController : CoreSpringController() {
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuSystem, "system_log_user", true)
 
-        if (alMenuSystem.size > 3) alMenu.add(MenuData("", "Система", alMenuSystem.toTypedArray()))
+        if (alMenuSystem.size > 3) {
+            alMenu.add(MenuData("", "Система", alMenuSystem.toTypedArray()))
+        }
 
         //----------------------------------------------------------------------------------------------------------------------
 

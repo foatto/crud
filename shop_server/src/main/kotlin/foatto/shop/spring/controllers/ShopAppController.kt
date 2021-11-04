@@ -23,6 +23,9 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class ShopAppController : CoreAppController(), iShopApplication {
 
+    @Value("\${edit_limit_days}")
+    override val editLimitDays: String? = null
+
     @Value("\${discount_limits}")
     override val discountLimits: Array<String> = emptyArray()
 

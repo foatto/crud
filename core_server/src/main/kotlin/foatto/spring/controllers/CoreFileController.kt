@@ -10,14 +10,17 @@ import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.separateUnixPath
 import foatto.spring.CoreSpringApp
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 
-//--- добавлять у каждого наследника
-//@RestController
-abstract class CoreFileController {
+@RestController
+class CoreFileController {
 
     @Value("\${root_dir}")
     val rootDirName: String = ""
@@ -26,9 +29,9 @@ abstract class CoreFileController {
     val tempDirName: String = ""
 
     //--- прописывать у каждого наследника
-//    @PostMapping("/api/get_file")
-    open fun getFile(
-        //@RequestBody
+    @PostMapping("/api/get_file")
+    fun getFile(
+        @RequestBody
         getFileRequest: GetFileRequest
     ): GetFileResponse {
         val getFileBegTime = getCurrentTimeInt()
@@ -46,9 +49,9 @@ abstract class CoreFileController {
     }
 
     //--- прописывать у каждого наследника
-//    @PostMapping("/api/put_file")
-    open fun putFile(
-        //@RequestBody
+    @PostMapping("/api/put_file")
+    fun putFile(
+        @RequestBody
         putFileRequest: PutFileRequest
     ): PutFileResponse {
         val putFileBegTime = getCurrentTimeInt()
@@ -79,11 +82,11 @@ abstract class CoreFileController {
     }
 
     //--- прописывать у каждого наследника
-//    @PostMapping("/api/upload_form_file")
-    open fun uploadFormFile(
-//        @RequestParam("form_file_ids")
+    @PostMapping("/api/upload_form_file")
+    fun uploadFormFile(
+        @RequestParam("form_file_ids")
         arrFormFileId: Array<String>, // со стороны web-клиента ограничение на передачу массива или только строк или только файлов
-//        @RequestParam("form_file_blobs")
+        @RequestParam("form_file_blobs")
         arrFormFileBlob: Array<MultipartFile>
     ): FormFileUploadResponse {
 
