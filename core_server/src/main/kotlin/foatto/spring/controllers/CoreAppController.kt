@@ -16,6 +16,8 @@ import foatto.core.link.XyResponse
 import foatto.core.util.AdvancedLogger
 import foatto.core.util.BusinessException
 import foatto.core.util.getCurrentTimeInt
+import foatto.core.util.getFilledNumberString
+import foatto.core.util.getRandomInt
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.graphic.server.GraphicDocumentConfig
 import foatto.core_server.app.graphic.server.GraphicStartData
@@ -32,6 +34,7 @@ import foatto.sql.AdvancedConnection
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedStatement
 import org.springframework.beans.factory.annotation.Value
+import java.io.File
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
@@ -57,8 +60,85 @@ abstract class CoreAppController : iApplication {
     @Value("\${client_role_id}")
     override val alClientRoleId: Array<String> = emptyArray()
 
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     override val hmAliasLogDir: MutableMap<String, String>
         get() = CoreSpringApp.hmAliasLogDir
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    private val FILE_BASE = "files"
+
+    override fun getFileList(stm: CoreAdvancedStatement, fileId: Int): List<Pair<Int, String>> {
+        val alFileStoreData = mutableListOf<Pair<Int, String>>()
+
+        val rs = stm.executeQuery(
+            """
+                SELECT id , name , dir 
+                FROM SYSTEM_file_store 
+                WHERE file_id = $fileId 
+                ORDER BY name 
+            """
+        )
+        while (rs.next()) {
+            val id = rs.getInt(1)
+            val fileName = rs.getString(2)
+            val dirName = rs.getString(3)
+            alFileStoreData.add(Pair(id, "/$FILE_BASE/$dirName/$fileName"))
+        }
+        rs.close()
+
+        return alFileStoreData
+    }
+
+    override fun saveFile(stm: CoreAdvancedStatement, fileId: Int, idFromClient: Int, fileName: String) {
+        //--- найти для него новое местоположение
+        val newDirName = getFreeDir(fileName)
+        val newFile = File(rootDirName, "$FILE_BASE/$newDirName/$fileName")
+
+        //--- перенести файл в отведённое место
+        File(tempDirName, idFromClient.toString()).renameTo(newFile)
+        //--- сохранить запись о файле
+        stm.executeUpdate(
+            """
+                INSERT INTO SYSTEM_file_store ( id , file_id , name , dir ) 
+                VALUES ( ${stm.getNextIntId("SYSTEM_file_store", "id")} , $fileId , '$fileName' , '$newDirName' ) 
+            """
+        )
+    }
+
+    override fun deleteFile(stm: CoreAdvancedStatement, fileId: Int, id: Int?) {
+        val sbSQLDiff = id?.let {
+            " AND id = $id "
+        } ?: ""
+
+        val sbSQL =
+            """
+                SELECT name , dir 
+                FROM SYSTEM_file_store 
+                WHERE file_id = $fileId 
+                $sbSQLDiff 
+            """
+
+        val rs = stm.executeQuery(sbSQL)
+        while (rs.next()) {
+            val fileName = rs.getString(1)
+            val dirName = rs.getString(2)
+            val delFile = File(rootDirName, "$FILE_BASE/$dirName/$fileName")
+            if (delFile.exists()) {
+                delFile.delete()
+            }
+        }
+        rs.close()
+
+        stm.executeUpdate(
+            """
+                DELETE FROM SYSTEM_file_store 
+                WHERE file_id = $fileId 
+                $sbSQLDiff 
+            """
+        )
+    }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -436,6 +516,20 @@ abstract class CoreAppController : iApplication {
 //    }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    private fun getFreeDir(fileName: String): String {
+        NEXT_DIR@
+        while (true) {
+            val newDirName = getRandomInt().toString()
+            val newDir = File(rootDirName, "$FILE_BASE/$newDirName")
+            newDir.mkdirs()
+            val file = File(newDir, fileName)
+            if (file.exists()) {
+                continue@NEXT_DIR
+            }
+            return newDirName
+        }
+    }
 
     private fun checkLogon(conn: CoreAdvancedConnection, aLogin: String, aPassword: String, chmSession: ConcurrentHashMap<String, Any>): ResponseCode {
         val stm = conn.createStatement()

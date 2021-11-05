@@ -10,8 +10,10 @@ import foatto.core_server.app.xy.server.document.sdcXyAbstract
 import foatto.sql.DBConfig
 import org.springframework.beans.factory.annotation.Value
 import java.io.File
+import java.net.URLConnection
 import java.time.ZoneId
 import java.util.concurrent.ConcurrentHashMap
+import javax.servlet.http.HttpServletResponse
 import kotlin.math.min
 
 //--- добавлять у каждого наследника
@@ -53,8 +55,20 @@ open class CoreSpringApp {
         lateinit var dirUserLog: File
         var userLogMode: Int = SYSTEM_LOG_NONE
         lateinit var dbConfig: DBConfig
-        internal val hmAliasLogDir = mutableMapOf<String, String>()
+        val hmAliasLogDir = mutableMapOf<String, String>()
         val hmXyDocumentConfig = mutableMapOf<String, XyDocumentConfig>()
+
+        //--- last enabled time for file access check
+        val chmFileTime = ConcurrentHashMap<String, Int>()
+
+        fun download(response: HttpServletResponse, path: String) {
+            val file = File(path)
+            val mimeType = URLConnection.guessContentTypeFromName(file.name)
+
+            response.contentType = mimeType
+            response.setContentLength(file.length().toInt())
+            response.outputStream.write(file.readBytes())
+        }
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
