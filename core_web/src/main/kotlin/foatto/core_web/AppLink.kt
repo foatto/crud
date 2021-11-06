@@ -5,11 +5,11 @@ import foatto.core.app.graphic.GraphicActionResponse
 import foatto.core.app.xy.XyActionRequest
 import foatto.core.app.xy.XyActionResponse
 import foatto.core.link.*
+import foatto.core.util.getRandomLong
 import kotlinx.browser.window
 import org.w3c.xhr.XMLHttpRequest
-import kotlin.random.Random
 
-private val sessionId = Random.nextLong()
+private val sessionId = getRandomLong()
 
 fun invokeApp(
     appRequest: AppRequest,
@@ -27,10 +27,9 @@ fun invokeApp(
                         val response = JSON.parse<AppResponse>(responseText)
                         success(response)
                     }
-                }
-                else {
+                } else {
 //                    error(this)
-                    httpDefaultErrorHandler( this )
+                    httpDefaultErrorHandler(this)
                 }
 //                finally()
             }
@@ -61,10 +60,9 @@ fun invokeGraphic(
                         val response = JSON.parse<GraphicActionResponse>(responseText)
                         success(response)
                     }
-                }
-                else {
+                } else {
 //                    error(this)
-                    httpDefaultErrorHandler( this )
+                    httpDefaultErrorHandler(this)
                 }
 //                finally()
             }
@@ -95,10 +93,9 @@ fun invokeXy(
                         val response = JSON.parse<XyActionResponse>(responseText)
                         success(response)
                     }
-                }
-                else {
+                } else {
 //                    error(this)
-                    httpDefaultErrorHandler( this )
+                    httpDefaultErrorHandler(this)
                 }
 //                finally()
             }
@@ -129,10 +126,9 @@ fun invokeSaveUserProperty(
                         val response = JSON.parse<SaveUserPropertyResponse>(responseText)
                         success(response)
                     }
-                }
-                else {
+                } else {
 //                    error(this)
-                    httpDefaultErrorHandler( this )
+                    httpDefaultErrorHandler(this)
                 }
 //                finally()
             }
@@ -163,10 +159,9 @@ fun invokeChangePassword(
                         val response = JSON.parse<ChangePasswordResponse>(responseText)
                         success(response)
                     }
-                }
-                else {
+                } else {
 //                    error(this)
-                    httpDefaultErrorHandler( this )
+                    httpDefaultErrorHandler(this)
                 }
 //                finally()
             }
@@ -197,10 +192,9 @@ fun invokeLogoff(
                         val response = JSON.parse<LogoffResponse>(responseText)
                         success(response)
                     }
-                }
-                else {
+                } else {
 //                    error(this)
-                    httpDefaultErrorHandler( this )
+                    httpDefaultErrorHandler(this)
                 }
 //                finally()
             }
@@ -231,10 +225,9 @@ fun invokeUploadFormFile(
                         val response = JSON.parse<FormFileUploadResponse>(responseText)
                         success(response)
                     }
-                }
-                else {
+                } else {
 //                    error(this)
-                    httpDefaultErrorHandler( this )
+                    httpDefaultErrorHandler(this)
                 }
 //                finally()
             }
@@ -250,7 +243,7 @@ fun httpDefaultErrorHandler(xmlHttpRequest: XMLHttpRequest) {
     val status = xmlHttpRequest.status.toInt()
     when {
         status == 400 -> window.location.reload()
-        status >= 500 -> println( "Ошибка сервера: $status \r\n Сообщение для разработчиков: ${xmlHttpRequest.responseText} " )
+        status >= 500 -> println("Ошибка сервера: $status \r\n Сообщение для разработчиков: ${xmlHttpRequest.responseText} ")
         else -> println("Неизвестная ошибка: $status")
     }
 }

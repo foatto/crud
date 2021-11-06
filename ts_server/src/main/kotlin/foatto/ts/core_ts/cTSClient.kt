@@ -72,7 +72,7 @@ class cTSClient : cClient() {
 
         if (isControlEnabled) {
             if (!controlEnableSaved(id)) {
-                val nextId = stm.getNextID("SYSTEM_user_role", "id")
+                val nextId = stm.getNextIntId("SYSTEM_user_role", "id")
                 stm.executeUpdate(
                     """
                         INSERT INTO SYSTEM_user_role( id , role_id , user_id ) 

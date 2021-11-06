@@ -15,7 +15,15 @@ class mTask : mAbstractReport() {
 
     //----------------------------------------------------------------------------------------------------------------------
 
-    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
+    override fun init(
+        application: iApplication,
+        aStm: CoreAdvancedStatement,
+        aliasConfig: AliasConfig,
+        userConfig: UserConfig,
+        aHmParam: Map<String, String>,
+        hmParentData: MutableMap<String, Int>,
+        id: Int?
+    ) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
@@ -35,6 +43,7 @@ class mTask : mAbstractReport() {
 
         val columnTaskID = ColumnInt("OFFICE_task", "id")
         columnReportTask = ColumnInt(tableName, "task_id", columnTaskID, parentTaskID)
+
         val columnTaskSubj = ColumnString("OFFICE_task", "subj", "Тема поручения", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
 
         //----------------------------------------------------------------------------------------------------------------------

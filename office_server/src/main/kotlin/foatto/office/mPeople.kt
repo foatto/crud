@@ -99,7 +99,7 @@ class mPeople : mAbstract() {
             } else if (id == 0) {
                 columnUser = ColumnComboBox(tableName, "user_id", "Доступ", 0).apply {
                     addChoice(0, "общий")
-                    addChoice(userConfig.userID, "личный")
+                    addChoice(userConfig.userId, "личный")
                 }
             } else {
                 columnUser = ColumnInt(tableName, "user_id", 0)
@@ -127,7 +127,7 @@ class mPeople : mAbstract() {
                 selfLinkTableName = "SYSTEM_users"
             }
             //--- в режиме клиента вместо user_id регулятором прав доступа работает manager_id
-            columnUser = ColumnInt(tableName, "manager_id", columnUserID, userConfig.userID)
+            columnUser = ColumnInt(tableName, "manager_id", columnUserID, userConfig.userId)
             columnUserName = ColumnString(selfLinkUserTableName, "full_name", "Менеджер", STRING_COLUMN_WIDTH).apply {
                 selfLinkTableName = "SYSTEM_users"
                 //columnUserName.setRequired( true ); - может быть ничья/общая

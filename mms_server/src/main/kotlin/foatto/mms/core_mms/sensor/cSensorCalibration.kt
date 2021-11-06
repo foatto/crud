@@ -175,7 +175,7 @@ class cSensorCalibration : cStandart() {
             //--- неправильно введенные числа тоже игнорируем
             stm.executeUpdate(
                 " INSERT INTO MMS_sensor_calibration ( id, sensor_id , value_sensor , value_data ) VALUES ( " +
-                    stm.getNextID("MMS_sensor_calibration", "id") + " , $sensorID , $sensorValue , $dataValue ) "
+                    stm.getNextIntId("MMS_sensor_calibration", "id") + " , $sensorID , $sensorValue , $dataValue ) "
             )
         }
 

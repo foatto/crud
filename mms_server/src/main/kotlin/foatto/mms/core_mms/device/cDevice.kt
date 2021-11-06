@@ -137,7 +137,7 @@ class cDevice : cStandart() {
                             port_num , 
                             sensor_type , cmd_on_id , cmd_off_id , beg_ye , beg_mo , beg_da 
                         ) VALUES ( 
-                            ${stm.getNextID("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix Состояние расходомера $descrPostfix' , 
+                            ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix Состояние расходомера $descrPostfix' , 
                             ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + GalileoHandler.PORT_NUM_ESD_STATUS + si} , 
                             ${SensorConfig.SENSOR_LIQUID_USING_COUNTER_STATE} , 0 , 0 , 2000 , 1 , 1 
                         )
@@ -151,7 +151,7 @@ class cDevice : cStandart() {
                             sensor_type , cmd_on_id , cmd_off_id , beg_ye , beg_mo , beg_da ,
                             smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , is_absolute_count , liquid_name            
                         ) VALUES ( 
-                            ${stm.getNextID("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix Расходомер $descrPostfix' , 
+                            ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix Расходомер $descrPostfix' , 
                             ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + GalileoHandler.PORT_NUM_ESD_VOLUME + si} , 
                             ${SensorConfig.SENSOR_LIQUID_USING} , 0, 0 , 2000 , 1 , 1 ,
                             0 , 0 , 0 , 0 , 1 , ''                            
@@ -167,7 +167,7 @@ class cDevice : cStandart() {
                             smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , 
                             analog_min_view , analog_max_view , analog_min_limit , analog_max_limit                
                         ) VALUES ( 
-                            ${stm.getNextID("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix Скорость потока $descrPostfix' , 
+                            ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix Скорость потока $descrPostfix' , 
                             ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + GalileoHandler.PORT_NUM_ESD_FLOW + si} , 
                             ${SensorConfig.SENSOR_VOLUME_FLOW} , 0, 0 , 2000 , 1 , 1 ,
                             0 , 0 , 0 , 0 ,                             
@@ -183,7 +183,7 @@ class cDevice : cStandart() {
                             sensor_type , cmd_on_id , cmd_off_id , beg_ye , beg_mo , beg_da ,
                             smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , is_absolute_count , liquid_name            
                         ) VALUES ( 
-                            ${stm.getNextID("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix Расходомер камеры подачи $descrPostfix' , 
+                            ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix Расходомер камеры подачи $descrPostfix' , 
                             ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + GalileoHandler.PORT_NUM_ESD_CAMERA_VOLUME + si} , 
                             ${SensorConfig.SENSOR_LIQUID_USING} , 0, 0 , 2000 , 1 , 1 ,
                             0 , 0 , 0 , 0 , 1 , ''                            
@@ -199,7 +199,7 @@ class cDevice : cStandart() {
                             smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , 
                             analog_min_view , analog_max_view , analog_min_limit , analog_max_limit                
                         ) VALUES ( 
-                            ${stm.getNextID("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix Скорость потока камеры подачи $descrPostfix' , 
+                            ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix Скорость потока камеры подачи $descrPostfix' , 
                             ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + GalileoHandler.PORT_NUM_ESD_CAMERA_FLOW + si} , 
                             ${SensorConfig.SENSOR_VOLUME_FLOW} , 0, 0 , 2000 , 1 , 1 ,
                             0 , 0 , 0 , 0 ,                             
@@ -216,7 +216,7 @@ class cDevice : cStandart() {
                             smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , 
                             analog_min_view , analog_max_view , analog_min_limit , analog_max_limit                
                         ) VALUES ( 
-                            ${stm.getNextID("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix Температура камеры подачи $descrPostfix' , 
+                            ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix Температура камеры подачи $descrPostfix' , 
                             ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + GalileoHandler.PORT_NUM_ESD_CAMERA_TEMPERATURE + si} , 
                             ${SensorConfig.SENSOR_TEMPERATURE} , 0, 0 , 2000 , 1 , 1 ,
                             0 , 0 , 0 , 0 ,                             
@@ -233,7 +233,7 @@ class cDevice : cStandart() {
                             sensor_type , cmd_on_id , cmd_off_id , beg_ye , beg_mo , beg_da ,
                             smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , is_absolute_count , liquid_name            
                         ) VALUES ( 
-                            ${stm.getNextID("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix Расходомер камеры обратки $descrPostfix' , 
+                            ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix Расходомер камеры обратки $descrPostfix' , 
                             ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + GalileoHandler.PORT_NUM_ESD_REVERSE_CAMERA_VOLUME + si} , 
                             ${SensorConfig.SENSOR_LIQUID_USING} , 0, 0 , 2000 , 1 , 1 ,
                             0 , 0 , 0 , 0 , 1 , ''                            
@@ -249,7 +249,7 @@ class cDevice : cStandart() {
                             smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , 
                             analog_min_view , analog_max_view , analog_min_limit , analog_max_limit                
                         ) VALUES ( 
-                            ${stm.getNextID("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix Скорость потока камеры обратки $descrPostfix' , 
+                            ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix Скорость потока камеры обратки $descrPostfix' , 
                             ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + GalileoHandler.PORT_NUM_ESD_REVERSE_CAMERA_FLOW + si} , 
                             ${SensorConfig.SENSOR_VOLUME_FLOW} , 0, 0 , 2000 , 1 , 1 ,
                             0 , 0 , 0 , 0 ,                             
@@ -266,7 +266,7 @@ class cDevice : cStandart() {
                             smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , 
                             analog_min_view , analog_max_view , analog_min_limit , analog_max_limit                
                         ) VALUES ( 
-                            ${stm.getNextID("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix Температура камеры обратки $descrPostfix' , 
+                            ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix Температура камеры обратки $descrPostfix' , 
                             ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + GalileoHandler.PORT_NUM_ESD_REVERSE_CAMERA_TEMPERATURE + si} , 
                             ${SensorConfig.SENSOR_TEMPERATURE} , 0, 0 , 2000 , 1 , 1 ,
                             0 , 0 , 0 , 0 ,                             

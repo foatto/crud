@@ -74,12 +74,12 @@ class cAlias : cStandart() {
             }
             //--- если его нет, то добавим
             else {
-                val nextPermID = stm.getNextID("SYSTEM_permission", "id")
+                val nextPermID = stm.getNextIntId("SYSTEM_permission", "id")
                 stm.executeUpdate(
                     " INSERT INTO SYSTEM_permission ( id, class_id, name, descr ) VALUES ( $nextPermID , $id , '$permName' , '$permDescr' ) "
                 )
                 for (roleID in alRole) {
-                    val nextRolePermID = stm.getNextID("SYSTEM_role_permission", "id")
+                    val nextRolePermID = stm.getNextIntId("SYSTEM_role_permission", "id")
                     stm.executeUpdate(
                         " INSERT INTO SYSTEM_role_permission ( id, role_id, permission_id, permission_value ) VALUES ( $nextRolePermID , $roleID , $nextPermID , 0 ) "
                     )

@@ -53,7 +53,7 @@ class cSensor : cTSOneObjectParent() {
                 if (sensorValue != null && dataValue != null) {
                     stm.executeUpdate(
                         " INSERT INTO TS_sensor_calibration ( id , sensor_id , value_sensor , value_data ) VALUES ( +" +
-                            stm.getNextID("TS_sensor_calibration", "id") +
+                            stm.getNextIntId("TS_sensor_calibration", "id") +
                             " , $id , $sensorValue , $dataValue ) "
                     )
                 }

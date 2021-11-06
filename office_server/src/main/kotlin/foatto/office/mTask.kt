@@ -18,7 +18,7 @@ import foatto.sql.CoreAdvancedStatement
 class mTask : mAbstract() {
 
     companion object {
-        val ALERT_TAG = "task"
+        const val ALERT_TAG = "task"
     }
 
     //    public ColumnString getColumnOtherUserName() { return columnOtherUserName; }
@@ -28,9 +28,7 @@ class mTask : mAbstract() {
         private set
 
     //--- оповещать только при добавлении поручения
-    override fun getAddAlertTag(): String? {
-        return ALERT_TAG
-    }
+    override fun getAddAlertTag() = ALERT_TAG
 
     override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
 
@@ -48,9 +46,7 @@ class mTask : mAbstract() {
 
         columnID = ColumnInt(tableName, "id")
 
-        //----------------------------------------------------------------------------------------------------------------------
-
-        columnUser = ColumnInt(tableName, if(isTaskOwner) "out_user_id" else "in_user_id", userConfig.userID)
+        columnUser = ColumnInt(tableName, if(isTaskOwner) "out_user_id" else "in_user_id", userConfig.userId)
 
         columnActive = ColumnBoolean(tableName, "in_active", "", true)
         columnArchive = ColumnBoolean(tableName, "in_archive", "", false)
@@ -125,8 +121,8 @@ class mTask : mAbstract() {
         alDependData.add(DependData("OFFICE_task_thread", "task_id", DependData.DELETE))
         //--- прямых связок там нет, но на всякий случай будем обнулять ссылки при удалении поручений
         //--- (т.к. текстовая информация из поручений там всё равно дублируется)
-        alDependData.add(DependData("OFFICE_meeting_plan", "task_id", DependData.SET, 0))
-        alDependData.add(DependData("OFFICE_meeting_result", "task_id", DependData.SET, 0))
+//        alDependData.add(DependData("OFFICE_meeting_plan", "task_id", DependData.SET, 0))
+//        alDependData.add(DependData("OFFICE_meeting_result", "task_id", DependData.SET, 0))
 
     }
 }

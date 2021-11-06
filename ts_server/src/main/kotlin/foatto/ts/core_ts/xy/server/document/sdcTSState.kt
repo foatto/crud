@@ -137,7 +137,7 @@ class sdcTSState : sdcXyState() {
                             user_id , device_id , object_id , 
                             command , create_time , 
                             send_status , send_time ) VALUES ( 
-                            ${stm.getNextID("TS_device_command_history", "id")} , 
+                            ${stm.getNextIntId("TS_device_command_history", "id")} , 
                             ${userConfig.userId} , $deviceID , $objectId , 
                             '$command' , ${getCurrentTimeInt()} , 
                             0 , 0 )  

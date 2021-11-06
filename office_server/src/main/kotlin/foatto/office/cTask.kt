@@ -30,7 +30,7 @@ class cTask : cStandart() {
             rs = stm.executeQuery(
                 " SELECT COUNT(*) FROM SYSTEM_new " +
                     " WHERE table_name = 'OFFICE_task_thread' " +
-                    " AND user_id = ${userConfig.userID} " +
+                    " AND user_id = ${userConfig.userId} " +
                     " AND row_id IN ( SELECT id FROM OFFICE_task_thread WHERE task_id = $valueID ) "
             )
             val countReaded = if(rs.next()) rs.getInt(1) else 0

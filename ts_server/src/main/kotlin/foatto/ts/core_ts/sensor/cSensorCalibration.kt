@@ -11,7 +11,6 @@ import foatto.core.link.FormCellType
 import foatto.core.link.FormData
 import foatto.core.link.FormResponse
 import foatto.core.util.getSplittedDouble
-import foatto.core.util.getSplittedLong
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.server.cStandart
 import kotlin.math.max
@@ -175,7 +174,7 @@ class cSensorCalibration : cStandart() {
             //--- неправильно введенные числа тоже игнорируем
             stm.executeUpdate(
                 " INSERT INTO TS_sensor_calibration ( id, sensor_id , value_sensor , value_data ) VALUES ( " +
-                    stm.getNextID("TS_sensor_calibration", "id") + " , $sensorID , $sensorValue , $dataValue ) "
+                    stm.getNextIntId("TS_sensor_calibration", "id") + " , $sensorID , $sensorValue , $dataValue ) "
             )
         }
 

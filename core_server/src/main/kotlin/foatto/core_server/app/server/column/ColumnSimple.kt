@@ -9,28 +9,39 @@ abstract class ColumnSimple : ColumnAbstract() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun getSortFieldName( index: Int ) = alFieldName[ index ]
+    override fun getSortFieldName(index: Int) = alFieldName[index]
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     protected val savedDefaultPropertyName: String
-        get() = "${tableName}_${alFieldName[ 0 ]}"
+        get() = "${tableName}_${alFieldName[0]}"
 
-    protected fun addFieldName( vararg fieldNames: String ) {
-        alFieldName.addAll( fieldNames )
+    protected fun addFieldName(vararg fieldNames: String) {
+        alFieldName.addAll(fieldNames)
     }
 
 //    protected fun setFieldName(aArrFieldName: Array<String>) {
 //        arrFieldName = aArrFieldName
 //    }
 
-    fun fillCombo(stm: CoreAdvancedStatement, tableName: String, fieldName: String ) {
-        val rs = stm.executeQuery( " SELECT DISTINCT $fieldName FROM $tableName WHERE $fieldName IS NOT NULL ORDER BY $fieldName" )
-        while( rs.next() ) alCombo.add( rs.getString( 1 ).trim() )
+    fun fillCombo(stm: CoreAdvancedStatement, tableName: String, fieldName: String) {
+        val rs = stm.executeQuery(
+            """
+                SELECT DISTINCT $fieldName 
+                FROM $tableName 
+                WHERE $fieldName IS NOT NULL 
+                ORDER BY $fieldName
+            """
+        )
+        while (rs.next()) {
+            alCombo += rs.getString(1).trim()
+        }
         rs.close()
     }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    fun addCombo( s: String ) { alCombo.add( s ) }
+    fun addCombo(s: String) {
+        alCombo += s
+    }
 }

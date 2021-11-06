@@ -7,7 +7,9 @@ import kotlin.math.roundToLong
 
 fun getFilledNumberString(num: Int, charCount: Int): String {
     var s = num.toString()
-    while (s.length < charCount) s = "0$s"
+    if (s.length < charCount) {
+        s = "0".repeat(charCount - s.length) + s
+    }
     return s
 }
 

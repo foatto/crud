@@ -196,7 +196,7 @@ class cCatalog : cAbstractHierarchy() {
         ) {
 
             //--- такой цены не нашлось - просто добавляем
-            val nextID = stm.getNextID("SHOP_price", "id")
+            val nextID = stm.getNextIntId("SHOP_price", "id")
             stm.executeUpdate(
                 " INSERT INTO SHOP_price ( id, catalog_id, price_type, ye, mo, da, price_value, price_note ) VALUES ( " +
                     " $nextID , $catalogID , $priceType , " +

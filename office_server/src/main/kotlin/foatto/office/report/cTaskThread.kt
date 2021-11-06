@@ -3,6 +3,7 @@ package foatto.office.report
 import foatto.core.link.FormData
 import foatto.core.util.DateTime_DMY
 import foatto.core.util.DateTime_DMYHM
+import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.data.DataInt
 import jxl.CellView
 import jxl.format.PageOrientation
@@ -12,16 +13,18 @@ import jxl.write.WritableSheet
 
 class cTaskThread : cOfficeReport() {
 
-    override fun isFormAutoClick() = if(hmParentData[ "office_task_in" ] != null || hmParentData["office_task_out"] != null) true else super.isFormAutoClick()
+    override fun isFormAutoClick() = if (hmParentData["office_task_in"] != null || hmParentData["office_task_out"] != null) true else super.isFormAutoClick()
 
     override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
         val returnURL = super.doSave(action, alFormData, hmOut)
-        if( returnURL != null ) return returnURL
+        if (returnURL != null) {
+            return returnURL
+        }
 
         val m = model as mTask
 
         //--- выборка данных параметров для отчета
-        hmReportParam[ "report_task" ] = (hmColumnData[ m.columnReportTask ] as DataInt).intValue
+        hmReportParam["report_task"] = (hmColumnData[m.columnReportTask] as DataInt).intValue
 
         return getReport()
     }
@@ -44,7 +47,7 @@ class cTaskThread : cOfficeReport() {
     override fun postReport(sheet: WritableSheet) {
 
         //--- загрузка стартовых параметров
-        val reportTask = hmReportParam[ "report_task" ] as Int
+        val reportTask = hmReportParam["report_task"] as Int
 
         defineFormats(8, 2, 0)
 
@@ -53,13 +56,13 @@ class cTaskThread : cOfficeReport() {
         //--- в алиасе написано "Распечатать поручение", не пойдёт как заголовок
         sheet.addCell(Label(1, offsY++, "Поручение", wcfTitleL))
 
-        var rs = stm.executeQuery( " SELECT out_user_id , in_user_id , ye , mo , da , subj FROM OFFICE_task WHERE id = $reportTask " )
-        if(rs.next()) {
+        var rs = stm.executeQuery(" SELECT out_user_id , in_user_id , ye , mo , da , subj FROM OFFICE_task WHERE id = $reportTask ")
+        if (rs.next()) {
             sheet.addCell(Label(1, offsY, "От кого:", wcfTitleName))
-            sheet.addCell(Label(2, offsY, userConfig.hmUserFullNames[rs.getInt(1)], wcfTitleValue))
+            sheet.addCell(Label(2, offsY, UserConfig.hmUserFullNames[rs.getInt(1)], wcfTitleValue))
             offsY++
             sheet.addCell(Label(1, offsY, "Кому:", wcfTitleName))
-            sheet.addCell(Label(2, offsY, userConfig.hmUserFullNames[rs.getInt(2)], wcfTitleValue))
+            sheet.addCell(Label(2, offsY, UserConfig.hmUserFullNames[rs.getInt(2)], wcfTitleValue))
             offsY++
             sheet.addCell(Label(1, offsY, "Срок исполнения:", wcfTitleName))
             sheet.addCell(Label(2, offsY, DateTime_DMY(intArrayOf(rs.getInt(3), rs.getInt(4), rs.getInt(5), 0, 0, 0)), wcfTitleValue))
@@ -79,7 +82,7 @@ class cTaskThread : cOfficeReport() {
         alDim.add(14)    // "Дата/время" без секунд
         alDim.add(51)    // "Сообщение"
 
-        for(i in alDim.indices) {
+        for (i in alDim.indices) {
             val cvNN = CellView()
             cvNN.size = alDim[i] * 256
             sheet.setColumnView(i, cvNN)
@@ -97,9 +100,9 @@ class cTaskThread : cOfficeReport() {
         rs = stm.executeQuery(
             " SELECT user_id , ye , mo , da , ho , mi , message FROM OFFICE_task_thread WHERE task_id = $reportTask ORDER BY ye DESC , mo DESC , da DESC , ho DESC , mi DESC "
         )
-        while(rs.next()) {
+        while (rs.next()) {
             sheet.addCell(Label(0, offsY, (countNN++).toString(), wcfNN))
-            sheet.addCell(Label(1, offsY, userConfig.hmUserFullNames[rs.getInt(1)], wcfCellL))
+            sheet.addCell(Label(1, offsY, UserConfig.hmUserFullNames[rs.getInt(1)], wcfCellL))
             sheet.addCell(Label(2, offsY, DateTime_DMYHM(intArrayOf(rs.getInt(2), rs.getInt(3), rs.getInt(4), rs.getInt(5), rs.getInt(6), 0)), wcfCellC))
             sheet.addCell(Label(3, offsY, rs.getString(7), wcfCellL))
 

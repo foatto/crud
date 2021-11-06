@@ -167,7 +167,7 @@ class sdcMMSState : sdcXyState() {
                             user_id , device_id , object_id , 
                             command_id , edit_time , 
                             for_send , send_time ) VALUES ( 
-                            ${stm.getNextID("MMS_device_command_history", "id")} , 
+                            ${stm.getNextIntId("MMS_device_command_history", "id")} , 
                             ${userConfig.userId} , $deviceID , $objectId , 
                             $commandID , ${getCurrentTimeInt()} , 
                             1 , 0 ) 

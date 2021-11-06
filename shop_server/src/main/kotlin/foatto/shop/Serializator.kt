@@ -130,7 +130,7 @@
 ////        json += "],"
 ////    }
 ////
-////    json += sessionID.toJson( "sessionID" )
+////    json += sessionId.toJson( "sessionId" )
 ////
 ////    return "$json}"
 ////}
@@ -198,7 +198,7 @@
 ////    json += name.toJson( "name" ) + ","
 ////    json += value.toJson( "value" ) + ","
 ////
-////    json += sessionID.toJson( "sessionID" )
+////    json += sessionId.toJson( "sessionId" )
 ////
 ////    return "$json}"
 ////}
@@ -208,7 +208,7 @@
 ////
 ////    json += password.toJson( "password" ) + ","
 ////
-////    json += sessionID.toJson( "sessionID" )
+////    json += sessionId.toJson( "sessionId" )
 ////
 ////    return "$json}"
 ////}
@@ -216,7 +216,7 @@
 ////fun LogoffRequest.toJson(): String {
 ////    var json = "{"
 ////
-////    json += sessionID.toJson( "sessionID" )
+////    json += sessionId.toJson( "sessionId" )
 ////
 ////    return "$json}"
 ////}

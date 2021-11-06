@@ -135,7 +135,7 @@ class Tasker(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                             WHERE id = $taskID
                         """
                     //--- в переписку добавить "!" и userID ответственного для последующих отчетов
-                    val rowID = alStm[0].getNextID("OFFICE_task_thread", "id")
+                    val rowID = alStm[0].getNextIntId("OFFICE_task_thread", "id")
                     val sqlTaskThread =
                         """
                             INSERT INTO OFFICE_task_thread ( id , user_id , task_id , ye , mo , da , ho , mi , message ) VALUES ( 

@@ -636,7 +636,7 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         }
 
         //--- в любом случае пишем сообщение
-        val rowID = alStm[0].getNextID("OFFICE_task_thread", "id")
+        val rowID = alStm[0].getNextIntId("OFFICE_task_thread", "id")
         alStm[0].executeUpdate(
             """
                 INSERT INTO OFFICE_task_thread ( id , user_id , task_id , ye , mo , da , ho , mi , message ) VALUES (
@@ -650,7 +650,7 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         alStm[0].executeUpdate(
             """
                 INSERT INTO SYSTEM_alert ( id , alert_time , tag , row_id ) VALUES ( 
-                    ${alStm[0].getNextID("SYSTEM_alert", "id")} , -1 , '${mTaskThread.ALERT_TAG}' , $rowID 
+                    ${alStm[0].getNextIntId("SYSTEM_alert", "id")} , -1 , '${mTaskThread.ALERT_TAG}' , $rowID 
                 ) 
             """
         )

@@ -87,7 +87,7 @@ class cDevice : cStandart() {
                 INSERT INTO TS_sensor( 
                     id , object_id , name , group_name , descr , port_num , sensor_type
                 ) VALUES ( 
-                    ${stm.getNextID("TS_sensor", "id")} , $objectId ,  '' , '' , 'Код текущего состояния установки УДС' , 
+                    ${stm.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Код текущего состояния установки УДС' , 
                     ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + 0} , ${SensorConfig.SENSOR_STATE}
                 )
             """
@@ -100,7 +100,7 @@ class cDevice : cStandart() {
                     ignore_min_sensor , ignore_max_sensor , smooth_method , smooth_time ,
                     analog_min_view , analog_max_view , analog_min_limit , analog_max_limit                                          
                 ) VALUES ( 
-                    ${stm.getNextID("TS_sensor", "id")} , $objectId ,  '' , '' , 'Глубина [м]' , 
+                    ${stm.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Глубина [м]' , 
                     ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + 1} , ${SensorConfig.SENSOR_DEPTH} ,
                     -1 , 1000000 , ${SensorConfig.SMOOTH_METOD_MEDIAN} , 0 ,
                     0, 2000, 0, 0
@@ -114,7 +114,7 @@ class cDevice : cStandart() {
                     ignore_min_sensor , ignore_max_sensor , smooth_method , smooth_time ,
                     analog_min_view , analog_max_view , analog_min_limit , analog_max_limit                                          
                 ) VALUES ( 
-                    ${stm.getNextID("TS_sensor", "id")} , $objectId ,  '' , '' , 'Скорость спуска [м/ч]' , 
+                    ${stm.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Скорость спуска [м/ч]' , 
                     ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + 2} , ${SensorConfig.SENSOR_SPEED} ,
                     -1 , 1000 , ${SensorConfig.SMOOTH_METOD_MEDIAN} , 0 ,
                     0, 1000, 0, 0
@@ -128,7 +128,7 @@ class cDevice : cStandart() {
                     ignore_min_sensor , ignore_max_sensor , smooth_method , smooth_time ,
                     analog_min_view , analog_max_view , analog_min_limit , analog_max_limit                                          
                 ) VALUES ( 
-                    ${stm.getNextID("TS_sensor", "id")} , $objectId ,  '' , '' , 'Нагрузка на привод [%]' , 
+                    ${stm.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Нагрузка на привод [%]' , 
                     ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + 3} , ${SensorConfig.SENSOR_LOAD} ,
                     -1 , 151 , ${SensorConfig.SMOOTH_METOD_MEDIAN} , 0 ,
                     0, 150, 0, 0
@@ -142,7 +142,7 @@ class cDevice : cStandart() {
                     ignore_min_sensor , ignore_max_sensor , smooth_method , smooth_time ,
                     analog_min_view , analog_max_view , analog_min_limit , analog_max_limit                                          
                 ) VALUES ( 
-                    ${stm.getNextID("TS_sensor", "id")} , $objectId ,  '' , '' , 'Дата/время следующей чистки' , 
+                    ${stm.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Дата/время следующей чистки' , 
                     ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + 4} , ${SensorConfig.SENSOR_NEXT_CLEAN_DATETIME} ,
                     -1 , ${Int.MAX_VALUE} , ${SensorConfig.SMOOTH_METOD_MEDIAN} , 0 ,
                     0, ${Int.MAX_VALUE}, 0, 0
@@ -156,7 +156,7 @@ class cDevice : cStandart() {
                     id , object_id , name , group_name , descr , port_num , sensor_type ,
                     show_pos , value_type , prec                
                 ) VALUES ( 
-                    ${stm.getNextID("TS_sensor", "id")} , $objectId ,  '' , '' , 'Глубина очистки [м]' , 
+                    ${stm.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Глубина очистки [м]' , 
                     ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + 5} , ${SensorConfig.SENSOR_SETUP} ,
                     $CLEANING_DEPTH_SHOW_POS , ${SensorConfigSetup.VALUE_TYPE_NUMBER}, 0
                 )
@@ -168,7 +168,7 @@ class cDevice : cStandart() {
                     id , object_id , name , group_name , descr , port_num , sensor_type ,
                     show_pos , value_type , prec                
                 ) VALUES ( 
-                    ${stm.getNextID("TS_sensor", "id")} , $objectId ,  '' , '' , 'Период очистки [час]' , 
+                    ${stm.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Период очистки [час]' , 
                     ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + 6} , ${SensorConfig.SENSOR_SETUP} ,
                     1 , ${SensorConfigSetup.VALUE_TYPE_NUMBER}, 0
                 )
@@ -180,7 +180,7 @@ class cDevice : cStandart() {
                     id , object_id , name , group_name , descr , port_num , sensor_type ,
                     show_pos , value_type , prec                
                 ) VALUES ( 
-                    ${stm.getNextID("TS_sensor", "id")} , $objectId ,  '' , '' , 'Скорость очистки [м/ч]' , 
+                    ${stm.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Скорость очистки [м/ч]' , 
                     ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + 7} , ${SensorConfig.SENSOR_SETUP} ,
                     2 , ${SensorConfigSetup.VALUE_TYPE_NUMBER}, 0
                 )
@@ -193,7 +193,7 @@ class cDevice : cStandart() {
                     ignore_min_sensor , ignore_max_sensor , smooth_method , smooth_time ,
                     analog_min_view , analog_max_view , analog_min_limit , analog_max_limit                                          
                 ) VALUES ( 
-                    ${stm.getNextID("TS_sensor", "id")} , $objectId ,  '' , '' , 'Уровень сигнала [%]' , 
+                    ${stm.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Уровень сигнала [%]' , 
                     ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + 8} , ${SensorConfig.SENSOR_SIGNAL_LEVEL} ,
                     -1 , 101 , ${SensorConfig.SMOOTH_METOD_MEDIAN} , 0 ,
                     0, 100, 0, 0
@@ -206,7 +206,7 @@ class cDevice : cStandart() {
                     id , object_id , name , group_name , descr , port_num , sensor_type ,
                     show_pos , value_type , prec                
                 ) VALUES ( 
-                    ${stm.getNextID("TS_sensor", "id")} , $objectId ,  '' , '' , 'Ограничение нагрузки на привод [%]' , 
+                    ${stm.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Ограничение нагрузки на привод [%]' , 
                     ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + 10} , ${SensorConfig.SENSOR_SETUP} ,
                     $DRIVE_LOAD_RESTRICT_SHOW_POS , ${SensorConfigSetup.VALUE_TYPE_NUMBER}, 0
                 )
@@ -218,7 +218,7 @@ class cDevice : cStandart() {
                     id , object_id , name , group_name , descr , port_num , sensor_type ,
                     show_pos , value_type , prec                
                 ) VALUES ( 
-                    ${stm.getNextID("TS_sensor", "id")} , $objectId ,  '' , '' , 'Глубина парковки скребка [м]' , 
+                    ${stm.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Глубина парковки скребка [м]' , 
                     ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + 12} , ${SensorConfig.SENSOR_SETUP} ,
                     $PARKING_DEPTH_SHOW_POS , ${SensorConfigSetup.VALUE_TYPE_NUMBER}, 0
                 )
@@ -230,7 +230,7 @@ class cDevice : cStandart() {
                     id , object_id , name , group_name , descr , port_num , sensor_type ,
                     show_pos , value_type , prec                
                 ) VALUES ( 
-                    ${stm.getNextID("TS_sensor", "id")} , $objectId ,  '' , '' , 'Количество попыток прохода препятствия' , 
+                    ${stm.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Количество попыток прохода препятствия' , 
                     ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + 13} , ${SensorConfig.SENSOR_SETUP} ,
                     6 , ${SensorConfigSetup.VALUE_TYPE_NUMBER}, 0
                 )
@@ -242,7 +242,7 @@ class cDevice : cStandart() {
                     id , object_id , name , group_name , descr , port_num , sensor_type ,
                     show_pos , value_type , prec                
                 ) VALUES ( 
-                    ${stm.getNextID("TS_sensor", "id")} , $objectId ,  '' , '' , 'Запуск ЭЦН' , 
+                    ${stm.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Запуск ЭЦН' , 
                     ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + 14} , ${SensorConfig.SENSOR_SETUP} ,
                     7 , ${SensorConfigSetup.VALUE_TYPE_BOOLEAN}, 0
                 )
@@ -254,7 +254,7 @@ class cDevice : cStandart() {
                     id , object_id , name , group_name , descr , port_num , sensor_type ,
                     show_pos , value_type , prec                
                 ) VALUES ( 
-                    ${stm.getNextID("TS_sensor", "id")} , $objectId ,  '' , '' , 'Пауза между проходами препятствия [сек]' , 
+                    ${stm.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Пауза между проходами препятствия [сек]' , 
                     ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + 15} , ${SensorConfig.SENSOR_SETUP} ,
                     5 , ${SensorConfigSetup.VALUE_TYPE_NUMBER}, 0
                 )
@@ -267,7 +267,7 @@ class cDevice : cStandart() {
                     ignore_min_sensor , ignore_max_sensor , smooth_method , smooth_time ,
                     analog_min_view , analog_max_view , analog_min_limit , analog_max_limit                                          
                 ) VALUES ( 
-                    ${stm.getNextID("TS_sensor", "id")} , $objectId ,  '' , '' , 'Текущая температура внутри станции УДС (реле №1) [˚С]' , 
+                    ${stm.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Текущая температура внутри станции УДС (реле №1) [˚С]' , 
                     ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + 16} , ${SensorConfig.SENSOR_TEMPERATURE_IN} ,
                     -200 , 1000 , ${SensorConfig.SMOOTH_METOD_MEDIAN} , 0 ,
                     -100, 200, 0, 0
@@ -281,7 +281,7 @@ class cDevice : cStandart() {
                     ignore_min_sensor , ignore_max_sensor , smooth_method , smooth_time ,
                     analog_min_view , analog_max_view , analog_min_limit , analog_max_limit                                          
                 ) VALUES ( 
-                    ${stm.getNextID("TS_sensor", "id")} , $objectId ,  '' , '' , 'Текущая температура снаружи (реле №2) [˚С]' , 
+                    ${stm.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Текущая температура снаружи (реле №2) [˚С]' , 
                     ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + 17} , ${SensorConfig.SENSOR_TEMPERATURE_OUT} ,
                     -200 , 1000 , ${SensorConfig.SMOOTH_METOD_MEDIAN} , 0 ,
                     -100, 200, 0, 0
@@ -294,7 +294,7 @@ class cDevice : cStandart() {
                     id , object_id , name , group_name , descr , port_num , sensor_type ,
                     show_pos , value_type , prec                
                 ) VALUES ( 
-                    ${stm.getNextID("TS_sensor", "id")} , $objectId ,  '' , '' , 'Уровень температуры внутри [˚С]' , 
+                    ${stm.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Уровень температуры внутри [˚С]' , 
                     ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + 18} , ${SensorConfig.SENSOR_SETUP} ,
                     8 , ${SensorConfigSetup.VALUE_TYPE_NUMBER}, 0
                 )
@@ -306,7 +306,7 @@ class cDevice : cStandart() {
                     id , object_id , name , group_name , descr , port_num , sensor_type ,
                     show_pos , value_type , prec                
                 ) VALUES ( 
-                    ${stm.getNextID("TS_sensor", "id")} , $objectId ,  '' , '' , 'Уровень температуры снаружи [˚С]' , 
+                    ${stm.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Уровень температуры снаружи [˚С]' , 
                     ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + 19} , ${SensorConfig.SENSOR_SETUP} ,
                     9 , ${SensorConfigSetup.VALUE_TYPE_NUMBER}, 0
                 )

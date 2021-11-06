@@ -197,8 +197,12 @@ class UserConfig private constructor(
         val rs = stm.executeQuery(" SELECT role_id FROM SYSTEM_user_role WHERE user_id = $userId ")
         while (rs.next()) {
             val roleID = rs.getInt(1)
-            if (roleID == ROLE_GUEST) isGuest = true
-            if (roleID == ROLE_ADMIN) isAdmin = true
+            if (roleID == ROLE_GUEST) {
+                isGuest = true
+            }
+            if (roleID == ROLE_ADMIN) {
+                isAdmin = true
+            }
             roleCount++
         }
         rs.close()

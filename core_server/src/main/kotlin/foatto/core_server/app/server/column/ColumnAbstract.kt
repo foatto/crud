@@ -59,8 +59,8 @@ abstract class ColumnAbstract : iColumn {
 
     override var formPinMode = FormPinMode.AUTO
 
-    override val alFCVD = ArrayList<FormColumnVisibleData>()
-    override val alFCCD = ArrayList<FormColumnCaptionData>()
+    override val alFCVD = mutableListOf<FormColumnVisibleData>()
+    override val alFCCD = mutableListOf<FormColumnCaptionData>()
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -111,7 +111,7 @@ class mDevice : mAbstract() {
             }
         }
 
-        columnESDCreatingEnabled = ColumnBoolean(tableName, "_esd_create_enabled", "Автосоздание датчиков Euro Sens Data", false).apply {
+        columnESDCreatingEnabled = ColumnBoolean(tableName, "_esd_create_enabled", "Автосоздание датчиков Euro Sens", false).apply {
             isVirtual = true
         }
         (1..MAX_PORT_PER_SENSOR).forEach { si ->

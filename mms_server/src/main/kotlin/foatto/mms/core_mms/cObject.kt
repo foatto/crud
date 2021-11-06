@@ -60,7 +60,7 @@ class cObject : cStandart() {
 
     //protected open fun getNextID( hmColumnData: HashMap<iColumn,iData> ): Int {
     override fun getNextID(hmColumnData: Map<iColumn, iData>): Int {
-        return stm.getNextID(arrayOf("MMS_object", "MMS_zone"), arrayOf("id", "id"))
+        return stm.getNextIntId(arrayOf("MMS_object", "MMS_zone"), arrayOf("id", "id"))
     }
 
     override fun postAdd(id: Int, hmColumnData: Map<iColumn, iData>, hmOut: MutableMap<String, Any>): String? {

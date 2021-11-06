@@ -16,7 +16,7 @@ class cRole : cStandart() {
         rs.close()
 
         for( permID in alPerm ) {
-            val nextRolePermID = stm.getNextID( "SYSTEM_role_permission", "id" )
+            val nextRolePermID = stm.getNextIntId( "SYSTEM_role_permission", "id" )
             stm.executeUpdate( " INSERT INTO SYSTEM_role_permission ( id, role_id, permission_id, permission_value ) VALUES ( $nextRolePermID , $id , $permID , 0 ) " )
         }
         return postURL

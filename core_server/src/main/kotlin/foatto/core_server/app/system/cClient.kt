@@ -56,7 +56,7 @@ open class cClient : cStandart() {
 
         //--- автосоздание привязки пользователя/клиента и его типовых ролей
         mc.getClientRoleIds(application, aliasConfig.alias).forEach { clientRoleId ->
-            val nextId = stm.getNextID("SYSTEM_user_role", "id")
+            val nextId = stm.getNextIntId("SYSTEM_user_role", "id")
             stm.executeUpdate(
                 """
                     INSERT INTO SYSTEM_user_role( id , role_id , user_id ) 

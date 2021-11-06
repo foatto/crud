@@ -66,7 +66,7 @@ class cSensor : cMMSOneObjectParent() {
                 if (sensorValue != null && dataValue != null) {
                     stm.executeUpdate(
                         " INSERT INTO MMS_sensor_calibration ( id , sensor_id , value_sensor , value_data ) VALUES ( +" +
-                            stm.getNextID("MMS_sensor_calibration", "id") +
+                            stm.getNextIntId("MMS_sensor_calibration", "id") +
                             " , $id , $sensorValue , $dataValue ) "
                     )
                 }

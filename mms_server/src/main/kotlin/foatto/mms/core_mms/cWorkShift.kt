@@ -79,7 +79,7 @@ class cWorkShift : cMMSOneObjectParent() {
                             " INSERT INTO MMS_work_shift ( "
                         )
                             .append(" id , user_id , object_id , beg_dt , end_dt , beg_dt_fact , end_dt_fact , worker_id , shift_no , run ) VALUES ( ")
-                            .append(stm.getNextID("MMS_work_shift", "id")).append(" , ")
+                            .append(stm.getNextIntId("MMS_work_shift", "id")).append(" , ")
                             .append(userID).append(" , ").append(objectId).append(" , ")
                             //--- при автосоздании примем фактическое время == документальному времени
                             .append(begTime).append(" , ").append(endTime).append(" , ")

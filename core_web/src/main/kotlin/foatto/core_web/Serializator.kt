@@ -162,7 +162,7 @@ fun FormData.toJson(): String {
 
     json += comboValue.toJson("comboValue") + ","
 
-    json += fileID.toJson("fileID") + ","
+    json += fileId.toJson("fileId") + ","
 
     json += hmFileAdd?.mapKeys { it.key.toString() }.toJson("hmFileAdd") + ","
 
@@ -178,7 +178,7 @@ fun FormData.toJson(): String {
 //        json += "},"
 //    }
 
-    json += alFileRemovedID.toJson("alFileRemovedID")
+    json += alFileRemovedId.toJson("alFileRemovedId")
 
     return "$json}"
 }
@@ -219,7 +219,7 @@ fun XyActionRequest.toJson(): String {
 
     json += xyElement.toJson("xyElement") + ","
 
-    json += alActionElementIds.toJson("alActionelementIds") + ","
+    json += alActionElementIds.toJson("alActionElementIds") + ","
     json += dx.toJson("dx") + ","
     json += dy.toJson("dy") + ","
 

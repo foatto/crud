@@ -41,7 +41,7 @@ class mTaskThread : mAbstract() {
         //----------------------------------------------------------------------------------------------------------------------
 
         columnID = ColumnInt(tableName, "id")
-        columnUser = ColumnInt(tableName, "user_id", userConfig.userID)
+        columnUser = ColumnInt(tableName, "user_id", userConfig.userId)
 
         //----------------------------------------------------------------------------------------------------------------------
 

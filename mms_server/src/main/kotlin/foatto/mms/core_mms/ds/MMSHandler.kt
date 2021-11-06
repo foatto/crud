@@ -145,7 +145,7 @@ abstract class MMSHandler : AbstractTelematicHandler() {
                     stm.executeUpdate(
                         """
                             INSERT INTO MMS_day_work ( id , user_id , object_id , ye , mo , da ) VALUES ( 
-                            ${stm.getNextID("MMS_day_work", "id")} , ${deviceConfig.userId} , ${deviceConfig.objectId} , ${arrDT[0]} , ${arrDT[1]} , ${arrDT[2]} )
+                            ${stm.getNextIntId("MMS_day_work", "id")} , ${deviceConfig.userId} , ${deviceConfig.objectId} , ${arrDT[0]} , ${arrDT[1]} , ${arrDT[2]} )
                         """
                     )
                 }
@@ -176,7 +176,7 @@ abstract class MMSHandler : AbstractTelematicHandler() {
             dirSessionLog: File,
             zoneId: ZoneId,
             deviceId: Int,
-            deviceConfig: DeviceConfig,
+            deviceConfig: DeviceConfig?,
             fwVersion: String,
             begTime: Int,
             address: String,
@@ -210,7 +210,7 @@ abstract class MMSHandler : AbstractTelematicHandler() {
             out.flush()
             out.close()
 
-            val dirObjectSessionLog = File(dirSessionLog, "object/${deviceConfig.objectId}")
+            val dirObjectSessionLog = File(dirSessionLog, "object/${deviceConfig?.objectId ?: "null"}")
             dirObjectSessionLog.mkdirs()
             out = getFileWriter(File(dirObjectSessionLog, curLogFileName), true)
             out.write(text)

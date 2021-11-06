@@ -178,8 +178,8 @@ class sdcMMSMap : sdcXyMap() {
         val sd = chmSession[AppParameter.XY_START_DATA + xyStartDataID] as XyStartData
 
         val xyElement = xyActionRequest.xyElement!!
-        xyElement.elementId = stm.getNextID("XY_element", "id")
-        xyElement.objectId = stm.getNextID(arrayOf("MMS_object", "MMS_zone"), arrayOf("id", "id"))
+        xyElement.elementId = stm.getNextIntId("XY_element", "id")
+        xyElement.objectId = stm.getNextIntId(arrayOf("MMS_object", "MMS_zone"), arrayOf("id", "id"))
 
         val zoneName = xyActionRequest.hmParam[PARAM_ZONE_NAME] ?: "-"
         val zoneDescr = xyActionRequest.hmParam[PARAM_ZONE_DESCR] ?: "-"

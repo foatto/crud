@@ -242,7 +242,11 @@ open class cStandart {
             alPermission.add(Pair("${permName}_${nd.first}", "$permDescrNum.$i $permDescr: ${nd.second}"))
     }
 
-    protected open fun isAddEnabled(): Boolean = if (model.isUseParentUserID()) checkPerm(PERM_ADD, parentUserID) else hsPermission.contains(PERM_ADD)
+    protected open fun isAddEnabled(): Boolean = if (model.isUseParentUserID()) {
+        checkPerm(PERM_ADD, parentUserID)
+    } else {
+        hsPermission.contains(PERM_ADD)
+    }
 
     protected open fun isEditEnabled(hmColumnData: Map<iColumn, iData>, id: Int): Boolean =
         if (id == 0) {
@@ -1720,7 +1724,7 @@ open class cStandart {
         if (id == 0) {
             id = getNextID(hmColumnData)
             model.columnVersionId?.let {
-                val versionId = stm.getNextID(model.tableName, it.getFieldName())
+                val versionId = stm.getNextIntId(model.tableName, it.getFieldName())
                 (hmColumnData[it] as DataInt).intValue = versionId
             }
             doInsert(id, alColumnList, hmColumnData)
@@ -1854,7 +1858,7 @@ open class cStandart {
     protected open fun preSave(id: Int, hmColumnData: Map<iColumn, iData>) {}
 
     protected open fun getNextID(hmColumnData: Map<iColumn, iData>): Int {
-        return stm.getNextID(model.tableName, model.columnID.getFieldName())
+        return stm.getNextIntId(model.tableName, model.columnID.getFieldName())
     }
 
     protected open fun doInsert(id: Int, alColumnList: List<iColumn>, hmColumnData: Map<iColumn, iData>): Int {
@@ -1946,12 +1950,12 @@ open class cStandart {
                 //--- сохраняем время в секундах с заданным упреждением
                 alertTime -= dcb.intValue * 60
                 stm.executeUpdate(
-                    " INSERT INTO SYSTEM_alert ( id , alert_time , tag , row_id ) VALUES ( " + stm.getNextID("SYSTEM_alert", "id") +
+                    " INSERT INTO SYSTEM_alert ( id , alert_time , tag , row_id ) VALUES ( " + stm.getNextIntId("SYSTEM_alert", "id") +
                         " , $alertTime , '$alertTag' , $id  ) "
                 )
             }
         } else stm.executeUpdate(
-            " INSERT INTO SYSTEM_alert ( id , alert_time , tag , row_id ) VALUES ( " + stm.getNextID("SYSTEM_alert", "id") +
+            " INSERT INTO SYSTEM_alert ( id , alert_time , tag , row_id ) VALUES ( " + stm.getNextIntId("SYSTEM_alert", "id") +
                 " , $alertTime , '$alertTag' , $id ) "
         )
     }
