@@ -17,7 +17,7 @@ class CoreStaticFileDownloadController {
 
     @GetMapping(value = ["/"])
     fun downloadRoot(response: HttpServletResponse) {
-        CoreSpringApp.download(response, "${rootDirName}/web/index.html")
+        CoreAppController.download(response, "${rootDirName}/web/index.html")
     }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ class CoreStaticFileDownloadController {
         @PathVariable("fileName")
         fileName: String
     ) {
-        CoreSpringApp.download(response, "${rootDirName}/web/$fileName")
+        CoreAppController.download(response, "${rootDirName}/web/$fileName")
     }
 
     @GetMapping(value = ["/web/images/{fileName}"])
@@ -37,7 +37,7 @@ class CoreStaticFileDownloadController {
         @PathVariable("fileName")
         fileName: String
     ) {
-        CoreSpringApp.download(response, "${rootDirName}/web/images/$fileName")
+        CoreAppController.download(response, "${rootDirName}/web/images/$fileName")
     }
 
     @GetMapping(value = ["/web/js/{fileName}"])
@@ -46,7 +46,7 @@ class CoreStaticFileDownloadController {
         @PathVariable("fileName")
         fileName: String
     ) {
-        CoreSpringApp.download(response, "${rootDirName}/web/js/$fileName")
+        CoreAppController.download(response, "${rootDirName}/web/js/$fileName")
     }
 
     @GetMapping(value = ["/web/lib/{fileName}"])
@@ -55,7 +55,7 @@ class CoreStaticFileDownloadController {
         @PathVariable("fileName")
         fileName: String
     ) {
-        CoreSpringApp.download(response, "${rootDirName}/web/lib/$fileName")
+        CoreAppController.download(response, "${rootDirName}/web/lib/$fileName")
     }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -66,7 +66,7 @@ class CoreStaticFileDownloadController {
         @PathVariable("fileName")
         fileName: String
     ) {
-        CoreSpringApp.download(response, "${rootDirName}/reports/$fileName")
+        CoreAppController.download(response, "${rootDirName}/reports/$fileName")
     }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -77,6 +77,6 @@ class CoreStaticFileDownloadController {
         @PathVariable("fileName")
         fileName: String
     ) {
-        CoreSpringApp.download(response, "${rootDirName}/map/$fileName")
+        CoreAppController.download(response, "${rootDirName}/map/$fileName")
     }
 }

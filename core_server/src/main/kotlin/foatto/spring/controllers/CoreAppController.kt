@@ -6,18 +6,11 @@ import foatto.core.app.graphic.GraphicActionResponse
 import foatto.core.app.xy.XyAction
 import foatto.core.app.xy.XyActionRequest
 import foatto.core.app.xy.XyActionResponse
-import foatto.core.link.AppAction
-import foatto.core.link.AppRequest
-import foatto.core.link.AppResponse
-import foatto.core.link.GraphicResponse
-import foatto.core.link.MenuData
-import foatto.core.link.ResponseCode
-import foatto.core.link.XyResponse
+import foatto.core.link.*
 import foatto.core.util.AdvancedLogger
 import foatto.core.util.BusinessException
 import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.getFilledNumberString
-import foatto.core.util.getRandomInt
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.graphic.server.GraphicDocumentConfig
 import foatto.core_server.app.graphic.server.GraphicStartData
@@ -34,22 +27,50 @@ import foatto.sql.AdvancedConnection
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedStatement
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.multipart.MultipartFile
 import java.io.File
+import java.net.URLConnection
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.ConcurrentHashMap
+import javax.servlet.http.HttpServletResponse
 import kotlin.math.min
 
 //--- добавлять у каждого наследника
 //@RestController
 abstract class CoreAppController : iApplication {
 
+    companion object {
+
+        const val FILE_BASE = "files"
+
+        //--- last enabled time for file access check
+        private val chmFileTime = ConcurrentHashMap<String, Int>()
+
+        fun download(response: HttpServletResponse, path: String) {
+            val file = File(path)
+            val mimeType = URLConnection.guessContentTypeFromName(file.name)
+
+            response.contentType = mimeType
+            response.setContentLength(file.length().toInt())
+            response.outputStream.write(file.readBytes())
+        }
+    }
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     @Value("\${root_dir}")
     override val rootDirName: String = ""
 
     @Value("\${temp_dir}")
     override val tempDirName: String = ""
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @Value("\${client_alias}")
     override val alClientAlias: Array<String> = emptyArray()
@@ -62,12 +83,15 @@ abstract class CoreAppController : iApplication {
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    @Value("\${file_access_period}")
+    val fileAccessPeriod: String = "24"  // 24 hour file accessibility by default
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     override val hmAliasLogDir: MutableMap<String, String>
         get() = CoreSpringApp.hmAliasLogDir
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    private val FILE_BASE = "files"
 
     override fun getFileList(stm: CoreAdvancedStatement, fileId: Int): List<Pair<Int, String>> {
         val alFileStoreData = mutableListOf<Pair<Int, String>>()
@@ -84,7 +108,11 @@ abstract class CoreAppController : iApplication {
             val id = rs.getInt(1)
             val fileName = rs.getString(2)
             val dirName = rs.getString(3)
-            alFileStoreData.add(Pair(id, "/$FILE_BASE/$dirName/$fileName"))
+
+            val fileUrl = "/$FILE_BASE/$dirName/$fileName"
+
+            alFileStoreData.add(Pair(id, fileUrl))
+            chmFileTime[fileUrl] = getCurrentTimeInt()
         }
         rs.close()
 
@@ -92,17 +120,32 @@ abstract class CoreAppController : iApplication {
     }
 
     override fun saveFile(stm: CoreAdvancedStatement, fileId: Int, idFromClient: Int, fileName: String) {
-        //--- найти для него новое местоположение
-        val newDirName = getFreeDir(fileName)
-        val newFile = File(rootDirName, "$FILE_BASE/$newDirName/$fileName")
+        val fileFromClient = File(tempDirName, idFromClient.toString())
+        val fileStoreId = stm.getNextIntId("SYSTEM_file_store", "id")
 
-        //--- перенести файл в отведённое место
-        File(tempDirName, idFromClient.toString()).renameTo(newFile)
+        val dirName = CoreSpringApp.minioProxy?.let { minioProxy ->
+            minioProxy.saveFile(
+                objectName = fileStoreId.toString(),
+                objectStream = fileFromClient.inputStream(),
+                objectSize = fileFromClient.length()
+            )
+
+            fileStoreId.toString()
+        } ?: run {
+            //--- найти для него новое местоположение
+            val newDirName = getFreeDir(fileName)
+            val newFile = File(rootDirName, "$FILE_BASE/$newDirName/$fileName")
+
+            //--- перенести файл в отведённое место
+            fileFromClient.renameTo(newFile)
+
+            newDirName
+        }
         //--- сохранить запись о файле
         stm.executeUpdate(
             """
                 INSERT INTO SYSTEM_file_store ( id , file_id , name , dir ) 
-                VALUES ( ${stm.getNextIntId("SYSTEM_file_store", "id")} , $fileId , '$fileName' , '$newDirName' ) 
+                VALUES ( $fileStoreId , $fileId , '$fileName' , '$dirName' ) 
             """
         )
     }
@@ -114,7 +157,7 @@ abstract class CoreAppController : iApplication {
 
         val sbSQL =
             """
-                SELECT name , dir 
+                SELECT id , name , dir 
                 FROM SYSTEM_file_store 
                 WHERE file_id = $fileId 
                 $sbSQLDiff 
@@ -122,11 +165,17 @@ abstract class CoreAppController : iApplication {
 
         val rs = stm.executeQuery(sbSQL)
         while (rs.next()) {
-            val fileName = rs.getString(1)
-            val dirName = rs.getString(2)
-            val delFile = File(rootDirName, "$FILE_BASE/$dirName/$fileName")
-            if (delFile.exists()) {
-                delFile.delete()
+            val storeId = rs.getInt(1)
+            val fileName = rs.getString(2)
+            val dirName = rs.getString(3)
+
+            CoreSpringApp.minioProxy?.removeFile(
+                objectName = storeId.toString()
+            ) ?: run {
+                val delFile = File(rootDirName, "$FILE_BASE/$dirName/$fileName")
+                if (delFile.exists()) {
+                    delFile.delete()
+                }
             }
         }
         rs.close()
@@ -138,6 +187,50 @@ abstract class CoreAppController : iApplication {
                 $sbSQLDiff 
             """
         )
+    }
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @PostMapping("/api/upload_form_file")
+    fun uploadFormFile(
+        @RequestParam("form_file_ids")
+        arrFormFileId: Array<String>, // со стороны web-клиента ограничение на передачу массива или только строк или только файлов
+        @RequestParam("form_file_blobs")
+        arrFormFileBlob: Array<MultipartFile>
+    ): FormFileUploadResponse {
+
+        arrFormFileId.forEachIndexed { i, id ->
+            arrFormFileBlob[i].transferTo(File(tempDirName, id))
+        }
+
+        return FormFileUploadResponse()
+    }
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @GetMapping(value = ["/$FILE_BASE/{dirName}/{fileName}"])
+    fun downloadFile(
+        response: HttpServletResponse,
+        @PathVariable("dirName")
+        dirName: String,
+        @PathVariable("fileName")
+        fileName: String
+    ) {
+        val fileUrl = "/$FILE_BASE/$dirName/$fileName"
+
+        val fileTime = chmFileTime[fileUrl] ?: 0
+        if (getCurrentTimeInt() < fileTime + (fileAccessPeriod.toIntOrNull() ?: 24) * 60 * 60) {
+
+            CoreSpringApp.minioProxy?.loadFileToHttpResponse(
+                objectName = dirName,
+                fileName = fileName,
+                response = response,
+            ) ?: run {
+                download(response, "$rootDirName$fileUrl")
+            }
+        } else {
+            response.status = 403   // forbidden
+        }
     }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -518,13 +611,17 @@ abstract class CoreAppController : iApplication {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     private fun getFreeDir(fileName: String): String {
+        var i = 0
         NEXT_DIR@
         while (true) {
-            val newDirName = getRandomInt().toString()
+            //--- отдельная папка для каждого файла - не лучший вариант
+            //val newDirName = getRandomInt().toString()
+            val newDirName = getFilledNumberString(i, 8)
             val newDir = File(rootDirName, "$FILE_BASE/$newDirName")
             newDir.mkdirs()
             val file = File(newDir, fileName)
             if (file.exists()) {
+                i++
                 continue@NEXT_DIR
             }
             return newDirName

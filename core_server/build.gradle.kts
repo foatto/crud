@@ -8,6 +8,7 @@ val jacksonModuleKotlinVersion: String by project
 val javaxMailApiVersion: String by project
 val jExcelApiVersion: String by project
 val ktorVersion: String by project
+val minioVersion: String by project
 val postgresJdbcVersion: String by project
 val springBootVersion: String by project
 
@@ -45,8 +46,9 @@ dependencies {
     api("io.ktor:ktor-client-apache:$ktorVersion")
     api("io.ktor:ktor-client-jackson:$ktorVersion")
     api("io.ktor:ktor-client-logging-jvm:$ktorVersion")
-
 //    api("io.ktor:ktor-client-auth-jvm:$ktorVersion")
+
+    api("io.minio:minio:$minioVersion")
 
     api(project(":core"))
 

@@ -8,12 +8,15 @@ import foatto.core.util.AsyncFileSaver
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.xy.server.document.sdcXyAbstract
 import foatto.sql.DBConfig
+import foatto.util.MinioProxy
+import io.minio.MinioClient
+import okhttp3.OkHttpClient
+import okhttp3.Protocol
 import org.springframework.beans.factory.annotation.Value
 import java.io.File
-import java.net.URLConnection
 import java.time.ZoneId
 import java.util.concurrent.ConcurrentHashMap
-import javax.servlet.http.HttpServletResponse
+import java.util.concurrent.TimeUnit
 import kotlin.math.min
 
 //--- добавлять у каждого наследника
@@ -58,17 +61,7 @@ open class CoreSpringApp {
         val hmAliasLogDir = mutableMapOf<String, String>()
         val hmXyDocumentConfig = mutableMapOf<String, XyDocumentConfig>()
 
-        //--- last enabled time for file access check
-        val chmFileTime = ConcurrentHashMap<String, Int>()
-
-        fun download(response: HttpServletResponse, path: String) {
-            val file = File(path)
-            val mimeType = URLConnection.guessContentTypeFromName(file.name)
-
-            response.contentType = mimeType
-            response.setContentLength(file.length().toInt())
-            response.outputStream.write(file.readBytes())
-        }
+        var minioProxy: MinioProxy? = null
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -115,6 +108,21 @@ open class CoreSpringApp {
     @Value("\${log_show_dirs}")
     private val logShowDirs: Array<String> = emptyArray()
 
+    @Value("\${minio.endpoint}")
+    val minioEndpoint: String = ""
+
+    @Value("\${minio.accessKey}")
+    val minioAccessKey: String = ""
+
+    @Value("\${minio.secretKey}")
+    val minioSecretKey: String = ""
+
+    @Value("\${minio.timeout}")
+    val minioTimeout: String = ""
+
+    @Value("\${minio.bucket}")
+    val minioBucket: String = ""
+
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     //--- добавлять у каждого наследника
@@ -132,6 +140,10 @@ open class CoreSpringApp {
 
         for (i in 0 until min(logShowAliases.size, logShowDirs.size)) {
             hmAliasLogDir[logShowAliases[i]] = logShowDirs[i]
+        }
+
+        if (minioEndpoint.isNotBlank()) {
+            minioProxy = MinioProxy(minioEndpoint, minioAccessKey, minioSecretKey, minioTimeout.toLong(), minioBucket)
         }
 
         initXyConfig()

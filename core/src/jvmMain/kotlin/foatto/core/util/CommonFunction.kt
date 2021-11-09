@@ -17,12 +17,12 @@ import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 import kotlin.math.abs
 
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 @Volatile
 var inLogging = true
 
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 //--- список неинтересной телеметрии
 private val arrUnusedPrefix = arrayOf("awt.toolkit", "file.", "java.awt.", "java.compiler", "java.home", "java.io.tmpdir", "java.vendor.url.bug", "java.vm.info", "sun.", "user.")
@@ -49,7 +49,7 @@ fun getSystemProperties(): Map<String, String> {
     return hmSP
 }
 
-//--- чтение в буфер ------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//--- чтение в буфер -----------------------------------------------------------------------------------------------------------------------------------------------------
 
 fun readChannelToBuffer(socketChannel: SocketChannel, aBbIn: AdvancedByteBuffer? = null, byteOrder: ByteOrder, byteCount: Int, exceptionText: CharSequence): AdvancedByteBuffer {
     var bbIn = aBbIn
@@ -87,38 +87,23 @@ fun readFileToBuffer(file: File, bbIn: AdvancedByteBuffer, isWriteSize: Boolean)
     fileChannel.close()
 }
 
-//--- поиск свободного имени файла/директории -----------------------------------------------------------------------------------------------------------------------------------------
+//--- поиск свободного имени файла/директории ----------------------------------------------------------------------------------------------------------------------------
 
 fun getFreeFile(rootDirName: String, arrFileExt: Array<String>): String {
     val dir = File(rootDirName)
     NEXT_FILE@
     while (true) {
         val newFileName = getRandomInt().toString()
-        for (ext in arrFileExt)
-            if (File(dir, "$newFileName.$ext").exists()) continue@NEXT_FILE
+        for (ext in arrFileExt) {
+            if (File(dir, "$newFileName.$ext").exists()) {
+                continue@NEXT_FILE
+            }
+        }
         return newFileName
     }
 }
 
-fun getFreeDir(rootDirName: String, arrFilePrefix: Array<String>, fileName: String): String {
-    var i = 0
-    NEXT_DIR@
-    while (true) {
-        val newDirName = getFilledNumberString(i, 8)
-        val newDir = File("$rootDirName/$newDirName")
-        newDir.mkdirs()
-        for (prefix in arrFilePrefix) {
-            val file = File(newDir, prefix + fileName)
-            if (file.exists()) {
-                i++
-                continue@NEXT_DIR
-            }
-        }
-        return newDirName
-    }
-}
-
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 fun replaceFileRoot(sourPath: String, newRoot: File): Pair<File, File> {
     var file = File(sourPath)
@@ -134,7 +119,9 @@ fun replaceFileRoot(sourPath: String, newRoot: File): Pair<File, File> {
         file = parent
     }
     var rootNew = newRoot
-    for (s in alPath) rootNew = File(rootNew, s)
+    for (s in alPath) {
+        rootNew = File(rootNew, s)
+    }
     return Pair(rootNew, oldRoot)
 }
 
