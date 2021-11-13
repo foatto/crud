@@ -4,6 +4,7 @@ import foatto.core_server.app.iApplication
 
 interface iShopApplication : iApplication {
 
+    val editLimitDays: String?
     val discountLimits: Array<String>
     val discountValues: Array<String>
 

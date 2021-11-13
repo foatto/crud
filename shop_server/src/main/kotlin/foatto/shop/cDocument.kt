@@ -16,7 +16,6 @@ import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedStatement
 import java.time.ZoneId
 import java.time.ZonedDateTime
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.floor
 import kotlin.math.max
@@ -51,19 +50,26 @@ class cDocument : cStandart() {
             docTime: Int,
             discount: Double
         ): Pair<Int, Double> {
-            val fnNum = if(DocumentTypeConfig.hsUseDestNum.contains(docType)) "dest_num" else "sour_num"
-            val fnCatalog = if(DocumentTypeConfig.hsUseDestCatalog.contains(docType)) "dest_id" else "sour_id"
+            val fnNum = if (DocumentTypeConfig.hsUseDestNum.contains(docType)) "dest_num" else "sour_num"
+            val fnCatalog = if (DocumentTypeConfig.hsUseDestCatalog.contains(docType)) "dest_id" else "sour_id"
 
             val rs = stm.executeQuery(" SELECT $fnNum , $fnCatalog FROM SHOP_doc_content WHERE doc_id = $docID AND is_deleted = 0 ")
             var rowCount = 0
             var costSum = 0.0
-            while(rs.next()) {
+            while (rs.next()) {
                 rowCount++
                 costSum += rs.getDouble(1) * PriceData.getPrice(hmPrice, rs.getInt(2), docTime)
             }
             rs.close()
 
             return Pair(rowCount, floor(costSum * (1 - discount / 100)))
+        }
+
+        fun checkLimitDays(application: iShopApplication, zoneId: ZoneId, docId: Int): Boolean {
+            val editLimitDays = application.editLimitDays?.toLongOrNull() ?: 0L
+            val (ye, mo, da) = application.getDocumentDate(docId)
+            val docDate = ZonedDateTime.of(ye, mo, da, 0, 0, 0, 0, zoneId)
+            return docDate > ZonedDateTime.now(zoneId).minusDays(editLimitDays)
         }
     }
 
@@ -102,10 +108,10 @@ class cDocument : cStandart() {
 
         var sSQL = ""
 
-        if(docType != DocumentTypeConfig.TYPE_ALL) sSQL += " AND $tableName.$typeFieldName = $docType "
+        if (docType != DocumentTypeConfig.TYPE_ALL) sSQL += " AND $tableName.$typeFieldName = $docType "
 
         //--- добавить свои ограничения по parent-данным от shop_warehouse (из-за нестандартной обработки shop_doc_all/move/_resort)
-        if(pid != null) {
+        if (pid != null) {
             val sourFieldName = md.columnWarehouseSour.getFieldName(0)
             val destFieldName = md.columnWarehouseDest.getFieldName(0)
             val useSour = DocumentTypeConfig.hsUseSourWarehouse.contains(docType)
@@ -113,9 +119,9 @@ class cDocument : cStandart() {
 
             sSQL += " AND "
             //--- используются оба складских поля
-            if(useSour && useDest) sSQL += " ( $tableName.$sourFieldName = $pid OR $tableName.$destFieldName = $pid ) "
-            else if(useSour) sSQL += " $tableName.$sourFieldName = $pid "
-            else if(useDest) sSQL += " $tableName.$destFieldName = $pid "
+            if (useSour && useDest) sSQL += " ( $tableName.$sourFieldName = $pid OR $tableName.$destFieldName = $pid ) "
+            else if (useSour) sSQL += " $tableName.$sourFieldName = $pid "
+            else if (useDest) sSQL += " $tableName.$destFieldName = $pid "
         }
         return super.addSQLWhere(hsTableRenameList) + sSQL
     }
@@ -146,18 +152,36 @@ class cDocument : cStandart() {
         }
     }
 
+    override fun isEditEnabled(hmColumnData: Map<iColumn, iData>, id: Int): Boolean {
+        var result = super.isEditEnabled(hmColumnData, id) && id != 0
+        //--- if document editing enabled and is edit mode (not create) and this is not admin
+        if (result && id != 0 && !userConfig.isAdmin) {
+            result = checkLimitDays(application as iShopApplication, zoneId, id)
+        }
+        return result
+    }
+
+    override fun isDeleteEnabled(hmColumnData: Map<iColumn, iData>, id: Int): Boolean {
+        var result = super.isDeleteEnabled(hmColumnData, id)
+        //--- if document editing enabled and is edit mode (not create) and this is not admin
+        if (result && id != 0 && !userConfig.isAdmin) {
+            result = checkLimitDays(application as iShopApplication, zoneId, id)
+        }
+        return result
+    }
+
     override fun preSave(id: Int, hmColumnData: Map<iColumn, iData>) {
         val md = model as mDocument
 
         //--- если номер документа не заполнен - заполняем его автоматически
         //--- поиск максимального номера накладной за текущий год
         val dataDocNo = (hmColumnData[md.columnDocumentNo] as DataString)
-        if(id == 0 && dataDocNo.text.isBlank()) {
+        if (id == 0 && dataDocNo.text.isBlank()) {
             var maxDocNo = 0
             val rs = stm.executeQuery(
                 " SELECT doc_no FROM SHOP_doc WHERE doc_type = $docType AND doc_ye = ${ZonedDateTime.now().year} "
             )
-            while(rs.next()) {
+            while (rs.next()) {
                 //--- номер накладной может быть в свободной строковой форме,
                 //--- поэтому учитываем только цифровые значения
                 maxDocNo = max(maxDocNo, rs.getString(1).toIntOrNull() ?: 0)
@@ -166,18 +190,18 @@ class cDocument : cStandart() {
             //--- дополняем номер нулями спереди, чтобы сортировка не сбивалась
             //--- (стандартный padStart( 5, '0' ) не пойдёт, т.к. он обрезает более длинную строку до 5 символов
             val sb = StringBuilder().append(maxDocNo + 1)
-            while(sb.length < 5) sb.insert(0, '0')
+            while (sb.length < 5) sb.insert(0, '0')
             dataDocNo.text = sb.toString()
         }
 
         //--- явно менять поле последнего изменения только при повторном сохранении,
         //--- при первом сохранении при создании оставлять значение по умолчанию, равное времени создания
-        if(id != 0) {
+        if (id != 0) {
             (hmColumnData[md.columnEditTime] as DataDateTimeInt).setDateTime(getCurrentTimeInt())
         }
 
         //--- при пересортице программно выставляем "На склад" = "Со склада"
-        if(docType == DocumentTypeConfig.TYPE_RESORT) {
+        if (docType == DocumentTypeConfig.TYPE_RESORT) {
             val sourWarehouse = hmColumnData[md.columnWarehouseSour] as DataComboBox
             val destWarehouse = hmColumnData[md.columnWarehouseDest] as DataInt
             destWarehouse.intValue = sourWarehouse.intValue
@@ -190,8 +214,8 @@ class cDocument : cStandart() {
 
         val refererID = hmParam[AppParameter.REFERER]
         //--- если добавление не из формы, а из главного меню - то переходим на состав накладной
-        if(refererID == null) {
-            val hmDocContentParentData = HashMap<String, Int>()
+        if (refererID == null) {
+            val hmDocContentParentData = mutableMapOf<String, Int>()
             hmDocContentParentData[aliasConfig.alias] = id
             postURL = getParamURL(DocumentTypeConfig.hmAliasChild[aliasConfig.alias]!!, AppAction.TABLE, refererID, 0, hmDocContentParentData, null, null)
         }

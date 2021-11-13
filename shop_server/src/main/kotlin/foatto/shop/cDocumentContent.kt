@@ -50,15 +50,13 @@ class cDocumentContent : cStandart() {
 
         for (name in DocumentTypeConfig.hmAliasDocType.keys) {
             docId = hmParentData[name]
-            if (docId != null) break
+            if (docId != null) {
+                break
+            }
         }
         docType = DocumentTypeConfig.hmAliasDocType[aliasConfig.alias]!!
-        hmPrice = PriceData.loadPrice(
-            stm, /*if( docType == DocumentTypeConfig.TYPE_IN ||
-                                                                  docType == DocumentTypeConfig.TYPE_RETURN_IN )
-                                                                   mPrice.PRICE_TYPE_IN
-                                                              else*/ mPrice.PRICE_TYPE_OUT
-        )
+        /*if( docType == DocumentTypeConfig.TYPE_IN || docType == DocumentTypeConfig.TYPE_RETURN_IN ) mPrice.PRICE_TYPE_IN else*/
+        hmPrice = PriceData.loadPrice(stm, mPrice.PRICE_TYPE_OUT)
     }
 
     override fun definePermission() {
@@ -69,15 +67,14 @@ class cDocumentContent : cStandart() {
 
     override fun addSQLWhere(hsTableRenameList: Set<String>): String {
         //--- а нет ли парентов от иерархической номенклатуры?
-        var pid = getParentID("shop_catalog")
-        if (pid == null) pid = getParentID("shop_catalog_folder")
-        if (pid == null) pid = getParentID("shop_catalog_item")
+        val pid = getParentID("shop_catalog") ?: getParentID("shop_catalog_folder") ?: getParentID("shop_catalog_item")
         //--- если есть, то вероятно раскроем parentID группы номенклатуры в список parentID входящих элементов
         val parentWhere = StringBuilder()
         if (pid != null) {
             val hsID = expandParent("shop_catalog", pid)
-            for (tmpID in hsID)
+            for (tmpID in hsID) {
                 parentWhere.append(if (parentWhere.isEmpty()) "" else " , ").append(tmpID)
+            }
             parentWhere.insert(0, if (hsID.size == 1) " = " else " IN ( ")
             if (hsID.size > 1) parentWhere.append(" ) ")
         }
@@ -320,9 +317,23 @@ class cDocumentContent : cStandart() {
 
     override fun isAddEnabled(): Boolean = super.isAddEnabled() && docId != null
 
-    override fun isEditEnabled(hmColumnData: Map<iColumn, iData>, id: Int): Boolean = super.isEditEnabled(hmColumnData, id) && docId != null
+    override fun isEditEnabled(hmColumnData: Map<iColumn, iData>, id: Int): Boolean {
+        var result = super.isEditEnabled(hmColumnData, id) && docId != null
+        //--- if document editing enabled and is edit mode (not create) and this is not admin
+        if(result && id != 0 && !userConfig.isAdmin) {
+            result = cDocument.checkLimitDays(application as iShopApplication, zoneId, docId ?: 0)
+        }
+        return result
+    }
 
-    override fun isDeleteEnabled(hmColumnData: Map<iColumn, iData>, id: Int): Boolean = super.isDeleteEnabled(hmColumnData, id) && docId != null
+    override fun isDeleteEnabled(hmColumnData: Map<iColumn, iData>, id: Int): Boolean {
+        var result = super.isDeleteEnabled(hmColumnData, id) && docId != null
+        //--- if document editing enabled and is edit mode (not create) and this is not admin
+        if(result && id != 0 && !userConfig.isAdmin) {
+            result = cDocument.checkLimitDays(application as iShopApplication, zoneId, docId ?: 0)
+        }
+        return result
+    }
 
     override fun getSaveButtonParams(formParam: String): String {
         var saveParams = super.getSaveButtonParams(formParam)
