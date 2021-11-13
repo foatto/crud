@@ -3,6 +3,7 @@ package foatto.ts.core_ts
 import foatto.core.link.TableCell
 import foatto.core.link.TableCellBackColorType
 import foatto.core.link.TableCellForeColorType
+import foatto.core.link.TableResponse
 import foatto.core.util.getCurrentTimeInt
 import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.column.iColumn
@@ -12,12 +13,15 @@ import foatto.core_server.app.server.data.DataInt
 import foatto.core_server.app.server.data.DataString
 import foatto.core_server.app.server.data.iData
 import foatto.ts.core_ts.calc.AbstractObjectStateCalc
+import foatto.ts.core_ts.calc.ObjectState
 import foatto.ts.core_ts.sensor.config.SensorConfig
-import foatto.ts.core_ts.sensor.config.SensorConfigAnalogue
 import foatto.ts.core_ts.sensor.config.SensorConfigState
 import foatto.ts.iTSApplication
 
 class cObject : cStandart() {
+
+    private val hmObjectConfigCache = mutableMapOf<Int,ObjectConfig>()
+    private val hmObjectStateCache = mutableMapOf<Int,ObjectState>()
 
     companion object {
         const val PERM_REMOTE_CONTROL = "remote_control"
@@ -30,32 +34,28 @@ class cObject : cStandart() {
         alPermission.add(Pair(PERM_REMOTE_CONTROL, "20 Remote Control"))
     }
 
+    override fun getTable(hmOut: MutableMap<String, Any>): TableResponse {
+        hmObjectConfigCache.clear()
+        hmObjectStateCache.clear()
+
+        return super.getTable(hmOut)
+    }
+
     override fun getTableColumnStyle(rowNo: Int, isNewRow: Boolean, hmColumnData: Map<iColumn, iData>, column: iColumn, tci: TableCell) {
         super.getTableColumnStyle(rowNo, isNewRow, hmColumnData, column, tci)
+
+        val id = (hmColumnData[model.columnID] as DataInt).intValue
+        val objectConfig = hmObjectConfigCache.getOrPut(id) { (application as iTSApplication).getObjectConfig(userConfig, id) }
+        val objectState = hmObjectStateCache.getOrPut(id) { ObjectState.getState(stm, objectConfig) }
 
         val md = model as mObject
         when (column) {
             md.columnState -> {
-                tci.backColorType = TableCellBackColorType.DEFINED
-
-                val id = (hmColumnData[model.columnID] as DataInt).intValue
-                val oc = (application as iTSApplication).getObjectConfig(userConfig, id)
-                val lastDataTime = getLastDateTime(id)
-
-                lastDataTime?.let {
-                    val rs = stm.executeQuery(" SELECT sensor_data FROM TS_data_${id} WHERE ontime = $lastDataTime")
-                    if (rs.next()) {
-                        val bb = rs.getByteBuffer(1)
-
-                        oc.hmSensorConfig[SensorConfig.SENSOR_STATE]?.get(0)?.let { _ ->
-                            val stateCode = AbstractObjectStateCalc.getSensorData(0, bb)?.toInt()
-                            SensorConfigState.hmStateInfo[stateCode]?.backColor?.let { backColor ->
-                                tci.backColor = backColor
-                            } ?: {
-                                tci.backColorType = TableCellBackColorType.DEFAULT  // return default background color
-                            }
-                        }
-                    }
+                objectState.tmStateValue.values.firstOrNull()?.let { stateCode ->
+                    SensorConfigState.hmStateInfo[stateCode]?.brightColor
+                }?.let { brightColor ->
+                    tci.backColorType = TableCellBackColorType.DEFINED
+                    tci.backColor = brightColor
                 }
             }
             md.columnLastDateTime -> {
@@ -65,8 +65,7 @@ class cObject : cStandart() {
 //                tci.foreColor = TABLE_CELL_FORE_COLOR_DISABLED
 //            }
 //            else {
-                val id = (hmColumnData[model.columnID] as DataInt).intValue
-                val lastDataTime = getLastDateTime(id) ?: 0
+                val lastDataTime = objectState.lastDateTime ?: 0
 
                 //--- нет данных больше суток - критично
                 if (getCurrentTimeInt() - lastDataTime > 1 * 24 * 60 * 60) {
@@ -122,62 +121,19 @@ class cObject : cStandart() {
     private fun generateColumnData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {
         val m = model as mObject
 
-        val oc = (application as iTSApplication).getObjectConfig(userConfig, id)
-        val lastDataTime = getLastDateTime(id)
+        val objectConfig = hmObjectConfigCache.getOrPut(id) { (application as iTSApplication).getObjectConfig(userConfig, id) }
+        val objectState = hmObjectStateCache.getOrPut(id) { ObjectState.getState(stm, objectConfig) }
 
-        (hmColumnData[m.columnLastDateTime] as DataDateTimeInt).setDateTime(lastDataTime ?: 0)
+        (hmColumnData[m.columnLastDateTime] as DataDateTimeInt).setDateTime(objectState.lastDateTime ?: 0)
 
-        lastDataTime?.let {
-            val rs = stm.executeQuery(" SELECT sensor_data FROM TS_data_${id} WHERE ontime = $lastDataTime")
-            if (rs.next()) {
-                val bb = rs.getByteBuffer(1)
+        (hmColumnData[m.columnState] as DataString).text = objectState.tmStateValue.values.firstOrNull()?.let { stateCode ->
+            SensorConfigState.hmStateInfo[stateCode]?.descr ?: "(неизвестный код состояния: $stateCode)"
+        } ?: "(нет данных)"
 
-                oc.hmSensorConfig[SensorConfig.SENSOR_STATE]?.entries?.firstOrNull()?.let { (portNum, _) ->
-                    val stateCode = AbstractObjectStateCalc.getSensorData(portNum, bb)?.toInt()
-                    (hmColumnData[m.columnState] as DataString).text = SensorConfigState.hmStateInfo[stateCode]?.descr ?: "(неизвестный код состояния: $stateCode)"
-                }
-
-                oc.hmSensorConfig[SensorConfig.SENSOR_DEPTH]?.entries?.firstOrNull()?.let { (portNum, sc) ->
-                    val scDepth = sc as SensorConfigAnalogue
-                    (hmColumnData[m.columnDepth] as DataDouble).doubleValue = AbstractObjectStateCalc.getSensorValue(
-                        alValueSensor = scDepth.alValueSensor,
-                        alValueData = scDepth.alValueData,
-                        sensorValue = AbstractObjectStateCalc.getSensorData(portNum, bb) as Double
-                    )
-                }
-
-                oc.hmSensorConfig[SensorConfig.SENSOR_SPEED]?.entries?.firstOrNull()?.let { (portNum, sc) ->
-                    val scSpeed = sc as SensorConfigAnalogue
-                    (hmColumnData[m.columnSpeed] as DataDouble).doubleValue = AbstractObjectStateCalc.getSensorValue(
-                        alValueSensor = scSpeed.alValueSensor,
-                        alValueData = scSpeed.alValueData,
-                        sensorValue = AbstractObjectStateCalc.getSensorData(portNum, bb) as Double
-                    )
-                }
-
-                oc.hmSensorConfig[SensorConfig.SENSOR_LOAD]?.entries?.firstOrNull()?.let { (portNum, sc) ->
-                    val scLoad = sc as SensorConfigAnalogue
-                    (hmColumnData[m.columnLoad] as DataDouble).doubleValue = AbstractObjectStateCalc.getSensorValue(
-                        alValueSensor = scLoad.alValueSensor,
-                        alValueData = scLoad.alValueData,
-                        sensorValue = AbstractObjectStateCalc.getSensorData(portNum, bb) as Double
-                    )
-                }
-            }
-            rs.close()
-        }
+        (hmColumnData[m.columnDepth] as DataDouble).doubleValue = objectState.tmDepthValue.values.firstOrNull() ?: 0.0
+        (hmColumnData[m.columnSpeed] as DataDouble).doubleValue = objectState.tmSpeedValue.values.firstOrNull() ?: 0.0
+        (hmColumnData[m.columnLoad] as DataDouble).doubleValue = objectState.tmLoadValue.values.firstOrNull() ?: 0.0
     }
 
-    private fun getLastDateTime(id: Int): Int? {
-        val rs = stm.executeQuery(" SELECT MAX(ontime) FROM TS_data_${id} ")
-        val lastDateTime = if (rs.next()) {
-            rs.getInt(1)
-        } else {
-            null
-        }
-        rs.close()
-
-        return lastDateTime
-    }
 
 }

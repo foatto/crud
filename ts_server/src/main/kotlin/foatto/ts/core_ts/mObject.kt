@@ -59,15 +59,15 @@ class mObject : mAbstract() {
             isVirtual = true
             isEditable = false
         }
-        columnDepth = ColumnDouble(tableName, "_depth", SensorConfig.hmSensorDescr[SensorConfig.SENSOR_DEPTH] ?: "-", 10, 1).apply {
+        columnDepth = ColumnDouble(tableName, "_depth", SensorConfig.hmSensorDescr[SensorConfig.SENSOR_DEPTH] ?: "-", 10, 0).apply {
             isVirtual = true
             isEditable = false
         }
-        columnSpeed = ColumnDouble(tableName, "_speed", SensorConfig.hmSensorDescr[SensorConfig.SENSOR_SPEED] ?: "-", 10, 1).apply {
+        columnSpeed = ColumnDouble(tableName, "_speed", SensorConfig.hmSensorDescr[SensorConfig.SENSOR_SPEED] ?: "-", 10, 0).apply {
             isVirtual = true
             isEditable = false
         }
-        columnLoad = ColumnDouble(tableName, "_load", SensorConfig.hmSensorDescr[SensorConfig.SENSOR_LOAD] ?: "-", 10, 1).apply {
+        columnLoad = ColumnDouble(tableName, "_load", SensorConfig.hmSensorDescr[SensorConfig.SENSOR_LOAD] ?: "-", 10, 0).apply {
             isVirtual = true
             isEditable = false
         }
@@ -124,7 +124,8 @@ class mObject : mAbstract() {
 
         alChildData.add(ChildData("ts_setup", columnID, AppAction.FORM, true))
 
-        alChildData.add(ChildData("Графики", "ts_graphic_depth", columnID, AppAction.FORM, true))
+        alChildData.add(ChildData("Графики", "ts_graphic_dsltt", columnID, AppAction.FORM, true))
+        alChildData.add(ChildData("Графики", "ts_graphic_depth", columnID, AppAction.FORM))
         alChildData.add(ChildData("Графики", "ts_graphic_speed", columnID, AppAction.FORM))
         alChildData.add(ChildData("Графики", "ts_graphic_load", columnID, AppAction.FORM))
         alChildData.add(ChildData("Графики", "ts_graphic_temperature_in", columnID, AppAction.FORM))
