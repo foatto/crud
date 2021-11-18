@@ -7,6 +7,7 @@ import foatto.core_server.app.server.ChildData
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.column.ColumnDate3Int
+import foatto.core_server.app.server.column.ColumnGrid
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnStatic
 import foatto.core_server.app.server.column.ColumnString
@@ -23,51 +24,25 @@ class mDayWork : mAbstract() {
     lateinit var columnRun: ColumnString
         private set
 
-    lateinit var columnWorkName: ColumnString
-        private set
-    lateinit var columnWorkValue: ColumnString
+    lateinit var columnWork: ColumnGrid
         private set
 
-    lateinit var columnEnergoName: ColumnString
-        private set
-    lateinit var columnEnergoValue: ColumnString
+    lateinit var columnEnergo: ColumnGrid
         private set
 
-    //    lateinit var columnGroupSumEnergoName: ColumnString
-//        private set
-//    lateinit var columnGroupSumEnergoValue: ColumnString
-//        private set
-    lateinit var columnAllSumEnergoName: ColumnString
-        private set
-    lateinit var columnAllSumEnergoValue: ColumnString
+    lateinit var columnAllSumEnergo: ColumnGrid
         private set
 
-    lateinit var columnLiquidName: ColumnString
-        private set
-    lateinit var columnLiquidValue: ColumnString
+    lateinit var columnLiquid: ColumnGrid
         private set
 
-    //    lateinit var columnGroupSumLiquidName: ColumnString
-//        private set
-//    lateinit var columnGroupSumLiquidValue: ColumnString
-//        private set
-    lateinit var columnAllSumLiquidName: ColumnString
-        private set
-    lateinit var columnAllSumLiquidValue: ColumnString
+    lateinit var columnAllSumLiquid: ColumnGrid
         private set
 
-    lateinit var columnLevelName: ColumnString
-        private set
-    lateinit var columnLevelBeg: ColumnString
-        private set
-    lateinit var columnLevelEnd: ColumnString
+    lateinit var columnLevel: ColumnGrid
         private set
 
-    lateinit var columnLevelLiquidName: ColumnString
-        private set
-    lateinit var columnLevelLiquidInc: ColumnString
-        private set
-    lateinit var columnLevelLiquidDec: ColumnString
+    lateinit var columnLevelLiquid: ColumnGrid
         private set
 
     val columnObject: ColumnInt
@@ -97,27 +72,17 @@ class mDayWork : mAbstract() {
             isSearchable = false
             rowSpan = 3
         }
-        columnWorkName = ColumnString(tableName, "_work_name", "Оборудование", STRING_COLUMN_WIDTH).apply {
-            isVirtual = true
-            isSearchable = false
-            rowSpan = 3
-        }
-        columnWorkValue = ColumnString(tableName, "_work_hour", "Работа [час]", STRING_COLUMN_WIDTH).apply {
+        columnWork = ColumnGrid(tableName, "_work", "Работа оборудования [час]").apply {
             isVirtual = true
             isSearchable = false
             rowSpan = 3
         }
 
-        columnEnergoName = ColumnString(tableName, "_energo_name", "Э/энергия", STRING_COLUMN_WIDTH).apply {
+        columnEnergo = ColumnGrid(tableName, "_energo", "Расход/генерация э/энергии").apply {
             isVirtual = true
             isSearchable = false
-//            rowSpan = 2
         }
-        columnEnergoValue = ColumnString(tableName, "_energo_value", "Расход/Генерация", STRING_COLUMN_WIDTH).apply {
-            isVirtual = true
-            isSearchable = false
-//            rowSpan = 2
-        }
+
 //        columnGroupSumEnergoName = ColumnString(tableName, "_group_energo_name", "Э/энергия", STRING_COLUMN_WIDTH).apply {
 //            isVirtual = true
 //            isSearchable = false
@@ -126,25 +91,17 @@ class mDayWork : mAbstract() {
 //            isVirtual = true
 //            isSearchable = false
 //        }
-        columnAllSumEnergoName = ColumnString(tableName, "_all_energo_name", "Э/энергия", STRING_COLUMN_WIDTH).apply {
-            isVirtual = true
-            isSearchable = false
-        }
-        columnAllSumEnergoValue = ColumnString(tableName, "_all_energo_value", "Расход/Генерация", STRING_COLUMN_WIDTH).apply {
+
+        columnAllSumEnergo = ColumnGrid(tableName, "_all_energo", "Расход/генерация э/энергии").apply {
             isVirtual = true
             isSearchable = false
         }
 
-        columnLiquidName = ColumnString(tableName, "_liquid_name", "Топливо", STRING_COLUMN_WIDTH).apply {
+        columnLiquid = ColumnGrid(tableName, "_liquid_name", "Расход топлива").apply {
             isVirtual = true
             isSearchable = false
-//            rowSpan = 2
         }
-        columnLiquidValue = ColumnString(tableName, "_liquid_value", "Расход", STRING_COLUMN_WIDTH).apply {
-            isVirtual = true
-            isSearchable = false
-//            rowSpan = 2
-        }
+
 //        columnGroupSumLiquidName = ColumnString(tableName, "_group_liquid_name", "Топливо", STRING_COLUMN_WIDTH).apply {
 //            isVirtual = true
 //            isSearchable = false
@@ -153,42 +110,19 @@ class mDayWork : mAbstract() {
 //            isVirtual = true
 //            isSearchable = false
 //        }
-        columnAllSumLiquidName = ColumnString(tableName, "_all_liquid_name", "Топливо", STRING_COLUMN_WIDTH).apply {
-            isVirtual = true
-            isSearchable = false
-        }
-        columnAllSumLiquidValue = ColumnString(tableName, "_all_liquid_value", "Расход", STRING_COLUMN_WIDTH).apply {
+
+        columnAllSumLiquid = ColumnGrid(tableName, "_all_liquid", "Расход топлива").apply {
             isVirtual = true
             isSearchable = false
         }
 
-        columnLevelName = ColumnString(tableName, "_level_name", "Ёмкость", STRING_COLUMN_WIDTH).apply {
-            isVirtual = true
-            isSearchable = false
-            rowSpan = 3
-        }
-        columnLevelBeg = ColumnString(tableName, "_level_beg", "Нач.остаток", STRING_COLUMN_WIDTH).apply {
-            isVirtual = true
-            isSearchable = false
-            rowSpan = 3
-        }
-        columnLevelEnd = ColumnString(tableName, "_level_end", "Кон.остаток", STRING_COLUMN_WIDTH).apply {
+        columnLevel = ColumnGrid(tableName, "_level", "Ёмкость, Нач.остаток, Кон.остаток").apply {
             isVirtual = true
             isSearchable = false
             rowSpan = 3
         }
 
-        columnLevelLiquidName = ColumnString(tableName, "_level_liquid_name", "Топливо", STRING_COLUMN_WIDTH).apply {
-            isVirtual = true
-            isSearchable = false
-            rowSpan = 3
-        }
-        columnLevelLiquidInc = ColumnString(tableName, "_level_liquid_inc", "Заправка", STRING_COLUMN_WIDTH).apply {
-            isVirtual = true
-            isSearchable = false
-            rowSpan = 3
-        }
-        columnLevelLiquidDec = ColumnString(tableName, "_level_liquid_dec", "Слив", STRING_COLUMN_WIDTH).apply {
+        columnLevelLiquid = ColumnGrid(tableName, "_level_liquid_name", "Топливо, Заправка, Слив").apply {
             isVirtual = true
             isSearchable = false
             rowSpan = 3
@@ -222,45 +156,29 @@ class mDayWork : mAbstract() {
         //----------------------------------------------------------------------------------------------------------------------------------------
 
         addTableColumnVertNew(columnRun)
-        addTableColumnVertNew(columnWorkName)
-        addTableColumnVertNew(columnWorkValue)
-        addTableColumnVertNew(columnEnergoName,  /*columnGroupSumEnergoName, */ ColumnStatic(""), columnAllSumEnergoName)
-        addTableColumnVertNew(columnEnergoValue, /*columnGroupSumEnergoValue,*/ ColumnStatic(""), columnAllSumEnergoValue)
-        addTableColumnVertNew(columnLiquidName,  /*columnGroupSumLiquidName, */ ColumnStatic(""), columnAllSumLiquidName)
-        addTableColumnVertNew(columnLiquidValue, /*columnGroupSumLiquidValue,*/ ColumnStatic(""), columnAllSumLiquidValue)
-        addTableColumnVertNew(columnLevelName)
-        addTableColumnVertNew(columnLevelBeg)
-        addTableColumnVertNew(columnLevelEnd)
-        addTableColumnVertNew(columnLevelLiquidName)
-        addTableColumnVertNew(columnLevelLiquidInc)
-        addTableColumnVertNew(columnLevelLiquidDec)
+        addTableColumnVertNew(columnWork)
+        addTableColumnVertNew(columnEnergo,  /*columnGroupSumEnergoName, */ ColumnStatic(""), columnAllSumEnergo)
+        addTableColumnVertNew(columnLiquid,  /*columnGroupSumLiquidName, */ ColumnStatic(""), columnAllSumLiquid)
+        addTableColumnVertNew(columnLevel)
+        addTableColumnVertNew(columnLevelLiquid)
 
         alFormColumn.add(columnDate)
         alFormColumn.add(columnRun)
-        alFormColumn.add(columnWorkName)
-        alFormColumn.add(columnWorkValue)
+        //alFormColumn.add(columnWork)
 
-        alFormColumn.add(columnEnergoName)
-        alFormColumn.add(columnEnergoValue)
+        //alFormColumn.add(columnEnergo)
 //        alFormColumn.add(columnGroupSumEnergoName)
 //        alFormColumn.add(columnGroupSumEnergoValue)
-        alFormColumn.add(columnAllSumEnergoName)
-        alFormColumn.add(columnAllSumEnergoValue)
+        //alFormColumn.add(columnAllSumEnergo)
 
-        alFormColumn.add(columnLiquidName)
-        alFormColumn.add(columnLiquidValue)
+        //alFormColumn.add(columnLiquid)
 //        alFormColumn.add(columnGroupSumLiquidName)
 //        alFormColumn.add(columnGroupSumLiquidValue)
-        alFormColumn.add(columnAllSumLiquidName)
-        alFormColumn.add(columnAllSumLiquidValue)
+        //alFormColumn.add(columnAllSumLiquid)
 
-        alFormColumn.add(columnLevelName)
-        alFormColumn.add(columnLevelBeg)
-        alFormColumn.add(columnLevelEnd)
+        //alFormColumn.add(columnLevel)
 
-        alFormColumn.add(columnLevelLiquidName)
-        alFormColumn.add(columnLevelLiquidInc)
-        alFormColumn.add(columnLevelLiquidDec)
+        //alFormColumn.add(columnLevelLiquid)
 
         //----------------------------------------------------------------------------------------------------------------------
 

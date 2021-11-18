@@ -77,10 +77,12 @@ open class cStandart {
         ): String {
 
             var sResult = "${AppParameter.ALIAS}=$aAlias&${AppParameter.ACTION}=$aAction"
-            if (aRefererID != null)
+            aRefererID?.let {
                 sResult += "&${AppParameter.REFERER}=$aRefererID"
-            if (aID != null)
+            }
+            aID?.let {
                 sResult += "&${AppParameter.ID}=$aID"
+            }
 
             if (!aParentData.isNullOrEmpty()) {
                 var sAlias = ""
@@ -91,10 +93,12 @@ open class cStandart {
                 }
                 sResult += "&${AppParameter.PARENT_ALIAS}=$sAlias&${AppParameter.PARENT_ID}=$sID"
             }
-            if (aParentUserID != null)
+            aParentUserID?.let {
                 sResult += "&${AppParameter.PARENT_USER_ID}=$aParentUserID"
-            if (aAltParams != null)
+            }
+            aAltParams?.let {
                 sResult += aAltParams
+            }
 
             return sResult
         }
@@ -839,20 +843,22 @@ open class cStandart {
         val recordUserID = getRecordUserID(hmColumnData)
         val recordUserName = getRecordUserName(recordUserID)
 
-        val hmColumnCell = mutableMapOf<iColumn, TableCell>()
-        for ((column, data) in hmColumnData) {
-            //!!! потенциально опасное место - передача Statement в метод при открытом ResultSet'e от этого Statement'a
-            hmColumnCell[column] = data.getTableCell(application.rootDirName, stm, -1, -1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
+        val hmColumnCell = hmColumnData.mapValues { entry ->
+            entry.value.getTableCell(
+                rootDirName = application.rootDirName,
+                conn = conn,
+                row = -1,
+                col = -1,
+                isUseThousandsDivider = userConfig.upIsUseThousandsDivider,
+                decimalDivider = userConfig.upDecimalDivider
+            )
         }
 
-        val sbFind = StringBuilder(recordUserName).append(' ')
+        var sFind = "$recordUserName "
 
-        for (column in model.alTableGroupColumn) {
-            if (!column.isSearchable) {
-                continue
-            }
-            hmColumnCell[column]!!.alCellData.forEach { cellData ->
-                sbFind.append(if (column is ColumnInt || column is ColumnDouble) cellData.text.replace(" ", "") else cellData.text).append(' ')
+        model.alTableGroupColumn.filter { it.isSearchable }.forEach { column ->
+            hmColumnCell[column]?.let { tc ->
+                sFind += getCellTextForFind(column, tc)
             }
         }
 
@@ -865,21 +871,18 @@ open class cStandart {
                 if (column == null || !column.isSearchable) {
                     continue
                 }
-                val tci = hmColumnCell[column]
-                if (tci!!.cellType == TableCellType.TEXT) {
-                    tci.alCellData.forEach { cellData ->
-                        sbFind.append(if (column is ColumnInt || column is ColumnDouble) cellData.text.replace(" ", "") else cellData.text).append(' ')
-                    }
+                hmColumnCell[column]?.let { tc ->
+                    sFind += getCellTextForFind(column, tc)
                 }
             }
         }
         //--- переводим все в нижний регистр
-        val strLowCaseFind = sbFind.toString().toLowerCase(locale)
+        val strLowCaseFind = sFind.lowercase(locale)
         //--- 0-й индекс в alFindWord - полная строка поиска
         for (i in 1 until alFindWord.size) {
             //--- при первой же неудаче поиска выходим
             val findStr = alFindWord[i]
-            //--- если искомое слово имеет префикс отрицания ( одиночный символ "!" рассматривается как обычная поисковая строка )
+            //--- если искомое слово имеет префикс отрицания (одиночный символ "!" рассматривается как обычная поисковая строка)
             if (findStr[0] == '!' && findStr.length > 1) {
                 if (strLowCaseFind.contains(findStr.substring(1))) {
                     return false
@@ -889,6 +892,34 @@ open class cStandart {
             }
         }
         return true
+    }
+
+    private fun getCellTextForFind(column: iColumn, tc: TableCell): String {
+        var cellText = ""
+        when (tc.cellType) {
+            TableCellType.CHECKBOX -> {}
+            TableCellType.TEXT -> {
+                cellText +=
+                    if (column is ColumnInt || column is ColumnDouble) {
+                        tc.textCellData.text.replace(" ", "")
+                    } else {
+                        tc.textCellData.text
+                    } + ' '
+            }
+            TableCellType.BUTTON -> {
+                tc.arrButtonCellData.forEach { tbcd ->
+                    cellText += tbcd.text + ' '
+                }
+            }
+            TableCellType.GRID -> {
+                tc.arrGridCellData.forEach { gridRow ->
+                    gridRow.forEach { tgcd ->
+                        cellText += tgcd.text + ' '
+                    }
+                }
+            }
+        }
+        return cellText
     }
 
     //--- перекрывается наследниками для генерации данных в момент загрузки записей ДО и ПОСЛЕ фильтров поиска и страничной разбивки
@@ -923,16 +954,17 @@ open class cStandart {
         val isNewRow = aliasConfig.isNewable && userConfig.userId != UserConfig.USER_GUEST && !getTableRowIsReaded(valueID)
 
         //--- обработка группировочных полей
+        //--- (подразумевается, что группировочными могут быть только ячейки типа TEXT (CHECKBOX, BUTTON и GRID в данной роли бессмысленны))
         for (gi in 0 until model.alTableGroupColumn.size) {
             val curGroupColumn = model.alTableGroupColumn[gi]
             val curValue = hmColumnData[curGroupColumn]!!.getTableCell(
                 rootDirName = application.rootDirName,
-                stm = stm,
+                conn = conn,
                 row = -1,
                 col = -1,
                 isUseThousandsDivider = userConfig.upIsUseThousandsDivider,
                 decimalDivider = userConfig.upDecimalDivider
-            ).alCellData.first().text
+            ).textCellData.text
             if (curValue != arrCurGroupValue!![gi]) {
                 val row = tableRowStart + rowCount
                 var col = 0
@@ -1109,7 +1141,7 @@ open class cStandart {
                 val tci = if (cellIsVisible) {
                     hmColumnData[column]!!.getTableCell(
                         rootDirName = application.rootDirName,
-                        stm = stm,
+                        conn = conn,
                         row = row,
                         col = col + colIndex,
                         isUseThousandsDivider = userConfig.upIsUseThousandsDivider,
@@ -1245,34 +1277,54 @@ open class cStandart {
         if (obj is ColumnString) {
             val ds = hmColumnData[obj] as DataString
             childAlias = ds.text
-            if (childAlias.trim().isEmpty()) childAlias = aliasConfig.alias
-        } else childAlias = obj as String
+            if (childAlias.isBlank()) {
+                childAlias = aliasConfig.alias
+            }
+        } else {
+            childAlias = obj as String
+        }
 
         //--- если таблица вызвана для селекта, то разрешаем переходы только на таблицы с совпадающим алиасом
         //--- ( для реализации иерархических таблиц )
-        if (selectorID != null && childAlias != aliasConfig.alias) return null
+        if (selectorID != null && childAlias != aliasConfig.alias) {
+            return null
+        }
         //--- проверка прав доступа на child-классы
         val hsPerm = userConfig.userPermission[childAlias]
-        if (hsPerm == null || !hsPerm.contains(PERM_ACCESS)) return null
+        if (hsPerm == null || !hsPerm.contains(PERM_ACCESS)) {
+            return null
+        }
         val hmNewParentData = mutableMapOf<String, Int>()
         putTableRowGotoNewParentData(hmColumnData, indexChild, hmNewParentData)
         val acChild = hmAliasConfig[childAlias]!!
 
         //--- добавим разделитель в меню, если надо
-        if (childData.isNewGroup && alPopupData.isNotEmpty()) alPopupData.add(TablePopupData("", "", "", false))
+        if (childData.isNewGroup && alPopupData.isNotEmpty()) {
+            alPopupData.add(TablePopupData("", "", "", false))
+        }
 
         //--- если есть свой columnUser, то передаем его значение, иначе передаем дальше родительский userID
         var newParentUserID = getRecordUserID(hmColumnData)
-        if (newParentUserID == 0) newParentUserID = parentUserID
+        if (newParentUserID == 0) {
+            newParentUserID = parentUserID
+        }
 
         val popupURL = getParamURL(
             childAlias, childData.action, null, if (childData.action == AppAction.FORM) 0 else null, hmNewParentData, newParentUserID,
-            if (selectorID == null) "" else "&${AppParameter.SELECTOR}=$selectorID"
+            if (selectorID == null) {
+                ""
+            } else {
+                "&${AppParameter.SELECTOR}=$selectorID"
+            }
         )
 
         alPopupData.add(TablePopupData(childData.group, popupURL, acChild.descr, childAlias != aliasConfig.alias))
 
-        return if (childData.isDefaultOperation) popupURL else null
+        return if (childData.isDefaultOperation) {
+            popupURL
+        } else {
+            null
+        }
     }
 
     //--- для наследников - можно добавлять дополнительные паренты для child'ов
@@ -1281,10 +1333,11 @@ open class cStandart {
     }
 
     //--- для наследников - можно изменить реакцию на действие по умолчанию ( двойной клик по строке таблицы )
-    protected open fun newTableRowDefaultOperation(selectorParam: SelectorParameter?, hmColumnData: Map<iColumn, iData>, hmOut: MutableMap<String, Any>): String? {
+    protected open fun newTableRowDefaultOperation(selectorParam: SelectorParameter?, hmColumnData: Map<iColumn, iData>, hmOut: MutableMap<String, Any>): String? =
         //--- в режиме селектора double-click делает возврат строки аналогично нажатию соответствующей кнопки
-        return if (selectorParam == null) null else getTableRowSelectButton(-1, -1, selectorParam, hmColumnData, hmOut).alCellData.first().url
-    }
+        selectorParam?.let {
+            getTableRowSelectButton(-1, -1, selectorParam, hmColumnData, hmOut).arrButtonCellData.first().url
+        }
 
     protected open fun isOpenFormURLInNewWindow(): Boolean = true
 
@@ -1565,7 +1618,12 @@ open class cStandart {
     protected open fun generateFormColumnData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {}
 
     protected fun getFormCell(column: iColumn, hmColumnData: Map<iColumn, iData>, isEditable: Boolean): FormCell {
-        val fci = hmColumnData[column]!!.getFormCell(application.rootDirName, stm, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
+        val fci = hmColumnData[column]!!.getFormCell(
+            rootDirName = application.rootDirName,
+            conn = conn,
+            isUseThousandsDivider = userConfig.upIsUseThousandsDivider,
+            decimalDivider = userConfig.upDecimalDivider
+        )
         fci.itEditable = isEditable && column.isEditable && column.tableName == model.tableName
         fci.formPinMode = column.formPinMode
         //--- эту чисто серверную часть нежелательно передавать в клиенто-ориентированный FormCellInfo

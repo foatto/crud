@@ -1,5 +1,5 @@
 package foatto.core.link
- 
+
 class TableResponse(
     val tab: String,
     val alHeader: Array<Pair<String, String>>,
@@ -37,11 +37,11 @@ class ClientActionButton(
     val tooltip: String,
     val icon: String,
     val action: String,
-    val params: Array<Pair<String,String>>,
+    val params: Array<Pair<String, String>>,
     val isForWideScreenOnly: Boolean,
 )
 
-class TableCell( val row: Int, val col: Int ) {
+class TableCell(val row: Int, val col: Int) {
 
     //--- common data for all cell types
 
@@ -66,17 +66,21 @@ class TableCell( val row: Int, val col: Int ) {
 
     var fontStyle = 0
 
-    //--- common data for TEXT / BUTTON
-
-    var alCellData = arrayOf<TableCellData>()
-
     //--- data for CHECKBOX
-
     var booleanValue = false
+
+    //--- data for TEXT
+    var textCellData = TableTextCellData()
+
+    //--- data for BUTTON
+    var arrButtonCellData = arrayOf<TableButtonCellData>()
+
+    //--- data for GRID
+    var arrGridCellData: Array<Array<TableGridCellData>> = arrayOf()
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    private constructor( aRow: Int, aCol: Int, aRowSpan: Int, aColSpan: Int, aMinWidth: Int, aCellType: TableCellType ) : this( aRow, aCol ) {
+    private constructor(aRow: Int, aCol: Int, aRowSpan: Int, aColSpan: Int, aMinWidth: Int, aCellType: TableCellType) : this(aRow, aCol) {
         rowSpan = aRowSpan
         colSpan = aColSpan
         minWidth = aMinWidth
@@ -84,11 +88,34 @@ class TableCell( val row: Int, val col: Int ) {
     }
 
     //--- empty colorless cell with a stretch
-    constructor( aRow: Int, aCol: Int, aRowSpan: Int, aColSpan: Int ) : this( aRow, aCol, aRowSpan, aColSpan, 0, TableCellType.TEXT )
+    constructor(aRow: Int, aCol: Int, aRowSpan: Int, aColSpan: Int) : this(aRow, aCol, aRowSpan, aColSpan, 0, TableCellType.TEXT)
+
+    //--- checkbox cell
+    constructor(
+        aRow: Int,
+        aCol: Int,
+        aRowSpan: Int,
+        aColSpan: Int,
+        aAlign: TableCellAlign,
+        aMinWidth: Int,
+        aTooltip: String,
+
+        aBooleanValue: Boolean
+
+    ) : this(aRow, aCol, aRowSpan, aColSpan, aMinWidth, TableCellType.CHECKBOX) {
+
+        align = aAlign
+        tooltip = aTooltip
+
+        booleanValue = aBooleanValue
+    }
 
     //--- colorless cell with one TEXT with icon / picture / text
     constructor(
-        aRow: Int, aCol: Int, aRowSpan: Int, aColSpan: Int,
+        aRow: Int,
+        aCol: Int,
+        aRowSpan: Int,
+        aColSpan: Int,
         aAlign: TableCellAlign,
         aMinWidth: Int,
         aIsWordWrap: Boolean,
@@ -98,22 +125,25 @@ class TableCell( val row: Int, val col: Int ) {
         aImage: String = "",
         aText: String = ""
 
-    ) : this( aRow, aCol, aRowSpan, aColSpan, aMinWidth, TableCellType.TEXT )  {
+    ) : this(aRow, aCol, aRowSpan, aColSpan, aMinWidth, TableCellType.TEXT) {
 
         align = aAlign
         isWordWrap = aIsWordWrap
         tooltip = aTooltip
 
-        addCellData(
-            aIcon = aIcon,
-            aImage = aImage,
-            aText = aText
+        textCellData = TableTextCellData(
+            icon = aIcon,
+            image = aImage,
+            text = aText,
         )
     }
 
     //--- colorless cell with one BUTTON with an icon / picture / text
     constructor(
-        aRow: Int, aCol: Int, aRowSpan: Int, aColSpan: Int,
+        aRow: Int,
+        aCol: Int,
+        aRowSpan: Int,
+        aColSpan: Int,
         aAlign: TableCellAlign,
         aMinWidth: Int,
         aTooltip: String,
@@ -125,12 +155,12 @@ class TableCell( val row: Int, val col: Int ) {
         aUrl: String,
         aInNewWindow: Boolean = false
 
-    ) : this( aRow, aCol, aRowSpan, aColSpan, aMinWidth, TableCellType.BUTTON )  {
+    ) : this(aRow, aCol, aRowSpan, aColSpan, aMinWidth, TableCellType.BUTTON) {
 
         align = aAlign
         tooltip = aTooltip
 
-        addCellData(
+        addButtonCellData(
             aIcon = aIcon,
             aImage = aImage,
             aText = aText,
@@ -139,78 +169,35 @@ class TableCell( val row: Int, val col: Int ) {
         )
     }
 
-    //--- colorless empty blank cell for several BUTTONs with an icon / picture / text
+    //--- colorless empty blank cell for several BUTTONs or GRIDs with an icon / picture / text
     constructor(
-        aRow: Int, aCol: Int, aRowSpan: Int, aColSpan: Int,
-        aAlign: TableCellAlign,
-        aMinWidth: Int,
-        aTooltip: String
-
-    ) : this( aRow, aCol, aRowSpan, aColSpan, aMinWidth, TableCellType.BUTTON )  {
-
-        align = aAlign
-        tooltip = aTooltip
-    }
-
-    //--- colorless cell with one TEXT / BUTTON with an icon / picture / text
-    constructor(
-        aRow: Int, aCol: Int, aRowSpan: Int, aColSpan: Int,
+        aRow: Int,
+        aCol: Int,
+        aRowSpan: Int,
+        aColSpan: Int,
         aAlign: TableCellAlign,
         aMinWidth: Int,
         aTooltip: String,
 
         aCellType: TableCellType,
 
-        aIcon: String = "",
-        aImage: String = "",
-        aText: String = "",
-
-        aUrl: String = "",
-        aInNewWindow: Boolean = false
-
-    ) : this( aRow, aCol, aRowSpan, aColSpan, aMinWidth, aCellType )  {
+    ) : this(aRow, aCol, aRowSpan, aColSpan, aMinWidth, aCellType) {
 
         align = aAlign
         tooltip = aTooltip
-
-        addCellData(
-            aIcon = aIcon,
-            aImage = aImage,
-            aText = aText,
-            aUrl = aUrl,
-            aInNewWindow = aInNewWindow
-        )
     }
 
-    //--- checkbox
-    constructor(
-        aRow: Int, aCol: Int, aRowSpan: Int, aColSpan: Int,
-        aAlign: TableCellAlign,
-        aMinWidth: Int,
-        aTooltip: String,
-
-        aBooleanValue: Boolean
-
-    ) : this( aRow, aCol, aRowSpan, aColSpan, aMinWidth, TableCellType.CHECKBOX )  {
-
-        align = aAlign
-        tooltip = aTooltip
-
-        booleanValue = aBooleanValue
-    }
-
-    //--- add a line to TEXT / BUTTON
-
-    fun addCellData(
+    //--- add a line to BUTTON
+    fun addButtonCellData(
         aIcon: String = "",
         aImage: String = "",
         aText: String = "",
         aUrl: String = "",
         aInNewWindow: Boolean = false
     ) {
-        alCellData = alCellData.toMutableList().apply {
+        arrButtonCellData = arrButtonCellData.toMutableList().apply {
             add(
-                TableCellData(
+                TableButtonCellData(
                     icon = aIcon,
                     image = aImage,
                     text = aText,
@@ -221,11 +208,43 @@ class TableCell( val row: Int, val col: Int ) {
         }.toTypedArray()
     }
 
+    //--- add a cell of GRID
+    fun addGridCellData(
+        aIcon: String = "",
+        aImage: String = "",
+        aText: String = "",
+        aNewRow: Boolean = false,
+    ) {
+        if (aNewRow) {
+            arrGridCellData = arrGridCellData.toMutableList().apply {
+                add(arrayOf())
+            }.toTypedArray()
+        }
+        arrGridCellData[arrGridCellData.lastIndex] = arrGridCellData[arrGridCellData.lastIndex].toMutableList().apply {
+            add(
+                TableGridCellData(
+                    icon = aIcon,
+                    image = aImage,
+                    text = aText,
+                )
+            )
+        }.toTypedArray()
+    }
+
 }
 
-enum class TableCellType { TEXT, BUTTON, CHECKBOX }
+enum class TableCellType {
+    CHECKBOX,
+    TEXT,
+    BUTTON,
+    GRID
+}
 
-enum class TableCellAlign { LEFT, CENTER, RIGHT }
+enum class TableCellAlign {
+    LEFT,
+    CENTER,
+    RIGHT
+}
 
 enum class TableCellForeColorType {
     DEFINED,
@@ -239,7 +258,27 @@ enum class TableCellBackColorType {
     GROUP_1
 }
 
-class TableCellData( val icon: String = "", val image: String = "", val text: String = "", val url: String = "", val inNewWindow: Boolean = false )
+class TableTextCellData(
+    val icon: String = "",
+    val image: String = "",
+    val text: String = "",
+)
+
+class TableButtonCellData(
+    val icon: String = "",
+    val image: String = "",
+    val text: String = "",
+    val url: String = "",
+    val inNewWindow: Boolean = false
+)
+
+class TableGridCellData(
+    val icon: String = "",
+    val image: String = "",
+    val text: String = "",
+//    val url: String = "",
+//    val inNewWindow: Boolean = false
+)
 
 class TableRowData(
     val formURL: String = "",
@@ -250,6 +289,6 @@ class TableRowData(
     val alPopupData: Array<TablePopupData> = arrayOf()
 )
 
-class TablePopupData( val group: String, val url: String, val text: String, val inNewWindow: Boolean )
+class TablePopupData(val group: String, val url: String, val text: String, val inNewWindow: Boolean)
 
 

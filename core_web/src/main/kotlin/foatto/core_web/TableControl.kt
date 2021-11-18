@@ -176,47 +176,60 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                      v-on:click.right.prevent="gridData.row >= 0 ? showPopupMenu( gridData.row, ${'$'}event ) : null"
                 >
                     
-                    <template v-if="gridData.cellType == '${TableCellType.TEXT}'">
-                        <span v-for="cellData in gridData.arrCellData" 
-                              v-bind:style="gridData.elementStyle"
-                              v-bind:title="gridData.tooltip"
+                    <template v-if="gridData.cellType == '${TableCellType.CHECKBOX}'"> 
+                        <input type="checkbox" v-model="gridData.booleanValue" 
+                               v-bind:style="gridData.elementStyle"
+                               v-bind:title="gridData.tooltip"
+                               v-on:click.prevent="isShowPopupMenu = false"
                         >
-                            <img v-if="cellData.icon" v-bind:src="cellData.icon">
-                            <img v-else-if="cellData.image" v-bind:src="cellData.image">
-                            <span v-else v-html="cellData.text">
+                    </template>
+                    <template v-else-if="gridData.cellType == '${TableCellType.TEXT}'">
+                        <div v-bind:style="gridData.elementStyle"
+                             v-bind:title="gridData.tooltip"
+                        >
+                            <img v-if="gridData.textCellData.icon" v-bind:src="gridData.textCellData.icon">
+                            <img v-else-if="gridData.textCellData.image" v-bind:src="gridData.textCellData.image">
+                            <span v-else v-html="gridData.textCellData.text">
                             </span>
-                        </span>
+                        </div>
                     </template>
                     <template v-else-if="gridData.cellType == '${TableCellType.BUTTON}'">
-                        <template v-for="cellData in gridData.arrCellData">                    
+                        <template v-for="cellData in gridData.arrButtonCellData">                    
                             <img v-if="cellData.icon" 
                                  v-bind:src="cellData.icon"
-                                 v-bind:style="gridData.elementStyle"
+                                 v-bind:style="cellData.style"
                                  v-bind:title="gridData.tooltip"
                                  v-on:click="invoke( cellData.url, cellData.inNewWindow )"
                             >
                             <img v-else-if="cellData.image" 
                                  v-bind:src="cellData.image"
-                                 v-bind:style="gridData.elementStyle"
+                                 v-bind:style="cellData.style"
                                  v-bind:title="gridData.tooltip"
                                  v-on:click="invoke( cellData.url, cellData.inNewWindow )"
                             >
                             <button v-else 
-                                    v-bind:style="gridData.elementStyle"
+                                    v-bind:style="cellData.style"
                                     v-bind:title="gridData.tooltip"
                                     v-on:click="invoke( cellData.url, cellData.inNewWindow )"
                             >
                                 <span v-html="cellData.text">
                                 </span>
                             </button>
-                            <br>
                         </template>
                     </template>
-                    <input v-else-if="gridData.cellType == '${TableCellType.CHECKBOX}'" type="checkbox" v-model="gridData.bool" 
-                           v-bind:style="gridData.elementStyle"
-                           v-bind:title="gridData.tooltip"
-                           v-on:click.prevent="isShowPopupMenu = false"
-                    >
+                    <template v-else-if="gridData.cellType == '${TableCellType.GRID}'">
+                        <template v-for="arrRow in gridData.arrGridCellData">                    
+                            <div v-for="cellData in arrRow" 
+                                 v-bind:style="cellData.style"
+                                 v-bind:title="gridData.tooltip"
+                            >
+                                <img v-if="cellData.icon" v-bind:src="cellData.icon">
+                                <img v-else-if="cellData.image" v-bind:src="cellData.image">
+                                <span v-else v-html="cellData.text">
+                                </span>
+                            </div>
+                        </template>
+                    </template>
                 </div>
             </div>
 
@@ -261,7 +274,13 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                 val url = headerData.first
                 val text = headerData.second
 
-                tabToolTip += (if (tabToolTip.isEmpty()) "" else " | ") + text
+                tabToolTip += (
+                    if (tabToolTip.isEmpty()) {
+                        ""
+                    } else {
+                        " | "
+                    }
+                    ) + text
                 alTitleData.add(TableTitleData(titleID++, url, text))
 
 //                //--- запомним последнюю кнопку заголовка в табличном режиме как кнопку отмены или возврата на уровень выше
@@ -295,7 +314,11 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
             for (sab in tableResponse.alServerActionButton) {
                 val icon = hmTableIcon[sab.icon] ?: ""
                 //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
-                val caption = if (sab.icon.isNotBlank() && icon.isBlank()) sab.icon else sab.caption.replace("\n", "<br>")
+                val caption = if (sab.icon.isNotBlank() && icon.isBlank()) {
+                    sab.icon
+                } else {
+                    sab.caption.replace("\n", "<br>")
+                }
                 alServerButton.add(
                     ServerActionButton_(
                         id = serverButtonID++,
@@ -316,7 +339,11 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
             for (cab in tableResponse.alClientActionButton) {
                 val icon = hmTableIcon[cab.icon] ?: ""
                 //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
-                val caption = if (cab.icon.isNotBlank() && icon.isBlank()) cab.icon else cab.caption.replace("\n", "<br>")
+                val caption = if (cab.icon.isNotBlank() && icon.isBlank()) {
+                    cab.icon
+                } else {
+                    cab.caption.replace("\n", "<br>")
+                }
                 alClientButton.add(
                     ClientActionButton_(
                         id = clientButtonID++,
@@ -370,9 +397,6 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
             for ((index, value) in tableResponse.alColumnCaption.withIndex()) {
                 val url = value.first
                 val text = value.second
-                val cellData = TableCellData(
-                    text = text
-                )
                 val captionCell = TableGridData(
                     id = gridCellID++,
                     cellType = TableCellType.TEXT,
@@ -400,9 +424,10 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                     rowSpan = 1,
                     backColor = COLOR_PANEL_BACK,
                     tooltip = if (url.isBlank()) "" else "Сортировать по этому столбцу",
-                    arrCellData = arrayOf(cellData),
-                    bool = false,
-                    row = -1            // специальный номер строки, флаг что это заголовок таблицы
+                    textCellData = TableTextCellData_(
+                        text = text
+                    ),
+                    row = -1            // special row number as flag for table header row
                 )
                 captionCell.cellURL = url
                 alGridData.add(captionCell)
@@ -417,7 +442,11 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                         TableCellBackColorType.DEFINED.toString() -> getColorFromInt(tc.backColor)
                         TableCellBackColorType.GROUP_0.toString() -> colorGroupBack0
                         TableCellBackColorType.GROUP_1.toString() -> colorGroupBack1
-                        else -> if (tc.row % 2 == 0) COLOR_TABLE_ROW_0_BACK else COLOR_TABLE_ROW_1_BACK
+                        else -> if (tc.row % 2 == 0) {
+                            COLOR_TABLE_ROW_0_BACK
+                        } else {
+                            COLOR_TABLE_ROW_1_BACK
+                        }
                     }
                 val textColor =
                     when (tc.foreColorType.toString()) {
@@ -447,34 +476,18 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                     "grid-area" to "${startRow + tc.row + 1} / ${tc.col + 1} / ${startRow + tc.row + 1 + tc.rowSpan} / ${tc.col + 1 + tc.colSpan}",
                     "justify-self" to "stretch",
                     "align-self" to "stretch",
-                    //"background" to backColor,
                     //--- пока не будем менять размер вместе с толщиной шрифта (потом сделаем явную передачу увеличения размера шрифта)
                     "font-weight" to (if (tc.fontStyle == 0) "normal" else "bold"),
                     "padding" to styleControlPadding()
                 )
-                lateinit var elementStyle: Json
-                val alCellData = mutableListOf<TableCellData>()
+                val elementStyle = json()
+
+                var textCellData: TableTextCellData_? = null
+                val alButtonCellData = mutableListOf<TableButtonCellData_>()
+                val alGridCellData = mutableListOf<MutableList<TableGridCellData_>>()
+
                 when (tc.cellType.toString()) {
-                    TableCellType.TEXT.toString() -> {
-                        for (cellData in tc.alCellData) {
-                            val icon = hmTableIcon[cellData.icon] ?: ""
-                            //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
-                            var text = if (cellData.icon.isNotBlank() && icon.isBlank()) {
-                                cellData.icon
-                            } else {
-                                cellData.text.replace("\n", "<br>")
-                            }
-                            if (!tc.isWordWrap) {
-                                text = text.replace(" ", "&nbsp;")
-                            }
-                            alCellData.add(
-                                TableCellData(
-                                    icon = icon,
-                                    image = cellData.image,
-                                    text = text
-                                )
-                            )
-                        }
+                    TableCellType.CHECKBOX.toString() -> {
                         cellStyle.add(
                             json(
                                 "display" to "flex",
@@ -482,15 +495,48 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                                 "align-items" to "center"
                             )
                         )
-                        elementStyle = json(
-                            "color" to textColor,
-                            "font-size" to styleTableTextFontSize(),
-                            "user-select" to if (styleIsTouchScreen()) "none" else "auto"
+                        //--- for checkbox only
+                        elementStyle.add(
+                            json(
+                                "color" to textColor,
+                                "transform" to styleControlCheckBoxTransform()
+                            )
+                        )
+                    }
+                    TableCellType.TEXT.toString() -> {
+                        val icon = hmTableIcon[tc.textCellData.icon] ?: ""
+                        //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
+                        var text = if (tc.textCellData.icon.isNotBlank() && icon.isBlank()) {
+                            tc.textCellData.icon
+                        } else {
+                            tc.textCellData.text.replace("\n", "<br>")
+                        }
+                        if (!tc.isWordWrap) {
+                            text = text.replace(" ", "&nbsp;")
+                        }
+                        textCellData = TableTextCellData_(
+                            icon = icon,
+                            image = tc.textCellData.image,
+                            text = text,
+                        )
+                        cellStyle.add(
+                            json(
+                                "display" to "flex",
+                                "justify-content" to align,
+                                "align-items" to "center"
+                            )
+                        )
+                        elementStyle.add(
+                            json(
+                                "color" to textColor,
+                                "font-size" to styleTableTextFontSize(),
+                                "user-select" to if (styleIsTouchScreen()) "none" else "auto"
+                            )
                         )
                     }
                     TableCellType.BUTTON.toString() -> {
                         var isIcon = false
-                        for (cellData in tc.alCellData) {
+                        tc.arrButtonCellData.forEachIndexed { index, cellData ->
                             val icon = hmTableIcon[cellData.icon] ?: ""
                             //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
                             val text = if (cellData.icon.isNotBlank() && icon.isBlank()) {
@@ -498,41 +544,85 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                             } else {
                                 cellData.text.replace("\n", "<br>")
                             }
-                            alCellData.add(
-                                TableCellData(
+                            alButtonCellData.add(
+                                TableButtonCellData_(
                                     icon = icon,
                                     image = cellData.image,
                                     text = text,
                                     url = cellData.url,
-                                    inNewWindow = cellData.inNewWindow
+                                    inNewWindow = cellData.inNewWindow,
+                                    style = json(
+                                        "border" to "1px solid $COLOR_TAB_BORDER",
+                                        "border-radius" to BORDER_RADIUS,
+                                        "background" to COLOR_BUTTON_BACK,
+                                        "color" to if (isIcon) COLOR_TABLE_BUTTON else textColor,
+                                        "font-size" to styleCommonButtonFontSize(),
+                                        "padding" to styleTextButtonPadding(),
+                                        "cursor" to "pointer",
+                                        "grid-area" to "${index + 1} / 1 / ${index + 2} / 2",
+                                        "justify-self" to "stretch",
+                                        "align-self" to "stretch",
+                                    )
                                 )
                             )
                             isIcon = icon.isNotBlank()
                         }
-                        elementStyle = json(
-                            "border" to "1px solid $COLOR_TAB_BORDER",
-                            "border-radius" to BORDER_RADIUS,
-                            "background" to COLOR_BUTTON_BACK,
-                            "color" to if (isIcon) COLOR_TABLE_BUTTON else textColor,
-                            "font-size" to styleCommonButtonFontSize(),
-                            "padding" to styleTextButtonPadding(),
-                            "cursor" to "pointer"
-                        )
-                    }
-                    //--- на самом деле нет других вариантов
-                    //TableCellType.CHECKBOX.toString() -> {
-                    else -> {
-                        cellStyle.add(
-                            json(
-                                "display" to "flex",
-                                "justify-content" to align,
-                                "align-items" to "center"
+                        if (tc.arrButtonCellData.isNotEmpty()) {
+                            cellStyle.add(
+                                json(
+                                    "display" to "grid",
+                                    "grid-template-rows" to "repeat(${tc.arrButtonCellData.size},auto)",
+                                    "grid-template-columns" to "repeat(1,auto)",
+                                )
                             )
-                        )
-                        elementStyle = json(
-                            "color" to textColor,
-                            "transform" to styleControlCheckBoxTransform()
-                        )
+                        }
+                    }
+                    TableCellType.GRID.toString() -> {
+                        tc.arrGridCellData.forEachIndexed { rowIndex, cellRow ->
+                            alGridCellData.add(mutableListOf())
+
+                            cellRow.forEachIndexed { colIndex, cellData ->
+                                val icon = hmTableIcon[cellData.icon] ?: ""
+                                //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
+                                var text = if (cellData.icon.isNotBlank() && icon.isBlank()) {
+                                    cellData.icon
+                                } else {
+                                    cellData.text.replace("\n", "<br>")
+                                }
+                                if (!tc.isWordWrap) {
+                                    text = text.replace(" ", "&nbsp;")
+                                }
+                                alGridCellData.last().add(
+                                    TableGridCellData_(
+                                        icon = icon,
+                                        image = cellData.image,
+                                        text = text,
+                                        style = json(
+                                            "color" to textColor,
+                                            "font-size" to styleTableTextFontSize(),
+                                            "user-select" to if (styleIsTouchScreen()) "none" else "auto",
+                                            "grid-area" to "${rowIndex + 1} / ${colIndex + 1} / ${rowIndex + 2} / ${colIndex + 2}",
+                                            "justify-self" to "stretch",
+                                            "align-self" to "stretch",
+                                            "display" to "flex",
+                                            "justify-content" to align,
+                                            "align-items" to "center",
+                                            "padding" to styleTableGridCellTypePadding(),
+                                        )
+                                    )
+                                )
+                            }
+                        }
+                        if (tc.arrGridCellData.isNotEmpty()) {
+                            cellStyle.add(
+                                json(
+                                    "display" to "grid",
+                                    "grid-template-rows" to "repeat(${tc.arrGridCellData.size},auto)",
+                                    "grid-template-columns" to "repeat(${tc.arrGridCellData.first().size},auto)",
+                                )
+                            )
+                        }
+                        println(cellStyle)
                     }
                 }
                 alGridData.add(
@@ -544,9 +634,11 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                         rowSpan = tc.rowSpan,
                         backColor = backColor,
                         tooltip = tc.tooltip,
-                        arrCellData = alCellData.toTypedArray(),
-                        bool = tc.booleanValue,
-                        row = tc.row
+                        booleanValue = tc.booleanValue,
+                        textCellData = textCellData,
+                        arrButtonCellData = alButtonCellData.toTypedArray(),
+                        arrGridCellData = alGridCellData.map { it.toTypedArray() }.toTypedArray(),
+                        row = tc.row,
                     )
                 )
                 maxRow = max(maxRow, startRow + tc.row + tc.rowSpan)
@@ -646,7 +738,7 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
             that().setCurrentRow(row)
 
             val mouseEvent = event as? MouseEvent
-            val mouseX = mouseEvent?.pageX ?: window.innerWidth.toDouble() / 3
+            val mouseX = mouseEvent?.pageX ?: (window.innerWidth.toDouble() / 3)
 
             val arrRowData = that().arrRowData.unsafeCast<Array<TableRowData>>()
             if (arrRowData[row].alPopupData.isNotEmpty()) {
@@ -881,6 +973,7 @@ private class ClientActionButton_(
 )
 
 private class PageButton(val id: Int, val url: String, val text: String)
+
 private class TableGridData(
     val id: Int,
     val cellType: TableCellType,
@@ -890,11 +983,17 @@ private class TableGridData(
     val elementStyle: Json,
     val tooltip: String,
 
-    //--- общие данные для TEXT / BUTTON
-    val arrCellData: Array<TableCellData>,
-
     //--- CHECKBOX
-    val bool: Boolean,
+    val booleanValue: Boolean? = null,
+
+    //--- TEXT
+    val textCellData: TableTextCellData_? = null,
+
+    //--- BUTTON
+    val arrButtonCellData: Array<TableButtonCellData_>? = null,
+
+    //--- общие данные для BUTTON
+    val arrGridCellData: Array<Array<TableGridCellData_>>? = null,
 
     //--- для работы с row data popup menu
     val row: Int
@@ -903,6 +1002,30 @@ private class TableGridData(
     //--- для работы caption-click
     var cellURL = ""
 }
+
+private class TableTextCellData_(
+    val icon: String = "",
+    val image: String = "",
+    val text: String = "",
+)
+
+private class TableButtonCellData_(
+    val icon: String = "",
+    val image: String = "",
+    val text: String = "",
+    val url: String = "",
+    val inNewWindow: Boolean = false,
+    val style: Json = json(),
+)
+
+private class TableGridCellData_(
+    val icon: String = "",
+    val image: String = "",
+    val text: String = "",
+//    val url: String = "",
+//    val inNewWindow: Boolean = false,
+    val style: Json = json(),
+)
 
 private class PopupMenuData(
     val url: String,

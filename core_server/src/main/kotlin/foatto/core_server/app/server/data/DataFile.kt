@@ -4,8 +4,10 @@ import foatto.core.link.FormCell
 import foatto.core.link.FormCellType
 import foatto.core.link.FormData
 import foatto.core.link.TableCell
+import foatto.core.link.TableCellType
 import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.column.iColumn
+import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedResultSet
 import foatto.sql.CoreAdvancedStatement
 
@@ -40,12 +42,12 @@ class DataFile(
         return true
     }
 
-    override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell {
+    override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell {
         if (isShowEmptyTableCell) {
             return TableCell(row, col, column.rowSpan, column.colSpan)
         }
 
-        val alFileStoreData = application.getFileList(stm, fileId)
+        val alFileStoreData = application.getFileList(conn, fileId)
 
         if (alFileStoreData.isEmpty()) {
             return TableCell(row, col)
@@ -58,11 +60,12 @@ class DataFile(
             aColSpan = column.colSpan,
             aAlign = column.tableAlign,
             aMinWidth = 0,
-            aTooltip = column.caption
+            aTooltip = column.caption,
+            aCellType = TableCellType.BUTTON,
         )
 
         for (fsd in alFileStoreData) {
-            tc.addCellData(
+            tc.addButtonCellData(
                 aText = fsd.second.substringAfterLast('/'),
                 aUrl = fsd.second,
                 aInNewWindow = true
@@ -72,12 +75,12 @@ class DataFile(
         return tc
     }
 
-    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement, isUseThousandsDivider: Boolean, decimalDivider: Char): FormCell {
+    override fun getFormCell(rootDirName: String, conn: CoreAdvancedConnection, isUseThousandsDivider: Boolean, decimalDivider: Char): FormCell {
         val fci = FormCell(FormCellType.FILE)
         fci.fileName = getFieldCellName(0)
         fci.fileID = fileId
 
-        val alFileStoreData = application.getFileList(stm, fileId)
+        val alFileStoreData = application.getFileList(conn, fileId)
         fci.alFile = alFileStoreData.map { fsd ->
             Triple(fsd.first, fsd.second, fsd.second.substringAfterLast('/'))
         }.toTypedArray()
