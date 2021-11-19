@@ -49,8 +49,8 @@ open class sdcAnalog : sdcAbstractAnalog() {
                     isShowLine = isShowLine,
                     isShowText = isShowText,
                     objectConfig = objectConfig,
-                    graphicHandler = graphicHandler,
                     alSca = listOf(sca),
+                    alGraphicHandler = listOf(graphicHandler),
                     tmElement = tmElement,
                     tmElementVisibleConfig = tmElementVisibleConfig,
                 )

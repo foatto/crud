@@ -313,8 +313,8 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         isShowLine: Boolean,
         isShowText: Boolean,
         objectConfig: ObjectConfig,
-        graphicHandler: AnalogGraphicHandler,
         alSca: List<SensorConfigAnalogue>,
+        alGraphicHandler: List<AnalogGraphicHandler>,
         tmElement: SortedMap<String, GraphicElement>,
         tmElementVisibleConfig: SortedMap<String, String>,
     ) {
@@ -333,7 +333,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         val alAxisYData = mutableListOf<AxisYData>()
 
         var axisIndex = 0
-        alSca.forEach { sca ->
+        alSca.forEachIndexed { sensorIndex, sca ->
             //--- заранее заполняем список определений видимости графиков
             val graphicVisibilityKey = "$UP_GRAPHIC_VISIBLE${objectConfig.objectId}_${sca.portNum}"
             tmElementVisibleConfig[sca.descr] = graphicVisibilityKey
@@ -343,6 +343,8 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
 
             if (isGraphicVisible) {
                 val isReversedY = false //sca.sensorType == SensorConfig.SENSOR_DEPTH
+
+                val graphicHandler = alGraphicHandler[sensorIndex]
 
                 //--- Максимальный размер массива = кол-во точек по горизонтали = 3840 (максимальная ширина 4K-экрана), окгруляем до 4000
                 val aMinLimit = if (graphicHandler.isStaticMinLimit(sca)) {

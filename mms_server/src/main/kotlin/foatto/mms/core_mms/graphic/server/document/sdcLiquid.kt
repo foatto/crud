@@ -120,8 +120,8 @@ class sdcLiquid : sdcAbstractAnalog() {
                     isShowLine = isShowLine,
                     isShowText = isShowText,
                     objectConfig = objectConfig,
-                    graphicHandler = graphicHandler,
                     alSca = listOf(sca) + massFlowSensorsInThisGroup + volumeFlowSensorsInThisGroup,
+                    alGraphicHandler = listOf(graphicHandler) + AnalogGraphicHandler() + AnalogGraphicHandler(),
                     tmElement = tmElement,
                     tmElementVisibleConfig = tmElementVisibleConfig,
                 )
@@ -187,20 +187,23 @@ class sdcLiquid : sdcAbstractAnalog() {
         aLine: GraphicDataContainer?,
         aText: GraphicDataContainer?,
     ) {
-        //--- постобработка/фильтрация заправок/сливов/расходов
-        aLine?.let {
-            ObjectCalc.getLiquidStatePeriodData(sca as SensorConfigLiquidLevel, axisIndex, aLine, mutableListOf(), graphicHandler as LiquidGraphicHandler)
-        }
-        aText?.let {
-            //--- ловим ошибки с датчиков уровня топлива
-            checkLiquidLevelSensorTrouble(
-                alRawTime = alRawTime,
-                alRawData = alRawData,
-                sca = sca,
-                begTime = begTime,
-                endTime = endTime,
-                aText = aText,
-            )
+        //--- только для основого графика
+        if(sca is SensorConfigLiquidLevel) {
+            //--- постобработка/фильтрация заправок/сливов/расходов
+            aLine?.let {
+                ObjectCalc.getLiquidStatePeriodData(sca, axisIndex, aLine, mutableListOf(), graphicHandler as LiquidGraphicHandler)
+            }
+            aText?.let {
+                //--- ловим ошибки с датчиков уровня топлива
+                checkLiquidLevelSensorTrouble(
+                    alRawTime = alRawTime,
+                    alRawData = alRawData,
+                    sca = sca,
+                    begTime = begTime,
+                    endTime = endTime,
+                    aText = aText,
+                )
+            }
         }
     }
 
@@ -221,50 +224,53 @@ class sdcLiquid : sdcAbstractAnalog() {
     ): Int {
         var axisIndex = aAxisIndex
 
-        aLine?.alGLD?.let { alGLD ->
-            //--- есть ли вообще прописанный датчик расчётной скорости расхода жидкости в этой группе
-            objectConfig.hmSensorConfig[SensorConfig.SENSOR_LIQUID_FLOW_CALC]?.values?.firstOrNull { sc ->
-                sc.group == sca.group
-            }?.let { scaf ->
-                val scafInGroup = scaf as SensorConfigAnalogue
-
-                val xScale = if (viewWidth == 0) {
-                    0
-                } else {
-                    (endTime - begTime) / (viewWidth / DOT_PER_MM)
-                }
-                val yScale = if (viewHeight == 0) {
-                    0.0
-                } else {
-                    (sca.maxView - sca.minView) / (viewHeight / DOT_PER_MM)
-                }
-
-                //--- расчет скорости расхода жидкости по счётчику топлива или уровнемеру
-                isLiquidFlow = false
-                aLiquidMin = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 1, false)
-                aLiquidMax = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 1, false)
-                aLiquidFlow = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 2, false)
-
-                //--- обработка счётчиков топлива
-                val alSclu = objectConfig.hmSensorConfig[SensorConfig.SENSOR_LIQUID_USING]?.values?.filter { sc ->
+        //--- только для основого графика
+        if(sca is SensorConfigLiquidLevel) {
+            aLine?.alGLD?.let { alGLD ->
+                //--- есть ли вообще прописанный датчик расчётной скорости расхода жидкости в этой группе
+                objectConfig.hmSensorConfig[SensorConfig.SENSOR_LIQUID_FLOW_CALC]?.values?.firstOrNull { sc ->
                     sc.group == sca.group
-                }?.map { sc ->
-                    sc as SensorConfigCounter
-                } ?: emptyList()
+                }?.let { scaf ->
+                    val scafInGroup = scaf as SensorConfigAnalogue
 
-                //--- если есть расходомер и он только один, то считаем по нему
-                if (alSclu.size == 1) {
-                    isLiquidFlow = true
-                    calcLiquidFlowOverLiquidUsing(alRawTime, alRawData, alAxisYData, alSclu.first(), scafInGroup, begTime, endTime, xScale, yScale)
-                    alGDC.addAll(listOfNotNull(aText, aLiquidMin, aLiquidMax, aLiquidFlow).filter { it.itNotEmpty() })
-                    axisIndex++
-                }
-                //--- расходомеров не нашлось (или их >1), считаем через изменение уровня топлива
-                else {
-                    isLiquidFlow = true
-                    calcLiquidFlowOverLiquidLevel(alAxisYData, sca as SensorConfigLiquidLevel, scafInGroup, begTime, endTime, xScale, yScale, alGLD)
-                    alGDC.addAll(listOfNotNull(aText, aLiquidMin, aLiquidMax, aLiquidFlow).filter { it.itNotEmpty() })
-                    axisIndex++
+                    val xScale = if (viewWidth == 0) {
+                        0
+                    } else {
+                        (endTime - begTime) / (viewWidth / DOT_PER_MM)
+                    }
+                    val yScale = if (viewHeight == 0) {
+                        0.0
+                    } else {
+                        (sca.maxView - sca.minView) / (viewHeight / DOT_PER_MM)
+                    }
+
+                    //--- расчет скорости расхода жидкости по счётчику топлива или уровнемеру
+                    isLiquidFlow = false
+                    aLiquidMin = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 1, false)
+                    aLiquidMax = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 1, false)
+                    aLiquidFlow = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 2, false)
+
+                    //--- обработка счётчиков топлива
+                    val alSclu = objectConfig.hmSensorConfig[SensorConfig.SENSOR_LIQUID_USING]?.values?.filter { sc ->
+                        sc.group == sca.group
+                    }?.map { sc ->
+                        sc as SensorConfigCounter
+                    } ?: emptyList()
+
+                    //--- если есть расходомер и он только один, то считаем по нему
+                    if (alSclu.size == 1) {
+                        isLiquidFlow = true
+                        calcLiquidFlowOverLiquidUsing(alRawTime, alRawData, alAxisYData, alSclu.first(), scafInGroup, begTime, endTime, xScale, yScale)
+                        alGDC.addAll(listOfNotNull(aText, aLiquidMin, aLiquidMax, aLiquidFlow).filter { it.itNotEmpty() })
+                        axisIndex++
+                    }
+                    //--- расходомеров не нашлось (или их >1), считаем через изменение уровня топлива
+                    else {
+                        isLiquidFlow = true
+                        calcLiquidFlowOverLiquidLevel(alAxisYData, sca, scafInGroup, begTime, endTime, xScale, yScale, alGLD)
+                        alGDC.addAll(listOfNotNull(aText, aLiquidMin, aLiquidMax, aLiquidFlow).filter { it.itNotEmpty() })
+                        axisIndex++
+                    }
                 }
             }
         }
