@@ -300,17 +300,25 @@ open class cStandart {
         //--- заранее соберем список подстановки наименований самосвязаных таблиц для их временного переименования
         val hsTableRenameList = mutableSetOf<String>()
         for (column in alColumnList) {
-            if (column.selfLinkTableName != null) hsTableRenameList.add(column.selfLinkTableName!!)
+            if (column.selfLinkTableName != null) {
+                hsTableRenameList.add(column.selfLinkTableName!!)
+            }
             val linkColumn = column.linkColumn
-            if (linkColumn?.selfLinkTableName != null) hsTableRenameList.add(linkColumn.selfLinkTableName!!)
+            if (linkColumn?.selfLinkTableName != null) {
+                hsTableRenameList.add(linkColumn.selfLinkTableName!!)
+            }
         }
         val idFieldName = " ${renameTableName(hsTableRenameList, model.tableName)}.${model.columnID.getFieldName()} "
 
         alRenamedSelectedFields = mutableListOf()
         hsSelectTables.add(
             StringBuilder(model.tableName).append(
-                if (hsTableRenameList.contains(model.tableName)) StringBuilder().append(' ').append(renameTableName(hsTableRenameList, model.tableName))
-                else ""
+                if (hsTableRenameList.contains(model.tableName)) {
+                    StringBuilder().append(' ').append(renameTableName(hsTableRenameList, model.tableName))
+                }
+                else {
+                    ""
+                }
             ).toString()
         )
 
@@ -334,18 +342,26 @@ open class cStandart {
 
             //--- добавить ограничения по parent-данным
             for (pa in hmParentData.keys) {
-                if (isAliasesEquals(aliasConfig.alias, pa) && isIgnoreSelfParent) continue
+                if (isAliasesEquals(aliasConfig.alias, pa) && isIgnoreSelfParent) {
+                    continue
+                }
                 val pid = getParentID(pa)!!
                 //--- если parent является иерархической структурой, то вполне вероятно,
                 //--- что данный pid узла развернется в список вложенных pid'ов
                 val hsID = expandParent(pa, pid)
                 val pIDList = StringBuilder()
-                for (tmpID in hsID) pIDList.append(if (pIDList.isEmpty()) "" else " , ").append(tmpID)
+                for (tmpID in hsID) {
+                    pIDList.append(if (pIDList.isEmpty()) "" else " , ").append(tmpID)
+                }
                 val pc = model.hmParentColumn[pa]
                 if (pc != null) {
                     wherePart += (if (wherePart.isEmpty()) "" else " AND ") + " ${renameTableName(hsTableRenameList, pc.tableName)}.${pc.getFieldName(0)} "
-                    if (hsID.size == 1) wherePart += " = $pIDList "
-                    else wherePart += " IN ( $pIDList ) "
+                    if (hsID.size == 1) {
+                        wherePart += " = $pIDList "
+                    }
+                    else {
+                        wherePart += " IN ( $pIDList ) "
+                    }
                 }
             }
             //--- добавить ограничения по архивному полю
@@ -367,41 +383,56 @@ open class cStandart {
             }
         }
         //--- для загрузки одной записи в форму
-        else wherePart += " $idFieldName = $id "
+        else {
+            wherePart += " $idFieldName = $id "
+        }
 
         //--- проход по полям
         for (column in alColumnList) {
             //--- виртуальные поля в SQL-запрос попасть не должны
-            if (column.isVirtual) continue
+            if (column.isVirtual) {
+                continue
+            }
 
-            for (j in 0 until column.getFieldCount()) alRenamedSelectedFields.add("${renameTableName(hsTableRenameList, column.tableName)}.${column.getFieldName(j)}")
+            for (j in 0 until column.getFieldCount()) {
+                alRenamedSelectedFields.add("${renameTableName(hsTableRenameList, column.tableName)}.${column.getFieldName(j)}")
+            }
 
             val linkColumn = column.linkColumn
             if (linkColumn != null) {
                 //--- добавить таблицу в селект
                 val sb = StringBuilder()
-                if (linkColumn.selfLinkTableName != null) sb.append(linkColumn.selfLinkTableName).append(' ')
+                if (linkColumn.selfLinkTableName != null) {
+                    sb.append(linkColumn.selfLinkTableName).append(' ')
+                }
                 sb.append(linkColumn.tableName)
                 hsSelectTables.add(sb.toString())
                 //--- если я все сделал правильно, лишнее переименование не должно помешать :)
-                for (j in 0 until column.getFieldCount())
+                for (j in 0 until column.getFieldCount()) {
                     wherePart += (if (wherePart.isEmpty()) "" else " AND ") +
                         " ${renameTableName(hsTableRenameList, column.tableName)}.${column.getFieldName(j)} = " +
                         " ${renameTableName(hsTableRenameList, linkColumn.tableName)}.${linkColumn.getFieldName(j)} "
+                }
             }
         }
         //--- ручное добавление дополнительных таблиц
         hsSelectTables.addAll(model.getAdditionalTables(hsTableRenameList))
         //--- список полей для селекта
         val selectFields = StringBuilder()
-        for (i in alRenamedSelectedFields.indices) selectFields.append(if (i == 0) "" else " , ").append(alRenamedSelectedFields[i])
+        for (i in alRenamedSelectedFields.indices) {
+            selectFields.append(if (i == 0) "" else " , ").append(alRenamedSelectedFields[i])
+        }
         //--- список таблиц для селекта
         val selectTables = StringBuilder()
-        for (tableName in hsSelectTables)
+        for (tableName in hsSelectTables) {
             selectTables.append(if (selectTables.isEmpty()) "" else " , ").append(tableName)
-
-        if (wherePart.isNotBlank()) wherePart = " WHERE $wherePart "
-        if (sortPart.isNotBlank()) sortPart = " ORDER BY $sortPart "
+        }
+        if (wherePart.isNotBlank()) {
+            wherePart = " WHERE $wherePart "
+        }
+        if (sortPart.isNotBlank()) {
+            sortPart = " ORDER BY $sortPart "
+        }
 
         return " SELECT $selectFields FROM $selectTables $wherePart $sortPart "
     }

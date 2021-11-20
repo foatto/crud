@@ -7,6 +7,7 @@ import foatto.core.link.FormCellType
 import foatto.core.link.FormData
 import foatto.core.link.FormPinMode
 import foatto.core.link.FormResponse
+import foatto.core.util.getRandomInt
 import foatto.core_web.external.vue.that
 import foatto.core_web.external.vue.vueComponentOptions
 import kotlinx.browser.document
@@ -17,7 +18,6 @@ import org.w3c.dom.events.Event
 import kotlin.js.Json
 import kotlin.js.json
 import kotlin.math.max
-import kotlin.random.Random
 
 private val hmFormIcon = mutableMapOf(
     ICON_NAME_ARCHIVE to "/web/images/ic_archive_black_48dp.png",
@@ -302,9 +302,13 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
         "deleteFile" to { gridData: FormGridData, fileData: FormFileData ->
             gridData.arrFileData = gridData.arrFileData!!.filter { it.id != fileData.id }.toTypedArray()
             //--- сохраним ID удаляемого файла для передачи на сервер
-            if (fileData.id > 0) gridData.alFileRemovedID.add(fileData.id)
+            if (fileData.id > 0) {
+                gridData.alFileRemovedID.add(fileData.id)
+            }
             //--- или просто удалим ранее добавленный файл из списка
-            else gridData.hmFileAdd.remove(fileData.id)
+            else {
+                gridData.hmFileAdd.remove(fileData.id)
+            }
         },
         "addFileDialog" to { id: String ->
             (document.getElementById(id) as HTMLElement).click()
@@ -317,8 +321,7 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
 
                 val formData = org.w3c.xhr.FormData().also {
                     for (file in files.asList()) {
-                        var id = Random.nextInt()
-                        if (id > 0) id = -id
+                        val id = -getRandomInt()
 
                         alFileData.add(FormFileData(id, "", file.name))
                         hmFileAdd[id] = file.name
@@ -361,9 +364,9 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                     }
                     FormCellType_.FILE -> {
                         alFormData.add(FormData(
-                            fileID = gridData.fileID,
+                            fileId = gridData.fileID,
                             hmFileAdd = if (withNewValues) gridData.hmFileAdd.mapKeys { it.key.toString() } else mapOf(),
-                            alFileRemovedID = if (withNewValues) gridData.alFileRemovedID else listOf()
+                            alFileRemovedId = if (withNewValues) gridData.alFileRemovedID else listOf()
                         ))
                     }
                 }

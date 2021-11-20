@@ -1,44 +1,67 @@
 package foatto.core.util
 
 import foatto.core.app.xy.geom.XyPoint
+import kotlin.math.E
+import kotlin.math.atan
+import kotlin.math.atan2
+import kotlin.math.exp
+import kotlin.math.log
+import kotlin.math.sqrt
 
-fun ch( x: Double ): Double = ( Math.exp( x ) + Math.exp( -x ) ) / 2
+fun ch(x: Double): Double = (exp(x) + exp(-x)) / 2
 
-fun arch( x: Double ): Double = Math.log( x + Math.sqrt( x * x - 1 ) )
+fun arch(x: Double): Double = log(x + sqrt(x * x - 1), E)
 
-fun getAngle( x: Double, y: Double ): Double = Math.toDegrees( Math.atan2( y, x ) )
+fun getAngle(x: Double, y: Double): Double = Math.toDegrees(atan2(y, x))
 
 //--- возвращает расположение и угол поворота текста, расположенного вдоль отрезка (независимо от направления/вектора отрезка)
 fun getTextPointAndAngle(point1: XyPoint, point2: XyPoint, textPoint: XyPoint): Double {
     //--- нормализуем координаты отрезка - чтобы текст всегда шел слева направо и не вверх ногами
-    val p1 = if( point1.x <= point2.x ) point1 else point2
-    val p2 = if( point1.x <= point2.x ) point2 else point1
+    val p1 = if (point1.x <= point2.x) {
+        point1
+    } else {
+        point2
+    }
+    val p2 = if (point1.x <= point2.x) {
+        point2
+    } else {
+        point1
+    }
 
-    textPoint.set( p1.x + ( p2.x - p1.x ) / 2, p1.y + ( p2.y - p1.y ) / 2 )
-    return if( p1.x == p2.x ) 90.0 else Math.toDegrees( Math.atan( 1.0 * ( p2.y - p1.y ) / ( p2.x - p1.x ) ) )
+    textPoint.set(p1.x + (p2.x - p1.x) / 2, p1.y + (p2.y - p1.y) / 2)
+    return if (p1.x == p2.x) {
+        90.0
+    } else {
+        Math.toDegrees(atan(1.0 * (p2.y - p1.y) / (p2.x - p1.x)))
+    }
 }
 
 //--- возвращает расположение и угол поворота текста, расположенного вдоль отрезка (независимо от направления/вектора отрезка)
-fun getTextPointAndAngle( aX1: Double, aY1: Double, aX2: Double, aY2: Double ): DoubleArray {
+fun getTextPointAndAngle(aX1: Double, aY1: Double, aX2: Double, aY2: Double): DoubleArray {
     //--- нормализуем координаты отрезка - чтобы текст всегда шел слева направо и не вверх ногами
     val x1: Double
     val y1: Double
     val x2: Double
     val y2: Double
-    if( aX1 <= aX2 ) {
+    if (aX1 <= aX2) {
         x1 = aX1
         y1 = aY1
         x2 = aX2
         y2 = aY2
-    }
-    else {
+    } else {
         x1 = aX2
         y1 = aY2
         x2 = aX1
         y2 = aY1
     }
-    return doubleArrayOf( x1 + ( x2 - x1 ) / 2, y1 + ( y2 - y1 ) / 2,
-                         if( x1 == x2 ) 90.0 else Math.toDegrees( Math.atan( 1.0 * ( y2 - y1 ) / ( x2 - x1 ) ) ) )
+    return doubleArrayOf(
+        x1 + (x2 - x1) / 2, y1 + (y2 - y1) / 2,
+        if (x1 == x2) {
+            90.0
+        } else {
+            Math.toDegrees(atan(1.0 * (y2 - y1) / (x2 - x1)))
+        }
+    )
 }
 
 //    //--- возвращает левый (по ходу движения) перпендикуляр к заданному вектору

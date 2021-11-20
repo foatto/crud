@@ -164,7 +164,7 @@ abstract class CoreDataServer protected constructor(private val configFileName: 
             selector = Selector.open()
 
             //--- инициализация слушателей портов
-            val hmServerSocketChannelClass = HashMap<ServerSocketChannel, Class<*>>()
+            val hmServerSocketChannelClass = mutableMapOf<ServerSocketChannel, Class<*>>()
             for (serverPort in hmServerPortClass.keys) {
                 val serverSocketChannel = ServerSocketChannel.open()
                 serverSocketChannel.configureBlocking(false)
@@ -174,7 +174,7 @@ abstract class CoreDataServer protected constructor(private val configFileName: 
                 serverSocketChannel.socket().bind(InetSocketAddress(serverPort))
                 serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT)
                 //--- припишем для каждого серверного канала - своё имя класса-обработчика
-                hmServerSocketChannelClass.put(serverSocketChannel, Class.forName(hmServerPortClass[serverPort]))
+                hmServerSocketChannelClass[serverSocketChannel] = Class.forName(hmServerPortClass[serverPort])
             }
 
             //--- тайм-аут селектора должен быть равен (или даже меньше) самому маленькому из остальных таймаутов/периодов

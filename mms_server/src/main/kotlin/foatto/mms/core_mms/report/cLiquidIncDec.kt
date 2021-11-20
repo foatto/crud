@@ -20,6 +20,7 @@ import jxl.format.PaperSize
 import jxl.write.Label
 import jxl.write.WritableSheet
 import java.util.*
+import kotlin.math.abs
 
 class cLiquidIncDec : cMMSReport() {
 
@@ -139,7 +140,7 @@ class cLiquidIncDec : cMMSReport() {
             for (lidd in tmLIDD.values) {
                 offsX = 0
 
-                val levelDiff = Math.abs(lidd.begLevel - lidd.endLevel)
+                val levelDiff = abs(lidd.begLevel - lidd.endLevel)
 
                 sheet.addCell(Label(offsX++, offsY, (countNN++).toString(), wcfNN))
                 sheet.addCell(Label(offsX++, offsY, DateTime_DMYHMS(zoneId, lidd.begTime), wcfCellC))

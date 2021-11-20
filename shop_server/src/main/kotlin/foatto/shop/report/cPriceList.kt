@@ -26,8 +26,8 @@ class cPriceList : cAbstractCatalogReport() {
         collectItemInfo()
         hmCatalogParent = cAbstractHierarchy.getCatalogParent(stm, "SHOP_catalog")
 
-        hmDestCount = HashMap()
-        hmSourCount = HashMap()
+        hmDestCount = mutableMapOf()
+        hmSourCount = mutableMapOf()
         cCatalog.loadCatalogCount(stm, null, null, hmDestCount, hmSourCount)
 
         tmItem = TreeMap()

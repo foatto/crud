@@ -617,8 +617,12 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             val isDynamicMaxLimit = graphicHandler.isDynamicMaxLimit(sca)
 
             //--- immediately add / set static (permanent) constraints if required / supported
-            if (graphicHandler.isStaticMinLimit(sca)) graphicHandler.setStaticMinLimit(sca, begTime, endTime, aMinLimit)
-            if (graphicHandler.isStaticMaxLimit(sca)) graphicHandler.setStaticMaxLimit(sca, begTime, endTime, aMaxLimit)
+            if (graphicHandler.isStaticMinLimit(sca)) {
+                graphicHandler.setStaticMinLimit(sca, begTime, endTime, aMinLimit)
+            }
+            if (graphicHandler.isStaticMaxLimit(sca)) {
+                graphicHandler.setStaticMaxLimit(sca, begTime, endTime, aMaxLimit)
+            }
 
             //--- for smoothing, you may need data before and after the time of the current point,
             //--- therefore, we overload / translate data in advance

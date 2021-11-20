@@ -7,6 +7,7 @@ import foatto.core.link.TableCell
 import foatto.core.util.getSplittedDouble
 import foatto.core_server.app.server.column.ColumnDouble
 import foatto.core_server.app.server.column.iColumn
+import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedResultSet
 import foatto.sql.CoreAdvancedStatement
 
@@ -74,7 +75,7 @@ class DataDouble(aColumn: iColumn) : DataAbstract(aColumn) {
         return true
     }
 
-    override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell =
+    override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell =
         if (isShowEmptyTableCell) TableCell(row, col, column.rowSpan, column.colSpan)
         else TableCell(
             aRow = row,
@@ -93,7 +94,7 @@ class DataDouble(aColumn: iColumn) : DataAbstract(aColumn) {
             }
         )
 
-    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement, isUseThousandsDivider: Boolean, decimalDivider: Char): FormCell =
+    override fun getFormCell(rootDirName: String, conn: CoreAdvancedConnection, isUseThousandsDivider: Boolean, decimalDivider: Char): FormCell =
         FormCell(FormCellType.DOUBLE).apply {
             name = getFieldCellName(0)
             value = if (errorText == null) {

@@ -1,6 +1,7 @@
 package foatto.mms.core_mms.ds
 
 import foatto.core.util.AdvancedByteBuffer
+import kotlin.math.round
 
 class PLADeviceInfo(byteBuffer: AdvancedByteBuffer) {
     var ringHeadPos = 0        // голова кольцевого буфера
@@ -29,7 +30,7 @@ class PLADeviceInfo(byteBuffer: AdvancedByteBuffer) {
         temperature = byteBuffer.getShort().toInt()    // температура - величина со знаком
         signalStrength = byteBuffer.getByte().toInt() and 0xFF
         trafficCount = byteBuffer.getInt()
-        travelDistance = Math.round(byteBuffer.getFloat().toDouble() * 1.852 * 1000.0).toInt()  // в милях, переводим в метры
+        travelDistance = round(byteBuffer.getFloat().toDouble() * 1.852 * 1000.0).toInt()  // в милях, переводим в метры
         accelLevel = byteBuffer.getByte().toInt() and 0xFF
 
         //--- пропускаем 100 резервных байт

@@ -106,7 +106,7 @@ class cUser : cAbstractHierarchy() {
 
         if ((hmColumnData[(model as mUser).columnRecordType] as DataComboBox).intValue != OrgType.ORG_TYPE_DIVISION) {
             val refererID = hmParam[AppParameter.REFERER]
-            val hmUserRoleParentData = HashMap<String, Int>()
+            val hmUserRoleParentData = mutableMapOf<String, Int>()
             hmUserRoleParentData["system_user"] = id
             hmUserRoleParentData["system_user_division"] = id
             hmUserRoleParentData["system_user_people"] = id

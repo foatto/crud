@@ -39,8 +39,8 @@ class cWarehouseState : cAbstractOperationState() {
         collectItemInfo()
         hmCatalogParent = cAbstractHierarchy.getCatalogParent(stm, "SHOP_catalog")
 
-        hmDestCount = HashMap()
-        hmSourCount = HashMap()
+        hmDestCount = mutableMapOf()
+        hmSourCount = mutableMapOf()
         cCatalog.loadCatalogCount(stm, null, arrEndDT, hmDestCount, hmSourCount)
 
         tmItem = TreeMap()

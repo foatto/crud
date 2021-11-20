@@ -8,6 +8,7 @@ import foatto.core.util.Time_HM
 import foatto.core.util.Time_HMS
 import foatto.core_server.app.server.column.ColumnTimeDT
 import foatto.core_server.app.server.column.iColumn
+import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedResultSet
 import foatto.sql.CoreAdvancedStatement
 import java.time.LocalTime
@@ -54,7 +55,7 @@ class DataTimeDT(aColumn: iColumn) : DataAbstractTime(aColumn) {
         }
     }
 
-    override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell {
+    override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell {
         val ct = column as ColumnTimeDT
 
         return if (isShowEmptyTableCell) TableCell(row, col, column.rowSpan, column.colSpan)
@@ -72,7 +73,7 @@ class DataTimeDT(aColumn: iColumn) : DataAbstractTime(aColumn) {
         )
     }
 
-    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement, isUseThousandsDivider: Boolean, decimalDivider: Char): FormCell {
+    override fun getFormCell(rootDirName: String, conn: CoreAdvancedConnection, isUseThousandsDivider: Boolean, decimalDivider: Char): FormCell {
         val ct = column as ColumnTimeDT
 
         return FormCell(FormCellType.TIME).apply {

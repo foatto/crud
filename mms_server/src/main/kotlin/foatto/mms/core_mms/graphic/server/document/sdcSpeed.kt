@@ -16,6 +16,7 @@ import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.iMMSApplication
 import java.util.*
 import kotlin.math.abs
+import kotlin.math.max
 
 class sdcSpeed : sdcAbstractGraphic() {
 
@@ -133,7 +134,9 @@ class sdcSpeed : sdcAbstractGraphic() {
                 //--- динамическая верхняя граница
                 if (aDistance != null) {
                     var maxDistance = 0.0
-                    for (gld in aDistance.alGLD) maxDistance = Math.max(maxDistance, gld.y)
+                    for (gld in aDistance.alGLD) {
+                        maxDistance = max(maxDistance, gld.y)
+                    }
                     alAxisYData.add(AxisYData("Пробег в точке, [ м ]", 0.0, maxDistance, GraphicColorIndex.AXIS_1, false))
                 }
 

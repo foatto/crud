@@ -120,11 +120,11 @@ class mObject : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData("Журналы...", "mms_day_work", columnID, AppAction.TABLE))
-        alChildData.add(ChildData("Журналы...", "mms_shift_work", columnID, AppAction.TABLE))
+        alChildData.add(ChildData("Журналы", "mms_day_work", columnID, AppAction.TABLE))
+        alChildData.add(ChildData("Журналы", "mms_shift_work", columnID, AppAction.TABLE))
         //--- usually one of two modules is shown
-        alChildData.add(ChildData("Журналы...", "mms_work_shift", columnID, AppAction.TABLE))
-        alChildData.add(ChildData("Журналы...", "mms_waybill", columnID, AppAction.TABLE))
+        alChildData.add(ChildData("Журналы", "mms_work_shift", columnID, AppAction.TABLE))
+        alChildData.add(ChildData("Журналы", "mms_waybill", columnID, AppAction.TABLE))
 
         MMSFunction.fillChildDataForPeriodicReports(columnID, alChildData)
         MMSFunction.fillChildDataForLiquidIncDecReports(columnID, alChildData, withIncWaybillReport = true, newGroup = false)
@@ -139,9 +139,9 @@ class mObject : mAbstract() {
 
         MMSFunction.fillAllChildDataForGraphics(columnID, alChildData)
 
-        alChildData.add(ChildData("Карты...", "mms_show_object", columnID, AppAction.FORM, true))
-        alChildData.add(ChildData("Карты...", "mms_show_trace", columnID, AppAction.FORM))
-        alChildData.add(ChildData("Карты...", "mms_object_zone", columnID, AppAction.TABLE))
+        alChildData.add(ChildData("Карты", "mms_show_object", columnID, AppAction.FORM, true))
+        alChildData.add(ChildData("Карты", "mms_show_trace", columnID, AppAction.FORM))
+        alChildData.add(ChildData("Карты", "mms_object_zone", columnID, AppAction.TABLE))
 
         alChildData.add(ChildData("mms_show_state", columnID, AppAction.FORM, true))
 
@@ -151,7 +151,7 @@ class mObject : mAbstract() {
         alChildData.add(ChildData("mms_data", columnID, AppAction.TABLE))
         alChildData.add(ChildData("mms_device", columnID, AppAction.TABLE))
 
-        alChildData.add(ChildData("Служебные...", "mms_device_command_history", columnID, AppAction.TABLE))
+        alChildData.add(ChildData("Служебные", "mms_device_command_history", columnID, AppAction.TABLE))
 
         //----------------------------------------------------------------------------------------
 

@@ -6,6 +6,7 @@ import foatto.core.link.FormData
 import foatto.core.link.TableCell
 import foatto.core.util.AdvancedByteBuffer
 import foatto.core_server.app.server.column.iColumn
+import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedResultSet
 import foatto.sql.CoreAdvancedStatement
 
@@ -31,13 +32,13 @@ class DataBinary(aColumn: iColumn) : DataAbstract(aColumn) {
 
     override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String?, id: Int): Boolean = true
 
-    override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell {
+    override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell {
         val tc = TableCell(row, col, column.rowSpan, column.colSpan)
         tc.minWidth = column.minWidth
         return tc
     }
 
-    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement, isUseThousandsDivider: Boolean, decimalDivider: Char) =
+    override fun getFormCell(rootDirName: String, conn: CoreAdvancedConnection, isUseThousandsDivider: Boolean, decimalDivider: Char) =
         FormCell(FormCellType.STRING).apply {
             name = getFieldCellName(0)
             value = binaryValue.getHex(null, false).toString()

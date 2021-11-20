@@ -13,7 +13,6 @@ import jxl.write.WritableSheet
 import java.io.File
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
-import java.util.*
 
 abstract class cAbstractReport : cAbstractForm() {
 
@@ -24,7 +23,7 @@ abstract class cAbstractReport : cAbstractForm() {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     //--- для передачи параметров отчёта (в общем случае взятых из hmColumnData) между doSave и getReport
-    protected var hmReportParam = HashMap<String, Any>()
+    protected var hmReportParam = mutableMapOf<String, Any>()
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -324,13 +323,27 @@ abstract class cAbstractReport : cAbstractForm() {
     }
 
     protected fun getWCF(
-        fontSize: Int, isBold: Boolean, isItalic: Boolean, hAlign: Alignment, vAlign: VerticalAlignment,
-        isBorder: Boolean, isWrap: Boolean, fontColor: Colour
+        fontSize: Int,
+        isBold: Boolean,
+        isItalic: Boolean,
+        hAlign: Alignment,
+        vAlign: VerticalAlignment,
+        isBorder: Boolean,
+        isWrap: Boolean,
+        fontColor: Colour
     ): WritableCellFormat {
         val wcf = WritableCellFormat(
             WritableFont(
-                WritableFont.ARIAL, fontSize, if (isBold) WritableFont.BOLD else WritableFont.NO_BOLD,
-                isItalic, UnderlineStyle.NO_UNDERLINE, fontColor
+                WritableFont.ARIAL,
+                fontSize,
+                if (isBold) {
+                    WritableFont.BOLD
+                } else {
+                    WritableFont.NO_BOLD
+                },
+                isItalic,
+                UnderlineStyle.NO_UNDERLINE,
+                fontColor
             )
         )
         wcf.alignment = hAlign
@@ -345,13 +358,22 @@ abstract class cAbstractReport : cAbstractForm() {
     protected fun defineRelWidth(alDim: MutableList<Int>, totalWidth: Int) {
         var captionConstWidthSum = 0
         var captionRelWidthSum = 0
-        for (w in alDim)
-            if (w > 0) captionConstWidthSum += w
-            else captionRelWidthSum += w
+        for (w in alDim) {
+            if (w > 0) {
+                captionConstWidthSum += w
+            }
+            else {
+                captionRelWidthSum += w
+            }
+        }
         //--- получаем минусовую ширину на одну относительную ед.ширины
         val captionRelWidth = (totalWidth - captionConstWidthSum) / captionRelWidthSum
         //--- устанавливаем полученные остатки ширины (минус на минус как раз даёт плюс)
-        for (i in alDim.indices) if (alDim[i] < 0) alDim[i] = alDim[i] * captionRelWidth
+        for (i in alDim.indices) {
+            if (alDim[i] < 0) {
+                alDim[i] = alDim[i] * captionRelWidth
+            }
+        }
     }
 
 }

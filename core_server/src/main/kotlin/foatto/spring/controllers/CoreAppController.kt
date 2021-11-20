@@ -93,9 +93,10 @@ abstract class CoreAppController : iApplication {
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun getFileList(stm: CoreAdvancedStatement, fileId: Int): List<Pair<Int, String>> {
+    override fun getFileList(conn: CoreAdvancedConnection, fileId: Int): List<Pair<Int, String>> {
         val alFileStoreData = mutableListOf<Pair<Int, String>>()
 
+        val stm = conn.createStatement()
         val rs = stm.executeQuery(
             """
                 SELECT id , name , dir 
@@ -115,6 +116,7 @@ abstract class CoreAppController : iApplication {
             chmFileTime[fileUrl] = getCurrentTimeInt()
         }
         rs.close()
+        stm.close()
 
         return alFileStoreData
     }

@@ -7,6 +7,7 @@ import foatto.core.link.TableCell
 import foatto.core.util.prepareForSQL
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.column.iColumn
+import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedResultSet
 import foatto.sql.CoreAdvancedStatement
 import kotlin.math.min
@@ -68,8 +69,10 @@ class DataString(aColumn: iColumn) : DataAbstract(aColumn) {
         return true
     }
 
-    override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell {
-        if (isShowEmptyTableCell) return TableCell(row, col, column.rowSpan, column.colSpan)
+    override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell {
+        if (isShowEmptyTableCell) {
+            return TableCell(row, col, column.rowSpan, column.colSpan)
+        }
 
         return TableCell(
             aRow = row,
@@ -91,7 +94,7 @@ class DataString(aColumn: iColumn) : DataAbstract(aColumn) {
         )
     }
 
-    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement, isUseThousandsDivider: Boolean, decimalDivider: Char): FormCell {
+    override fun getFormCell(rootDirName: String, conn: CoreAdvancedConnection, isUseThousandsDivider: Boolean, decimalDivider: Char): FormCell {
         val fci: FormCell
         if (cs.rows == 0) {
             fci = FormCell(FormCellType.STRING)

@@ -5,6 +5,7 @@ import foatto.core.link.FormData
 import foatto.core.link.TableCell
 import foatto.core_server.app.server.column.ColumnBoolean
 import foatto.core_server.app.server.column.iColumn
+import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedResultSet
 import foatto.sql.CoreAdvancedStatement
 
@@ -34,7 +35,7 @@ class DataBoolean(aColumn: iColumn) : DataAbstract(aColumn) {
         return true
     }
 
-    override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell =
+    override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell =
         if(isShowEmptyTableCell) TableCell(row, col, column.rowSpan, column.colSpan)
         else TableCell(
             aRow = row,
@@ -48,7 +49,7 @@ class DataBoolean(aColumn: iColumn) : DataAbstract(aColumn) {
             aBooleanValue = value
         )
 
-    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement, isUseThousandsDivider: Boolean, decimalDivider: Char) = FormCell(getFieldCellName(0), value)
+    override fun getFormCell(rootDirName: String, conn: CoreAdvancedConnection, isUseThousandsDivider: Boolean, decimalDivider: Char) = FormCell(getFieldCellName(0), value)
 
     override fun getFieldSQLValue(index: Int): String = if(value) "1" else "0"
 

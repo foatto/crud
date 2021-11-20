@@ -61,9 +61,9 @@ open class mAbstractHierarchy : mAbstract() {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
-        commonAliasName += (if(isArchiveAlias) ALIAS_NAME_ARCHIVE_POSTFIX else "")
-        folderAliasName += (if(isArchiveAlias) ALIAS_NAME_ARCHIVE_POSTFIX else "")
-        itemAliasName += (if(isArchiveAlias) ALIAS_NAME_ARCHIVE_POSTFIX else "")
+        commonAliasName += (if (isArchiveAlias) ALIAS_NAME_ARCHIVE_POSTFIX else "")
+        folderAliasName += (if (isArchiveAlias) ALIAS_NAME_ARCHIVE_POSTFIX else "")
+        itemAliasName += (if (isArchiveAlias) ALIAS_NAME_ARCHIVE_POSTFIX else "")
 
         isSelectableFolder = aliasConfig.alias == commonAliasName || aliasConfig.alias == folderAliasName
         isSelectableItem = aliasConfig.alias == commonAliasName || aliasConfig.alias == itemAliasName
@@ -71,8 +71,9 @@ open class mAbstractHierarchy : mAbstract() {
 
         columnID = ColumnInt(tableName, "id")
 
-        columnParentID = ColumnInt(selfLinkTableName, "id")
-        columnParentID.selfLinkTableName = tableName
+        columnParentID = ColumnInt(selfLinkTableName, "id").apply {
+            selfLinkTableName = tableName
+        }
         columnParent = ColumnInt(tableName, "parent_id", columnParentID)
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -102,11 +103,11 @@ open class mAbstractHierarchy : mAbstract() {
     }
 
     protected fun getRecordType(id: Int?, recordTypeFieldName: String, defaultRecordType: Int): Int {
-        return if(id == null || id == 0) {
+        return if (id == null || id == 0) {
             hmParam[RECORD_TYPE_PARAM]?.toIntOrNull() ?: defaultRecordType
         } else {
             val rs = stm.executeQuery(" SELECT $recordTypeFieldName FROM $tableName WHERE id = $id ")
-            val result = if(rs.next()) {
+            val result = if (rs.next()) {
                 rs.getInt(1)
             } else {
                 defaultRecordType

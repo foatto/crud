@@ -10,6 +10,7 @@ import foatto.core.util.getDateTime
 import foatto.core_server.app.server.column.ColumnAbstractDateTime
 import foatto.core_server.app.server.column.ColumnDateTimeInt
 import foatto.core_server.app.server.column.iColumn
+import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedStatement
 import java.time.ZonedDateTime
 
@@ -59,7 +60,7 @@ abstract class DataAbstractDateTime(aColumn: iColumn) : DataAbstract(aColumn) {
         return true
     }
 
-    override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell {
+    override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell {
         val cdt = column as ColumnAbstractDateTime
 
         return if (isShowEmptyTableCell) {
@@ -81,7 +82,7 @@ abstract class DataAbstractDateTime(aColumn: iColumn) : DataAbstract(aColumn) {
         }
     }
 
-    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement, isUseThousandsDivider: Boolean, decimalDivider: Char): FormCell {
+    override fun getFormCell(rootDirName: String, conn: CoreAdvancedConnection, isUseThousandsDivider: Boolean, decimalDivider: Char): FormCell {
         val cdt = column as ColumnDateTimeInt
 
         val fci = FormCell(FormCellType.DATE_TIME)

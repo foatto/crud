@@ -6,6 +6,7 @@ import foatto.core.link.FormData
 import foatto.core.link.TableCell
 import foatto.core_server.app.server.column.ColumnAbstractSelector
 import foatto.core_server.app.server.column.iColumn
+import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedStatement
 
 abstract class DataAbstractSelector(aColumn: iColumn, aFormCellType: FormCellType) : DataAbstractIntValue(aColumn) {
@@ -34,7 +35,7 @@ abstract class DataAbstractSelector(aColumn: iColumn, aFormCellType: FormCellTyp
         return true
     }
 
-    override fun getTableCell(rootDirName: String, stm: CoreAdvancedStatement, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell =
+    override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell =
         if (isShowEmptyTableCell) {
             TableCell(row, col, column.rowSpan, column.colSpan)
         } else {
@@ -56,7 +57,7 @@ abstract class DataAbstractSelector(aColumn: iColumn, aFormCellType: FormCellTyp
             )
         }
 
-    override fun getFormCell(rootDirName: String, stm: CoreAdvancedStatement, isUseThousandsDivider: Boolean, decimalDivider: Char): FormCell {
+    override fun getFormCell(rootDirName: String, conn: CoreAdvancedConnection, isUseThousandsDivider: Boolean, decimalDivider: Char): FormCell {
         val cas = column as ColumnAbstractSelector
 
         return FormCell(formCellType).apply {

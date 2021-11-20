@@ -37,6 +37,7 @@ import jxl.write.WritableSheet
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.set
 import kotlin.math.ceil
+import kotlin.math.floor
 import kotlin.math.min
 
 class cDocContent : cAbstractReport() {
@@ -427,12 +428,14 @@ class cDocContent : cAbstractReport() {
             }
             if (isUseDestNum) {
                 if (isRowUseDestNum) num = rs.getDouble(15)
-                sheet.addCell(Label(
-                    offsX++,
-                    offsY,
-                    if (isRowUseDestNum) getSplittedDouble(num, -1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider) else "",
-                    wcfCellC
-                ))
+                sheet.addCell(
+                    Label(
+                        offsX++,
+                        offsY,
+                        if (isRowUseDestNum) getSplittedDouble(num, -1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider) else "",
+                        wcfCellC
+                    )
+                )
             }
             sheet.addCell(Label(offsX++, offsY, getSplittedDouble(priceOut * num, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellR))
 
@@ -454,30 +457,36 @@ class cDocContent : cAbstractReport() {
             if (reportDocument != 0 && reportDocumentType == DocumentTypeConfig.TYPE_OUT) {
                 sheet.addCell(Label(1, offsY, "Скидка:", wcfTextRB))
 
-                sheet.addCell(Label(
-                    alCaption.size - 2,
-                    offsY,
-                    getSplittedDouble(discount, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider) + " %",
-                    wcfTextCB
-                ))
-                sheet.addCell(Label(
-                    alCaption.size - 1,
-                    offsY,
-                    getSplittedDouble(ceil(sumCostOut * discount / 100), 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider),
-                    wcfTextRB
-                ))
+                sheet.addCell(
+                    Label(
+                        alCaption.size - 2,
+                        offsY,
+                        getSplittedDouble(discount, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider) + " %",
+                        wcfTextCB
+                    )
+                )
+                sheet.addCell(
+                    Label(
+                        alCaption.size - 1,
+                        offsY,
+                        getSplittedDouble(ceil(sumCostOut * discount / 100), 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider),
+                        wcfTextRB
+                    )
+                )
                 offsY++
 
                 //--- пригодится для вывода текстовой суммы
-                discountedCost = Math.floor(sumCostOut * (1 - discount / 100))
+                discountedCost = floor(sumCostOut * (1 - discount / 100))
 
                 sheet.addCell(Label(1, offsY, "Стоимость со скидкой:", wcfTextRB))
-                sheet.addCell(Label(
-                    alCaption.size - 1,
-                    offsY,
-                    getSplittedDouble(discountedCost, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider),
-                    wcfTextRB
-                ))
+                sheet.addCell(
+                    Label(
+                        alCaption.size - 1,
+                        offsY,
+                        getSplittedDouble(discountedCost, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider),
+                        wcfTextRB
+                    )
+                )
                 offsY++
             }
             offsY++

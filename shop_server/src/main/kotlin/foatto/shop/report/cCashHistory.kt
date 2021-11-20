@@ -144,7 +144,9 @@ class cCashHistory : cAbstractReport() {
         }
         //--- вывод заголовков
         var offsX = 0
-        for (caption in alCaption) sheet.addCell(Label(offsX++, offsY, caption, wcfCaptionHC))
+        for (caption in alCaption) {
+            sheet.addCell(Label(offsX++, offsY, caption, wcfCaptionHC))
+        }
 
         offsY++
 
@@ -175,7 +177,9 @@ class cCashHistory : cAbstractReport() {
 
             gcCur = ZonedDateTime.of(ye, mo, da, 0, 0, 0, 0, zoneId)
 
-            if (gcCur.isAfter(gcEnd)) break
+            if (gcCur.isAfter(gcEnd)) {
+                break
+            }
 
             //--- реализация на дату по накладным
             val arrDT = intArrayOf(ye, mo, da, 0, 0, 0)
@@ -184,7 +188,9 @@ class cCashHistory : cAbstractReport() {
             val cashDiff = cashRestCalc - cashRest
             //--- нужна сумма за ВСЁ время
             //--- (поправка: за ВСЁ время - приходит много ранних ошибок, суммируем только с 01.01.2019)
-            if (gcCur.isAfter(gcDiffSumStart)) sumDiff += cashDiff
+            if (gcCur.isAfter(gcDiffSumStart)) {
+                sumDiff += cashDiff
+            }
 
             //--- запрашиваемый период
             if (!gcCur.isBefore(gcBeg)) {
@@ -242,8 +248,16 @@ class cCashHistory : cAbstractReport() {
 
         //--- для всех продаж
         var rs = stmCalc.executeQuery(
-            " SELECT id , discount FROM SHOP_doc WHERE is_deleted = 0 AND sour_id = $aWarehouseID AND doc_type = ${DocumentTypeConfig.TYPE_OUT} " +
-                " AND doc_ye = ${arrDT[0]} AND doc_mo = ${arrDT[1]} AND doc_da = ${arrDT[2]} "
+            """
+                SELECT id , discount 
+                FROM SHOP_doc 
+                WHERE is_deleted = 0 
+                AND sour_id = $aWarehouseID 
+                AND doc_type = ${DocumentTypeConfig.TYPE_OUT} 
+                AND doc_ye = ${arrDT[0]} 
+                AND doc_mo = ${arrDT[1]} 
+                AND doc_da = ${arrDT[2]}
+            """
         )
         while (rs.next()) {
             alDocID.add(rs.getInt(1))
@@ -254,8 +268,16 @@ class cCashHistory : cAbstractReport() {
 
         //--- для всех возвратов от покупателя
         rs = stmCalc.executeQuery(
-            " SELECT id , discount FROM SHOP_doc WHERE is_deleted = 0 AND dest_id = $aWarehouseID AND doc_type = ${DocumentTypeConfig.TYPE_RETURN_OUT} " +
-                " AND doc_ye = ${arrDT[0]} AND doc_mo = ${arrDT[1]} AND doc_da = ${arrDT[2]} "
+            """
+                SELECT id , discount 
+                FROM SHOP_doc 
+                WHERE is_deleted = 0 
+                AND dest_id = $aWarehouseID 
+                AND doc_type = ${DocumentTypeConfig.TYPE_RETURN_OUT} 
+                AND doc_ye = ${arrDT[0]} 
+                AND doc_mo = ${arrDT[1]} 
+                AND doc_da = ${arrDT[2]} 
+            """
         )
         while (rs.next()) {
             alDocID.add(rs.getInt(1))

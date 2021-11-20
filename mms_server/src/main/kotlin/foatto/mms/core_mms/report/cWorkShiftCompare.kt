@@ -19,6 +19,7 @@ import jxl.format.PaperSize
 import jxl.write.Label
 import jxl.write.WritableSheet
 import java.util.*
+import kotlin.math.abs
 
 class cWorkShiftCompare : cMMSReport() {
 
@@ -228,7 +229,9 @@ class cWorkShiftCompare : cMMSReport() {
             }
 
             //--- если задано выводить только строки с нарушениями, то пропускаем обычные/нормальные и wrong-строки
-            if (reportOutOverDiffOnly && (isWrongRow || Math.abs(calcPercent(wscr.wsd.run, wscr.runWK)) <= reportMaxDiff)) continue
+            if (reportOutOverDiffOnly && (isWrongRow || abs(calcPercent(wscr.wsd.run, wscr.runWK)) <= reportMaxDiff)) {
+                continue
+            }
 
             var sumWorkShift: WorkShiftSumCollector? = tmWorkShiftSumCollector[userName]
             if (sumWorkShift == null) {
@@ -353,9 +356,21 @@ class cWorkShiftCompare : cMMSReport() {
         val percentWOK = calcPercent(wRun, cRunWOK)
 
         val isOutWOK = reportOutRunWithoutKoef && cRunWK != cRunWOK
-        val isOverRun = Math.abs(percentWK) > reportMaxDiff
-        val runCellStyle1 = if (isWrongRow) wcfCellRGrayStd else if (isOverRun) wcfCellRRedStd else wcfCellR
-        val runCellStyle2 = if (isWrongRow) wcfCellRGrayStd else if (isOverRun) wcfCellRBRedStd else wcfCellR
+        val isOverRun = abs(percentWK) > reportMaxDiff
+        val runCellStyle1 = if (isWrongRow) {
+            wcfCellRGrayStd
+        } else if (isOverRun) {
+            wcfCellRRedStd
+        } else {
+            wcfCellR
+        }
+        val runCellStyle2 = if (isWrongRow) {
+            wcfCellRGrayStd
+        } else if (isOverRun) {
+            wcfCellRBRedStd
+        } else {
+            wcfCellR
+        }
 
         sheet.addCell(
             Label(
@@ -434,7 +449,7 @@ class cWorkShiftCompare : cMMSReport() {
                     if (cWorkHour == 0.0) "100"
                     else getSplittedDouble((wWorkHour - cWorkHour) / cWorkHour * 100.0, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
                 )
-                isRed = isRed or (cWorkHour == 0.0 || Math.abs(wWorkHour - cWorkHour) / cWorkHour * 100.0 > reportMaxDiff)
+                isRed = isRed or (cWorkHour == 0.0 || abs(wWorkHour - cWorkHour) / cWorkHour * 100.0 > reportMaxDiff)
             }
             tmWorkHourC.remove(workDescr)
         }
@@ -493,7 +508,7 @@ class cWorkShiftCompare : cMMSReport() {
                     if (cLiquidUsing == 0.0) "100"
                     else getSplittedDouble((wLiquidUsing - cLiquidUsing) / cLiquidUsing * 100.0, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
                 )
-                isRed = isRed or (cLiquidUsing == 0.0 || Math.abs(wLiquidUsing - cLiquidUsing) / cLiquidUsing * 100.0 > reportMaxDiff)
+                isRed = isRed or (cLiquidUsing == 0.0 || abs(wLiquidUsing - cLiquidUsing) / cLiquidUsing * 100.0 > reportMaxDiff)
             }
             tmLiquidUsingC.remove(liquidDescr)
         }

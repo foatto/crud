@@ -23,17 +23,17 @@ import java.util.*
 class cOperationHistory : cAbstractReport() {
 
     private lateinit var hmWarehouseName: Map<Int, String>
-    private lateinit var tmWarehouseID: TreeMap<String, Int>
-    private lateinit var hmCatalogName: HashMap<Int, String>
+    private lateinit var tmWarehouseID: SortedMap<String, Int>
+    private lateinit var hmCatalogName: MutableMap<Int, String>
 
     //----------------------------------------------------------------------------------------------
 
-    override fun isFormAutoClick(): Boolean = if(hmParentData["shop_catalog"] != null) true else super.isFormAutoClick()
+    override fun isFormAutoClick(): Boolean = if (hmParentData["shop_catalog"] != null) true else super.isFormAutoClick()
 
     override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
 
         val returnURL = super.doSave(action, alFormData, hmOut)
-        if(returnURL != null) return returnURL
+        if (returnURL != null) return returnURL
 
         val moh = model as mOperationHistory
 
@@ -62,14 +62,18 @@ class cOperationHistory : cAbstractReport() {
 
         hmWarehouseName = mWarehouse.fillWarehouseMap(stm)
         //--- понадобится еще и отсортированный список наименований магазинов
-        tmWarehouseID = TreeMap()
-        for((wID, wName) in hmWarehouseName)
-            if(wID != 0)  // "все склады" нам не нужны, сами напишем
+        tmWarehouseID = sortedMapOf()
+        for ((wID, wName) in hmWarehouseName) {
+            if (wID != 0) { // "все склады" нам не нужны, сами напишем
                 tmWarehouseID[wName] = wID
+            }
+        }
         //--- соберём инфу по элементам каталога
-        hmCatalogName = HashMap()
+        hmCatalogName = mutableMapOf()
         val rs = stm.executeQuery(" SELECT id , name FROM SHOP_catalog WHERE id <> 0 AND record_type = ${mAbstractHierarchy.RECORD_TYPE_ITEM} ")
-        while(rs.next()) hmCatalogName[rs.getInt(1)] = rs.getString(2)
+        while (rs.next()) {
+            hmCatalogName[rs.getInt(1)] = rs.getString(2)
+        }
         rs.close()
 
         //--- загрузка стартовых параметров
@@ -99,7 +103,7 @@ class cOperationHistory : cAbstractReport() {
         alDim.add(-1)
         alCaption.add("Операционное кол-во")
         alDim.add(7)
-        for(wName in tmWarehouseID.keys) {
+        for (wName in tmWarehouseID.keys) {
             alCaption.add(wName)
             alDim.add(7)         // кол-во на каждом складе
         }
@@ -108,40 +112,40 @@ class cOperationHistory : cAbstractReport() {
 
         defineRelWidth(alDim, 90)
 
-        for(i in alDim.indices) {
+        for (i in alDim.indices) {
             val cvNN = CellView()
             cvNN.size = alDim[i] * 256
             sheet.setColumnView(i, cvNN)
         }
         //--- вывод заголовков
         var offsX = 0  // счётчик позиций из-за переменного кол-ва заголовков
-        for(caption in alCaption) sheet.addCell(Label(offsX++, offsY, caption, wcfCaptionHC))
+        for (caption in alCaption) sheet.addCell(Label(offsX++, offsY, caption, wcfCaptionHC))
 
         offsY++
 
         var countNN = 1
-        for(ohr in alResult) {
+        for (ohr in alResult) {
             offsX = 3
 
             var whSum = 0.0
-            for((_, wID) in tmWarehouseID) {
+            for ((_, wID) in tmWarehouseID) {
                 val num = ohr.hmHWState[wID]!!
 
-                sheet.addCell(Label(offsX++, offsY, getSplittedDouble(num, -1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), if(num < 0) wcfCellCBStdRed else wcfCellC))
+                sheet.addCell(Label(offsX++, offsY, getSplittedDouble(num, -1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), if (num < 0) wcfCellCBStdRed else wcfCellC))
                 whSum += num
             }
-            sheet.addCell(Label(offsX++, offsY, getSplittedDouble(whSum, -1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), if(whSum < 0) wcfCellCBStdRed else wcfCellCBStdYellow))
+            sheet.addCell(Label(offsX++, offsY, getSplittedDouble(whSum, -1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), if (whSum < 0) wcfCellCBStdRed else wcfCellCBStdYellow))
             offsY++
 
             offsX = 0
 
             sheet.addCell(Label(offsX++, offsY, (countNN++).toString(), wcfNN))
 
-            val docColour = if(ohr.type == DocumentTypeConfig.TYPE_IN) Colour.LIGHT_GREEN
-            else if(ohr.type == DocumentTypeConfig.TYPE_OUT) Colour.WHITE
-            else if(ohr.type == DocumentTypeConfig.TYPE_MOVE) Colour.VERY_LIGHT_YELLOW
-            else if(ohr.type == DocumentTypeConfig.TYPE_RESORT) Colour.ROSE
-            else if(ohr.type == -1) Colour.SKY_BLUE   // переоценка
+            val docColour = if (ohr.type == DocumentTypeConfig.TYPE_IN) Colour.LIGHT_GREEN
+            else if (ohr.type == DocumentTypeConfig.TYPE_OUT) Colour.WHITE
+            else if (ohr.type == DocumentTypeConfig.TYPE_MOVE) Colour.VERY_LIGHT_YELLOW
+            else if (ohr.type == DocumentTypeConfig.TYPE_RESORT) Colour.ROSE
+            else if (ohr.type == -1) Colour.SKY_BLUE   // переоценка
             else Colour.LIGHT_ORANGE
 
             val wcfDoc = getWCF(8, false, false, Alignment.CENTRE, VerticalAlignment.CENTRE, true, true, Colour.BLACK)
@@ -172,10 +176,10 @@ class cOperationHistory : cAbstractReport() {
         var rs = stm.executeQuery(
             " SELECT ye , mo , da , price_type , price_value FROM SHOP_price " +
                 " WHERE catalog_id = $reportCatalogDest " +
-                (if(isMerchant) "" else " AND price_type = ${mPrice.PRICE_TYPE_OUT} ") +
+                (if (isMerchant) "" else " AND price_type = ${mPrice.PRICE_TYPE_OUT} ") +
                 " ORDER BY ye , mo , da "
         )
-        while(rs.next()) alPriceData.add(PriceData(rs.getInt(1), rs.getInt(2), rs.getInt(3), rs.getInt(4), rs.getDouble(5)))
+        while (rs.next()) alPriceData.add(PriceData(rs.getInt(1), rs.getInt(2), rs.getInt(3), rs.getInt(4), rs.getDouble(5)))
         rs.close()
 
         val alResult = ArrayList<OperationHistoryResult>()
@@ -193,11 +197,13 @@ class cOperationHistory : cAbstractReport() {
 
         //--- первичное состояние - по нулям ( используется именно tmWarehouseID,
         //--- т.к. у hmWarehouseName есть ненужный элемент с 0-ым id )
-        val hmCurrentHWState = HashMap<Int, Double>()
-        for((_, wID) in tmWarehouseID) hmCurrentHWState[wID] = 0.0
+        val hmCurrentHWState = mutableMapOf<Int, Double>()
+        for ((_, wID) in tmWarehouseID) {
+            hmCurrentHWState[wID] = 0.0
+        }
 
         rs = stm.executeQuery(sbSQL)
-        while(rs.next()) {
+        while (rs.next()) {
             val rowDocType = rs.getInt(1)
 
             val isRowUseSourCatalog = DocumentTypeConfig.hsUseSourCatalog.contains(rowDocType)
@@ -211,8 +217,9 @@ class cOperationHistory : cAbstractReport() {
             //--- указать что во что превратилось ( для пересортицы )
             val sourCatalogID = rs.getInt(2)
             val destCatalogID = rs.getInt(3)
-            if(isRowUseSourCatalog && isRowUseDestCatalog)
+            if (isRowUseSourCatalog && isRowUseDestCatalog) {
                 sbDoc.append("\nиз: ").append(hmCatalogName[sourCatalogID]).append("\n в: ").append(hmCatalogName[destCatalogID])
+            }
             //--- дата накладной
             val docYe = rs.getInt(4)
             val docMo = rs.getInt(5)
@@ -220,19 +227,22 @@ class cOperationHistory : cAbstractReport() {
             val docDate = DateTime_DMY(intArrayOf(docYe, docMo, docDa, 0, 0, 0))
 
             //--- делаем врезку для вставки предыдущих переоценок
-            while(!alPriceData.isEmpty()) {
+            while (alPriceData.isNotEmpty()) {
                 val priceData = alPriceData[0]
-                if(priceData.ye < docYe ||
+                if (priceData.ye < docYe ||
                     priceData.ye == docYe && priceData.mo < docMo ||
                     priceData.ye == docYe && priceData.mo == docMo && priceData.da <= docDa
                 ) {   // здесть именно <=, т.к. переоценку считаем началом дня ДО всех документов
 
                     val priceDate = DateTime_DMY(intArrayOf(priceData.ye, priceData.mo, priceData.da, 0, 0, 0))
                     alResult.add(
-                        0, OperationHistoryResult(
-                            -1, priceDate,
-                            "${if(priceData.priceType == mPrice.PRICE_TYPE_IN) "Закупочная" else "Розничная"} цена = ${getSplittedDouble(priceData.priceValue, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)}",
-                            0.0, hmCurrentHWState
+                        index = 0,
+                        element = OperationHistoryResult(
+                            type = -1,
+                            date = priceDate,
+                            doc = "${if (priceData.priceType == mPrice.PRICE_TYPE_IN) "Закупочная" else "Розничная"} цена = ${getSplittedDouble(priceData.priceValue, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)}",
+                            operNum = 0.0,
+                            aHmHWState = hmCurrentHWState
                         )
                     )
 
@@ -243,47 +253,47 @@ class cOperationHistory : cAbstractReport() {
             //--- указать откуда/куда
             var sourWH = rs.getInt(7)
             var destWH = rs.getInt(8)
-            if(isRowUseSourWarehouse || isRowUseDestWarehouse) sbDoc.append('\n')
-            if(isRowUseSourWarehouse) sbDoc.append(hmWarehouseName[sourWH])
-            if(isRowUseSourWarehouse && isRowUseDestWarehouse) sbDoc.append(" -> ")
-            if(isRowUseDestWarehouse) sbDoc.append(hmWarehouseName[destWH])
+            if (isRowUseSourWarehouse || isRowUseDestWarehouse) sbDoc.append('\n')
+            if (isRowUseSourWarehouse) sbDoc.append(hmWarehouseName[sourWH])
+            if (isRowUseSourWarehouse && isRowUseDestWarehouse) sbDoc.append(" -> ")
+            if (isRowUseDestWarehouse) sbDoc.append(hmWarehouseName[destWH])
             //--- прочие реквизиты накладной
             val docNo = rs.getString(9)
-            if(!docNo.isEmpty()) sbDoc.append("\nНомер накладной: ").append(docNo)
+            if (!docNo.isEmpty()) sbDoc.append("\nНомер накладной: ").append(docNo)
             val clientName = rs.getString(10)
-            if(!clientName.isEmpty()) sbDoc.append("\nПокупатель: ").append(clientName)
+            if (!clientName.isEmpty()) sbDoc.append("\nПокупатель: ").append(clientName)
             val docDescr = rs.getString(11)
-            if(!docDescr.isEmpty()) sbDoc.append("\nПримечание: ").append(docDescr)
+            if (!docDescr.isEmpty()) sbDoc.append("\nПримечание: ").append(docDescr)
 
             //--- определяем операционное кол-во
             val sourNum = rs.getDouble(12)
             val destNum = rs.getDouble(13)
 
             //--- первый частный случай: "производство" - разные вх./исх. кол-ва
-            val operNum = if(isRowUseSourNum && isRowUseDestNum)
-                if(reportCatalogDest == sourCatalogID) sourNum else destNum
-            else if(isRowUseSourNum) sourNum else destNum
+            val operNum = if (isRowUseSourNum && isRowUseDestNum)
+                if (reportCatalogDest == sourCatalogID) sourNum else destNum
+            else if (isRowUseSourNum) sourNum else destNum
             //--- второй частный случай: "пересортица" - разные исх./вх. наименования,
             //--- соответственно, м.б. или вычитание из одного склада или прибавление к другому
-            sourWH = if(isRowUseSourCatalog && isRowUseDestCatalog) if(reportCatalogDest == sourCatalogID) sourWH else 0
-            else if(isRowUseSourWarehouse) sourWH else 0
-            destWH = if(isRowUseSourCatalog && isRowUseDestCatalog) if(reportCatalogDest == destCatalogID) destWH else 0
-            else if(isRowUseDestWarehouse) destWH else 0
+            sourWH = if (isRowUseSourCatalog && isRowUseDestCatalog) if (reportCatalogDest == sourCatalogID) sourWH else 0
+            else if (isRowUseSourWarehouse) sourWH else 0
+            destWH = if (isRowUseSourCatalog && isRowUseDestCatalog) if (reportCatalogDest == destCatalogID) destWH else 0
+            else if (isRowUseDestWarehouse) destWH else 0
 
-            if(sourWH != 0) hmCurrentHWState[sourWH] = hmCurrentHWState[sourWH]!! - operNum
-            if(destWH != 0) hmCurrentHWState[destWH] = hmCurrentHWState[destWH]!! + operNum
+            if (sourWH != 0) hmCurrentHWState[sourWH] = hmCurrentHWState[sourWH]!! - operNum
+            if (destWH != 0) hmCurrentHWState[destWH] = hmCurrentHWState[destWH]!! + operNum
 
             alResult.add(0, OperationHistoryResult(rowDocType, docDate, sbDoc.toString(), operNum, hmCurrentHWState))
         }
         rs.close()
 
         //--- дописываем оставшиеся переоценки
-        for(priceData in alPriceData) {
+        for (priceData in alPriceData) {
             val priceDate = DateTime_DMY(intArrayOf(priceData.ye, priceData.mo, priceData.da, 0, 0, 0))
             alResult.add(
                 0, OperationHistoryResult(
                     -1, priceDate,
-                    "${if(priceData.priceType == mPrice.PRICE_TYPE_IN) "Закупочная" else "Розничная"} цена = ${getSplittedDouble(priceData.priceValue, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)}",
+                    "${if (priceData.priceType == mPrice.PRICE_TYPE_IN) "Закупочная" else "Розничная"} цена = ${getSplittedDouble(priceData.priceValue, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)}",
                     0.0, hmCurrentHWState
                 )
             )
