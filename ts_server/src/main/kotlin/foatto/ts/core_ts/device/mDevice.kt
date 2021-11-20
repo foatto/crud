@@ -60,10 +60,9 @@ class mDevice : mAbstract() {
         val columnDeviceType = ColumnRadioButton(tableName, "type", "Тип устройства")
         TSHandler.fillDeviceTypeColumn(columnDeviceType)
 
-        columnSerialNo = ColumnString(tableName, "serial_no", "Серийный номер", 10).apply {
+        columnSerialNo = ColumnString(tableName, "serial_no", "Серийный номер", STRING_COLUMN_WIDTH).apply {
             isRequired = true
             setUnique(true, "")
-            isEditable = id == 0    // номер устройства задается вручную только один раз - при создании. В дальнейшем редактировать его нельзя.
         }
 
         val columnDeviceCell = ColumnString(tableName, "cell_num", "Номер телефона", STRING_COLUMN_WIDTH)
@@ -115,10 +114,10 @@ class mDevice : mAbstract() {
 
         alFormHiddenColumn += columnID
 
-        alFormColumn += columnDeviceIndex
         alFormColumn += columnDeviceType
         alFormColumn += columnSerialNo
         alFormColumn += columnDeviceCell
+        alFormColumn += columnDeviceIndex
 
         //----------------------------------------------------------------------------------------------------------------------
 

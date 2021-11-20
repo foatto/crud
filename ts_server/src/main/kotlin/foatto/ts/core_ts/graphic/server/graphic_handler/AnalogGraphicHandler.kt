@@ -72,6 +72,10 @@ class AnalogGraphicHandler : iGraphicHandler {
         val avgDynamicMinLimit = getDynamicMinLimit(sca, rawTime, rawData)
         val avgDynamicMaxLimit = getDynamicMaxLimit(sca, rawTime, rawData)
 
+        if (rawTime - prevTime > ObjectCalc.MAX_WORK_TIME_INTERVAL) {
+            return getLineNoneColorIndex(axisIndex)
+        }
+
         var colorIndex = getLineNormalColorIndex(axisIndex)
         if (isStaticMinLimit(sca)) {
             colorIndex = if (rawData > avgDynamicMaxLimit) {
@@ -84,4 +88,26 @@ class AnalogGraphicHandler : iGraphicHandler {
         }
         return colorIndex
     }
+/*
+    override fun getLineColorIndex(axisIndex: Int, sca: SensorConfigAnalogue, rawTime: Int, rawData: Double, prevTime: Int, prevData: Double): GraphicColorIndex {
+        //--- checking for coincidence of the start / end points, so that there is no division by zero later
+        if (rawTime == prevTime) {
+            return getLineNormalColorIndex(axisIndex)
+        }
+
+        //--- too large spacing between points
+        val scll = sca as SensorConfigLiquidLevel
+        val liquidKoef = (rawData - prevData) * 3600 / (rawTime - prevTime)
+
+        return if (liquidKoef > 0 && liquidKoef > scll.detectIncKoef) {
+            getLineAboveColorIndex(axisIndex)
+        }
+        else if (liquidKoef < 0 && -liquidKoef > scll.detectDecKoef) {
+            getLineBelowColorIndex(axisIndex)
+        }
+        else {
+            getLineNormalColorIndex(axisIndex)
+        }
+    }
+ */
 }

@@ -21,6 +21,9 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
 
     companion object {
 
+        //--- the maximum allowable time interval between points
+        const val MAX_WORK_TIME_INTERVAL = 10 * 60
+
         fun calcObject(stm: CoreAdvancedStatement, userConfig: UserConfig, oc: ObjectConfig, begTime: Int, endTime: Int): ObjectCalc {
 
             val result = ObjectCalc(oc)
@@ -139,7 +142,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 //--- new state
                 if (newState != curState) {
                     //--- record of previous state
-                    if (curState != -1) {
+                    if (curState != -1 && curTime - stateBeginTime < MAX_WORK_TIME_INTERVAL) {
                         alResult.add(StatePeriodData(stateBeginTime, curTime, curState))
                     }
                     curState = newState
@@ -148,7 +151,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             }
 
             //--- record of the last unclosed state
-            if (curState != -1) {
+            if (curState != -1 && curTime - stateBeginTime < MAX_WORK_TIME_INTERVAL) {
                 alResult.add(StatePeriodData(stateBeginTime, curTime, curState))
             }
 

@@ -602,7 +602,7 @@ class sdcTSState : sdcXyState() {
             this.alPoint = arrayOf(XyPoint(x, y))
 
             this.text = text
-            this.toolTipText = tooltip ?: text
+            this.toolTipText = tooltip ?: ""
             this.textColor = textColor
             
             this.drawColor = drawColor

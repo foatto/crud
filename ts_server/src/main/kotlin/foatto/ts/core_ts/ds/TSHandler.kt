@@ -133,32 +133,34 @@ abstract class TSHandler : AbstractTelematicHandler() {
         }
         val text = sbText.toString()
 
-        val dirDeviceSessionLog = File(dirSessionLog, "device/${deviceConfig!!.deviceId}")
-        dirDeviceSessionLog.mkdirs()
-        var out = getFileWriter(File(dirDeviceSessionLog, curLogFileName), true)
-        out.write(text)
-        out.newLine()
-        out.flush()
-        out.close()
+        deviceConfig?.let { dc ->
+            val dirDeviceSessionLog = File(dirSessionLog, "device/${dc.deviceId}")
+            dirDeviceSessionLog.mkdirs()
+            var out = getFileWriter(File(dirDeviceSessionLog, curLogFileName), true)
+            out.write(text)
+            out.newLine()
+            out.flush()
+            out.close()
 
-        val dirObjectSessionLog = File(dirSessionLog, "object/${deviceConfig!!.objectId}")
-        dirObjectSessionLog.mkdirs()
-        out = getFileWriter(File(dirObjectSessionLog, curLogFileName), true)
-        out.write(text)
-        out.newLine()
-        out.flush()
-        out.close()
+            val dirObjectSessionLog = File(dirSessionLog, "object/${dc.objectId}")
+            dirObjectSessionLog.mkdirs()
+            out = getFileWriter(File(dirObjectSessionLog, curLogFileName), true)
+            out.write(text)
+            out.newLine()
+            out.flush()
+            out.close()
 
-        stm.executeUpdate(
-            """
-                UPDATE TS_device SET 
-                fw_version = '$fwVersion' , 
-                last_session_time = ${getCurrentTimeInt()} , 
-                last_session_status = '$status' ,
-                last_session_error = '${if (isOk || errorText.isEmpty()) "" else errorText}' 
-                WHERE id = '${deviceConfig!!.deviceId}'
-            """
-        )
+            stm.executeUpdate(
+                """
+                    UPDATE TS_device SET 
+                    fw_version = '$fwVersion' , 
+                    last_session_time = ${getCurrentTimeInt()} , 
+                    last_session_status = '$status' ,
+                    last_session_error = '${if (isOk || errorText.isEmpty()) "" else errorText}' 
+                    WHERE id = '${deviceConfig!!.deviceId}'
+                """
+            )
+        }
 
         conn.commit()
     }

@@ -1,6 +1,7 @@
 package foatto.ts.core_ts
 
 import foatto.core.link.AppAction
+import foatto.core.link.TableCellAlign
 import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.ChildData
@@ -58,22 +59,27 @@ class mObject : mAbstract() {
         columnState = ColumnString(tableName, "_state", SensorConfig.hmSensorDescr[SensorConfig.SENSOR_STATE] ?: "-", STRING_COLUMN_WIDTH).apply {
             isVirtual = true
             isEditable = false
+            tableAlign = TableCellAlign.CENTER
         }
         columnDepth = ColumnDouble(tableName, "_depth", SensorConfig.hmSensorDescr[SensorConfig.SENSOR_DEPTH] ?: "-", 10, 0).apply {
             isVirtual = true
             isEditable = false
+            tableAlign = TableCellAlign.CENTER
         }
         columnSpeed = ColumnDouble(tableName, "_speed", SensorConfig.hmSensorDescr[SensorConfig.SENSOR_SPEED] ?: "-", 10, 0).apply {
             isVirtual = true
             isEditable = false
+            tableAlign = TableCellAlign.CENTER
         }
         columnLoad = ColumnDouble(tableName, "_load", SensorConfig.hmSensorDescr[SensorConfig.SENSOR_LOAD] ?: "-", 10, 0).apply {
             isVirtual = true
             isEditable = false
+            tableAlign = TableCellAlign.CENTER
         }
         columnLastDateTime = ColumnDateTimeInt(tableName, "_last_time", "Время последних данных", true, zoneId).apply {
             isVirtual = true
             isEditable = false
+            tableAlign = TableCellAlign.CENTER
         }
 
         //----------------------------------------------------------------------------------------------------------------------
