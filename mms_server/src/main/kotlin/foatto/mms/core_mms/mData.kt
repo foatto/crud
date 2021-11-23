@@ -43,27 +43,27 @@ class mData : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "MMS_data_$objectId"
+        modelTableName = "MMS_data_$objectId"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "ontime")
+        columnID = ColumnInt(modelTableName, "ontime")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnDataOnTimeUTC = ColumnDateTimeInt(tableName, "_ontime_utc_", "Время (UTC)", true, zoneId0)
+        columnDataOnTimeUTC = ColumnDateTimeInt(modelTableName, "_ontime_utc_", "Время (UTC)", true, zoneId0)
         columnDataOnTimeUTC.isVirtual = true
-        columnDataOnTimeLocal = ColumnDateTimeInt(tableName, "_ontime_local_", "Время (местное)", true, zoneId)
+        columnDataOnTimeLocal = ColumnDateTimeInt(modelTableName, "_ontime_local_", "Время (местное)", true, zoneId)
         columnDataOnTimeLocal.isVirtual = true
 
-        columnDataBinary = ColumnBinary(tableName, "sensor_data")
+        columnDataBinary = ColumnBinary(modelTableName, "sensor_data")
 
         //--- соберём все номера портов
         val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectId)
         oc.hmSensorConfig.forEach { (sensorType, hmSC) ->
             //--- генерируем виртуальные поля по объявленным портам
             hmSC.keys.forEach { portNum ->
-                val cd = ColumnString(tableName, portNum.toString(), portNum.toString(), STRING_COLUMN_WIDTH)
+                val cd = ColumnString(modelTableName, portNum.toString(), portNum.toString(), STRING_COLUMN_WIDTH)
                 cd.isVirtual = true
                 cd.isSearchable = false
                 tmSensorColumn[portNum] = cd
@@ -75,14 +75,14 @@ class mData : mAbstract() {
         if (oc.scg != null) {
             val portNum = oc.scg!!.portNum
 
-            val cd = ColumnString(tableName, portNum.toString(), portNum.toString(), STRING_COLUMN_WIDTH)
+            val cd = ColumnString(modelTableName, portNum.toString(), portNum.toString(), STRING_COLUMN_WIDTH)
             cd.isVirtual = true
             cd.isSearchable = false
             tmSensorColumn[portNum] = cd
             hmSensorPortType[portNum] = SensorConfig.SENSOR_GEO
         }
 
-        columnDataSensorOther = ColumnString(tableName, "_other_sensor_data", "Прочие данные", STRING_COLUMN_WIDTH)
+        columnDataSensorOther = ColumnString(modelTableName, "_other_sensor_data", "Прочие данные", STRING_COLUMN_WIDTH)
         columnDataSensorOther.isVirtual = true
         columnDataSensorOther.isSearchable = false
 

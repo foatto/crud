@@ -16,18 +16,18 @@ class mSensorCalibration : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "MMS_sensor_calibration"
+        modelTableName = "MMS_sensor_calibration"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnSensor = ColumnInt(tableName, "sensor_id", hmParentData["mms_sensor"])
+        val columnSensor = ColumnInt(modelTableName, "sensor_id", hmParentData["mms_sensor"])
 
-        val columnValueSensor = ColumnDouble(tableName, "value_sensor", "Значение датчика", 10, -1, 0.0)
-        val columnValueData = ColumnDouble(tableName, "value_data", "Значение измеряемой величины", 10, -1, 0.0)
+        val columnValueSensor = ColumnDouble(modelTableName, "value_sensor", "Значение датчика", 10, -1, 0.0)
+        val columnValueData = ColumnDouble(modelTableName, "value_data", "Значение измеряемой величины", 10, -1, 0.0)
 
         //----------------------------------------------------------------------------------------------------------------------
 

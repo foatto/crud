@@ -14,7 +14,7 @@ class cSensor : cMMSOneObjectParent() {
     override fun addSQLWhere(hsTableRenameList: Set<String>): String {
         var s = super.addSQLWhere(hsTableRenameList)
         if (aliasConfig.alias == "mms_equip") {
-            s += " AND ${renameTableName(hsTableRenameList, model.tableName)}." +
+            s += " AND ${renameTableName(hsTableRenameList, model.modelTableName)}." +
                 "${(model as mSensor).columnSensorType.getFieldName()} = ${SensorConfig.SENSOR_WORK} "
         }
         return s

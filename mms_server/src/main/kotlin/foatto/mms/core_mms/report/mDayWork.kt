@@ -48,25 +48,25 @@ class mDayWork : mAbstractReport() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "MMS_report"
+        modelTableName = "MMS_report"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnReportBegDate = ColumnDate3Int(tableName, "beg_ye", "beg_mo", "beg_da", "Начало периода").apply {
+        columnReportBegDate = ColumnDate3Int(modelTableName, "beg_ye", "beg_mo", "beg_da", "Начало периода").apply {
             if (arrADR != null) default = LocalDate.of(arrADR[0], arrADR[1], arrADR[2])
             isVirtual = true
         }
 
-        columnReportEndDate = ColumnDate3Int(tableName, "end_ye", "end_mo", "end_da", "Конец периода").apply {
+        columnReportEndDate = ColumnDate3Int(modelTableName, "end_ye", "end_mo", "end_da", "Конец периода").apply {
             if (arrADR != null) default = LocalDate.of(arrADR[0], arrADR[1], arrADR[2])
             isVirtual = true
         }
 
-        columnReportGroupType = ColumnComboBox(tableName, "object_date_group_type", "Группировка", GROUP_BY_OBJECT).apply {
+        columnReportGroupType = ColumnComboBox(modelTableName, "object_date_group_type", "Группировка", GROUP_BY_OBJECT).apply {
             addChoice(GROUP_BY_OBJECT, "По объектам")
             addChoice(GROUP_BY_DATE, "По датам")
             isVirtual = true
@@ -80,16 +80,16 @@ class mDayWork : mAbstractReport() {
         //----------------------------------------------------------------------------------------------------------------------
 
         uodg = UODGSelector()
-        uodg.fillColumns(tableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn)
+        uodg.fillColumns(modelTableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn)
 
         alFormColumn.add(columnReportBegDate)
         alFormColumn.add(columnReportEndDate)
         alFormColumn.add(columnReportGroupType)
 
         sros = SummaryReportOptionSelector()
-        sros.fillColumns(userConfig, tableName, alFormColumn)
+        sros.fillColumns(userConfig, modelTableName, alFormColumn)
 
         sos = SumOptionSelector()
-        sos.fillColumns(userConfig, tableName, alFormColumn)
+        sos.fillColumns(userConfig, modelTableName, alFormColumn)
     }
 }

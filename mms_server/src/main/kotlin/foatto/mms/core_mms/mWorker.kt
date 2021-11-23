@@ -20,17 +20,17 @@ class mWorker : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "MMS_worker"
+        modelTableName = "MMS_worker"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
-        columnUser = ColumnInt(tableName, "user_id", userConfig.userId)
+        columnID = ColumnInt(modelTableName, "id")
+        columnUser = ColumnInt(modelTableName, "user_id", userConfig.userId)
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnTabNo = ColumnString(tableName, "tab_no", "Табельный номер", STRING_COLUMN_WIDTH)
-        val columnWorkerName = ColumnString(tableName, "name", "Ф.И.О.", STRING_COLUMN_WIDTH)
+        val columnTabNo = ColumnString(modelTableName, "tab_no", "Табельный номер", STRING_COLUMN_WIDTH)
+        val columnWorkerName = ColumnString(modelTableName, "name", "Ф.И.О.", STRING_COLUMN_WIDTH)
         columnWorkerName.isRequired = true
 
         //----------------------------------------------------------------------------------------------------------------------

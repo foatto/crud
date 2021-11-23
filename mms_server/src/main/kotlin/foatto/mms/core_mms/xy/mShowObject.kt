@@ -52,15 +52,15 @@ class mShowObject : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "MMS_report"
+        modelTableName = "MMS_report"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnShowRangeType = ColumnRadioButton(tableName, "show_range_type", "Показать траекторию", if (isShowObjectOnly) 0 else -1).apply {
+        columnShowRangeType = ColumnRadioButton(modelTableName, "show_range_type", "Показать траекторию", if (isShowObjectOnly) 0 else -1).apply {
             addChoice(0, "Не показывать")  // хоть и не порядку значений, зато логичнее выглядит :)
             addChoice(-1, "За указанный период")
             addChoice(5 * 60, "За последние 5 минут")
@@ -73,31 +73,31 @@ class mShowObject : mAbstract() {
             isVirtual = true
         }
 
-        columnShowBegDate = ColumnDate3Int(tableName, "beg_ye", "beg_mo", "beg_da", "Дата начала периода").apply {
+        columnShowBegDate = ColumnDate3Int(modelTableName, "beg_ye", "beg_mo", "beg_da", "Дата начала периода").apply {
             default = LocalDate.of(arrDT[0], arrDT[1], arrDT[2])
             isVirtual = true
             addFormVisible(columnShowRangeType, true, setOf(-1))
         }
-        columnShowBegTime = ColumnTime3Int(tableName, "beg_ho", "beg_mi", null, "Время начала периода").apply {
+        columnShowBegTime = ColumnTime3Int(modelTableName, "beg_ho", "beg_mi", null, "Время начала периода").apply {
             default = LocalTime.of(arrDT[3], arrDT[4], arrDT[5])
             isVirtual = true
             addFormVisible(columnShowRangeType, true, setOf(-1))
             formPinMode = FormPinMode.ON
         }
 
-        columnShowEndDate = ColumnDate3Int(tableName, "end_ye", "end_mo", "end_da", "Дата окончания периода").apply {
+        columnShowEndDate = ColumnDate3Int(modelTableName, "end_ye", "end_mo", "end_da", "Дата окончания периода").apply {
             default = LocalDate.of(arrDT[6], arrDT[7], arrDT[8])
             isVirtual = true
             addFormVisible(columnShowRangeType, true, setOf(-1))
         }
-        columnShowEndTime = ColumnTime3Int(tableName, "end_ho", "end_mi", null, "Время окончания периода").apply {
+        columnShowEndTime = ColumnTime3Int(modelTableName, "end_ho", "end_mi", null, "Время окончания периода").apply {
             default = LocalTime.of(arrDT[9], arrDT[10], arrDT[11])
             isVirtual = true
             addFormVisible(columnShowRangeType, true, setOf(-1))
             formPinMode = FormPinMode.ON
         }
 
-        columnShowZoneType = ColumnComboBox(tableName, "show_zone_type", "Показывать геозоны", cShowAbstractObject.ZONE_SHOW_NONE).apply {
+        columnShowZoneType = ColumnComboBox(modelTableName, "show_zone_type", "Показывать геозоны", cShowAbstractObject.ZONE_SHOW_NONE).apply {
             addChoice(cShowAbstractObject.ZONE_SHOW_NONE, "нет")
             addChoice(cShowAbstractObject.ZONE_SHOW_ACTUAL, "актуальные")
             addChoice(cShowAbstractObject.ZONE_SHOW_ALL, "все")
@@ -112,7 +112,7 @@ class mShowObject : mAbstract() {
         //----------------------------------------------------------------------------------------------------------------------
 
         uodg = UODGSelector()
-        uodg.fillColumns(tableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn)
+        uodg.fillColumns(modelTableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn)
 
         //----------------------------------------------------------------------------------------------------------------------
 

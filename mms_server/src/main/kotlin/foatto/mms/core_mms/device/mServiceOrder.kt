@@ -22,23 +22,23 @@ class mServiceOrder : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "MMS_service_order"
+        modelTableName = "MMS_service_order"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
-        columnUser = ColumnInt(tableName, "user_id", userConfig.userId)
+        columnID = ColumnInt(modelTableName, "id")
+        columnUser = ColumnInt(modelTableName, "user_id", userConfig.userId)
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnOrderTime = ColumnDateTimeInt(tableName, "order_time", "Дата и время заявки", false, zoneId)
+        val columnOrderTime = ColumnDateTimeInt(modelTableName, "order_time", "Дата и время заявки", false, zoneId)
         columnOrderTime.isEditable = false
 
-        val columnOrderText = ColumnString(tableName, "order_text", "Текст заявки", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
+        val columnOrderText = ColumnString(modelTableName, "order_text", "Текст заявки", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
         columnOrderText.isEditable = id == 0
         columnOrderText.formPinMode = FormPinMode.OFF
 
-        columnOrderCompleted = ColumnBoolean(tableName, "order_completed", "Заявка выполнена", false)
+        columnOrderCompleted = ColumnBoolean(modelTableName, "order_completed", "Заявка выполнена", false)
         columnOrderCompleted.isEditable = id != 0
         columnOrderCompleted.formPinMode = FormPinMode.OFF
 

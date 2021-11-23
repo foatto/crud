@@ -26,11 +26,11 @@ open class mUODGP : mP() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "MMS_report"
+        modelTableName = "MMS_report"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -47,7 +47,7 @@ open class mUODGP : mP() {
         //----------------------------------------------------------------------------------------------------------------------
 
         uodg = UODGSelector()
-        uodg.fillColumns(tableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn)
+        uodg.fillColumns(modelTableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn)
 
         addReportPeriodFormColumns()
 

@@ -19,18 +19,18 @@ class mEquipServiceShedule : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "MMS_equip_service_shedule"
+        modelTableName = "MMS_equip_service_shedule"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnEquip = ColumnInt(tableName, "equip_id", equipID)
+        val columnEquip = ColumnInt(modelTableName, "equip_id", equipID)
 
-        val columnServiceName = ColumnString(tableName, "name", "Наименование", STRING_COLUMN_WIDTH)
-        val columnServicePeriod = ColumnDouble(tableName, "period", "Периодичность обслуживания [мото-час]", 10, 1, 0.0)
+        val columnServiceName = ColumnString(modelTableName, "name", "Наименование", STRING_COLUMN_WIDTH)
+        val columnServicePeriod = ColumnDouble(modelTableName, "period", "Периодичность обслуживания [мото-час]", 10, 1, 0.0)
 
         //----------------------------------------------------------------------------------------------------------------------
 

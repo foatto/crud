@@ -23,16 +23,16 @@ class mShowZone : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "MMS_report"
+        modelTableName = "MMS_report"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
         val columnZoneID = ColumnInt("MMS_zone", "id")
-        columnZone = ColumnInt(tableName, "zone_id", columnZoneID)
+        columnZone = ColumnInt(modelTableName, "zone_id", columnZoneID)
         val columnZoneName = ColumnString("MMS_zone", "name", "Наименование геозоны", STRING_COLUMN_WIDTH)
         columnZoneName.isRequired = true
         val columnZoneDescr = ColumnString("MMS_zone", "descr", "Описание геозоны", STRING_COLUMN_WIDTH)

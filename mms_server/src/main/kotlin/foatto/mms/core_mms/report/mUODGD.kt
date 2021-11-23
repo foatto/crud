@@ -32,18 +32,18 @@ class mUODGD : mAbstractReport() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "MMS_report"
+        modelTableName = "MMS_report"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnReportBegDate = ColumnDate3Int(tableName, "beg_ye", "beg_mo", "beg_da", "Дата начала периода")
+        columnReportBegDate = ColumnDate3Int(modelTableName, "beg_ye", "beg_mo", "beg_da", "Дата начала периода")
         //columnReportBegDate.setDefaultDate( arrDT[ 0 ], arrDT[ 1 ], arrDT[ 2 ] );
         columnReportBegDate.isVirtual = true
-        columnReportEndDate = ColumnDate3Int(tableName, "end_ye", "end_mo", "end_da", "Дата окончания периода")
+        columnReportEndDate = ColumnDate3Int(modelTableName, "end_ye", "end_mo", "end_da", "Дата окончания периода")
         //columnReportEndDate.setDefaultDate( arrDT[ 6 ], arrDT[ 7 ], arrDT[ 8 ] );
         columnReportEndDate.isVirtual = true
 
@@ -54,7 +54,7 @@ class mUODGD : mAbstractReport() {
         //----------------------------------------------------------------------------------------------------------------------
 
         uodg = UODGSelector()
-        uodg.fillColumns(tableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn)
+        uodg.fillColumns(modelTableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn)
 
         alFormColumn.add(columnReportBegDate)
         alFormColumn.add(columnReportEndDate)

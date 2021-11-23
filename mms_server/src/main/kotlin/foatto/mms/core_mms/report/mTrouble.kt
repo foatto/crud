@@ -32,15 +32,15 @@ class mTrouble : mAbstractReport() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "MMS_report"
+        modelTableName = "MMS_report"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnReportPeriod = ColumnInt(tableName, "limit_period", "Срок давности [дней]", 10, 1).apply {
+        columnReportPeriod = ColumnInt(modelTableName, "limit_period", "Срок давности [дней]", 10, 1).apply {
             isVirtual = true
             setSavedDefault(userConfig)
             minValue = 1
@@ -53,7 +53,7 @@ class mTrouble : mAbstractReport() {
         //----------------------------------------------------------------------------------------------------------------------
 
         uodg = UODGSelector()
-        uodg.fillColumns(tableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn)
+        uodg.fillColumns(modelTableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn)
 
         alFormColumn.add(columnReportPeriod)
     }

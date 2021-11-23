@@ -14,9 +14,9 @@ class mSummary : mUODGP() {
         super.addOptionsColumns(userConfig)
 
         sros = SummaryReportOptionSelector()
-        sros.fillColumns(userConfig, tableName, alFormColumn)
+        sros.fillColumns(userConfig, modelTableName, alFormColumn)
 
         sos = SumOptionSelector()
-        sos.fillColumns(userConfig, tableName, alFormColumn)
+        sos.fillColumns(userConfig, modelTableName, alFormColumn)
     }
 }

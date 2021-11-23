@@ -6,6 +6,6 @@ class cServiceOrder : cStandart() {
 
     override fun addSQLWhere(hsTableRenameList: Set<String>): String =
         super.addSQLWhere( hsTableRenameList ) +
-            " AND ${renameTableName( hsTableRenameList, model.tableName )}.${( model as mServiceOrder ).columnOrderCompleted.getFieldName()} = 0 "
+            " AND ${renameTableName( hsTableRenameList, model.modelTableName )}.${( model as mServiceOrder ).columnOrderCompleted.getFieldName()} = 0 "
 
 }

@@ -40,16 +40,16 @@ class mDeviceCommandHistory : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "MMS_device_command_history"
+        modelTableName = "MMS_device_command_history"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
-        columnUser = ColumnInt(tableName, "user_id", userConfig.userId)
+        columnID = ColumnInt(modelTableName, "id")
+        columnUser = ColumnInt(modelTableName, "user_id", userConfig.userId)
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnDevice = ColumnComboBox(tableName, "device_id", "Номер устройства")
+        val columnDevice = ColumnComboBox(modelTableName, "device_id", "Номер устройства")
         if (parentDeviceID != null) {
             columnDevice.defaultValue = parentDeviceID
             columnDevice.addChoice(parentDeviceID, parentDeviceID.toString())
@@ -74,7 +74,7 @@ class mDeviceCommandHistory : mAbstract() {
         }
 
         val columnCommandID = ColumnInt("MMS_device_command", "id")
-        val columnCommand = ColumnInt(tableName, "command_id", columnCommandID)
+        val columnCommand = ColumnInt(modelTableName, "command_id", columnCommandID)
         val columnCommandName = ColumnString("MMS_device_command", "name", "Наименование", STRING_COLUMN_WIDTH)
         columnCommandName.isRequired = true
         columnCommandName.formPinMode = FormPinMode.OFF
@@ -86,14 +86,14 @@ class mDeviceCommandHistory : mAbstract() {
         columnCommandName.addSelectorColumn(columnCommandDescr)
         columnCommandName.addSelectorColumn(columnCommandCommand)
 
-        columnEditTime = ColumnDateTimeInt(tableName, "edit_time", "Время последнего редактирования", true, zoneId)
+        columnEditTime = ColumnDateTimeInt(modelTableName, "edit_time", "Время последнего редактирования", true, zoneId)
         columnEditTime.isEditable = false
         columnEditTime.formPinMode = FormPinMode.OFF
 
-        val columnForSend = ColumnBoolean(tableName, "for_send", "Отправить команду", true)
+        val columnForSend = ColumnBoolean(modelTableName, "for_send", "Отправить команду", true)
         columnForSend.formPinMode = FormPinMode.OFF
 
-        val columnSendTime = ColumnDateTimeInt(tableName, "send_time", "Время отправки", true, zoneId)
+        val columnSendTime = ColumnDateTimeInt(modelTableName, "send_time", "Время отправки", true, zoneId)
         columnSendTime.default = ZonedDateTime.of(2000, 1, 1, 0, 0, 0, 0, zoneId)
         columnSendTime.isEditable = false
 

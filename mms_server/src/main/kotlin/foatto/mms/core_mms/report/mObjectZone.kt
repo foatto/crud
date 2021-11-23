@@ -45,18 +45,18 @@ class mObjectZone : mP() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "MMS_report"
+        modelTableName = "MMS_report"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
         initReportPeriod(arrDT)
 
         val columnZoneID = ColumnInt("MMS_zone", "id")
-        columnReportZone = ColumnInt(tableName, "zone_id", columnZoneID)
+        columnReportZone = ColumnInt(modelTableName, "zone_id", columnZoneID)
         val columnZoneName = ColumnString("MMS_zone", "name", "Наименование геозоны", STRING_COLUMN_WIDTH)
         val columnZoneDescr = ColumnString("MMS_zone", "descr", "Описание геозоны", STRING_COLUMN_WIDTH)
 
@@ -65,13 +65,13 @@ class mObjectZone : mP() {
         columnZoneName.addSelectorColumn(columnZoneName)
         columnZoneName.addSelectorColumn(columnZoneDescr)
 
-        columnReportType = ColumnComboBox(tableName, "object_zone_report_type", "Тип отчёта", TYPE_DETAIL)
+        columnReportType = ColumnComboBox(modelTableName, "object_zone_report_type", "Тип отчёта", TYPE_DETAIL)
         columnReportType.addChoice(TYPE_DETAIL, "Подробный")
         columnReportType.addChoice(TYPE_SUMMARY, "Суммарный")
         columnReportType.isVirtual = true
         columnReportType.setSavedDefault(userConfig)
 
-        columnReportGroupType = ColumnComboBox(tableName, "object_zone_group_type", "Группировка", GROUP_BY_OBJECT)
+        columnReportGroupType = ColumnComboBox(modelTableName, "object_zone_group_type", "Группировка", GROUP_BY_OBJECT)
         columnReportGroupType.addChoice(GROUP_BY_OBJECT, "По объектам")
         columnReportGroupType.addChoice(GROUP_BY_ZONE, "По геозонам")
         columnReportGroupType.isVirtual = true
@@ -83,7 +83,7 @@ class mObjectZone : mP() {
         alFormHiddenColumn.add(columnReportZone)
 
         uodg = UODGSelector()
-        uodg.fillColumns(tableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn)
+        uodg.fillColumns(modelTableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn)
 
         addReportPeriodFormColumns()
 

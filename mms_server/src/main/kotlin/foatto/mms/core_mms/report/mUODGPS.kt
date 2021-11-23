@@ -29,11 +29,11 @@ class mUODGPS : mP() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "MMS_report"
+        modelTableName = "MMS_report"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -44,11 +44,11 @@ class mUODGPS : mP() {
         alFormHiddenColumn.add(columnID)
 
         uodg = UODGSelector()
-        uodg.fillColumns(tableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn)
+        uodg.fillColumns(modelTableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn)
 
         addReportPeriodFormColumns()
 
         sos = SumOptionSelector()
-        sos.fillColumns(userConfig, tableName, alFormColumn)
+        sos.fillColumns(userConfig, modelTableName, alFormColumn)
     }
 }

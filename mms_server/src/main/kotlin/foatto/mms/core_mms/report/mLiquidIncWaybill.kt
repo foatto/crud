@@ -34,17 +34,17 @@ class mLiquidIncWaybill : mP() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "MMS_report"
+        modelTableName = "MMS_report"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
         initReportPeriod(arrDT)
 
-        columnTimeType = ColumnComboBox(tableName, "waybill_time_range_type", "Используемое время начала/окончания", mWorkShiftCompare.TIME_TYPE_DOC)
+        columnTimeType = ColumnComboBox(modelTableName, "waybill_time_range_type", "Используемое время начала/окончания", mWorkShiftCompare.TIME_TYPE_DOC)
         columnTimeType.addChoice(mWorkShiftCompare.TIME_TYPE_DOC, "Заявленное")
         columnTimeType.addChoice(mWorkShiftCompare.TIME_TYPE_FACT, "Фактическое")
         //columnTimeType.addChoice( TIME_TYPE_DAY, "Начало/окончание суток" );
@@ -52,7 +52,7 @@ class mLiquidIncWaybill : mP() {
         columnTimeType.setSavedDefault(userConfig)
 
         val columnZoneID = ColumnInt("MMS_zone", "id")
-        columnReportZone = ColumnInt(tableName, "zone_id", columnZoneID)
+        columnReportZone = ColumnInt(modelTableName, "zone_id", columnZoneID)
         val columnZoneName = ColumnString("MMS_zone", "name", "Наименование геозоны", STRING_COLUMN_WIDTH)
         val columnZoneDescr = ColumnString("MMS_zone", "descr", "Описание геозоны", STRING_COLUMN_WIDTH)
 
@@ -67,7 +67,7 @@ class mLiquidIncWaybill : mP() {
         alFormHiddenColumn.add(columnReportZone)
 
         uodg = UODGSelector()
-        uodg.fillColumns(tableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn)
+        uodg.fillColumns(modelTableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn)
 
         addReportPeriodFormColumns()
 

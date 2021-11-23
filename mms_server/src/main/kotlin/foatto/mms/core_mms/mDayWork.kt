@@ -56,29 +56,29 @@ class mDayWork : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        tableName = "MMS_day_work"
+        modelTableName = "MMS_day_work"
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
-        columnUser = ColumnInt(tableName, "user_id")
+        columnID = ColumnInt(modelTableName, "id")
+        columnUser = ColumnInt(modelTableName, "user_id")
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        columnDate = ColumnDate3Int(tableName, "ye", "mo", "da", "Дата")
+        columnDate = ColumnDate3Int(modelTableName, "ye", "mo", "da", "Дата")
 
-        columnRun = ColumnString(tableName, "_run", "Пробег [км]", STRING_COLUMN_WIDTH).apply {
+        columnRun = ColumnString(modelTableName, "_run", "Пробег [км]", STRING_COLUMN_WIDTH).apply {
             isVirtual = true
             isSearchable = false
             rowSpan = 3
         }
-        columnWork = ColumnGrid(tableName, "_work", "Работа оборудования [час]").apply {
+        columnWork = ColumnGrid(modelTableName, "_work", "Работа оборудования [час]").apply {
             isVirtual = true
             isSearchable = false
             rowSpan = 3
         }
 
-        columnEnergo = ColumnGrid(tableName, "_energo", "Расход/генерация э/энергии").apply {
+        columnEnergo = ColumnGrid(modelTableName, "_energo", "Расход/генерация э/энергии").apply {
             isVirtual = true
             isSearchable = false
         }
@@ -92,12 +92,12 @@ class mDayWork : mAbstract() {
 //            isSearchable = false
 //        }
 
-        columnAllSumEnergo = ColumnGrid(tableName, "_all_energo", "Расход/генерация э/энергии").apply {
+        columnAllSumEnergo = ColumnGrid(modelTableName, "_all_energo", "Расход/генерация э/энергии").apply {
             isVirtual = true
             isSearchable = false
         }
 
-        columnLiquid = ColumnGrid(tableName, "_liquid_name", "Расход топлива").apply {
+        columnLiquid = ColumnGrid(modelTableName, "_liquid_name", "Расход топлива").apply {
             isVirtual = true
             isSearchable = false
         }
@@ -111,18 +111,18 @@ class mDayWork : mAbstract() {
 //            isSearchable = false
 //        }
 
-        columnAllSumLiquid = ColumnGrid(tableName, "_all_liquid", "Расход топлива").apply {
+        columnAllSumLiquid = ColumnGrid(modelTableName, "_all_liquid", "Расход топлива").apply {
             isVirtual = true
             isSearchable = false
         }
 
-        columnLevel = ColumnGrid(tableName, "_level", "Ёмкость, Нач.остаток, Кон.остаток").apply {
+        columnLevel = ColumnGrid(modelTableName, "_level", "Ёмкость, Нач.остаток, Кон.остаток").apply {
             isVirtual = true
             isSearchable = false
             rowSpan = 3
         }
 
-        columnLevelLiquid = ColumnGrid(tableName, "_level_liquid_name", "Топливо, Заправка, Слив").apply {
+        columnLevelLiquid = ColumnGrid(modelTableName, "_level_liquid_name", "Топливо, Заправка, Слив").apply {
             isVirtual = true
             isSearchable = false
             rowSpan = 3

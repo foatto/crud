@@ -10,7 +10,7 @@ class cWorkShiftData : cStandart() {
         val isLiquidData = aliasConfig.alias == "mms_work_shift_liquid"
 
         return super.addSQLWhere(hsTableRenameList) +
-            " AND ${renameTableName(hsTableRenameList, model.tableName)}.${(model as mWorkShiftData).columnDataType.getFieldName()} = " +
+            " AND ${renameTableName(hsTableRenameList, model.modelTableName)}.${(model as mWorkShiftData).columnDataType.getFieldName()} = " +
             "${if (isWorkData) SensorConfig.SENSOR_WORK else if (isLiquidData) SensorConfig.SENSOR_LIQUID_USING else 0} "
     }
 

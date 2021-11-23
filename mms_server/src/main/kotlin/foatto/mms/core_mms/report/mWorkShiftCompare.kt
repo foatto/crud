@@ -57,16 +57,16 @@ class mWorkShiftCompare : mAbstractReport() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "MMS_report"
+        modelTableName = "MMS_report"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
         val columnWorkShiftID = ColumnInt("MMS_work_shift", "id")
-        columnWorkShift = ColumnInt(tableName, "work_shift_id", columnWorkShiftID)
+        columnWorkShift = ColumnInt(modelTableName, "work_shift_id", columnWorkShiftID)
         val columnShiftNo = ColumnString("MMS_work_shift", "shift_no", if(isWaybillReport) "Номер путевого листа" else "", STRING_COLUMN_WIDTH)
         val columnShiftBegDoc = ColumnDateTimeInt("MMS_work_shift", "beg_dt", "Начало", false, zoneId)
         val columnShiftEndDoc = ColumnDateTimeInt("MMS_work_shift", "end_dt", "Окончание", false, zoneId)
@@ -82,7 +82,7 @@ class mWorkShiftCompare : mAbstractReport() {
         (if(isWaybillReport) columnShiftNo else columnShiftBegDoc).addSelectorColumn(columnShiftEndFact)
 
         val columnWorkerID = ColumnInt("MMS_worker", "id")
-        columnWorker = ColumnInt(tableName, "worker_id", columnWorkerID)
+        columnWorker = ColumnInt(modelTableName, "worker_id", columnWorkerID)
         val columnWorkerTabNo = ColumnString("MMS_worker", "tab_no", "Табельный номер", STRING_COLUMN_WIDTH)
         val columnWorkerName = ColumnString("MMS_worker", "name", "Ф.И.О.", STRING_COLUMN_WIDTH)
 
@@ -91,40 +91,40 @@ class mWorkShiftCompare : mAbstractReport() {
         columnWorkerTabNo.addSelectorColumn(columnWorkerTabNo)
         columnWorkerTabNo.addSelectorColumn(columnWorkerName)
 
-        columnReportBegDate = ColumnDate3Int(tableName, "beg_ye", "beg_mo", "beg_da", "Начало периода")
+        columnReportBegDate = ColumnDate3Int(modelTableName, "beg_ye", "beg_mo", "beg_da", "Начало периода")
         if(arrADR != null) columnReportBegDate.default = LocalDate.of(arrADR[0], arrADR[1], arrADR[2])
         columnReportBegDate.isVirtual = true
-        columnReportEndDate = ColumnDate3Int(tableName, "end_ye", "end_mo", "end_da", "Конец периода")
+        columnReportEndDate = ColumnDate3Int(modelTableName, "end_ye", "end_mo", "end_da", "Конец периода")
         if(arrADR != null) columnReportEndDate.default = LocalDate.of(arrADR[0], arrADR[1], arrADR[2])
         columnReportEndDate.isVirtual = true
 
-        columnTimeType = ColumnComboBox(tableName, "waybill_time_range_type", "Используемое время начала/окончания", 0)
+        columnTimeType = ColumnComboBox(modelTableName, "waybill_time_range_type", "Используемое время начала/окончания", 0)
         columnTimeType.addChoice(TIME_TYPE_DOC, "Заявленное")
         columnTimeType.addChoice(TIME_TYPE_FACT, "Фактическое")
         columnTimeType.addChoice(TIME_TYPE_DAY, "Начало/окончание суток")
         columnTimeType.isVirtual = true
         columnTimeType.setSavedDefault(userConfig)
 
-        columnAddBefore = ColumnInt(tableName, "add_before", "Добавить к началу [мин]", 10, 0)
+        columnAddBefore = ColumnInt(modelTableName, "add_before", "Добавить к началу [мин]", 10, 0)
         columnAddBefore.isVirtual = true
         columnAddBefore.setSavedDefault(userConfig)
-        columnAddAfter = ColumnInt(tableName, "add_after", "Добавить к концу [мин]", 10, 0)
+        columnAddAfter = ColumnInt(modelTableName, "add_after", "Добавить к концу [мин]", 10, 0)
         columnAddAfter.isVirtual = true
         columnAddAfter.setSavedDefault(userConfig)
 
-        columnMaxDiff = ColumnInt(tableName, "max_diff", "Допустимое отклонение [%]", 10, 0)
+        columnMaxDiff = ColumnInt(modelTableName, "max_diff", "Допустимое отклонение [%]", 10, 0)
         columnMaxDiff.isVirtual = true
         columnMaxDiff.setSavedDefault(userConfig)
 
-        columnOutOverDiffOnly = ColumnBoolean(tableName, "over_diff_out_mode", "Показывать только большие отклонения", false)
+        columnOutOverDiffOnly = ColumnBoolean(modelTableName, "over_diff_out_mode", "Показывать только большие отклонения", false)
         columnOutOverDiffOnly.isVirtual = true
         columnOutOverDiffOnly.setSavedDefault(userConfig)
 
-        columnOutRunWithoutKoef = ColumnBoolean(tableName, "over_run_without_koef", "Показывать пробег без коэффициентов", false)
+        columnOutRunWithoutKoef = ColumnBoolean(modelTableName, "over_run_without_koef", "Показывать пробег без коэффициентов", false)
         columnOutRunWithoutKoef.isVirtual = true
         columnOutRunWithoutKoef.setSavedDefault(userConfig)
 
-        columnSumWorker = ColumnBoolean(tableName, "sum_worker", "Выводить суммы по водителям", true)
+        columnSumWorker = ColumnBoolean(modelTableName, "sum_worker", "Выводить суммы по водителям", true)
         columnSumWorker.isVirtual = true
         columnSumWorker.setSavedDefault(userConfig)
 
@@ -143,7 +143,7 @@ class mWorkShiftCompare : mAbstractReport() {
         alFormColumn.add(columnShiftEndFact)
 
         uodg = UODGSelector()
-        uodg.fillColumns(tableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn)
+        uodg.fillColumns(modelTableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn)
 
         (if(isWaybillReport) alFormColumn else alFormHiddenColumn).add(columnWorkerTabNo)
         (if(isWaybillReport) alFormColumn else alFormHiddenColumn).add(columnWorkerName)
@@ -157,7 +157,7 @@ class mWorkShiftCompare : mAbstractReport() {
         alFormColumn.add(columnOutRunWithoutKoef)
 
         sos = SumOptionSelector()
-        sos.fillColumns(userConfig, tableName, alFormColumn)
+        sos.fillColumns(userConfig, modelTableName, alFormColumn)
 
         (if(isWaybillReport) alFormColumn else alFormHiddenColumn).add(columnSumWorker)
 

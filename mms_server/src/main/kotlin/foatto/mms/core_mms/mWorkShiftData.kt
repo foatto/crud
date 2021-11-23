@@ -26,21 +26,21 @@ class mWorkShiftData : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "MMS_work_shift_data"
+        modelTableName = "MMS_work_shift_data"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnShift = ColumnInt(tableName, "shift_id", shiftID)
+        val columnShift = ColumnInt(modelTableName, "shift_id", shiftID)
 
-        columnDataType = ColumnInt(tableName, "data_type", if (isWorkData) SensorConfig.SENSOR_WORK else if (isLiquidData) SensorConfig.SENSOR_LIQUID_USING else 0)
+        columnDataType = ColumnInt(modelTableName, "data_type", if (isWorkData) SensorConfig.SENSOR_WORK else if (isLiquidData) SensorConfig.SENSOR_LIQUID_USING else 0)
 
-        val columnName = ColumnString(tableName, "name", "", STRING_COLUMN_WIDTH)
+        val columnName = ColumnString(modelTableName, "name", "", STRING_COLUMN_WIDTH)
 
-        val columnDescr = ColumnString(tableName, "descr", if (isWorkData) "Оборудование" else if (isLiquidData) "Топливо" else "", STRING_COLUMN_WIDTH)
+        val columnDescr = ColumnString(modelTableName, "descr", if (isWorkData) "Оборудование" else if (isLiquidData) "Топливо" else "", STRING_COLUMN_WIDTH)
         if (shiftID != null) {
             var objectId = 0
             var rs = stm.executeQuery(" SELECT object_id FROM MMS_work_shift WHERE id = $shiftID ")
@@ -67,7 +67,7 @@ class mWorkShiftData : mAbstract() {
         }
 
         val columnValue = ColumnDouble(
-            tableName, "data_value",
+            modelTableName, "data_value",
             if (isWorkData) "Наработка [мото-час]" else if (isLiquidData) "Расход" else "", 10, 1, 0.0
         )
 

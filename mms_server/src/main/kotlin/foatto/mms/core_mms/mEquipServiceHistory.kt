@@ -21,26 +21,26 @@ class mEquipServiceHistory : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "MMS_equip_service_history"
+        modelTableName = "MMS_equip_service_history"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnEquip = ColumnInt(tableName, "equip_id", sensorID)
+        val columnEquip = ColumnInt(modelTableName, "equip_id", sensorID)
 
-        val columnServiceName = ColumnComboBox(tableName, "shedule_id", "Наименование", 0)
+        val columnServiceName = ColumnComboBox(modelTableName, "shedule_id", "Наименование", 0)
         if(sensorID != null) {
             val rs = stm.executeQuery(" SELECT id , name FROM MMS_equip_service_shedule WHERE equip_id = $sensorID ORDER BY name ")
             while(rs.next()) columnServiceName.addChoice(rs.getInt(1), rs.getString(2))
             rs.close()
         }
 
-        val columnServiceDate = ColumnDate3Int(tableName, "ye", "mo", "da", "Дата")
-        val columnServiceWork = ColumnDouble(tableName, "work_hour", "Наработка [мото-час]", 10, 1, 0.0)
-        val columnServiceDescr = ColumnString(tableName, "descr", "Примечания", STRING_COLUMN_WIDTH)
+        val columnServiceDate = ColumnDate3Int(modelTableName, "ye", "mo", "da", "Дата")
+        val columnServiceWork = ColumnDouble(modelTableName, "work_hour", "Наработка [мото-час]", 10, 1, 0.0)
+        val columnServiceDescr = ColumnString(modelTableName, "descr", "Примечания", STRING_COLUMN_WIDTH)
 
         //----------------------------------------------------------------------------------------------------------------------
 

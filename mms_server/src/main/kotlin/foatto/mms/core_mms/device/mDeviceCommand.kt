@@ -20,23 +20,23 @@ class mDeviceCommand : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        tableName = "MMS_device_command"
+        modelTableName = "MMS_device_command"
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        val columnDeviceType = ColumnRadioButton(tableName, "type", "Тип устройства")
+        val columnDeviceType = ColumnRadioButton(modelTableName, "type", "Тип устройства")
         MMSHandler.fillDeviceTypeColumn(columnDeviceType)
 
-        val columnName = ColumnString(tableName, "name", "Наименование", STRING_COLUMN_WIDTH)
+        val columnName = ColumnString(modelTableName, "name", "Наименование", STRING_COLUMN_WIDTH)
         columnName.setUnique(true, "")
-        val columnDescr = ColumnString(tableName, "descr", "Описание", STRING_COLUMN_WIDTH)
+        val columnDescr = ColumnString(modelTableName, "descr", "Описание", STRING_COLUMN_WIDTH)
         columnDescr.setUnique(true, "")
 
-        val columnCommand = ColumnString(tableName, "cmd", "Команда", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
+        val columnCommand = ColumnString(modelTableName, "cmd", "Команда", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
