@@ -59,7 +59,7 @@ abstract class MMSHandler : AbstractTelematicHandler() {
 
         //--- пришлось делать в виде static, т.к. VideoServer не является потомком MMSHandler,
         //--- а в AbstractHandler не знает про прикладные MMS-таблицы
-        fun getCommand(stm: CoreAdvancedStatement, aDeviceID: Int): Pair<Int, String?> {
+        fun getCommand(stm: CoreAdvancedStatement, deviceID: Int): Pair<Int, String?> {
             var cmdID = 0
             var cmdStr: String? = null
             val rs = stm.executeQuery(
@@ -67,7 +67,7 @@ abstract class MMSHandler : AbstractTelematicHandler() {
                      SELECT MMS_device_command_history.id , MMS_device_command.cmd 
                      FROM MMS_device_command_history , MMS_device_command 
                      WHERE MMS_device_command_history.command_id = MMS_device_command.id 
-                     AND MMS_device_command_history.device_id = $aDeviceID 
+                     AND MMS_device_command_history.device_id = $deviceID 
                      AND MMS_device_command_history.for_send <> 0 
                      ORDER BY MMS_device_command_history.send_time 
                  """
@@ -95,17 +95,6 @@ abstract class MMSHandler : AbstractTelematicHandler() {
         fun addPoint(stm: CoreAdvancedStatement, deviceConfig: DeviceConfig, time: Int, bbData: AdvancedByteBuffer, sqlBatchData: SQLBatch) {
             //--- если объект прописан, то записываем точки, иначе просто пропускаем
             if (deviceConfig.objectId != 0) {
-                //--- если возможен режим оффлайн-загрузки данных по этому контроллеру (например, через android-посредника),
-                //--- то возможно и повторение точек. В этом случае надо удалить предыдущую(ие) точку(и) с таким же временем.
-                //--- Поскольку это очень затратная операция, то по умолчанию режим оффлайн-загрузки данных не включен
-                if (deviceConfig.isOfflineMode) {
-                    sqlBatchData.add(
-                        """
-                            DELETE FROM MMS_data_${deviceConfig.objectId} 
-                            WHERE ontime = $time 
-                        """
-                    )
-                }
                 bbData.flip()
                 sqlBatchData.add(
                     """
@@ -175,8 +164,7 @@ abstract class MMSHandler : AbstractTelematicHandler() {
             stm: CoreAdvancedStatement,
             dirSessionLog: File,
             zoneId: ZoneId,
-            deviceId: Int,
-            deviceConfig: DeviceConfig?,
+            deviceConfig: DeviceConfig,
             fwVersion: String,
             begTime: Int,
             address: String,
@@ -202,7 +190,7 @@ abstract class MMSHandler : AbstractTelematicHandler() {
                 text += " Ошибка: $errorText "
             }
 
-            val dirDeviceSessionLog = File(dirSessionLog, "device/$deviceId")
+            val dirDeviceSessionLog = File(dirSessionLog, "device/${deviceConfig.deviceId}")
             dirDeviceSessionLog.mkdirs()
             var out = getFileWriter(File(dirDeviceSessionLog, curLogFileName), true)
             out.write(text)
@@ -210,7 +198,7 @@ abstract class MMSHandler : AbstractTelematicHandler() {
             out.flush()
             out.close()
 
-            val dirObjectSessionLog = File(dirSessionLog, "object/${deviceConfig?.objectId ?: "null"}")
+            val dirObjectSessionLog = File(dirSessionLog, "object/${deviceConfig.objectId}")
             dirObjectSessionLog.mkdirs()
             out = getFileWriter(File(dirObjectSessionLog, curLogFileName), true)
             out.write(text)
@@ -219,8 +207,14 @@ abstract class MMSHandler : AbstractTelematicHandler() {
             out.close()
 
             stm.executeUpdate(
-                " UPDATE MMS_device SET fw_version = '$fwVersion' , last_session_time = ${getCurrentTimeInt()} , last_session_status = '$status' , " +
-                    " last_session_error = '${if (isOk || errorText.isEmpty()) "" else errorText}' WHERE device_id = $deviceId "
+                """
+                    UPDATE MMS_device SET 
+                    fw_version = '$fwVersion' , 
+                    last_session_time = ${getCurrentTimeInt()} , 
+                    last_session_status = '$status' , 
+                    last_session_error = '${if (isOk || errorText.isEmpty()) "" else errorText}' 
+                    WHERE id = '${deviceConfig.deviceId}'
+                """
             )
 
             conn.commit()
@@ -231,7 +225,6 @@ abstract class MMSHandler : AbstractTelematicHandler() {
             stm: CoreAdvancedStatement,
             dirSessionLog: File,
             zoneId: ZoneId,
-            deviceId: Int,
             deviceConfig: DeviceConfig?,
             fwVersion: String,
             begTime: Int,
@@ -243,13 +236,12 @@ abstract class MMSHandler : AbstractTelematicHandler() {
             firstPointTime: Int,
             lastPointTime: Int,
         ) {
-            if (deviceConfig != null && deviceId != 0) {
+            deviceConfig?.let {
                 writeSession(
                     conn = conn,
                     stm = stm,
                     dirSessionLog = dirSessionLog,
                     zoneId = zoneId,
-                    deviceId = deviceId,
                     deviceConfig = deviceConfig,
                     fwVersion = fwVersion,
                     begTime = begTime,
@@ -272,8 +264,8 @@ abstract class MMSHandler : AbstractTelematicHandler() {
     override val configSessionLogPath: String = "mms_log_session"
     override val configJournalLogPath: String = "mms_log_journal"
 
-    //--- ID прибора - до сих пор всегда целое число
-    protected var deviceId = 0
+    //--- серийный номер прибора
+    protected var serialNo = ""
 
     //--- номер версии прошивки
     protected var fwVersion = ""
@@ -289,13 +281,14 @@ abstract class MMSHandler : AbstractTelematicHandler() {
             stm = dataWorker.stm,
             dirSessionLog = dirSessionLog,
             zoneId = zoneId,
-            deviceId = deviceId,
             deviceConfig = deviceConfig,
             fwVersion = fwVersion,
             begTime = begTime,
-            address = (selectionKey!!.channel() as SocketChannel).remoteAddress.toString() + " -> " + (selectionKey!!.channel() as SocketChannel).localAddress.toString(),
+            address = selectionKey?.let { sk ->
+                (sk.channel() as SocketChannel).remoteAddress.toString() + " -> " + (sk.channel() as SocketChannel).localAddress.toString()
+            } ?: "(unknown remote address)",
             status = status,
-            errorText = " Disconnect from device ID = $deviceId",
+            errorText = "Disconnect from device ID = $serialNo",
             dataCount = dataCount,
             dataCountAll = dataCountAll,
             firstPointTime = firstPointTime,
@@ -306,7 +299,7 @@ abstract class MMSHandler : AbstractTelematicHandler() {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     protected fun loadDeviceConfig(dataWorker: CoreDataWorker): Boolean {
-        deviceConfig = DeviceConfig.getDeviceConfig(dataWorker.stm, deviceId)
+        deviceConfig = DeviceConfig.getDeviceConfig(dataWorker.stm, serialNo)
         //--- неизвестный контроллер
         if (deviceConfig == null) {
             writeError(
@@ -314,13 +307,14 @@ abstract class MMSHandler : AbstractTelematicHandler() {
                 stm = dataWorker.stm,
                 dirSessionLog = dirSessionLog,
                 zoneId = zoneId,
-                deviceId = deviceId,
                 deviceConfig = deviceConfig,
                 fwVersion = fwVersion,
                 begTime = begTime,
-                address = (selectionKey!!.channel() as SocketChannel).remoteAddress.toString() + " -> " + (selectionKey!!.channel() as SocketChannel).localAddress.toString(),
+                address = selectionKey?.let { sk ->
+                    (sk.channel() as SocketChannel).remoteAddress.toString() + " -> " + (sk.channel() as SocketChannel).localAddress.toString()
+                } ?: "(unknown remote address)",
                 status = status,
-                errorText = "Unknown device ID = $deviceId",
+                errorText = "Unknown device ID = $serialNo",
                 dataCount = dataCount,
                 dataCountAll = dataCountAll,
                 firstPointTime = firstPointTime,
@@ -330,7 +324,7 @@ abstract class MMSHandler : AbstractTelematicHandler() {
                 dirJournalLog = dirJournalLog,
                 zoneId = zoneId,
                 address = (selectionKey!!.channel() as SocketChannel).remoteAddress.toString() + " -> " + (selectionKey!!.channel() as SocketChannel).localAddress.toString(),
-                errorText = "Unknown device ID = $deviceId",
+                errorText = "Unknown device ID = $serialNo",
             )
             return false
         }

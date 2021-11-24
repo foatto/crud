@@ -6,6 +6,7 @@ import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.ChildData
 import foatto.core_server.app.server.DependData
 import foatto.core_server.app.server.UserConfig
+import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.column.ColumnBoolean
 import foatto.core_server.app.server.column.ColumnComboBox
 import foatto.core_server.app.server.column.ColumnDate3Int
@@ -14,11 +15,12 @@ import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnRadioButton
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.mAbstract
+import foatto.core_server.app.server.mAbstractUserSelector
 import foatto.mms.core_mms.ObjectSelector
 import foatto.mms.core_mms.ds.MMSHandler
 import foatto.sql.CoreAdvancedStatement
 
-class mDevice : mAbstract() {
+class mDevice : mAbstractUserSelector() {
 
     companion object {
         val MAX_PORT_PER_SENSOR = 4
@@ -29,7 +31,7 @@ class mDevice : mAbstract() {
 
     lateinit var columnDeviceIndex: ColumnInt
         private set
-    lateinit var columnDevice: ColumnInt
+    lateinit var columnSerialNo: ColumnString
         private set
     lateinit var columnDeviceLastSessionTime: ColumnDateTimeInt
         private set
@@ -45,55 +47,64 @@ class mDevice : mAbstract() {
     val columnObject: ColumnInt
         get() = os.columnObject
 
-    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
+    override fun init(
+        application: iApplication,
+        aStm: CoreAdvancedStatement,
+        aliasConfig: AliasConfig,
+        userConfig: UserConfig,
+        aHmParam: Map<String, String>,
+        hmParentData: MutableMap<String, Int>,
+        id: Int?
+    ) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "MMS_device"
+        modelTableName = "MMS_device"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnDeviceIndex = ColumnInt(tableName, "device_index", "Порядковый номер устройства на объекте", 10, 0).apply {
+        val columnUserName = addUserSelector(userConfig)
+
+        //----------------------------------------------------------------------------------------------------------------------
+
+        columnDeviceIndex = ColumnInt(modelTableName, "device_index", "Порядковый номер устройства на объекте", 10, 0).apply {
             minValue = 0
             maxValue = MAX_DEVICE_COUNT_PER_OBJECT - 1
         }
 
-        val columnDeviceType = ColumnRadioButton(tableName, "type", "Тип устройства")
+        val columnDeviceType = ColumnRadioButton(modelTableName, "type", "Тип устройства")
         MMSHandler.fillDeviceTypeColumn(columnDeviceType)
 
-        columnDevice = ColumnInt(tableName, "device_id", "Номер устройства", 10).apply {
+        columnSerialNo = ColumnString(modelTableName, "serial_no", "Серийный номер устройства", STRING_COLUMN_WIDTH).apply {
             isRequired = true
             setUnique(true, "")
-            isEditable = id == 0    // номер устройства задается вручную только один раз - при создании. В дальнейшем редактировать его нельзя.
         }
 
-        val columnDeviceCell = ColumnString(tableName, "cell_num", "Номер телефона", STRING_COLUMN_WIDTH)
-        val columnDeviceCell2 = ColumnString(tableName, "cell_num_2", "Номер телефона 2", STRING_COLUMN_WIDTH)
+        val columnDeviceCell = ColumnString(modelTableName, "cell_num", "Номер телефона", STRING_COLUMN_WIDTH)
+        val columnDeviceCell2 = ColumnString(modelTableName, "cell_num_2", "Номер телефона 2", STRING_COLUMN_WIDTH)
 
-        val columnDeviceFwVer = ColumnString(tableName, "fw_version", "Версия прошивки", 10).apply {
+        val columnDeviceFwVer = ColumnString(modelTableName, "fw_version", "Версия прошивки", 10).apply {
             isEditable = false
             formPinMode = FormPinMode.OFF
         }
 
-        columnDeviceLastSessionTime = ColumnDateTimeInt(tableName, "last_session_time", "Время последней сессии", true, zoneId).apply {
+        columnDeviceLastSessionTime = ColumnDateTimeInt(modelTableName, "last_session_time", "Время последней сессии", true, zoneId).apply {
             isEditable = false
         }
-        val columnDeviceLastSessionStatusText = ColumnString(tableName, "last_session_status", "Статус последней сессии", STRING_COLUMN_WIDTH).apply {
+        val columnDeviceLastSessionStatusText = ColumnString(modelTableName, "last_session_status", "Статус последней сессии", STRING_COLUMN_WIDTH).apply {
             isEditable = false
         }
-        val columnDeviceLastSessionErrorText = ColumnString(tableName, "last_session_error", "Ошибка последней сессии", STRING_COLUMN_WIDTH).apply {
+        val columnDeviceLastSessionErrorText = ColumnString(modelTableName, "last_session_error", "Ошибка последней сессии", STRING_COLUMN_WIDTH).apply {
             isEditable = false
         }
 
-        val columnDeviceOfflineMode = ColumnBoolean(tableName, "offline_mode", "Возможен offline-режим")
-
-        val columnDeviceWorkBegin = ColumnDate3Int(tableName, "beg_ye", "beg_mo", "beg_da", "Дата начала эксплуатации")  // есть ещё очень старые приборы
+        val columnDeviceWorkBegin = ColumnDate3Int(modelTableName, "beg_ye", "beg_mo", "beg_da", "Дата начала эксплуатации")  // есть ещё очень старые приборы
 
         //--- вручную добавленное поле для обозначения владельца объекта ---
 
@@ -111,19 +122,19 @@ class mDevice : mAbstract() {
             }
         }
 
-        columnESDCreatingEnabled = ColumnBoolean(tableName, "_esd_create_enabled", "Автосоздание датчиков Euro Sens", false).apply {
+        columnESDCreatingEnabled = ColumnBoolean(modelTableName, "_esd_create_enabled", "Автосоздание датчиков Euro Sens", false).apply {
             isVirtual = true
         }
         (1..MAX_PORT_PER_SENSOR).forEach { si ->
-            alColumnESDGroupName += ColumnString(tableName, "_esd_group_name_$si", "Наименование группы датчиков $si", STRING_COLUMN_WIDTH).apply {
+            alColumnESDGroupName += ColumnString(modelTableName, "_esd_group_name_$si", "Наименование группы датчиков $si", STRING_COLUMN_WIDTH).apply {
                 isVirtual = true
                 addFormVisible(columnESDCreatingEnabled, true, setOf(1))
             }
-            alColumnESDDescrPrefix += ColumnString(tableName, "_esd_descr_prefix_$si", "Префикс наименования датчика $si", STRING_COLUMN_WIDTH).apply {
+            alColumnESDDescrPrefix += ColumnString(modelTableName, "_esd_descr_prefix_$si", "Префикс наименования датчика $si", STRING_COLUMN_WIDTH).apply {
                 isVirtual = true
                 addFormVisible(columnESDCreatingEnabled, true, setOf(1))
             }
-            alColumnESDDescrPostfix += ColumnString(tableName, "_esd_descr_postfix_$si", "Постфикс наименования датчика $si", STRING_COLUMN_WIDTH).apply {
+            alColumnESDDescrPostfix += ColumnString(modelTableName, "_esd_descr_postfix_$si", "Постфикс наименования датчика $si", STRING_COLUMN_WIDTH).apply {
                 isVirtual = true
                 addFormVisible(columnESDCreatingEnabled, true, setOf(1))
             }
@@ -132,21 +143,24 @@ class mDevice : mAbstract() {
         //----------------------------------------------------------------------------------------------------------------------
 
         alTableHiddenColumn += columnID
+        alTableHiddenColumn += columnUser!!
 
-        addTableColumn(columnDeviceIndex)
         addTableColumn(columnDeviceType)
-        addTableColumn(columnDevice)
+        addTableColumn(columnSerialNo)
         addTableColumn(columnDeviceCell)
         addTableColumn(columnDeviceCell2)
         addTableColumn(columnObjectUserName)
+        addTableColumn(columnDeviceIndex)
 
         alFormHiddenColumn += columnID
+        alFormHiddenColumn += columnUser!!
 
-        alFormColumn += columnDeviceIndex
+        alFormColumn += columnUserName
         alFormColumn += columnDeviceType
-        alFormColumn += columnDevice
+        alFormColumn += columnSerialNo
         alFormColumn += columnDeviceCell
         alFormColumn += columnDeviceCell2
+        alFormColumn += columnDeviceIndex
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -169,14 +183,12 @@ class mDevice : mAbstract() {
         addTableColumn(columnDeviceLastSessionTime)
         addTableColumn(columnDeviceLastSessionStatusText)
         addTableColumn(columnDeviceLastSessionErrorText)
-        addTableColumn(columnDeviceOfflineMode)
         addTableColumn(columnDeviceWorkBegin)
 
         alFormColumn += columnDeviceFwVer
         alFormColumn += columnDeviceLastSessionTime
         alFormColumn += columnDeviceLastSessionStatusText
         alFormColumn += columnDeviceLastSessionErrorText
-        alFormColumn += columnDeviceOfflineMode
         alFormColumn += columnDeviceWorkBegin
 
         alFormColumn += columnESDCreatingEnabled
@@ -189,8 +201,12 @@ class mDevice : mAbstract() {
         //----------------------------------------------------------------------------------------------------------------------
 
         //--- поля для сортировки
-        alTableSortColumn += columnDevice
+        alTableSortColumn += columnSerialNo
         alTableSortDirect += "ASC"
+
+        //----------------------------------------------------------------------------------------------------------------------------------------
+
+        hmParentColumn["system_user"] = columnUser!!
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 

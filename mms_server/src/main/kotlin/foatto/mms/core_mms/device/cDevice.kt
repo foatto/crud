@@ -20,7 +20,7 @@ class cDevice : cStandart() {
         super.getTableColumnStyle(rowNo, isNewRow, hmColumnData, column, tci)
 
         val md = model as mDevice
-        if (column == md.columnDevice) {
+        if (column == md.columnSerialNo) {
             tci.foreColorType = TableCellForeColorType.DEFINED
 
             val lastSessionTime = (hmColumnData[md.columnDeviceLastSessionTime] as DataDateTimeInt).zonedDateTime.toEpochSecond().toInt()
@@ -38,9 +38,6 @@ class cDevice : cStandart() {
             }
         }
     }
-
-    //--- при создании записи id = controller_id, задаваемый вручную
-    override fun getNextID(hmColumnData: Map<iColumn, iData>): Int = (hmColumnData[(model as mDevice).columnDevice] as DataInt).intValue
 
     override fun postAdd(id: Int, hmColumnData: Map<iColumn, iData>, hmOut: MutableMap<String, Any>): String? {
         val postURL = super.postAdd(id, hmColumnData, hmOut)

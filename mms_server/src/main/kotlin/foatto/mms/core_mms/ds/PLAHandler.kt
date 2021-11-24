@@ -14,6 +14,8 @@ import java.nio.channels.SelectionKey
 import java.nio.channels.SocketChannel
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.math.min
+import kotlin.math.round
 
 class PLAHandler : MMSHandler() {
 
@@ -37,7 +39,7 @@ class PLAHandler : MMSHandler() {
         private val RECORD_PAGE_SIZE = 32
 
         //--- кого на сколько послали в прошлый раз
-        private val chmDeviceDelay = ConcurrentHashMap<Int, Int>()
+        private val chmDeviceDelay = ConcurrentHashMap<String, Int>()
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -80,23 +82,22 @@ class PLAHandler : MMSHandler() {
             packetHeader = PacketHeader(bbIn)
 
             if (packetHeader!!.signature != PacketHeader.PACKET_SIGNATURE) {
-                    writeError(
-                        conn = dataWorker.conn,
-                        stm = dataWorker.stm,
-                        dirSessionLog = dirSessionLog,
-                        zoneId = zoneId,
-                        deviceId = deviceId,
-                        deviceConfig = deviceConfig,
-                        fwVersion = fwVersion,
-                        begTime = begTime,
-                        address = (selectionKey!!.channel() as SocketChannel).remoteAddress.toString() + " -> " + (selectionKey!!.channel() as SocketChannel).localAddress.toString(),
-                        status = status,
-                        errorText = "Wrong signature = ${packetHeader!!.signature} for device ID = $deviceId",
-                        dataCount = dataCount,
-                        dataCountAll = dataCountAll,
-                        firstPointTime = firstPointTime,
-                        lastPointTime = lastPointTime,
-                    )
+                writeError(
+                    conn = dataWorker.conn,
+                    stm = dataWorker.stm,
+                    dirSessionLog = dirSessionLog,
+                    zoneId = zoneId,
+                    deviceConfig = deviceConfig,
+                    fwVersion = fwVersion,
+                    begTime = begTime,
+                    address = (selectionKey!!.channel() as SocketChannel).remoteAddress.toString() + " -> " + (selectionKey!!.channel() as SocketChannel).localAddress.toString(),
+                    status = status,
+                    errorText = "Wrong signature = ${packetHeader!!.signature} for serialNo = $serialNo",
+                    dataCount = dataCount,
+                    dataCountAll = dataCountAll,
+                    firstPointTime = firstPointTime,
+                    lastPointTime = lastPointTime,
+                )
                 return false
             }
             //--- проверку на packetID пропускаем, ибо не используем
@@ -111,23 +112,22 @@ class PLAHandler : MMSHandler() {
                 return true
             }
             val errorCode = bbIn.getByte().toInt() and 0xFF
-                    writeError(
-                        conn = dataWorker.conn,
-                        stm = dataWorker.stm,
-                        dirSessionLog = dirSessionLog,
-                        zoneId = zoneId,
-                        deviceId = deviceId,
-                        deviceConfig = deviceConfig,
-                        fwVersion = fwVersion,
-                        begTime = begTime,
-                        address = (selectionKey!!.channel() as SocketChannel).remoteAddress.toString() + " -> " + (selectionKey!!.channel() as SocketChannel).localAddress.toString(),
-                        status = status,
-                        errorText = "Error code = $errorCode from device ID = $deviceId",
-                        dataCount = dataCount,
-                        dataCountAll = dataCountAll,
-                        firstPointTime = firstPointTime,
-                        lastPointTime = lastPointTime,
-                    )
+            writeError(
+                conn = dataWorker.conn,
+                stm = dataWorker.stm,
+                dirSessionLog = dirSessionLog,
+                zoneId = zoneId,
+                deviceConfig = deviceConfig,
+                fwVersion = fwVersion,
+                begTime = begTime,
+                address = (selectionKey!!.channel() as SocketChannel).remoteAddress.toString() + " -> " + (selectionKey!!.channel() as SocketChannel).localAddress.toString(),
+                status = status,
+                errorText = "Error code = $errorCode from serialNo = $serialNo",
+                dataCount = dataCount,
+                dataCountAll = dataCountAll,
+                firstPointTime = firstPointTime,
+                lastPointTime = lastPointTime,
+            )
             return false
         }
         //--- ошибки нет, дожидаемся обещанного объёма данных + CRC16
@@ -150,13 +150,12 @@ class PLAHandler : MMSHandler() {
                         stm = dataWorker.stm,
                         dirSessionLog = dirSessionLog,
                         zoneId = zoneId,
-                        deviceId = deviceId,
                         deviceConfig = deviceConfig,
                         fwVersion = fwVersion,
                         begTime = begTime,
                         address = (selectionKey!!.channel() as SocketChannel).remoteAddress.toString() + " -> " + (selectionKey!!.channel() as SocketChannel).localAddress.toString(),
                         status = status,
-                        errorText = "Wrong READ_ID packetSize = $packetHeader!!.packetSize for device ID = $deviceId",
+                        errorText = "Wrong READ_ID packetSize = $packetHeader!!.packetSize for serialNo = $serialNo",
                         dataCount = dataCount,
                         dataCountAll = dataCountAll,
                         firstPointTime = firstPointTime,
@@ -164,23 +163,22 @@ class PLAHandler : MMSHandler() {
                     )
                     return false
                 }
-                deviceId = bbIn.getShort().toInt() and 0xFFFF
+                serialNo = (bbIn.getShort().toInt() and 0xFFFF).toString()
                 fwVersion = (bbIn.getShort().toInt() and 0xFFFF).toString()
                 /*recordSize =*/ bbIn.getByte()// & 0xFF; SKIP Record Size
                 recordCount = bbIn.getShort().toInt() and 0xFFFF
-                if (deviceId <= 0) {
+                if (serialNo.isEmpty()) {
                     writeError(
                         conn = dataWorker.conn,
                         stm = dataWorker.stm,
                         dirSessionLog = dirSessionLog,
                         zoneId = zoneId,
-                        deviceId = deviceId,
                         deviceConfig = deviceConfig,
                         fwVersion = fwVersion,
                         begTime = begTime,
                         address = (selectionKey!!.channel() as SocketChannel).remoteAddress.toString() + " -> " + (selectionKey!!.channel() as SocketChannel).localAddress.toString(),
                         status = status,
-                        errorText = "Wrong device ID = $deviceId",
+                        errorText = "Wrong serialNo = $serialNo",
                         dataCount = dataCount,
                         dataCountAll = dataCountAll,
                         firstPointTime = firstPointTime,
@@ -194,13 +192,12 @@ class PLAHandler : MMSHandler() {
                         stm = dataWorker.stm,
                         dirSessionLog = dirSessionLog,
                         zoneId = zoneId,
-                        deviceId = deviceId,
                         deviceConfig = deviceConfig,
                         fwVersion = fwVersion,
                         begTime = begTime,
                         address = (selectionKey!!.channel() as SocketChannel).remoteAddress.toString() + " -> " + (selectionKey!!.channel() as SocketChannel).localAddress.toString(),
                         status = status,
-                        errorText = "Old version = $fwVersion for device ID = $deviceId",
+                        errorText = "Old version = $fwVersion for serialNo = $serialNo",
                         dataCount = dataCount,
                         dataCountAll = dataCountAll,
                         firstPointTime = firstPointTime,
@@ -209,7 +206,7 @@ class PLAHandler : MMSHandler() {
                     return false
                 }
                 //--- наше петромапское извращение - записываем HEX-номер версии прошивки в как бы десятичном виде
-                deviceConfig = DeviceConfig.getDeviceConfig(dataWorker.stm, deviceId)
+                deviceConfig = DeviceConfig.getDeviceConfig(dataWorker.stm, serialNo)
                 //--- неизвестный контроллер
                 if (deviceConfig == null) {
                     sendDelay()
@@ -218,13 +215,12 @@ class PLAHandler : MMSHandler() {
                         stm = dataWorker.stm,
                         dirSessionLog = dirSessionLog,
                         zoneId = zoneId,
-                        deviceId = deviceId,
                         deviceConfig = deviceConfig,
                         fwVersion = fwVersion,
                         begTime = begTime,
                         address = (selectionKey!!.channel() as SocketChannel).remoteAddress.toString() + " -> " + (selectionKey!!.channel() as SocketChannel).localAddress.toString(),
                         status = status,
-                        errorText = "Unknown device ID = $deviceId",
+                        errorText = "Unknown serialNo = $serialNo",
                         dataCount = dataCount,
                         dataCountAll = dataCountAll,
                         firstPointTime = firstPointTime,
@@ -234,11 +230,11 @@ class PLAHandler : MMSHandler() {
                         dirJournalLog = dirJournalLog,
                         zoneId = zoneId,
                         address = (selectionKey!!.channel() as SocketChannel).remoteAddress.toString() + " -> " + (selectionKey!!.channel() as SocketChannel).localAddress.toString(),
-                        errorText = "Unknown device ID = $deviceId",
+                        errorText = "Unknown serialNo = $serialNo",
                     )
                     return false
                 }
-                chmDeviceDelay.remove(deviceId)
+                chmDeviceDelay.remove(serialNo)
 
                 send(CMD_READ_CUR_POS, false)
                 status += " ID;"
@@ -251,13 +247,12 @@ class PLAHandler : MMSHandler() {
                         stm = dataWorker.stm,
                         dirSessionLog = dirSessionLog,
                         zoneId = zoneId,
-                        deviceId = deviceId,
                         deviceConfig = deviceConfig,
                         fwVersion = fwVersion,
                         begTime = begTime,
                         address = (selectionKey!!.channel() as SocketChannel).remoteAddress.toString() + " -> " + (selectionKey!!.channel() as SocketChannel).localAddress.toString(),
                         status = status,
-                        errorText = "Wrong CUR_POS packetSize = ${packetHeader!!.packetSize} for device ID = $deviceId",
+                        errorText = "Wrong CUR_POS packetSize = ${packetHeader!!.packetSize} for serialNo = $serialNo",
                         dataCount = dataCount,
                         dataCountAll = dataCountAll,
                         firstPointTime = firstPointTime,
@@ -309,7 +304,6 @@ class PLAHandler : MMSHandler() {
                         stm = dataWorker.stm,
                         dirSessionLog = dirSessionLog,
                         zoneId = zoneId,
-                        deviceId = deviceId,
                         deviceConfig = deviceConfig!!,
                         fwVersion = fwVersion,
                         begTime = begTime,
@@ -334,7 +328,6 @@ class PLAHandler : MMSHandler() {
                     stm = dataWorker.stm,
                     dirSessionLog = dirSessionLog,
                     zoneId = zoneId,
-                    deviceId = deviceId,
                     deviceConfig = deviceConfig!!,
                     fwVersion = fwVersion,
                     begTime = begTime,
@@ -359,13 +352,12 @@ class PLAHandler : MMSHandler() {
                         stm = dataWorker.stm,
                         dirSessionLog = dirSessionLog,
                         zoneId = zoneId,
-                        deviceId = deviceId,
                         deviceConfig = deviceConfig,
                         fwVersion = fwVersion,
                         begTime = begTime,
                         address = (selectionKey!!.channel() as SocketChannel).remoteAddress.toString() + " -> " + (selectionKey!!.channel() as SocketChannel).localAddress.toString(),
                         status = status,
-                        errorText = " Wrong READ_COORDS packetSize = ${packetHeader!!.packetSize} for device ID = $deviceId",
+                        errorText = " Wrong READ_COORDS packetSize = ${packetHeader!!.packetSize} for serialNo = $serialNo",
                         dataCount = dataCount,
                         dataCountAll = dataCountAll,
                         firstPointTime = firstPointTime,
@@ -415,7 +407,6 @@ class PLAHandler : MMSHandler() {
                     stm = dataWorker.stm,
                     dirSessionLog = dirSessionLog,
                     zoneId = zoneId,
-                    deviceId = deviceId,
                     deviceConfig = deviceConfig!!,
                     fwVersion = fwVersion,
                     begTime = begTime,
@@ -470,12 +461,12 @@ class PLAHandler : MMSHandler() {
     }
 
     private fun sendDelay() {
-        var delay: Int? = chmDeviceDelay[deviceId]
+        var delay: Int? = chmDeviceDelay[serialNo]
         delay = if (delay == null) 1 else delay + 1
-        chmDeviceDelay.put(deviceId, delay)
+        chmDeviceDelay[serialNo] = delay
 
         //--- не более чем на 540 мин (9 часов), чтобы секундами не переполнить signed short в минус
-        val second = Math.min(delay, 540) * 60 + 0x04    // в качестве причины указываем "Нет регистрации в Мск"
+        val second = min(delay, 540) * 60 + 0x04    // в качестве причины указываем "Нет регистрации в Мск"
 
         val bbOut = AdvancedByteBuffer(6 + 2, byteOrder)
 
@@ -734,14 +725,16 @@ class PLAHandler : MMSHandler() {
             //if( speed < 0 ) speed = 0;
             //if( speed > 255 ) speed = 255;
             //--- дистанция - в милях, переводим в метры
-            dist = Math.round(byteBuffer.getFloat().toDouble() * 1.852 * 1000.0).toInt()
+            dist = round(byteBuffer.getFloat().toDouble() * 1.852 * 1000.0).toInt()
 
             byteBuffer.getShort()  // SKIP azimuth
             var status = byteBuffer.getShort().toInt() and 0xFFFF
             val event = byteBuffer.getByte().toInt() and 0xFF
 
             d = byteBuffer.getByte().toInt() and 0xFF
-            for (i in 0 until ANALOG_INPUT_COUNT) tmA.put(i, byteBuffer.getShort().toInt() and 0xFFFF)
+            for (i in 0 until ANALOG_INPUT_COUNT) {
+                tmA.put(i, byteBuffer.getShort().toInt() and 0xFFFF)
+            }
 
             //--- дополнительная обработка данных по полю status ---
 

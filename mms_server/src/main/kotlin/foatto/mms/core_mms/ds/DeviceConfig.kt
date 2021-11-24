@@ -9,12 +9,11 @@ import java.time.ZoneId
 
 class DeviceConfig {
 
+    var deviceId = 0
     var objectId = 0
     var userId = 0
     var isAutoWorkShift = false
-
     var index = 0
-    var isOfflineMode = false
 
     var speedRoundRule = SensorConfigGeo.SPEED_ROUND_RULE_STANDART
 
@@ -22,26 +21,25 @@ class DeviceConfig {
 
     companion object {
 
-        fun getDeviceConfig(stm: CoreAdvancedStatement, aDeviceID: Int): DeviceConfig? {
+        fun getDeviceConfig(stm: CoreAdvancedStatement, serialNo: String): DeviceConfig? {
             var dc: DeviceConfig? = null
 
             var rs = stm.executeQuery(
                 """
-                    SELECT MMS_object.id , MMS_object.user_id , MMS_object.is_auto_work_shift , MMS_device.device_index , MMS_device.offline_mode 
+                    SELECT MMS_device.id , MMS_object.id , MMS_object.user_id , MMS_object.is_auto_work_shift , MMS_device.device_index  
                     FROM MMS_object , MMS_device 
                     WHERE MMS_object.id = MMS_device.object_id 
-                    AND MMS_device.device_id = $aDeviceID
+                    AND MMS_device.serial_no = '$serialNo'
                 """
             )
 
             if (rs.next()) {
                 dc = DeviceConfig()
-                dc.objectId = rs.getInt(1)
-                dc.userId = rs.getInt(2)
-                dc.isAutoWorkShift = rs.getInt(3) != 0
-
-                dc.index = rs.getInt(4)
-                dc.isOfflineMode = rs.getInt(5) != 0
+                dc.deviceId = rs.getInt(1)
+                dc.objectId = rs.getInt(2)
+                dc.userId = rs.getInt(3)
+                dc.isAutoWorkShift = rs.getInt(4) != 0
+                dc.index = rs.getInt(5)
             }
             rs.close()
 
