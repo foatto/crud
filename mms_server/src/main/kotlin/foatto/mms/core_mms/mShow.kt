@@ -43,15 +43,15 @@ open class mShow : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "MMS_report"
+        modelTableName = "MMS_report"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnShowRangeType = ColumnRadioButton(tableName, "show_range_type", "За какой период показывать", 0).apply {
+        columnShowRangeType = ColumnRadioButton(modelTableName, "show_range_type", "За какой период показывать", 0).apply {
             addChoice(0, "За указанный период")
             addChoice(15 * 60, "За последние 15 минут")
             addChoice(30 * 60, "За последние 30 минут")
@@ -62,26 +62,26 @@ open class mShow : mAbstract() {
             isVirtual = true
         }
 
-        columnShowBegDate = ColumnDate3Int(tableName, "beg_ye", "beg_mo", "beg_da", "Дата начала периода").apply {
+        columnShowBegDate = ColumnDate3Int(modelTableName, "beg_ye", "beg_mo", "beg_da", "Дата начала периода").apply {
             default = LocalDate.of(arrDT[0], arrDT[1], arrDT[2])
             isVirtual = true
             addFormVisible(columnShowRangeType, true, setOf(0))
         }
 
-        columnShowBegTime = ColumnTime3Int(tableName, "beg_ho", "beg_mi", null, "Время начала периода").apply {
+        columnShowBegTime = ColumnTime3Int(modelTableName, "beg_ho", "beg_mi", null, "Время начала периода").apply {
             default = LocalTime.of(arrDT[3], arrDT[4], arrDT[5])
             isVirtual = true
             addFormVisible(columnShowRangeType, true, setOf(0))
             formPinMode = FormPinMode.ON
         }
 
-        columnShowEndDate = ColumnDate3Int(tableName, "end_ye", "end_mo", "end_da", "Дата окончания периода").apply {
+        columnShowEndDate = ColumnDate3Int(modelTableName, "end_ye", "end_mo", "end_da", "Дата окончания периода").apply {
             default = LocalDate.of(arrDT[6], arrDT[7], arrDT[8])
             isVirtual = true
             addFormVisible(columnShowRangeType, true, setOf(0))
         }
 
-        columnShowEndTime = ColumnTime3Int(tableName, "end_ho", "end_mi", null, "Время окончания периода").apply {
+        columnShowEndTime = ColumnTime3Int(modelTableName, "end_ho", "end_mi", null, "Время окончания периода").apply {
             default = LocalTime.of(arrDT[9], arrDT[10], arrDT[11])
             isVirtual = true
             addFormVisible(columnShowRangeType, true, setOf(0))

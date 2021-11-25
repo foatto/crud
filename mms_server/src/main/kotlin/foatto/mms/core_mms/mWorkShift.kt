@@ -12,9 +12,10 @@ import foatto.core_server.app.server.column.ColumnDouble
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.mAbstract
+import foatto.core_server.app.server.mAbstractUserSelector
 import foatto.sql.CoreAdvancedStatement
 
-class mWorkShift : mAbstract() {
+class mWorkShift : mAbstractUserSelector() {
 
     private lateinit var os: ObjectSelector
     lateinit var columnIsAutoWorkShift: ColumnBoolean
@@ -24,7 +25,13 @@ class mWorkShift : mAbstract() {
         get() = os.columnObject
 
     override fun init(
-        application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?
+        application: iApplication,
+        aStm: CoreAdvancedStatement,
+        aliasConfig: AliasConfig,
+        userConfig: UserConfig,
+        aHmParam: Map<String, String>,
+        hmParentData: MutableMap<String, Int>,
+        id: Int?
     ) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
@@ -44,35 +51,30 @@ class mWorkShift : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "MMS_work_shift"
+        modelTableName = "MMS_work_shift"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnUserID = ColumnInt("SYSTEM_users", "id")
-        columnUser = ColumnInt(tableName, "user_id", columnUserID, userConfig.userId)
-        val columnUserName = ColumnString("SYSTEM_users", "full_name", "Владелец", STRING_COLUMN_WIDTH)
-        if(userConfig.isAdmin) {
-            columnUserName.selectorAlias = "system_user_people"
-            columnUserName.addSelectorColumn(columnUser!!, columnUserID)
-            columnUserName.addSelectorColumn(columnUserName)
-        }
+        val columnUserName = addUserSelector(userConfig)
+
+        //----------------------------------------------------------------------------------------------------------------------
 
         val columnShiftNo = ColumnString(
-            tableName, "shift_no",
+            modelTableName, "shift_no",
             if(isWaybill) "Номер путевого листа" else "", STRING_COLUMN_WIDTH
         )
 
-        val columnShiftBegDoc = ColumnDateTimeInt(tableName, "beg_dt", "Начало", false, zoneId)
-        val columnShiftEndDoc = ColumnDateTimeInt(tableName, "end_dt", "Окончание", false, zoneId)
-        val columnShiftBegFact = ColumnDateTimeInt(tableName, "beg_dt_fact", "Начало факт.", false, zoneId)
-        val columnShiftEndFact = ColumnDateTimeInt(tableName, "end_dt_fact", "Окончание факт.", false, zoneId)
+        val columnShiftBegDoc = ColumnDateTimeInt(modelTableName, "beg_dt", "Начало", false, zoneId)
+        val columnShiftEndDoc = ColumnDateTimeInt(modelTableName, "end_dt", "Окончание", false, zoneId)
+        val columnShiftBegFact = ColumnDateTimeInt(modelTableName, "beg_dt_fact", "Начало факт.", false, zoneId)
+        val columnShiftEndFact = ColumnDateTimeInt(modelTableName, "end_dt_fact", "Окончание факт.", false, zoneId)
 
         val columnWorkerID = ColumnInt("MMS_worker", "id")
-        val columnWorker = ColumnInt(tableName, "worker_id", columnWorkerID)
+        val columnWorker = ColumnInt(modelTableName, "worker_id", columnWorkerID)
         val columnWorkerTabNo = ColumnString("MMS_worker", "tab_no", "Табельный номер", STRING_COLUMN_WIDTH)
         val columnWorkerName = ColumnString("MMS_worker", "name", "Ф.И.О.", STRING_COLUMN_WIDTH)
 
@@ -82,12 +84,12 @@ class mWorkShift : mAbstract() {
         columnWorkerTabNo.addSelectorColumn(columnWorkerName)
 
         val columnRun = ColumnDouble(
-            tableName, "run",
+            modelTableName, "run",
             if(isWaybill) "Пробег [км]" else "", 10, 1, 0.0
         )
 
         columnIsAutoWorkShift = ColumnBoolean(
-            tableName, "_is_auto_work_shift",
+            modelTableName, "_is_auto_work_shift",
             "Автоматическое создание рабочих смен", isAutoWorkShift
         )
         columnIsAutoWorkShift.isVirtual = true

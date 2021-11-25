@@ -9,52 +9,52 @@ import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnBoolean
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
-import foatto.core_server.app.server.mAbstract
+import foatto.core_server.app.server.mAbstractUserSelector
 import foatto.sql.CoreAdvancedStatement
 
-class mObject : mAbstract() {
+class mObject : mAbstractUserSelector() {
 
     lateinit var columnDisabled: ColumnBoolean
     lateinit var columnObjectName: ColumnString
 
-    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
+    override fun init(
+        application: iApplication,
+        aStm: CoreAdvancedStatement,
+        aliasConfig: AliasConfig,
+        userConfig: UserConfig,
+        aHmParam: Map<String, String>,
+        hmParentData: MutableMap<String, Int>,
+        id: Int?
+    ) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "MMS_object"
+        modelTableName = "MMS_object"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnUserID = ColumnInt("SYSTEM_users", "id")
-        columnUser = ColumnInt(tableName, "user_id", columnUserID, userConfig.userId)
-        val columnUserName = ColumnString("SYSTEM_users", "full_name", "Владелец", STRING_COLUMN_WIDTH).apply {
-            if (userConfig.isAdmin) {
-                selectorAlias = "system_user_people"
-                addSelectorColumn(columnUser!!, columnUserID)
-                addSelectorColumn(this)
-            }
-        }
+        val columnUserName = addUserSelector(userConfig)
 
-        columnDisabled = ColumnBoolean(tableName, "is_disabled", "Отключен", false)
-        val columnDisableReason = ColumnString(tableName, "disable_reason", "Причина отключения", STRING_COLUMN_WIDTH).apply {
+        columnDisabled = ColumnBoolean(modelTableName, "is_disabled", "Отключен", false)
+        val columnDisableReason = ColumnString(modelTableName, "disable_reason", "Причина отключения", STRING_COLUMN_WIDTH).apply {
             addFormVisible(columnDisabled, true, setOf(1))
         }
 
-        columnObjectName = ColumnString(tableName, "name", "Наименование", STRING_COLUMN_WIDTH).apply {
+        columnObjectName = ColumnString(modelTableName, "name", "Наименование", STRING_COLUMN_WIDTH).apply {
             isRequired = true
             //setUnique(  true, null  ); - different clients / users may have objects with the same names
         }
 
-        val columnObjectModel = ColumnString(tableName, "model", "Модель", STRING_COLUMN_WIDTH)
+        val columnObjectModel = ColumnString(modelTableName, "model", "Модель", STRING_COLUMN_WIDTH)
 
         val columnGroupID = ColumnInt("MMS_group", "id")
-        val columnGroup = ColumnInt(tableName, "group_id", columnGroupID)
+        val columnGroup = ColumnInt(modelTableName, "group_id", columnGroupID)
         val columnGroupName = ColumnString("MMS_group", "name", "Группа", STRING_COLUMN_WIDTH).apply {
             selectorAlias = "mms_group"
             addSelectorColumn(columnGroup, columnGroupID)
@@ -62,18 +62,18 @@ class mObject : mAbstract() {
         }
 
         val columnDepartmentID = ColumnInt("MMS_department", "id")
-        val columnDepartment = ColumnInt(tableName, "department_id", columnDepartmentID)
+        val columnDepartment = ColumnInt(modelTableName, "department_id", columnDepartmentID)
         val columnDepartmentName = ColumnString("MMS_department", "name", "Подразделение", STRING_COLUMN_WIDTH).apply {
             selectorAlias = "mms_department"
             addSelectorColumn(columnDepartment, columnDepartmentID)
             addSelectorColumn(this)
         }
 
-        val columnObjectInfo = ColumnString(tableName, "info", "Дополнительная информация", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
+        val columnObjectInfo = ColumnString(modelTableName, "info", "Дополнительная информация", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
 
-        val columnEmail = ColumnString(tableName, "e_mail", "E-mail для оповещения", STRING_COLUMN_WIDTH)
+        val columnEmail = ColumnString(modelTableName, "e_mail", "E-mail для оповещения", STRING_COLUMN_WIDTH)
 
-        val columnIsAutoWorkShift = ColumnInt(tableName, "is_auto_work_shift", 0)
+        val columnIsAutoWorkShift = ColumnInt(modelTableName, "is_auto_work_shift", 0)
 
         //----------------------------------------------------------------------------------------------------------------------
 

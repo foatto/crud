@@ -23,16 +23,16 @@ class mObjectZone : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "MMS_object_zone"
+        modelTableName = "MMS_object_zone"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
         val columnZoneID = ColumnInt("MMS_zone", "id")
-        val columnZone = ColumnInt(tableName, "zone_id", columnZoneID)
+        val columnZone = ColumnInt(modelTableName, "zone_id", columnZoneID)
         val columnZoneDescr = ColumnString("MMS_zone", "descr", "Описание геозоны", STRING_COLUMN_WIDTH)
 
         val columnZoneName = ColumnString("MMS_zone", "name", "Наименование геозоны", STRING_COLUMN_WIDTH).apply {
@@ -43,7 +43,7 @@ class mObjectZone : mAbstract() {
             addSelectorColumn(columnZoneDescr)
         }
 
-        val columnZoneType = ColumnComboBox(tableName, "zone_type", "Ограничение", ZoneLimitData.TYPE_LIMIT_SPEED).apply {
+        val columnZoneType = ColumnComboBox(modelTableName, "zone_type", "Ограничение", ZoneLimitData.TYPE_LIMIT_SPEED).apply {
             addChoice(ZoneLimitData.TYPE_LIMIT_SPEED, "Ограничение по скорости")
             addChoice(ZoneLimitData.TYPE_LIMIT_AREA_BLOCKED, "Нахождение в геозоне запрещено")
             addChoice(ZoneLimitData.TYPE_LIMIT_AREA_ONLY, "Нахождение вне геозоны запрещено")
@@ -53,7 +53,7 @@ class mObjectZone : mAbstract() {
             //            ZoneLimitData.fillZoneLimitComboBox( columnZoneType );
         }
 
-        val columnZoneMaxSpeed = ColumnInt(tableName, "max_speed", "Максимальная скорость [км/ч]", 10, 100).apply {
+        val columnZoneMaxSpeed = ColumnInt(modelTableName, "max_speed", "Максимальная скорость [км/ч]", 10, 100).apply {
             addFormVisible(columnZoneType, true, setOf(ZoneLimitData.TYPE_LIMIT_SPEED))
         }
 

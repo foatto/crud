@@ -9,9 +9,10 @@ import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.mAbstract
+import foatto.core_server.app.server.mAbstractUserSelector
 import foatto.sql.CoreAdvancedStatement
 
-class mZone : mAbstract() {
+class mZone : mAbstractUserSelector() {
 
     lateinit var columnZoneName: ColumnString
         private set
@@ -19,36 +20,36 @@ class mZone : mAbstract() {
         private set
 
     override fun init(
-        application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?
+        application: iApplication,
+        aStm: CoreAdvancedStatement,
+        aliasConfig: AliasConfig,
+        userConfig: UserConfig,
+        aHmParam: Map<String, String>,
+        hmParentData: MutableMap<String, Int>,
+        id: Int?
     ) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "MMS_zone"
+        modelTableName = "MMS_zone"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
-
-        val columnUserID = ColumnInt("SYSTEM_users", "id")
-        columnUser = ColumnInt(tableName, "user_id", columnUserID, userConfig.userId)
-        val columnUserName = ColumnString("SYSTEM_users", "full_name", "Владелец геозоны", STRING_COLUMN_WIDTH)
-        if(userConfig.isAdmin) {
-            //columnUserName.setRequired( true ); - может быть ничья/общая
-            columnUserName.selectorAlias = "system_user_people"
-            columnUserName.addSelectorColumn(columnUser!!, columnUserID)
-            columnUserName.addSelectorColumn(columnUserName)
-        }
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnZoneName = ColumnString(tableName, "name", "Наименование геозоны", STRING_COLUMN_WIDTH)
+        val columnUserName = addUserSelector(userConfig)
+
+        //----------------------------------------------------------------------------------------------------------------------
+
+        columnZoneName = ColumnString(modelTableName, "name", "Наименование геозоны", STRING_COLUMN_WIDTH)
         columnZoneName.isRequired = true
         //columnZoneName.setUnique( true ); !!! у разных корпоративных клиентов могут быть совпадающие значения
-        columnZoneDescr = ColumnString(tableName, "descr", "Описание геозоны", STRING_COLUMN_WIDTH)
-        val columnZoneOuterID = ColumnString(tableName, "outer_id", "Внешний идентификатор", STRING_COLUMN_WIDTH)
+        columnZoneDescr = ColumnString(modelTableName, "descr", "Описание геозоны", STRING_COLUMN_WIDTH)
+        val columnZoneOuterID = ColumnString(modelTableName, "outer_id", "Внешний идентификатор", STRING_COLUMN_WIDTH)
 
         //----------------------------------------------------------------------------------------------------------------------
 

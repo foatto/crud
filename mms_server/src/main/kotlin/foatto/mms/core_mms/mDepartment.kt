@@ -6,38 +6,42 @@ import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.ChildData
 import foatto.core_server.app.server.DependData
 import foatto.core_server.app.server.UserConfig
+import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.mAbstract
+import foatto.core_server.app.server.mAbstractUserSelector
 import foatto.sql.CoreAdvancedStatement
 
-class mDepartment : mAbstract() {
+class mDepartment : mAbstractUserSelector() {
 
-    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
+    override fun init(
+        application: iApplication,
+        aStm: CoreAdvancedStatement,
+        aliasConfig: AliasConfig,
+        userConfig: UserConfig,
+        aHmParam: Map<String, String>,
+        hmParentData: MutableMap<String, Int>,
+        id: Int?
+    ) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "MMS_department"
+        modelTableName = "MMS_department"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
-
-        val columnUserID = ColumnInt("SYSTEM_users", "id")
-        columnUser = ColumnInt(tableName, "user_id", columnUserID, userConfig.userId)
-        val columnUserName = ColumnString("SYSTEM_users", "full_name", "Владелец подразделения", STRING_COLUMN_WIDTH)
-        if(userConfig.isAdmin) {
-            //columnUserName.setRequired(  true  ); - может быть ничья/общая
-            columnUserName.selectorAlias = "system_user_people"
-            columnUserName.addSelectorColumn(columnUser!!, columnUserID)
-            columnUserName.addSelectorColumn(columnUserName)
-        }
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnDepartmentName = ColumnString(tableName, "name", "Подразделение", STRING_COLUMN_WIDTH)
+        val columnUserName = addUserSelector(userConfig)
+
+        //----------------------------------------------------------------------------------------------------------------------
+
+        val columnDepartmentName = ColumnString(modelTableName, "name", "Подразделение", STRING_COLUMN_WIDTH)
         columnDepartmentName.isRequired = true
         //columnDepartmentName.setUnique( true, null ) - у разных корпоративных клиентов могут быть совпадающие значения
 

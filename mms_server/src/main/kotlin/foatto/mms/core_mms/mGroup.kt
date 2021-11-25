@@ -9,35 +9,38 @@ import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.mAbstract
+import foatto.core_server.app.server.mAbstractUserSelector
 import foatto.sql.CoreAdvancedStatement
 
-class mGroup : mAbstract() {
+class mGroup : mAbstractUserSelector() {
 
-    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
+    override fun init(
+        application: iApplication,
+        aStm: CoreAdvancedStatement,
+        aliasConfig: AliasConfig,
+        userConfig: UserConfig,
+        aHmParam: Map<String, String>,
+        hmParentData: MutableMap<String, Int>,
+        id: Int?
+    ) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "MMS_group"
+        modelTableName = "MMS_group"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
-
-        val columnUserID = ColumnInt("SYSTEM_users", "id")
-        columnUser = ColumnInt(tableName, "user_id", columnUserID, userConfig.userId)
-        val columnUserName = ColumnString("SYSTEM_users", "full_name", "Владелец группы", STRING_COLUMN_WIDTH)
-        if(userConfig.isAdmin) {
-            //columnUserName.setRequired(  true  ); - может быть ничья/общая
-            columnUserName.selectorAlias = "system_user_people"
-            columnUserName.addSelectorColumn(columnUser!!, columnUserID)
-            columnUserName.addSelectorColumn(columnUserName)
-        }
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnGroupName = ColumnString(tableName, "name", "Группа", STRING_COLUMN_WIDTH)
+        val columnUserName = addUserSelector(userConfig)
+
+        //----------------------------------------------------------------------------------------------------------------------
+
+        val columnGroupName = ColumnString(modelTableName, "name", "Группа", STRING_COLUMN_WIDTH)
         columnGroupName.isRequired = true
         //columnGroupName.setUnique( true, null ) - у разных корпоративных клиентов могут быть совпадающие значения
 

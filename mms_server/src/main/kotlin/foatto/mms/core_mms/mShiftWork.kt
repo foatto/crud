@@ -66,22 +66,22 @@ class mShiftWork : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "MMS_work_shift"
+        modelTableName = "MMS_work_shift"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
-        columnUser = ColumnInt(tableName, "user_id")
+        columnID = ColumnInt(modelTableName, "id")
+        columnUser = ColumnInt(modelTableName, "user_id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
         //        ColumnString columnShiftNo = new ColumnString( tableName, "shift_no",
         //                                                isWaybill ? "Номер путевого листа" : "", STRING_COLUMN_WIDTH );
 
-        columnShiftBegDoc = ColumnDateTimeInt(tableName, "beg_dt", "Начало", false, zoneId)
-        columnShiftEndDoc = ColumnDateTimeInt(tableName, "end_dt", "Окончание", false, zoneId)
-        columnShiftBegFact = ColumnDateTimeInt(tableName, "beg_dt_fact", "Начало факт.", false, zoneId)
-        columnShiftEndFact = ColumnDateTimeInt(tableName, "end_dt_fact", "Окончание факт.", false, zoneId)
+        columnShiftBegDoc = ColumnDateTimeInt(modelTableName, "beg_dt", "Начало", false, zoneId)
+        columnShiftEndDoc = ColumnDateTimeInt(modelTableName, "end_dt", "Окончание", false, zoneId)
+        columnShiftBegFact = ColumnDateTimeInt(modelTableName, "beg_dt_fact", "Начало факт.", false, zoneId)
+        columnShiftEndFact = ColumnDateTimeInt(modelTableName, "end_dt_fact", "Окончание факт.", false, zoneId)
 
         //            ColumnInt columnWorkerID = new ColumnInt( "MMS_worker", "id" );
         //        ColumnInt columnWorker = new ColumnInt( tableName, "worker_id", columnWorkerID );
@@ -96,35 +96,35 @@ class mShiftWork : mAbstract() {
         //        ColumnDouble columnRun = new ColumnDouble( tableName, "run",
         //                                                              isWaybill ? "Пробег [км]" : "", 10, 1, 0.0 );
 
-        columnObjectShiftWorkRun = ColumnString(tableName, "_run", "Пробег [км]", STRING_COLUMN_WIDTH)
+        columnObjectShiftWorkRun = ColumnString(modelTableName, "_run", "Пробег [км]", STRING_COLUMN_WIDTH)
         columnObjectShiftWorkRun.isVirtual = true
         columnObjectShiftWorkRun.isSearchable = false
         columnObjectShiftWorkRun.rowSpan = if(parentObjectId == null) 3 else 4
-        columnObjectShiftWorkHourName = ColumnString(tableName, "_work_name", "Оборудование", STRING_COLUMN_WIDTH)
+        columnObjectShiftWorkHourName = ColumnString(modelTableName, "_work_name", "Оборудование", STRING_COLUMN_WIDTH)
         columnObjectShiftWorkHourName.isVirtual = true
         columnObjectShiftWorkHourName.isSearchable = false
         columnObjectShiftWorkHourName.rowSpan = if(parentObjectId == null) 3 else 4
-        columnObjectShiftWorkHourValue = ColumnString(tableName, "_work_hour", "Работа [час]", STRING_COLUMN_WIDTH)
+        columnObjectShiftWorkHourValue = ColumnString(modelTableName, "_work_hour", "Работа [час]", STRING_COLUMN_WIDTH)
         columnObjectShiftWorkHourValue.isVirtual = true
         columnObjectShiftWorkHourValue.isSearchable = false
         columnObjectShiftWorkHourValue.rowSpan = if(parentObjectId == null) 3 else 4
-        columnObjectShiftWorkLiquidName = ColumnString(tableName, "_liquid_name", "Топливо", STRING_COLUMN_WIDTH)
+        columnObjectShiftWorkLiquidName = ColumnString(modelTableName, "_liquid_name", "Топливо", STRING_COLUMN_WIDTH)
         columnObjectShiftWorkLiquidName.isVirtual = true
         columnObjectShiftWorkLiquidName.isSearchable = false
         columnObjectShiftWorkLiquidName.rowSpan = if (parentObjectId == null) 3 else 4
-        columnObjectShiftWorkLiquidValue = ColumnString(tableName, "_liquid_value", "Расход", STRING_COLUMN_WIDTH)
+        columnObjectShiftWorkLiquidValue = ColumnString(modelTableName, "_liquid_value", "Расход", STRING_COLUMN_WIDTH)
         columnObjectShiftWorkLiquidValue.isVirtual = true
         columnObjectShiftWorkLiquidValue.isSearchable = false
         columnObjectShiftWorkLiquidValue.rowSpan = if(parentObjectId == null) 3 else 4
-        columnObjectShiftWorkLevelName = ColumnString(tableName, "_level_name", "Ёмкость", STRING_COLUMN_WIDTH)
+        columnObjectShiftWorkLevelName = ColumnString(modelTableName, "_level_name", "Ёмкость", STRING_COLUMN_WIDTH)
         columnObjectShiftWorkLevelName.isVirtual = true
         columnObjectShiftWorkLevelName.isSearchable = false
         columnObjectShiftWorkLevelName.rowSpan = if(parentObjectId == null) 3 else 4
-        columnObjectShiftWorkLevelBeg = ColumnString(tableName, "_level_beg", "Нач.остаток", STRING_COLUMN_WIDTH)
+        columnObjectShiftWorkLevelBeg = ColumnString(modelTableName, "_level_beg", "Нач.остаток", STRING_COLUMN_WIDTH)
         columnObjectShiftWorkLevelBeg.isVirtual = true
         columnObjectShiftWorkLevelBeg.isSearchable = false
         columnObjectShiftWorkLevelBeg.rowSpan = if(parentObjectId == null) 3 else 4
-        columnObjectShiftWorkLevelEnd = ColumnString(tableName, "_level_end", "Кон.остаток", STRING_COLUMN_WIDTH)
+        columnObjectShiftWorkLevelEnd = ColumnString(modelTableName, "_level_end", "Кон.остаток", STRING_COLUMN_WIDTH)
         columnObjectShiftWorkLevelEnd.isVirtual = true
         columnObjectShiftWorkLevelEnd.isSearchable = false
         columnObjectShiftWorkLevelEnd.rowSpan = if(parentObjectId == null) 3 else 4
