@@ -177,7 +177,6 @@ open class GalileoHandler : MMSHandler() {
                         stm = dataWorker.stm,
                         dirSessionLog = dirSessionLog,
                         zoneId = zoneId,
-                        deviceId = deviceId,
                         deviceConfig = deviceConfig,
                         fwVersion = fwVersion,
                         begTime = begTime,
@@ -197,7 +196,6 @@ open class GalileoHandler : MMSHandler() {
                         stm = dataWorker.stm,
                         dirSessionLog = dirSessionLog,
                         zoneId = zoneId,
-                        deviceId = deviceId,
                         deviceConfig = deviceConfig,
                         fwVersion = fwVersion,
                         begTime = begTime,
@@ -239,7 +237,6 @@ open class GalileoHandler : MMSHandler() {
                         stm = dataWorker.stm,
                         dirSessionLog = dirSessionLog,
                         zoneId = zoneId,
-                        deviceId = deviceId,
                         deviceConfig = deviceConfig,
                         fwVersion = fwVersion,
                         begTime = begTime,
@@ -277,13 +274,12 @@ open class GalileoHandler : MMSHandler() {
                         stm = dataWorker.stm,
                         dirSessionLog = dirSessionLog,
                         zoneId = zoneId,
-                        deviceId = deviceId,
                         deviceConfig = deviceConfig,
                         fwVersion = fwVersion,
                         begTime = begTime,
                         address = (selectionKey!!.channel() as SocketChannel).localAddress.hostname,
                         status = status,
-                        errorText = "Wrong packet header = $packetHeader for device ID = $deviceId",
+                        errorText = "Wrong packet header = $packetHeader for serialNo = $serialNo",
                         dataCount = dataCount,
                         dataCountAll = dataCountAll,
                         firstPointTime = firstPointTime,
@@ -312,7 +308,7 @@ open class GalileoHandler : MMSHandler() {
             //AdvancedLogger.debug( "remaining = " + bbIn.remaining() );
             //--- тег данных
             val tag = bbIn.getByte().toInt() and 0xFF
-            //AdvancedLogger.debug( "tag = " + Integer.toHexString( tag ) );
+//AdvancedLogger.debug("tag = ${tag.toString(16)}")
             when (tag) {
 
                 //--- версия прибора/железа
@@ -333,8 +329,9 @@ open class GalileoHandler : MMSHandler() {
                     bbIn.get(arrIMEI)
                     val imei = String(arrIMEI)
 
-                    deviceId = imei.substring(imei.length - 7).toInt()
-                    AdvancedLogger.debug("deviceID = $deviceId")
+                    //--- двойное преобразование подстрока - число - строка, чтобы убрать стартовые нули
+                    serialNo = imei.substring(imei.length - 7).toIntOrNull().toString()
+                    AdvancedLogger.debug("serialNo = $serialNo")
 
                     if (!loadDeviceConfig(dataWorker)) {
                         return false
@@ -402,6 +399,9 @@ open class GalileoHandler : MMSHandler() {
                 //--- EcoDrive
                 0x47 -> bbIn.getInt()  // SKIP EcoDrive
 
+                //--- Расширенный статус терминала
+                0x48 -> bbIn.getShort()
+
                 //--- in voltage / impulse count / impulse frequency
                 in 0x50..0x57 -> tmUniversalSensor[tag - 0x50] = bbIn.getShort().toInt() and 0xFFFF
 
@@ -413,12 +413,16 @@ open class GalileoHandler : MMSHandler() {
 
                 //--- данные рефрижераторной установки
                 0x5B -> {
-                    AdvancedLogger.error("deviceID = $deviceId\n unsupported tag = 0x${Integer.toHexString(tag)}\n disable refrigerator data, please")
+                    AdvancedLogger.error("serialNo = $serialNo\n unsupported tag = 0x${tag.toString(16)}\n disable refrigerator data, please")
                     return false
                 }
 
                 //--- система контроля давления в шинах PressurePro, 34 датчика
-                0x5C -> for (i in 0..33) bbIn.getShort()
+                0x5C -> {
+                    for (i in 0..33) {
+                        bbIn.getShort()
+                    }
+                }
 
                 //--- Данные дозиметра ДБГ-С11Д
                 0x5D -> {
@@ -442,6 +446,11 @@ open class GalileoHandler : MMSHandler() {
                     bbIn.getByte()  //.toInt() - value
                 }
 
+                //--- Значение на входе 8
+                in 0x78..0x79 -> {
+                    bbIn.getShort()
+                }
+
                 //--- датчик DS1923 (температура и влажность)
                 in 0x80..0x87 -> {
                     bbIn.getByte()  //.toInt() and 0xFF - DS_ID
@@ -449,8 +458,11 @@ open class GalileoHandler : MMSHandler() {
                     bbIn.getByte()  //.toInt() and 0xFF) * 100 / 255 - humidity
                 }
 
-                //--- Температура ДУТ, подключенного к нулевому порту RS232, С
-                0x88 -> bbIn.getByte()
+                //--- Расширенные данные RS232[0/1].
+                //--- В зависимости от настройки один из вариантов:
+                //1. Температура ДУТ, подключенного к нулевому/первому порту RS232, °С.
+                //2. Вес, полученный от весового индикатора.
+                in 0x88..0x89 -> bbIn.getByte()
 
                 //--- RS-485 основные/типовые (0..2) - показания температуры
                 0x8A, 0x8B, 0x8C -> tmRS485Temp[tag - 0x8A] = bbIn.getByte().toInt()
@@ -509,7 +521,7 @@ open class GalileoHandler : MMSHandler() {
                     val answer = String(arrAnswer)
                     status += " AnswerReceive=$answer;"
                     AdvancedLogger.debug("Answer")
-                    AdvancedLogger.debug("deviceID = $deviceId\n Answer = $answer")
+                    AdvancedLogger.debug("serialNo = $serialNo\n Answer = $answer")
                 }
 
                 //--- пользовательские данные в виде одиночных значений
@@ -520,7 +532,7 @@ open class GalileoHandler : MMSHandler() {
                     //AdvancedLogger.debug( "deviceID = " + deviceID + "\n user data time = " + StringFunction.DateTime_YMDHMS( timeZone, pointTime ) );
 
                     val userDataSize = bbIn.getByte().toInt() and 0xFF // размер данных
-                    AdvancedLogger.debug("deviceID = $deviceId\n userDataSize = $userDataSize")
+                    AdvancedLogger.debug("serialNo = $serialNo\n userDataSize = $userDataSize")
 
                     //                StringBuilder sbHex = new StringBuilder( " 0xEA =" );
                     //                for( int i = 0; i < userDataSize; i++ ) {
@@ -533,7 +545,7 @@ open class GalileoHandler : MMSHandler() {
                     //AdvancedLogger.debug( "deviceID = " + deviceID + "\n userDataType = " + userDataType );
                     //--- данные от электрического счетчика "Меркурий"
                     if (userDataType == 0x02) {
-                        AdvancedLogger.error("deviceID = $deviceId\n Меркурий: электросчётчик напрямую прибором Galileo больше не поддерживается. Используте модуль сбора данных.")
+                        AdvancedLogger.error("serialNo = $serialNo\n Меркурий: электросчётчик напрямую прибором Galileo больше не поддерживается. Используте модуль сбора данных.")
                         bbIn.skip(userDataSize - 1)
                     } else if (userDataType == 0x03) {
                         val dataVersion = bbIn.getByte().toInt() and 0xFF
@@ -605,12 +617,12 @@ open class GalileoHandler : MMSHandler() {
                                         in 0x0710..0x0713 -> tmEnergoPowerReactiveABC[id - 0x0710] = value
                                         in 0x0720..0x0723 -> tmEnergoPowerFullABC[id - 0x0720] = value
 
-                                        else -> AdvancedLogger.error("deviceID = $deviceId\n модуль сбора данных: неизвестный id = ${id.toString(16)}.")
+                                        else -> AdvancedLogger.error("serialNo = $serialNo\n модуль сбора данных: неизвестный id = ${id.toString(16)}.")
                                     }
                                 }
                             }
                             else -> {
-                                AdvancedLogger.error("deviceID = $deviceId\n модуль сбора данных: версия $dataVersion больше не поддерживается. Используйте свежий скрипт/прошивку.")
+                                AdvancedLogger.error("serialNo = $serialNo\n модуль сбора данных: версия $dataVersion больше не поддерживается. Используйте свежий скрипт/прошивку.")
                                 return false
                             }
                         }
@@ -649,16 +661,106 @@ open class GalileoHandler : MMSHandler() {
                     }
                     //--- неизвестные данные, пропускаем их
                     else {
-                        AdvancedLogger.error("deviceID = $deviceId\n Неизвестный тип пользовательских данных = $userDataType")
+                        AdvancedLogger.error("serialNo = $serialNo\n Неизвестный тип пользовательских данных = $userDataType")
                         bbIn.skip(userDataSize - 1)
                     }
                 }
 
+                //--- данные в ответ на команду
+                0xEB -> {
+                    val answerLen = bbIn.getByte().toInt() and 0xFF
+                    val arrAnswer = ByteArray(answerLen)
+                    bbIn.get(arrAnswer)
+                }
+
                 //--- CAN32BITR6..CAN32BITR15
-                0xF0, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7, 0xF8, 0xF9 -> bbIn.getInt()
+                in 0xF0..0xF9 -> bbIn.getInt()
+
+                //--- Расширенные теги
+                0xFE -> {
+                    var extTagDataLen = bbIn.getShort().toInt() and 0xFFFF
+AdvancedLogger.debug("serialNo = $serialNo\n start extTagDataLen = $extTagDataLen")
+                    while (extTagDataLen > 0) {
+                        val extTag = bbIn.getShort().toInt() and 0xFFFF
+                        extTagDataLen -= 2
+
+AdvancedLogger.debug("serialNo = $serialNo\n extTag = 0x${extTag.toString(16)}")
+AdvancedLogger.debug("serialNo = $serialNo\n middle extTagDataLen = $extTagDataLen")
+                        when(extTag) {
+
+                            //--- ModBus 0..31
+                            in 0x01..0x20 -> {
+                                bbIn.getInt()
+                                extTagDataLen -= 4
+                            }
+
+                            //--- Bluetooth 0..63
+                            in 0x21..0x60 -> {
+                                bbIn.getInt()
+                                extTagDataLen -= 4
+                            }
+
+                            //--- ModBus 32..63
+                            in 0x61..0x80 -> {
+                                bbIn.getInt()
+                                extTagDataLen -= 4
+                            }
+
+                            //--- CID, LAC, MCC, MNC
+                            in 0x81..0x84 -> {
+                                bbIn.getShort()
+                                extTagDataLen -= 2
+                            }
+
+                            //--- RSSI
+                            0x85 -> {
+                                bbIn.getByte()
+                                extTagDataLen -= 1
+                            }
+
+                            //--- Тег расширенного значения датчика температуры
+                            in 0x86..0x8D -> {
+                                bbIn.getInt()
+                                extTagDataLen -= 4
+                            }
+
+                            //--- Тег информации о спутниках системы GPS/GLONASS/BAIDOU/GALILEO
+                            in 0x8E..0x91 -> {
+                                bbIn.getInt()
+                                extTagDataLen -= 4
+                            }
+
+                            //--- IMSI
+                            0x92 -> {
+                                val arrIMSI = ByteArray(15)
+                                bbIn.get(arrIMSI)
+                                extTagDataLen -= 15
+                            }
+
+                            //--- Тег номера активной SIM-карты
+                            0x93 -> {
+                                bbIn.getByte()
+                                extTagDataLen -= 1
+                            }
+
+                            //--- CCID
+                            0x94 -> {
+                                val arrCCID = ByteArray(20)
+                                bbIn.get(arrCCID)
+                                extTagDataLen -= 20
+                            }
+
+                            else -> {
+                                AdvancedLogger.error("serialNo = $serialNo\n unknown extended tag = 0x${extTag.toString(16)}")
+                                return false
+                            }
+                        }
+AdvancedLogger.debug("serialNo = $serialNo\n end extTagDataLen = $extTagDataLen")
+                    }
+                }
 
                 else -> {
-                    AdvancedLogger.error("deviceID = $deviceId\n unknown tag = 0x${Integer.toHexString(tag)}")
+                    AdvancedLogger.error("serialNo = $serialNo\n unknown tag = 0x${tag.toString(16)}")
                     return false
                 }
             }
@@ -686,64 +788,68 @@ open class GalileoHandler : MMSHandler() {
 
         //--- проверка на наличие команды терминалу
 
-        val (cmdID, cmdStr) = getCommand(dataWorker.stm, deviceId)
+        deviceConfig?.let { dc ->
+            val (cmdID, cmdStr) = getCommand(dataWorker.stm, dc.deviceId)
 
-        //--- команда есть
-        if (cmdStr != null) {
-            //--- и она не пустая
-            if (cmdStr.isNotEmpty()) {
-                val dataSize = 1 + 15 + 1 + 2 + 1 + 4 + 1 + 1 + cmdStr.length
+            //--- команда есть
+            if (cmdStr != null) {
+                //--- и она не пустая
+                if (cmdStr.isNotEmpty()) {
+                    val dataSize = 1 + 15 + 1 + 2 + 1 + 4 + 1 + 1 + cmdStr.length
 
-                val bbOut = AdvancedByteBuffer(64)  // 64 байта в большинстве случаев хватает
+                    val bbOut = AdvancedByteBuffer(64)  // 64 байта в большинстве случаев хватает
 
-                bbOut.putByte(0x01)
-                bbOut.putShort(dataSize)
+                    bbOut.putByte(0x01)
+                    bbOut.putShort(dataSize)
 
-                bbOut.putByte(0x03)
-                bbOut.put(arrIMEI)
+                    bbOut.putByte(0x03)
+                    bbOut.put(arrIMEI)
 
-                bbOut.putByte(0x04)
-                bbOut.putShort(terminalID)
+                    bbOut.putByte(0x04)
+                    bbOut.putShort(terminalID)
 
-                bbOut.putByte(0xE0)
-                bbOut.putInt(0)
+                    bbOut.putByte(0xE0)
+                    bbOut.putInt(0)
 
-                bbOut.putByte(0xE1)
-                bbOut.putByte(cmdStr.length)
-                bbOut.put(cmdStr.toByteArray())
+                    bbOut.putByte(0xE1)
+                    bbOut.putByte(cmdStr.length)
+                    bbOut.put(cmdStr.toByteArray())
 
-                //--- кто бы мог подумать: CRC отправляется в big-endian, хотя сами данные приходят в little-endian
-                bbOut.putShort(crc16_modbus(bbOut.array(), bbOut.arrayOffset(), dataSize + 3, true))
+                    //--- кто бы мог подумать: CRC отправляется в big-endian, хотя сами данные приходят в little-endian
+                    bbOut.putShort(crc16_modbus(bbOut.array(), bbOut.arrayOffset(), dataSize + 3, true))
 
-                outBuf(bbOut)
+                    outBuf(bbOut)
+                }
+                //--- отметим успешную отправку команды
+                setCommandSended(dataWorker.stm, cmdID)
+                status += " CommandSend;"
             }
-            //--- отметим успешную отправку команды
-            setCommandSended(dataWorker.stm, cmdID)
-            status += " CommandSend;"
         }
 
         //--- данные успешно переданы - теперь можно завершить транзакцию
         status += " Ok;"
         errorText = ""
-        writeSession(
-            conn = dataWorker.conn,
-            stm = dataWorker.stm,
-            dirSessionLog = dirSessionLog,
-            zoneId = zoneId,
-            deviceId = deviceId,
-            deviceConfig = deviceConfig,
-            fwVersion = fwVersion,
-            begTime = begTime,
-            address = (selectionKey!!.channel() as SocketChannel).localAddress.hostname,
-            status = status,
-            errorText = errorText,
-            dataCount = dataCount,
-            dataCountAll = dataCountAll,
-            firstPointTime = firstPointTime,
-            lastPointTime = lastPointTime,
-            isOk = true,
-        )
-
+        deviceConfig?.let { dc ->
+            writeSession(
+                conn = dataWorker.conn,
+                stm = dataWorker.stm,
+                dirSessionLog = dirSessionLog,
+                zoneId = zoneId,
+                deviceConfig = dc,
+                fwVersion = fwVersion,
+                begTime = begTime,
+                address = selectionKey?.let { sk ->
+                    (sk.channel() as SocketChannel).remoteAddress.toString() + " -> " + (sk.channel() as SocketChannel).localAddress.toString()
+                } ?: "(unknown remote address)",
+                status = status,
+                errorText = errorText,
+                dataCount = dataCount,
+                dataCountAll = dataCountAll,
+                firstPointTime = firstPointTime,
+                lastPointTime = lastPointTime,
+                isOk = true,
+            )
+        }
         //--- для возможного режима постоянного/длительного соединения
         bbIn.clear()   // других данных быть не должно, именно .clear(), а не .compact()
         begTime = 0
