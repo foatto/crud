@@ -2,6 +2,7 @@ package foatto.office.report
 
 import foatto.core.link.FormData
 import foatto.core.util.DateTime_DMY
+import foatto.core.util.DateTime_YMDHMS
 import foatto.core_server.app.server.data.DataDate3Int
 import foatto.core_server.app.server.data.DataInt
 import jxl.CellView
@@ -9,6 +10,8 @@ import jxl.format.PageOrientation
 import jxl.format.PaperSize
 import jxl.write.Label
 import jxl.write.WritableSheet
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.util.*
 
 class cTaskDayState : cOfficeReport() {
@@ -58,8 +61,8 @@ class cTaskDayState : cOfficeReport() {
         val reportEndYear = hmReportParam["report_end_year"] as Int
         val reportEndMonth = hmReportParam["report_end_month"] as Int
         val reportEndDay = hmReportParam["report_end_day"] as Int
-        val gcBeg = GregorianCalendar(reportBegYear, reportBegMonth - 1, reportBegDay)
-        val gcEnd = GregorianCalendar(reportEndYear, reportEndMonth - 1, reportEndDay)
+        val gcBeg = ZonedDateTime.of(reportBegYear, reportBegMonth, reportBegDay, 0, 0, 0, 0, ZoneId.systemDefault())
+        val gcEnd = ZonedDateTime.of(reportEndYear, reportEndMonth, reportEndDay, 0, 0, 0, 0, ZoneId.systemDefault())
 
         defineFormats(8, 2, 0)
 
@@ -80,9 +83,9 @@ class cTaskDayState : cOfficeReport() {
 
         //--- установка размеров заголовков (общая ширина = 90 для А4-портрет поля по 10 мм)
         val alDim = mutableListOf<Int>()
-        alDim + 80   // Дата
-        alDim + 5    // Просроченных
-        alDim + 5    // Всего
+        alDim += 80   // Дата
+        alDim += 5    // Просроченных
+        alDim += 5    // Всего
         for (i in alDim.indices) {
             val cvNN = CellView()
             cvNN.size = alDim[i] * 256
@@ -117,12 +120,12 @@ class cTaskDayState : cOfficeReport() {
         var lastUserName = ""
         while (rs.next()) {
             val userName = rs.getString(1)
-            val gc = GregorianCalendar(rs.getInt(2), rs.getInt(3) - 1, rs.getInt(4))
+            val gc = ZonedDateTime.of(rs.getInt(2), rs.getInt(3), rs.getInt(4), 0, 0, 0, 0, ZoneId.systemDefault())
             val countRed = rs.getInt(5)
             val countAll = rs.getInt(6)
 
             //--- программный пропуск неподходящих дат
-            if (gc.before(gcBeg) || gc.after(gcEnd)) {
+            if (gc.isBefore(gcBeg) || gc.isAfter(gcEnd)) {
                 continue
             }
             //--- пошли данные по другому пользователю, выводим его имя
@@ -134,7 +137,7 @@ class cTaskDayState : cOfficeReport() {
                 offsY++
                 lastUserName = userName
             }
-            sheet.addCell(Label(0, offsY, DateTime_DMY(zoneId, (gc.timeInMillis / 1000).toInt()), wcfCellC))
+            sheet.addCell(Label(0, offsY, DateTime_DMY(gc), wcfCellC))
             sheet.addCell(Label(1, offsY, countRed.toString(), if (countRed == 0) wcfCellC else wcfCellCRedStd))
             sheet.addCell(Label(2, offsY, countAll.toString(), wcfCellC))
             offsY++
