@@ -81,18 +81,18 @@ class mReminder : mAbstract() {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "OFFICE_reminder"
+        modelTableName = "OFFICE_reminder"
 
 //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
-        columnUser = ColumnInt(tableName, "user_id", userConfig.userId)
+        columnUser = ColumnInt(modelTableName, "user_id", userConfig.userId)
 
-        columnActive = ColumnBoolean(tableName, "in_active", "", true)
-        columnArchive = ColumnBoolean(tableName, "in_archive", "", false)
+        columnActive = ColumnBoolean(modelTableName, "in_active", "", true)
+        columnArchive = ColumnBoolean(modelTableName, "in_archive", "", false)
 
-        columnType = ColumnRadioButton(tableName, "type", "Тип", if (type < 0) 0 else type).apply {
+        columnType = ColumnRadioButton(modelTableName, "type", "Тип", if (type < 0) 0 else type).apply {
             addChoice(REMINDER_TYPE_CALL, hmReminderName[REMINDER_TYPE_CALL]!!)
             addChoice(REMINDER_TYPE_MEET, hmReminderName[REMINDER_TYPE_MEET]!!)
             addChoice(REMINDER_TYPE_CALL_REMEMBER, hmReminderName[REMINDER_TYPE_CALL_REMEMBER]!!)
@@ -101,11 +101,11 @@ class mReminder : mAbstract() {
             addChoice(REMINDER_TYPE_OTHER, hmReminderName[REMINDER_TYPE_OTHER]!!)
         }
 
-        columnDate = ColumnDate3Int(tableName, "ye", "mo", "da", "Дата")
+        columnDate = ColumnDate3Int(modelTableName, "ye", "mo", "da", "Дата")
 
-        columnTime = ColumnTime3Int(tableName, "ho", "mi", null, "Время")
+        columnTime = ColumnTime3Int(modelTableName, "ho", "mi", null, "Время")
 
-        columnAlertTime = ColumnComboBox(tableName, "alert_time", "Оповещение", -1).apply {
+        columnAlertTime = ColumnComboBox(modelTableName, "alert_time", "Оповещение", -1).apply {
             addChoice(-1, "не оповещать")
             addChoice(0, "в указанное время")
             addChoice(5 * 60, "за 5 минут")
@@ -113,12 +113,12 @@ class mReminder : mAbstract() {
             addChoice(60 * 60, "за час")
         }
 
-        columnSubj = ColumnString(tableName, "subj", "Тема", 4, STRING_COLUMN_WIDTH, textFieldMaxSize)
+        columnSubj = ColumnString(modelTableName, "subj", "Тема", 4, STRING_COLUMN_WIDTH, textFieldMaxSize)
 
-        val columnDescr = ColumnString(tableName, "descr", "Примечания", 4, STRING_COLUMN_WIDTH, textFieldMaxSize)
+        val columnDescr = ColumnString(modelTableName, "descr", "Примечания", 4, STRING_COLUMN_WIDTH, textFieldMaxSize)
 
         val columnPeopleID = ColumnInt("OFFICE_people", "id")
-        val columnPeople = ColumnInt(tableName, "people_id", columnPeopleID)
+        val columnPeople = ColumnInt(modelTableName, "people_id", columnPeopleID)
         val columnPeopleName = ColumnString("OFFICE_people", "name", "Ф.И.О.", STRING_COLUMN_WIDTH).apply {
             addFormVisible(columnType, false, setOf(REMINDER_TYPE_MEETING))
         }

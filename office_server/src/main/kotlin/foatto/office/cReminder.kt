@@ -13,7 +13,7 @@ import java.time.LocalDateTime
 class cReminder : cStandart() {
 
     override fun addSQLWhere(hsTableRenameList: Set<String>): String {
-        val tn = renameTableName(hsTableRenameList, model.tableName)
+        val tn = renameTableName(hsTableRenameList, model.modelTableName)
         val m = model as mReminder
 
         return super.addSQLWhere(hsTableRenameList) +

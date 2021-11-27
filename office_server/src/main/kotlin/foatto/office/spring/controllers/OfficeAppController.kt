@@ -142,9 +142,9 @@ class OfficeAppController : CoreAppController() {
 
         val alMenuReport = mutableListOf<MenuData>()
 
-        addMenu(hmAliasConfig, hmAliasPerm, alMenuReport, "office_report_reminder", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuReport, "office_report_task", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuReport, "office_report_task_day_state", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuReport, "office_report_reminder", false)
 //        addMenu( hmAliasConfig, hmAliasPerm, alMenuReport, "office_report_client_work_state", false )
 
         if (alMenuReport.size > 0) {

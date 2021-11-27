@@ -2,6 +2,7 @@ package foatto.office.report
 
 import foatto.core.link.FormData
 import foatto.core.util.DateTime_DMYHMS
+import foatto.core.util.DateTime_YMDHMS
 import foatto.core_server.app.server.OtherOwnerData.getOtherOwner
 import foatto.core_server.app.server.data.DataDate3Int
 import foatto.office.mReminder
@@ -10,6 +11,7 @@ import jxl.format.PageOrientation
 import jxl.format.PaperSize
 import jxl.write.Label
 import jxl.write.WritableSheet
+import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.*
 
@@ -97,19 +99,19 @@ class cReminder : cOfficeReport() {
         sheet.addCell(Label(2, offsY, "Время", wcfCaptionHC))
         sheet.addCell(Label(3, offsY, "Описание", wcfCaptionHC))
         sheet.addCell(Label(4, offsY, "Контактное лицо", wcfCaptionHC))
-        sheet.addCell(Label(5, offsY, "Предприятие", wcfCaptionHC))
+        sheet.addCell(Label(5, offsY, "Компания", wcfCaptionHC))
         offsY++
 
         var countNN = 1
         for (rd in alResult) {
             sheet.addCell(Label(0, offsY, countNN++.toString(), wcfNN))
             //--- вырезаем секунды
-            val sbTime = DateTime_DMYHMS(zoneId, rd.time)
+            val sbTime = DateTime_DMYHMS(rd.time)
             sheet.addCell(Label(1, offsY, mReminder.hmReminderName[rd.type], wcfCellC))
             sheet.addCell(Label(2, offsY, sbTime.substring(0, sbTime.length - 3), wcfCellC))
-            sheet.addCell(Label(3, offsY, StringBuilder(rd.subj).append(",\n ").append(rd.descr).toString(), wcfCellL))
-            sheet.addCell(Label(4, offsY, StringBuilder(rd.peopleName).append(",\n ").append(rd.peoplePost).toString(), wcfCellL))
-            sheet.addCell(Label(5, offsY, StringBuilder(rd.companyName).append(",\n ").append(rd.cityName).toString(), wcfCellL))
+            sheet.addCell(Label(3, offsY, "${rd.subj},\n ${rd.descr}", wcfCellL))
+            sheet.addCell(Label(4, offsY, "${rd.peopleName},\n ${rd.peoplePost}", wcfCellL))
+            sheet.addCell(Label(5, offsY, "${rd.companyName},\n ${rd.cityName}", wcfCellL))
             offsY++
         }
     }
@@ -127,12 +129,9 @@ class cReminder : cOfficeReport() {
         val reportEndMonth = hmReportParam["report_end_month"] as Int
         val reportEndDay = hmReportParam["report_end_day"] as Int
 
-        val gcBeg = GregorianCalendar(reportBegYear, reportBegMonth - 1, reportBegDay)
-        val gcEnd = GregorianCalendar(reportEndYear, reportEndMonth - 1, reportEndDay)
-        gcEnd.add(GregorianCalendar.DAY_OF_MONTH, 1) // т.е. конец периода для dd2.mm.yyyy на самом деле == dd2+1.mm.yyyy 00:00
-
-        val begTime = gcBeg.timeInMillis
-        val endTime = gcEnd.timeInMillis
+        val gcBeg = ZonedDateTime.of(reportBegYear, reportBegMonth, reportBegDay, 0, 0, 0, 0, ZoneId.systemDefault())
+        val gcEnd = ZonedDateTime.of(reportEndYear, reportEndMonth, reportEndDay, 0, 0, 0, 0, ZoneId.systemDefault())
+        gcEnd.plusDays(1) // т.е. конец периода для dd2.mm.yyyy на самом деле == dd2+1.mm.yyyy 00:00
 
         var rs = stm.executeQuery(" SELECT id FROM SYSTEM_alias WHERE name = 'office_reminder' ")
         rs.next()
@@ -153,6 +152,7 @@ class cReminder : cOfficeReport() {
                 AND OFFICE_company.city_id = OFFICE_city.id 
                 AND OFFICE_reminder.id <> 0 
                 AND OFFICE_reminder.in_archive = 0 
+                AND OFFICE_reminder.in_active = 1
                 ORDER BY OFFICE_reminder.type , OFFICE_reminder.ye , OFFICE_reminder.mo , OFFICE_reminder.da , OFFICE_reminder.ho , OFFICE_reminder.mi
             """
         val stmRS = conn.createStatement()
@@ -160,17 +160,17 @@ class cReminder : cOfficeReport() {
         while (rs.next()) {
             val rID = rs.getInt(1)
             val uID = rs.getInt(2)
-            val time = (ZonedDateTime.of(rs.getInt(3), rs.getInt(4), rs.getInt(5), rs.getInt(6), rs.getInt(7), 0, 0, zoneId).toEpochSecond() / 1000).toInt()
+            val time = ZonedDateTime.of(rs.getInt(3), rs.getInt(4), rs.getInt(5), rs.getInt(6), rs.getInt(7), 0, 0, zoneId)
             //--- применяем именно conn-версию getOtherOwner, т.к. текущий Statement занят
-            if (time in begTime..endTime &&
-                checkPerm(
+            if (time in gcBeg..gcEnd
+                && checkPerm(
                     aUserConfig = userConfig,
                     aHsPermission = hsObjectPermission,
                     permName = PERM_TABLE,
                     recordUserID = getOtherOwner(conn, reminderAliasID, rID, uID, userConfig.userId)
                 )
-            ) alResult.add(
-                ReminderData(
+            ) {
+                alResult += ReminderData(
                     time = time,
                     type = rs.getInt(8),
                     subj = rs.getString(9),
@@ -180,7 +180,7 @@ class cReminder : cOfficeReport() {
                     companyName = rs.getString(13),
                     cityName = rs.getString(14)
                 )
-            )
+            }
         }
         rs.close()
         stmRS.close()
@@ -189,13 +189,13 @@ class cReminder : cOfficeReport() {
     }
 
     private class ReminderData(
-        var time: Int = 0,
-        var type: Int = mReminder.REMINDER_TYPE_OTHER,
-        var subj: String,
-        var descr: String,
-        var peopleName: String,
-        var peoplePost: String,
-        var companyName: String,
-        var cityName: String,
+        val time: ZonedDateTime,
+        val type: Int = mReminder.REMINDER_TYPE_OTHER,
+        val subj: String,
+        val descr: String,
+        val peopleName: String,
+        val peoplePost: String,
+        val companyName: String,
+        val cityName: String,
     )
 }
