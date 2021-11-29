@@ -12,7 +12,7 @@ class ColumnTimeDT(aTableName: String, aFieldName: String, aCaption: String, aWi
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     init {
-        tableName = aTableName
+        columnTableName = aTableName
         addFieldName(aFieldName)
         caption = aCaption
     }

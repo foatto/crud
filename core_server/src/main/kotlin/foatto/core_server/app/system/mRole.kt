@@ -20,15 +20,15 @@ class mRole : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "SYSTEM_role"
+        modelTableName = "SYSTEM_role"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnRoleName = ColumnString(tableName, "name", "Наименование", STRING_COLUMN_WIDTH).apply {
+        val columnRoleName = ColumnString(modelTableName, "name", "Наименование", STRING_COLUMN_WIDTH).apply {
             isRequired = true
             setUnique(true, null)
         }

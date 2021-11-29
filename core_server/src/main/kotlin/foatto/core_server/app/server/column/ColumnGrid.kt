@@ -5,7 +5,7 @@ import foatto.core_server.app.server.data.DataGrid
 class ColumnGrid(aTableName: String, aFieldName: String, aCaption: String) : ColumnAbstract() {
 
     init {
-        tableName = aTableName
+        columnTableName = aTableName
         alFieldName.add(aFieldName)
         caption = aCaption
     }

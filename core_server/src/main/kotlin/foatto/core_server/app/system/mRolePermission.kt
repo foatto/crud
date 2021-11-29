@@ -19,24 +19,24 @@ class mRolePermission : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "SYSTEM_role_permission"
+        modelTableName = "SYSTEM_role_permission"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
         val columnRoleID = ColumnInt("SYSTEM_role", "id")
-        val columnRole = ColumnInt(tableName, "role_id", columnRoleID)
+        val columnRole = ColumnInt(modelTableName, "role_id", columnRoleID)
         val columnRoleName = ColumnString("SYSTEM_role", "name", "Наименование роли", STRING_COLUMN_WIDTH)
         val columnPermissionID = ColumnInt("SYSTEM_permission", "id")
-        val columnPermission = ColumnInt(tableName, "permission_id", columnPermissionID)
+        val columnPermission = ColumnInt(modelTableName, "permission_id", columnPermissionID)
         val columnPermissionDescr = ColumnString("SYSTEM_permission", "descr", "Право доступа", STRING_COLUMN_WIDTH)
         val columnClassID = ColumnInt("SYSTEM_alias", "id")
         val columnClass = ColumnInt("SYSTEM_permission", "class_id", columnClassID)
         val columnClassDescr = ColumnString("SYSTEM_alias", "descr", "Класс", STRING_COLUMN_WIDTH)
-        val columnPermissionValue = ColumnBoolean(tableName, "permission_value", "Значение")
+        val columnPermissionValue = ColumnBoolean(modelTableName, "permission_value", "Значение")
 
         //----------------------------------------------------------------------
 

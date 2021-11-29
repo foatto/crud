@@ -14,7 +14,7 @@ abstract class ColumnSimple : ColumnAbstract() {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     protected val savedDefaultPropertyName: String
-        get() = "${tableName}_${alFieldName[0]}"
+        get() = "${columnTableName}_${alFieldName[0]}"
 
     protected fun addFieldName(vararg fieldNames: String) {
         alFieldName.addAll(fieldNames)

@@ -49,28 +49,28 @@ class mUserProperty : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = FAKE_TABLE_NAME
+        modelTableName = FAKE_TABLE_NAME
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id").apply {
+        columnID = ColumnInt(modelTableName, "id").apply {
             isVirtual = true
         }
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnTimeShift = ColumnComboBox(tableName, UP_TIME_OFFSET, "Часовой пояс").apply {
+        columnTimeShift = ColumnComboBox(modelTableName, UP_TIME_OFFSET, "Часовой пояс").apply {
             isVirtual = true
             arrTZOffset.forEach { (offset, descr) ->
                 addChoice(offset, descr)
             }
         }
 
-        columnDivideThousands = ColumnBoolean(tableName, UP_IS_USE_THOUSANDS_DIVIDER, "Разделять тысячи пробелами").apply {
+        columnDivideThousands = ColumnBoolean(modelTableName, UP_IS_USE_THOUSANDS_DIVIDER, "Разделять тысячи пробелами").apply {
             isVirtual = true
         }
 
-        columnDividerChar = ColumnRadioButton(tableName, UP_DECIMAL_DIVIDER, "Разделитель дробной части").apply {
+        columnDividerChar = ColumnRadioButton(modelTableName, UP_DECIMAL_DIVIDER, "Разделитель дробной части").apply {
             isVirtual = true
             addChoice(0, "Точка")
             addChoice(1, "Запятая")

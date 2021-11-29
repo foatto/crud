@@ -5,7 +5,7 @@ import foatto.core_server.app.server.data.DataBinary
 class ColumnBinary( aTableName: String, aFieldName: String ) : ColumnSimple() {
 
     init {
-        tableName = aTableName
+        columnTableName = aTableName
         addFieldName( aFieldName )
     }
 

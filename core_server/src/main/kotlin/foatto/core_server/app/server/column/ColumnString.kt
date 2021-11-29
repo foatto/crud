@@ -25,7 +25,7 @@ class ColumnString(aTableName: String, aFieldName: String, aCaption: String, aRo
     constructor(aTableName: String, aFieldName: String, aCaption: String, aCols: Int) : this(aTableName, aFieldName, aCaption, 0, aCols, 250)
 
     init {
-        tableName = aTableName
+        columnTableName = aTableName
         addFieldName(aFieldName)
         caption = aCaption
 

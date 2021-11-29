@@ -24,7 +24,7 @@ abstract class mAbstract {
     protected lateinit var stm: CoreAdvancedStatement
     protected lateinit var hmParam: Map<String, String>
 
-    lateinit var tableName: String
+    lateinit var modelTableName: String
         protected set
     lateinit var columnID: ColumnInt
 

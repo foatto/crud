@@ -45,57 +45,57 @@ open class mClient : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "SYSTEM_users"
+        modelTableName = "SYSTEM_users"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
-        columnParent = ColumnInt(tableName, "parent_id", getClientParentId(application, aliasConfig.alias))
+        columnParent = ColumnInt(modelTableName, "parent_id", getClientParentId(application, aliasConfig.alias))
 
         columnRecordType = ColumnInt(
-            aTableName = tableName,
+            aTableName = modelTableName,
             aFieldName = "org_type",
             aCaption = "",
             aDefaultValue = OrgType.ORG_TYPE_WORKER
         )
 
-        columnRecordFullName = ColumnString(tableName, "full_name", "Полное имя", STRING_COLUMN_WIDTH).apply {
+        columnRecordFullName = ColumnString(modelTableName, "full_name", "Полное имя", STRING_COLUMN_WIDTH).apply {
             isRequired = true
         }
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnUserShortName = ColumnString(tableName, "short_name", "Краткое имя", STRING_COLUMN_WIDTH)
+        val columnUserShortName = ColumnString(modelTableName, "short_name", "Краткое имя", STRING_COLUMN_WIDTH)
 
-        columnDisabled = ColumnBoolean(tableName, "is_disabled", "Отключен", false)
+        columnDisabled = ColumnBoolean(modelTableName, "is_disabled", "Отключен", false)
 
-        val columnUserLogin = ColumnString(tableName, "login", "Логин", STRING_COLUMN_WIDTH).apply {
+        val columnUserLogin = ColumnString(modelTableName, "login", "Логин", STRING_COLUMN_WIDTH).apply {
             setUnique(true, "")
         }
 
-        columnUserPassword = ColumnString(tableName, "pwd", "Пароль", STRING_COLUMN_WIDTH).apply {
+        columnUserPassword = ColumnString(modelTableName, "pwd", "Пароль", STRING_COLUMN_WIDTH).apply {
             isPassword = true
         }
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnUserLoginAttemptCount = ColumnInt(tableName, "at_count", "Счетчик попыток входа", 10)
-        columnUserLastLoginAttemptDate = ColumnDate3Int(tableName, "at_ye", "at_mo", "at_da", "Дата последней попытки входа").apply {
+        val columnUserLoginAttemptCount = ColumnInt(modelTableName, "at_count", "Счетчик попыток входа", 10)
+        columnUserLastLoginAttemptDate = ColumnDate3Int(modelTableName, "at_ye", "at_mo", "at_da", "Дата последней попытки входа").apply {
             isEditable = false
         }
 
-        val columnUserLastLoginAttemptTime = ColumnTime3Int(tableName, "at_ho", "at_mi", null, "Время последней попытки входа").apply {
+        val columnUserLastLoginAttemptTime = ColumnTime3Int(modelTableName, "at_ho", "at_mi", null, "Время последней попытки входа").apply {
             isEditable = false
         }
 
-        val columnUserLastPasswordChangeDate = ColumnDate3Int(tableName, "pwd_ye", "pwd_mo", "pwd_da", "Дата последнего изменения пароля").apply {
+        val columnUserLastPasswordChangeDate = ColumnDate3Int(modelTableName, "pwd_ye", "pwd_mo", "pwd_da", "Дата последнего изменения пароля").apply {
             val toDay = ZonedDateTime.now(zoneId)
             default = LocalDate.of(toDay.year + 1, toDay.monthValue, toDay.dayOfMonth) // через год
         }
 
-        val columnUserEmail = ColumnString(tableName, "e_mail", "E-mail", STRING_COLUMN_WIDTH)
-        val columnUserContactInfo = ColumnString(tableName, "contact_info", "Контактная информация", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
+        val columnUserEmail = ColumnString(modelTableName, "e_mail", "E-mail", STRING_COLUMN_WIDTH)
+        val columnUserContactInfo = ColumnString(modelTableName, "contact_info", "Контактная информация", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
 
         //----------------------------------------------------------------------------------------------------------------------
 

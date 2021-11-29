@@ -18,7 +18,7 @@ class ColumnFile(
 //    private int imageSmallHeight = 0;
 
     init {
-        tableName = aTableName
+        columnTableName = aTableName
         addFieldName(aFieldName)
         caption = aCaption
 

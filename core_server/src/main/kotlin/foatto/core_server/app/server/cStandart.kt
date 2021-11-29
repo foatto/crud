@@ -2,6 +2,7 @@ package foatto.core_server.app.server
 
 import foatto.core.app.*
 import foatto.core.link.*
+import foatto.core.util.AdvancedLogger
 import foatto.core.util.BusinessException
 import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.getRandomInt
@@ -299,22 +300,21 @@ open class cStandart {
 
         //--- заранее соберем список подстановки наименований самосвязаных таблиц для их временного переименования
         val hsTableRenameList = mutableSetOf<String>()
-        for (column in alColumnList) {
-            if (column.selfLinkTableName != null) {
-                hsTableRenameList.add(column.selfLinkTableName!!)
+        alColumnList.forEach { column ->
+            column.selfLinkTableName?.let { selfLinkTableName ->
+                hsTableRenameList.add(selfLinkTableName)
             }
-            val linkColumn = column.linkColumn
-            if (linkColumn?.selfLinkTableName != null) {
-                hsTableRenameList.add(linkColumn.selfLinkTableName!!)
+            column.linkColumn?.selfLinkTableName?.let { selfLinkTableName ->
+                hsTableRenameList.add(selfLinkTableName)
             }
         }
-        val idFieldName = " ${renameTableName(hsTableRenameList, model.tableName)}.${model.columnID.getFieldName()} "
+        val idFieldName = " ${renameTableName(hsTableRenameList, model.modelTableName)}.${model.columnID.getFieldName()} "
 
         alRenamedSelectedFields = mutableListOf()
         hsSelectTables.add(
-            StringBuilder(model.tableName).append(
-                if (hsTableRenameList.contains(model.tableName)) {
-                    StringBuilder().append(' ').append(renameTableName(hsTableRenameList, model.tableName))
+            StringBuilder(model.modelTableName).append(
+                if (hsTableRenameList.contains(model.modelTableName)) {
+                    StringBuilder().append(' ').append(renameTableName(hsTableRenameList, model.modelTableName))
                 }
                 else {
                     ""
@@ -327,7 +327,7 @@ open class cStandart {
             wherePart += " $idFieldName <> 0 "
 
             if (optimizedTableUserID != 0) {
-                val userIDFieldName = "${renameTableName(hsTableRenameList, model.columnUser!!.tableName)}.${model.columnUser!!.getFieldName()}"
+                val userIDFieldName = "${renameTableName(hsTableRenameList, model.columnUser!!.columnTableName)}.${model.columnUser!!.getFieldName()}"
                 wherePart += (if (wherePart.isEmpty()) "" else " AND ") + " $userIDFieldName = $optimizedTableUserID "
             }
 
@@ -355,7 +355,7 @@ open class cStandart {
                 }
                 val pc = model.hmParentColumn[pa]
                 if (pc != null) {
-                    wherePart += (if (wherePart.isEmpty()) "" else " AND ") + " ${renameTableName(hsTableRenameList, pc.tableName)}.${pc.getFieldName(0)} "
+                    wherePart += (if (wherePart.isEmpty()) "" else " AND ") + " ${renameTableName(hsTableRenameList, pc.columnTableName)}.${pc.getFieldName(0)} "
                     if (hsID.size == 1) {
                         wherePart += " = $pIDList "
                     }
@@ -367,7 +367,7 @@ open class cStandart {
             //--- добавить ограничения по архивному полю
             if (model.columnActive != null && model.columnArchive != null) {
                 wherePart +=
-                    " AND ${renameTableName(hsTableRenameList, model.tableName)}." +
+                    " AND ${renameTableName(hsTableRenameList, model.modelTableName)}." +
                         "${(if (model.isArchiveAlias) model.columnArchive!! else model.columnActive!!).getFieldName()} <> 0 "
             }
             //--- добавить свои ограничители
@@ -378,7 +378,7 @@ open class cStandart {
                 for (j in 0 until column.getFieldCount()) {
                     val sf = column.getSortFieldName(j)
                     //--- возможны разные порядки сортировки
-                    sortPart += (if (sortPart.isEmpty()) "" else " , ") + " ${renameTableName(hsTableRenameList, column.tableName)}.$sf ${alSortDirect!![i]} "
+                    sortPart += (if (sortPart.isEmpty()) "" else " , ") + " ${renameTableName(hsTableRenameList, column.columnTableName)}.$sf ${alSortDirect!![i]} "
                 }
             }
         }
@@ -395,7 +395,7 @@ open class cStandart {
             }
 
             for (j in 0 until column.getFieldCount()) {
-                alRenamedSelectedFields.add("${renameTableName(hsTableRenameList, column.tableName)}.${column.getFieldName(j)}")
+                alRenamedSelectedFields.add("${renameTableName(hsTableRenameList, column.columnTableName)}.${column.getFieldName(j)}")
             }
 
             val linkColumn = column.linkColumn
@@ -405,13 +405,13 @@ open class cStandart {
                 if (linkColumn.selfLinkTableName != null) {
                     sb.append(linkColumn.selfLinkTableName).append(' ')
                 }
-                sb.append(linkColumn.tableName)
+                sb.append(linkColumn.columnTableName)
                 hsSelectTables.add(sb.toString())
                 //--- если я все сделал правильно, лишнее переименование не должно помешать :)
                 for (j in 0 until column.getFieldCount()) {
                     wherePart += (if (wherePart.isEmpty()) "" else " AND ") +
-                        " ${renameTableName(hsTableRenameList, column.tableName)}.${column.getFieldName(j)} = " +
-                        " ${renameTableName(hsTableRenameList, linkColumn.tableName)}.${linkColumn.getFieldName(j)} "
+                        " ${renameTableName(hsTableRenameList, column.columnTableName)}.${column.getFieldName(j)} = " +
+                        " ${renameTableName(hsTableRenameList, linkColumn.columnTableName)}.${linkColumn.getFieldName(j)} "
                 }
             }
         }
@@ -490,7 +490,7 @@ open class cStandart {
     }
 
     protected fun getSelfParentID(id: Int): Int {
-        val sql = " SELECT ${model.hmParentColumn[aliasConfig.alias]!!.getFieldName(0)} FROM ${model.tableName} WHERE ${model.columnID.getFieldName()} = $id"
+        val sql = " SELECT ${model.hmParentColumn[aliasConfig.alias]!!.getFieldName(0)} FROM ${model.modelTableName} WHERE ${model.columnID.getFieldName()} = $id"
         //System.out.println(  sb.toString()  );
         val rs = stm.executeQuery(sql)
         val result = if (rs.next()) rs.getInt(1) else 0
@@ -592,7 +592,7 @@ open class cStandart {
 
     protected fun getExpandPathItem(curParentID: Int): Pair<Int, String> {
         val sqlStr = " SELECT ${model.expandParentIDColumn!!.getFieldName()} , ${model.expandParentNameColumn!!.getFieldName()} " +
-            " FROM ${model.tableName} WHERE ${model.columnID.getFieldName()} = $curParentID "
+            " FROM ${model.modelTableName} WHERE ${model.columnID.getFieldName()} = $curParentID "
         val rs = stm.executeQuery(sqlStr)
         rs.next()
         val pID = rs.getInt(1)
@@ -691,7 +691,7 @@ open class cStandart {
         //--- т.к. в процессе загрузки могут открываться другие ResultSet'ы от стандартного Statement'a
         var stmTable: CoreAdvancedStatement? = null
         var rsTable: CoreAdvancedResultSet? = null
-        if (model.tableName != mAbstract.FAKE_TABLE_NAME) {
+        if (model.modelTableName != mAbstract.FAKE_TABLE_NAME) {
             val sqlStr = getSQLString(
                 isForTable = true,
                 id = 0,
@@ -700,7 +700,7 @@ open class cStandart {
                 alSortDirect = alTableSortDirect,
                 alFindWord = alFindWord
             )
-            //AdvancedLogger.error("sqlStr = $sqlStr")
+//AdvancedLogger.error("sqlStr = $sqlStr")
             stmTable = conn.createStatement()
             rsTable = stmTable.executeQuery(sqlStr)
         }
@@ -1211,7 +1211,7 @@ open class cStandart {
 
         val rs = stm.executeQuery(
             " SELECT ${stm.getPreLimit(1)} row_id FROM SYSTEM_new " +
-                " WHERE table_name = '${model.tableName}' AND row_id = $valueID AND user_id = ${userConfig.userId} " +
+                " WHERE table_name = '${model.modelTableName}' AND row_id = $valueID AND user_id = ${userConfig.userId} " +
                 " ${stm.getMidLimit(1)} ${stm.getPostLimit(1)} "
         )
         val isReaded = rs.next()
@@ -1254,16 +1254,16 @@ open class cStandart {
         for (i in selectorParam.alColumnTo.indices) {
             val columnFrom = selectorParam.alColumnFrom[i]
             //--- запомнить прежнее ( возможно, подстановочное ) имя таблицы
-            val oldTableName = columnFrom.tableName
+            val oldTableName = columnFrom.columnTableName
             //--- если есть реальное имя таблицы ( т.е. нынешнее значение - подстановочное ),
             //--- то на время поиска поля в выборке заменим подстановочное имя таблицы на реальное
             if (columnFrom.selfLinkTableName != null) {
-                columnFrom.tableName = columnFrom.selfLinkTableName!!
+                columnFrom.columnTableName = columnFrom.selfLinkTableName!!
             }
             //AdvancedLogger.error(  "columnFrom = " + columnFrom.getTableName() + "." + columnFrom.getFieldName(  0  )  );
             val dataFrom = hmColumnData[columnFrom]
             //--- вернём прежнее имя таблицы ПОСЛЕ получения dataFrom
-            columnFrom.tableName = oldTableName
+            columnFrom.columnTableName = oldTableName
 
             val columnTo = selectorParam.alColumnTo[i]
             //AdvancedLogger.error(  "columnTo = " + columnTo.getTableName() + "." + columnTo.getFieldName(  0  )  );
@@ -1456,7 +1456,7 @@ open class cStandart {
                     }
                 }
                 //--- для модулей с виртуальными таблицами служебную запись не делаем
-                if (model.tableName != mAbstract.FAKE_TABLE_NAME) {
+                if (model.modelTableName != mAbstract.FAKE_TABLE_NAME) {
                     //--- заполним или создадим 0-ю служебную запись с этими данными
                     if (doUpdate(0, alColumnList, hmColumnData) == 0) {
                         doInsert(0, alColumnList, hmColumnData)
@@ -1464,7 +1464,7 @@ open class cStandart {
                 }
             }
             //--- для модулей с виртуальными таблицами чтение не делаем
-            if (model.tableName != mAbstract.FAKE_TABLE_NAME) {
+            if (model.modelTableName != mAbstract.FAKE_TABLE_NAME) {
                 //--- теперь загрузим запись ( в случае добавления загружаем предварительно заполненную 0-ю служебную запись -
                 //--- все только для того, чтобы избежать автозаполнения через скрипты )
                 val sqlStr = getSQLString(false, id, alColumnList, null, null, null)
@@ -1479,7 +1479,7 @@ open class cStandart {
                 addIsReaded(id)
             }
             //--- служебную запись вернем в максимально "нулевое" состояние
-            if (id == 0 && model.tableName != mAbstract.FAKE_TABLE_NAME) {
+            if (id == 0 && model.modelTableName != mAbstract.FAKE_TABLE_NAME) {
                 doUpdate(0, alColumnList, getFormDefaultValues(alColumnList, false))
             }
         }
@@ -1655,21 +1655,21 @@ open class cStandart {
             isUseThousandsDivider = userConfig.upIsUseThousandsDivider,
             decimalDivider = userConfig.upDecimalDivider
         )
-        fci.itEditable = isEditable && column.isEditable && column.tableName == model.tableName
+        fci.itEditable = isEditable && column.isEditable && column.columnTableName == model.modelTableName
         fci.formPinMode = column.formPinMode
         //--- эту чисто серверную часть нежелательно передавать в клиенто-ориентированный FormCellInfo
         fci.alVisible = fci.alVisible.toMutableList().apply {
             for (i in 0 until column.getFormVisibleCount()) {
                 val fcvd = column.getFormVisible(i)
                 //--- выжимка из getFieldCellName
-                add(Triple("${fcvd.columnMaster.tableName}___${fcvd.columnMaster.getFieldName(0)}", fcvd.state, fcvd.values.toTypedArray()))
+                add(Triple("${fcvd.columnMaster.columnTableName}___${fcvd.columnMaster.getFieldName(0)}", fcvd.state, fcvd.values.toTypedArray()))
             }
         }.toTypedArray()
         fci.alCaption = fci.alCaption.toMutableList().apply {
             for (i in 0 until column.getFormCaptionCount()) {
                 val fccd = column.getFormCaption(i)
                 //--- выжимка из getFieldCellName
-                add(Triple("${fccd.columnMaster.tableName}___${fccd.columnMaster.getFieldName(0)}", fccd.caption, fccd.values.toTypedArray()))
+                add(Triple("${fccd.columnMaster.columnTableName}___${fccd.columnMaster.getFieldName(0)}", fccd.caption, fccd.values.toTypedArray()))
             }
         }.toTypedArray()
         return fci
@@ -1787,7 +1787,7 @@ open class cStandart {
         //--- определить изменения номера версии в версионном поле
         val isVersionChanged = if (model.columnVersionNo != null && id != 0) {
             var oldVersionNo = ""
-            val rs = stm.executeQuery(" SELECT ${model.columnVersionNo!!.getFieldName()} FROM ${model.tableName} WHERE id = $id ")
+            val rs = stm.executeQuery(" SELECT ${model.columnVersionNo!!.getFieldName()} FROM ${model.modelTableName} WHERE id = $id ")
             if (rs.next()) oldVersionNo = rs.getString(1)
             rs.close()
 
@@ -1804,7 +1804,7 @@ open class cStandart {
         for (column in alColumnList) {
             if (column == model.columnID) continue             // свое id-поле пропускаем, т.к. не изменяется
             if (column.isVirtual) continue                     // виртуальным полям нельзя делать предзапись
-            if (column.tableName == model.tableName) {
+            if (column.columnTableName == model.modelTableName) {
                 hmColumnData[column]!!.preSave(application.rootDirName, stm)
             }
         }
@@ -1813,7 +1813,7 @@ open class cStandart {
         if (id == 0) {
             id = getNextID(hmColumnData)
             model.columnVersionId?.let {
-                val versionId = stm.getNextIntId(model.tableName, it.getFieldName())
+                val versionId = stm.getNextIntId(model.modelTableName, it.getFieldName())
                 (hmColumnData[it] as DataInt).intValue = versionId
             }
             doInsert(id, alColumnList, hmColumnData)
@@ -1863,7 +1863,7 @@ open class cStandart {
             val dataVersionId = hmColumnData[model.columnVersionId!!] as DataInt
             val dataVersionNo = hmColumnData[model.columnVersionNo!!] as DataString
             val result = stm.checkExist(
-                model.tableName,
+                model.modelTableName,
                 arrayOf(
                     Pair(model.columnVersionId!!.getFieldName(), dataVersionId.intValue),
                     Pair(model.columnVersionNo!!.getFieldName(), dataVersionNo.text)
@@ -1947,7 +1947,7 @@ open class cStandart {
     protected open fun preSave(id: Int, hmColumnData: Map<iColumn, iData>) {}
 
     protected open fun getNextID(hmColumnData: Map<iColumn, iData>): Int {
-        return stm.getNextIntId(model.tableName, model.columnID.getFieldName())
+        return stm.getNextIntId(model.modelTableName, model.columnID.getFieldName())
     }
 
     protected open fun doInsert(id: Int, alColumnList: List<iColumn>, hmColumnData: Map<iColumn, iData>): Int {
@@ -1968,7 +1968,7 @@ open class cStandart {
             }
 
             //--- записываем поля только из "своей" таблицы
-            if (column.tableName == model.tableName) {
+            if (column.columnTableName == model.modelTableName) {
                 val data = hmColumnData[column]!!
                 for (j in 0 until data.fieldSQLCount) {
                     sFieldList += (if (sFieldList.isEmpty()) "" else " , ") + column.getFieldName(j)
@@ -1976,7 +1976,7 @@ open class cStandart {
                 }
             }
         }
-        return stm.executeUpdate(" INSERT INTO ${model.tableName}( $sFieldList ) VALUES ( $sValueList ) ")
+        return stm.executeUpdate(" INSERT INTO ${model.modelTableName}( $sFieldList ) VALUES ( $sValueList ) ")
     }
 
     protected fun doUpdate(id: Int, alColumnList: List<iColumn>, hmColumnData: Map<iColumn, iData>): Int {
@@ -1996,7 +1996,7 @@ open class cStandart {
             }
 
             //--- записываем поля только из "своей" таблицы
-            if (column.tableName == model.tableName) {
+            if (column.columnTableName == model.modelTableName) {
                 val data = hmColumnData[column]!!
                 for (j in 0 until data.fieldSQLCount) {
                     sFieldList += if (sFieldList.isEmpty()) {
@@ -2007,7 +2007,7 @@ open class cStandart {
                 }
             }
         }
-        return stm.executeUpdate(" UPDATE ${model.tableName} SET $sFieldList WHERE ${model.columnID.getFieldName()} = $id ")
+        return stm.executeUpdate(" UPDATE ${model.modelTableName} SET $sFieldList WHERE ${model.columnID.getFieldName()} = $id ")
     }
 
     //--- для классов-наследников - пост-обработка после добавления
@@ -2070,13 +2070,13 @@ open class cStandart {
         for (column in alColumnList) {
             if (column == model.columnID) continue // свое id-поле пропускаем, т.к. оно задается особым образом
             if (column.isVirtual) continue  // предочистка виртуальных полей не нужна
-            if (column.tableName == model.tableName) {
+            if (column.columnTableName == model.modelTableName) {
                 val data = hmColumnData[column]!!
                 data.preDelete(application.rootDirName, stm)
             }
         }
 
-        stm.executeUpdate(" DELETE FROM ${model.tableName} WHERE ${model.columnID.getFieldName()} = $id ")
+        stm.executeUpdate(" DELETE FROM ${model.modelTableName} WHERE ${model.columnID.getFieldName()} = $id ")
 
         deleteIsReaded(id, true)
         postDelete(id, hmColumnData)
@@ -2099,14 +2099,14 @@ open class cStandart {
 
     protected fun addIsReaded(id: Int) {
         if (aliasConfig.isNewable) {
-            stm.executeUpdate(" INSERT INTO SYSTEM_new ( table_name, row_id, user_id ) VALUES ( '${model.tableName}' , $id , ${userConfig.userId} ) ")
+            stm.executeUpdate(" INSERT INTO SYSTEM_new ( table_name, row_id, user_id ) VALUES ( '${model.modelTableName}' , $id , ${userConfig.userId} ) ")
         }
     }
 
     protected fun deleteIsReaded(id: Int, deleteAll: Boolean) {
         if (aliasConfig.isNewable) {
             stm.executeUpdate(
-                " DELETE FROM SYSTEM_new WHERE table_name = '${model.tableName}' AND row_id = $id " +
+                " DELETE FROM SYSTEM_new WHERE table_name = '${model.modelTableName}' AND row_id = $id " +
                     if (deleteAll) "" else " AND user_id <> ${userConfig.userId}"
             )
         }

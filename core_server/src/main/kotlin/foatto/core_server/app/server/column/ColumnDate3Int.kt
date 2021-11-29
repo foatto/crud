@@ -10,7 +10,7 @@ class ColumnDate3Int(aTableName: String, aYearFieldName: String, aMonthFieldName
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     init {
-        tableName = aTableName
+        columnTableName = aTableName
         addFieldName(aYearFieldName, aMonthFieldName, aDayFieldName)
         caption = aCaption
     }

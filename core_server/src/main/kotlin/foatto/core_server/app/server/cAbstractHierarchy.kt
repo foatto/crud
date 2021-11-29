@@ -36,12 +36,12 @@ open class cAbstractHierarchy : cStandart() {
     }
 
     override fun addSQLWhere(hsTableRenameList: Set<String>): String {
-        return super.addSQLWhere(hsTableRenameList) + " AND ${renameTableName(hsTableRenameList, model.tableName)}.${model.columnID.getFieldName()} > 0 "
+        return super.addSQLWhere(hsTableRenameList) + " AND ${renameTableName(hsTableRenameList, model.modelTableName)}.${model.columnID.getFieldName()} > 0 "
     }
 
     override fun isOpenFormURLInNewWindow(): Boolean = false
 
-    override fun doExpand(pid: Int) = expandCatalog(stm, model.tableName, pid, false)
+    override fun doExpand(pid: Int) = expandCatalog(stm, model.modelTableName, pid, false)
 
     override fun setSelectorParent(selectorParam: SelectorParameter) {
         super.setSelectorParent(selectorParam)
@@ -170,7 +170,7 @@ open class cAbstractHierarchy : cStandart() {
             setActiveAndArchive(
                 action,
                 id,
-                model.tableName,
+                model.modelTableName,
                 model.columnID.getFieldName(),
                 model.columnActive!!.getFieldName(),
                 model.columnArchive!!.getFieldName(),

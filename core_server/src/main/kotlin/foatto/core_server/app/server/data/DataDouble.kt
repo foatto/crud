@@ -66,7 +66,7 @@ class DataDouble(aColumn: iColumn) : DataAbstract(aColumn) {
         }
         if (column.isUnique &&
             (column.uniqueIgnore == null || column.uniqueIgnore != doubleValue) &&
-            stm.checkExist(column.tableName, column.alFieldName[0], doubleValue, fieldNameID, id)
+            stm.checkExist(column.columnTableName, column.alFieldName[0], doubleValue, fieldNameID, id)
         ) {
             setError(strValue, "Это значение уже существует")
             return false

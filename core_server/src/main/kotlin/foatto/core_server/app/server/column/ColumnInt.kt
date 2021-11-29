@@ -39,7 +39,7 @@ class ColumnInt(aTableName: String, aFieldName: String, aCaption: String = "", a
     }
 
     init {
-        tableName = aTableName
+        columnTableName = aTableName
         addFieldName(aFieldName)
         caption = aCaption
 

@@ -10,7 +10,7 @@ class ColumnDateDT(aTableName: String, aFieldName: String, aCaption: String) : C
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     init {
-        tableName = aTableName
+        columnTableName = aTableName
         addFieldName(aFieldName)
         caption = aCaption
     }

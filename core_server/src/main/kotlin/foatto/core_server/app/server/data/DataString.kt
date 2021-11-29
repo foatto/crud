@@ -61,7 +61,7 @@ class DataString(aColumn: iColumn) : DataAbstract(aColumn) {
             return false
         }
         if (column.isUnique && (column.uniqueIgnore == null || column.uniqueIgnore != text) &&
-            stm.checkExist(column.tableName, column.alFieldName[0], prepareForSQL(text), fieldNameID, id)
+            stm.checkExist(column.columnTableName, column.alFieldName[0], prepareForSQL(text), fieldNameID, id)
         ) {
             setError(text, "Это значение уже существует")
             return false

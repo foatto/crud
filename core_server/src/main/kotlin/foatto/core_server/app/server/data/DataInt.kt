@@ -50,7 +50,7 @@ class DataInt(aColumn: iColumn) : DataAbstractIntValue(aColumn) {
 
         if (column.isUnique &&
             (column.uniqueIgnore == null || column.uniqueIgnore != intValue) &&
-            stm.checkExist(column.tableName, column.alFieldName[0], intValue, fieldNameID, id)
+            stm.checkExist(column.columnTableName, column.alFieldName[0], intValue, fieldNameID, id)
         ) {
             setError(strValue, "Это значение уже существует")
             return false

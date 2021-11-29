@@ -20,19 +20,19 @@ class mPermission : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "SYSTEM_permission"
+        modelTableName = "SYSTEM_permission"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
         val columnClassID = ColumnInt("SYSTEM_alias", "id")
-        val columnClass = ColumnInt(tableName, "class_id", columnClassID)
+        val columnClass = ColumnInt(modelTableName, "class_id", columnClassID)
         val columnClassDescr = ColumnString("SYSTEM_alias", "descr", "Класс", STRING_COLUMN_WIDTH)
-        val columnPermissionName = ColumnString(tableName, "name", "Наименование", STRING_COLUMN_WIDTH)
-        val columnPermissionDescr = ColumnString(tableName, "descr", "Описание", STRING_COLUMN_WIDTH)
+        val columnPermissionName = ColumnString(modelTableName, "name", "Наименование", STRING_COLUMN_WIDTH)
+        val columnPermissionDescr = ColumnString(modelTableName, "descr", "Описание", STRING_COLUMN_WIDTH)
 
         columnClassDescr.selectorAlias = "system_alias"
         columnClassDescr.addSelectorColumn(columnClass, columnClassID)

@@ -17,7 +17,7 @@ abstract class ColumnAbstractDateTime(aTableName: String, aFieldName: String, aC
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     init {
-        tableName = aTableName
+        columnTableName = aTableName
         addFieldName(aFieldName)
         caption = aCaption
     }

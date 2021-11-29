@@ -28,7 +28,7 @@ class ColumnDouble(aTableName: String, aFieldName: String, aCaption: String = ""
     constructor(aTableName: String, aFieldName: String, aDefaultValue: Double?) : this(aTableName, aFieldName, "", 0, -1, aDefaultValue)
 
     init {
-        tableName = aTableName
+        columnTableName = aTableName
         addFieldName(aFieldName)
         caption = aCaption
 

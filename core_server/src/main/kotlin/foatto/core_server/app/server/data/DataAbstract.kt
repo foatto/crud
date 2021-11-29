@@ -21,7 +21,7 @@ abstract class DataAbstract(aColumn: iColumn) : iData, Cloneable {
 
     protected open fun getFieldCellName(index: Int): String = getFieldName(index).replace(".", "___")
 
-    protected fun getFieldName(index: Int): String = "${column.tableName}.${column.alFieldName[index]}"
+    protected fun getFieldName(index: Int): String = "${column.columnTableName}.${column.alFieldName[index]}"
 
     override fun clone(): Any = super.clone()
 }

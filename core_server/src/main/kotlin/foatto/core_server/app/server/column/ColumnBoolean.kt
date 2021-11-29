@@ -11,7 +11,7 @@ class ColumnBoolean( aTableName: String, aFieldName: String, aCaption: String = 
     var defaultValue: Boolean? = aDefaultValue
 
     init {
-        tableName = aTableName
+        columnTableName = aTableName
         addFieldName( aFieldName )
         caption = aCaption
 

@@ -13,7 +13,7 @@ import foatto.core_server.app.server.data.iData
 open class cClient : cStandart() {
 
     override fun addSQLWhere(hsTableRenameList: Set<String>): String {
-        val tn = renameTableName(hsTableRenameList, model.tableName)
+        val tn = renameTableName(hsTableRenameList, model.modelTableName)
         val mc = model as mClient
 
         return super.addSQLWhere(hsTableRenameList) +

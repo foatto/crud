@@ -27,19 +27,19 @@ class mLogText : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = FAKE_TABLE_NAME
+        modelTableName = FAKE_TABLE_NAME
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id").apply {
+        columnID = ColumnInt(modelTableName, "id").apply {
             isVirtual = true
         }
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnLogFileName = ColumnString(tableName, "_log_file_name", "-", STRING_COLUMN_WIDTH)
+        columnLogFileName = ColumnString(modelTableName, "_log_file_name", "-", STRING_COLUMN_WIDTH)
         columnLogFileName.isVirtual = true
-        columnLogRow = ColumnString(tableName, "_log_row", "-", STRING_COLUMN_WIDTH)
+        columnLogRow = ColumnString(modelTableName, "_log_row", "-", STRING_COLUMN_WIDTH)
         columnLogRow.isVirtual = true
 
         //----------------------------------------------------------------------------------------------------------------------

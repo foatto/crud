@@ -13,7 +13,7 @@ class ColumnTime3Int(aTableName: String, aHourFieldName: String, aMinuteFieldNam
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     init {
-        tableName = aTableName
+        columnTableName = aTableName
         if(aSecondFieldName == null) {
             addFieldName(aHourFieldName, aMinuteFieldName)
         } else {

@@ -10,7 +10,7 @@ import foatto.sql.CoreAdvancedConnection
 
 interface iColumn {
 
-    var tableName: String
+    var columnTableName: String
 
     //--- больше трёх полей ещё не было
     val alFieldName: MutableList<String>

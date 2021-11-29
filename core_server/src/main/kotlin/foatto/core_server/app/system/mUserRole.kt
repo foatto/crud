@@ -18,16 +18,16 @@ class mUserRole : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "SYSTEM_user_role"
+        modelTableName = "SYSTEM_user_role"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
         val columnRoleID = ColumnInt("SYSTEM_role", "id")
-        val columnRole = ColumnInt(tableName, "role_id", columnRoleID)
+        val columnRole = ColumnInt(modelTableName, "role_id", columnRoleID)
         val columnRoleName = ColumnString("SYSTEM_role", "name", "Наименование роли", STRING_COLUMN_WIDTH).apply {
             isRequired = true
             selectorAlias = "system_role"
@@ -36,7 +36,7 @@ class mUserRole : mAbstract() {
         }
 
         val columnLoginID = ColumnInt("SYSTEM_users", "id")
-        val columnLogin = ColumnInt(tableName, "user_id", columnLoginID)
+        val columnLogin = ColumnInt(modelTableName, "user_id", columnLoginID)
         val columnLoginName = ColumnString("SYSTEM_users", "full_name", "Пользователь", STRING_COLUMN_WIDTH).apply {
             isRequired = true
             selectorAlias = "system_user_people"

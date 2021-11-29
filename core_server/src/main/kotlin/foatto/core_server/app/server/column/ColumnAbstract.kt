@@ -10,7 +10,7 @@ import foatto.sql.CoreAdvancedConnection
 
 abstract class ColumnAbstract : iColumn {
 
-    override lateinit var tableName: String
+    override lateinit var columnTableName: String
 
     override val alFieldName = mutableListOf<String>()
 
@@ -89,7 +89,7 @@ abstract class ColumnAbstract : iColumn {
 
     override fun hashCode(): Int {
         var h: Long = 0
-        h += tableName.hashCode().toLong()
+        h += columnTableName.hashCode().toLong()
         for (fieldName in alFieldName) h += fieldName.hashCode().toLong()
         return h.toInt()
     }
@@ -99,7 +99,7 @@ abstract class ColumnAbstract : iColumn {
         if (other == null) return false
         if (other !is ColumnAbstract) return false
 
-        if (tableName != other.tableName) return false
+        if (columnTableName != other.columnTableName) return false
         if (alFieldName.size != other.alFieldName.size) return false
         for (i in 0 until alFieldName.size)
             if (alFieldName[i] != other.alFieldName[i]) return false

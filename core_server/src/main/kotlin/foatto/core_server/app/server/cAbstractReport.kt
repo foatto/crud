@@ -236,7 +236,16 @@ abstract class cAbstractReport : cAbstractForm() {
 
     protected fun defineFormats(fontSize: Int, titleFontSizeInc: Int, titleNVFontSizeInc: Int) {
 
-        wcfTitleL = getWCF(fontSize + titleFontSizeInc, true, false, Alignment.LEFT, VerticalAlignment.CENTRE, false, false, Colour.BLACK)
+        wcfTitleL = getWCF(
+            fontSize = fontSize + titleFontSizeInc,
+            isBold = true,
+            isItalic = false,
+            hAlign = Alignment.LEFT,
+            vAlign = VerticalAlignment.CENTRE,
+            isBorder = false,
+            isWrap = false,
+            fontColor = Colour.BLACK
+        )
         wcfTitleC = getWCF(fontSize + titleFontSizeInc, true, false, Alignment.CENTRE, VerticalAlignment.CENTRE, false, false, Colour.BLACK)
         wcfTitleR = getWCF(fontSize + titleFontSizeInc, true, false, Alignment.RIGHT, VerticalAlignment.CENTRE, false, false, Colour.BLACK)
 
@@ -264,7 +273,16 @@ abstract class cAbstractReport : cAbstractForm() {
 
         wcfNN = getWCF(fontSize, false, false, Alignment.CENTRE, VerticalAlignment.CENTRE, true, false, Colour.BLACK)
 
-        wcfCellL = getWCF(fontSize, false, false, Alignment.LEFT, VerticalAlignment.CENTRE, true, true, Colour.BLACK)
+        wcfCellL = getWCF(
+            fontSize = fontSize,
+            isBold = false,
+            isItalic = false,
+            hAlign = Alignment.LEFT,
+            vAlign = VerticalAlignment.CENTRE,
+            isBorder = true,
+            isWrap = true,
+            fontColor = Colour.BLACK
+        )
         wcfCellC = getWCF(fontSize, false, false, Alignment.CENTRE, VerticalAlignment.CENTRE, true, true, Colour.BLACK)
         wcfCellR = getWCF(fontSize, false, false, Alignment.RIGHT, VerticalAlignment.CENTRE, true, true, Colour.BLACK)
 
