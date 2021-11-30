@@ -43,7 +43,7 @@ open class mAbstractHierarchy : mAbstract() {
 
     val alAddButtomParam = mutableListOf<AddActionButton>()
 
-    protected lateinit var selfLinkTableName: String
+    protected lateinit var selfLinkParentTableName: String
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -67,14 +67,14 @@ open class mAbstractHierarchy : mAbstract() {
 
         isSelectableFolder = aliasConfig.alias == commonAliasName || aliasConfig.alias == folderAliasName
         isSelectableItem = aliasConfig.alias == commonAliasName || aliasConfig.alias == itemAliasName
-        selfLinkTableName = "${tableName}_"
+        selfLinkParentTableName = "${modelTableName}__PARENT"
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
-        columnParentID = ColumnInt(selfLinkTableName, "id").apply {
-            selfLinkTableName = tableName
+        columnParentID = ColumnInt(selfLinkParentTableName, "id").apply {
+            selfLinkTableName = modelTableName
         }
-        columnParent = ColumnInt(tableName, "parent_id", columnParentID)
+        columnParent = ColumnInt(modelTableName, "parent_id", columnParentID)
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -95,7 +95,7 @@ open class mAbstractHierarchy : mAbstract() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-        alDependData.add(DependData(tableName, columnParent.getFieldName()))
+        alDependData.add(DependData(modelTableName, columnParent.getFieldName()))
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -106,7 +106,7 @@ open class mAbstractHierarchy : mAbstract() {
         return if (id == null || id == 0) {
             hmParam[RECORD_TYPE_PARAM]?.toIntOrNull() ?: defaultRecordType
         } else {
-            val rs = stm.executeQuery(" SELECT $recordTypeFieldName FROM $tableName WHERE id = $id ")
+            val rs = stm.executeQuery(" SELECT $recordTypeFieldName FROM $modelTableName WHERE id = $id ")
             val result = if (rs.next()) {
                 rs.getInt(1)
             } else {
