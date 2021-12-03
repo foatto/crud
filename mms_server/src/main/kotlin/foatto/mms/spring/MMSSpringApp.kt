@@ -94,6 +94,7 @@ class MMSSpringApp : CoreSpringApp() {
             mUser.alExtendChildData.add(ChildData("mms_worker"))
             mUser.alExtendChildData.add(ChildData("mms_zone"))
             mUser.alExtendChildData.add(ChildData("mms_user_zone"))
+            mUser.alExtendChildData.add(ChildData("mms_device"))
             mUser.alExtendChildData.add(ChildData("mms_device_command_history"))
 
             mUser.alExtendDependData.add(DependData("MMS_object", "user_id"))
@@ -104,6 +105,7 @@ class MMSSpringApp : CoreSpringApp() {
             mUser.alExtendDependData.add(DependData("MMS_worker", "user_id"))      // удалить нельзя, есть зависимости в MMS_work_shift
             mUser.alExtendDependData.add(DependData("MMS_zone", "user_id"))      // удалить нельзя, есть зависимости в MMS_object_zone
             mUser.alExtendDependData.add(DependData("MMS_user_zone", "user_id", DependData.DELETE))
+            mUser.alExtendDependData.add(DependData("MMS_device", "user_id", DependData.SET, 0))
             mUser.alExtendDependData.add(DependData("MMS_device_command_history", "user_id", DependData.SET, 0))
         }
     }

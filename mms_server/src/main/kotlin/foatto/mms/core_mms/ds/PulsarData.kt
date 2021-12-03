@@ -2,6 +2,7 @@ package foatto.mms.core_mms.ds
 
 import java.time.Instant
 
+//--- JSON-class, do not rename fields!
 class PulsarData(
     val dateTime: Instant? = null,
 

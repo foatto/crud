@@ -31,7 +31,9 @@ abstract class cShowAbstractObject : cAbstractForm() {
     override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
 
         val returnURL = super.doSave(action, alFormData, hmOut)
-        if (returnURL != null) return returnURL
+        if (returnURL != null) {
+            return returnURL
+        }
 
         val sd = loadShowParam()
 
@@ -43,7 +45,7 @@ abstract class cShowAbstractObject : cAbstractForm() {
     protected fun getShowURL(hmOut: MutableMap<String, Any>, sd: XyStartData): String {
 
         sd.shortTitle = aliasConfig.descr
-        sd.sbTitle = StringBuilder()
+        sd.title = ""
 
         //--- заполнение стартовой/фильтровой информации по объектам
         for (objectIndex in sd.alStartObjectData.indices) {
@@ -53,20 +55,28 @@ abstract class cShowAbstractObject : cAbstractForm() {
             sod.isTimed = true
 
             //--- заполнение текста заголовка информацией по а/м
-            if (objectIndex > 0) sd.sbTitle.append(", ")
+            if (objectIndex > 0) {
+                sd.title += ", "
+            }
             val oc = (application as iMMSApplication).getObjectConfig(userConfig, sod.objectId)
-            sd.sbTitle.append(oc.name)
-            if (oc.model.isNotEmpty()) sd.sbTitle.append(", ").append(oc.model)
+            sd.title += oc.name
+            if (oc.model.isNotEmpty()) {
+                sd.title += ", ${oc.model}"
+            }
         }
 
         //--- заполнение текста заголовка информацией по периоду времени
         if (sd.rangeType == -1) {
-            sd.sbTitle.append(" за период с ").append(DateTime_DMYHMS(zoneId, sd.begTime)).append(" по ").append(DateTime_DMYHMS(zoneId, sd.endTime))
+            sd.title += " за период с ${DateTime_DMYHMS(zoneId, sd.begTime)} по ${DateTime_DMYHMS(zoneId, sd.endTime)}"
         } else if (sd.rangeType > 0) {
-            sd.sbTitle.append(" за последние ")
-            if (sd.rangeType % 3600 == 0) sd.sbTitle.append(sd.rangeType / 3600).append(" час(а,ов) ")
-            else if (sd.rangeType % 60 == 0) sd.sbTitle.append(sd.rangeType / 60).append(" минут ")
-            else sd.sbTitle.append(sd.rangeType).append(" секунд ")
+            sd.title += " за последние " +
+                if (sd.rangeType % 3600 == 0) {
+                    "${sd.rangeType / 3600} час(а,ов) "
+                } else if (sd.rangeType % 60 == 0) {
+                    "${sd.rangeType / 60} минут "
+                } else {
+                    "${sd.rangeType} секунд "
+                }
         }
 
         //--- заполнение фильтровой информации по зонам
@@ -86,15 +96,18 @@ abstract class cShowAbstractObject : cAbstractForm() {
                     zoneType = 0
                 )
                 for (alZoneLimit in hmZoneLimit.values) {
-                    for (zld in alZoneLimit)
+                    for (zld in alZoneLimit) {
                         hmActualZone[zld.zoneData!!.id] = zld.zoneData!!.hmUserRO[userConfig.userId]!!
+                    }
                 }
             }
         }
         //--- загрузить список всех доступных по правам доступа зон
-        if (showZoneType == ZONE_SHOW_ALL)
-            for (zoneID in hmZoneData!!.keys)
+        if (showZoneType == ZONE_SHOW_ALL) {
+            for (zoneID in hmZoneData!!.keys) {
                 hmAllZone[zoneID] = hmZoneData[zoneID]!!.hmUserRO[userConfig.userId]!!
+            }
+        }
 
         for (zoneID in hmActualZone.keys) {
             sd.alStartObjectData.add(
@@ -107,8 +120,8 @@ abstract class cShowAbstractObject : cAbstractForm() {
                 )
             )
         }
-        for (zoneID in hmAllZone.keys)
-            if (!hmActualZone.containsKey(zoneID))
+        for (zoneID in hmAllZone.keys) {
+            if (!hmActualZone.containsKey(zoneID)) {
                 sd.alStartObjectData.add(
                     XyStartObjectData(
                         objectId = zoneID,
@@ -118,6 +131,8 @@ abstract class cShowAbstractObject : cAbstractForm() {
                         isReadOnly = hmAllZone[zoneID]!!
                     )
                 )
+            }
+        }
 
         val paramID = getRandomInt()
         hmOut[AppParameter.XY_START_DATA + paramID] = sd

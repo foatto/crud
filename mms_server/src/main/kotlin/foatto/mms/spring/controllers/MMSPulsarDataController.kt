@@ -136,7 +136,7 @@ class MMSPulsarDataController {
         //--- запись состояния сессии
         var status = "Init; Start;"
 
-        var deviceId: Int? = null
+        var serialNo: String? = null
         //--- номер версии прошивки
         val fwVersion = "1"
         var deviceConfig: DeviceConfig? = null
@@ -147,15 +147,11 @@ class MMSPulsarDataController {
             //--- first initial row in data packet array
             if (pulsarData.deviceID != null) {
                 if (pulsarData.blockID == BLOCK_ID) {
-                    deviceId = pulsarData.deviceID.toIntOrNull()
-                    if (deviceId == null) {
-                        outDeviceParseError(dirJournalLog, request.remoteAddr, "deviceID is not a number == '${pulsarData.deviceID}'")
-                        break
-                    }
-                    deviceConfig = DeviceConfig.getDeviceConfig(stm, deviceId)
+                    serialNo = pulsarData.deviceID
+                    deviceConfig = DeviceConfig.getDeviceConfig(stm, serialNo)
                     //--- неизвестный контроллер
                     if (deviceConfig == null) {
-                        outDeviceParseError(dirJournalLog, request.remoteAddr, "Unknown deviceID = $deviceId")
+                        outDeviceParseError(dirJournalLog, request.remoteAddr, "Unknown serialNo = $serialNo")
                         break
                     }
                     status += " ID;"
@@ -214,22 +210,22 @@ class MMSPulsarDataController {
                                         in 0x0710..0x0713 -> tmEnergoPowerReactiveABC[id - 0x0710] = value
                                         in 0x0720..0x0723 -> tmEnergoPowerFullABC[id - 0x0720] = value
 
-                                        else -> outDataParseError(deviceId, "unknown ID value == '$sId'")
+                                        else -> outDataParseError(serialNo, "unknown ID value == '$sId'")
                                     }
                                 } ?: run {
-                                    outDataParseError(deviceId, "wrong ID value == '$sId'")
+                                    outDataParseError(serialNo, "wrong ID value == '$sId'")
                                 }
 
                             } else {
-                                outDataParseError(deviceId, "wrong ID format == '$sId'")
+                                outDataParseError(serialNo, "wrong ID format == '$sId'")
                             }
                         }
                     } ?: run {
-                        outDataParseError(deviceId, "vals is null")
+                        outDataParseError(serialNo, "vals is null")
                     }
                     savePoint(conn, stm, deviceConfig!!, pointTime, sqlBatchData)
                 } ?: run {
-                    outDataParseError(deviceId, "dateTime is null")
+                    outDataParseError(serialNo, "dateTime is null")
                 }
             }
         }
@@ -246,7 +242,6 @@ class MMSPulsarDataController {
                 stm = stm,
                 dirSessionLog = dirSessionLog,
                 zoneId = zoneId,
-                deviceId = deviceId!!,
                 deviceConfig = deviceConfig,
                 fwVersion = fwVersion,
                 begTime = begTime,
@@ -482,7 +477,7 @@ class MMSPulsarDataController {
         AdvancedLogger.error("$METHOD_NAME: $e")
     }
 
-    private fun outDataParseError(deviceId: Int?, e: String) {
-        AdvancedLogger.error("$METHOD_NAME: deviceID = $deviceId: $e")
+    private fun outDataParseError(serialNo: String?, e: String) {
+        AdvancedLogger.error("$METHOD_NAME: serialNo = $serialNo: $e")
     }
 }

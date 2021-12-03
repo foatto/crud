@@ -30,7 +30,7 @@ class cZone : cStandart() {
         for(zoneID in hmZoneData.keys) sd.alStartObjectData.add(XyStartObjectData(zoneID, "mms_zone", false, false, hmZoneData[zoneID]!!.hmUserRO[userConfig.userId]!!))
 
         sd.shortTitle = "Создание геозоны"
-        sd.sbTitle = StringBuilder("Создание геозоны")
+        sd.title = "Создание геозоны"
 
         val paramID = getRandomInt()
         hmOut[AppParameter.XY_START_DATA + paramID] = sd
