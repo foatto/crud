@@ -161,7 +161,7 @@ class MMSSpringApp : CoreSpringApp() {
 
         hmElementConfig[sdcMMSMap.TYPE_OBJECT_PARKING] = XyElementConfig(
             name = sdcMMSMap.TYPE_OBJECT_PARKING,
-            clientType = XyElementClientType.TEXT,
+            clientType = XyElementClientType.HTML_TEXT,
             layer = 12,
             scaleMin = minScale,
             scaleMax = maxScale,
@@ -173,7 +173,7 @@ class MMSSpringApp : CoreSpringApp() {
 
         hmElementConfig[sdcMMSMap.TYPE_OBJECT_OVER_SPEED] = XyElementConfig(
             name = sdcMMSMap.TYPE_OBJECT_OVER_SPEED,
-            clientType = XyElementClientType.TEXT,
+            clientType = XyElementClientType.HTML_TEXT,
             layer = 13,
             scaleMin = minScale,
             scaleMax = maxScale,
@@ -185,7 +185,7 @@ class MMSSpringApp : CoreSpringApp() {
 
         hmElementConfig[sdcMMSMap.TYPE_OBJECT_TRACE_INFO] = XyElementConfig(
             name = sdcMMSMap.TYPE_OBJECT_TRACE_INFO,
-            clientType = XyElementClientType.TEXT,
+            clientType = XyElementClientType.HTML_TEXT,
             layer = 14,
             scaleMin = minScale,
             scaleMax = maxScale,
@@ -247,7 +247,7 @@ class MMSSpringApp : CoreSpringApp() {
 
         hmElementConfig[sdcMMSState.TYPE_STATE_SUM_GROUP_TEXT_25D] = XyElementConfig(
             name = sdcMMSState.TYPE_STATE_SUM_GROUP_TEXT_25D,
-            clientType = XyElementClientType.TEXT,
+            clientType = XyElementClientType.HTML_TEXT,
             layer = 12,
             scaleMin = minScale,
             scaleMax = maxScale,
@@ -271,7 +271,7 @@ class MMSSpringApp : CoreSpringApp() {
 
         hmElementConfig[sdcMMSState.TYPE_STATE_GROUP_TEXT_25D] = XyElementConfig(
             name = sdcMMSState.TYPE_STATE_GROUP_TEXT_25D,
-            clientType = XyElementClientType.TEXT,
+            clientType = XyElementClientType.HTML_TEXT,
             layer = 13,
             scaleMin = minScale,
             scaleMax = maxScale,
@@ -343,7 +343,7 @@ class MMSSpringApp : CoreSpringApp() {
 
         hmElementConfig[sdcMMSState.TYPE_STATE_LL_TEXT_25D] = XyElementConfig(
             name = sdcMMSState.TYPE_STATE_LL_TEXT_25D,
-            clientType = XyElementClientType.TEXT,
+            clientType = XyElementClientType.HTML_TEXT,
             layer = 17,
             scaleMin = minScale,
             scaleMax = maxScale,
@@ -367,7 +367,7 @@ class MMSSpringApp : CoreSpringApp() {
 
         hmElementConfig[sdcMMSState.TYPE_STATE_W_TEXT_25D] = XyElementConfig(
             name = sdcMMSState.TYPE_STATE_W_TEXT_25D,
-            clientType = XyElementClientType.TEXT,
+            clientType = XyElementClientType.HTML_TEXT,
             layer = 18,
             scaleMin = minScale,
             scaleMax = maxScale,
@@ -391,7 +391,7 @@ class MMSSpringApp : CoreSpringApp() {
 
         hmElementConfig[sdcMMSState.TYPE_STATE_S_TEXT_25D] = XyElementConfig(
             name = sdcMMSState.TYPE_STATE_S_TEXT_25D,
-            clientType = XyElementClientType.TEXT,
+            clientType = XyElementClientType.HTML_TEXT,
             layer = 19,
             scaleMin = minScale,
             scaleMax = maxScale,

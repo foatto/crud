@@ -212,7 +212,7 @@ open class CoreSpringApp {
 
         hmElementConfig[sdcXyAbstract.TEXT] = XyElementConfig(
             name = sdcXyAbstract.TEXT,
-            clientType = XyElementClientType.TEXT,
+            clientType = XyElementClientType.HTML_TEXT,
             layer = level,
             scaleMin = minScale,
             scaleMax = maxScale,

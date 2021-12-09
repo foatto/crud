@@ -27,7 +27,8 @@ enum class XyElementDataType {
     POLYLINE,
     POLYGON,
     RECT,
-    TEXT
+    SVG_TEXT,
+    HTML_TEXT,
 }
 
 enum class AddPointStatus { COMPLETED, COMPLETEABLE, NOT_COMPLETEABLE }
@@ -47,8 +48,6 @@ class XyElementData(
 
     var points: String? = null,
 
-//    val textStyle: String? = null,
-
     val width: Int? = null,
     val height: Int? = null,
 
@@ -65,8 +64,9 @@ class XyElementData(
     val stroke: String? = null,
     val fill: String? = null,
 
-//    val hAlign: String? = null,
-//    val vAlign: String? = null,
+    //--- для SVG-текста
+    val hAnchor: String? = null,
+    val vAnchor: String? = null,
 
     val url: String? = null,
 
@@ -78,6 +78,8 @@ class XyElementData(
     var isVisible: Boolean = false,
     var text: String? = null,
     var pos: Json = json(),
+
+    //--- для всех видов текста
     val style: Json = json(),
 
     //--- поэлементный интерактив
@@ -184,7 +186,7 @@ class XyElementData(
                 }
                 return false
             }
-            XyElementDataType.TEXT -> {
+            XyElementDataType.SVG_TEXT, XyElementDataType.HTML_TEXT -> {
                 return false
             }
         }
@@ -622,7 +624,11 @@ fun readXyElementData(scaleKoef: Double, viewCoord: XyViewCoord, elementConfig: 
             }
             alLayer.add(
                 XyElementData(
-                    type = if (element.itClosed) XyElementDataType.POLYGON else XyElementDataType.POLYLINE,
+                    type = if (element.itClosed) {
+                        XyElementDataType.POLYGON
+                    } else {
+                        XyElementDataType.POLYLINE
+                    },
                     elementId = element.elementId,
                     objectId = element.objectId,
                     points = points,
@@ -635,7 +641,59 @@ fun readXyElementData(scaleKoef: Double, viewCoord: XyViewCoord, elementConfig: 
                 )
             )
         }
-        XyElementClientType.TEXT.toString() -> {
+        XyElementClientType.SVG_TEXT.toString() -> {
+            val p = element.alPoint.first()
+
+            val x = ((p.x - viewCoord.x1) / viewCoord.scale * scaleKoef).roundToInt()
+            val y = ((p.y - viewCoord.y1) / viewCoord.scale * scaleKoef).roundToInt()
+
+            val textColor = if (element.textColor == 0) {
+                "#00000000"
+            } else {
+                getColorFromInt(element.textColor)
+            }
+
+            val hAnchor = when (element.anchorX.toString()) {
+                XyElement.Anchor.LT.toString() -> "start"
+                XyElement.Anchor.RB.toString() -> "end"
+                else -> "middle"
+            }
+
+            val vAlign = when (element.anchorY.toString()) {
+                XyElement.Anchor.LT.toString() -> "hanging"
+                XyElement.Anchor.RB.toString() -> "text-bottom"
+                else -> "central"
+            }
+
+            val style = json(
+                "font-size" to "${COMMON_FONT_SIZE * element.fontSize / iCoreAppContainer.BASE_FONT_SIZE}rem",
+                "font-weight" to if (element.itFontBold) {
+                    "bold"
+                } else {
+                    "normal"
+                },
+            )
+
+            alLayer.add(
+                XyElementData(
+                    type = XyElementDataType.SVG_TEXT,
+                    elementId = element.elementId,
+                    objectId = element.objectId,
+                    x = x,
+                    y = y,
+                    hAnchor = hAnchor,
+                    vAnchor = vAlign,
+                    text = element.text,
+                    stroke = textColor,
+                    tooltip = element.toolTipText,
+                    itReadOnly = element.itReadOnly,
+
+                    isVisible = true,
+                    style = style,
+                )
+            )
+        }
+        XyElementClientType.HTML_TEXT.toString() -> {
             val p = element.alPoint.first()
 
             var x = ((p.x - viewCoord.x1) / viewCoord.scale * scaleKoef).roundToInt()
@@ -733,7 +791,7 @@ fun readXyElementData(scaleKoef: Double, viewCoord: XyViewCoord, elementConfig: 
 
             alLayer.add(
                 XyElementData(
-                    type = XyElementDataType.TEXT,
+                    type = XyElementDataType.HTML_TEXT,
                     elementId = element.elementId,
                     objectId = element.objectId,
                     x = x,
@@ -816,7 +874,9 @@ fun getXyEmptyElementData(scaleKoef: Double, elementConfig: XyElementConfig): Xy
         }
         XyElementClientType.POLY.toString() -> {
         }
-        XyElementClientType.TEXT.toString() -> {
+        XyElementClientType.SVG_TEXT.toString() -> {
+        }
+        XyElementClientType.HTML_TEXT.toString() -> {
         }
         XyElementClientType.TRACE.toString() -> {
         }

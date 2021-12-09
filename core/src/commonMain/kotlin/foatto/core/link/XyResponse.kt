@@ -40,8 +40,9 @@ enum class XyElementClientType {
     ICON,
     MARKER,
     POLY,
-    TEXT,
+    SVG_TEXT,
+    HTML_TEXT,
     TRACE,
-    ZONE
+    ZONE,
 }
 
