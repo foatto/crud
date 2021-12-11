@@ -6,10 +6,16 @@ import foatto.core.app.xy.XyActionRequest
 import foatto.core.app.xy.XyActionResponse
 import foatto.core.link.AppRequest
 import foatto.core.link.AppResponse
+import foatto.core.link.CustomResponse
+import foatto.core.link.GraphicResponse
 import foatto.core.link.MenuData
+import foatto.core.link.ResponseCode
+import foatto.core.link.XyResponse
 import foatto.core.util.AdvancedLogger
+import foatto.core_server.app.custom.server.CustomStartData
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
+import foatto.spring.CoreSpringApp
 import foatto.spring.controllers.CoreAppController
 import foatto.sql.CoreAdvancedStatement
 import foatto.ts.core_ts.ObjectConfig
@@ -26,6 +32,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import kotlin.math.min
 
 @RestController
 class TSAppController : CoreAppController(), iTSApplication {
@@ -65,6 +72,30 @@ class TSAppController : CoreAppController(), iTSApplication {
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    override fun getCustomResponse(customStartData: CustomStartData): AppResponse {
+        val fullTitle = customStartData.title.substring(0, min(32000, customStartData.title.length))
+
+        val appResponse = AppResponse(
+            code = ResponseCode.CUSTOM,
+            custom = CustomResponse(
+                xyResponse = XyResponse(
+                    documentConfig = CoreSpringApp.hmXyDocumentConfig["ts_state"]!!,
+                    startParamId = customStartData.xyStartDataId,
+                    shortTitle = customStartData.shortTitle,
+                    fullTitle = fullTitle,
+                ),
+                graphicResponse = GraphicResponse(
+                    documentTypeName = "ts_graphic_dsltt",
+                    startParamId = customStartData.graphicStartDataId,
+                    shortTitle = customStartData.shortTitle,
+                    fullTitle = fullTitle,
+                ),
+            )
+        )
+
+        return appResponse
+    }
+
     //--- пропускаем логи по запуску модулей из 1С, отчётов, графиков, показов картографии
     override fun checkLogSkipAliasPrefix(alias: String): Boolean =
         alias.startsWith("ts_report_") || alias.startsWith("ts_graphic_") || alias.startsWith("ts_show_")
@@ -84,6 +115,17 @@ class TSAppController : CoreAppController(), iTSApplication {
             alMenu.add(MenuData("", "Учёт", alMenuGeneral.toTypedArray()))
         }
 
+        //--- Контроль --------------------------------------------------------------------------------------------------------
+
+        val alMenuControl = mutableListOf<MenuData>()
+
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuControl, "ts_custom_all", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuControl, "ts_show_state", false)
+
+        if (alMenuControl.size > 0) {
+            alMenu.add(MenuData("", "Контроль", alMenuControl.toTypedArray()))
+        }
+
         //--- Графики --------------------------------------------------------------------------------------------------------
 
         val alMenuGraphic = mutableListOf<MenuData>()
@@ -97,16 +139,6 @@ class TSAppController : CoreAppController(), iTSApplication {
 
         if (alMenuGraphic.size > 0) {
             alMenu.add(MenuData("", "Графики", alMenuGraphic.toTypedArray()))
-        }
-
-        //--- Контроль --------------------------------------------------------------------------------------------------------
-
-        val alMenuControl = mutableListOf<MenuData>()
-
-        addMenu(hmAliasConfig, hmAliasPerm, alMenuControl, "ts_show_state", false)
-
-        if (alMenuControl.size > 0) {
-            alMenu.add(MenuData("", "Контроль", alMenuControl.toTypedArray()))
         }
 
         //--- Устройства ------------------------------------------------------------------------------------------------------
