@@ -11,7 +11,7 @@ class mTSClient: mClient() {
     override fun addColumnDefinitions() {
         super.addColumnDefinitions()
 
-        columnControlEnabled = ColumnBoolean(tableName, "is_control_enabled", "Управление устройствами", false).apply {
+        columnControlEnabled = ColumnBoolean(modelTableName, "is_control_enabled", "Управление устройствами", false).apply {
             isVirtual = true
         }
     }

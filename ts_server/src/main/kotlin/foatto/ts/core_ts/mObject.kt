@@ -31,16 +31,16 @@ class mObject : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "TS_object"
+        modelTableName = "TS_object"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
         val columnUserID = ColumnInt("SYSTEM_users", "id")
-        columnUser = ColumnInt(tableName, "user_id", columnUserID, userConfig.userId)
+        columnUser = ColumnInt(modelTableName, "user_id", columnUserID, userConfig.userId)
         val columnUserName = ColumnString("SYSTEM_users", "full_name", "Владелец", STRING_COLUMN_WIDTH).apply {
             if (userConfig.isAdmin) {
                 selectorAlias = "ts_client"
@@ -49,34 +49,34 @@ class mObject : mAbstract() {
             }
         }
 
-        columnObjectName = ColumnString(tableName, "name", "Наименование", STRING_COLUMN_WIDTH).apply {
+        columnObjectName = ColumnString(modelTableName, "name", "Наименование", STRING_COLUMN_WIDTH).apply {
             isRequired = true
             //setUnique(true, null); - different clients / users may have objects with the same names
         }
 
-        val columnObjectModel = ColumnString(tableName, "model", "Модель", STRING_COLUMN_WIDTH)
+        val columnObjectModel = ColumnString(modelTableName, "model", "Модель", STRING_COLUMN_WIDTH)
 
-        columnState = ColumnString(tableName, "_state", SensorConfig.hmSensorDescr[SensorConfig.SENSOR_STATE] ?: "-", STRING_COLUMN_WIDTH).apply {
+        columnState = ColumnString(modelTableName, "_state", SensorConfig.hmSensorDescr[SensorConfig.SENSOR_STATE] ?: "-", STRING_COLUMN_WIDTH).apply {
             isVirtual = true
             isEditable = false
             tableAlign = TableCellAlign.CENTER
         }
-        columnDepth = ColumnDouble(tableName, "_depth", SensorConfig.hmSensorDescr[SensorConfig.SENSOR_DEPTH] ?: "-", 10, 0).apply {
+        columnDepth = ColumnDouble(modelTableName, "_depth", SensorConfig.hmSensorDescr[SensorConfig.SENSOR_DEPTH] ?: "-", 10, 0).apply {
             isVirtual = true
             isEditable = false
             tableAlign = TableCellAlign.CENTER
         }
-        columnSpeed = ColumnDouble(tableName, "_speed", SensorConfig.hmSensorDescr[SensorConfig.SENSOR_SPEED] ?: "-", 10, 0).apply {
+        columnSpeed = ColumnDouble(modelTableName, "_speed", SensorConfig.hmSensorDescr[SensorConfig.SENSOR_SPEED] ?: "-", 10, 0).apply {
             isVirtual = true
             isEditable = false
             tableAlign = TableCellAlign.CENTER
         }
-        columnLoad = ColumnDouble(tableName, "_load", SensorConfig.hmSensorDescr[SensorConfig.SENSOR_LOAD] ?: "-", 10, 0).apply {
+        columnLoad = ColumnDouble(modelTableName, "_load", SensorConfig.hmSensorDescr[SensorConfig.SENSOR_LOAD] ?: "-", 10, 0).apply {
             isVirtual = true
             isEditable = false
             tableAlign = TableCellAlign.CENTER
         }
-        columnLastDateTime = ColumnDateTimeInt(tableName, "_last_time", "Время последних данных", true, zoneId).apply {
+        columnLastDateTime = ColumnDateTimeInt(modelTableName, "_last_time", "Время последних данных", true, zoneId).apply {
             isVirtual = true
             isEditable = false
             tableAlign = TableCellAlign.CENTER
@@ -125,6 +125,8 @@ class mObject : mAbstract() {
         //----------------------------------------------------------------------------------------------------------------------
 
 //        TSFunction.fillAllChildDataForGraphics(columnID, alChildData)
+
+        alChildData.add(ChildData("ts_custom_all", columnID, AppAction.FORM, true))
 
         alChildData.add(ChildData("ts_show_state", columnID, AppAction.FORM, true))
 

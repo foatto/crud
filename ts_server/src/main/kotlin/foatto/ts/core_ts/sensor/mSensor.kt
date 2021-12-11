@@ -38,20 +38,20 @@ class mSensor : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        tableName = "TS_sensor"
+        modelTableName = "TS_sensor"
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        val columnSensorName = ColumnString(tableName, "name", "name", STRING_COLUMN_WIDTH)
+        val columnSensorName = ColumnString(modelTableName, "name", "name", STRING_COLUMN_WIDTH)
 
-        val columnSensorGroup = ColumnString(tableName, "group_name", "Группа датчиков", STRING_COLUMN_WIDTH).apply {
+        val columnSensorGroup = ColumnString(modelTableName, "group_name", "Группа датчиков", STRING_COLUMN_WIDTH).apply {
             addCombo("")
             val rs = stm.executeQuery(
-                " SELECT DISTINCT group_name FROM $tableName WHERE object_id = $parentObjectId AND group_name IS NOT NULL AND group_name <> '' ORDER BY group_name "
+                " SELECT DISTINCT group_name FROM $columnTableName WHERE object_id = $parentObjectId AND group_name IS NOT NULL AND group_name <> '' ORDER BY group_name "
             )
             while (rs.next()) {
                 addCombo(rs.getString(1).trim())
@@ -59,16 +59,16 @@ class mSensor : mAbstract() {
             rs.close()
         }
 
-        val columnSensorDescr = ColumnString(tableName, "descr", "Описание", STRING_COLUMN_WIDTH).apply {
+        val columnSensorDescr = ColumnString(modelTableName, "descr", "Описание", STRING_COLUMN_WIDTH).apply {
             isRequired = true
         }
 
-        val columnSensorPortNum = ColumnInt(tableName, "port_num", "Номер входа", 10).apply {
+        val columnSensorPortNum = ColumnInt(modelTableName, "port_num", "Номер входа", 10).apply {
             minValue = 0
             maxValue = 65535
         }
 
-        columnSensorType = ColumnComboBox(tableName, "sensor_type", "Тип датчика").apply {
+        columnSensorType = ColumnComboBox(modelTableName, "sensor_type", "Тип датчика").apply {
             formPinMode = FormPinMode.OFF
 
             //--- arrange the types of sensors depending on their "popularity" (ie frequency of use)
@@ -105,20 +105,20 @@ class mSensor : mAbstract() {
 
         //--- for smoothable sensors (counting and analog sensors)
 
-        val columnSmoothMethod = ColumnComboBox(tableName, "smooth_method", "Метод сглаживания", SensorConfig.SMOOTH_METOD_MEDIAN).apply {
+        val columnSmoothMethod = ColumnComboBox(modelTableName, "smooth_method", "Метод сглаживания", SensorConfig.SMOOTH_METOD_MEDIAN).apply {
             addChoice(SensorConfig.SMOOTH_METOD_MEDIAN, "Медиана")
             addChoice(SensorConfig.SMOOTH_METOD_AVERAGE, "Среднее арифметическое")
             addFormVisible(columnSensorType, false, setOf(SensorConfig.SENSOR_STATE))
         }
 
-        val columnSmoothTime = ColumnInt(tableName, "smooth_time", "Период сглаживания [мин]", 10, 0).apply {
+        val columnSmoothTime = ColumnInt(modelTableName, "smooth_time", "Период сглаживания [мин]", 10, 0).apply {
             addFormVisible(columnSensorType, false, setOf(SensorConfig.SENSOR_STATE))
         }
 
         //--- common for all sensors, except for geo and total sensors --------------------------------------------------------------------------------
 
         val columnIgnoreMin = ColumnDouble(
-            aTableName = tableName,
+            aTableName = modelTableName,
             aFieldName = "ignore_min_sensor",
             aCaption = "Игнорировать показания датчика менее [ед.]",
             aCols = 10,
@@ -130,7 +130,7 @@ class mSensor : mAbstract() {
         }
 
         val columnIgnoreMax = ColumnDouble(
-            aTableName = tableName,
+            aTableName = modelTableName,
             aFieldName = "ignore_max_sensor",
             aCaption = "Игнорировать показания датчика более [ед.]",
             aCols = 10,
@@ -142,27 +142,27 @@ class mSensor : mAbstract() {
 
         //--- analog / measuring sensors ---------------------------------------------------------------------------------
 
-        val columnAnalogMinView = ColumnDouble(tableName, "analog_min_view", "Минимальное отображаемое значение", 10, 3, 0.0).apply {
+        val columnAnalogMinView = ColumnDouble(modelTableName, "analog_min_view", "Минимальное отображаемое значение", 10, 3, 0.0).apply {
             formPinMode = FormPinMode.OFF
             addFormVisible(columnSensorType, false, setOf(SensorConfig.SENSOR_STATE))
         }
 
-        val columnAnalogMaxView = ColumnDouble(tableName, "analog_max_view", "Максимальное отображаемое значение", 10, 3, 100.0).apply {
+        val columnAnalogMaxView = ColumnDouble(modelTableName, "analog_max_view", "Максимальное отображаемое значение", 10, 3, 100.0).apply {
             addFormVisible(columnSensorType, false, setOf(SensorConfig.SENSOR_STATE))
         }
 
-        val columnAnalogMinLimit = ColumnDouble(tableName, "analog_min_limit", "Минимальное рабочее значение", 10, 3, 0.0).apply {
+        val columnAnalogMinLimit = ColumnDouble(modelTableName, "analog_min_limit", "Минимальное рабочее значение", 10, 3, 0.0).apply {
             formPinMode = FormPinMode.OFF
             addFormVisible(columnSensorType, false, setOf(SensorConfig.SENSOR_STATE))
         }
 
-        val columnAnalogMaxLimit = ColumnDouble(tableName, "analog_max_limit", "Максимальное рабочее значение", 10, 3, 100.0).apply {
+        val columnAnalogMaxLimit = ColumnDouble(modelTableName, "analog_max_limit", "Максимальное рабочее значение", 10, 3, 100.0).apply {
             addFormVisible(columnSensorType, false, setOf(SensorConfig.SENSOR_STATE))
         }
 
         //--- any calibrable sensors ---
 
-        columnCalibrationText = ColumnString(tableName, "_calibration_text", "Тарировка датчика", 20, STRING_COLUMN_WIDTH, 64000).apply {
+        columnCalibrationText = ColumnString(modelTableName, "_calibration_text", "Тарировка датчика", 20, STRING_COLUMN_WIDTH, 64000).apply {
             addFormVisible(columnSensorType, false, setOf(SensorConfig.SENSOR_STATE))
             isVirtual = true
         }

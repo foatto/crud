@@ -40,17 +40,17 @@ class mObjectSetup : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = FAKE_TABLE_NAME
+        modelTableName = FAKE_TABLE_NAME
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id").apply {
+        columnID = ColumnInt(modelTableName, "id").apply {
             isVirtual = true
         }
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnDateTime = ColumnDateTimeInt(tableName, "_date_time", "Дата и время", true, zoneId).apply {
+        columnDateTime = ColumnDateTimeInt(modelTableName, "_date_time", "Дата и время", true, zoneId).apply {
             isVirtual = true
         }
 
@@ -59,13 +59,13 @@ class mObjectSetup : mAbstract() {
                 val scs = sc as SensorConfigSetup
                 val column = when (scs.valueType) {
                     SensorConfigSetup.VALUE_TYPE_NUMBER -> {
-                        ColumnString(tableName, "_${scs.id}", scs.descr, STRING_COLUMN_WIDTH)
+                        ColumnString(modelTableName, "_${scs.id}", scs.descr, STRING_COLUMN_WIDTH)
                     }
                     SensorConfigSetup.VALUE_TYPE_BOOLEAN -> {
-                        ColumnBoolean(tableName, "_${scs.id}", scs.descr)
+                        ColumnBoolean(modelTableName, "_${scs.id}", scs.descr)
                     }
                     else -> {
-                        ColumnString(tableName, "_${scs.id}", scs.descr, STRING_COLUMN_WIDTH)
+                        ColumnString(modelTableName, "_${scs.id}", scs.descr, STRING_COLUMN_WIDTH)
                     }
                 }.apply {
                     isVirtual = true

@@ -37,9 +37,9 @@ class cShowState : cAbstractForm() {
         val sd = XyStartData()
 
         sd.shortTitle = aliasConfig.descr
-        sd.sbTitle = StringBuilder(oc.name)
+        sd.title = oc.name
         if (oc.model.isNotEmpty()) {
-            sd.sbTitle.append(", ").append(oc.model)
+            sd.title += ", ${oc.model}"
         }
 
         sd.alStartObjectData.add(XyStartObjectData(selectObjectId, "ts_object", true, false, true))

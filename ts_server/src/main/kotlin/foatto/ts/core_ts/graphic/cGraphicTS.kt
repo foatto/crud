@@ -22,7 +22,9 @@ class cGraphicTS : cAbstractForm() {
     override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
 
         val returnURL = super.doSave(action, alFormData, hmOut)
-        if (returnURL != null) return returnURL
+        if (returnURL != null) {
+            return returnURL
+        }
 
         val msfd = model as mGraphicTS
 
@@ -56,16 +58,21 @@ class cGraphicTS : cAbstractForm() {
         //--- заполнение текста заголовка информацией по объекту
         val oc = (application as iTSApplication).getObjectConfig(userConfig, selectObject)
         sd.shortTitle = aliasConfig.descr
-        sd.sbTitle = StringBuilder()
-        sd.sbTitle.append(oc.name)
-        if (oc.model.isNotEmpty()) sd.sbTitle.append(", ").append(oc.model)
+        sd.title = oc.name
+        if (oc.model.isNotEmpty()) {
+            sd.title += ", ${oc.model}"
+        }
 
         //--- заполнение текста заголовка информацией по периоду времени
         if (sd.rangeType != 0) {
-            sd.sbTitle.append(" за последние ")
-            if (sd.rangeType % 3600 == 0) sd.sbTitle.append(sd.rangeType / 3600).append(" час( а,ов ) ")
-            else if (sd.rangeType % 60 == 0) sd.sbTitle.append(sd.rangeType / 60).append(" минут ")
-            else sd.sbTitle.append(sd.rangeType).append(" секунд ")
+            sd.title += " за последние " +
+                if (sd.rangeType % 3600 == 0) {
+                    "${sd.rangeType / 3600} час(а,ов) "
+                } else if (sd.rangeType % 60 == 0) {
+                    "${sd.rangeType / 60} минут "
+                } else {
+                    "${sd.rangeType} секунд "
+                }
         }
 
         val paramID = getRandomInt()

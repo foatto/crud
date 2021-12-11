@@ -44,45 +44,45 @@ class mDevice : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "TS_device"
+        modelTableName = "TS_device"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnDeviceIndex = ColumnInt(tableName, "device_index", "Порядковый номер устройства на объекте", 10, 0).apply {
+        columnDeviceIndex = ColumnInt(modelTableName, "device_index", "Порядковый номер устройства на объекте", 10, 0).apply {
             minValue = 0
             maxValue = MAX_DEVICE_COUNT_PER_OBJECT - 1
         }
 
-        val columnDeviceType = ColumnRadioButton(tableName, "type", "Тип устройства")
+        val columnDeviceType = ColumnRadioButton(modelTableName, "type", "Тип устройства")
         TSHandler.fillDeviceTypeColumn(columnDeviceType)
 
-        columnSerialNo = ColumnString(tableName, "serial_no", "Серийный номер", STRING_COLUMN_WIDTH).apply {
+        columnSerialNo = ColumnString(modelTableName, "serial_no", "Серийный номер", STRING_COLUMN_WIDTH).apply {
             isRequired = true
             setUnique(true, "")
         }
 
-        val columnDeviceCell = ColumnString(tableName, "cell_num", "Номер телефона", STRING_COLUMN_WIDTH)
+        val columnDeviceCell = ColumnString(modelTableName, "cell_num", "Номер телефона", STRING_COLUMN_WIDTH)
 
-        val columnDeviceFwVer = ColumnString(tableName, "fw_version", "Версия прошивки", 10).apply {
+        val columnDeviceFwVer = ColumnString(modelTableName, "fw_version", "Версия прошивки", 10).apply {
             isEditable = false
             formPinMode = FormPinMode.OFF
         }
 
-        columnDeviceLastSessionTime = ColumnDateTimeInt(tableName, "last_session_time", "Время последней сессии", true, zoneId).apply {
+        columnDeviceLastSessionTime = ColumnDateTimeInt(modelTableName, "last_session_time", "Время последней сессии", true, zoneId).apply {
             isEditable = false
         }
-        val columnDeviceLastSessionStatusText = ColumnString(tableName, "last_session_status", "Статус последней сессии", STRING_COLUMN_WIDTH).apply {
+        val columnDeviceLastSessionStatusText = ColumnString(modelTableName, "last_session_status", "Статус последней сессии", STRING_COLUMN_WIDTH).apply {
             isEditable = false
         }
-        val columnDeviceLastSessionErrorText = ColumnString(tableName, "last_session_error", "Ошибка последней сессии", STRING_COLUMN_WIDTH).apply {
+        val columnDeviceLastSessionErrorText = ColumnString(modelTableName, "last_session_error", "Ошибка последней сессии", STRING_COLUMN_WIDTH).apply {
             isEditable = false
         }
 
-        columnSensorCreatingEnabled = ColumnBoolean(tableName, "_sensor_create_enabled", "Автосоздание датчиков", false).apply {
+        columnSensorCreatingEnabled = ColumnBoolean(modelTableName, "_sensor_create_enabled", "Автосоздание датчиков", false).apply {
             isVirtual = true
         }
 

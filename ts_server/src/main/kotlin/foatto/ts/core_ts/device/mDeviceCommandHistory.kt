@@ -22,17 +22,17 @@ class mDeviceCommandHistory : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        tableName = "TS_device_command_history"
+        modelTableName = "TS_device_command_history"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
-        columnUser = ColumnInt(tableName, "user_id", userConfig.userId)
+        columnID = ColumnInt(modelTableName, "id")
+        columnUser = ColumnInt(modelTableName, "user_id", userConfig.userId)
 
         //----------------------------------------------------------------------------------------------------------------------
 
         val columnDeviceId = ColumnInt("TS_device", "id")
-        val columnDevice = ColumnInt(tableName, "device_id", columnDeviceId)
+        val columnDevice = ColumnInt(modelTableName, "device_id", columnDeviceId)
         val columnDeviceSerialNo = ColumnString("TS_device", "serial_no", "Серийный номер прибора", STRING_COLUMN_WIDTH)
 
         columnDeviceSerialNo.apply {
@@ -41,18 +41,18 @@ class mDeviceCommandHistory : mAbstract() {
             addSelectorColumn(this)
         }
 
-        val columnCommand = ColumnString(tableName, "command", "Команда", STRING_COLUMN_WIDTH).apply {
+        val columnCommand = ColumnString(modelTableName, "command", "Команда", STRING_COLUMN_WIDTH).apply {
             isEditable = false
             formPinMode = FormPinMode.OFF
         }
 
-        val columnCreateTime = ColumnDateTimeInt(tableName, "create_time", "Время создания", true, zoneId).apply {
+        val columnCreateTime = ColumnDateTimeInt(modelTableName, "create_time", "Время создания", true, zoneId).apply {
             isEditable = false
         }
 
-        val columnSendStatus = ColumnBoolean(tableName, "send_status", "Статус отправки", false)
+        val columnSendStatus = ColumnBoolean(modelTableName, "send_status", "Статус отправки", false)
 
-        val columnSendTime = ColumnDateTimeInt(tableName, "send_time", "Время отправки", true, zoneId).apply {
+        val columnSendTime = ColumnDateTimeInt(modelTableName, "send_time", "Время отправки", true, zoneId).apply {
             default = ZonedDateTime.of(2000, 1, 1, 0, 0, 0, 0, zoneId)
             isEditable = false
         }

@@ -28,7 +28,7 @@ class ObjectSelector {
     ) {
 
         val columnObjectId = ColumnInt("TS_object", "id")
-        columnObject = ColumnInt(model.tableName, fieldObject, columnObjectId)
+        columnObject = ColumnInt(model.modelTableName, fieldObject, columnObjectId)
 
         columnObjectName = ColumnString("TS_object", "name", "Наименование объекта", mAbstract.STRING_COLUMN_WIDTH)
         columnObjectName.isRequired = isRequired
