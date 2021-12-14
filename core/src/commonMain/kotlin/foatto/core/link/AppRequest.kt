@@ -36,6 +36,6 @@ class FormData(
     val fileId: Int? = null,
     //-- use for passing String-to-String instead of Int-to-String due to serialization problems in JSON (since field names will be obtained as numbers)
     val hmFileAdd: Map<String, String>? = null,
-    val alFileRemovedId: List<Int>? = null
+    val alFileRemovedId: List<Int>? = null,
 )
 

@@ -56,8 +56,9 @@ abstract class sdcXyMap : sdcXyAbstract() {
         if (alElementData.isNotEmpty()) {
             //--- подготовка IN-списка по elementId
             val sbelementId = StringBuilder()
-            for ((edo, _) in alElementData)
+            for ((edo, _) in alElementData) {
                 sbelementId.append(if (sbelementId.isEmpty()) "" else " , ").append(edo.elementId)
+            }
 
             val sPoint = " SELECT element_id , prj_x , prj_y FROM XY_point " +
                 " WHERE element_id IN ( $sbelementId ) " +
@@ -95,15 +96,17 @@ abstract class sdcXyMap : sdcXyAbstract() {
 
         //--- загрузка динамических объектов
         for (objectParamData in alObjectParamData) {
-            if (objectParamData.begTime != 0)
+            if (objectParamData.begTime != 0) {
                 loadDynamicElements(viewCoord.scale, objectParamData, alElement)
+            }
         }
         //AdvancedLogger.debug( "load/write dynamic elements [obj] : " + ( System.currentTimeMillis() - begTime ) );
 
         //--- вывод элементов растровых карт:
         //--- грузим все виды карт, показываем только требуемые
-        for (name in XyBitmapType.hmTypeScaleZ.keys)
+        for (name in XyBitmapType.hmTypeScaleZ.keys) {
             outBitmapElements(name, viewCoord, if (name == xyActionRequest.bitmapTypeName) alElement else null)
+        }
 
         //AdvancedLogger.info( "Doc Size = " + arrByte.length );
         //AdvancedLogger.info( "------------------------------------------------------------" );

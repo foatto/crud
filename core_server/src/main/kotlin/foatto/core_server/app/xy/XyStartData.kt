@@ -9,7 +9,7 @@ class XyStartData {
     var endTime = 0
 
     var shortTitle = ""
-    var sbTitle = StringBuilder()
+    var title = ""
 }
 
 class XyStartObjectData(

@@ -1,10 +1,8 @@
 package foatto.core_server.app.graphic.server.document
 
-import foatto.core.app.UP_TIME_OFFSET
 import foatto.core.app.graphic.GraphicActionRequest
 import foatto.core.app.graphic.GraphicActionResponse
 import foatto.core.app.graphic.GraphicColorIndex
-import foatto.core.util.getZoneId
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.graphic.server.GraphicStartData
 import foatto.core_server.app.iApplication
@@ -49,22 +47,26 @@ abstract class sdcAbstractGraphic {
 
             hmIndexColor[GraphicColorIndex.LINE_LIMIT] = 0xFF_FF_A0_A0.toInt()
 
-            hmIndexColor[GraphicColorIndex.LINE_NONE_0] = 0xFF_80_80_80.toInt()
+            hmIndexColor[GraphicColorIndex.LINE_NONE_0] = 0x00_80_80_80.toInt()
             hmIndexColor[GraphicColorIndex.LINE_NORMAL_0] = 0xFF_00_E0_00.toInt()
             hmIndexColor[GraphicColorIndex.LINE_BELOW_0] = 0xFF_00_60_E0.toInt()
             hmIndexColor[GraphicColorIndex.LINE_ABOVE_0] = 0xFF_E0_60_00.toInt()
 
-            hmIndexColor[GraphicColorIndex.LINE_NONE_1] = 0xFF_90_90_90.toInt()
+            hmIndexColor[GraphicColorIndex.LINE_NONE_1] = 0x00_90_90_90.toInt()
             hmIndexColor[GraphicColorIndex.LINE_NORMAL_1] = 0xFF_00_00_E0.toInt()
 
-            hmIndexColor[GraphicColorIndex.LINE_NONE_2] = 0xFF_A0_A0_A0.toInt()
+            hmIndexColor[GraphicColorIndex.LINE_NONE_2] = 0x00_A0_A0_A0.toInt()
             hmIndexColor[GraphicColorIndex.LINE_NORMAL_2] = 0xFF_E0_00_00.toInt()
 
-            hmIndexColor[GraphicColorIndex.LINE_NONE_3] = 0xFF_B0_B0_B0.toInt()
+            hmIndexColor[GraphicColorIndex.LINE_NONE_3] = 0x00_B0_B0_B0.toInt()
             hmIndexColor[GraphicColorIndex.LINE_NORMAL_3] = 0xFF_E0_00_E0.toInt()
         }
 
         const val UP_GRAPHIC_VISIBLE = "graphic_visible_"
+
+        //--- в худшем случае у нас как минимум 4 точки на мм ( 100 dpi ),
+        //--- нет смысла выводить данные в каждый пиксель, достаточно в каждый мм
+        const val DOT_PER_MM = 4
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -97,7 +99,7 @@ abstract class sdcAbstractGraphic {
 
         val sd = chmSession[AppParameter.GRAPHIC_START_DATA + startParamId] as GraphicStartData
 
-        if(sd.rangeType == 0) {
+        if (sd.rangeType == 0) {
             begTime = sd.begTime
             endTime = sd.endTime
         } else {

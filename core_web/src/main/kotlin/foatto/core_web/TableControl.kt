@@ -560,8 +560,8 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                                         "padding" to styleTextButtonPadding(),
                                         "cursor" to "pointer",
                                         "grid-area" to "${index + 1} / 1 / ${index + 2} / 2",
-                                        "justify-self" to "stretch",
-                                        "align-self" to "stretch",
+                                        "justify-self" to "center", // horizontal align
+                                        "align-self" to "center",   // vertical align
                                     )
                                 )
                             )
@@ -823,7 +823,7 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                 "flex-shrink" to 1,
                 "display" to "flex",
                 "flex-direction" to "column",
-                "height" to "100%"
+                "height" to "100%",
             ),
             "style_header" to json(
                 "flex-grow" to 0,
@@ -835,7 +835,7 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                 "align-items" to "center",        // "baseline" ?
                 "border-top" to if (!styleIsNarrowScreen) "none" else "1px solid $COLOR_BUTTON_BORDER",
                 "padding" to styleControlPadding(),
-                "background" to COLOR_PANEL_BACK
+                "background" to COLOR_PANEL_BACK,
             ),
             "style_toolbar" to json(
                 "flex-grow" to 0,
@@ -847,14 +847,14 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                 "align-items" to "center",
                 "border-bottom" to "1px solid $COLOR_BUTTON_BORDER",
                 "padding" to styleControlPadding(),
-                "background" to COLOR_PANEL_BACK
+                "background" to COLOR_PANEL_BACK,
             ),
             "style_toolbar_block" to json(
                 "display" to "flex",
                 "flex-direction" to "row",
                 "flex-wrap" to "nowrap",
                 "justify-content" to "center",
-                "align-items" to "center"
+                "align-items" to "center",
             ),
             "style_pagebar" to json(
                 "flex-grow" to 0,
@@ -866,11 +866,11 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                 "align-items" to "center",
                 "border-top" to "1px solid $COLOR_BUTTON_BORDER",
                 "padding" to styleTablePageBarPadding(),
-                "background" to COLOR_PANEL_BACK
+                "background" to COLOR_PANEL_BACK,
             ),
             "style_title" to json(
                 "font-size" to styleControlTitleTextFontSize(),
-                "padding" to styleControlTitlePadding()
+                "padding" to styleControlTitlePadding(),
             ),
             "style_icon_button" to json(
                 "background" to COLOR_BUTTON_BACK,
@@ -884,14 +884,14 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                 "font-size" to styleCommonButtonFontSize(),
                 "padding" to styleTextButtonPadding(),
                 "margin" to styleCommonMargin(),
-                "cursor" to "pointer"
+                "cursor" to "pointer",
             ),
             "style_button_with_border" to json(
                 "border" to "1px solid $COLOR_BUTTON_BORDER",
-                "border-radius" to BORDER_RADIUS
+                "border-radius" to BORDER_RADIUS,
             ),
             "style_button_no_border" to json(
-                "border" to "none"
+                "border" to "none",
             ),
             "style_find_editor_len" to styleTableFindEditLength(),
             "style_find_editor" to json(
@@ -899,7 +899,7 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                 "border-radius" to BORDER_RADIUS,
                 "font-size" to styleTableFindEditorFontSize(),
                 "padding" to styleCommonEditorPadding(),
-                "margin" to styleCommonMargin()
+                "margin" to styleCommonMargin(),
             ),
             "style_page_button" to json(
                 //--- определяются в зависимости от кол-ва кнопок
@@ -929,13 +929,13 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                 "padding" to styleMenuItemPadding_1(),
             ),
             "style_menu_item_0" to json(
-                "padding" to styleMenuItemPadding_0()
+                "padding" to styleMenuItemPadding_0(),
             ),
             "style_menu_item_1" to json(
-                "padding" to styleMenuItemPadding_1()
+                "padding" to styleMenuItemPadding_1(),
             ),
             "style_menu_item_2" to json(
-                "padding" to styleMenuItemPadding_2()
+                "padding" to styleMenuItemPadding_2(),
             ),
         ).add(
             tableDataAdd
@@ -1030,9 +1030,9 @@ private class TableGridCellData_(
 private class PopupMenuData(
     val url: String,
     val text: String,
-    val alSubMenu: Array<PopupMenuData>? = null,
+    val arrSubMenu: Array<PopupMenuData>? = null,
     val inNewWindow: Boolean,
-    val isHover: Boolean = false
+    val itHover: Boolean = false
 )
 
 private fun convertPopupMenuData(arrMenuData: Array<TablePopupData>): Array<PopupMenuData> {
@@ -1050,7 +1050,9 @@ private fun convertPopupMenuData(arrMenuData: Array<TablePopupData>): Array<Popu
             val alPopupSubMenuData = mutableListOf<PopupMenuData>()
             while (i < arrMenuData.size) {
                 val subMenuData = arrMenuData[i]
-                if (subMenuData.group.isEmpty() || subMenuData.group != groupName) break
+                if (subMenuData.group.isEmpty() || subMenuData.group != groupName) {
+                    break
+                }
 
                 alPopupSubMenuData.add(PopupMenuData(subMenuData.url, subMenuData.text, null, subMenuData.inNewWindow))
                 i++

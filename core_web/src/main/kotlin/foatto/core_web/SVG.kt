@@ -43,8 +43,8 @@ class SvgText(
     val y: Int,
     val text: String,
     val stroke: String,
-    val hAlign: String,
-    val vAlign: String,
+    val hAnchor: String,
+    val vAnchor: String,
     val transform: String = "",
     tooltip: String = ""
 ) : SvgElement(tooltip)
@@ -54,8 +54,8 @@ class SvgMultiLineText(
     val y: Int,
     val arrText: Array<SVGTextSpan>,
     val stroke: String,
-    var hAlign: String,
-    val vAlign: String,
+    var hAnchor: String,
+    val vAnchor: String,
     tooltip: String = ""
 ) : SvgElement(tooltip)
 

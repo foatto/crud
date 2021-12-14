@@ -20,24 +20,26 @@ class cLogShow : cAbstractForm() {
     override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
 
         val returnURL = super.doSave(action, alFormData, hmOut)
-        if( returnURL != null ) return returnURL
+        if (returnURL != null) {
+            return returnURL
+        }
 
         val msfd = model as mLogShow
 
         //--- выборка данных параметров для отчета
         val sd = GraphicStartData()
         //sd.objectId = selectObject;
-        sd.rangeType = ( hmColumnData[ msfd.columnShowRangeType ] as DataRadioButton ).intValue
+        sd.rangeType = (hmColumnData[msfd.columnShowRangeType] as DataRadioButton).intValue
 
-        if( sd.rangeType == 0 ) {
+        if (sd.rangeType == 0) {
             sd.begTime = ZonedDateTime.of(
-                ( hmColumnData[ msfd.columnShowBegDate ] as DataDate3Int ).localDate,
-                ( hmColumnData[ msfd.columnShowBegTime ] as DataTime3Int ).localTime,
+                (hmColumnData[msfd.columnShowBegDate] as DataDate3Int).localDate,
+                (hmColumnData[msfd.columnShowBegTime] as DataTime3Int).localTime,
                 zoneId
             ).toEpochSecond().toInt()
             sd.endTime = ZonedDateTime.of(
-                ( hmColumnData[ msfd.columnShowEndDate ] as DataDate3Int ).localDate,
-                ( hmColumnData[ msfd.columnShowEndTime ] as DataTime3Int ).localTime,
+                (hmColumnData[msfd.columnShowEndDate] as DataDate3Int).localDate,
+                (hmColumnData[msfd.columnShowEndTime] as DataTime3Int).localTime,
                 zoneId
             ).toEpochSecond().toInt()
         }
@@ -51,20 +53,24 @@ class cLogShow : cAbstractForm() {
 
         //--- заполнение текста заголовка информацией по объекту
         sd.shortTitle = aliasConfig.alias
-        sd.sbTitle = StringBuilder()
+        sd.title = ""
 
         //--- заполнение текста заголовка информацией по периоду времени
-        if( sd.rangeType != 0 ) {
-            sd.sbTitle.append( " за последние " )
-            if( sd.rangeType % 3600 == 0 ) sd.sbTitle.append( sd.rangeType / 3600 ).append( " час(а,ов) " )
-            else if( sd.rangeType % 60 == 0 ) sd.sbTitle.append( sd.rangeType / 60 ).append( " минут " )
-            else sd.sbTitle.append( sd.rangeType ).append( " секунд " )
+        if (sd.rangeType != 0) {
+            sd.title += " за последние " +
+                if (sd.rangeType % 3600 == 0) {
+                    "${sd.rangeType / 3600} час(а,ов) "
+                } else if (sd.rangeType % 60 == 0) {
+                    "${sd.rangeType / 60} минут "
+                } else {
+                    "${sd.rangeType} секунд "
+                }
         }
 
         val paramID = getRandomInt()
-        hmOut[ AppParameter.GRAPHIC_START_DATA + paramID ] = sd
+        hmOut[AppParameter.GRAPHIC_START_DATA + paramID] = sd
 
-        return getParamURL( aliasConfig.alias, AppAction.GRAPHIC, null, null, null, null, "&${AppParameter.GRAPHIC_START_DATA}=$paramID" )
+        return getParamURL(aliasConfig.alias, AppAction.GRAPHIC, null, null, null, null, "&${AppParameter.GRAPHIC_START_DATA}=$paramID")
     }
 }
 

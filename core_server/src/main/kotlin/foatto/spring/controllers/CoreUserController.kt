@@ -19,7 +19,7 @@ import java.time.ZonedDateTime
 import java.util.concurrent.ConcurrentHashMap
 
 @RestController
-abstract class CoreUserController {
+class CoreUserController {
 
     @PostMapping("/api/save_user_property")
     fun saveUserProperty(

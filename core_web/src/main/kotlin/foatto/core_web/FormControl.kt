@@ -365,7 +365,11 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                     FormCellType_.FILE -> {
                         alFormData.add(FormData(
                             fileId = gridData.fileID,
-                            hmFileAdd = if (withNewValues) gridData.hmFileAdd.mapKeys { it.key.toString() } else mapOf(),
+                            hmFileAdd = if (withNewValues) {
+                                gridData.hmFileAdd.mapKeys { it.key.toString() }
+                            } else {
+                                mapOf()
+                            },
                             alFileRemovedId = if (withNewValues) gridData.alFileRemovedID else listOf()
                         ))
                     }
