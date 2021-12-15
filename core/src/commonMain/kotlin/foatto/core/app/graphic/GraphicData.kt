@@ -8,14 +8,13 @@ class GraphicDataContainer(
     val lineWidth: Int = 0,
     val itReversedY: Boolean,
 ) {
-    enum class ElementType { BACK, LINE, POINT, TEXT }
+    enum class ElementType { BACK, LINE, TEXT }
 
     var alGBD: Array<GraphicBackData> = arrayOf()
     var alGLD: Array<GraphicLineData> = arrayOf()
-    var alGPD: Array<GraphicPointData> = arrayOf()
     var alGTD: Array<GraphicTextData> = arrayOf()
 
-    fun itNotEmpty() = alGBD.isNotEmpty() || alGLD.isNotEmpty() || alGPD.isNotEmpty() || alGTD.isNotEmpty()
+    fun itNotEmpty() = alGBD.isNotEmpty() || alGLD.isNotEmpty() || alGTD.isNotEmpty()
 }
 
 class GraphicBackData(
@@ -29,12 +28,6 @@ class GraphicLineData(
     var y: Double,
     var colorIndex: GraphicColorIndex,
     val coord: XyPoint? = null
-)
-
-class GraphicPointData(
-    val x: Int,
-    var y: Double,
-    val colorIndex: GraphicColorIndex
 )
 
 class GraphicTextData(

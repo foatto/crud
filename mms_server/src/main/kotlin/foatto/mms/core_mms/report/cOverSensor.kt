@@ -212,7 +212,6 @@ class cOverSensor : cMMSReport() {
                     axisIndex = 0,
                     aMinLimit = null,
                     aMaxLimit = null,
-                    aPoint = null,
                     aLine = aLine,
                     graphicHandler = graphicHandler,
                 )

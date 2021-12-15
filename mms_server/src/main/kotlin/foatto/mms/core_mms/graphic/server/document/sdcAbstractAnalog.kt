@@ -1,9 +1,5 @@
 package foatto.mms.core_mms.graphic.server.document
 
-import foatto.core.app.UP_GRAPHIC_SHOW_BACK
-import foatto.core.app.UP_GRAPHIC_SHOW_LINE
-import foatto.core.app.UP_GRAPHIC_SHOW_POINT
-import foatto.core.app.UP_GRAPHIC_SHOW_TEXT
 import foatto.core.app.graphic.*
 import foatto.core.util.AdvancedByteBuffer
 import foatto.core.util.getCurrentTimeInt
@@ -225,20 +221,6 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         val (begTime, endTime) = graphicActionRequest.graphicCoords!!
         val (viewWidth, viewHeight) = graphicActionRequest.viewSize!!
 
-        val smBack = userConfig.getUserProperty(UP_GRAPHIC_SHOW_BACK)
-        val smPoint = userConfig.getUserProperty(UP_GRAPHIC_SHOW_POINT)
-        val smLine = userConfig.getUserProperty(UP_GRAPHIC_SHOW_LINE)
-        val smText = userConfig.getUserProperty(UP_GRAPHIC_SHOW_TEXT)
-
-        //--- показ фона по умолчанию включен, если не указано явно иное
-        val isShowBack = smBack?.toBoolean() ?: true
-        //--- показ точек по умолчанию выключен, если не указано явно иное
-        val isShowPoint = smPoint?.toBoolean() ?: false
-        //--- показ линий по умолчанию включен, если не указано явно иное
-        val isShowLine = smLine?.toBoolean() ?: true
-        //--- показ текстов по умолчанию включен, если не указано явно иное
-        val isShowText = smText?.toBoolean() ?: true
-
         val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, sd.objectId)
         //--- загрузка заголовочной информации по объекту
         var sObjectInfo = objectConfig.name
@@ -267,10 +249,6 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
             viewHeight = viewHeight,
             alRawTime = alRawTime,
             alRawData = alRawData,
-            isShowBack = isShowBack,
-            isShowPoint = isShowPoint,
-            isShowLine = isShowLine,
-            isShowText = isShowText,
             objectConfig = objectConfig,
             tmElement = tmElement,
             tmElementVisibleConfig = tmElementVisibleConfig
@@ -291,10 +269,6 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         viewHeight: Int,
         alRawTime: List<Int>,
         alRawData: List<AdvancedByteBuffer>,
-        isShowBack: Boolean,
-        isShowPoint: Boolean,
-        isShowLine: Boolean,
-        isShowText: Boolean,
         objectConfig: ObjectConfig,
         tmElement: SortedMap<String, GraphicElement>,
         tmElementVisibleConfig: SortedMap<String, String>,
@@ -308,10 +282,6 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         viewHeight: Int,
         alRawTime: List<Int>,
         alRawData: List<AdvancedByteBuffer>,
-        isShowBack: Boolean,
-        isShowPoint: Boolean,
-        isShowLine: Boolean,
-        isShowText: Boolean,
         objectConfig: ObjectConfig,
         alSca: List<SensorConfigAnalogue>,
         alGraphicHandler: List<AnalogGraphicHandler>,
@@ -321,7 +291,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         val alGDC = mutableListOf<GraphicDataContainer>()
 
         objectConfig.scg?.let { scg ->
-            if (isShowBack && !isGeoSensorShowed && scg.isUseSpeed) {
+            if (!isGeoSensorShowed && scg.isUseSpeed) {
                 val aBack = GraphicDataContainer(GraphicDataContainer.ElementType.BACK, 0, 0, false)
                 calcGeoSensor(alRawTime, alRawData, scg, begTime, endTime, aBack)
                 alGDC.add(aBack)
@@ -364,21 +334,8 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                 }
 
                 //--- Если включён показ линий и выключено сглаживание, то точки можно не показывать, их всё равно не будет видно за покрывающей их линией
-                val aPoint = if (isShowPoint && (!isShowLine || sca.smoothTime > 0)) {
-                    GraphicDataContainer(GraphicDataContainer.ElementType.POINT, axisIndex, 0, isReversedY)
-                } else {
-                    null
-                }
-                val aLine = if (isShowLine) {
-                    GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 3, isReversedY)
-                } else {
-                    null
-                }
-                val aText = if (isShowText) {
-                    GraphicDataContainer(GraphicDataContainer.ElementType.TEXT, axisIndex, 0, isReversedY)
-                } else {
-                    null
-                }
+                val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 3, isReversedY)
+                val aText = GraphicDataContainer(GraphicDataContainer.ElementType.TEXT, axisIndex, 0, isReversedY)
 
                 alAxisYData.add(AxisYData(sca.descr, sca.minView, sca.maxView, graphicAxisColorIndexes[axisIndex], isReversedY))
 
@@ -402,7 +359,6 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                     axisIndex = axisIndex,
                     aMinLimit = aMinLimit,
                     aMaxLimit = aMaxLimit,
-                    aPoint = aPoint,
                     aLine = aLine,
                     graphicHandler = graphicHandler
                 )
@@ -465,7 +421,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                     aLine = aLine,
                     aText = aText,
                 )
-                alGDC.addAll(listOfNotNull(aText, aMinLimit, aMaxLimit, aPoint, aLine).filter { it.itNotEmpty() })
+                alGDC.addAll(listOfNotNull(aText, aMinLimit, aMaxLimit, aLine).filter { it.itNotEmpty() })
                 axisIndex++
 
                 //!!! расчёт и добавление вычисленной скорости расхода топлива

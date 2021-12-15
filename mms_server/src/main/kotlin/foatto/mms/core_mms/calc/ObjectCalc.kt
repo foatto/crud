@@ -3,7 +3,6 @@ package foatto.mms.core_mms.calc
 import foatto.core.app.graphic.GraphicColorIndex
 import foatto.core.app.graphic.GraphicDataContainer
 import foatto.core.app.graphic.GraphicLineData
-import foatto.core.app.graphic.GraphicPointData
 import foatto.core.app.xy.XyProjection
 import foatto.core.app.xy.geom.XyPoint
 import foatto.core.util.AdvancedByteBuffer
@@ -157,7 +156,6 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                     axisIndex = 0,
                     aMinLimit = null,
                     aMaxLimit = null,
-                    aPoint = null,
                     aLine = aLine,
                     graphicHandler = AnalogGraphicHandler()
                 )
@@ -179,7 +177,6 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                     axisIndex = 0,
                     aMinLimit = null,
                     aMaxLimit = null,
-                    aPoint = null,
                     aLine = aLine,
                     graphicHandler = AnalogGraphicHandler()
                 )
@@ -607,7 +604,6 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             axisIndex: Int,
             aMinLimit: GraphicDataContainer?,
             aMaxLimit: GraphicDataContainer?,
-            aPoint: GraphicDataContainer?,
             aLine: GraphicDataContainer?,
             graphicHandler: iGraphicHandler
         ) {
@@ -631,7 +627,6 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 alSensorData.add(graphicHandler.getRawData(sca, bb))
             }
 
-            val alGPD = aPoint?.alGPD?.toMutableList() ?: mutableListOf()
             val alGLD = aLine?.alGLD?.toMutableList() ?: mutableListOf()
 
             //--- raw data processing -----------------------------------------------------------------------------------------
@@ -662,30 +657,6 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                     //--- if the line point is far enough from the previous one (or just the first one :)
                     if (aMaxLimit!!.alGLD.isEmpty() || rawTime - aMaxLimit.alGLD[aMaxLimit.alGLD.size - 1].x > xScale) {
                         graphicHandler.addDynamicMaxLimit(rawTime, graphicHandler.getDynamicMaxLimit(sca, rawTime, rawData), aMaxLimit)
-                    }
-                }
-
-                //--- if points are shown
-                aPoint?.let {
-                    val colorIndex = if (isStaticMinLimit && rawData < graphicHandler.getStaticMinLimit(sca) ||
-                        isStaticMaxLimit && rawData > graphicHandler.getStaticMaxLimit(sca) ||
-                        isDynamicMinLimit && rawData < graphicHandler.getDynamicMinLimit(sca, rawTime, rawData) ||
-                        isDynamicMaxLimit && rawData > graphicHandler.getDynamicMaxLimit(sca, rawTime, rawData)
-                    ) {
-                        GraphicColorIndex.POINT_ABOVE
-                    }
-                    else {
-                        GraphicColorIndex.POINT_NORMAL
-                    }
-
-                    val gpdLast = if (alGPD.isEmpty()) {
-                        null
-                    } else {
-                        alGPD.last()
-                    }
-
-                    if (gpdLast == null || rawTime - gpdLast.x > xScale || abs(rawData - gpdLast.y) > yScale || colorIndex != gpdLast.colorIndex) {
-                        alGPD.add(GraphicPointData(rawTime, rawData, colorIndex))
                     }
                 }
 
@@ -788,7 +759,6 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 }
             }
 
-            aPoint?.alGPD = alGPD.toTypedArray()
             aLine?.alGLD = alGLD.toTypedArray()
         }
 
@@ -904,8 +874,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 //--- looking for a normal period on the left, if necessary
                 val addTimeBefore = if (lspd.colorIndex == gh.getLineAboveColorIndex(axisIndex)) {
                     sca.incAddTimeBefore
-                }
-                else {
+                } else {
                     sca.decAddTimeBefore
                 }
                 if (addTimeBefore > 0 && pos > 0) {
@@ -938,8 +907,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 //--- looking for a normal period on the right, if necessary
                 val addTimeAfter = if (lspd.colorIndex == gh.getLineAboveColorIndex(axisIndex)) {
                     sca.incAddTimeAfter
-                }
-                else {
+                } else {
                     sca.decAddTimeAfter
                 }
                 if (addTimeAfter > 0 && pos < alLSPD.size - 1) {
@@ -1525,7 +1493,6 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 axisIndex = axisIndex,
                 aMinLimit = null,
                 aMaxLimit = null,
-                aPoint = null,
                 aLine = aLine,
                 graphicHandler = gh
             )

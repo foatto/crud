@@ -1,6 +1,5 @@
 package foatto.mms.core_mms.graphic.server.document
 
-import foatto.core.app.UP_GRAPHIC_SHOW_TEXT
 import foatto.core.app.graphic.*
 import foatto.core.app.xy.XyProjection
 import foatto.core.util.AdvancedByteBuffer
@@ -37,12 +36,6 @@ class sdcSpeed : sdcAbstractGraphic() {
         val viewHeight = graphicActionRequest.viewSize!!.second
 
         val maxEnabledOverSpeed = (application as iMMSApplication).maxEnabledOverSpeed
-
-        val smText = userConfig.getUserProperty(UP_GRAPHIC_SHOW_TEXT)
-
-        //--- показ текстов по умолчанию ВЫКЛЮЧЕН, если не указано явно иное -
-        //--- т.к. кол-во зон может оказаться слишком большим и загромоздить экран
-        val isShowText = smText?.toBoolean() ?: false
 
         //--- загрузить данные по зонам
         val hmZoneData = ZoneData.getZoneData(stm, userConfig, 0)
@@ -98,11 +91,7 @@ class sdcSpeed : sdcAbstractGraphic() {
                 else {
                     null
                 }
-                val aZone = if (isShowText) {
-                    GraphicDataContainer(GraphicDataContainer.ElementType.TEXT, 0, 0, false)
-                } else {
-                    null
-                }
+                val aZone = GraphicDataContainer(GraphicDataContainer.ElementType.TEXT, 0, 0, false)
 
                 getSmoothSpeedGraphicData(
                     alRawTime = alRawTime,
