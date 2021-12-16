@@ -85,6 +85,7 @@ class mUser : mAbstractHierarchy() {
                 addSelectorColumn(columnUser!!, columnUserID)
                 addSelectorColumn(this)
             }
+            isNotUseParentId = true
         }
 
         //----------------------------------------------------------------------------------------------------------------------

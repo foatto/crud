@@ -74,6 +74,8 @@ class cUser : cAbstractHierarchy() {
         }
     }
 
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     override fun doExpand(pid: Int) = userConfig.loadFullSubUserList(conn, pid)
 
     override fun getTableColumnStyle(rowNo: Int, isNewRow: Boolean, hmColumnData: Map<iColumn, iData>, column: iColumn, tci: TableCell) {

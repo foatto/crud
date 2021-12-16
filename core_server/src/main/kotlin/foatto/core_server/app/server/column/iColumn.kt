@@ -32,6 +32,7 @@ interface iColumn {
     val alSelectTo: MutableList<iColumn>
     val alSelectFrom: MutableList<iColumn>
     val isAutoStartSelector: Boolean
+    val isNotUseParentId: Boolean
 
     val isVirtual: Boolean
     val isSearchable: Boolean

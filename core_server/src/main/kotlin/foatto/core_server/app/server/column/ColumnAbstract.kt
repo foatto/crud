@@ -37,6 +37,8 @@ abstract class ColumnAbstract : iColumn {
     //--- будет ли автоматически запускаться селектор у данного поля
     override var isAutoStartSelector: Boolean = false
 
+    override var isNotUseParentId: Boolean = false
+
     //--- виртуальное поле
     override var isVirtual: Boolean = false
 

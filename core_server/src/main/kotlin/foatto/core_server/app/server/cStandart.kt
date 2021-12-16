@@ -2,7 +2,6 @@ package foatto.core_server.app.server
 
 import foatto.core.app.*
 import foatto.core.link.*
-import foatto.core.util.AdvancedLogger
 import foatto.core.util.BusinessException
 import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.getRandomInt
@@ -315,8 +314,7 @@ open class cStandart {
             StringBuilder(model.modelTableName).append(
                 if (hsTableRenameList.contains(model.modelTableName)) {
                     StringBuilder().append(' ').append(renameTableName(hsTableRenameList, model.modelTableName))
-                }
-                else {
+                } else {
                     ""
                 }
             ).toString()
@@ -349,17 +347,13 @@ open class cStandart {
                 //--- если parent является иерархической структурой, то вполне вероятно,
                 //--- что данный pid узла развернется в список вложенных pid'ов
                 val hsID = expandParent(pa, pid)
-                val pIDList = StringBuilder()
-                for (tmpID in hsID) {
-                    pIDList.append(if (pIDList.isEmpty()) "" else " , ").append(tmpID)
-                }
+                val pIDList = hsID.joinToString(",")
                 val pc = model.hmParentColumn[pa]
                 if (pc != null) {
                     wherePart += (if (wherePart.isEmpty()) "" else " AND ") + " ${renameTableName(hsTableRenameList, pc.columnTableName)}.${pc.getFieldName(0)} "
                     if (hsID.size == 1) {
                         wherePart += " = $pIDList "
-                    }
-                    else {
+                    } else {
                         wherePart += " IN ( $pIDList ) "
                     }
                 }
@@ -572,21 +566,27 @@ open class cStandart {
         var curParentID = originalParentID
         while (true) {
             var (newPID, pName) = getExpandPathItem(curParentID)
-            if (pName.isEmpty()) pName = aliasConfig.descr
+            if (pName.isEmpty()) {
+                pName = aliasConfig.descr
+            }
 
             //--- пустые строки вместо null - чтобы не делать лишних проверок при writeUTF
             var tmpURL = ""
-            val tmpText: String
-            if (curParentID == originalParentID) tmpText = pName
-            else {
+            val tmpText = if (curParentID == originalParentID) {
+                pName
+            } else {
                 val hmP = mutableMapOf<String, Int>()
                 hmP[aliasConfig.alias] = curParentID
                 tmpURL = getParamURL(aliasConfig.alias, AppAction.TABLE, null, null, hmP, null, if (selectorID == null) "" else "&${AppParameter.SELECTOR}=$selectorID")
-                tmpText = pName
+                pName
             }
 
             alPath.add(0, Pair(if (withAnchors) tmpURL else "", tmpText))
-            if (curParentID != 0) curParentID = newPID else break
+            if (curParentID != 0) {
+                curParentID = newPID
+            } else {
+                break
+            }
         }
     }
 
@@ -1447,7 +1447,7 @@ open class cStandart {
                 hmColumnData = getFormDefaultValues(alColumnList, true)
                 //--- заполним авто-парентами
                 for (column in alColumnList) {
-                    if (column.selectorAlias == null) {
+                    if (column.selectorAlias == null || column.isNotUseParentId) {
                         continue
                     }
                     val pID = getParentID(column.selectorAlias)

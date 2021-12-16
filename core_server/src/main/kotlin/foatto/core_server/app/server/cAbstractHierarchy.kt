@@ -25,7 +25,9 @@ open class cAbstractHierarchy : cStandart() {
 
     override fun getParentID(alias: String?): Int? {
         val pID = super.getParentID(alias)
-        if (pID != null) return pID
+        if (pID != null) {
+            return pID
+        }
 
         val mah = model as mAbstractHierarchy
 
