@@ -90,9 +90,11 @@ tasks {
     }
     bootJar {
         enabled = false
-        mainClassName = "foatto.ds.DataServer"  // implicit select one main class from others
+        mainClass.set("foatto.ds.DataServer")  // implicit select one main class from others
     }
+
     jar {
         enabled = true
     }
 }
+
