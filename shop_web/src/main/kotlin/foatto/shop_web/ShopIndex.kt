@@ -1,15 +1,10 @@
 package foatto.shop_web
 
+import foatto.core.link.CustomRequest
 import foatto.core.util.getSplittedDouble
 import foatto.core_web.*
 import foatto.core_web.external.vue.that
-import foatto.shop_core.app.ACTION_CASH_CALCULATOR
-import foatto.shop_core.app.ICON_NAME_ADD_MARKED_ITEM
-import foatto.shop_core.app.ICON_NAME_CALC
-import foatto.shop_core.app.ICON_NAME_FISCAL
-import foatto.shop_core.app.PARAM_DOC_COST
-import foatto.shop_core.app.PARAM_FISCAL_URL
-import foatto.shop_core.app.PARAM_PRINT_URL
+import foatto.shop_core.app.*
 import kotlinx.browser.window
 import kotlin.js.json
 
@@ -47,21 +42,58 @@ private class ShopIndex : Index() {
                 </div>
                 <div v-bind:style="style_calc_body">
                     <div v-bind:style="style_calc_label">
-                        Стоимость: ${"&nbsp;".repeat(2)} 
+                        Стоимость: ${"&nbsp;".repeat(3)} 
                         <span>
-                            {{docCostStr}}
+                            {{docCost}}
                         </span>
                     </div>
                                           
                     <div> &nbsp; </div>
                     
                     <div v-bind:style="style_calc_label">
-                        Наличные: &nbsp;
+                        Терминал: ${"&nbsp;".repeat(3)}
                         <input type="text"
-                               v-model="docCash"
+                               v-model="docTerminal"
                                v-bind:size="10"
                                v-bind:style="style_calc_cash_input"
-                               v-bind:autofocus="true"
+                               v-on:keyup.enter.exact="doCalcCash()"
+                               v-on:keyup.esc.exact="doCalcClose()"
+                        >
+                        <button v-on:click="doAllOverTerminal()"
+                                v-bind:style="[ style_button_with_border , style_calc_text_button ]"
+                                title="Всё оплачено через терминал"
+                        >
+                            Всё через терминал
+                        </button>
+                    </div>
+                    
+                    <div> &nbsp; </div>
+                    
+                    <div v-bind:style="style_calc_label">
+                        Сбербанк: ${"&nbsp;".repeat(3)}
+                        <input type="text"
+                               v-model="docSberbank"
+                               v-bind:size="10"
+                               v-bind:style="style_calc_cash_input"
+                               v-on:keyup.enter.exact="doCalcCash()"
+                               v-on:keyup.esc.exact="doCalcClose()"
+                        >
+                        <button v-on:click="doAllOverSberbank()"
+                                v-bind:style="[ style_button_with_border , style_calc_text_button ]"
+                                title="Всё оплачено через сбербанк"
+                        >
+                            Всё через сбербанк
+                        </button>
+                    </div>
+                    
+                    <div> &nbsp; </div>
+                    
+                    <div v-bind:style="style_calc_label">
+                        Сертификат: 
+                        <input type="text"
+                               v-model="docSertificat"
+                               v-bind:size="10"
+                               v-bind:style="style_calc_cash_input"
                                v-on:keyup.enter.exact="doCalcCash()"
                                v-on:keyup.esc.exact="doCalcClose()"
                         >
@@ -70,7 +102,27 @@ private class ShopIndex : Index() {
                     <div> &nbsp; </div>
                     
                     <div v-bind:style="style_calc_label">
-                        Сдача: ${"&nbsp;".repeat(8)}
+                        Наличные: ${"&nbsp;".repeat(2)}
+                        <input type="text"
+                               v-model="docCash"
+                               v-bind:size="10"
+                               v-bind:style="style_calc_cash_input"
+                               v-bind:autofocus="true"
+                               v-on:keyup.enter.exact="doCalcCash()"
+                               v-on:keyup.esc.exact="doCalcClose()"
+                        >
+                        <button v-on:click="doCalcCash()"
+                                v-bind:style="[ style_button_with_border , style_calc_text_button, { 'font-weight': 'bold' } ]"
+                                title="Посчитать сдачу"                                                             
+                        >
+                            Посчитать сдачу
+                        </button>
+                    </div>
+                    
+                    <div> &nbsp; </div>
+                    
+                    <div v-bind:style="style_calc_label">
+                        Сдача: ${"&nbsp;".repeat(10)}
                         <span v-bind:style="[ style_calc_text, { 'color': docRestColor } ]">
                             {{docRest}}
                         </span>
@@ -82,26 +134,28 @@ private class ShopIndex : Index() {
                     <div>
                         <button v-if="calcFiscalUrl"
                                 v-on:click="doCalcFiscal()"
-                                v-bind:style="[ style_icon_button, style_button_with_border ]"
+                                v-bind:style="[ style_button_with_border , style_do_text_button ]"
                                 title="Кассовый чек"
                         >
-                            <img src="/web/images/ic_theaters_black_48dp.png">
+                            <!-- <img src="/web/images/ic_theaters_black_48dp.png"> -->
+                            Кассовый чек
                         </button>
 
-                        ${"&nbsp;".repeat(30)}
+                        ${"&nbsp;".repeat(26)} 
                         
                         <button v-if="calcPrintUrl"
                                 v-on:click="doCalcPrint()"
-                                v-bind:style="[ style_icon_button, style_button_with_border ]"
+                                v-bind:style="[ style_button_with_border , style_do_text_button ]"
                                 title="Товарный чек"
                         >
-                            <img src="/web/images/ic_print_black_48dp.png">
+                            <!-- <img src="/web/images/ic_print_black_48dp.png"> -->
+                            Товарный чек
                         </button>
 
-                        ${"&nbsp;".repeat(30)}
+                        ${"&nbsp;".repeat(26)}
                         
                         <button v-on:click="doCalcClose()"
-                                v-bind:style="[ style_text_button, style_button_with_border ]"
+                                v-bind:style="[ style_icon_button, style_button_with_border ]"
                                 title="Закрыть"
                         >
                             <img src="/web/images/ic_close_black_48dp.png">
@@ -115,51 +169,91 @@ private class ShopIndex : Index() {
         """
 
         tableClientActionFun = { action: String, params: Array<Pair<String, String>>, that: dynamic ->
-            when(action) {
+            when (action) {
                 ACTION_CASH_CALCULATOR -> {
+                    that.docId = params.find { pair -> pair.first == PARAM_DOC_ID }?.second
+
+                    val docCost = params.find { pair -> pair.first == PARAM_DOC_COST }?.second?.toDoubleOrNull() ?: -1.0
+                    that.docCost = getSplittedDouble(docCost, 2, true, ',')
+
                     that.calcFiscalUrl = params.find { pair -> pair.first == PARAM_FISCAL_URL }?.second
                     that.calcPrintUrl = params.find { pair -> pair.first == PARAM_PRINT_URL }?.second
 
-                    val docCost = params.find { pair -> pair.first == PARAM_DOC_COST }?.second?.toDoubleOrNull() ?: -1.0
-                    that.docCost = docCost
-                    that.docCostStr = getSplittedDouble(docCost, 2, true, ',')
                     that.isCalcShow = true
                 }
             }
         }
 
         tableMethodsAdd = json(
+            "doAllOverTerminal" to {
+                val docCostStr = that().docCost.unsafeCast<String>()
+                that().docTerminal = docCostStr
+                that().docSberbank = ""
+                that().docSertificat = ""
+                that().docCash = ""
+                that().docRest = ""
+            },
+            "doAllOverSberbank" to {
+                val docCostStr = that().docCost.unsafeCast<String>()
+                that().docTerminal = ""
+                that().docSberbank = docCostStr
+                that().docSertificat = ""
+                that().docCash = ""
+                that().docRest = ""
+            },
             "doCalcCash" to {
-                val docCost = that().docCost.unsafeCast<Double>()
-                val docCash = that().docCash.unsafeCast<String>().toDoubleOrNull() ?: 0.0
-                val docRest = docCash - docCost
+                val docCost = that().docCost.unsafeCast<String>().replace(',', '.').replace(" ", "").toDoubleOrNull() ?: 0.0
+                val docTerminal = that().docTerminal.unsafeCast<String>().replace(',', '.').replace(" ", "").toDoubleOrNull() ?: 0.0
+                val docSberbank = that().docSberbank.unsafeCast<String>().replace(',', '.').replace(" ", "").toDoubleOrNull() ?: 0.0
+                val docSertificat = that().docSertificat.unsafeCast<String>().replace(',', '.').replace(" ", "").toDoubleOrNull() ?: 0.0
+                val docCash = that().docCash.unsafeCast<String>().replace(',', '.').replace(" ", "").toDoubleOrNull() ?: 0.0
+                
+                val docRest = docTerminal + docSberbank + docSertificat + docCash - docCost
                 that().docRest = getSplittedDouble(docRest, 2, true, ',')
-                that().docRestColor = if(docRest < 0) "red" else "green"
+                that().docRestColor = if (docRest < 0) {
+                    "red"
+                } else {
+                    "green"
+                }
             },
             "doCalcFiscal" to {
+                doSaveDocPaymentRequest(that())
+
                 val calcFiscalUrl = that().calcFiscalUrl.unsafeCast<String>()
                 that().invoke(calcFiscalUrl, true)
                 that().isCalcShow = false
             },
             "doCalcPrint" to {
+                doSaveDocPaymentRequest(that())
+
                 val calcPrintUrl = that().calcPrintUrl.unsafeCast<String>()
                 that().invoke(calcPrintUrl, true)
                 that().isCalcShow = false
             },
             "doCalcClose" to {
+                doSaveDocPaymentRequest(that())
+
                 that().isCalcShow = false
             }
         )
 
         tableDataAdd = json(
-            "calcFiscalUrl" to null,
-            "calcPrintUrl" to null,
-            "docCost" to -1.0,
-            "docCostStr" to "-1.0",
+            "docId" to "0",
+            "docCost" to "-1.0",
+
+            "docTerminal" to "",
+            "docSberbank" to "",
+            "docSertificat" to "",
             "docCash" to "",
+
             "docRest" to "-",
             "docRestColor" to COLOR_TEXT,
+
+            "calcFiscalUrl" to null,
+            "calcPrintUrl" to null,
+
             "isCalcShow" to false,
+
             "style_calc_container" to json(
                 "position" to "fixed",
                 "top" to 0,
@@ -184,7 +278,7 @@ private class ShopIndex : Index() {
             ),
 
             "style_calc_label" to json(
-                "font-size" to "${COMMON_FONT_SIZE*2}rem",
+                "font-size" to "${COMMON_FONT_SIZE * 2}rem",
             ),
             "style_calc_text" to json(
                 "font-weight" to "bold",
@@ -193,9 +287,37 @@ private class ShopIndex : Index() {
                 "background" to COLOR_BACK,
                 "border" to "1px solid $COLOR_BUTTON_BORDER",
                 "border-radius" to BORDER_RADIUS_SMALL,
-                "font-size" to "${COMMON_FONT_SIZE*2}rem",
+                "font-size" to "${COMMON_FONT_SIZE * 2}rem",
+                "padding" to styleCommonEditorPadding(),
+            ),
+            "style_calc_text_button" to json(
+                "width" to "22rem",     // 21 хватает, но сделаем запас
+                "font-size" to "${COMMON_FONT_SIZE * 2}rem",
+                "padding" to styleCommonEditorPadding(),
+            ),
+            "style_do_text_button" to json(
+                "width" to "16rem",     // 15 хватает, но сделаем запас
+                "font-size" to "${COMMON_FONT_SIZE * 2}rem",
                 "padding" to styleCommonEditorPadding(),
             ),
         )
     }
+}
+
+private fun doSaveDocPaymentRequest(that: dynamic) {
+    val docIdStr = that.docId.unsafeCast<String>()
+    val docTerminalStr = that.docTerminal.unsafeCast<String>().replace(',', '.').replace(" ", "").ifBlank { "0" }
+    val docSberbankStr = that.docSberbank.unsafeCast<String>().replace(',', '.').replace(" ", "").ifBlank { "0" }
+    val docSertificatStr = that.docSertificat.unsafeCast<String>().replace(',', '.').replace(" ", "").ifBlank { "0" }
+    invokeCustom(
+        CustomRequest(
+            command = CUSTOM_COMMAND_SAVE_DOC_PAYMENT,
+            hmData = mapOf(
+                PARAM_DOC_PAYMENT_ID to docIdStr,
+                PARAM_DOC_PAYMENT_TERMIMAL to docTerminalStr,
+                PARAM_DOC_PAYMENT_SBERBANK to docSberbankStr,
+                PARAM_DOC_PAYMENT_SERTIFICATE to docSertificatStr,
+            )
+        )
+    )
 }

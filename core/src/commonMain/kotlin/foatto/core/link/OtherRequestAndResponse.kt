@@ -42,3 +42,10 @@ class LogoffRequest {
 class LogoffResponse
 
 class FormFileUploadResponse
+
+class CustomRequest(
+    val command: String,
+    val hmData: Map<String, String> = emptyMap()
+)
+
+class CustomResponse

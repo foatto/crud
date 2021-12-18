@@ -237,6 +237,39 @@ fun invokeUploadFormFile(
     }
 }
 
+fun invokeCustom(
+    customRequest: CustomRequest,
+    success: (responseData: CustomResponse) -> Unit = {},
+    error: (xmlHttpRequest: XMLHttpRequest) -> Unit = {},
+    finally: (() -> Unit) = {}
+) {
+    XMLHttpRequest().apply {
+        open("POST", "/api/custom", true)
+        onreadystatechange = {
+            if (this.readyState == XMLHttpRequest.DONE) {
+                if (this.status == 200.toShort()) {
+                    if (responseText.isNotBlank()) {
+//println( "responseText = ${responseText}" )
+                        val response = JSON.parse<CustomResponse>(responseText)
+                        success(response)
+                    }
+                } else {
+//                    error(this)
+                    httpDefaultErrorHandler(this)
+                }
+//                finally()
+            }
+        }
+        setRequestHeader("Content-Type", "application/json")
+
+        //--- печально, но, в отличие от JSON.parse, не работает
+        //send(JSON.stringify(requestData))
+//println( "requestData.toJson = ${graphicActionRequest.toJson()}" )
+        send(customRequest.toJson())
+    }
+}
+
+
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 fun httpDefaultErrorHandler(xmlHttpRequest: XMLHttpRequest) {
