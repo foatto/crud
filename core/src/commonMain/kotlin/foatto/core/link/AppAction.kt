@@ -7,6 +7,7 @@ object AppAction {
     const val GRAPHIC = "graphic"
     const val XY = "xy"
 //    const val VIDEO = "video"
+    const val COMPOSITE = "composite"
 
     const val TABLE = "table"
     const val FORM = "form"

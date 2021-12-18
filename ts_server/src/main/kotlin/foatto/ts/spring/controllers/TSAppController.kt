@@ -6,13 +6,13 @@ import foatto.core.app.xy.XyActionRequest
 import foatto.core.app.xy.XyActionResponse
 import foatto.core.link.AppRequest
 import foatto.core.link.AppResponse
-import foatto.core.link.CustomResponse
+import foatto.core.link.CompositeResponse
 import foatto.core.link.GraphicResponse
 import foatto.core.link.MenuData
 import foatto.core.link.ResponseCode
 import foatto.core.link.XyResponse
 import foatto.core.util.AdvancedLogger
-import foatto.core_server.app.custom.server.CustomStartData
+import foatto.core_server.app.composite.server.CompositeStartData
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.spring.CoreSpringApp
@@ -72,22 +72,22 @@ class TSAppController : CoreAppController(), iTSApplication {
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun getCustomResponse(customStartData: CustomStartData): AppResponse {
-        val fullTitle = customStartData.title.substring(0, min(32000, customStartData.title.length))
+    override fun getCompositeResponse(compositeStartData: CompositeStartData): AppResponse {
+        val fullTitle = compositeStartData.title.substring(0, min(32000, compositeStartData.title.length))
 
         val appResponse = AppResponse(
-            code = ResponseCode.CUSTOM,
-            custom = CustomResponse(
+            code = ResponseCode.COMPOSITE,
+            composite = CompositeResponse(
                 xyResponse = XyResponse(
                     documentConfig = CoreSpringApp.hmXyDocumentConfig["ts_state"]!!,
-                    startParamId = customStartData.xyStartDataId,
-                    shortTitle = customStartData.shortTitle,
+                    startParamId = compositeStartData.xyStartDataId,
+                    shortTitle = compositeStartData.shortTitle,
                     fullTitle = fullTitle,
                 ),
                 graphicResponse = GraphicResponse(
                     documentTypeName = "ts_graphic_dsltt",
-                    startParamId = customStartData.graphicStartDataId,
-                    shortTitle = customStartData.shortTitle,
+                    startParamId = compositeStartData.graphicStartDataId,
+                    shortTitle = compositeStartData.shortTitle,
                     fullTitle = fullTitle,
                 ),
             )
@@ -119,7 +119,7 @@ class TSAppController : CoreAppController(), iTSApplication {
 
         val alMenuControl = mutableListOf<MenuData>()
 
-        addMenu(hmAliasConfig, hmAliasPerm, alMenuControl, "ts_custom_all", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuControl, "ts_composite_all", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuControl, "ts_show_state", false)
 
         if (alMenuControl.size > 0) {

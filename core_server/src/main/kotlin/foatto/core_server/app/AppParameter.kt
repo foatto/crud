@@ -33,35 +33,39 @@ object AppParameter {
     //---- через него передается xy_start_data_id=ХХХ, по которому берется значение xy_start_data
     const val XY_START_DATA = "xy_start_data"
 
-    fun parseParam( appParam: String, hmParam: MutableMap<String, String> ): String {
+    //--- через него передается composite_start_data_id=ХХХ, по которому берется значение composite_start_data
+    const val COMPOSITE_START_DATA = "composite_start_data"
+
+    fun parseParam(appParam: String, hmParam: MutableMap<String, String>): String {
         var action = EMPTY
         //--- если в строке нет ни одной пары "параметр=значение", значит это просто action
-        if( !appParam.contains( '=' ) ) {
+        if (!appParam.contains('=')) {
             action = appParam
             hmParam[ACTION] = action
-        }
-        else {
-            appParam.split( "&" ).forEach { pair ->
-                val arr = pair.split( "=" )
-                val name = arr[ 0 ]
-                val value = arr[ 1 ]
-                hmParam[ name ] = value
-                if( name == ACTION) action = value
+        } else {
+            appParam.split("&").forEach { pair ->
+                val arr = pair.split("=")
+                val name = arr[0]
+                val value = arr[1]
+                hmParam[name] = value
+                if (name == ACTION) {
+                    action = value
+                }
             }
         }
         return action
     }
 
-    fun collectParam( hmParam: Map<String, String> ): String {
+    fun collectParam(hmParam: Map<String, String>): String {
         var param = ""
-        hmParam.forEach { (key, value) ->  param += "&$key=$value" }
-        return param.substring( 1 ) // пропускаем первый &
+        hmParam.forEach { (key, value) -> param += "&$key=$value" }
+        return param.substring(1) // пропускаем первый &
     }
 
-    fun setParam( appParam: String, paramName: String, paramValue: String ): String {
+    fun setParam(appParam: String, paramName: String, paramValue: String): String {
         val hmParam = mutableMapOf<String, String>()
         parseParam(appParam, hmParam)
-        hmParam[ paramName ] = paramValue
+        hmParam[paramName] = paramValue
         return collectParam(hmParam)
     }
 }

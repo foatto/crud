@@ -4,9 +4,11 @@ import foatto.core.app.UP_TIME_OFFSET
 import foatto.core.link.AppAction
 import foatto.core.link.AppRequest
 import foatto.core.link.AppResponse
+import foatto.core.link.CompositeResponse
 import foatto.core.link.LogonRequest
 import foatto.core.link.ResponseCode
 import foatto.core.link.XyDocumentClientType
+import foatto.core_web.external.vue.VueComponentOptions
 import foatto.core_web.external.vue.that
 import foatto.core_web.external.vue.vueComponentOptions
 import kotlinx.browser.localStorage
@@ -15,6 +17,8 @@ import kotlin.js.json
 
 const val LOCAL_STORAGE_LOGIN = "login"
 const val LOCAL_STORAGE_PASSWORD = "password"
+
+var compositeResponseCodeControlFun: (compositeResponse: CompositeResponse, tabId: Int) -> VueComponentOptions = { _: CompositeResponse, _: Int -> vueComponentOptions() }
 
 @Suppress("UnsafeCastFromDynamic")
 fun appControl(startAppParam: String, tabId: Int) = vueComponentOptions().apply {
@@ -41,7 +45,7 @@ fun appControl(startAppParam: String, tabId: Int) = vueComponentOptions().apply 
                     <div v-bind:style="style_logon_div">
                         <input v-bind:style="style_logon_input" v-model="password" size="${styleLogonTextLen()}" type="password" placeholder="Пароль">
                     </div>
-                    <div v-bind:style="[ style_logon_div, { 'align-self': 'flex-start' } ]">
+                    <div v-bind:style="[ style_logon_div, { 'align-self': 'flex-start', 'color': '$colorLogonCheckBoxText' } ]">
                         <input v-bind:style="style_logon_checkbox" v-model="isRememberMe" type="checkbox">
                             Запомнить меня
                         </input>
@@ -63,8 +67,11 @@ fun appControl(startAppParam: String, tabId: Int) = vueComponentOptions().apply 
             <div v-else-if="responseCode == '${ResponseCode.LOGON_ADMIN_BLOCKED}'">
                 "Ошибка входа в систему", "Пользователь заблокирован администратором."
             </div>
-            <component v-else-if="responseCode == '${ResponseCode.TABLE}' || responseCode == '${ResponseCode.FORM}' ||
-                                  responseCode == '${ResponseCode.GRAPHIC}' || responseCode == '${ResponseCode.XY}'"
+            <component v-else-if="responseCode == '${ResponseCode.TABLE}' || 
+                                  responseCode == '${ResponseCode.FORM}' ||
+                                  responseCode == '${ResponseCode.GRAPHIC}' || 
+                                  responseCode == '${ResponseCode.XY}' ||
+                                  responseCode == '${ResponseCode.COMPOSITE}'"
                        v-bind:is="curControl">
             </component>
             <div v-else>
@@ -111,7 +118,9 @@ fun appControl(startAppParam: String, tabId: Int) = vueComponentOptions().apply 
                                 fillSystemProperties(logonRequest.hmSystemProperties)
 
                                 that.invoke(AppRequest(action = AppAction.LOGON, logon = logonRequest))
-                            } else that.responseCode = appResponse.code
+                            } else {
+                                that.responseCode = appResponse.code
+                            }
                         }
                         //--- если вход успешен - повторим последний запрос
                         ResponseCode.LOGON_SUCCESS.toString(), ResponseCode.LOGON_SUCCESS_BUT_OLD.toString() -> {
@@ -125,11 +134,15 @@ fun appControl(startAppParam: String, tabId: Int) = vueComponentOptions().apply 
                                     //--- если смещение <= максимально возможного смещения в секундах (43 200 сек), значит оно задано в секундах (логично)
                                     //--- в противном случае смещение задано в старом варианте - в миллисекундах
                                     //--- (минимальное значение будет начинаться с 1 час * 60 * 60 * 1000 = 3 600 000 мс, что всяко не совпадает с верхней границей в 43 200 от предущего варианта)
-                                    that.`$root`.timeOffset = if (timeOffset <= 12 * 60 * 60) timeOffset else timeOffset / 1000
+                                    that.`$root`.timeOffset = if (timeOffset <= 12 * 60 * 60) {
+                                        timeOffset
+                                    } else {
+                                        timeOffset / 1000
+                                    }
                                 }
                             }
 
-                            that.`$parent`.setMenuBar(menuBar(appResponse.alMenuData!!))
+                            that.`$parent`.setMenuBar(menuBar(appResponse.arrMenuData!!))
 
                             //--- перевызовем сервер с предыдущей (до-логинной) командой
                             val prevRequest = that.prevRequest.unsafeCast<AppRequest>()
@@ -161,7 +174,7 @@ fun appControl(startAppParam: String, tabId: Int) = vueComponentOptions().apply 
                             that.responseCode = appResponse.code
                         }
 //!!!            ResponseCode.VIDEO_ONLINE, ResponseCode.VIDEO_ARCHIVE -> {
-//                val vcStartParamID = bbIn.getShortString()
+//                val vcstartParamId = bbIn.getShortString()
 //                val vcStartTitle = bbIn.getShortString()
 //
 //                val videoControl = if( curResponseCode == ResponseCode.VIDEO_ONLINE.toInt() ) VideoOnlineControl()
@@ -169,8 +182,12 @@ fun appControl(startAppParam: String, tabId: Int) = vueComponentOptions().apply 
 //                addPanes( videoControl )
 //
 //                //--- init работает совместно с read
-//                videoControl.init( appContainer, appLink, tab, this, vcStartParamID, vcStartTitle )
+//                videoControl.init( appContainer, appLink, tab, this, vcstartParamId, vcStartTitle )
 //            }
+                        ResponseCode.COMPOSITE.toString() -> {
+                            that.curControl = compositeResponseCodeControlFun(appResponse.composite!!, tabId)
+                            that.responseCode = appResponse.code
+                        }
                         else -> {
                             that.responseCode = appResponse.code
                         }
@@ -231,7 +248,7 @@ fun appControl(startAppParam: String, tabId: Int) = vueComponentOptions().apply 
                 "display" to "grid",
                 "grid-template-rows" to "1fr auto 1fr",
                 "grid-template-columns" to "1fr auto 1fr",
-                "background" to COLOR_PANEL_BACK
+                "background" to colorLogonBackAround
             ),
             "style_logon_top_expander" to json(
                 "grid-area" to "1 / 2 / 2 / 3"
@@ -239,9 +256,9 @@ fun appControl(startAppParam: String, tabId: Int) = vueComponentOptions().apply 
             "style_logon_cell" to json(
                 "grid-area" to "2 / 2 / 3 / 3",
                 "padding" to styleLogonCellPadding(),
-                "border" to "1px solid $COLOR_MENU_BORDER",
+                "border" to "1px solid $colorLogonBorder",
                 "border-radius" to BORDER_RADIUS,
-                "background" to COLOR_LOGON_BACK,
+                "background" to colorLogonBackCenter,
                 "display" to "flex",
                 "flex-direction" to "column",
                 "align-items" to "center"
@@ -276,8 +293,8 @@ fun appControl(startAppParam: String, tabId: Int) = vueComponentOptions().apply 
                 "margin" to styleLogonCheckBoxMargin()
             ),
             "style_logon_button" to json(
-                "background" to COLOR_BUTTON_BACK,
-                "border" to "1px solid $COLOR_BUTTON_BORDER",
+                "background" to colorLogonButtonBack,
+                "border" to "1px solid $colorLogonButtonBorder",
                 "border-radius" to BORDER_RADIUS,
                 "font-size" to styleCommonButtonFontSize(),
                 "padding" to styleLogonButtonPadding(),

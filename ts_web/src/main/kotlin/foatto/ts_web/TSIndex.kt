@@ -2,16 +2,13 @@ package foatto.ts_web
 
 import foatto.core.app.graphic.GraphicViewCoord
 import foatto.core.app.xy.XyViewCoord
-import foatto.core.link.CustomResponse
+import foatto.core.link.CompositeResponse
 import foatto.core_web.*
 import foatto.core_web.external.vue.that
 import foatto.core_web.external.vue.vueComponentOptions
 import kotlinx.browser.document
 import kotlinx.browser.window
-import org.w3c.dom.events.Event
-import org.w3c.dom.events.WheelEvent
 import kotlin.js.json
-import kotlin.math.roundToInt
 
 @Suppress("UnsafeCastFromDynamic")
 fun main() {
@@ -53,12 +50,12 @@ private class TSIndex : Index() {
         colorGroupBack0 = "#c0eeee"
         colorGroupBack1 = "#c0ffff"
 
-        customResponseCodeControlFun = { customResponse: CustomResponse, tabId: Int ->
+        compositeResponseCodeControlFun = { compositeResponse: CompositeResponse, tabId: Int ->
             vueComponentOptions().apply {
 
                 this.template = """
-                    <div v-bind:style="style_custom">
-                        <div id="custom_title_$tabId" v-bind:style="[ style_toolbar, style_header ]">
+                    <div v-bind:style="style_composite">
+                        <div id="composite_title_$tabId" v-bind:style="[ style_toolbar, style_header ]">
                             <span v-bind:style="style_toolbar_block">
                             </span>
                             <span v-bind:style="[style_toolbar_block, style_title]">
@@ -67,7 +64,7 @@ private class TSIndex : Index() {
                             <span v-bind:style="style_toolbar_block">
                             </span>
                         </div>
-                        <div id="custom_toolbar_$tabId" v-bind:style="style_toolbar">
+                        <div id="composite_toolbar_$tabId" v-bind:style="style_toolbar">
                             <span v-bind:style="style_toolbar_block">
                                 <img src="/web/images/ic_sync_black_48dp.png"
                                      v-bind:style="style_icon_button"
@@ -77,7 +74,7 @@ private class TSIndex : Index() {
                             </span>
                         </div>
 
-                        <div v-bind:style="style_custom_grid">
+                        <div v-bind:style="style_composite_grid">
                             <div v-bind:style="[ style_comp, { 'grid-area': '1 / 1 / 2 / 2' } ]">
 
                     """ +
@@ -114,9 +111,9 @@ private class TSIndex : Index() {
 
                         doStateRefreshView(
                             that = that,
-                            xyResponse = customResponse.xyResponse,
+                            xyResponse = compositeResponse.xyResponse,
                             tabId = tabId,
-                            elementPrefix = "custom",
+                            elementPrefix = "composite",
                             arrAddElements = emptyArray(),
                             aView = aView,
                         )
@@ -126,9 +123,9 @@ private class TSIndex : Index() {
 
                         doGraphicRefresh(
                             that = that,
-                            graphicResponse = customResponse.graphicResponse,
+                            graphicResponse = compositeResponse.graphicResponse,
                             tabId = tabId,
-                            elementPrefix = "custom",
+                            elementPrefix = "composite",
                             arrAddElements = emptyArray(),
                             aView = aView,
                         )
@@ -138,7 +135,7 @@ private class TSIndex : Index() {
                 this.mounted = {
                     val that = that()
 
-                    val xyResponse = customResponse.xyResponse
+                    val xyResponse = compositeResponse.xyResponse
 
                     //--- once only
                     that.`$root`.setTabInfo(tabId, xyResponse.shortTitle, xyResponse.fullTitle)
@@ -148,7 +145,7 @@ private class TSIndex : Index() {
                         that = that,
                         xyResponse = xyResponse,
                         tabId = tabId,
-                        elementPrefix = "custom",
+                        elementPrefix = "composite",
                         startExpandKoef = 0.0,
                         isCentered = true,
                         curScale = 1,
@@ -156,18 +153,18 @@ private class TSIndex : Index() {
                         arrAddElements = emptyArray(),  // верхний элемент, нет элементов выше его
                     )
 
-                    val graphicResponse = customResponse.graphicResponse
+                    val graphicResponse = compositeResponse.graphicResponse
 
                     doGraphicSpecificComponentMounted(
                         that = that,
                         graphicResponse = graphicResponse,
                         tabId = tabId,
-                        elementPrefix = "custom",
+                        elementPrefix = "composite",
                         svgHeight = GRAPHIC_MIN_HEIGHT * 2,
                         arrAddElements = arrayOf(document.getElementById("xy_svg_body_$tabId")!!),
                     )
 
-                    that.style_custom_grid = json(
+                    that.style_composite_grid = json(
                         "height" to "100%",
                         "overflow" to "auto",
                         "display" to "grid",
@@ -180,7 +177,7 @@ private class TSIndex : Index() {
                     json(
                         "fullTitle" to "",
 
-                        "style_custom" to json(
+                        "style_composite" to json(
                             "flex-grow" to 1,
                             "flex-shrink" to 1,
                             "display" to "flex",
@@ -223,7 +220,7 @@ private class TSIndex : Index() {
                             "margin" to styleCommonMargin(),
                             "cursor" to "pointer"
                         ),
-                        "style_custom_grid" to null,
+                        "style_composite_grid" to null,
                         "style_comp" to json(
                             "justify-self" to "stretch", // horizontal align
                             "align-self" to "stretch",   // vertical align

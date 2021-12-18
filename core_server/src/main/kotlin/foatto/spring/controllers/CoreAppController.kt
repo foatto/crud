@@ -12,6 +12,7 @@ import foatto.core.util.BusinessException
 import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.getFilledNumberString
 import foatto.core_server.app.AppParameter
+import foatto.core_server.app.composite.server.CompositeStartData
 import foatto.core_server.app.graphic.server.GraphicDocumentConfig
 import foatto.core_server.app.graphic.server.GraphicStartData
 import foatto.core_server.app.graphic.server.document.sdcAbstractGraphic
@@ -279,7 +280,7 @@ abstract class CoreAppController : iApplication {
 
                     //--- временно используем List вместо Map, т.к. в Kotlin/JS нет возможности десериализовать Map (а List десериализуется в Array)
                     appResponse.hmUserProperty = userConfig.hmUserProperty.toList().toTypedArray()
-                    appResponse.alMenuData = menuInit(stm, hmAliasConfig, userConfig).toTypedArray()
+                    appResponse.arrMenuData = menuInit(stm, hmAliasConfig, userConfig).toTypedArray()
 
                     for ((upKey, upValue) in appRequest.logon!!.hmSystemProperties) {
                         //println( "$upKey = $upValue" )
@@ -305,7 +306,7 @@ abstract class CoreAppController : iApplication {
                                 documentTypeName = aliasName,
                                 startParamId = graphicStartDataID,
                                 shortTitle = sd.shortTitle,
-                                fullTitle = sd.sbTitle.substring(0, min(32000, sd.sbTitle.length))
+                                fullTitle = sd.title.substring(0, min(32000, sd.title.length))
                             )
                         )
                     }
@@ -321,10 +322,9 @@ abstract class CoreAppController : iApplication {
                                 documentConfig = CoreSpringApp.hmXyDocumentConfig[docTypeName]!!,
                                 startParamId = xyStartDataID,
                                 shortTitle = sd.shortTitle,
-                                fullTitle = sd.sbTitle.substring(0, min(32000, sd.sbTitle.length)),
+                                fullTitle = sd.title.substring(0, min(32000, sd.title.length)),
                             )
                         )
-
                     }
 //                    AppAction.VIDEO -> {
 //                    if( userLogMode == SYSTEM_LOG_ALL ) logQuery( hmParam )
@@ -346,6 +346,13 @@ abstract class CoreAppController : iApplication {
 //                    doc.init( dataServer, dataWorker, chmSession, userConfig )
 //                    withCompression = doc.doAction( bbIn, bbOut )
 //                    }
+                    AppAction.COMPOSITE -> {
+                        val compositeStartDataID = hmParam[AppParameter.COMPOSITE_START_DATA]!!
+
+                        appResponse = getCompositeResponse(
+                            compositeStartData = chmSession[AppParameter.COMPOSITE_START_DATA + compositeStartDataID] as CompositeStartData
+                        )
+                    }
                     else -> {
                         val aliasName = hmParam[AppParameter.ALIAS] ?: throw BusinessException("Не указано имя модуля.")
 
@@ -396,13 +403,13 @@ abstract class CoreAppController : iApplication {
                                         }
                                 }
                                 else -> {
-                                    //--- пропускаем модули с синими вёдрами
-                                    //if( "ru".equals( aliasName ) ) {}
-                                    //--- пропускаем логи отчётов и показов картографии
-                                    //else
                                     if (checkLogSkipAliasPrefix(aliasName)) {
-                                        if (CoreSpringApp.userLogMode == CoreSpringApp.SYSTEM_LOG_ALL) logQuery(hmParam)
-                                    } else if (CoreSpringApp.userLogMode != CoreSpringApp.SYSTEM_LOG_NONE) logQuery(hmParam)
+                                        if (CoreSpringApp.userLogMode == CoreSpringApp.SYSTEM_LOG_ALL) {
+                                            logQuery(hmParam)
+                                        }
+                                    } else if (CoreSpringApp.userLogMode != CoreSpringApp.SYSTEM_LOG_NONE) {
+                                        logQuery(hmParam)
+                                    }
 
                                     val redirectURL = when (appRequest.action) {
                                         AppAction.SAVE, AppAction.ARCHIVE, AppAction.UNARCHIVE -> page.doSave(appRequest.action, appRequest.alFormData!!, hmOut)
@@ -610,7 +617,33 @@ abstract class CoreAppController : iApplication {
 //        return updateResponse
 //    }
 
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    protected open fun getCompositeResponse(compositeStartData: CompositeStartData): AppResponse = AppResponse(ResponseCode.COMPOSITE)
+
+    protected open fun checkLogSkipAliasPrefix(alias: String): Boolean = false
+
+    //--- для перекрытия классами-наследниками
+    protected abstract fun menuInit(stm: CoreAdvancedStatement, hmAliasConfig: Map<String, AliasConfig>, userConfig: UserConfig): List<MenuData>
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    protected fun addMenu(hmAliasConfig: Map<String, AliasConfig>, hmAliasPerm: Map<String, Set<String>>, alMenu: MutableList<MenuData>, alias: String, isTableMenu: Boolean) {
+        if (checkMenuPermission(hmAliasConfig, hmAliasPerm, alias))
+            alMenu.add(if (isTableMenu) createTableMenu(hmAliasConfig, alias) else createFormMenu(hmAliasConfig, alias))
+    }
+
+    protected fun addSeparator(alMenu: MutableList<MenuData>) {
+        alMenu.add(MenuData("", ""))
+    }
+
+    protected fun checkMenuPermission(hmAliasConfig: Map<String, AliasConfig>, hmAliasPerm: Map<String, Set<String>>, alias: String): Boolean {
+        val ac = hmAliasConfig[alias]
+        val hsPerm = hmAliasPerm[alias]
+        return ac != null && hsPerm != null && hsPerm.contains(cStandart.PERM_ACCESS)
+    }
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     private fun getFreeDir(fileName: String): String {
         var i = 0
@@ -723,8 +756,6 @@ abstract class CoreAppController : iApplication {
 //        out.close()
     }
 
-    protected open fun checkLogSkipAliasPrefix(alias: String): Boolean = false
-
 //    private fun getAppParam( hmParam: HashMap<String, String> ): StringBuilder {
 //        val sbAppParam = StringBuilder()
 //        for( key in hmParam.keys ) {
@@ -755,24 +786,6 @@ abstract class CoreAppController : iApplication {
             hmOut[CoreSpringApp.ALIAS_CONFIG] = hmAliasConfig
         }
         return hmAliasConfig
-    }
-
-    //--- для перекрытия классами-наследниками
-    protected abstract fun menuInit(stm: CoreAdvancedStatement, hmAliasConfig: Map<String, AliasConfig>, userConfig: UserConfig): List<MenuData>
-
-    protected fun addMenu(hmAliasConfig: Map<String, AliasConfig>, hmAliasPerm: Map<String, Set<String>>, alMenu: MutableList<MenuData>, alias: String, isTableMenu: Boolean) {
-        if (checkMenuPermission(hmAliasConfig, hmAliasPerm, alias))
-            alMenu.add(if (isTableMenu) createTableMenu(hmAliasConfig, alias) else createFormMenu(hmAliasConfig, alias))
-    }
-
-    protected fun addSeparator(alMenu: MutableList<MenuData>) {
-        alMenu.add(MenuData("", ""))
-    }
-
-    protected fun checkMenuPermission(hmAliasConfig: Map<String, AliasConfig>, hmAliasPerm: Map<String, Set<String>>, alias: String): Boolean {
-        val ac = hmAliasConfig[alias]
-        val hsPerm = hmAliasPerm[alias]
-        return ac != null && hsPerm != null && hsPerm.contains(cStandart.PERM_ACCESS)
     }
 
     private fun createTableMenu(hmAliasConfig: Map<String, AliasConfig>, alias: String): MenuData {

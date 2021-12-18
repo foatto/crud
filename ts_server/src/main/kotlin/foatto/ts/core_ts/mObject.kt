@@ -126,7 +126,7 @@ class mObject : mAbstract() {
 
 //        TSFunction.fillAllChildDataForGraphics(columnID, alChildData)
 
-        alChildData.add(ChildData("ts_custom_all", columnID, AppAction.FORM, true))
+        alChildData.add(ChildData("ts_composite_all", columnID, AppAction.FORM, true))
 
         alChildData.add(ChildData("ts_show_state", columnID, AppAction.FORM, true))
 

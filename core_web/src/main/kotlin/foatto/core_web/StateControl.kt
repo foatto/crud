@@ -7,6 +7,7 @@ import foatto.core.link.XyResponse
 import foatto.core_web.external.vue.that
 import foatto.core_web.external.vue.vueComponentOptions
 import kotlinx.browser.window
+import org.w3c.dom.Element
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.MouseEvent
 import kotlin.js.json
@@ -22,53 +23,46 @@ fun stateControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().app
 
     this.template =
         """
-        <div>
-            <div id="state_title_$tabId" v-bind:style="[ style_toolbar, style_header ]">
-                <span v-bind:style="style_toolbar_block">
-                </span>
-                <span v-bind:style="[style_toolbar_block, style_title]">
-                    {{fullTitle}}
-                </span>
-                <span v-bind:style="style_toolbar_block">
-                </span>
-            </div>
-            <div id="state_toolbar_$tabId" v-bind:style="style_toolbar">
-                <span v-bind:style="style_toolbar_block">
-                    <img src="/web/images/ic_sync_black_48dp.png"
-                         v-bind:style="style_icon_button"
-                         v-on:click="refreshView( null, null )"
-                         title="Обновить"
-                    >
-                </span>
-            </div>
+            <div>
+                <div id="state_title_$tabId" v-bind:style="[ style_toolbar, style_header ]">
+                    <span v-bind:style="style_toolbar_block">
+                    </span>
+                    <span v-bind:style="[style_toolbar_block, style_title]">
+                        {{fullTitle}}
+                    </span>
+                    <span v-bind:style="style_toolbar_block">
+                    </span>
+                </div>
+                <div id="state_toolbar_$tabId" v-bind:style="style_toolbar">
+                    <span v-bind:style="style_toolbar_block">
+                        <img src="/web/images/ic_sync_black_48dp.png"
+                             v-bind:style="style_icon_button"
+                             v-on:click="xyRefreshView( null, null )"
+                             title="Обновить"
+                        >
+                    </span>
+                </div>
 
-""" +
+        """ +
 
-            getXyElementTemplate(tabId, "") +
+            getXyElementTemplate(tabId, true, "") +
 
             """
-        </div>
-"""
+            </div>
+        """
 
     this.methods = json(
-        //--- метод может вызываться из лямбд, поэтому возможен проброс ему "истинного" this
-        "refreshView" to { aThat: dynamic, aView: XyViewCoord? ->
+        "xyRefreshView" to { aThat: dynamic, aView: XyViewCoord? ->
             val that = aThat ?: that()
-            val scaleKoef = that.`$root`.scaleKoef.unsafeCast<Double>()
-            val svgCoords = defineXySvgCoords("state", tabId)
 
-            val newView =
-                if (aView != null) {
-                    //--- принимаем новый ViewCoord как есть, но корректируем масштаб в зависимости от текущего размера выводимой области
-                    aView.scale = calcXyScale(scaleKoef, svgCoords.bodyWidth, svgCoords.bodyHeight, aView.x1, aView.y1, aView.x2, aView.y2)
-                    //--- обновляем, только если изменилось (оптимизируем цепочку реактивных изменений)
-                    that.viewCoord = aView
-                    aView
-                } else {
-                    that.viewCoord.unsafeCast<XyViewCoord>()
-                }
-
-            getXyElements(that, xyResponse, scaleKoef, newView, "", svgCoords.bodyLeft, svgCoords.bodyTop)
+            doStateRefreshView(
+                that = that,
+                xyResponse = xyResponse,
+                tabId = tabId,
+                elementPrefix = "state",
+                arrAddElements = emptyArray(),
+                aView = aView,
+            )
         },
         "onMouseOver" to { event: Event, xyElement: XyElementData ->
             onXyMouseOver(that(), event as MouseEvent, xyElement)
@@ -87,7 +81,7 @@ fun stateControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().app
         "onTextPressed" to { event: Event, xyElement: XyElementData ->
             val that = that()
 
-            val curMode = that().curMode.unsafeCast<StateWorkMode>()
+            val curMode = that().stateCurMode.unsafeCast<StateWorkMode>()
 
             when (curMode) {
                 StateWorkMode.PAN -> {
@@ -115,19 +109,49 @@ fun stateControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().app
     )
 
     this.mounted = {
-
-        doXyMounted(that(), xyResponse, tabId, "state", startExpandKoef, 1)
-
+        doXyMounted(
+            that = that(),
+            xyResponse = xyResponse,
+            tabId = tabId,
+            elementPrefix = "state",
+            startExpandKoef = startExpandKoef,
+            isCentered = true,
+            curScale = 1,
+        )
 //        cursor = Cursor.HAND
     }
 
     this.data = {
         getXyComponentData().add(
             json(
-                "curMode" to StateWorkMode.PAN,
-                )
+                "stateCurMode" to StateWorkMode.PAN,
+            )
         )
     }
 
+}
+
+fun doStateRefreshView(
+    that: dynamic,
+    xyResponse: XyResponse,
+    tabId: Int,
+    elementPrefix: String,
+    arrAddElements: Array<Element>,
+    aView: XyViewCoord?,
+) {
+    val scaleKoef = that.`$root`.scaleKoef.unsafeCast<Double>()
+    val svgCoords = defineXySvgCoords(tabId, elementPrefix, arrAddElements)
+
+    val newView = aView?.let {
+        //--- принимаем новый ViewCoord как есть, но корректируем масштаб в зависимости от текущего размера выводимой области
+        aView.scale = calcXyScale(scaleKoef, svgCoords.bodyWidth, svgCoords.bodyHeight, aView.x1, aView.y1, aView.x2, aView.y2)
+        //--- обновляем, только если изменилось (оптимизируем цепочку реактивных изменений)
+        that.xyViewCoord = aView
+        aView
+    } ?: run {
+        that.xyViewCoord.unsafeCast<XyViewCoord>()
+    }
+
+    getXyElements(that, xyResponse, scaleKoef, newView, "", svgCoords.bodyLeft, svgCoords.bodyTop)
 }
 

@@ -11,26 +11,39 @@ import foatto.core.link.XyDocumentConfig
 import foatto.core.link.XyResponse
 import kotlinx.browser.document
 import kotlinx.browser.window
+import org.w3c.dom.Element
 import org.w3c.dom.events.MouseEvent
 import kotlin.js.Date
-import kotlin.js.Json
 import kotlin.js.json
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-fun getXyElementTemplate(tabId: Int, specificSvg: String) =
+@Suppress("UnsafeCastFromDynamic")
+fun getXyElementTemplate(
+    tabId: Int,
+    withInteractive: Boolean = true,
+    specificSvg: String = "",
+) =
     """
-    <svg id="svg_body_$tabId"
+    <svg id="xy_svg_body_$tabId"
          width="100%"
-         v-bind:height="svg_height"
-         v-bind:viewBox="viewBoxBody"
-         v-on:mousedown.prevent="onMousePressed( false, ${'$'}event.offsetX, ${'$'}event.offsetY )"
-         v-on:mousemove="onMouseMove( false, ${'$'}event.offsetX, ${'$'}event.offsetY )"
-         v-on:mouseup.prevent="onMouseReleased( false, ${'$'}event.offsetX, ${'$'}event.offsetY, ${'$'}event.shiftKey, ${'$'}event.ctrlKey, ${'$'}event.altKey )"
-         v-on:mousewheel.prevent="onMouseWheel( ${'$'}event )"
-         v-on:touchstart.prevent="onMousePressed( true, ${'$'}event.changedTouches[0].clientX, ${'$'}event.changedTouches[0].clientY )"
-         v-on:touchmove.prevent="onMouseMove( true, ${'$'}event.changedTouches[0].clientX, ${'$'}event.changedTouches[0].clientY )"
-         v-on:touchend.stop="onMouseReleased( true, ${'$'}event.changedTouches[0].clientX, ${'$'}event.changedTouches[0].clientY, ${'$'}event.shiftKey, ${'$'}event.ctrlKey, ${'$'}event.altKey )"
+         v-bind:height="xy_svg_height"
+         v-bind:viewBox="xyViewBoxBody"
+    """ +
+        if (withInteractive) {
+            """
+                 v-on:mousedown.prevent="onMousePressed( false, ${'$'}event.offsetX, ${'$'}event.offsetY )"
+                 v-on:mousemove="onMouseMove( false, ${'$'}event.offsetX, ${'$'}event.offsetY )"
+                 v-on:mouseup.prevent="onMouseReleased( false, ${'$'}event.offsetX, ${'$'}event.offsetY, ${'$'}event.shiftKey, ${'$'}event.ctrlKey, ${'$'}event.altKey )"
+                 v-on:mousewheel.prevent="onMouseWheel( ${'$'}event )"
+                 v-on:touchstart.prevent="onMousePressed( true, ${'$'}event.changedTouches[0].clientX, ${'$'}event.changedTouches[0].clientY )"
+                 v-on:touchmove.prevent="onMouseMove( true, ${'$'}event.changedTouches[0].clientX, ${'$'}event.changedTouches[0].clientY )"
+                 v-on:touchend.stop="onMouseReleased( true, ${'$'}event.changedTouches[0].clientX, ${'$'}event.changedTouches[0].clientY, ${'$'}event.shiftKey, ${'$'}event.ctrlKey, ${'$'}event.altKey )"
+            """
+        } else {
+            ""
+        } +
+        """
     >
 
         <template v-for="arrElement in arrXyElement">
@@ -45,8 +58,16 @@ fun getXyElementTemplate(tabId: Int, specificSvg: String) =
                         v-bind:stroke-width="element.strokeWidth"
                         v-bind:stroke-dasharray="element.itSelected ? element.strokeDash : ''"
                         v-bind:transform="element.transform"
+                """ +
+        if (withInteractive) {
+            """
                         v-on:mouseenter="onMouseOver( ${'$'}event, element )"
                         v-on:mouseleave="onMouseOut()"
+                        """
+        } else {
+            ""
+        } +
+        """
                 />
 
                 <ellipse v-else-if="element.type == '${XyElementDataType.ELLIPSE}'"
@@ -59,8 +80,16 @@ fun getXyElementTemplate(tabId: Int, specificSvg: String) =
                          v-bind:stroke-width="element.strokeWidth"
                          v-bind:stroke-dasharray="element.itSelected ? element.strokeDash : ''"
                          v-bind:transform="element.transform"
+    """ +
+        if (withInteractive) {
+            """
                          v-on:mouseenter="onMouseOver( ${'$'}event, element )"
                          v-on:mouseleave="onMouseOut()"
+            """
+        } else {
+            ""
+        } +
+        """
                 />
 
                 <image v-else-if="element.type == '${XyElementDataType.IMAGE}'"
@@ -70,8 +99,16 @@ fun getXyElementTemplate(tabId: Int, specificSvg: String) =
                        v-bind:height="element.height"
                        v-bind:transform="element.transform"
                        v-bind:xlink:href="element.url"
+    """ +
+        if (withInteractive) {
+            """
                        v-on:mouseenter="onMouseOver( ${'$'}event, element )"
                        v-on:mouseleave="onMouseOut()"
+            """
+        } else {
+            ""
+        } +
+        """
                 />
 
                 <line v-else-if="element.type == '${XyElementDataType.LINE}'"
@@ -82,8 +119,16 @@ fun getXyElementTemplate(tabId: Int, specificSvg: String) =
                       v-bind:stroke="element.stroke"
                       v-bind:stroke-width="element.strokeWidth"
                       v-bind:stroke-dasharray="element.itSelected ? element.strokeDash : ''"
+    """ +
+        if (withInteractive) {
+            """
                       v-on:mouseenter="onMouseOver( ${'$'}event, element )"
                       v-on:mouseleave="onMouseOut()"
+            """
+        } else {
+            ""
+        } +
+        """
                 />
 
                 <path v-else-if="element.type == '${XyElementDataType.PATH}'"
@@ -93,8 +138,16 @@ fun getXyElementTemplate(tabId: Int, specificSvg: String) =
                       v-bind:stroke-width="element.strokeWidth"
                       v-bind:stroke-dasharray="element.itSelected ? element.strokeDash : ''"
                       v-bind:transform="element.transform"
+    """ +
+        if (withInteractive) {
+            """
                       v-on:mouseenter="onMouseOver( ${'$'}event, element )"
                       v-on:mouseleave="onMouseOut()"
+            """
+        } else {
+            ""
+        } +
+        """
                 />
 
                 <polyline v-else-if="element.type == '${XyElementDataType.POLYLINE}'"
@@ -104,8 +157,16 @@ fun getXyElementTemplate(tabId: Int, specificSvg: String) =
                           v-bind:stroke-width="element.strokeWidth"
                           v-bind:stroke-dasharray="element.itSelected ? element.strokeDash : ''"
                           v-bind:transform="element.transform"
+    """ +
+        if (withInteractive) {
+            """
                           v-on:mouseenter="onMouseOver( ${'$'}event, element )"
                           v-on:mouseleave="onMouseOut()"
+            """
+        } else {
+            ""
+        } +
+        """
                 />
 
                 <polygon v-else-if="element.type == '${XyElementDataType.POLYGON}'"
@@ -115,8 +176,16 @@ fun getXyElementTemplate(tabId: Int, specificSvg: String) =
                          v-bind:stroke-width="element.strokeWidth"
                          v-bind:stroke-dasharray="element.itSelected ? element.strokeDash : ''"
                          v-bind:transform="element.transform"
+                """ +
+        if (withInteractive) {
+            """
                          v-on:mouseenter="onMouseOver( ${'$'}event, element )"
                          v-on:mouseleave="onMouseOut()"
+                        """
+        } else {
+            ""
+        } +
+        """
                 />
 
                 <rect v-else-if="element.type == '${XyElementDataType.RECT}'"
@@ -131,10 +200,39 @@ fun getXyElementTemplate(tabId: Int, specificSvg: String) =
                       v-bind:rx="element.rx"
                       v-bind:ry="element.ry"
                       v-bind:transform="element.transform"
+            """ +
+        if (withInteractive) {
+            """
                       v-on:mouseenter="onMouseOver( ${'$'}event, element )"
                       v-on:mouseleave="onMouseOut()"
+                    """
+        } else {
+            ""
+        } +
+        """
                 />
 
+                <text v-else-if="element.type == '${XyElementDataType.SVG_TEXT}'"
+                      v-bind:x="element.x"
+                      v-bind:y="element.y"
+                      v-bind:fill="element.stroke"
+                      v-bind:text-anchor="element.hAnchor"
+                      v-bind:dominant-baseline="element.vAnchor"
+                      v-bind:transform="element.transform"
+                      v-bind:style="element.style"
+            """ +
+        if (withInteractive) {
+            """
+                      v-on:mouseenter="onMouseOver( ${'$'}event, element )"
+                      v-on:mouseleave="onMouseOut()"
+                    """
+        } else {
+            ""
+        } +
+        """
+                >
+                    {{ element.text }}
+                </text>
             </template>
         </template>
 """ +
@@ -146,13 +244,21 @@ fun getXyElementTemplate(tabId: Int, specificSvg: String) =
 
     <template v-for="arrElement in arrXyElement">
         <template v-for="element in arrElement">
-            <template v-if="element.type == '${XyElementDataType.TEXT}'">
+            <template v-if="element.type == '${XyElementDataType.HTML_TEXT}'">
                 <div v-show="element.isVisible"
                      v-bind:style="[element.pos, element.style]"
+        """ +
+        if (withInteractive) {
+            """
                      v-on:mouseenter="onMouseOver( ${'$'}event, element )"
                      v-on:mouseleave="onMouseOut()"
                      v-on:mousedown.prevent="onTextPressed( ${'$'}event, element )"
                      v-on:touchstart.prevent="onTextPressed( ${'$'}event, element )"
+                """
+        } else {
+            ""
+        } +
+        """
                      v-html="element.text"
                 >
                 </div>
@@ -160,9 +266,9 @@ fun getXyElementTemplate(tabId: Int, specificSvg: String) =
         </template>
     </template>
 
-    <div v-show="tooltipVisible"
-         v-bind:style="[style_tooltip_text, style_tooltip_pos]"
-         v-html="tooltipText"
+    <div v-show="xyTooltipVisible"
+         v-bind:style="[style_xy_tooltip_text, style_xy_tooltip_pos]"
+         v-html="xyTooltipText"
     >
     </div>
 
@@ -177,18 +283,26 @@ class XySvgCoords(
     val bodyHeight: Int,
 )
 
-fun defineXySvgCoords(elementPrefix: String, tabId: Int): XySvgCoords {
+fun defineXySvgCoords(
+    tabId: Int,
+    elementPrefix: String,
+    arrAddElements: Array<Element>,
+): XySvgCoords {
+
     val menuBarElement = document.getElementById(MENU_BAR_ID)
+
     val svgTabPanel = document.getElementById("tab_panel")!!
     val svgXyTitle = document.getElementById("${elementPrefix}_title_$tabId")!!
     val svgXyToolbar = document.getElementById("${elementPrefix}_toolbar_$tabId")!!
-    val svgBodyElement = document.getElementById("svg_body_$tabId")!!
+
+    val svgBodyElement = document.getElementById("xy_svg_body_$tabId")!!
 
     val menuBarWidth = menuBarElement?.clientWidth ?: 0
 
     return XySvgCoords(
         bodyLeft = menuBarWidth,  //svgBodyElement.clientLeft - BUG: всегда даёт 0
-        bodyTop = svgTabPanel.clientHeight + svgXyTitle.clientHeight + svgXyToolbar.clientHeight,  //svgBodyElement.clientTop - BUG: всегда даёт 0
+        //--- svgBodyElement.clientTop - BUG: всегда даёт 0
+        bodyTop = svgTabPanel.clientHeight + svgXyTitle.clientHeight + svgXyToolbar.clientHeight + arrAddElements.sumOf { it.clientHeight },
         bodyWidth = svgBodyElement.clientWidth,
         bodyHeight = svgBodyElement.clientHeight,
     )
@@ -196,19 +310,51 @@ fun defineXySvgCoords(elementPrefix: String, tabId: Int): XySvgCoords {
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-fun doXyMounted(that: dynamic, xyResponse: XyResponse, tabId: Int, elementPrefix: String, startExpandKoef: Double, curScale: Int) {
-    that.documentConfig = xyResponse.documentConfig
-    that.startParamId = xyResponse.startParamId
+fun doXyMounted(
+    that: dynamic,
+    xyResponse: XyResponse,
+    tabId: Int,
+    elementPrefix: String,
+    startExpandKoef: Double,
+    isCentered: Boolean,
+    curScale: Int,
+) {
+    that.`$root`.setTabInfo(tabId, xyResponse.shortTitle, xyResponse.fullTitle)
     that.fullTitle = xyResponse.fullTitle
 
-    that.`$root`.setTabInfo(tabId, xyResponse.shortTitle, xyResponse.fullTitle)
+    doXySpecificComponentMounted(
+        that = that,
+        xyResponse = xyResponse,
+        tabId = tabId,
+        elementPrefix = elementPrefix,
+        startExpandKoef = startExpandKoef,
+        isCentered = isCentered,
+        curScale = curScale,
+        svgHeight = null,
+        arrAddElements = emptyArray(),
+    )
+}
+
+fun doXySpecificComponentMounted(
+    that: dynamic,
+    xyResponse: XyResponse,
+    tabId: Int,
+    elementPrefix: String,
+    startExpandKoef: Double,
+    isCentered: Boolean,
+    curScale: Int,
+    svgHeight: Int?,
+    arrAddElements: Array<Element>,
+) {
+    that.xyDocumentConfig = xyResponse.documentConfig
+    that.xyStartParamId = xyResponse.startParamId
 
     val scaleKoef = that.`$root`.scaleKoef.unsafeCast<Double>()
     //--- принудительная установка полной высоты svg-элементов
     //--- (BUG: иначе высота либо равна 150px - если не указывать высоту,
     //--- либо равно width, если указать height="100%")
-    val svgCoords = defineXySvgCoords(elementPrefix, tabId)
-    that.svg_height = window.innerHeight - svgCoords.bodyTop
+    val svgCoords = defineXySvgCoords(tabId, elementPrefix, arrAddElements)
+    that.xy_svg_height = svgHeight ?: (window.innerHeight - svgCoords.bodyTop)
 
     that.`$root`.setWait(true)
     invokeXy(
@@ -219,7 +365,7 @@ fun doXyMounted(that: dynamic, xyResponse: XyResponse, tabId: Int, elementPrefix
         ),
         { xyActionResponse: XyActionResponse ->
 
-            val svgBodyElement = document.getElementById("svg_body_$tabId")!!
+            val svgBodyElement = document.getElementById("xy_svg_body_$tabId")!!
             val svgBodyWidth = svgBodyElement.clientWidth
             val svgBodyHeight = svgBodyElement.clientHeight
 
@@ -228,6 +374,7 @@ fun doXyMounted(that: dynamic, xyResponse: XyResponse, tabId: Int, elementPrefix
             val newViewCoord = getXyCoordsDone(
                 scaleKoef = scaleKoef,
                 startExpandKoef = startExpandKoef,
+                isCentered = isCentered,
                 viewWidth = svgBodyWidth,
                 viewHeight = svgBodyHeight,
                 curScale = curScale,
@@ -235,9 +382,9 @@ fun doXyMounted(that: dynamic, xyResponse: XyResponse, tabId: Int, elementPrefix
                 maxCoord = xyActionResponse.maxCoord!!
             )
 
-            //--- именно до refreshView, чтобы не сбросить сразу после включения
+            //--- именно до xyRefreshView, чтобы не сбросить сразу после включения
             that.`$root`.setWait(false)
-            that.refreshView(that, newViewCoord)
+            that.xyRefreshView(that, newViewCoord) as Unit
         }
     )
 }
@@ -261,37 +408,58 @@ fun readXyElements(
 }
 
 fun getXyViewBoxBody(that: dynamic): IntArray {
-    val sViewBox = that.viewBoxBody.unsafeCast<String>()
+    val sViewBox = that.xyViewBoxBody.unsafeCast<String>()
     return sViewBox.split(' ').map { it.toInt() }.toIntArray()
 }
 
 fun setXyViewBoxBody(that: dynamic, arrViewBox: IntArray) {
-    that.viewBoxBody = "${arrViewBox[0]} ${arrViewBox[1]} ${arrViewBox[2]} ${arrViewBox[3]}"
+    that.xyViewBoxBody = "${arrViewBox[0]} ${arrViewBox[1]} ${arrViewBox[2]} ${arrViewBox[3]}"
 }
 
-fun getXyCoordsDone(scaleKoef: Double, startExpandKoef: Double, viewWidth: Int, viewHeight: Int, curScale: Int, minCoord: XyPoint, maxCoord: XyPoint): XyViewCoord {
+fun getXyCoordsDone(
+    scaleKoef: Double,
+    startExpandKoef: Double,
+    isCentered: Boolean,
+    viewWidth: Int,
+    viewHeight: Int,
+    curScale: Int,
+    minCoord: XyPoint,
+    maxCoord: XyPoint
+): XyViewCoord {
+
     var x1 = minCoord.x
     var y1 = minCoord.y
     var x2 = maxCoord.x
     var y2 = maxCoord.y
 
-    val scale: Int
     val tmpW = x2 - x1
     val tmpH = y2 - y1
     //--- если пришли граничные координаты только одной точки,
     //--- то оставим текущий масштаб
-    if (tmpW == 0 && tmpH == 0) {
-        scale = curScale
-    }
-    else {
+    val scale = if (tmpW == 0 && tmpH == 0) {
+        curScale
+    } else {
         //--- прибавим по краям startExpandKoef, чтобы искомые элементы не тёрлись об края экрана
         x1 -= (tmpW * startExpandKoef).toInt()
         y1 -= (tmpH * startExpandKoef).toInt()
         x2 += (tmpW * startExpandKoef).toInt()
         y2 += (tmpH * startExpandKoef).toInt()
         //--- масштаб вычисляется исходя из размеров docView (аналогично zoomBox)
-        scale = calcXyScale(scaleKoef, viewWidth, viewHeight, x1, y1, x2, y2)
+        calcXyScale(scaleKoef, viewWidth, viewHeight, x1, y1, x2, y2)
     }
+
+    if (isCentered) {
+        val fullXyWidth = (viewWidth * scale / scaleKoef).toInt()
+        val restXyWidth = fullXyWidth - (x2 - x1)
+        x1 -= restXyWidth / 2
+        x2 -= restXyWidth / 2
+
+        val fullXyHeight = (viewHeight * scale / scaleKoef).toInt()
+        val restXyHeight = fullXyHeight - (y2 - y1)
+        y1 -= restXyHeight / 2
+        y2 -= restXyHeight / 2
+    }
+
     return XyViewCoord(scale, x1, y1, x2, y2)
 }
 
@@ -368,15 +536,15 @@ fun setXyTextOffset(that: dynamic, svgBodyLeft: Int, svgBodyTop: Int) {
 
     for (arrLayer in arrXyElement) {
         for (xyElement in arrLayer) {
-            if (xyElement.type == XyElementDataType.TEXT) {
+            if (xyElement.type == XyElementDataType.HTML_TEXT) {
                 val newX = xyElement.x!! - arrViewBoxBody[0]
                 val newY = xyElement.y!! - arrViewBoxBody[1]
 
-                xyElement.isVisible = newX >= 0 && newY >= 0 && newX < arrViewBoxBody[2] && newY < arrViewBoxBody[3]
+                xyElement.isVisible = newX >= 0 && newY >= 0 && newX < arrViewBoxBody[2] && newY /*- xyOffsY*/ < arrViewBoxBody[3]
 
                 xyElement.pos = json(
                     "left" to "${svgBodyLeft + newX}px",
-                    "top" to "${svgBodyTop + newY}px"
+                    "top" to "${svgBodyTop + newY}px",
                 )
             }
         }
@@ -390,12 +558,12 @@ fun onXyMouseOver(that: dynamic, mouseEvent: MouseEvent, xyElement: XyElementDat
         val tooltipX = mouseEvent.clientX + (16 * scaleKoef).roundToInt()
         val tooltipY = mouseEvent.clientY + (16 * scaleKoef).roundToInt()
 
-        that.tooltipVisible = true
-        that.tooltipText = xyElement.tooltip.replace("\n", "<br>")
-        that.style_tooltip_pos = json("left" to "${tooltipX}px", "top" to "${tooltipY}px")
-        that.tooltipOffTime = Date().getTime() + 3000
+        that.xyTooltipVisible = true
+        that.xyTooltipText = xyElement.tooltip.replace("\n", "<br>")
+        that.style_xy_tooltip_pos = json("left" to "${tooltipX}px", "top" to "${tooltipY}px")
+        that.xyTooltipOffTime = Date().getTime() + 3000
     } else {
-        that.tooltipVisible = false
+        that.xyTooltipVisible = false
     }
 }
 
@@ -404,14 +572,22 @@ fun onXyMouseOut(that: dynamic) {
     //--- причина: баг (?) в том, что mouseleave вызывается сразу после mouseenter,
     //--- причём после ухода с графика других mouseleave не вызывается.
     window.setTimeout({
-        val tooltipOffTime = that.tooltipOffTime.unsafeCast<Double>()
+        val tooltipOffTime = that.xyTooltipOffTime.unsafeCast<Double>()
         if (Date().getTime() > tooltipOffTime) {
-            that.tooltipVisible = false
+            that.xyTooltipVisible = false
         }
     }, 3000)
 }
 
-fun getXyElements(that: dynamic, xyResponse: XyResponse, scaleKoef: Double, newView: XyViewCoord, mapBitmapTypeName: String, svgBodyLeft: Int, svgBodyTop: Int) {
+fun getXyElements(
+    that: dynamic,
+    xyResponse: XyResponse,
+    scaleKoef: Double,
+    newView: XyViewCoord,
+    mapBitmapTypeName: String,
+    svgBodyLeft: Int,
+    svgBodyTop: Int
+) {
     that.`$root`.setWait(true)
     invokeXy(
         XyActionRequest(
@@ -486,77 +662,83 @@ fun xyDeselectAll(that: dynamic) {
 
 fun getXyClickRect(mouseX: Int, mouseY: Int): XyRect = XyRect(mouseX - MIN_USER_RECT_SIZE / 2, mouseY - MIN_USER_RECT_SIZE / 2, MIN_USER_RECT_SIZE, MIN_USER_RECT_SIZE)
 
-fun getXyComponentData(): Json {
-    return json(
-        "documentConfig" to null,
-        "startParamId" to "",
-        "fullTitle" to "",
+fun getXyComponentData() = json(
+    "fullTitle" to "",
 
-        "svg_height" to "100%",
+    "style_header" to json(
+        "border-top" to if (!styleIsNarrowScreen) {
+            "none"
+        } else {
+            "1px solid $COLOR_BUTTON_BORDER"
+        }
+    ),
+    "style_toolbar" to json(
+        "display" to "flex",
+        "flex-direction" to "row",
+        "flex-wrap" to "wrap",
+        "justify-content" to "space-between",
+        "align-items" to "center",        // "baseline" ?
+        "padding" to styleControlPadding(),
+        "background" to COLOR_PANEL_BACK
+    ),
+    "style_toolbar_block" to json(
+        "display" to "flex",
+        "flex-direction" to "row",
+        "flex-wrap" to "nowrap",
+        "justify-content" to "center",
+        "align-items" to "center"        // "baseline" ?
+    ),
+    "style_title" to json(
+        "font-size" to styleControlTitleTextFontSize(),
+        "padding" to styleControlTitlePadding()
+    ),
+    "style_text_button" to json(
+        "background" to COLOR_BUTTON_BACK,
+        "border" to "1px solid $COLOR_BUTTON_BORDER",
+        "border-radius" to BORDER_RADIUS,
+        "font-size" to styleCommonButtonFontSize(),
+        "padding" to styleTextButtonPadding(),//styleCommonEditorPadding(),
+        "margin" to styleCommonMargin(),
+        "cursor" to "pointer"
+    ),
+    "style_icon_button" to json(
+        "background" to COLOR_BUTTON_BACK,
+        "border" to "1px solid $COLOR_BUTTON_BORDER",
+        "border-radius" to BORDER_RADIUS,
+        "font-size" to styleCommonButtonFontSize(),
+        "padding" to styleIconButtonPadding(),
+        "margin" to styleCommonMargin(),
+        "cursor" to "pointer"
+    ),
+).add(
+    getXySpecificComponentData()
+)
 
-        "viewCoord" to XyViewCoord(1, 0, 0, 1, 1),        // XyViewCoord( 1, 0, 0, 0, 0 ), в StateControl ???
-        "arrXyElement" to arrayOf<Array<XyElementData>>(),
+fun getXySpecificComponentData() = json(
+    "xyDocumentConfig" to null,
+    "xyStartParamId" to "",
 
-        "viewBoxBody" to "0 0 1 1",
-        "tooltipOffTime" to 0.0,
+    "xy_svg_height" to "100%",
+    "xyViewBoxBody" to "0 0 1 1",
 
-        "tooltipVisible" to false,
-        "tooltipText" to "",
+    "xyViewCoord" to XyViewCoord(1, 0, 0, 1, 1),        // XyViewCoord( 1, 0, 0, 0, 0 ), в StateControl ???
+    "arrXyElement" to arrayOf<Array<XyElementData>>(),
 
-        "style_header" to json(
-            "border-top" to if (!styleIsNarrowScreen) "none" else "1px solid $COLOR_BUTTON_BORDER"
-        ),
-        "style_toolbar" to json(
-            "display" to "flex",
-            "flex-direction" to "row",
-            "flex-wrap" to "wrap",
-            "justify-content" to "space-between",
-            "align-items" to "center",        // "baseline" ?
-            "padding" to styleControlPadding(),
-            "background" to COLOR_PANEL_BACK
-        ),
-        "style_toolbar_block" to json(
-            "display" to "flex",
-            "flex-direction" to "row",
-            "flex-wrap" to "nowrap",
-            "justify-content" to "center",
-            "align-items" to "center"        // "baseline" ?
-        ),
-        "style_title" to json(
-            "font-size" to styleControlTitleTextFontSize(),
-            "padding" to styleControlTitlePadding()
-        ),
-        "style_text_button" to json(
-            "background" to COLOR_BUTTON_BACK,
-            "border" to "1px solid $COLOR_BUTTON_BORDER",
-            "border-radius" to BORDER_RADIUS,
-            "font-size" to styleCommonButtonFontSize(),
-            "padding" to styleTextButtonPadding(),//styleCommonEditorPadding(),
-            "margin" to styleCommonMargin(),
-            "cursor" to "pointer"
-        ),
-        "style_icon_button" to json(
-            "background" to COLOR_BUTTON_BACK,
-            "border" to "1px solid $COLOR_BUTTON_BORDER",
-            "border-radius" to BORDER_RADIUS,
-            "font-size" to styleCommonButtonFontSize(),
-            "padding" to styleIconButtonPadding(),
-            "margin" to styleCommonMargin(),
-            "cursor" to "pointer"
-        ),
-        "style_tooltip_text" to json(
-            "position" to "absolute",
-            "color" to COLOR_XY_LABEL_TEXT,
-            "background" to COLOR_XY_LABEL_BACK,
-            "border" to "1px solid $COLOR_XY_LABEL_BORDER",
-            "border-radius" to BORDER_RADIUS,
-            "padding" to styleControlTooltipPadding(),
-            "user-select" to if (styleIsNarrowScreen) "none" else "auto"
-        ),
-        "style_tooltip_pos" to json(
-            "left" to "",
-            "top" to ""
-        )
-    )
+    "xyTooltipVisible" to false,
+    "xyTooltipText" to "",
+    "xyTooltipOffTime" to 0.0,
 
-}
+    "style_xy_tooltip_text" to json(
+        "position" to "absolute",
+        "color" to COLOR_XY_LABEL_TEXT,
+        "background" to COLOR_XY_LABEL_BACK,
+        "border" to "1px solid $COLOR_XY_LABEL_BORDER",
+        "border-radius" to BORDER_RADIUS,
+        "padding" to styleControlTooltipPadding(),
+        "user-select" to if (styleIsNarrowScreen) "none" else "auto"
+    ),
+    "style_xy_tooltip_pos" to json(
+        "left" to "",
+        "top" to ""
+    ),
+)

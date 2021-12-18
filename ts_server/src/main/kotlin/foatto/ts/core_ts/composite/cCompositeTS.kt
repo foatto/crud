@@ -1,11 +1,11 @@
-package foatto.ts.core_ts.custom
+package foatto.ts.core_ts.composite
 
 import foatto.core.app.ICON_NAME_GRAPHIC
 import foatto.core.link.AppAction
 import foatto.core.link.FormData
 import foatto.core.util.getRandomInt
 import foatto.core_server.app.AppParameter
-import foatto.core_server.app.custom.server.CustomStartData
+import foatto.core_server.app.composite.server.CompositeStartData
 import foatto.core_server.app.graphic.server.GraphicStartData
 import foatto.core_server.app.server.cAbstractForm
 import foatto.core_server.app.server.data.DataInt
@@ -16,7 +16,7 @@ import foatto.ts.iTSApplication
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 
-class cCustomTS : cAbstractForm() {
+class cCompositeTS : cAbstractForm() {
 
     override fun getOkButtonIconName() = ICON_NAME_GRAPHIC
 
@@ -27,11 +27,11 @@ class cCustomTS : cAbstractForm() {
             return returnURL
         }
 
-        val msfd = model as mCustomTS
+        val msfd = model as mCompositeTS
 
         val selectObjectId = (hmColumnData[msfd.columnObject] as DataInt).intValue
 
-        val csd = CustomStartData()
+        val csd = CompositeStartData()
         csd.objectId = selectObjectId
         csd.rangeType = (hmColumnData[msfd.columnShowRangeType] as DataRadioButton).intValue
 
@@ -98,14 +98,14 @@ class cCustomTS : cAbstractForm() {
         val grParamId = getRandomInt()
         hmOut[AppParameter.GRAPHIC_START_DATA + grParamId] = grsd
 
-        //--- Custom end
+        //--- Composite end
 
         csd.xyStartDataId = xyParamId.toString()
         csd.graphicStartDataId = grParamId.toString()
 
-        val customParamID = getRandomInt()
-        hmOut[AppParameter.CUSTOM_START_DATA + customParamID] = csd
+        val compositeParamID = getRandomInt()
+        hmOut[AppParameter.COMPOSITE_START_DATA + compositeParamID] = csd
 
-        return getParamURL(aliasConfig.alias, AppAction.CUSTOM, null, null, null, null, "&${AppParameter.CUSTOM_START_DATA}=$customParamID")
+        return getParamURL(aliasConfig.alias, AppAction.COMPOSITE, null, null, null, null, "&${AppParameter.COMPOSITE_START_DATA}=$compositeParamID")
     }
 }
