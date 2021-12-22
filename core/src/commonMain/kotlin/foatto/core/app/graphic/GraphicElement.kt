@@ -2,7 +2,7 @@ package foatto.core.app.graphic
 
 class GraphicElement(
     val graphicTitle: String,
-    val alIndexColor: Array<Pair<GraphicColorIndex, Int>>,
+    val alLegend: Array<Triple<Int, Boolean, String>>,   // color-index, is-back, descr
     val graphicHeight: Double,
     val alAxisYData: Array<AxisYData>,
     var alGDC: Array<GraphicDataContainer>,

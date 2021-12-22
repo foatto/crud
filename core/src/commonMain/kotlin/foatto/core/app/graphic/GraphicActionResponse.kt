@@ -6,7 +6,9 @@ class GraphicActionResponse(
     val endTime: Int? = null,
 
     //--- answer on GET_ELEMENTS
-    val alElement: Array<Pair<String, GraphicElement>>? = null,
-    val alVisibleElement: Array<Pair<String, String>>? = null
+    val alIndexColor: Array<Pair<GraphicColorIndex, Int>> = emptyArray(),
+    val alElement: Array<Pair<String, GraphicElement>> = emptyArray(),
+    val alVisibleElement: Array<Pair<String, String>> = emptyArray(),
+    val alLegend: Array<Triple<Int, Boolean, String>> = emptyArray(),   // color-index, is-back, descr
 )
 
