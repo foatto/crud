@@ -1,10 +1,8 @@
 package foatto.core_web
 
-import foatto.core.app.UP_TIME_OFFSET
 import foatto.core.link.ChangePasswordRequest
 import foatto.core.link.LogoffRequest
 import foatto.core.link.MenuData
-import foatto.core.link.SaveUserPropertyRequest
 import foatto.core_web.external.vue.that
 import foatto.core_web.external.vue.vueComponentOptions
 import kotlinx.browser.localStorage
@@ -17,17 +15,6 @@ private const val CMD_SET_START_PAGE = "set_start_page"
 private const val CMD_CLEAR_START_PAGE = "clear_start_page"
 private const val CMD_CHANGE_PASSWORD = "change_password"
 private const val CMD_LOGOFF = "logoff"
-private const val CMD_TIME_OFFSET_PREFIX = "timeoffset_"
-
-private val arrTZOffset = intArrayOf(
-    0, 1 * 60 * 60, 2 * 60 * 60, 3 * 60 * 60, 4 * 60 * 60, 5 * 60 * 60, 6 * 60 * 60,
-    7 * 60 * 60, 8 * 60 * 60, 9 * 60 * 60, 10 * 60 * 60, 11 * 60 * 60, 12 * 60 * 60
-)
-
-val arrRbmiTZ = arrayOf(
-    "UTC+00:00", "UTC+01:00", "UTC+02:00", "UTC+03:00", "UTC+04:00", "UTC+05:00", "UTC+06:00",
-    "UTC+07:00", "UTC+08:00", "UTC+09:00", "UTC+10:00", "UTC+11:00", "UTC+12:00"
-)
 
 @Suppress("UnsafeCastFromDynamic")
 fun menuBar(arrMenuData: Array<MenuData>) = vueComponentOptions().apply {
@@ -95,12 +82,6 @@ fun menuBar(arrMenuData: Array<MenuData>) = vueComponentOptions().apply {
                 localStorage.setItem(LOCAL_STORAGE_PASSWORD, "")
 
                 invokeLogoff(LogoffRequest())
-            } else if (url.startsWith(CMD_TIME_OFFSET_PREFIX)) {
-                val newTimeOffsetInSec = url.substringAfterLast('_').toInt()
-
-                that().`$root`.timeOffset = newTimeOffsetInSec
-                //--- на сервере лежит в миллисекундах - избыточно, но менять уже не будем
-                invokeSaveUserProperty(SaveUserPropertyRequest(UP_TIME_OFFSET, newTimeOffsetInSec.toString()))
             } else that().`$root`.openTab(url)
         },
     )
@@ -179,21 +160,14 @@ private fun addClientMenu(arrMenuData: Array<MenuData>): Array<MenuData> {
 
     alSubMenu.add(MenuData("", ""))
 
-    val alTimeOffsetMenu = mutableListOf<MenuData>()
-    for (i in arrTZOffset.indices) {
-        alTimeOffsetMenu.add(MenuData(CMD_TIME_OFFSET_PREFIX + arrTZOffset[i], arrRbmiTZ[i], null))
-    }
-
-    alSubMenu.add(MenuData("", "Часовой пояс", alTimeOffsetMenu.toTypedArray()))
-
-    alSubMenu.add(MenuData("", ""))
-
     alSubMenu.add(MenuData(CMD_LOGOFF, "Выход из системы", null))
 
     alSubMenu.add(MenuData("", ""))
 
     alSubMenu.add(MenuData("", "outer width = ${window.outerWidth}", null))
+    alSubMenu.add(MenuData("", "outer height = ${window.outerHeight}", null))
     alSubMenu.add(MenuData("", "inner width = ${window.innerWidth}", null))
+    alSubMenu.add(MenuData("", "inner height = ${window.innerHeight}", null))
     alSubMenu.add(MenuData("", "device pixel ratio = ${window.devicePixelRatio}", null))
     alSubMenu.add(MenuData("", "touch screen = ${styleIsTouchScreen()}", null))
 

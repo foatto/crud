@@ -103,6 +103,14 @@ class sdcLiquid : sdcAbstractAnalog() {
                     svf as SensorConfigAnalogue
                 } ?: emptyList()
 
+                val flowSensorsGraphicHandlers = mutableListOf<AnalogGraphicHandler>()
+                massFlowSensorsInThisGroup.forEach { _ ->
+                    flowSensorsGraphicHandlers.add(AnalogGraphicHandler())
+                }
+                volumeFlowSensorsInThisGroup.forEach { _ ->
+                    flowSensorsGraphicHandlers.add(AnalogGraphicHandler())
+                }
+
                 getGraphicElement(
                     graphicTitle = sca.descr,
                     begTime = begTime,
@@ -113,7 +121,7 @@ class sdcLiquid : sdcAbstractAnalog() {
                     alRawData = alRawData,
                     objectConfig = objectConfig,
                     alSca = listOf(sca) + massFlowSensorsInThisGroup + volumeFlowSensorsInThisGroup,
-                    alGraphicHandler = listOf(graphicHandler) + AnalogGraphicHandler() + AnalogGraphicHandler(),
+                    alGraphicHandler = listOf(graphicHandler) + flowSensorsGraphicHandlers,
                     tmElement = tmElement,
                     tmElementVisibleConfig = tmElementVisibleConfig,
                 )

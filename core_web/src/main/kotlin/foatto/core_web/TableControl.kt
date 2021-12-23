@@ -622,7 +622,6 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                                 )
                             )
                         }
-                        println(cellStyle)
                     }
                 }
                 alGridData.add(

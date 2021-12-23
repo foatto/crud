@@ -145,7 +145,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                      v-bind:style="style_icon_button"
                      v-bind:disabled="isRefreshButtonDisabled"
                      title="Обновить"
-                     v-on:click="refreshView( null, null )"
+                     v-on:click="xyRefreshView( null, null )"
                 >
             </span>
         </div>
@@ -154,7 +154,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
 
             getXyElementTemplate(
                 tabId,
-
+                true,
                 """
         <template v-if="mouseRect.isVisible">
             <rect v-bind:x="Math.min(mouseRect.x1, mouseRect.x2)"
@@ -216,11 +216,11 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
 
     this.methods = json(
         //--- метод может вызываться из лямбд, поэтому возможен проброс ему "истинного" this
-        "refreshView" to { aThat: dynamic, aView: XyViewCoord? ->
+        "xyRefreshView" to { aThat: dynamic, aView: XyViewCoord? ->
             val that = aThat ?: that()
             val scaleKoef = that.`$root`.scaleKoef.unsafeCast<Double>()
-            val curViewCoord = that().viewCoord.unsafeCast<XyViewCoord>()
-            val svgCoords = defineXySvgCoords("map", tabId)
+            val curViewCoord = that().xyViewCoord.unsafeCast<XyViewCoord>()
+            val svgCoords = defineXySvgCoords(tabId, "map", emptyArray())
 
             val newView =
                 if (aView != null) {
@@ -244,7 +244,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                     )
 
                     //--- обновляем, только если изменилось (оптимизируем цепочку реактивных изменений)
-                    that.viewCoord = checkedView
+                    that.xyViewCoord = checkedView
                     checkedView
                 } else {
                     curViewCoord
@@ -256,7 +256,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
             that.isMoveElementsButtonVisible = false
         },
         "onMouseOver" to { event: Event, xyElement: XyElementData ->
-            val curMode = that().curMode.unsafeCast<MapWorkMode>()
+            val curMode = that().mapCurMode.unsafeCast<MapWorkMode>()
 
             when (curMode.toString()) {
                 MapWorkMode.PAN.toString(),
@@ -272,8 +272,8 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
             var mouseY = aMouseY.toInt()
 
             val scaleKoef = that().`$root`.scaleKoef.unsafeCast<Double>()
-            val curMode = that().curMode.unsafeCast<MapWorkMode>()
-            val svgCoords = defineXySvgCoords("map", tabId)
+            val curMode = that().mapCurMode.unsafeCast<MapWorkMode>()
+            val svgCoords = defineXySvgCoords(tabId, "map", emptyArray())
 
             if (isNeedOffsetCompensation) {
                 mouseX -= svgCoords.bodyLeft
@@ -332,8 +332,8 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
 //            val timeOffset = that().`$root`.timeOffset.unsafeCast<Int>()
             val scaleKoef = that().`$root`.scaleKoef.unsafeCast<Double>()
 
-            val viewCoord = that().viewCoord.unsafeCast<XyViewCoord>()
-            val curMode = that().curMode.unsafeCast<MapWorkMode>()
+            val viewCoord = that().xyViewCoord.unsafeCast<XyViewCoord>()
+            val curMode = that().mapCurMode.unsafeCast<MapWorkMode>()
 
             val isMouseDown = that().isMouseDown.unsafeCast<Boolean>()
             val panPointOldX = that().panPointOldX.unsafeCast<Int>()
@@ -341,7 +341,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
             val panDX = that().panDX.unsafeCast<Int>()
             val panDY = that().panDY.unsafeCast<Int>()
 
-            val svgCoords = defineXySvgCoords("map", tabId)
+            val svgCoords = defineXySvgCoords(tabId, "map", emptyArray())
 
             if (isNeedOffsetCompensation) {
                 mouseX -= svgCoords.bodyLeft
@@ -466,13 +466,13 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
 
             val scaleKoef = that().`$root`.scaleKoef.unsafeCast<Double>()
 
-            val viewCoord = that().viewCoord.unsafeCast<XyViewCoord>()
-            val curMode = that().curMode.unsafeCast<MapWorkMode>()
+            val viewCoord = that().xyViewCoord.unsafeCast<XyViewCoord>()
+            val curMode = that().mapCurMode.unsafeCast<MapWorkMode>()
 
             val panDX = that().panDX.unsafeCast<Int>()
             val panDY = that().panDY.unsafeCast<Int>()
 
-            val svgCoords = defineXySvgCoords("map", tabId)
+            val svgCoords = defineXySvgCoords(tabId, "map", emptyArray())
 
             if (isNeedOffsetCompensation) {
                 mouseX -= svgCoords.bodyLeft
@@ -484,7 +484,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                     //--- перезагружаем карту, только если был горизонтальный сдвиг
                     if (abs(panDX) >= 1 || abs(panDY) >= 1) {
                         viewCoord.moveRel((-panDX * viewCoord.scale / scaleKoef).roundToInt(), (-panDY * viewCoord.scale / scaleKoef).roundToInt())
-                        that().refreshView(null, viewCoord)
+                        that().xyRefreshView(null, viewCoord)
                     }
                     that().panPointOldX = 0
                     that().panPointOldY = 0
@@ -508,7 +508,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                             //--- (и scaleKoef здесь не нужен!!!)
                             val newScale = ceil(viewCoord.scale * max(1.0 * mouseWidth / svgCoords.bodyWidth, 1.0 * mouseHeight / svgCoords.bodyHeight)).toInt()
                             //--- переводим в мировые координаты
-                            that().refreshView(
+                            that().xyRefreshView(
                                 null, XyViewCoord(
                                     newScale,
                                     viewCoord.x1 + mouseToReal(scaleKoef, viewCoord.scale, min(mouseRect.x1, mouseRect.x2)),
@@ -529,7 +529,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                     //--- при первом клике заводим сумму, отключаем тулбар и включаем кнопку отмены линейки
                     if (alDistancerLine.isEmpty()) {
                         that().distancerSumText = XyElementData(
-                            type = XyElementDataType.TEXT,
+                            type = XyElementDataType.HTML_TEXT,
                             elementId = -getRandomInt(),
                             objectId = 0,
                             x = mouseX,
@@ -573,7 +573,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
 
                     alDistancerText.add(
                         XyElementData(
-                            type = XyElementDataType.TEXT,
+                            type = XyElementDataType.HTML_TEXT,
                             elementId = -getRandomInt(),
                             objectId = 0,
                             x = mouseX,
@@ -687,10 +687,10 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
 
             val scaleKoef = that().`$root`.scaleKoef.unsafeCast<Double>()
 
-            val viewCoord = that().viewCoord.unsafeCast<XyViewCoord>()
-            val curMode = that().curMode.unsafeCast<MapWorkMode>()
+            val viewCoord = that().xyViewCoord.unsafeCast<XyViewCoord>()
+            val curMode = that().mapCurMode.unsafeCast<MapWorkMode>()
 
-            val svgBodyElement = document.getElementById("svg_body_$tabId")!!
+            val svgBodyElement = document.getElementById("xy_svg_body_$tabId")!!
 
             val svgBodyWidth = svgBodyElement.clientWidth
             val svgBodyHeight = svgBodyElement.clientHeight
@@ -728,13 +728,13 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                 val newCenterY = curCenterY + curDY - newDY
 
                 val newView = getXyViewCoord(newScale, svgBodyWidth, svgBodyHeight, newCenterX, newCenterY, scaleKoef)
-                that().refreshView(null, newView)
+                that().xyRefreshView(null, newView)
             }
         },
         "onTextPressed" to { event: Event, xyElement: XyElementData ->
         },
         "setMode" to { newMode: MapWorkMode ->
-            val curMode = that().curMode.unsafeCast<MapWorkMode>()
+            val curMode = that().mapCurMode.unsafeCast<MapWorkMode>()
 
             when (curMode.toString()) {
                 MapWorkMode.PAN.toString() -> that().isPanButtonDisabled = false
@@ -803,10 +803,10 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                 }
             }
             //--- извращение для правильного сохранения enum в .data (а то в следующий раз в setMode не узнает)
-            that().curMode = MapWorkMode.valueOf(newMode.toString())
+            that().mapCurMode = MapWorkMode.valueOf(newMode.toString())
         },
         "zoomIn" to {
-            val viewCoord = that().viewCoord.unsafeCast<XyViewCoord>()
+            val viewCoord = that().xyViewCoord.unsafeCast<XyViewCoord>()
             //--- проверить масштаб
             val newScale = checkXyScale(
                 minScale = xyResponse.documentConfig.alElementConfig.minByOrNull { it.second.scaleMin }!!.second.scaleMin,
@@ -820,10 +820,10 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
             val newViewCoord = XyViewCoord(viewCoord)
             newViewCoord.scale = newScale
 
-            that().refreshView(null, newViewCoord)
+            that().xyRefreshView(null, newViewCoord)
         },
         "zoomOut" to {
-            val viewCoord = that().viewCoord.unsafeCast<XyViewCoord>()
+            val viewCoord = that().xyViewCoord.unsafeCast<XyViewCoord>()
             //--- проверить масштаб
             val newScale = checkXyScale(
                 minScale = xyResponse.documentConfig.alElementConfig.minByOrNull { it.second.scaleMin }!!.second.scaleMin,
@@ -837,7 +837,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
             val newViewCoord = XyViewCoord(viewCoord)
             newViewCoord.scale = newScale
 
-            that().refreshView(null, newViewCoord)
+            that().xyRefreshView(null, newViewCoord)
         },
         "startAdd" to { elementConfig: XyElementConfig ->
             val scaleKoef = that().`$root`.scaleKoef.unsafeCast<Double>()
@@ -857,8 +857,8 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
         },
         "actionOk" to {
             val scaleKoef = that().`$root`.scaleKoef.unsafeCast<Double>()
-            val viewCoord = that().viewCoord.unsafeCast<XyViewCoord>()
-            val curMode = that().curMode.unsafeCast<MapWorkMode>()
+            val viewCoord = that().xyViewCoord.unsafeCast<XyViewCoord>()
+            val curMode = that().mapCurMode.unsafeCast<MapWorkMode>()
 
             when (curMode.toString()) {
                 MapWorkMode.ACTION_ADD.toString() -> {
@@ -871,11 +871,11 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                     editElement.doEditElementPoint(that(), xyResponse.documentConfig.name, xyResponse.startParamId, scaleKoef, viewCoord)
                 }
             }
-            //that().refreshView( null, null ) - делается внути методов doAdd/doEdit/doMove по завершении операций
+            //that().xyRefreshView( null, null ) - делается внути методов doAdd/doEdit/doMove по завершении операций
             that().setMode(MapWorkMode.SELECT_FOR_ACTION)
         },
         "actionCancel" to {
-            val curMode = that().curMode.unsafeCast<MapWorkMode>()
+            val curMode = that().mapCurMode.unsafeCast<MapWorkMode>()
 
             when (curMode.toString()) {
                 MapWorkMode.DISTANCER.toString() -> {
@@ -890,12 +890,12 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                 }
                 MapWorkMode.ACTION_ADD.toString() -> {
                     that().addElement = null
-                    that().refreshView(null, null)
+                    that().xyRefreshView(null, null)
                     that().setMode(MapWorkMode.SELECT_FOR_ACTION)
                 }
                 MapWorkMode.ACTION_EDIT_POINT.toString() -> {
                     that().editElement = null
-                    that().refreshView(null, null)
+                    that().xyRefreshView(null, null)
                     that().setMode(MapWorkMode.SELECT_FOR_ACTION)
                 }
             }
@@ -913,7 +913,15 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
         //--- подготовка данных для меню добавления
         that().arrAddEC = xyResponse.documentConfig.alElementConfig.filter { it.second.descrForAction.isNotEmpty() }.map { it.second }.toTypedArray()
 
-        doXyMounted(that(), xyResponse, tabId, "map", startExpandKoef, xyResponse.documentConfig.alElementConfig.minByOrNull { it.second.scaleMin }!!.second.scaleMin)
+        doXyMounted(
+            that = that(),
+            xyResponse = xyResponse,
+            tabId = tabId,
+            elementPrefix = "map",
+            startExpandKoef = startExpandKoef,
+            isCentered = false,
+            curScale = xyResponse.documentConfig.alElementConfig.minByOrNull { it.second.scaleMin }!!.second.scaleMin
+        )
 
         that().setMode(MapWorkMode.PAN)
     }
@@ -921,7 +929,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
     this.data = {
         getXyComponentData().add(
             json(
-                "curMode" to MapWorkMode.PAN,
+                "mapCurMode" to MapWorkMode.PAN,
 
                 "isPanButtonDisabled" to true,
                 "isZoomButtonDisabled" to false,
@@ -1043,7 +1051,7 @@ private fun doMoveElements(that: dynamic, documentTypeName: String, startParamId
         xyActionRequest,
         {
             that.`$root`.setWait(false)
-            that.refreshView(that, null)
+            that.xyRefreshView(that, null)
         }
     )
 }
