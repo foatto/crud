@@ -102,7 +102,7 @@ class sdcLogGraphic : sdcAbstractGraphic() {
 
         val gewh = GraphicElement(
             graphicTitle = "Workers & Handlers",
-            alIndexColor = hmIndexColor.toList().toTypedArray(),
+            alLegend = emptyArray(),
             graphicHeight = -1.0,
             alAxisYData = alAxisYData.toTypedArray(),
             alGDC = arrayOf(aHandlers, aWorkers)
@@ -124,7 +124,7 @@ class sdcLogGraphic : sdcAbstractGraphic() {
 
         val gem = GraphicElement(
             graphicTitle = "Memory Used & Total",
-            alIndexColor = hmIndexColor.toList().toTypedArray(),
+            alLegend = emptyArray(),
             graphicHeight = -1.0,
             alAxisYData = alAxisYData.toTypedArray(),
             alGDC = arrayOf(aMemoryTotal, aMemoryUsed)
@@ -139,8 +139,10 @@ class sdcLogGraphic : sdcAbstractGraphic() {
         tmVisibleElement[gem.graphicTitle] = "$UP_GRAPHIC_VISIBLE${gem.graphicTitle}"
 
         return GraphicActionResponse(
+            alIndexColor = hmIndexColor.toList().toTypedArray(),
             alElement = tmElement.toList().toTypedArray(),
             alVisibleElement = tmVisibleElement.toList().toTypedArray(),
+            alLegend = emptyArray(),
         )
     }
 

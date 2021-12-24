@@ -255,8 +255,10 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         )
 
         return GraphicActionResponse(
+            alIndexColor = hmIndexColor.toList().toTypedArray(),
             alElement = tmElement.toList().toTypedArray(),
-            alVisibleElement = tmElementVisibleConfig.toList().toTypedArray()
+            alVisibleElement = tmElementVisibleConfig.toList().toTypedArray(),
+            alLegend = emptyArray(),
         )
     }
 
@@ -287,6 +289,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         alGraphicHandler: List<AnalogGraphicHandler>,
         tmElement: SortedMap<String, GraphicElement>,
         tmElementVisibleConfig: SortedMap<String, String>,
+        alLegend: Array<Triple<Int, Boolean, String>> = emptyArray(),
     ) {
         val alGDC = mutableListOf<GraphicDataContainer>()
 
@@ -364,48 +367,46 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                 )
 
                 //--- если вывод текстов задан, сделаем вывод режимов работы оборудования
-                aText?.let {
-                    objectConfig.hmSensorConfig[SensorConfig.SENSOR_WORK]?.let { hmSC ->
-                        val alGTD = aText.alGTD.toMutableList()
-                        hmSC.values.forEach { sc ->
-                            val scw = sc as SensorConfigWork
-                            //--- пропускаем датчики работы оборудования не из своей группы
-                            if (scw.group == sca.group) {
-                                val alWork = ObjectCalc.calcWorkSensor(alRawTime, alRawData, scw, begTime, endTime).alWorkOnOff
-                                for (apd in alWork) {
-                                    val workDescr = StringBuilder(scw.descr).append(" : ").append(if (apd.getState() != 0) "ВКЛ" else "выкл").toString()
-                                    alGTD += GraphicTextData(
-                                        textX1 = apd.begTime,
-                                        textX2 = apd.endTime,
-                                        fillColorIndex = if (apd.getState() != 0) {
-                                            GraphicColorIndex.FILL_NORMAL
-                                        } else {
-                                            GraphicColorIndex.FILL_WARNING
-                                        },
-                                        borderColorIndex = if (apd.getState() != 0) {
-                                            GraphicColorIndex.BORDER_NORMAL
-                                        } else {
-                                            GraphicColorIndex.BORDER_WARNING
-                                        },
-                                        textColorIndex = if (apd.getState() != 0) {
-                                            GraphicColorIndex.TEXT_NORMAL
-                                        } else {
-                                            GraphicColorIndex.TEXT_WARNING
-                                        },
-                                        text = workDescr,
-                                        toolTip = workDescr
-                                    )
-                                }
+                objectConfig.hmSensorConfig[SensorConfig.SENSOR_WORK]?.let { hmSC ->
+                    val alGTD = aText.alGTD.toMutableList()
+                    hmSC.values.forEach { sc ->
+                        val scw = sc as SensorConfigWork
+                        //--- пропускаем датчики работы оборудования не из своей группы
+                        if (scw.group == sca.group) {
+                            val alWork = ObjectCalc.calcWorkSensor(alRawTime, alRawData, scw, begTime, endTime).alWorkOnOff
+                            for (apd in alWork) {
+                                val workDescr = StringBuilder(scw.descr).append(" : ").append(if (apd.getState() != 0) "ВКЛ" else "выкл").toString()
+                                alGTD += GraphicTextData(
+                                    textX1 = apd.begTime,
+                                    textX2 = apd.endTime,
+                                    fillColorIndex = if (apd.getState() != 0) {
+                                        GraphicColorIndex.FILL_NORMAL
+                                    } else {
+                                        GraphicColorIndex.FILL_WARNING
+                                    },
+                                    borderColorIndex = if (apd.getState() != 0) {
+                                        GraphicColorIndex.BORDER_NORMAL
+                                    } else {
+                                        GraphicColorIndex.BORDER_WARNING
+                                    },
+                                    textColorIndex = if (apd.getState() != 0) {
+                                        GraphicColorIndex.TEXT_NORMAL
+                                    } else {
+                                        GraphicColorIndex.TEXT_WARNING
+                                    },
+                                    text = workDescr,
+                                    toolTip = workDescr
+                                )
                             }
                         }
-                        aText.alGTD = alGTD.toTypedArray()
                     }
+                    aText.alGTD = alGTD.toTypedArray()
                 }
 
                 //--- общие нештатные ситуации показываем после работы оборудования,
                 //--- отображаемого в виде сплошной полосы различного цвета и
                 //--- после специфических (как правило - более критических) ошибок конкретных датчиков
-                if (!isCommonTroubleShowed && aText != null) {
+                if (!isCommonTroubleShowed) {
                     checkCommonTrouble(alRawTime, alRawData, objectConfig, begTime, endTime, aText)
                     isCommonTroubleShowed = true
                 }
@@ -446,7 +447,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
 
         tmElement[graphicTitle] = GraphicElement(
             graphicTitle = graphicTitle,
-            alIndexColor = hmIndexColor.toList().toTypedArray(),
+            alLegend = alLegend,
             graphicHeight = -1.0,
             alAxisYData = alAxisYData.toTypedArray(),
             alGDC = alGDC.toTypedArray()

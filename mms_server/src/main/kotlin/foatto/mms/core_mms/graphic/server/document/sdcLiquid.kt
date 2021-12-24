@@ -124,6 +124,11 @@ class sdcLiquid : sdcAbstractAnalog() {
                     alGraphicHandler = listOf(graphicHandler) + flowSensorsGraphicHandlers,
                     tmElement = tmElement,
                     tmElementVisibleConfig = tmElementVisibleConfig,
+                    alLegend = arrayOf(
+                        Triple(hmIndexColor[GraphicColorIndex.LINE_ABOVE_0]!!, false, "Заправка"),
+                        Triple(hmIndexColor[GraphicColorIndex.LINE_NORMAL_0]!!, false, "Расход"),
+                        Triple(hmIndexColor[GraphicColorIndex.LINE_BELOW_0]!!, false, "Слив"),
+                    ),
                 )
             }
         }

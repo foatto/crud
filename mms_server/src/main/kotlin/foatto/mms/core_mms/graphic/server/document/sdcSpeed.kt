@@ -56,15 +56,13 @@ class sdcSpeed : sdcAbstractGraphic() {
 
         val tmElement = TreeMap<String, GraphicElement>()
         val tmElementVisibleConfig = TreeMap<String, String>()
-        //--- если гео-датчика нет или в нём отключено использование понятия "скорости"
-        if (oc.scg != null || !oc.scg!!.isUseSpeed) {
+        if (oc.scg?.isUseSpeed == true) {
             //--- заранее заполняем список опеределений видимости графиков
             val graphicVisibilityKey = "$UP_GRAPHIC_VISIBLE${sd.objectId}_19"
             tmElementVisibleConfig[oc.scg!!.descr] = graphicVisibilityKey
 
             //--- а сейчас уже можно и нужно проверять на видимость графика
-            val strGraphicVisible = userConfig.getUserProperty(graphicVisibilityKey)
-            val isGraphicVisible = strGraphicVisible == null || java.lang.Boolean.parseBoolean(strGraphicVisible)
+            val isGraphicVisible = userConfig.getUserProperty(graphicVisibilityKey)?.toBooleanStrictOrNull() ?: true
             if (isGraphicVisible) {
                 val hmZoneLimit = ZoneLimitData.getZoneLimit(
                     stm = stm,
@@ -131,7 +129,7 @@ class sdcSpeed : sdcAbstractGraphic() {
 
                 val ge = GraphicElement(
                     graphicTitle = oc.scg!!.descr,
-                    alIndexColor = hmIndexColor.toList().toTypedArray(),
+                    alLegend = emptyArray(),
                     graphicHeight = -1.0,
                     alAxisYData = alAxisYData.toTypedArray(),
                     alGDC = listOfNotNull(aZone, aDistance, aMaxLimit, aLine).filter { it.itNotEmpty() }.toTypedArray()
@@ -144,8 +142,10 @@ class sdcSpeed : sdcAbstractGraphic() {
         //AdvancedLogger.debug(  "------------------------------------------------------------"  );
 
         return GraphicActionResponse(
+            alIndexColor = hmIndexColor.toList().toTypedArray(),
             alElement = tmElement.toList().toTypedArray(),
-            alVisibleElement = tmElementVisibleConfig.toList().toTypedArray()
+            alVisibleElement = tmElementVisibleConfig.toList().toTypedArray(),
+            alLegend = emptyArray(),
         )
 
     }
