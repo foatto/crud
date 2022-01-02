@@ -144,6 +144,35 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                 </span>
 
                 <span v-bind:style="style_toolbar_block">
+                    <img src="/web/images/ic_timeline_black_48dp.png"
+                         v-bind:style="style_icon_button"
+                         v-on:click="doLoadGraphicVisibility()"
+                         title="Включить/выключить отдельные графики"
+                    >
+        
+                    <div v-show="isShowGraphicVisibility" 
+                         v-bind:style="style_visibility_list"
+                    >
+                        <template v-for="data in arrGraphicVisibleData">
+                            <input type="checkbox"
+                                   v-model="data.check"
+                                   v-bind:style="style_graphic_visibility_checkbox"
+                            >
+                            {{ data.descr }}
+                            <br>
+                        </template>
+                        <br>
+                        
+                        <button v-on:click="doChangeGraphicVisibility()"
+                                v-bind:style="style_graphic_visibility_button"
+                                title="Применить изменения"                                                                        
+                        >
+                            OK
+                        </button>
+                    </div>
+                </span>
+
+                <span v-bind:style="style_toolbar_block">
                     <template v-for="legend in arrGrLegend">
                         <button v-bind:style="legend.style"
                                 v-bind:title="legend.text"
@@ -202,6 +231,19 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                 arrAddElements = emptyArray(),
                 aView = aView,
             )
+        },
+        "doLoadGraphicVisibility" to {
+            val isShowGraphicVisibility = that().isShowGraphicVisibility.unsafeCast<Boolean>()
+            if(!isShowGraphicVisibility) {
+                //--- перезаполнить список перед показом
+
+            }
+            that().isShowGraphicVisibility = !isShowGraphicVisibility
+        },
+        "doChangeGraphicVisibility" to {
+            that().isShowGraphicVisibility = false
+            //--- применить изменения
+            
         },
         "onMouseOver" to { event: Event, graphicElement: SvgElement ->
             val mouseEvent = event as MouseEvent
@@ -469,7 +511,6 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
 
             val that = that()
 
-//            val timeOffset = that().timeOffset.unsafeCast<Int>()
             val scaleKoef = that.`$root`.scaleKoef.unsafeCast<Double>()
             val viewCoord = that.grViewCoord.unsafeCast<GraphicViewCoord>()
             val curMode = that.grCurMode.unsafeCast<GraphicWorkMode>()
@@ -672,6 +713,14 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
             "isPanButtonDisabled" to true,
             "isZoomButtonDisabled" to false,
 
+            "isShowGraphicVisibility" to false,
+            "arrGraphicVisibleData" to arrayOf<GraphicVisibleData>(
+                GraphicVisibleData("aaa", "AAA", true),
+                GraphicVisibleData("bbb", "BBB", false),
+                GraphicVisibleData("ccc", "CCC", true),
+                GraphicVisibleData("ddd", "DDD", true),
+            ),
+
             "isMouseDown" to false,
 
             "panPointOldX" to 0,
@@ -716,6 +765,37 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                 "font-size" to styleCommonButtonFontSize(),
                 "padding" to styleIconButtonPadding(),
                 "margin" to styleCommonMargin(),
+                "cursor" to "pointer"
+            ),
+            "style_visibility_list" to json(
+                "z-index" to "2",   // popup menu must be above than table headers
+                "position" to "absolute",
+                "top" to "20%",
+//                "bottom" to if (styleIsNarrowScreen) "20%" else "10%", //"height" to "80%",
+//                "min-width" to styleMenuWidth(),
+//                "width" to styleMenuWidth(),
+                "background" to COLOR_MENU_GROUP_BACK,
+                "border" to "1px solid $COLOR_MENU_BORDER",
+                "border-radius" to BORDER_RADIUS,
+                "font-size" to styleMenuFontSize(),
+                "padding" to styleMenuStartPadding(),
+                "overflow" to "auto",
+                "cursor" to "pointer",
+            ),
+            "style_graphic_visibility_checkbox" to json(
+//                "padding" to styleMenuItemPadding_0(),
+//{ 'background-color' : ( $menuDataName.itHover? '$COLOR_MENU_BACK_HOVER' : '$COLOR_MENU_ITEM_BACK' ) },
+//{ 'text-decoration' : ( $menuDataName.url || $menuDataName.text ? '' : 'line-through' ) },
+//{ 'color' : ( $menuDataName.url || $menuDataName.text ? '$COLOR_TEXT' : '$COLOR_MENU_DELIMITER' ) }
+
+            ),
+            "style_graphic_visibility_button" to json(
+                "background" to COLOR_BUTTON_BACK,
+                "border" to "1px solid $COLOR_BUTTON_BORDER",
+                "border-radius" to BORDER_RADIUS,
+                "font-size" to styleCommonButtonFontSize(),
+//                "padding" to styleFileNameButtonPadding(),
+//                "margin" to styleFileNameButtonMargin(),
                 "cursor" to "pointer"
             ),
         ).add(
@@ -1360,6 +1440,12 @@ private fun defineGraphicSvgCoords(
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+private class GraphicVisibleData(
+    val name: String,
+    val descr: String,
+    val check: Boolean,
+)
 
 private class LegendData(
     val text: String,

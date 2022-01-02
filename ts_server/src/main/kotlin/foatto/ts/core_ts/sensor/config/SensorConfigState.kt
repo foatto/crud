@@ -64,6 +64,15 @@ class SensorConfigState(
             STATE_DRIVE_PROTECT to StateInfo("Защита привода", COLOR_RED_BRIGHT, COLOR_RED_DARK),
             24 to StateInfo("Остановка с сервера", COLOR_RED_BRIGHT, COLOR_RED_DARK),
         )
+
+        val alStateLegend = listOf(
+            COLOR_GREEN_BRIGHT to "Работа",
+            COLOR_PURPLE_BRIGHT to "Слепой подъём",
+            COLOR_BLUE_BRIGHT to "Ожидание",
+            COLOR_GRAY_BRIGHT to "Ручной режим",
+            COLOR_ORANGE_BRIGHT to "Непроходы",
+            COLOR_RED_BRIGHT to "Ошибка",
+        )
     }
 }
 

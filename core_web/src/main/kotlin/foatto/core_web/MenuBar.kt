@@ -28,14 +28,18 @@ fun menuBar(arrMenuData: Array<MenuData>) = vueComponentOptions().apply {
                      title="Главное меню"
                 >
     
-                <div v-bind:style="[style_menu_start, style_menu_is_hidden]" v-show="isShowMainMenu">
+                <div v-show="isShowMainMenu"
+                     v-bind:style="[style_menu_start, style_menu_is_hidden]" 
+                >
                     ${menuGenerateBody("arrMenuData", "menuClick", ".url")}
                 </div>
             </span>
         """
     } else {
         """
-            <div id="$MENU_BAR_ID" v-bind:style="style_menu_start">
+            <div id="$MENU_BAR_ID" 
+                 v-bind:style="style_menu_start"
+            >
                 ${menuGenerateBody("arrMenuData", "menuClick", ".url")}
             </div>
         """

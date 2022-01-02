@@ -85,7 +85,12 @@ val MENU_DELIMITER = "&nbsp;".repeat(60)
 
 //--- LOGON FORM -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-const val COLOR_LOGON_BACK = COLOR_MAIN_BACK_1
+var colorLogonBackAround = COLOR_PANEL_BACK
+var colorLogonBackCenter = COLOR_MAIN_BACK_1
+var colorLogonBorder = COLOR_MENU_BORDER
+var colorLogonCheckBoxText = COLOR_TEXT
+var colorLogonButtonBack = COLOR_BUTTON_BACK
+var colorLogonButtonBorder = COLOR_BUTTON_BORDER
 
 //--- TABLE ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -165,11 +170,13 @@ const val BORDER_RADIUS_SMALL = "0.1rem"
 //--- Common Control
 
 //--- кое-где используется как чисто числовое выражение, поэтому определяем без rem
-private const val COMMON_FONT_SIZE = 1.0  //if( screenDPR <= 1.0 ) 1.0 else 1.0
+val COMMON_FONT_SIZE = 1.0  //if( screenDPR <= 1.0 ) 1.0 else 1.0
 
 private val CONTROL_MARGIN = "${if (screenDPR <= 1.0) 0.1 else 0.1}rem"
+
 private val CONTROL_PADDING = "0.3rem" //"${if( screenDPR <= 1.0 ) 0.3 else 0.3}rem"
-private val CONTROL_SIDE_PADDING = "${if (screenDPR <= 1.0) 0.4 else 0.4}rem"
+private val CONTROL_TOP_DOWN_SIDE_PADDING = "${if (screenDPR <= 1.0) 0.1 else 0.1}rem"
+private val CONTROL_LEFT_RIGHT_SIDE_PADDING = "${if (screenDPR <= 1.0) 0.4 else 0.4}rem"
 private val CONTROL_BIG_PADDING = "${if (screenDPR <= 1.0) 0.95 else 0.95}rem"
 
 fun styleControlTitleTextFontSize() = "${COMMON_FONT_SIZE}rem"
@@ -184,7 +191,8 @@ fun styleControlTitlePadding() = "0 $CONTROL_PADDING 0 $CONTROL_PADDING"
 fun styleIconButtonPadding() = "${if (screenDPR <= 1.0) 0.0 else 0.0}rem"       // 0.2
 fun styleTextButtonPadding() = "${if (screenDPR <= 1.0) 0.2 else 0.2}rem"       // 1.0
 fun styleCommonEditorPadding() = CONTROL_BIG_PADDING
-fun styleControlTooltipPadding() = "$CONTROL_PADDING $CONTROL_SIDE_PADDING $CONTROL_PADDING $CONTROL_SIDE_PADDING"
+fun styleControlTooltipPadding() = "$CONTROL_PADDING $CONTROL_LEFT_RIGHT_SIDE_PADDING $CONTROL_PADDING $CONTROL_LEFT_RIGHT_SIDE_PADDING"
+fun styleTableGridCellTypePadding() = "$CONTROL_TOP_DOWN_SIDE_PADDING $CONTROL_PADDING $CONTROL_TOP_DOWN_SIDE_PADDING $CONTROL_PADDING"
 
 fun styleCommonMargin() = "0 $CONTROL_MARGIN 0 $CONTROL_MARGIN"
 
@@ -302,7 +310,7 @@ fun styleTablePageButtonFontSize(buttonCount: Int) =
 fun styleFormEditBoxColumn(initSize: Int) = if (!styleIsNarrowScreen) initSize else if (initSize <= scaledScreenWidth / 19) initSize else scaledScreenWidth / 19
 
 //--- ! не убирать, так удобнее выравнивать label на форме, чем каждому тексту прописывать уникальный стиль
-fun styleFormRowPadding() = CONTROL_SIDE_PADDING
+fun styleFormRowPadding() = CONTROL_LEFT_RIGHT_SIDE_PADDING
 fun styleFormRowTopBottomPadding() = "0.1rem"
 fun styleFormLabelPadding() = "0.6rem"
 fun styleFormCheckboxAndRadioMargin() = "0.5rem"
@@ -311,9 +319,9 @@ fun styleFileNameButtonMargin() = "0.1rem"
 
 //--- Graphic
 
-fun styleGraphicCheckBoxMargin() = "0 $CONTROL_PADDING 0 $CONTROL_SIDE_PADDING"
-fun styleGraphicCheckBoxLabelPadding() = "0 $CONTROL_SIDE_PADDING 0 $CONTROL_PADDING"
-fun styleGraphicTimeLabelPadding() = "$CONTROL_PADDING $CONTROL_SIDE_PADDING $CONTROL_PADDING $CONTROL_SIDE_PADDING"
+fun styleGraphicCheckBoxMargin() = "0 $CONTROL_PADDING 0 $CONTROL_LEFT_RIGHT_SIDE_PADDING"
+fun styleGraphicCheckBoxLabelPadding() = "0 $CONTROL_LEFT_RIGHT_SIDE_PADDING 0 $CONTROL_PADDING"
+fun styleGraphicTimeLabelPadding() = "$CONTROL_PADDING $CONTROL_LEFT_RIGHT_SIDE_PADDING $CONTROL_PADDING $CONTROL_LEFT_RIGHT_SIDE_PADDING"
 
 //--- Xy
 

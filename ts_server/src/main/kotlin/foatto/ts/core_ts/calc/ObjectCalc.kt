@@ -1,9 +1,7 @@
 package foatto.ts.core_ts.calc
 
-import foatto.core.app.graphic.GraphicColorIndex
 import foatto.core.app.graphic.GraphicDataContainer
 import foatto.core.app.graphic.GraphicLineData
-import foatto.core.app.graphic.GraphicPointData
 import foatto.core.util.AdvancedByteBuffer
 import foatto.core_server.app.server.UserConfig
 import foatto.sql.CoreAdvancedStatement
@@ -142,7 +140,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 //--- new state
                 if (newState != curState) {
                     //--- record of previous state
-                    if (curState != -1 && curTime - stateBeginTime < MAX_WORK_TIME_INTERVAL) {
+                    if (curState != -1) {
                         alResult.add(StatePeriodData(stateBeginTime, curTime, curState))
                     }
                     curState = newState
@@ -151,7 +149,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             }
 
             //--- record of the last unclosed state
-            if (curState != -1 && curTime - stateBeginTime < MAX_WORK_TIME_INTERVAL) {
+            if (curState != -1) {
                 alResult.add(StatePeriodData(stateBeginTime, curTime, curState))
             }
 
@@ -173,7 +171,6 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             axisIndex: Int,
             aMinLimit: GraphicDataContainer?,
             aMaxLimit: GraphicDataContainer?,
-            aPoint: GraphicDataContainer?,
             aLine: GraphicDataContainer?,
             graphicHandler: iGraphicHandler,
         ) {
@@ -193,7 +190,6 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 alSensorData.add(graphicHandler.getRawData(sca, bb))
             }
 
-            val alGPD = aPoint?.alGPD?.toMutableList() ?: mutableListOf()
             val alGLD = aLine?.alGLD?.toMutableList() ?: mutableListOf()
 
             //--- raw data processing -----------------------------------------------------------------------------------------
@@ -224,30 +220,6 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                     //--- if the line point is far enough from the previous one (or just the first one :)
                     if (aMaxLimit!!.alGLD.isEmpty() || rawTime - aMaxLimit.alGLD[aMaxLimit.alGLD.size - 1].x > xScale) {
                         graphicHandler.addDynamicMaxLimit(rawTime, graphicHandler.getDynamicMaxLimit(sca, rawTime, rawData), aMaxLimit)
-                    }
-                }
-
-                //--- if points are shown
-                aPoint?.let {
-                    val colorIndex = if (isStaticMinLimit && rawData < graphicHandler.getStaticMinLimit(sca) ||
-                        isStaticMaxLimit && rawData > graphicHandler.getStaticMaxLimit(sca) ||
-                        isDynamicMinLimit && rawData < graphicHandler.getDynamicMinLimit(sca, rawTime, rawData) ||
-                        isDynamicMaxLimit && rawData > graphicHandler.getDynamicMaxLimit(sca, rawTime, rawData)
-                    ) {
-                        GraphicColorIndex.POINT_ABOVE
-                    }
-                    else {
-                        GraphicColorIndex.POINT_NORMAL
-                    }
-
-                    val gpdLast = if (alGPD.isEmpty()) {
-                        null
-                    } else {
-                        alGPD.last()
-                    }
-
-                    if (gpdLast == null || rawTime - gpdLast.x > xScale || abs(rawData - gpdLast.y) > yScale || colorIndex != gpdLast.colorIndex) {
-                        alGPD.add(GraphicPointData(rawTime, rawData, colorIndex))
                     }
                 }
 
@@ -325,7 +297,6 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 }
             }
 
-            aPoint?.alGPD = alGPD.toTypedArray()
             aLine?.alGLD = alGLD.toTypedArray()
         }
 

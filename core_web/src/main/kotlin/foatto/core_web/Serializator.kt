@@ -7,6 +7,7 @@ import foatto.core.app.xy.XyViewCoord
 import foatto.core.app.xy.geom.XyPoint
 import foatto.core.link.AppRequest
 import foatto.core.link.ChangePasswordRequest
+import foatto.core.link.CustomRequest
 import foatto.core.link.FormData
 import foatto.core.link.LogoffRequest
 import foatto.core.link.LogonRequest
@@ -22,42 +23,42 @@ fun Boolean?.toJson(fieldName: String) = "\"$fieldName\":" + (this?.let { "$this
 
 fun Number?.toJson(fieldName: String) = "\"$fieldName\":" + (this?.let { "$this" } ?: "null")
 
-fun String?.toJson(fieldName: String) =
-    "\"$fieldName\":" +
-        (this?.let {
-            "\"${escapeString(this)}\""
-        } ?: "null")
+fun String?.toJson(fieldName: String) = "\"$fieldName\":" + (this?.let { "\"${escapeString(this)}\"" } ?: "null")
 
 fun Pair<Number, Number>?.toJson(fieldName: String) =
     "\"$fieldName\":" +
         (this?.let {
-            "{\"first\":$first," +
-                "\"second\":$second}"
+            "{" +
+                first.toJson("first") +
+                "," +
+                second.toJson("second") +
+                "}"
         }
             ?: "null")
 
 fun Pair<String, String>?.toJson(fieldName: String) =
     "\"$fieldName\":" +
         (this?.let {
-            "{${first.toJson("first")}," +
-                "${second.toJson("second")}\"}"
+            "{" +
+                first.toJson("first") +
+                "," +
+                second.toJson("second") +
+                "}"
         }
             ?: "null")
 
 fun List<Number>?.toJson(fieldName: String): String {
     var json = "\"$fieldName\":"
 
-    if (this == null) json += "null"
+    if (this == null) {
+        json += "null"
+    }
     else {
-        json += "["
-
-        for (value in this)
-            json += "\"$value\","
-
-        if (this.isNotEmpty())
-            json = json.substring(0, json.length - 1)
-
-        json += "]"
+        json += this.joinToString(
+            separator = ",",
+            prefix = "[",
+            postfix = "]",
+        )
     }
     return json
 }
@@ -65,17 +66,17 @@ fun List<Number>?.toJson(fieldName: String): String {
 fun List<String>?.toJson(fieldName: String): String {
     var json = "\"$fieldName\":"
 
-    if (this == null) json += "null"
+    if (this == null) {
+        json += "null"
+    }
     else {
-        json += "["
-
-        for (value in this)
-            json += "\"${escapeString(value)}\","
-
-        if (this.isNotEmpty())
-            json = json.substring(0, json.length - 1)
-
-        json += "]"
+        json += this.joinToString(
+            separator = ",",
+            prefix = "[",
+            postfix = "]",
+        ) { item ->
+            "\"${escapeString(item)}\""
+        }
     }
     return json
 }
@@ -83,17 +84,17 @@ fun List<String>?.toJson(fieldName: String): String {
 fun Map<String, String>?.toJson(fieldName: String): String {
     var json = "\"$fieldName\":"
 
-    if (this == null) json += "null"
+    if (this == null) {
+        json += "null"
+    }
     else {
-        json += "{"
-
-        for ((key, value) in this)
-            json += value.toJson(key) + ","
-
-        if (this.isNotEmpty())
-            json = json.substring(0, json.length - 1)
-
-        json += "}"
+        json += this.entries.joinToString(
+            separator = ",",
+            prefix = "{",
+            postfix = "}",
+        ) { (key, value) ->
+            value.toJson(key)
+        }
     }
     return json
 }
@@ -112,15 +113,17 @@ fun AppRequest.toJson(): String {
     if (alFormData == null) {
         json += "\"alFormData\":null,"
     } else {
-        json += "\"alFormData\":["
+        json += "\"alFormData\":"
 
-        for (formData in alFormData!!)
-            json += "${formData.toJson()},"
+        json += alFormData!!.joinToString(
+            separator = ",",
+            prefix = "[",
+            postfix = "]",
+        ) { formData ->
+            formData.toJson()
+        }
 
-        if (alFormData!!.isNotEmpty())
-            json = json.substring(0, json.length - 1)
-
-        json += "],"
+        json += ","
     }
 
     json += sessionId.toJson("sessionId")
@@ -133,7 +136,9 @@ fun AppRequest.toJson(): String {
 fun LogonRequest?.toJson(fieldName: String): String {
     var json = "\"$fieldName\":"
 
-    if (this == null) json += "null"
+    if (this == null) {
+        json += "null"
+    }
     else {
         json += "{"
 
@@ -164,19 +169,7 @@ fun FormData.toJson(): String {
 
     json += fileId.toJson("fileId") + ","
 
-    json += hmFileAdd?.mapKeys { it.key.toString() }.toJson("hmFileAdd") + ","
-
-//    if( hmFileAdd == null ) {
-//        json += "\"hmFileAdd\":null,"
-//    }
-//    else {
-//        json += "\"hmFileAdd\":{"
-//        for( (key, value) in hmFileAdd )
-//            json += "\"$key\": \"${value}\","
-//        if( hmFileAdd.isNotEmpty() )
-//            json = json.substring( 0, json.length - 1 )
-//        json += "},"
-//    }
+    json += hmFileAdd.toJson("hmFileAdd") + ","
 
     json += alFileRemovedId.toJson("alFileRemovedId")
 
@@ -350,7 +343,6 @@ fun ChangePasswordRequest.toJson(): String {
     var json = "{"
 
     json += password.toJson("password") + ","
-
     json += sessionId.toJson("sessionId")
 
     return "$json}"
@@ -360,6 +352,17 @@ fun LogoffRequest.toJson(): String {
     var json = "{"
 
     json += sessionId.toJson("sessionId")
+
+    return "$json}"
+}
+
+//----------------------------------------------------------------------------------------------------------------
+
+fun CustomRequest.toJson(): String {
+    var json = "{"
+
+    json += command.toJson("command") + ","
+    json += hmData.toJson("hmData")
 
     return "$json}"
 }
