@@ -119,11 +119,11 @@ class cTask : cOfficeReport() {
                         Label(
                             0,
                             offsY,
-                            taskStr.substring(0, min(100, taskStr.length)).replace('\n', ' '),
+                            taskStr,    //.replace('\n', ' '),
                             wcfCellL
                         )
                     )
-                    sheet.mergeCells(0, offsY, 3, offsY)
+                    //sheet.mergeCells(0, offsY, 3, offsY) - из-за этого глючит автоматическое расширение ячейки по содержимому
                     offsY++
                 }
                 //--- в начале и конце блока списка поручений по пользователю - по пустой строке разделителя
@@ -141,7 +141,6 @@ class cTask : cOfficeReport() {
         sheet.addCell(Label(2, offsY, sumAll.toString(), wcfCellCB))
         offsY += 2
         sheet.addCell(Label(0, offsY, getPreparedAt(), wcfCellL))
-        //sheet.mergeCells( 4, offsY, 5, offsY );
     }
 
     //----------------------------------------------------------------------------------------------------------------------

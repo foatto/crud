@@ -52,11 +52,11 @@ class mPeople : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "OFFICE_people"
+        modelTableName = "OFFICE_people"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -71,7 +71,7 @@ class mPeople : mAbstract() {
         var columnUser_: ColumnInt? = null
 
         //--- админы могут явно выбирать режим работы и менеджера контакта в любое время
-        columnPeopleWorkState = ColumnComboBox(tableName, "work_state", "Состояние работы с клиентом", if (isPeople) WORK_STATE_NOT_NEED else WORK_STATE_IN_WORK).apply {
+        columnPeopleWorkState = ColumnComboBox(modelTableName, "work_state", "Состояние работы с клиентом", if (isPeople) WORK_STATE_NOT_NEED else WORK_STATE_IN_WORK).apply {
             isEditable = !isPeople || userConfig.isAdmin
             addChoice(WORK_STATE_NOT_NEED, "(нет)")
             addChoice(WORK_STATE_IN_WORK, "В работе")
@@ -88,7 +88,7 @@ class mPeople : mAbstract() {
                     selfLinkTableName = "SYSTEM_users"
                 }
                 //--- в режиме клиента вместо user_id регулятором прав доступа работает manager_id
-                columnUser = ColumnInt(tableName, "user_id", columnUserID, 0)
+                columnUser = ColumnInt(modelTableName, "user_id", columnUserID, 0)
                 columnUserName = ColumnString(selfLinkUserTableName, "full_name", "Пользователь", STRING_COLUMN_WIDTH).apply {
                     selfLinkTableName = "SYSTEM_users"
                     //columnUserName.setRequired( true ); - может быть ничья/общая
@@ -97,12 +97,12 @@ class mPeople : mAbstract() {
                     addSelectorColumn(this)
                 }
             } else if (id == 0) {
-                columnUser = ColumnComboBox(tableName, "user_id", "Доступ", 0).apply {
+                columnUser = ColumnComboBox(modelTableName, "user_id", "Доступ", 0).apply {
                     addChoice(0, "общий")
                     addChoice(userConfig.userId, "личный")
                 }
             } else {
-                columnUser = ColumnInt(tableName, "user_id", 0)
+                columnUser = ColumnInt(modelTableName, "user_id", 0)
             }//--- во всех прочих случаях это обычное служебное/невидимое поле
             //--- обычные пользователи могут указать доступ к своему контакту только при его создании
 
@@ -111,7 +111,7 @@ class mPeople : mAbstract() {
             val columnPeopleManagerID = ColumnInt(selfLinkManagerTableName, "id").apply {
                 selfLinkTableName = "SYSTEM_users"
             }
-            columnPeopleManager = ColumnInt(tableName, "manager_id", columnPeopleManagerID, 0).apply {
+            columnPeopleManager = ColumnInt(modelTableName, "manager_id", columnPeopleManagerID, 0).apply {
                 columnPeopleManagerName = ColumnString(selfLinkManagerTableName, "full_name", "Менеджер", STRING_COLUMN_WIDTH)
                 selfLinkTableName = "SYSTEM_users"
                 addFormVisible(columnPeopleWorkState!!, true, setOf(WORK_STATE_IN_WORK))
@@ -120,14 +120,14 @@ class mPeople : mAbstract() {
         }
         //--- в режиме работы с клиентом всегда можно переназначить клиента другому менеджеру
         else {
-            columnUser_ = ColumnInt(tableName, "user_id", 0)
+            columnUser_ = ColumnInt(modelTableName, "user_id", 0)
 
             val selfLinkUserTableName = "SYSTEM_users_1"
             val columnUserID = ColumnInt(selfLinkUserTableName, "id").apply {
                 selfLinkTableName = "SYSTEM_users"
             }
             //--- в режиме клиента вместо user_id регулятором прав доступа работает manager_id
-            columnUser = ColumnInt(tableName, "manager_id", columnUserID, userConfig.userId)
+            columnUser = ColumnInt(modelTableName, "manager_id", columnUserID, userConfig.userId)
             columnUserName = ColumnString(selfLinkUserTableName, "full_name", "Менеджер", STRING_COLUMN_WIDTH).apply {
                 selfLinkTableName = "SYSTEM_users"
                 //columnUserName.setRequired( true ); - может быть ничья/общая
@@ -140,7 +140,7 @@ class mPeople : mAbstract() {
         //---------------------------------------------------------------------------------------------------------------
 
         val columnCompanyID = ColumnInt("OFFICE_company", "id")
-        val columnCompany = ColumnInt(tableName, "company_id", columnCompanyID)
+        val columnCompany = ColumnInt(modelTableName, "company_id", columnCompanyID)
 
         val columnCompanyBlackList = ColumnBoolean("OFFICE_company", "in_black_list", "В чёрном списке").apply {
             formPinMode = FormPinMode.OFF
@@ -172,40 +172,40 @@ class mPeople : mAbstract() {
             addSelectorColumn(columnCityPhoneCode)
         }
 
-        val columnPeopleName = ColumnString(tableName, "name", "Ф.И.О.", STRING_COLUMN_WIDTH)
-        val columnPeoplePost = ColumnString(tableName, "post", "Должность", STRING_COLUMN_WIDTH)
-        val columnPeopleEmail = ColumnString(tableName, "e_mail", "E-mail", STRING_COLUMN_WIDTH)
-        val columnPeopleCell = ColumnString(tableName, "cell_no", "Мобильный телефон", STRING_COLUMN_WIDTH)
-        val columnPeoplePhone = ColumnString(tableName, "phone_no", "Рабочий телефон", STRING_COLUMN_WIDTH)
-        val columnPeopleFax = ColumnString(tableName, "fax_no", "Факс", STRING_COLUMN_WIDTH)
-        val columnPeopleAssistant = ColumnString(tableName, "assistant_name", "Помощник", STRING_COLUMN_WIDTH)
-        val columnPeopleAssistantEmail = ColumnString(tableName, "assistant_mail", "E-mail помощника", STRING_COLUMN_WIDTH)
-        val columnPeopleAssistantCell = ColumnString(tableName, "assistant_cell", "Телефон помощника", STRING_COLUMN_WIDTH)
-        val columnPeopleContactInfo = ColumnString(tableName, "contact_info", "Доп. информация по контакту", 10, STRING_COLUMN_WIDTH, textFieldMaxSize)
-        val columnPeopleBirthDate = ColumnDate3Int(tableName, "birth_ye", "birth_mo", "birth_da", "День рождения")
+        val columnPeopleName = ColumnString(modelTableName, "name", "Ф.И.О.", STRING_COLUMN_WIDTH)
+        val columnPeoplePost = ColumnString(modelTableName, "post", "Должность", STRING_COLUMN_WIDTH)
+        val columnPeopleEmail = ColumnString(modelTableName, "e_mail", "E-mail", STRING_COLUMN_WIDTH)
+        val columnPeopleCell = ColumnString(modelTableName, "cell_no", "Мобильный телефон", STRING_COLUMN_WIDTH)
+        val columnPeoplePhone = ColumnString(modelTableName, "phone_no", "Рабочий телефон", STRING_COLUMN_WIDTH)
+        val columnPeopleFax = ColumnString(modelTableName, "fax_no", "Факс", STRING_COLUMN_WIDTH)
+        val columnPeopleAssistant = ColumnString(modelTableName, "assistant_name", "Помощник", STRING_COLUMN_WIDTH)
+        val columnPeopleAssistantEmail = ColumnString(modelTableName, "assistant_mail", "E-mail помощника", STRING_COLUMN_WIDTH)
+        val columnPeopleAssistantCell = ColumnString(modelTableName, "assistant_cell", "Телефон помощника", STRING_COLUMN_WIDTH)
+        val columnPeopleContactInfo = ColumnString(modelTableName, "contact_info", "Доп. информация по контакту", 10, STRING_COLUMN_WIDTH, textFieldMaxSize)
+        val columnPeopleBirthDate = ColumnDate3Int(modelTableName, "birth_ye", "birth_mo", "birth_da", "День рождения")
 
-        val columnFile = ColumnFile(application, tableName, "file_id", "Файлы")
+        val columnFile = ColumnFile(application, modelTableName, "file_id", "Файлы")
 
         //---------------------------------------------------------------------------------------------------------------
 
-        val columnBusiness = ColumnComboBox(tableName, "business_id", "Направление деятельности", 0).apply {
+        val columnBusiness = ColumnComboBox(modelTableName, "business_id", "Направление деятельности", 0).apply {
             val rs = stm.executeQuery(" SELECT id , name FROM OFFICE_business ")
             while (rs.next()) addChoice(rs.getInt(1), rs.getString(2))
             rs.close()
         }
 
-        val columnClientActionDate = ColumnDate3Int(tableName, "action_ye", "action_mo", "action_da", "Дата последнего действия").apply {
+        val columnClientActionDate = ColumnDate3Int(modelTableName, "action_ye", "action_mo", "action_da", "Дата последнего действия").apply {
             isEditable = false
         }
-        val columnClientActionTime = ColumnTime3Int(tableName, "action_ho", "action_mi", null, "Время последнего действия").apply {
+        val columnClientActionTime = ColumnTime3Int(modelTableName, "action_ho", "action_mi", null, "Время последнего действия").apply {
             isEditable = false
         }
 
-        columnClientPlanDate = ColumnDate3Int(tableName, "plan_ye", "plan_mo", "plan_da", "Дата следующего действия").apply {
+        columnClientPlanDate = ColumnDate3Int(modelTableName, "plan_ye", "plan_mo", "plan_da", "Дата следующего действия").apply {
             isEditable = false
             formPinMode = FormPinMode.OFF
         }
-        columnClientPlanTime = ColumnTime3Int(tableName, "plan_ho", "plan_mi", null, "Время следующего действия").apply {
+        columnClientPlanTime = ColumnTime3Int(modelTableName, "plan_ho", "plan_mi", null, "Время следующего действия").apply {
             isEditable = false
         }
 

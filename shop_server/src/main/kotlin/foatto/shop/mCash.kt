@@ -22,51 +22,51 @@ class mCash : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "SHOP_cash"
+        modelTableName = "SHOP_cash"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnCashWH = ColumnComboBox(tableName, "warehouse_id", "Склад / магазин").apply {
+        val columnCashWH = ColumnComboBox(modelTableName, "warehouse_id", "Склад / магазин").apply {
             alWarehouse.forEach { wh ->
                 addChoice(wh.first, wh.second)
             }
             defaultValue = alWarehouse[0].first
         }
 
-        val columnCashDate = ColumnDate3Int(tableName, "ye", "mo", "da", "Дата").apply {
+        val columnCashDate = ColumnDate3Int(modelTableName, "ye", "mo", "da", "Дата").apply {
             setUnique(true, null)
         }
 
-        val columnCashPut = ColumnDouble(tableName, "cash_put", "Сдано", 10, 2).apply {
+        val columnCashPut = ColumnDouble(modelTableName, "cash_put", "Сдано", 10, 2).apply {
             setEmptyData(0.0, "-")
             tableAlign = TableCellAlign.RIGHT
         }
 
-        val columnCashUsed = ColumnDouble(tableName, "cash_used", "Истрачено", 10, 2).apply {
+        val columnCashUsed = ColumnDouble(modelTableName, "cash_used", "Истрачено", 10, 2).apply {
             setEmptyData(0.0, "-")
             tableAlign = TableCellAlign.RIGHT
         }
 
-        val columnDebtOut = ColumnDouble(tableName, "debt_out", "Дано в долг", 10, 2).apply {
+        val columnDebtOut = ColumnDouble(modelTableName, "debt_out", "Дано в долг", 10, 2).apply {
             setEmptyData(0.0, "-")
             tableAlign = TableCellAlign.RIGHT
         }
 
-        val columnDebtIn = ColumnDouble(tableName, "debt_in", "Возвращено долгов", 10, 2).apply {
+        val columnDebtIn = ColumnDouble(modelTableName, "debt_in", "Возвращено долгов", 10, 2).apply {
             setEmptyData(0.0, "-")
             tableAlign = TableCellAlign.RIGHT
         }
 
-        val columnCashRest = ColumnDouble(tableName, "cash_rest", "Остаток на конец дня", 10, 2).apply {
+        val columnCashRest = ColumnDouble(modelTableName, "cash_rest", "Остаток на конец дня", 10, 2).apply {
             setEmptyData(0.0, "-")
             tableAlign = TableCellAlign.RIGHT
         }
 
-        val columnDocumentDescr = ColumnString(tableName, "descr", "Примечание", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
+        val columnDocumentDescr = ColumnString(modelTableName, "descr", "Примечание", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
 
         //----------------------------------------------------------------------------------------------------------------------
 

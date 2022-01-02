@@ -64,29 +64,29 @@ class mDocument : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "SHOP_doc"
+        modelTableName = "SHOP_doc"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnCreateTime = ColumnDateTimeInt(tableName, "create_time", "Создание", true, zoneId).apply {
+        val columnCreateTime = ColumnDateTimeInt(modelTableName, "create_time", "Создание", true, zoneId).apply {
             isEditable = false
         }
-        columnEditTime = ColumnDateTimeInt(tableName, "edit_time", "Изменение", true, zoneId).apply {
+        columnEditTime = ColumnDateTimeInt(modelTableName, "edit_time", "Изменение", true, zoneId).apply {
             isEditable = false
         }
-        val columnContentEditTime = ColumnDateTimeInt(tableName, "content_edit_time", "Изменение состава", true, zoneId).apply {
+        val columnContentEditTime = ColumnDateTimeInt(modelTableName, "content_edit_time", "Изменение состава", true, zoneId).apply {
             isEditable = false
         }
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnDocumentIsDeleted = ColumnBoolean(tableName, "is_deleted", "Не считать", false)
+        columnDocumentIsDeleted = ColumnBoolean(modelTableName, "is_deleted", "Не считать", false)
 
-        columnDocumentType = ColumnComboBox(tableName, "doc_type", "Тип накладной", docType).apply {
+        columnDocumentType = ColumnComboBox(modelTableName, "doc_type", "Тип накладной", docType).apply {
             isEditable = false    // это информационное поле, значение устанавливается программно
             for ((dt, an) in DocumentTypeConfig.hmDocTypeAlias) {
                 addChoice(dt, hmAliasConfig[an]!!.descr)
@@ -94,7 +94,7 @@ class mDocument : mAbstract() {
         }
 
         columnWarehouseSour = if (DocumentTypeConfig.hsUseSourWarehouse.contains(docType) && parentWarehouseId == null) {
-            ColumnComboBox(tableName, "sour_id", if (docType == DocumentTypeConfig.TYPE_RESORT) "Склад / магазин" else "Со склада / магазина").apply {
+            ColumnComboBox(modelTableName, "sour_id", if (docType == DocumentTypeConfig.TYPE_RESORT) "Склад / магазин" else "Со склада / магазина").apply {
                 if (docType == DocumentTypeConfig.TYPE_ALL) {
                     addChoice(0, "")
                 }
@@ -108,11 +108,11 @@ class mDocument : mAbstract() {
                 }
             }
         } else {
-            ColumnInt(tableName, "sour_id", parentWarehouseId ?: 0)
+            ColumnInt(modelTableName, "sour_id", parentWarehouseId ?: 0)
         }
 
         columnWarehouseDest = if (DocumentTypeConfig.hsUseDestWarehouse.contains(docType) && parentWarehouseId == null) {
-            ColumnComboBox(tableName, "dest_id", "На склад / магазин").apply {
+            ColumnComboBox(modelTableName, "dest_id", "На склад / магазин").apply {
                 if (docType == DocumentTypeConfig.TYPE_ALL) {
                     addChoice(0, "")
                 }
@@ -126,28 +126,28 @@ class mDocument : mAbstract() {
                 }
             }
         } else {
-            ColumnInt(tableName, "dest_id", parentWarehouseId ?: 0)
+            ColumnInt(modelTableName, "dest_id", parentWarehouseId ?: 0)
         }
 
-        columnDocumentNo = ColumnString(tableName, "doc_no", "№ накладной", STRING_COLUMN_WIDTH).apply {
+        columnDocumentNo = ColumnString(modelTableName, "doc_no", "№ накладной", STRING_COLUMN_WIDTH).apply {
             tableCaption = "№ накл."
         }
 
-        columnDocumentDate = ColumnDate3Int(tableName, "doc_ye", "doc_mo", "doc_da", "Дата")
+        columnDocumentDate = ColumnDate3Int(modelTableName, "doc_ye", "doc_mo", "doc_da", "Дата")
 
         val columnClientID = ColumnInt("SHOP_client", "id")
-        val columnClient = ColumnInt(tableName, "client_id", columnClientID)
+        val columnClient = ColumnInt(modelTableName, "client_id", columnClientID)
         val columnClientName = ColumnString("SHOP_client", "name", "Клиент", STRING_COLUMN_WIDTH).apply {
             selectorAlias = "shop_client"
             addSelectorColumn(columnClient, columnClientID)
             addSelectorColumn(this)
         }
 
-        val columnDocumentDescr = ColumnString(tableName, "descr", "Примечание", STRING_COLUMN_WIDTH).apply {
+        val columnDocumentDescr = ColumnString(modelTableName, "descr", "Примечание", STRING_COLUMN_WIDTH).apply {
             tableCaption = "Прим."
         }
 
-        columnDocumentDiscount = ColumnDouble(tableName, "discount", "Скидка [%]", 10, 1, 0.0).apply {
+        columnDocumentDiscount = ColumnDouble(modelTableName, "discount", "Скидка [%]", 10, 1, 0.0).apply {
             setEmptyData(0.0, "-")
             minValue = 0.0
             maxValue = 100.0
@@ -155,18 +155,18 @@ class mDocument : mAbstract() {
             tableAlign = TableCellAlign.CENTER
         }
 
-        columnDocumentRowCount = ColumnInt(tableName, "_row_count", "Кол-во наименований", 10).apply {
+        columnDocumentRowCount = ColumnInt(modelTableName, "_row_count", "Кол-во наименований", 10).apply {
             isVirtual = true
             tableCaption = "Кол-во наим."
             tableAlign = TableCellAlign.CENTER
         }
-        columnDocumentCostOut = ColumnDouble(tableName, "_doc_cost_out", "Сумма [руб.]", 10, 2).apply {
+        columnDocumentCostOut = ColumnDouble(modelTableName, "_doc_cost_out", "Сумма [руб.]", 10, 2).apply {
             isVirtual = true
             tableCaption = "[руб.]"
             tableAlign = TableCellAlign.RIGHT
         }
 
-        val columnIsFiscaled = ColumnBoolean(tableName, "is_fiscaled", "", false)
+        val columnIsFiscaled = ColumnBoolean(modelTableName, "is_fiscaled", "", false)
 
         //----------------------------------------------------------------------------------------------------------------------
 

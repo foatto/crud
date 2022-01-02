@@ -40,21 +40,21 @@ class mTask : mAbstract() {
 
         //----------------------------------------------------------------------------------------
 
-        tableName = "OFFICE_task"
+        modelTableName = "OFFICE_task"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
-        columnUser = ColumnInt(tableName, if(isTaskOwner) "out_user_id" else "in_user_id", userConfig.userId)
+        columnUser = ColumnInt(modelTableName, if(isTaskOwner) "out_user_id" else "in_user_id", userConfig.userId)
 
-        columnActive = ColumnBoolean(tableName, "in_active", "", true)
-        columnArchive = ColumnBoolean(tableName, "in_archive", "", false)
+        columnActive = ColumnBoolean(modelTableName, "in_active", "", true)
+        columnArchive = ColumnBoolean(modelTableName, "in_archive", "", false)
 
         //----------------------------------------------------------------------------------------------------------------------
 
         val columnOtherUserID = ColumnInt("SYSTEM_users", "id")
-        val columnOtherUser = ColumnInt(tableName, if(isTaskOwner) "in_user_id" else "out_user_id", columnOtherUserID)
+        val columnOtherUser = ColumnInt(modelTableName, if(isTaskOwner) "in_user_id" else "out_user_id", columnOtherUserID)
 
         val columnOtherUserName = ColumnString("SYSTEM_users", "full_name", if(isTaskOwner) "Кому" else "От кого", STRING_COLUMN_WIDTH)
         columnOtherUserName.selectorAlias = "system_user_people"
@@ -62,13 +62,13 @@ class mTask : mAbstract() {
         columnOtherUserName.addSelectorColumn(columnOtherUserName)
         columnOtherUserName.formPinMode = FormPinMode.OFF
 
-        columnDate = ColumnDate3Int(tableName, "ye", "mo", "da", "Срок")
+        columnDate = ColumnDate3Int(modelTableName, "ye", "mo", "da", "Срок")
         columnDate.formPinMode = FormPinMode.OFF
 
-        columnTaskSubj = ColumnString(tableName, "subj", "Тема", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
+        columnTaskSubj = ColumnString(modelTableName, "subj", "Тема", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
         columnTaskSubj.formPinMode = FormPinMode.OFF
 
-        val columnFile = ColumnFile(application, tableName, "file_id", "Файлы")
+        val columnFile = ColumnFile(application, modelTableName, "file_id", "Файлы")
         columnFile.formPinMode = FormPinMode.OFF
 
         //------------------------------------------------------------------------------------
@@ -106,10 +106,14 @@ class mTask : mAbstract() {
 
         //----------------------------------------------------------------------------------------
 
-        if(userConfig.isAdmin) hmParentColumn["system_user"] = columnUser!!
+        hmParentColumn["system_user"] = if(userConfig.isAdmin) {
+            columnUser!!
+        }
         //--- особый случай: переход от имени пользователя на исходящие/входящие поручения
         //--- соответственно даст исходящие от меня на него и входящие от него ко мне поручения
-        else hmParentColumn["system_user"] = columnOtherUser
+        else {
+            columnOtherUser
+        }
 
         //----------------------------------------------------------------------------------------
 

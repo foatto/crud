@@ -28,11 +28,11 @@ class mPriceTag : mAbstractReport() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "SHOP_report"
+        modelTableName = "SHOP_report"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -49,7 +49,7 @@ class mPriceTag : mAbstractReport() {
                 val columnCatalogDestID = ColumnInt(selfLinkDestTableName, "id")
                 columnCatalogDestID.selfLinkTableName = "SHOP_catalog"
 
-                alColumnCatalog[i].add(ColumnInt(tableName, "catalog_id_$i$j", columnCatalogDestID))
+                alColumnCatalog[i].add(ColumnInt(modelTableName, "catalog_id_$i$j", columnCatalogDestID))
                 alColumnCatalog[i][j].isVirtual = true
 
                 alColumnCatalogName[i].add(ColumnString(selfLinkDestTableName, "name_$i$j", "Товар", 3, STRING_COLUMN_WIDTH, textFieldMaxSize))
@@ -63,7 +63,7 @@ class mPriceTag : mAbstractReport() {
             }
         }
 
-        val columnTMP = ColumnInt(tableName, "dest_catalog_id")
+        val columnTMP = ColumnInt(modelTableName, "dest_catalog_id")
 
         //----------------------------------------------------------------------------------------------------------------------
 

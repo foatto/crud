@@ -36,24 +36,24 @@ class mTaskThread : mAbstract() {
 
         //----------------------------------------------------------------------------------------
 
-        tableName = "OFFICE_task_thread"
+        modelTableName = "OFFICE_task_thread"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
-        columnUser = ColumnInt(tableName, "user_id", userConfig.userId)
+        columnID = ColumnInt(modelTableName, "id")
+        columnUser = ColumnInt(modelTableName, "user_id", userConfig.userId)
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnTask = ColumnInt(tableName, "task_id", parentTaskID)
+        val columnTask = ColumnInt(modelTableName, "task_id", parentTaskID)
 
-        val columnTaskThreadDate = ColumnDate3Int(tableName, "ye", "mo", "da", "Дата")
-        val columnTaskThreadTime = ColumnTime3Int(tableName, "ho", "mi", null, "Время")
+        val columnTaskThreadDate = ColumnDate3Int(modelTableName, "ye", "mo", "da", "Дата")
+        val columnTaskThreadTime = ColumnTime3Int(modelTableName, "ho", "mi", null, "Время")
 
-        columnTaskThreadMessage = ColumnString(tableName, "message", "Обсуждение", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
+        columnTaskThreadMessage = ColumnString(modelTableName, "message", "Обсуждение", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
         columnTaskThreadMessage.formPinMode = FormPinMode.OFF
 
-        val columnFile = ColumnFile(application, tableName, "file_id", "Файлы")
+        val columnFile = ColumnFile(application, modelTableName, "file_id", "Файлы")
         columnFile.formPinMode = FormPinMode.OFF
 
         //----------------------------------------------------------------------------------------

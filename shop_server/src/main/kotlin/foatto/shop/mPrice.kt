@@ -28,32 +28,32 @@ class mPrice : mAbstract() {
 
         //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-        tableName = "SHOP_price"
+        modelTableName = "SHOP_price"
 
         //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         val columnCatalogID = ColumnInt( "SHOP_catalog", "id" )
-        val columnCatalog = ColumnInt( tableName, "catalog_id", columnCatalogID )
+        val columnCatalog = ColumnInt( modelTableName, "catalog_id", columnCatalogID )
         val columnCatalogName = ColumnString( "SHOP_catalog", "name", "Товар", 3, STRING_COLUMN_WIDTH, textFieldMaxSize )
             columnCatalogName.isRequired = true
             columnCatalogName.selectorAlias = "shop_catalog_item"
             columnCatalogName.addSelectorColumn( columnCatalog, columnCatalogID )
             columnCatalogName.addSelectorColumn( columnCatalogName)   //, columnCatalogName );
 
-        columnPriceType = ColumnComboBox( tableName, "price_type", "Тип цены", if( aliasConfig.alias == "shop_price_in" ) PRICE_TYPE_IN else PRICE_TYPE_OUT )
+        columnPriceType = ColumnComboBox( modelTableName, "price_type", "Тип цены", if( aliasConfig.alias == "shop_price_in" ) PRICE_TYPE_IN else PRICE_TYPE_OUT )
             columnPriceType.addChoice( PRICE_TYPE_IN, "Закупочная цена" )
             columnPriceType.addChoice( PRICE_TYPE_OUT, "Розничная цена" )
 
-        val columnPriceDate = ColumnDate3Int(tableName, "ye", "mo", "da", "Дата")
+        val columnPriceDate = ColumnDate3Int(modelTableName, "ye", "mo", "da", "Дата")
 
-        val columnPriceValue = ColumnDouble( tableName, "price_value", "Цена", 10, 2 )
+        val columnPriceValue = ColumnDouble( modelTableName, "price_value", "Цена", 10, 2 )
             columnPriceValue.tableAlign = TableCellAlign.RIGHT
 
-        val columnPriceNote = ColumnString( tableName, "price_note", "Примечание", STRING_COLUMN_WIDTH )
+        val columnPriceNote = ColumnString( modelTableName, "price_note", "Примечание", STRING_COLUMN_WIDTH )
 
         //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -82,7 +82,7 @@ class cCatalog : cAbstractHierarchy() {
         val hsID: Set<Int>
         if (recordType == mAbstractHierarchy.RECORD_TYPE_FOLDER) {
             //--- возвращаем ID только от items
-            hsID = expandCatalog(stm, model.tableName, catalogID, true)
+            hsID = expandCatalog(stm, model.modelTableName, catalogID, true)
             //--- если в результате только один элемент и тот равен ID группы элементов, значит группа пустая
             (hmColumnData[mc.columnCatalogRowCount] as DataString).text = (if (hsID.size == 1 && hsID.contains(catalogID)) 0 else hsID.size).toString()
         } else {

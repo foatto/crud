@@ -19,15 +19,15 @@ class mWarehouse : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "SHOP_warehouse"
+        modelTableName = "SHOP_warehouse"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnWarehouseName = ColumnString(tableName, "name", "Склад / Магазин", STRING_COLUMN_WIDTH).apply {
+        val columnWarehouseName = ColumnString(modelTableName, "name", "Склад / Магазин", STRING_COLUMN_WIDTH).apply {
             isRequired = true
             setUnique(true, null)
         }

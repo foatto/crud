@@ -20,26 +20,26 @@ class mGift : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "SHOP_gift"
+        modelTableName = "SHOP_gift"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnOutDate = ColumnDate3Int(tableName, "out_ye", "out_mo", "out_da", "Дата выдачи")
+        val columnOutDate = ColumnDate3Int(modelTableName, "out_ye", "out_mo", "out_da", "Дата выдачи")
 
-        val columnNo = ColumnString(tableName, "no", "Номер", STRING_COLUMN_WIDTH)
+        val columnNo = ColumnString(modelTableName, "no", "Номер", STRING_COLUMN_WIDTH)
 
-        val columnPrice = ColumnDouble(tableName, "price", "Стоимость", 10, 2).apply {
+        val columnPrice = ColumnDouble(modelTableName, "price", "Стоимость", 10, 2).apply {
             setEmptyData(0.0, "-")
             tableAlign = TableCellAlign.RIGHT
         }
 
-        val columnIsUsed = ColumnBoolean(tableName, "is_used", "Использован", false)
+        val columnIsUsed = ColumnBoolean(modelTableName, "is_used", "Использован", false)
 
-        val columnUseDate = ColumnDate3Int(tableName, "use_ye", "use_mo", "use_da", "Дата использования").apply {
+        val columnUseDate = ColumnDate3Int(modelTableName, "use_ye", "use_mo", "use_da", "Дата использования").apply {
             default = LocalDate.of(2000, 1, 1)
         }
 

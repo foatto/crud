@@ -27,16 +27,16 @@ class mP : mAbstractReport() {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
-        tableName = "OFFICE_report"
+        modelTableName = "OFFICE_report"
 
 //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
 //----------------------------------------------------------------------------------------------------------------------
 
-        columnReportBegDate = ColumnDate3Int(tableName, "beg_ye", "beg_mo", "beg_da", "Начало периода")
-        columnReportEndDate = ColumnDate3Int(tableName, "end_ye", "end_mo", "end_da", "Конец периода")
+        columnReportBegDate = ColumnDate3Int(modelTableName, "beg_ye", "beg_mo", "beg_da", "Начало периода")
+        columnReportEndDate = ColumnDate3Int(modelTableName, "end_ye", "end_mo", "end_da", "Конец периода")
 
 //----------------------------------------------------------------------------------------------------------------------
 

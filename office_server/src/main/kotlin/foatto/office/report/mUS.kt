@@ -30,16 +30,16 @@ class mUS : mAbstractReport() {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "OFFICE_report"
+        modelTableName = "OFFICE_report"
 
 //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
 //----------------------------------------------------------------------------------------------------------------------
 
         val columnUserID = ColumnInt("SYSTEM_users", "id")
-        columnReportUser = ColumnInt(tableName, "user_id", columnUserID, 0 /*userConfig.getUserID()*/)
+        columnReportUser = ColumnInt(modelTableName, "user_id", columnUserID, 0 /*userConfig.getUserID()*/)
 
         val columnUserName = ColumnString("SYSTEM_users", "full_name", "По пользователю", STRING_COLUMN_WIDTH).apply {
             selectorAlias = "system_user_people"
@@ -47,7 +47,7 @@ class mUS : mAbstractReport() {
             addSelectorColumn(this)
         }
 
-        columnSumOnly = ColumnBoolean(tableName, "sum_only", "Выводить только суммы", false)
+        columnSumOnly = ColumnBoolean(modelTableName, "sum_only", "Выводить только суммы", false)
 
 //----------------------------------------------------------------------------------------------------------------------
 

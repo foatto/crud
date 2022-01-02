@@ -107,27 +107,27 @@ class mDocumentContent : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "SHOP_doc_content"
+        modelTableName = "SHOP_doc_content"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnCreateTime = ColumnDateTimeInt(tableName, "create_time", "Создание", true, zoneId).apply {
+        val columnCreateTime = ColumnDateTimeInt(modelTableName, "create_time", "Создание", true, zoneId).apply {
             isEditable = false
         }
-        columnEditTime = ColumnDateTimeInt(tableName, "edit_time", "Изменение", true, zoneId).apply {
+        columnEditTime = ColumnDateTimeInt(modelTableName, "edit_time", "Изменение", true, zoneId).apply {
             isEditable = false
         }
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnDocumentContentIsDeleted = ColumnBoolean(tableName, "is_deleted", "Не считать", false)
+        columnDocumentContentIsDeleted = ColumnBoolean(modelTableName, "is_deleted", "Не считать", false)
 
         val columnDocumentID = ColumnInt("SHOP_doc", "id")
-        columnDocument = ColumnInt(tableName, "doc_id", columnDocumentID, docID)
+        columnDocument = ColumnInt(modelTableName, "doc_id", columnDocumentID, docID)
 
         columnDocumentType = ColumnComboBox("SHOP_doc", "doc_type", "Тип накладной").apply {
             for ((dt, an) in DocumentTypeConfig.hmDocTypeAlias)
@@ -167,7 +167,7 @@ class mDocumentContent : mAbstract() {
         val columnSourCatalogID = ColumnInt(selfLinkSourTableName, "id").apply {
             selfLinkTableName = "SHOP_catalog"
         }
-        columnSourCatalog = ColumnInt(tableName, "sour_id", columnSourCatalogID)
+        columnSourCatalog = ColumnInt(modelTableName, "sour_id", columnSourCatalogID)
         columnSourCatalogName = ColumnString(
             aTableName = selfLinkSourTableName,
             aFieldName = "name",
@@ -184,7 +184,7 @@ class mDocumentContent : mAbstract() {
             isAutoStartSelector = !isAddOverMarkCode
         }
 
-        columnSourCatalogPriceOut = ColumnDouble(tableName, "_price_out_sour", "Цена", 10, 2).apply {
+        columnSourCatalogPriceOut = ColumnDouble(modelTableName, "_price_out_sour", "Цена", 10, 2).apply {
             isVirtual = true
             tableAlign = TableCellAlign.RIGHT
             isEditable = false
@@ -193,7 +193,7 @@ class mDocumentContent : mAbstract() {
         val columnDestCatalogID = ColumnInt(selfLinkDestTableName, "id").apply {
             selfLinkTableName = "SHOP_catalog"
         }
-        columnDestCatalog = ColumnInt(tableName, "dest_id", columnDestCatalogID)
+        columnDestCatalog = ColumnInt(modelTableName, "dest_id", columnDestCatalogID)
         columnDestCatalogName = ColumnString(
             aTableName = selfLinkDestTableName,
             aFieldName = "name",
@@ -210,14 +210,14 @@ class mDocumentContent : mAbstract() {
             addSelectorColumn(this)//, columnCatalogName );
             isAutoStartSelector = !isAddOverMarkCode
         }
-        columnDestCatalogPriceOut = ColumnDouble(tableName, "_price_out_dest", "Цена", 10, 2).apply {
+        columnDestCatalogPriceOut = ColumnDouble(modelTableName, "_price_out_dest", "Цена", 10, 2).apply {
             isVirtual = true
             tableAlign = TableCellAlign.RIGHT
             isEditable = false
         }
 
         columnSourNum = ColumnDouble(
-            aTableName = tableName,
+            aTableName = modelTableName,
             aFieldName = "sour_num",
             aCaption = if (docType == DocumentTypeConfig.TYPE_ALL) "Исх. кол-во" else "Кол-во",
             aCols = 10,
@@ -231,7 +231,7 @@ class mDocumentContent : mAbstract() {
         }
 
         columnDestNum = ColumnDouble(
-            aTableName = tableName,
+            aTableName = modelTableName,
             aFieldName = "dest_num",
             aCaption = if (docType == DocumentTypeConfig.TYPE_ALL) "Вх. кол-во" else "Кол-во",
             aCols = 10,
@@ -244,17 +244,17 @@ class mDocumentContent : mAbstract() {
             }
         }
 
-        columnCostOut = ColumnDouble(tableName, "_doc_cost_out", "Сумма [руб.]", 10, 2).apply {
+        columnCostOut = ColumnDouble(modelTableName, "_doc_cost_out", "Сумма [руб.]", 10, 2).apply {
             isVirtual = true
             tableAlign = TableCellAlign.RIGHT
         }
 
-        columnSkipMark = ColumnBoolean(tableName, "_skip_mark", "Пропустить маркировку", false).apply {
+        columnSkipMark = ColumnBoolean(modelTableName, "_skip_mark", "Пропустить маркировку", false).apply {
             isVirtual = true
         }
 
         columnMarkCode = ColumnString(
-            aTableName = tableName,
+            aTableName = modelTableName,
             aFieldName = "mark_code",
             aCaption = "Код маркировки",
             aRows = 3,
@@ -264,12 +264,12 @@ class mDocumentContent : mAbstract() {
             colSpan = 4
         }
 
-        columnToArchive = ColumnBoolean(tableName, "_to_archive", "Перенести исх. товар в архив", false).apply {
+        columnToArchive = ColumnBoolean(modelTableName, "_to_archive", "Перенести исх. товар в архив", false).apply {
             isVirtual = true
 //            setSavedDefault( userConfig )
         }
 
-        columnResort2Reprice = ColumnBoolean(tableName, "_resort_2_reprice", "Пересортицу в переоценку", false).apply {
+        columnResort2Reprice = ColumnBoolean(modelTableName, "_resort_2_reprice", "Пересортицу в переоценку", false).apply {
             isVirtual = true
         }
 

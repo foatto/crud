@@ -19,15 +19,15 @@ class mClient : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "SHOP_client"
+        modelTableName = "SHOP_client"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnClientName = ColumnString(tableName, "name", "Контрагент", STRING_COLUMN_WIDTH)
+        val columnClientName = ColumnString(modelTableName, "name", "Контрагент", STRING_COLUMN_WIDTH)
         columnClientName.isRequired = true
         columnClientName.setUnique(true, null)
 

@@ -21,17 +21,17 @@ class mCompany : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "OFFICE_company"
+        modelTableName = "OFFICE_company"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
-        val columnCompanyBlackList = ColumnBoolean(tableName, "in_black_list", "В чёрном списке")
-        val columnCompanyName = ColumnString(tableName, "name", "Наименование", STRING_COLUMN_WIDTH)
+        val columnCompanyBlackList = ColumnBoolean(modelTableName, "in_black_list", "В чёрном списке")
+        val columnCompanyName = ColumnString(modelTableName, "name", "Наименование", STRING_COLUMN_WIDTH)
 
         val columnCityID = ColumnInt("OFFICE_city", "id")
-        val columnCity = ColumnInt(tableName, "city_id", columnCityID)
+        val columnCity = ColumnInt(modelTableName, "city_id", columnCityID)
         val columnCityName = ColumnString("OFFICE_city", "name", "Город", STRING_COLUMN_WIDTH)
         val columnCityPhoneCode = ColumnString("OFFICE_city", "phone_code", "Код города", STRING_COLUMN_WIDTH)
 
@@ -40,10 +40,10 @@ class mCompany : mAbstract() {
         columnCityName.addSelectorColumn(columnCityName)
         columnCityName.addSelectorColumn(columnCityPhoneCode)
 
-        val columnCompanyAddress = ColumnString(tableName, "address", "Адрес компании", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
-        val columnCompanyContactInfo = ColumnString(tableName, "contact_info", "Доп. информация по компании", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
-        val columnCompanyBirthDate = ColumnDate3Int(tableName, "birth_ye", "birth_mo", "birth_da", "Дата образования компании")
-        val columnFile = ColumnFile(application, tableName, "file_id", "Файлы")
+        val columnCompanyAddress = ColumnString(modelTableName, "address", "Адрес компании", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
+        val columnCompanyContactInfo = ColumnString(modelTableName, "contact_info", "Доп. информация по компании", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
+        val columnCompanyBirthDate = ColumnDate3Int(modelTableName, "birth_ye", "birth_mo", "birth_da", "Дата образования компании")
+        val columnFile = ColumnFile(application, modelTableName, "file_id", "Файлы")
 
         //----------------------------------------------------------------------------------------
 

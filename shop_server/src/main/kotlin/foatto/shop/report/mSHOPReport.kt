@@ -93,15 +93,15 @@ abstract class mSHOPReport : mAbstractReport() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "SHOP_report"
+        modelTableName = "SHOP_report"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnWarehouseDest = ColumnComboBox(tableName, "dest_warehouse_id", "На склад / магазин").apply {
+        columnWarehouseDest = ColumnComboBox(modelTableName, "dest_warehouse_id", "На склад / магазин").apply {
             if (isUseNullWarehouse) {
                 addChoice(0, "(все склады / магазины)")
             }
@@ -114,12 +114,12 @@ abstract class mSHOPReport : mAbstractReport() {
         //----------------------------------------------------------------------------------------------------------------------
 
         val columnDocumentID = ColumnInt("SHOP_doc", "id")
-        columnDocument = ColumnInt(tableName, "doc_id", columnDocumentID, parentDocID)
+        columnDocument = ColumnInt(modelTableName, "doc_id", columnDocumentID, parentDocID)
         val columnDocumentNo = ColumnString("SHOP_doc", "doc_no", "Номер накладной", STRING_COLUMN_WIDTH)
         val columnDocumentDate = ColumnDate3Int("SHOP_doc", "doc_ye", "doc_mo", "doc_da", "Дата")
 
         val columnClientID = ColumnInt("SHOP_client", "id")
-        columnClient = ColumnInt(tableName, "client_id", columnClientID, parentClient)
+        columnClient = ColumnInt(modelTableName, "client_id", columnClientID, parentClient)
         val columnClientName = ColumnString("SHOP_client", "name", "Контрагент", STRING_COLUMN_WIDTH).apply {
             if (isReportClient) {
                 selectorAlias = "shop_client"
@@ -129,7 +129,7 @@ abstract class mSHOPReport : mAbstractReport() {
         }
         val columnDocumentDescr = ColumnString("SHOP_doc", "descr", "Примечание", STRING_COLUMN_WIDTH)
 
-        columnDocumentType = ColumnComboBox(tableName, "doc_type", "Тип накладной", parentDocType).apply {
+        columnDocumentType = ColumnComboBox(modelTableName, "doc_type", "Тип накладной", parentDocType).apply {
             isVirtual = true
             isEditable = isReportDocumentType
             for ((dt, an) in DocumentTypeConfig.hmDocTypeAlias)
@@ -157,7 +157,7 @@ abstract class mSHOPReport : mAbstractReport() {
         val columnCatalogDestID = ColumnInt(selfLinkDestTableName, "id").apply {
             selfLinkTableName = "SHOP_catalog"
         }
-        columnCatalogDest = ColumnInt(tableName, "dest_catalog_id", columnCatalogDestID)
+        columnCatalogDest = ColumnInt(modelTableName, "dest_catalog_id", columnCatalogDestID)
         val columnCatalogDestName = ColumnString(selfLinkDestTableName, "name", "Товар", 3, STRING_COLUMN_WIDTH, textFieldMaxSize).apply {
             selfLinkTableName = "SHOP_catalog"  // для правильной работы селектора с подстановочной таблицей
             isRequired = false
@@ -165,11 +165,11 @@ abstract class mSHOPReport : mAbstractReport() {
             addSelectorColumn(columnCatalogDest, columnCatalogDestID)
             addSelectorColumn(this)   //, columnCatalogName );
         }
-        columnBegDate = ColumnDate3Int(tableName, "beg_ye", "beg_mo", "beg_da", "Начало периода").apply {
+        columnBegDate = ColumnDate3Int(modelTableName, "beg_ye", "beg_mo", "beg_da", "Начало периода").apply {
             isVirtual = true
             default = LocalDate.now(zoneId).withDayOfMonth(1)
         }
-        columnEndDate = ColumnDate3Int(tableName, "end_ye", "end_mo", "end_da", if (isReportBegDate) "Конец периода" else "Дата").apply {
+        columnEndDate = ColumnDate3Int(modelTableName, "end_ye", "end_mo", "end_da", if (isReportBegDate) "Конец периода" else "Дата").apply {
             isVirtual = true
         }
 

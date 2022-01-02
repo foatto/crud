@@ -336,7 +336,6 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                     null
                 }
 
-                //--- Если включён показ линий и выключено сглаживание, то точки можно не показывать, их всё равно не будет видно за покрывающей их линией
                 val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 3, isReversedY)
                 val aText = GraphicDataContainer(GraphicDataContainer.ElementType.TEXT, axisIndex, 0, isReversedY)
 

@@ -103,7 +103,7 @@ class cDocument : cStandart() {
         val pid = getParentID("shop_warehouse")
 
         val md = model as mDocument
-        val tableName = renameTableName(hsTableRenameList, model.tableName)
+        val tableName = renameTableName(hsTableRenameList, model.modelTableName)
         val typeFieldName = md.columnDocumentType.getFieldName(0)
 
         var sSQL = ""

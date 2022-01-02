@@ -33,16 +33,16 @@ class mTask : mAbstractReport() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "OFFICE_report"
+        modelTableName = "OFFICE_report"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
         val columnTaskID = ColumnInt("OFFICE_task", "id")
-        columnReportTask = ColumnInt(tableName, "task_id", columnTaskID, parentTaskID)
+        columnReportTask = ColumnInt(modelTableName, "task_id", columnTaskID, parentTaskID)
 
         val columnTaskSubj = ColumnString("OFFICE_task", "subj", "Тема поручения", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
 

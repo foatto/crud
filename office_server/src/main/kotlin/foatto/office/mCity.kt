@@ -18,17 +18,17 @@ class mCity : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        tableName = "OFFICE_city"
+        modelTableName = "OFFICE_city"
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(tableName, "id")
+        columnID = ColumnInt(modelTableName, "id")
 
-        val columnCityName = ColumnString(tableName, "name", "Название", STRING_COLUMN_WIDTH)
+        val columnCityName = ColumnString(modelTableName, "name", "Название", STRING_COLUMN_WIDTH)
         columnCityName.isRequired = true
         columnCityName.setUnique(true, null)
 
-        val columnCityCode = ColumnString(tableName, "phone_code", "Код города", STRING_COLUMN_WIDTH)
+        val columnCityCode = ColumnString(modelTableName, "phone_code", "Код города", STRING_COLUMN_WIDTH)
 
         //----------------------------------------------------------------------------------------------------------------------
 
