@@ -123,10 +123,22 @@ class TSSpringApp : CoreSpringApp() {
             itEditablePoint = false
         )
 
-        hmElementConfig[sdcTSState.TYPE_STATE_TEXT] = XyElementConfig(
-            name = sdcTSState.TYPE_STATE_TEXT,
-            clientType = XyElementClientType.TEXT,
+        hmElementConfig[sdcTSState.TYPE_STATE_TEXT_BACK] = XyElementConfig(
+            name = sdcTSState.TYPE_STATE_TEXT_BACK,
+            clientType = XyElementClientType.POLY,
             layer = 13,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            itRotatable = false,
+            itMoveable = false,
+            itEditablePoint = false
+        )
+
+        hmElementConfig[sdcTSState.TYPE_STATE_TEXT_TEXT] = XyElementConfig(
+            name = sdcTSState.TYPE_STATE_TEXT_TEXT,
+            clientType = XyElementClientType.SVG_TEXT,
+            layer = 14,
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",

@@ -35,7 +35,8 @@ class sdcTSState : sdcXyState() {
     companion object {
         //--- arrange in ascending order of the level of location
         const val TYPE_STATE_AXIS = "ts_state_axis"
-        const val TYPE_STATE_TEXT = "ts_state_text"
+        const val TYPE_STATE_TEXT_BACK = "ts_state_text_back"
+        const val TYPE_STATE_TEXT_TEXT = "ts_state_text_text"
         const val TYPE_STATE_AXIS_POINTER = "ts_state_axis_pointer"
         const val TYPE_STATE_VALUE_BAR = "ts_state_value_bar"
 
@@ -65,13 +66,15 @@ class sdcTSState : sdcXyState() {
         hmInAliasElementType["ts_object"] = arrayOf(
             TYPE_STATE_AXIS,
             TYPE_STATE_AXIS_POINTER,
-            TYPE_STATE_TEXT,
+            TYPE_STATE_TEXT_BACK,
+            TYPE_STATE_TEXT_TEXT,
             TYPE_STATE_VALUE_BAR,
         )
 
         hmOutElementTypeAlias[TYPE_STATE_AXIS] = "ts_object"
         hmOutElementTypeAlias[TYPE_STATE_AXIS_POINTER] = "ts_object"
-        hmOutElementTypeAlias[TYPE_STATE_TEXT] = "ts_object"
+        hmOutElementTypeAlias[TYPE_STATE_TEXT_BACK] = "ts_object"
+        hmOutElementTypeAlias[TYPE_STATE_TEXT_TEXT] = "ts_object"
         hmOutElementTypeAlias[TYPE_STATE_VALUE_BAR] = "ts_object"
 
         super.init(aApplication, aConn, aStm, aChmSession, aUserConfig, aDocumentConfig)
@@ -105,8 +108,8 @@ class sdcTSState : sdcXyState() {
         }
 
         return XyActionResponse(
-            minCoord = XyPoint(prjX1 - GRID_STEP, prjY1 - GRID_STEP),
-            maxCoord = XyPoint(prjX2 + GRID_STEP, prjY2 + GRID_STEP * 2)
+            minCoord = XyPoint(prjX1 - GRID_STEP * 1, prjY1 - GRID_STEP),
+            maxCoord = XyPoint(prjX2 + GRID_STEP * 3, prjY2 + GRID_STEP)
         )
     }
 
@@ -173,7 +176,7 @@ class sdcTSState : sdcXyState() {
         var x = GRID_STEP * 0
         var y = GRID_STEP * 0
 
-        alResult += createText(
+        alResult += createTextText(
             objectId = objectConfig.objectId,
             x = x,
             y = y,
@@ -184,7 +187,7 @@ class sdcTSState : sdcXyState() {
             textColor = 0xFF_00_00_00.toInt()
         )
         y += GRID_STEP / 2
-        alResult += createText(
+        alResult += createTextText(
             objectId = objectConfig.objectId,
             x = x,
             y = y,
@@ -202,118 +205,106 @@ class sdcTSState : sdcXyState() {
 
         val curState = objectState.tmStateValue.values.firstOrNull()
 
-        alResult += createStateText(objectConfig.objectId, x, y, "Подъём", SensorConfigState.STATE_UP, curState)
-        y += GRID_STEP / 2
-        alResult += createStateText(objectConfig.objectId, x, y, "Спуск", SensorConfigState.STATE_DOWN, curState)
-        y += GRID_STEP / 2
-        alResult += createStateText(objectConfig.objectId, x, y, "Парковка", SensorConfigState.STATE_PARKING, curState)
+        alResult += createStateText(objectConfig.objectId, scale, x, y, "Подъём", SensorConfigState.STATE_UP, curState)
+        y += GRID_STEP * 3 / 4
+        alResult += createStateText(objectConfig.objectId, scale, x, y, "Спуск", SensorConfigState.STATE_DOWN, curState)
+        y += GRID_STEP * 3 / 4
+        alResult += createStateText(objectConfig.objectId, scale, x, y, "Парковка", SensorConfigState.STATE_PARKING, curState)
 
         y += GRID_STEP
 
-        alResult += createStateText(objectConfig.objectId, x, y, "Ожидание следующей чистки", SensorConfigState.STATE_WAIT_CLEAN, curState)
-        y += GRID_STEP / 2
-        alResult += createStateText(objectConfig.objectId, x, y, "Ожидание включения ЭЦН", SensorConfigState.STATE_WAIT_ECN, curState)
+        alResult += createStateText(objectConfig.objectId, scale, x, y, "Ожидание следующей чистки", SensorConfigState.STATE_WAIT_CLEAN, curState)
+        y += GRID_STEP * 3 / 4
+        alResult += createStateText(objectConfig.objectId, scale, x, y, "Ожидание включения ЭЦН", SensorConfigState.STATE_WAIT_ECN, curState)
 
         y += GRID_STEP
 
-        alResult += createStateText(objectConfig.objectId, x, y, "Непроход вниз", SensorConfigState.STATE_UNPASS_DOWN, curState)
-        y += GRID_STEP / 2
-        alResult += createStateText(objectConfig.objectId, x, y, "Непроход вверх", SensorConfigState.STATE_UNPASS_UP, curState)
-        y += GRID_STEP / 2
-        alResult += createStateText(objectConfig.objectId, x, y, "Обрыв проволоки", SensorConfigState.STATE_WIRE_RUNOUT, curState)
-        y += GRID_STEP / 2
-        alResult += createStateText(objectConfig.objectId, x, y, "Ошибка привода", SensorConfigState.STATE_DRIVE_PROTECT, curState)
+        alResult += createStateText(objectConfig.objectId, scale, x, y, "Непроход вниз", SensorConfigState.STATE_UNPASS_DOWN, curState)
+        y += GRID_STEP * 3 / 4
+        alResult += createStateText(objectConfig.objectId, scale, x, y, "Непроход вверх", SensorConfigState.STATE_UNPASS_UP, curState)
+        y += GRID_STEP * 3 / 4
+        alResult += createStateText(objectConfig.objectId, scale, x, y, "Обрыв проволоки", SensorConfigState.STATE_WIRE_RUNOUT, curState)
+        y += GRID_STEP * 3 / 4
+        alResult += createStateText(objectConfig.objectId, scale, x, y, "Ошибка привода", SensorConfigState.STATE_DRIVE_PROTECT, curState)
 
         //--- middle textual column
 
-        x += GRID_STEP * 6
+        x += GRID_STEP * 13
         y = GRID_STEP * 0
 
-        alResult += createText(
+        alResult += createTextText(
             objectId = objectConfig.objectId,
             x = x,
             y = y,
             text = "Глубина [м]",
             incFontSize = 4,
-            limitWidth = GRID_STEP * 2,
             anchorX = XyElement.Anchor.RB,
-            alignX = XyElement.Align.RB,
         )
-        y += GRID_STEP / 2
-        alResult += createText(
+        y += GRID_STEP
+        alResult += createTextText(
             objectId = objectConfig.objectId,
             x = x,
             y = y,
             text = objectState.tmDepthValue.values.firstOrNull()?.let { depth ->
                 getSplittedDouble(depth, 0, true, '.')
-            } ?: "(неизвестно)",
+            } ?: "-",
             textColor = 0xFF_80_00_00.toInt(),
             incFontSize = 32,
             isBold = true,
-            limitWidth = GRID_STEP * 2,
             anchorX = XyElement.Anchor.RB,
-            alignX = XyElement.Align.RB,
         )
         y += GRID_STEP * 2
 
-        alResult += createText(
+        alResult += createTextText(
             objectId = objectConfig.objectId,
             x = x,
             y = y,
             text = "Скорость [м/ч]",
             incFontSize = 4,
-            limitWidth = GRID_STEP * 2,
             anchorX = XyElement.Anchor.RB,
-            alignX = XyElement.Align.RB,
         )
-        y += GRID_STEP / 2
-        alResult += createText(
+        y += GRID_STEP
+        alResult += createTextText(
             objectId = objectConfig.objectId,
             x = x,
             y = y,
             text = objectState.tmSpeedValue.values.firstOrNull()?.let { speed ->
                 getSplittedDouble(speed, 0, true, '.')
-            } ?: "(неизвестно)",
+            } ?: "-",
             textColor = 0xFF_80_00_00.toInt(),
             incFontSize = 32,
             isBold = true,
-            limitWidth = GRID_STEP * 2,
             anchorX = XyElement.Anchor.RB,
-            alignX = XyElement.Align.RB,
         )
         y += GRID_STEP * 2
 
-        alResult += createText(
+        alResult += createTextText(
             objectId = objectConfig.objectId,
             x = x,
             y = y,
             text = "Нагрузка [%]",
             incFontSize = 4,
-            limitWidth = GRID_STEP * 2,
             anchorX = XyElement.Anchor.RB,
-            alignX = XyElement.Align.RB,
         )
-        y += GRID_STEP / 2
-        alResult += createText(
+        y += GRID_STEP
+        alResult += createTextText(
             objectId = objectConfig.objectId,
             x = x,
             y = y,
             text = objectState.tmLoadValue.values.firstOrNull()?.let { load ->
                 getSplittedDouble(load, 0, true, '.')
-            } ?: "(неизвестно)",
+            } ?: "-",
             textColor = 0xFF_80_00_00.toInt(),
             incFontSize = 32,
             isBold = true,
-            limitWidth = GRID_STEP * 2,
             anchorX = XyElement.Anchor.RB,
-            alignX = XyElement.Align.RB,
         )
 
         y += GRID_STEP * 2
 
-        alResult += createText(
+        alResult += createTextText(
             objectId = objectConfig.objectId,
-            x = x,
+            x = x - GRID_STEP * 3,
             y = y,
             text = "Следующая чистка начнётся: " + (
                 objectState.tmNextCleaningDateTime.values.firstOrNull()?.let { nextDataTime ->
@@ -331,7 +322,14 @@ class sdcTSState : sdcXyState() {
         objectConfig.hmSensorConfig[SensorConfig.SENSOR_DEPTH]?.entries?.firstOrNull()?.let { (portNum, sc) ->
             val sca = sc as SensorConfigAnalogue
 
-            alResult += createText(objectConfig.objectId, x, y, "Глубина [м]", null, 0xFF_00_00_00.toInt())
+            alResult += createTextText(
+                objectId = objectConfig.objectId,
+                x = x,
+                y = y,
+                text = "Глубина [м]",
+                tooltip = null,
+                textColor = 0xFF_00_00_00.toInt()
+            )
             y += GRID_STEP
 
             alResult += createAxis(objectConfig.objectId, x, y, DEPTH_SCALE_COUNT)
@@ -339,8 +337,8 @@ class sdcTSState : sdcXyState() {
                 alResult += createNotchLine(objectConfig.objectId, x, y + GRID_STEP * i)
                 alResult += createNotchText(
                     objectId = objectConfig.objectId,
-                    x = x,
-                    y = y + GRID_STEP * i,
+                    x = x + 4 * scale,
+                    y = y + GRID_STEP * i + 4 * scale,
                     text = getSplittedDouble(sca.maxView - (sca.maxView - sca.minView) / DEPTH_SCALE_COUNT * i, 0, true, '.')
                 )
             }
@@ -354,39 +352,57 @@ class sdcTSState : sdcXyState() {
             objectState.tmSetupValue[cDevice.CLEANING_DEPTH_SHOW_POS]?.let { cleaningDepth ->
                 val downY = y + GRID_STEP * DEPTH_SCALE_COUNT
                 val topY = downY - (cleaningDepth.toDouble() - sca.minView) / (sca.maxView - sca.minView) * (downY - y)
-                alResult += createArrow(objectConfig.objectId, scale, x - GRID_STEP / 4, topY.toInt(), 0, 0xFF_FF_00_00.toInt(), "Глубина очистки [м]")
-                alResult += createText(
+                alResult += createArrow(
                     objectId = objectConfig.objectId,
-                    x = x - GRID_STEP * 3 / 4,
-                    y = topY.toInt() - GRID_STEP / 8,
+                    scale = scale,
+                    x = x - GRID_STEP / 4,
+                    y = topY.toInt(),
+                    angle = 0,
+                    color = 0xFF_FF_00_00.toInt(),
+                    toolTipText = "Глубина очистки [м]"
+                )
+                alResult += createTextText(
+                    objectId = objectConfig.objectId,
+                    x = x - GRID_STEP / 2,
+                    y = topY.toInt(),
                     text = getSplittedDouble(cleaningDepth.toDouble(), 0, true, '.'),
                     textColor = 0xFF_00_00_00.toInt(),
-                    limitWidth = GRID_STEP,
                     anchorX = XyElement.Anchor.RB,
-                    alignX = XyElement.Align.RB,
+                    anchorY = XyElement.Anchor.CC,
                 )
             }
 
             objectState.tmSetupValue[cDevice.PARKING_DEPTH_SHOW_POS]?.let { parkingDepth ->
                 val downY = y + GRID_STEP * DEPTH_SCALE_COUNT
                 val topY = downY - (parkingDepth.toDouble() - sca.minView) / (sca.maxView - sca.minView) * (downY - y)
-                alResult += createArrow(objectConfig.objectId, scale, x + GRID_STEP * 3 / 4, topY.toInt(), 180, 0xFF_00_00_FF.toInt(), "Глубина парковки скребка [м]")
-                alResult += createText(
+                alResult += createArrow(
                     objectId = objectConfig.objectId,
-                    x = x + GRID_STEP,
-                    y = topY.toInt() - GRID_STEP / 8,
+                    scale = scale,
+                    x = x - GRID_STEP / 4,
+                    //x = x + GRID_STEP * 7 / 4,
+                    y = topY.toInt(),
+                    angle = 0,
+                    //angle = 180,
+                    color = 0xFF_00_00_FF.toInt(),
+                    toolTipText = "Глубина парковки скребка [м]"
+                )
+                alResult += createTextText(
+                    objectId = objectConfig.objectId,
+                    x = x - GRID_STEP / 2,
+                    //x = x + GRID_STEP * 8 / 4,
+                    y = topY.toInt(),
                     text = getSplittedDouble(parkingDepth.toDouble(), 0, true, '.'),
                     textColor = 0xFF_00_00_00.toInt(),
-                    limitWidth = GRID_STEP,
-                    anchorX = XyElement.Anchor.LT,
-                    alignX = XyElement.Align.LT,
+                    anchorX = XyElement.Anchor.RB,
+                    //anchorX = XyElement.Anchor.LT,
+                    anchorY = XyElement.Anchor.CC,
                 )
             }
         }
 
         //--- second right load axis block
 
-        x += GRID_STEP * 3
+        x += GRID_STEP * 4
         y = GRID_STEP * 0
 
         val LOAD_SCALE_COUNT = 5
@@ -394,13 +410,18 @@ class sdcTSState : sdcXyState() {
         objectConfig.hmSensorConfig[SensorConfig.SENSOR_LOAD]?.entries?.firstOrNull()?.let { (portNum, sc) ->
             val sca = sc as SensorConfigAnalogue
 
-            alResult += createText(objectConfig.objectId, x, y, "Нагрузка [%]", null, 0xFF_00_00_00.toInt())
+            alResult += createTextText(objectConfig.objectId, x, y, "Нагрузка [%]", null, 0xFF_00_00_00.toInt())
             y += GRID_STEP
 
             alResult += createAxis(objectConfig.objectId, x, y, LOAD_SCALE_COUNT)
             (0..LOAD_SCALE_COUNT).forEach { i ->
                 alResult += createNotchLine(objectConfig.objectId, x, y + GRID_STEP * i)
-                alResult += createNotchText(objectConfig.objectId, x, y + GRID_STEP * i, getSplittedDouble(sca.maxView - (sca.maxView - sca.minView) / LOAD_SCALE_COUNT * i, 0, true, '.'))
+                alResult += createNotchText(
+                    objectId = objectConfig.objectId,
+                    x = x + 4 * scale,
+                    y = y + GRID_STEP * i + 4 * scale,
+                    text = getSplittedDouble(sca.maxView - (sca.maxView - sca.minView) / LOAD_SCALE_COUNT * i, 0, true, '.')
+                )
             }
 
             objectState.tmLoadValue.values.firstOrNull()?.let { load ->
@@ -413,33 +434,33 @@ class sdcTSState : sdcXyState() {
                 val downY = y + GRID_STEP * LOAD_SCALE_COUNT
                 val topY = downY - (driveLoadRestict.toDouble() - sca.minView) / (sca.maxView - sca.minView) * (downY - y)
                 alResult += createArrow(objectConfig.objectId, scale, x - GRID_STEP / 4, topY.toInt(), 0, 0xFF_FF_00_00.toInt(), "Ограничение нагрузки на привод [%]")
-                alResult += createText(
+                alResult += createTextText(
                     objectId = objectConfig.objectId,
-                    x = x - GRID_STEP * 3 / 4,
-                    y = topY.toInt() - GRID_STEP / 8,
+                    x = x - GRID_STEP / 2,
+                    y = topY.toInt(),   
                     text = getSplittedDouble(driveLoadRestict.toDouble(), 0, true, '.'),
                     textColor = 0xFF_00_00_00.toInt(),
-                    limitWidth = GRID_STEP,
                     anchorX = XyElement.Anchor.RB,
-                    alignX = XyElement.Align.RB,
+                    anchorY = XyElement.Anchor.CC,
                 )
             }
         }
 
         //--- command button block
 
-        x += GRID_STEP * 3
-        y = GRID_STEP * 0
+        x += GRID_STEP * 8
+        y = GRID_STEP
 
         if (isRemoteControlPermission) {
             alResult += createClickableText(
                 objectId = objectConfig.objectId,
+                scale = scale,
                 x = x,
                 y = y,
                 text = "\nСлепой подъём\n\n",
                 tooltip = "Вы хотите запустить слепой подъем?",
                 backColor = SensorConfigState.COLOR_PURPLE_BRIGHT,
-            ).also { clickableText ->
+            ).onEach { clickableText ->
                 //--- set command to this element
                 chmElementCommand[clickableText.elementId] = "clstart"
                 //--- set sensor port_num (for define device_id over device_index over port_num)
@@ -448,36 +469,39 @@ class sdcTSState : sdcXyState() {
             y += GRID_STEP * 2
             alResult += createClickableText(
                 objectId = objectConfig.objectId,
+                scale = scale,
                 x = x,
                 y = y,
                 text = "\nНачать спуск\n\n",
                 tooltip = "Вы хотите начать спуск?",
                 backColor = SensorConfigState.COLOR_GREEN_BRIGHT,
-            ).also { clickableText ->
+            ).onEach { clickableText ->
                 chmElementCommand[clickableText.elementId] = "cldesc"
                 chmElementPort[clickableText.elementId] = 0 // sc.portNum - now used one device per object only
             }
             y += GRID_STEP * 2
             alResult += createClickableText(
                 objectId = objectConfig.objectId,
+                scale = scale,
                 x = x,
                 y = y,
                 text = "\nПерезапуск станции\n\n",
                 tooltip = "Вы хотите перезапустить УДС?",
                 backColor = SensorConfigState.COLOR_BLUE_BRIGHT,
-            ).also { clickableText ->
+            ).onEach { clickableText ->
                 chmElementCommand[clickableText.elementId] = "reset"
                 chmElementPort[clickableText.elementId] = 0 // sc.portNum - now used one device per object only
             }
             y += GRID_STEP * 2
             alResult += createClickableText(
                 objectId = objectConfig.objectId,
+                scale = scale,
                 x = x,
                 y = y,
                 text = "\nОстановить работу\n\n",
                 tooltip = "Вы хотите остановить работу станции?",
                 backColor = SensorConfigState.COLOR_ORANGE_BRIGHT,
-            ).also { clickableText ->
+            ).onEach { clickableText ->
                 chmElementCommand[clickableText.elementId] = "stop"
                 chmElementPort[clickableText.elementId] = 0 // sc.portNum - now used one device per object only
             }
@@ -486,7 +510,15 @@ class sdcTSState : sdcXyState() {
         return alResult
     }
 
-    private fun createStateText(objectId: Int, x: Int, y: Int, text: String, forState: Int, curState: Int?) = createText(
+    private fun createStateText(
+        objectId: Int,
+        scale: Int,
+        x: Int,
+        y: Int,
+        text: String,
+        forState: Int,
+        curState: Int?
+    ) = createFilledText(
         objectId = objectId,
         x = x,
         y = y,
@@ -502,8 +534,13 @@ class sdcTSState : sdcXyState() {
             SensorConfigState.hmStateInfo[forState]?.darkColor ?: SensorConfigState.COLOR_UNKNOWN_DARK
         },
         drawColor = SensorConfigState.hmStateInfo[forState]?.darkColor ?: SensorConfigState.COLOR_UNKNOWN_DARK,
+        incFontSize = 0,
         isBold = forState == curState,
-        limitWidth = GRID_STEP * 3,
+        limitWidth = GRID_STEP * 8,
+        limitHeight = (iCoreAppContainer.BASE_FONT_SIZE + 3) * scale,
+        borderExpand = 4 * scale,
+        anchorX = XyElement.Anchor.LT,
+        anchorY = XyElement.Anchor.CC,
     )
 
     private fun createAxis(objectId: Int, x: Int, y: Int, scaleCount: Int) =
@@ -528,7 +565,7 @@ class sdcTSState : sdcXyState() {
             lineWidth = 1
         }
 
-    private fun createNotchText(objectId: Int, x: Int, y: Int, text: String) = createText(
+    private fun createNotchText(objectId: Int, x: Int, y: Int, text: String) = createTextText(
         objectId = objectId,
         x = x,
         y = y,
@@ -564,8 +601,16 @@ class sdcTSState : sdcXyState() {
             lineWidth = 1
         }
 
-    private fun createClickableText(objectId: Int, x: Int, y: Int, text: String, tooltip: String?, backColor: Int) =
-        createText(
+    private fun createClickableText(
+        objectId: Int,
+        scale: Int,
+        x: Int,
+        y: Int,
+        text: String,
+        tooltip: String?,
+        backColor: Int
+    ) =
+        createFilledText(
             objectId = objectId,
             x = x,
             y = y,
@@ -573,13 +618,15 @@ class sdcTSState : sdcXyState() {
             tooltip = tooltip,
             fillColor = backColor,
             isBold = true,
-            limitWidth = GRID_STEP * 3,
-            alignX = XyElement.Align.CC,
-        ).apply {
-            itReadOnly = false
+            limitWidth = GRID_STEP * 6,
+            limitHeight = (iCoreAppContainer.BASE_FONT_SIZE + 48) * scale,
+            anchorX = XyElement.Anchor.CC,
+            anchorY = XyElement.Anchor.CC,
+        ).onEach {
+            it.itReadOnly = false
         }
 
-    private fun createText(
+    private fun createFilledText(
         objectId: Int,
         x: Int,
         y: Int,
@@ -592,33 +639,109 @@ class sdcTSState : sdcXyState() {
         isBold: Boolean = false,
         limitWidth: Int = 0,
         limitHeight: Int = 0,
+        borderExpand: Int = 0,
+        borderShiftY: Int = 0,
         anchorX: XyElement.Anchor = XyElement.Anchor.LT,
         anchorY: XyElement.Anchor = XyElement.Anchor.LT,
-        alignX: XyElement.Align = XyElement.Align.LT,
-        alignY: XyElement.Align = XyElement.Align.LT,
+    ) = listOf(
+        createTextBack(
+            objectId = objectId,
+            x = x,
+            y = y,
+            tooltip = tooltip,
+            fillColor = fillColor,
+            drawColor = drawColor,
+            limitWidth = limitWidth,
+            limitHeight = limitHeight,
+            borderExpand = borderExpand,
+            borderShiftY = borderShiftY,
+            anchorX = anchorX,
+            anchorY = anchorY,
+        ),
+        createTextText(
+            objectId = objectId,
+            x = x,
+            y = y,
+            text = text,
+            tooltip = tooltip,
+            textColor = textColor,
+            incFontSize = incFontSize,
+            isBold = isBold,
+            anchorX = anchorX,
+            anchorY = anchorY,
+        )
+    )
+
+    private fun createTextBack(
+        objectId: Int,
+        x: Int,
+        y: Int,
+        tooltip: String? = null,
+        fillColor: Int = 0,
+        drawColor: Int = 0,
+        limitWidth: Int = 0,
+        limitHeight: Int = 0,
+        borderExpand: Int = 0,
+        borderShiftY: Int = 0,
+        anchorX: XyElement.Anchor = XyElement.Anchor.LT,
+        anchorY: XyElement.Anchor = XyElement.Anchor.LT,
     ) =
-        XyElement(TYPE_STATE_TEXT, -getRandomInt(), objectId).apply {
+        XyElement(TYPE_STATE_TEXT_BACK, -getRandomInt(), objectId).apply {
+            this.itReadOnly = true
+
+            this.toolTipText = tooltip ?: ""
+
+            val newX = when (anchorX.toString()) {
+                XyElement.Anchor.LT.toString() -> x
+                XyElement.Anchor.RB.toString() -> x - limitWidth
+                else -> x - limitWidth / 2
+            }
+
+            val newY = when (anchorY.toString()) {
+                XyElement.Anchor.LT.toString() -> y
+                XyElement.Anchor.RB.toString() -> y - limitHeight
+                else -> y - limitHeight / 2
+            }
+
+            this.itClosed = true
+            this.alPoint = arrayOf(
+                XyPoint(newX - borderExpand, newY - borderExpand + borderShiftY),
+                XyPoint(newX + limitWidth + borderExpand, newY - borderExpand + borderShiftY),
+                XyPoint(newX + limitWidth + borderExpand, newY + limitHeight + borderExpand + borderShiftY),
+                XyPoint(newX - borderExpand, newY + limitHeight + borderExpand + borderShiftY),
+            )
+
+            this.drawColor = drawColor
+            this.fillColor = fillColor
+
+            this.lineWidth = 1
+        }
+
+    private fun createTextText(
+        objectId: Int,
+        x: Int,
+        y: Int,
+        text: String,
+        tooltip: String? = null,
+        textColor: Int = 0xFF_00_00_00.toInt(),
+        incFontSize: Int? = null,
+        isBold: Boolean = false,
+        anchorX: XyElement.Anchor = XyElement.Anchor.LT,
+        anchorY: XyElement.Anchor = XyElement.Anchor.LT,
+    ) =
+        XyElement(TYPE_STATE_TEXT_TEXT, -getRandomInt(), objectId).apply {
             this.itReadOnly = true
             this.alPoint = arrayOf(XyPoint(x, y))
 
             this.text = text
             this.toolTipText = tooltip ?: ""
             this.textColor = textColor
-            
-            this.drawColor = drawColor
-            this.fillColor = fillColor
-            
+
             this.fontSize = iCoreAppContainer.BASE_FONT_SIZE + (incFontSize ?: 0)
             this.itFontBold = isBold
 
-            this.limitWidth = limitWidth
-            this.limitHeight = limitHeight
-
             this.anchorX = anchorX
             this.anchorY = anchorY
-            this.alignX = alignX
-            this.alignY = alignY
-
         }
 
 }
