@@ -319,8 +319,8 @@ fun styleFileNameButtonMargin() = "0.1rem"
 
 //--- Graphic
 
-fun styleGraphicCheckBoxMargin() = "0 $CONTROL_PADDING 0 $CONTROL_LEFT_RIGHT_SIDE_PADDING"
-fun styleGraphicCheckBoxLabelPadding() = "0 $CONTROL_LEFT_RIGHT_SIDE_PADDING 0 $CONTROL_PADDING"
+fun styleGraphicVisibilityTop() = "${if (screenDPR <= 1.0) 9.0 else 9.0}rem"
+fun styleGraphicVisibilityMaxWidth() = if (styleIsNarrowScreen) "85%" else "20rem"
 fun styleGraphicTimeLabelPadding() = "$CONTROL_PADDING $CONTROL_LEFT_RIGHT_SIDE_PADDING $CONTROL_PADDING $CONTROL_LEFT_RIGHT_SIDE_PADDING"
 
 //--- Xy

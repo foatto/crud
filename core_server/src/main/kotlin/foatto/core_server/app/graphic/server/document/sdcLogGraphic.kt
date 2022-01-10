@@ -134,15 +134,15 @@ class sdcLogGraphic : sdcAbstractGraphic() {
 
         //--- конец графиков ---
 
-        val tmVisibleElement = TreeMap<String, String>()
-        tmVisibleElement[gewh.graphicTitle] = "$UP_GRAPHIC_VISIBLE${gewh.graphicTitle}"
-        tmVisibleElement[gem.graphicTitle] = "$UP_GRAPHIC_VISIBLE${gem.graphicTitle}"
+        val tmVisibleElement = TreeMap<String, Triple<String, String, Boolean>>()
+        tmVisibleElement[gewh.graphicTitle] = Triple(gewh.graphicTitle, "$UP_GRAPHIC_VISIBLE${gewh.graphicTitle}", true)
+        tmVisibleElement[gem.graphicTitle] = Triple(gem.graphicTitle, "$UP_GRAPHIC_VISIBLE${gem.graphicTitle}", true)
 
         return GraphicActionResponse(
-            alIndexColor = hmIndexColor.toList().toTypedArray(),
-            alElement = tmElement.toList().toTypedArray(),
-            alVisibleElement = tmVisibleElement.toList().toTypedArray(),
-            alLegend = emptyArray(),
+            arrIndexColor = hmIndexColor.toList().toTypedArray(),
+            arrElement = tmElement.toList().toTypedArray(),
+            arrVisibleElement = tmVisibleElement.values.toTypedArray(),
+            arrLegend = emptyArray(),
         )
     }
 

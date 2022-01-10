@@ -22,7 +22,7 @@ open class sdcAnalog : sdcAbstractAnalog() {
         alRawData: List<AdvancedByteBuffer>,
         objectConfig: ObjectConfig,
         tmElement: SortedMap<String, GraphicElement>,
-        tmElementVisibleConfig: SortedMap<String, String>,
+        tmElementVisibleConfig: SortedMap<String, Triple<String, String, Boolean>>,
     ) {
         val mmsgdc = GraphicDocumentConfig.hmConfig[documentTypeName] as MMSGraphicDocumentConfig
         val sensorType = mmsgdc.sensorType

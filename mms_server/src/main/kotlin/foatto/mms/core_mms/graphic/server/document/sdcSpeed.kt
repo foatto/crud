@@ -54,15 +54,15 @@ class sdcSpeed : sdcAbstractGraphic() {
             sbObjectInfo.append(", ").append(oc.departmentName)
         }
 
-        val tmElement = TreeMap<String, GraphicElement>()
-        val tmElementVisibleConfig = TreeMap<String, String>()
+        val tmElement = sortedMapOf<String, GraphicElement>()
+        val tmElementVisibleConfig = sortedMapOf<String, Triple<String, String, Boolean>>()
         if (oc.scg?.isUseSpeed == true) {
             //--- заранее заполняем список опеределений видимости графиков
             val graphicVisibilityKey = "$UP_GRAPHIC_VISIBLE${sd.objectId}_19"
-            tmElementVisibleConfig[oc.scg!!.descr] = graphicVisibilityKey
+            val isGraphicVisible = userConfig.getUserProperty(graphicVisibilityKey)?.toBooleanStrictOrNull() ?: true
+            tmElementVisibleConfig[oc.scg!!.descr] = Triple(oc.scg!!.descr, graphicVisibilityKey, isGraphicVisible)
 
             //--- а сейчас уже можно и нужно проверять на видимость графика
-            val isGraphicVisible = userConfig.getUserProperty(graphicVisibilityKey)?.toBooleanStrictOrNull() ?: true
             if (isGraphicVisible) {
                 val hmZoneLimit = ZoneLimitData.getZoneLimit(
                     stm = stm,
@@ -142,10 +142,10 @@ class sdcSpeed : sdcAbstractGraphic() {
         //AdvancedLogger.debug(  "------------------------------------------------------------"  );
 
         return GraphicActionResponse(
-            alIndexColor = hmIndexColor.toList().toTypedArray(),
-            alElement = tmElement.toList().toTypedArray(),
-            alVisibleElement = tmElementVisibleConfig.toList().toTypedArray(),
-            alLegend = emptyArray(),
+            arrIndexColor = hmIndexColor.toList().toTypedArray(),
+            arrElement = tmElement.toList().toTypedArray(),
+            arrVisibleElement = tmElementVisibleConfig.values.toTypedArray(),
+            arrLegend = emptyArray(),
         )
 
     }

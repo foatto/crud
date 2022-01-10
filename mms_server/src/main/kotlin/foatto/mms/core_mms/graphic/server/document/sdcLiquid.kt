@@ -82,7 +82,7 @@ class sdcLiquid : sdcAbstractAnalog() {
         alRawData: List<AdvancedByteBuffer>,
         objectConfig: ObjectConfig,
         tmElement: SortedMap<String, GraphicElement>,
-        tmElementVisibleConfig: SortedMap<String, String>,
+        tmElementVisibleConfig: SortedMap<String, Triple<String, String, Boolean>>,
     ) {
         val mmsgdc = GraphicDocumentConfig.hmConfig[documentTypeName] as MMSGraphicDocumentConfig
         graphicHandler = mmsgdc.graphicHandler as AnalogGraphicHandler
@@ -264,18 +264,15 @@ class sdcLiquid : sdcAbstractAnalog() {
 
                     //--- если есть расходомер и он только один, то считаем по нему
                     if (alSclu.size == 1) {
-                        isLiquidFlow = true
                         calcLiquidFlowOverLiquidUsing(alRawTime, alRawData, alAxisYData, alSclu.first(), scafInGroup, begTime, endTime, xScale, yScale)
-                        alGDC.addAll(listOfNotNull(aText, aLiquidMin, aLiquidMax, aLiquidFlow).filter { it.itNotEmpty() })
-                        axisIndex++
                     }
                     //--- расходомеров не нашлось (или их >1), считаем через изменение уровня топлива
                     else {
-                        isLiquidFlow = true
                         calcLiquidFlowOverLiquidLevel(alAxisYData, sca, scafInGroup, begTime, endTime, xScale, yScale, alGLD)
-                        alGDC.addAll(listOfNotNull(aText, aLiquidMin, aLiquidMax, aLiquidFlow).filter { it.itNotEmpty() })
-                        axisIndex++
                     }
+                    alGDC.addAll(listOfNotNull(aText, aLiquidMin, aLiquidMax, aLiquidFlow).filter { it.itNotEmpty() })
+                    axisIndex++
+                    isLiquidFlow = true
                 }
             }
         }

@@ -239,7 +239,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(stm, objectConfig, begTime, endTime)
 
         val tmElement = sortedMapOf<String, GraphicElement>()
-        val tmElementVisibleConfig = sortedMapOf<String, String>()
+        val tmElementVisibleConfig = sortedMapOf<String, Triple<String, String, Boolean>>()
 
         getGraphicElements(
             sd = sd,
@@ -255,10 +255,10 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         )
 
         return GraphicActionResponse(
-            alIndexColor = hmIndexColor.toList().toTypedArray(),
-            alElement = tmElement.toList().toTypedArray(),
-            alVisibleElement = tmElementVisibleConfig.toList().toTypedArray(),
-            alLegend = emptyArray(),
+            arrIndexColor = hmIndexColor.toList().toTypedArray(),
+            arrElement = tmElement.toList().toTypedArray(),
+            arrVisibleElement = tmElementVisibleConfig.values.toTypedArray(),
+            arrLegend = emptyArray(),
         )
     }
 
@@ -273,7 +273,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         alRawData: List<AdvancedByteBuffer>,
         objectConfig: ObjectConfig,
         tmElement: SortedMap<String, GraphicElement>,
-        tmElementVisibleConfig: SortedMap<String, String>,
+        tmElementVisibleConfig: SortedMap<String, Triple<String, String, Boolean>>,
     )
 
     fun getGraphicElement(
@@ -288,33 +288,30 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         alSca: List<SensorConfigAnalogue>,
         alGraphicHandler: List<AnalogGraphicHandler>,
         tmElement: SortedMap<String, GraphicElement>,
-        tmElementVisibleConfig: SortedMap<String, String>,
+        tmElementVisibleConfig: SortedMap<String, Triple<String, String, Boolean>>,
         alLegend: Array<Triple<Int, Boolean, String>> = emptyArray(),
     ) {
-        val alGDC = mutableListOf<GraphicDataContainer>()
+        val graphicVisibilityKey = "$UP_GRAPHIC_VISIBLE${objectConfig.objectId}_${alSca.first().portNum}"
+        val isGraphicVisible = userConfig.getUserProperty(graphicVisibilityKey)?.toBooleanStrictOrNull() ?: true
+        tmElementVisibleConfig[graphicTitle] = Triple(graphicTitle, graphicVisibilityKey, isGraphicVisible)
 
-        objectConfig.scg?.let { scg ->
-            if (!isGeoSensorShowed && scg.isUseSpeed) {
-                val aBack = GraphicDataContainer(GraphicDataContainer.ElementType.BACK, 0, 0, false)
-                calcGeoSensor(alRawTime, alRawData, scg, begTime, endTime, aBack)
-                alGDC.add(aBack)
+        if (isGraphicVisible) {
+            val alGDC = mutableListOf<GraphicDataContainer>()
 
-                isGeoSensorShowed = true
+            objectConfig.scg?.let { scg ->
+                if (!isGeoSensorShowed && scg.isUseSpeed) {
+                    val aBack = GraphicDataContainer(GraphicDataContainer.ElementType.BACK, 0, 0, false)
+                    calcGeoSensor(alRawTime, alRawData, scg, begTime, endTime, aBack)
+                    alGDC.add(aBack)
+
+                    isGeoSensorShowed = true
+                }
             }
-        }
 
-        val alAxisYData = mutableListOf<AxisYData>()
+            val alAxisYData = mutableListOf<AxisYData>()
 
-        var axisIndex = 0
-        alSca.forEachIndexed { sensorIndex, sca ->
-            //--- заранее заполняем список определений видимости графиков
-            val graphicVisibilityKey = "$UP_GRAPHIC_VISIBLE${objectConfig.objectId}_${sca.portNum}"
-            tmElementVisibleConfig[sca.descr] = graphicVisibilityKey
-
-            //--- а сейчас уже можно и нужно проверять на видимость графика
-            val isGraphicVisible = userConfig.getUserProperty(graphicVisibilityKey)?.toBooleanStrictOrNull() ?: true
-
-            if (isGraphicVisible) {
+            var axisIndex = 0
+            alSca.forEachIndexed { sensorIndex, sca ->
                 val isReversedY = false //sca.sensorType == SensorConfig.SENSOR_DEPTH
 
                 val graphicHandler = alGraphicHandler[sensorIndex]
@@ -440,17 +437,16 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                     aText = aText,
                     alGDC = alGDC,
                 )
-
             }
-        }
 
-        tmElement[graphicTitle] = GraphicElement(
-            graphicTitle = graphicTitle,
-            alLegend = alLegend,
-            graphicHeight = -1.0,
-            alAxisYData = alAxisYData.toTypedArray(),
-            alGDC = alGDC.toTypedArray()
-        )
+            tmElement[graphicTitle] = GraphicElement(
+                graphicTitle = graphicTitle,
+                alLegend = alLegend,
+                graphicHeight = -1.0,
+                alAxisYData = alAxisYData.toTypedArray(),
+                alGDC = alGDC.toTypedArray()
+            )
+        }
     }
 
     //--- пост-обработка графика

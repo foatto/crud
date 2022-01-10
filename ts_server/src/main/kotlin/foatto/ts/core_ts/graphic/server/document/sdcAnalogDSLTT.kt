@@ -23,7 +23,7 @@ class sdcAnalogDSLTT : sdcAbstractAnalog() {
         alRawData: List<AdvancedByteBuffer>,
         objectConfig: ObjectConfig,
         tmElement: SortedMap<String, GraphicElement>,
-        tmElementVisibleConfig: SortedMap<String, String>,
+        tmElementVisibleConfig: SortedMap<String, Triple<String, String, Boolean>>,
     ) {
         val tsgdc = GraphicDocumentConfig.hmConfig[documentTypeName] as TSGraphicDocumentConfig
         val graphicHandler = tsgdc.graphicHandler as AnalogGraphicHandler

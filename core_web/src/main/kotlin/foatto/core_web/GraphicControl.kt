@@ -10,6 +10,7 @@ import foatto.core.app.graphic.GraphicViewCoord
 import foatto.core.app.iCoreAppContainer
 import foatto.core.app.xy.geom.XyRect
 import foatto.core.link.GraphicResponse
+import foatto.core.link.SaveUserPropertyRequest
 import foatto.core.util.getSplittedDouble
 import foatto.core_web.external.vue.that
 import foatto.core_web.external.vue.vueComponentOptions
@@ -146,7 +147,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                 <span v-bind:style="style_toolbar_block">
                     <img src="/web/images/ic_timeline_black_48dp.png"
                          v-bind:style="style_icon_button"
-                         v-on:click="doLoadGraphicVisibility()"
+                         v-on:click="isShowGraphicVisibility=!isShowGraphicVisibility"
                          title="Включить/выключить отдельные графики"
                     >
         
@@ -161,8 +162,10 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                             {{ data.descr }}
                             <br>
                         </template>
-                        <br>
                         
+                        <br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;
+                                                
                         <button v-on:click="doChangeGraphicVisibility()"
                                 v-bind:style="style_graphic_visibility_button"
                                 title="Применить изменения"                                                                        
@@ -232,18 +235,18 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                 aView = aView,
             )
         },
-        "doLoadGraphicVisibility" to {
-            val isShowGraphicVisibility = that().isShowGraphicVisibility.unsafeCast<Boolean>()
-            if(!isShowGraphicVisibility) {
-                //--- перезаполнить список перед показом
-
-            }
-            that().isShowGraphicVisibility = !isShowGraphicVisibility
-        },
         "doChangeGraphicVisibility" to {
             that().isShowGraphicVisibility = false
-            //--- применить изменения
-            
+            val arrGraphicVisibleData = that().arrGraphicVisibleData.unsafeCast<Array<GraphicVisibleData>>()
+            arrGraphicVisibleData.forEach { graphicVisibleData ->
+                invokeSaveUserProperty(
+                    SaveUserPropertyRequest(
+                        name = graphicVisibleData.name,
+                        value = graphicVisibleData.check.toString(),
+                    )
+                )
+            }
+            that().grRefreshView(null, null)
         },
         "onMouseOver" to { event: Event, graphicElement: SvgElement ->
             val mouseEvent = event as MouseEvent
@@ -623,54 +626,6 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
         },
     )
 /*
-                else if( comp == butElementVisible ) {
-                    if( grModel.alVisibleElement.isEmpty() ) showInformation( "Выбор графиков", "Нет графиков для показа" )
-                    else {
-                        val dialog = Dialog<Any>()
-                        dialog.title = "Выбор графиков для показа"
-                        dialog.headerText = null
-                        //dialog.setContentText(  null  );
-                        dialog.initStyle( StageStyle.UTILITY )
-                        dialog.initModality( Modality.APPLICATION_MODAL )
-                        //!!! ни один из вариантов пока не работает
-                        //            dialog.initOwner(  appStage  );
-                        //            URL iconURL = getClass().getResource(  ICON_URL  );
-                        //            if(  iconURL != null  ) (  ( Stage ) dialog.getDialogPane().getScene().getWindow()  ).getIcons().add(  new Image(  iconURL.toString()  )  );
-                        dialog.graphic = ImageView( javaClass.getResource( "/images/ic_trending_up_black_18dp.png" ).toString() )
-
-                        val okButtonType = ButtonType( "OK", ButtonBar.ButtonData.OK_DONE )
-                        dialog.dialogPane.buttonTypes.addAll( okButtonType, ButtonType.CANCEL )
-
-                        val grid = GridPane()
-                        grid.hgap = 16.0
-                        grid.vgap = 16.0
-
-                        val arrKey = arrayOfNulls<String>( grModel.alVisibleElement.size )
-                        val arrCheckBox = arrayOfNulls<CheckBox>( grModel.alVisibleElement.size )
-                        var i = 0
-                        for( ( key, value ) in grModel.alVisibleElement ) {
-                            val strGraphicVisible = appContainer.getUserProperty( value )
-                            val isGraphicVisible = strGraphicVisible == null || java.lang.Boolean.parseBoolean( strGraphicVisible )
-                            arrKey[ i ] = value
-                            arrCheckBox[ i ] = CheckBox( key )
-                            arrCheckBox[ i ]!!.setSelected( isGraphicVisible )
-                            grid.add( arrCheckBox[ i ], 0, i )
-                            i++
-                        }
-                        dialog.dialogPane.content = grid
-                        dialog.setResultConverter { dialogButton -> if( dialogButton == okButtonType ) Any() else null }
-                        val result = dialog.showAndWait()
-                        if( result.isPresent ) {
-                            result.get()   //--- возвращаемый объект не нужен, у нас и так есть доступ к полям
-                            i = 0
-                            while( i < arrCheckBox.size ) {
-                                appContainer.saveUserProperty( arrKey[ i ]!!, java.lang.Boolean.toString( arrCheckBox[ i ]!!.isSelected ) )
-                                i++
-                            }
-                            grRefreshView( 0 )
-                        }
-                    }
-                }
                 else if( comp == butShowForTime ) {
                     try {
                         val begTime = Arr_DateTime( appContainer.timeZone, intArrayOf(
@@ -714,12 +669,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
             "isZoomButtonDisabled" to false,
 
             "isShowGraphicVisibility" to false,
-            "arrGraphicVisibleData" to arrayOf<GraphicVisibleData>(
-                GraphicVisibleData("aaa", "AAA", true),
-                GraphicVisibleData("bbb", "BBB", false),
-                GraphicVisibleData("ccc", "CCC", true),
-                GraphicVisibleData("ddd", "DDD", true),
-            ),
+            "arrGraphicVisibleData" to arrayOf<GraphicVisibleData>(),
 
             "isMouseDown" to false,
 
@@ -770,10 +720,9 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
             "style_visibility_list" to json(
                 "z-index" to "2",   // popup menu must be above than table headers
                 "position" to "absolute",
-                "top" to "20%",
-//                "bottom" to if (styleIsNarrowScreen) "20%" else "10%", //"height" to "80%",
-//                "min-width" to styleMenuWidth(),
-//                "width" to styleMenuWidth(),
+                "top" to styleGraphicVisibilityTop(),
+                "width" to "auto",
+                "max-width" to styleGraphicVisibilityMaxWidth(),
                 "background" to COLOR_MENU_GROUP_BACK,
                 "border" to "1px solid $COLOR_MENU_BORDER",
                 "border-radius" to BORDER_RADIUS,
@@ -783,19 +732,18 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                 "cursor" to "pointer",
             ),
             "style_graphic_visibility_checkbox" to json(
-//                "padding" to styleMenuItemPadding_0(),
-//{ 'background-color' : ( $menuDataName.itHover? '$COLOR_MENU_BACK_HOVER' : '$COLOR_MENU_ITEM_BACK' ) },
-//{ 'text-decoration' : ( $menuDataName.url || $menuDataName.text ? '' : 'line-through' ) },
-//{ 'color' : ( $menuDataName.url || $menuDataName.text ? '$COLOR_TEXT' : '$COLOR_MENU_DELIMITER' ) }
-
+                //                "padding" to styleMenuItemPadding_0(),
+                //{ 'background-color' : ( $menuDataName.itHover? '$COLOR_MENU_BACK_HOVER' : '$COLOR_MENU_ITEM_BACK' ) },
+                //{ 'text-decoration' : ( $menuDataName.url || $menuDataName.text ? '' : 'line-through' ) },
+                //{ 'color' : ( $menuDataName.url || $menuDataName.text ? '$COLOR_TEXT' : '$COLOR_MENU_DELIMITER' ) }
             ),
             "style_graphic_visibility_button" to json(
                 "background" to COLOR_BUTTON_BACK,
                 "border" to "1px solid $COLOR_BUTTON_BORDER",
                 "border-radius" to BORDER_RADIUS,
                 "font-size" to styleCommonButtonFontSize(),
-//                "padding" to styleFileNameButtonPadding(),
-//                "margin" to styleFileNameButtonMargin(),
+                "padding" to styleFileNameButtonPadding(),
+                "margin" to styleFileNameButtonMargin(),
                 "cursor" to "pointer"
             ),
         ).add(
@@ -1157,15 +1105,22 @@ fun doGraphicRefresh(
 
         { graphicActionResponse: GraphicActionResponse ->
 
-            val alElement = graphicActionResponse.alElement
+            val arrElement = graphicActionResponse.arrElement
+
             //--- пары element-descr -> element-key, отсортированные по element-descr для определения ключа,
             //--- по которому будет управляться видимость графиков
-            val alVisibleElement = graphicActionResponse.alVisibleElement
+            that.arrGraphicVisibleData = graphicActionResponse.arrVisibleElement.map { triple ->
+                GraphicVisibleData(
+                    descr = triple.first,
+                    name = triple.second,
+                    check = triple.third,
+                )
+            }.toTypedArray()
 
-            val hmIndexColor = graphicActionResponse.alIndexColor.associate { e ->
+            val hmIndexColor = graphicActionResponse.arrIndexColor.associate { e ->
                 e.first.toString() to getColorFromInt(e.second)
             }
-            that.arrGrLegend = graphicActionResponse.alLegend.map { triple ->
+            that.arrGrLegend = graphicActionResponse.arrLegend.map { triple ->
                 val color = triple.first
                 val isBack = triple.second
                 val text = triple.third
@@ -1199,7 +1154,7 @@ fun doGraphicRefresh(
             //--- определить hard/soft-высоты графиков (для распределения области окна между графиками)
             var sumHard = 0        // сумма жестко заданных высот
             var sumSoft = 0        // сумма мягко/относительно заданных высот
-            alElement.forEach { pair ->
+            arrElement.forEach { pair ->
                 val cge = pair.second
                 //--- prerare data for Y-reversed charts
                 cge.alAxisYData.forEach { axisYData ->
@@ -1276,7 +1231,7 @@ fun doGraphicRefresh(
 
             val alGraphicElement = mutableListOf<GraphicElementData>()
             val alYData = mutableListOf<YData>()
-            alElement.forEach { pair ->
+            arrElement.forEach { pair ->
                 val element = pair.second
 
                 val grHeight = element.graphicHeight.toInt()
@@ -1442,8 +1397,8 @@ private fun defineGraphicSvgCoords(
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private class GraphicVisibleData(
-    val name: String,
     val descr: String,
+    val name: String,
     val check: Boolean,
 )
 
