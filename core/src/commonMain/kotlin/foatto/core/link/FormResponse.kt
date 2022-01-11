@@ -37,6 +37,7 @@ class FormCell(val cellType: FormCellType) {
     //--- TYPE_BOOLEAN
     var booleanName = ""
     var booleanValue = false
+    var arrSwitchText = arrayOf<String>()
 
     //--- TYPE_DATE, TYPE_TIME, TYPE_DATE_TIME
     var alDateTimeField = arrayOf<Pair<String, String>>()    // name, value
@@ -71,9 +72,10 @@ class FormCell(val cellType: FormCellType) {
 
 //-----------------------------------------------------------------------------------------------------
 
-    constructor(aBooleanName: String, aBooleanValue: Boolean) : this(FormCellType.BOOLEAN) {
+    constructor(aBooleanName: String, aBooleanValue: Boolean, aArrSwitch: Array<String>) : this(FormCellType.BOOLEAN) {
         booleanName = aBooleanName
         booleanValue = aBooleanValue
+        arrSwitchText = aArrSwitch
     }
 
 }

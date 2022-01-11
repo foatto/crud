@@ -62,7 +62,9 @@ class mObjectSetup : mAbstract() {
                         ColumnString(modelTableName, "_${scs.id}", scs.descr, STRING_COLUMN_WIDTH)
                     }
                     SensorConfigSetup.VALUE_TYPE_BOOLEAN -> {
-                        ColumnBoolean(modelTableName, "_${scs.id}", scs.descr)
+                        ColumnBoolean(modelTableName, "_${scs.id}", scs.descr).apply {
+                            arrSwitchText = arrayOf("Нет", "Да")
+                        }
                     }
                     else -> {
                         ColumnString(modelTableName, "_${scs.id}", scs.descr, STRING_COLUMN_WIDTH)

@@ -36,7 +36,9 @@ class DataBoolean(aColumn: iColumn) : DataAbstract(aColumn) {
     }
 
     override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell =
-        if(isShowEmptyTableCell) TableCell(row, col, column.rowSpan, column.colSpan)
+        if(isShowEmptyTableCell) {
+            TableCell(row, col, column.rowSpan, column.colSpan)
+        }
         else TableCell(
             aRow = row,
             aCol = col,
@@ -49,9 +51,17 @@ class DataBoolean(aColumn: iColumn) : DataAbstract(aColumn) {
             aBooleanValue = value
         )
 
-    override fun getFormCell(rootDirName: String, conn: CoreAdvancedConnection, isUseThousandsDivider: Boolean, decimalDivider: Char) = FormCell(getFieldCellName(0), value)
+    override fun getFormCell(rootDirName: String, conn: CoreAdvancedConnection, isUseThousandsDivider: Boolean, decimalDivider: Char) = FormCell(
+        aBooleanName = getFieldCellName(0),
+        aBooleanValue = value,
+        aArrSwitch = cb.arrSwitchText,
+    )
 
-    override fun getFieldSQLValue(index: Int): String = if(value) "1" else "0"
+    override fun getFieldSQLValue(index: Int): String = if(value) {
+        "1"
+    } else {
+        "0"
+    }
 
     override fun setData(data: iData) {
         value = (data as DataBoolean).value
@@ -60,8 +70,14 @@ class DataBoolean(aColumn: iColumn) : DataAbstract(aColumn) {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     private fun validate(obj: Any?): Boolean {
-        if(obj == null) return false
-        return if(obj is Number) obj.toInt() != 0
-        else obj as? Boolean ?: false
+        if(obj == null) {
+            return false
+        }
+        return if(obj is Number) {
+            obj.toInt() != 0
+        }
+        else {
+            obj as? Boolean ?: false
+        }
     }
 }

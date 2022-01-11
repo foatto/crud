@@ -29,11 +29,15 @@ class cRolePermission : cStandart() {
         val id = getIDFromParam()
         //--- мегаформа установки прав доступа открывается только при попытке их создания,
         //--- иначе запускаем обычную привычную форму
-        if (id != 0) return super.getForm(hmOut)
+        if (id != 0) {
+            return super.getForm(hmOut)
+        }
 
         val refererID = hmParam[AppParameter.REFERER]
         var refererURL: String? = null
-        if (refererID != null) refererURL = chmSession[AppParameter.REFERER + refererID] as String
+        if (refererID != null) {
+            refererURL = chmSession[AppParameter.REFERER + refererID] as String
+        }
 
         //--- подготовка "чистого" appParam для кнопок формы
         //--- (простое клонирование исходного hmParam здесь не годится,
@@ -98,7 +102,7 @@ class cRolePermission : cStandart() {
                     sIDList += (if (sIDList.isEmpty()) "" else ",") + "$pid"
 
                     //--- основные поля - применяются сокращенные/оптимизированные варианты getFormCell
-                    val fci = FormCell(fieldName, fieldValue)
+                    val fci = FormCell(fieldName, fieldValue, emptyArray())
 
                     fci.itEditable = true
                     fci.caption = rowCaption

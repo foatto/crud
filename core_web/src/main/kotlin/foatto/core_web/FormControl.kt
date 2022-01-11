@@ -8,6 +8,7 @@ import foatto.core.link.FormData
 import foatto.core.link.FormPinMode
 import foatto.core.link.FormResponse
 import foatto.core.util.getRandomInt
+import foatto.core_web.external.vue.Vue
 import foatto.core_web.external.vue.that
 import foatto.core_web.external.vue.vueComponentOptions
 import kotlinx.browser.document
@@ -93,7 +94,7 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                     >
                     </textarea>
 
-                    <input v-else-if="gridData.cellType == '${FormCellType_.BOOLEAN}'"
+                    <input v-else-if="gridData.cellType == '${FormCellType_.CHECKBOX}'"
                            type="checkbox"
                            v-model="gridData.bool"
                            v-on:change="gridData.itReadOnly ? null : doVisibleAndCaptionChange( gridData )"
@@ -104,6 +105,31 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                            v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
                            v-on:keyup.f4="closeTabById()"
                     >
+
+                    <template v-else-if="gridData.cellType == '${FormCellType_.SWITCH}'">
+                            <button v-on:click="gridData.itReadOnly || !gridData.bool ? null : doVisibleAndCaptionChange( gridData )"
+                                    v-bind:readonly="gridData.itReadOnly"
+                                    v-bind:style="gridData.bool ? style_form_switch_off : style_form_switch_on"
+                                    v-bind:autofocus="gridData.itAutoFocus"
+                                    title="gridData.arrSwitchText[0]"                                                                        
+                                    v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true ) : null"
+                                    v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
+                                    v-on:keyup.f4="closeTabById()"
+                            >
+                                {{ gridData.arrSwitchText[0] }}
+                            </button>
+                            <button v-on:click="gridData.itReadOnly || gridData.bool ? null : doVisibleAndCaptionChange( gridData )"
+                                    v-bind:readonly="gridData.itReadOnly"
+                                    v-bind:style="gridData.bool ? style_form_switch_on : style_form_switch_off"
+                                    v-bind:autofocus="gridData.itAutoFocus"
+                                    title="gridData.arrSwitchText[1]"                                                                        
+                                    v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true ) : null"
+                                    v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
+                                    v-on:keyup.f4="closeTabById()"
+                            >
+                                {{ gridData.arrSwitchText[1] }}
+                            </button>
+                    </template>
 
                     <template v-else-if="gridData.cellType == '${FormCellType_.DATE}' || gridData.cellType == '${FormCellType_.TIME}' || gridData.cellType == '${FormCellType_.DATE_TIME}'">
                         <input type="text"
@@ -266,34 +292,17 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
             that().`$root`.closeTabById(tabId)
         },
         "doVisibleAndCaptionChange" to { gdMaster: FormGridData ->
-            //Vue.nextTick { - понадобится, если вместо v-on:change применить v-on:click
-
-            //--- определение контрольного значения
-            val controlValue =
-                when (gdMaster.cellType) {
-                    FormCellType_.BOOLEAN -> {
-                        if (if (gdMaster.itHidden) gdMaster.oldBool else gdMaster.bool) 1 else 0
-                    }
-                    FormCellType_.COMBO -> if (gdMaster.itHidden) gdMaster.oldCombo else gdMaster.combo
-                    FormCellType_.RADIO -> if (gdMaster.itHidden) gdMaster.oldCombo else gdMaster.combo
-                    else -> 0
+            val that = that()
+            if (gdMaster.cellType == FormCellType_.SWITCH) {
+                //--- из-за применения onlick
+                Vue.nextTick {
+                    //--- manual switch because button realization instead standart checkbox
+                    gdMaster.bool = !gdMaster.bool
+                    doVisibleAndCaptionChangeBody(that, gdMaster)
                 }
-
-            val arrGridData = that().arrGridData.unsafeCast<Array<FormGridData>>()
-            val hmFormCellVisible = that().hmFormCellVisible.unsafeCast<Map<Int, Array<FormCellVisibleInfo>>>()
-            val hmFormCellCaption = that().hmFormCellCaption.unsafeCast<Map<Int, Array<FormCellCaptionInfo>>>()
-
-            val alFCVI = hmFormCellVisible[gdMaster.id]
-            alFCVI?.forEach { fcvi ->
-                val gdSlave = arrGridData.find { gd -> gd.id == fcvi.id }
-                gdSlave?.itVisible = fcvi.state == fcvi.hsValue.contains(controlValue)
             }
-
-            val alFCCI = hmFormCellCaption[gdMaster.id]
-            alFCCI?.forEach { fcci ->
-                val gdSlave = arrGridData.find { gd -> gd.id == fcci.id }
-                if (gdSlave != null && fcci.hsValue.contains(controlValue))
-                    gdSlave.text = fcci.caption
+            else {
+                doVisibleAndCaptionChangeBody(that, gdMaster)
             }
         },
         "showFile" to { url: String ->
@@ -350,7 +359,7 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                     FormCellType_.TEXT -> {
                         alFormData.add(FormData(textValue = if (withNewValues) gridData.text else gridData.oldText))
                     }
-                    FormCellType_.BOOLEAN -> {
+                    FormCellType_.CHECKBOX, FormCellType_.SWITCH -> {
                         alFormData.add(FormData(booleanValue = if (withNewValues) gridData.bool else gridData.oldBool))
                     }
                     FormCellType_.DATE, FormCellType_.TIME, FormCellType_.DATE_TIME -> {
@@ -646,7 +655,9 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
         that().arrFormButton = alFormButton.toTypedArray()
 
         //--- начальные установки видимости и caption-зависимостей
-        for (gridData in alFormCellMasterPreAction) that().doVisibleAndCaptionChange(gridData)
+        for (gridData in alFormCellMasterPreAction) {
+            doVisibleAndCaptionChangeBody(that(), gridData)
+        }
 
         if (autoClickURL != null) that().invoke(autoClickURL, true)
 
@@ -733,6 +744,22 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
             "style_form_row_checkbox" to json(
                 "transform" to styleControlCheckBoxTransform(),
                 "margin" to styleFormCheckboxAndRadioMargin()
+            ),
+            "style_form_switch_off" to json(
+                "background" to COLOR_FORM_SWITCH_BACK_OFF,
+                "border" to "1px solid $COLOR_TAB_BORDER",
+                "border-radius" to BORDER_RADIUS,
+                "font-size" to styleCommonButtonFontSize(),
+                "padding" to styleFileNameButtonPadding(),
+                "cursor" to "pointer"
+            ),
+            "style_form_switch_on" to json(
+                "background" to COLOR_FORM_SWITCH_BACK_ON,
+                "border" to "1px solid $COLOR_TAB_BORDER",
+                "border-radius" to BORDER_RADIUS,
+                "font-size" to styleCommonButtonFontSize(),
+                "padding" to styleFileNameButtonPadding(),
+                "cursor" to "pointer"
             ),
             "style_form_row_combo" to json(
                 "font-size" to styleControlTextFontSize(),
@@ -852,20 +879,29 @@ private fun getFormGridData(formCell: FormCell, gridCellID: Int, itHidden: Boole
         FormCellType.BOOLEAN.toString() -> {
             FormGridData(
                 id = gridCellID,
-                cellType = FormCellType_.BOOLEAN,
+                cellType = if(formCell.arrSwitchText.isEmpty()) {
+                    FormCellType_.CHECKBOX
+                } else {
+                    FormCellType_.SWITCH
+                },
                 style = style,
                 itHidden = itHidden,
                 error = formCell.errorMessage,
                 aBool = formCell.booleanValue,
-                itReadOnly = !formCell.itEditable
+                itReadOnly = !formCell.itEditable,
+                arrSwitchText = formCell.arrSwitchText,
             )
         }
         FormCellType.DATE.toString(), FormCellType.TIME.toString(), FormCellType.DATE_TIME.toString() -> {
             FormGridData(
                 id = gridCellID,
-                cellType = if (formCell.cellType == FormCellType.DATE) FormCellType_.DATE
-                else if (formCell.cellType == FormCellType.TIME) FormCellType_.TIME
-                else FormCellType_.DATE_TIME,
+                cellType = if (formCell.cellType == FormCellType.DATE) {
+                    FormCellType_.DATE
+                } else if (formCell.cellType == FormCellType.TIME) {
+                    FormCellType_.TIME
+                } else {
+                    FormCellType_.DATE_TIME
+                },
                 style = style,
                 itHidden = itHidden,
                 error = formCell.errorMessage,
@@ -926,7 +962,50 @@ private fun getFormGridData(formCell: FormCell, gridCellID: Int, itHidden: Boole
     return gridData
 }
 
-private enum class FormCellType_ { LABEL, STRING, TEXT, BOOLEAN, DATE, TIME, DATE_TIME, COMBO, RADIO, FILE }
+private fun doVisibleAndCaptionChangeBody(that: dynamic, gdMaster: FormGridData) {
+    //--- определение контрольного значения
+    val controlValue =
+        when (gdMaster.cellType) {
+            FormCellType_.CHECKBOX, FormCellType_.SWITCH -> {
+                if (if (gdMaster.itHidden) gdMaster.oldBool else gdMaster.bool) {
+                    1
+                } else {
+                    0
+                }
+            }
+            FormCellType_.COMBO -> if (gdMaster.itHidden) {
+                gdMaster.oldCombo
+            } else {
+                gdMaster.combo
+            }
+            FormCellType_.RADIO -> if (gdMaster.itHidden) {
+                gdMaster.oldCombo
+            } else {
+                gdMaster.combo
+            }
+            else -> 0
+        }
+
+    val arrGridData = that.arrGridData.unsafeCast<Array<FormGridData>>()
+    val hmFormCellVisible = that.hmFormCellVisible.unsafeCast<Map<Int, Array<FormCellVisibleInfo>>>()
+    val hmFormCellCaption = that.hmFormCellCaption.unsafeCast<Map<Int, Array<FormCellCaptionInfo>>>()
+
+    val alFCVI = hmFormCellVisible[gdMaster.id]
+    alFCVI?.forEach { fcvi ->
+        val gdSlave = arrGridData.find { gd -> gd.id == fcvi.id }
+        gdSlave?.itVisible = fcvi.state == fcvi.hsValue.contains(controlValue)
+    }
+
+    val alFCCI = hmFormCellCaption[gdMaster.id]
+    alFCCI?.forEach { fcci ->
+        val gdSlave = arrGridData.find { gd -> gd.id == fcci.id }
+        if (gdSlave != null && fcci.hsValue.contains(controlValue)) {
+            gdSlave.text = fcci.caption
+        }
+    }
+}
+
+private enum class FormCellType_ { LABEL, STRING, TEXT, CHECKBOX, SWITCH, DATE, TIME, DATE_TIME, COMBO, RADIO, FILE }
 
 private class FormTitleData(val id: Int, val url: String, val text: String)
 
@@ -950,6 +1029,7 @@ private class FormGridData(
     val rowCount: Int = 1,
     val itReadOnly: Boolean = false,
 
+    val arrSwitchText: Array<String>? = null,
     val arrComboData: Array<FormComboData>? = null,
 
     val fileID: Int = 0,
@@ -958,7 +1038,7 @@ private class FormGridData(
     var text: String = aText
     val oldText: String = aText
 
-    val bool: Boolean = aBool
+    var bool: Boolean = aBool
     val oldBool: Boolean = aBool
 
     val arrDateTime: Array<String>? = aArrDateTime?.copyOf()
