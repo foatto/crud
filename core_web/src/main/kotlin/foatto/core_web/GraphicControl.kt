@@ -91,14 +91,6 @@ private val arrPrecY = arrayOf(
 private enum class GraphicWorkMode {
     PAN, ZOOM_BOX/*, SELECT_FOR_PRINT*/
 }
-/*
-    private lateinit var butElementVisible: Button
-
-        butElementVisible = Button( null, ImageView( Image( c.getResourceAsStream( "/images/ic_visibility_black_18dp.png" ) ) ) )
-        butElementVisible.tooltip = Tooltip( "Показать/скрыть график" )
-        butElementVisible.font = curControlFont
-        butElementVisible.setOnAction( this )
-*/
 
 @Suppress("UnsafeCastFromDynamic")
 fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentOptions().apply {
@@ -152,7 +144,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                     >
         
                     <div v-show="isShowGraphicVisibility" 
-                         v-bind:style="style_visibility_list"
+                         v-bind:style="style_graphic_visibility_list"
                     >
                         <template v-for="data in arrGraphicVisibleData">
                             <input type="checkbox"
@@ -183,6 +175,23 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                             {{ legend.text }}
                         </button>
                     </template>
+                </span>
+
+                <span v-bind:style="style_toolbar_block">
+                    <img src="/web/images/ic_menu_black_48dp.png"
+                         v-bind:style="style_icon_button"
+                         v-on:click="isShowGraphicData=!isShowGraphicData"
+                         title="Включить/выключить отдельный показ данных"
+                    >
+        
+                    <div v-show="isShowGraphicData" 
+                         v-bind:style="style_graphic_data_list"
+                    >
+                        <template v-for="data in arrGraphicDataData">
+                            {{ data }}
+                            <br>
+                        </template>
+                    </div>
                 </span>
 
                 <span v-bind:style="style_toolbar_block">
@@ -356,6 +365,8 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
             val panPointOldY = that.panPointOldY.unsafeCast<Int>()
             val panDX = that.panDX.unsafeCast<Int>()
 
+            val isShowGraphicData = that.isShowGraphicData.unsafeCast<Boolean>()
+
             val svgCoords = defineGraphicSvgCoords(tabId, "graphic", emptyArray()) //!!! в случае работы в сложной схеме могут поехать y-координаты
 
             if (isNeedOffsetCompensation) {
@@ -436,7 +447,13 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                             timeLine.y2 = arrViewBoxBody[1] + arrViewBoxBody[3]
 
                             setTimeLabel(timeOffset, viewCoord, svgCoords.bodyLeft, svgCoords.bodyWidth, mouseX, arrTimeLabel[0])
-                        } else disableCursorLinesAndLabels(that())
+
+                            if(isShowGraphicData) {
+                                fillGraphicData(that, timeOffset, mouseX, svgCoords.bodyWidth, viewCoord)
+                            }
+                        } else {
+                            disableCursorLinesAndLabels(that())
+                        }
                     }
 //                    else -> super.handle( event )
                 }
@@ -671,6 +688,9 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
             "isShowGraphicVisibility" to false,
             "arrGraphicVisibleData" to arrayOf<GraphicVisibleData>(),
 
+            "isShowGraphicData" to false,
+            "arrGraphicDataData" to arrayOf<String>(),
+
             "isMouseDown" to false,
 
             "panPointOldX" to 0,
@@ -717,7 +737,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                 "margin" to styleCommonMargin(),
                 "cursor" to "pointer"
             ),
-            "style_visibility_list" to json(
+            "style_graphic_visibility_list" to json(
                 "z-index" to "2",   // popup menu must be above than table headers
                 "position" to "absolute",
                 "top" to styleGraphicVisibilityTop(),
@@ -745,6 +765,21 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                 "padding" to styleFileNameButtonPadding(),
                 "margin" to styleFileNameButtonMargin(),
                 "cursor" to "pointer"
+            ),
+            "style_graphic_data_list" to json(
+                "z-index" to "2",   // popup menu must be above than table headers
+                "position" to "absolute",
+                "top" to styleGraphicDataTop(),
+                "right" to "0",
+                "width" to "auto",
+                "max-width" to styleGraphicDataMaxWidth(),
+                "background" to COLOR_GRAPHIC_DATA_BACK,
+                "border" to "1px solid $COLOR_MENU_BORDER",
+                "border-radius" to BORDER_RADIUS,
+                "font-size" to styleMenuFontSize(),
+                "padding" to styleMenuStartPadding(),
+                "overflow" to "auto",
+                "cursor" to "pointer",
             ),
         ).add(
             getGraphicSpecificComponentData()
@@ -1275,6 +1310,8 @@ fun doGraphicRefresh(
 //
 //        onRequestFocus()
 
+            that.arrElement = arrElement
+
             that.pixStartY = pixStartY
 
             that.arrGraphicElement = alGraphicElement.map {
@@ -1310,6 +1347,8 @@ fun doGraphicRefresh(
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 fun getGraphicSpecificComponentData() = json(
+    "arrElement" to arrayOf<Pair<String, GraphicElement>>(),
+
     "arrGrLegend" to emptyArray<LegendData>(),
 
     "gr_svg_axis_width" to 0,
@@ -1320,7 +1359,7 @@ fun getGraphicSpecificComponentData() = json(
     "grViewBoxBody" to "0 0 1 1",
     "grViewBoxLegend" to "0 0 1 1",
 
-    "arrGraphicElement" to arrayOf<GraphicElement>(),
+    "arrGraphicElement" to arrayOf<GraphicElementData_>(),
 
     "grTooltipVisible" to false,
     "grTooltipText" to "",
@@ -1549,6 +1588,58 @@ private fun setTimeLabel(timeOffset: Int, viewCoord: GraphicViewCoord, svgBodyLe
 //--- в double и обратно из-за ошибок округления
 private fun getTimeFromX(pixX: Int, pixWidth: Int, timeStart: Int, timeWidth: Int): Int = (1.0 * timeWidth * pixX / pixWidth + timeStart).roundToInt()
 
+private fun fillGraphicData(
+    that: dynamic,
+    timeOffset: Int,
+    mouseX: Int,
+    svgBodyWidth: Int,
+    viewCoord: GraphicViewCoord,
+) {
+    val arrElement = that.arrElement.unsafeCast<Array<Pair<String, GraphicElement>>>()
+    val cursorTime = getTimeFromX(mouseX, svgBodyWidth, viewCoord.t1, viewCoord.width)
+
+    val alGraphicData = mutableListOf<String>()
+
+    alGraphicData += "Дата/время: " + DateTime_YMDHMS(timeOffset, cursorTime)
+
+    arrElement.forEach { pair1 ->
+        val title = pair1.first
+        val element = pair1.second
+
+        element.alGDC.map { gdc ->
+            gdc to element.alAxisYData[gdc.axisYIndex]
+        }.filter { pair2 ->
+            val gdc = pair2.first
+            gdc.type.toString() == GraphicDataContainer.ElementType.LINE.toString()
+        }.forEach { pair2 ->
+            val gdc = pair2.first
+            val yData = pair2.second
+
+            val index = gdc.alGLD.indexOfFirst { gld ->
+                gld.x >= cursorTime
+            }
+            val y = if (index != -1) {
+                val gld = gdc.alGLD[index]
+                if (gld.x == cursorTime) {
+                    gld.y
+                } else if (index > 0) {
+                    val gldPrev = gdc.alGLD[index - 1]
+                    1.0 * (cursorTime - gldPrev.x) / (gld.x - gldPrev.x) * (gld.y - gldPrev.y) + gldPrev.y
+                } else {
+                    null
+                }
+            } else {
+                null
+            }
+            val s = y?.let {
+                getSplittedDouble(y, yData.prec, true, '.')
+            } ?: "-"
+            alGraphicData += "${yData.title} = $s"
+        }
+    }
+    that.arrGraphicDataData = alGraphicData.toTypedArray()
+}
+
 private fun disableCursorLinesAndLabels(that: dynamic) {
     val timeLine = that.grTimeLine.unsafeCast<LineData>()
     val arrTimeLabel = that.arrTimeLabel.unsafeCast<Array<TimeLabelData>>()
@@ -1574,7 +1665,7 @@ private fun outElement(
     pixRealHeight: Int,
     pixStartY: Int,
     alGraphicElement: MutableList<GraphicElementData>,
-    alYData: MutableList<YData>
+    alYData: MutableList<YData>,
 ) {
     //--- maxMarginLeft уходит на левую панель, к оси Y
     val pixDrawHeight = pixRealHeight - ((MARGIN_TOP + MARGIN_BOTTOM) * scaleKoef).roundToInt()
@@ -1637,6 +1728,8 @@ private fun outElement(
             alAxisText = alAxisYText,
             alBodyLine = alAxisXLine    // для горизонтальной линии на самом графике
         )
+
+        ayd.prec = precY
 
         val axisYDataIndex = alYData.size
         alAxisYDataIndex.add(axisYDataIndex)

@@ -124,6 +124,8 @@ const val COLOR_GRAPHIC_LABEL_TEXT = COLOR_MAIN_TEXT
 const val COLOR_GRAPHIC_TITLE = COLOR_MAIN_TEXT
 const val COLOR_GRAPHIC_AXIS_DEFAULT = "#808080"
 
+const val COLOR_GRAPHIC_DATA_BACK = "#ffff0080"
+
 //--- XY -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 //const val COLOR_XY_ZONE_CASUAL = "#40ffff00" // полупрозрачный жёлтый
@@ -324,6 +326,8 @@ fun styleFileNameButtonMargin() = "0.1rem"
 
 fun styleGraphicVisibilityTop() = "${if (screenDPR <= 1.0) 9.0 else 9.0}rem"
 fun styleGraphicVisibilityMaxWidth() = if (styleIsNarrowScreen) "85%" else "20rem"
+fun styleGraphicDataTop() = "${if (screenDPR <= 1.0) 9.0 else 9.0}rem"
+fun styleGraphicDataMaxWidth() = if (styleIsNarrowScreen) "85%" else "30rem"
 fun styleGraphicTimeLabelPadding() = "$CONTROL_PADDING $CONTROL_LEFT_RIGHT_SIDE_PADDING $CONTROL_PADDING $CONTROL_LEFT_RIGHT_SIDE_PADDING"
 
 //--- Xy
