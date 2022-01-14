@@ -242,6 +242,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                 elementPrefix = "graphic",
                 arrAddElements = emptyArray(),
                 aView = aView,
+                withWait = true,
             )
         },
         "doChangeGraphicVisibility" to {
@@ -448,7 +449,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
 
                             setTimeLabel(timeOffset, viewCoord, svgCoords.bodyLeft, svgCoords.bodyWidth, mouseX, arrTimeLabel[0])
 
-                            if(isShowGraphicData) {
+                            if (isShowGraphicData) {
                                 fillGraphicData(that, timeOffset, mouseX, svgCoords.bodyWidth, viewCoord)
                             }
                         } else {
@@ -1112,6 +1113,7 @@ fun doGraphicRefresh(
     elementPrefix: String,
     arrAddElements: Array<Element>,
     aView: GraphicViewCoord?,
+    withWait: Boolean,
 ) {
     val newView =
         if (aView != null) {
@@ -1125,7 +1127,9 @@ fun doGraphicRefresh(
     val timeOffset = that.`$root`.timeOffset.unsafeCast<Int>()
     val scaleKoef = that.`$root`.scaleKoef.unsafeCast<Double>()
 
-    that.`$root`.setWait(true)
+    if (withWait) {
+        that.`$root`.setWait(true)
+    }
     invokeGraphic(
         GraphicActionRequest(
             documentTypeName = graphicResponse.documentTypeName,
@@ -1339,7 +1343,9 @@ fun doGraphicRefresh(
 
             that.arrYData = alYData.toTypedArray()
 
-            that.`$root`.setWait(false) as Unit
+            if (withWait) {
+                that.`$root`.setWait(false)
+            }
         }
     )
 }

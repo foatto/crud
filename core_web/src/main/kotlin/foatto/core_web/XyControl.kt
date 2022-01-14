@@ -384,7 +384,7 @@ fun doXySpecificComponentMounted(
 
             //--- именно до xyRefreshView, чтобы не сбросить сразу после включения
             that.`$root`.setWait(false)
-            that.xyRefreshView(that, newViewCoord) as Unit
+            that.xyRefreshView(that, newViewCoord, true) as Unit
         }
     )
 }
@@ -586,9 +586,12 @@ fun getXyElements(
     newView: XyViewCoord,
     mapBitmapTypeName: String,
     svgBodyLeft: Int,
-    svgBodyTop: Int
+    svgBodyTop: Int,
+    withWait: Boolean,
 ) {
-    that.`$root`.setWait(true)
+    if (withWait) {
+        that.`$root`.setWait(true)
+    }
     invokeXy(
         XyActionRequest(
             documentTypeName = xyResponse.documentConfig.name,
@@ -612,7 +615,9 @@ fun getXyElements(
 
             setXyTextOffset(that, svgBodyLeft, svgBodyTop)
 
-            that.`$root`.setWait(false)
+            if (withWait) {
+                that.`$root`.setWait(false) as Unit
+            }
         }
     )
 }
@@ -664,6 +669,9 @@ fun getXyClickRect(mouseX: Int, mouseY: Int): XyRect = XyRect(mouseX - MIN_USER_
 
 fun getXyComponentData() = json(
     "fullTitle" to "",
+
+    "refreshInterval" to 0,
+    "refreshHandlerId" to 0,
 
     "style_header" to json(
         "border-top" to if (!styleIsNarrowScreen) {

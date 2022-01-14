@@ -24,7 +24,6 @@ import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
-import kotlin.random.Random
 
 private enum class MapWorkMode {
     PAN, ZOOM_BOX, SELECT_FOR_ACTION, DISTANCER, ACTION_ADD, ACTION_EDIT_POINT, ACTION_MOVE
@@ -145,7 +144,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                      v-bind:style="style_icon_button"
                      v-bind:disabled="isRefreshButtonDisabled"
                      title="Обновить"
-                     v-on:click="xyRefreshView( null, null )"
+                     v-on:click="xyRefreshView( null, null, true )"
                 >
             </span>
         </div>
@@ -216,7 +215,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
 
     this.methods = json(
         //--- метод может вызываться из лямбд, поэтому возможен проброс ему "истинного" this
-        "xyRefreshView" to { aThat: dynamic, aView: XyViewCoord? ->
+        "xyRefreshView" to { aThat: dynamic, aView: XyViewCoord?, withWait: Boolean ->
             val that = aThat ?: that()
             val scaleKoef = that.`$root`.scaleKoef.unsafeCast<Double>()
             val curViewCoord = that().xyViewCoord.unsafeCast<XyViewCoord>()
@@ -250,7 +249,16 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                     curViewCoord
                 }
 
-            getXyElements(that, xyResponse, scaleKoef, newView, mapBitmapTypeName, svgCoords.bodyLeft, svgCoords.bodyTop)
+            getXyElements(
+                that = that,
+                xyResponse = xyResponse,
+                scaleKoef = scaleKoef,
+                newView = newView,
+                mapBitmapTypeName = mapBitmapTypeName,
+                svgBodyLeft = svgCoords.bodyLeft,
+                svgBodyTop = svgCoords.bodyTop,
+                withWait = withWait,
+            )
             //--- обновление в любом случае сбрасывает выделенность элементов и возможность соответствующих операций
             that.isEditPointButtonVisible = false
             that.isMoveElementsButtonVisible = false
@@ -484,7 +492,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                     //--- перезагружаем карту, только если был горизонтальный сдвиг
                     if (abs(panDX) >= 1 || abs(panDY) >= 1) {
                         viewCoord.moveRel((-panDX * viewCoord.scale / scaleKoef).roundToInt(), (-panDY * viewCoord.scale / scaleKoef).roundToInt())
-                        that().xyRefreshView(null, viewCoord)
+                        that().xyRefreshView(null, viewCoord, true)
                     }
                     that().panPointOldX = 0
                     that().panPointOldY = 0
@@ -509,13 +517,15 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                             val newScale = ceil(viewCoord.scale * max(1.0 * mouseWidth / svgCoords.bodyWidth, 1.0 * mouseHeight / svgCoords.bodyHeight)).toInt()
                             //--- переводим в мировые координаты
                             that().xyRefreshView(
-                                null, XyViewCoord(
+                                null,
+                                XyViewCoord(
                                     newScale,
                                     viewCoord.x1 + mouseToReal(scaleKoef, viewCoord.scale, min(mouseRect.x1, mouseRect.x2)),
                                     viewCoord.y1 + mouseToReal(scaleKoef, viewCoord.scale, min(mouseRect.y1, mouseRect.y2)),
                                     viewCoord.x1 + mouseToReal(scaleKoef, viewCoord.scale, max(mouseRect.x1, mouseRect.x2)),
                                     viewCoord.y1 + mouseToReal(scaleKoef, viewCoord.scale, max(mouseRect.y1, mouseRect.y2))
-                                )
+                                ),
+                                true
                             )
                         }
                     }
@@ -728,7 +738,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                 val newCenterY = curCenterY + curDY - newDY
 
                 val newView = getXyViewCoord(newScale, svgBodyWidth, svgBodyHeight, newCenterX, newCenterY, scaleKoef)
-                that().xyRefreshView(null, newView)
+                that().xyRefreshView(null, newView, true)
             }
         },
         "onTextPressed" to { event: Event, xyElement: XyElementData ->
@@ -820,7 +830,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
             val newViewCoord = XyViewCoord(viewCoord)
             newViewCoord.scale = newScale
 
-            that().xyRefreshView(null, newViewCoord)
+            that().xyRefreshView(null, newViewCoord, true)
         },
         "zoomOut" to {
             val viewCoord = that().xyViewCoord.unsafeCast<XyViewCoord>()
@@ -837,7 +847,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
             val newViewCoord = XyViewCoord(viewCoord)
             newViewCoord.scale = newScale
 
-            that().xyRefreshView(null, newViewCoord)
+            that().xyRefreshView(null, newViewCoord, true)
         },
         "startAdd" to { elementConfig: XyElementConfig ->
             val scaleKoef = that().`$root`.scaleKoef.unsafeCast<Double>()
@@ -871,7 +881,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                     editElement.doEditElementPoint(that(), xyResponse.documentConfig.name, xyResponse.startParamId, scaleKoef, viewCoord)
                 }
             }
-            //that().xyRefreshView( null, null ) - делается внути методов doAdd/doEdit/doMove по завершении операций
+            //that().xyRefreshView( null, null, true ) - делается внути методов doAdd/doEdit/doMove по завершении операций
             that().setMode(MapWorkMode.SELECT_FOR_ACTION)
         },
         "actionCancel" to {
@@ -890,12 +900,12 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                 }
                 MapWorkMode.ACTION_ADD.toString() -> {
                     that().addElement = null
-                    that().xyRefreshView(null, null)
+                    that().xyRefreshView(null, null, true)
                     that().setMode(MapWorkMode.SELECT_FOR_ACTION)
                 }
                 MapWorkMode.ACTION_EDIT_POINT.toString() -> {
                     that().editElement = null
-                    that().xyRefreshView(null, null)
+                    that().xyRefreshView(null, null, true)
                     that().setMode(MapWorkMode.SELECT_FOR_ACTION)
                 }
             }
@@ -1051,7 +1061,7 @@ private fun doMoveElements(that: dynamic, documentTypeName: String, startParamId
         xyActionRequest,
         {
             that.`$root`.setWait(false)
-            that.xyRefreshView(that, null)
+            that.xyRefreshView(that, null, true)
         }
     )
 }

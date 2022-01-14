@@ -35,10 +35,30 @@ fun stateControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().app
                 </div>
                 <div id="state_toolbar_$tabId" v-bind:style="style_toolbar">
                     <span v-bind:style="style_toolbar_block">
-                        <img src="/web/images/ic_sync_black_48dp.png"
+                    </span>
+                    <span v-bind:style="style_toolbar_block">
+                        <img src="/web/images/ic_replay_black_48dp.png"
                              v-bind:style="style_icon_button"
-                             v-on:click="xyRefreshView( null, null )"
-                             title="Обновить"
+                             v-on:click="setInterval(0)"
+                             title="Обновить сейчас"
+                        >
+                        <img src="/web/images/ic_replay_5_black_48dp.png"
+                             v-if="refreshInterval != 5"
+                             v-bind:style="style_icon_button"
+                             v-on:click="setInterval(5)"
+                             title="Обновлять каждые 5 сек"
+                        >
+                        <img src="/web/images/ic_replay_10_black_48dp.png"
+                             v-if="refreshInterval != 10"
+                             v-bind:style="style_icon_button"
+                             v-on:click="setInterval(10)"
+                             title="Обновлять каждые 10 сек"
+                        >
+                        <img src="/web/images/ic_replay_30_black_48dp.png"
+                             v-if="refreshInterval != 30"
+                             v-bind:style="style_icon_button"
+                             v-on:click="setInterval(30)"
+                             title="Обновлять каждые 30 сек"
                         >
                     </span>
                 </div>
@@ -52,7 +72,25 @@ fun stateControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().app
         """
 
     this.methods = json(
-        "xyRefreshView" to { aThat: dynamic, aView: XyViewCoord? ->
+        "setInterval" to { sec: Int ->
+            val that = that()
+
+            val refreshHandlerId = that.refreshHandlerId.unsafeCast<Int>()
+            if (refreshHandlerId != 0) {
+                window.clearInterval(refreshHandlerId)
+            }
+
+            if (sec == 0) {
+                that.xyRefreshView(that, null, true)
+            } else {
+                that.refreshHandlerId = window.setInterval({
+                    that.xyRefreshView(that, null, false)
+                }, sec * 1000)
+            }
+
+            that.refreshInterval = sec
+        },
+        "xyRefreshView" to { aThat: dynamic, aView: XyViewCoord?, withWait: Boolean ->
             val that = aThat ?: that()
 
             doStateRefreshView(
@@ -62,6 +100,7 @@ fun stateControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().app
                 elementPrefix = "state",
                 arrAddElements = emptyArray(),
                 aView = aView,
+                withWait = withWait,
             )
         },
         "onMouseOver" to { event: Event, xyElement: XyElementData ->
@@ -138,6 +177,7 @@ fun doStateRefreshView(
     elementPrefix: String,
     arrAddElements: Array<Element>,
     aView: XyViewCoord?,
+    withWait: Boolean,
 ) {
     val scaleKoef = that.`$root`.scaleKoef.unsafeCast<Double>()
     val svgCoords = defineXySvgCoords(tabId, elementPrefix, arrAddElements)
@@ -152,6 +192,15 @@ fun doStateRefreshView(
         that.xyViewCoord.unsafeCast<XyViewCoord>()
     }
 
-    getXyElements(that, xyResponse, scaleKoef, newView, "", svgCoords.bodyLeft, svgCoords.bodyTop)
+    getXyElements(
+        that = that,
+        xyResponse = xyResponse,
+        scaleKoef = scaleKoef,
+        newView = newView,
+        mapBitmapTypeName = "",
+        svgBodyLeft = svgCoords.bodyLeft,
+        svgBodyTop = svgCoords.bodyTop,
+        withWait = withWait
+    )
 }
 
