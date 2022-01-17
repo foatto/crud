@@ -145,20 +145,21 @@ class ObjectState {
                 }
             }
 
+//!!! временно отключим - больше мешают, чем помогают
             //--- liquid using counter's work state sensors
-            oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_USING_COUNTER_STATE]?.values?.forEach { sc ->
-                for (i in alRawTime.size - 1 downTo 0) {
-                    val time = alRawTime[i]
-                    val bbIn = alRawData[i]
-
-                    val sensorData = AbstractObjectStateCalc.getSensorData(sc.portNum, bbIn)
-                    if (sensorData != null) {
-                        result.tmLiquidUsingCounterTime[sc.descr] = time
-                        result.tmLiquidUsingCounterState[sc.descr] = SensorConfigCounter.hmStatusDescr[sensorData] ?: "(неизвестный код состояния)"
-                        break
-                    }
-                }
-            }
+//            oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_USING_COUNTER_STATE]?.values?.forEach { sc ->
+//                for (i in alRawTime.size - 1 downTo 0) {
+//                    val time = alRawTime[i]
+//                    val bbIn = alRawData[i]
+//
+//                    val sensorData = AbstractObjectStateCalc.getSensorData(sc.portNum, bbIn)
+//                    if (sensorData != null) {
+//                        result.tmLiquidUsingCounterTime[sc.descr] = time
+//                        result.tmLiquidUsingCounterState[sc.descr] = SensorConfigCounter.hmStatusDescr[sensorData] ?: "(неизвестный код состояния)"
+//                        break
+//                    }
+//                }
+//            }
 
             return result
         }

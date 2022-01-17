@@ -94,52 +94,54 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                 )
             }
 
+//!!! временно отключим - больше мешают, чем помогают
             //--- поиск критических режимов работы счётчика топлива EuroSens Delta
-            oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_USING_COUNTER_STATE]?.values?.forEach { sc ->
-                listOf(
-                    SensorConfigCounter.STATUS_OVERLOAD,
-                    SensorConfigCounter.STATUS_CHEAT,
-                    SensorConfigCounter.STATUS_REVERSE,
-                    SensorConfigCounter.STATUS_INTERVENTION,
-                ).forEach { stateCode ->
-                    checkSensorError(
-                        alRawTime = alRawTime,
-                        alRawData = alRawData,
-                        portNum = sc.portNum,
-                        sensorDescr = sc.descr,
-                        begTime = begTime,
-                        endTime = endTime,
-                        aFillColorIndex = GraphicColorIndex.FILL_CRITICAL,
-                        aBorderColorIndex = GraphicColorIndex.BORDER_CRITICAL,
-                        aTextColorIndex = GraphicColorIndex.TEXT_CRITICAL,
-                        troubleCode = stateCode,
-                        troubleDescr = SensorConfigCounter.hmStatusDescr[stateCode] ?: "(неизвестный код состояния)",
-                        minTime = MIN_LIQUID_COUNTER_STATE_TIME,
-                        alGTD = alGTD
-                    )
-                }
-                listOf(
-                    SensorConfigCounter.STATUS_UNKNOWN,
-                    SensorConfigCounter.STATUS_IDLE,
-                    //SensorConfigCounter.STATUS_NORMAL,
-                ).forEach { stateCode ->
-                    checkSensorError(
-                        alRawTime = alRawTime,
-                        alRawData = alRawData,
-                        portNum = sc.portNum,
-                        sensorDescr = sc.descr,
-                        begTime = begTime,
-                        endTime = endTime,
-                        aFillColorIndex = GraphicColorIndex.FILL_WARNING,
-                        aBorderColorIndex = GraphicColorIndex.BORDER_WARNING,
-                        aTextColorIndex = GraphicColorIndex.TEXT_WARNING,
-                        troubleCode = stateCode,
-                        troubleDescr = SensorConfigCounter.hmStatusDescr[stateCode] ?: "(неизвестный код состояния)",
-                        minTime = MIN_LIQUID_COUNTER_STATE_TIME,
-                        alGTD = alGTD
-                    )
-                }
-            }
+//            oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_USING_COUNTER_STATE]?.values?.forEach { sc ->
+//                listOf(
+//                    SensorConfigCounter.STATUS_OVERLOAD,
+//                    SensorConfigCounter.STATUS_CHEAT,
+//                    SensorConfigCounter.STATUS_REVERSE,
+//                    SensorConfigCounter.STATUS_INTERVENTION,
+//                ).forEach { stateCode ->
+//                    checkSensorError(
+//                        alRawTime = alRawTime,
+//                        alRawData = alRawData,
+//                        portNum = sc.portNum,
+//                        sensorDescr = sc.descr,
+//                        begTime = begTime,
+//                        endTime = endTime,
+//                        aFillColorIndex = GraphicColorIndex.FILL_CRITICAL,
+//                        aBorderColorIndex = GraphicColorIndex.BORDER_CRITICAL,
+//                        aTextColorIndex = GraphicColorIndex.TEXT_CRITICAL,
+//                        troubleCode = stateCode,
+//                        troubleDescr = SensorConfigCounter.hmStatusDescr[stateCode] ?: "(неизвестный код состояния)",
+//                        minTime = MIN_LIQUID_COUNTER_STATE_TIME,
+//                        alGTD = alGTD
+//                    )
+//                }
+//                listOf(
+//                    SensorConfigCounter.STATUS_UNKNOWN,
+//                    SensorConfigCounter.STATUS_IDLE,
+//                    //SensorConfigCounter.STATUS_NORMAL,
+//                ).forEach { stateCode ->
+//                    checkSensorError(
+//                        alRawTime = alRawTime,
+//                        alRawData = alRawData,
+//                        portNum = sc.portNum,
+//                        sensorDescr = sc.descr,
+//                        begTime = begTime,
+//                        endTime = endTime,
+//                        aFillColorIndex = GraphicColorIndex.FILL_WARNING,
+//                        aBorderColorIndex = GraphicColorIndex.BORDER_WARNING,
+//                        aTextColorIndex = GraphicColorIndex.TEXT_WARNING,
+//                        troubleCode = stateCode,
+//                        troubleDescr = SensorConfigCounter.hmStatusDescr[stateCode] ?: "(неизвестный код состояния)",
+//                        minTime = MIN_LIQUID_COUNTER_STATE_TIME,
+//                        alGTD = alGTD
+//                    )
+//                }
+//            }
+
             aText.alGTD = alGTD.toTypedArray()
         }
 

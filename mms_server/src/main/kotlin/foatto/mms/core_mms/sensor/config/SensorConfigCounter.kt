@@ -34,14 +34,15 @@ class SensorConfigCounter(
         const val STATUS_REVERSE = 6
         const val STATUS_INTERVENTION = 7
 
-        val hmStatusDescr = mapOf(
-            STATUS_UNKNOWN to "(неизвестно)",
-            STATUS_IDLE to "Холостой ход",
-            STATUS_NORMAL to "Рабочий ход",
-            STATUS_OVERLOAD to "Перегрузка",
-            STATUS_CHEAT to "Накрутка",
-            STATUS_REVERSE to "Обратный ход",
-            STATUS_INTERVENTION to "Вмешательство",
-        )
+//!!! временно отключим - больше мешают, чем помогают
+//        val hmStatusDescr = mapOf(
+//            STATUS_UNKNOWN to "(неизвестно)",
+//            STATUS_IDLE to "Холостой ход",
+//            STATUS_NORMAL to "Рабочий ход",
+//            STATUS_OVERLOAD to "Перегрузка",
+//            STATUS_CHEAT to "Накрутка",
+//            STATUS_REVERSE to "Обратный ход",
+//            STATUS_INTERVENTION to "Вмешательство",
+//        )
     }
 }

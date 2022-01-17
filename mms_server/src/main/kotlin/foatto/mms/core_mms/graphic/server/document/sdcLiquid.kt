@@ -37,7 +37,7 @@ class sdcLiquid : sdcAbstractAnalog() {
         ) {
             //--- ловим ошибки с датчиков уровня топлива
             val alGTD = aText.alGTD.toMutableList()
-            for (errorCode in SensorConfigLiquidLevel.hmLLErrorCodeDescr.keys)
+            SensorConfigLiquidLevel.hmLLErrorCodeDescr.keys.forEach { errorCode ->
                 checkSensorError(
                     alRawTime = alRawTime,
                     alRawData = alRawData,
@@ -53,6 +53,7 @@ class sdcLiquid : sdcAbstractAnalog() {
                     minTime = SensorConfigLiquidLevel.hmLLMinSensorErrorTime[errorCode]!!,
                     alGTD = alGTD
                 )
+            }
             aText.alGTD = alGTD.toTypedArray()
         }
     }

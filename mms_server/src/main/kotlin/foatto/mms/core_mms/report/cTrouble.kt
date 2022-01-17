@@ -275,11 +275,12 @@ class cTrouble : cMMSReport() {
                         SensorConfigCounter.STATUS_INTERVENTION,
                     )
                 ) {
-                    SensorConfigCounter.hmStatusDescr[oldLCSData]?.let { errorDescr ->
-                        if (curTime - oldLCSTime > reportPeriod) {
-                            addTrouble(tmResult, objectKey, TroubleData(oldLCSTime, sc.descr, errorDescr, TroubleLevel.ERROR))
-                        }
-                    }
+//!!! временно отключим - больше мешают, чем помогают
+//                    SensorConfigCounter.hmStatusDescr[oldLCSData]?.let { errorDescr ->
+//                        if (curTime - oldLCSTime > reportPeriod) {
+//                            addTrouble(tmResult, objectKey, TroubleData(oldLCSTime, sc.descr, errorDescr, TroubleLevel.ERROR))
+//                        }
+//                    }
                 }
             }
 
