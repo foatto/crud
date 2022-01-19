@@ -204,7 +204,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
             </div>
         """ +
 
-        getGraphicElementTemplate(tabId) +
+        getGraphicElementTemplate(tabId, true) +
 
         """
         </div>

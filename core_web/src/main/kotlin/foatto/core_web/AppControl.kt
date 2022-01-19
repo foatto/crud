@@ -26,7 +26,8 @@ fun appControl(startAppParam: String, tabId: Int) = vueComponentOptions().apply 
     this.template = """
         <div v-bind:style="style_app_control">
             <div v-if="responseCode == '${ResponseCode.LOGON_NEED}' || responseCode == '${ResponseCode.LOGON_FAILED}'"
-                 v-bind:style="style_logon_grid">
+                 v-bind:style="style_logon_grid"
+            >
 
                 <div v-bind:style="style_logon_top_expander">
                     &nbsp;
@@ -36,7 +37,8 @@ fun appControl(startAppParam: String, tabId: Int) = vueComponentOptions().apply 
                         <img src="/web/images/logo.png">
                     </div>
                     <div v-if="responseCode == '${ResponseCode.LOGON_FAILED}'"
-                         v-bind:style="style_logon_error">
+                         v-bind:style="style_logon_error"
+                    >
                         Неправильное имя или пароль
                     </div>
                     <div v-bind:style="style_logon_div">
@@ -52,7 +54,8 @@ fun appControl(startAppParam: String, tabId: Int) = vueComponentOptions().apply 
                     </div>
                     <div v-bind:style="style_logon_div">
                         <button v-bind:style="style_logon_button"
-                                v-on:click="logon">
+                                v-on:click="logon"
+                        >
                             Вход
                         </button>
                     </div>

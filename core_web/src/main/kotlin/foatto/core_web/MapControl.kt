@@ -153,7 +153,6 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
 
             getXyElementTemplate(
                 tabId,
-                true,
                 """
         <template v-if="mouseRect.isVisible">
             <rect v-bind:x="Math.min(mouseRect.x1, mouseRect.x2)"
@@ -194,7 +193,6 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
             />
         </template>
 """
-
             ) +
 
             """
@@ -263,7 +261,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
             that.isEditPointButtonVisible = false
             that.isMoveElementsButtonVisible = false
         },
-        "onMouseOver" to { event: Event, xyElement: XyElementData ->
+        "onXyMouseOver" to { event: Event, xyElement: XyElementData ->
             val curMode = that().mapCurMode.unsafeCast<MapWorkMode>()
 
             when (curMode.toString()) {
@@ -272,10 +270,10 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                 MapWorkMode.SELECT_FOR_ACTION.toString() -> onXyMouseOver(that(), event as MouseEvent, xyElement)
             }
         },
-        "onMouseOut" to {
+        "onXyMouseOut" to {
             onXyMouseOut(that())
         },
-        "onMousePressed" to { isNeedOffsetCompensation: Boolean, aMouseX: Double, aMouseY: Double ->
+        "onXyMousePressed" to { isNeedOffsetCompensation: Boolean, aMouseX: Double, aMouseY: Double ->
             var mouseX = aMouseX.toInt()
             var mouseY = aMouseY.toInt()
 
@@ -333,7 +331,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
             }
             that().isMouseDown = true
         },
-        "onMouseMove" to { isNeedOffsetCompensation: Boolean, aMouseX: Double, aMouseY: Double ->
+        "onXyMouseMove" to { isNeedOffsetCompensation: Boolean, aMouseX: Double, aMouseY: Double ->
             var mouseX = aMouseX.toInt()
             var mouseY = aMouseY.toInt()
 
@@ -468,7 +466,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                 }
             }
         },
-        "onMouseReleased" to { isNeedOffsetCompensation: Boolean, aMouseX: Double, aMouseY: Double, shiftKey: Boolean, ctrlKey: Boolean, altKey: Boolean ->
+        "onXyMouseReleased" to { isNeedOffsetCompensation: Boolean, aMouseX: Double, aMouseY: Double, shiftKey: Boolean, ctrlKey: Boolean, altKey: Boolean ->
             var mouseX = aMouseX.toInt()
             var mouseY = aMouseY.toInt()
 
@@ -688,7 +686,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
             }
             that().isMouseDown = false
         },
-        "onMouseWheel" to { event: Event ->
+        "onXyMouseWheel" to { event: Event ->
             val wheelEvent = event as WheelEvent
             val isCtrl = wheelEvent.ctrlKey
             val mouseX = wheelEvent.offsetX.toInt()
@@ -741,7 +739,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                 that().xyRefreshView(null, newView, true)
             }
         },
-        "onTextPressed" to { event: Event, xyElement: XyElementData ->
+        "onXyTextPressed" to { event: Event, xyElement: XyElementData ->
         },
         "setMode" to { newMode: MapWorkMode ->
             val curMode = that().mapCurMode.unsafeCast<MapWorkMode>()

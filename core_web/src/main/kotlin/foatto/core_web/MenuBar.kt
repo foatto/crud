@@ -61,8 +61,12 @@ fun menuBar(arrMenuData: Array<MenuData>) = vueComponentOptions().apply {
                     val password2 = window.prompt("Введите ещё раз")
                     password2?.let {
                         //--- проверка нового пароля
-                        if (password1 != password2) window.alert("Вы ввели разные пароли.\nПопробуйте ввести ещё раз.")
-                        else if (password1.length <= 3) window.alert("Слишком короткий пароль.\nПопробуйте ввести ещё раз.")
+                        if (password1 != password2) {
+                            window.alert("Вы ввели разные пароли.\nПопробуйте ввести ещё раз.")
+                        }
+                        else if (password1.length <= 3) {
+                            window.alert("Слишком короткий пароль.\nПопробуйте ввести ещё раз.")
+                        }
                         else {
                             //--- проверку комплексности пароля пока пропустим. Не любят этого пользователи.
                             //if(  pwd.length() < 8  ) return false;

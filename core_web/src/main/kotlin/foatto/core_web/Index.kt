@@ -1,5 +1,6 @@
 package foatto.core_web
 
+import foatto.core.link.ResponseCode
 import foatto.core_web.external.vue.Vue
 import foatto.core_web.external.vue.VueComponentOptions
 import foatto.core_web.external.vue.that
@@ -12,6 +13,8 @@ import kotlin.js.Json
 import kotlin.js.json
 
 const val LOCAL_STORAGE_APP_PARAM = "app_param"
+
+var dialogActionFun: (that: dynamic) -> Unit = { _: dynamic -> }
 
 open class Index {
 
@@ -101,6 +104,37 @@ open class Index {
                                 &nbsp;
                             </div>
                         </div>
+        
+                        <div v-if="showDialog"
+                             v-bind:style="style_dialog"
+                        >
+                            <div v-bind:style="style_dialog_top_expander">
+                                &nbsp;
+                            </div>
+                            <div v-bind:style="style_dialog_cell">
+                                <div v-bind:style="style_dialog_text">
+                                    {{ dialogQuestion }}
+                                </div>
+                                <br>
+                                <div v-bind:style="style_dialog_div">
+                                    <button v-bind:style="style_dialog_button_ok"
+                                            v-on:click="doDialogOk()"
+                                    >
+                                        {{ dialogButtonOkText }}
+                                    </button>
+                                    &nbsp;
+                                    <button v-if="showDialogCancel"
+                                            v-bind:style="style_dialog_button_cancel"
+                                            v-on:click="doDialogCancel()"
+                                    >
+                                        {{ dialogButtonCancelText }}
+                                    </button>
+                                </div>
+                            </div>
+                            <div v-bind:style="style_dialog_bottom_expander">
+                                &nbsp;
+                            </div>
+                        </div>
                     </div>
                 """ +
                 if (styleIsNarrowScreen || styleIsHiddenMenuBar) {
@@ -180,7 +214,14 @@ open class Index {
                 "setWait" to { isWait: Boolean ->
                     val waitCount = that().waitCount.unsafeCast<Int>()
                     that().waitCount = waitCount + (if (isWait) 1 else -1)
-                }
+                },
+                "doDialogOk" to {
+                    that().showDialog = false
+                    dialogActionFun(that())
+                },
+                "doDialogCancel" to {
+                    that().showDialog = false
+                },
             )
 
             this.mounted = {
@@ -208,6 +249,12 @@ open class Index {
                     "arrTabInfo" to arrayOf<TabInfo>(),
 //                    "isChangePassword" to false,
                     "waitCount" to 0,
+
+                    "showDialog" to false,
+                    "showDialogCancel" to false,
+                    "dialogQuestion" to "",
+                    "dialogButtonOkText" to "OK",
+                    "dialogButtonCancelText" to "Отмена",
 
                     "scaleKoef" to 1.0,
                     "timeOffset" to 0,
@@ -314,10 +361,10 @@ open class Index {
                         "background" to "rgba( $COLOR_WAIT, 0.7 )",
                         "display" to "grid",
                         "grid-template-rows" to "1fr auto 1fr",
-                        "grid-template-columns" to "1fr auto 1fr"
+                        "grid-template-columns" to "1fr auto 1fr",
                     ),
                     "style_wait_top_expander" to json(
-                        "grid-area" to "1 / 2 / 2 / 3"
+                        "grid-area" to "1 / 2 / 2 / 3",
                     ),
                     "style_loader" to json(
                         "grid-area" to "2 / 2 / 3 / 3",
@@ -329,11 +376,68 @@ open class Index {
                         "border-bottom" to "2rem solid $COLOR_LOADER_1",
                         "border-left" to "2rem solid $COLOR_LOADER_0",
                         "border-radius" to "50%",
-                        "animation" to "spin 2s linear infinite"
+                        "animation" to "spin 2s linear infinite",
                     ),
                     "style_wait_bottom_expander" to json(
-                        "grid-area" to "3 / 2 / 4 / 3"
-                    )
+                        "grid-area" to "3 / 2 / 4 / 3",
+                    ),
+
+                    "style_dialog" to json(
+                        "position" to "fixed",
+                        "top" to 0,
+                        "left" to 0,
+                        "width" to "100%",
+                        "height" to "100%",
+                        "z-index" to "2000",
+                        "background" to COLOR_DIALOG_BACK,
+                        "display" to "grid",
+                        "grid-template-rows" to "1fr auto 1fr",
+                        "grid-template-columns" to "1fr auto 1fr",
+                    ),
+                    "style_dialog_top_expander" to json(
+                        "grid-area" to "1 / 2 / 2 / 3",
+                    ),
+                    "style_dialog_cell" to json(
+                        "grid-area" to "2 / 2 / 3 / 3",
+                        "padding" to styleDialogCellPadding(),
+                        "border" to "1px solid $colorDialogBorder",
+                        "border-radius" to BORDER_RADIUS,
+                        "background" to colorDialogBackCenter,
+                        "display" to "flex",
+                        "flex-direction" to "column",
+                        "align-items" to "center",
+                    ),
+                    "style_dialog_bottom_expander" to json(
+                        "grid-area" to "3 / 2 / 4 / 3",
+                    ),
+                    "style_dialog_div" to json(
+                        "font-size" to styleControlTextFontSize(),
+                        "padding" to styleDialogControlPadding()
+                    ),
+                    "style_dialog_text" to json(
+                        "align-self" to "center",
+                        "font-size" to styleControlTextFontSize(),
+                        "font-weight" to "bold",
+                        "color" to COLOR_TEXT,
+                    ),
+                    "style_dialog_button_ok" to json(
+                        "background" to colorDialogButtonBack,
+                        "border" to "1px solid $colorDialogButtonBorder",
+                        "border-radius" to BORDER_RADIUS,
+                        "font-size" to styleCommonButtonFontSize(),
+                        "padding" to styleDialogButtonPadding(),
+//                        "margin" to styleDialogButtonMargin(),
+                        "cursor" to "pointer",
+                    ),
+                    "style_dialog_button_cancel" to json(
+                        "background" to colorDialogButtonBack,
+                        "border" to "1px solid $colorDialogButtonBorder",
+                        "border-radius" to BORDER_RADIUS,
+                        "font-size" to styleCommonButtonFontSize(),
+                        "padding" to styleDialogButtonPadding(),
+//                        "margin" to styleDialogButtonMargin(),
+                        "cursor" to "pointer",
+                    ),
                 )
             }
         })

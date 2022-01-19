@@ -364,7 +364,13 @@ class XyElementData(
 
 }
 
-fun readXyElementData(scaleKoef: Double, viewCoord: XyViewCoord, elementConfig: XyElementConfig, element: XyElement, alLayer: MutableList<XyElementData>) {
+fun readXyElementData(
+    scaleKoef: Double,
+    viewCoord: XyViewCoord,
+    elementConfig: XyElementConfig,
+    element: XyElement,
+    alLayer: MutableList<XyElementData>,
+) {
 
     val lineWidth = element.lineWidth
     val drawColor = if (element.drawColor == 0) {
@@ -622,6 +628,14 @@ fun readXyElementData(scaleKoef: Double, viewCoord: XyViewCoord, elementConfig: 
                 val y = ((it.y - viewCoord.y1) / viewCoord.scale * scaleKoef).roundToInt()
                 points += "$x,$y "
             }
+            val style = json()
+            if (!element.itReadOnly && element.itClosed) {
+                style.add(
+                    json(
+                        "cursor" to "pointer",
+                    )
+                )
+            }
             alLayer.add(
                 XyElementData(
                     type = if (element.itClosed) {
@@ -637,7 +651,8 @@ fun readXyElementData(scaleKoef: Double, viewCoord: XyViewCoord, elementConfig: 
                     strokeWidth = max(1.0, lineWidth * scaleKoef).roundToInt(),
                     strokeDash = "${scaleKoef * lineWidth * 2},${scaleKoef * lineWidth * 2}",
                     tooltip = element.toolTipText,
-                    itReadOnly = element.itReadOnly
+                    itReadOnly = element.itReadOnly,
+                    style = style,
                 )
             )
         }
@@ -673,6 +688,13 @@ fun readXyElementData(scaleKoef: Double, viewCoord: XyViewCoord, elementConfig: 
                     "normal"
                 },
             )
+            if (!element.itReadOnly) {
+                style.add(
+                    json(
+                        "cursor" to "pointer",
+                    )
+                )
+            }
 
             alLayer.add(
                 XyElementData(
@@ -687,7 +709,6 @@ fun readXyElementData(scaleKoef: Double, viewCoord: XyViewCoord, elementConfig: 
                     stroke = textColor,
                     tooltip = element.toolTipText,
                     itReadOnly = element.itReadOnly,
-
                     isVisible = true,
                     style = style,
                 )
@@ -730,21 +751,21 @@ fun readXyElementData(scaleKoef: Double, viewCoord: XyViewCoord, elementConfig: 
                 }
             )
 
-            if (element.drawColor != 0)
+            if (element.drawColor != 0) {
                 style.add(
                     json(
                         "border-radius" to "${2 * scaleKoef}px",
                         "border" to "${1 * scaleKoef}px solid $drawColor"
                     )
                 )
-
-            if (element.fillColor != 0)
+            }
+            if (element.fillColor != 0) {
                 style.add(
                     json(
                         "background" to fillColor
                     )
                 )
-
+            }
             if (limitWidth > 0 || limitHeight > 0) {
                 style.add(
                     json(
@@ -785,6 +806,13 @@ fun readXyElementData(scaleKoef: Double, viewCoord: XyViewCoord, elementConfig: 
                 style.add(
                     json(
                         "height" to "${limitHeight}px"
+                    )
+                )
+            }
+            if (!element.itReadOnly) {
+                style.add(
+                    json(
+                        "cursor" to "pointer",
                     )
                 )
             }

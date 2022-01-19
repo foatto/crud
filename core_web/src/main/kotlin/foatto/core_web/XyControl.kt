@@ -21,7 +21,6 @@ import kotlin.math.roundToInt
 @Suppress("UnsafeCastFromDynamic")
 fun getXyElementTemplate(
     tabId: Int,
-    withInteractive: Boolean = true,
     specificSvg: String = "",
 ) =
     """
@@ -29,21 +28,13 @@ fun getXyElementTemplate(
          width="100%"
          v-bind:height="xy_svg_height"
          v-bind:viewBox="xyViewBoxBody"
-    """ +
-        if (withInteractive) {
-            """
-                 v-on:mousedown.prevent="onMousePressed( false, ${'$'}event.offsetX, ${'$'}event.offsetY )"
-                 v-on:mousemove="onMouseMove( false, ${'$'}event.offsetX, ${'$'}event.offsetY )"
-                 v-on:mouseup.prevent="onMouseReleased( false, ${'$'}event.offsetX, ${'$'}event.offsetY, ${'$'}event.shiftKey, ${'$'}event.ctrlKey, ${'$'}event.altKey )"
-                 v-on:mousewheel.prevent="onMouseWheel( ${'$'}event )"
-                 v-on:touchstart.prevent="onMousePressed( true, ${'$'}event.changedTouches[0].clientX, ${'$'}event.changedTouches[0].clientY )"
-                 v-on:touchmove.prevent="onMouseMove( true, ${'$'}event.changedTouches[0].clientX, ${'$'}event.changedTouches[0].clientY )"
-                 v-on:touchend.stop="onMouseReleased( true, ${'$'}event.changedTouches[0].clientX, ${'$'}event.changedTouches[0].clientY, ${'$'}event.shiftKey, ${'$'}event.ctrlKey, ${'$'}event.altKey )"
-            """
-        } else {
-            ""
-        } +
-        """
+         v-on:mousedown.prevent="onXyMousePressed( false, ${'$'}event.offsetX, ${'$'}event.offsetY )"
+         v-on:mousemove="onXyMouseMove( false, ${'$'}event.offsetX, ${'$'}event.offsetY )"
+         v-on:mouseup.prevent="onXyMouseReleased( false, ${'$'}event.offsetX, ${'$'}event.offsetY, ${'$'}event.shiftKey, ${'$'}event.ctrlKey, ${'$'}event.altKey )"
+         v-on:mousewheel.prevent="onXyMouseWheel( ${'$'}event )"
+         v-on:touchstart.prevent="onXyMousePressed( true, ${'$'}event.changedTouches[0].clientX, ${'$'}event.changedTouches[0].clientY )"
+         v-on:touchmove.prevent="onXyMouseMove( true, ${'$'}event.changedTouches[0].clientX, ${'$'}event.changedTouches[0].clientY )"
+         v-on:touchend.stop="onXyMouseReleased( true, ${'$'}event.changedTouches[0].clientX, ${'$'}event.changedTouches[0].clientY, ${'$'}event.shiftKey, ${'$'}event.ctrlKey, ${'$'}event.altKey )"
     >
 
         <template v-for="arrElement in arrXyElement">
@@ -58,16 +49,8 @@ fun getXyElementTemplate(
                         v-bind:stroke-width="element.strokeWidth"
                         v-bind:stroke-dasharray="element.itSelected ? element.strokeDash : ''"
                         v-bind:transform="element.transform"
-                """ +
-        if (withInteractive) {
-            """
-                        v-on:mouseenter="onMouseOver( ${'$'}event, element )"
-                        v-on:mouseleave="onMouseOut()"
-                        """
-        } else {
-            ""
-        } +
-        """
+                        v-on:mouseenter="onXyMouseOver( ${'$'}event, element )"
+                        v-on:mouseleave="onXyMouseOut()"
                 />
 
                 <ellipse v-else-if="element.type == '${XyElementDataType.ELLIPSE}'"
@@ -80,16 +63,8 @@ fun getXyElementTemplate(
                          v-bind:stroke-width="element.strokeWidth"
                          v-bind:stroke-dasharray="element.itSelected ? element.strokeDash : ''"
                          v-bind:transform="element.transform"
-    """ +
-        if (withInteractive) {
-            """
-                         v-on:mouseenter="onMouseOver( ${'$'}event, element )"
-                         v-on:mouseleave="onMouseOut()"
-            """
-        } else {
-            ""
-        } +
-        """
+                         v-on:mouseenter="onXyMouseOver( ${'$'}event, element )"
+                         v-on:mouseleave="onXyMouseOut()"
                 />
 
                 <image v-else-if="element.type == '${XyElementDataType.IMAGE}'"
@@ -99,16 +74,8 @@ fun getXyElementTemplate(
                        v-bind:height="element.height"
                        v-bind:transform="element.transform"
                        v-bind:xlink:href="element.url"
-    """ +
-        if (withInteractive) {
-            """
-                       v-on:mouseenter="onMouseOver( ${'$'}event, element )"
-                       v-on:mouseleave="onMouseOut()"
-            """
-        } else {
-            ""
-        } +
-        """
+                       v-on:mouseenter="onXyMouseOver( ${'$'}event, element )"
+                       v-on:mouseleave="onXyMouseOut()"
                 />
 
                 <line v-else-if="element.type == '${XyElementDataType.LINE}'"
@@ -119,16 +86,8 @@ fun getXyElementTemplate(
                       v-bind:stroke="element.stroke"
                       v-bind:stroke-width="element.strokeWidth"
                       v-bind:stroke-dasharray="element.itSelected ? element.strokeDash : ''"
-    """ +
-        if (withInteractive) {
-            """
-                      v-on:mouseenter="onMouseOver( ${'$'}event, element )"
-                      v-on:mouseleave="onMouseOut()"
-            """
-        } else {
-            ""
-        } +
-        """
+                      v-on:mouseenter="onXyMouseOver( ${'$'}event, element )"
+                      v-on:mouseleave="onXyMouseOut()"
                 />
 
                 <path v-else-if="element.type == '${XyElementDataType.PATH}'"
@@ -138,16 +97,8 @@ fun getXyElementTemplate(
                       v-bind:stroke-width="element.strokeWidth"
                       v-bind:stroke-dasharray="element.itSelected ? element.strokeDash : ''"
                       v-bind:transform="element.transform"
-    """ +
-        if (withInteractive) {
-            """
-                      v-on:mouseenter="onMouseOver( ${'$'}event, element )"
-                      v-on:mouseleave="onMouseOut()"
-            """
-        } else {
-            ""
-        } +
-        """
+                      v-on:mouseenter="onXyMouseOver( ${'$'}event, element )"
+                      v-on:mouseleave="onXyMouseOut()"
                 />
 
                 <polyline v-else-if="element.type == '${XyElementDataType.POLYLINE}'"
@@ -157,16 +108,8 @@ fun getXyElementTemplate(
                           v-bind:stroke-width="element.strokeWidth"
                           v-bind:stroke-dasharray="element.itSelected ? element.strokeDash : ''"
                           v-bind:transform="element.transform"
-    """ +
-        if (withInteractive) {
-            """
-                          v-on:mouseenter="onMouseOver( ${'$'}event, element )"
-                          v-on:mouseleave="onMouseOut()"
-            """
-        } else {
-            ""
-        } +
-        """
+                          v-on:mouseenter="onXyMouseOver( ${'$'}event, element )"
+                          v-on:mouseleave="onXyMouseOut()"
                 />
 
                 <polygon v-else-if="element.type == '${XyElementDataType.POLYGON}'"
@@ -176,16 +119,11 @@ fun getXyElementTemplate(
                          v-bind:stroke-width="element.strokeWidth"
                          v-bind:stroke-dasharray="element.itSelected ? element.strokeDash : ''"
                          v-bind:transform="element.transform"
-                """ +
-        if (withInteractive) {
-            """
-                         v-on:mouseenter="onMouseOver( ${'$'}event, element )"
-                         v-on:mouseleave="onMouseOut()"
-                        """
-        } else {
-            ""
-        } +
-        """
+                         v-bind:style="element.style"
+                         v-on:mouseenter="onXyMouseOver( ${'$'}event, element )"
+                         v-on:mouseleave="onXyMouseOut()"
+                         v-on:mousedown.prevent="element.itReadOnly ? null : onXyTextPressed( ${'$'}event, element )"
+                         v-on:touchstart.prevent="element.itReadOnly ? null : onXyTextPressed( ${'$'}event, element )"
                 />
 
                 <rect v-else-if="element.type == '${XyElementDataType.RECT}'"
@@ -200,16 +138,8 @@ fun getXyElementTemplate(
                       v-bind:rx="element.rx"
                       v-bind:ry="element.ry"
                       v-bind:transform="element.transform"
-            """ +
-        if (withInteractive) {
-            """
-                      v-on:mouseenter="onMouseOver( ${'$'}event, element )"
-                      v-on:mouseleave="onMouseOut()"
-                    """
-        } else {
-            ""
-        } +
-        """
+                      v-on:mouseenter="onXyMouseOver( ${'$'}event, element )"
+                      v-on:mouseleave="onXyMouseOut()"
                 />
 
                 <text v-else-if="element.type == '${XyElementDataType.SVG_TEXT}'"
@@ -220,16 +150,10 @@ fun getXyElementTemplate(
                       v-bind:dominant-baseline="element.vAnchor"
                       v-bind:transform="element.transform"
                       v-bind:style="element.style"
-            """ +
-        if (withInteractive) {
-            """
-                      v-on:mouseenter="onMouseOver( ${'$'}event, element )"
-                      v-on:mouseleave="onMouseOut()"
-                    """
-        } else {
-            ""
-        } +
-        """
+                      v-on:mouseenter="onXyMouseOver( ${'$'}event, element )"
+                      v-on:mouseleave="onXyMouseOut()"
+                      v-on:mousedown.prevent="element.itReadOnly ? null : onXyTextPressed( ${'$'}event, element )"
+                      v-on:touchstart.prevent="element.itReadOnly ? null : onXyTextPressed( ${'$'}event, element )"
                 >
                     {{ element.text }}
                 </text>
@@ -247,18 +171,10 @@ fun getXyElementTemplate(
             <template v-if="element.type == '${XyElementDataType.HTML_TEXT}'">
                 <div v-show="element.isVisible"
                      v-bind:style="[element.pos, element.style]"
-        """ +
-        if (withInteractive) {
-            """
-                     v-on:mouseenter="onMouseOver( ${'$'}event, element )"
-                     v-on:mouseleave="onMouseOut()"
-                     v-on:mousedown.prevent="onTextPressed( ${'$'}event, element )"
-                     v-on:touchstart.prevent="onTextPressed( ${'$'}event, element )"
-                """
-        } else {
-            ""
-        } +
-        """
+                     v-on:mouseenter="onXyMouseOver( ${'$'}event, element )"
+                     v-on:mouseleave="onXyMouseOut()"
+                     v-on:mousedown.prevent="element.itReadOnly ? null : onXyTextPressed( ${'$'}event, element )"
+                     v-on:touchstart.prevent="element.itReadOnly ? null : onXyTextPressed( ${'$'}event, element )"
                      v-html="element.text"
                 >
                 </div>

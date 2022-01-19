@@ -71,6 +71,14 @@ const val COLOR_LOADER_1 = COLOR_MAIN_LOADER_1
 const val COLOR_LOADER_2 = COLOR_MAIN_LOADER_2
 const val COLOR_LOADER_3 = COLOR_MAIN_LOADER_3
 
+//--- Dialog --- -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+val COLOR_DIALOG_BACK = "#000000c0"
+var colorDialogBorder = COLOR_MAIN_BORDER
+var colorDialogBackCenter = COLOR_MAIN_BACK_1
+var colorDialogButtonBack = COLOR_BUTTON_BACK
+var colorDialogButtonBorder = COLOR_BUTTON_BORDER
+
 //--- Menu -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 const val IS_HIDDEN_MENU_BAR = "is_hidden_menu_bar"
@@ -87,7 +95,7 @@ val MENU_DELIMITER = "&nbsp;".repeat(60)
 
 var colorLogonBackAround = COLOR_PANEL_BACK
 var colorLogonBackCenter = COLOR_MAIN_BACK_1
-var colorLogonBorder = COLOR_MENU_BORDER
+var colorLogonBorder = COLOR_MAIN_BORDER
 var colorLogonCheckBoxText = COLOR_TEXT
 var colorLogonButtonBack = COLOR_BUTTON_BACK
 var colorLogonButtonBorder = COLOR_BUTTON_BORDER
@@ -201,6 +209,13 @@ fun styleTableGridCellTypePadding() = "$CONTROL_TOP_DOWN_SIDE_PADDING $CONTROL_P
 
 fun styleCommonMargin() = "0 $CONTROL_MARGIN 0 $CONTROL_MARGIN"
 
+//--- Dialog
+
+fun styleDialogCellPadding() = "1.0rem"
+fun styleDialogControlPadding() = "0.4rem 0"
+fun styleDialogButtonPadding() = "1.0rem ${if (!styleIsNarrowScreen) 8 else scaledScreenWidth / 48}rem"
+//fun styleDialogButtonMargin() = "1.0rem 0 0 0"
+
 //--- MenuBar
 
 var styleIsHiddenMenuBar = localStorage.getItem(IS_HIDDEN_MENU_BAR)?.toBooleanStrictOrNull() ?: true
@@ -208,9 +223,7 @@ var styleIsHiddenMenuBar = localStorage.getItem(IS_HIDDEN_MENU_BAR)?.toBooleanSt
 //--- Logon
 
 fun styleLogonTextLen() = if (!styleIsNarrowScreen) 40 else scaledScreenWidth / 16
-
 fun styleLogonCellPadding() = "1.0rem"
-
 //!!! проверить как будет выглядеть с другими logo !!! (у лого снизу padding побольше - для вертикального центрирования)
 fun styleLogonLogoPadding() = "0.4rem 0 1.0rem 0"
 fun styleLogonControlPadding() = "0.4rem 0"

@@ -65,7 +65,7 @@ fun stateControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().app
 
         """ +
 
-            getXyElementTemplate(tabId, true, "") +
+            getXyElementTemplate(tabId, "") +
 
             """
             </div>
@@ -103,47 +103,22 @@ fun stateControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().app
                 withWait = withWait,
             )
         },
-        "onMouseOver" to { event: Event, xyElement: XyElementData ->
+        "onXyMouseOver" to { event: Event, xyElement: XyElementData ->
             onXyMouseOver(that(), event as MouseEvent, xyElement)
         },
-        "onMouseOut" to {
+        "onXyMouseOut" to {
             onXyMouseOut(that())
         },
-        "onMousePressed" to { isNeedOffsetCompensation: Boolean, aMouseX: Double, aMouseY: Double ->
+        "onXyMousePressed" to { isNeedOffsetCompensation: Boolean, aMouseX: Double, aMouseY: Double ->
         },
-        "onMouseMove" to { isNeedOffsetCompensation: Boolean, aMouseX: Double, aMouseY: Double ->
+        "onXyMouseMove" to { isNeedOffsetCompensation: Boolean, aMouseX: Double, aMouseY: Double ->
         },
-        "onMouseReleased" to { isNeedOffsetCompensation: Boolean, aMouseX: Double, aMouseY: Double, shiftKey: Boolean, ctrlKey: Boolean, altKey: Boolean ->
+        "onXyMouseReleased" to { isNeedOffsetCompensation: Boolean, aMouseX: Double, aMouseY: Double, shiftKey: Boolean, ctrlKey: Boolean, altKey: Boolean ->
         },
-        "onMouseWheel" to { event: Event ->
+        "onXyMouseWheel" to { event: Event ->
         },
-        "onTextPressed" to { event: Event, xyElement: XyElementData ->
-            val that = that()
-
-            val curMode = that().stateCurMode.unsafeCast<StateWorkMode>()
-
-            when (curMode) {
-                StateWorkMode.PAN -> {
-                    if (window.confirm(xyElement.tooltip ?: "(не определено)")) {
-                        val xyActionRequest = XyActionRequest(
-                            documentTypeName = xyResponse.documentConfig.name,
-                            action = XyAction.CLICK_ELEMENT,
-                            startParamId = xyResponse.startParamId,
-                            elementId = xyElement.elementId,
-                            objectId = xyElement.objectId
-                        )
-
-                        that.`$root`.setWait(true)
-                        invokeXy(
-                            xyActionRequest,
-                            {
-                                that.`$root`.setWait(false)
-                                window.alert("Действие выполнено!")
-                            }
-                        )
-                    }
-                }
-            }
+        "onXyTextPressed" to { event: Event, xyElement: XyElementData ->
+            doStateTextPressed(that(), xyResponse, xyElement)
         },
     )
 
@@ -161,10 +136,8 @@ fun stateControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().app
     }
 
     this.data = {
-        getXyComponentData().add(
-            json(
-                "stateCurMode" to StateWorkMode.PAN,
-            )
+        getStateComponentData().add(
+            getXyComponentData()
         )
     }
 
@@ -203,4 +176,43 @@ fun doStateRefreshView(
         withWait = withWait
     )
 }
+
+fun doStateTextPressed(that: dynamic, xyResponse: XyResponse, xyElement: XyElementData) {
+    val curMode = that.stateCurMode.unsafeCast<StateWorkMode>()
+
+    when (curMode) {
+        StateWorkMode.PAN -> {
+            dialogActionFun = { that: dynamic ->
+                val xyActionRequest = XyActionRequest(
+                    documentTypeName = xyResponse.documentConfig.name,
+                    action = XyAction.CLICK_ELEMENT,
+                    startParamId = xyResponse.startParamId,
+                    elementId = xyElement.elementId,
+                    objectId = xyElement.objectId
+                )
+
+                that.`$root`.setWait(true)
+                invokeXy(
+                    xyActionRequest,
+                    {
+                        that.`$root`.setWait(false)
+
+                        dialogActionFun = { that: dynamic -> }
+                        that.`$root`.dialogQuestion = "Действие выполнено!"
+                        that.`$root`.showDialogCancel = false
+                        that.`$root`.showDialog = true
+                    }
+                )
+            }
+            that.`$root`.dialogQuestion = xyElement.tooltip
+            that.`$root`.showDialogCancel = true
+            that.`$root`.showDialog = true
+        }
+    }
+}
+
+fun getStateComponentData() = json(
+    "stateCurMode" to StateWorkMode.PAN,
+)
+
 
