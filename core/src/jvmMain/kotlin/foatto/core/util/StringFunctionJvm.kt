@@ -17,7 +17,6 @@ fun encodePassword(plainPassword: String): String {
 
 //--- внутренние преобразования строк -------------------------------------------------------------------------------------------------------------------------------------------------
 
-fun prepareForHTML(sour: String): String = sour.replace("\t", "&nbsp;&nbsp;&nbsp;&nbsp;").replace(sLineSeparator, "<br>")
 fun prepareForReport(sour: String): String = sour.replace("\t", "    ")
 fun prepareForScript(sour: String): String = sour.replace('\t', ' ').replace('\r', ' ').replace('\n', ' ')
 fun prepareForSQL(sour: String): String = sour.replace('\'', '`').replace('"', '`')

@@ -5,6 +5,8 @@ import kotlin.math.pow
 import kotlin.math.round
 import kotlin.math.roundToLong
 
+fun prepareForHTML(sour: String): String = sour.replace("\t", "&nbsp;&nbsp;&nbsp;&nbsp;").replace("\n", "<br>")
+
 fun getFilledNumberString(num: Int, charCount: Int): String {
     var s = num.toString()
     if (s.length < charCount) {

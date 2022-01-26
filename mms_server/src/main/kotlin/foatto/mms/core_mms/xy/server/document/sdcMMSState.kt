@@ -185,7 +185,12 @@ class sdcMMSState : sdcXyState() {
 
     //--------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun loadDynamicElements(scale: Int, objectParamData: XyStartObjectParsedData, alElement: MutableList<XyElement>) {
+    override fun loadDynamicElements(
+        scale: Int,
+        objectParamData: XyStartObjectParsedData,
+        alElement: MutableList<XyElement>,
+        hmParams: MutableMap<String, String>,
+    ) {
         //--- получить данные по правам доступа
         val isRemoteControlPermission = userConfig.userPermission["mms_object"]?.contains(cObject.PERM_REMOTE_CONTROL) ?: false
 

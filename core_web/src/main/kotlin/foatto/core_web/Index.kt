@@ -112,8 +112,9 @@ open class Index {
                                 &nbsp;
                             </div>
                             <div v-bind:style="style_dialog_cell">
-                                <div v-bind:style="style_dialog_text">
-                                    {{ dialogQuestion }}
+                                <div v-bind:style="style_dialog_text"
+                                     v-html="dialogQuestion"
+                                >
                                 </div>
                                 <br>
                                 <div v-bind:style="style_dialog_div">

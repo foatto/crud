@@ -1,9 +1,12 @@
 package foatto.core_web
 
+import foatto.core.app.STATE_ALERT_MESSAGE
 import foatto.core.app.xy.XyAction
 import foatto.core.app.xy.XyActionRequest
+import foatto.core.app.xy.XyActionResponse
 import foatto.core.app.xy.XyViewCoord
 import foatto.core.link.XyResponse
+import foatto.core.util.prepareForHTML
 import foatto.core_web.external.vue.that
 import foatto.core_web.external.vue.vueComponentOptions
 import kotlinx.browser.window
@@ -67,6 +70,8 @@ fun stateControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().app
 
             getXyElementTemplate(tabId, "") +
 
+            getStateAlertTemplate() +
+
             """
             </div>
         """
@@ -101,6 +106,14 @@ fun stateControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().app
                 arrAddElements = emptyArray(),
                 aView = aView,
                 withWait = withWait,
+                doAdditionalWork = { aThat: dynamic, xyActionResponse: XyActionResponse ->
+                    xyActionResponse.arrParams?.firstOrNull { pair ->
+                        pair.first == STATE_ALERT_MESSAGE
+                    }?.let { pair ->
+                        aThat.showStateAlert = true
+                        aThat.stateAlertMessage = prepareForHTML(pair.second)
+                    }
+                },
             )
         },
         "onXyMouseOver" to { event: Event, xyElement: XyElementData ->
@@ -151,6 +164,7 @@ fun doStateRefreshView(
     arrAddElements: Array<Element>,
     aView: XyViewCoord?,
     withWait: Boolean,
+    doAdditionalWork: (aThat: dynamic, xyActionResponse: XyActionResponse) -> Unit = { _: dynamic, _: XyActionResponse -> },
 ) {
     val scaleKoef = that.`$root`.scaleKoef.unsafeCast<Double>()
     val svgCoords = defineXySvgCoords(tabId, elementPrefix, arrAddElements)
@@ -158,7 +172,6 @@ fun doStateRefreshView(
     val newView = aView?.let {
         //--- принимаем новый ViewCoord как есть, но корректируем масштаб в зависимости от текущего размера выводимой области
         aView.scale = calcXyScale(scaleKoef, svgCoords.bodyWidth, svgCoords.bodyHeight, aView.x1, aView.y1, aView.x2, aView.y2)
-        //--- обновляем, только если изменилось (оптимизируем цепочку реактивных изменений)
         that.xyViewCoord = aView
         aView
     } ?: run {
@@ -173,7 +186,8 @@ fun doStateRefreshView(
         mapBitmapTypeName = "",
         svgBodyLeft = svgCoords.bodyLeft,
         svgBodyTop = svgCoords.bodyTop,
-        withWait = withWait
+        withWait = withWait,
+        doAdditionalWork = doAdditionalWork,
     )
 }
 
@@ -211,8 +225,69 @@ fun doStateTextPressed(that: dynamic, xyResponse: XyResponse, xyElement: XyEleme
     }
 }
 
+fun getStateAlertTemplate() =
+    """
+        <div v-if="showStateAlert"
+             v-bind:style="style_state_alert"
+        >
+            <div v-bind:style="style_state_alert_top_expander">
+                &nbsp;
+            </div>
+            <div v-bind:style="style_state_alert_cell">
+                <div v-bind:style="style_state_alert_text"
+                     v-html="stateAlertMessage"
+                >
+                </div>
+            </div>
+            <div v-bind:style="style_state_alert_bottom_expander">
+                &nbsp;
+            </div>
+        </div>
+    """
+
 fun getStateComponentData() = json(
     "stateCurMode" to StateWorkMode.PAN,
+    "showStateAlert" to false,
+    "stateAlertMessage" to "",
+
+    "style_state_alert" to json(
+        "position" to "fixed",
+        "top" to "20%",
+        "left" to 0,
+        "width" to "100%",
+        "bottom" to 0,
+        "z-index" to "2000",
+        "background" to COLOR_DIALOG_BACK,
+        "display" to "grid",
+        "grid-template-rows" to "1fr auto 1fr",
+        "grid-template-columns" to "1fr auto 1fr",
+    ),
+    "style_state_alert_top_expander" to json(
+        "grid-area" to "1 / 2 / 2 / 3",
+    ),
+    "style_state_alert_cell" to json(
+        "grid-area" to "2 / 2 / 3 / 3",
+        "padding" to styleDialogCellPadding(),
+        "border" to "1px solid $colorDialogBorder",
+        "border-radius" to BORDER_RADIUS,
+        "background" to colorDialogBackCenter,
+        "display" to "flex",
+        "flex-direction" to "column",
+        "align-items" to "center",
+    ),
+    "style_state_alert_bottom_expander" to json(
+        "grid-area" to "3 / 2 / 4 / 3",
+    ),
+    "style_dialog_div" to json(
+        "font-size" to styleControlTextFontSize(),
+        "padding" to styleDialogControlPadding()
+    ),
+    "style_state_alert_text" to json(
+        "align-self" to "center",
+        "font-size" to styleControlTextFontSize(),
+        "font-weight" to "bold",
+        "color" to COLOR_TEXT,
+    ),
 )
 
 

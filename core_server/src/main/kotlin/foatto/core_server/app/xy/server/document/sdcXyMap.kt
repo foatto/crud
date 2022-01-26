@@ -97,7 +97,7 @@ abstract class sdcXyMap : sdcXyAbstract() {
         //--- загрузка динамических объектов
         for (objectParamData in alObjectParamData) {
             if (objectParamData.begTime != 0) {
-                loadDynamicElements(viewCoord.scale, objectParamData, alElement)
+                loadDynamicElements(viewCoord.scale, objectParamData, alElement, mutableMapOf())
             }
         }
         //AdvancedLogger.debug( "load/write dynamic elements [obj] : " + ( System.currentTimeMillis() - begTime ) );
@@ -111,7 +111,7 @@ abstract class sdcXyMap : sdcXyAbstract() {
         //AdvancedLogger.info( "Doc Size = " + arrByte.length );
         //AdvancedLogger.info( "------------------------------------------------------------" );
 
-        return XyActionResponse(alElement = alElement.toTypedArray())
+        return XyActionResponse(arrElement = alElement.toTypedArray())
     }
 
     override fun getOneElement(xyActionRequest: XyActionRequest): XyActionResponse {

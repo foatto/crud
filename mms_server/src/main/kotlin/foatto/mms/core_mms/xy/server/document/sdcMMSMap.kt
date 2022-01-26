@@ -205,7 +205,12 @@ class sdcMMSMap : sdcXyMap() {
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun loadDynamicElements(scale: Int, objectParamData: XyStartObjectParsedData, alElement: MutableList<XyElement>) {
+    override fun loadDynamicElements(
+        scale: Int,
+        objectParamData: XyStartObjectParsedData,
+        alElement: MutableList<XyElement>,
+        hmParams: MutableMap<String, String>,
+    ) {
         val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, objectParamData.objectId)
         if (objectConfig.scg == null) return
 

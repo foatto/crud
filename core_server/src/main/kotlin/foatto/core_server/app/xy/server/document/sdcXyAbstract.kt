@@ -116,7 +116,12 @@ abstract class sdcXyAbstract {
         return alObjectParamData
     }
 
-    protected abstract fun loadDynamicElements(scale: Int, objectParamData: XyStartObjectParsedData, alElement: MutableList<XyElement>)
+    protected abstract fun loadDynamicElements(
+        scale: Int,
+        objectParamData: XyStartObjectParsedData,
+        alElement: MutableList<XyElement>,
+        hmParams: MutableMap<String, String>,
+    )
 
 }
 

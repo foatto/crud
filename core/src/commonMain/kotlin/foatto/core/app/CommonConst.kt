@@ -30,3 +30,6 @@ const val BUTTON_KEY_AUTOCLICK = 3
 
 const val PARAM_ZONE_NAME = "zone_name"
 const val PARAM_ZONE_DESCR = "zone_descr"
+
+const val STATE_ALERT_MESSAGE = "state_alert_message"
+

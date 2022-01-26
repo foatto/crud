@@ -309,11 +309,11 @@ fun readXyElements(
     documentConfig: XyDocumentConfig,
     viewCoord: XyViewCoord,
     scaleKoef: Double,
-    alElement: Array<XyElement>
+    arrElement: Array<XyElement>
 ): Array<Array<XyElementData>> {
 
     val hmLayer = mutableMapOf<Int, MutableList<XyElementData>>()
-    alElement.forEach { element ->
+    arrElement.forEach { element ->
         val elementConfig = documentConfig.alElementConfig.find { it.first == element.typeName }!!.second
         val alLayer = hmLayer.getOrPut(elementConfig.layer) { mutableListOf() }
 
@@ -504,6 +504,7 @@ fun getXyElements(
     svgBodyLeft: Int,
     svgBodyTop: Int,
     withWait: Boolean,
+    doAdditionalWork: (aThat: dynamic, xyActionResponse: XyActionResponse) -> Unit = { _: dynamic, _: XyActionResponse -> },
 ) {
     if (withWait) {
         that.`$root`.setWait(true)
@@ -526,14 +527,16 @@ fun getXyElements(
                 documentConfig = xyResponse.documentConfig,
                 viewCoord = newView,
                 scaleKoef = scaleKoef,
-                alElement = xyActionResponse.alElement!!
+                arrElement = xyActionResponse.arrElement!!
             )
 
             setXyTextOffset(that, svgBodyLeft, svgBodyTop)
 
             if (withWait) {
-                that.`$root`.setWait(false) as Unit
+                that.`$root`.setWait(false)
             }
+
+            doAdditionalWork(that, xyActionResponse)
         }
     )
 }

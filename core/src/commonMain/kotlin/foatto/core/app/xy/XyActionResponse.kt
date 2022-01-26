@@ -8,8 +8,11 @@ class XyActionResponse(
     val maxCoord: XyPoint? = null,
 
     //--- response on GET_ELEMENTS
-    val alElement: Array<XyElement>? = null,
+    val arrElement: Array<XyElement>? = null,
 
     //--- response on GET_ONE_ELEMENT
-    val element: XyElement? = null
+    val element: XyElement? = null,
+
+    //--- additional custom parameters for any commands
+    val arrParams: Array<Pair<String, String>>? = null,
 )
