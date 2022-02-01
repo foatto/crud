@@ -467,7 +467,6 @@ class MMSAppController : CoreAppController(), iMMSApplication {
                         aSmoothTime = (sensorEntity.smoothTime ?: 0) * 60,
                         aMinIgnore = sensorEntity.minIgnore ?: 0.0,
                         aMaxIgnore = sensorEntity.maxIgnore ?: 0.0,
-                        phase = sensorEntity.phase ?: 0,
                     )
                 }
                 SensorConfig.SENSOR_LIQUID_FLOW_CALC, SensorConfig.SENSOR_WEIGHT,

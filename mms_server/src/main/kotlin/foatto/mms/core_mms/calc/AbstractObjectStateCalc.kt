@@ -25,7 +25,11 @@ object AbstractObjectStateCalc {
             }
         }
         bb.rewind()
-        return if (gd == null || gd.wgs.x == 0 && gd.wgs.y == 0) null else gd
+        return if (gd == null || gd.wgs.x == 0 && gd.wgs.y == 0) {
+            null
+        } else {
+            gd
+        }
     }
 
     fun getSensorData(sensorPortNum: Int, bb: AdvancedByteBuffer): Number? {
@@ -36,7 +40,7 @@ object AbstractObjectStateCalc {
 
             if (portNum == sensorPortNum) {
                 when (dataSize) {
-                    1 -> sensorValue = bb.getByte().toInt() and 0xFF
+                    1 -> sensorValue = bb.getByte().toInt()
                     2 -> sensorValue = bb.getShort().toInt() and 0xFFFF
                     3 -> sensorValue = bb.getInt3()
                     4 -> sensorValue = bb.getInt()
@@ -94,7 +98,9 @@ object AbstractObjectStateCalc {
         var sensorType = aSensorType
         val sensorValue: CharSequence
 
-        if (sensorType == null) sensorType = 0
+        if (sensorType == null) {
+            sensorType = 0
+        }
 
         when (sensorType) {
             SensorConfig.SENSOR_GEO -> {

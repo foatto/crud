@@ -90,6 +90,34 @@ class cDevice : cStandart() {
                 }
                 createESDSensors(objectId, deviceIndex, alESCGroupName, alESCDescrPrefix, alESCDescrPostfix)
             }
+
+            val isEmisCreate = (hmColumnData[m.columnEmisCreatingEnabled] as DataBoolean).value
+            if (isEmisCreate) {
+                val alESCGroupName = m.alColumnEmisGroupName.map { column ->
+                    (hmColumnData[column] as DataString).text
+                }
+                val alESCDescrPrefix = m.alColumnEmisDescrPrefix.map { column ->
+                    (hmColumnData[column] as DataString).text
+                }
+                val alESCDescrPostfix = m.alColumnEmisDescrPostfix.map { column ->
+                    (hmColumnData[column] as DataString).text
+                }
+                createEmisSensors(objectId, deviceIndex, alESCGroupName, alESCDescrPrefix, alESCDescrPostfix)
+            }
+
+            val isMercuryCreate = (hmColumnData[m.columnMercuryCreatingEnabled] as DataBoolean).value
+            if (isMercuryCreate) {
+                val alESCGroupName = m.alColumnMercuryGroupName.map { column ->
+                    (hmColumnData[column] as DataString).text
+                }
+                val alESCDescrPrefix = m.alColumnMercuryDescrPrefix.map { column ->
+                    (hmColumnData[column] as DataString).text
+                }
+                val alESCDescrPostfix = m.alColumnMercuryDescrPostfix.map { column ->
+                    (hmColumnData[column] as DataString).text
+                }
+                createMercurySensors(objectId, deviceIndex, alESCGroupName, alESCDescrPrefix, alESCDescrPostfix)
+            }
         }
 
 //        clearOldCameraInfo(hmColumnData)
@@ -117,163 +145,703 @@ class cDevice : cStandart() {
     private fun createESDSensors(
         objectId: Int,
         deviceIndex: Int,
-        alEuroSensGroupName: List<String>,
-        alEuroSensDescrPrefix: List<String>,
-        alEuroSensDescrPostfix: List<String>,
+        alGroupName: List<String>,
+        alDescrPrefix: List<String>,
+        alDescrPostfix: List<String>,
     ) {
         for (si in 0 until mDevice.MAX_PORT_PER_SENSOR) {
-            val groupName = alEuroSensGroupName[si].trim()
-            val descrPrefix = alEuroSensDescrPrefix[si].trim()
-            val descrPostfix = alEuroSensDescrPostfix[si].trim()
+            val groupName = alGroupName[si].trim()
+            val descrPrefix = alDescrPrefix[si].trim()
+            val descrPostfix = alDescrPostfix[si].trim()
 
             if (descrPrefix.isNotEmpty() || descrPostfix.isNotEmpty()) {
-                stm.executeUpdate(
-                    """
-                        INSERT INTO MMS_sensor( 
-                            id , object_id , name , group_name , descr , 
-                            port_num , 
-                            sensor_type , cmd_on_id , cmd_off_id , beg_ye , beg_mo , beg_da 
-                        ) VALUES ( 
-                            ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix Состояние расходомера $descrPostfix' , 
-                            ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + GalileoHandler.PORT_NUM_ESD_STATUS + si} , 
-                            ${SensorConfig.SENSOR_LIQUID_USING_COUNTER_STATE} , 0 , 0 , 2000 , 1 , 1 
-                        )
-                    """
+                addStateSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_LIQUID_USING_COUNTER_STATE,
+                    portNum = GalileoHandler.PORT_NUM_ESD_STATUS,
+                    descrBody = "Состояние расходомера",
                 )
-                stm.executeUpdate(
-                    """
-                        INSERT INTO MMS_sensor( 
-                            id , object_id , name , group_name , descr , 
-                            port_num , 
-                            sensor_type , cmd_on_id , cmd_off_id , beg_ye , beg_mo , beg_da ,
-                            smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , is_absolute_count , liquid_name            
-                        ) VALUES ( 
-                            ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix Расходомер $descrPostfix' , 
-                            ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + GalileoHandler.PORT_NUM_ESD_VOLUME + si} , 
-                            ${SensorConfig.SENSOR_LIQUID_USING} , 0, 0 , 2000 , 1 , 1 ,
-                            0 , 0 , 0 , 0 , 1 , ''                            
-                        )
-                    """
+                addCounterSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_LIQUID_USING,
+                    portNum = GalileoHandler.PORT_NUM_ESD_VOLUME,
+                    descrBody = "Расходомер",
                 )
-                stm.executeUpdate(
-                    """
-                        INSERT INTO MMS_sensor( 
-                            id , object_id , name , group_name , descr , 
-                            port_num , 
-                            sensor_type , cmd_on_id , cmd_off_id , beg_ye , beg_mo , beg_da ,
-                            smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , 
-                            analog_min_view , analog_max_view , analog_min_limit , analog_max_limit                
-                        ) VALUES ( 
-                            ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix Скорость потока $descrPostfix' , 
-                            ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + GalileoHandler.PORT_NUM_ESD_FLOW + si} , 
-                            ${SensorConfig.SENSOR_VOLUME_FLOW} , 0, 0 , 2000 , 1 , 1 ,
-                            0 , 0 , 0 , 0 ,                             
-                            0 , 0 , 0 , 0                              
-                        )
-                    """
+                addAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_VOLUME_FLOW,
+                    portNum = GalileoHandler.PORT_NUM_ESD_FLOW,
+                    descrBody = "Скорость потока",
                 )
-                stm.executeUpdate(
-                    """
-                        INSERT INTO MMS_sensor( 
-                            id , object_id , name , group_name , descr , 
-                            port_num , 
-                            sensor_type , cmd_on_id , cmd_off_id , beg_ye , beg_mo , beg_da ,
-                            smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , is_absolute_count , liquid_name            
-                        ) VALUES ( 
-                            ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix Расходомер камеры подачи $descrPostfix' , 
-                            ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + GalileoHandler.PORT_NUM_ESD_CAMERA_VOLUME + si} , 
-                            ${SensorConfig.SENSOR_LIQUID_USING} , 0, 0 , 2000 , 1 , 1 ,
-                            0 , 0 , 0 , 0 , 1 , ''                            
-                        )
-                    """
+                addCounterSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_LIQUID_USING,
+                    portNum = GalileoHandler.PORT_NUM_ESD_CAMERA_VOLUME,
+                    descrBody = "Расходомер камеры подачи",
                 )
-                stm.executeUpdate(
-                    """
-                        INSERT INTO MMS_sensor( 
-                            id , object_id , name , group_name , descr , 
-                            port_num , 
-                            sensor_type , cmd_on_id , cmd_off_id , beg_ye , beg_mo , beg_da ,
-                            smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , 
-                            analog_min_view , analog_max_view , analog_min_limit , analog_max_limit                
-                        ) VALUES ( 
-                            ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix Скорость потока камеры подачи $descrPostfix' , 
-                            ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + GalileoHandler.PORT_NUM_ESD_CAMERA_FLOW + si} , 
-                            ${SensorConfig.SENSOR_VOLUME_FLOW} , 0, 0 , 2000 , 1 , 1 ,
-                            0 , 0 , 0 , 0 ,                             
-                            0 , 0 , 0 , 0                              
-                        )
-                    """
+                addAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_VOLUME_FLOW,
+                    portNum = GalileoHandler.PORT_NUM_ESD_CAMERA_FLOW,
+                    descrBody = "Скорость потока камеры подачи",
                 )
-                stm.executeUpdate(
-                    """
-                        INSERT INTO MMS_sensor( 
-                            id , object_id , name , group_name , descr , 
-                            port_num , 
-                            sensor_type , cmd_on_id , cmd_off_id , beg_ye , beg_mo , beg_da ,
-                            smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , 
-                            analog_min_view , analog_max_view , analog_min_limit , analog_max_limit                
-                        ) VALUES ( 
-                            ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix Температура камеры подачи $descrPostfix' , 
-                            ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + GalileoHandler.PORT_NUM_ESD_CAMERA_TEMPERATURE + si} , 
-                            ${SensorConfig.SENSOR_TEMPERATURE} , 0, 0 , 2000 , 1 , 1 ,
-                            0 , 0 , 0 , 0 ,                             
-                            0 , 0 , 0 , 0                              
-                        )
-                    """
+                addAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_TEMPERATURE,
+                    portNum = GalileoHandler.PORT_NUM_ESD_CAMERA_TEMPERATURE,
+                    descrBody = "Температура камеры подачи",
                 )
-
-                stm.executeUpdate(
-                    """
-                        INSERT INTO MMS_sensor( 
-                            id , object_id , name , group_name , descr , 
-                            port_num , 
-                            sensor_type , cmd_on_id , cmd_off_id , beg_ye , beg_mo , beg_da ,
-                            smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , is_absolute_count , liquid_name            
-                        ) VALUES ( 
-                            ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix Расходомер камеры обратки $descrPostfix' , 
-                            ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + GalileoHandler.PORT_NUM_ESD_REVERSE_CAMERA_VOLUME + si} , 
-                            ${SensorConfig.SENSOR_LIQUID_USING} , 0, 0 , 2000 , 1 , 1 ,
-                            0 , 0 , 0 , 0 , 1 , ''                            
-                        )
-                    """
+                addCounterSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_LIQUID_USING,
+                    portNum = GalileoHandler.PORT_NUM_ESD_REVERSE_CAMERA_VOLUME,
+                    descrBody = "Расходомер камеры обратки",
                 )
-                stm.executeUpdate(
-                    """
-                        INSERT INTO MMS_sensor( 
-                            id , object_id , name , group_name , descr , 
-                            port_num , 
-                            sensor_type , cmd_on_id , cmd_off_id , beg_ye , beg_mo , beg_da ,
-                            smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , 
-                            analog_min_view , analog_max_view , analog_min_limit , analog_max_limit                
-                        ) VALUES ( 
-                            ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix Скорость потока камеры обратки $descrPostfix' , 
-                            ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + GalileoHandler.PORT_NUM_ESD_REVERSE_CAMERA_FLOW + si} , 
-                            ${SensorConfig.SENSOR_VOLUME_FLOW} , 0, 0 , 2000 , 1 , 1 ,
-                            0 , 0 , 0 , 0 ,                             
-                            0 , 0 , 0 , 0                              
-                        )
-                    """
+                addAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_VOLUME_FLOW,
+                    portNum = GalileoHandler.PORT_NUM_ESD_REVERSE_CAMERA_FLOW,
+                    descrBody = "Скорость потока камеры обратки",
                 )
-                stm.executeUpdate(
-                    """
-                        INSERT INTO MMS_sensor( 
-                            id , object_id , name , group_name , descr , 
-                            port_num , 
-                            sensor_type , cmd_on_id , cmd_off_id , beg_ye , beg_mo , beg_da ,
-                            smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , 
-                            analog_min_view , analog_max_view , analog_min_limit , analog_max_limit                
-                        ) VALUES ( 
-                            ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix Температура камеры обратки $descrPostfix' , 
-                            ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + GalileoHandler.PORT_NUM_ESD_REVERSE_CAMERA_TEMPERATURE + si} , 
-                            ${SensorConfig.SENSOR_TEMPERATURE} , 0, 0 , 2000 , 1 , 1 ,
-                            0 , 0 , 0 , 0 ,                             
-                            0 , 0 , 0 , 0                              
-                        )
-                    """
+                addAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_TEMPERATURE,
+                    portNum = GalileoHandler.PORT_NUM_ESD_REVERSE_CAMERA_TEMPERATURE,
+                    descrBody = "Температура камеры обратки",
                 )
             }
         }
+    }
 
+    private fun createEmisSensors(
+        objectId: Int,
+        deviceIndex: Int,
+        alGroupName: List<String>,
+        alDescrPrefix: List<String>,
+        alDescrPostfix: List<String>,
+    ) {
+        for (si in 0 until mDevice.MAX_PORT_PER_SENSOR) {
+            val groupName = alGroupName[si].trim()
+            val descrPrefix = alDescrPrefix[si].trim()
+            val descrPostfix = alDescrPostfix[si].trim()
+
+            if (descrPrefix.isNotEmpty() || descrPostfix.isNotEmpty()) {
+                addAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_MASS_FLOW,
+                    portNum = GalileoHandler.PORT_NUM_EMIS_MASS_FLOW,
+                    descrBody = "Массовый расход",
+                )
+                addAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_DENSITY,
+                    portNum = GalileoHandler.PORT_NUM_EMIS_DENSITY,
+                    descrBody = "Плотность",
+                )
+                addAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_TEMPERATURE,
+                    portNum = GalileoHandler.PORT_NUM_EMIS_TEMPERATURE,
+                    descrBody = "Температура",
+                )
+                addAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_VOLUME_FLOW,
+                    portNum = GalileoHandler.PORT_NUM_EMIS_VOLUME_FLOW,
+                    descrBody = "Объёмный расход",
+                )
+                addCounterSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_LIQUID_USING,
+                    portNum = GalileoHandler.PORT_NUM_EMIS_ACCUMULATED_MASS,
+                    descrBody = "Накопленная масса",
+                )
+                addCounterSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_LIQUID_USING,
+                    portNum = GalileoHandler.PORT_NUM_EMIS_ACCUMULATED_VOLUME,
+                    descrBody = "Накопленный объём",
+                )
+            }
+        }
+    }
+
+    private fun createMercurySensors(
+        objectId: Int,
+        deviceIndex: Int,
+        alGroupName: List<String>,
+        alDescrPrefix: List<String>,
+        alDescrPostfix: List<String>,
+    ) {
+        for (si in 0 until mDevice.MAX_PORT_PER_SENSOR) {
+            val groupName = alGroupName[si].trim()
+            val descrPrefix = alDescrPrefix[si].trim()
+            val descrPostfix = alDescrPostfix[si].trim()
+
+            if (descrPrefix.isNotEmpty() || descrPostfix.isNotEmpty()) {
+
+                addEnergoCounterSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_ENERGO_COUNT_AD,
+                    portNum = GalileoHandler.PORT_NUM_MERCURY_COUNT_ACTIVE_DIRECT,
+                    descrBody = "Электроэнергия активная прямая",
+                )
+                addEnergoCounterSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_ENERGO_COUNT_AR,
+                    portNum = GalileoHandler.PORT_NUM_MERCURY_COUNT_ACTIVE_REVERSE,
+                    descrBody = "Электроэнергия активная обратная",
+                )
+                addEnergoCounterSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_ENERGO_COUNT_RD,
+                    portNum = GalileoHandler.PORT_NUM_MERCURY_COUNT_REACTIVE_DIRECT,
+                    descrBody = "Электроэнергия реактивная прямая",
+                )
+                addEnergoCounterSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_ENERGO_COUNT_RR,
+                    portNum = GalileoHandler.PORT_NUM_MERCURY_COUNT_REACTIVE_REVERSE,
+                    descrBody = "Электроэнергия реактивная обратная",
+                )
+
+                addEnergoAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_ENERGO_VOLTAGE,
+                    portNum = GalileoHandler.PORT_NUM_MERCURY_VOLTAGE_A,
+                    descrBody = "Напряжение по фазе A",
+                    phase = 1,
+                )
+                addEnergoAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_ENERGO_VOLTAGE,
+                    portNum = GalileoHandler.PORT_NUM_MERCURY_VOLTAGE_B,
+                    descrBody = "Напряжение по фазе B",
+                    phase = 2,
+                )
+                addEnergoAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_ENERGO_VOLTAGE,
+                    portNum = GalileoHandler.PORT_NUM_MERCURY_VOLTAGE_C,
+                    descrBody = "Напряжение по фазе C",
+                    phase = 3,
+                )
+
+                addEnergoAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_ENERGO_CURRENT,
+                    portNum = GalileoHandler.PORT_NUM_MERCURY_CURRENT_A,
+                    descrBody = "Ток по фазе A",
+                    phase = 1,
+                )
+                addEnergoAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_ENERGO_CURRENT,
+                    portNum = GalileoHandler.PORT_NUM_MERCURY_CURRENT_B,
+                    descrBody = "Ток по фазе B",
+                    phase = 2,
+                )
+                addEnergoAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_ENERGO_CURRENT,
+                    portNum = GalileoHandler.PORT_NUM_MERCURY_CURRENT_C,
+                    descrBody = "Ток по фазе C",
+                    phase = 3,
+                )
+
+                addEnergoAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_ENERGO_CURRENT,
+                    portNum = GalileoHandler.PORT_NUM_MERCURY_CURRENT_A,
+                    descrBody = "Ток по фазе A",
+                    phase = 1,
+                )
+                addEnergoAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_ENERGO_CURRENT,
+                    portNum = GalileoHandler.PORT_NUM_MERCURY_CURRENT_B,
+                    descrBody = "Ток по фазе B",
+                    phase = 2,
+                )
+                addEnergoAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_ENERGO_CURRENT,
+                    portNum = GalileoHandler.PORT_NUM_MERCURY_CURRENT_C,
+                    descrBody = "Ток по фазе C",
+                    phase = 3,
+                )
+
+                addEnergoAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_ENERGO_POWER_KOEF,
+                    portNum = GalileoHandler.PORT_NUM_MERCURY_POWER_KOEF_A,
+                    descrBody = "Коэффициент мощности по фазе A",
+                    phase = 1,
+                )
+                addEnergoAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_ENERGO_POWER_KOEF,
+                    portNum = GalileoHandler.PORT_NUM_MERCURY_POWER_KOEF_B,
+                    descrBody = "Коэффициент мощности по фазе B",
+                    phase = 2,
+                )
+                addEnergoAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_ENERGO_POWER_KOEF,
+                    portNum = GalileoHandler.PORT_NUM_MERCURY_POWER_KOEF_C,
+                    descrBody = "Коэффициент мощности по фазе C",
+                    phase = 3,
+                )
+
+                addEnergoAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
+                    portNum = GalileoHandler.PORT_NUM_MERCURY_POWER_ACTIVE_A,
+                    descrBody = "Мощность активная по фазе A",
+                    phase = 1,
+                )
+                addEnergoAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
+                    portNum = GalileoHandler.PORT_NUM_MERCURY_POWER_ACTIVE_B,
+                    descrBody = "Мощность активная по фазе B",
+                    phase = 2,
+                )
+                addEnergoAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
+                    portNum = GalileoHandler.PORT_NUM_MERCURY_POWER_ACTIVE_C,
+                    descrBody = "Мощность активная по фазе C",
+                    phase = 3,
+                )
+
+                addEnergoAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_ENERGO_POWER_REACTIVE,
+                    portNum = GalileoHandler.PORT_NUM_MERCURY_POWER_REACTIVE_A,
+                    descrBody = "Мощность реактивная по фазе A",
+                    phase = 1,
+                )
+                addEnergoAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_ENERGO_POWER_REACTIVE,
+                    portNum = GalileoHandler.PORT_NUM_MERCURY_POWER_REACTIVE_B,
+                    descrBody = "Мощность реактивная по фазе B",
+                    phase = 2,
+                )
+                addEnergoAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_ENERGO_POWER_REACTIVE,
+                    portNum = GalileoHandler.PORT_NUM_MERCURY_POWER_REACTIVE_C,
+                    descrBody = "Мощность реактивная по фазе C",
+                    phase = 3,
+                )
+
+                addEnergoAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_ENERGO_POWER_FULL,
+                    portNum = GalileoHandler.PORT_NUM_MERCURY_POWER_FULL_A,
+                    descrBody = "Мощность полная по фазе A",
+                    phase = 1,
+                )
+                addEnergoAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_ENERGO_POWER_FULL,
+                    portNum = GalileoHandler.PORT_NUM_MERCURY_POWER_FULL_B,
+                    descrBody = "Мощность полная по фазе B",
+                    phase = 2,
+                )
+                addEnergoAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_ENERGO_POWER_FULL,
+                    portNum = GalileoHandler.PORT_NUM_MERCURY_POWER_FULL_C,
+                    descrBody = "Мощность полная по фазе C",
+                    phase = 3,
+                )
+
+                addEnergoAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
+                    portNum = GalileoHandler.PORT_NUM_MERCURY_POWER_ACTIVE_ABC,
+                    descrBody = "Мощность активная по всем фазам",
+                    phase = 0,
+                )
+                addEnergoAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_ENERGO_POWER_REACTIVE,
+                    portNum = GalileoHandler.PORT_NUM_MERCURY_POWER_REACTIVE_ABC,
+                    descrBody = "Мощность реактивная по всем фазам",
+                    phase = 0,
+                )
+                addEnergoAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_ENERGO_POWER_FULL,
+                    portNum = GalileoHandler.PORT_NUM_MERCURY_POWER_FULL_ABC,
+                    descrBody = "Мощность полная по всем фазам",
+                    phase = 0,
+                )
+            }
+        }
+    }
+
+    private fun addStateSensor(
+        objectId: Int,
+        deviceIndex: Int,
+        sensorIndex: Int,
+        groupName: String,
+        descrPrefix: String,
+        descrPostfix: String,
+        sensorType: Int,
+        portNum: Int,
+        descrBody: String,
+    ) {
+        stm.executeUpdate(
+            """
+                INSERT INTO MMS_sensor( 
+                    id , object_id , name , group_name , descr , 
+                    port_num , 
+                    sensor_type , cmd_on_id , cmd_off_id , beg_ye , beg_mo , beg_da 
+                ) VALUES ( 
+                    ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix $descrBody $descrPostfix' , 
+                    ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
+                    $sensorType , 0 , 0 , 2000 , 1 , 1 
+                )
+            """
+        )
+    }
+
+    private fun addCounterSensor(
+        objectId: Int,
+        deviceIndex: Int,
+        sensorIndex: Int,
+        groupName: String,
+        descrPrefix: String,
+        descrPostfix: String,
+        sensorType: Int,
+        portNum: Int,
+        descrBody: String,
+    ) {
+        stm.executeUpdate(
+            """
+                INSERT INTO MMS_sensor( 
+                    id , object_id , name , group_name , descr , 
+                    port_num , 
+                    sensor_type , cmd_on_id , cmd_off_id , beg_ye , beg_mo , beg_da ,
+                    smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , is_absolute_count , liquid_name            
+                ) VALUES ( 
+                    ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix $descrBody $descrPostfix' , 
+                    ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
+                    $sensorType , 0, 0 , 2000 , 1 , 1 ,
+                    0 , 0 , 0 , 0 , 1 , ''                            
+                )
+            """
+        )
+    }
+
+    private fun addEnergoCounterSensor(
+        objectId: Int,
+        deviceIndex: Int,
+        sensorIndex: Int,
+        groupName: String,
+        descrPrefix: String,
+        descrPostfix: String,
+        sensorType: Int,
+        portNum: Int,
+        descrBody: String,
+    ) {
+        stm.executeUpdate(
+            """
+                INSERT INTO MMS_sensor( 
+                    id , object_id , name , group_name , descr , 
+                    port_num , 
+                    sensor_type , cmd_on_id , cmd_off_id , beg_ye , beg_mo , beg_da ,
+                    smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , is_absolute_count             
+                ) VALUES ( 
+                    ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix $descrBody $descrPostfix' , 
+                    ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
+                    $sensorType , 0, 0 , 2000 , 1 , 1 ,
+                    0 , 0 , 0 , 0 , 1                            
+                )
+            """
+        )
+    }
+
+    private fun addAnalogueSensor(
+        objectId: Int,
+        deviceIndex: Int,
+        sensorIndex: Int,
+        groupName: String,
+        descrPrefix: String,
+        descrPostfix: String,
+        sensorType: Int,
+        portNum: Int,
+        descrBody: String,
+    ) {
+        stm.executeUpdate(
+            """
+                INSERT INTO MMS_sensor( 
+                    id , object_id , name , group_name , descr , 
+                    port_num , 
+                    sensor_type , cmd_on_id , cmd_off_id , beg_ye , beg_mo , beg_da ,
+                    smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , 
+                    analog_min_view , analog_max_view , analog_min_limit , analog_max_limit                
+                ) VALUES ( 
+                    ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix $descrBody $descrPostfix' , 
+                    ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
+                    $sensorType , 0, 0 , 2000 , 1 , 1 ,
+                    0 , 0 , 0 , 0 ,                             
+                    0 , 0 , 0 , 0                              
+                )
+            """
+        )
+    }
+
+    private fun addEnergoAnalogueSensor(
+        objectId: Int,
+        deviceIndex: Int,
+        sensorIndex: Int,
+        groupName: String,
+        descrPrefix: String,
+        descrPostfix: String,
+        sensorType: Int,
+        portNum: Int,
+        descrBody: String,
+        phase: Int,
+    ) {
+        stm.executeUpdate(
+            """
+                INSERT INTO MMS_sensor( 
+                    id , object_id , name , group_name , descr , 
+                    port_num , 
+                    sensor_type , cmd_on_id , cmd_off_id , beg_ye , beg_mo , beg_da ,
+                    smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , 
+                    analog_min_view , analog_max_view , analog_min_limit , analog_max_limit , energo_phase                 
+                ) VALUES ( 
+                    ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix $descrBody $descrPostfix' , 
+                    ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
+                    $sensorType , 0, 0 , 2000 , 1 , 1 ,
+                    0 , 0 , 0 , 0 ,                             
+                    0 , 0 , 0 , 0 , $phase                              
+                )
+            """
+        )
+    }
+}
 /*
 -- дискретные датчики (времени работы оборудования и сигналов)
     bound_value         INT,    -- граничное значение (<= bound_value - логический 0, выше - логический 1
@@ -306,6 +874,3 @@ class cDevice : cStandart() {
 
  */
 
-    }
-
-}

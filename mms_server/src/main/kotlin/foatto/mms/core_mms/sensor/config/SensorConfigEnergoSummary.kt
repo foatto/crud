@@ -11,7 +11,6 @@ class SensorConfigEnergoSummary(
     aSmoothTime: Int,
     aMinIgnore: Double,
     aMaxIgnore: Double,
-    val phase: Int
 ) : SensorConfigBase(
     aId = aId,
     aName = aName,

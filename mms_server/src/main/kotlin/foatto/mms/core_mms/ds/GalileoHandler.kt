@@ -20,6 +20,39 @@ import kotlin.math.roundToInt
 open class GalileoHandler : MMSHandler() {
 
     companion object {
+        val PORT_NUM_MERCURY_COUNT_ACTIVE_DIRECT = 160
+        val PORT_NUM_MERCURY_COUNT_ACTIVE_REVERSE = 164
+        val PORT_NUM_MERCURY_COUNT_REACTIVE_DIRECT = 168
+        val PORT_NUM_MERCURY_COUNT_REACTIVE_REVERSE = 172
+        val PORT_NUM_MERCURY_VOLTAGE_A = 180
+        val PORT_NUM_MERCURY_VOLTAGE_B = 184
+        val PORT_NUM_MERCURY_VOLTAGE_C = 188
+        val PORT_NUM_MERCURY_CURRENT_A = 200
+        val PORT_NUM_MERCURY_CURRENT_B = 204
+        val PORT_NUM_MERCURY_CURRENT_C = 208
+        val PORT_NUM_MERCURY_POWER_KOEF_A = 220
+        val PORT_NUM_MERCURY_POWER_KOEF_B = 224
+        val PORT_NUM_MERCURY_POWER_KOEF_C = 228
+        val PORT_NUM_MERCURY_POWER_ACTIVE_A = 232
+        val PORT_NUM_MERCURY_POWER_ACTIVE_B = 236
+        val PORT_NUM_MERCURY_POWER_ACTIVE_C = 240
+        val PORT_NUM_MERCURY_POWER_REACTIVE_A = 244
+        val PORT_NUM_MERCURY_POWER_REACTIVE_B = 248
+        val PORT_NUM_MERCURY_POWER_REACTIVE_C = 252
+        val PORT_NUM_MERCURY_POWER_FULL_A = 256
+        val PORT_NUM_MERCURY_POWER_FULL_B = 260
+        val PORT_NUM_MERCURY_POWER_FULL_C = 264
+        val PORT_NUM_MERCURY_POWER_ACTIVE_ABC = 330
+        val PORT_NUM_MERCURY_POWER_REACTIVE_ABC = 340
+        val PORT_NUM_MERCURY_POWER_FULL_ABC = 350
+
+        val PORT_NUM_EMIS_MASS_FLOW = 270
+        val PORT_NUM_EMIS_DENSITY = 280
+        val PORT_NUM_EMIS_TEMPERATURE = 290
+        val PORT_NUM_EMIS_VOLUME_FLOW = 300
+        val PORT_NUM_EMIS_ACCUMULATED_MASS = 310
+        val PORT_NUM_EMIS_ACCUMULATED_VOLUME = 320
+
         val PORT_NUM_ESD_STATUS = 500
         val PORT_NUM_ESD_VOLUME = 504
         val PORT_NUM_ESD_FLOW = 508
@@ -679,14 +712,14 @@ open class GalileoHandler : MMSHandler() {
                 //--- Расширенные теги
                 0xFE -> {
                     var extTagDataLen = bbIn.getShort().toInt() and 0xFFFF
-AdvancedLogger.debug("serialNo = $serialNo\n start extTagDataLen = $extTagDataLen")
+                    AdvancedLogger.debug("serialNo = $serialNo\n start extTagDataLen = $extTagDataLen")
                     while (extTagDataLen > 0) {
                         val extTag = bbIn.getShort().toInt() and 0xFFFF
                         extTagDataLen -= 2
 
-AdvancedLogger.debug("serialNo = $serialNo\n extTag = 0x${extTag.toString(16)}")
-AdvancedLogger.debug("serialNo = $serialNo\n middle extTagDataLen = $extTagDataLen")
-                        when(extTag) {
+                        AdvancedLogger.debug("serialNo = $serialNo\n extTag = 0x${extTag.toString(16)}")
+                        AdvancedLogger.debug("serialNo = $serialNo\n middle extTagDataLen = $extTagDataLen")
+                        when (extTag) {
 
                             //--- ModBus 0..31
                             in 0x01..0x20 -> {
@@ -755,7 +788,7 @@ AdvancedLogger.debug("serialNo = $serialNo\n middle extTagDataLen = $extTagDataL
                                 return false
                             }
                         }
-AdvancedLogger.debug("serialNo = $serialNo\n end extTagDataLen = $extTagDataLen")
+                        AdvancedLogger.debug("serialNo = $serialNo\n end extTagDataLen = $extTagDataLen")
                     }
                 }
 
@@ -877,7 +910,7 @@ AdvancedLogger.debug("serialNo = $serialNo\n end extTagDataLen = $extTagDataLen"
             //--- универсальные входы (аналоговые/частотные/счётные)
             putDigitalSensor(deviceConfig!!.index, tmUniversalSensor, 10, 2, bbData)
             //--- температура контроллера
-            putSensorData(deviceConfig!!.index, 18, 2, controllerTemperature, bbData)
+            putSensorData(deviceConfig!!.index, 18, 1, controllerTemperature, bbData)
             //--- гео-данные
             putSensorPortNumAndDataSize(deviceConfig!!.index, SensorConfig.GEO_PORT_NUM, SensorConfig.GEO_DATA_SIZE, bbData)
             bbData.putInt(if (isCoordOk) wgsX else 0).putInt(if (isCoordOk) wgsY else 0)
@@ -908,52 +941,52 @@ AdvancedLogger.debug("serialNo = $serialNo\n end extTagDataLen = $extTagDataLen"
             //--- данные по электросчётчику ---
 
             //--- значения счётчиков от последнего сброса (активная/реактивная прямая/обратная)
-            putDigitalSensor(deviceConfig!!.index, tmEnergoCountActiveDirect, 160, 4, bbData)
-            putDigitalSensor(deviceConfig!!.index, tmEnergoCountActiveReverse, 164, 4, bbData)
-            putDigitalSensor(deviceConfig!!.index, tmEnergoCountReactiveDirect, 168, 4, bbData)
-            putDigitalSensor(deviceConfig!!.index, tmEnergoCountReactiveReverse, 172, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoCountActiveDirect, PORT_NUM_MERCURY_COUNT_ACTIVE_DIRECT, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoCountActiveReverse, PORT_NUM_MERCURY_COUNT_ACTIVE_REVERSE, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoCountReactiveDirect, PORT_NUM_MERCURY_COUNT_REACTIVE_DIRECT, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoCountReactiveReverse, PORT_NUM_MERCURY_COUNT_REACTIVE_REVERSE, 4, bbData)
 
             //--- напряжение по фазам A1..4, B1..4, C1..4
-            putDigitalSensor(deviceConfig!!.index, tmEnergoVoltageA, 180, 4, bbData)
-            putDigitalSensor(deviceConfig!!.index, tmEnergoVoltageB, 184, 4, bbData)
-            putDigitalSensor(deviceConfig!!.index, tmEnergoVoltageC, 188, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoVoltageA, PORT_NUM_MERCURY_VOLTAGE_A, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoVoltageB, PORT_NUM_MERCURY_VOLTAGE_B, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoVoltageC, PORT_NUM_MERCURY_VOLTAGE_C, 4, bbData)
 
             //--- ток по фазам A1..4, B1..4, C1..4
-            putDigitalSensor(deviceConfig!!.index, tmEnergoCurrentA, 200, 4, bbData)
-            putDigitalSensor(deviceConfig!!.index, tmEnergoCurrentB, 204, 4, bbData)
-            putDigitalSensor(deviceConfig!!.index, tmEnergoCurrentC, 208, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoCurrentA, PORT_NUM_MERCURY_CURRENT_A, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoCurrentB, PORT_NUM_MERCURY_CURRENT_B, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoCurrentC, PORT_NUM_MERCURY_CURRENT_C, 4, bbData)
 
             //--- коэффициент мощности по фазам A1..4, B1..4, C1..4
-            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerKoefA, 220, 4, bbData)
-            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerKoefB, 224, 4, bbData)
-            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerKoefC, 228, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerKoefA, PORT_NUM_MERCURY_POWER_KOEF_A, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerKoefB, PORT_NUM_MERCURY_POWER_KOEF_B, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerKoefC, PORT_NUM_MERCURY_POWER_KOEF_C, 4, bbData)
 
             //--- активная мощность по фазам A1..4, B1..4, C1..4
-            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerActiveA, 232, 4, bbData)
-            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerActiveB, 236, 4, bbData)
-            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerActiveC, 240, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerActiveA, PORT_NUM_MERCURY_POWER_ACTIVE_A, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerActiveB, PORT_NUM_MERCURY_POWER_ACTIVE_B, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerActiveC, PORT_NUM_MERCURY_POWER_ACTIVE_C, 4, bbData)
 
             //--- реактивная мощность по фазам A1..4, B1..4, C1..4
-            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerReactiveA, 244, 4, bbData)
-            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerReactiveB, 248, 4, bbData)
-            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerReactiveC, 252, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerReactiveA, PORT_NUM_MERCURY_POWER_REACTIVE_A, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerReactiveB, PORT_NUM_MERCURY_POWER_REACTIVE_B, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerReactiveC, PORT_NUM_MERCURY_POWER_REACTIVE_C, 4, bbData)
 
             //--- полная мощность по фазам A1..4, B1..4, C1..4
-            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerFullA, 256, 4, bbData)
-            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerFullB, 260, 4, bbData)
-            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerFullC, 264, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerFullA, PORT_NUM_MERCURY_POWER_FULL_A, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerFullB, PORT_NUM_MERCURY_POWER_FULL_B, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerFullC, PORT_NUM_MERCURY_POWER_FULL_C, 4, bbData)
 
-            putDigitalSensor(deviceConfig!!.index, tmMassFlow, 270, bbData)
-            putDigitalSensor(deviceConfig!!.index, tmDensity, 280, bbData)
-            putDigitalSensor(deviceConfig!!.index, tmTemperature, 290, bbData)
-            putDigitalSensor(deviceConfig!!.index, tmVolumeFlow, 300, bbData)
-            putDigitalSensor(deviceConfig!!.index, tmAccumulatedMass, 310, bbData)
-            putDigitalSensor(deviceConfig!!.index, tmAccumulatedVolume, 320, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmMassFlow, PORT_NUM_EMIS_MASS_FLOW, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmDensity, PORT_NUM_EMIS_DENSITY, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmTemperature, PORT_NUM_EMIS_TEMPERATURE, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmVolumeFlow, PORT_NUM_EMIS_VOLUME_FLOW, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmAccumulatedMass, PORT_NUM_EMIS_ACCUMULATED_MASS, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmAccumulatedVolume, PORT_NUM_EMIS_ACCUMULATED_VOLUME, bbData)
 
             //--- мощность по трём фазам: активная, реактивная, суммарная
-            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerActiveABC, 330, 4, bbData)
-            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerReactiveABC, 340, 4, bbData)
-            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerFullABC, 350, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerActiveABC, PORT_NUM_MERCURY_POWER_ACTIVE_ABC, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerReactiveABC, PORT_NUM_MERCURY_POWER_REACTIVE_ABC, 4, bbData)
+            putDigitalSensor(deviceConfig!!.index, tmEnergoPowerFullABC, PORT_NUM_MERCURY_POWER_FULL_ABC, 4, bbData)
 
             //--- EuroSens Delta
             putDigitalSensor(deviceConfig!!.index, tmESDStatus, PORT_NUM_ESD_STATUS, 4, bbData)
@@ -1063,175 +1096,3 @@ AdvancedLogger.debug("serialNo = $serialNo\n end extTagDataLen = $extTagDataLen"
     }
 
 }
-
-/*
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    //--- счётчик Меркурий: двухбайтовое число с обменом мест двух младших байт
-    private fun getMercuryInt2(): Int = ( bbIn.getByte().toInt() shl 8 ) or ( bbIn.getByte().toInt() and 0xFF )
-
-    //--- счётчик Меркурий: трёхбайтовое число с обменом мест двух младших байт
-    private fun getMercuryInt3(): Int = ( bbIn.getByte().toInt() and 0xFF shl 16 ) or ( bbIn.getByte().toInt() and 0xFF ) or ( bbIn.getByte().toInt() and 0xFF shl 8 )
-
-    //--- счётчик Меркурий: трёхбайтовое число
-    //--- с маскированием двух старших бит в старшем байте (битовые флаги: активная/реактивная, прямая/обратная)
-    //--- и обменом мест двух младших байт
-    private fun getMercuryInt3Mask(): Int = ( bbIn.getByte().toInt() and 0x3F shl 16 ) or ( bbIn.getByte().toInt() and 0xFF ) or ( bbIn.getByte().toInt() and 0xFF shl 8 )
-
-    //--- счётчик Меркурий: 4-байтовое число с обменом мест двух старших и двух младших байт
-    private fun getMercuryInt4(): Int = ( bbIn.getByte().toInt() and 0xFF shl 16 ) or ( bbIn.getByte().toInt() and 0xFF shl 24 ) or
-                                        ( bbIn.getByte().toInt() and 0xFF ) or ( bbIn.getByte().toInt() and 0xFF shl 8 )
-
-
-
-
-                        val addr = bbIn.getByte().toInt() and 0xFF // id - 1 байт, адрес счётчика, от 201 до 205
-                        //AdvancedLogger.debug( " addr = " + addr );
-                        if( addr in 201..205 ) {
-                            //--- 0 - удалось открыть канал, 1 - не удалось открыть канал, ошибка связи
-                            if( bbIn.getByte().toInt() == 0 ) {
-                                val index = addr - 201
-
-                                if( tmEnergoCount[ index ] == null ) tmEnergoCount.put( index, IntArray( 4 ) )
-                                else Arrays.fill( tmEnergoCount[ index ], 0 )
-                                if( tmEnergoPower[ index ] == null ) tmEnergoPower.put( index, IntArray( 8 ) )
-                                else Arrays.fill( tmEnergoPower[ index ], 0 )
-
-                                //--- суммарная реактивная мощность
-                                //--- реактивная мощность фаза 1
-                                //--- реактивная мощность фаза 2
-                                //--- реактивная мощность фаза 3
-                                tmEnergoPower[ index ]!![ 4 ] = Math.round( getMercuryInt3Mask() / 100.0f )
-                                tmEnergoPower[ index ]!![ 5 ] = Math.round( getMercuryInt3Mask() / 100.0f )
-                                tmEnergoPower[ index ]!![ 6 ] = Math.round( getMercuryInt3Mask() / 100.0f )
-                                tmEnergoPower[ index ]!![ 7 ] = Math.round( getMercuryInt3Mask() / 100.0f )
-
-                                //--- суммарная активная мощность
-                                //--- активная мощность фаза 1
-                                //--- активная мощность фаза 2
-                                //--- активная мощность фаза 3
-                                tmEnergoPower[index]!![0] = Math.round( getMercuryInt3Mask() / 100.0f )
-                                tmEnergoPower[index]!![1] = Math.round( getMercuryInt3Mask() / 100.0f )
-                                tmEnergoPower[index]!![2] = Math.round( getMercuryInt3Mask() / 100.0f )
-                                tmEnergoPower[index]!![3] = Math.round( getMercuryInt3Mask() / 100.0f )
-
-                                val A12 = Math.round( getMercuryInt3() / 100.0f )
-                                val A23 = Math.round( getMercuryInt3() / 100.0f )
-                                val A13 = Math.round( getMercuryInt3() / 100.0f )
-
-                                val U1 = Math.round( getMercuryInt3() / 100.0f )
-                                val U2 = Math.round( getMercuryInt3() / 100.0f )
-                                val U3 = Math.round( getMercuryInt3() / 100.0f )
-
-                                val I1 = getMercuryInt3() / 1000.0f
-                                val I2 = getMercuryInt3() / 1000.0f
-                                val I3 = getMercuryInt3() / 1000.0f
-
-                                //--- значения от 0 до 1
-                                val KSs = getMercuryInt3Mask() / 1000.0f
-                                val KS1 = getMercuryInt3Mask() / 1000.0f
-                                val KS2 = getMercuryInt3Mask() / 1000.0f
-                                val KS3 = getMercuryInt3Mask() / 1000.0f
-
-                                val Kg1 = getMercuryInt2() / 100.0f
-                                val Kg2 = getMercuryInt2() / 100.0f
-                                val Kg3 = getMercuryInt2() / 100.0f
-
-                                val F = Math.round( getMercuryInt3() / 100.0f )
-                                //--- без маскирования старшего байта, чтобы получить отрицательные температуры
-                                val T = Math.round( getMercuryInt2() / 10.0f )
-
-                                //--- Энергия от сброса активная прямая (A+)
-                                //--- Энергия от сброса активная обратная (A-)
-                                //--- Энергия от сброса реактивная прямая (R+)
-                                //--- Энергия от сброса реактивная обратная (R-)
-                                tmEnergoCount[index]!![0] = getMercuryInt4()
-                                tmEnergoCount[index]!![1] = getMercuryInt4()
-                                tmEnergoCount[index]!![2] = getMercuryInt4()
-                                tmEnergoCount[index]!![3] = getMercuryInt4()
-
-                                val DT10 = bbIn.getByte().toInt()
-                                val DT11 = bbIn.getByte().toInt()
-                                val DT12 = bbIn.getByte().toInt()
-
-                                val DT20 = bbIn.getByte().toInt()
-                                val DT21 = bbIn.getByte().toInt()
-                                val DT22 = bbIn.getByte().toInt()
-                                val DT23 = bbIn.getByte().toInt()
-                                val DT24 = bbIn.getByte().toInt()
-                                val DT25 = bbIn.getByte().toInt()
-
-
-                                AdvancedLogger.debug( "ENERGO deviceID = $deviceID\n адрес счётчика = $addr" +
-                                    "\n суммарная реактивная мощность по сумме фаз = ${tmEnergoPower[ index ]!![ 4 ]}" +
-                                    "\n суммарная реактивная мощность по фазе 1    = ${tmEnergoPower[ index ]!![ 5 ]}" +
-                                    "\n суммарная реактивная мощность по фазе 2    = ${tmEnergoPower[ index ]!![ 6 ]}" +
-                                    "\n суммарная реактивная мощность по фазе 3    = ${tmEnergoPower[ index ]!![ 7 ]}" +
-                                    "\n суммарная активная мощность по сумме фаз = ${tmEnergoPower[ index ]!![ 0 ]}" +
-                                    "\n суммарная активная мощность по фазе 1    = ${tmEnergoPower[ index ]!![ 1 ]}" +
-                                    "\n суммарная активная мощность по фазе 2    = ${tmEnergoPower[ index ]!![ 2 ]}" +
-                                    "\n суммарная активная мощность по фазе 3    = ${tmEnergoPower[ index ]!![ 3 ]}" +
-                                    "\n угол между основными гармониками 1-2 фаз = $A12" +
-                                    "\n  угол между основными гармониками 2-3 фаз = $A23" +
-                                    "\n  угол между основными гармониками 1-3 фаз = $A13" +
-                                    "\n  напряжение по фазе 1 = $U1" +
-                                    "\n  напряжение по фазе 2 = $U2" +
-                                    "\n  напряжение по фазе 3 = $U3" +
-                                    "\n  ток по фазе 1 = $I1" +
-                                    "\n  ток по фазе 2 = $I2" +
-                                    "\n  ток по фазе 3 = $I3" +
-                                    "\n  коэффициент мощности по сумме фаз = $KSs" +
-                                    "\n  коэффициент мощности по фазе 1 = $KS1" +
-                                    "\n  коэффициент мощности по фазе 2 = $KS2" +
-                                    "\n  коэффициент мощности по фазе 3 = $KS3" +
-                                    "\n  КГ по фазе 1 = $Kg1" +
-                                    "\n  КГ по фазе 2 = $Kg2" +
-                                    "\n  КГ по фазе 3 = $Kg3" +
-                                    "\n  Частота = $F" +
-                                    "\n  Температура = $T" +
-                                    "\n  Энергия от сброса активная прямая (A+)     = ${tmEnergoCount[ index ]!![ 0 ]}" +
-                                    "\n  Энергия от сброса активная обратная (A-)   = ${tmEnergoCount[ index ]!![ 1 ]}" +
-                                    "\n  Энергия от сброса реактивная прямая (R+)   = ${tmEnergoCount[ index ]!![ 2 ]}" +
-                                    "\n  Энергия от сброса реактивная обратная (R-) = ${tmEnergoCount[ index ]!![ 3 ]}" +
-                                    "\n  Дата перепрограммирования = " + DT10 + " / " + DT11 + " / " + DT12 +
-                                    "\n  Дата/время вскрытия = " + DT23 + " / " + DT24 + " / " + DT25 + ' ' + DT22 + " : " + DT21 + " : " + DT20 )
-                            }
-                            else {
-                                AdvancedLogger.error( "deviceID = $deviceID\n Меркурий: адрес счётчика = $addr\n не удалось открыть канал, ошибка связи" )
-                                bbIn.skip( userDataSize - 3 )
-                            }
-                        }
-                        else {
-                            AdvancedLogger.error( "deviceID = $deviceID\n Меркурий: неправильный адрес счётчика = $addr" )
-                            bbIn.skip( userDataSize - 2 )
-                        }
-
-
-
-
-                                 //--- далее кусками по 6 байт
-                                for( idi in 0 until ( userDataSize - 2 ) / 6 ) {
-                                    //--- данные идут в BigEndian, в отличие от остальных галилео-данных.
-                                    //--- чтобы не переключать BigEndian-режим из-за этих данных, проще переставить байты вручную
-                                    var b1 = bbIn.getByte()
-                                    var b2 = bbIn.getByte()
-                                    val id = b1.toInt() and 0xFF shl 8 or ( b2.toInt() and 0xFF )
-                                    //int id = bbIn.getShort() & 0xFFFF;
-
-                                    b1 = bbIn.getByte()
-                                    b2 = bbIn.getByte()
-                                    val b3 = bbIn.getByte()
-                                    val b4 = bbIn.getByte()
-                                    val value = ( b1.toInt() and 0xFF shl 24 ) or ( b2.toInt() and 0xFF shl 16 ) or ( b3.toInt() and 0xFF shl 8 ) or ( b4.toInt() and 0xFF )
-                                    //int value = bbIn.getInt();
-
-                                    //AdvancedLogger.error( "id = " + Integer.toHexString( id ) + ", value = " + Integer.toHexString( value ) );
-
-                                    if( id in 0x0400..0x043F ) tmLevelSensor[ id - 0x0400 ] = value
-                                    else if( id in 0x0440..0x047F ) tmVoltageSensor[ id - 0x0440 ] = value
-                                    else if( id in 0x0480..0x04BF ) tmFrequencySensor[ id - 0x0480 ] = value
-                                    else if( id in 0x04C0..0x04FF ) tmTorqueSensor[ id - 0x04C0 ] = value
-                                }
-
-
- */

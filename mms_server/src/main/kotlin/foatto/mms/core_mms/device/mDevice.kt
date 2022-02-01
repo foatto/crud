@@ -6,7 +6,6 @@ import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.ChildData
 import foatto.core_server.app.server.DependData
 import foatto.core_server.app.server.UserConfig
-import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.column.ColumnBoolean
 import foatto.core_server.app.server.column.ColumnComboBox
 import foatto.core_server.app.server.column.ColumnDate3Int
@@ -14,7 +13,6 @@ import foatto.core_server.app.server.column.ColumnDateTimeInt
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnRadioButton
 import foatto.core_server.app.server.column.ColumnString
-import foatto.core_server.app.server.mAbstract
 import foatto.core_server.app.server.mAbstractUserSelector
 import foatto.mms.core_mms.ObjectSelector
 import foatto.mms.core_mms.ds.MMSHandler
@@ -23,11 +21,13 @@ import foatto.sql.CoreAdvancedStatement
 class mDevice : mAbstractUserSelector() {
 
     companion object {
-        val MAX_PORT_PER_SENSOR = 4
+        const val MAX_PORT_PER_SENSOR = 4
 
         //--- 65 устройств по 1000 портов = 65000 портов, что уместится при нумерации от 0 до 65535
         private val MAX_DEVICE_COUNT_PER_OBJECT = 65
     }
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     lateinit var columnDeviceIndex: ColumnInt
         private set
@@ -36,16 +36,34 @@ class mDevice : mAbstractUserSelector() {
     lateinit var columnDeviceLastSessionTime: ColumnDateTimeInt
         private set
 
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     lateinit var columnESDCreatingEnabled: ColumnBoolean
         private set
     val alColumnESDGroupName = mutableListOf<ColumnString>()
     val alColumnESDDescrPrefix = mutableListOf<ColumnString>()
     val alColumnESDDescrPostfix = mutableListOf<ColumnString>()
 
+    lateinit var columnEmisCreatingEnabled: ColumnBoolean
+        private set
+    val alColumnEmisGroupName = mutableListOf<ColumnString>()
+    val alColumnEmisDescrPrefix = mutableListOf<ColumnString>()
+    val alColumnEmisDescrPostfix = mutableListOf<ColumnString>()
+
+    lateinit var columnMercuryCreatingEnabled: ColumnBoolean
+        private set
+    val alColumnMercuryGroupName = mutableListOf<ColumnString>()
+    val alColumnMercuryDescrPrefix = mutableListOf<ColumnString>()
+    val alColumnMercuryDescrPostfix = mutableListOf<ColumnString>()
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     private lateinit var os: ObjectSelector
 
     val columnObject: ColumnInt
         get() = os.columnObject
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     override fun init(
         application: iApplication,
@@ -122,6 +140,8 @@ class mDevice : mAbstractUserSelector() {
             }
         }
 
+        //----------------------------------------------------------------------------------------------------------------------
+
         columnESDCreatingEnabled = ColumnBoolean(modelTableName, "_esd_create_enabled", "Автосоздание датчиков Euro Sens", false).apply {
             isVirtual = true
         }
@@ -137,6 +157,46 @@ class mDevice : mAbstractUserSelector() {
             alColumnESDDescrPostfix += ColumnString(modelTableName, "_esd_descr_postfix_$si", "Постфикс наименования датчика $si", STRING_COLUMN_WIDTH).apply {
                 isVirtual = true
                 addFormVisible(columnESDCreatingEnabled, true, setOf(1))
+            }
+        }
+
+        //----------------------------------------------------------------------------------------------------------------------
+
+        columnEmisCreatingEnabled = ColumnBoolean(modelTableName, "_emis_create_enabled", "Автосоздание датчиков Эмис", false).apply {
+            isVirtual = true
+        }
+        (1..MAX_PORT_PER_SENSOR).forEach { si ->
+            alColumnEmisGroupName += ColumnString(modelTableName, "_emis_group_name_$si", "Наименование группы датчиков $si", STRING_COLUMN_WIDTH).apply {
+                isVirtual = true
+                addFormVisible(columnEmisCreatingEnabled, true, setOf(1))
+            }
+            alColumnEmisDescrPrefix += ColumnString(modelTableName, "_emis_descr_prefix_$si", "Префикс наименования датчика $si", STRING_COLUMN_WIDTH).apply {
+                isVirtual = true
+                addFormVisible(columnEmisCreatingEnabled, true, setOf(1))
+            }
+            alColumnEmisDescrPostfix += ColumnString(modelTableName, "_emis_descr_postfix_$si", "Постфикс наименования датчика $si", STRING_COLUMN_WIDTH).apply {
+                isVirtual = true
+                addFormVisible(columnEmisCreatingEnabled, true, setOf(1))
+            }
+        }
+
+        //----------------------------------------------------------------------------------------------------------------------
+
+        columnMercuryCreatingEnabled = ColumnBoolean(modelTableName, "_mercury_create_enabled", "Автосоздание датчиков Меркурий", false).apply {
+            isVirtual = true
+        }
+        (1..MAX_PORT_PER_SENSOR).forEach { si ->
+            alColumnMercuryGroupName += ColumnString(modelTableName, "_mercury_group_name_$si", "Наименование группы датчиков $si", STRING_COLUMN_WIDTH).apply {
+                isVirtual = true
+                addFormVisible(columnMercuryCreatingEnabled, true, setOf(1))
+            }
+            alColumnMercuryDescrPrefix += ColumnString(modelTableName, "_mercury_descr_prefix_$si", "Префикс наименования датчика $si", STRING_COLUMN_WIDTH).apply {
+                isVirtual = true
+                addFormVisible(columnMercuryCreatingEnabled, true, setOf(1))
+            }
+            alColumnMercuryDescrPostfix += ColumnString(modelTableName, "_mercury_descr_postfix_$si", "Постфикс наименования датчика $si", STRING_COLUMN_WIDTH).apply {
+                isVirtual = true
+                addFormVisible(columnMercuryCreatingEnabled, true, setOf(1))
             }
         }
 
@@ -192,10 +252,24 @@ class mDevice : mAbstractUserSelector() {
         alFormColumn += columnDeviceWorkBegin
 
         alFormColumn += columnESDCreatingEnabled
-        for(si in 0 until MAX_PORT_PER_SENSOR) {
+        for (si in 0 until MAX_PORT_PER_SENSOR) {
             alFormColumn += alColumnESDGroupName[si]
             alFormColumn += alColumnESDDescrPrefix[si]
             alFormColumn += alColumnESDDescrPostfix[si]
+        }
+
+        alFormColumn += columnEmisCreatingEnabled
+        for (si in 0 until MAX_PORT_PER_SENSOR) {
+            alFormColumn += alColumnEmisGroupName[si]
+            alFormColumn += alColumnEmisDescrPrefix[si]
+            alFormColumn += alColumnEmisDescrPostfix[si]
+        }
+
+        alFormColumn += columnMercuryCreatingEnabled
+        for (si in 0 until MAX_PORT_PER_SENSOR) {
+            alFormColumn += alColumnMercuryGroupName[si]
+            alFormColumn += alColumnMercuryDescrPrefix[si]
+            alFormColumn += alColumnMercuryDescrPostfix[si]
         }
 
         //----------------------------------------------------------------------------------------------------------------------

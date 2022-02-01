@@ -1159,13 +1159,13 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
 
             //--- calculate the group amount
             val groupSum = result.tmGroupSum.getOrPut(sces.group) { CalcSumData() }
-            val byType = groupSum.tmEnergo.getOrPut(sces.sensorType) { sortedMapOf<Int, Double>() }
-            val byPhase = byType[sces.phase] ?: 0.0
-            byType[sces.phase] = byPhase + e
+            val byType = groupSum.tmEnergo.getOrPut(sces.sensorType) { sortedMapOf() }
+            val byPhase = byType[0] ?: 0.0
+            byType[0] = byPhase + e
 
-            val byTypeAll = result.allSumData.tmEnergo.getOrPut(sces.sensorType) { sortedMapOf<Int, Double>() }
-            val byPhaseAll = byTypeAll[sces.phase] ?: 0.0
-            byTypeAll[sces.phase] = byPhaseAll + e
+            val byTypeAll = result.allSumData.tmEnergo.getOrPut(sces.sensorType) { sortedMapOf() }
+            val byPhaseAll = byTypeAll[0] ?: 0.0
+            byTypeAll[0] = byPhaseAll + e
         }
 
         private fun calcLiquidCalcSensor(
