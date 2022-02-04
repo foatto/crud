@@ -31,7 +31,7 @@ class mLogText : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id").apply {
+        columnId = ColumnInt(modelTableName, "id").apply {
             isVirtual = true
         }
 
@@ -44,7 +44,7 @@ class mLogText : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn.add(columnId)
 
         alTableGroupColumn.add(columnLogFileName)
 

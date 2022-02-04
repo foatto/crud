@@ -27,7 +27,7 @@ class mObjectZone : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -59,14 +59,14 @@ class mObjectZone : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn.add(columnId)
         alTableHiddenColumn.add(columnZone)
 
         addTableColumn(columnZoneName)
         addTableColumn(columnZoneDescr)
         addTableColumn(columnZoneType)
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
         alFormHiddenColumn.add(columnZone)
 
         //----------------------------------------------------------------------------------------------------------------------

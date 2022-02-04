@@ -23,7 +23,7 @@ class mEquipServiceShedule : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -34,13 +34,13 @@ class mEquipServiceShedule : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn.add(columnId)
         alTableHiddenColumn.add(columnEquip)
 
         addTableColumn(columnServiceName)
         addTableColumn(columnServicePeriod)
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
         alFormHiddenColumn.add(columnEquip)
 
         alFormColumn.add(columnServiceName)

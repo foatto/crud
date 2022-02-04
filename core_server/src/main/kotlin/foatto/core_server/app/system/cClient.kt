@@ -18,7 +18,7 @@ open class cClient : cStandart() {
 
         return super.addSQLWhere(hsTableRenameList) +
             """    
-                AND $tn.${mc.columnID.getFieldName()} > 0 
+                AND $tn.${mc.columnId.getFieldName()} > 0 
                 AND $tn.${mc.columnRecordType.getFieldName()} = ${OrgType.ORG_TYPE_WORKER} 
                 AND $tn.${mc.columnParent.getFieldName()} = ${mc.getClientParentId(application, aliasConfig.alias)} 
             """

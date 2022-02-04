@@ -19,17 +19,11 @@ import java.time.ZonedDateTime
 open class mClient : mAbstract() {
 
     lateinit var columnParent: ColumnInt
-        private set
     lateinit var columnRecordType: ColumnInt
-        private set
     lateinit var columnRecordFullName: ColumnString
-        private set
     lateinit var columnDisabled: ColumnBoolean
-        private set
     lateinit var columnUserPassword: ColumnString
-        private set
     lateinit var columnUserLastLoginAttemptDate: ColumnDate3Int
-        private set
 
     override fun init(
         application: iApplication,
@@ -49,7 +43,7 @@ open class mClient : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         columnParent = ColumnInt(modelTableName, "parent_id", getClientParentId(application, aliasConfig.alias))
 
@@ -103,10 +97,10 @@ open class mClient : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
-        alTableHiddenColumn.add(columnParent)
-        alTableHiddenColumn.add(columnRecordType)
-        alTableHiddenColumn.add(columnDisabled)
+        alTableHiddenColumn += columnId
+        alTableHiddenColumn += columnParent
+        alTableHiddenColumn += columnRecordType
+        alTableHiddenColumn += columnDisabled
 
         addTableColumn(columnUserShortName)
         addTableColumn(columnRecordFullName)
@@ -116,21 +110,21 @@ open class mClient : mAbstract() {
         addTableColumn(columnUserLastLoginAttemptTime)
         addTableColumn(columnUserLoginAttemptCount)
 
-        alFormHiddenColumn.add(columnID)
-        alFormHiddenColumn.add(columnParent)
-        alFormHiddenColumn.add(columnRecordType)
+        alFormHiddenColumn += columnId
+        alFormHiddenColumn += columnParent
+        alFormHiddenColumn += columnRecordType
 
-        alFormColumn.add(columnDisabled)
-        alFormColumn.add(columnRecordFullName)
-        alFormColumn.add(columnUserLogin)
-        alFormColumn.add(columnUserPassword)
-        alFormColumn.add(columnUserShortName)
-        alFormColumn.add(columnUserEmail)
-        alFormColumn.add(columnUserContactInfo)
-        alFormColumn.add(columnUserLastPasswordChangeDate)
-        alFormColumn.add(columnUserLoginAttemptCount)
-        alFormColumn.add(columnUserLastLoginAttemptDate)
-        alFormColumn.add(columnUserLastLoginAttemptTime)
+        alFormColumn += columnDisabled
+        alFormColumn += columnRecordFullName
+        alFormColumn += columnUserLogin
+        alFormColumn += columnUserPassword
+        alFormColumn += columnUserShortName
+        alFormColumn += columnUserEmail
+        alFormColumn += columnUserContactInfo
+        alFormColumn += columnUserLastPasswordChangeDate
+        alFormColumn += columnUserLoginAttemptCount
+        alFormColumn += columnUserLastLoginAttemptDate
+        alFormColumn += columnUserLastLoginAttemptTime
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -144,11 +138,12 @@ open class mClient : mAbstract() {
         //----------------------------------------------------------------------------------------
 
         for (cd in mUser.alExtendChildData) {
-            alChildData.add(ChildData(cd.alias, columnID, cd.isNewGroup))
+            alChildData.add(ChildData(cd.alias, columnId, cd.isNewGroup))
         }
 
         //----------------------------------------------------------------------------------------
 
+        alDependData.add(DependData("SYSTEM_user", "user_id", DependData.SET, 0))
         alDependData.add(DependData("SYSTEM_user_role", "user_id", DependData.DELETE))
         alDependData.add(DependData("SYSTEM_user_property", "user_id", DependData.DELETE))
         alDependData.add(DependData("SYSTEM_new", "user_id", DependData.DELETE))
@@ -165,7 +160,7 @@ open class mClient : mAbstract() {
 
     fun getClientParentId(application: iApplication, aliasName: String): Int {
         val idx = application.alClientAlias.indexOf(aliasName)
-        return if(idx >= 0) {
+        return if (idx >= 0) {
             application.alClientParentId[idx].toIntOrNull() ?: 0
         } else {
             0
@@ -174,7 +169,7 @@ open class mClient : mAbstract() {
 
     fun getClientRoleIds(application: iApplication, aliasName: String): List<Int> {
         val idx = application.alClientAlias.indexOf(aliasName)
-        return if(idx >= 0) {
+        return if (idx >= 0) {
             application.alClientRoleId[idx].split("-").filter(String::isNotBlank).mapNotNull(String::toIntOrNull)
         } else {
             emptyList()

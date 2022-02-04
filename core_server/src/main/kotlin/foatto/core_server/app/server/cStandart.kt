@@ -307,7 +307,7 @@ open class cStandart {
                 hsTableRenameList.add(selfLinkTableName)
             }
         }
-        val idFieldName = " ${renameTableName(hsTableRenameList, model.modelTableName)}.${model.columnID.getFieldName()} "
+        val idFieldName = " ${renameTableName(hsTableRenameList, model.modelTableName)}.${model.columnId.getFieldName()} "
 
         alRenamedSelectedFields = mutableListOf()
         hsSelectTables.add(
@@ -484,7 +484,7 @@ open class cStandart {
     }
 
     protected fun getSelfParentID(id: Int): Int {
-        val sql = " SELECT ${model.hmParentColumn[aliasConfig.alias]!!.getFieldName(0)} FROM ${model.modelTableName} WHERE ${model.columnID.getFieldName()} = $id"
+        val sql = " SELECT ${model.hmParentColumn[aliasConfig.alias]!!.getFieldName(0)} FROM ${model.modelTableName} WHERE ${model.columnId.getFieldName()} = $id"
         //System.out.println(  sb.toString()  );
         val rs = stm.executeQuery(sql)
         val result = if (rs.next()) rs.getInt(1) else 0
@@ -493,18 +493,20 @@ open class cStandart {
         return result
     }
 
-    protected fun isExistDepencies(id: Int): Boolean {
+    protected open fun isExistDepencies(id: Int): Boolean {
         //--- проверка в бизнес-таблицах
-        for (dependData in model.alDependData)
-            if (dependData.type == DependData.CHECK && checkActiveOrExisting(dependData.destTableName, dependData.destFieldName, id))
+        for (dependData in model.alDependData) {
+            if (dependData.type == DependData.CHECK && checkActiveOrExisting(dependData.destTableName, dependData.destFieldName, id)) {
                 return true
+            }
+        }
         return false
     }
 
     //--- Отдельная проверка на наличие зависимой таблицы проводится потому, что в модулях, общих для всех проектов ( например, mUser ),
     //--- могут быть ссылки на depend-таблицы, отсутствующие в некоторых проектах.
     //--- Поэтому такие таблицы будем отлавливать заранее и при их отсутствии зависимость на них учитывать не будем.
-    private fun checkActiveOrExisting(aTableName: String, aFieldID: String, value: Int): Boolean {
+    protected fun checkActiveOrExisting(aTableName: String, aFieldID: String, value: Int): Boolean {
         var returnValue: Boolean
         val rs: CoreAdvancedResultSet
         try {
@@ -522,7 +524,7 @@ open class cStandart {
         if (model.columnUser == null) return 0
 
         val userID = (hmColumnData[model.columnUser!!] as DataAbstractIntValue).intValue
-        val rowID = (hmColumnData[model.columnID] as DataInt).intValue
+        val rowID = (hmColumnData[model.columnId] as DataInt).intValue
         //--- проверка на совладельца
         return OtherOwnerData.getOtherOwner(conn, aliasConfig.id, rowID, userID, userConfig.userId)
     }
@@ -592,7 +594,7 @@ open class cStandart {
 
     protected fun getExpandPathItem(curParentID: Int): Pair<Int, String> {
         val sqlStr = " SELECT ${model.expandParentIDColumn!!.getFieldName()} , ${model.expandParentNameColumn!!.getFieldName()} " +
-            " FROM ${model.modelTableName} WHERE ${model.columnID.getFieldName()} = $curParentID "
+            " FROM ${model.modelTableName} WHERE ${model.columnId.getFieldName()} = $curParentID "
         val rs = stm.executeQuery(sqlStr)
         rs.next()
         val pID = rs.getInt(1)
@@ -735,7 +737,7 @@ open class cStandart {
             //--- вынесено сюда, чтобы нумерация строк работала независимо от наличия постраничной разбивки
             dataRowCount++
             tableRowCount += rowCount
-            if (model.columnID != null && (hmColumnData[model.columnID] as DataInt).intValue == currentRowID) {
+            if (model.columnId != null && (hmColumnData[model.columnId] as DataInt).intValue == currentRowID) {
                 currentRowNo = tableRowCount - 1
             }
             if (aliasConfig.pageSize > 0 && dataRowCount >= (pageNo + 1) * aliasConfig.pageSize) {
@@ -979,7 +981,7 @@ open class cStandart {
         //--- для внешнего суммирования реального кол-ва выведенных строк
         var rowCount = 0
 
-        val valueID = (hmColumnData[model.columnID] as DataInt).intValue
+        val valueID = (hmColumnData[model.columnId] as DataInt).intValue
 
         //--- обработка для выделения isNew строки, если есть
         val isNewRow = aliasConfig.isNewable && userConfig.userId != UserConfig.USER_GUEST && !getTableRowIsReaded(valueID)
@@ -1500,7 +1502,7 @@ open class cStandart {
 
         //--- невидимые поля
         for (column in model.alFormHiddenColumn) {
-            if (column == model.columnID) continue // свое id-поле пропускаем, т.к. оно задается особым образом
+            if (column == model.columnId) continue // свое id-поле пропускаем, т.к. оно задается особым образом
             alFormCell.add(getFormCell(column, hmColumnData, false))
         }
         //--- основные поля
@@ -1802,7 +1804,7 @@ open class cStandart {
         preSave(id, hmColumnData)
         //--- пред-обработка ( сохранение файлов/картинок/проч. в серверных папках )
         for (column in alColumnList) {
-            if (column == model.columnID) continue             // свое id-поле пропускаем, т.к. не изменяется
+            if (column == model.columnId) continue             // свое id-поле пропускаем, т.к. не изменяется
             if (column.isVirtual) continue                     // виртуальным полям нельзя делать предзапись
             if (column.columnTableName == model.modelTableName) {
                 hmColumnData[column]!!.preSave(application.rootDirName, stm)
@@ -1868,7 +1870,7 @@ open class cStandart {
                     Pair(model.columnVersionId!!.getFieldName(), dataVersionId.intValue),
                     Pair(model.columnVersionNo!!.getFieldName(), dataVersionNo.text)
                 ),
-                model.columnID.getFieldName(),
+                model.columnId.getFieldName(),
                 id
             )
             if (result) {
@@ -1930,11 +1932,11 @@ open class cStandart {
         var formDataIndex = 0
         for (column in alColumnList) {
             // свое id-поле пропускаем, т.к. оно задается особым образом
-            if (column == model.columnID) {
+            if (column == model.columnId) {
                 continue
             }
             val data = column.getData()
-            isValid = isValid and data.loadFromForm(stm, alFormData[formDataIndex++], model.columnID.getFieldName(), id)
+            isValid = isValid and data.loadFromForm(stm, alFormData[formDataIndex++], model.columnId.getFieldName(), id)
             hmColumnData[column] = data
         }
         return isValid
@@ -1947,15 +1949,15 @@ open class cStandart {
     protected open fun preSave(id: Int, hmColumnData: Map<iColumn, iData>) {}
 
     protected open fun getNextID(hmColumnData: Map<iColumn, iData>): Int {
-        return stm.getNextIntId(model.modelTableName, model.columnID.getFieldName())
+        return stm.getNextIntId(model.modelTableName, model.columnId.getFieldName())
     }
 
     protected open fun doInsert(id: Int, alColumnList: List<iColumn>, hmColumnData: Map<iColumn, iData>): Int {
-        var sFieldList = model.columnID.getFieldName()
+        var sFieldList = model.columnId.getFieldName()
         var sValueList = "$id"
         for (column in alColumnList) {
             //--- свое id-поле пропускаем, т.к. оно задается особым образом
-            if (column == model.columnID) {
+            if (column == model.columnId) {
                 continue
             }
             //--- сохраняем значение запоминаемого поля
@@ -1983,7 +1985,7 @@ open class cStandart {
         var sFieldList = ""
         for (column in alColumnList) {
             //--- своё id-поле пропускаем, т.к. оно задается особым образом
-            if (column == model.columnID) {
+            if (column == model.columnId) {
                 continue
             }
             //--- сохраняем значение запоминаемого поля
@@ -2007,7 +2009,7 @@ open class cStandart {
                 }
             }
         }
-        return stm.executeUpdate(" UPDATE ${model.modelTableName} SET $sFieldList WHERE ${model.columnID.getFieldName()} = $id ")
+        return stm.executeUpdate(" UPDATE ${model.modelTableName} SET $sFieldList WHERE ${model.columnId.getFieldName()} = $id ")
     }
 
     //--- для классов-наследников - пост-обработка после добавления
@@ -2068,7 +2070,7 @@ open class cStandart {
         preDelete(id)
 
         for (column in alColumnList) {
-            if (column == model.columnID) continue // свое id-поле пропускаем, т.к. оно задается особым образом
+            if (column == model.columnId) continue // свое id-поле пропускаем, т.к. оно задается особым образом
             if (column.isVirtual) continue  // предочистка виртуальных полей не нужна
             if (column.columnTableName == model.modelTableName) {
                 val data = hmColumnData[column]!!
@@ -2076,7 +2078,7 @@ open class cStandart {
             }
         }
 
-        stm.executeUpdate(" DELETE FROM ${model.modelTableName} WHERE ${model.columnID.getFieldName()} = $id ")
+        stm.executeUpdate(" DELETE FROM ${model.modelTableName} WHERE ${model.columnId.getFieldName()} = $id ")
 
         deleteIsReaded(id, true)
         postDelete(id, hmColumnData)
@@ -2088,11 +2090,12 @@ open class cStandart {
 
     protected open fun postDelete(id: Int, hmColumnData: Map<iColumn, iData>) {
         //--- замены/удаления в бизнес-таблицах
-        for (dd in model.alDependData)
+        for (dd in model.alDependData) {
             when (dd.type) {
                 DependData.DELETE -> stm.executeUpdate(" DELETE FROM ${dd.destTableName} WHERE ${dd.destFieldName} = $id ")
                 DependData.SET -> stm.executeUpdate(" UPDATE ${dd.destTableName} SET ${dd.destFieldName} = ${dd.valueForSet} WHERE ${dd.destFieldName} = $id ")
             }
+        }
     }
 
     //------------------------------------------------------------------------------------------------------------------------------------------------------------------------

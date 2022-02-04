@@ -23,7 +23,7 @@ class cData : cMMSOneObjectParent() {
         val md = model as mData
 
         //--- прописываем глобальное/локальное время (оно прописано в поле ontime как якобы id-поле)
-        val timeUTC = (hmColumnData[md.columnID] as DataInt).intValue
+        val timeUTC = (hmColumnData[md.columnId] as DataInt).intValue
 
         (hmColumnData[md.columnDataOnTimeUTC] as DataDateTimeInt).setDateTime(timeUTC)
         (hmColumnData[md.columnDataOnTimeLocal] as DataDateTimeInt).setDateTime(timeUTC)

@@ -76,7 +76,7 @@ class mWorkShift : mAbstractReport() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -139,7 +139,7 @@ class mWorkShift : mAbstractReport() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
         alFormHiddenColumn.add(columnWorkShift)
         alFormHiddenColumn.add(columnWorker)
 

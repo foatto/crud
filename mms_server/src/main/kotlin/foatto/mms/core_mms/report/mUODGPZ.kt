@@ -34,7 +34,7 @@ class mUODGPZ : mP() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -52,7 +52,7 @@ class mUODGPZ : mP() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
         alFormHiddenColumn.add(columnReportZone)
 
         uodg = UODGSelector()

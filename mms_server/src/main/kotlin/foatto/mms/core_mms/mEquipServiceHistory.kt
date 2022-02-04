@@ -25,7 +25,7 @@ class mEquipServiceHistory : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -44,7 +44,7 @@ class mEquipServiceHistory : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn.add(columnId)
         alTableHiddenColumn.add(columnEquip)
 
         addTableColumn(columnServiceName)
@@ -52,7 +52,7 @@ class mEquipServiceHistory : mAbstract() {
         addTableColumn(columnServiceWork)
         addTableColumn(columnServiceDescr)
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
         alFormHiddenColumn.add(columnEquip)
 
         alFormColumn.add(columnServiceName)

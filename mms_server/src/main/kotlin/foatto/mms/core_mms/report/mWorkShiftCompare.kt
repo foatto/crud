@@ -61,7 +61,7 @@ class mWorkShiftCompare : mAbstractReport() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -130,7 +130,7 @@ class mWorkShiftCompare : mAbstractReport() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
         alFormHiddenColumn.add(columnWorkShift)
         alFormHiddenColumn.add(columnWorker)
 

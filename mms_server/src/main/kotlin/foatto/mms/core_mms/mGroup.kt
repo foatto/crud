@@ -8,7 +8,6 @@ import foatto.core_server.app.server.DependData
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
-import foatto.core_server.app.server.mAbstract
 import foatto.core_server.app.server.mAbstractUserSelector
 import foatto.sql.CoreAdvancedStatement
 
@@ -32,7 +31,7 @@ class mGroup : mAbstractUserSelector() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -46,12 +45,12 @@ class mGroup : mAbstractUserSelector() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn.add(columnId)
         alTableHiddenColumn.add(columnUser!!)
 
         addTableColumn(columnGroupName)
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
         alFormHiddenColumn.add(columnUser!!)
 
         alFormColumn.add(columnUserName)
@@ -65,24 +64,24 @@ class mGroup : mAbstractUserSelector() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData("mms_object", columnID, true))
-        alChildData.add(ChildData("mms_day_work", columnID))
-        alChildData.add(ChildData("mms_shift_work", columnID))
+        alChildData.add(ChildData("mms_object", columnId, true))
+        alChildData.add(ChildData("mms_day_work", columnId))
+        alChildData.add(ChildData("mms_shift_work", columnId))
         //--- обычно показывается один из двух модулей
-        alChildData.add(ChildData("mms_work_shift", columnID))
-        alChildData.add(ChildData("mms_waybill", columnID))
+        alChildData.add(ChildData("mms_work_shift", columnId))
+        alChildData.add(ChildData("mms_waybill", columnId))
 
-        MMSFunction.fillChildDataForPeriodicReports(columnID, alChildData)
-        MMSFunction.fillChildDataForLiquidIncDecReports(columnID, alChildData, withIncWaybillReport = true, newGroup = false)
-        alChildData.add(ChildData("Отчёты", "mms_report_equip_service", columnID, AppAction.FORM))
-        MMSFunction.fillChildDataForGeoReports(columnID, alChildData, withMovingDetailReport = false)
-        alChildData.add(ChildData("Отчёты", "mms_report_downtime", columnID, AppAction.FORM))
-        MMSFunction.fillChildDataForEnergoOverReports(columnID, alChildData)
-        MMSFunction.fillChildDataForOverReports(columnID, alChildData)
-        alChildData.add(ChildData("Отчёты", "mms_report_trouble", columnID, AppAction.FORM))
+        MMSFunction.fillChildDataForPeriodicReports(columnId, alChildData)
+        MMSFunction.fillChildDataForLiquidIncDecReports(columnId, alChildData, withIncWaybillReport = true, newGroup = false)
+        alChildData.add(ChildData("Отчёты", "mms_report_equip_service", columnId, AppAction.FORM))
+        MMSFunction.fillChildDataForGeoReports(columnId, alChildData, withMovingDetailReport = false)
+        alChildData.add(ChildData("Отчёты", "mms_report_downtime", columnId, AppAction.FORM))
+        MMSFunction.fillChildDataForEnergoOverReports(columnId, alChildData)
+        MMSFunction.fillChildDataForOverReports(columnId, alChildData)
+        alChildData.add(ChildData("Отчёты", "mms_report_trouble", columnId, AppAction.FORM))
 
-        alChildData.add(ChildData("mms_show_object", columnID, AppAction.FORM, true))
-        alChildData.add(ChildData("mms_show_trace", columnID, AppAction.FORM))
+        alChildData.add(ChildData("mms_show_object", columnId, AppAction.FORM, true))
+        alChildData.add(ChildData("mms_show_trace", columnId, AppAction.FORM))
 
         //----------------------------------------------------------------------------------------
 

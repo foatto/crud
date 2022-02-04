@@ -50,7 +50,7 @@ class mSensor : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -435,7 +435,7 @@ class mSensor : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn.add(columnId)
         alTableHiddenColumn.add(columnSensorName)
         alTableHiddenColumn.add(columnCommandOn)
         alTableHiddenColumn.add(columnCommandOff)
@@ -456,7 +456,7 @@ class mSensor : mAbstract() {
             addTableColumn(columnBegWorkValue)
         }
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
         alFormHiddenColumn.add(columnSensorName)
         alFormHiddenColumn.add(columnCommandOn)
         alFormHiddenColumn.add(columnCommandOff)
@@ -579,10 +579,10 @@ class mSensor : mAbstract() {
         //----------------------------------------------------------------------------------------------------------------------------------------
 
         if (isEquip) {
-            alChildData.add(ChildData("mms_equip_service_shedule", columnID, true))
-            alChildData.add(ChildData("mms_equip_service_history", columnID))
+            alChildData.add(ChildData("mms_equip_service_shedule", columnId, true))
+            alChildData.add(ChildData("mms_equip_service_history", columnId))
         } else {
-            alChildData.add(ChildData("mms_sensor_calibration", columnID, true))
+            alChildData.add(ChildData("mms_sensor_calibration", columnId, true))
         }
 
         //----------------------------------------------------------------------------------------------------------------------------------------

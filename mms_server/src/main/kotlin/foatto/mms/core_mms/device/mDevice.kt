@@ -83,7 +83,7 @@ class mDevice : mAbstractUserSelector() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -202,7 +202,7 @@ class mDevice : mAbstractUserSelector() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn += columnID
+        alTableHiddenColumn += columnId
         alTableHiddenColumn += columnUser!!
 
         addTableColumn(columnDeviceType)
@@ -212,7 +212,7 @@ class mDevice : mAbstractUserSelector() {
         addTableColumn(columnObjectUserName)
         addTableColumn(columnDeviceIndex)
 
-        alFormHiddenColumn += columnID
+        alFormHiddenColumn += columnId
         alFormHiddenColumn += columnUser!!
 
         alFormColumn += columnUserName
@@ -284,8 +284,8 @@ class mDevice : mAbstractUserSelector() {
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        alChildData += ChildData("mms_log_session", columnID)
-        alChildData += ChildData("mms_device_command_history", columnID)
+        alChildData += ChildData("mms_log_session", columnId)
+        alChildData += ChildData("mms_device_command_history", columnId)
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 

@@ -24,7 +24,7 @@ class mDeviceCommand : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -40,14 +40,14 @@ class mDeviceCommand : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn.add(columnId)
 
         addTableColumn(columnDeviceType)
         addTableColumn(columnName)
         addTableColumn(columnDescr)
         addTableColumn(columnCommand)
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
 
         alFormColumn.add(columnDeviceType)
         alFormColumn.add(columnName)
@@ -62,7 +62,7 @@ class mDeviceCommand : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData("mms_device_command_history", columnID))
+        alChildData.add(ChildData("mms_device_command_history", columnId))
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 

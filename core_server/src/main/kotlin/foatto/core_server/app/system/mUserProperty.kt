@@ -53,7 +53,7 @@ class mUserProperty : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id").apply {
+        columnId = ColumnInt(modelTableName, "id").apply {
             isVirtual = true
         }
 
@@ -78,7 +78,7 @@ class mUserProperty : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
 
         alFormColumn.add(columnTimeShift)
         alFormColumn.add(columnDivideThousands)

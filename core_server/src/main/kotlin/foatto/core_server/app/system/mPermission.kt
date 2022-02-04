@@ -24,7 +24,7 @@ class mPermission : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -40,7 +40,7 @@ class mPermission : mAbstract() {
 
         //---------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn.add(columnId)
         alTableHiddenColumn.add(columnClass)
 
         alTableGroupColumn.add(columnClassDescr)
@@ -48,7 +48,7 @@ class mPermission : mAbstract() {
         addTableColumn(columnPermissionName)
         addTableColumn(columnPermissionDescr)
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
         alFormHiddenColumn.add(columnClass)
 
         alFormColumn.add(columnClassDescr)
@@ -69,7 +69,7 @@ class mPermission : mAbstract() {
 
         //----------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData("system_role_permission", columnID))
+        alChildData.add(ChildData("system_role_permission", columnId))
 
         //----------------------------------------------------------------------------------------
 

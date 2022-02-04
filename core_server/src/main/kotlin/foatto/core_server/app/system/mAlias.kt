@@ -24,7 +24,7 @@ class mAlias : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -45,7 +45,7 @@ class mAlias : mAbstract() {
         val columnClassNewAutoRead = ColumnBoolean(modelTableName, "new_auto_read", "Автопрочитка новых строк", false)
         val columnClassDefaultParentUser = ColumnBoolean(modelTableName, "default_parent_user", "Фильтр на текущего пользователя по умолчанию", false)
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn.add(columnId)
 
         addTableColumn(columnClassAlias)
         addTableColumn(columnClassControlName)
@@ -59,7 +59,7 @@ class mAlias : mAbstract() {
         addTableColumn(columnClassNewAutoRead)
         addTableColumn(columnClassDefaultParentUser)
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
 
         alFormColumn.add(columnClassAlias)
         alFormColumn.add(columnClassControlName)
@@ -81,8 +81,8 @@ class mAlias : mAbstract() {
 
         //----------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData("system_role_permission", columnID))
-        alChildData.add(ChildData("system_permission", columnID))
+        alChildData.add(ChildData("system_role_permission", columnId))
+        alChildData.add(ChildData("system_permission", columnId))
 
         //----------------------------------------------------------------------------------------
 

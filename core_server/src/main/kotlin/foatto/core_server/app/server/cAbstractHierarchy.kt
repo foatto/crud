@@ -38,7 +38,7 @@ open class cAbstractHierarchy : cStandart() {
     }
 
     override fun addSQLWhere(hsTableRenameList: Set<String>): String {
-        return super.addSQLWhere(hsTableRenameList) + " AND ${renameTableName(hsTableRenameList, model.modelTableName)}.${model.columnID.getFieldName()} > 0 "
+        return super.addSQLWhere(hsTableRenameList) + " AND ${renameTableName(hsTableRenameList, model.modelTableName)}.${model.columnId.getFieldName()} > 0 "
     }
 
     override fun isOpenFormURLInNewWindow(): Boolean = false
@@ -170,15 +170,15 @@ open class cAbstractHierarchy : cStandart() {
         //--- дополнительно в иерархических структурах
         if (model.columnActive != null && model.columnArchive != null) {
             setActiveAndArchive(
-                action,
-                id,
-                model.modelTableName,
-                model.columnID.getFieldName(),
-                model.columnActive!!.getFieldName(),
-                model.columnArchive!!.getFieldName(),
-                (model as mAbstractHierarchy).columnParent.getFieldName(),
-                (hmColumnData[(model as mAbstractHierarchy).columnRecordType] as DataComboBox).intValue == mAbstractHierarchy.RECORD_TYPE_FOLDER,
-                stm
+                action = action,
+                id = id,
+                tableName = model.modelTableName,
+                idFieldName = model.columnId.getFieldName(),
+                activeFieldName = model.columnActive!!.getFieldName(),
+                archiveFieldName = model.columnArchive!!.getFieldName(),
+                parentFieldName = (model as mAbstractHierarchy).columnParent.getFieldName(),
+                isNode = (hmColumnData[(model as mAbstractHierarchy).columnRecordType] as DataComboBox).intValue == mAbstractHierarchy.RECORD_TYPE_FOLDER,
+                stm = stm
             )
         }
 

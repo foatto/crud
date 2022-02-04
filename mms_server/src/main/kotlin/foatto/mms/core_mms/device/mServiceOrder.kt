@@ -26,7 +26,7 @@ class mServiceOrder : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
         columnUser = ColumnInt(modelTableName, "user_id", userConfig.userId)
 
         //----------------------------------------------------------------------------------------------------------------------
@@ -44,14 +44,14 @@ class mServiceOrder : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn.add(columnId)
         alTableHiddenColumn.add(columnUser!!)
 
         addTableColumn(columnOrderTime)
         addTableColumn(columnOrderText)
         addTableColumn(columnOrderCompleted)
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
         alFormHiddenColumn.add(columnUser!!)
 
         alFormColumn.add(columnOrderTime)

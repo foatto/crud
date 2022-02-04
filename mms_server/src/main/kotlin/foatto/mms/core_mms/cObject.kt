@@ -32,7 +32,7 @@ class cObject : cStandart() {
             if ((hmColumnData[md.columnDisabled] as DataBoolean).value) {
                 tci.foreColor = TABLE_CELL_FORE_COLOR_DISABLED
             } else {
-                val id = (hmColumnData[model.columnID] as DataInt).intValue
+                val id = (hmColumnData[model.columnId] as DataInt).intValue
 
                 val rs = stm.executeQuery(" SELECT MAX(ontime) FROM MMS_data_${id} ")
                 val lastDataTime = if (rs.next()) {

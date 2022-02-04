@@ -24,7 +24,7 @@ class mRole : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -35,11 +35,11 @@ class mRole : mAbstract() {
 
         //----------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn.add(columnId)
 
         addTableColumn(columnRoleName)
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
 
         alFormColumn.add(columnRoleName)
 
@@ -51,8 +51,8 @@ class mRole : mAbstract() {
 
         //----------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData("system_role_permission", columnID))
-        alChildData.add(ChildData("system_user_role", columnID))
+        alChildData.add(ChildData("system_role_permission", columnId))
+        alChildData.add(ChildData("system_user_role", columnId))
 
         //----------------------------------------------------------------------------------------
 

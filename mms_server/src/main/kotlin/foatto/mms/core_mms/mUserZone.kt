@@ -6,7 +6,6 @@ import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnComboBox
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
-import foatto.core_server.app.server.mAbstract
 import foatto.core_server.app.server.mAbstractUserSelector
 import foatto.sql.CoreAdvancedStatement
 
@@ -30,7 +29,7 @@ class mUserZone : mAbstractUserSelector() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -65,7 +64,7 @@ class mUserZone : mAbstractUserSelector() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn.add(columnId)
         alTableHiddenColumn.add(columnUser!!)
         alTableHiddenColumn.add(columnZone)
 
@@ -73,7 +72,7 @@ class mUserZone : mAbstractUserSelector() {
         addTableColumn(columnZoneDescr)
         addTableColumn(columnZoneType)
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
         alFormHiddenColumn.add(columnUser!!)
         alFormHiddenColumn.add(columnZone)
 

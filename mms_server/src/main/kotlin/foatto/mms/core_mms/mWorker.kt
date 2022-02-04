@@ -24,7 +24,7 @@ class mWorker : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
         columnUser = ColumnInt(modelTableName, "user_id", userConfig.userId)
 
         //----------------------------------------------------------------------------------------------------------------------
@@ -35,13 +35,13 @@ class mWorker : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn.add(columnId)
         alTableHiddenColumn.add(columnUser!!)
 
         addTableColumn(columnTabNo)
         addTableColumn(columnWorkerName)
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
         alFormHiddenColumn.add(columnUser!!)
 
         alFormColumn.add(columnTabNo)
@@ -55,8 +55,8 @@ class mWorker : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData("mms_work_shift", columnID, true))
-        alChildData.add(ChildData("mms_waybill", columnID, true))
+        alChildData.add(ChildData("mms_work_shift", columnId, true))
+        alChildData.add(ChildData("mms_waybill", columnId, true))
 
         //----------------------------------------------------------------------------------------
 

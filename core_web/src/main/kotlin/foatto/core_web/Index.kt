@@ -1,6 +1,5 @@
 package foatto.core_web
 
-import foatto.core.link.ResponseCode
 import foatto.core_web.external.vue.Vue
 import foatto.core_web.external.vue.VueComponentOptions
 import foatto.core_web.external.vue.that
@@ -189,7 +188,7 @@ open class Index {
                     val arrTabInfo = that().arrTabInfo.unsafeCast<Array<TabInfo>>()
 
                     //--- for last tab removing case
-                    if( currentTabIndex == arrTabInfo.lastIndex ) {
+                    if (currentTabIndex == arrTabInfo.lastIndex) {
                         that().currentTabIndex = currentTabIndex - 1
                     }
 
@@ -201,7 +200,7 @@ open class Index {
                     val arrTabInfo = that().arrTabInfo.unsafeCast<Array<TabInfo>>()
 
                     //--- for last tab removing case
-                    if( currentTabIndex == arrTabInfo.lastIndex ) {
+                    if (currentTabIndex == arrTabInfo.lastIndex) {
                         that().currentTabIndex = currentTabIndex - 1
                     }
 

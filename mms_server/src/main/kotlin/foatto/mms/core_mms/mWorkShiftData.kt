@@ -30,7 +30,7 @@ class mWorkShiftData : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -73,7 +73,7 @@ class mWorkShiftData : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn.add(columnId)
         alTableHiddenColumn.add(columnShift)
         alTableHiddenColumn.add(columnDataType)
         alTableHiddenColumn.add(columnName)
@@ -81,7 +81,7 @@ class mWorkShiftData : mAbstract() {
         addTableColumn(columnDescr)
         addTableColumn(columnValue)
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
         alFormHiddenColumn.add(columnShift)
         alFormHiddenColumn.add(columnDataType)
         alFormHiddenColumn.add(columnName)

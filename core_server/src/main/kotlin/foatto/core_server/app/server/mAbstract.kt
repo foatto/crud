@@ -26,7 +26,7 @@ abstract class mAbstract {
 
     lateinit var modelTableName: String
         protected set
-    lateinit var columnID: ColumnInt
+    lateinit var columnId: ColumnInt
 
     //--- задается поле для userID, если есть (может быть ColumnInt (вместе с селектором) или ColumnComboBox для частных случаев)
     var columnUser: ColumnSimple? = null

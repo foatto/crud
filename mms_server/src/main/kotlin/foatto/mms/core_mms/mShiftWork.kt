@@ -70,7 +70,7 @@ class mShiftWork : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
         columnUser = ColumnInt(modelTableName, "user_id")
 
         //----------------------------------------------------------------------------------------------------------------------
@@ -131,11 +131,11 @@ class mShiftWork : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn.add(columnId)
         alTableHiddenColumn.add(columnUser!!)
         //        alTableHiddenColumn.add( columnWorker );
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
         alFormHiddenColumn.add(columnUser!!)
         //        alFormHiddenColumn.add( columnWorker );
 
@@ -206,13 +206,13 @@ class mShiftWork : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData("Отчёты", "mms_report_work_shift", columnID, AppAction.FORM, true))
-        alChildData.add(ChildData("Отчёты", "mms_report_work_detail", columnID, AppAction.FORM))
-        alChildData.add(ChildData("Отчёты", "mms_report_data_out", columnID, AppAction.FORM))
+        alChildData.add(ChildData("Отчёты", "mms_report_work_shift", columnId, AppAction.FORM, true))
+        alChildData.add(ChildData("Отчёты", "mms_report_work_detail", columnId, AppAction.FORM))
+        alChildData.add(ChildData("Отчёты", "mms_report_data_out", columnId, AppAction.FORM))
 
-        MMSFunction.fillAllChildDataForGraphics(columnID, alChildData)
+        MMSFunction.fillAllChildDataForGraphics(columnId, alChildData)
 
-        alChildData.add(ChildData("mms_show_object", columnID, AppAction.FORM, true))
+        alChildData.add(ChildData("mms_show_object", columnId, AppAction.FORM, true))
         //        alChildData.add( new ChildData( "mms_show_trace", columnID, AppAction.FORM ) );
     }
 }

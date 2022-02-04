@@ -8,7 +8,6 @@ import foatto.core_server.app.server.DependData
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
-import foatto.core_server.app.server.mAbstract
 import foatto.core_server.app.server.mAbstractUserSelector
 import foatto.sql.CoreAdvancedStatement
 
@@ -37,7 +36,7 @@ class mZone : mAbstractUserSelector() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -53,14 +52,14 @@ class mZone : mAbstractUserSelector() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn.add(columnId)
         alTableHiddenColumn.add(columnUser!!)
 
         addTableColumn(columnZoneName)
         addTableColumn(columnZoneDescr)
         addTableColumn(columnZoneOuterID)
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
         alFormHiddenColumn.add(columnUser!!)
 
         alFormColumn.add(columnUserName)
@@ -80,13 +79,13 @@ class mZone : mAbstractUserSelector() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData("mms_show_zone", columnID, AppAction.FORM, true))
-        alChildData.add(ChildData("mms_user_zone", columnID))
-        alChildData.add(ChildData("mms_object_zone", columnID))
-        MMSFunction.fillChildDataForLiquidIncDecReports(columnID, alChildData, withIncWaybillReport = false, newGroup = true)
-        MMSFunction.fillChildDataForGeoReports(columnID, alChildData, withMovingDetailReport = false)
-        MMSFunction.fillChildDataForEnergoOverReports(columnID, alChildData)
-        MMSFunction.fillChildDataForOverReports(columnID, alChildData)
+        alChildData.add(ChildData("mms_show_zone", columnId, AppAction.FORM, true))
+        alChildData.add(ChildData("mms_user_zone", columnId))
+        alChildData.add(ChildData("mms_object_zone", columnId))
+        MMSFunction.fillChildDataForLiquidIncDecReports(columnId, alChildData, withIncWaybillReport = false, newGroup = true)
+        MMSFunction.fillChildDataForGeoReports(columnId, alChildData, withMovingDetailReport = false)
+        MMSFunction.fillChildDataForEnergoOverReports(columnId, alChildData)
+        MMSFunction.fillChildDataForOverReports(columnId, alChildData)
 
         //----------------------------------------------------------------------------------------
 

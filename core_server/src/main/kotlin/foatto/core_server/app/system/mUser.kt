@@ -222,15 +222,16 @@ class mUser : mAbstractHierarchy() {
 
         //----------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData("system_user_role", columnID))
-        alChildData.add(ChildData("system_log_user", columnID))
+        alChildData.add(ChildData("system_user_role", columnId))
+        alChildData.add(ChildData("system_log_user", columnId))
 
         for (cd in alExtendChildData) {
-            alChildData += ChildData(cd.alias, columnID, cd.isNewGroup)
+            alChildData += ChildData(cd.alias, columnId, cd.isNewGroup)
         }
 
         //----------------------------------------------------------------------------------------
 
+        alDependData.add(DependData("SYSTEM_user", "user_id", DependData.SET, 0))
         alDependData.add(DependData("SYSTEM_user_role", "user_id", DependData.DELETE))
         alDependData.add(DependData("SYSTEM_user_property", "user_id", DependData.DELETE))
         alDependData.add(DependData("SYSTEM_new", "user_id", DependData.DELETE))

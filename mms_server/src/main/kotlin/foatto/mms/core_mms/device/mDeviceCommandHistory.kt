@@ -44,7 +44,7 @@ class mDeviceCommandHistory : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
         columnUser = ColumnInt(modelTableName, "user_id", userConfig.userId)
 
         //----------------------------------------------------------------------------------------------------------------------
@@ -114,14 +114,14 @@ class mDeviceCommandHistory : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn.add(columnId)
         alTableHiddenColumn.add(columnUser!!)
         alTableHiddenColumn.add(columnCommand)
 
         addTableColumn(columnDevice)
         addTableColumn(columnObjectUserName)
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
         alFormHiddenColumn.add(columnUser!!)
         alFormHiddenColumn.add(columnCommand)
 

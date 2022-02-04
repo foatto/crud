@@ -22,7 +22,7 @@ class mUserRole : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -46,7 +46,7 @@ class mUserRole : mAbstract() {
 
         //----------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn.add(columnId)
         alTableHiddenColumn.add(columnRole)
         alTableHiddenColumn.add(columnLogin)
 
@@ -54,7 +54,7 @@ class mUserRole : mAbstract() {
 
         addTableColumn(columnLoginName)
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
         alFormHiddenColumn.add(columnRole)
         alFormHiddenColumn.add(columnLogin)
 

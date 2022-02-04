@@ -11,7 +11,6 @@ import foatto.core_server.app.server.column.ColumnDateTimeInt
 import foatto.core_server.app.server.column.ColumnDouble
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
-import foatto.core_server.app.server.mAbstract
 import foatto.core_server.app.server.mAbstractUserSelector
 import foatto.sql.CoreAdvancedStatement
 
@@ -55,7 +54,7 @@ class mWorkShift : mAbstractUserSelector() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -96,7 +95,7 @@ class mWorkShift : mAbstractUserSelector() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn.add(columnId)
         alTableHiddenColumn.add(columnUser!!)
         alTableHiddenColumn.add(columnWorker)
 
@@ -108,7 +107,7 @@ class mWorkShift : mAbstractUserSelector() {
         addTableColumn(columnShiftBegFact)
         addTableColumn(columnShiftEndFact)
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
         alFormHiddenColumn.add(columnUser!!)
         alFormHiddenColumn.add(columnWorker)
 
@@ -153,24 +152,24 @@ class mWorkShift : mAbstractUserSelector() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData("mms_work_shift_work", columnID, true))
-        alChildData.add(ChildData("mms_work_shift_liquid", columnID))
+        alChildData.add(ChildData("mms_work_shift_work", columnId, true))
+        alChildData.add(ChildData("mms_work_shift_liquid", columnId))
         //--- запустится только один из этих двух
-        alChildData.add(ChildData("Отчёты", "mms_report_work_shift", columnID, AppAction.FORM, true))
-        alChildData.add(ChildData("Отчёты", "mms_report_waybill", columnID, AppAction.FORM, true))
-        alChildData.add(ChildData("Отчёты", "mms_report_waybill_compare", columnID, AppAction.FORM))
-        MMSFunction.fillChildDataForLiquidIncDecReports(columnID, alChildData, withIncWaybillReport = false, newGroup = false)
-        alChildData.add(ChildData("Отчёты", "mms_report_work_detail", columnID, AppAction.FORM))
-        MMSFunction.fillChildDataForGeoReports(columnID, alChildData, withMovingDetailReport = true)
-        MMSFunction.fillChildDataForEnergoOverReports(columnID, alChildData)
-        MMSFunction.fillChildDataForOverReports(columnID, alChildData)
-        alChildData.add(ChildData("Отчёты", "mms_report_data_out", columnID, AppAction.FORM))
+        alChildData.add(ChildData("Отчёты", "mms_report_work_shift", columnId, AppAction.FORM, true))
+        alChildData.add(ChildData("Отчёты", "mms_report_waybill", columnId, AppAction.FORM, true))
+        alChildData.add(ChildData("Отчёты", "mms_report_waybill_compare", columnId, AppAction.FORM))
+        MMSFunction.fillChildDataForLiquidIncDecReports(columnId, alChildData, withIncWaybillReport = false, newGroup = false)
+        alChildData.add(ChildData("Отчёты", "mms_report_work_detail", columnId, AppAction.FORM))
+        MMSFunction.fillChildDataForGeoReports(columnId, alChildData, withMovingDetailReport = true)
+        MMSFunction.fillChildDataForEnergoOverReports(columnId, alChildData)
+        MMSFunction.fillChildDataForOverReports(columnId, alChildData)
+        alChildData.add(ChildData("Отчёты", "mms_report_data_out", columnId, AppAction.FORM))
 
-        MMSFunction.fillAllChildDataForGraphics(columnID, alChildData)
+        MMSFunction.fillAllChildDataForGraphics(columnId, alChildData)
 
-        alChildData.add(ChildData("mms_show_object", columnID, AppAction.FORM, true))
+        alChildData.add(ChildData("mms_show_object", columnId, AppAction.FORM, true))
         if (isWaybill)
-            alChildData.add(ChildData("mms_show_trace", columnID, AppAction.FORM))
+            alChildData.add(ChildData("mms_show_trace", columnId, AppAction.FORM))
 
         //----------------------------------------------------------------------------------------
 

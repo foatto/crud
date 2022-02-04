@@ -19,27 +19,19 @@ open class mAbstractHierarchy : mAbstract() {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     lateinit var commonAliasName: String
-        protected set
     lateinit var folderAliasName: String
-        protected set
     lateinit var itemAliasName: String
-        protected set
 
     protected lateinit var columnParentID: ColumnInt
     lateinit var columnParent: ColumnInt
-        protected set
 
+    //--- тип строки - папка или элемент списка
     lateinit var columnRecordType: ColumnComboBox
-        protected set   //--- тип строки - папка или элемент списка
     lateinit var columnRecordFullName: ColumnString
-        protected set
     lateinit var columnParentFullName: ColumnString
-        protected set
 
     var isSelectableFolder = false
-        protected set
     var isSelectableItem = false
-        protected set
 
     val alAddButtomParam = mutableListOf<AddActionButton>()
 
@@ -69,7 +61,7 @@ open class mAbstractHierarchy : mAbstract() {
         isSelectableItem = aliasConfig.alias == commonAliasName || aliasConfig.alias == itemAliasName
         selfLinkParentTableName = "${modelTableName}__PARENT"
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         columnParentID = ColumnInt(selfLinkParentTableName, "id").apply {
             selfLinkTableName = modelTableName
@@ -78,10 +70,10 @@ open class mAbstractHierarchy : mAbstract() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn += columnId
 
-        alFormHiddenColumn.add(columnID)
-        alFormHiddenColumn.add(columnParent)
+        alFormHiddenColumn += columnId
+        alFormHiddenColumn += columnParent
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -91,7 +83,7 @@ open class mAbstractHierarchy : mAbstract() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData(aliasConfig.alias, columnID, aNewGroup = true, aDefaultOperation = true))
+        alChildData.add(ChildData(aliasConfig.alias, columnId, aNewGroup = true, aDefaultOperation = true))
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
