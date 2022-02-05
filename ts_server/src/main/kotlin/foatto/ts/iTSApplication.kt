@@ -8,5 +8,9 @@ interface iTSApplication : iApplication {
 
     val controlEnabledRoleId: String
 
+    val companiesParentId: String
+
+    val alTSUserRoleId: Array<String>
+
     fun getObjectConfig(userConfig: UserConfig, objectId: Int): ObjectConfig
 }

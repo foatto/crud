@@ -11,20 +11,20 @@ import foatto.ts.iTSApplication
 class cTSClient : cClient() {
 
     //--- перекрывается наследниками для генерации данных в момент загрузки записей ПОСЛЕ фильтров поиска и страничной разбивки
-    override fun generateColumnDataAfterFilter(hmColumnData: MutableMap<iColumn, iData>) {
-        super.generateColumnDataAfterFilter(hmColumnData)
+    override fun generateTableColumnDataAfterFilter(hmColumnData: MutableMap<iColumn, iData>) {
+        super.generateTableColumnDataAfterFilter(hmColumnData)
 
         val mc = model as mTSClient
 
-        (hmColumnData[mc.columnControlEnabled] as DataBoolean).value = controlEnableSaved((hmColumnData[mc.columnID] as DataInt).intValue)
+        (hmColumnData[mc.columnControlEnabled] as DataBoolean).value = controlEnableSaved((hmColumnData[mc.columnId] as DataInt).intValue)
     }
 
-    override fun generateFormColumnData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {
-        super.generateFormColumnData(id, hmColumnData)
+    override fun getCalculatedFormColumnData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {
+        super.getCalculatedFormColumnData(id, hmColumnData)
 
         val mc = model as mTSClient
 
-        (hmColumnData[mc.columnControlEnabled] as DataBoolean).value = controlEnableSaved((hmColumnData[mc.columnID] as DataInt).intValue)
+        (hmColumnData[mc.columnControlEnabled] as DataBoolean).value = controlEnableSaved(id)
     }
 
     override fun postAdd(id: Int, hmColumnData: Map<iColumn, iData>, hmOut: MutableMap<String, Any>): String? {

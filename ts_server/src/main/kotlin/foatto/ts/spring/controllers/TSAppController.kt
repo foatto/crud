@@ -40,6 +40,12 @@ class TSAppController : CoreAppController(), iTSApplication {
     @Value("\${control_enabled_role_id}")
     override val controlEnabledRoleId: String = ""
 
+    @Value("\${companies_parent_id}")
+    override val companiesParentId: String = ""
+
+    @Value("\${ts_user_role_id}")
+    override val alTSUserRoleId: Array<String> = emptyArray()
+
 //-------------------------------------------------------------------------------------------------
 
     @PostMapping("/api/app")
@@ -159,7 +165,9 @@ class TSAppController : CoreAppController(), iTSApplication {
         //--- Справочники --------------------------------------------------------------------------------------------------------
 
         val alMenuDir = mutableListOf<MenuData>()
-        addMenu(hmAliasConfig, hmAliasPerm, alMenuDir, "ts_client", true)
+        //addMenu(hmAliasConfig, hmAliasPerm, alMenuDir, "ts_client", true)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuDir, "ts_company", true)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuDir, "ts_user", true)
 
         if (alMenuDir.size > 0) {
             alMenu.add(MenuData("", "Справочники", alMenuDir.toTypedArray()))
@@ -298,5 +306,4 @@ class TSAppController : CoreAppController(), iTSApplication {
 
         return objectConfig
     }
-
 }

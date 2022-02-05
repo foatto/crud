@@ -5,23 +5,24 @@ import foatto.core.link.TableCellBackColorType
 import foatto.core.link.TableCellForeColorType
 import foatto.core.link.TableResponse
 import foatto.core.util.getCurrentTimeInt
+import foatto.core_server.app.server.OrgType
 import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.column.iColumn
+import foatto.core_server.app.server.data.DataComboBox
 import foatto.core_server.app.server.data.DataDateTimeInt
 import foatto.core_server.app.server.data.DataDouble
 import foatto.core_server.app.server.data.DataInt
 import foatto.core_server.app.server.data.DataString
 import foatto.core_server.app.server.data.iData
-import foatto.ts.core_ts.calc.AbstractObjectStateCalc
 import foatto.ts.core_ts.calc.ObjectState
-import foatto.ts.core_ts.sensor.config.SensorConfig
 import foatto.ts.core_ts.sensor.config.SensorConfigState
 import foatto.ts.iTSApplication
 
 class cObject : cStandart() {
 
-    private val hmObjectConfigCache = mutableMapOf<Int,ObjectConfig>()
-    private val hmObjectStateCache = mutableMapOf<Int,ObjectState>()
+    private var parentUserIdFromCompanyId: Int? = null
+    private val hmObjectConfigCache = mutableMapOf<Int, ObjectConfig>()
+    private val hmObjectStateCache = mutableMapOf<Int, ObjectState>()
 
     companion object {
         const val PERM_REMOTE_CONTROL = "remote_control"
@@ -34,6 +35,35 @@ class cObject : cStandart() {
         alPermission.add(Pair(PERM_REMOTE_CONTROL, "20 Remote Control"))
     }
 
+    override fun getParentId(alias: String?): Int? =
+        if (alias == "ts_company") {
+            if (parentUserIdFromCompanyId == null) {
+                hmParentData[alias]?.let { companyId ->
+                    val stm = conn.createStatement()
+                    val rs = stm.executeQuery(
+                        """
+                            SELECT id 
+                            FROM SYSTEM_users 
+                            WHERE org_type = ${OrgType.ORG_TYPE_WORKER}
+                            AND parent_id = $companyId
+                        """
+                    )
+                    if (rs.next()) {
+                        parentUserIdFromCompanyId = rs.getInt(1)
+                    } else {
+                        parentUserIdFromCompanyId = 0
+                    }
+                    rs.close()
+                    stm.close()
+                } ?: run {
+                    parentUserIdFromCompanyId = 0
+                }
+            }
+            parentUserIdFromCompanyId
+        } else {
+            super.getParentId(alias)
+        }
+
     override fun getTable(hmOut: MutableMap<String, Any>): TableResponse {
         hmObjectConfigCache.clear()
         hmObjectStateCache.clear()
@@ -44,7 +74,7 @@ class cObject : cStandart() {
     override fun getTableColumnStyle(rowNo: Int, isNewRow: Boolean, hmColumnData: Map<iColumn, iData>, column: iColumn, tci: TableCell) {
         super.getTableColumnStyle(rowNo, isNewRow, hmColumnData, column, tci)
 
-        val id = (hmColumnData[model.columnID] as DataInt).intValue
+        val id = (hmColumnData[model.columnId] as DataInt).intValue
         val objectConfig = hmObjectConfigCache.getOrPut(id) { (application as iTSApplication).getObjectConfig(userConfig, id) }
         val objectState = hmObjectStateCache.getOrPut(id) { ObjectState.getState(stm, objectConfig) }
 
@@ -83,14 +113,37 @@ class cObject : cStandart() {
         }
     }
 
-    override fun generateColumnDataAfterFilter(hmColumnData: MutableMap<iColumn, iData>) {
-        super.generateColumnDataAfterFilter(hmColumnData)
+    override fun generateTableColumnDataAfterFilter(hmColumnData: MutableMap<iColumn, iData>) {
+        super.generateTableColumnDataAfterFilter(hmColumnData)
 
-        generateColumnData((hmColumnData[model.columnID] as DataInt).intValue, hmColumnData)
+        generateColumnData((hmColumnData[model.columnId] as DataInt).intValue, hmColumnData)
     }
 
-    override fun generateFormColumnData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {
-        super.generateFormColumnData(id, hmColumnData)
+    override fun postProcessFormColumnDataFromFormData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {
+        super.postProcessFormColumnDataFromFormData(id, hmColumnData)
+
+        //--- заменим company-id на реальный user-id
+        val dataUser = hmColumnData[model.columnUser!!] as DataInt
+        val stm = conn.createStatement()
+        val rs = stm.executeQuery(
+            """
+                SELECT id FROM SYSTEM_users 
+                WHERE parent_id = ${dataUser.intValue}
+                AND org_type = ${OrgType.ORG_TYPE_WORKER}
+            """
+        )
+        //--- да, в этом поле лежит company-id, меняем его на user-id
+        if(rs.next()) {
+            dataUser.intValue = rs.getInt(1)
+        }
+        //--- иначе там лежит уже готовый/правильный user-id, ничего не трогаем
+
+        rs.close()
+        stm.close()
+    }
+
+    override fun getCalculatedFormColumnData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {
+        super.getCalculatedFormColumnData(id, hmColumnData)
 
         generateColumnData(id, hmColumnData)
     }
@@ -124,9 +177,39 @@ class cObject : cStandart() {
         val objectConfig = hmObjectConfigCache.getOrPut(id) { (application as iTSApplication).getObjectConfig(userConfig, id) }
         val objectState = hmObjectStateCache.getOrPut(id) { ObjectState.getState(stm, objectConfig) }
 
+        val curState = objectState.tmStateValue.values.firstOrNull()
+
+        (hmColumnData[m.columnTroubleType] as DataComboBox).intValue = when (curState) {
+            null -> {
+                mObject.TROUBLE_CONNECT
+            }
+            SensorConfigState.STATE_UNPASS_DOWN,
+            SensorConfigState.STATE_UNPASS_UP,
+            SensorConfigState.STATE_WIRE_RUNOUT,
+            SensorConfigState.STATE_DRIVE_PROTECT,
+            SensorConfigState.STATE_STOPPED_BY_SERVER -> {
+                mObject.TROUBLE_ERROR
+            }
+            SensorConfigState.STATE_UNPASS_UP_1_METER_DOWN,
+            SensorConfigState.STATE_UNPASS_DOWN_PAUSE,
+            SensorConfigState.STATE_UNPASS_DOWN_1_METER_UP,
+            SensorConfigState.STATE_UNPASS_UP_1_METER_DOWN_,
+            SensorConfigState.STATE_UNPASS_DOWN_PAUSE_,
+            SensorConfigState.STATE_UNPASS_DOWN_1_METER_UP_ -> {
+                mObject.TROUBLE_WARNING
+            }
+            else -> {
+                if (getCurrentTimeInt() - (objectState.lastDateTime ?: 0) > 3600) {
+                    mObject.TROUBLE_CONNECT
+                } else {
+                    mObject.TROUBLE_NONE
+                }
+            }
+        }
+
         (hmColumnData[m.columnLastDateTime] as DataDateTimeInt).setDateTime(objectState.lastDateTime ?: 0)
 
-        (hmColumnData[m.columnState] as DataString).text = objectState.tmStateValue.values.firstOrNull()?.let { stateCode ->
+        (hmColumnData[m.columnState] as DataString).text = curState?.let { stateCode ->
             SensorConfigState.hmStateInfo[stateCode]?.descr ?: "(неизвестный код состояния: $stateCode)"
         } ?: "(нет данных)"
 
@@ -134,6 +217,5 @@ class cObject : cStandart() {
         (hmColumnData[m.columnSpeed] as DataDouble).doubleValue = objectState.tmSpeedValue.values.firstOrNull() ?: 0.0
         (hmColumnData[m.columnLoad] as DataDouble).doubleValue = objectState.tmLoadValue.values.firstOrNull() ?: 0.0
     }
-
 
 }

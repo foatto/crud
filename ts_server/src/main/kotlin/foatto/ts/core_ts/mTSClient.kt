@@ -6,7 +6,6 @@ import foatto.core_server.app.system.mClient
 class mTSClient: mClient() {
 
     lateinit var columnControlEnabled: ColumnBoolean
-        private set
 
     override fun addColumnDefinitions() {
         super.addColumnDefinitions()
@@ -20,6 +19,6 @@ class mTSClient: mClient() {
         super.addColumnsToTableAndForm()
 
         addTableColumn(columnControlEnabled)
-        alFormColumn.add(columnControlEnabled)
+        alFormColumn += columnControlEnabled
     }
 }
