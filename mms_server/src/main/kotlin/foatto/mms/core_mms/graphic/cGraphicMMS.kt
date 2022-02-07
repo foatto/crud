@@ -20,7 +20,7 @@ class cGraphicMMS : cAbstractForm() {
     override fun getOkButtonIconName() = ICON_NAME_GRAPHIC
 
     override fun isFormAutoClick() =
-        if (hmParentData["mms_day_work"] != null || hmParentData["mms_work_shift"] != null || hmParentData["mms_waybill"] != null || hmParentData["mms_shift_work"] != null) {
+        if (getParentId("mms_day_work") != null || getParentId("mms_work_shift") != null || getParentId("mms_waybill") != null || getParentId("mms_shift_work") != null) {
             true
         } else {
             super.isFormAutoClick()

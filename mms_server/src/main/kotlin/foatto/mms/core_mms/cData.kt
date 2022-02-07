@@ -15,7 +15,7 @@ class cData : cMMSOneObjectParent() {
         generateColumnData(hmColumnData)
     }
 
-    override fun generateFormColumnData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {
+    override fun getCalculatedFormColumnData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {
         generateColumnData(hmColumnData)
     }
 

@@ -20,7 +20,7 @@ class cSensor : cMMSOneObjectParent() {
         return s
     }
 
-    override fun generateFormColumnData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {
+    override fun getCalculatedFormColumnData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {
         if (id != 0) {
             val ms = model as mSensor
 

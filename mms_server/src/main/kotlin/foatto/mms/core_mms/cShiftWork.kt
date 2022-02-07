@@ -12,7 +12,7 @@ import foatto.mms.iMMSApplication
 class cShiftWork : cStandart() {
 
     //--- перекрывается наследниками для генерации данных в момент загрузки записей ПОСЛЕ фильтров поиска и страничной разбивки
-    override fun generateColumnDataAfterFilter(hmColumnData: MutableMap<iColumn, iData>) {
+    override fun generateTableColumnDataAfterFilter(hmColumnData: MutableMap<iColumn, iData>) {
         val m = model as mShiftWork
 
         val objectId = (hmColumnData[m.columnObject] as DataInt).intValue

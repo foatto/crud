@@ -23,8 +23,8 @@ open class cAbstractHierarchy : cStandart() {
             (alias2 == mah.commonAliasName || alias2 == mah.folderAliasName || alias2 == mah.itemAliasName)
     }
 
-    override fun getParentID(alias: String?): Int? {
-        val pID = super.getParentID(alias)
+    override fun getParentId(alias: String?): Int? {
+        val pID = super.getParentId(alias)
         if (pID != null) {
             return pID
         }
@@ -78,7 +78,7 @@ open class cAbstractHierarchy : cStandart() {
                     aRefererID = refererID,
                     aID = 0,
                     aParentData = hmParentData,
-                    aParentUserID = parentUserID,
+                    aParentUserId = parentUserId,
                     aAltParams = "&${it.url}"
                 )
             )

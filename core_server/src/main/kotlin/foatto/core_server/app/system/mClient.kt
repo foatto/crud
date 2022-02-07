@@ -143,7 +143,7 @@ open class mClient : mAbstract() {
 
         //----------------------------------------------------------------------------------------
 
-        alDependData.add(DependData("SYSTEM_user", "user_id", DependData.SET, 0))
+        alDependData.add(DependData("SYSTEM_users", "user_id", DependData.SET, 0))
         alDependData.add(DependData("SYSTEM_user_role", "user_id", DependData.DELETE))
         alDependData.add(DependData("SYSTEM_user_property", "user_id", DependData.DELETE))
         alDependData.add(DependData("SYSTEM_new", "user_id", DependData.DELETE))

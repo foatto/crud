@@ -47,8 +47,8 @@ class cRolePermission : cStandart() {
         //--- начало нестандартной части ---------------------------------------------------------------------------------------
 
         //--- сбор парентов
-        val classID = getParentID("system_alias")
-        val roleID = getParentID("system_role")
+        val classID = getParentId("system_alias")
+        val roleID = getParentId("system_role")
 
         var sPerm = " SELECT SYSTEM_alias.descr , SYSTEM_permission.id , SYSTEM_permission.descr " +
             " FROM SYSTEM_alias , SYSTEM_permission WHERE SYSTEM_alias.id = SYSTEM_permission.class_id "

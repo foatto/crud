@@ -16,7 +16,7 @@ import java.time.temporal.ChronoUnit
 
 class cDayWork : cStandart() {
 
-    override fun generateColumnDataAfterFilter(hmColumnData: MutableMap<iColumn, iData>) {
+    override fun generateTableColumnDataAfterFilter(hmColumnData: MutableMap<iColumn, iData>) {
         val mODW = model as mDayWork
 
         val objectId = (hmColumnData[mODW.columnObject] as DataInt).intValue

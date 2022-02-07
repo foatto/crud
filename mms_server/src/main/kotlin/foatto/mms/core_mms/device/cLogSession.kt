@@ -10,9 +10,9 @@ class cLogSession : cLogText() {
         application.hmAliasLogDir[aliasConfig.alias]?.let { dirName ->
             val dirLog = File(dirName)
 
-            hmParentData["mms_device"]?.let {
+            getParentId("mms_device")?.let {
                 File(dirLog, "device/$it")
-            } ?: hmParentData["mms_object"]?.let {
+            } ?: getParentId("mms_object")?.let {
                 File(dirLog, "object/$it")
             } ?: dirLog
         }

@@ -19,7 +19,7 @@ class cUserProperty : cStandart() {
         alPermission.add(Pair(PERM_ADD, "03 Add"))
     }
 
-    override fun generateFormColumnData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {
+    override fun getCalculatedFormColumnData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {
         val mup = model as mUserProperty
 
         (hmColumnData[mup.columnTimeShift] as DataComboBox).intValue = userConfig.upTimeOffset

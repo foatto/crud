@@ -6,7 +6,7 @@ class cLogUser : cLogText() {
         super.doLogRowFilter()
 
         logCurRow?.let {
-            val pUID = hmParentData["system_user"]
+            val pUID = getParentId("system_user")
             pUID?.let {
                 val pos = logCurRow!!.indexOf(' ')
                 if (pos > 0) {

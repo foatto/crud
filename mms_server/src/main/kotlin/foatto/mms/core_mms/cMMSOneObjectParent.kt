@@ -10,14 +10,14 @@ open class cMMSOneObjectParent : cStandart() {
     protected var oc: ObjectConfig? = null
 
     override fun getTable(hmOut: MutableMap<String, Any>): TableResponse {
-        hmParentData["mms_object"]?.let { objectId ->
+        getParentId("mms_object")?.let { objectId ->
             oc = (application as iMMSApplication).getObjectConfig(userConfig, objectId)
         }
         return super.getTable(hmOut)
     }
 
     override fun getForm(hmOut: MutableMap<String, Any>): FormResponse {
-        hmParentData["mms_object"]?.let { objectId ->
+        getParentId("mms_object")?.let { objectId ->
             oc = (application as iMMSApplication).getObjectConfig(userConfig, objectId)
         }
         return super.getForm(hmOut)

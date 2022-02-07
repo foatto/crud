@@ -72,7 +72,7 @@ open class cStandart {
             aRefererID: String?,
             aID: Int?,
             aParentData: Map<String, Int>?,
-            aParentUserID: Int?,
+            aParentUserId: Int?,
             aAltParams: String?,
         ): String {
 
@@ -93,8 +93,8 @@ open class cStandart {
                 }
                 sResult += "&${AppParameter.PARENT_ALIAS}=$sAlias&${AppParameter.PARENT_ID}=$sID"
             }
-            aParentUserID?.let {
-                sResult += "&${AppParameter.PARENT_USER_ID}=$aParentUserID"
+            aParentUserId?.let {
+                sResult += "&${AppParameter.PARENT_USER_ID}=$aParentUserId"
             }
             aAltParams?.let {
                 sResult += aAltParams
@@ -130,7 +130,7 @@ open class cStandart {
 
     //--- данные по parent-параметрам
     protected var hmParentData = mutableMapOf<String, Int>()  // key = parent alias, value = parent id
-    protected var parentUserID: Int = 0
+    protected var parentUserId: Int = 0
 
     protected lateinit var hsPermission: Set<String>
 
@@ -190,22 +190,26 @@ open class cStandart {
         try {
             val stParentAlias = StringTokenizer(hmParam[AppParameter.PARENT_ALIAS], ",")
             val stParentID = StringTokenizer(hmParam[AppParameter.PARENT_ID], ",")
-            while (stParentAlias.hasMoreTokens()) hmParentData[stParentAlias.nextToken()] = stParentID.nextToken().toInt()
+            while (stParentAlias.hasMoreTokens()) {
+                hmParentData[stParentAlias.nextToken()] = stParentID.nextToken().toInt()
+            }
         } catch (t: Throwable) {
         }
 
         //--- если никакие паренты не заданы и если при отсутствии прочих парентов должен быть парент-пользователь,
         //--- то считаем, что просто работаем со своими записями
-        if (hmParentData.isEmpty() && aliasConfig.isDefaultParentUser) hmParentData["system_user"] = userConfig.userId
+        if (hmParentData.isEmpty() && aliasConfig.isDefaultParentUser) {
+            hmParentData["system_user"] = userConfig.userId
+        }
 
         //--- попытка загрузки parentUserID
-        parentUserID = hmParam[AppParameter.PARENT_USER_ID]?.toIntOrNull() ?: 0
+        parentUserId = hmParam[AppParameter.PARENT_USER_ID]?.toIntOrNull() ?: 0
     }
 
     protected fun initModel() {
         model = Class.forName(aliasConfig.modelClassName).getConstructor().newInstance() as mAbstract
         //--- если для иерархической таблицы парент от себя не задан, то самостоятельно задаем 0-й уровень структуры иерархической таблицы
-        if (model.isExpandable() && getParentID(aliasConfig.alias) == null) {
+        if (model.isExpandable() && getParentId(aliasConfig.alias) == null) {
             hmParentData[aliasConfig.alias] = 0
         }
         model.init(application, stm, aliasConfig, userConfig, hmParam, hmParentData, getIDFromParam())
@@ -217,37 +221,59 @@ open class cStandart {
         //--- добавление базовых прав доступа
         alPermission.add(Pair(PERM_ACCESS, "01 Access"))
 
-        if (!model.isUseParentUserID() && model.columnUser == null) alPermission.add(Pair(PERM_TABLE, "02 Table"))
-        else addPermDef(PERM_TABLE, "02", "Table")
+        if (!model.isUseParentUserID() && model.columnUser == null) {
+            alPermission.add(Pair(PERM_TABLE, "02 Table"))
+        } else {
+            addPermDef(PERM_TABLE, "02", "Table")
+        }
 
-        if (!model.isUseParentUserID() && model.columnUser == null) alPermission.add(Pair(PERM_FORM, "03 Form"))
-        else addPermDef(PERM_FORM, "03", "Form")
+        if (!model.isUseParentUserID() && model.columnUser == null) {
+            alPermission.add(Pair(PERM_FORM, "03 Form"))
+        } else {
+            addPermDef(PERM_FORM, "03", "Form")
+        }
 
-        if (model.isUseParentUserID()) addPermDef(PERM_ADD, "04", "Add")
-        else alPermission.add(Pair(PERM_ADD, "04 Add"))
+        if (model.isUseParentUserID()) {
+            addPermDef(PERM_ADD, "04", "Add")
+        } else {
+            alPermission.add(Pair(PERM_ADD, "04 Add"))
+        }
 
-        if (!model.isUseParentUserID() && model.columnUser == null) alPermission.add(Pair(PERM_EDIT, "05 Edit"))
-        else addPermDef(PERM_EDIT, "05", "Edit")
+        if (!model.isUseParentUserID() && model.columnUser == null) {
+            alPermission.add(Pair(PERM_EDIT, "05 Edit"))
+        } else {
+            addPermDef(PERM_EDIT, "05", "Edit")
+        }
 
-        if (!model.isUseParentUserID() && model.columnUser == null) alPermission.add(Pair(PERM_DELETE, "06 Delete"))
-        else addPermDef(PERM_DELETE, "06", "Delete")
+        if (!model.isUseParentUserID() && model.columnUser == null) {
+            alPermission.add(Pair(PERM_DELETE, "06 Delete"))
+        } else {
+            addPermDef(PERM_DELETE, "06", "Delete")
+        }
 
         if (model.columnActive != null && model.columnArchive != null) {
-            if (!model.isUseParentUserID() && model.columnUser == null) alPermission.add(Pair(PERM_ARCHIVE, "07 Archive"))
-            else addPermDef(PERM_ARCHIVE, "07", "Archive")
+            if (!model.isUseParentUserID() && model.columnUser == null) {
+                alPermission.add(Pair(PERM_ARCHIVE, "07 Archive"))
+            } else {
+                addPermDef(PERM_ARCHIVE, "07", "Archive")
+            }
 
-            if (!model.isUseParentUserID() && model.columnUser == null) alPermission.add(Pair(PERM_UNARCHIVE, "08 Unarchive"))
-            else addPermDef(PERM_UNARCHIVE, "08", "Unarchive")
+            if (!model.isUseParentUserID() && model.columnUser == null) {
+                alPermission.add(Pair(PERM_UNARCHIVE, "08 Unarchive"))
+            } else {
+                addPermDef(PERM_UNARCHIVE, "08", "Unarchive")
+            }
         }
     }
 
     protected fun addPermDef(permName: String, permDescrNum: String, permDescr: String) {
-        for ((i, nd) in UserRelation.arrNameDescr.withIndex())
+        for ((i, nd) in UserRelation.arrNameDescr.withIndex()) {
             alPermission.add(Pair("${permName}_${nd.first}", "$permDescrNum.$i $permDescr: ${nd.second}"))
+        }
     }
 
     protected open fun isAddEnabled(): Boolean = if (model.isUseParentUserID()) {
-        checkPerm(PERM_ADD, parentUserID)
+        checkPerm(PERM_ADD, parentUserId)
     } else {
         hsPermission.contains(PERM_ADD)
     }
@@ -272,7 +298,7 @@ open class cStandart {
         if (!model.isUseParentUserID() && model.columnUser == null) {
             hsPermission.contains(permName)
         } else {
-            checkPerm(userConfig, hsPermission, permName, if (model.isUseParentUserID()) parentUserID else recordUserID)
+            checkPerm(userConfig, hsPermission, permName, if (model.isUseParentUserID()) parentUserId else recordUserID)
         }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -283,7 +309,7 @@ open class cStandart {
 
     protected fun getIDFromParam(): Int? = hmParam[AppParameter.ID]?.toIntOrNull()
 
-    protected open fun getParentID(alias: String?): Int? = hmParentData[alias]
+    protected open fun getParentId(alias: String?): Int? = hmParentData[alias]
 
     protected fun renameTableName(hsTableRenameList: Set<String>, tableName: String): String {
         return "${if (hsTableRenameList.contains(tableName)) SELF_LINK_TABLE_PREFIX else ""}$tableName"
@@ -343,7 +369,7 @@ open class cStandart {
                 if (isAliasesEquals(aliasConfig.alias, pa) && isIgnoreSelfParent) {
                     continue
                 }
-                val pid = getParentID(pa)!!
+                val pid = getParentId(pa)!!
                 //--- если parent является иерархической структурой, то вполне вероятно,
                 //--- что данный pid узла развернется в список вложенных pid'ов
                 val hsID = expandParent(pa, pid)
@@ -563,7 +589,7 @@ open class cStandart {
 
     protected fun getExpandPath(selectorID: String?, withAnchors: Boolean, alPath: MutableList<Pair<String, String>>) {
 
-        val pID = getParentID(aliasConfig.alias)
+        val pID = getParentId(aliasConfig.alias)
         val originalParentID = pID ?: 0
         var curParentID = originalParentID
         while (true) {
@@ -707,8 +733,8 @@ open class cStandart {
             rsTable = stmTable.executeQuery(sqlStr)
         }
 
-        var dataRowCount = 0    // счетчик логических строк ( без учета отображения группировок )
-        var tableRowCount = 0       // общий счетчик физических строк ( с учетом отображения группировок )
+        var dataRowCount = 0    // счетчик логических строк (без учета отображения группировок)
+        var tableRowCount = 0       // общий счетчик физических строк (с учетом отображения группировок)
         var nextPageExist = false
         val alTableCell = mutableListOf<TableCell>()
         val alTableRowData = mutableListOf<TableRowData>()
@@ -731,13 +757,13 @@ open class cStandart {
                 rowCount = 0
             } else {
                 //--- возможная догенерация данных после фильтров поиска и страничной разбивки
-                generateColumnDataAfterFilter(hmColumnData)
+                generateTableColumnDataAfterFilter(hmColumnData)
                 rowCount = getTableRow(hmColumnData, dataRowCount + 1, tableRowCount, selectorID, selectorParam, refererID, alTableCell, alTableRowData, hmOut)
             }
             //--- вынесено сюда, чтобы нумерация строк работала независимо от наличия постраничной разбивки
             dataRowCount++
             tableRowCount += rowCount
-            if (model.columnId != null && (hmColumnData[model.columnId] as DataInt).intValue == currentRowID) {
+            if ((hmColumnData[model.columnId] as DataInt).intValue == currentRowID) {
                 currentRowNo = tableRowCount - 1
             }
             if (aliasConfig.pageSize > 0 && dataRowCount >= (pageNo + 1) * aliasConfig.pageSize) {
@@ -758,10 +784,12 @@ open class cStandart {
                 aRefererID = selectorParam.refererId,
                 aID = selectorParam.recordId,
                 aParentData = selectorParam.hmParentData,
-                aParentUserID = selectorParam.parentUserId,
+                aParentUserId = selectorParam.parentUserId,
                 aAltParams = "&${AppParameter.FORM_DATA}=$formDataID"
             )
-        } else ""
+        } else {
+            ""
+        }
 
         //--- панель поиска
         val findData = getFindForm(refererID, finderID)
@@ -958,7 +986,7 @@ open class cStandart {
     //--- перекрывается наследниками для генерации данных в момент загрузки записей ДО и ПОСЛЕ фильтров поиска и страничной разбивки
     protected open fun generateColumnDataBeforeFilter(hmColumnData: MutableMap<iColumn, iData>) {}
 
-    protected open fun generateColumnDataAfterFilter(hmColumnData: MutableMap<iColumn, iData>) {}
+    protected open fun generateTableColumnDataAfterFilter(hmColumnData: MutableMap<iColumn, iData>) {}
 
     protected fun getTableRow(
         hmColumnData: Map<iColumn, iData>,
@@ -1056,7 +1084,7 @@ open class cStandart {
                 aRefererID = refererID,
                 aID = valueID,
                 aParentData = hmParentData,
-                aParentUserID = parentUserID,
+                aParentUserId = parentUserId,
                 aAltParams = null
             )
         } else {
@@ -1164,11 +1192,20 @@ open class cStandart {
                     //--- определение контрольного значения
                     var controlValue = 0
                     val data = hmColumnData[fcvd.columnMaster]
-                    if (data is DataBoolean) controlValue = if (data.value) 1 else 0
-                    else if (data is DataAbstractSelector) controlValue = data.intValue
+                    if (data is DataBoolean) {
+                        controlValue = if (data.value) {
+                            1
+                        } else {
+                            0
+                        }
+                    } else if (data is DataAbstractSelector) {
+                        controlValue = data.intValue
+                    }
                     cellIsVisible = cellIsVisible and (fcvd.state == fcvd.values.contains(controlValue))
                     //--- одного доказательства невидимости достаточно
-                    if (!cellIsVisible) break
+                    if (!cellIsVisible) {
+                        break
+                    }
                 }
                 //--- передаем именно свежесозданный CoreTableCellInfo, т.к. у него будут меняться настройки стиля
                 val tci = if (cellIsVisible) {
@@ -1255,9 +1292,9 @@ open class cStandart {
 
         for (i in selectorParam.alColumnTo.indices) {
             val columnFrom = selectorParam.alColumnFrom[i]
-            //--- запомнить прежнее ( возможно, подстановочное ) имя таблицы
+            //--- запомнить прежнее (возможно, подстановочное) имя таблицы
             val oldTableName = columnFrom.columnTableName
-            //--- если есть реальное имя таблицы ( т.е. нынешнее значение - подстановочное ),
+            //--- если есть реальное имя таблицы (т.е. нынешнее значение - подстановочное),
             //--- то на время поиска поля в выборке заменим подстановочное имя таблицы на реальное
             if (columnFrom.selfLinkTableName != null) {
                 columnFrom.columnTableName = columnFrom.selfLinkTableName!!
@@ -1294,7 +1331,7 @@ open class cStandart {
                 aRefererID = selectorParam.refererId,
                 aID = selectorParam.recordId,
                 aParentData = selectorParam.hmParentData,
-                aParentUserID = selectorParam.parentUserId,
+                aParentUserId = selectorParam.parentUserId,
                 aAltParams = "&${AppParameter.FORM_DATA}=$formDataID"
             ),
             aInNewWindow = false
@@ -1339,7 +1376,7 @@ open class cStandart {
         //--- если есть свой columnUser, то передаем его значение, иначе передаем дальше родительский userID
         var newParentUserID = getRecordUserID(hmColumnData)
         if (newParentUserID == 0) {
-            newParentUserID = parentUserID
+            newParentUserID = parentUserId
         }
 
         val popupURL = getParamURL(
@@ -1402,7 +1439,7 @@ open class cStandart {
                 caption = "Добавить",
                 tooltip = "Добавить",
                 icon = ICON_NAME_ADD_ITEM,
-                url = getParamURL(aliasConfig.alias, AppAction.FORM, refererID, 0, hmParentData, parentUserID, null)
+                url = getParamURL(aliasConfig.alias, AppAction.FORM, refererID, 0, hmParentData, parentUserId, null)
             )
         )
 
@@ -1427,7 +1464,7 @@ open class cStandart {
         alColumnList.addAll(model.alFormColumn)
 
         val refererID = hmParam[AppParameter.REFERER]
-        val refererURL = refererID?.let { chmSession[AppParameter.REFERER + it] as String }
+        val refererURL = refererID?.let { chmSession[AppParameter.REFERER + it] as? String }
 
         //--- preparing a "clean" appParam for form buttons
         //--- (simple cloning of the original hmParam won't do here,
@@ -1439,6 +1476,9 @@ open class cStandart {
         val formDataID = hmParam[AppParameter.FORM_DATA]
         if (formDataID != null) {
             hmColumnData = chmSession[AppParameter.FORM_DATA + formDataID] as? MutableMap<iColumn, iData>?
+            if (hmColumnData != null) {
+                postProcessFormColumnDataFromFormData(id, hmColumnData)
+            }
         }
 
         //--- это первый запуск формы
@@ -1452,7 +1492,7 @@ open class cStandart {
                     if (column.selectorAlias == null || column.isNotUseParentId) {
                         continue
                     }
-                    val pID = getParentID(column.selectorAlias)
+                    val pID = getParentId(column.selectorAlias)
                     if (pID != null && pID != 0) {
                         (hmColumnData[column.getSelectTo()[0]] as DataInt).intValue = pID
                     }
@@ -1489,7 +1529,7 @@ open class cStandart {
             throw BusinessException("Просмотр данных в форме не разрешен.")
         }
         //--- генерация вычисляемых полей
-        generateFormColumnData(id, hmColumnData)
+        getCalculatedFormColumnData(id, hmColumnData)
 
         //--- заранее сохраним разрешение сохранения, чтобы использовать при выводе
         val isEditEnabled = isEditEnabled(hmColumnData, id)
@@ -1637,6 +1677,8 @@ open class cStandart {
         return AppParameter.collectParam(hmFormParam)
     }
 
+    protected open fun postProcessFormColumnDataFromFormData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {}
+
     protected fun getFormDefaultValues(alColumnList: List<iColumn>, forSetting: Boolean): MutableMap<iColumn, iData> {
         val hmColumnData = mutableMapOf<iColumn, iData>()
 
@@ -1648,7 +1690,7 @@ open class cStandart {
         return hmColumnData
     }
 
-    protected open fun generateFormColumnData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {}
+    protected open fun getCalculatedFormColumnData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {}
 
     protected fun getFormCell(column: iColumn, hmColumnData: Map<iColumn, iData>, isEditable: Boolean): FormCell {
         val fci = hmColumnData[column]!!.getFormCell(
@@ -1693,7 +1735,7 @@ open class cStandart {
         selectorParam.recordId = id
         selectorParam.refererId = refererID
         selectorParam.hmParentData = hmParentData
-        selectorParam.parentUserId = parentUserID
+        selectorParam.parentUserId = parentUserId
 
         selectorParam.selectorAlias = column.selectorAlias!!
         selectorParam.selectedId = (hmColumnData[column.getSelectTo()[0]] as DataInt).intValue
@@ -1904,7 +1946,7 @@ open class cStandart {
                     aRefererID = selectorParam.refererId,
                     aID = selectorParam.recordId,
                     aParentData = selectorParam.hmParentData,
-                    aParentUserID = selectorParam.parentUserId,
+                    aParentUserId = selectorParam.parentUserId,
                     aAltParams = "&${AppParameter.FORM_DATA}=$formDataID"
                 )
             } else {
@@ -1915,7 +1957,7 @@ open class cStandart {
                     aRefererID = null,
                     aID = null,
                     aParentData = null,
-                    aParentUserID = null,
+                    aParentUserId = null,
                     aAltParams = "&${AppParameter.SELECTOR}=$selectorID"
                 )
             }
@@ -1943,7 +1985,7 @@ open class cStandart {
     }
 
     protected open fun getInvalidFormDataUrl(id: Int, formDataID: String): String =
-        getParamURL(aliasConfig.alias, AppAction.FORM, hmParam[AppParameter.REFERER], id, hmParentData, parentUserID, "&${AppParameter.FORM_DATA}=$formDataID")
+        getParamURL(aliasConfig.alias, AppAction.FORM, hmParam[AppParameter.REFERER], id, hmParentData, parentUserId, "&${AppParameter.FORM_DATA}=$formDataID")
 
     //--- для классов-наследников - пред-обработка сохранения
     protected open fun preSave(id: Int, hmColumnData: Map<iColumn, iData>) {}
