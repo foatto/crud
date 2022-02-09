@@ -1,5 +1,6 @@
 package foatto.core_server.app
 
+import foatto.core_server.app.server.UserDTO
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedStatement
 
@@ -21,6 +22,10 @@ interface iApplication {
     fun getFileList(conn: CoreAdvancedConnection, fileId: Int): List<Pair<Int, String>>
     fun saveFile(stm: CoreAdvancedStatement, fileId: Int, idFromClient: Int, fileName: String)
     fun deleteFile(stm: CoreAdvancedStatement, fileId: Int, id: Int? = null)
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    fun getUserDTO(userId: Int): UserDTO
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

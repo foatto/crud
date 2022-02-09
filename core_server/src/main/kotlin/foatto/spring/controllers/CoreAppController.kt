@@ -20,14 +20,18 @@ import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.OrgType
 import foatto.core_server.app.server.UserConfig
+import foatto.core_server.app.server.UserDTO
 import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.xy.XyStartData
 import foatto.core_server.app.xy.server.document.sdcXyAbstract
 import foatto.spring.CoreSpringApp
+import foatto.spring.repositories.UserRepository
 import foatto.sql.AdvancedConnection
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedStatement
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -796,5 +800,51 @@ abstract class CoreAppController : iApplication {
     private fun createFormMenu(hmAliasConfig: Map<String, AliasConfig>, alias: String): MenuData {
         return MenuData("${AppParameter.ALIAS}=$alias&${AppParameter.ACTION}=${AppAction.FORM}&${AppParameter.ID}=0", hmAliasConfig[alias]!!.descr)
     }
+
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @Autowired
+    private lateinit var userRepository: UserRepository
+
+    override fun getUserDTO(userId: Int): UserDTO {
+        val userEntity = userRepository.findByIdOrNull(userId) ?: "User not exist for user_id = $userId".let {
+            AdvancedLogger.error(it)
+            throw Exception(it)
+        }
+
+        return UserDTO(
+            id = userEntity.id,
+            parentId = userEntity.parentId,
+            userId = userEntity.userId,
+            isDisabled = userEntity.isDisabled != 0,
+            orgType = userEntity.orgType,
+            login = userEntity.login,
+            password = userEntity.password,
+            fullName = userEntity.fullName,
+            shortName = userEntity.shortName,
+            atCount = userEntity.atCount,
+            lastLoginDateTime = intArrayOf(
+                userEntity.lastLoginDateTime.ye,
+                userEntity.lastLoginDateTime.mo,
+                userEntity.lastLoginDateTime.da,
+                userEntity.lastLoginDateTime.ho,
+                userEntity.lastLoginDateTime.mi,
+                0
+            ),
+            passwordLastChangeDate = intArrayOf(
+                userEntity.passwordLastChangeDate.ye,
+                userEntity.passwordLastChangeDate.mo,
+                userEntity.passwordLastChangeDate.da,
+                0,
+                0,
+                0
+            ),
+            eMail = userEntity.eMail,
+            contactInfo = userEntity.contactInfo,
+            fileId = userEntity.fileId,
+            lastIP = userEntity.lastIP,
+        )
+    }
+
 }
 

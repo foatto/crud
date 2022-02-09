@@ -13,6 +13,7 @@ import io.minio.MinioClient
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.SpringBootApplication
 import java.io.File
 import java.time.ZoneId
 import java.util.concurrent.ConcurrentHashMap
@@ -22,7 +23,10 @@ import kotlin.math.min
 //--- добавлять у каждого наследника
 //@SpringBootApplication  // = @SpringBootConfiguration + @EnableAutoConfiguration + @ComponentScan
 //@EnableWebMvc
-open class CoreSpringApp {
+@SpringBootApplication(
+    scanBasePackages = ["foatto.spring"],
+)
+class CoreSpringApp {
 //    companion object {
 //        @JvmStatic
 //        fun main(args: Array<String>) {
