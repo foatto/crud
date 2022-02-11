@@ -283,14 +283,14 @@ open class Index {
                         //--- необязательно - пусть лучше по высоте равны кнопке меню
                         //"align-items" to "flex-end",            // прижимаем вкладки к нижнему контролу
                         "padding" to styleTabPanelPadding(),
-                        "background" to COLOR_BACK
+                        "background" to COLOR_MAIN_BACK_0
                     ),
 
                     "style_tab_combo" to json(
                         "flex-grow" to 1,
                         "flex-shrink" to 1,
-                        "background" to COLOR_BUTTON_BACK,
-                        "border" to "1px solid $COLOR_BUTTON_BORDER",
+                        "background" to colorButtonBack,
+                        "border" to "1px solid $colorMainBorder",
                         "border-radius" to BORDER_RADIUS,
                         "font-size" to styleTabComboFontSize(),
                         "padding" to styleTabComboPadding(),
@@ -300,8 +300,8 @@ open class Index {
                         "flex-grow" to 0,
                         "flex-shrink" to 0,
                         "align-self" to "flex-start", //"flex-end" - сдвигает в правый нижний угол
-                        "background" to COLOR_BUTTON_BACK,
-                        "border" to "1px solid $COLOR_BUTTON_BORDER",
+                        "background" to colorButtonBack,
+                        "border" to "1px solid $colorMainBorder",
                         "border-radius" to BORDER_RADIUS,
                         "padding" to styleIconButtonPadding(),
                         "margin" to styleTabCloserButtonMargin(),
@@ -309,9 +309,9 @@ open class Index {
                     ),
 
                     "style_tab_current_title" to json(
-                        "background" to COLOR_TAB_BACK_CURRENT,
-                        "border-left" to "1px solid $COLOR_TAB_BORDER",
-                        "border-top" to "1px solid $COLOR_TAB_BORDER",
+                        "background" to colorMainBack1,
+                        "border-left" to "1px solid $colorMainBorder",
+                        "border-top" to "1px solid $colorMainBorder",
                         "border-right" to "none",
                         "border-bottom" to "none",
                         "border-radius" to "$BORDER_RADIUS 0 0 0",
@@ -320,32 +320,32 @@ open class Index {
                         "cursor" to "pointer"
                     ),
                     "style_tab_current_closer" to json(
-                        "background" to COLOR_TAB_BACK_CURRENT,
+                        "background" to colorMainBack1,
                         "border-left" to "none",
-                        "border-top" to "1px solid $COLOR_TAB_BORDER",
-                        "border-right" to "1px solid $COLOR_TAB_BORDER",
-                        "border-bottom" to "1px solid $COLOR_PANEL_BACK",   // иначе белая полоска вместо пустого места от бордера
+                        "border-top" to "1px solid $colorMainBorder",
+                        "border-right" to "1px solid $colorMainBorder",
+                        "border-bottom" to "1px solid $colorMainBack1",   // иначе белая полоска вместо пустого места от бордера
                         "border-radius" to "0 $BORDER_RADIUS 0 0",
                         "padding" to styleTabCurrentCloserPadding(),
                         "cursor" to "pointer"
                     ),
                     "style_tab_other_title" to json(
-                        "background" to COLOR_TAB_BACK_OTHER,
-                        "border-left" to "1px solid $COLOR_TAB_BORDER",
-                        "border-top" to "1px solid $COLOR_TAB_BORDER",
+                        "background" to colorMainBack2,
+                        "border-left" to "1px solid $colorMainBorder",
+                        "border-top" to "1px solid $colorMainBorder",
                         "border-right" to "none",
-                        "border-bottom" to "1px solid $COLOR_TAB_BORDER",
+                        "border-bottom" to "1px solid $colorMainBorder",
                         "border-radius" to "$BORDER_RADIUS 0 0 0",
                         "font-size" to styleTabButtonFontSize(),
                         "padding" to styleTabOtherTitlePadding(),
                         "cursor" to "pointer"
                     ),
                     "style_tab_other_closer" to json(
-                        "background" to COLOR_TAB_BACK_OTHER,
+                        "background" to colorMainBack2,
                         "border-left" to "none",
-                        "border-top" to "1px solid $COLOR_TAB_BORDER",
-                        "border-right" to "1px solid $COLOR_TAB_BORDER",
-                        "border-bottom" to "1px solid $COLOR_TAB_BORDER",
+                        "border-top" to "1px solid $colorMainBorder",
+                        "border-right" to "1px solid $colorMainBorder",
+                        "border-bottom" to "1px solid $colorMainBorder",
                         "border-radius" to "0 $BORDER_RADIUS 0 0",
                         "padding" to styleTabOtherCloserPadding(),
                         "cursor" to "pointer"
@@ -358,7 +358,7 @@ open class Index {
                         "width" to "100%",
                         "height" to "100%",
                         "z-index" to "1000",
-                        "background" to "rgba( $COLOR_WAIT, 0.7 )",
+                        "background" to colorWaitBack,
                         "display" to "grid",
                         "grid-template-rows" to "1fr auto 1fr",
                         "grid-template-columns" to "1fr auto 1fr",
@@ -371,10 +371,10 @@ open class Index {
                         "width" to "16rem",
                         "height" to "16rem",
                         "z-index" to "1001",
-                        "border-top" to "2rem solid $COLOR_LOADER_3",
-                        "border-right" to "2rem solid $COLOR_LOADER_2",
-                        "border-bottom" to "2rem solid $COLOR_LOADER_1",
-                        "border-left" to "2rem solid $COLOR_LOADER_0",
+                        "border-top" to "2rem solid $colorWaitLoader3",
+                        "border-right" to "2rem solid $colorWaitLoader2",
+                        "border-bottom" to "2rem solid $colorWaitLoader1",
+                        "border-left" to "2rem solid $colorWaitLoader0",
                         "border-radius" to "50%",
                         "animation" to "spin 2s linear infinite",
                     ),
@@ -389,7 +389,7 @@ open class Index {
                         "width" to "100%",
                         "height" to "100%",
                         "z-index" to "2000",
-                        "background" to COLOR_DIALOG_BACK,
+                        "background" to colorDialogBack,
                         "display" to "grid",
                         "grid-template-rows" to "1fr auto 1fr",
                         "grid-template-columns" to "1fr auto 1fr",
@@ -418,7 +418,7 @@ open class Index {
                         "align-self" to "center",
                         "font-size" to styleControlTextFontSize(),
                         "font-weight" to "bold",
-                        "color" to COLOR_TEXT,
+                        "color" to COLOR_MAIN_TEXT,
                     ),
                     "style_dialog_button_ok" to json(
                         "background" to colorDialogButtonBack,

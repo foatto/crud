@@ -36,7 +36,7 @@ private fun menuGenerateSummaryTag(summaryLevel: Int): String {
     val menuDataName = "menuData_$summaryLevel"
     return """
         v-bind:style="[ style_menu_summary_$summaryLevel,
-                        { 'background-color' : ( $menuDataName.itHover? '$COLOR_MENU_BACK_HOVER' : '$COLOR_MENU_GROUP_BACK' ) }
+                        { 'background-color' : ( $menuDataName.itHover? '$colorCurrentAndHover' : '$colorMenuBack' ) }
                       ]"
             v-on:mouseenter="$menuDataName.itHover = true"
             v-on:mouseleave="$menuDataName.itHover = false"
@@ -47,9 +47,9 @@ private fun menuGenerateItem(menuLevel: Int, clickFunctionName: String, menuData
     val menuDataName = "menuData_$menuLevel"
     return """
         <div v-bind:style="[ style_menu_item_$menuLevel,
-                        { 'background-color' : ( $menuDataName.itHover? '$COLOR_MENU_BACK_HOVER' : '$COLOR_MENU_ITEM_BACK' ) },
+                        { 'background-color' : ( $menuDataName.itHover? '$colorCurrentAndHover' : '$colorMenuBack' ) },
                         { 'text-decoration' : ( $menuDataName.url || $menuDataName.text ? '' : 'line-through' ) },
-                        { 'color' : ( $menuDataName.url || $menuDataName.text ? '$COLOR_TEXT' : '$COLOR_MENU_DELIMITER' ) }
+                        { 'color' : ( $menuDataName.url || $menuDataName.text ? '$COLOR_MAIN_TEXT' : '$colorMenuDelimiter' ) }
                       ]"
             v-on:click="$menuDataName.url ? $clickFunctionName( $menuDataName$menuDataPostFix ) : null"
             v-on:mouseenter="$menuDataName.text ? $menuDataName.itHover = true : $menuDataName.itHover = false"

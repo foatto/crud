@@ -87,7 +87,7 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                     >
                     <img src="/web/images/ic_youtube_searched_for_black_48dp.png" 
                          v-show="findText" 
-                         v-bind:style="[ style_icon_button, style_button_with_border, { 'color': '$COLOR_TABLE_FIND_CLEAR' } ]"
+                         v-bind:style="[ style_icon_button, style_button_with_border ]"
                          v-on:click="doFind( true )"
                          title="Отключить поиск"
                     >
@@ -168,7 +168,7 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                      v-bind:style="[
                         gridData.cellStyle,
                         { 'background' : ( gridData.row >= 0 && currentRow >= gridData.row && currentRow < gridData.row + gridData.rowSpan ?
-                                          '$COLOR_TABLE_ROW_SELECTED_BACK' : gridData.backColor ) }
+                                          '$colorCurrentAndHover' : gridData.backColor ) }
                      ]"
                      v-on:dblclick.prevent="gridData.row >= 0 && arrRowData[ gridData.row ].rowURL ?
                                     invoke( arrRowData[ gridData.row ].rowURL, arrRowData[ gridData.row ].itRowURLInNewWindow ) : null"
@@ -404,10 +404,10 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                         "grid-area" to "${startRow + 1} / ${index + 1} / ${startRow + 2} / ${index + 2}",
                         "justify-self" to "stretch",
                         "align-self" to "stretch",
-                        "border-left" to "0.5px solid $COLOR_TAB_BORDER",
+                        "border-left" to "0.5px solid $colorMainBorder",
                         "border-top" to "none",
-                        "border-right" to "0.5px solid $COLOR_TAB_BORDER",
-                        "border-bottom" to "1px solid $COLOR_TAB_BORDER",
+                        "border-right" to "0.5px solid $colorMainBorder",
+                        "border-bottom" to "1px solid $colorMainBorder",
                         "cursor" to if (url.isBlank()) "default" else "pointer",
                         "display" to "flex",
                         "justify-content" to "center",
@@ -422,7 +422,7 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                     elementStyle = json(
                     ),
                     rowSpan = 1,
-                    backColor = COLOR_PANEL_BACK,
+                    backColor = colorMainBack1,
                     tooltip = if (url.isBlank()) "" else "Сортировать по этому столбцу",
                     textCellData = TableTextCellData_(
                         text = text
@@ -443,15 +443,15 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                         TableCellBackColorType.GROUP_0.toString() -> colorGroupBack0
                         TableCellBackColorType.GROUP_1.toString() -> colorGroupBack1
                         else -> if (tc.row % 2 == 0) {
-                            COLOR_TABLE_ROW_0_BACK
+                            colorTableRowBack0
                         } else {
-                            COLOR_TABLE_ROW_1_BACK
+                            colorTableRowBack1
                         }
                     }
                 val textColor =
                     when (tc.foreColorType.toString()) {
                         TableCellForeColorType.DEFINED.toString() -> getColorFromInt(tc.foreColor)
-                        else -> COLOR_TEXT
+                        else -> COLOR_MAIN_TEXT
                     }
                 val align =
                     when (tc.cellType.toString()) {
@@ -535,7 +535,6 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                         )
                     }
                     TableCellType.BUTTON.toString() -> {
-                        var isIcon = false
                         tc.arrButtonCellData.forEachIndexed { index, cellData ->
                             val icon = hmTableIcon[cellData.icon] ?: ""
                             //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
@@ -552,10 +551,10 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                                     url = cellData.url,
                                     inNewWindow = cellData.inNewWindow,
                                     style = json(
-                                        "border" to "1px solid $COLOR_TAB_BORDER",
+                                        "border" to "1px solid $colorButtonBorder",
                                         "border-radius" to BORDER_RADIUS,
-                                        "background" to COLOR_BUTTON_BACK,
-                                        "color" to if (isIcon) COLOR_TABLE_BUTTON else textColor,
+                                        "background" to colorButtonBack,
+                                        "color" to textColor,
                                         "font-size" to styleCommonButtonFontSize(),
                                         "padding" to styleTextButtonPadding(),
                                         "cursor" to "pointer",
@@ -565,7 +564,6 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                                     )
                                 )
                             )
-                            isIcon = icon.isNotBlank()
                         }
                         if (tc.arrButtonCellData.isNotEmpty()) {
                             cellStyle.add(
@@ -832,9 +830,9 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                 "flex-wrap" to "wrap",
                 "justify-content" to "center",
                 "align-items" to "center",        // "baseline" ?
-                "border-top" to if (!styleIsNarrowScreen) "none" else "1px solid $COLOR_BUTTON_BORDER",
+                "border-top" to if (!styleIsNarrowScreen) "none" else "1px solid $colorMainBorder",
                 "padding" to styleControlPadding(),
-                "background" to COLOR_PANEL_BACK,
+                "background" to colorMainBack1,
             ),
             "style_toolbar" to json(
                 "flex-grow" to 0,
@@ -844,9 +842,9 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                 "flex-wrap" to "wrap",
                 "justify-content" to "space-between",
                 "align-items" to "center",
-                "border-bottom" to "1px solid $COLOR_BUTTON_BORDER",
+                "border-bottom" to "1px solid $colorMainBorder",
                 "padding" to styleControlPadding(),
-                "background" to COLOR_PANEL_BACK,
+                "background" to colorMainBack1,
             ),
             "style_toolbar_block" to json(
                 "display" to "flex",
@@ -863,30 +861,30 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                 "flex-wrap" to "wrap",
                 "justify-content" to "center",
                 "align-items" to "center",
-                "border-top" to "1px solid $COLOR_BUTTON_BORDER",
+                "border-top" to "1px solid $colorMainBorder",
                 "padding" to styleTablePageBarPadding(),
-                "background" to COLOR_PANEL_BACK,
+                "background" to colorMainBack1,
             ),
             "style_title" to json(
                 "font-size" to styleControlTitleTextFontSize(),
                 "padding" to styleControlTitlePadding(),
             ),
             "style_icon_button" to json(
-                "background" to COLOR_BUTTON_BACK,
+                "background" to colorButtonBack,
                 "font-size" to styleCommonButtonFontSize(),
                 "padding" to styleIconButtonPadding(),
                 "margin" to styleCommonMargin(),
                 "cursor" to "pointer"
             ),
             "style_text_button" to json(
-                "background" to COLOR_BUTTON_BACK,
+                "background" to colorButtonBack,
                 "font-size" to styleCommonButtonFontSize(),
                 "padding" to styleTextButtonPadding(),
                 "margin" to styleCommonMargin(),
                 "cursor" to "pointer",
             ),
             "style_button_with_border" to json(
-                "border" to "1px solid $COLOR_BUTTON_BORDER",
+                "border" to "1px solid $colorButtonBorder",
                 "border-radius" to BORDER_RADIUS,
             ),
             "style_button_no_border" to json(
@@ -894,7 +892,7 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
             ),
             "style_find_editor_len" to styleTableFindEditLength(),
             "style_find_editor" to json(
-                "border" to "1px solid $COLOR_BUTTON_BORDER",
+                "border" to "1px solid $colorMainBorder",
                 "border-radius" to BORDER_RADIUS,
                 "font-size" to styleTableFindEditorFontSize(),
                 "padding" to styleCommonEditorPadding(),
@@ -911,8 +909,8 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                 "top" to "20%",
                 "bottom" to if (styleIsNarrowScreen) "20%" else "10%",
                 "width" to styleMenuWidth(),
-                "background" to COLOR_MENU_GROUP_BACK,
-                "border" to "1px solid $COLOR_MENU_BORDER",
+                "background" to colorMenuBack,
+                "border" to "1px solid $colorMenuBorder",
                 "border-radius" to BORDER_RADIUS,
                 "font-size" to styleMenuFontSize(),
                 "padding" to styleMenuStartPadding(),

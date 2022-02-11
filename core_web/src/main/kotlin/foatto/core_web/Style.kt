@@ -3,155 +3,105 @@ package foatto.core_web
 import kotlinx.browser.localStorage
 import kotlinx.browser.window
 
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//--- MAIN BACK ----------------------------------------------------------------------------------------------------------------------------------------------------------
 
-private const val COLOR_MAIN_BACK_0 = "#ffffff"     // основной белый фон
-private const val COLOR_MAIN_BACK_1 = "#f0f0f0"     // фон панелей с кнопками, кнопок и меню, цвет фона для чётных строк таблиц и прочего чередования
-private const val COLOR_MAIN_BACK_2 = "#e0e0e0"     // фон неактивных вкладок
-private const val COLOR_MAIN_BACK_3 = "#d0d0d0"     // фон разделителей в меню
+const val COLOR_MAIN_BACK_0 = "hsl(0,0%,100%)"     // main background - white color for input fields, etc.
 
-private const val COLOR_MAIN_ROW_0_BACK = "#ffffff"
-private const val COLOR_MAIN_ROW_1_BACK = "#f6f6f6" // д.б. между COLOR_MAIN_BACK_0 и COLOR_MAIN_BACK_1
+//--- different gray tones by default
+var colorMainBack0 = "hsl(0,0%,97%)"     // buttons
+var colorMainBack1 = "hsl(0,0%,94%)"     // panels, menus
+var colorMainBack2 = "hsl(0,0%,88%)"     // non-active tabs
+var colorMainBack3 = "hsl(0,0%,82%)"     // menu delimiters
 
-//--- зелёная группировка
-private const val COLOR_MAIN_BACK_GROUP_0 = "#e0f0e0"
-private const val COLOR_MAIN_BACK_GROUP_1 = "#f0fff0"
-//--- фиолетовая группировка
-//private const val COLOR_MAIN_BACK_GROUP_0 = "#e0e0f0"
-//private const val COLOR_MAIN_BACK_GROUP_1 = "#f0f0ff"
+//--- BORDER -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-private const val COLOR_MAIN_BACK_HOVER_0 = "#ffffd0"
-//private const val COLOR_MAIN_BACK_HOVER_1 = "#ffffc0"
+var colorMainBorder = "hsl(120,41%,69%)"
 
-private const val COLOR_MAIN_BORDER = "#90d090" //"#a0a0a0"     // цвет рамок,бордюров, границ
+//--- TEXT ---------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-private const val COLOR_MAIN_TEXT = "#000000"
+const val COLOR_MAIN_TEXT = "hsl(0,0%,0%)"
 
-//private const val COLOR_MAIN_MODAL_BACK = "#000000"
+//--- BUTTON -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-private const val COLOR_MAIN_WAIT = "255, 255, 255"
+var colorButtonBack = colorMainBack0
+var colorButtonBorder = colorMainBorder
 
-private const val COLOR_MAIN_LOADER_0 = "#ffff90"
-private const val COLOR_MAIN_LOADER_1 = "#ffffb0"
-private const val COLOR_MAIN_LOADER_2 = "#ffffd0"
-private const val COLOR_MAIN_LOADER_3 = "#fffff0"
+//--- LOGON FORM ---------------------------------------------------------------------------------------------------------------------------------------------------------
 
-private const val COLOR_MAIN_GOOD_HOVER = "#008000"
-private const val COLOR_MAIN_GOOD_CURRENT = "#004000"
-private const val COLOR_MAIN_GOOD_OTHER = "#002000"
+var colorLogonBackAround = colorMainBack1
+var colorLogonBackCenter = colorMainBack2
+var colorLogonBorder = colorMainBorder
+var colorLogonButtonBack = colorButtonBack
+var colorLogonButtonBorder = colorMainBorder
 
-private const val COLOR_MAIN_NEUTRAL_HOVER = "#000080"
-private const val COLOR_MAIN_NEUTRAL_CURRENT = "#000040"
-private const val COLOR_MAIN_NEUTRAL_OTHER = "#000020"
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-private const val COLOR_MAIN_BAD_HOVER = "#800000"
-private const val COLOR_MAIN_BAD_CURRENT = "#400000"    //"#800000"
-private const val COLOR_MAIN_BAD_OTHER = "#200000"
+var colorCurrentAndHover = "hsl(60,100%,90%)"
 
-//--- General --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-const val COLOR_BACK = COLOR_MAIN_BACK_0
-
-const val COLOR_PANEL_BACK = COLOR_MAIN_BACK_1
-
-const val COLOR_TAB_BACK_CURRENT = COLOR_MAIN_BACK_1
-const val COLOR_TAB_BACK_OTHER = COLOR_MAIN_BACK_2
-const val COLOR_TAB_BORDER = COLOR_MAIN_BORDER
-
-const val COLOR_BUTTON_BACK = COLOR_MAIN_BACK_1     // COLOR_MAIN_BORDER
-const val COLOR_BUTTON_BORDER = COLOR_MAIN_BORDER
-
-const val COLOR_TEXT = COLOR_MAIN_TEXT
-
-//const val COLOR_MODAL_BACK = COLOR_MAIN_MODAL_BACK
-
-const val COLOR_WAIT = COLOR_MAIN_WAIT
-const val COLOR_LOADER_0 = COLOR_MAIN_LOADER_0
-const val COLOR_LOADER_1 = COLOR_MAIN_LOADER_1
-const val COLOR_LOADER_2 = COLOR_MAIN_LOADER_2
-const val COLOR_LOADER_3 = COLOR_MAIN_LOADER_3
-
-//--- Dialog --- -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-val COLOR_DIALOG_BACK = "#000000c0"
-var colorDialogBorder = COLOR_MAIN_BORDER
-var colorDialogBackCenter = COLOR_MAIN_BACK_1
-var colorDialogButtonBack = COLOR_BUTTON_BACK
-var colorDialogButtonBorder = COLOR_BUTTON_BORDER
-
-//--- Menu -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//--- MENU ---------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 const val IS_HIDDEN_MENU_BAR = "is_hidden_menu_bar"
 
-const val COLOR_MENU_GROUP_BACK = COLOR_MAIN_BACK_1
-const val COLOR_MENU_ITEM_BACK = COLOR_MAIN_BACK_1
-const val COLOR_MENU_BACK_HOVER = COLOR_MAIN_BACK_HOVER_0   //COLOR_MAIN_BACK_HOVER_1
-const val COLOR_MENU_BORDER = COLOR_MAIN_BORDER
-const val COLOR_MENU_DELIMITER = COLOR_MAIN_BACK_3
+var colorMenuBack = colorMainBack1
+var colorMenuBorder = colorMainBorder
+var colorMenuDelimiter = colorMainBack1
 
 val MENU_DELIMITER = "&nbsp;".repeat(60)
 
-//--- LOGON FORM -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//--- TABLE --------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-var colorLogonBackAround = COLOR_PANEL_BACK
-var colorLogonBackCenter = COLOR_MAIN_BACK_1
-var colorLogonBorder = COLOR_MAIN_BORDER
-var colorLogonCheckBoxText = COLOR_TEXT
-var colorLogonButtonBack = COLOR_BUTTON_BACK
-var colorLogonButtonBorder = COLOR_BUTTON_BORDER
+var colorTableRowBack0 = "hsl(0,0%,100%)"
+var colorTableRowBack1 = "hsl(0,0%,97%)"
 
-//--- TABLE ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+var colorGroupBack0 = "hsl(120,35%,90%)"
+var colorGroupBack1 = "hsl(120,100%,95%)"
 
-const val COLOR_TABLE_SELECTOR_CANCEL = COLOR_MAIN_BAD_CURRENT
+//--- FORM ---------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-const val COLOR_TABLE_FIND_CLEAR = COLOR_MAIN_BAD_CURRENT
-
-const val COLOR_TABLE_ROW_SELECTED_BACK = COLOR_MAIN_BACK_HOVER_0
-
-const val COLOR_TABLE_ROW_0_BACK = COLOR_MAIN_ROW_0_BACK
-const val COLOR_TABLE_ROW_1_BACK = COLOR_MAIN_ROW_1_BACK
-
-var colorGroupBack0 = COLOR_MAIN_BACK_GROUP_0
-var colorGroupBack1 = COLOR_MAIN_BACK_GROUP_1
-
-const val COLOR_TABLE_BUTTON = COLOR_MAIN_GOOD_CURRENT
-
-//--- FORM -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-const val COLOR_FORM_SWITCH_BACK_OFF = COLOR_MAIN_BACK_1
 const val COLOR_FORM_SWITCH_BACK_ON = COLOR_MAIN_BACK_0
 
-//--- GRAPHIC --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//--- GRAPHIC ------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-const val COLOR_GRAPHIC_TIME_LINE = "#00ffff"       // безусловная линия/прямоугольник
+const val COLOR_GRAPHIC_TIME_LINE = "hsl(180,100%,50%)"
+const val COLOR_GRAPHIC_LABEL_BACK = "hsl(60,100%,50%)"
+const val COLOR_GRAPHIC_LABEL_BORDER = "hsl(60,100%,25%)"
+const val COLOR_GRAPHIC_AXIS_DEFAULT = "hsl(0,0%,50%)"
+const val COLOR_GRAPHIC_DATA_BACK = "hsla(60,100%,50%,0.5)"
 
-const val COLOR_GRAPHIC_LABEL_BACK = "#ffff00"
-const val COLOR_GRAPHIC_LABEL_BORDER = "#808000"
-const val COLOR_GRAPHIC_LABEL_TEXT = COLOR_MAIN_TEXT
+//--- XY -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-const val COLOR_GRAPHIC_TITLE = COLOR_MAIN_TEXT
-const val COLOR_GRAPHIC_AXIS_DEFAULT = "#808080"
+const val COLOR_XY_LABEL_BACK = "hsl(60,100%,50%)"
+const val COLOR_XY_LABEL_BORDER = "hsl(60,100%,25%)"
 
-const val COLOR_GRAPHIC_DATA_BACK = "#ffff0080"
+const val COLOR_XY_LINE = "hsl(180,100%,50%)"
 
-//--- XY -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+const val COLOR_XY_DISTANCER = "hsl(30,100%,50%)"
 
-//const val COLOR_XY_ZONE_CASUAL = "#40ffff00" // полупрозрачный жёлтый
-//const val COLOR_XY_ZONE_ACTUAL = "#40ff8000" // полупрозрачный оранжевый
+const val COLOR_XY_ZONE_CASUAL = "hsla(60,100%,50%,0.25)"    // полупрозрачный жёлтый
+const val COLOR_XY_ZONE_ACTUAL = "hsla(30,100%,50%,0.25)"    // полупрозрачный оранжевый
+const val COLOR_XY_ZONE_BORDER = "hsl(0,100%,50%)"    // красный
 
-const val COLOR_XY_LABEL_BACK = "#ffff00"
-const val COLOR_XY_LABEL_BORDER = "#808000"
-const val COLOR_XY_LABEL_TEXT = COLOR_MAIN_TEXT
+//--- DIALOG -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-const val COLOR_XY_LINE = "#00ffff"       // безусловная линия/прямоугольник
+var colorDialogBack = "hsla(0,0%,0%,0.75)"
+var colorDialogBorder = colorMainBorder
+var colorDialogBackCenter = colorMainBack1
+var colorDialogButtonBack = colorButtonBack
+var colorDialogButtonBorder = colorMainBorder
 
-const val COLOR_XY_DISTANCER = "#ff8000"    // линейка
+//--- WAIT ---------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-const val COLOR_XY_ZONE_CASUAL = "#ffff0040"    // полупрозрачный жёлтый
-const val COLOR_XY_ZONE_ACTUAL = "#ff800040"    // полупрозрачный оранжевый
-const val COLOR_XY_ZONE_BORDER = "#ff0000ff"    // красный
+var colorWaitBack = "hsla(0,0%,100%,0.7)"
+var colorWaitLoader0 = "hsl(60,100%,80%)"
+var colorWaitLoader1 = "hsl(60,100%,85%)"
+var colorWaitLoader2 = "hsl(60,100%,90%)"
+var colorWaitLoader3 = "hsl(60,100%,95%)"
 
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
 
 private val NARROW_SCREEN_WIDTH = 400
 val screenDPR = window.devicePixelRatio
@@ -175,7 +125,7 @@ fun styleIsTouchScreen(): Boolean {
     ).unsafeCast<Boolean>()
 }
 
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 val BORDER_RADIUS = "${if (screenDPR <= 1.0) 0.2 else 0.1}rem"
 const val BORDER_RADIUS_SMALL = "0.1rem"
@@ -224,6 +174,7 @@ var styleIsHiddenMenuBar = localStorage.getItem(IS_HIDDEN_MENU_BAR)?.toBooleanSt
 
 fun styleLogonTextLen() = if (!styleIsNarrowScreen) 40 else scaledScreenWidth / 16
 fun styleLogonCellPadding() = "1.0rem"
+
 //!!! проверить как будет выглядеть с другими logo !!! (у лого снизу padding побольше - для вертикального центрирования)
 fun styleLogonLogoPadding() = "0.4rem 0 1.0rem 0"
 fun styleLogonControlPadding() = "0.4rem 0"
@@ -278,7 +229,7 @@ fun styleMenuStartPadding() = "${if (screenDPR <= 1.0) 1.0 else 1.0}rem " +
     "${if (screenDPR <= 1.0) 1.0 else 1.0}rem " +
     "${if (screenDPR <= 1.0) 1.0 else 1.0}rem"
 
-fun styleMenuWidth() = if (styleIsNarrowScreen) "85%" else if(!styleIsHiddenMenuBar) "20rem" else "auto"
+fun styleMenuWidth() = if (styleIsNarrowScreen) "85%" else if (!styleIsHiddenMenuBar) "20rem" else "auto"
 fun styleMenuFontSize() = "${if (screenDPR <= 1.0) 1.0 else 1.0}rem"
 fun styleMenuItemPadding_0() = "${styleMenuItemTopBottomPad()}rem ${styleMenuItemSidePad_0()}rem ${styleMenuItemTopBottomPad()}rem ${styleMenuItemSidePad_0()}rem"
 fun styleMenuItemPadding_1() = "${styleMenuItemTopBottomPad()}rem ${styleMenuItemSidePad_1()}rem ${styleMenuItemTopBottomPad()}rem ${styleMenuItemSidePad_1()}rem"
@@ -351,4 +302,7 @@ private val XY_SIDE_PADDING = "${if (screenDPR <= 1.0) 0.4 else 0.4}rem"
 fun styleXyDistancerPadding() = "$XY_PADDING $XY_SIDE_PADDING $XY_PADDING $XY_SIDE_PADDING"
 fun styleXyTextPadding() = "$XY_PADDING $XY_SIDE_PADDING $XY_PADDING $XY_SIDE_PADDING"
 
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+fun getHSL(hue: Int, saturation: Int, lightness: Int) = "hsl($hue,$saturation%,$lightness%)"
+fun getHSLA(hue: Int, saturation: Int, lightness: Int, alpha: Double) = "hsl($hue,$saturation%,$lightness%,$alpha)"

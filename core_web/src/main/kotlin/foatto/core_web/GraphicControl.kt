@@ -706,7 +706,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                 "border-top" to if (!styleIsNarrowScreen) {
                     "none"
                 } else {
-                    "1px solid $COLOR_BUTTON_BORDER"
+                    "1px solid $colorMainBorder"
                 }
             ),
             "style_toolbar" to json(
@@ -716,7 +716,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                 "justify-content" to "space-between",
                 "align-items" to "center",        // "baseline" ?
                 "padding" to styleControlPadding(),
-                "background" to COLOR_PANEL_BACK
+                "background" to colorMainBack1
             ),
             "style_toolbar_block" to json(
                 "display" to "flex",
@@ -730,8 +730,8 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                 "padding" to styleControlTitlePadding()
             ),
             "style_icon_button" to json(
-                "background" to COLOR_BUTTON_BACK,
-                "border" to "1px solid $COLOR_BUTTON_BORDER",
+                "background" to colorButtonBack,
+                "border" to "1px solid $colorButtonBorder",
                 "border-radius" to BORDER_RADIUS,
                 "font-size" to styleCommonButtonFontSize(),
                 "padding" to styleIconButtonPadding(),
@@ -744,8 +744,8 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                 "top" to styleGraphicVisibilityTop(),
                 "width" to "auto",
                 "max-width" to styleGraphicVisibilityMaxWidth(),
-                "background" to COLOR_MENU_GROUP_BACK,
-                "border" to "1px solid $COLOR_MENU_BORDER",
+                "background" to colorMenuBack,
+                "border" to "1px solid $colorMenuBorder",
                 "border-radius" to BORDER_RADIUS,
                 "font-size" to styleMenuFontSize(),
                 "padding" to styleMenuStartPadding(),
@@ -754,13 +754,13 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
             ),
             "style_graphic_visibility_checkbox" to json(
                 //                "padding" to styleMenuItemPadding_0(),
-                //{ 'background-color' : ( $menuDataName.itHover? '$COLOR_MENU_BACK_HOVER' : '$COLOR_MENU_ITEM_BACK' ) },
+                //{ 'background-color' : ( $menuDataName.itHover? '$colorCurrentAndHover' : '$COLOR_MENU_ITEM_BACK' ) },
                 //{ 'text-decoration' : ( $menuDataName.url || $menuDataName.text ? '' : 'line-through' ) },
-                //{ 'color' : ( $menuDataName.url || $menuDataName.text ? '$COLOR_TEXT' : '$COLOR_MENU_DELIMITER' ) }
+                //{ 'color' : ( $menuDataName.url || $menuDataName.text ? '$colorMainText' : '$COLOR_MENU_DELIMITER' ) }
             ),
             "style_graphic_visibility_button" to json(
-                "background" to COLOR_BUTTON_BACK,
-                "border" to "1px solid $COLOR_BUTTON_BORDER",
+                "background" to colorButtonBack,
+                "border" to "1px solid $colorButtonBorder",
                 "border-radius" to BORDER_RADIUS,
                 "font-size" to styleCommonButtonFontSize(),
                 "padding" to styleFileNameButtonPadding(),
@@ -775,7 +775,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                 "width" to "auto",
                 "max-width" to styleGraphicDataMaxWidth(),
                 "background" to COLOR_GRAPHIC_DATA_BACK,
-                "border" to "1px solid $COLOR_MENU_BORDER",
+                "border" to "1px solid $colorMenuBorder",
                 "border-radius" to BORDER_RADIUS,
                 "font-size" to styleMenuFontSize(),
                 "padding" to styleMenuStartPadding(),
@@ -1170,10 +1170,10 @@ fun doGraphicRefresh(
                         "background" to if (isBack) {
                             getColorFromInt(color)
                         } else {
-                            COLOR_BUTTON_BACK
+                            colorButtonBack
                         },
                         "color" to if (isBack) {
-                            COLOR_TEXT
+                            COLOR_MAIN_TEXT
                         } else {
                             getColorFromInt(color)
                         },
@@ -1382,7 +1382,7 @@ fun getGraphicSpecificComponentData() = json(
     ),
     "style_gr_tooltip_text" to json(
         "position" to "absolute",
-        "color" to COLOR_GRAPHIC_LABEL_TEXT,
+        "color" to COLOR_MAIN_TEXT,
         "background" to COLOR_GRAPHIC_LABEL_BACK,
         "border" to "1px solid $COLOR_GRAPHIC_LABEL_BORDER",
         "border-radius" to BORDER_RADIUS,
@@ -1514,7 +1514,7 @@ private class TimeLabelData(
     val style: Json = json(
         "position" to "absolute",
         "text-align" to "center",
-        "color" to COLOR_GRAPHIC_LABEL_TEXT,
+        "color" to COLOR_MAIN_TEXT,
         "background" to COLOR_GRAPHIC_LABEL_BACK,
         "border" to "1px solid $COLOR_GRAPHIC_LABEL_BORDER",
         "border-radius" to BORDER_RADIUS,
@@ -1695,7 +1695,7 @@ private fun outElement(
         x = (MIN_GRID_STEP_X * scaleKoef).roundToInt(),
         y = (pixDrawTopY - 4 * scaleKoef).roundToInt(),
         text = element.graphicTitle,
-        stroke = COLOR_GRAPHIC_TITLE,
+        stroke = COLOR_MAIN_TEXT,
         hAnchor = "start",
         vAnchor = "text-bottom"
     )
@@ -2193,7 +2193,7 @@ private fun drawLegend(
         y = textY,
         text = text,
         stroke = if (isBack) {
-            COLOR_TEXT
+            COLOR_MAIN_TEXT
         } else {
             getColorFromInt(color)
         },

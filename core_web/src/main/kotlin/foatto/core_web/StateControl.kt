@@ -257,7 +257,7 @@ fun getStateComponentData() = json(
         "width" to "100%",
         "bottom" to 0,
         "z-index" to "2000",
-        "background" to COLOR_DIALOG_BACK,
+        "background" to colorDialogBack,
         "display" to "grid",
         "grid-template-rows" to "1fr auto 1fr",
         "grid-template-columns" to "1fr auto 1fr",
@@ -286,7 +286,7 @@ fun getStateComponentData() = json(
         "align-self" to "center",
         "font-size" to styleControlTextFontSize(),
         "font-weight" to "bold",
-        "color" to COLOR_TEXT,
+        "color" to COLOR_MAIN_TEXT,
     ),
 )
 

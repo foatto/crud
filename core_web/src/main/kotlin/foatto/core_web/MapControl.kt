@@ -549,7 +549,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                             ),
                             style = json(
                                 "position" to "absolute",
-                                "color" to COLOR_XY_LABEL_TEXT,
+                                "color" to COLOR_MAIN_TEXT,
                                 "text-align" to "center",
                                 "vertical-align" to "baseline",
                                 "border-radius" to "${2 * scaleKoef}px",
@@ -593,7 +593,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                             ),
                             style = json(
                                 "position" to "absolute",
-                                "color" to COLOR_XY_LABEL_TEXT,
+                                "color" to COLOR_MAIN_TEXT,
                                 "text-align" to "center",
                                 "vertical-align" to "baseline",
                                 "border-radius" to "${2 * scaleKoef}px",

@@ -596,7 +596,7 @@ fun getXyComponentData() = json(
         "border-top" to if (!styleIsNarrowScreen) {
             "none"
         } else {
-            "1px solid $COLOR_BUTTON_BORDER"
+            "1px solid $colorMainBorder"
         }
     ),
     "style_toolbar" to json(
@@ -606,7 +606,7 @@ fun getXyComponentData() = json(
         "justify-content" to "space-between",
         "align-items" to "center",        // "baseline" ?
         "padding" to styleControlPadding(),
-        "background" to COLOR_PANEL_BACK
+        "background" to colorMainBack1
     ),
     "style_toolbar_block" to json(
         "display" to "flex",
@@ -620,8 +620,8 @@ fun getXyComponentData() = json(
         "padding" to styleControlTitlePadding()
     ),
     "style_text_button" to json(
-        "background" to COLOR_BUTTON_BACK,
-        "border" to "1px solid $COLOR_BUTTON_BORDER",
+        "background" to colorButtonBack,
+        "border" to "1px solid $colorButtonBorder",
         "border-radius" to BORDER_RADIUS,
         "font-size" to styleCommonButtonFontSize(),
         "padding" to styleTextButtonPadding(),//styleCommonEditorPadding(),
@@ -629,8 +629,8 @@ fun getXyComponentData() = json(
         "cursor" to "pointer"
     ),
     "style_icon_button" to json(
-        "background" to COLOR_BUTTON_BACK,
-        "border" to "1px solid $COLOR_BUTTON_BORDER",
+        "background" to colorButtonBack,
+        "border" to "1px solid $colorButtonBorder",
         "border-radius" to BORDER_RADIUS,
         "font-size" to styleCommonButtonFontSize(),
         "padding" to styleIconButtonPadding(),
@@ -657,7 +657,7 @@ fun getXySpecificComponentData() = json(
 
     "style_xy_tooltip_text" to json(
         "position" to "absolute",
-        "color" to COLOR_XY_LABEL_TEXT,
+        "color" to COLOR_MAIN_TEXT,
         "background" to COLOR_XY_LABEL_BACK,
         "border" to "1px solid $COLOR_XY_LABEL_BORDER",
         "border-radius" to BORDER_RADIUS,
