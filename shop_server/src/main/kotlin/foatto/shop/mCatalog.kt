@@ -210,14 +210,14 @@ class mCatalog : mAbstractHierarchy() {
 
         //--- определён в предке
         //alChildData.add( new ChildData( aliasConfig.getAlias(), columnID, true, true ) );
-        alChildData.add(ChildData("shop_price", columnID, true))
-        alChildData.add(ChildData("shop_price_in", columnID))
-        alChildData.add(ChildData("shop_price_out", columnID))
-        alChildData.add(ChildData("shop_report_warehouse_state", columnID, AppAction.FORM, true))
-        alChildData.add(ChildData("shop_report_operation_summary", columnID, AppAction.FORM))
-        alChildData.add(ChildData("shop_report_doc_content", columnID, AppAction.FORM))
-        alChildData.add(ChildData("shop_report_operation_history", columnID, AppAction.FORM))
-        DocumentTypeConfig.fillDocContentChild(alChildData, columnID)
+        alChildData.add(ChildData("shop_price", columnId, true))
+        alChildData.add(ChildData("shop_price_in", columnId))
+        alChildData.add(ChildData("shop_price_out", columnId))
+        alChildData.add(ChildData("shop_report_warehouse_state", columnId, AppAction.FORM, true))
+        alChildData.add(ChildData("shop_report_operation_summary", columnId, AppAction.FORM))
+        alChildData.add(ChildData("shop_report_doc_content", columnId, AppAction.FORM))
+        alChildData.add(ChildData("shop_report_operation_history", columnId, AppAction.FORM))
+        DocumentTypeConfig.fillDocContentChild(alChildData, columnId)
 
         //--- определён в предке
         //alDependData.add( new DependData( tableName, columnParent.getFieldName() ) );

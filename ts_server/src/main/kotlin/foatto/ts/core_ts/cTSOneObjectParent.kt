@@ -10,14 +10,14 @@ open class cTSOneObjectParent : cStandart() {
     protected var oc: ObjectConfig? = null
 
     override fun getTable(hmOut: MutableMap<String, Any>): TableResponse {
-        hmParentData["ts_object"]?.let { objectId ->
+        getParentId("ts_object")?.let { objectId ->
             oc = (application as iTSApplication).getObjectConfig(userConfig, objectId)
         }
         return super.getTable(hmOut)
     }
 
     override fun getForm(hmOut: MutableMap<String, Any>): FormResponse {
-        hmParentData["ts_object"]?.let { objectId ->
+        getParentId("ts_object")?.let { objectId ->
             oc = (application as iTSApplication).getObjectConfig(userConfig, objectId)
         }
         return super.getForm(hmOut)

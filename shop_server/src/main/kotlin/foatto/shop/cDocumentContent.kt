@@ -16,13 +16,7 @@ import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.data.*
 import foatto.shop.mDocumentContent.Companion.ADD_OVER_MARK_CODE
-import foatto.shop_core.app.ACTION_CASH_CALCULATOR
-import foatto.shop_core.app.ICON_NAME_ADD_MARKED_ITEM
-import foatto.shop_core.app.ICON_NAME_CALC
-import foatto.shop_core.app.ICON_NAME_FISCAL
-import foatto.shop_core.app.PARAM_DOC_COST
-import foatto.shop_core.app.PARAM_FISCAL_URL
-import foatto.shop_core.app.PARAM_PRINT_URL
+import foatto.shop_core.app.*
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedStatement
 import java.util.concurrent.ConcurrentHashMap
@@ -49,7 +43,7 @@ class cDocumentContent : cStandart() {
         super.init(aApplication, aConn, aStm, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
 
         for (name in DocumentTypeConfig.hmAliasDocType.keys) {
-            docId = hmParentData[name]
+            docId = getParentId(name)
             if (docId != null) {
                 break
             }
@@ -67,7 +61,7 @@ class cDocumentContent : cStandart() {
 
     override fun addSQLWhere(hsTableRenameList: Set<String>): String {
         //--- а нет ли парентов от иерархической номенклатуры?
-        val pid = getParentID("shop_catalog") ?: getParentID("shop_catalog_folder") ?: getParentID("shop_catalog_item")
+        val pid = getParentId("shop_catalog") ?: getParentId("shop_catalog_folder") ?: getParentId("shop_catalog_item")
         //--- если есть, то вероятно раскроем parentID группы номенклатуры в список parentID входящих элементов
         val parentWhere = StringBuilder()
         if (pid != null) {
@@ -80,12 +74,12 @@ class cDocumentContent : cStandart() {
         }
 
         val mdc = model as mDocumentContent
-        val tableName = renameTableName(hsTableRenameList, model.tableName)
+        val tableName = renameTableName(hsTableRenameList, model.modelTableName)
 
         var sSQL = ""
 
         if (docType != DocumentTypeConfig.TYPE_ALL) {
-            val docTableName = renameTableName(hsTableRenameList, mdc.columnDocumentType.tableName)
+            val docTableName = renameTableName(hsTableRenameList, mdc.columnDocumentType.columnTableName)
             sSQL += " AND $docTableName.${mdc.columnDocumentType.getFieldName()} = $docType "
         }
 
@@ -100,11 +94,9 @@ class cDocumentContent : cStandart() {
             //--- используются оба номенклатурных поля
             if (isUseSourCatalog && isUseDestCatalog) {
                 sSQL += " ( $tableName.$sourFieldName $parentWhere OR $tableName.$destFieldName $parentWhere ) "
-            }
-            else if (isUseSourCatalog) {
+            } else if (isUseSourCatalog) {
                 sSQL += " $tableName.$sourFieldName $parentWhere "
-            }
-            else if (isUseDestCatalog) {
+            } else if (isUseDestCatalog) {
                 sSQL += " $tableName.$destFieldName $parentWhere "
             }
         }
@@ -161,7 +153,7 @@ class cDocumentContent : cStandart() {
     }
 
     //--- перекрывается наследниками для генерации данных в момент загрузки записей ПОСЛЕ фильтров поиска и страничной разбивки
-    override fun generateColumnDataAfterFilter(hmColumnData: MutableMap<iColumn, iData>) {
+    override fun generateTableColumnDataAfterFilter(hmColumnData: MutableMap<iColumn, iData>) {
         val mdc = model as mDocumentContent
 
         //--- может быть вывод состава по нескольким накладным
@@ -213,7 +205,7 @@ class cDocumentContent : cStandart() {
                 caption = "Добавить",
                 tooltip = "Добавить",
                 icon = ICON_NAME_ADD_ITEM,
-                url = getParamURL(aliasConfig.alias, AppAction.FORM, refererID, 0, hmParentData, parentUserID, null)
+                url = getParamURL(aliasConfig.alias, AppAction.FORM, refererID, 0, hmParentData, parentUserId, null)
             )
         )
 
@@ -229,7 +221,7 @@ class cDocumentContent : cStandart() {
                     caption = "Добавить маркированный товар",
                     tooltip = "Добавить маркированный товар",
                     icon = ICON_NAME_ADD_MARKED_ITEM,
-                    url = getParamURL(aliasConfig.alias, AppAction.FORM, refererID, 0, hmParentData, parentUserID, "&$ADD_OVER_MARK_CODE=1")
+                    url = getParamURL(aliasConfig.alias, AppAction.FORM, refererID, 0, hmParentData, parentUserId, "&$ADD_OVER_MARK_CODE=1")
                 )
             )
         }
@@ -286,9 +278,10 @@ class cDocumentContent : cStandart() {
                     icon = ICON_NAME_CALC,
                     action = ACTION_CASH_CALCULATOR,
                     params = arrayOf(
+                        PARAM_DOC_ID to docId.toString(),
+                        PARAM_DOC_COST to docCost.toString(),
                         PARAM_FISCAL_URL to getParamURL("shop_fiscal_doc_content", AppAction.FORM, null, 0, hmParentData, null, ""),
                         PARAM_PRINT_URL to getParamURL("shop_report_doc_content", AppAction.FORM, null, 0, hmParentData, null, ""),
-                        PARAM_DOC_COST to docCost.toString(),
                     ),
                     isForWideScreenOnly = true,
                 )
@@ -300,7 +293,7 @@ class cDocumentContent : cStandart() {
 
     //--- при входе через каталог запрещаются все операции изменения (и удаления на всякий случай тоже) ---
 
-    override fun generateFormColumnData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {
+    override fun getCalculatedFormColumnData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {
         val mdc = model as mDocumentContent
         val rowDocType = (hmColumnData[mdc.columnDocumentType] as DataComboBox).intValue
         val isUseDestCatalog = DocumentTypeConfig.hsUseDestCatalog.contains(rowDocType)
@@ -320,7 +313,7 @@ class cDocumentContent : cStandart() {
     override fun isEditEnabled(hmColumnData: Map<iColumn, iData>, id: Int): Boolean {
         var result = super.isEditEnabled(hmColumnData, id) && docId != null
         //--- if document editing enabled and is edit mode (not create) and this is not admin
-        if(result && id != 0 && !userConfig.isAdmin) {
+        if (result && id != 0 && !userConfig.isAdmin) {
             result = cDocument.checkLimitDays(application as iShopApplication, zoneId, docId ?: 0)
         }
         return result
@@ -329,7 +322,7 @@ class cDocumentContent : cStandart() {
     override fun isDeleteEnabled(hmColumnData: Map<iColumn, iData>, id: Int): Boolean {
         var result = super.isDeleteEnabled(hmColumnData, id) && docId != null
         //--- if document editing enabled and is edit mode (not create) and this is not admin
-        if(result && id != 0 && !userConfig.isAdmin) {
+        if (result && !userConfig.isAdmin) {
             result = cDocument.checkLimitDays(application as iShopApplication, zoneId, docId ?: 0)
         }
         return result

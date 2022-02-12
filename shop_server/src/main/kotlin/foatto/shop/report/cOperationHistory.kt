@@ -28,12 +28,18 @@ class cOperationHistory : cAbstractReport() {
 
     //----------------------------------------------------------------------------------------------
 
-    override fun isFormAutoClick(): Boolean = if (hmParentData["shop_catalog"] != null) true else super.isFormAutoClick()
+    override fun isFormAutoClick(): Boolean = if (getParentId("shop_catalog") != null) {
+        true
+    } else {
+        super.isFormAutoClick()
+    }
 
     override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
 
         val returnURL = super.doSave(action, alFormData, hmOut)
-        if (returnURL != null) return returnURL
+        if (returnURL != null) {
+            return returnURL
+        }
 
         val moh = model as mOperationHistory
 

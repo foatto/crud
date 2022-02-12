@@ -44,7 +44,7 @@ class mObjectSetup : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id").apply {
+        columnId = ColumnInt(modelTableName, "id").apply {
             isVirtual = true
         }
 
@@ -79,7 +79,7 @@ class mObjectSetup : mAbstract() {
         
         //----------------------------------------------------------------------------------------------------------------------
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
 
         alFormColumn.add(columnDateTime)
         tmColumnSetup.forEach { (_, column) ->

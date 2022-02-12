@@ -111,7 +111,7 @@ class mDocumentContent : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -177,7 +177,11 @@ class mDocumentContent : mAbstract() {
             aMaxSize = textFieldMaxSize
         ).apply {
             selfLinkTableName = "SHOP_catalog"  // для правильной работы селектора с подстановочной таблицей
-            isRequired = if(isAddOverMarkCode) false else isUseSourCatalog
+            isRequired = if (isAddOverMarkCode) {
+                false
+            } else {
+                isUseSourCatalog
+            }
             selectorAlias = "shop_catalog_item"
             addSelectorColumn(columnSourCatalog, columnSourCatalogID)
             addSelectorColumn(this)//, columnCatalogName );
@@ -203,7 +207,7 @@ class mDocumentContent : mAbstract() {
             aMaxSize = textFieldMaxSize
         ).apply {
             selfLinkTableName = "SHOP_catalog"  // для правильной работы селектора с подстановочной таблицей
-            isRequired = if(isAddOverMarkCode) false else isUseDestCatalog
+            isRequired = if (isAddOverMarkCode) false else isUseDestCatalog
 
             selectorAlias = "shop_catalog_item"
             addSelectorColumn(columnDestCatalog, columnDestCatalogID)
@@ -275,7 +279,7 @@ class mDocumentContent : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn.add(columnId)
         alTableHiddenColumn.add(columnDocumentContentIsDeleted)
         alTableHiddenColumn.add(columnDocument)
         alTableHiddenColumn.add(columnClient)
@@ -359,7 +363,7 @@ class mDocumentContent : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
         alFormHiddenColumn.add(columnDocument)
         alFormHiddenColumn.add(columnClient)
         alFormHiddenColumn.add(columnSourCatalog)

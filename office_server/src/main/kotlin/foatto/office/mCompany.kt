@@ -25,7 +25,7 @@ class mCompany : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         val columnCompanyBlackList = ColumnBoolean(modelTableName, "in_black_list", "В чёрном списке")
         val columnCompanyName = ColumnString(modelTableName, "name", "Наименование", STRING_COLUMN_WIDTH)
@@ -47,7 +47,7 @@ class mCompany : mAbstract() {
 
         //----------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn.add(columnId)
         alTableHiddenColumn.add(columnCity)
         //--- показывать не надо, но для селектора необходимо наличие в выборке
         alTableHiddenColumn.add(columnCityPhoneCode)
@@ -60,7 +60,7 @@ class mCompany : mAbstract() {
         addTableColumn(columnCityName)
         //        addTableColumn( columnFile );
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
         alFormHiddenColumn.add(columnCity)
 
         alFormColumn.add(columnCompanyBlackList)
@@ -92,7 +92,7 @@ class mCompany : mAbstract() {
 //        //alChildData.add( new ChildData( "office_reminder_meeting" , columnID ) ); - неприменимо для совещаний
 //        alChildData.add(ChildData("office_reminder_other", columnID))
 
-        alChildData.add(ChildData("office_people", columnID, true))
+        alChildData.add(ChildData("office_people", columnId, true))
 //        alChildData.add(ChildData("office_client_not_need", columnID))
 //        alChildData.add(ChildData("office_client_in_work", columnID))
 //        alChildData.add(ChildData("office_client_out_work", columnID))

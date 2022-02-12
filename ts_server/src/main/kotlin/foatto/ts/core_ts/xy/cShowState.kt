@@ -15,7 +15,7 @@ class cShowState : cAbstractForm() {
 
     override fun getOkButtonIconName() = ICON_NAME_STATE
 
-    override fun isFormAutoClick() = if (hmParentData["ts_object"] != null) {
+    override fun isFormAutoClick() = if (getParentId("ts_object") != null) {
         true
     } else {
         super.isFormAutoClick()

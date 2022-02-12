@@ -23,7 +23,7 @@ class mWarehouse : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -34,11 +34,11 @@ class mWarehouse : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn.add(columnId)
 
         addTableColumn(columnWarehouseName)
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
 
         alFormColumn.add(columnWarehouseName)
 
@@ -50,11 +50,11 @@ class mWarehouse : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        DocumentTypeConfig.fillDocChild(alChildData, columnID)
-        alChildData.add(ChildData("shop_cash", columnID, true))
-        alChildData.add(ChildData("Отчёты", "shop_report_warehouse_state", columnID, AppAction.FORM, true))
-        alChildData.add(ChildData("Отчёты", "shop_report_operation_summary", columnID, AppAction.FORM))
-        alChildData.add(ChildData("Отчёты", "shop_report_cash_history", columnID, AppAction.FORM))
+        DocumentTypeConfig.fillDocChild(alChildData, columnId)
+        alChildData.add(ChildData("shop_cash", columnId, true))
+        alChildData.add(ChildData("Отчёты", "shop_report_warehouse_state", columnId, AppAction.FORM, true))
+        alChildData.add(ChildData("Отчёты", "shop_report_operation_summary", columnId, AppAction.FORM))
+        alChildData.add(ChildData("Отчёты", "shop_report_cash_history", columnId, AppAction.FORM))
 
         //----------------------------------------------------------------------------------------
 

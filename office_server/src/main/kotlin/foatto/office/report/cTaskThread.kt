@@ -13,7 +13,11 @@ import jxl.write.WritableSheet
 
 class cTaskThread : cOfficeReport() {
 
-    override fun isFormAutoClick() = if (hmParentData["office_task_in"] != null || hmParentData["office_task_out"] != null) true else super.isFormAutoClick()
+    override fun isFormAutoClick() = if (getParentId("office_task_in") != null || getParentId("office_task_out") != null) {
+        true
+    } else {
+        super.isFormAutoClick()
+    }
 
     override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
         val returnURL = super.doSave(action, alFormData, hmOut)

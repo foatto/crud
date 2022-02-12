@@ -68,7 +68,7 @@ class mDocument : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -170,7 +170,7 @@ class mDocument : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn.add(columnId)
         alTableHiddenColumn.add(columnClient)
         alTableHiddenColumn.add(columnDocumentIsDeleted)
 
@@ -225,7 +225,7 @@ class mDocument : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
         alFormHiddenColumn.add(columnClient)
         alFormHiddenColumn.add(columnIsFiscaled)
 
@@ -268,8 +268,19 @@ class mDocument : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData(DocumentTypeConfig.hmAliasChild[aliasConfig.alias]!!, columnID, true, true))
-        alChildData.add(ChildData("Отчёты", "shop_report_doc_content", columnID, AppAction.FORM, true))
+        alChildData += ChildData(
+            aAlias = DocumentTypeConfig.hmAliasChild[aliasConfig.alias]!!,
+            aColumn = columnId,
+            aNewGroup = true,
+            aDefaultOperation = true
+        )
+        alChildData += ChildData(
+            aGroup = "Отчёты",
+            aAlias = "shop_report_doc_content",
+            aColumn = columnId,
+            aAction = AppAction.FORM,
+            aNewGroup = true
+        )
 
         //----------------------------------------------------------------------------------------------------------------------
 

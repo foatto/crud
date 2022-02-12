@@ -32,7 +32,7 @@ class mPrice : mAbstract() {
 
         //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -57,7 +57,7 @@ class mPrice : mAbstract() {
 
         //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add( columnID )
+        alTableHiddenColumn.add( columnId )
         alTableHiddenColumn.add( columnCatalog )
 
         alTableGroupColumn.add( columnPriceDate )
@@ -67,7 +67,7 @@ class mPrice : mAbstract() {
         addTableColumn( columnPriceValue )
         addTableColumn( columnPriceNote )
 
-        alFormHiddenColumn.add( columnID )
+        alFormHiddenColumn.add( columnId )
         alFormHiddenColumn.add( columnCatalog )
 
         alFormColumn.add( columnCatalogName )

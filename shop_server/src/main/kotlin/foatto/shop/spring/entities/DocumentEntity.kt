@@ -1,7 +1,6 @@
 package foatto.shop.spring.entities
 
 import foatto.spring.entities.DateEntity
-import foatto.spring.entities.DateTimeEntity
 import javax.persistence.*
 
 @Entity
@@ -42,6 +41,7 @@ class DocumentEntity(
         AttributeOverride(name = "mo", column = Column(name = "doc_mo")),
         AttributeOverride(name = "da", column = Column(name = "doc_da")),
     )
+    @Embedded
     val date: DateEntity,
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -56,6 +56,7 @@ class DocumentEntity(
     val isFiscaled: Int?,
 
     ) {
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is DocumentEntity) return false

@@ -48,7 +48,7 @@ class mDevice : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -104,7 +104,7 @@ class mDevice : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn += columnID
+        alTableHiddenColumn += columnId
 
         addTableColumn(columnDeviceIndex)
         addTableColumn(columnDeviceType)
@@ -112,7 +112,7 @@ class mDevice : mAbstract() {
         addTableColumn(columnDeviceCell)
         addTableColumn(columnObjectUserName)
 
-        alFormHiddenColumn += columnID
+        alFormHiddenColumn += columnId
 
         alFormColumn += columnDeviceType
         alFormColumn += columnSerialNo
@@ -145,8 +145,8 @@ class mDevice : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        alChildData += ChildData("ts_log_session", columnID)
-        alChildData += ChildData("ts_device_command_history", columnID)
+        alChildData += ChildData("ts_log_session", columnId)
+        alChildData += ChildData("ts_device_command_history", columnId)
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 

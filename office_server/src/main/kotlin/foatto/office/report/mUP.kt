@@ -34,7 +34,7 @@ class mUP : mAbstractReport() {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -52,7 +52,7 @@ class mUP : mAbstractReport() {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-        alFormHiddenColumn += columnID
+        alFormHiddenColumn += columnId
         alFormHiddenColumn += columnReportUser
 
         alFormColumn += columnUserName

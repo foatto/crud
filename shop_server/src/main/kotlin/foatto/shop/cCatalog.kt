@@ -73,10 +73,10 @@ class cCatalog : cAbstractHierarchy() {
     }
 
     //--- перекрывается наследниками для генерации данных в момент загрузки записей ПОСЛЕ фильтров поиска и страничной разбивки
-    override fun generateColumnDataAfterFilter(hmColumnData: MutableMap<iColumn, iData>) {
+    override fun generateTableColumnDataAfterFilter(hmColumnData: MutableMap<iColumn, iData>) {
         val mc = model as mCatalog
 
-        val catalogID = (hmColumnData[mc.columnID] as DataInt).intValue
+        val catalogID = (hmColumnData[mc.columnId] as DataInt).intValue
         val recordType = (hmColumnData[mc.columnRecordType] as DataComboBox).intValue
 
         val hsID: Set<Int>
@@ -114,7 +114,7 @@ class cCatalog : cAbstractHierarchy() {
         }
     }
 
-    override fun generateFormColumnData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {
+    override fun getCalculatedFormColumnData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {
         if (id != 0 && isMerchant) {
             val mc = model as mCatalog
             val recordType = (hmColumnData[mc.columnRecordType] as DataComboBox).intValue

@@ -97,7 +97,7 @@ abstract class mSHOPReport : mAbstractReport() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -181,7 +181,7 @@ abstract class mSHOPReport : mAbstractReport() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
         alFormHiddenColumn.add(columnDocument)
         alFormHiddenColumn.add(columnClient)
         alFormHiddenColumn.add(columnCatalogDest)

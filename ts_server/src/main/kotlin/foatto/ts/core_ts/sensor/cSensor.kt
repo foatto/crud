@@ -7,7 +7,7 @@ import foatto.ts.core_ts.cTSOneObjectParent
 
 class cSensor : cTSOneObjectParent() {
 
-    override fun generateFormColumnData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {
+    override fun getCalculatedFormColumnData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {
         if (id != 0) {
             val ms = model as mSensor
 

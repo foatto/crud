@@ -46,7 +46,7 @@ class cSensorCalibration : cStandart() {
         //--- начало нестандартной части ---------------------------------------------------------------------------------------
 
         //--- сбор парентов
-        val sensorID = getParentID("ts_sensor")!!
+        val sensorID = getParentId("ts_sensor")!!
 
         val sqlCalibration = " SELECT value_sensor , value_data FROM TS_sensor_calibration WHERE sensor_id = $sensorID ORDER BY value_sensor "
         val alSensorValue = mutableListOf<Double?>()

@@ -80,15 +80,20 @@ class cDocContent : cAbstractReport() {
     }
 
     override fun isFormAutoClick(): Boolean {
-        for (an in DocumentTypeConfig.hmDocTypeAlias.values)
-            if (hmParentData[an] != null) return true
+        for (an in DocumentTypeConfig.hmDocTypeAlias.values) {
+            if (getParentId(an) != null) {
+                return true
+            }
+        }
 
         return super.isFormAutoClick()
     }
 
     override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
         val returnURL = super.doSave(action, alFormData, hmOut)
-        if (returnURL != null) return returnURL
+        if (returnURL != null) {
+            return returnURL
+        }
 
         val mdc = model as mDocContent
 

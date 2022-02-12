@@ -46,7 +46,7 @@ class mData : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "ontime")
+        columnId = ColumnInt(modelTableName, "ontime")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -75,7 +75,7 @@ class mData : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn.add(columnId)
         alTableHiddenColumn.add(columnDataBinary)
 
         addTableColumn(columnDataOnTimeUTC)
@@ -84,7 +84,7 @@ class mData : mAbstract() {
         addTableColumn(columnDataSensorOther)
 
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
         alFormHiddenColumn.add(columnDataBinary)
 
         alFormColumn.add(columnDataOnTimeUTC)
@@ -95,7 +95,7 @@ class mData : mAbstract() {
         //----------------------------------------------------------------------------------------------------------------------
 
         //--- поля для сортировки
-        alTableSortColumn.add(columnID)
+        alTableSortColumn.add(columnId)
         alTableSortDirect.add("DESC")
     }
 }

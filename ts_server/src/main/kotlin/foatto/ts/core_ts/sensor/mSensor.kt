@@ -42,7 +42,7 @@ class mSensor : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -169,7 +169,7 @@ class mSensor : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn.add(columnId)
         alTableHiddenColumn.add(columnSensorName)
 
         alTableGroupColumn.add(columnSensorGroup)
@@ -178,7 +178,7 @@ class mSensor : mAbstract() {
         addTableColumn(columnSensorPortNum)
         addTableColumn(columnSensorType)
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
         alFormHiddenColumn.add(columnSensorName)
 
         //----------------------------------------------------------------------------------------------------------------------------------------
@@ -227,7 +227,7 @@ class mSensor : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData("ts_sensor_calibration", columnID, true))
+        alChildData.add(ChildData("ts_sensor_calibration", columnId, true))
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 

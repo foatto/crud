@@ -94,13 +94,13 @@ class cDocument : cStandart() {
     override fun fillHeader(selectorID: String?, withAnchors: Boolean, alPath: MutableList<Pair<String, String>>, hmOut: MutableMap<String, Any>) {
         super.fillHeader(selectorID, withAnchors, alPath, hmOut)
 
-        getParentID("shop_warehouse")?.let { pid ->
+        getParentId("shop_warehouse")?.let { pid ->
             alPath.add(Pair("", "[" + (mWarehouse.fillWarehouseMap(stm)[pid] ?: "") + "]"))
         }
     }
 
     override fun addSQLWhere(hsTableRenameList: Set<String>): String {
-        val pid = getParentID("shop_warehouse")
+        val pid = getParentId("shop_warehouse")
 
         val md = model as mDocument
         val tableName = renameTableName(hsTableRenameList, model.modelTableName)
@@ -127,10 +127,10 @@ class cDocument : cStandart() {
     }
 
     //--- перекрывается наследниками для генерации данных в момент загрузки записей ПОСЛЕ фильтров поиска и страничной разбивки
-    override fun generateColumnDataAfterFilter(hmColumnData: MutableMap<iColumn, iData>) {
+    override fun generateTableColumnDataAfterFilter(hmColumnData: MutableMap<iColumn, iData>) {
         val md = model as mDocument
 
-        val docID = (hmColumnData[md.columnID] as DataInt).intValue
+        val docID = (hmColumnData[md.columnId] as DataInt).intValue
         //--- именно тип документа из строки, а не общий (т.к. м.б. == TYPE_ALL)
         val rowDocType = (hmColumnData[md.columnDocumentType] as DataComboBox).intValue
         val docTime = (hmColumnData[md.columnDocumentDate] as DataDate3Int).localDate.atStartOfDay(zoneId).toEpochSecond().toInt()
@@ -153,7 +153,7 @@ class cDocument : cStandart() {
     }
 
     override fun isEditEnabled(hmColumnData: Map<iColumn, iData>, id: Int): Boolean {
-        var result = super.isEditEnabled(hmColumnData, id) && id != 0
+        var result = super.isEditEnabled(hmColumnData, id)// && id != 0
         //--- if document editing enabled and is edit mode (not create) and this is not admin
         if (result && id != 0 && !userConfig.isAdmin) {
             result = checkLimitDays(application as iShopApplication, zoneId, id)
@@ -164,7 +164,7 @@ class cDocument : cStandart() {
     override fun isDeleteEnabled(hmColumnData: Map<iColumn, iData>, id: Int): Boolean {
         var result = super.isDeleteEnabled(hmColumnData, id)
         //--- if document editing enabled and is edit mode (not create) and this is not admin
-        if (result && id != 0 && !userConfig.isAdmin) {
+        if (result && !userConfig.isAdmin) {
             result = checkLimitDays(application as iShopApplication, zoneId, id)
         }
         return result

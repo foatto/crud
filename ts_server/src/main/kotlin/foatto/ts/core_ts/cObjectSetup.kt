@@ -18,8 +18,8 @@ class cObjectSetup : cStandart() {
         alPermission.add(Pair(PERM_FORM, "02 Form"))
     }
 
-    override fun generateFormColumnData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {
-        val objectConfig = (application as iTSApplication).getObjectConfig(userConfig, hmParentData["ts_object"]!!)
+    override fun getCalculatedFormColumnData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {
+        val objectConfig = (application as iTSApplication).getObjectConfig(userConfig, getParentId("ts_object")!!)
         val objectState = ObjectState.getState(stm, objectConfig)
 
         objectState.lastDateTime?.let { lastDateTime ->

@@ -23,7 +23,7 @@ class mClient : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -33,11 +33,11 @@ class mClient : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn.add(columnId)
 
         addTableColumn(columnClientName)
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
 
         alFormColumn.add(columnClientName)
 
@@ -49,8 +49,8 @@ class mClient : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        DocumentTypeConfig.fillDocChild(alChildData, columnID)
-        alChildData.add(ChildData("Отчёты", "shop_report_doc_content", columnID, AppAction.FORM, true))
+        DocumentTypeConfig.fillDocChild(alChildData, columnId)
+        alChildData.add(ChildData("Отчёты", "shop_report_doc_content", columnId, AppAction.FORM, true))
 
         //----------------------------------------------------------------------------------------
 

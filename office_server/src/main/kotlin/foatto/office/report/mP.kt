@@ -31,7 +31,7 @@ class mP : mAbstractReport() {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -40,7 +40,7 @@ class mP : mAbstractReport() {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-        alFormHiddenColumn += columnID
+        alFormHiddenColumn += columnId
 
         alFormColumn += columnReportBegDate
         alFormColumn += columnReportEndDate

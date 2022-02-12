@@ -44,7 +44,7 @@ class mTask : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         columnUser = ColumnInt(modelTableName, if(isTaskOwner) "out_user_id" else "in_user_id", userConfig.userId)
 
@@ -73,7 +73,7 @@ class mTask : mAbstract() {
 
         //------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn.add(columnId)
         alTableHiddenColumn.add(columnUser!!)
         alTableHiddenColumn.add(columnActive!!)
         alTableHiddenColumn.add(columnArchive!!)
@@ -85,7 +85,7 @@ class mTask : mAbstract() {
         addTableColumn(columnTaskSubj)
         addTableColumn(columnFile)
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
         alFormHiddenColumn.add(columnUser!!)
         alFormHiddenColumn.add(columnOtherUser)
         alFormHiddenColumn.add(columnActive!!)
@@ -117,8 +117,8 @@ class mTask : mAbstract() {
 
         //----------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData("office_task_thread", columnID, true, true))
-        alChildData.add(ChildData("office_report_task_thread", columnID, AppAction.FORM, true))
+        alChildData.add(ChildData("office_task_thread", columnId, true, true))
+        alChildData.add(ChildData("office_report_task_thread", columnId, AppAction.FORM, true))
 
         //----------------------------------------------------------------------------------------
 

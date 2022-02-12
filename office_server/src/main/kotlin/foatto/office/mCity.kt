@@ -22,7 +22,7 @@ class mCity : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnID = ColumnInt(modelTableName, "id")
+        columnId = ColumnInt(modelTableName, "id")
 
         val columnCityName = ColumnString(modelTableName, "name", "Название", STRING_COLUMN_WIDTH)
         columnCityName.isRequired = true
@@ -32,12 +32,12 @@ class mCity : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnID)
+        alTableHiddenColumn.add(columnId)
 
         addTableColumn(columnCityName)
         addTableColumn(columnCityCode)
 
-        alFormHiddenColumn.add(columnID)
+        alFormHiddenColumn.add(columnId)
 
         alFormColumn.add(columnCityName)
         alFormColumn.add(columnCityCode)
@@ -58,8 +58,8 @@ class mCity : mAbstract() {
 //        //alChildData.add( new ChildData( "office_reminder_meeting" , columnID ) ); - неприменимо для совещаний
 //        alChildData.add(ChildData("office_reminder_other", columnID))
 
-        alChildData.add(ChildData("office_company", columnID, true))
-        alChildData.add(ChildData("office_people", columnID))
+        alChildData.add(ChildData("office_company", columnId, true))
+        alChildData.add(ChildData("office_people", columnId))
 //        alChildData.add(ChildData("office_client_not_need", columnID))
 //        alChildData.add(ChildData("office_client_in_work", columnID))
 //        alChildData.add(ChildData("office_client_out_work", columnID))
