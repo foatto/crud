@@ -44,12 +44,12 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                 <template v-for="titleData in arrTitleData">
                     <button v-if="titleData.url"
                             v-on:click="invoke( titleData.url, false )"
-                            v-bind:key="'fhb'+titleData.id"
+                            v-bind:key="'fhb_'+$tabId+'_'+titleData.id"
                             v-bind:style="style_text_button">
 
                         {{ titleData.text }}
                     </button>
-                    <span v-else v-bind:key="'fhs'+titleData.id" v-bind:style="style_title">
+                    <span v-else v-bind:key="'fhs_'+$tabId+'_'+titleData.id" v-bind:style="style_title">
                         {{ titleData.text }}
                     </span>
                 </template>
@@ -57,7 +57,7 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
 
             <div v-bind:style="style_grid">
                 <div v-for="gridData in arrGridData"
-                     v-bind:key="'gd'+gridData.id"
+                     v-bind:key="'gd_'+$tabId+'_'+gridData.id"
                      v-bind:style="gridData.style"
                      v-if="!gridData.itHidden"
                      v-show="gridData.itVisible"
@@ -71,11 +71,12 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                     <input v-else-if="gridData.cellType == '${FormCellType_.STRING}'"
                            v-bind:type="gridData.inputType"
                            v-model="gridData.text"
+                           v-bind:id="'i_'+$tabId+'_'+gridData.id"
                            v-bind:size="gridData.colCount"
                            v-bind:readonly="gridData.itReadOnly"
                            v-bind:style="style_form_row_input"
-                           v-bind:autofocus="gridData.itAutoFocus"
                            v-on:focus="selectAllText( ${'$'}event )"
+                           v-on:keyup.enter.exact="doNextFocus( gridData.id, -1 )"
                            v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true ) : null"
                            v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
                            v-on:keyup.f4="closeTabById()"
@@ -83,11 +84,12 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
 
                     <textarea v-else-if="gridData.cellType == '${FormCellType_.TEXT}'"
                               v-model="gridData.text"
+                              v-bind:id="'i_'+$tabId+'_'+gridData.id"
                               v-bind:rows="gridData.rowCount"
                               v-bind:cols="gridData.colCount"
                               v-bind:readonly="gridData.itReadOnly"
                               v-bind:style="style_form_row_input"
-                              v-bind:autofocus="gridData.itAutoFocus"
+                              v-on:keyup.enter.exact="doNextFocus( gridData.id, -1 )"
                               v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true ) : null"
                               v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
                               v-on:keyup.f4="closeTabById()"
@@ -97,10 +99,11 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                     <input v-else-if="gridData.cellType == '${FormCellType_.CHECKBOX}'"
                            type="checkbox"
                            v-model="gridData.bool"
+                           v-bind:id="'i_'+$tabId+'_'+gridData.id"
                            v-on:change="gridData.itReadOnly ? null : doVisibleAndCaptionChange( gridData )"
                            v-bind:readonly="gridData.itReadOnly"
                            v-bind:style="style_form_row_checkbox"
-                           v-bind:autofocus="gridData.itAutoFocus"
+                           v-on:keyup.enter.exact="doNextFocus( gridData.id, -1 )"
                            v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true ) : null"
                            v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
                            v-on:keyup.f4="closeTabById()"
@@ -110,8 +113,8 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                             <button v-on:click="gridData.itReadOnly || !gridData.bool ? null : doVisibleAndCaptionChange( gridData )"
                                     v-bind:readonly="gridData.itReadOnly"
                                     v-bind:style="gridData.bool ? style_form_switch_off : style_form_switch_on"
-                                    v-bind:autofocus="gridData.itAutoFocus"
                                     title="gridData.arrSwitchText[0]"                                                                        
+                                    v-on:keyup.enter.exact="doNextFocus( gridData.id, -1 )"
                                     v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true ) : null"
                                     v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
                                     v-on:keyup.f4="closeTabById()"
@@ -119,10 +122,11 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                                 {{ gridData.arrSwitchText[0] }}
                             </button>
                             <button v-on:click="gridData.itReadOnly || gridData.bool ? null : doVisibleAndCaptionChange( gridData )"
+                                    v-bind:id="'i_'+$tabId+'_'+gridData.id"
                                     v-bind:readonly="gridData.itReadOnly"
                                     v-bind:style="gridData.bool ? style_form_switch_on : style_form_switch_off"
-                                    v-bind:autofocus="gridData.itAutoFocus"
                                     title="gridData.arrSwitchText[1]"                                                                        
+                                    v-on:keyup.enter.exact="doNextFocus( gridData.id, -1 )"
                                     v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true ) : null"
                                     v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
                                     v-on:keyup.f4="closeTabById()"
@@ -135,10 +139,11 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                         <input type="text"
                                v-for="(_, index) in gridData.arrDateTime"
                                v-model="gridData.arrDateTime[ index ]"
+                               v-bind:id="'i_'+$tabId+'_'+gridData.id+'_'+gridData.arrSubId[index]"
                                v-bind:size="index == 2 && gridData.cellType != '${FormCellType_.TIME}' ? 2 : 1"
                                v-bind:readonly="gridData.itReadOnly"
                                v-bind:style="style_form_row_input"
-                               v-bind:autofocus="gridData.itAutoFocus"
+                               v-on:keyup.enter.exact="doNextFocus( gridData.id, gridData.arrSubId[index] )"
                                v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true ) : null"
                                v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
                                v-on:keyup.f4="closeTabById()"
@@ -147,10 +152,11 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
 
                     <template v-else-if="gridData.cellType == '${FormCellType_.COMBO}'">
                         <select v-model="gridData.combo"
+                                v-bind:id="'i_'+$tabId+'_'+gridData.id"
                                 v-on:change="gridData.itReadOnly ? null : doVisibleAndCaptionChange( gridData )"
                                 v-bind:readonly="gridData.itReadOnly"
                                 v-bind:style="style_form_row_combo"
-                                v-bind:autofocus="gridData.itAutoFocus"
+                                v-on:keyup.enter.exact="doNextFocus( gridData.id, -1 )"
                                 v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true ) : null"
                                 v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
                                 v-on:keyup.f4="closeTabById()"
@@ -164,14 +170,15 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                     </template>
 
                     <template v-else-if="gridData.cellType == '${FormCellType_.RADIO}'">
-                        <template v-for="comboData in gridData.arrComboData">
+                        <template v-for="(comboData, index) in gridData.arrComboData">
                             <input type="radio"
                                    v-model="gridData.combo"
+                                   v-bind:id="'i_'+$tabId+'_'+gridData.id+'_'+gridData.arrSubId[index]"
                                    v-bind:value="comboData.value"
                                    v-on:change="gridData.itReadOnly ? null : doVisibleAndCaptionChange( gridData )"
                                    v-bind:readonly="gridData.itReadOnly"
                                    v-bind:style="style_form_row_radio_button"
-                                   v-bind:autofocus="gridData.itAutoFocus"
+                                   v-on:keyup.enter.exact="doNextFocus( gridData.id, gridData.arrSubId[index] )"
                                    v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true ) : null"
                                    v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
                                    v-on:keyup.f4="closeTabById()"
@@ -191,8 +198,8 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                             <button v-on:click="fileData.id < 0 ? null : showFile( fileData.url )"
                                     v-bind:readonly="fileData.id < 0"
                                     v-bind:style="style_row_file_name_button"
-                                    v-bind:autofocus="gridData.itAutoFocus"
                                     title="Показать файл"                                                                        
+                                    v-on:keyup.enter.exact="doNextFocus( gridData.id, -1 )"
                                     v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true ) : null"
                                     v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
                                     v-on:keyup.f4="closeTabById()"
@@ -217,8 +224,8 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                         <button v-if="!gridData.itReadOnly"
                                 v-on:click="addFileDialog('fileInput')"
                                 v-bind:style="style_row_file_name_button"
-                                v-bind:autofocus="gridData.itAutoFocus"
                                 title="Добавить файл(ы)"                                                                        
+                                v-on:keyup.enter.exact="doNextFocus( gridData.id, -1 )"
                                 v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true ) : null"
                                 v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
                                 v-on:keyup.f4="closeTabById()"
@@ -254,7 +261,7 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                     <img v-if="formButton.icon" 
                          v-bind:src="formButton.icon"
                          v-on:click="invoke( formButton.url, formButton.withNewData )"
-                         v-bind:key="'fb'+formButton.id"
+                         v-bind:key="'fb_'+$tabId+'_'+formButton.id"
                          v-bind:style="style_icon_button"
                          v-bind:title="formButton.tooltip"
                     >
@@ -285,8 +292,9 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
         },
         "selectAllText" to { event: Event ->
             //--- программный селект текста на тачскринах вызывает показ надоедливого окошка с копированием/вырезанием текста (и так на каждый input)
-            if (!styleIsTouchScreen())
+            if (!styleIsTouchScreen()) {
                 (event.target as? HTMLInputElement)?.select()
+            }
         },
         "closeTabById" to {
             that().`$root`.closeTabById(tabId)
@@ -300,8 +308,7 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                     gdMaster.bool = !gdMaster.bool
                     doVisibleAndCaptionChangeBody(that, gdMaster)
                 }
-            }
-            else {
+            } else {
                 doVisibleAndCaptionChangeBody(that, gdMaster)
             }
         },
@@ -343,6 +350,57 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                 invokeUploadFormFile(formData)
 
                 gridData.arrFileData = alFileData.toTypedArray()
+            }
+        },
+        "doNextFocus" to { gridDataId: Int, gridDataSubId: Int ->
+            val arrGridData = that().arrGridData.unsafeCast<Array<FormGridData>>()
+
+            val curIndex = arrGridData.indexOfFirst { formGridData ->
+                formGridData.id == gridDataId
+            }
+
+            if (curIndex >= 0) {
+                val curGridData = arrGridData[curIndex]
+
+                var nextGridId = -1
+                var nextSubGridId = -1
+
+                //--- try set focus to next sub-field into fields group (date/time-textfields or radio-buttons)
+                curGridData.arrSubId?.let { arrSubId ->
+                    val curSubIndex = arrSubId.indexOf(gridDataSubId)
+                    if (curSubIndex >= 0) {
+                        if (curSubIndex < arrSubId.lastIndex) {
+                            nextGridId = gridDataId
+                            nextSubGridId = arrSubId[curSubIndex + 1]
+                        }
+                    }
+                }
+                //--- else try set focus to next field or first sub-field in next field
+                if(nextGridId == -1 && nextSubGridId == -1) {
+                    if (curIndex < arrGridData.lastIndex) {
+                        var nextIndex = curIndex + 1
+                        //--- search non-label element
+                        while(nextIndex <= arrGridData.lastIndex && arrGridData[nextIndex].cellType == FormCellType_.LABEL) {
+                            nextIndex++
+                        }
+                        val nextGridData = arrGridData[nextIndex]
+                        nextGridId = nextGridData.id
+                        nextSubGridId = nextGridData.arrSubId?.firstOrNull() ?: -1
+                    }
+                }
+
+                val nextFocusId = if (nextSubGridId < 0) {
+                    "i_${tabId}_${nextGridId}"
+                } else {
+                    "i_${tabId}_${nextGridId}_${nextSubGridId}"
+                }
+
+//                Vue.nextTick {
+                    val element = document.getElementById(nextFocusId)
+                    if (element is HTMLElement) {
+                        element.focus()
+                    }
+//                }
             }
         },
         "invoke" to { formAppParam: String, withNewData: Boolean ->
@@ -397,7 +455,7 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
         val hmFormCellMaster = mutableMapOf<String, Int>()
         val hmFormCellVisible = mutableMapOf<Int, MutableList<FormCellVisibleInfo>>()
         val hmFormCellCaption = mutableMapOf<Int, MutableList<FormCellCaptionInfo>>()
-//        focusableComponent = null
+        var autoFocusId: String? = null
         val alFormCellMasterPreAction = mutableListOf<FormGridData>()
         val alGridData = mutableListOf<FormGridData>()
         var autoClickURL: String? = null
@@ -407,9 +465,8 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
         var gridCellID = 100
 
         var maxColumnCount = 0
-        var isAutoFocused = false
         for (formCell in formResponse.alFormCell) {
-            //--- поле без заголовка считается невидимым ( hidden )
+            //--- поле без заголовка считается невидимым (hidden)
             if (formCell.caption.isEmpty()) {
                 val formGridData = getFormGridData(
                     formCell = formCell,
@@ -510,15 +567,28 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                 isGridForm = formResponse.alFormColumn.isNotEmpty()
             )
             //--- на тачскринах автофокус только бесит автоматическим включением клавиатуры
-            if (!styleIsTouchScreen() && !isAutoFocused && !formGridData.itReadOnly) {
-                //println( formGridData.cellType )
-                formGridData.itAutoFocus = true
-                isAutoFocused = true
+            if (!styleIsTouchScreen()) {
+                //--- set autofocus from server
+                if (formCell.itAutoFocus) {
+                    formGridData.arrSubId?.let { arrSubId ->
+                        autoFocusId = "i_${tabId}_${formGridData.id}_${arrSubId[0]}"
+                    } ?: run {
+                        autoFocusId = "i_${tabId}_${formGridData.id}"
+                    }
+                }
+                //--- automatic autofocus setting
+                else if (autoFocusId == null && !formGridData.itReadOnly) {
+                    formGridData.arrSubId?.let { arrSubId ->
+                        autoFocusId = "i_${tabId}_${formGridData.id}_${arrSubId[0]}"
+                    } ?: run {
+                        autoFocusId = "i_${tabId}_${formGridData.id}"
+                    }
+                }
             }
             alGridData.add(formGridData)
 
             //--- проверка на изначальную пустоту поля-автоселектора
-            //--- ( по умолчанию оно заполнено, чтобы не запустить автоселектор на непроверяемых полях )
+            //--- (по умолчанию оно заполнено, чтобы не запустить автоселектор на непроверяемых полях)
             var isEmptyFieldValue = false
             when (formCell.cellType.toString()) {
                 FormCellType.STRING.toString(), FormCellType.INT.toString(), FormCellType.DOUBLE.toString() -> {
@@ -555,7 +625,11 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
             columnNo++
 
             //--- если это широкий экран или строка GRID-формы
-            if (!styleIsNarrowScreen || formResponse.alFormColumn.isNotEmpty()) columnIndex++ else rowIndex++
+            if (!styleIsNarrowScreen || formResponse.alFormColumn.isNotEmpty()) {
+                columnIndex++
+            } else {
+                rowIndex++
+            }
 
             //--- если это последнее поле в строке GRID-формы, то добавляем правый заголовок поля
             if (formResponse.alFormColumn.isNotEmpty() && columnNo == formResponse.columnCount) {
@@ -581,8 +655,9 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
 
             //--- автостарт селектора запускается, только если поле данных пустое,
             //-- иначе зациклимся на старте
-            if (formCell.itAutoStartSelector && isEmptyFieldValue && autoClickURL == null)
+            if (formCell.itAutoStartSelector && isEmptyFieldValue && autoClickURL == null) {
                 autoClickURL = formGridData.selectorSetURL
+            }
 
             //--- определим visible-зависимости
             for (v in formCell.alVisible) {
@@ -591,8 +666,9 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                 val value = v.third
 
                 val masterID = hmFormCellMaster[name]!!
-                for (slaveID in alSlaveID)
+                for (slaveID in alSlaveID) {
                     hmFormCellVisible[masterID]!!.add(FormCellVisibleInfo(state, value, slaveID))
+                }
             }
 
             //--- определим caption-зависимости
@@ -645,7 +721,7 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
             "display" to "grid",
             "grid-template-rows" to "repeat(${rowIndex + 1},max-content)",
             "grid-template-columns" to "repeat($maxColumnCount,auto)",
-            "background" to COLOR_PANEL_BACK
+            "background" to colorMainBack1
         )
         //--- перепакуем внутренние списки в массивы
         that().hmFormCellVisible = hmFormCellVisible.mapValues { entry -> entry.value.toTypedArray() }
@@ -659,10 +735,16 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
             doVisibleAndCaptionChangeBody(that(), gridData)
         }
 
-        if (autoClickURL != null) that().invoke(autoClickURL, true)
-
-        //--- возможно, через Vue.nextTick или через установку аттрибутов в template?
-        //        onRequestFocus()
+        if (autoClickURL != null) {
+            that().invoke(autoClickURL, true)
+        } else if (autoFocusId != null) {
+            Vue.nextTick {
+                val element = document.getElementById(autoFocusId!!)
+                if (element is HTMLElement) {
+                    element.focus()
+                }
+            }
+        }
     }
 
     this.data = {
@@ -681,7 +763,7 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                 "flex-shrink" to 1,
                 "display" to "flex",
                 "flex-direction" to "column",
-                "height" to "100%"
+                "height" to "100%",
             ),
             "style_header" to json(
                 "flex-grow" to 0,
@@ -691,10 +773,10 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                 "flex-wrap" to "wrap",
                 "justify-content" to "center",
                 "align-items" to "center",        // "baseline" ?
-                "border-top" to if (!styleIsNarrowScreen) "none" else "1px solid $COLOR_BUTTON_BORDER",
-                "border-bottom" to "1px solid $COLOR_BUTTON_BORDER",
+                "border-top" to if (!styleIsNarrowScreen) "none" else "1px solid $colorMainBorder",
+                "border-bottom" to "1px solid $colorMainBorder",
                 "padding" to styleControlPadding(),
-                "background" to COLOR_PANEL_BACK
+                "background" to colorMainBack1,
             ),
             "style_button_bar" to json(
                 "flex-grow" to 0,
@@ -704,96 +786,96 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                 "flex-wrap" to "wrap",
                 "justify-content" to if (!styleIsNarrowScreen) "center" else "space-between",
                 "align-items" to "center",
-                "border-top" to "1px solid $COLOR_BUTTON_BORDER",
+                "border-top" to "1px solid $colorMainBorder",
                 "padding" to styleControlPadding(),
-                "background" to COLOR_PANEL_BACK
+                "background" to colorMainBack1,
             ),
             "style_title" to json(
                 "font-size" to styleControlTitleTextFontSize(),
-                "padding" to styleControlTitlePadding()
+                "padding" to styleControlTitlePadding(),
             ),
             "style_icon_button" to json(
-                "background" to COLOR_BUTTON_BACK,
-                "border" to "1px solid $COLOR_BUTTON_BORDER",
+                "background" to colorButtonBack,
+                "border" to "1px solid $colorButtonBorder",
                 "border-radius" to BORDER_RADIUS,
                 "font-size" to styleCommonButtonFontSize(),
                 "padding" to styleIconButtonPadding(),
                 "margin" to styleCommonMargin(),
-                "cursor" to "pointer"
+                "cursor" to "pointer",
             ),
             "style_text_button" to json(
-                "background" to COLOR_BUTTON_BACK,
-                "border" to "1px solid $COLOR_BUTTON_BORDER",
+                "background" to colorButtonBack,
+                "border" to "1px solid $colorButtonBorder",
                 "border-radius" to BORDER_RADIUS,
                 "font-size" to styleCommonButtonFontSize(),
                 "padding" to styleTextButtonPadding(),
                 "margin" to styleCommonMargin(),
-                "cursor" to "pointer"
+                "cursor" to "pointer",
             ),
             "style_form_row_label" to json(
-                "font-size" to styleControlTextFontSize()
+                "font-size" to styleControlTextFontSize(),
             ),
             "style_form_row_input" to json(
-                "background" to COLOR_BACK,
-                "border" to "1px solid $COLOR_BUTTON_BORDER",
+                "background" to COLOR_MAIN_BACK_0,
+                "border" to "1px solid $colorMainBorder",
                 "border-radius" to BORDER_RADIUS_SMALL,
                 "font-size" to styleControlTextFontSize(),
                 "padding" to styleCommonEditorPadding(),
-                "margin" to styleCommonMargin()
+                "margin" to styleCommonMargin(),
             ),
             "style_form_row_checkbox" to json(
                 "transform" to styleControlCheckBoxTransform(),
-                "margin" to styleFormCheckboxAndRadioMargin()
+                "margin" to styleFormCheckboxAndRadioMargin(),
             ),
             "style_form_switch_off" to json(
-                "background" to COLOR_FORM_SWITCH_BACK_OFF,
-                "border" to "1px solid $COLOR_TAB_BORDER",
+                "background" to colorMainBack1,
+                "border" to "1px solid $colorMainBorder",
                 "border-radius" to BORDER_RADIUS,
                 "font-size" to styleCommonButtonFontSize(),
                 "padding" to styleFileNameButtonPadding(),
-                "cursor" to "pointer"
+                "cursor" to "pointer",
             ),
             "style_form_switch_on" to json(
                 "background" to COLOR_FORM_SWITCH_BACK_ON,
-                "border" to "1px solid $COLOR_TAB_BORDER",
+                "border" to "1px solid $colorMainBorder",
                 "border-radius" to BORDER_RADIUS,
                 "font-size" to styleCommonButtonFontSize(),
                 "padding" to styleFileNameButtonPadding(),
-                "cursor" to "pointer"
+                "cursor" to "pointer",
             ),
             "style_form_row_combo" to json(
                 "font-size" to styleControlTextFontSize(),
                 "padding" to styleCommonEditorPadding(),
-                "margin" to styleCommonMargin()
+                "margin" to styleCommonMargin(),
             ),
             "style_form_row_radio_button" to json(
                 "transform" to styleControlRadioTransform(),
-                "margin" to styleFormCheckboxAndRadioMargin()
+                "margin" to styleFormCheckboxAndRadioMargin(),
             ),
             "style_form_row_radio_label" to json(
-                "font-size" to styleControlTextFontSize()
+                "font-size" to styleControlTextFontSize(),
             ),
             "style_form_row_file" to json(
                 "display" to "flex",
                 "flex-direction" to "row",
                 "flex-wrap" to "wrap",
                 "justify-content" to "flex-start",
-                "align-items" to "center"
+                "align-items" to "center",
             ),
             "style_row_file_name_button" to json(
-                "background" to COLOR_BUTTON_BACK,
-                "border" to "1px solid $COLOR_BUTTON_BORDER",
+                "background" to colorButtonBack,
+                "border" to "1px solid $colorButtonBorder",
                 "border-radius" to BORDER_RADIUS,
                 "font-size" to styleCommonButtonFontSize(),
                 "padding" to styleFileNameButtonPadding(),
                 "margin" to styleFileNameButtonMargin(),
-                "cursor" to "pointer"
+                "cursor" to "pointer",
             ),
             "style_form_row_error" to json(
                 "color" to "red",
                 "font-size" to styleControlTextFontSize(),
                 "font-weight" to "bold",
-                "margin" to styleCommonMargin()
+                "margin" to styleCommonMargin(),
             )
         )
     }
@@ -834,7 +916,7 @@ private fun getFormGridData(formCell: FormCell, gridCellID: Int, itHidden: Boole
         "padding-left" to if (isGridForm) "0" else styleFormRowPadding(),
         "padding-right" to "0",
         "padding-top" to if (!styleIsNarrowScreen || isGridForm) styleFormRowTopBottomPadding() else styleFormRowPadding(),
-        "padding-bottom" to if (!styleIsNarrowScreen || isGridForm) styleFormRowTopBottomPadding() else styleFormRowPadding()
+        "padding-bottom" to if (!styleIsNarrowScreen || isGridForm) styleFormRowTopBottomPadding() else styleFormRowPadding(),
     )
     //--- добавляем отдельно только для тех, у кого есть select-кнопки,
     //--- иначе разъезжаются radio-buttons в одну строчку (а не в один столбец)
@@ -844,7 +926,7 @@ private fun getFormGridData(formCell: FormCell, gridCellID: Int, itHidden: Boole
                 "display" to "flex",
                 "flex-direction" to "row",
                 "flex-wrap" to "wrap",
-                "align-items" to "center"
+                "align-items" to "center",
             )
         )
     }
@@ -858,9 +940,13 @@ private fun getFormGridData(formCell: FormCell, gridCellID: Int, itHidden: Boole
                 itHidden = itHidden,
                 error = formCell.errorMessage,
                 aText = formCell.value,
-                inputType = if (formCell.itPassword) "password" else "text",
+                inputType = if (formCell.itPassword) {
+                    "password"
+                } else {
+                    "text"
+                },
                 colCount = styleFormEditBoxColumn(formCell.column),
-                itReadOnly = !formCell.itEditable
+                itReadOnly = !formCell.itEditable,
             )
         }
         FormCellType.TEXT.toString() -> {
@@ -873,13 +959,13 @@ private fun getFormGridData(formCell: FormCell, gridCellID: Int, itHidden: Boole
                 aText = formCell.textValue,
                 rowCount = formCell.textRow,
                 colCount = styleFormEditBoxColumn(formCell.textColumn),
-                itReadOnly = !formCell.itEditable
+                itReadOnly = !formCell.itEditable,
             )
         }
         FormCellType.BOOLEAN.toString() -> {
             FormGridData(
                 id = gridCellID,
-                cellType = if(formCell.arrSwitchText.isEmpty()) {
+                cellType = if (formCell.arrSwitchText.isEmpty()) {
                     FormCellType_.CHECKBOX
                 } else {
                     FormCellType_.SWITCH
@@ -895,19 +981,29 @@ private fun getFormGridData(formCell: FormCell, gridCellID: Int, itHidden: Boole
         FormCellType.DATE.toString(), FormCellType.TIME.toString(), FormCellType.DATE_TIME.toString() -> {
             FormGridData(
                 id = gridCellID,
-                cellType = if (formCell.cellType == FormCellType.DATE) {
-                    FormCellType_.DATE
-                } else if (formCell.cellType == FormCellType.TIME) {
-                    FormCellType_.TIME
-                } else {
-                    FormCellType_.DATE_TIME
+                cellType = when (formCell.cellType) {
+                    FormCellType.DATE -> {
+                        FormCellType_.DATE
+                    }
+                    FormCellType.TIME -> {
+                        FormCellType_.TIME
+                    }
+                    else -> {
+                        FormCellType_.DATE_TIME
+                    }
                 },
                 style = style,
                 itHidden = itHidden,
                 error = formCell.errorMessage,
                 aArrDateTime = formCell.alDateTimeField.map { it.second }.toTypedArray(),
-                itReadOnly = !formCell.itEditable
-            )
+                itReadOnly = !formCell.itEditable,
+            ).apply {
+                val alSubId = mutableListOf<Int>()
+                (0 until arrDateTime!!.size).forEach { i ->
+                    alSubId += i
+                }
+                arrSubId = alSubId.toTypedArray()
+            }
         }
         FormCellType.COMBO.toString() -> {
             FormGridData(
@@ -918,7 +1014,7 @@ private fun getFormGridData(formCell: FormCell, gridCellID: Int, itHidden: Boole
                 error = formCell.errorMessage,
                 aCombo = formCell.comboValue,
                 arrComboData = formCell.alComboData.map { FormComboData(it.first, it.second) }.toTypedArray(),
-                itReadOnly = !formCell.itEditable
+                itReadOnly = !formCell.itEditable,
             )
         }
         FormCellType.RADIO.toString() -> {
@@ -930,8 +1026,14 @@ private fun getFormGridData(formCell: FormCell, gridCellID: Int, itHidden: Boole
                 error = formCell.errorMessage,
                 aCombo = formCell.comboValue,
                 arrComboData = formCell.alComboData.map { FormComboData(it.first, it.second) }.toTypedArray(),
-                itReadOnly = !formCell.itEditable
-            )
+                itReadOnly = !formCell.itEditable,
+            ).apply {
+                val alSubId = mutableListOf<Int>()
+                (0 until arrDateTime!!.size).forEach { i ->
+                    alSubId += i
+                }
+                arrSubId = alSubId.toTypedArray()
+            }
         }
         FormCellType.FILE.toString() -> {
             FormGridData(
@@ -941,7 +1043,7 @@ private fun getFormGridData(formCell: FormCell, gridCellID: Int, itHidden: Boole
                 itHidden = itHidden,
                 error = formCell.errorMessage,
                 fileID = formCell.fileID,
-                arrFileData = formCell.alFile.map { FormFileData(it.first, it.second, it.third) }.toTypedArray()
+                arrFileData = formCell.alFile.map { FormFileData(it.first, it.second, it.third) }.toTypedArray(),
             )
         }
         //--- недогадливость (ошибка) парсера/компилятора из-за использования enum.toString() - на самом деле больше нет вариантов
@@ -952,7 +1054,7 @@ private fun getFormGridData(formCell: FormCell, gridCellID: Int, itHidden: Boole
                 cellType = FormCellType_.LABEL,
                 style = style,
                 itHidden = true, // от греха подальше :)
-                error = formCell.errorMessage
+                error = formCell.errorMessage,
             )
         }
     }
@@ -1011,6 +1113,7 @@ private class FormTitleData(val id: Int, val url: String, val text: String)
 
 private class FormGridData(
     val id: Int,
+
     val cellType: FormCellType_,
     val style: Json,
 
@@ -1035,6 +1138,8 @@ private class FormGridData(
     val fileID: Int = 0,
     var arrFileData: Array<FormFileData>? = null
 ) {
+    var arrSubId: Array<Int>? = null
+
     var text: String = aText
     val oldText: String = aText
 
@@ -1052,8 +1157,6 @@ private class FormGridData(
 
     val hmFileAdd = mutableMapOf<Int, String>()
     val alFileRemovedID = mutableListOf<Int>()
-
-    var itAutoFocus = false
 }
 
 private class FormComboData(val value: Int, val text: String)

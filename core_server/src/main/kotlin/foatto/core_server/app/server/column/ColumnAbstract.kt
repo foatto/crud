@@ -60,6 +60,7 @@ abstract class ColumnAbstract : iColumn {
     override var tableAlign = TableCellAlign.LEFT
 
     override var formPinMode = FormPinMode.AUTO
+    override var isAutoFocus = false
 
     override val alFCVD = mutableListOf<FormColumnVisibleData>()
     override val alFCCD = mutableListOf<FormColumnCaptionData>()

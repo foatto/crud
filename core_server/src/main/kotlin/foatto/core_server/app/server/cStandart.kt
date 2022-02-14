@@ -1073,7 +1073,9 @@ open class cStandart {
                 arrCurGroupValue!![gi] = curValue
                 //--- сбросить текущие значения для более младших группировочных полей
                 //--- ( т.е. перегруппировать младшие поля )
-                for (j in gi + 1 until model.alTableGroupColumn.size) arrCurGroupValue!![j] = null
+                for (j in gi + 1 until model.alTableGroupColumn.size) {
+                    arrCurGroupValue!![j] = null
+                }
             }
         }
         //--- разрешено ли открытие формы для данной строки таблицы?
@@ -1701,6 +1703,8 @@ open class cStandart {
         )
         fci.itEditable = isEditable && column.isEditable && column.columnTableName == model.modelTableName
         fci.formPinMode = column.formPinMode
+        fci.itAutoFocus = column.isAutoFocus
+
         //--- эту чисто серверную часть нежелательно передавать в клиенто-ориентированный FormCellInfo
         fci.alVisible = fci.alVisible.toMutableList().apply {
             for (i in 0 until column.getFormVisibleCount()) {

@@ -18,6 +18,7 @@ class FormCell(val cellType: FormCellType) {
     var caption = ""         // empty caption == hidden cell
     var itEditable = false
     var formPinMode = FormPinMode.AUTO
+    var itAutoFocus = false
 
     //--- TYPE_STRING, TYPE_INT, TYPE_DOUBLE
     var name = ""

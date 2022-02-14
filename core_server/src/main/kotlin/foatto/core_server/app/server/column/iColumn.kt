@@ -46,6 +46,7 @@ interface iColumn {
     var tableAlign: TableCellAlign
 
     val formPinMode: FormPinMode
+    var isAutoFocus: Boolean
 
     val alFCVD: MutableList<FormColumnVisibleData>
     val alFCCD: MutableList<FormColumnCaptionData>

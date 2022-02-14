@@ -1,24 +1,14 @@
 package foatto.core_web.external.vue
 
-//import foatto.core_web.external.vuex.Context
-//import foatto.core_web.external.vuex.Vuex
 import kotlin.js.Json
 
-//external interface VueComponent {
-//    val `$store`: Context
-//}
-
-inline fun that(): dynamic = js( "this" )
+inline fun that(): dynamic = js("this")
 inline fun <T> that(): T = that().unsafeCast<T>()
-//inline fun thatComponent() = that().unsafeCast<VueComponent>()
-//inline fun thatStore() = that().unsafeCast<VueComponent>().`$store`
-//inline fun vm(): dynamic = js( "Vue" ) //- не получилось нормально использовать, попробую позже
 
-//@JsName( "Vue" ) - если захочется назвать по другому в котлин-коде
-//@JsModule("vue")
-external class Vue( json: Any ) {
+external class Vue(json: Any) {
     companion object {
         fun <T> use(plugin: dynamic, options: T?)
+
 //        fun <T> set(target: TypedJson<T>, key: String, value: T): T
 //        fun <T> set(target: Array<T>, key: Int, value: T): T
 //        fun set(target: Any, key: String, value: Any)
@@ -31,11 +21,10 @@ external class Vue( json: Any ) {
 
 external interface VueComponentOptions {
     var el: String?
-//    var store: Vuex.Store
     var template: String?
     var components: Json?
 
-//    var created: () -> Unit
+    //    var created: () -> Unit
     var mounted: () -> Unit
 //    var updated: () -> Unit
 //    var destroyed: () -> Unit
@@ -44,81 +33,18 @@ external interface VueComponentOptions {
 
 //    var watch: Json?
 
-// могут быть get + set
+    // могут быть get + set
     var computed: Json?
 //    var computed: TypedJson<(VueComponent) -> Any>?
 
-    var data: ( () -> Json )?
+    var data: (() -> Json)?
 
 //    var props: Array<String>
 }
 
 fun vueComponentOptions(): VueComponentOptions = js("{}")
 
-
-
-
 /*
-////=== example-app.kt ========================================================================================================================================================================
-//
-//// GreetingComponent = require('greeting-component.vue')
-////@JsModule("greeting-component.vue")
-////external val GreetingComponent: Component = definedExternally
-//
-////@JsModule("vue") // module name in node_modules
-//@JsName("Vue") // `AppVue` is converted to the name `Vue` in JavaScript code
-//external class AppVue(options: ComponentOptions<AppVue>) : Vue {
-//    var message: String
-//}
-
-//    val vm = AppVue(ComponentOptions {
-//        el = ElementConfig("#app")      // ElementConfig is union type
-//        data = Data(json<AppVue> {      // json function create JSON instance
-//            message = "Привет !"        // accessible property of AppVue
-//        })
-////        components = json {
-////            this["greeting"] = ComponentConfig(GreetingComponent)
-////        }
-//    })
-//
-////=== vue.kt ========================================================================================================================================================================
-//
-//object vue {
-//    const val MODULE = "vue"
-//    const val CLASS = "Vue"
-//}
-//
-///**
-// * `??? -> VNode`
-// */
-//typealias CreateElement = Function<VNode>
-//
-///**
-// * # Example
-// *
-// * ```
-// * @JsModule(vue.MODULE)
-// * @JsNonModule
-// * @JsName(vue.CLASS)
-// * external class MyVue(options: ComponentOptions<MyVue>) : Vue {
-// *     var message: String
-// * }
-// *
-// * MyVue(ComponentOptions {
-// *     ...
-// * })
-// * ```
-// *
-// * # Example Component
-// *
-// * ```
-// * external class MyComponent : Vue
-// *
-// * Vue.component("my-component", Component(ComponentOptions<MyComponent> {
-// *     ...
-// * })
-// * ```
-// */
 //@JsModule(vue.MODULE)
 //@JsNonModule
 //@JsName(vue.CLASS)
