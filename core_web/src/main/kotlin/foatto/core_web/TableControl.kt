@@ -2,9 +2,12 @@ package foatto.core_web
 
 import foatto.core.app.*
 import foatto.core.link.*
+import foatto.core_web.external.vue.Vue
 import foatto.core_web.external.vue.that
 import foatto.core_web.external.vue.vueComponentOptions
+import kotlinx.browser.document
 import kotlinx.browser.window
+import org.w3c.dom.HTMLElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.MouseEvent
 import kotlin.js.Json
@@ -75,9 +78,9 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                     <input type="text"
                            v-show="isFindTextVisible"
                            v-model="findText" 
-                           placeholder="Поиск..." 
                            v-bind:size="style_find_editor_len"
                            v-bind:style="style_find_editor"
+                           placeholder="Поиск..." 
                            v-on:keyup.enter="doFind( false )"
                     >
                     <img src="/web/images/ic_search_black_48dp.png" 
@@ -153,8 +156,23 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                 </span>
                 
                 <span v-bind:style="style_toolbar_block">
+                    <input type="text"
+                           readonly
+                           size=1
+                           v-bind:style="style_cursor_box"
+                           id="table_cursor_$tabId"
+                           v-on:keyup.up="doKeyUp()"
+                           v-on:keyup.down="doKeyDown()"
+                           v-on:keyup.home="doKeyHome()"
+                           v-on:keyup.end="doKeyEnd()"
+                           v-on:keyup.page-up="doKeyPageUp()"
+                           v-on:keyup.page-down="doKeyPageDown()"
+                           v-on:keyup.enter="doKeyEnter()"
+                           v-on:keyup.esc="doKeyEsc()"
+                           v-on:keyup.f4="closeTabById()"
+                    >
                     <img src="/web/images/ic_sync_black_48dp.png" 
-                         v-show="( !${styleIsNarrowScreen} || !isFindTextVisible )" 
+                         v-show="( !${styleIsNarrowScreen} || !isFindTextVisible )"
                          v-bind:style="[ style_icon_button, style_button_with_border ]"
                          title="Обновить"
                          v-on:click="invoke( '$appParam', false )"
@@ -270,7 +288,7 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
             //--- загрузка заголовка таблицы/формы
             var titleID = 0
             val alTitleData = mutableListOf<TableTitleData>()
-            for (headerData in tableResponse.alHeader) {
+            for (headerData in tableResponse.arrHeader) {
                 val url = headerData.first
                 val text = headerData.second
 
@@ -292,10 +310,14 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
         "readAddButtons" to {
             var addButtonID = 0
             val alAddButton = mutableListOf<AddActionButton_>()
-            for (aab in tableResponse.alAddActionButton) {
+            for (aab in tableResponse.arrAddActionButton) {
                 val icon = hmTableIcon[aab.icon] ?: ""
                 //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
-                val caption = if (aab.icon.isNotBlank() && icon.isBlank()) aab.icon else aab.tooltip.replace("\n", "<br>")
+                val caption = if (aab.icon.isNotBlank() && icon.isBlank()) {
+                    aab.icon
+                } else {
+                    aab.tooltip.replace("\n", "<br>")
+                }
                 alAddButton.add(
                     AddActionButton_(
                         id = addButtonID++,
@@ -311,7 +333,7 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
         "readServerButtons" to {
             var serverButtonID = 0
             val alServerButton = mutableListOf<ServerActionButton_>()
-            for (sab in tableResponse.alServerActionButton) {
+            for (sab in tableResponse.arrServerActionButton) {
                 val icon = hmTableIcon[sab.icon] ?: ""
                 //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
                 val caption = if (sab.icon.isNotBlank() && icon.isBlank()) {
@@ -336,7 +358,7 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
         "readClientButtons" to {
             var clientButtonID = 0
             val alClientButton = mutableListOf<ClientActionButton_>()
-            for (cab in tableResponse.alClientActionButton) {
+            for (cab in tableResponse.arrClientActionButton) {
                 val icon = hmTableIcon[cab.icon] ?: ""
                 //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
                 val caption = if (cab.icon.isNotBlank() && icon.isBlank()) {
@@ -359,32 +381,37 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
             that().arrClientButton = alClientButton.toTypedArray()
         },
         "readPageButtons" to {
-//            butTablePageUp = null
-//            butTablePageDown = null
-//            var isEmptyPassed = false
             var pageButtonID = 0
+            var isEmptyPassed = false
+            var pageUpUrl = ""
+            var pageDownUrl = ""
             val alPageButton = mutableListOf<PageButton>()
             //--- вывести новую разметку страниц
-            for (value in tableResponse.alPageButton) {
+            for (value in tableResponse.arrPageButton) {
                 val url = value.first
                 val text = value.second
 
                 alPageButton.add(PageButton(pageButtonID++, url, text))
 
-//                if( url.isEmpty() ) {
-//                    isEmptyPassed = true
-//                }
-//                else {
-//                    if( !isEmptyPassed ) butTablePageUp = butPage
-//                    if( isEmptyPassed && butTablePageDown == null ) butTablePageDown = butPage
-//                }
+                if (url.isEmpty()) {
+                    isEmptyPassed = true
+                } else {
+                    if (!isEmptyPassed) {
+                        pageUpUrl = url
+                    }
+                    if (isEmptyPassed && pageDownUrl.isEmpty()) {
+                        pageDownUrl = url
+                    }
+                }
             }
 
             val pageButtonStyle = json(
-                "width" to styleTablePageButtonWidth(tableResponse.alPageButton.size),
-                "font-size" to styleTablePageButtonFontSize(tableResponse.alPageButton.size)
+                "width" to styleTablePageButtonWidth(tableResponse.arrPageButton.size),
+                "font-size" to styleTablePageButtonFontSize(tableResponse.arrPageButton.size)
             )
 
+            that().pageUpUrl = pageUpUrl
+            that().pageDownUrl = pageDownUrl
             that().arrPageButton = alPageButton.toTypedArray()
             that().style_page_button = pageButtonStyle
         },
@@ -394,7 +421,7 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
             var startRow = 0
 
             //--- заголовки столбцов таблицы
-            for ((index, value) in tableResponse.alColumnCaption.withIndex()) {
+            for ((index, value) in tableResponse.arrColumnCaption.withIndex()) {
                 val url = value.first
                 val text = value.second
                 val captionCell = TableGridData(
@@ -408,7 +435,11 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                         "border-top" to "none",
                         "border-right" to "0.5px solid $colorMainBorder",
                         "border-bottom" to "1px solid $colorMainBorder",
-                        "cursor" to if (url.isBlank()) "default" else "pointer",
+                        "cursor" to if (url.isBlank()) {
+                            "default"
+                        } else {
+                            "pointer"
+                        },
                         "display" to "flex",
                         "justify-content" to "center",
                         "align-items" to "center",
@@ -434,9 +465,9 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
             }
             startRow++
             var maxRow = 0
-            var maxCol = tableResponse.alColumnCaption.size
+            var maxCol = tableResponse.arrColumnCaption.size
 
-            for (tc in tableResponse.alTableCell) {
+            for (tc in tableResponse.arrTableCell) {
                 val backColor =
                     when (tc.backColorType.toString()) {
                         TableCellBackColorType.DEFINED.toString() -> getColorFromInt(tc.backColor)
@@ -655,7 +686,10 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                 //--- полностью запретить выделение текста - простейший способ победить паразитное выделение текста вместо лонг-тача на больших сенсорных экранах
                 "user-select" to "none" // if( styleIsNarrowScreen ) "none" else "auto"
             )
-            that().arrRowData = tableResponse.alTableRowData
+            that().arrRowData = tableResponse.arrTableRowData
+        },
+        "closeTabById" to {
+            that().`$root`.closeTabById(tabId)
         },
         "doFind" to { isClear: Boolean ->
             val isFindTextVisible = that().isFindTextVisible.unsafeCast<Boolean>()
@@ -696,31 +730,64 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                 that().showPopupMenu(currentRow, null)
         },
         "setCurrentRow" to { rowNo: Int ->
-            val arrRowData = that().arrRowData.unsafeCast<Array<TableRowData>>()
-
-            that().isFormButtonVisible = rowNo >= 0 && arrRowData[rowNo].formURL.isNotEmpty()
-            that().isGotoButtonVisible = rowNo >= 0 && arrRowData[rowNo].gotoURL.isNotEmpty()
-            that().isPopupButtonVisible = rowNo >= 0 && arrRowData[rowNo].alPopupData.isNotEmpty()
-
-            that().currentRow = rowNo
-            that().isShowPopupMenu = false
+            setCurrentRow(that(), rowNo)
+            focusToCursorField(tabId)
         },
-//--- grid не focusable и клавиши на нём не отрабатывают
-//        "doKeyUp" to {
-//            var currentRow = that().currentRow.unsafeCast<Int>()
-//            if( currentRow > 0 ) {
-//                currentRow--
-//                that().setCurrentRow( currentRow )
-//            }
-//        },
-//        "doKeyDown" to {
-//            val arrRowData = that().arrRowData.unsafeCast<Array<TableRowData>>()
-//            var currentRow = that().currentRow.unsafeCast<Int>()
-//            if( currentRow < arrRowData.size - 1 ) {
-//                currentRow++
-//                that().setCurrentRow( currentRow )
-//            }
-//        },
+        "doKeyUp" to {
+            var currentRow = that().currentRow.unsafeCast<Int>()
+            if (currentRow > 0) {
+                currentRow--
+                setCurrentRow(that(), currentRow)
+            }
+        },
+        "doKeyDown" to {
+            val arrRowData = that().arrRowData.unsafeCast<Array<TableRowData>>()
+            var currentRow = that().currentRow.unsafeCast<Int>()
+            if (currentRow < arrRowData.lastIndex) {
+                currentRow++
+                setCurrentRow(that(), currentRow)
+            }
+        },
+        "doKeyHome" to {
+            val arrRowData = that().arrRowData.unsafeCast<Array<TableRowData>>()
+            if (arrRowData.isNotEmpty()) {
+                setCurrentRow(that(), 0)
+            }
+        },
+        "doKeyEnd" to {
+            val arrRowData = that().arrRowData.unsafeCast<Array<TableRowData>>()
+            if (arrRowData.isNotEmpty()) {
+                setCurrentRow(that(), arrRowData.lastIndex)
+            }
+        },
+        "doKeyPageUp" to {
+            val pageUpUrl = that().pageUpUrl.unsafeCast<String>()
+            if (pageUpUrl.isNotEmpty()) {
+                that().invoke(pageUpUrl, false)
+            }
+        },
+        "doKeyPageDown" to {
+            val pageDownUrl = that().pageDownUrl.unsafeCast<String>()
+            if (pageDownUrl.isNotEmpty()) {
+                that().invoke(pageDownUrl, false)
+            }
+        },
+        "doKeyEnter" to {
+            val arrRowData = that().arrRowData.unsafeCast<Array<TableRowData>>()
+            val currentRow = that().currentRow.unsafeCast<Int>()
+            if (currentRow >= 0 && currentRow < arrRowData.size) {
+                val curRowData = arrRowData[currentRow]
+                if (curRowData.rowURL.isNotEmpty()) {
+                    that().invoke(curRowData.rowURL, curRowData.itRowURLInNewWindow)
+                }
+            }
+        },
+        "doKeyEsc" to {
+            val selectorCancelURL = that().selectorCancelURL.unsafeCast<String>()
+            if(selectorCancelURL.isNotEmpty()) {
+                that().invoke(selectorCancelURL, false)
+            }
+        },
         "invoke" to { newAppParam: String, inNewWindow: Boolean ->
             if (inNewWindow)
                 that().`$root`.openTab(newAppParam)
@@ -787,7 +854,7 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
         //--- запоминаем текущий appParam для возможной установки в виде стартовой
         that().`$root`.curAppParam = appParam
 
-//        onRequestFocus()
+        focusToCursorField(tabId)
     }
 
     this.data = {
@@ -809,6 +876,9 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
             "arrPageButton" to arrayOf<PageButton>(),
             "arrGridData" to arrayOf<TableGridData>(),
             "style_grid" to "",
+
+            "pageUpUrl" to "",
+            "pageDownUrl" to "",
 
             "arrRowData" to arrayOf<TableRowData>(),
             "arrCurPopupData" to null,
@@ -897,6 +967,12 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                 "font-size" to styleTableFindEditorFontSize(),
                 "padding" to styleCommonEditorPadding(),
                 "margin" to styleCommonMargin(),
+            ),
+            "style_cursor_box" to json(
+                "border" to "none",
+                "outline" to "none",
+                "background" to "hsla(0,0%,0%,0)",
+                "color" to "hsla(0,0%,0%,0)",
             ),
             "style_page_button" to json(
                 //--- определяются в зависимости от кол-ва кнопок
@@ -1058,4 +1134,24 @@ private fun convertPopupMenuData(arrMenuData: Array<TablePopupData>): Array<Popu
         }
     }
     return alPopupMenuData.toTypedArray()
+}
+
+private fun focusToCursorField(tabId: Int) {
+    Vue.nextTick {
+        val element = document.getElementById("table_cursor_$tabId")
+        if (element is HTMLElement) {
+            element.focus()
+        }
+    }
+}
+
+private fun setCurrentRow(that: dynamic, rowNo: Int) {
+    val arrRowData = that.arrRowData.unsafeCast<Array<TableRowData>>()
+
+    that.isFormButtonVisible = rowNo >= 0 && arrRowData[rowNo].formURL.isNotEmpty()
+    that.isGotoButtonVisible = rowNo >= 0 && arrRowData[rowNo].gotoURL.isNotEmpty()
+    that.isPopupButtonVisible = rowNo >= 0 && arrRowData[rowNo].alPopupData.isNotEmpty()
+
+    that.currentRow = rowNo
+    that.isShowPopupMenu = false
 }
