@@ -75,8 +75,8 @@ open class cAbstractHierarchy : cStandart() {
                 url = getParamURL(
                     aAlias = aliasConfig.alias,
                     aAction = AppAction.FORM,
-                    aRefererID = refererID,
-                    aID = 0,
+                    aRefererId = refererID,
+                    aId = 0,
                     aParentData = hmParentData,
                     aParentUserId = parentUserId,
                     aAltParams = "&${it.url}"

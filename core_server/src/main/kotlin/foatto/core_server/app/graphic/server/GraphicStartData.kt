@@ -8,5 +8,5 @@ class GraphicStartData {
     var endTime = 0
 
     var shortTitle = ""
-    var title = ""
+    var fullTitle = ""
 }

@@ -69,19 +69,19 @@ open class cStandart {
         fun getParamURL(
             aAlias: String,
             aAction: String,
-            aRefererID: String?,
-            aID: Int?,
+            aRefererId: String?,
+            aId: Int?,
             aParentData: Map<String, Int>?,
             aParentUserId: Int?,
             aAltParams: String?,
         ): String {
 
             var sResult = "${AppParameter.ALIAS}=$aAlias&${AppParameter.ACTION}=$aAction"
-            aRefererID?.let {
-                sResult += "&${AppParameter.REFERER}=$aRefererID"
+            aRefererId?.let {
+                sResult += "&${AppParameter.REFERER}=$aRefererId"
             }
-            aID?.let {
-                sResult += "&${AppParameter.ID}=$aID"
+            aId?.let {
+                sResult += "&${AppParameter.ID}=$aId"
             }
 
             if (!aParentData.isNullOrEmpty()) {
@@ -781,8 +781,8 @@ open class cStandart {
             getParamURL(
                 aAlias = selectorParam.formAlias,
                 aAction = AppAction.FORM,
-                aRefererID = selectorParam.refererId,
-                aID = selectorParam.recordId,
+                aRefererId = selectorParam.refererId,
+                aId = selectorParam.recordId,
                 aParentData = selectorParam.hmParentData,
                 aParentUserId = selectorParam.parentUserId,
                 aAltParams = "&${AppParameter.FORM_DATA}=$formDataID"
@@ -823,18 +823,18 @@ open class cStandart {
 
         return TableResponse(
             tab = aliasConfig.descr,
-            alHeader = alHeader.toTypedArray(),
+            arrHeader = alHeader.toTypedArray(),
             selectorCancelURL = selectorCancelURL,
             findURL = findData.first,
             findText = findData.second,
-            alAddActionButton = (if (isAddEnabled()) getAddButtonURL(refererID, hmOut) else emptyList()).toTypedArray(),
-            alServerActionButton = getServerAction().toTypedArray(),
-            alClientActionButton = getClientAction().toTypedArray(),
-            alColumnCaption = alCaption.toTypedArray(),
-            alTableCell = alTableCell.toTypedArray(),
-            alTableRowData = alTableRowData.toTypedArray(),
+            arrAddActionButton = (if (isAddEnabled()) getAddButtonURL(refererID, hmOut) else emptyList()).toTypedArray(),
+            arrServerActionButton = getServerAction().toTypedArray(),
+            arrClientActionButton = getClientAction().toTypedArray(),
+            arrColumnCaption = alCaption.toTypedArray(),
+            arrTableCell = alTableCell.toTypedArray(),
+            arrTableRowData = alTableRowData.toTypedArray(),
             selectedRow = currentRowNo,
-            alPageButton = alPageButton.toTypedArray()
+            arrPageButton = alPageButton.toTypedArray()
         )
     }
 
@@ -1083,8 +1083,8 @@ open class cStandart {
             getParamURL(
                 aAlias = aliasConfig.alias,
                 aAction = AppAction.FORM,
-                aRefererID = refererID,
-                aID = valueID,
+                aRefererId = refererID,
+                aId = valueID,
                 aParentData = hmParentData,
                 aParentUserId = parentUserId,
                 aAltParams = null
@@ -1330,8 +1330,8 @@ open class cStandart {
             aUrl = getParamURL(
                 aAlias = selectorParam.formAlias,
                 aAction = AppAction.FORM,
-                aRefererID = selectorParam.refererId,
-                aID = selectorParam.recordId,
+                aRefererId = selectorParam.refererId,
+                aId = selectorParam.recordId,
                 aParentData = selectorParam.hmParentData,
                 aParentUserId = selectorParam.parentUserId,
                 aAltParams = "&${AppParameter.FORM_DATA}=$formDataID"
@@ -1947,8 +1947,8 @@ open class cStandart {
                 return getParamURL(
                     aAlias = selectorParam.formAlias,
                     aAction = AppAction.FORM,
-                    aRefererID = selectorParam.refererId,
-                    aID = selectorParam.recordId,
+                    aRefererId = selectorParam.refererId,
+                    aId = selectorParam.recordId,
                     aParentData = selectorParam.hmParentData,
                     aParentUserId = selectorParam.parentUserId,
                     aAltParams = "&${AppParameter.FORM_DATA}=$formDataID"
@@ -1958,8 +1958,8 @@ open class cStandart {
                 return getParamURL(
                     aAlias = selectorParam.selectorAlias,
                     aAction = AppAction.TABLE,
-                    aRefererID = null,
-                    aID = null,
+                    aRefererId = null,
+                    aId = null,
                     aParentData = null,
                     aParentUserId = null,
                     aAltParams = "&${AppParameter.SELECTOR}=$selectorID"

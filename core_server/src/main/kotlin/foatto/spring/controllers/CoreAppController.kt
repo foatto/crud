@@ -309,8 +309,8 @@ abstract class CoreAppController : iApplication {
                             graphic = GraphicResponse(
                                 documentTypeName = aliasName,
                                 startParamId = graphicStartDataID,
-                                shortTitle = sd.shortTitle,
-                                fullTitle = sd.title.substring(0, min(32000, sd.title.length))
+                                shortTitle = sd.shortTitle.substring(0, min(32000, sd.shortTitle.length)),
+                                fullTitle = sd.fullTitle.substring(0, min(32000, sd.fullTitle.length))
                             )
                         )
                     }
@@ -325,8 +325,9 @@ abstract class CoreAppController : iApplication {
                             xy = XyResponse(
                                 documentConfig = CoreSpringApp.hmXyDocumentConfig[docTypeName]!!,
                                 startParamId = xyStartDataID,
-                                shortTitle = sd.shortTitle,
-                                fullTitle = sd.title.substring(0, min(32000, sd.title.length)),
+                                shortTitle = sd.shortTitle.substring(0, min(32000, sd.shortTitle.length)),
+                                fullTitle = sd.fullTitle.substring(0, min(32000, sd.fullTitle.length)),
+                                arrServerActionButton = sd.alServerActionButton.toTypedArray(),
                             )
                         )
                     }

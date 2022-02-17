@@ -64,15 +64,20 @@ class cGraphicMMS : cAbstractForm() {
 
         //--- заполнение текста заголовка информацией по объекту
         val oc = (application as iMMSApplication).getObjectConfig(userConfig, selectObject)
-        sd.shortTitle = aliasConfig.descr
-        sd.title = oc.name
+
+        sd.shortTitle = aliasConfig.descr + "\n${oc.name}"
         if (oc.model.isNotEmpty()) {
-            sd.title += ", ${oc.model}"
+            sd.shortTitle += ", ${oc.model}"
+        }
+
+        sd.fullTitle = oc.name
+        if (oc.model.isNotEmpty()) {
+            sd.fullTitle += "\nМодель: ${oc.model}"
         }
 
         //--- заполнение текста заголовка информацией по периоду времени
         if (sd.rangeType != 0) {
-            sd.title += " за последние " +
+            sd.fullTitle += " за последние " +
                 if (sd.rangeType % 3600 == 0) {
                     "${sd.rangeType / 3600} час(а,ов) "
                 } else if (sd.rangeType % 60 == 0) {

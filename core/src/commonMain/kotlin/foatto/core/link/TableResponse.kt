@@ -2,18 +2,18 @@ package foatto.core.link
 
 class TableResponse(
     val tab: String,
-    val alHeader: Array<Pair<String, String>>,
+    val arrHeader: Array<Pair<String, String>>,
     val selectorCancelURL: String,
     val findURL: String,
     val findText: String,
-    val alAddActionButton: Array<AddActionButton>,
-    val alServerActionButton: Array<ServerActionButton>,
-    val alClientActionButton: Array<ClientActionButton>,
-    val alColumnCaption: Array<Pair<String, String>>,
-    val alTableCell: Array<TableCell>,
-    val alTableRowData: Array<TableRowData>,
+    val arrAddActionButton: Array<AddActionButton>,
+    val arrServerActionButton: Array<ServerActionButton>,
+    val arrClientActionButton: Array<ClientActionButton>,
+    val arrColumnCaption: Array<Pair<String, String>>,
+    val arrTableCell: Array<TableCell>,
+    val arrTableRowData: Array<TableRowData>,
     val selectedRow: Int,
-    val alPageButton: Array<Pair<String, String>>
+    val arrPageButton: Array<Pair<String, String>>
 )
 
 class AddActionButton(

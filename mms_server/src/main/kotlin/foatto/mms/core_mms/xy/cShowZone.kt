@@ -32,7 +32,7 @@ class cShowZone : cAbstractForm() {
 
         val sd = XyStartData()
         sd.shortTitle = aliasConfig.descr
-        sd.title = "Геозона: ${zoneData.name} [${zoneData.descr}]"
+        sd.fullTitle = "Геозона: ${zoneData.name} [${zoneData.descr}]"
         //--- информация по зоне
         sd.alStartObjectData.add(XyStartObjectData(showZoneID, "mms_zone", true, false, zoneData.hmUserRO[userConfig.userId]!!))
 

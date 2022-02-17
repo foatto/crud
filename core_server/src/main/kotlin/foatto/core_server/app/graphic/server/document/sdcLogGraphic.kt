@@ -37,7 +37,7 @@ class sdcLogGraphic : sdcAbstractGraphic() {
         val tmMemoryUsed = TreeMap<Int, Int>()
         val tmMemoryTotal = TreeMap<Int, Int>()
 
-        val dirLog = File(application.hmAliasLogDir[sd.title]!!)
+        val dirLog = File(application.hmAliasLogDir[sd.fullTitle]!!)
         val alLogWord = ArrayList<String>()
 
         val arrFile = dirLog.listFiles()

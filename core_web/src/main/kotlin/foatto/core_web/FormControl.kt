@@ -734,7 +734,6 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
         for (gridData in alFormCellMasterPreAction) {
             doVisibleAndCaptionChangeBody(that(), gridData)
         }
-
         if (autoClickURL != null) {
             that().invoke(autoClickURL, true)
         } else if (autoFocusId != null) {
@@ -1029,7 +1028,7 @@ private fun getFormGridData(formCell: FormCell, gridCellID: Int, itHidden: Boole
                 itReadOnly = !formCell.itEditable,
             ).apply {
                 val alSubId = mutableListOf<Int>()
-                (0 until arrDateTime!!.size).forEach { i ->
+                (0 until arrComboData!!.size).forEach { i ->
                     alSubId += i
                 }
                 arrSubId = alSubId.toTypedArray()

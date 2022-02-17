@@ -53,11 +53,11 @@ class cLogShow : cAbstractForm() {
 
         //--- заполнение текста заголовка информацией по объекту
         sd.shortTitle = aliasConfig.alias
-        sd.title = ""
+        sd.fullTitle = ""
 
         //--- заполнение текста заголовка информацией по периоду времени
         if (sd.rangeType != 0) {
-            sd.title += " за последние " +
+            sd.fullTitle += " за последние " +
                 if (sd.rangeType % 3600 == 0) {
                     "${sd.rangeType / 3600} час(а,ов) "
                 } else if (sd.rangeType % 60 == 0) {

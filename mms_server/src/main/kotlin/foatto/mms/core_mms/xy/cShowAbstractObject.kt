@@ -45,7 +45,7 @@ abstract class cShowAbstractObject : cAbstractForm() {
     protected fun getShowURL(hmOut: MutableMap<String, Any>, sd: XyStartData): String {
 
         sd.shortTitle = aliasConfig.descr
-        sd.title = ""
+        sd.fullTitle = ""
 
         //--- заполнение стартовой/фильтровой информации по объектам
         for (objectIndex in sd.alStartObjectData.indices) {
@@ -56,20 +56,20 @@ abstract class cShowAbstractObject : cAbstractForm() {
 
             //--- заполнение текста заголовка информацией по а/м
             if (objectIndex > 0) {
-                sd.title += ", "
+                sd.fullTitle += ", "
             }
             val oc = (application as iMMSApplication).getObjectConfig(userConfig, sod.objectId)
-            sd.title += oc.name
+            sd.fullTitle += oc.name
             if (oc.model.isNotEmpty()) {
-                sd.title += ", ${oc.model}"
+                sd.fullTitle += ", ${oc.model}"
             }
         }
 
         //--- заполнение текста заголовка информацией по периоду времени
         if (sd.rangeType == -1) {
-            sd.title += " за период с ${DateTime_DMYHMS(zoneId, sd.begTime)} по ${DateTime_DMYHMS(zoneId, sd.endTime)}"
+            sd.fullTitle += " за период с ${DateTime_DMYHMS(zoneId, sd.begTime)} по ${DateTime_DMYHMS(zoneId, sd.endTime)}"
         } else if (sd.rangeType > 0) {
-            sd.title += " за последние " +
+            sd.fullTitle += " за последние " +
                 if (sd.rangeType % 3600 == 0) {
                     "${sd.rangeType / 3600} час(а,ов) "
                 } else if (sd.rangeType % 60 == 0) {

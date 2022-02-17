@@ -37,10 +37,14 @@ class cShowState : cAbstractForm() {
 
         val sd = XyStartData()
 
-        sd.shortTitle = aliasConfig.descr
-        sd.title = oc.name
+        sd.shortTitle = aliasConfig.descr + "\n${oc.name}"
         if (oc.model.isNotEmpty()) {
-            sd.title += ", ${oc.model}"
+            sd.shortTitle += ", ${oc.model}"
+        }
+
+        sd.fullTitle = oc.name
+        if (oc.model.isNotEmpty()) {
+            sd.fullTitle += "\nМодель: ${oc.model}"
         }
 
         sd.alStartObjectData.add(XyStartObjectData(selectobjectId, "mms_object", true, false, true))
