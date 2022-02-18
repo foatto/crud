@@ -1,5 +1,7 @@
 package foatto.core_server.app.composite.server
 
+import foatto.core.link.XyServerActionButton
+
 class CompositeStartData {
     var objectId = 0
 
@@ -8,8 +10,10 @@ class CompositeStartData {
     var endTime = 0
 
     var shortTitle = ""
-    var title = ""
+    var fullTitle = ""
 
     var xyStartDataId: String = ""
     var graphicStartDataId: String = ""
+
+    var alServerActionButton = mutableListOf<XyServerActionButton>()
 }

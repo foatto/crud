@@ -1,5 +1,7 @@
 package foatto.core_server.app.xy
 
+import foatto.core.link.XyServerActionButton
+
 class XyStartData {
 
     var alStartObjectData = mutableListOf<XyStartObjectData>()
@@ -9,7 +11,9 @@ class XyStartData {
     var endTime = 0
 
     var shortTitle = ""
-    var title = ""
+    var fullTitle = ""
+
+    var alServerActionButton = mutableListOf<XyServerActionButton>()
 }
 
 class XyStartObjectData(

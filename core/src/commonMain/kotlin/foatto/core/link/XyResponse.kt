@@ -5,6 +5,7 @@ class XyResponse(
     val startParamId: String,
     val shortTitle: String,
     val fullTitle: String,
+    val arrServerActionButton: Array<XyServerActionButton>,
 )
 
 class XyDocumentConfig(
@@ -28,6 +29,14 @@ class XyElementConfig(
 //    val itCopyable: Boolean,
     val itEditablePoint: Boolean
 //    val itEditableText: Boolean,
+)
+
+class XyServerActionButton(
+    val caption: String,
+    val tooltip: String,
+    val icon: String,
+    val url: String,
+    val isForWideScreenOnly: Boolean,
 )
 
 enum class XyDocumentClientType {
