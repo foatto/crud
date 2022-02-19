@@ -79,27 +79,27 @@ class TSAppController : CoreAppController(), iTSApplication {
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     override fun getCompositeResponse(compositeStartData: CompositeStartData): AppResponse {
-        val fullTitle = compositeStartData.title.substring(0, min(32000, compositeStartData.title.length))
+        val shortTitle = compositeStartData.shortTitle.substring(0, min(32000, compositeStartData.shortTitle.length))
+        val fullTitle = compositeStartData.fullTitle.substring(0, min(32000, compositeStartData.fullTitle.length))
 
-        val appResponse = AppResponse(
+        return AppResponse(
             code = ResponseCode.COMPOSITE,
             composite = CompositeResponse(
                 xyResponse = XyResponse(
                     documentConfig = CoreSpringApp.hmXyDocumentConfig["ts_state"]!!,
                     startParamId = compositeStartData.xyStartDataId,
-                    shortTitle = compositeStartData.shortTitle,
+                    shortTitle = shortTitle,
                     fullTitle = fullTitle,
+                    arrServerActionButton = compositeStartData.alServerActionButton.toTypedArray(),
                 ),
                 graphicResponse = GraphicResponse(
                     documentTypeName = "ts_graphic_dsltt",
                     startParamId = compositeStartData.graphicStartDataId,
-                    shortTitle = compositeStartData.shortTitle,
+                    shortTitle = shortTitle,
                     fullTitle = fullTitle,
                 ),
             )
         )
-
-        return appResponse
     }
 
     //--- пропускаем логи по запуску модулей из 1С, отчётов, графиков, показов картографии

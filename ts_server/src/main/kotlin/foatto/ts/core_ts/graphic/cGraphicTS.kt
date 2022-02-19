@@ -57,23 +57,29 @@ class cGraphicTS : cAbstractForm() {
 
         //--- заполнение текста заголовка информацией по объекту
         val oc = (application as iTSApplication).getObjectConfig(userConfig, selectObject)
-        sd.shortTitle = aliasConfig.descr
-        sd.title = oc.name
+
+        sd.shortTitle = aliasConfig.descr + "\n${oc.name}"
         if (oc.model.isNotEmpty()) {
-            sd.title += ", ${oc.model}"
+            sd.shortTitle += ", ${oc.model}"
         }
 
-        //--- заполнение текста заголовка информацией по периоду времени
-        if (sd.rangeType != 0) {
-            sd.title += " за последние " +
-                if (sd.rangeType % 3600 == 0) {
-                    "${sd.rangeType / 3600} час(а,ов) "
-                } else if (sd.rangeType % 60 == 0) {
-                    "${sd.rangeType / 60} минут "
-                } else {
-                    "${sd.rangeType} секунд "
-                }
+        sd.fullTitle = oc.name
+        if (oc.model.isNotEmpty()) {
+            sd.fullTitle += "\nМодель: ${oc.model}"
         }
+
+        //--- fill header text by info of time period
+//--- commented at the request of the customer
+//        if (sd.rangeType != 0) {
+//            sd.title += " за последние " +
+//                if (sd.rangeType % 3600 == 0) {
+//                    "${sd.rangeType / 3600} час(а,ов) "
+//                } else if (sd.rangeType % 60 == 0) {
+//                    "${sd.rangeType / 60} минут "
+//                } else {
+//                    "${sd.rangeType} секунд "
+//                }
+//        }
 
         val paramID = getRandomInt()
         hmOut[AppParameter.GRAPHIC_START_DATA + paramID] = sd

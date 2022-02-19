@@ -27,7 +27,9 @@ open class cTSOneObjectParent : cStandart() {
         var s = aliasConfig.descr
         oc?.let { oc ->
             s += ": ${oc.name}"
-            if (oc.model.isNotEmpty()) s += ", ${oc.model}"
+            if (oc.model.isNotEmpty()) {
+                s += ", ${oc.model}"
+            }
         }
 
         alPath.add(Pair("", s))

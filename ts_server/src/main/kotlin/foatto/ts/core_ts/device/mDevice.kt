@@ -25,6 +25,7 @@ class mDevice : mAbstract() {
     }
 
     lateinit var columnDeviceIndex: ColumnInt
+    lateinit var columnDeviceType: ColumnRadioButton
     lateinit var columnSerialNo: ColumnString
         private set
     lateinit var columnDeviceLastSessionTime: ColumnDateTimeInt
@@ -38,7 +39,15 @@ class mDevice : mAbstract() {
     val columnObject: ColumnInt
         get() = os.columnObject
 
-    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
+    override fun init(
+        application: iApplication,
+        aStm: CoreAdvancedStatement,
+        aliasConfig: AliasConfig,
+        userConfig: UserConfig,
+        aHmParam: Map<String, String>,
+        hmParentData: MutableMap<String, Int>,
+        id: Int?
+    ) {
 
         super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
@@ -57,7 +66,7 @@ class mDevice : mAbstract() {
             maxValue = MAX_DEVICE_COUNT_PER_OBJECT - 1
         }
 
-        val columnDeviceType = ColumnRadioButton(modelTableName, "type", "Тип устройства")
+        columnDeviceType = ColumnRadioButton(modelTableName, "type", "Тип устройства")
         TSHandler.fillDeviceTypeColumn(columnDeviceType)
 
         columnSerialNo = ColumnString(modelTableName, "serial_no", "Серийный номер", STRING_COLUMN_WIDTH).apply {
@@ -82,7 +91,7 @@ class mDevice : mAbstract() {
             isEditable = false
         }
 
-        columnSensorCreatingEnabled = ColumnBoolean(modelTableName, "_sensor_create_enabled", "Автосоздание датчиков", false).apply {
+        columnSensorCreatingEnabled = ColumnBoolean(modelTableName, "_sensor_create_enabled", "Автосоздание датчиков", id == 0).apply {
             isVirtual = true
         }
 

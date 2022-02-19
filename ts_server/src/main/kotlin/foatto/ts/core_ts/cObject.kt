@@ -31,7 +31,7 @@ class cObject : cStandart() {
     override fun definePermission() {
         super.definePermission()
 
-        //--- права доступа на ( дистанционное ) управление объектом
+        //--- права доступа на (дистанционное) управление объектом
         alPermission.add(Pair(PERM_REMOTE_CONTROL, "20 Remote Control"))
     }
 

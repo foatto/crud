@@ -24,12 +24,6 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         val (viewWidth, viewHeight) = graphicActionRequest.viewSize!!
 
         val objectConfig = (application as iTSApplication).getObjectConfig(userConfig, sd.objectId)
-        //--- загрузка заголовочной информации по объекту
-        var sObjectInfo = objectConfig.name
-
-        if (objectConfig.model.isNotEmpty()) {
-            sObjectInfo += ", " + objectConfig.model
-        }
 
         //--- единоразово загрузим данные по объекту
         val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(stm, objectConfig, begTime, endTime)

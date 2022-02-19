@@ -8,6 +8,8 @@ import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.data.DataBoolean
 import foatto.core_server.app.server.data.DataDateTimeInt
 import foatto.core_server.app.server.data.DataInt
+import foatto.core_server.app.server.data.DataRadioButton
+import foatto.core_server.app.server.data.DataString
 import foatto.core_server.app.server.data.iData
 import foatto.core_server.ds.AbstractTelematicHandler
 import foatto.ts.core_ts.sensor.config.SensorConfig
@@ -34,14 +36,11 @@ class cDevice : cStandart() {
 
             if (lastSessionTime == 0) {
                 tci.foreColor = TABLE_CELL_FORE_COLOR_DISABLED
-            }
-            else if (curTime - lastSessionTime > 7 * 24 * 60 * 60) {
+            } else if (curTime - lastSessionTime > 7 * 24 * 60 * 60) {
                 tci.foreColor = TABLE_CELL_FORE_COLOR_CRITICAL
-            }
-            else if (curTime - lastSessionTime > 1 * 24 * 60 * 60) {
+            } else if (curTime - lastSessionTime > 1 * 24 * 60 * 60) {
                 tci.foreColor = TABLE_CELL_FORE_COLOR_WARNING
-            }
-            else {
+            } else {
                 tci.foreColor = TABLE_CELL_FORE_COLOR_NORMAL
             }
         }
@@ -60,6 +59,8 @@ class cDevice : cStandart() {
             createSensors(objectId, deviceIndex)
         }
 
+        fillObjectModel(hmColumnData)
+
         return postURL
     }
 
@@ -75,6 +76,8 @@ class cDevice : cStandart() {
         if (objectId != 0 && isSensorCreate) {
             createSensors(objectId, deviceIndex)
         }
+
+        fillObjectModel(hmColumnData)
 
         return postURL
     }
@@ -314,5 +317,34 @@ class cDevice : cStandart() {
         )
     }
 
+    private fun fillObjectModel(hmColumnData: Map<iColumn, iData>) {
+        val m = model as mDevice
+
+        val objectId = (hmColumnData[m.columnObject] as DataInt).intValue
+
+        val stmObj = conn.createStatement()
+
+        val rs = stmObj.executeQuery(" SELECT model FROM TS_object WHERE id = $objectId ")
+        val model = if (rs.next()) {
+            rs.getString(1)
+        } else {
+            "-" // чтобы потом автозаполнение не сработало на несуществующем объекте
+        }
+        rs.close()
+
+        if (model.isEmpty()) {
+            val typeDescr = m.columnDeviceType.findChoiceTableDescr((hmColumnData[m.columnDeviceType] as DataRadioButton).intValue)
+            val serialNo = (hmColumnData[m.columnSerialNo] as DataString).text
+            stmObj.executeUpdate(
+                """
+                    UPDATE TS_object
+                    SET model = '$typeDescr №$serialNo'
+                    WHERE id = $objectId
+                """
+            )
+        }
+
+        stmObj.close()
+    }
 }
 
