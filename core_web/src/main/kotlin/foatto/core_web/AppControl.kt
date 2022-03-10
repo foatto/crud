@@ -8,11 +8,14 @@ import foatto.core.link.CompositeResponse
 import foatto.core.link.LogonRequest
 import foatto.core.link.ResponseCode
 import foatto.core.link.XyDocumentClientType
+import foatto.core_web.external.vue.Vue
 import foatto.core_web.external.vue.VueComponentOptions
 import foatto.core_web.external.vue.that
 import foatto.core_web.external.vue.vueComponentOptions
+import kotlinx.browser.document
 import kotlinx.browser.localStorage
 import kotlinx.browser.window
+import org.w3c.dom.HTMLElement
 import kotlin.js.json
 
 const val LOCAL_STORAGE_LOGIN = "login"
@@ -28,35 +31,64 @@ fun appControl(startAppParam: String, tabId: Int) = vueComponentOptions().apply 
             <div v-if="responseCode == '${ResponseCode.LOGON_NEED}' || responseCode == '${ResponseCode.LOGON_FAILED}'"
                  v-bind:style="style_logon_grid"
             >
-
                 <div v-bind:style="style_logon_top_expander">
-                    &nbsp;
+                    $styleLogonTopExpanderContent
                 </div>
                 <div v-bind:style="style_logon_cell">
                     <div v-bind:style="style_logon_logo">
-                        <img src="/web/images/logo.png">
+                        <img src="/web/images/$styleLogonLogo">
                     </div>
+                    $styleLogonLogoContent                    
                     <div v-if="responseCode == '${ResponseCode.LOGON_FAILED}'"
                          v-bind:style="style_logon_error"
                     >
                         Неправильное имя или пароль
                     </div>
                     <div v-bind:style="style_logon_div">
-                        <input v-bind:style="style_logon_input" v-model="login" size="${styleLogonTextLen()}" type="text" placeholder="Имя">
+                        <input type="text"
+                               v-model="login" 
+                               v-on:keyup.enter.exact="doNextFocus(0)"
+                               v-bind:style="style_logon_input"
+                               id="logon_0" 
+                               size="${styleLogonTextLen()}" 
+                               placeholder="Имя"
+                        >
                     </div>
                     <div v-bind:style="style_logon_div">
-                        <input v-bind:style="style_logon_input" v-model="password" size="${styleLogonTextLen()}" type="password" placeholder="Пароль">
+                        <input type="password"
+                               v-model="password" 
+                               v-on:keyup.enter.exact="doNextFocus(1)"
+                               v-bind:style="style_logon_input" 
+                               id="logon_1" 
+                               size="${styleLogonTextLen()}" 
+                               placeholder="Пароль"
+                        >
                     </div>
-                    <div v-bind:style="[ style_logon_div, { 'align-self': 'flex-start', 'color': '$colorLogonCheckBoxText' } ]">
-                        <input v-bind:style="style_logon_checkbox" v-model="isRememberMe" type="checkbox">
+                    <div v-bind:style="[ 
+                            style_logon_div, 
+                            { 
+                                'align-self' : 'flex-start' , 
+                                'color' : '$COLOR_MAIN_TEXT',
+                                'display' : 'flex' , 
+                                'align-items' : 'center' 
+                            } 
+                        ]"
+                    >
+                        <input type="checkbox"
+                               v-model="isRememberMe" 
+                               v-on:keyup.enter.exact="doNextFocus(2)"
+                               v-bind:style="style_logon_checkbox" 
+                               id="logon_2" 
+                        >
                             Запомнить меня
                         </input>
                     </div>
                     <div v-bind:style="style_logon_div">
-                        <button v-bind:style="style_logon_button"
-                                v-on:click="logon"
+                        <button v-on:click="logon"
+                                v-bind:style="style_logon_button"
+                                id="logon_3" 
                         >
-                            Вход
+                            $styleLogonButtonText
                         </button>
                     </div>
                 </div>
@@ -83,6 +115,12 @@ fun appControl(startAppParam: String, tabId: Int) = vueComponentOptions().apply 
         </div>
     """
     this.methods = json(
+        "doNextFocus" to { curIndex: Int ->
+            val element = document.getElementById("logon_${curIndex + 1}")
+            if (element is HTMLElement) {
+                element.focus()
+            }
+        },
         "invoke" to { appRequest: AppRequest ->
             var isAutoClose = false
             //--- урло с автозакрытием текущей вкладки
@@ -93,7 +131,9 @@ fun appControl(startAppParam: String, tabId: Int) = vueComponentOptions().apply 
 
             //--- пустое урло, ничего не делаем
             if (appRequest.action.isEmpty()) {
-                if (isAutoClose) that().`$root`.closeTabById(tabId)
+                if (isAutoClose) {
+                    that().`$root`.closeTabById(tabId)
+                }
             }
             //--- файловое урло
             else if (appRequest.action.startsWith("/")) {
@@ -123,6 +163,12 @@ fun appControl(startAppParam: String, tabId: Int) = vueComponentOptions().apply 
                                 that.invoke(AppRequest(action = AppAction.LOGON, logon = logonRequest))
                             } else {
                                 that.responseCode = appResponse.code
+                                Vue.nextTick {
+                                    val element = document.getElementById("logon_0")
+                                    if (element is HTMLElement) {
+                                        element.focus()
+                                    }
+                                }
                             }
                         }
                         //--- если вход успешен - повторим последний запрос
@@ -251,26 +297,37 @@ fun appControl(startAppParam: String, tabId: Int) = vueComponentOptions().apply 
                 "display" to "grid",
                 "grid-template-rows" to "1fr auto 1fr",
                 "grid-template-columns" to "1fr auto 1fr",
-                "background" to colorLogonBackAround
+                "background" to colorLogonBackAround,
+                "background-size" to "cover",   // for background-image
             ),
             "style_logon_top_expander" to json(
-                "grid-area" to "1 / 2 / 2 / 3"
+                "grid-area" to "1 / 1 / 2 / 4",
+                "display" to "flex",
+                "flex-direction" to "column",
+                "align-items" to "center",
+                "justify-content" to "space-evenly",
+                "text-align" to "center",
             ),
             "style_logon_cell" to json(
                 "grid-area" to "2 / 2 / 3 / 3",
-                "padding" to styleLogonCellPadding(),
+                "padding" to styleLogonCellPadding,
                 "border" to "1px solid $colorLogonBorder",
-                "border-radius" to BORDER_RADIUS,
+                "border-radius" to styleFormBorderRadius,
                 "background" to colorLogonBackCenter,
                 "display" to "flex",
                 "flex-direction" to "column",
                 "align-items" to "center"
             ),
             "style_logon_bottom_expander" to json(
-                "grid-area" to "3 / 2 / 4 / 3"
+                "grid-area" to "3 / 1 / 4 / 4",
+                "display" to "flex",
+                "flex-direction" to "column",
+                "align-items" to "center",
+                "justify-content" to "space-evenly",
+                "text-align" to "center",
             ),
             "style_logon_logo" to json(
-                "padding" to styleLogonLogoPadding()
+                "padding" to styleLogonLogoPadding
             ),
             "style_logon_error" to json(
                 "align-self" to "center",
@@ -279,29 +336,32 @@ fun appControl(startAppParam: String, tabId: Int) = vueComponentOptions().apply 
             ),
             "style_logon_div" to json(
                 "font-size" to styleControlTextFontSize(),
-                "padding" to styleLogonControlPadding()
+                "padding" to styleLogonControlPadding
             ),
             "style_logon_input" to json(
-                "background" to COLOR_BACK,
-                "border" to "1px solid $COLOR_BUTTON_BORDER",
-                "border-radius" to BORDER_RADIUS,
+                "background" to COLOR_MAIN_BACK_0,
+                "border" to "1px solid $colorMainBorder",
+                "border-radius" to styleInputBorderRadius,
                 "font-size" to styleControlTextFontSize(),
                 "padding" to styleCommonEditorPadding()
             ),
             "style_logon_checkbox" to json(
-                "border" to "1px solid $COLOR_BUTTON_BORDER",
-                "border-radius" to BORDER_RADIUS,
-                "transform" to styleControlCheckBoxTransform(),
-                "font-size" to styleControlTextFontSize(),
-                "margin" to styleLogonCheckBoxMargin()
+                "appearance" to "none",
+                "width" to styleCheckBoxWidth,
+                "height" to styleCheckBoxHeight,
+                "border" to "1px solid $colorMainBorder",
+                "border-radius" to styleInputBorderRadius,
+                "margin" to styleLogonCheckBoxMargin
             ),
             "style_logon_button" to json(
                 "background" to colorLogonButtonBack,
+                "color" to colorLogonButtonText,
                 "border" to "1px solid $colorLogonButtonBorder",
-                "border-radius" to BORDER_RADIUS,
+                "border-radius" to styleButtonBorderRadius,
                 "font-size" to styleCommonButtonFontSize(),
+                "font-weight" to styleLogonButtonFontWeight,
                 "padding" to styleLogonButtonPadding(),
-                "margin" to styleLogonButtonMargin(),
+                "margin" to styleLogonButtonMargin,
                 "cursor" to "pointer"
             )
         )
