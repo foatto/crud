@@ -19,7 +19,6 @@ import foatto.shop.iShopApplication
 import foatto.shop.mPrice
 import foatto.shop.mWarehouse
 import foatto.shop.report.fiscal.Atol
-import foatto.shop.report.fiscal.Starrus
 import foatto.shop.report.fiscal.iFiscal
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedStatement
@@ -529,7 +528,6 @@ class cDocContent : cAbstractReport() {
 
         val fiscal: iFiscal = when (fiscalIndex) {
             0 -> Atol()
-            1 -> Starrus()
             else -> throw Exception("Wrong index for fiscal = $fiscalIndex")
         }
 

@@ -5,7 +5,6 @@ import foatto.core.link.FormData
 import foatto.core_server.app.server.cAbstractReport
 import foatto.shop.iShopApplication
 import foatto.shop.report.fiscal.Atol
-import foatto.shop.report.fiscal.Starrus
 import foatto.shop.report.fiscal.iFiscal
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
@@ -67,7 +66,6 @@ class cFiscalShiftClose : cAbstractReport() {
 
         val fiscal: iFiscal = when (fiscalIndex) {
             0 -> Atol()
-            1 -> Starrus()
             else -> throw Exception("Wrong index for fiscal = $fiscalIndex")
         }
 
