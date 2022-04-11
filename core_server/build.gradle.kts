@@ -24,7 +24,6 @@ plugins {
     id("org.springframework.boot")
 
     `maven-publish`
-    idea
 }
 
 version=coreServerVersion
@@ -38,6 +37,7 @@ dependencies {
 
     runtimeOnly("org.postgresql:postgresql:$postgresJdbcVersion")
     runtimeOnly("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonModuleKotlinVersion")
+    //implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.11.2")
 
     api("com.sun.mail:javax.mail:$javaxMailApiVersion")
     api("javax.mail:javax.mail-api:$javaxMailApiVersion")

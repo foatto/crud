@@ -10,7 +10,6 @@ plugins {
     kotlin("multiplatform")
 
     `maven-publish`
-    idea
 }
 
 version = coreVersion

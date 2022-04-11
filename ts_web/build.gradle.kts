@@ -7,7 +7,6 @@ val kotlinApiVersion: String by project
 
 plugins {
     kotlin("js")
-    idea
 }
 
 dependencies {

@@ -11,7 +11,6 @@ plugins {
     kotlin("js")
 
     `maven-publish`
-    idea
 }
 
 version = coreWebVersion
