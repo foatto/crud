@@ -1,6 +1,12 @@
 package foatto.ts.core_ts.graphic.server.document
 
-import foatto.core.app.graphic.*
+import foatto.core.app.graphic.AxisYData
+import foatto.core.app.graphic.GraphicActionRequest
+import foatto.core.app.graphic.GraphicActionResponse
+import foatto.core.app.graphic.GraphicBackData
+import foatto.core.app.graphic.GraphicDataContainer
+import foatto.core.app.graphic.GraphicElement
+import foatto.core.app.graphic.graphicAxisColorIndexes
 import foatto.core.util.AdvancedByteBuffer
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.graphic.server.GraphicStartData
@@ -13,6 +19,7 @@ import foatto.ts.core_ts.sensor.config.SensorConfigAnalogue
 import foatto.ts.core_ts.sensor.config.SensorConfigState
 import foatto.ts.iTSApplication
 import java.util.*
+import kotlin.math.ceil
 
 abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
 
@@ -136,8 +143,6 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                 val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 3, isReversedY)
                 val aText = GraphicDataContainer(GraphicDataContainer.ElementType.TEXT, axisIndex, 0, isReversedY)
 
-                alAxisYData.add(AxisYData(sca.descr, sca.minView, sca.maxView, graphicAxisColorIndexes[axisIndex], isReversedY))
-
                 ObjectCalc.getSmoothAnalogGraphicData(
                     alRawTime = alRawTime,
                     alRawData = alRawData,
@@ -152,7 +157,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                     yScale = if (viewHeight == 0) {
                         0.0
                     } else {
-                        (sca.maxView - sca.minView) / (viewHeight / DOT_PER_MM)
+                        (sca.maxGraphicView - sca.minGraphicView) / (viewHeight / DOT_PER_MM)
                     },
                     axisIndex = axisIndex,
                     aMinLimit = aMinLimit,
@@ -160,6 +165,33 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                     aLine = aLine,
                     graphicHandler = graphicHandler
                 )
+
+                //--- коррекция min/max_GraphicView
+                val viewStep = getMinMaxGraphicViewStep(sca.sensorType)
+                val correctedMinGraphicView =
+                    aLine.alGLD.minByOrNull { gld ->
+                        gld.y
+                    }?.let { minGLD ->
+                        if (minGLD.y < sca.minGraphicView + viewStep) {
+                            val minShift = ceil((sca.minGraphicView + viewStep - minGLD.y) / viewStep) * viewStep
+                            sca.minGraphicView - minShift
+                        } else {
+                            sca.minGraphicView
+                        }
+                    } ?: sca.minGraphicView
+                val correctedMaxGraphicView =
+                    aLine.alGLD.maxByOrNull { gld ->
+                        gld.y
+                    }?.let { maxGLD ->
+                        if (maxGLD.y > sca.maxGraphicView - viewStep) {
+                            val maxShift = ceil(maxGLD.y - (sca.maxGraphicView - viewStep) / viewStep) * viewStep
+                            sca.maxGraphicView + maxShift
+                        } else {
+                            sca.maxGraphicView
+                        }
+                    } ?: sca.maxGraphicView
+
+                alAxisYData += AxisYData(sca.descr, correctedMinGraphicView, correctedMaxGraphicView, graphicAxisColorIndexes[axisIndex], isReversedY)
 
 //        if (aText != null) {
 //            val hmSC = oc.hmSensorConfig[SensorConfig.SENSOR_WORK]
@@ -209,5 +241,15 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
             )
         }
     }
+
+    private fun getMinMaxGraphicViewStep(sensorType: Int) =
+        when (sensorType) {
+            SensorConfig.SENSOR_DEPTH -> 200
+            SensorConfig.SENSOR_SPEED -> 100
+            SensorConfig.SENSOR_LOAD -> 10
+            SensorConfig.SENSOR_TEMPERATURE_IN -> 10
+            SensorConfig.SENSOR_TEMPERATURE_OUT -> 10
+            else -> 0
+        }
 
 }

@@ -216,7 +216,7 @@ class sdcTSState : sdcXyState() {
 
         val curState = objectState.tmStateValue.values.firstOrNull()
 
-        if(curState == SensorConfigState.STATE_STOPPED_BY_SERVER) {
+        if (curState == SensorConfigState.STATE_STOPPED_BY_SERVER) {
             //!!! предусмотреть кастомизацию сообщение в зависимости от типа объекта/устройства
             hmParams[STATE_ALERT_MESSAGE] = "Работа УДС-Техно остановлена.\nТребуется выезд на скважину для перезагрузки станции."
         }
@@ -355,19 +355,24 @@ class sdcTSState : sdcXyState() {
                     objectId = objectConfig.objectId,
                     x = x + 4 * scale,
                     y = y + GRID_STEP * i + 4 * scale,
-                    text = getSplittedDouble(sca.maxView - (sca.maxView - sca.minView) / DEPTH_SCALE_COUNT * i, 0, true, '.')
+                    text = getSplittedDouble(sca.maxStateView - (sca.maxStateView - sca.minStateView) / DEPTH_SCALE_COUNT * i, 0, true, '.')
                 )
             }
 
             objectState.tmDepthValue.values.firstOrNull()?.let { depth ->
+                //--- скорректированное значение, чтобы указатель не уходил за края шкалы
+                val correctedDepth = getCorrectedValue(sca, depth)
                 val downY = y + GRID_STEP * DEPTH_SCALE_COUNT
-                val topY = downY - (depth - sca.minView) / (sca.maxView - sca.minView) * (downY - y)
+                val topY = downY - (correctedDepth - sca.minStateView) / (sca.maxStateView - sca.minStateView) * (downY - y)
                 alElement += createValueBar(objectConfig.objectId, x, topY.toInt(), x + GRID_STEP / 2, downY, 0xFF_00_FF_00.toInt())
             }
 
-            objectState.tmSetupValue[cDevice.CLEANING_DEPTH_SHOW_POS]?.let { cleaningDepth ->
+            objectState.tmSetupValue[cDevice.CLEANING_DEPTH_SHOW_POS]?.let { cleaningDepthStr ->
+                val cleaningDepth = cleaningDepthStr.toDouble()
+                //--- скорректированное значение, чтобы указатель не уходил за края шкалы
+                val correctedCleaningDepth = getCorrectedValue(sca, cleaningDepth)
                 val downY = y + GRID_STEP * DEPTH_SCALE_COUNT
-                val topY = downY - (cleaningDepth.toDouble() - sca.minView) / (sca.maxView - sca.minView) * (downY - y)
+                val topY = downY - (correctedCleaningDepth - sca.minStateView) / (sca.maxStateView - sca.minStateView) * (downY - y)
                 alElement += createArrow(
                     objectId = objectConfig.objectId,
                     scale = scale,
@@ -381,24 +386,25 @@ class sdcTSState : sdcXyState() {
                     objectId = objectConfig.objectId,
                     x = x - GRID_STEP / 2,
                     y = topY.toInt(),
-                    text = getSplittedDouble(cleaningDepth.toDouble(), 0, true, '.'),
+                    text = getSplittedDouble(cleaningDepth, 0, true, '.'),
                     textColor = 0xFF_00_00_00.toInt(),
                     anchorX = XyElement.Anchor.RB,
                     anchorY = XyElement.Anchor.CC,
                 )
             }
 
-            objectState.tmSetupValue[cDevice.PARKING_DEPTH_SHOW_POS]?.let { parkingDepth ->
+            objectState.tmSetupValue[cDevice.PARKING_DEPTH_SHOW_POS]?.let { parkingDepthStr ->
+                val parkingDepth = parkingDepthStr.toDouble()
+                //--- скорректированное значение, чтобы указатель не уходил за края шкалы
+                val correctedParkingDepth = getCorrectedValue(sca, parkingDepth)
                 val downY = y + GRID_STEP * DEPTH_SCALE_COUNT
-                val topY = downY - (parkingDepth.toDouble() - sca.minView) / (sca.maxView - sca.minView) * (downY - y)
+                val topY = downY - (correctedParkingDepth - sca.minStateView) / (sca.maxStateView - sca.minStateView) * (downY - y)
                 alElement += createArrow(
                     objectId = objectConfig.objectId,
                     scale = scale,
                     x = x - GRID_STEP / 4,
-                    //x = x + GRID_STEP * 7 / 4,
                     y = topY.toInt(),
                     angle = 0,
-                    //angle = 180,
                     color = 0xFF_00_00_FF.toInt(),
                     toolTipText = "Глубина парковки скребка [м]"
                 )
@@ -407,7 +413,7 @@ class sdcTSState : sdcXyState() {
                     x = x - GRID_STEP / 2,
                     //x = x + GRID_STEP * 8 / 4,
                     y = topY.toInt(),
-                    text = getSplittedDouble(parkingDepth.toDouble(), 0, true, '.'),
+                    text = getSplittedDouble(parkingDepth, 0, true, '.'),
                     textColor = 0xFF_00_00_00.toInt(),
                     anchorX = XyElement.Anchor.RB,
                     //anchorX = XyElement.Anchor.LT,
@@ -444,25 +450,30 @@ class sdcTSState : sdcXyState() {
                     objectId = objectConfig.objectId,
                     x = x + 4 * scale,
                     y = y + GRID_STEP * i + 4 * scale,
-                    text = getSplittedDouble(sca.maxView - (sca.maxView - sca.minView) / LOAD_SCALE_COUNT * i, 0, true, '.')
+                    text = getSplittedDouble(sca.maxStateView - (sca.maxStateView - sca.minStateView) / LOAD_SCALE_COUNT * i, 0, true, '.')
                 )
             }
 
             objectState.tmLoadValue.values.firstOrNull()?.let { load ->
+                //--- скорректированное значение, чтобы указатель не уходил за края шкалы
+                val correctedLoad = getCorrectedValue(sca, load)
                 val downY = y + GRID_STEP * LOAD_SCALE_COUNT
-                val topY = downY - (load - sca.minView) / (sca.maxView - sca.minView) * (downY - y)
+                val topY = downY - (correctedLoad - sca.minStateView) / (sca.maxStateView - sca.minStateView) * (downY - y)
                 alElement += createValueBar(objectConfig.objectId, x, topY.toInt(), x + GRID_STEP / 2, downY, 0xFF_00_FF_FF.toInt())
             }
 
-            objectState.tmSetupValue[cDevice.DRIVE_LOAD_RESTRICT_SHOW_POS]?.let { driveLoadRestict ->
+            objectState.tmSetupValue[cDevice.DRIVE_LOAD_RESTRICT_SHOW_POS]?.let { driveLoadRestictStr ->
+                val driveLoadRestict = driveLoadRestictStr.toDouble()
+                //--- скорректированное значение, чтобы указатель не уходил за края шкалы
+                val correctedDriveLoadRestict = getCorrectedValue(sca, driveLoadRestict)
                 val downY = y + GRID_STEP * LOAD_SCALE_COUNT
-                val topY = downY - (driveLoadRestict.toDouble() - sca.minView) / (sca.maxView - sca.minView) * (downY - y)
+                val topY = downY - (correctedDriveLoadRestict - sca.minStateView) / (sca.maxStateView - sca.minStateView) * (downY - y)
                 alElement += createArrow(objectConfig.objectId, scale, x - GRID_STEP / 4, topY.toInt(), 0, 0xFF_FF_00_00.toInt(), "Ограничение нагрузки на привод [%]")
                 alElement += createTextText(
                     objectId = objectConfig.objectId,
                     x = x - GRID_STEP / 2,
                     y = topY.toInt(),
-                    text = getSplittedDouble(driveLoadRestict.toDouble(), 0, true, '.'),
+                    text = getSplittedDouble(driveLoadRestict, 0, true, '.'),
                     textColor = 0xFF_00_00_00.toInt(),
                     anchorX = XyElement.Anchor.RB,
                     anchorY = XyElement.Anchor.CC,
@@ -773,6 +784,15 @@ class sdcTSState : sdcXyState() {
             this.anchorY = anchorY
 
             this.dialogQuestion = dialogQuestion ?: ""
+        }
+
+    private fun getCorrectedValue(sca: SensorConfigAnalogue, curValue: Double) =
+        if (curValue < sca.minStateView) {
+            sca.minStateView
+        } else if (curValue > sca.maxStateView) {
+            sca.maxStateView
+        } else {
+            curValue
         }
 
 }

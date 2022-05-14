@@ -22,17 +22,17 @@ class AnalogGraphicHandler : iGraphicHandler {
 //----------------------------------------------------------------------------------------------------------------------------------------
 
     //--- если заданы пределы ( максимум > минимума ), то включено
-    override fun isStaticMinLimit(sca: SensorConfigAnalogue) = sca.maxLimit != sca.minLimit
-    override fun isStaticMaxLimit(sca: SensorConfigAnalogue) = sca.maxLimit != sca.minLimit
+    override fun isStaticMinLimit(sca: SensorConfigAnalogue) = sca.maxGraphicLimit != sca.minGraphicLimit
+    override fun isStaticMaxLimit(sca: SensorConfigAnalogue) = sca.maxGraphicLimit != sca.minGraphicLimit
 
-    override fun getStaticMinLimit(sca: SensorConfigAnalogue) = sca.minLimit
-    override fun getStaticMaxLimit(sca: SensorConfigAnalogue) = sca.maxLimit
+    override fun getStaticMinLimit(sca: SensorConfigAnalogue) = sca.minGraphicLimit
+    override fun getStaticMaxLimit(sca: SensorConfigAnalogue) = sca.maxGraphicLimit
 
     override fun setStaticMinLimit(sca: SensorConfigAnalogue, begTime: Int, endTime: Int, aMinLimit: GraphicDataContainer?) {
         aMinLimit?.apply {
             alGLD = alGLD.toMutableList().apply {
-                add(GraphicLineData(begTime, sca.minLimit, GraphicColorIndex.LINE_LIMIT))
-                add(GraphicLineData(endTime, sca.minLimit, GraphicColorIndex.LINE_LIMIT))
+                add(GraphicLineData(begTime, sca.minGraphicLimit, GraphicColorIndex.LINE_LIMIT))
+                add(GraphicLineData(endTime, sca.minGraphicLimit, GraphicColorIndex.LINE_LIMIT))
             }.toTypedArray()
         }
     }
@@ -40,8 +40,8 @@ class AnalogGraphicHandler : iGraphicHandler {
     override fun setStaticMaxLimit(sca: SensorConfigAnalogue, begTime: Int, endTime: Int, aMaxLimit: GraphicDataContainer?) {
         aMaxLimit?.apply {
             alGLD = alGLD.toMutableList().apply {
-                add(GraphicLineData(begTime, sca.maxLimit, GraphicColorIndex.LINE_LIMIT))
-                add(GraphicLineData(endTime, sca.maxLimit, GraphicColorIndex.LINE_LIMIT))
+                add(GraphicLineData(begTime, sca.maxGraphicLimit, GraphicColorIndex.LINE_LIMIT))
+                add(GraphicLineData(endTime, sca.maxGraphicLimit, GraphicColorIndex.LINE_LIMIT))
             }.toTypedArray()
         }
     }
@@ -51,8 +51,8 @@ class AnalogGraphicHandler : iGraphicHandler {
     override fun isDynamicMinLimit(sca: SensorConfigAnalogue) = false
     override fun isDynamicMaxLimit(sca: SensorConfigAnalogue) = false
 
-    override fun getDynamicMinLimit(sca: SensorConfigAnalogue, rawTime: Int, rawData: Double) = sca.minLimit
-    override fun getDynamicMaxLimit(sca: SensorConfigAnalogue, rawTime: Int, rawData: Double) = sca.maxLimit
+    override fun getDynamicMinLimit(sca: SensorConfigAnalogue, rawTime: Int, rawData: Double) = sca.minGraphicLimit
+    override fun getDynamicMaxLimit(sca: SensorConfigAnalogue, rawTime: Int, rawData: Double) = sca.maxGraphicLimit
 
     override fun addDynamicMinLimit(rawTime: Int, dynamicMinLimit: Double, aMinLimit: GraphicDataContainer) {}
     override fun addDynamicMaxLimit(rawTime: Int, dynamicMaxLimit: Double, aMaxLimit: GraphicDataContainer) {}

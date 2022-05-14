@@ -266,10 +266,12 @@ class TSAppController : CoreAppController(), iTSApplication {
                         aSmoothTime = (sensorEntity.smoothTime ?: 0) * 60,
                         aMinIgnore = sensorEntity.minIgnore ?: 0.0,
                         aMaxIgnore = sensorEntity.maxIgnore ?: 0.0,
-                        minView = sensorEntity.minView ?: 0.0,
-                        maxView = sensorEntity.maxView ?: 0.0,
-                        minLimit = sensorEntity.minLimit ?: 0.0,
-                        maxLimit = sensorEntity.maxLimit ?: 0.0,
+                        minGraphicView = sensorEntity.minGraphicView ?: 0.0,
+                        maxGraphicView = sensorEntity.maxGraphicView ?: 0.0,
+                        minGraphicLimit = sensorEntity.minGraphicLimit ?: 0.0,
+                        maxGraphicLimit = sensorEntity.maxGraphicLimit ?: 0.0,
+                        minStateView = sensorEntity.minStateView ?: 0.0,
+                        maxStateView = sensorEntity.maxStateView ?: 0.0,
                     )
                 }
                 SensorConfig.SENSOR_SETUP -> {

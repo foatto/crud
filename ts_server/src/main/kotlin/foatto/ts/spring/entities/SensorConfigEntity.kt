@@ -43,16 +43,22 @@ class SensorConfigEntity(
     //--- analogue sensor attributes
 
     @Column(name = "analog_min_view")
-    val minView: Double?,
+    val minGraphicView: Double?,
 
     @Column(name = "analog_max_view")
-    val maxView: Double?,
+    val maxGraphicView: Double?,
 
     @Column(name = "analog_min_limit")
-    val minLimit: Double?,
+    val minGraphicLimit: Double?,
 
     @Column(name = "analog_max_limit")
-    val maxLimit: Double?,
+    val maxGraphicLimit: Double?,
+
+    @Column(name = "state_min_view")
+    val minStateView: Double?,
+
+    @Column(name = "state_max_view")
+    val maxStateView: Double?,
 
     @OneToMany(mappedBy = "sensor", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     var calibration: MutableSet<SensorConfigCalibrationEntity> = mutableSetOf(),
@@ -68,7 +74,7 @@ class SensorConfigEntity(
     @Column(name = "prec")
     val prec: Int?,
 
-) {
+    ) {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

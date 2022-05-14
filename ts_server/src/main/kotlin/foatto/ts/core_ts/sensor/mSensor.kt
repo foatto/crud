@@ -142,21 +142,30 @@ class mSensor : mAbstract() {
 
         //--- analog / measuring sensors ---------------------------------------------------------------------------------
 
-        val columnAnalogMinView = ColumnDouble(modelTableName, "analog_min_view", "Минимальное отображаемое значение", 10, 3, 0.0).apply {
+        val columnAnalogMinView = ColumnDouble(modelTableName, "analog_min_view", "Минимальное отображаемое значение на графике", 10, 3, 0.0).apply {
             formPinMode = FormPinMode.OFF
             addFormVisible(columnSensorType, false, setOf(SensorConfig.SENSOR_STATE))
         }
 
-        val columnAnalogMaxView = ColumnDouble(modelTableName, "analog_max_view", "Максимальное отображаемое значение", 10, 3, 100.0).apply {
+        val columnAnalogMaxView = ColumnDouble(modelTableName, "analog_max_view", "Максимальное отображаемое значение на графике", 10, 3, 100.0).apply {
             addFormVisible(columnSensorType, false, setOf(SensorConfig.SENSOR_STATE))
         }
 
-        val columnAnalogMinLimit = ColumnDouble(modelTableName, "analog_min_limit", "Минимальное рабочее значение", 10, 3, 0.0).apply {
+        val columnAnalogMinLimit = ColumnDouble(modelTableName, "analog_min_limit", "Минимальное рабочее значение на графике", 10, 3, 0.0).apply {
             formPinMode = FormPinMode.OFF
             addFormVisible(columnSensorType, false, setOf(SensorConfig.SENSOR_STATE))
         }
 
-        val columnAnalogMaxLimit = ColumnDouble(modelTableName, "analog_max_limit", "Максимальное рабочее значение", 10, 3, 100.0).apply {
+        val columnAnalogMaxLimit = ColumnDouble(modelTableName, "analog_max_limit", "Максимальное рабочее значение на графике", 10, 3, 100.0).apply {
+            addFormVisible(columnSensorType, false, setOf(SensorConfig.SENSOR_STATE))
+        }
+
+        val columnStateMinView = ColumnDouble(modelTableName, "state_min_view", "Минимальное отображаемое значение на шкале", 10, 3, 0.0).apply {
+            formPinMode = FormPinMode.OFF
+            addFormVisible(columnSensorType, false, setOf(SensorConfig.SENSOR_STATE))
+        }
+
+        val columnStateMaxView = ColumnDouble(modelTableName, "state_max_view", "Максимальное отображаемое значение на шкале", 10, 3, 100.0).apply {
             addFormVisible(columnSensorType, false, setOf(SensorConfig.SENSOR_STATE))
         }
 
@@ -214,6 +223,9 @@ class mSensor : mAbstract() {
 
         alFormColumn.add(columnAnalogMinLimit)
         alFormColumn.add(columnAnalogMaxLimit)
+
+        alFormColumn.add(columnStateMinView)
+        alFormColumn.add(columnStateMaxView)
 
         alFormColumn.add(columnCalibrationText)
 
