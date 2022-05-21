@@ -26,7 +26,7 @@ plugins {
     `maven-publish`
 }
 
-version=coreServerVersion
+version = coreServerVersion
 
 dependencies {
     //api("org.springframework.boot:spring-boot-starter:$springBootVersion") - redundantly, come with starter-jdbc or starter-web
@@ -80,7 +80,7 @@ publishing {
 
 tasks {
     compileKotlin {
-		kotlinOptions {
+        kotlinOptions {
             languageVersion = kotlinLanguageVersion
             apiVersion = kotlinApiVersion
             jvmTarget = kotlinJvmTarget

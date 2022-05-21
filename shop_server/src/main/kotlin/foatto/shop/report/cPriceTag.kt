@@ -41,17 +41,19 @@ class cPriceTag : cAbstractReport() {
     override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
 
         val returnURL = super.doSave(action, alFormData, hmOut)
-        if (returnURL != null) return returnURL
+        if (returnURL != null) {
+            return returnURL
+        }
 
         val mpt = model as mPriceTag
 
         //--- выборка данных параметров для отчета
-        for (i in 0 until mPriceTag.ROWS)
+        for (i in 0 until mPriceTag.ROWS) {
             for (j in 0 until mPriceTag.COLS) {
                 val paramName = "report_catalog_$i$j"
                 hmReportParam[paramName] = (hmColumnData[mpt.getColumnCatalog(i, j)] as DataInt).intValue
             }
-
+        }
         return getReport()
     }
 
@@ -123,7 +125,7 @@ class cPriceTag : cAbstractReport() {
         }
 
         //--- загрузка стартовых параметров
-        for (i in 0 until mPriceTag.ROWS)
+        for (i in 0 until mPriceTag.ROWS) {
             for (j in 0 until mPriceTag.COLS) {
                 val paramName = "report_catalog_$i$j"
                 val catalogID = hmReportParam[paramName] as Int
@@ -135,9 +137,11 @@ class cPriceTag : cAbstractReport() {
                     if (rs.next()) {
                         catalogName = rs.getString(1)
 
-                        //--- убрираем из названия цену - последнее слово в скобках
+                        //--- убираем из названия цену - последнее слово в скобках
                         val pos = catalogName.lastIndexOf('(')
-                        if (pos != -1) catalogName = catalogName.substring(0, pos).trim()
+                        if (pos != -1) {
+                            catalogName = catalogName.substring(0, pos).trim()
+                        }
                     }
                     rs.close()
                     //--- могут быть пустые ячейки ценников, устанавливаем здесь, когда ясно, что catalogID != 0
@@ -159,5 +163,6 @@ class cPriceTag : cAbstractReport() {
                 //                    StringFunction.DateTime_DMY(  new GregorianCalendar()  )  )
                 //                    .append(  " _________________________"  ).toString(), wcfSignR  )  );
             }
+        }
     }
 }
