@@ -95,7 +95,8 @@ class XyElementData(
     val typeName: String? = null,
     val alAddInfo: List<Pair<String, () -> String>>? = null,
 
-    ) {
+    val dialogQuestion: String? = null,
+) {
 
 //    fun isContains( /*scaleKoef: Int,*/ aX: Int, aY: Int ): Boolean {
 //        when( type ) {
@@ -653,6 +654,7 @@ fun readXyElementData(
                     tooltip = element.toolTipText,
                     itReadOnly = element.itReadOnly,
                     style = style,
+                    dialogQuestion = element.dialogQuestion,
                 )
             )
         }
@@ -711,6 +713,7 @@ fun readXyElementData(
                     itReadOnly = element.itReadOnly,
                     isVisible = true,
                     style = style,
+                    dialogQuestion = element.dialogQuestion,
                 )
             )
         }
@@ -834,6 +837,7 @@ fun readXyElementData(
                         "top" to "${y}px"
                     ),
                     style = style,
+                    dialogQuestion = element.dialogQuestion,
                 )
             )
         }

@@ -82,6 +82,8 @@ class XyElement(
     var alFillColor = arrayOf<Int>()
     var alToolTip = arrayOf<String>()
 
+    var dialogQuestion: String = ""
+
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     //--- use .toString() for Kotlin/JS implementation
