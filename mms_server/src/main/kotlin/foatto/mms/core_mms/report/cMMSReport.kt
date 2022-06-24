@@ -167,8 +167,8 @@ abstract class cMMSReport : cAbstractReport() {
         sheet.addCell(
             Label(
                 offsX, offsY++,
-                "за период с ${DateTime_DMY(intArrayOf(reportBegYear, reportBegMonth, reportBegDay, 0, 0, 0))}" +
-                    " по ${DateTime_DMY(intArrayOf(reportEndYear, reportEndMonth, reportEndDay, 0, 0, 0))}",
+                "за период с ${DateTime_DMY(arrayOf(reportBegYear, reportBegMonth, reportBegDay, 0, 0, 0))}" +
+                    " по ${DateTime_DMY(arrayOf(reportEndYear, reportEndMonth, reportEndDay, 0, 0, 0))}",
                 wcfTitleL
             )
         )
@@ -208,8 +208,8 @@ abstract class cMMSReport : cAbstractReport() {
         sheet.addCell(
             Label(
                 offsX, offsY++,
-                "за период с ${DateTime_DMYHMS(intArrayOf(reportBegYear, reportBegMonth, reportBegDay, reportBegHour, reportBegMinute, 0))}" +
-                    " по ${DateTime_DMYHMS(intArrayOf(reportEndYear, reportEndMonth, reportEndDay, reportEndHour, reportEndMinute, 0))}",
+                "за период с ${DateTime_DMYHMS(arrayOf(reportBegYear, reportBegMonth, reportBegDay, reportBegHour, reportBegMinute, 0))}" +
+                    " по ${DateTime_DMYHMS(arrayOf(reportEndYear, reportEndMonth, reportEndDay, reportEndHour, reportEndMinute, 0))}",
                 wcfTitleL
             )
         )

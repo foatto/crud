@@ -8,7 +8,7 @@ class DocumentData(
     val whSour: Int,
     val whDest: Int,
     val docNo: String,
-    val arrDT: IntArray,
+    val arrDT: Array<Int>,
     val clientID: Int,
     val discount: Double,
     val descr: String,
@@ -42,7 +42,7 @@ class DocumentData(
                         whSour = rs.getInt(p++),
                         whDest = rs.getInt(p++),
                         docNo = rs.getString(p++),
-                        arrDT = intArrayOf(rs.getInt(p++), rs.getInt(p++), rs.getInt(p++), 0, 0, 0),
+                        arrDT = arrayOf(rs.getInt(p++), rs.getInt(p++), rs.getInt(p++), 0, 0, 0),
                         clientID = rs.getInt(p++),
                         discount = rs.getDouble(p++),
                         descr = rs.getString(p++)

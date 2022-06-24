@@ -824,7 +824,7 @@ abstract class CoreAppController : iApplication {
             fullName = userEntity.fullName,
             shortName = userEntity.shortName,
             atCount = userEntity.atCount,
-            lastLoginDateTime = intArrayOf(
+            lastLoginDateTime = arrayOf(
                 userEntity.lastLoginDateTime.ye,
                 userEntity.lastLoginDateTime.mo,
                 userEntity.lastLoginDateTime.da,
@@ -832,7 +832,7 @@ abstract class CoreAppController : iApplication {
                 userEntity.lastLoginDateTime.mi,
                 0
             ),
-            passwordLastChangeDate = intArrayOf(
+            passwordLastChangeDate = arrayOf(
                 userEntity.passwordLastChangeDate.ye,
                 userEntity.passwordLastChangeDate.mo,
                 userEntity.passwordLastChangeDate.da,

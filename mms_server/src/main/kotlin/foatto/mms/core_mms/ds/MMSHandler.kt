@@ -38,7 +38,7 @@ abstract class MMSHandler : AbstractTelematicHandler() {
 //        const val DEVICE_TYPE_MIELTA = 8
 //        const val DEVICE_TYPE_ADM = 9
 
-        private val chmLastDayWork = ConcurrentHashMap<Int, IntArray>()
+        private val chmLastDayWork = ConcurrentHashMap<Int, Array<Int>>()
         private val chmLastWorkShift = ConcurrentHashMap<Int, Int>()
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

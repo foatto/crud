@@ -183,7 +183,7 @@ class cDocContent : cAbstractReport() {
                     sheet.addCell(
                         Label(
                             1, offsY++, "Товарный чек № ${rs.getString(3)} от " +
-                                DateTime_DMY(intArrayOf(rs.getInt(4), rs.getInt(5), rs.getInt(6), 0, 0, 0)), wcfTitleC
+                                DateTime_DMY(arrayOf(rs.getInt(4), rs.getInt(5), rs.getInt(6), 0, 0, 0)), wcfTitleC
                         )
                     )
                     offsY++
@@ -225,7 +225,7 @@ class cDocContent : cAbstractReport() {
                     offsY++
 
                     sheet.addCell(Label(1, offsY, "Дата:", wcfTitleName))
-                    sheet.addCell(Label(2, offsY, DateTime_DMY(intArrayOf(rs.getInt(4), rs.getInt(5), rs.getInt(6), 0, 0, 0)), wcfTitleValue))
+                    sheet.addCell(Label(2, offsY, DateTime_DMY(arrayOf(rs.getInt(4), rs.getInt(5), rs.getInt(6), 0, 0, 0)), wcfTitleValue))
                     offsY++
 
                     sheet.addCell(Label(1, offsY, "Контрагент:", wcfTitleName))
@@ -396,7 +396,7 @@ class cDocContent : cAbstractReport() {
                 val sb = StringBuilder()
                 if (reportDocumentType == DocumentTypeConfig.TYPE_ALL)
                     sb.append(hmAliasConfig[DocumentTypeConfig.hmDocTypeAlias[rowDocType]]!!.descr).append('\n')
-                sb.append(DateTime_DMY(intArrayOf(docYe, docMo, docDa, 0, 0, 0))).append('\n')
+                sb.append(DateTime_DMY(arrayOf(docYe, docMo, docDa, 0, 0, 0))).append('\n')
                 if (isRowUseSourWarehouse)
                     sb.append(if (reportDocumentType == DocumentTypeConfig.TYPE_RESORT) "Склад / магазин: " else "Со склада / магазина: ")
                         .append(hmWarehouseName[rs.getInt(5)]).append('\n')

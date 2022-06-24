@@ -47,7 +47,7 @@ open class mShow : mAbstract() {
         val today = ZonedDateTime.now()
         val zdtBeg = ZonedDateTime.of(today.year, today.monthValue, today.dayOfMonth, 0, 0, 0, 0, zoneId)
         val zdtEnd = ZonedDateTime.of(today.year, today.monthValue, today.dayOfMonth, 0, 0, 0, 0, zoneId).plus(1, ChronoUnit.DAYS)
-        val arrDT = intArrayOf(
+        val arrDT = arrayOf(
             zdtBeg.year, zdtBeg.monthValue, zdtBeg.dayOfMonth, zdtBeg.hour, zdtBeg.minute, zdtBeg.second,
             zdtEnd.year, zdtEnd.monthValue, zdtEnd.dayOfMonth, zdtEnd.hour, zdtEnd.minute, zdtEnd.second
         )

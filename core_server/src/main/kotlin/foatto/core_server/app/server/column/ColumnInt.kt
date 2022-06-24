@@ -54,7 +54,7 @@ class ColumnInt(aTableName: String, aFieldName: String, aCaption: String = "", a
 
     override fun setSavedDefault(userConfig: UserConfig) {
         isSavedDefault = true
-        defaultValue = userConfig.getUserProperty(savedDefaultPropertyName)?.toIntOrNull(radix)
+        defaultValue = userConfig.getUserProperty(savedDefaultPropertyName)?.toIntOrNull(radix) ?: defaultValue
     }
 
     override fun saveDefault(conn: CoreAdvancedConnection, userConfig: UserConfig, hmColumnData: Map<iColumn, iData>) {

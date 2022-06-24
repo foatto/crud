@@ -219,7 +219,7 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         val outUserID = rs.getInt(1)
         val inUserID = rs.getInt(2)
         val taskSubj = rs.getString(3)
-        val arrDT = intArrayOf(rs.getInt(4), rs.getInt(5), rs.getInt(6), 0, 0, 0)
+        val arrDT = arrayOf(rs.getInt(4), rs.getInt(5), rs.getInt(6), 0, 0, 0)
         rs.close()
 
         AdvancedLogger.debug("--- send new task ---")
@@ -337,7 +337,7 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                 while (rs.next()) {
                     val id = rs.getInt(1)
                     val userID = rs.getInt(2)
-                    val arrDT = intArrayOf(rs.getInt(3), rs.getInt(4), rs.getInt(5), rs.getInt(6), rs.getInt(7), 0)
+                    val arrDT = arrayOf(rs.getInt(3), rs.getInt(4), rs.getInt(5), rs.getInt(6), rs.getInt(7), 0)
                     val msg = rs.getString(8)
                     val userFullName = if (userID == 0) "" else UserConfig.hmUserFullNames[userID]
                     val sbTmp = userFullName +
@@ -386,7 +386,7 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
 //        }
 //        val userID: Int = rs.getInt(1)
 //        val type: Int = rs.getInt(2)
-//        val arrDT = intArrayOf(rs.getInt(3), rs.getInt(4), rs.getInt(5), rs.getInt(6), rs.getInt(7), 0)
+//        val arrDT = arrayOf(rs.getInt(3), rs.getInt(4), rs.getInt(5), rs.getInt(6), rs.getInt(7), 0)
 //        val subj: String = rs.getString(8)
 //        val descr: String = rs.getString(9)
 //        rs.close()

@@ -69,7 +69,7 @@ class cTaskThread : cOfficeReport() {
             sheet.addCell(Label(2, offsY, UserConfig.hmUserFullNames[rs.getInt(2)], wcfTitleValue))
             offsY++
             sheet.addCell(Label(1, offsY, "Срок исполнения:", wcfTitleName))
-            sheet.addCell(Label(2, offsY, DateTime_DMY(intArrayOf(rs.getInt(3), rs.getInt(4), rs.getInt(5), 0, 0, 0)), wcfTitleValue))
+            sheet.addCell(Label(2, offsY, DateTime_DMY(arrayOf(rs.getInt(3), rs.getInt(4), rs.getInt(5), 0, 0, 0)), wcfTitleValue))
             offsY++
             sheet.addCell(Label(1, offsY, "Тема поручения:", wcfTitleName))
             sheet.addCell(Label(2, offsY, rs.getString(6), wcfTitleValue))
@@ -107,7 +107,7 @@ class cTaskThread : cOfficeReport() {
         while (rs.next()) {
             sheet.addCell(Label(0, offsY, (countNN++).toString(), wcfNN))
             sheet.addCell(Label(1, offsY, UserConfig.hmUserFullNames[rs.getInt(1)], wcfCellL))
-            sheet.addCell(Label(2, offsY, DateTime_DMYHM(intArrayOf(rs.getInt(2), rs.getInt(3), rs.getInt(4), rs.getInt(5), rs.getInt(6), 0)), wcfCellC))
+            sheet.addCell(Label(2, offsY, DateTime_DMYHM(arrayOf(rs.getInt(2), rs.getInt(3), rs.getInt(4), rs.getInt(5), rs.getInt(6), 0)), wcfCellC))
             sheet.addCell(Label(3, offsY, rs.getString(7), wcfCellL))
 
             offsY++

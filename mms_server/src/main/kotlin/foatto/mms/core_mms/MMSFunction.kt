@@ -11,7 +11,7 @@ import java.time.temporal.ChronoUnit
 
 object MMSFunction {
 
-    fun getDayWorkParent(aStm: CoreAdvancedStatement, aHmParentData: MutableMap<String, Int>): IntArray? {
+    fun getDayWorkParent(aStm: CoreAdvancedStatement, aHmParentData: MutableMap<String, Int>): Array<Int>? {
         //--- отдельная обработка перехода от журнала (суточных) пробегов
         val parentDayWork = aHmParentData["mms_day_work"] ?: return null
 
@@ -19,13 +19,18 @@ object MMSFunction {
         rs.next()
         //--- добавляем парента - объект
         aHmParentData["mms_object"] = rs.getInt(1)
-        val arrParentData = intArrayOf(rs.getInt(2), rs.getInt(3), rs.getInt(4))
+        val arrParentData = arrayOf(rs.getInt(2), rs.getInt(3), rs.getInt(4))
         rs.close()
 
         return arrParentData
     }
 
-    fun getDayShiftWorkParent(aStm: CoreAdvancedStatement, aZoneId: ZoneId, aHmParentData: MutableMap<String, Int>, isFactTime: Boolean): IntArray {
+    fun getDayShiftWorkParent(
+        aStm: CoreAdvancedStatement,
+        aZoneId: ZoneId,
+        aHmParentData: MutableMap<String, Int>,
+        isFactTime: Boolean
+    ): Array<Int> {
         lateinit var zdtBeg: ZonedDateTime
         lateinit var zdtEnd: ZonedDateTime
 
@@ -59,7 +64,7 @@ object MMSFunction {
             }
         }
 
-        return intArrayOf(
+        return arrayOf(
             zdtBeg.year, zdtBeg.monthValue, zdtBeg.dayOfMonth, zdtBeg.hour, zdtBeg.minute, zdtBeg.second,
             zdtEnd.year, zdtEnd.monthValue, zdtEnd.dayOfMonth, zdtEnd.hour, zdtEnd.minute, zdtEnd.second
         )

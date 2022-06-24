@@ -125,7 +125,7 @@ class cDocumentContent : cStandart() {
                 docYe = rs.getInt(3)
                 docMo = rs.getInt(4)
                 docDa = rs.getInt(5)
-                sHeader += ", № $docNo от ${DateTime_DMY(intArrayOf(docYe, docMo, docDa, 0, 0, 0))}"
+                sHeader += ", № $docNo от ${DateTime_DMY(arrayOf(docYe, docMo, docDa, 0, 0, 0))}"
                 if (DocumentTypeConfig.hsUseSourWarehouse.contains(docType)) {
                     sHeader += ", со склада ${hmWarehouse[rs.getInt(6)]}"
                 }

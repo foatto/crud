@@ -21,8 +21,8 @@ class cOperationSummary : cAbstractOperationState() {
     private var reportEndMonth: Int? = null
     private var reportEndDay: Int? = null
 
-    private var arrBegDT: IntArray? = null
-    private var arrEndDT: IntArray? = null
+    private var arrBegDT: Array<Int>? = null
+    private var arrEndDT: Array<Int>? = null
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -38,8 +38,8 @@ class cOperationSummary : cAbstractOperationState() {
         reportEndMonth = hmReportParam["report_end_month"] as Int
         reportEndDay = hmReportParam["report_end_day"] as Int
 
-        arrBegDT = if(reportBegYear == null) null else intArrayOf(reportBegYear!!, reportBegMonth!!, reportBegDay!!)
-        arrEndDT = if(reportEndYear == null) null else intArrayOf(reportEndYear!!, reportEndMonth!!, reportEndDay!!)
+        arrBegDT = if(reportBegYear == null) null else arrayOf(reportBegYear!!, reportBegMonth!!, reportBegDay!!)
+        arrEndDT = if(reportEndYear == null) null else arrayOf(reportEndYear!!, reportEndMonth!!, reportEndDay!!)
 
         collectWarehouseInfo()
         collectItemInfo()

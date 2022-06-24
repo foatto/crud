@@ -230,7 +230,7 @@ class cOperationHistory : cAbstractReport() {
             val docYe = rs.getInt(4)
             val docMo = rs.getInt(5)
             val docDa = rs.getInt(6)
-            val docDate = DateTime_DMY(intArrayOf(docYe, docMo, docDa, 0, 0, 0))
+            val docDate = DateTime_DMY(arrayOf(docYe, docMo, docDa, 0, 0, 0))
 
             //--- делаем врезку для вставки предыдущих переоценок
             while (alPriceData.isNotEmpty()) {
@@ -240,7 +240,7 @@ class cOperationHistory : cAbstractReport() {
                     priceData.ye == docYe && priceData.mo == docMo && priceData.da <= docDa
                 ) {   // здесть именно <=, т.к. переоценку считаем началом дня ДО всех документов
 
-                    val priceDate = DateTime_DMY(intArrayOf(priceData.ye, priceData.mo, priceData.da, 0, 0, 0))
+                    val priceDate = DateTime_DMY(arrayOf(priceData.ye, priceData.mo, priceData.da, 0, 0, 0))
                     alResult.add(
                         index = 0,
                         element = OperationHistoryResult(
@@ -295,7 +295,7 @@ class cOperationHistory : cAbstractReport() {
 
         //--- дописываем оставшиеся переоценки
         for (priceData in alPriceData) {
-            val priceDate = DateTime_DMY(intArrayOf(priceData.ye, priceData.mo, priceData.da, 0, 0, 0))
+            val priceDate = DateTime_DMY(arrayOf(priceData.ye, priceData.mo, priceData.da, 0, 0, 0))
             alResult.add(
                 0, OperationHistoryResult(
                     -1, priceDate,

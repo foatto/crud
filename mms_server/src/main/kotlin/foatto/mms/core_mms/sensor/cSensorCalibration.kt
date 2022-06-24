@@ -18,14 +18,11 @@ import kotlin.math.max
 
 class cSensorCalibration : cStandart() {
 
-    companion object {
+    private val SENSOR_ID = "sensor_id"
 
-        private val SENSOR_ID = "sensor_id"
-
-        //--- префикс полей со значениями
-        private val SENSOR_FIELD_PREFIX = "value_sensor_"
-        private val DATA_FIELD_PREFIX = "value_data_"
-    }
+    //--- префикс полей со значениями
+    private val SENSOR_FIELD_PREFIX = "value_sensor_"
+    private val DATA_FIELD_PREFIX = "value_data_"
 
     override fun getForm(hmOut: MutableMap<String, Any>): FormResponse {
 

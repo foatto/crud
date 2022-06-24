@@ -23,10 +23,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 class cPriceTag : cAbstractReport() {
 
-    companion object {
-
-        private val TAG_HEIGHT = 9
-    }
+    private val TAG_HEIGHT = 9
 
     private lateinit var hmPrice: Map<Int, List<Pair<Int, Double>>>
 

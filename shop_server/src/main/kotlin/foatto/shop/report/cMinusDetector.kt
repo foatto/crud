@@ -145,23 +145,26 @@ class cMinusDetector : cAbstractReport() {
             " ) " +
             " ORDER BY SHOP_doc.doc_ye , SHOP_doc.doc_mo , SHOP_doc.doc_da "
 
-        val arrLastDate = IntArray(6)
+        val arrLastDate = arrayOf(0, 0, 0, 0, 0, 0)
         //--- первичное состояние - по нулям (используется именно tmWarehouseID,
         //--- т.к. у hmWarehouseName есть ненужный элемент с 0-ым id)
         val hmCurrentHWState = mutableMapOf<Int, Double>()
-        for (wName in tmWarehouseID.keys)
+        for (wName in tmWarehouseID.keys) {
             hmCurrentHWState[tmWarehouseID[wName]!!] = 0.0
+        }
 
         val rs = stm.executeQuery(sSQL)
         while (rs.next()) {
-            val arrCurDate = intArrayOf(rs.getInt(1), rs.getInt(2), rs.getInt(3))
+            val arrCurDate = arrayOf(rs.getInt(1), rs.getInt(2), rs.getInt(3))
 
             //--- если дата сменилась - проверим текущее состояние на минусовость
             if (arrCurDate[0] != arrLastDate[0] || arrCurDate[1] != arrLastDate[1] || arrCurDate[2] != arrLastDate[2]) {
 
-                for (whValue in hmCurrentHWState.values)
-                    if (whValue < 0)
+                for (whValue in hmCurrentHWState.values) {
+                    if (whValue < 0) {
                         return MinusDetectorResult(arrLastDate, hmCurrentHWState)
+                    }
+                }
 
                 arrLastDate[0] = arrCurDate[0]
                 arrLastDate[1] = arrCurDate[1]
@@ -219,6 +222,6 @@ class cMinusDetector : cAbstractReport() {
         return null
     }
 
-    private class MinusDetectorResult(val arrDT: IntArray, val hmHWState: MutableMap<Int, Double>)
+    private class MinusDetectorResult(val arrDT: Array<Int>, val hmHWState: MutableMap<Int, Double>)
 
 }

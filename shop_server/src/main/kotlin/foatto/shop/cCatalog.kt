@@ -213,8 +213,11 @@ class cCatalog : cAbstractHierarchy() {
         const val PERM_MERCHANT = "merchant"
 
         fun loadCatalogCount(
-            stm: CoreAdvancedStatement, aClientID: Int?, //int aDocType, int[] arrBegDT,
-            arrEndDT: IntArray?, hmDest: MutableMap<Int, MutableMap<Int, Double>>, hmSour: MutableMap<Int, MutableMap<Int, Double>>
+            stm: CoreAdvancedStatement,
+            aClientID: Int?, //int aDocType, int[] arrBegDT,
+            arrEndDT: Array<Int>?,
+            hmDest: MutableMap<Int, MutableMap<Int, Double>>,
+            hmSour: MutableMap<Int, MutableMap<Int, Double>>
         ) {
 
             val whereClient = if (aClientID == null) "" else " AND SHOP_doc.client_id = $aClientID"
