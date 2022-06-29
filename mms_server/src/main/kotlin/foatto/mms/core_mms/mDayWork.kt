@@ -182,10 +182,8 @@ class mDayWork : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableSortColumn.add(columnDate)
-        alTableSortDirect.add("DESC")
-        alTableSortColumn.add(os.columnObjectName)
-        alTableSortDirect.add("ASC")
+        addTableSort(columnDate, false)
+        addTableSort(os.columnObjectName, true)
 
         //----------------------------------------------------------------------------------------
 

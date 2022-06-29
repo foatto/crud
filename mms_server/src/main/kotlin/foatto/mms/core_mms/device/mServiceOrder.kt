@@ -60,8 +60,6 @@ class mServiceOrder : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        //--- поля для сортировки
-        alTableSortColumn.add(columnOrderTime)
-        alTableSortDirect.add("ASC")
+        addTableSort(columnOrderTime, true)
     }
 }

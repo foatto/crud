@@ -91,8 +91,7 @@ class mWorkShiftData : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableSortColumn.add(columnDescr)
-        alTableSortDirect.add("ASC")
+        addTableSort(columnDescr, true)
 
         //----------------------------------------------------------------------------------------
 

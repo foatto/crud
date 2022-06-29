@@ -58,9 +58,7 @@ class mDepartment : mAbstractUserSelector() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        //--- поля для сортировки
-        alTableSortColumn.add(columnDepartmentName)
-        alTableSortDirect.add("ASC")
+        addTableSort(columnDepartmentName, true)
 
         //----------------------------------------------------------------------------------------------------------------------
 

@@ -109,8 +109,7 @@ class mObject : mAbstractUserSelector() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableSortColumn.add(columnObjectName)
-        alTableSortDirect.add("ASC")
+        addTableSort(columnObjectName, true)
 
         //----------------------------------------------------------------------------------------
 

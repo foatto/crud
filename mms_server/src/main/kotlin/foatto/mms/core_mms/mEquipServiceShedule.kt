@@ -48,9 +48,7 @@ class mEquipServiceShedule : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        //--- поля для сортировки
-        alTableSortColumn.add(columnServiceName)
-        alTableSortDirect.add("ASC")
+        addTableSort(columnServiceName, true)
 
         //----------------------------------------------------------------------------------------
 

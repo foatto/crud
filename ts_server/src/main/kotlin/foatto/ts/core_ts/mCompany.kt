@@ -112,8 +112,7 @@ class mCompany : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableSortColumn.add(columnRecordFullName)
-        alTableSortDirect.add("ASC")
+        addTableSort(columnRecordFullName, true)
 
         //----------------------------------------------------------------------------------------
 

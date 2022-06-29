@@ -57,11 +57,8 @@ class mPermission : mAbstract() {
 
         //---------------------------------------------------------------------
 
-        //--- поля для сортировки
-        alTableSortColumn.add(columnClassDescr)
-        alTableSortDirect.add("ASC")
-        alTableSortColumn.add(columnPermissionDescr)
-        alTableSortDirect.add("ASC")
+        addTableSort(columnClassDescr, true)
+        addTableSort(columnPermissionDescr, true)
 
         //----------------------------------------------------------------------------------------
 

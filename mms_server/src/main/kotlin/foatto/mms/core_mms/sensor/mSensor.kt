@@ -570,11 +570,8 @@ class mSensor : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        //--- поля для сортировки
-        alTableSortColumn.add(columnSensorGroup)
-        alTableSortDirect.add("ASC")
-        alTableSortColumn.add(columnSensorPortNum)
-        alTableSortDirect.add("ASC")
+        addTableSort(columnSensorGroup, true)
+        addTableSort(columnSensorPortNum, true)
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 

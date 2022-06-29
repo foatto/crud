@@ -421,20 +421,16 @@ class mDocumentContent : mAbstract() {
 
         //--- переход от каталога
         if (docID == null) {
-            alTableSortColumn.add(columnDocumentDate)
-            alTableSortDirect.add("DESC")
-            alTableSortColumn.add(columnDocumentNo)
-            alTableSortDirect.add("DESC")
+            addTableSort(columnDocumentDate, false)
+            addTableSort(columnDocumentNo, false)
         }
         //--- переход от документа
         else {
             if (isUseSourCatalog) {
-                alTableSortColumn.add(columnSourCatalogName)
-                alTableSortDirect.add("ASC")
+                addTableSort(columnSourCatalogName, true)
             }
             if (isUseDestCatalog) {
-                alTableSortColumn.add(columnDestCatalogName)
-                alTableSortDirect.add("ASC")
+                addTableSort(columnDestCatalogName, true)
             }
         }
 

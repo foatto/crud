@@ -254,11 +254,8 @@ class mDocument : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        //--- поля для сортировки
-        alTableSortColumn.add(columnDocumentDate)
-        alTableSortDirect.add("DESC")
-        alTableSortColumn.add(columnDocumentNo)
-        alTableSortDirect.add("DESC")
+        addTableSort(columnDocumentDate, false)
+        addTableSort(columnDocumentNo, false)
 
         //----------------------------------------------------------------------------------------
 

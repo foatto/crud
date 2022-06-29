@@ -36,60 +36,57 @@ class mPrice : mAbstract() {
 
         //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-        val columnCatalogID = ColumnInt( "SHOP_catalog", "id" )
-        val columnCatalog = ColumnInt( modelTableName, "catalog_id", columnCatalogID )
-        val columnCatalogName = ColumnString( "SHOP_catalog", "name", "Товар", 3, STRING_COLUMN_WIDTH, textFieldMaxSize )
-            columnCatalogName.isRequired = true
-            columnCatalogName.selectorAlias = "shop_catalog_item"
-            columnCatalogName.addSelectorColumn( columnCatalog, columnCatalogID )
-            columnCatalogName.addSelectorColumn( columnCatalogName)   //, columnCatalogName );
+        val columnCatalogID = ColumnInt("SHOP_catalog", "id")
+        val columnCatalog = ColumnInt(modelTableName, "catalog_id", columnCatalogID)
+        val columnCatalogName = ColumnString("SHOP_catalog", "name", "Товар", 3, STRING_COLUMN_WIDTH, textFieldMaxSize)
+        columnCatalogName.isRequired = true
+        columnCatalogName.selectorAlias = "shop_catalog_item"
+        columnCatalogName.addSelectorColumn(columnCatalog, columnCatalogID)
+        columnCatalogName.addSelectorColumn(columnCatalogName)   //, columnCatalogName );
 
-        columnPriceType = ColumnComboBox( modelTableName, "price_type", "Тип цены", if( aliasConfig.alias == "shop_price_in" ) PRICE_TYPE_IN else PRICE_TYPE_OUT )
-            columnPriceType.addChoice( PRICE_TYPE_IN, "Закупочная цена" )
-            columnPriceType.addChoice( PRICE_TYPE_OUT, "Розничная цена" )
+        columnPriceType = ColumnComboBox(modelTableName, "price_type", "Тип цены", if (aliasConfig.alias == "shop_price_in") PRICE_TYPE_IN else PRICE_TYPE_OUT)
+        columnPriceType.addChoice(PRICE_TYPE_IN, "Закупочная цена")
+        columnPriceType.addChoice(PRICE_TYPE_OUT, "Розничная цена")
 
         val columnPriceDate = ColumnDate3Int(modelTableName, "ye", "mo", "da", "Дата")
 
-        val columnPriceValue = ColumnDouble( modelTableName, "price_value", "Цена", 10, 2 )
-            columnPriceValue.tableAlign = TableCellAlign.RIGHT
+        val columnPriceValue = ColumnDouble(modelTableName, "price_value", "Цена", 10, 2)
+        columnPriceValue.tableAlign = TableCellAlign.RIGHT
 
-        val columnPriceNote = ColumnString( modelTableName, "price_note", "Примечание", STRING_COLUMN_WIDTH )
+        val columnPriceNote = ColumnString(modelTableName, "price_note", "Примечание", STRING_COLUMN_WIDTH)
 
         //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add( columnId )
-        alTableHiddenColumn.add( columnCatalog )
+        alTableHiddenColumn.add(columnId)
+        alTableHiddenColumn.add(columnCatalog)
 
-        alTableGroupColumn.add( columnPriceDate )
+        alTableGroupColumn.add(columnPriceDate)
 
-        addTableColumn( columnCatalogName )
-        addTableColumn( columnPriceType )
-        addTableColumn( columnPriceValue )
-        addTableColumn( columnPriceNote )
+        addTableColumn(columnCatalogName)
+        addTableColumn(columnPriceType)
+        addTableColumn(columnPriceValue)
+        addTableColumn(columnPriceNote)
 
-        alFormHiddenColumn.add( columnId )
-        alFormHiddenColumn.add( columnCatalog )
+        alFormHiddenColumn.add(columnId)
+        alFormHiddenColumn.add(columnCatalog)
 
-        alFormColumn.add( columnCatalogName )
-        alFormColumn.add( columnPriceType )
-        alFormColumn.add( columnPriceDate )
-        alFormColumn.add( columnPriceValue )
-        alFormColumn.add( columnPriceNote )
+        alFormColumn.add(columnCatalogName)
+        alFormColumn.add(columnPriceType)
+        alFormColumn.add(columnPriceDate)
+        alFormColumn.add(columnPriceValue)
+        alFormColumn.add(columnPriceNote)
 
         //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         //--- поля для сортировки
         //alTableSortColumn.add( columnCatalogName ); - нет мсмысла в этой сортировке, цены всегда показываются в разрезе одной единицы товара
         //    alTableSortDirect.add( "ASC" );
-        alTableSortColumn.add( columnPriceDate )
-        alTableSortDirect.add( "DESC" )
-        alTableSortColumn.add( columnCatalogName )
-        alTableSortDirect.add( "ASC" )
-        alTableSortColumn.add( columnPriceType )
-        alTableSortDirect.add( "ASC" )
+        addTableSort(columnPriceDate, false)
+        addTableSort(columnCatalogName, true)
+        addTableSort(columnPriceType, true)
 
         //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-        hmParentColumn[ "shop_catalog" ] = columnCatalog
+        hmParentColumn["shop_catalog"] = columnCatalog
     }
 }

@@ -62,9 +62,7 @@ class mEquipServiceHistory : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        //--- поля для сортировки
-        alTableSortColumn.add(columnServiceDate)
-        alTableSortDirect.add("DESC")
+        addTableSort(columnServiceDate, false)
 
         //----------------------------------------------------------------------------------------
 

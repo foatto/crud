@@ -107,8 +107,6 @@ class mData : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        //--- поля для сортировки
-        alTableSortColumn.add(columnId)
-        alTableSortDirect.add("DESC")
+        addTableSort(columnId, false)
     }
 }

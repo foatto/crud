@@ -144,11 +144,8 @@ class mWorkShift : mAbstractUserSelector() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        //--- поля для сортировки
-        alTableSortColumn.add(columnShiftBegDoc)
-        alTableSortDirect.add("DESC")
-        alTableSortColumn.add(os.columnObjectName)
-        alTableSortDirect.add("ASC")
+        addTableSort(columnShiftBegDoc, false)
+        addTableSort(os.columnObjectName, true)
 
         //----------------------------------------------------------------------------------------------------------------------
 

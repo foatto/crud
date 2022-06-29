@@ -45,9 +45,7 @@ class mSensorCalibration : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        //--- поля для сортировки
-        alTableSortColumn.add(columnValueSensor)
-        alTableSortDirect.add("ASC")
+        addTableSort(columnValueSensor, true)
 
         //----------------------------------------------------------------------------------------
 

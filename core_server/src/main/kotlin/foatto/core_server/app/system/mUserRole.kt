@@ -63,11 +63,8 @@ class mUserRole : mAbstract() {
 
         //---------------------------------------------------------------------
 
-        //--- поля для сортировки
-        alTableSortColumn.add(columnRoleName)
-        alTableSortDirect.add("ASC")
-        alTableSortColumn.add(columnLoginName)
-        alTableSortDirect.add("ASC")
+        addTableSort(columnRoleName, true)
+        addTableSort(columnLoginName, true)
 
         //----------------------------------------------------------------------------------------
 

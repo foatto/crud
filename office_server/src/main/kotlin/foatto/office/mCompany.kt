@@ -74,9 +74,7 @@ class mCompany : mAbstract() {
 
         //---------------------------------------------------------------------
 
-        //--- поля для сортировки
-        alTableSortColumn.add(columnCompanyName)
-        alTableSortDirect.add("ASC")
+        addTableSort(columnCompanyName, true)
 
         //----------------------------------------------------------------------------------------
 

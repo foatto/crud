@@ -305,11 +305,8 @@ class mReminder : mAbstract() {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-        //--- поля для сортировки
-        alTableSortColumn.add(columnDate)
-        alTableSortDirect.add("ASC")
-        alTableSortColumn.add(columnTime)
-        alTableSortDirect.add("ASC")
+        addTableSort(columnDate, true)
+        addTableSort(columnTime, true)
 
 //----------------------------------------------------------------------------------------------------------------------
 

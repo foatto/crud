@@ -139,8 +139,7 @@ class mObject : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableSortColumn.add(columnObjectName)
-        alTableSortDirect.add("ASC")
+        addTableSort(columnObjectName, true)
 
         //----------------------------------------------------------------------------------------
 

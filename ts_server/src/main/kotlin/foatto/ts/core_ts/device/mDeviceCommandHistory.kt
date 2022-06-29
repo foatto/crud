@@ -113,9 +113,7 @@ class mDeviceCommandHistory : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        //--- поля для сортировки
-        alTableSortColumn.add(columnCreateTime)
-        alTableSortDirect.add("DESC")
+        addTableSort(columnCreateTime, false)
 
         //----------------------------------------------------------------------------------------------------------------------
 

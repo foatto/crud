@@ -300,15 +300,11 @@ class mPeople : mAbstract() {
 
         //--- поля для сортировки
         if (!isPeople) {
-            alTableSortColumn.add(columnClientPlanDate)
-            alTableSortDirect.add("ASC")
-            alTableSortColumn.add(columnClientPlanTime)
-            alTableSortDirect.add("ASC")
+            addTableSort(columnClientPlanDate, true)
+            addTableSort(columnClientPlanTime, true)
         }
-        alTableSortColumn.add(columnPeopleName)
-        alTableSortDirect.add("ASC")
-        alTableSortColumn.add(columnCompanyName)
-        alTableSortDirect.add("ASC")
+        addTableSort(columnPeopleName, true)
+        addTableSort(columnCompanyName, true)
 
         //----------------------------------------------------------------------------------------
 

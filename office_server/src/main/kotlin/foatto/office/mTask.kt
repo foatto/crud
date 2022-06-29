@@ -98,11 +98,8 @@ class mTask : mAbstract() {
 
         //---------------------------------------------------------------------
 
-        //--- поля для сортировки
-        alTableSortColumn.add(columnOtherUserName)
-        alTableSortDirect.add("ASC")
-        alTableSortColumn.add(columnDate)
-        alTableSortDirect.add("ASC")
+        addTableSort(columnOtherUserName, true)
+        addTableSort(columnDate, true)
 
         //----------------------------------------------------------------------------------------
 

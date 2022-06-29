@@ -69,9 +69,7 @@ class mZone : mAbstractUserSelector() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        //--- поля для сортировки
-        alTableSortColumn.add(columnZoneName)
-        alTableSortDirect.add("ASC")
+        addTableSort(columnZoneName, true)
 
         //----------------------------------------------------------------------------------------
 

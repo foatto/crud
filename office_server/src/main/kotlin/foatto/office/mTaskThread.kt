@@ -67,12 +67,6 @@ class mTaskThread : mAbstract() {
         addTableColumn(columnTaskThreadMessage)
         addTableColumn(columnFile)
 
-        //--- поля для сортировки
-        alTableSortColumn.add(columnTaskThreadDate)
-        alTableSortDirect.add("DESC")
-        alTableSortColumn.add(columnTaskThreadTime)
-        alTableSortDirect.add("DESC")
-
         alFormHiddenColumn.add(columnId)
         alFormHiddenColumn.add(columnUser!!)
         alFormHiddenColumn.add(columnTask)
@@ -81,6 +75,11 @@ class mTaskThread : mAbstract() {
 
         alFormColumn.add(columnTaskThreadMessage)
         alFormColumn.add(columnFile)
+
+        //----------------------------------------------------------------------------------------
+
+        addTableSort(columnTaskThreadDate, false)
+        addTableSort(columnTaskThreadTime, false)
 
         //----------------------------------------------------------------------------------------
 

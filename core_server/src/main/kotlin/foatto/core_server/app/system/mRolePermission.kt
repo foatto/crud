@@ -62,13 +62,9 @@ class mRolePermission : mAbstract() {
 
         //---------------------------------------------------------------------
 
-        //--- поля для сортировки
-        alTableSortColumn.add(columnClassDescr)
-        alTableSortDirect.add("ASC")
-        alTableSortColumn.add(columnPermissionDescr)
-        alTableSortDirect.add("ASC")
-        alTableSortColumn.add(columnRoleName)
-        alTableSortDirect.add("ASC")
+        addTableSort(columnClassDescr, true)
+        addTableSort(columnPermissionDescr, true)
+        addTableSort(columnRoleName, true)
 
         //----------------------------------------------------------------------------------------
 

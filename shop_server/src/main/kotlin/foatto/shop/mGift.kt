@@ -65,9 +65,7 @@ class mGift : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        //--- поля для сортировки
-        alTableSortColumn.add(columnOutDate)
-        alTableSortDirect.add("DESC")
+        addTableSort(columnOutDate, false)
 
     }
 }
