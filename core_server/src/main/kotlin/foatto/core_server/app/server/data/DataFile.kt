@@ -34,7 +34,7 @@ class DataFile(
 
     override fun loadFromDefault() {}
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String?, id: Int): Boolean {
+    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameId: String?, id: Int): Boolean {
         fileId = formData.fileId!!
         hmFileAdd = formData.hmFileAdd!!.mapKeys { it.key.toInt() }
         alFileRemovedIds = formData.alFileRemovedId!!

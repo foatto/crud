@@ -30,7 +30,7 @@ class DataBoolean(aColumn: iColumn) : DataAbstract(aColumn) {
         value = validate(cb.defaultValue)
     }
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String?, id: Int): Boolean {
+    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameId: String?, id: Int): Boolean {
         value = formData.booleanValue!!
         return true
     }

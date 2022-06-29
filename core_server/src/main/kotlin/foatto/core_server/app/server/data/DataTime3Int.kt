@@ -38,7 +38,7 @@ class DataTime3Int(aColumn: iColumn) : DataAbstractTime(aColumn) {
         errorText = null
     }
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String?, id: Int): Boolean {
+    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameId: String?, id: Int): Boolean {
         val ct = column as ColumnTime3Int
 
         val sHo = formData.alDateTimeValue!![0]

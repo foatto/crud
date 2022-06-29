@@ -21,7 +21,7 @@ abstract class DataAbstractDate(aColumn: iColumn) : DataAbstract(aColumn) {
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String?, id: Int): Boolean {
+    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameId: String?, id: Int): Boolean {
         val sDa = formData.alDateTimeValue!![0]
         val sMo = formData.alDateTimeValue!![1]
         val sYe = formData.alDateTimeValue!![2]
@@ -40,19 +40,23 @@ abstract class DataAbstractDate(aColumn: iColumn) : DataAbstract(aColumn) {
     }
 
     override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell =
-        if (isShowEmptyTableCell) TableCell(row, col, column.rowSpan, column.colSpan)
-        else TableCell(
-            aRow = row,
-            aCol = col,
-            aRowSpan = column.rowSpan,
-            aColSpan = column.colSpan,
-            aAlign = column.tableAlign,
-            aMinWidth = column.minWidth,
-            aIsWordWrap = column.isWordWrap,
-            aTooltip = column.caption,
+        if (isShowEmptyTableCell) {
+            TableCell(row, col, column.rowSpan, column.colSpan)
+        }
+        else {
+            TableCell(
+                aRow = row,
+                aCol = col,
+                aRowSpan = column.rowSpan,
+                aColSpan = column.colSpan,
+                aAlign = column.tableAlign,
+                aMinWidth = column.minWidth,
+                aIsWordWrap = column.isWordWrap,
+                aTooltip = column.caption,
 
-            aText = DateTime_DMY(localDate)
-        )
+                aText = DateTime_DMY(localDate)
+            )
+        }
 
     override fun getFormCell(rootDirName: String, conn: CoreAdvancedConnection, isUseThousandsDivider: Boolean, decimalDivider: Char): FormCell {
         val fci = FormCell(FormCellType.DATE)

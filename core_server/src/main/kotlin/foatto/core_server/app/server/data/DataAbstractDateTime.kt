@@ -37,7 +37,7 @@ abstract class DataAbstractDateTime(aColumn: iColumn) : DataAbstract(aColumn) {
         errorText = null
     }
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String?, id: Int): Boolean {
+    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameId: String?, id: Int): Boolean {
         val cdt = column as ColumnAbstractDateTime
 
         val sDa = formData.alDateTimeValue!![0]

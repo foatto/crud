@@ -20,11 +20,11 @@ abstract class DataAbstractSelector(aColumn: iColumn, aFormCellType: FormCellTyp
         clearError()
     }
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String?, id: Int): Boolean {
+    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameId: String?, id: Int): Boolean {
         val cas = column as ColumnAbstractSelector
         cas.requiredExcept?.let {
             if (formData.comboValue!! == cas.requiredExcept) {
-                setError( formData.comboValue!!.toString(), "Обязательно для выбора")
+                setError(formData.comboValue!!.toString(), "Обязательно для выбора")
                 return false
             }
         }

@@ -18,7 +18,7 @@ class DataStatic(aColumn: iColumn) : DataAbstract(aColumn) {
     override fun loadFromDB(rs: CoreAdvancedResultSet, aPosRS: Int) = 0
 
     override fun loadFromDefault() {}
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String?, id: Int) = true
+    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameId: String?, id: Int) = true
 
     override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell =
         if (isShowEmptyTableCell) TableCell(row, col, column.rowSpan, column.colSpan)

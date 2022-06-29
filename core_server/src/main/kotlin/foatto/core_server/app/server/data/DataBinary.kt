@@ -30,7 +30,7 @@ class DataBinary(aColumn: iColumn) : DataAbstract(aColumn) {
         binaryValue = AdvancedByteBuffer(0)
     }
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String?, id: Int): Boolean = true
+    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameId: String?, id: Int): Boolean = true
 
     override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell {
         val tc = TableCell(row, col, column.rowSpan, column.colSpan)

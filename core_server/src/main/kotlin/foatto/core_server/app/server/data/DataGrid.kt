@@ -25,7 +25,7 @@ class DataGrid(aColumn: iColumn) : DataAbstract(aColumn) {
 
     override fun loadFromDefault() {}
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String?, id: Int) = true
+    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameId: String?, id: Int) = true
 
     override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell {
         if (isShowEmptyTableCell) {

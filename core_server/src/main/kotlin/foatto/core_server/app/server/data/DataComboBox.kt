@@ -3,4 +3,4 @@ package foatto.core_server.app.server.data
 import foatto.core.link.FormCellType
 import foatto.core_server.app.server.column.iColumn
 
-class DataComboBox( aColumn: iColumn ) : DataAbstractSelector( aColumn, FormCellType.COMBO )
+class DataComboBox(aColumn: iColumn) : DataAbstractSelector(aColumn, FormCellType.COMBO)

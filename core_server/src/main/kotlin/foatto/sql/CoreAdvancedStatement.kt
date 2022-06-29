@@ -47,7 +47,7 @@ abstract class CoreAdvancedStatement(val conn: CoreAdvancedConnection) {
                 continue
             }
             for (i in arrTableName.indices) {
-                if (checkExist(arrTableName[i], arrFieldIds[i], nextId, null, 0)) {
+                if (checkExisting(arrTableName[i], arrFieldIds[i], nextId, null, 0)) {
                     continue@OUT
                 }
             }
@@ -69,7 +69,7 @@ abstract class CoreAdvancedStatement(val conn: CoreAdvancedConnection) {
                 continue
             }
             for (i in arrTableName.indices) {
-                if (checkExist(arrTableName[i], arrFieldIds[i], nextId)) {
+                if (checkExisting(arrTableName[i], arrFieldIds[i], nextId)) {
                     continue@OUT
                 }
             }
@@ -77,7 +77,7 @@ abstract class CoreAdvancedStatement(val conn: CoreAdvancedConnection) {
         }
     }
 
-    fun checkExist(aTableName: String, aFieldCheck: String, aValue: Any, aFieldID: String? = null, id: Number = 0): Boolean {
+    fun checkExisting(aTableName: String, aFieldCheck: String, aValue: Any, aFieldID: String? = null, id: Number = 0): Boolean {
         val stringBound = if (aValue is String) {
             "'"
         } else {
@@ -102,28 +102,27 @@ abstract class CoreAdvancedStatement(val conn: CoreAdvancedConnection) {
         return isExist
     }
 
-    fun checkExist(aTableName: String, arrFieldCheck: Array<Pair<String, Any>>, aFieldID: String? = null, id: Int = 0): Boolean {
+    fun checkExisting(aTableName: String, alFieldCheck: List<Pair<String, Any>>, aFieldID: String? = null, id: Int = 0): Boolean {
         var checks = ""
-        arrFieldCheck.forEach {
+        alFieldCheck.forEach { fieldCheckData ->
             if (checks.isNotEmpty()) {
                 checks += " AND "
             }
-            val stringBound = if (it.second is String) {
+            val stringBound = if (fieldCheckData.second is String) {
                 "'"
             } else {
                 ""
             }
-            checks += "${it.first} = $stringBound${it.second}$stringBound"
+            checks += "${fieldCheckData.first} = $stringBound${fieldCheckData.second}$stringBound"
         }
         val andFieldIDCheck = if (aFieldID != null) {
             " AND $aFieldID <> $id "
         } else {
             ""
         }
-
         val rs = executeQuery(
             """
-                SELECT ${arrFieldCheck[0].first} 
+                SELECT ${alFieldCheck[0].first} 
                 FROM $aTableName 
                 WHERE $checks 
                 $andFieldIDCheck 
