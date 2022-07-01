@@ -1,6 +1,9 @@
 package foatto.shop.spring.controllers
 
-import foatto.core.link.*
+import foatto.core.link.AppAction
+import foatto.core.link.AppRequest
+import foatto.core.link.AppResponse
+import foatto.core.link.MenuData
 import foatto.core.util.AdvancedLogger
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.server.AliasConfig
@@ -15,13 +18,15 @@ import foatto.sql.CoreAdvancedStatement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
-import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class ShopAppController : CoreAppController(), iShopApplication {
+
+    @Value("\${shop_id}")
+    override val shopId: String? = null
 
     @Value("\${edit_limit_days}")
     override val editLimitDays: String? = null
@@ -53,7 +58,25 @@ class ShopAppController : CoreAppController(), iShopApplication {
     @Value("\${fiscal_place}")
     override val fiscalPlace: String? = null
 
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    @Value("\${work_hour.hour_in_work_day}")
+    override val workHourInWorkDay: String? = null
+
+    @Value("\${work_hour.hour_in_saturday}")
+    override val workHourInSaturday: String? = null
+
+    @Value("\${work_hour.user_id}")
+    override val alWorkHourUserId: Array<String> = emptyArray()
+
+    @Value("\${work_hour.per_hour_tax}")
+    override val alWorkHourPerHourTax: Array<String> = emptyArray()
+
+    @Value("\${work_hour.sales_percent}")
+    override val alWorkHourSalesPercent: Array<String> = emptyArray()
+
+    @Value("\${work_hour.other_share_part}")
+    override val otherSharePart: String? = null
+
+    //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @PostMapping("/api/app")
     override fun app(
@@ -96,7 +119,7 @@ class ShopAppController : CoreAppController(), iShopApplication {
             hmAliasConfig["shop_doc_out"]?.let { ac ->
                 alMenuDocument += MenuData(
                     "${AppParameter.ALIAS}=shop_doc_out&${AppParameter.ACTION}=${AppAction.TABLE}" +
-                        "&${AppParameter.PARENT_ALIAS}=shop_warehouse&${AppParameter.PARENT_ID}=582901431", ac.descr + " [Магазин]"
+                        "&${AppParameter.PARENT_ALIAS}=shop_warehouse&${AppParameter.PARENT_ID}=$shopId", ac.descr + " [Магазин]"
                 )
             }
         }
@@ -131,6 +154,7 @@ class ShopAppController : CoreAppController(), iShopApplication {
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuJournal, "shop_cash", true)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuJournal, "shop_gift", true)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuJournal, "shop_work_hour", true)
 
         if (alMenuJournal.size > 0) {
             alMenu.add(MenuData("", "Журналы", alMenuJournal.toTypedArray()))
@@ -159,7 +183,11 @@ class ShopAppController : CoreAppController(), iShopApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuReport, "shop_report_minus_detector", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuReport, "shop_report_doc_error", false)
 
-        if (alMenuReport.size > 3) {
+        addSeparator(alMenuReport)
+
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuReport, "shop_report_work_hour", false)
+
+        if (alMenuReport.size > 4) {
             alMenu.add(MenuData("", "Отчёты", alMenuReport.toTypedArray()))
         }
 

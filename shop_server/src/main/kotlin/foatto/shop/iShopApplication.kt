@@ -4,7 +4,10 @@ import foatto.core_server.app.iApplication
 
 interface iShopApplication : iApplication {
 
+    val shopId: String?
+
     val editLimitDays: String?
+
     val discountLimits: Array<String>
     val discountValues: Array<String>
 
@@ -15,6 +18,13 @@ interface iShopApplication : iApplication {
     val fiscalCashiers: Array<String>
     val fiscalTaxModes: Array<String>
     val fiscalPlace: String?
+
+    val workHourInWorkDay: String?
+    val workHourInSaturday: String?
+    val alWorkHourUserId: Array<String>
+    val alWorkHourPerHourTax: Array<String>
+    val alWorkHourSalesPercent: Array<String>
+    val otherSharePart: String?
 
     fun getDocumentDate(docId:Int): Triple<Int, Int, Int>
     fun isDocumentFiscable(docId: Int): Boolean
