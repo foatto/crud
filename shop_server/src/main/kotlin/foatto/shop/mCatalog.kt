@@ -96,7 +96,6 @@ class mCatalog : mAbstractHierarchy() {
 
         columnRecordFullName = ColumnString(modelTableName, "name", "-", 3, STRING_COLUMN_WIDTH, textFieldMaxSize).apply {
             isRequired = true
-            setUnique(true, null)
             addFormCaption(columnRecordType, "Подраздел", setOf(RECORD_TYPE_FOLDER))
             addFormCaption(columnRecordType, "Наименование товара", setOf(RECORD_TYPE_ITEM))
         }
@@ -158,6 +157,10 @@ class mCatalog : mAbstractHierarchy() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+        addUniqueColumn(columnRecordFullName)
+
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
         alTableHiddenColumn.add(columnActive!!)
         alTableHiddenColumn.add(columnArchive!!)
 
@@ -200,11 +203,8 @@ class mCatalog : mAbstractHierarchy() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-        //--- поля для сортировки
-        alTableSortColumn.add(columnRecordType)
-        alTableSortDirect.add("ASC")
-        alTableSortColumn.add(columnRecordFullName)
-        alTableSortDirect.add("ASC")
+        addTableSort(columnRecordType, true)
+        addTableSort(columnRecordFullName, true)
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

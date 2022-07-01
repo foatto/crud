@@ -667,11 +667,10 @@ open class cStandart {
             alTableSortDirect.add(if (sort > 0) "ASC" else "DESC")
         }
         //--- программно заданную сортировку добавляем, только если она не противоречит заданной пользователем
-        for (i in 0 until model.alTableSortColumn.size) {
-            val sortColumn = model.alTableSortColumn[i]
-            if (!alTableSortColumn.contains(sortColumn) && sortColumn.isSortable()) {
-                alTableSortColumn.add(sortColumn)
-                alTableSortDirect.add(model.alTableSortDirect[i])
+        model.alTableSort.forEach { tsd ->
+            if (!alTableSortColumn.contains(tsd.column) && tsd.column.isSortable()) {
+                alTableSortColumn.add(tsd.column)
+                alTableSortDirect.add(if (tsd.direct) "ASC" else "DESC")
             }
         }
         if (model.alTableGroupColumn.size > 0) {
@@ -1820,7 +1819,6 @@ open class cStandart {
         //--- исправление (возможно, неправильно заданных) настроек
         model.columnVersionNo?.let {
             it.isRequired = true    // номер версии должен быть заполнен
-            it.isUnique = false     // уникальность проверяется по комбинации columnVersionId & columnVersionNo
         }
 
         var id = getIDFromParam()!!
@@ -1910,9 +1908,9 @@ open class cStandart {
         if (isValidFormData && model.columnVersionId != null && model.columnVersionNo != null && id != 0) {
             val dataVersionId = hmColumnData[model.columnVersionId!!] as DataInt
             val dataVersionNo = hmColumnData[model.columnVersionNo!!] as DataString
-            val result = stm.checkExist(
+            val result = stm.checkExisting(
                 model.modelTableName,
-                arrayOf(
+                listOf(
                     Pair(model.columnVersionId!!.getFieldName(), dataVersionId.intValue),
                     Pair(model.columnVersionNo!!.getFieldName(), dataVersionNo.text)
                 ),
@@ -1984,6 +1982,33 @@ open class cStandart {
             val data = column.getData()
             isValid = isValid and data.loadFromForm(stm, alFormData[formDataIndex++], model.columnId.getFieldName(), id)
             hmColumnData[column] = data
+        }
+        //--- проверка на уникальность
+        if (isValid) {
+            model.alUniqueColumnData.forEach { alUniqueColumnData ->
+                val alFilteredUniqueCheckData = alUniqueColumnData.filter { uniqueColumnData ->
+                    //--- special case: getUniqueCheckValue(0) - "unique ignore data" not used for multi-column data
+                    uniqueColumnData.ignore == null || uniqueColumnData.ignore != hmColumnData[uniqueColumnData.column]!!.getUniqueCheckValue(0)
+                }
+                val alFieldCheck = mutableListOf<Pair<String, Any>>()
+                alFilteredUniqueCheckData.forEach { uniqueColumnData ->
+                    for (ci in 0 until uniqueColumnData.column.getFieldCount()) {
+                        alFieldCheck += Pair(uniqueColumnData.column.getFieldName(ci), hmColumnData[uniqueColumnData.column]!!.getUniqueCheckValue(ci))
+                    }
+                }
+                val existingCheckResult = stm.checkExisting(
+                    aTableName = model.modelTableName,
+                    alFieldCheck = alFieldCheck,
+                    aFieldID = model.columnId.getFieldName(),
+                    id = id
+                )
+                if (existingCheckResult) {
+                    alFilteredUniqueCheckData.forEach { uniqueColumnData ->
+                        hmColumnData[uniqueColumnData.column]!!.setUniqueCheckingError("Это значение уже существует")
+                    }
+                }
+                isValid = isValid and !existingCheckResult
+            }
         }
         return isValid
     }

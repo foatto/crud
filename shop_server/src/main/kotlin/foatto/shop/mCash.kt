@@ -37,9 +37,7 @@ class mCash : mAbstract() {
             defaultValue = alWarehouse[0].first
         }
 
-        val columnCashDate = ColumnDate3Int(modelTableName, "ye", "mo", "da", "Дата").apply {
-            setUnique(true, null)
-        }
+        val columnCashDate = ColumnDate3Int(modelTableName, "ye", "mo", "da", "Дата")
 
         val columnCashPut = ColumnDouble(modelTableName, "cash_put", "Сдано", 10, 2).apply {
             setEmptyData(0.0, "-")
@@ -70,6 +68,10 @@ class mCash : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
+        addUniqueColumn(columnCashDate)
+
+        //----------------------------------------------------------------------------------------------------------------------
+
         alTableHiddenColumn.add(columnId)
 
         addTableColumn(columnCashWH)
@@ -96,9 +98,7 @@ class mCash : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        //--- поля для сортировки
-        alTableSortColumn.add(columnCashDate)
-        alTableSortDirect.add("DESC")
+        addTableSort(columnCashDate, false)
 
         //----------------------------------------------------------------------------------------------------------------------
 

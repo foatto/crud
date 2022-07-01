@@ -27,12 +27,24 @@ class DataDate3Int(aColumn: iColumn) : DataAbstractDate(aColumn) {
         errorText = null
     }
 
-    override fun getFieldSQLValue(index: Int): String {
-        return when(index) {
-            0 -> "${localDate.year}"
-            1 -> "${localDate.monthValue}"
-            2 -> "${localDate.dayOfMonth}"
-            else -> throw Throwable("DataDate3Int.getFieldSQLValue: wrong index = $index")
-        }
+    override fun getUniqueCheckValue(index: Int) = when (index) {
+        0 -> localDate.year
+        1 -> localDate.monthValue
+        2 -> localDate.dayOfMonth
+        else -> throw Throwable("DataDate3Int.getFieldSQLValue: wrong index = $index")
+    }
+
+    override fun setUniqueCheckingError(message: String) {
+        //--- localDate validated already
+        arrErrorValue = arrayOf(localDate.year.toString(), localDate.monthValue.toString(), localDate.dayOfMonth.toString())
+        errorText = message
+    }
+
+    override fun getFieldSQLValue(index: Int) = when (index) {
+        0 -> "${localDate.year}"
+        1 -> "${localDate.monthValue}"
+        2 -> "${localDate.dayOfMonth}"
+        else -> throw Throwable("DataDate3Int.getFieldSQLValue: wrong index = $index")
     }
 }
+

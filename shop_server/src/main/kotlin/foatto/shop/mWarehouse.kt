@@ -29,8 +29,11 @@ class mWarehouse : mAbstract() {
 
         val columnWarehouseName = ColumnString(modelTableName, "name", "Склад / Магазин", STRING_COLUMN_WIDTH).apply {
             isRequired = true
-            setUnique(true, null)
         }
+
+        //----------------------------------------------------------------------------------------------------------------------
+
+        addUniqueColumn(columnWarehouseName)
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -44,9 +47,7 @@ class mWarehouse : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        //--- поля для сортировки
-        alTableSortColumn.add(columnWarehouseName)
-        alTableSortDirect.add("ASC")
+        addTableSort(columnWarehouseName, true)
 
         //----------------------------------------------------------------------------------------------------------------------
 

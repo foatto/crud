@@ -5,7 +5,13 @@ import foatto.core_server.app.server.data.DataInt
 import foatto.core_server.app.server.data.iData
 import foatto.sql.CoreAdvancedConnection
 
-class ColumnInt(aTableName: String, aFieldName: String, aCaption: String = "", aCols: Int = 0, aDefaultValue: Int? = null) : ColumnSimple() {
+class ColumnInt(
+    aTableName: String,
+    aFieldName: String,
+    aCaption: String = "",
+    aCols: Int = 0,
+    aDefaultValue: Int? = null
+) : ColumnSimple(), iUniqableColumn {
 
     companion object {
         val BIN = 2

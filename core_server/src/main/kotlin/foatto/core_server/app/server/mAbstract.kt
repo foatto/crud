@@ -6,6 +6,7 @@ import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnSimple
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.column.iColumn
+import foatto.core_server.app.server.column.iUniqableColumn
 import foatto.sql.CoreAdvancedStatement
 import java.time.ZoneId
 import java.util.*
@@ -42,6 +43,8 @@ abstract class mAbstract {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    val alUniqueColumnData = mutableListOf<List<UniqueColumnData>>()
+
     val hsAdditionalTables = mutableSetOf<String>()   // вручную добавленные имена таблиц для запроса (бывает нужно для сетевых структур)
 
     val alTableHiddenColumn = mutableListOf<iColumn>()
@@ -49,8 +52,8 @@ abstract class mAbstract {
 
     //--- работать будем исключительно через get/set-методы, ибо напрямую неудобно - есть нюансы доступа
     private val tmTableColumn = TreeMap<Int, TreeMap<Int, iColumn>>()
-    val alTableSortColumn = mutableListOf<iColumn>()
-    val alTableSortDirect = mutableListOf<String>()
+
+    val alTableSort = mutableListOf<TableSortData>()
 
     val alFormHiddenColumn = mutableListOf<iColumn>()
     val alFormColumn = mutableListOf<iColumn>()
@@ -260,6 +263,24 @@ abstract class mAbstract {
             }
             tmRow[col] = arrColumn[i]
         }
+    }
+
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    protected fun addUniqueColumn(column: iUniqableColumn, ignore: Any? = null) {
+        addUniqueColumn(UniqueColumnData(column, ignore))
+    }
+
+    protected fun addUniqueColumn(uniqueColumnData: UniqueColumnData) {
+        alUniqueColumnData += listOf(uniqueColumnData)
+    }
+
+    protected fun addUniqueColumn(columnList: List<UniqueColumnData>) {
+        alUniqueColumnData += columnList
+    }
+
+    protected fun addTableSort(column: iColumn, direct: Boolean) {
+        alTableSort += TableSortData(column, direct)
     }
 
 }

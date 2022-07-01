@@ -125,7 +125,6 @@ class mUser : mAbstractHierarchy() {
 
         val columnUserLogin = ColumnString(modelTableName, "login", "Логин", STRING_COLUMN_WIDTH).apply {
             addFormVisible(columnRecordType, false, setOf(OrgType.ORG_TYPE_DIVISION))
-            setUnique(true, "")
         }
 
         columnUserPassword = ColumnString(modelTableName, "pwd", "Пароль", STRING_COLUMN_WIDTH).apply {
@@ -163,6 +162,10 @@ class mUser : mAbstractHierarchy() {
             isEditable = false
             addFormVisible(columnRecordType, false, setOf(OrgType.ORG_TYPE_DIVISION))
         }
+
+        //----------------------------------------------------------------------------------------------------------------------
+
+        addUniqueColumn(columnUserLogin, "")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -215,10 +218,8 @@ class mUser : mAbstractHierarchy() {
         //----------------------------------------------------------------------------------------------------------------------
 
         //--- поля для сортировки
-        alTableSortColumn += columnRecordType
-        alTableSortDirect += "ASC"
-        alTableSortColumn += columnRecordFullName
-        alTableSortDirect += "ASC"
+        addTableSort(columnRecordType, true)
+        addTableSort(columnRecordFullName, true)
 
         //----------------------------------------------------------------------------------------
 

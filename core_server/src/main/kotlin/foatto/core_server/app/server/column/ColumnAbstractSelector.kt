@@ -2,7 +2,12 @@ package foatto.core_server.app.server.column
 
 import foatto.core_server.app.server.UserConfig
 
-abstract class ColumnAbstractSelector(aTableName: String, aFieldName: String, aCaption: String, aDefaultValue: Int? = null) : ColumnSimple() {
+abstract class ColumnAbstractSelector(
+    aTableName: String,
+    aFieldName: String,
+    aCaption: String,
+    aDefaultValue: Int? = null
+) : ColumnSimple(), iUniqableColumn {
 
     val alSelectorData = mutableListOf<SelectorData>()
 

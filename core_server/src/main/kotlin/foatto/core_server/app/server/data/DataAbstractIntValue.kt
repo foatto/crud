@@ -29,6 +29,14 @@ abstract class DataAbstractIntValue(aColumn: iColumn) : DataAbstract(aColumn) {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    override fun getUniqueCheckValue(index: Int): Any = intValue
+
+    override fun setUniqueCheckingError(message: String) {
+        setError(intValue.toString(), message)
+    }
+
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     fun setError(aErrorValue: String?, aErrorText: String?) {
         errorValue = aErrorValue
         errorText = aErrorText

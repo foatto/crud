@@ -92,9 +92,7 @@ class mTSUser : mAbstract() {
 
         columnDisabled = ColumnBoolean(modelTableName, "is_disabled", "Отключен", false)
 
-        val columnUserLogin = ColumnString(modelTableName, "login", "Логин", STRING_COLUMN_WIDTH).apply {
-            setUnique(true, "")
-        }
+        val columnUserLogin = ColumnString(modelTableName, "login", "Логин", STRING_COLUMN_WIDTH)
 
         columnUserPassword = ColumnString(modelTableName, "pwd", "Пароль", STRING_COLUMN_WIDTH).apply {
             isPassword = true
@@ -126,6 +124,10 @@ class mTSUser : mAbstract() {
         columnControlEnabled = ColumnBoolean(modelTableName, "is_control_enabled", "Управление устройствами", false).apply {
             isVirtual = true
         }
+
+        //----------------------------------------------------------------------------------------------------------------------
+
+        addUniqueColumn(columnUserLogin, "")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -183,11 +185,8 @@ class mTSUser : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        //--- поля для сортировки
-        alTableSortColumn += columnParentFullName
-        alTableSortDirect += "ASC"
-        alTableSortColumn += columnRecordFullName
-        alTableSortDirect += "ASC"
+        addTableSort(columnParentFullName, true)
+        addTableSort(columnRecordFullName, true)
 
         //----------------------------------------------------------------------------------------------------------------------
 

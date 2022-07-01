@@ -37,8 +37,6 @@ interface iColumn {
     val isVirtual: Boolean
     val isSearchable: Boolean
     val isEditable: Boolean
-    var isUnique: Boolean
-    var uniqueIgnore: Any?
 
     val isSavedDefault: Boolean
 
@@ -59,8 +57,6 @@ interface iColumn {
     fun addSelectorColumn(columnToAndFrom: iColumn)
     fun addSelectorColumn(columnTo: iColumn, columnFrom: iColumn)
 
-    fun setUnique(aIsUnique: Boolean, aUniqueIgnore: Any? = null)
-
     fun setSavedDefault(userConfig: UserConfig)
     fun saveDefault(conn: CoreAdvancedConnection, userConfig: UserConfig, hmColumnData: Map<iColumn, iData>)
 
@@ -68,7 +64,7 @@ interface iColumn {
 
     fun getData(): iData
 
-//!!! для совместимости со старым Java-кодом, чтобы не менять в куче мест в старых рабочих исходниках ----------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     fun getFieldCount(): Int
     fun getFieldName(): String

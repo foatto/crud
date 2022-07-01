@@ -48,10 +48,6 @@ abstract class ColumnAbstract : iColumn {
     //--- редактируемость данных
     override var isEditable: Boolean = true
 
-    //--- значение поля должно быть уникальным
-    override var isUnique: Boolean = false
-    override var uniqueIgnore: Any? = null
-
     //--- поле с сохраняемым default-значением
     override var isSavedDefault: Boolean = false
 
@@ -77,11 +73,6 @@ abstract class ColumnAbstract : iColumn {
     }
 
     override fun isSortable() = !isVirtual
-
-    override fun setUnique(aIsUnique: Boolean, aUniqueIgnore: Any?) {
-        isUnique = aIsUnique
-        uniqueIgnore = aUniqueIgnore
-    }
 
     //--- основная часть полей не умеет сохранять своё default-значение, ибо незачем
     override fun setSavedDefault(userConfig: UserConfig) {}
@@ -113,7 +104,7 @@ abstract class ColumnAbstract : iColumn {
 //!!! для совместимости со старым Java-кодом, чтобы всё не менять потом ---------------------------------------------------------------------------------------------------------------
 
     override fun getFieldCount() = alFieldName.size
-    override fun getFieldName() = alFieldName[0]
+    override fun getFieldName() = alFieldName.first()
     override fun getFieldName(index: Int) = alFieldName[index]
 
     override fun getSelectTo(): List<iColumn> = alSelectTo

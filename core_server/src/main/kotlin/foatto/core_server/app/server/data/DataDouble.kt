@@ -38,7 +38,7 @@ class DataDouble(aColumn: iColumn) : DataAbstract(aColumn) {
         clearError()
     }
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String?, id: Int): Boolean {
+    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameId: String?, id: Int): Boolean {
         val strValue = formData.stringValue!!
 
         if (cd.isRequired && strValue.isBlank()) {
@@ -64,15 +64,14 @@ class DataDouble(aColumn: iColumn) : DataAbstract(aColumn) {
             setError(strValue, "Значение должно быть не больше, чем ${cd.maxValue}")
             return false
         }
-        if (column.isUnique &&
-            (column.uniqueIgnore == null || column.uniqueIgnore != doubleValue) &&
-            stm.checkExist(column.columnTableName, column.alFieldName[0], doubleValue, fieldNameID, id)
-        ) {
-            setError(strValue, "Это значение уже существует")
-            return false
-        }
 
         return true
+    }
+
+    override fun getUniqueCheckValue(index: Int): Any = doubleValue
+
+    override fun setUniqueCheckingError(message: String) {
+        setError(doubleValue.toString(), message)
     }
 
     override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell =

@@ -20,7 +20,11 @@ interface iData {
 
     fun loadFromDB(rs: CoreAdvancedResultSet, aPosRS: Int): Int
     fun loadFromDefault()
-    fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String?, id: Int): Boolean
+    fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameId: String?, id: Int): Boolean
+
+    fun getUniqueCheckValue(index: Int): Any = Any()
+
+    fun setUniqueCheckingError(message: String) {}
 
     fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell
 

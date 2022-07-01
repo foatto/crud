@@ -5,7 +5,14 @@ import foatto.core_server.app.server.data.DataString
 import foatto.core_server.app.server.data.iData
 import foatto.sql.CoreAdvancedConnection
 
-class ColumnString(aTableName: String, aFieldName: String, aCaption: String, aRows: Int, aCols: Int, aMaxSize: Int) : ColumnSimple() {
+class ColumnString(
+    aTableName: String,
+    aFieldName: String,
+    aCaption: String,
+    aRows: Int,
+    aCols: Int,
+    aMaxSize: Int
+) : ColumnSimple(), iUniqableColumn {
 
     var cols = 0
     var rows = 0       // одновременно как флаг отображения: > 0 - отображать как многострочный текст

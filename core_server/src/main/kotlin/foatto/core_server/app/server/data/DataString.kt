@@ -43,7 +43,7 @@ class DataString(aColumn: iColumn) : DataAbstract(aColumn) {
         clearError()
     }
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String?, id: Int): Boolean {
+    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameId: String?, id: Int): Boolean {
         text = if (cs.rows == 0) {
             formData.stringValue!!
         } else {
@@ -60,13 +60,13 @@ class DataString(aColumn: iColumn) : DataAbstract(aColumn) {
             setError(text, "Обязательно для заполнения")
             return false
         }
-        if (column.isUnique && (column.uniqueIgnore == null || column.uniqueIgnore != text) &&
-            stm.checkExist(column.columnTableName, column.alFieldName[0], prepareForSQL(text), fieldNameID, id)
-        ) {
-            setError(text, "Это значение уже существует")
-            return false
-        }
         return true
+    }
+
+    override fun getUniqueCheckValue(index: Int): Any = text
+
+    override fun setUniqueCheckingError(message: String) {
+        setError(text, message)
     }
 
     override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell {

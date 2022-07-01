@@ -30,7 +30,6 @@ class mAlias : mAbstract() {
 
         val columnClassAlias = ColumnString(modelTableName, "name", "Алиас", STRING_COLUMN_WIDTH)
         columnClassAlias.isRequired = true
-        columnClassAlias.setUnique(true, null)
         val columnClassControlName = ColumnString(modelTableName, "control_name", "Имя control-класса", STRING_COLUMN_WIDTH)
         columnClassControlName.isRequired = true
         val columnClassModelName = ColumnString(modelTableName, "model_name", "Имя model-класса", STRING_COLUMN_WIDTH)
@@ -44,6 +43,12 @@ class mAlias : mAbstract() {
         val columnClassNewable = ColumnBoolean(modelTableName, "newable", "Отметка новых строк", false)
         val columnClassNewAutoRead = ColumnBoolean(modelTableName, "new_auto_read", "Автопрочитка новых строк", false)
         val columnClassDefaultParentUser = ColumnBoolean(modelTableName, "default_parent_user", "Фильтр на текущего пользователя по умолчанию", false)
+
+        //----------------------------------------------------------------------------------------------------------------------
+
+        addUniqueColumn(columnClassAlias)
+
+        //----------------------------------------------------------------------------------------------------------------------
 
         alTableHiddenColumn.add(columnId)
 
@@ -75,9 +80,7 @@ class mAlias : mAbstract() {
 
         //---------------------------------------------------------------------
 
-        //--- поля для сортировки
-        alTableSortColumn.add(columnClassAlias)
-        alTableSortDirect.add("ASC")
+        addTableSort(columnClassAlias, true)
 
         //----------------------------------------------------------------------------------------
 

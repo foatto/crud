@@ -5,6 +5,7 @@ import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.ChildData
 import foatto.core_server.app.server.DependData
+import foatto.core_server.app.server.UniqueColumnData
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnBoolean
 import foatto.core_server.app.server.column.ColumnComboBox
@@ -71,7 +72,6 @@ class mDevice : mAbstract() {
 
         columnSerialNo = ColumnString(modelTableName, "serial_no", "Серийный номер", STRING_COLUMN_WIDTH).apply {
             isRequired = true
-            setUnique(true, "")
         }
 
         val columnDeviceCell = ColumnString(modelTableName, "cell_num", "Номер телефона", STRING_COLUMN_WIDTH)
@@ -135,6 +135,16 @@ class mDevice : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
+        addUniqueColumn(columnSerialNo, "")
+        addUniqueColumn(
+            listOf(
+                UniqueColumnData(os.columnObject),
+                UniqueColumnData(columnDeviceIndex),
+            )
+        )
+
+        //----------------------------------------------------------------------------------------------------------------------
+
         addTableColumn(columnDeviceFwVer)
         addTableColumn(columnDeviceLastSessionTime)
         addTableColumn(columnDeviceLastSessionStatusText)
@@ -148,9 +158,7 @@ class mDevice : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        //--- поля для сортировки
-        alTableSortColumn += columnSerialNo
-        alTableSortDirect += "ASC"
+        addTableSort(columnSerialNo, true)
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 

@@ -30,8 +30,11 @@ class mRole : mAbstract() {
 
         val columnRoleName = ColumnString(modelTableName, "name", "Наименование", STRING_COLUMN_WIDTH).apply {
             isRequired = true
-            setUnique(true, null)
         }
+
+        //----------------------------------------------------------------------------------------------------------------------
+
+        addUniqueColumn(columnRoleName)
 
         //----------------------------------------------------------------------------------------
 
@@ -45,9 +48,7 @@ class mRole : mAbstract() {
 
         //---------------------------------------------------------------------
 
-        //--- поля для сортировки
-        alTableSortColumn.add(columnRoleName)
-        alTableSortDirect.add("ASC")
+        addTableSort(columnRoleName, true)
 
         //----------------------------------------------------------------------------------------
 

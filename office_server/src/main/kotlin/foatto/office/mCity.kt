@@ -24,11 +24,15 @@ class mCity : mAbstract() {
 
         columnId = ColumnInt(modelTableName, "id")
 
-        val columnCityName = ColumnString(modelTableName, "name", "Название", STRING_COLUMN_WIDTH)
-        columnCityName.isRequired = true
-        columnCityName.setUnique(true, null)
+        val columnCityName = ColumnString(modelTableName, "name", "Название", STRING_COLUMN_WIDTH).apply {
+            isRequired = true
+        }
 
         val columnCityCode = ColumnString(modelTableName, "phone_code", "Код города", STRING_COLUMN_WIDTH)
+
+        //----------------------------------------------------------------------------------------------------------------------
+
+        addUniqueColumn(columnCityName)
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -44,9 +48,7 @@ class mCity : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        //--- поля для сортировки
-        alTableSortColumn.add(columnCityName)
-        alTableSortDirect.add("ASC")
+        addTableSort(columnCityName, true)
 
         //----------------------------------------------------------------------------------------------------------------------
 

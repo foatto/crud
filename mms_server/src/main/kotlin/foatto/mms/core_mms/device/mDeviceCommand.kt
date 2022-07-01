@@ -32,11 +32,14 @@ class mDeviceCommand : mAbstract() {
         MMSHandler.fillDeviceTypeColumn(columnDeviceType)
 
         val columnName = ColumnString(modelTableName, "name", "Наименование", STRING_COLUMN_WIDTH)
-        columnName.setUnique(true, "")
         val columnDescr = ColumnString(modelTableName, "descr", "Описание", STRING_COLUMN_WIDTH)
-        columnDescr.setUnique(true, "")
 
         val columnCommand = ColumnString(modelTableName, "cmd", "Команда", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
+
+        //----------------------------------------------------------------------------------------------------------------------------------------
+
+        addUniqueColumn(columnName, "")
+        addUniqueColumn(columnDescr, "")
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -56,9 +59,7 @@ class mDeviceCommand : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        //--- поля для сортировки
-        alTableSortColumn.add(columnDescr)
-        alTableSortDirect.add("ASC")
+        addTableSort(columnDescr, true)
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 

@@ -21,7 +21,7 @@ class DataInt(aColumn: iColumn) : DataAbstractIntValue(aColumn) {
         clearError()
     }
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameID: String?, id: Int): Boolean {
+    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameId: String?, id: Int): Boolean {
         val strValue = formData.stringValue!!
 
         if (ci.isRequired && strValue.isBlank()) {
@@ -48,14 +48,6 @@ class DataInt(aColumn: iColumn) : DataAbstractIntValue(aColumn) {
             return false
         }
 
-        if (column.isUnique &&
-            (column.uniqueIgnore == null || column.uniqueIgnore != intValue) &&
-            stm.checkExist(column.columnTableName, column.alFieldName[0], intValue, fieldNameID, id)
-        ) {
-            setError(strValue, "Это значение уже существует")
-            return false
-        }
-
         return true
     }
 
@@ -77,10 +69,9 @@ class DataInt(aColumn: iColumn) : DataAbstractIntValue(aColumn) {
                 if (ci.emptyValue != null && ci.emptyValue == intValue) {
                     ci.emptyText!!
                 } else {
-                    if(isUseThousandsDivider) {
+                    if (isUseThousandsDivider) {
                         getSplittedLong(intValue.toLong(), ci.radix)
-                    }
-                    else {
+                    } else {
                         intValue.toString(ci.radix)
                     }
                 }
@@ -91,10 +82,9 @@ class DataInt(aColumn: iColumn) : DataAbstractIntValue(aColumn) {
         FormCell(FormCellType.INT).apply {
             name = getFieldCellName(0)
             value = if (errorText == null) {
-                if(isUseThousandsDivider) {
+                if (isUseThousandsDivider) {
                     getSplittedLong(intValue.toLong(), ci.radix)
-                }
-                else {
+                } else {
                     intValue.toString(ci.radix)
                 }
             } else {

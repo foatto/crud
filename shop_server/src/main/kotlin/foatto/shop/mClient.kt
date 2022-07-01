@@ -27,9 +27,13 @@ class mClient : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnClientName = ColumnString(modelTableName, "name", "Контрагент", STRING_COLUMN_WIDTH)
-        columnClientName.isRequired = true
-        columnClientName.setUnique(true, null)
+        val columnClientName = ColumnString(modelTableName, "name", "Контрагент", STRING_COLUMN_WIDTH).apply {
+            isRequired = true
+        }
+
+        //----------------------------------------------------------------------------------------------------------------------
+
+        addUniqueColumn(columnClientName)
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -44,8 +48,7 @@ class mClient : mAbstract() {
         //----------------------------------------------------------------------------------------------------------------------
 
         //--- поля для сортировки
-        alTableSortColumn.add(columnClientName)
-        alTableSortDirect.add("ASC")
+        addTableSort(columnClientName, true)
 
         //----------------------------------------------------------------------------------------------------------------------
 

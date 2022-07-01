@@ -64,9 +64,7 @@ open class mClient : mAbstract() {
 
         columnDisabled = ColumnBoolean(modelTableName, "is_disabled", "Отключен", false)
 
-        val columnUserLogin = ColumnString(modelTableName, "login", "Логин", STRING_COLUMN_WIDTH).apply {
-            setUnique(true, "")
-        }
+        val columnUserLogin = ColumnString(modelTableName, "login", "Логин", STRING_COLUMN_WIDTH)
 
         columnUserPassword = ColumnString(modelTableName, "pwd", "Пароль", STRING_COLUMN_WIDTH).apply {
             isPassword = true
@@ -94,6 +92,10 @@ open class mClient : mAbstract() {
         //----------------------------------------------------------------------------------------------------------------------
 
         addColumnDefinitions()
+
+        //----------------------------------------------------------------------------------------------------------------------
+
+        addUniqueColumn(columnUserLogin, "")
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -132,8 +134,7 @@ open class mClient : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableSortColumn.add(columnRecordFullName)
-        alTableSortDirect.add("ASC")
+        addTableSort(columnRecordFullName, true)
 
         //----------------------------------------------------------------------------------------
 
