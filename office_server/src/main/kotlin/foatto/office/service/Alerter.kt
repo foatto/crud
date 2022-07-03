@@ -172,9 +172,6 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
 
             AdvancedLogger.info("No outgoing alerts. Incoming mail checking...")
             receiveMail()?.let { receivedMailData ->
-                //--- парсим тему письма, ищем TAG и ROW_ID
-//                "Office" ).append( '#' ).append( mTaskThread.ALERT_TAG )
-//                                 .append( '#' ).append( taskID ).append( '#' ).append( arrUserID[ i ] ).append( '#' )
                 val tokens = receivedMailData.subject.split('#').filter(String::isNotBlank)
                 try {
                     tokens[1] // пропускаем начальные "Re:" и/или "Office"
@@ -492,8 +489,13 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         var cmd = ""
         var sbHtmlMessage: String? = null
         if (stMailBody.hasMoreElements()) {
-            cmd = stMailBody.nextToken().trim().uppercase(Locale.getDefault())
+            cmd = stMailBody.nextToken().prepareHtmlString()
             AdvancedLogger.debug("First row = '$cmd'")
+            //--- эту строку пока просто пропукаем
+            if (cmd.contains("JAVAX.MAIL.INTERNET.MIMEMULTIPART")) {
+                cmd = stMailBody.nextToken().prepareHtmlString()
+                AdvancedLogger.debug("First row = '$cmd'")
+            }
             //--- пошла новая неотключаемая мода у Apple - письма исключительно в html-формате
             if (cmd.contains("<HTML>")) {
                 sbHtmlMessage = ""
@@ -504,20 +506,33 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                         break
                     }
                 }
-                //--- теперь сама команда
-                cmd = stMailBody.nextToken().trim().uppercase(Locale.getDefault()).replace("<BR>", "").replace("&NBSP;", "")
-                //--- собираем инфу до <DIV
+                cmd = stMailBody.nextToken().prepareHtmlString()
+                //--- после <BODY вместо команды может появиться дополнительная разметка
+                if (cmd.contains("<META")) {
+                    //--- перематываем до <P>
+                    while (stMailBody.hasMoreTokens()) {
+                        cmd = stMailBody.nextToken().prepareHtmlString()
+                        if (cmd.contains("<P>")) {
+                            break
+                        }
+                    }
+                } else {
+                    //--- теперь сама команда
+                    cmd = stMailBody.nextToken().prepareHtmlString()
+                }
+                //--- собираем инфу до первого <DIV
                 while (stMailBody.hasMoreTokens()) {
-                    val msg = stMailBody.nextToken().uppercase(Locale.getDefault())
+                    val msg = stMailBody.nextToken().prepareHtmlString()
                     if (msg.contains("<DIV")) {
                         break
                     }
-                    sbHtmlMessage += msg.replace("<BR>", " ").replace("&NBSP;", " ")
+                    sbHtmlMessage += msg.prepareHtmlString()
                 }
-                AdvancedLogger.debug("First row from HTML = '$cmd'")
-                AdvancedLogger.debug("Rest HTML message= '$sbHtmlMessage'")
             }
+            AdvancedLogger.debug("First row from HTML = '$cmd'")
+            AdvancedLogger.debug("Rest message from HTML = '$sbHtmlMessage'")
         }
+
         var action = ACTION_EMPTY
         var actionDescr: String? = null
         var newUserID = 0
@@ -595,12 +610,12 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                 }
             }
         }
-        //--- если никакая команда не распознана, то просто сдвигаем срок на один день
-        if (action == ACTION_EMPTY) {
-            dayShift = 1
-            action = ACTION_TIME_SHIFT
-            actionDescr = "$cmd\n# Поручение продлено на $dayShift день #"
-        }
+//        //--- если никакая команда не распознана, то просто сдвигаем срок на один день
+//        if (action == ACTION_EMPTY) {
+//            dayShift = 1
+//            action = ACTION_TIME_SHIFT
+//            actionDescr = "$cmd\n# Поручение продлено на $dayShift день #"
+//        }
 
         AdvancedLogger.debug("Action = '$action'")
         AdvancedLogger.debug("Action Descr = '$actionDescr'")
@@ -610,8 +625,8 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         AdvancedLogger.debug("New Month = $newMo")
         AdvancedLogger.debug("New Year = $newYe")
 
-        //--- составляем сообщение в систему
-        var sbMailBody = actionDescr + "\n"
+        //--- составляем сообщение в систему (если команда не распознана - это просто первая строка ответа исполнителя)
+        var sbMailBody = (actionDescr ?: cmd) + "\n"
         //--- если это обычное письмо в обычном текстовом формате - пропускаем строки-цитаты из письма
         if (sbHtmlMessage == null) {
             while (stMailBody.hasMoreTokens()) {
@@ -711,6 +726,9 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         alConn[0].commit()
         AdvancedLogger.debug("-".repeat(20))
     }
+
+    private fun String.prepareHtmlString() = this.trim().uppercase(Locale.getDefault())
+        .replace("<BR>", "\n").replace("&NBSP;", " ").replace("<P>", "").replace("</P>", "\n")
 
     private class ReceivedMailData(
         val sentDate: Date,
