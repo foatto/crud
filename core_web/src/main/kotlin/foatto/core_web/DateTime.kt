@@ -3,7 +3,7 @@ package foatto.core_web
 import kotlin.js.Date
 
 fun DateTime_Arr(dt: Date) =
-    intArrayOf(
+    arrayOf(
         dt.getUTCFullYear(),
         dt.getUTCMonth() + 1,
         dt.getUTCDate(),
@@ -17,7 +17,7 @@ fun DateTime_Arr(timeOffset: Int, sec: Int) = DateTime_Arr(Date((sec + timeOffse
 fun DateTime_YMDHMS(timeOffset: Int, sec: Int) = DateTime_YMDHMS(DateTime_Arr(timeOffset, sec))
 
 //fun DateTime_YMDHMS( gc: GregorianCalendar ): StringBuilder = DateTime_YMDHMS( DateTime_Arr( gc ) )
-fun DateTime_YMDHMS(arrDT: IntArray) =
+fun DateTime_YMDHMS(arrDT: Array<Int>) =
     "${if (arrDT[0] < 10) '0' else ""}${arrDT[0]}." +
         "${if (arrDT[1] < 10) '0' else ""}${arrDT[1]}." +
         "${if (arrDT[2] < 10) '0' else ""}${arrDT[2]} " +
@@ -28,7 +28,7 @@ fun DateTime_YMDHMS(arrDT: IntArray) =
 fun DateTime_DMYHMS(timeOffset: Int, sec: Int) = DateTime_DMYHMS(DateTime_Arr(timeOffset, sec))
 
 //fun DateTime_DMYHMS( gc: GregorianCalendar ): StringBuilder = DateTime_DMYHMS( DateTime_Arr( gc ) )
-fun DateTime_DMYHMS(arrDT: IntArray) =
+fun DateTime_DMYHMS(arrDT: Array<Int>) =
     "${if (arrDT[2] < 10) '0' else ""}${arrDT[2]}." +
         "${if (arrDT[1] < 10) '0' else ""}${arrDT[1]}." +
         "${if (arrDT[0] < 10) '0' else ""}${arrDT[0]} " +
