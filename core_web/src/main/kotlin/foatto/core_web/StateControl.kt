@@ -5,6 +5,7 @@ import foatto.core.app.xy.XyAction
 import foatto.core.app.xy.XyActionRequest
 import foatto.core.app.xy.XyActionResponse
 import foatto.core.app.xy.XyViewCoord
+import foatto.core.link.AppRequest
 import foatto.core.link.XyResponse
 import foatto.core.util.prepareForHTML
 import foatto.core_web.external.vue.that
@@ -21,6 +22,8 @@ private enum class StateWorkMode {
 
 private const val startExpandKoef = 0.0
 
+var statePostMountFun: (that: dynamic) -> Unit = { _: dynamic -> }
+
 @Suppress("UnsafeCastFromDynamic")
 fun stateControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply {
 
@@ -31,7 +34,11 @@ fun stateControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().app
                     <span v-bind:style="style_toolbar_block">
                     </span>
                     <span v-bind:style="[style_toolbar_block, style_title]">
-                        {{fullTitle}}
+                        <span v-for="(title, index) in arrTitle"
+                             v-bind:style="{ 'font-weight' : ( arrTitle.size > 1 && index == 0 ? 'bold' : 'normal' ) }"
+                        >
+                            {{title}}
+                        </span>
                     </span>
                     <span v-bind:style="style_toolbar_block">
                     </span>
@@ -40,16 +47,27 @@ fun stateControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().app
                     <span v-bind:style="style_toolbar_block">
                     </span>
                     <span v-bind:style="style_toolbar_block">
+                        <button v-for="serverButton in arrXyServerButton"
+                                v-show="!${styleIsNarrowScreen} || !serverButton.isForWideScreenOnly" 
+                                v-bind:key="'sb'+serverButton.id"
+                                v-on:click="invokeServerButton( serverButton.url )"
+                                v-bind:style="[ 
+                                    style_icon_button, 
+                                    { 'padding' : ( serverButton.icon ? '${styleIconButtonPadding()}' : '${styleStateServerButtonTextPadding()}' ) },
+                                    { 'font-weight' : '${styleStateServerButtonTextFontWeight}' }
+                                ]"
+                                v-bind:title="serverButton.tooltip"
+                        >
+                            <img v-if="serverButton.icon" v-bind:src="serverButton.icon">
+                            <span v-else v-html="serverButton.caption">
+                            </span>
+                        </button>
+                    </span>
+                    <span v-bind:style="style_toolbar_block">
                         <img src="/web/images/ic_replay_black_48dp.png"
                              v-bind:style="style_icon_button"
                              v-on:click="setInterval(0)"
                              title="Обновить сейчас"
-                        >
-                        <img src="/web/images/ic_replay_5_black_48dp.png"
-                             v-if="refreshInterval != 5"
-                             v-bind:style="style_icon_button"
-                             v-on:click="setInterval(5)"
-                             title="Обновлять каждые 5 сек"
                         >
                         <img src="/web/images/ic_replay_10_black_48dp.png"
                              v-if="refreshInterval != 10"
@@ -57,18 +75,25 @@ fun stateControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().app
                              v-on:click="setInterval(10)"
                              title="Обновлять каждые 10 сек"
                         >
+                    </span>
+                </div>
+
+        """ +
+/*
+                        <img src="/web/images/ic_replay_5_black_48dp.png"
+                             v-if="refreshInterval != 5"
+                             v-bind:style="style_icon_button"
+                             v-on:click="setInterval(5)"
+                             title="Обновлять каждые 5 сек"
+                        >
                         <img src="/web/images/ic_replay_30_black_48dp.png"
                              v-if="refreshInterval != 30"
                              v-bind:style="style_icon_button"
                              v-on:click="setInterval(30)"
                              title="Обновлять каждые 30 сек"
                         >
-                    </span>
-                </div>
-
-        """ +
-
-            getXyElementTemplate(tabId, "") +
+ */
+            getXyElementTemplate(tabId, true, "") +
 
             getStateAlertTemplate() +
 
@@ -77,6 +102,9 @@ fun stateControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().app
         """
 
     this.methods = json(
+        "invokeServerButton" to { url: String ->
+            that().`$root`.openTab(url)
+        },
         "setInterval" to { sec: Int ->
             val that = that()
 
@@ -136,6 +164,7 @@ fun stateControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().app
     )
 
     this.mounted = {
+        readXyServerActionButton(that(), xyResponse.arrServerActionButton)
         doXyMounted(
             that = that(),
             xyResponse = xyResponse,
@@ -145,7 +174,8 @@ fun stateControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().app
             isCentered = true,
             curScale = 1,
         )
-//        cursor = Cursor.HAND
+
+        statePostMountFun(that())
     }
 
     this.data = {
@@ -218,7 +248,7 @@ fun doStateTextPressed(that: dynamic, xyResponse: XyResponse, xyElement: XyEleme
                     }
                 )
             }
-            that.`$root`.dialogQuestion = xyElement.tooltip
+            that.`$root`.dialogQuestion = xyElement.dialogQuestion
             that.`$root`.showDialogCancel = true
             that.`$root`.showDialog = true
         }
@@ -246,6 +276,8 @@ fun getStateAlertTemplate() =
     """
 
 fun getStateComponentData() = json(
+    "arrXyServerButton" to arrayOf<XyServerActionButton_>(),
+
     "stateCurMode" to StateWorkMode.PAN,
     "showStateAlert" to false,
     "stateAlertMessage" to "",
@@ -256,7 +288,7 @@ fun getStateComponentData() = json(
         "left" to 0,
         "width" to "100%",
         "bottom" to 0,
-        "z-index" to "2000",
+        "z-index" to Z_INDEX_STATE_ALERT,
         "background" to colorDialogBack,
         "display" to "grid",
         "grid-template-rows" to "1fr auto 1fr",
@@ -269,7 +301,7 @@ fun getStateComponentData() = json(
         "grid-area" to "2 / 2 / 3 / 3",
         "padding" to styleDialogCellPadding(),
         "border" to "1px solid $colorDialogBorder",
-        "border-radius" to BORDER_RADIUS,
+        "border-radius" to styleFormBorderRadius,
         "background" to colorDialogBackCenter,
         "display" to "flex",
         "flex-direction" to "column",

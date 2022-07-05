@@ -9,6 +9,7 @@ import foatto.core.app.xy.geom.XyPoint
 import foatto.core.app.xy.geom.XyRect
 import foatto.core.link.XyDocumentConfig
 import foatto.core.link.XyResponse
+import foatto.core.link.XyServerActionButton
 import kotlinx.browser.document
 import kotlinx.browser.window
 import org.w3c.dom.Element
@@ -21,6 +22,7 @@ import kotlin.math.roundToInt
 @Suppress("UnsafeCastFromDynamic")
 fun getXyElementTemplate(
     tabId: Int,
+    withInteractive: Boolean,
     specificSvg: String = "",
 ) =
     """
@@ -31,7 +33,17 @@ fun getXyElementTemplate(
          v-on:mousedown.prevent="onXyMousePressed( false, ${'$'}event.offsetX, ${'$'}event.offsetY )"
          v-on:mousemove="onXyMouseMove( false, ${'$'}event.offsetX, ${'$'}event.offsetY )"
          v-on:mouseup.prevent="onXyMouseReleased( false, ${'$'}event.offsetX, ${'$'}event.offsetY, ${'$'}event.shiftKey, ${'$'}event.ctrlKey, ${'$'}event.altKey )"
-         v-on:mousewheel.prevent="onXyMouseWheel( ${'$'}event )"
+        """ +
+
+        if (withInteractive) {
+            """
+                v-on:mousewheel.prevent="onXyMouseWheel( ${'$'}event )"
+            """
+        } else {
+            ""
+        } +
+
+        """
          v-on:touchstart.prevent="onXyMousePressed( true, ${'$'}event.changedTouches[0].clientX, ${'$'}event.changedTouches[0].clientY )"
          v-on:touchmove.prevent="onXyMouseMove( true, ${'$'}event.changedTouches[0].clientX, ${'$'}event.changedTouches[0].clientY )"
          v-on:touchend.stop="onXyMouseReleased( true, ${'$'}event.changedTouches[0].clientX, ${'$'}event.changedTouches[0].clientY, ${'$'}event.shiftKey, ${'$'}event.ctrlKey, ${'$'}event.altKey )"
@@ -236,7 +248,7 @@ fun doXyMounted(
     curScale: Int,
 ) {
     that.`$root`.setTabInfo(tabId, xyResponse.shortTitle, xyResponse.fullTitle)
-    that.fullTitle = xyResponse.fullTitle
+    that.arrTitle = xyResponse.fullTitle.split('\n').filter { it.isNotBlank() }.toTypedArray()
 
     doXySpecificComponentMounted(
         that = that,
@@ -285,7 +297,7 @@ fun doXySpecificComponentMounted(
             val svgBodyWidth = svgBodyElement.clientWidth
             val svgBodyHeight = svgBodyElement.clientHeight
 
-            setXyViewBoxBody(that, intArrayOf(0, 0, svgBodyWidth, svgBodyHeight))
+            setXyViewBoxBody(that, arrayOf(0, 0, svgBodyWidth, svgBodyHeight))
 
             val newViewCoord = getXyCoordsDone(
                 scaleKoef = scaleKoef,
@@ -328,7 +340,7 @@ fun getXyViewBoxBody(that: dynamic): IntArray {
     return sViewBox.split(' ').map { it.toInt() }.toIntArray()
 }
 
-fun setXyViewBoxBody(that: dynamic, arrViewBox: IntArray) {
+fun setXyViewBoxBody(that: dynamic, arrViewBox: Array<Int>) {
     that.xyViewBoxBody = "${arrViewBox[0]} ${arrViewBox[1]} ${arrViewBox[2]} ${arrViewBox[3]}"
 }
 
@@ -521,7 +533,7 @@ fun getXyElements(
 
             //--- сбрасываем горизонтальный и вертикальный скроллинг/смещение
             val arrViewBoxBody = getXyViewBoxBody(that)
-            setXyViewBoxBody(that, intArrayOf(0, 0, arrViewBoxBody[2], arrViewBoxBody[3]))
+            setXyViewBoxBody(that, arrayOf(0, 0, arrViewBoxBody[2], arrViewBoxBody[3]))
 
             that.arrXyElement = readXyElements(
                 documentConfig = xyResponse.documentConfig,
@@ -587,7 +599,7 @@ fun xyDeselectAll(that: dynamic) {
 fun getXyClickRect(mouseX: Int, mouseY: Int): XyRect = XyRect(mouseX - MIN_USER_RECT_SIZE / 2, mouseY - MIN_USER_RECT_SIZE / 2, MIN_USER_RECT_SIZE, MIN_USER_RECT_SIZE)
 
 fun getXyComponentData() = json(
-    "fullTitle" to "",
+    "arrTitle" to arrayOf<String>(),
 
     "refreshInterval" to 0,
     "refreshHandlerId" to 0,
@@ -617,12 +629,14 @@ fun getXyComponentData() = json(
     ),
     "style_title" to json(
         "font-size" to styleControlTitleTextFontSize(),
-        "padding" to styleControlTitlePadding()
+        "padding" to styleControlTitlePadding(),
+        "display" to "flex",
+        "flex-direction" to "column",
     ),
     "style_text_button" to json(
         "background" to colorButtonBack,
         "border" to "1px solid $colorButtonBorder",
-        "border-radius" to BORDER_RADIUS,
+        "border-radius" to styleButtonBorderRadius,
         "font-size" to styleCommonButtonFontSize(),
         "padding" to styleTextButtonPadding(),//styleCommonEditorPadding(),
         "margin" to styleCommonMargin(),
@@ -631,7 +645,7 @@ fun getXyComponentData() = json(
     "style_icon_button" to json(
         "background" to colorButtonBack,
         "border" to "1px solid $colorButtonBorder",
-        "border-radius" to BORDER_RADIUS,
+        "border-radius" to styleButtonBorderRadius,
         "font-size" to styleCommonButtonFontSize(),
         "padding" to styleIconButtonPadding(),
         "margin" to styleCommonMargin(),
@@ -660,7 +674,7 @@ fun getXySpecificComponentData() = json(
         "color" to COLOR_MAIN_TEXT,
         "background" to COLOR_XY_LABEL_BACK,
         "border" to "1px solid $COLOR_XY_LABEL_BORDER",
-        "border-radius" to BORDER_RADIUS,
+        "border-radius" to styleButtonBorderRadius,
         "padding" to styleControlTooltipPadding(),
         "user-select" to if (styleIsNarrowScreen) "none" else "auto"
     ),
@@ -668,4 +682,38 @@ fun getXySpecificComponentData() = json(
         "left" to "",
         "top" to ""
     ),
+)
+
+fun readXyServerActionButton(that: dynamic, arrServerActionButton: Array<XyServerActionButton>) {
+    var serverButtonID = 0
+    val alServerButton = mutableListOf<XyServerActionButton_>()
+    for (sab in arrServerActionButton) {
+        val icon = hmTableIcon[sab.icon] ?: ""
+        //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
+        val caption = if (sab.icon.isNotBlank() && icon.isBlank()) {
+            sab.icon
+        } else {
+            sab.caption.replace("\n", "<br>")
+        }
+        alServerButton.add(
+            XyServerActionButton_(
+                id = serverButtonID++,
+                caption = caption,
+                tooltip = sab.tooltip,
+                icon = icon,
+                url = sab.url,
+                isForWideScreenOnly = sab.isForWideScreenOnly,
+            )
+        )
+    }
+    that.arrXyServerButton = alServerButton.toTypedArray()
+}
+
+class XyServerActionButton_(
+    val id: Int,
+    val caption: String,
+    val tooltip: String,
+    val icon: String,
+    val url: String,
+    val isForWideScreenOnly: Boolean,
 )

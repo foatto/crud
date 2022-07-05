@@ -45,7 +45,11 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
             <span v-bind:style="style_toolbar_block">
             </span>
             <span v-bind:style="[style_toolbar_block, style_title]">
-                {{fullTitle}}
+                <span v-for="(title, index) in arrTitle"
+                     v-bind:style="{ 'font-weight': ( arrTitle.size > 1 && index == 0 ? 'bold' : 'normal' ) }"
+                >
+                    {{title}}
+                </span>
             </span>
             <span v-bind:style="style_toolbar_block">
             </span>
@@ -153,6 +157,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
 
             getXyElementTemplate(
                 tabId,
+                true,
                 """
         <template v-if="mouseRect.isVisible">
             <rect v-bind:x="Math.min(mouseRect.x1, mouseRect.x2)"
@@ -371,7 +376,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                         that().panDX = panDX + dx
                         that().panDY = panDY + dy
 
-                        setXyViewBoxBody(that(), intArrayOf(arrViewBoxBody[0], arrViewBoxBody[1], arrViewBoxBody[2], arrViewBoxBody[3]))
+                        setXyViewBoxBody(that(), arrayOf(arrViewBoxBody[0], arrViewBoxBody[1], arrViewBoxBody[2], arrViewBoxBody[3]))
 
                         setXyTextOffset(that(), svgCoords.bodyLeft, svgCoords.bodyTop)
                     }

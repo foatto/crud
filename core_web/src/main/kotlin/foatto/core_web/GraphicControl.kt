@@ -30,9 +30,6 @@ import kotlin.math.min
 import kotlin.math.round
 import kotlin.math.roundToInt
 
-//--- (считаем что больше трёх графиков не будет)
-private const val MAX_AXIS_COUNT = 3
-
 private const val MARGIN_LEFT = 100     // на каждую ось Y
 
 //private const val MARGIN_RIGHT = 40 - вычисляется динамически по размеру шрифта
@@ -101,7 +98,11 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                 <span v-bind:style="style_toolbar_block">
                 </span>
                 <span v-bind:style="[style_toolbar_block, style_title]">
-                    {{fullTitle}}
+                    <span v-for="(title, index) in arrTitle"
+                         v-bind:style="{ 'font-weight': ( arrTitle.size > 1 && index == 0 ? 'bold' : 'normal' ) }"
+                    >
+                        {{title}}
+                    </span>
                 </span>
                 <span v-bind:style="style_toolbar_block">
                 </span>
@@ -412,9 +413,9 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                         that.panPointOldY = mouseY
                         that.panDX = panDX + dx
 
-                        setGraphicViewBoxAxis(that, intArrayOf(arrViewBoxAxis[0], arrViewBoxAxis[1], arrViewBoxAxis[2], arrViewBoxAxis[3]))
-                        setGraphicViewBoxBody(that, intArrayOf(arrViewBoxBody[0], arrViewBoxBody[1], arrViewBoxBody[2], arrViewBoxBody[3]))
-                        setGraphicViewBoxLegend(that, intArrayOf(arrViewBoxLegend[0], arrViewBoxLegend[1], arrViewBoxLegend[2], arrViewBoxLegend[3]))
+                        setGraphicViewBoxAxis(that, arrayOf(arrViewBoxAxis[0], arrViewBoxAxis[1], arrViewBoxAxis[2], arrViewBoxAxis[3]))
+                        setGraphicViewBoxBody(that, arrayOf(arrViewBoxBody[0], arrViewBoxBody[1], arrViewBoxBody[2], arrViewBoxBody[3]))
+                        setGraphicViewBoxLegend(that, arrayOf(arrViewBoxLegend[0], arrViewBoxLegend[1], arrViewBoxLegend[2], arrViewBoxLegend[3]))
 
                         setGraphicTextOffset(that, svgCoords.bodyLeft, svgCoords.bodyTop)
                     }
@@ -586,9 +587,9 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                         }
                     }
 
-                    setGraphicViewBoxAxis(that, intArrayOf(arrViewBoxAxis[0], arrViewBoxAxis[1], arrViewBoxAxis[2], arrViewBoxAxis[3]))
-                    setGraphicViewBoxBody(that, intArrayOf(arrViewBoxBody[0], arrViewBoxBody[1], arrViewBoxBody[2], arrViewBoxBody[3]))
-                    setGraphicViewBoxLegend(that, intArrayOf(arrViewBoxLegend[0], arrViewBoxLegend[1], arrViewBoxLegend[2], arrViewBoxLegend[3]))
+                    setGraphicViewBoxAxis(that, arrayOf(arrViewBoxAxis[0], arrViewBoxAxis[1], arrViewBoxAxis[2], arrViewBoxAxis[3]))
+                    setGraphicViewBoxBody(that, arrayOf(arrViewBoxBody[0], arrViewBoxBody[1], arrViewBoxBody[2], arrViewBoxBody[3]))
+                    setGraphicViewBoxLegend(that, arrayOf(arrViewBoxLegend[0], arrViewBoxLegend[1], arrViewBoxLegend[2], arrViewBoxLegend[3]))
 
                     setGraphicTextOffset(that, svgCoords.bodyLeft, svgCoords.bodyTop)
                 }
@@ -646,10 +647,10 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
 /*
                 else if( comp == butShowForTime ) {
                     try {
-                        val begTime = Arr_DateTime( appContainer.timeZone, intArrayOf(
+                        val begTime = Arr_DateTime( appContainer.timeZone, arrayOf(
                             Integer.parseInt( arrTxtDateTime[ 2 ]!!.text ), Integer.parseInt( arrTxtDateTime[ 1 ]!!.text ), Integer.parseInt( arrTxtDateTime[ 0 ]!!.text ),
                             Integer.parseInt( arrTxtDateTime[ 3 ]!!.text ), Integer.parseInt( arrTxtDateTime[ 4 ]!!.text ), 0 ) )
-                        val endTime = Arr_DateTime( appContainer.timeZone, intArrayOf(
+                        val endTime = Arr_DateTime( appContainer.timeZone, arrayOf(
                             Integer.parseInt( arrTxtDateTime[ 7 ]!!.text ), Integer.parseInt( arrTxtDateTime[ 6 ]!!.text ), Integer.parseInt( arrTxtDateTime[ 5 ]!!.text ),
                             Integer.parseInt( arrTxtDateTime[ 8 ]!!.text ), Integer.parseInt( arrTxtDateTime[ 9 ]!!.text ), 0 ) )
                         val graphicWidth = endTime - begTime
@@ -667,7 +668,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
  */
     this.mounted = {
         that().`$root`.setTabInfo(tabId, graphicResponse.shortTitle, graphicResponse.fullTitle)
-        that().fullTitle = graphicResponse.fullTitle
+        that().arrTitle = graphicResponse.fullTitle.split('\n').filter { it.isNotBlank() }.toTypedArray()
 
         doGraphicSpecificComponentMounted(
             that = that(),
@@ -681,7 +682,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
 
     this.data = {
         json(
-            "fullTitle" to "",
+            "arrTitle" to arrayOf<String>(),
 
             "isPanButtonDisabled" to true,
             "isZoomButtonDisabled" to false,
@@ -727,28 +728,30 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
             ),
             "style_title" to json(
                 "font-size" to styleControlTitleTextFontSize(),
-                "padding" to styleControlTitlePadding()
+                "padding" to styleControlTitlePadding(),
+                "display" to "flex",
+                "flex-direction" to "column",
             ),
             "style_icon_button" to json(
                 "background" to colorButtonBack,
                 "border" to "1px solid $colorButtonBorder",
-                "border-radius" to BORDER_RADIUS,
+                "border-radius" to styleButtonBorderRadius,
                 "font-size" to styleCommonButtonFontSize(),
                 "padding" to styleIconButtonPadding(),
                 "margin" to styleCommonMargin(),
                 "cursor" to "pointer"
             ),
             "style_graphic_visibility_list" to json(
-                "z-index" to "2",   // popup menu must be above than table headers
+                "z-index" to Z_INDEX_GRAPHIC_VISIBILITY_LIST,   // popup menu must be above than table headers
                 "position" to "absolute",
                 "top" to styleGraphicVisibilityTop(),
                 "width" to "auto",
                 "max-width" to styleGraphicVisibilityMaxWidth(),
-                "background" to colorMenuBack,
+                "background" to colorPopupMenuBack,
                 "border" to "1px solid $colorMenuBorder",
-                "border-radius" to BORDER_RADIUS,
-                "font-size" to styleMenuFontSize(),
-                "padding" to styleMenuStartPadding(),
+                "border-radius" to styleFormBorderRadius,
+                "font-size" to styleMenuFontSize(0),
+                "padding" to styleMenuStartPadding,
                 "overflow" to "auto",
                 "cursor" to "pointer",
             ),
@@ -761,14 +764,14 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
             "style_graphic_visibility_button" to json(
                 "background" to colorButtonBack,
                 "border" to "1px solid $colorButtonBorder",
-                "border-radius" to BORDER_RADIUS,
+                "border-radius" to styleButtonBorderRadius,
                 "font-size" to styleCommonButtonFontSize(),
                 "padding" to styleFileNameButtonPadding(),
                 "margin" to styleFileNameButtonMargin(),
                 "cursor" to "pointer"
             ),
             "style_graphic_data_list" to json(
-                "z-index" to "2",   // popup menu must be above than table headers
+                "z-index" to Z_INDEX_GRAPHIC_DATA_LIST,   // popup menu must be above than table headers
                 "position" to "absolute",
                 "top" to styleGraphicDataTop(),
                 "right" to "0",
@@ -776,9 +779,9 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                 "max-width" to styleGraphicDataMaxWidth(),
                 "background" to COLOR_GRAPHIC_DATA_BACK,
                 "border" to "1px solid $colorMenuBorder",
-                "border-radius" to BORDER_RADIUS,
-                "font-size" to styleMenuFontSize(),
-                "padding" to styleMenuStartPadding(),
+                "border-radius" to styleFormBorderRadius,
+                "font-size" to styleMenuFontSize(0),
+                "padding" to styleMenuStartPadding,
                 "overflow" to "auto",
                 "cursor" to "pointer",
             ),
@@ -1241,21 +1244,21 @@ fun doGraphicRefresh(
             val svgAxisHeight = svgAxisElement.clientHeight
 
             val arrViewBoxAxis = getGraphicViewBoxAxis(that)
-            setGraphicViewBoxAxis(that, intArrayOf(0, arrViewBoxAxis[1], svgAxisWidth, svgAxisHeight))
+            setGraphicViewBoxAxis(that, arrayOf(0, arrViewBoxAxis[1], svgAxisWidth, svgAxisHeight))
 
             val svgBodyElement = document.getElementById("gr_svg_body_$tabId")!!
             val svgBodyWidth = window.innerWidth - (maxMarginLeft + maxMarginRight)
             val svgBodyHeight = svgBodyElement.clientHeight
 
             val arrViewBoxBody = getGraphicViewBoxBody(that)
-            setGraphicViewBoxBody(that, intArrayOf(0, arrViewBoxBody[1], svgBodyWidth, svgBodyHeight))
+            setGraphicViewBoxBody(that, arrayOf(0, arrViewBoxBody[1], svgBodyWidth, svgBodyHeight))
 
             val svgLegendElement = document.getElementById("gr_svg_legend_$tabId")!!
             val svgLegendWidth = maxMarginRight
             val svgLegendHeight = svgLegendElement.clientHeight
 
             val arrViewBoxLegend = getGraphicViewBoxBody(that)
-            setGraphicViewBoxLegend(that, intArrayOf(0, arrViewBoxLegend[1], svgLegendWidth, svgLegendHeight))
+            setGraphicViewBoxLegend(that, arrayOf(0, arrViewBoxLegend[1], svgLegendWidth, svgLegendHeight))
 
             //--- реальная высота одной единицы относительной высоты
             val oneSoftHeight = if (sumSoft == 0) {
@@ -1385,7 +1388,7 @@ fun getGraphicSpecificComponentData() = json(
         "color" to COLOR_MAIN_TEXT,
         "background" to COLOR_GRAPHIC_LABEL_BACK,
         "border" to "1px solid $COLOR_GRAPHIC_LABEL_BORDER",
-        "border-radius" to BORDER_RADIUS,
+        "border-radius" to styleButtonBorderRadius,
         "padding" to styleControlTooltipPadding(),
         "user-select" to if (styleIsNarrowScreen) {
             "none"
@@ -1517,7 +1520,7 @@ private class TimeLabelData(
         "color" to COLOR_MAIN_TEXT,
         "background" to COLOR_GRAPHIC_LABEL_BACK,
         "border" to "1px solid $COLOR_GRAPHIC_LABEL_BORDER",
-        "border-radius" to BORDER_RADIUS,
+        "border-radius" to styleButtonBorderRadius,
         "padding" to styleGraphicTimeLabelPadding(),
         "user-select" to if (styleIsNarrowScreen) "none" else "auto"
     ),
@@ -1531,7 +1534,7 @@ private fun getGraphicViewBoxAxis(that: dynamic): IntArray {
     return sViewBox.split(' ').map { it.toInt() }.toIntArray()
 }
 
-private fun setGraphicViewBoxAxis(that: dynamic, arrViewBox: IntArray) {
+private fun setGraphicViewBoxAxis(that: dynamic, arrViewBox: Array<Int>) {
     that.grViewBoxAxis = "${arrViewBox[0]} ${arrViewBox[1]} ${arrViewBox[2]} ${arrViewBox[3]}"
 }
 
@@ -1540,7 +1543,7 @@ private fun getGraphicViewBoxBody(that: dynamic): IntArray {
     return sViewBox.split(' ').map { it.toInt() }.toIntArray()
 }
 
-private fun setGraphicViewBoxBody(that: dynamic, arrViewBox: IntArray) {
+private fun setGraphicViewBoxBody(that: dynamic, arrViewBox: Array<Int>) {
     that.grViewBoxBody = "${arrViewBox[0]} ${arrViewBox[1]} ${arrViewBox[2]} ${arrViewBox[3]}"
 }
 
@@ -1549,7 +1552,7 @@ private fun getGraphicViewBoxLegend(that: dynamic): IntArray {
     return sViewBox.split(' ').map { it.toInt() }.toIntArray()
 }
 
-private fun setGraphicViewBoxLegend(that: dynamic, arrViewBox: IntArray) {
+private fun setGraphicViewBoxLegend(that: dynamic, arrViewBox: Array<Int>) {
     that.grViewBoxLegend = "${arrViewBox[0]} ${arrViewBox[1]} ${arrViewBox[2]} ${arrViewBox[3]}"
 }
 
