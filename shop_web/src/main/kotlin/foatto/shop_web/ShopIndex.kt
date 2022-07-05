@@ -3,9 +3,12 @@ package foatto.shop_web
 import foatto.core.link.CustomRequest
 import foatto.core.util.getSplittedDouble
 import foatto.core_web.*
+import foatto.core_web.external.vue.Vue
 import foatto.core_web.external.vue.that
 import foatto.shop_core.app.*
+import kotlinx.browser.document
 import kotlinx.browser.window
+import org.w3c.dom.HTMLElement
 import kotlin.js.json
 
 @Suppress("UnsafeCastFromDynamic")
@@ -19,19 +22,75 @@ fun main() {
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+//--- фирменный бирюзовый           #00C0C0 = hsl(180,100%,37.6%)
+private const val SHOP_FIRM_COLOR_1_H = 190 //180 - слишком яркий голубой
+private const val SHOP_FIRM_COLOR_1_S = 100
+private const val SHOP_FIRM_COLOR_1_L = 38
+
+//--- фирменный красный             #FF0000 = hsl(0,100%,50%)
+private const val SHOP_FIRM_COLOR_2_H = 350 // 0 - слишком ярко-красный
+private const val SHOP_FIRM_COLOR_2_S = 50  // 100 - слишком ярко-красный
+private const val SHOP_FIRM_COLOR_2_L = 50
+
+private const val CALC_BACK = "hsla(0,0%,100%,0.9)"
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 private class ShopIndex : Index() {
+
+    init {
+        colorMainBack0 = getHSL(SHOP_FIRM_COLOR_1_H, 50, 95)
+        colorMainBack1 = getHSL(SHOP_FIRM_COLOR_1_H, 50, 90)
+        colorMainBack2 = getHSL(SHOP_FIRM_COLOR_1_H, 50, 85)
+        colorMainBack3 = getHSL(SHOP_FIRM_COLOR_1_H, 50, 80)
+
+        colorMainBorder = getHSL(SHOP_FIRM_COLOR_2_H, SHOP_FIRM_COLOR_2_S, SHOP_FIRM_COLOR_2_L)
+
+        colorButtonBack = colorMainBack0
+        colorButtonBorder = colorMainBorder
+
+        colorLogonBackAround = colorMainBack1
+        colorLogonBackCenter = colorMainBack2
+        colorLogonBorder = colorMainBorder
+        colorLogonButtonBack = colorButtonBack
+        colorLogonButtonBorder = colorButtonBorder
+
+        colorMainMenuBack = colorMainBack1
+        colorPopupMenuBack = colorMainBack1
+        colorMenuBorder = colorMainBorder
+        colorMenuDelimiter = colorMainBack3
+
+        colorTableRowBack1 = colorMainBack0
+
+        colorGroupBack0 = getHSL(SHOP_FIRM_COLOR_2_H, 60, 90)
+        colorGroupBack1 = getHSL(SHOP_FIRM_COLOR_2_H, 60, 95)
+
+        colorDialogBack = getHSLA(SHOP_FIRM_COLOR_1_H, SHOP_FIRM_COLOR_1_S, SHOP_FIRM_COLOR_1_L, 0.75)
+        colorDialogBorder = colorMainBorder
+        colorDialogBackCenter = colorMainBack1
+        colorDialogButtonBack = colorButtonBack
+        colorDialogButtonBorder = colorMainBorder
+
+        //--- с фирменным красным получается кроваво-страшновато :)
+        colorWaitBack = getHSLA(SHOP_FIRM_COLOR_1_H, SHOP_FIRM_COLOR_1_S, 95, 0.75)
+        colorWaitLoader0 = getHSL(SHOP_FIRM_COLOR_1_H, SHOP_FIRM_COLOR_1_S, 80)
+        colorWaitLoader1 = getHSL(SHOP_FIRM_COLOR_1_H, SHOP_FIRM_COLOR_1_S, 85)
+        colorWaitLoader2 = getHSL(SHOP_FIRM_COLOR_1_H, SHOP_FIRM_COLOR_1_S, 90)
+        colorWaitLoader3 = getHSL(SHOP_FIRM_COLOR_1_H, SHOP_FIRM_COLOR_1_S, 95)
+        
+        //--- менять здесь
+        //styleDarkIcon = true
+        //styleIconSize = 36
+
+        //--- marked item adding
+        hmTableIcon[ICON_NAME_ADD_MARKED_ITEM] = "/web/images/ic_line_weight_${styleIconNameSuffix()}dp.png"
+        hmTableIcon[ICON_NAME_FISCAL] = "/web/images/ic_theaters_${styleIconNameSuffix()}dp.png"
+        hmTableIcon[ICON_NAME_CALC] = "/web/images/ic_shopping_cart_${styleIconNameSuffix()}dp.png"
+
+    }
 
     override fun addBeforeMounted() {
         super.addBeforeMounted()
-
-        //--- бледно-голубая группировка (по пожеланиям продавцов :)
-        colorGroupBack0 = "#c0eeee"
-        colorGroupBack1 = "#c0ffff"
-
-        //--- marked item adding
-        hmTableIcon[ICON_NAME_ADD_MARKED_ITEM] = "/web/images/ic_line_weight_black_48dp.png"
-        hmTableIcon[ICON_NAME_FISCAL] = "/web/images/ic_theaters_black_48dp.png"
-        hmTableIcon[ICON_NAME_CALC] = "/web/images/ic_shopping_cart_black_48dp.png"
 
         tableTemplateAdd = """
             <div v-if="isCalcShow"
@@ -104,10 +163,10 @@ private class ShopIndex : Index() {
                     <div v-bind:style="style_calc_label">
                         Наличные: ${"&nbsp;".repeat(2)}
                         <input type="text"
+                               id="cash_input"
                                v-model="docCash"
                                v-bind:size="10"
                                v-bind:style="style_calc_cash_input"
-                               v-bind:autofocus="true"
                                v-on:keyup.enter.exact="doCalcCash()"
                                v-on:keyup.esc.exact="doCalcClose()"
                         >
@@ -180,6 +239,13 @@ private class ShopIndex : Index() {
                     that.calcPrintUrl = params.find { pair -> pair.first == PARAM_PRINT_URL }?.second
 
                     that.isCalcShow = true
+
+                    Vue.nextTick {
+                        val element = document.getElementById("cash_input")
+                        if (element is HTMLElement) {
+                            element.focus()
+                        }
+                    }
                 }
             }
         }
@@ -247,7 +313,7 @@ private class ShopIndex : Index() {
             "docCash" to "",
 
             "docRest" to "-",
-            "docRestColor" to COLOR_TEXT,
+            "docRestColor" to COLOR_MAIN_TEXT,
 
             "calcFiscalUrl" to null,
             "calcPrintUrl" to null,
@@ -260,8 +326,8 @@ private class ShopIndex : Index() {
                 "left" to 0,
                 "width" to "100%",
                 "height" to "100%",
-                "z-index" to "998",
-                "background" to "rgba( $COLOR_WAIT, 0.9 )",
+                "z-index" to Z_INDEX_ACTION_CONTAINER,
+                "background" to CALC_BACK,
                 "display" to "grid",
                 "grid-template-rows" to "1fr auto 1fr",
                 "grid-template-columns" to "1fr auto 1fr"
@@ -271,7 +337,7 @@ private class ShopIndex : Index() {
             ),
             "style_calc_body" to json(
                 "grid-area" to "2 / 2 / 3 / 3",
-                "z-index" to "999",
+                "z-index" to Z_INDEX_ACTION_BODY,
             ),
             "style_calc_bottom_expander" to json(
                 "grid-area" to "3 / 2 / 4 / 3"
@@ -284,9 +350,9 @@ private class ShopIndex : Index() {
                 "font-weight" to "bold",
             ),
             "style_calc_cash_input" to json(
-                "background" to COLOR_BACK,
-                "border" to "1px solid $COLOR_BUTTON_BORDER",
-                "border-radius" to BORDER_RADIUS_SMALL,
+                "background" to COLOR_MAIN_BACK_0,
+                "border" to "1px solid $colorMainBorder",
+                "border-radius" to styleInputBorderRadius,
                 "font-size" to "${COMMON_FONT_SIZE * 2}rem",
                 "padding" to styleCommonEditorPadding(),
             ),
