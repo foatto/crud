@@ -1,5 +1,6 @@
 package foatto.core_web
 
+import foatto.core.app.*
 import foatto.core_web.external.vue.Vue
 import foatto.core_web.external.vue.VueComponentOptions
 import foatto.core_web.external.vue.that
@@ -18,6 +19,26 @@ var dialogActionFun: (that: dynamic) -> Unit = { _: dynamic -> }
 open class Index {
 
     fun init() {
+        
+        hmTableIcon[ICON_NAME_SELECT] = "/web/images/ic_reply_${styleIconNameSuffix()}dp.png"
+    
+        hmTableIcon[ICON_NAME_ADD_FOLDER] = "/web/images/ic_create_new_folder_${styleIconNameSuffix()}dp.png"
+        hmTableIcon[ICON_NAME_ADD_ITEM] = "/web/images/ic_add_${styleIconNameSuffix()}dp.png"
+    
+        //--- подразделение
+        hmTableIcon[ICON_NAME_DIVISION] = "/web/images/ic_folder_shared_${styleIconNameSuffix()}dp.png"
+        //--- руководитель
+        hmTableIcon[ICON_NAME_BOSS] = "/web/images/ic_account_box_${styleIconNameSuffix()}dp.png"
+        //--- работник
+        hmTableIcon[ICON_NAME_WORKER] = "/web/images/ic_account_circle_${styleIconNameSuffix()}dp.png"
+    
+        //--- подраздел
+        hmTableIcon[ICON_NAME_FOLDER] = "/web/images/ic_folder_open_${styleIconNameSuffix()}dp.png"
+    
+        //--- печать
+        hmTableIcon[ICON_NAME_PRINT] = "/web/images/ic_print_${styleIconNameSuffix()}dp.png"
+
+        //----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         Vue(vueComponentOptions().apply {
             this.el = "#app"
@@ -27,13 +48,26 @@ open class Index {
             } else {
                 """
                     <div v-bind:style="style_top_container">
-                        <component v-if="menuBar" v-bind:is="menuBar"></component>
+                        <component v-if="menuBar && isShowMainMenu" 
+                                   v-bind:is="menuBar"
+                """ +
+                    styleMenuBar +
+                """
+                        >
+                        </component>
+                        <div v-bind:style="style_menu_closer">
+                            <button v-bind:style="style_menu_closer_button"
+                                    v-on:click="isShowMainMenu=!isShowMainMenu"
+                            >
+                                {{ isShowMainMenu ? '&lt;' : '&gt;' }}                                
+                            </button>
+                        </div>
                 """
             } +
                 """
                     <div v-bind:style="style_main_container">
-    
-                        <div id="tab_panel" v-bind:style="style_tab_panel">
+
+                        <div id="tab_panel" v-bind:style="[ style_tab_panel, { 'display' : ( isTabPanelVisible ? 'flex' : 'none' ) } ]">
                 """ +
                 if (styleIsNarrowScreen || styleIsHiddenMenuBar) {
                     """
@@ -50,7 +84,7 @@ open class Index {
                             <option v-for="(tab, index) in arrTabInfo"
                                     v-bind:value="index"
                             >
-                                {{ tab.text }}
+                                {{ tab.arrText[0] }}
                             </option>
                         </select>
                         <img src="/web/images/ic_close_black_48dp.png" 
@@ -62,19 +96,26 @@ open class Index {
                     """
                 } else {
                     """
-                        <template v-for="(tab, index) in arrTabInfo">
-                            <button v-show="tab.text"
-                                    v-bind:style="currentTabIndex == index ? style_tab_current_title : style_tab_other_title"
-                                    v-on:click="currentTabIndex = index"
-                                    v-bind:key="'t'+tab.id">
-                                {{ tab.text }}
+                        <template v-for="(tab, tabIndex) in arrTabInfo">
+                            <button v-show="tab.arrText"
+                                    v-bind:style="currentTabIndex == tabIndex ? style_tab_current_title : style_tab_other_title"
+                                    v-on:click="currentTabIndex = tabIndex"
+                                    v-bind:key="'t'+tab.id"
+                                    v-bind:title="tab.tooltip"
+                            >
+                                <span v-for="(title, textIndex) in tab.arrText"
+                                      v-bind:style="{ 'font-weight': ( currentTabIndex == tabIndex && textIndex == 0 ? 'bold' : 'normal' ) }"
+                                >
+                                    {{title}}
+                                    <br>
+                                </span>
                             </button>
                             <img src="/web/images/ic_close_black_16dp.png"
                                  width=16
                                  height=16
-                                 v-show="tab.text"
-                                 v-bind:style="currentTabIndex == index ? style_tab_current_closer : style_tab_other_closer"
-                                 v-on:click="closeTabByIndex( index )"
+                                 v-show="tab.arrText[0]"
+                                 v-bind:style="currentTabIndex == tabIndex ? style_tab_current_closer : style_tab_other_closer"
+                                 v-on:click="closeTabByIndex( tabIndex )"
                                  v-bind:key="'c'+tab.id"
                                  title="Закрыть вкладку"
                             >
@@ -148,11 +189,12 @@ open class Index {
             this.methods = json(
                 "setMenuBar" to { menuData: Json ->
                     that().menuBar = menuData
+                    that().isTabPanelVisible = true
                 },
                 "addTabComp" to { appParam: String ->
                     val newTabID = that().lastTabID.unsafeCast<Int>() + 1
 
-                    that().arrTabInfo.push(TabInfo(newTabID, "", ""))
+                    that().arrTabInfo.push(TabInfo(newTabID, arrayOf(), ""))
                     that().arrTabComp.push(TabComp(appControl(appParam, newTabID)))
 
                     val arrTabInfo = that().arrTabInfo.unsafeCast<Array<TabInfo>>()
@@ -166,11 +208,15 @@ open class Index {
                     arrTabInfo.find { tabInfo ->
                         tabInfo.id == tabId
                     }?.let { tabInfo ->
-                        tabInfo.text = if (tabText.length > styleTabComboTextLen()) {
-                            tabText.substring(0, styleTabComboTextLen()) + "..."
-                        } else {
-                            tabText
-                        }
+                        tabInfo.arrText = tabText.split('\n').filter { tabWord ->
+                            tabWord.isNotBlank()
+                        }.map { tabWord ->
+                            if (tabWord.length > styleTabComboTextLen()) {
+                                tabWord.substring(0, styleTabComboTextLen()) + "..."
+                            } else {
+                                tabWord
+                            }
+                        }.toTypedArray()
                         tabInfo.tooltip = tabToolTip
                     }
 
@@ -228,8 +274,12 @@ open class Index {
                 addBeforeMounted()
 
                 that().scaleKoef =
-                    if (screenDPR <= 1) 1.0
-                    else 0.5
+                    if (screenDPR <= 1) {
+                        1.0
+                    }
+                    else {
+                        0.5
+                    }
 
                 val localStartAppParam = localStorage.getItem(LOCAL_STORAGE_APP_PARAM)
                 that().addTabComp(
@@ -243,6 +293,8 @@ open class Index {
             this.data = {
                 json(
                     "menuBar" to null,
+                    "isShowMainMenu" to true,
+                    "isTabPanelVisible" to false,
                     "currentTabIndex" to -1,
                     "lastTabID" to 0,
                     "arrTabComp" to arrayOf<TabComp>(),
@@ -265,7 +317,7 @@ open class Index {
                         "display" to "flex",
                         "flex-direction" to "row",
                         "width" to "100%",
-                        "height" to "100%",     // иначе главное меню будет без прокрутки
+                        "height" to "100%",
                     ),
                     "style_main_container" to json(
                         "display" to "flex",
@@ -276,22 +328,40 @@ open class Index {
                     "style_tab_panel" to json(
                         "flex-grow" to 0,
                         "flex-shrink" to 0,
-                        "display" to "flex",
                         "flex-direction" to "row",
                         "flex-wrap" to "wrap",
-                        "justify-content" to if (!styleIsNarrowScreen) "flex-start" else "space-between",
+                        "justify-content" to if (!styleIsNarrowScreen) {
+                            "flex-start"
+                        } else {
+                            "space-between"
+                        },
                         //--- необязательно - пусть лучше по высоте равны кнопке меню
                         //"align-items" to "flex-end",            // прижимаем вкладки к нижнему контролу
                         "padding" to styleTabPanelPadding(),
                         "background" to COLOR_MAIN_BACK_0
                     ),
 
+                    "style_menu_closer" to json(
+                        "display" to "flex",
+                        "flex-direction" to "column",
+                        "justify-content" to "center",
+                        "align-items" to "center",
+                        "background" to colorMainBack1,
+                    ),
+                    "style_menu_closer_button" to json(
+                        "border" to "none",
+                        "height" to "8rem",
+                        "font-size" to "1.0rem",
+                        "font-weight" to "bold",
+                        "background" to colorMenuCloserBack,
+                        "color" to colorMenuCloserText,
+                    ),
                     "style_tab_combo" to json(
                         "flex-grow" to 1,
                         "flex-shrink" to 1,
                         "background" to colorButtonBack,
                         "border" to "1px solid $colorMainBorder",
-                        "border-radius" to BORDER_RADIUS,
+                        "border-radius" to styleFormBorderRadius,
                         "font-size" to styleTabComboFontSize(),
                         "padding" to styleTabComboPadding(),
                         "margin" to styleTabComboMargin()
@@ -302,7 +372,7 @@ open class Index {
                         "align-self" to "flex-start", //"flex-end" - сдвигает в правый нижний угол
                         "background" to colorButtonBack,
                         "border" to "1px solid $colorMainBorder",
-                        "border-radius" to BORDER_RADIUS,
+                        "border-radius" to styleFormBorderRadius,
                         "padding" to styleIconButtonPadding(),
                         "margin" to styleTabCloserButtonMargin(),
                         "cursor" to "pointer"
@@ -314,10 +384,10 @@ open class Index {
                         "border-top" to "1px solid $colorMainBorder",
                         "border-right" to "none",
                         "border-bottom" to "none",
-                        "border-radius" to "$BORDER_RADIUS 0 0 0",
+                        "border-radius" to "$styleFormBorderRadius 0 0 0",
                         "font-size" to styleTabButtonFontSize(),
                         "padding" to styleTabCurrentTitlePadding(),
-                        "cursor" to "pointer"
+                        "cursor" to "pointer",
                     ),
                     "style_tab_current_closer" to json(
                         "background" to colorMainBack1,
@@ -325,7 +395,7 @@ open class Index {
                         "border-top" to "1px solid $colorMainBorder",
                         "border-right" to "1px solid $colorMainBorder",
                         "border-bottom" to "1px solid $colorMainBack1",   // иначе белая полоска вместо пустого места от бордера
-                        "border-radius" to "0 $BORDER_RADIUS 0 0",
+                        "border-radius" to "0 $styleFormBorderRadius 0 0",
                         "padding" to styleTabCurrentCloserPadding(),
                         "cursor" to "pointer"
                     ),
@@ -335,10 +405,10 @@ open class Index {
                         "border-top" to "1px solid $colorMainBorder",
                         "border-right" to "none",
                         "border-bottom" to "1px solid $colorMainBorder",
-                        "border-radius" to "$BORDER_RADIUS 0 0 0",
+                        "border-radius" to "$styleFormBorderRadius 0 0 0",
                         "font-size" to styleTabButtonFontSize(),
                         "padding" to styleTabOtherTitlePadding(),
-                        "cursor" to "pointer"
+                        "cursor" to "pointer",
                     ),
                     "style_tab_other_closer" to json(
                         "background" to colorMainBack2,
@@ -346,7 +416,7 @@ open class Index {
                         "border-top" to "1px solid $colorMainBorder",
                         "border-right" to "1px solid $colorMainBorder",
                         "border-bottom" to "1px solid $colorMainBorder",
-                        "border-radius" to "0 $BORDER_RADIUS 0 0",
+                        "border-radius" to "0 $styleFormBorderRadius 0 0",
                         "padding" to styleTabOtherCloserPadding(),
                         "cursor" to "pointer"
                     ),
@@ -357,7 +427,7 @@ open class Index {
                         "left" to 0,
                         "width" to "100%",
                         "height" to "100%",
-                        "z-index" to "1000",
+                        "z-index" to Z_INDEX_WAIT,
                         "background" to colorWaitBack,
                         "display" to "grid",
                         "grid-template-rows" to "1fr auto 1fr",
@@ -370,7 +440,7 @@ open class Index {
                         "grid-area" to "2 / 2 / 3 / 3",
                         "width" to "16rem",
                         "height" to "16rem",
-                        "z-index" to "1001",
+                        "z-index" to Z_INDEX_LOADER,
                         "border-top" to "2rem solid $colorWaitLoader3",
                         "border-right" to "2rem solid $colorWaitLoader2",
                         "border-bottom" to "2rem solid $colorWaitLoader1",
@@ -388,7 +458,7 @@ open class Index {
                         "left" to 0,
                         "width" to "100%",
                         "height" to "100%",
-                        "z-index" to "2000",
+                        "z-index" to Z_INDEX_DIALOG,
                         "background" to colorDialogBack,
                         "display" to "grid",
                         "grid-template-rows" to "1fr auto 1fr",
@@ -401,7 +471,7 @@ open class Index {
                         "grid-area" to "2 / 2 / 3 / 3",
                         "padding" to styleDialogCellPadding(),
                         "border" to "1px solid $colorDialogBorder",
-                        "border-radius" to BORDER_RADIUS,
+                        "border-radius" to styleFormBorderRadius,
                         "background" to colorDialogBackCenter,
                         "display" to "flex",
                         "flex-direction" to "column",
@@ -423,7 +493,7 @@ open class Index {
                     "style_dialog_button_ok" to json(
                         "background" to colorDialogButtonBack,
                         "border" to "1px solid $colorDialogButtonBorder",
-                        "border-radius" to BORDER_RADIUS,
+                        "border-radius" to styleButtonBorderRadius,
                         "font-size" to styleCommonButtonFontSize(),
                         "padding" to styleDialogButtonPadding(),
 //                        "margin" to styleDialogButtonMargin(),
@@ -432,7 +502,7 @@ open class Index {
                     "style_dialog_button_cancel" to json(
                         "background" to colorDialogButtonBack,
                         "border" to "1px solid $colorDialogButtonBorder",
-                        "border-radius" to BORDER_RADIUS,
+                        "border-radius" to styleButtonBorderRadius,
                         "font-size" to styleCommonButtonFontSize(),
                         "padding" to styleDialogButtonPadding(),
 //                        "margin" to styleDialogButtonMargin(),
@@ -445,7 +515,7 @@ open class Index {
 
     open fun addBeforeMounted() {}
 
-    private class TabInfo(val id: Int, var text: String, var tooltip: String)
+    private class TabInfo(val id: Int, var arrText: Array<String>, var tooltip: String)
     private class TabComp(val comp: VueComponentOptions)
 }
 
