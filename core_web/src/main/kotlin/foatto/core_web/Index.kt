@@ -19,22 +19,22 @@ var dialogActionFun: (that: dynamic) -> Unit = { _: dynamic -> }
 open class Index {
 
     fun init() {
-        
+
         hmTableIcon[ICON_NAME_SELECT] = "/web/images/ic_reply_${styleIconNameSuffix()}dp.png"
-    
+
         hmTableIcon[ICON_NAME_ADD_FOLDER] = "/web/images/ic_create_new_folder_${styleIconNameSuffix()}dp.png"
         hmTableIcon[ICON_NAME_ADD_ITEM] = "/web/images/ic_add_${styleIconNameSuffix()}dp.png"
-    
+
         //--- подразделение
         hmTableIcon[ICON_NAME_DIVISION] = "/web/images/ic_folder_shared_${styleIconNameSuffix()}dp.png"
         //--- руководитель
         hmTableIcon[ICON_NAME_BOSS] = "/web/images/ic_account_box_${styleIconNameSuffix()}dp.png"
         //--- работник
         hmTableIcon[ICON_NAME_WORKER] = "/web/images/ic_account_circle_${styleIconNameSuffix()}dp.png"
-    
+
         //--- подраздел
         hmTableIcon[ICON_NAME_FOLDER] = "/web/images/ic_folder_open_${styleIconNameSuffix()}dp.png"
-    
+
         //--- печать
         hmTableIcon[ICON_NAME_PRINT] = "/web/images/ic_print_${styleIconNameSuffix()}dp.png"
 
@@ -52,7 +52,7 @@ open class Index {
                                    v-bind:is="menuBar"
                 """ +
                     styleMenuBar +
-                """
+                    """
                         >
                         </component>
                         <div v-bind:style="style_menu_closer">
@@ -66,7 +66,13 @@ open class Index {
             } +
                 """
                     <div v-bind:style="style_main_container">
-
+                """ +
+                if (styleIsNarrowScreen || styleIsHiddenMenuBar) {
+                    ""
+                } else {
+                    styleTopBar
+                } +
+                """
                         <div id="tab_panel" v-bind:style="[ style_tab_panel, { 'display' : ( isTabPanelVisible ? 'flex' : 'none' ) } ]">
                 """ +
                 if (styleIsNarrowScreen || styleIsHiddenMenuBar) {
@@ -276,8 +282,7 @@ open class Index {
                 that().scaleKoef =
                     if (screenDPR <= 1) {
                         1.0
-                    }
-                    else {
+                    } else {
                         0.5
                     }
 
@@ -346,15 +351,15 @@ open class Index {
                         "flex-direction" to "column",
                         "justify-content" to "center",
                         "align-items" to "center",
-                        "background" to colorMainBack1,
+                        "background" to colorMenuCloserBack,
                     ),
                     "style_menu_closer_button" to json(
                         "border" to "none",
                         "height" to "8rem",
                         "font-size" to "1.0rem",
                         "font-weight" to "bold",
-                        "background" to colorMenuCloserBack,
-                        "color" to colorMenuCloserText,
+                        "background" to colorMenuCloserButtonBack,
+                        "color" to colorMenuCloserButtonText,
                     ),
                     "style_tab_combo" to json(
                         "flex-grow" to 1,
