@@ -31,7 +31,7 @@ fun menuBar(arrMenuData: Array<MenuData>) = vueComponentOptions().apply {
                 <div v-show="isShowMainMenu"
                      v-bind:style="[style_menu_start, style_menu_is_hidden]" 
                 >
-                    ${menuGenerateBody("arrMenuData", "menuClick", ".url")}
+                    ${menuGenerateBody(true, "arrMenuData", "menuClick", ".url")}
                 </div>
             </span>
         """
@@ -40,7 +40,8 @@ fun menuBar(arrMenuData: Array<MenuData>) = vueComponentOptions().apply {
             <div id="$MENU_BAR_ID" 
                  v-bind:style="style_menu_start"
             >
-                ${menuGenerateBody("arrMenuData", "menuClick", ".url")}
+                $styleMainMenuTop
+                ${menuGenerateBody(true, "arrMenuData", "menuClick", ".url")}
             </div>
         """
     }
@@ -63,11 +64,9 @@ fun menuBar(arrMenuData: Array<MenuData>) = vueComponentOptions().apply {
                         //--- проверка нового пароля
                         if (password1 != password2) {
                             window.alert("Вы ввели разные пароли.\nПопробуйте ввести ещё раз.")
-                        }
-                        else if (password1.length <= 3) {
+                        } else if (password1.length <= 3) {
                             window.alert("Слишком короткий пароль.\nПопробуйте ввести ещё раз.")
-                        }
-                        else {
+                        } else {
                             //--- проверку комплексности пароля пока пропустим. Не любят этого пользователи.
                             //if(  pwd.length() < 8  ) return false;
                             //if(  pwd.equals(  pwd.toUpperCase()  )  ) return false;
@@ -111,7 +110,7 @@ fun menuBar(arrMenuData: Array<MenuData>) = vueComponentOptions().apply {
                 "position" to "relative",
                 "background" to colorButtonBack,
                 "border" to "1px solid $colorMainBorder",
-                "border-radius" to BORDER_RADIUS,
+                "border-radius" to styleFormBorderRadius,
                 "padding" to styleIconButtonPadding(),
                 "margin" to styleMenuIconButtonMargin(),
                 "cursor" to "pointer"
@@ -119,34 +118,40 @@ fun menuBar(arrMenuData: Array<MenuData>) = vueComponentOptions().apply {
             "style_menu_start" to json(
                 "width" to styleMenuWidth(),
                 "min-width" to styleMenuWidth(),
-                "background" to colorMenuBack,
+                "background" to colorMainMenuBack,
+                "color" to colorMenuTextDefault,
                 "border" to "1px solid $colorMenuBorder",
-                "border-radius" to BORDER_RADIUS,
-                "font-size" to styleMenuFontSize(),
-                "padding" to styleMenuStartPadding(),
+                "border-radius" to styleFormBorderRadius,
+                "font-size" to styleMenuFontSize(0),
+                "padding" to styleMenuStartPadding,
                 "overflow" to "auto",
                 "cursor" to "pointer",
             ),
             "style_menu_is_hidden" to json(
-                "z-index" to "999",
+                "z-index" to Z_INDEX_MENU,
                 "position" to "absolute",
                 "top" to styleMenuStartTop(),
                 "bottom" to if (styleIsNarrowScreen) "20%" else "10%", //"height" to "80%",
             ),
             "style_menu_summary_0" to json(
-                "padding" to styleMenuItemPadding_0(),
+                "font-size" to styleMenuFontSize(0),
+                "padding" to styleMenuItemPadding(0),
             ),
             "style_menu_summary_1" to json(
-                "padding" to styleMenuItemPadding_1(),
+                "font-size" to styleMenuFontSize(1),
+                "padding" to styleMenuItemPadding(1),
             ),
             "style_menu_item_0" to json(
-                "padding" to styleMenuItemPadding_0()
+                "font-size" to styleMenuFontSize(0),
+                "padding" to styleMenuItemPadding(0)
             ),
             "style_menu_item_1" to json(
-                "padding" to styleMenuItemPadding_1()
+                "font-size" to styleMenuFontSize(1),
+                "padding" to styleMenuItemPadding(1)
             ),
             "style_menu_item_2" to json(
-                "padding" to styleMenuItemPadding_2()
+                "font-size" to styleMenuFontSize(2),
+                "padding" to styleMenuItemPadding(2)
             ),
         )
     }
