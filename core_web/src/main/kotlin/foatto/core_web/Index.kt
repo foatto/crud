@@ -343,7 +343,7 @@ open class Index {
                         //--- необязательно - пусть лучше по высоте равны кнопке меню
                         //"align-items" to "flex-end",            // прижимаем вкладки к нижнему контролу
                         "padding" to styleTabPanelPadding(),
-                        "background" to COLOR_MAIN_BACK_0
+                        "background" to colorTabPanelBack,
                     ),
 
                     "style_menu_closer" to json(
@@ -358,6 +358,7 @@ open class Index {
                         "height" to "8rem",
                         "font-size" to "1.0rem",
                         "font-weight" to "bold",
+                        "padding" to "0 0.1rem",
                         "background" to colorMenuCloserButtonBack,
                         "color" to colorMenuCloserButtonText,
                     ),
@@ -384,45 +385,45 @@ open class Index {
                     ),
 
                     "style_tab_current_title" to json(
-                        "background" to colorMainBack1,
-                        "border-left" to "1px solid $colorMainBorder",
-                        "border-top" to "1px solid $colorMainBorder",
-                        "border-right" to "none",
-                        "border-bottom" to "none",
+                        "background" to colorTabCurrentBack,
+                        "border-left" to styleTabCurrentTitleBorderLeft,
+                        "border-top" to styleTabCurrentTitleBorderTop,
+                        "border-right" to styleTabCurrentTitleBorderRight,
+                        "border-bottom" to styleTabCurrentTitleBorderBottom,
                         "border-radius" to "$styleFormBorderRadius 0 0 0",
-                        "font-size" to styleTabButtonFontSize(),
-                        "padding" to styleTabCurrentTitlePadding(),
+                        "font-size" to styleTabButtonFontSize,
+                        "padding" to styleTabCurrentTitlePadding,
                         "cursor" to "pointer",
                     ),
                     "style_tab_current_closer" to json(
-                        "background" to colorMainBack1,
-                        "border-left" to "none",
-                        "border-top" to "1px solid $colorMainBorder",
-                        "border-right" to "1px solid $colorMainBorder",
-                        "border-bottom" to "1px solid $colorMainBack1",   // иначе белая полоска вместо пустого места от бордера
+                        "background" to colorTabCurrentBack,
+                        "border-left" to styleTabCurrentCloserBorderLeft,
+                        "border-top" to styleTabCurrentCloserBorderTop,
+                        "border-right" to styleTabCurrentCloserBorderRight,
+                        "border-bottom" to styleTabCurrentCloserBorderBottom,
                         "border-radius" to "0 $styleFormBorderRadius 0 0",
-                        "padding" to styleTabCurrentCloserPadding(),
+                        "padding" to styleTabCurrentCloserPadding,
                         "cursor" to "pointer"
                     ),
                     "style_tab_other_title" to json(
-                        "background" to colorMainBack2,
-                        "border-left" to "1px solid $colorMainBorder",
-                        "border-top" to "1px solid $colorMainBorder",
-                        "border-right" to "none",
-                        "border-bottom" to "1px solid $colorMainBorder",
+                        "background" to colorTabOtherBack,
+                        "border-left" to styleTabOtherTitleBorderLeft,
+                        "border-top" to styleTabOtherTitleBorderTop,
+                        "border-right" to styleTabOtherTitleBorderRight,
+                        "border-bottom" to styleTabOtherTitleBorderBottom,
                         "border-radius" to "$styleFormBorderRadius 0 0 0",
-                        "font-size" to styleTabButtonFontSize(),
-                        "padding" to styleTabOtherTitlePadding(),
+                        "font-size" to styleTabButtonFontSize,
+                        "padding" to styleTabOtherTitlePadding,
                         "cursor" to "pointer",
                     ),
                     "style_tab_other_closer" to json(
-                        "background" to colorMainBack2,
-                        "border-left" to "none",
-                        "border-top" to "1px solid $colorMainBorder",
-                        "border-right" to "1px solid $colorMainBorder",
-                        "border-bottom" to "1px solid $colorMainBorder",
+                        "background" to colorTabOtherBack,
+                        "border-left" to styleTabOtherCloserBorderLeft,
+                        "border-top" to styleTabOtherCloserBorderTop,
+                        "border-right" to styleTabOtherCloserBorderRight,
+                        "border-bottom" to styleTabOtherCloserBorderBottom,
                         "border-radius" to "0 $styleFormBorderRadius 0 0",
-                        "padding" to styleTabOtherCloserPadding(),
+                        "padding" to styleTabOtherCloserPadding,
                         "cursor" to "pointer"
                     ),
 
