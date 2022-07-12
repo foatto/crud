@@ -1,6 +1,5 @@
 package foatto.core_web
 
-import foatto.core.app.*
 import foatto.core.link.*
 import foatto.core_web.external.vue.Vue
 import foatto.core_web.external.vue.that
@@ -14,32 +13,7 @@ import kotlin.js.Json
 import kotlin.js.json
 import kotlin.math.max
 
-val hmTableIcon = mutableMapOf(
-
-    ICON_NAME_SELECT to "/web/images/ic_reply_black_48dp.png",
-
-    ICON_NAME_ADD_FOLDER to "/web/images/ic_create_new_folder_black_48dp.png",
-    ICON_NAME_ADD_ITEM to "/web/images/ic_add_black_48dp.png",
-
-    //--- system_user ---
-
-    //--- подразделение
-    ICON_NAME_DIVISION to "/web/images/ic_folder_shared_black_48dp.png",
-    //--- руководитель
-    ICON_NAME_BOSS to "/web/images/ic_account_box_black_48dp.png",
-    //--- работник
-    ICON_NAME_WORKER to "/web/images/ic_account_circle_black_48dp.png",
-
-    //--- shop_catalog ---
-
-    //--- подраздел
-    ICON_NAME_FOLDER to "/web/images/ic_folder_open_black_48dp.png",
-
-    //--- shop_document_content, office_task_thread ---
-
-    //--- распечатка накладной, обсуждения поручения
-    ICON_NAME_PRINT to "/web/images/ic_print_black_48dp.png"
-)
+val hmTableIcon = mutableMapOf<String, String>()
 
 var tableTemplateAdd: String = ""
 var tableClientActionFun: (action: String, params: Array<Pair<String, String>>, that: dynamic) -> Unit = { _: String, _: Array<Pair<String, String>>, _: dynamic -> }
@@ -69,7 +43,7 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
 
             <div v-bind:style="style_toolbar">
                 <span v-bind:style="style_toolbar_block">
-                    <img src="/web/images/ic_reply_all_black_48dp.png" 
+                    <img src="/web/images/ic_reply_all_${styleIconNameSuffix()}dp.png" 
                          v-if="selectorCancelURL"
                          v-on:click="invoke( selectorCancelURL, false )"
                          v-bind:style="[ style_icon_button, style_button_with_border ]"
@@ -83,12 +57,12 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                            placeholder="Поиск..." 
                            v-on:keyup.enter="doFind( false )"
                     >
-                    <img src="/web/images/ic_search_black_48dp.png" 
+                    <img src="/web/images/ic_search_${styleIconNameSuffix()}dp.png" 
                          v-on:click="doFind( false )"
                          v-bind:style="[ style_icon_button, style_button_with_border ]"
                          title="Искать"
                     >
-                    <img src="/web/images/ic_youtube_searched_for_black_48dp.png" 
+                    <img src="/web/images/ic_youtube_searched_for_${styleIconNameSuffix()}dp.png" 
                          v-show="findText" 
                          v-bind:style="[ style_icon_button, style_button_with_border ]"
                          v-on:click="doFind( true )"
@@ -105,19 +79,19 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                          v-bind:style="[ style_icon_button, style_button_with_border ]"
                          v-on:click="invoke( addButton.url, false )"
                     >
-                    <img src="/web/images/ic_mode_edit_black_48dp.png" 
+                    <img src="/web/images/ic_mode_edit_${styleIconNameSuffix()}dp.png" 
                          v-show="( !${styleIsNarrowScreen} || !isFindTextVisible ) && isFormButtonVisible" 
                          v-bind:style="[ style_icon_button, style_button_with_border ]"
                          title="Открыть форму"
                          v-on:click="doForm()"
                     >
-                    <img src="/web/images/ic_exit_to_app_black_48dp.png" 
+                    <img src="/web/images/ic_exit_to_app_${styleIconNameSuffix()}dp.png" 
                          v-show="( !${styleIsNarrowScreen} || !isFindTextVisible ) && isGotoButtonVisible" 
                          v-bind:style="[ style_icon_button, style_button_with_border ]"
                          title="Перейти"
                          v-on:click="doGoto()"
                     >
-                    <img src="/web/images/ic_menu_black_48dp.png" 
+                    <img src="/web/images/ic_menu_${styleIconNameSuffix()}dp.png" 
                          v-show="( !${styleIsNarrowScreen} || !isFindTextVisible ) && isPopupButtonVisible" 
                          v-bind:style="[ style_icon_button, style_button_with_border ]"
                          title="Показать операции по строке"
@@ -171,7 +145,7 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                            v-on:keyup.esc="doKeyEsc()"
                            v-on:keyup.f4="closeTabById()"
                     >
-                    <img src="/web/images/ic_sync_black_48dp.png" 
+                    <img src="/web/images/ic_sync_${styleIconNameSuffix()}dp.png" 
                          v-show="( !${styleIsNarrowScreen} || !isFindTextVisible )"
                          v-bind:style="[ style_icon_button, style_button_with_border ]"
                          title="Обновить"
@@ -273,7 +247,7 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                 v-bind:style="[style_popup_menu_start, style_popup_menu_pos]"
                 v-on:mouseleave="isShowPopupMenu=false"
             >
-                ${menuGenerateBody("arrCurPopupData", "popupMenuClick", "")}
+                ${menuGenerateBody(false, "arrCurPopupData", "popupMenuClick", "")}
             </div>
     """ +
         tableTemplateAdd +
@@ -448,7 +422,7 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                         //--- sticky header
                         "position" to "sticky",
                         "top" to "0",
-                        "z-index" to "1",   // workaround for bug with CheckBoxes in table, which above, than typical cell, include "sticky" table headers
+                        "z-index" to Z_INDEX_TABLE_CAPTION,   // workaround for bug with CheckBoxes in table, which above, than typical cell, include "sticky" table headers
                     ),
                     elementStyle = json(
                     ),
@@ -530,7 +504,11 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                         elementStyle.add(
                             json(
                                 "color" to textColor,
-                                "transform" to styleControlCheckBoxTransform()
+                                "appearance" to "none",
+                                "width" to styleCheckBoxWidth,
+                                "height" to styleCheckBoxHeight,
+                                "border" to styleCheckBoxBorder(),
+                                "border-radius" to styleInputBorderRadius,
                             )
                         )
                     }
@@ -583,7 +561,7 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                                     inNewWindow = cellData.inNewWindow,
                                     style = json(
                                         "border" to "1px solid $colorButtonBorder",
-                                        "border-radius" to BORDER_RADIUS,
+                                        "border-radius" to styleButtonBorderRadius,
                                         "background" to colorButtonBack,
                                         "color" to textColor,
                                         "font-size" to styleCommonButtonFontSize(),
@@ -784,7 +762,7 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
         },
         "doKeyEsc" to {
             val selectorCancelURL = that().selectorCancelURL.unsafeCast<String>()
-            if(selectorCancelURL.isNotEmpty()) {
+            if (selectorCancelURL.isNotEmpty()) {
                 that().invoke(selectorCancelURL, false)
             }
         },
@@ -955,7 +933,7 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
             ),
             "style_button_with_border" to json(
                 "border" to "1px solid $colorButtonBorder",
-                "border-radius" to BORDER_RADIUS,
+                "border-radius" to styleButtonBorderRadius,
             ),
             "style_button_no_border" to json(
                 "border" to "none",
@@ -963,9 +941,9 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
             "style_find_editor_len" to styleTableFindEditLength(),
             "style_find_editor" to json(
                 "border" to "1px solid $colorMainBorder",
-                "border-radius" to BORDER_RADIUS,
-                "font-size" to styleTableFindEditorFontSize(),
-                "padding" to styleCommonEditorPadding(),
+                "border-radius" to styleInputBorderRadius,
+                "font-size" to styleTableFindEditorFontSize,
+                "padding" to styleTableFindEditorPadding(),
                 "margin" to styleCommonMargin(),
             ),
             "style_cursor_box" to json(
@@ -980,35 +958,42 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                 //"font-size" to styleTablePageButtonFontSize()
             ),
             "style_popup_menu_start" to json(
-                "z-index" to "2",   // popup menu must be above than table headers
+                "z-index" to Z_INDEX_TABLE_POPUP,   // popup menu must be above than table headers
                 "position" to "absolute",
                 "top" to "20%",
                 "bottom" to if (styleIsNarrowScreen) "20%" else "10%",
                 "width" to styleMenuWidth(),
-                "background" to colorMenuBack,
+                //"min-width" to styleMenuWidth(), - не уверен, что потребуется
+                "background" to colorPopupMenuBack,
+                "color" to colorMenuTextDefault,
                 "border" to "1px solid $colorMenuBorder",
-                "border-radius" to BORDER_RADIUS,
-                "font-size" to styleMenuFontSize(),
-                "padding" to styleMenuStartPadding(),
+                "border-radius" to styleFormBorderRadius,
+                "font-size" to styleMenuFontSize(0),
+                "padding" to styleMenuStartPadding,
                 "overflow" to "auto",
                 "cursor" to "pointer",
             ),
             "style_popup_menu_pos" to json(
             ),
             "style_menu_summary_0" to json(
-                "padding" to styleMenuItemPadding_0(),
+                "font-size" to styleMenuFontSize(0),
+                "padding" to styleMenuItemPadding(0),
             ),
             "style_menu_summary_1" to json(
-                "padding" to styleMenuItemPadding_1(),
+                "font-size" to styleMenuFontSize(1),
+                "padding" to styleMenuItemPadding(1),
             ),
             "style_menu_item_0" to json(
-                "padding" to styleMenuItemPadding_0(),
+                "font-size" to styleMenuFontSize(0),
+                "padding" to styleMenuItemPadding(0),
             ),
             "style_menu_item_1" to json(
-                "padding" to styleMenuItemPadding_1(),
+                "font-size" to styleMenuFontSize(1),
+                "padding" to styleMenuItemPadding(1),
             ),
             "style_menu_item_2" to json(
-                "padding" to styleMenuItemPadding_2(),
+                "font-size" to styleMenuFontSize(2),
+                "padding" to styleMenuItemPadding(2),
             ),
         ).add(
             tableDataAdd
