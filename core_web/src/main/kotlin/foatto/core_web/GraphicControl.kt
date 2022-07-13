@@ -197,7 +197,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
 
                 <span v-bind:style="style_toolbar_block">
                     <img src="/web/images/ic_sync_black_48dp.png"
-                         v-bind:style="style_icon_button"
+                         v-bind:style="style_refresh_button"
                          title="Обновить"
                          v-on:click="grRefreshView( null, null )"
                     >
@@ -707,7 +707,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                 "border-top" to if (!styleIsNarrowScreen) {
                     "none"
                 } else {
-                    "1px solid $colorMainBorder"
+                    "1px solid ${colorMainBorder()}"
                 }
             ),
             "style_toolbar" to json(
@@ -717,7 +717,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                 "justify-content" to "space-between",
                 "align-items" to "center",        // "baseline" ?
                 "padding" to styleControlPadding(),
-                "background" to colorMainBack1
+                "background" to colorGraphicToolbarBack(),
             ),
             "style_toolbar_block" to json(
                 "display" to "flex",
@@ -733,8 +733,17 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                 "flex-direction" to "column",
             ),
             "style_icon_button" to json(
-                "background" to colorButtonBack,
-                "border" to "1px solid $colorButtonBorder",
+                "background" to colorToolbarButtonBack(),
+                "border" to styleToolbarButtonBorder(),
+                "border-radius" to styleButtonBorderRadius,
+                "font-size" to styleCommonButtonFontSize(),
+                "padding" to styleIconButtonPadding(),
+                "margin" to styleCommonMargin(),
+                "cursor" to "pointer"
+            ),
+            "style_refresh_button" to json(
+                "background" to colorRefreshButtonBack(),
+                "border" to styleToolbarButtonBorder(),
                 "border-radius" to styleButtonBorderRadius,
                 "font-size" to styleCommonButtonFontSize(),
                 "padding" to styleIconButtonPadding(),
@@ -747,8 +756,8 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                 "top" to styleGraphicVisibilityTop(),
                 "width" to "auto",
                 "max-width" to styleGraphicVisibilityMaxWidth(),
-                "background" to colorPopupMenuBack,
-                "border" to "1px solid $colorMenuBorder",
+                "background" to colorPopupMenuBack(),
+                "border" to "1px solid ${colorMenuBorder()}",
                 "border-radius" to styleFormBorderRadius,
                 "font-size" to styleMenuFontSize(0),
                 "padding" to styleMenuStartPadding,
@@ -762,8 +771,8 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                 //{ 'color' : ( $menuDataName.url || $menuDataName.text ? '$colorMainText' : '$COLOR_MENU_DELIMITER' ) }
             ),
             "style_graphic_visibility_button" to json(
-                "background" to colorButtonBack,
-                "border" to "1px solid $colorButtonBorder",
+                "background" to colorButtonBack(),
+                "border" to "1px solid ${colorButtonBorder()}",
                 "border-radius" to styleButtonBorderRadius,
                 "font-size" to styleCommonButtonFontSize(),
                 "padding" to styleFileNameButtonPadding(),
@@ -778,7 +787,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                 "width" to "auto",
                 "max-width" to styleGraphicDataMaxWidth(),
                 "background" to COLOR_GRAPHIC_DATA_BACK,
-                "border" to "1px solid $colorMenuBorder",
+                "border" to "1px solid ${colorMenuBorder()}",
                 "border-radius" to styleFormBorderRadius,
                 "font-size" to styleMenuFontSize(0),
                 "padding" to styleMenuStartPadding,
@@ -1173,7 +1182,7 @@ fun doGraphicRefresh(
                         "background" to if (isBack) {
                             getColorFromInt(color)
                         } else {
-                            colorButtonBack
+                            colorButtonBack()
                         },
                         "color" to if (isBack) {
                             COLOR_MAIN_TEXT
@@ -1420,6 +1429,7 @@ private fun defineGraphicSvgCoords(
 ): GraphicSvgCoords {
     val menuBarElement = document.getElementById(MENU_BAR_ID)
 
+    val topBar = document.getElementById(TOP_BAR_ID)
     val svgTabPanel = document.getElementById("tab_panel")!!
     val svgGraphicTitle = document.getElementById("${elementPrefix}_title_$tabId")!!
     val svgGraphicToolbar = document.getElementById("${elementPrefix}_toolbar_$tabId")!!
@@ -1431,11 +1441,13 @@ private fun defineGraphicSvgCoords(
     val menuBarWidth = menuBarElement?.clientWidth ?: 0
     val svgAxisWidth = svgAxisElement.clientWidth
 
+    val topBarHeight = topBar?.clientHeight ?: 0
+
     return GraphicSvgCoords(
         axisWidth = svgAxisWidth,
         bodyLeft = menuBarWidth + svgAxisWidth,  //svgBodyElement.clientLeft - BUG: всегда даёт 0
         //--- svgBodyElement.clientTop - BUG: всегда даёт 0
-        bodyTop = svgTabPanel.clientHeight + svgGraphicTitle.clientHeight + svgGraphicToolbar.clientHeight + arrAddElements.sumOf { it.clientHeight },
+        bodyTop = topBarHeight + svgTabPanel.clientHeight + svgGraphicTitle.clientHeight + svgGraphicToolbar.clientHeight + arrAddElements.sumOf { it.clientHeight },
         bodyWidth = svgBodyElement.clientWidth,
         bodyHeight = svgBodyElement.clientHeight,
         legendWidth = svgLegendElement.clientWidth,
