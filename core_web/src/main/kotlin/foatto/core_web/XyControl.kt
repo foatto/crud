@@ -219,6 +219,7 @@ fun defineXySvgCoords(
 
     val menuBarElement = document.getElementById(MENU_BAR_ID)
 
+    val topBar = document.getElementById(TOP_BAR_ID)
     val svgTabPanel = document.getElementById("tab_panel")!!
     val svgXyTitle = document.getElementById("${elementPrefix}_title_$tabId")!!
     val svgXyToolbar = document.getElementById("${elementPrefix}_toolbar_$tabId")!!
@@ -227,10 +228,12 @@ fun defineXySvgCoords(
 
     val menuBarWidth = menuBarElement?.clientWidth ?: 0
 
+    val topBarHeight = topBar?.clientHeight ?: 0
+
     return XySvgCoords(
         bodyLeft = menuBarWidth,  //svgBodyElement.clientLeft - BUG: всегда даёт 0
         //--- svgBodyElement.clientTop - BUG: всегда даёт 0
-        bodyTop = svgTabPanel.clientHeight + svgXyTitle.clientHeight + svgXyToolbar.clientHeight + arrAddElements.sumOf { it.clientHeight },
+        bodyTop = topBarHeight + svgTabPanel.clientHeight + svgXyTitle.clientHeight + svgXyToolbar.clientHeight + arrAddElements.sumOf { it.clientHeight },
         bodyWidth = svgBodyElement.clientWidth,
         bodyHeight = svgBodyElement.clientHeight,
     )
@@ -608,7 +611,7 @@ fun getXyComponentData() = json(
         "border-top" to if (!styleIsNarrowScreen) {
             "none"
         } else {
-            "1px solid $colorMainBorder"
+            "1px solid ${colorMainBorder()}"
         }
     ),
     "style_toolbar" to json(
@@ -618,7 +621,7 @@ fun getXyComponentData() = json(
         "justify-content" to "space-between",
         "align-items" to "center",        // "baseline" ?
         "padding" to styleControlPadding(),
-        "background" to colorMainBack1
+        "background" to colorXyToolbarBack(),
     ),
     "style_toolbar_block" to json(
         "display" to "flex",
@@ -634,8 +637,8 @@ fun getXyComponentData() = json(
         "flex-direction" to "column",
     ),
     "style_text_button" to json(
-        "background" to colorButtonBack,
-        "border" to "1px solid $colorButtonBorder",
+        "background" to colorButtonBack(),
+        "border" to "1px solid ${colorButtonBorder()}",
         "border-radius" to styleButtonBorderRadius,
         "font-size" to styleCommonButtonFontSize(),
         "padding" to styleTextButtonPadding(),//styleCommonEditorPadding(),
@@ -643,8 +646,17 @@ fun getXyComponentData() = json(
         "cursor" to "pointer"
     ),
     "style_icon_button" to json(
-        "background" to colorButtonBack,
-        "border" to "1px solid $colorButtonBorder",
+        "background" to colorToolbarButtonBack(),
+        "border" to styleToolbarButtonBorder(),
+        "border-radius" to styleButtonBorderRadius,
+        "font-size" to styleCommonButtonFontSize(),
+        "padding" to styleIconButtonPadding(),
+        "margin" to styleCommonMargin(),
+        "cursor" to "pointer"
+    ),
+    "style_refresh_button" to json(
+        "background" to colorRefreshButtonBack(),
+        "border" to styleToolbarButtonBorder(),
         "border-radius" to styleButtonBorderRadius,
         "font-size" to styleCommonButtonFontSize(),
         "padding" to styleIconButtonPadding(),

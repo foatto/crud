@@ -145,7 +145,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
 
             <span v-bind:style="style_toolbar_block">
                 <img src="/web/images/ic_sync_black_48dp.png"
-                     v-bind:style="style_icon_button"
+                     v-bind:style="style_refresh_button"
                      v-bind:disabled="isRefreshButtonDisabled"
                      title="Обновить"
                      v-on:click="xyRefreshView( null, null, true )"

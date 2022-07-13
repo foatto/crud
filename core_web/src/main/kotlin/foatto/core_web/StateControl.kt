@@ -65,13 +65,13 @@ fun stateControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().app
                     </span>
                     <span v-bind:style="style_toolbar_block">
                         <img src="/web/images/ic_replay_black_48dp.png"
-                             v-bind:style="style_icon_button"
+                             v-bind:style="style_refresh_button"
                              v-on:click="setInterval(0)"
                              title="Обновить сейчас"
                         >
                         <img src="/web/images/ic_replay_10_black_48dp.png"
                              v-if="refreshInterval != 10"
-                             v-bind:style="style_icon_button"
+                             v-bind:style="style_refresh_button"
                              v-on:click="setInterval(10)"
                              title="Обновлять каждые 10 сек"
                         >
