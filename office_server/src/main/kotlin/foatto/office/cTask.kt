@@ -20,10 +20,10 @@ class cTask : cStandart() {
         //--- проверка своей записи - если она не читана, то достаточно, можно переписку не проверять
         var isReaded = super.getTableRowIsReaded(valueID)
 
-        if(isReaded && valueID != null) {
+        if (isReaded && valueID != null) {
             //--- сколько всего сообщений в этой ветке обсуждения
             var rs = stm.executeQuery(" SELECT COUNT(*) FROM OFFICE_task_thread WHERE task_id = $valueID")
-            val countAll = if(rs.next()) rs.getInt(1) else 0
+            val countAll = if (rs.next()) rs.getInt(1) else 0
             rs.close()
 
             //--- сколько прочитанных сообщений в этой ветке обсуждения
@@ -33,7 +33,7 @@ class cTask : cStandart() {
                     " AND user_id = ${userConfig.userId} " +
                     " AND row_id IN ( SELECT id FROM OFFICE_task_thread WHERE task_id = $valueID ) "
             )
-            val countReaded = if(rs.next()) rs.getInt(1) else 0
+            val countReaded = if (rs.next()) rs.getInt(1) else 0
             rs.close()
 
             //--- если кол-во прочитанных сообщений равно общему кол-ву сообщений в этой ветке,
@@ -47,11 +47,11 @@ class cTask : cStandart() {
         super.getTableColumnStyle(rowNo, isNewRow, hmColumnData, column, tci)
 
         val mt = model as mTask
-        if(column == mt.columnTaskSubj) {
+        if (column == mt.columnTaskSubj) {
             //--- архивные записи как просроченные не окрашиваем - они там по сути все просроченные
-            if(!model.isArchiveAlias) {
+            if (!model.isArchiveAlias) {
                 val gc = (hmColumnData[mt.columnDate] as DataDate3Int).localDate.atStartOfDay(zoneId)
-                if(gc.isBefore(toDay)) {
+                if (gc.isBefore(toDay)) {
                     tci.foreColorType = TableCellForeColorType.DEFINED
                     tci.foreColor = TABLE_CELL_FORE_COLOR_CRITICAL
                 }

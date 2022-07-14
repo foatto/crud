@@ -384,6 +384,12 @@ const val COLOR_GRAPHIC_DATA_BACK = "hsla(60,100%,50%,0.5)"
 
 var colorGraphicToolbarBack: () -> String = { colorMainBack1 }
 
+fun styleGraphicVisibilityTop() = "10.5rem"
+fun styleGraphicVisibilityMaxWidth() = if (styleIsNarrowScreen) "85%" else "20rem"
+fun styleGraphicDataTop() = "10.8rem"
+fun styleGraphicDataMaxWidth() = if (styleIsNarrowScreen) "85%" else "30rem"
+fun styleGraphicTimeLabelPadding() = "$CONTROL_PADDING $CONTROL_LEFT_RIGHT_SIDE_PADDING $CONTROL_PADDING $CONTROL_LEFT_RIGHT_SIDE_PADDING"
+
 //--- XY -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 const val COLOR_XY_LABEL_BACK = "hsl(60,100%,50%)"
@@ -398,22 +404,6 @@ const val COLOR_XY_ZONE_ACTUAL = "hsla(30,100%,50%,0.25)"    // полупроз
 const val COLOR_XY_ZONE_BORDER = "hsl(0,100%,50%)"          // красный
 
 var colorXyToolbarBack: () -> String = { colorMainBack1 }
-
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-
-
-
-//--- Graphic
-
-fun styleGraphicVisibilityTop() = "10.5rem"
-fun styleGraphicVisibilityMaxWidth() = if (styleIsNarrowScreen) "85%" else "20rem"
-fun styleGraphicDataTop() = "10.8rem"
-fun styleGraphicDataMaxWidth() = if (styleIsNarrowScreen) "85%" else "30rem"
-fun styleGraphicTimeLabelPadding() = "$CONTROL_PADDING $CONTROL_LEFT_RIGHT_SIDE_PADDING $CONTROL_PADDING $CONTROL_LEFT_RIGHT_SIDE_PADDING"
-
-//--- Xy
 
 private val XY_PADDING = "0.2rem"
 private val XY_SIDE_PADDING = "0.4rem"
