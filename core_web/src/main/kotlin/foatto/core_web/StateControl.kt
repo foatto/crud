@@ -197,7 +197,7 @@ fun doStateRefreshView(
     doAdditionalWork: (aThat: dynamic, xyActionResponse: XyActionResponse) -> Unit = { _: dynamic, _: XyActionResponse -> },
 ) {
     val scaleKoef = that.`$root`.scaleKoef.unsafeCast<Double>()
-    val svgCoords = defineXySvgCoords(tabId, elementPrefix, arrAddElements)
+    val svgCoords = defineXySvgCoords(that, tabId, elementPrefix, arrAddElements)
 
     val newView = aView?.let {
         //--- принимаем новый ViewCoord как есть, но корректируем масштаб в зависимости от текущего размера выводимой области

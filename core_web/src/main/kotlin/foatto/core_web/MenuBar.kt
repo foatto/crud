@@ -24,11 +24,11 @@ fun menuBar(arrMenuData: Array<MenuData>) = vueComponentOptions().apply {
             <span>
                 <img src="/web/images/ic_menu_black_48dp.png"
                      v-bind:style="style_menu_button"
-                     v-on:click="isShowMainMenu=!isShowMainMenu"
+                     v-on:click="${'$'}root.isShowMainMenu=!${'$'}root.isShowMainMenu"
                      title="Главное меню"
                 >
     
-                <div v-show="isShowMainMenu"
+                <div v-show="${'$'}root.isShowMainMenu"
                      v-bind:style="[style_menu_start, style_menu_is_hidden]" 
                 >
                     ${menuGenerateBody(true, "arrMenuData", "menuClick", ".url")}
@@ -48,7 +48,7 @@ fun menuBar(arrMenuData: Array<MenuData>) = vueComponentOptions().apply {
 
     this.methods = json(
         "menuClick" to { url: String ->
-            that().isShowMainMenu = false
+            that().`$root`.isShowMainMenu = false
 
             //--- when не подойдёт из-за сложных else в конце
             if (url == CMD_SET_START_PAGE) {
@@ -101,15 +101,14 @@ fun menuBar(arrMenuData: Array<MenuData>) = vueComponentOptions().apply {
     this.data = {
         json(
             "arrMenuData" to "[]",
-            "isShowMainMenu" to false,
 
             "style_menu_button" to json(
                 "flex-grow" to 0,
                 "flex-shrink" to 0,
                 "align-self" to "flex-start",
                 "position" to "relative",
-                "background" to colorButtonBack,
-                "border" to "1px solid $colorMainBorder",
+                "background" to colorButtonBack(),
+                "border" to "1px solid ${colorMainBorder()}",
                 "border-radius" to styleFormBorderRadius,
                 "padding" to styleIconButtonPadding(),
                 "margin" to styleMenuIconButtonMargin(),
@@ -118,9 +117,9 @@ fun menuBar(arrMenuData: Array<MenuData>) = vueComponentOptions().apply {
             "style_menu_start" to json(
                 "width" to styleMenuWidth(),
                 "min-width" to styleMenuWidth(),
-                "background" to colorMainMenuBack,
+                "background" to colorMainMenuBack(),
                 "color" to colorMenuTextDefault,
-                "border" to "1px solid $colorMenuBorder",
+                "border" to "1px solid ${colorMenuBorder()}",
                 "border-radius" to styleFormBorderRadius,
                 "font-size" to styleMenuFontSize(0),
                 "padding" to styleMenuStartPadding,

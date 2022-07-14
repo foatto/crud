@@ -1029,10 +1029,14 @@ open class cStandart {
                 val row = tableRowStart + rowCount
                 var col = 0
                 //--- пустая ячейка вместо номера строки
-                if (aliasConfig.isShowRowNo) alTableCell.add(TableCell(row, col++))
+                if (aliasConfig.isShowRowNo) {
+                    alTableCell.add(TableCell(row, col++))
+                }
                 //--- пустая ячейка вместо кнопки селектора
-                if (selectorParam != null) alTableCell.add(TableCell(row, col++))
-                //--- пустые ячейки в строке группы ( по предыдущим уровням ) до наименования группы
+                if (selectorParam != null) {
+                    alTableCell.add(TableCell(row, col++))
+                }
+                //--- пустые ячейки в строке группы (по предыдущим уровням) до наименования группы
                 //--- ( передаем именно свежесозданный CoreTableCellInfo, т.к. у него будут меняться настройки стиля )
                 for (i in 0 until gi) {
                     alTableCell.add(setTableGroupColumnStyle(hmColumnData, model.alTableGroupColumn[i], TableCell(row, col++)))

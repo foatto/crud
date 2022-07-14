@@ -212,12 +212,14 @@ class XySvgCoords(
 )
 
 fun defineXySvgCoords(
+    that: dynamic,
     tabId: Int,
     elementPrefix: String,
     arrAddElements: Array<Element>,
 ): XySvgCoords {
 
     val menuBarElement = document.getElementById(MENU_BAR_ID)
+    val menuCloserElement = document.getElementById(MENU_CLOSER_BUTTON_ID)
 
     val topBar = document.getElementById(TOP_BAR_ID)
     val svgTabPanel = document.getElementById("tab_panel")!!
@@ -226,12 +228,18 @@ fun defineXySvgCoords(
 
     val svgBodyElement = document.getElementById("xy_svg_body_$tabId")!!
 
-    val menuBarWidth = menuBarElement?.clientWidth ?: 0
+    val menuBarVisible = that.`$root`.isShowMainMenu.unsafeCast<Boolean>()
+    val menuBarWidth = if (menuBarVisible) {
+        menuBarElement?.clientWidth ?: 0
+    } else {
+        0
+    }
+    val menuCloserWidth = menuCloserElement?.clientWidth ?: 0
 
     val topBarHeight = topBar?.clientHeight ?: 0
 
     return XySvgCoords(
-        bodyLeft = menuBarWidth,  //svgBodyElement.clientLeft - BUG: всегда даёт 0
+        bodyLeft = menuBarWidth + menuCloserWidth,  //svgBodyElement.clientLeft - BUG: всегда даёт 0
         //--- svgBodyElement.clientTop - BUG: всегда даёт 0
         bodyTop = topBarHeight + svgTabPanel.clientHeight + svgXyTitle.clientHeight + svgXyToolbar.clientHeight + arrAddElements.sumOf { it.clientHeight },
         bodyWidth = svgBodyElement.clientWidth,
@@ -284,7 +292,7 @@ fun doXySpecificComponentMounted(
     //--- принудительная установка полной высоты svg-элементов
     //--- (BUG: иначе высота либо равна 150px - если не указывать высоту,
     //--- либо равно width, если указать height="100%")
-    val svgCoords = defineXySvgCoords(tabId, elementPrefix, arrAddElements)
+    val svgCoords = defineXySvgCoords(that, tabId, elementPrefix, arrAddElements)
     that.xy_svg_height = svgHeight ?: (window.innerHeight - svgCoords.bodyTop)
 
     that.`$root`.setWait(true)

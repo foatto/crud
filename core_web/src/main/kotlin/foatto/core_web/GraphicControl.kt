@@ -313,12 +313,14 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
             var mouseX = aMouseX.toInt()
             var mouseY = aMouseY.toInt()
 
+            val that = that()
+
             val timeOffset = that().`$root`.timeOffset.unsafeCast<Int>()
             val scaleKoef = that().`$root`.scaleKoef.unsafeCast<Double>()
             val viewCoord = that().grViewCoord.unsafeCast<GraphicViewCoord>()
             val curMode = that().grCurMode.unsafeCast<GraphicWorkMode>()
 
-            val svgCoords = defineGraphicSvgCoords(tabId, "graphic", emptyArray()) //!!! в случае работы в сложной схеме могут поехать y-координаты
+            val svgCoords = defineGraphicSvgCoords(that, tabId, "graphic", emptyArray()) //!!! в случае работы в сложной схеме могут поехать y-координаты
 
             if (isNeedOffsetCompensation) {
                 mouseX -= svgCoords.bodyLeft
@@ -369,7 +371,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
 
             val isShowGraphicData = that.isShowGraphicData.unsafeCast<Boolean>()
 
-            val svgCoords = defineGraphicSvgCoords(tabId, "graphic", emptyArray()) //!!! в случае работы в сложной схеме могут поехать y-координаты
+            val svgCoords = defineGraphicSvgCoords(that, tabId, "graphic", emptyArray()) //!!! в случае работы в сложной схеме могут поехать y-координаты
 
             if (isNeedOffsetCompensation) {
                 mouseX -= svgCoords.bodyLeft
@@ -470,7 +472,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
 
             val that = that()
 
-            val svgCoords = defineGraphicSvgCoords(tabId, "graphic", emptyArray()) //!!! в случае работы в сложной схеме могут поехать y-координаты
+            val svgCoords = defineGraphicSvgCoords(that, tabId, "graphic", emptyArray()) //!!! в случае работы в сложной схеме могут поехать y-координаты
 
             when (curMode) {
                 GraphicWorkMode.PAN -> {
@@ -540,7 +542,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
 
             val isMouseDown = that.isMouseDown.unsafeCast<Boolean>()
 
-            val svgCoords = defineGraphicSvgCoords(tabId, "graphic", emptyArray()) //!!! в случае работы в сложной схеме могут поехать y-координаты
+            val svgCoords = defineGraphicSvgCoords(that, tabId, "graphic", emptyArray()) //!!! в случае работы в сложной схеме могут поехать y-координаты
 
             if (curMode == GraphicWorkMode.PAN && !isMouseDown || curMode == GraphicWorkMode.ZOOM_BOX && !isMouseDown) {
                 //|| grControl.curMode == GraphicModel.WorkMode.SELECT_FOR_PRINT && grControl.selectorX1 < 0  ) {
@@ -1094,7 +1096,7 @@ fun doGraphicSpecificComponentMounted(
     //--- принудительная установка полной высоты svg-элементов
     //--- (BUG: иначе высота либо равна 150px - если не указывать высоту,
     //--- либо равно width, если указать height="100%")
-    val svgCoords = defineGraphicSvgCoords(tabId, elementPrefix, arrAddElements)
+    val svgCoords = defineGraphicSvgCoords(that, tabId, elementPrefix, arrAddElements)
     //--- из всего svgCoords используется только svgCoords.bodyTop
     that.gr_svg_height = svgHeight ?: (window.innerHeight - svgCoords.bodyTop)
 
@@ -1255,8 +1257,17 @@ fun doGraphicRefresh(
             val arrViewBoxAxis = getGraphicViewBoxAxis(that)
             setGraphicViewBoxAxis(that, arrayOf(0, arrViewBoxAxis[1], svgAxisWidth, svgAxisHeight))
 
+            val menuBarElement = document.getElementById(MENU_BAR_ID)
+            val menuBarVisible = that.`$root`.isShowMainMenu.unsafeCast<Boolean>()
+            val menuBarWidth = if (menuBarVisible) {
+                menuBarElement?.clientWidth ?: 0
+            } else {
+                0
+            }
+            val menuCloserElement = document.getElementById(MENU_CLOSER_BUTTON_ID)
+            val menuCloserWidth = menuCloserElement?.clientWidth ?: 0
             val svgBodyElement = document.getElementById("gr_svg_body_$tabId")!!
-            val svgBodyWidth = window.innerWidth - (maxMarginLeft + maxMarginRight)
+            val svgBodyWidth = window.innerWidth - menuBarWidth - menuCloserWidth - (maxMarginLeft + maxMarginRight)
             val svgBodyHeight = svgBodyElement.clientHeight
 
             val arrViewBoxBody = getGraphicViewBoxBody(that)
@@ -1274,7 +1285,7 @@ fun doGraphicRefresh(
                 0
             } else {
                 //--- только для svgCoords.bodyHeight, которое уже установлено
-                val svgCoords = defineGraphicSvgCoords(tabId, elementPrefix, arrAddElements)
+                val svgCoords = defineGraphicSvgCoords(that, tabId, elementPrefix, arrAddElements)
                 (svgCoords.bodyHeight - sumHard) / sumSoft
             }
 
@@ -1346,11 +1357,9 @@ fun doGraphicRefresh(
                 )
             }.toTypedArray()
 
-            val menuBarElement = document.getElementById(MENU_BAR_ID)
-            val menuBarWidth = menuBarElement?.clientWidth ?: 0
             val bodyLeft = menuBarWidth + svgAxisWidth  //svgBodyElement.clientLeft - BUG: всегда даёт 0
             //--- только для svgCoords.bodyTop, которое уже установлено
-            val svgCoords = defineGraphicSvgCoords(tabId, elementPrefix, arrAddElements)
+            val svgCoords = defineGraphicSvgCoords(that, tabId, elementPrefix, arrAddElements)
             setGraphicTextOffset(that, bodyLeft, svgCoords.bodyTop)
 
             that.arrYData = alYData.toTypedArray()
@@ -1423,11 +1432,13 @@ private class GraphicSvgCoords(
 )
 
 private fun defineGraphicSvgCoords(
+    that: dynamic,
     tabId: Int,
     elementPrefix: String,
     arrAddElements: Array<Element>,
 ): GraphicSvgCoords {
     val menuBarElement = document.getElementById(MENU_BAR_ID)
+    val menuCloserElement = document.getElementById(MENU_CLOSER_BUTTON_ID)
 
     val topBar = document.getElementById(TOP_BAR_ID)
     val svgTabPanel = document.getElementById("tab_panel")!!
@@ -1438,14 +1449,20 @@ private fun defineGraphicSvgCoords(
     val svgBodyElement = document.getElementById("gr_svg_body_$tabId")!!
     val svgLegendElement = document.getElementById("gr_svg_legend_$tabId")!!
 
-    val menuBarWidth = menuBarElement?.clientWidth ?: 0
+    val menuBarVisible = that.`$root`.isShowMainMenu.unsafeCast<Boolean>()
+    val menuBarWidth = if (menuBarVisible) {
+        menuBarElement?.clientWidth ?: 0
+    } else {
+        0
+    }
+    val menuCloserWidth = menuCloserElement?.clientWidth ?: 0
     val svgAxisWidth = svgAxisElement.clientWidth
 
     val topBarHeight = topBar?.clientHeight ?: 0
 
     return GraphicSvgCoords(
         axisWidth = svgAxisWidth,
-        bodyLeft = menuBarWidth + svgAxisWidth,  //svgBodyElement.clientLeft - BUG: всегда даёт 0
+        bodyLeft = menuBarWidth + menuCloserWidth + svgAxisWidth,  //svgBodyElement.clientLeft - BUG: всегда даёт 0
         //--- svgBodyElement.clientTop - BUG: всегда даёт 0
         bodyTop = topBarHeight + svgTabPanel.clientHeight + svgGraphicTitle.clientHeight + svgGraphicToolbar.clientHeight + arrAddElements.sumOf { it.clientHeight },
         bodyWidth = svgBodyElement.clientWidth,

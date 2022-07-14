@@ -14,6 +14,9 @@ import kotlin.js.json
 
 const val LOCAL_STORAGE_APP_PARAM = "app_param"
 
+const val TOP_BAR_ID = "top_bar"
+const val MENU_CLOSER_BUTTON_ID = "menu_closer_button_id"
+
 var dialogActionFun: (that: dynamic) -> Unit = { _: dynamic -> }
 
 open class Index {
@@ -55,7 +58,9 @@ open class Index {
                     """
                         >
                         </component>
-                        <div v-bind:style="style_menu_closer">
+                        <div id="$MENU_CLOSER_BUTTON_ID"
+                             v-bind:style="style_menu_closer"
+                        >
                             <button v-bind:style="style_menu_closer_button"
                                     v-on:click="isShowMainMenu=!isShowMainMenu"
                             >
@@ -298,7 +303,7 @@ open class Index {
             this.data = {
                 json(
                     "menuBar" to null,
-                    "isShowMainMenu" to true,
+                    "isShowMainMenu" to !(styleIsNarrowScreen || styleIsHiddenMenuBar),
                     "isTabPanelVisible" to false,
                     "currentTabIndex" to -1,
                     "lastTabID" to 0,
@@ -365,8 +370,8 @@ open class Index {
                     "style_tab_combo" to json(
                         "flex-grow" to 1,
                         "flex-shrink" to 1,
-                        "background" to colorButtonBack,
-                        "border" to "1px solid $colorMainBorder",
+                        "background" to colorButtonBack(),
+                        "border" to "1px solid ${colorMainBorder()}",
                         "border-radius" to styleFormBorderRadius,
                         "font-size" to styleTabComboFontSize(),
                         "padding" to styleTabComboPadding(),
@@ -376,8 +381,8 @@ open class Index {
                         "flex-grow" to 0,
                         "flex-shrink" to 0,
                         "align-self" to "flex-start", //"flex-end" - сдвигает в правый нижний угол
-                        "background" to colorButtonBack,
-                        "border" to "1px solid $colorMainBorder",
+                        "background" to colorButtonBack(),
+                        "border" to "1px solid ${colorMainBorder()}",
                         "border-radius" to styleFormBorderRadius,
                         "padding" to styleIconButtonPadding(),
                         "margin" to styleTabCloserButtonMargin(),
@@ -385,43 +390,43 @@ open class Index {
                     ),
 
                     "style_tab_current_title" to json(
-                        "background" to colorTabCurrentBack,
-                        "border-left" to styleTabCurrentTitleBorderLeft,
-                        "border-top" to styleTabCurrentTitleBorderTop,
-                        "border-right" to styleTabCurrentTitleBorderRight,
-                        "border-bottom" to styleTabCurrentTitleBorderBottom,
+                        "background" to colorTabCurrentBack(),
+                        "border-left" to styleTabCurrentTitleBorderLeft(),
+                        "border-top" to styleTabCurrentTitleBorderTop(),
+                        "border-right" to styleTabCurrentTitleBorderRight(),
+                        "border-bottom" to styleTabCurrentTitleBorderBottom(),
                         "border-radius" to "$styleFormBorderRadius 0 0 0",
                         "font-size" to styleTabButtonFontSize,
                         "padding" to styleTabCurrentTitlePadding,
                         "cursor" to "pointer",
                     ),
                     "style_tab_current_closer" to json(
-                        "background" to colorTabCurrentBack,
-                        "border-left" to styleTabCurrentCloserBorderLeft,
-                        "border-top" to styleTabCurrentCloserBorderTop,
-                        "border-right" to styleTabCurrentCloserBorderRight,
-                        "border-bottom" to styleTabCurrentCloserBorderBottom,
+                        "background" to colorTabCurrentBack(),
+                        "border-left" to styleTabCurrentCloserBorderLeft(),
+                        "border-top" to styleTabCurrentCloserBorderTop(),
+                        "border-right" to styleTabCurrentCloserBorderRight(),
+                        "border-bottom" to styleTabCurrentCloserBorderBottom(),
                         "border-radius" to "0 $styleFormBorderRadius 0 0",
                         "padding" to styleTabCurrentCloserPadding,
                         "cursor" to "pointer"
                     ),
                     "style_tab_other_title" to json(
-                        "background" to colorTabOtherBack,
-                        "border-left" to styleTabOtherTitleBorderLeft,
-                        "border-top" to styleTabOtherTitleBorderTop,
-                        "border-right" to styleTabOtherTitleBorderRight,
-                        "border-bottom" to styleTabOtherTitleBorderBottom,
+                        "background" to colorTabOtherBack(),
+                        "border-left" to styleTabOtherTitleBorderLeft(),
+                        "border-top" to styleTabOtherTitleBorderTop(),
+                        "border-right" to styleTabOtherTitleBorderRight(),
+                        "border-bottom" to styleTabOtherTitleBorderBottom(),
                         "border-radius" to "$styleFormBorderRadius 0 0 0",
                         "font-size" to styleTabButtonFontSize,
                         "padding" to styleTabOtherTitlePadding,
                         "cursor" to "pointer",
                     ),
                     "style_tab_other_closer" to json(
-                        "background" to colorTabOtherBack,
-                        "border-left" to styleTabOtherCloserBorderLeft,
-                        "border-top" to styleTabOtherCloserBorderTop,
-                        "border-right" to styleTabOtherCloserBorderRight,
-                        "border-bottom" to styleTabOtherCloserBorderBottom,
+                        "background" to colorTabOtherBack(),
+                        "border-left" to styleTabOtherCloserBorderLeft(),
+                        "border-top" to styleTabOtherCloserBorderTop(),
+                        "border-right" to styleTabOtherCloserBorderRight(),
+                        "border-bottom" to styleTabOtherCloserBorderBottom(),
                         "border-radius" to "0 $styleFormBorderRadius 0 0",
                         "padding" to styleTabOtherCloserPadding,
                         "cursor" to "pointer"

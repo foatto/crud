@@ -222,7 +222,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
             val that = aThat ?: that()
             val scaleKoef = that.`$root`.scaleKoef.unsafeCast<Double>()
             val curViewCoord = that().xyViewCoord.unsafeCast<XyViewCoord>()
-            val svgCoords = defineXySvgCoords(tabId, "map", emptyArray())
+            val svgCoords = defineXySvgCoords(that, tabId, "map", emptyArray())
 
             val newView =
                 if (aView != null) {
@@ -282,9 +282,11 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
             var mouseX = aMouseX.toInt()
             var mouseY = aMouseY.toInt()
 
+            val that = that()
+
             val scaleKoef = that().`$root`.scaleKoef.unsafeCast<Double>()
             val curMode = that().mapCurMode.unsafeCast<MapWorkMode>()
-            val svgCoords = defineXySvgCoords(tabId, "map", emptyArray())
+            val svgCoords = defineXySvgCoords(that, tabId, "map", emptyArray())
 
             if (isNeedOffsetCompensation) {
                 mouseX -= svgCoords.bodyLeft
@@ -293,10 +295,10 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
 
             when (curMode) {
                 MapWorkMode.PAN -> {
-                    that().panPointOldX = mouseX
-                    that().panPointOldY = mouseY
-                    that().panDX = 0
-                    that().panDY = 0
+                    that.panPointOldX = mouseX
+                    that.panPointOldY = mouseY
+                    that.panDX = 0
+                    that.panDY = 0
                 }
                 MapWorkMode.ZOOM_BOX, MapWorkMode.SELECT_FOR_ACTION -> {
                     that().mouseRect = MouseRectData(true, mouseX, mouseY, mouseX, mouseY, max(1.0, scaleKoef).roundToInt())
@@ -330,15 +332,17 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                     that().editPointIndex = editPointIndex
                 }
                 MapWorkMode.ACTION_MOVE -> {
-                    that().moveStartPoint = XyPoint(mouseX, mouseY)
-                    that().moveEndPoint = XyPoint(mouseX, mouseY)
+                    that.moveStartPoint = XyPoint(mouseX, mouseY)
+                    that.moveEndPoint = XyPoint(mouseX, mouseY)
                 }
             }
-            that().isMouseDown = true
+            that.isMouseDown = true
         },
         "onXyMouseMove" to { isNeedOffsetCompensation: Boolean, aMouseX: Double, aMouseY: Double ->
             var mouseX = aMouseX.toInt()
             var mouseY = aMouseY.toInt()
+
+            val that = that()
 
 //            val timeOffset = that().`$root`.timeOffset.unsafeCast<Int>()
             val scaleKoef = that().`$root`.scaleKoef.unsafeCast<Double>()
@@ -352,7 +356,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
             val panDX = that().panDX.unsafeCast<Int>()
             val panDY = that().panDY.unsafeCast<Int>()
 
-            val svgCoords = defineXySvgCoords(tabId, "map", emptyArray())
+            val svgCoords = defineXySvgCoords(that, tabId, "map", emptyArray())
 
             if (isNeedOffsetCompensation) {
                 mouseX -= svgCoords.bodyLeft
@@ -475,15 +479,17 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
             var mouseX = aMouseX.toInt()
             var mouseY = aMouseY.toInt()
 
-            val scaleKoef = that().`$root`.scaleKoef.unsafeCast<Double>()
+            val that = that()
 
-            val viewCoord = that().xyViewCoord.unsafeCast<XyViewCoord>()
-            val curMode = that().mapCurMode.unsafeCast<MapWorkMode>()
+            val scaleKoef = that.`$root`.scaleKoef.unsafeCast<Double>()
 
-            val panDX = that().panDX.unsafeCast<Int>()
-            val panDY = that().panDY.unsafeCast<Int>()
+            val viewCoord = that.xyViewCoord.unsafeCast<XyViewCoord>()
+            val curMode = that.mapCurMode.unsafeCast<MapWorkMode>()
 
-            val svgCoords = defineXySvgCoords(tabId, "map", emptyArray())
+            val panDX = that.panDX.unsafeCast<Int>()
+            val panDY = that.panDY.unsafeCast<Int>()
+
+            val svgCoords = defineXySvgCoords(that, tabId, "map", emptyArray())
 
             if (isNeedOffsetCompensation) {
                 mouseX -= svgCoords.bodyLeft
@@ -497,9 +503,9 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                         viewCoord.moveRel((-panDX * viewCoord.scale / scaleKoef).roundToInt(), (-panDY * viewCoord.scale / scaleKoef).roundToInt())
                         that().xyRefreshView(null, viewCoord, true)
                     }
-                    that().panPointOldX = 0
-                    that().panPointOldY = 0
-                    that().panDX = 0
+                    that.panPointOldX = 0
+                    that.panPointOldY = 0
+                    that.panDX = 0
                 }
                 MapWorkMode.ZOOM_BOX -> {
                     val mouseRect = that().mouseRect.unsafeCast<MouseRectData>()

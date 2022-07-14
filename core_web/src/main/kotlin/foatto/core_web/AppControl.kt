@@ -290,14 +290,15 @@ fun appControl(startAppParam: String, tabId: Int) = vueComponentOptions().apply 
                 //--- (неизвестно как потенциально сглючит 0% высоты в будущем)
                 "height" to "1%",
                 "display" to "flex",
-                "flex-direction" to "column"
+                "flex-direction" to "column",
+                "padding" to styleAppControlPadding(),
             ),
             "style_logon_grid" to json(
                 "height" to "100%",
                 "display" to "grid",
                 "grid-template-rows" to "1fr auto 1fr",
                 "grid-template-columns" to "1fr auto 1fr",
-                "background" to colorLogonBackAround,
+                "background" to colorLogonBackAround(),
                 "background-size" to "cover",   // for background-image
             ),
             "style_logon_top_expander" to json(
@@ -311,9 +312,9 @@ fun appControl(startAppParam: String, tabId: Int) = vueComponentOptions().apply 
             "style_logon_cell" to json(
                 "grid-area" to "2 / 2 / 3 / 3",
                 "padding" to styleLogonCellPadding,
-                "border" to "1px solid $colorLogonBorder",
+                "border" to "1px solid ${colorLogonBorder()}",
                 "border-radius" to styleFormBorderRadius,
-                "background" to colorLogonBackCenter,
+                "background" to colorLogonBackCenter(),
                 "display" to "flex",
                 "flex-direction" to "column",
                 "align-items" to "center"
@@ -340,7 +341,7 @@ fun appControl(startAppParam: String, tabId: Int) = vueComponentOptions().apply 
             ),
             "style_logon_input" to json(
                 "background" to COLOR_MAIN_BACK_0,
-                "border" to "1px solid $colorMainBorder",
+                "border" to "1px solid ${colorMainBorder()}",
                 "border-radius" to styleInputBorderRadius,
                 "font-size" to styleControlTextFontSize(),
                 "padding" to styleCommonEditorPadding()
@@ -349,14 +350,14 @@ fun appControl(startAppParam: String, tabId: Int) = vueComponentOptions().apply 
                 "appearance" to "none",
                 "width" to styleCheckBoxWidth,
                 "height" to styleCheckBoxHeight,
-                "border" to "1px solid $colorMainBorder",
+                "border" to styleCheckBoxBorder(),
                 "border-radius" to styleInputBorderRadius,
                 "margin" to styleLogonCheckBoxMargin
             ),
             "style_logon_button" to json(
-                "background" to colorLogonButtonBack,
+                "background" to colorLogonButtonBack(),
                 "color" to colorLogonButtonText,
-                "border" to "1px solid $colorLogonButtonBorder",
+                "border" to "1px solid ${colorLogonButtonBorder()}",
                 "border-radius" to styleButtonBorderRadius,
                 "font-size" to styleCommonButtonFontSize(),
                 "font-weight" to styleLogonButtonFontWeight,
