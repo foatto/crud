@@ -44,32 +44,7 @@ private class ShopIndex : Index() {
         colorMainBack2 = getHSL(SHOP_FIRM_COLOR_1_H, 50, 85)
         colorMainBack3 = getHSL(SHOP_FIRM_COLOR_1_H, 50, 80)
 
-        colorMainBorder = getHSL(SHOP_FIRM_COLOR_2_H, SHOP_FIRM_COLOR_2_S, SHOP_FIRM_COLOR_2_L)
-
-        colorButtonBack = colorMainBack0
-        colorButtonBorder = colorMainBorder
-
-        colorLogonBackAround = colorMainBack1
-        colorLogonBackCenter = colorMainBack2
-        colorLogonBorder = colorMainBorder
-        colorLogonButtonBack = colorButtonBack
-        colorLogonButtonBorder = colorButtonBorder
-
-        colorMainMenuBack = colorMainBack1
-        colorPopupMenuBack = colorMainBack1
-        colorMenuBorder = colorMainBorder
-        colorMenuDelimiter = colorMainBack3
-
-        colorTableRowBack1 = colorMainBack0
-
-        colorGroupBack0 = getHSL(SHOP_FIRM_COLOR_2_H, 60, 90)
-        colorGroupBack1 = getHSL(SHOP_FIRM_COLOR_2_H, 60, 95)
-
-        colorDialogBack = getHSLA(SHOP_FIRM_COLOR_1_H, SHOP_FIRM_COLOR_1_S, SHOP_FIRM_COLOR_1_L, 0.75)
-        colorDialogBorder = colorMainBorder
-        colorDialogBackCenter = colorMainBack1
-        colorDialogButtonBack = colorButtonBack
-        colorDialogButtonBorder = colorMainBorder
+        colorMainBorder = { getHSL(SHOP_FIRM_COLOR_2_H, SHOP_FIRM_COLOR_2_S, SHOP_FIRM_COLOR_2_L) }
 
         //--- с фирменным красным получается кроваво-страшновато :)
         colorWaitBack = getHSLA(SHOP_FIRM_COLOR_1_H, SHOP_FIRM_COLOR_1_S, 95, 0.75)
@@ -77,7 +52,9 @@ private class ShopIndex : Index() {
         colorWaitLoader1 = getHSL(SHOP_FIRM_COLOR_1_H, SHOP_FIRM_COLOR_1_S, 85)
         colorWaitLoader2 = getHSL(SHOP_FIRM_COLOR_1_H, SHOP_FIRM_COLOR_1_S, 90)
         colorWaitLoader3 = getHSL(SHOP_FIRM_COLOR_1_H, SHOP_FIRM_COLOR_1_S, 95)
-        
+
+        colorDialogBack = getHSLA(SHOP_FIRM_COLOR_1_H, SHOP_FIRM_COLOR_1_S, SHOP_FIRM_COLOR_1_L, 0.75)
+
         //--- менять здесь
         //styleDarkIcon = true
         //styleIconSize = 36
@@ -87,6 +64,10 @@ private class ShopIndex : Index() {
         hmTableIcon[ICON_NAME_FISCAL] = "/web/images/ic_theaters_${styleIconNameSuffix()}dp.png"
         hmTableIcon[ICON_NAME_CALC] = "/web/images/ic_shopping_cart_${styleIconNameSuffix()}dp.png"
 
+        colorGroupBack0 = { getHSL(SHOP_FIRM_COLOR_2_H, 60, 90) }
+        colorGroupBack1 = { getHSL(SHOP_FIRM_COLOR_2_H, 60, 95) }
+
+        colorTableRowBack1 = { colorMainBack0 }
     }
 
     override fun addBeforeMounted() {
@@ -351,7 +332,7 @@ private class ShopIndex : Index() {
             ),
             "style_calc_cash_input" to json(
                 "background" to COLOR_MAIN_BACK_0,
-                "border" to "1px solid $colorMainBorder",
+                "border" to "1px solid ${colorMainBorder()}",
                 "border-radius" to styleInputBorderRadius,
                 "font-size" to "${COMMON_FONT_SIZE * 2}rem",
                 "padding" to styleCommonEditorPadding(),

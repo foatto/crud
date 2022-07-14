@@ -1,107 +1,22 @@
 package foatto.core_web
 
-import kotlinx.browser.localStorage
 import kotlinx.browser.window
 
-//--- MAIN BACK ----------------------------------------------------------------------------------------------------------------------------------------------------------
+//--- Z-INDEX ------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-const val COLOR_MAIN_BACK_0 = "hsl(0,0%,100%)"     // main background - white color for input fields, etc.
-
-//--- different gray tones by default
-var colorMainBack0 = "hsl(0,0%,97%)"     // buttons
-var colorMainBack1 = "hsl(0,0%,94%)"     // panels, menus
-var colorMainBack2 = "hsl(0,0%,88%)"     // non-active tabs
-var colorMainBack3 = "hsl(0,0%,82%)"     // menu delimiters
-
-//--- BORDER -------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-var colorMainBorder = "hsl(120,41%,69%)"
-
-//--- TEXT ---------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-const val COLOR_MAIN_TEXT = "hsl(0,0%,0%)"
-
-//--- BUTTON -------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-var colorButtonBack = colorMainBack0
-var colorButtonBorder = colorMainBorder
-
-//--- LOGON FORM ---------------------------------------------------------------------------------------------------------------------------------------------------------
-
-var colorLogonBackAround = colorMainBack1
-var colorLogonBackCenter = colorMainBack2
-var colorLogonBorder = colorMainBorder
-var colorLogonButtonBack = colorButtonBack
-var colorLogonButtonBorder = colorMainBorder
+const val Z_INDEX_TABLE_CAPTION = 1
+const val Z_INDEX_TABLE_POPUP = 2
+const val Z_INDEX_GRAPHIC_VISIBILITY_LIST = 10
+const val Z_INDEX_GRAPHIC_DATA_LIST = 10
+const val Z_INDEX_MENU = 20
+const val Z_INDEX_ACTION_CONTAINER = 30
+const val Z_INDEX_ACTION_BODY = 31
+const val Z_INDEX_WAIT = 40
+const val Z_INDEX_LOADER = 41
+const val Z_INDEX_DIALOG = 50
+const val Z_INDEX_STATE_ALERT = 50
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-var colorCurrentAndHover = "hsl(60,100%,90%)"
-
-//--- MENU ---------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-const val IS_HIDDEN_MENU_BAR = "is_hidden_menu_bar"
-
-var colorMenuBack = colorMainBack1
-var colorMenuBorder = colorMainBorder
-var colorMenuDelimiter = colorMainBack1
-
-val MENU_DELIMITER = "&nbsp;".repeat(60)
-
-//--- TABLE --------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-var colorTableRowBack0 = "hsl(0,0%,100%)"
-var colorTableRowBack1 = "hsl(0,0%,97%)"
-
-var colorGroupBack0 = "hsl(120,35%,90%)"
-var colorGroupBack1 = "hsl(120,100%,95%)"
-
-//--- FORM ---------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-const val COLOR_FORM_SWITCH_BACK_ON = COLOR_MAIN_BACK_0
-
-//--- GRAPHIC ------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-const val COLOR_GRAPHIC_TIME_LINE = "hsl(180,100%,50%)"
-const val COLOR_GRAPHIC_LABEL_BACK = "hsl(60,100%,50%)"
-const val COLOR_GRAPHIC_LABEL_BORDER = "hsl(60,100%,25%)"
-const val COLOR_GRAPHIC_AXIS_DEFAULT = "hsl(0,0%,50%)"
-const val COLOR_GRAPHIC_DATA_BACK = "hsla(60,100%,50%,0.5)"
-
-//--- XY -----------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-const val COLOR_XY_LABEL_BACK = "hsl(60,100%,50%)"
-const val COLOR_XY_LABEL_BORDER = "hsl(60,100%,25%)"
-
-const val COLOR_XY_LINE = "hsl(180,100%,50%)"
-
-const val COLOR_XY_DISTANCER = "hsl(30,100%,50%)"
-
-const val COLOR_XY_ZONE_CASUAL = "hsla(60,100%,50%,0.25)"    // полупрозрачный жёлтый
-const val COLOR_XY_ZONE_ACTUAL = "hsla(30,100%,50%,0.25)"    // полупрозрачный оранжевый
-const val COLOR_XY_ZONE_BORDER = "hsl(0,100%,50%)"    // красный
-
-//--- DIALOG -------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-var colorDialogBack = "hsla(0,0%,0%,0.75)"
-var colorDialogBorder = colorMainBorder
-var colorDialogBackCenter = colorMainBack1
-var colorDialogButtonBack = colorButtonBack
-var colorDialogButtonBorder = colorMainBorder
-
-//--- WAIT ---------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-var colorWaitBack = "hsla(0,0%,100%,0.7)"
-var colorWaitLoader0 = "hsl(60,100%,80%)"
-var colorWaitLoader1 = "hsl(60,100%,85%)"
-var colorWaitLoader2 = "hsl(60,100%,90%)"
-var colorWaitLoader3 = "hsl(60,100%,95%)"
-
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-
-
 
 private val NARROW_SCREEN_WIDTH = 400
 val screenDPR = window.devicePixelRatio
@@ -127,124 +42,285 @@ fun styleIsTouchScreen(): Boolean {
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-val BORDER_RADIUS = "${if (screenDPR <= 1.0) 0.2 else 0.1}rem"
-const val BORDER_RADIUS_SMALL = "0.1rem"
+//--- по умолчанию - тёмные иконки на светлом фоне
+var styleDarkIcon = true
 
-//--- Common Control
+//--- по умолчанию - иконки размером 36dp (пока только на toolbar'ах)
+var styleIconSize = 36  // м.б. 48
 
-//--- кое-где используется как чисто числовое выражение, поэтому определяем без rem
+//--- суффикс наименовани типовой иконки material design
+fun styleIconNameSuffix() = (if (styleDarkIcon) "black" else "white") + "_" + styleIconSize
+
+//--- MAIN BACK ----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+const val COLOR_MAIN_BACK_0 = "hsl(0,0%,100%)"     // main background - white color for input fields, etc.
+
+//--- different gray tones by default
+private val MAIN_BACK_LIGHTNESS_0 = 97
+private val MAIN_BACK_LIGHTNESS_1 = 94
+private val MAIN_BACK_LIGHTNESS_2 = 88
+private val MAIN_BACK_LIGHTNESS_3 = 82
+
+var colorMainBack0 = getHSL(0, 0, MAIN_BACK_LIGHTNESS_0)     // buttons
+var colorMainBack1 = getHSL(0, 0, MAIN_BACK_LIGHTNESS_1)     // panels, menus
+var colorMainBack2 = getHSL(0, 0, MAIN_BACK_LIGHTNESS_2)     // non-active tabs
+var colorMainBack3 = getHSL(0, 0, MAIN_BACK_LIGHTNESS_3)     // menu delimiters
+
+//--- BORDER -------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+var colorMainBorder: () -> String = { getHSL(0, 0, 0) }
+
+var styleFormBorderRadius = "${if (screenDPR <= 1.0) 0.2 else 0.4}rem"
+var styleButtonBorderRadius = "${if (screenDPR <= 1.0) 0.2 else 0.4}rem"
+var styleInputBorderRadius = "${if (screenDPR <= 1.0) 0.2 else 0.4}rem"
+
+//--- TEXT ---------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+val COLOR_MAIN_TEXT = getHSL(0, 0, 0)
+
+//--- somewhere used as numerical value, define without "rem"
 val COMMON_FONT_SIZE = 1.0  //if( screenDPR <= 1.0 ) 1.0 else 1.0
 
-private val CONTROL_MARGIN = "${if (screenDPR <= 1.0) 0.1 else 0.1}rem"
+//--- COMMON CONTROL -----------------------------------------------------------------------------------------------------------------------------------------------------
 
-private val CONTROL_PADDING = "0.3rem" //"${if( screenDPR <= 1.0 ) 0.3 else 0.3}rem"
-private val CONTROL_TOP_DOWN_SIDE_PADDING = "${if (screenDPR <= 1.0) 0.1 else 0.1}rem"
-private val CONTROL_LEFT_RIGHT_SIDE_PADDING = "${if (screenDPR <= 1.0) 0.4 else 0.4}rem"
-private val CONTROL_BIG_PADDING = "${if (screenDPR <= 1.0) 0.95 else 0.95}rem"
+private val CONTROL_MARGIN = "0.1rem"
+
+val CONTROL_PADDING = "0.3rem"
+private val CONTROL_TOP_DOWN_SIDE_PADDING = "0.1rem"
+private val CONTROL_LEFT_RIGHT_SIDE_PADDING = "0.4rem"
+private val CONTROL_BIG_PADDING = "0.95rem"
 
 fun styleControlTitleTextFontSize() = "${COMMON_FONT_SIZE}rem"
 fun styleControlTextFontSize() = "${COMMON_FONT_SIZE}rem"
 fun styleCommonButtonFontSize() = "${COMMON_FONT_SIZE}rem"
 
-fun styleControlCheckBoxTransform() = "scale(${COMMON_FONT_SIZE * 2.0})"
 fun styleControlRadioTransform() = "scale(${if (!styleIsNarrowScreen) COMMON_FONT_SIZE * 1.5 else COMMON_FONT_SIZE})"
 
 fun styleControlPadding() = CONTROL_PADDING
 fun styleControlTitlePadding() = "0 $CONTROL_PADDING 0 $CONTROL_PADDING"
-fun styleIconButtonPadding() = "${if (screenDPR <= 1.0) 0.0 else 0.0}rem"       // 0.2
-fun styleTextButtonPadding() = "${if (screenDPR <= 1.0) 0.2 else 0.2}rem"       // 1.0
+fun styleIconButtonPadding() = "0.0rem"
+fun styleTextButtonPadding() = "0.2rem"
+var styleStateServerButtonTextPadding: () -> String = { styleTextButtonPadding() }
+var styleStateServerButtonTextFontWeight = "normal"
+
 fun styleCommonEditorPadding() = CONTROL_BIG_PADDING
+
 fun styleControlTooltipPadding() = "$CONTROL_PADDING $CONTROL_LEFT_RIGHT_SIDE_PADDING $CONTROL_PADDING $CONTROL_LEFT_RIGHT_SIDE_PADDING"
 fun styleTableGridCellTypePadding() = "$CONTROL_TOP_DOWN_SIDE_PADDING $CONTROL_PADDING $CONTROL_TOP_DOWN_SIDE_PADDING $CONTROL_PADDING"
 
 fun styleCommonMargin() = "0 $CONTROL_MARGIN 0 $CONTROL_MARGIN"
 
-//--- Dialog
+//--- Button ---
+
+var colorButtonBack: () -> String = { colorMainBack0 }
+var colorButtonBorder: () -> String = { colorMainBorder() }
+
+//--- Checkbox ---
+
+var styleCheckBoxWidth = "2rem"
+var styleCheckBoxHeight = "2rem"
+fun styleCheckBoxBorder() = "1px solid ${colorMainBorder()}"
+
+//--- WAIT ---------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+var colorWaitBack = "hsla(0,0%,100%,0.7)"
+var colorWaitLoader0 = "hsl(60,100%,80%)"
+var colorWaitLoader1 = "hsl(60,100%,85%)"
+var colorWaitLoader2 = "hsl(60,100%,90%)"
+var colorWaitLoader3 = "hsl(60,100%,95%)"
+
+//--- DIALOG -------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+var colorDialogBack = "hsla(0,0%,0%,0.75)"
+var colorDialogBorder: () -> String = { colorMainBorder() }
+var colorDialogBackCenter: () -> String = { colorMainBack1 }
+var colorDialogButtonBack: () -> String = { colorButtonBack() }
+var colorDialogButtonBorder: () -> String = { colorMainBorder() }
 
 fun styleDialogCellPadding() = "1.0rem"
 fun styleDialogControlPadding() = "0.4rem 0"
 fun styleDialogButtonPadding() = "1.0rem ${if (!styleIsNarrowScreen) 8 else scaledScreenWidth / 48}rem"
 //fun styleDialogButtonMargin() = "1.0rem 0 0 0"
 
-//--- MenuBar
+//--- LOGON FORM ---------------------------------------------------------------------------------------------------------------------------------------------------------
 
-var styleIsHiddenMenuBar = localStorage.getItem(IS_HIDDEN_MENU_BAR)?.toBooleanStrictOrNull() ?: true
+var colorLogonBackAround: () -> String = { colorMainBack1 }
+var colorLogonBackCenter: () -> String = { colorMainBack2 }
+var colorLogonBorder: () -> String = { colorMainBorder() }
+var colorLogonButtonBack: () -> String = { colorButtonBack() }
+var colorLogonButtonText = COLOR_MAIN_TEXT
+var colorLogonButtonBorder: () -> String = { colorButtonBorder() }
 
-//--- Logon
+var styleLogonTopExpanderContent = "&nbsp;"
+var styleLogonLogo = "logo.png"
+var styleLogonLogoContent = ""
+
+val styleLogonCellPadding = "${if (!styleIsNarrowScreen) "2.0rem" else "1.0rem"} 2.0rem"
+val styleLogonLogoPadding = "0.4rem 0 1.0rem 0"
+val styleLogonControlPadding = "0.4rem 0"
+val styleLogonCheckBoxMargin = "0rem 0.5rem 0rem 0rem"
+var styleLogonButtonPadding: () -> String = { "1.0rem ${if (!styleIsNarrowScreen) 8 else scaledScreenWidth / 48}rem" }
+val styleLogonButtonMargin = "1.0rem 0 ${if (!styleIsNarrowScreen) "1.0rem" else "0"} 0"
 
 fun styleLogonTextLen() = if (!styleIsNarrowScreen) 40 else scaledScreenWidth / 16
-fun styleLogonCellPadding() = "1.0rem"
+var styleLogonButtonText = "Вход"
+var styleLogonButtonFontWeight = "normal"
 
-//!!! проверить как будет выглядеть с другими logo !!! (у лого снизу padding побольше - для вертикального центрирования)
-fun styleLogonLogoPadding() = "0.4rem 0 1.0rem 0"
-fun styleLogonControlPadding() = "0.4rem 0"
-fun styleLogonCheckBoxMargin() = "0.4rem"           // опытным путём checkbox выровнен по левому краю input-box'ов
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-//--- в настольной версии - меньше чем ширина полей ввода, в мобильной - практически равна им
-fun styleLogonButtonPadding() = "1.0rem ${if (!styleIsNarrowScreen) 8 else scaledScreenWidth / 48}rem"
-fun styleLogonButtonMargin() = "1.0rem 0 0 0"       // отодвигаем logon button от остальных контролов на один ряд символов вниз
+var colorCurrentAndHover = "hsl(60,100%,90%)"
 
 //--- padding & margin for menu icon & tab panel
+private val menuTabPadMar = 0.3
 
-private fun sMenuTabPadMar() = if (screenDPR <= 1.0) 0.3 else 0.3
+//--- MENUS --------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-//--- Menu Icon
+//--- Main Menu ---
 
-fun styleMenuIconButtonMargin() = "0 ${sMenuTabPadMar()}rem 0 0"
+var styleIsHiddenMenuBar = true
+var styleMenuBar = ""
+var colorMenuCloserBack = colorMainBack1
+var colorMenuCloserButtonBack = COLOR_MAIN_TEXT
+var colorMenuCloserButtonText = COLOR_MAIN_BACK_0
 
-//--- Tab Panel
+var styleMainMenuTop = ""
+var styleTopBar = ""
 
-fun styleTabPanelPadding() = "${sMenuTabPadMar()}rem ${sMenuTabPadMar()}rem 0 ${sMenuTabPadMar()}rem"
+var colorMainMenuBack: () -> String = { colorMainBack1 }      // м.б. прозрачным из-за фонового рисунка фона главного меню
+var colorPopupMenuBack: () -> String = { colorMainBack1 }    // обычно всегда имеет сплошной цвет
+var colorMenuTextDefault = COLOR_MAIN_TEXT
+var colorMenuBorder: () -> String = { colorMainBorder() }
+var colorMenuDelimiter: () -> String = { colorMainBack3 }
+
+var colorMenuBackHover0 = colorCurrentAndHover
+var colorMenuTextHover0: String? = null
+
+var colorMenuBackHoverN = colorCurrentAndHover
+var colorMenuTextHoverN: String? = null
+
+val MENU_DELIMITER = "&nbsp;".repeat(60)
+
+fun styleMenuStartTop() = if (styleIsNarrowScreen) {
+    "3.4rem"
+} else {
+    "${if (screenDPR <= 1.0) 3.7 else 3.4}rem"
+}
+
+fun styleMenuIconButtonMargin() = if (styleIsNarrowScreen) {
+    "0 ${menuTabPadMar}rem 0 0"
+} else {
+    "${menuTabPadMar}rem ${menuTabPadMar}rem 0 0"
+}
+
+//--- Main & Popup Menus ---
+
+const val styleMenuStartPadding = "1.0rem 1.0rem 1.0rem 1.0rem"
+
+private fun styleMenuItemTopBottomPad(level: Int) = if (styleIsNarrowScreen) {
+    arrayOf(0.8, 0.6, 0.4)[level]
+} else {
+    arrayOf(0.8, 0.4, 0.2)[level]
+}
+
+private val arrStyleMenuItemSidePad = arrayOf(0.0, 1.0, 2.0)
+private val arrMenuFontSize = arrayOf(1.0, 0.9, 0.8)
+
+fun styleMenuWidth() = if (styleIsNarrowScreen) "85%" else if (!styleIsHiddenMenuBar) "17rem" else "auto"
+fun styleMenuItemPadding(level: Int) = "${styleMenuItemTopBottomPad(level)}rem ${arrStyleMenuItemSidePad[level]}rem ${styleMenuItemTopBottomPad(level)}rem ${arrStyleMenuItemSidePad[level]}rem"
+fun styleMenuFontSize(level: Int) = "${arrMenuFontSize[level]}rem"
+
+//--- APP CONTROL --------------------------------------------------------------------------------------------------------------------------------------------------------
+
+var styleAppControlPadding: () -> String = { "0" }
+
+//--- TAB PANEL ----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+var colorTabPanelBack = COLOR_MAIN_BACK_0
+var styleTabPanelPadding: () -> String = { "${menuTabPadMar}rem ${menuTabPadMar}rem 0 ${menuTabPadMar}rem" }
+
+var colorTabCurrentBack: () -> String = { colorMainBack1 }
+var styleTabCurrentTitleBorderLeft: () -> String = { "1px solid ${colorMainBorder()}" }
+var styleTabCurrentTitleBorderTop: () -> String = { "1px solid ${colorMainBorder()}" }
+var styleTabCurrentTitleBorderRight: () -> String = { "none" }
+var styleTabCurrentTitleBorderBottom: () -> String = { "none" }
+var styleTabCurrentCloserBorderLeft: () -> String = { "none" }
+var styleTabCurrentCloserBorderTop: () -> String = { "1px solid ${colorMainBorder()}" }
+var styleTabCurrentCloserBorderRight: () -> String = { "1px solid ${colorMainBorder()}" }
+var styleTabCurrentCloserBorderBottom: () -> String = { "1px solid $colorMainBack1" }
+
+var colorTabOtherBack: () -> String = { colorMainBack2 }
+var styleTabOtherTitleBorderLeft: () -> String = { "1px solid ${colorMainBorder()}" }
+var styleTabOtherTitleBorderTop: () -> String = { "1px solid ${colorMainBorder()}" }
+var styleTabOtherTitleBorderRight: () -> String = { "none" }
+var styleTabOtherTitleBorderBottom: () -> String = { "1px solid ${colorMainBorder()}" }
+var styleTabOtherCloserBorderLeft: () -> String = { "none" }
+var styleTabOtherCloserBorderTop: () -> String = { "1px solid ${colorMainBorder()}" }
+var styleTabOtherCloserBorderRight: () -> String = { "1px solid ${colorMainBorder()}" }
+var styleTabOtherCloserBorderBottom: () -> String = { "1px solid ${colorMainBorder()}" }
 
 //--- tab-combo - только на устройствах с узким экраном
-private fun sTabComboMargin() = sMenuTabPadMar()
-fun styleTabComboTextLen() = scaledScreenWidth / 16
+private val tabComboMargin = menuTabPadMar
+fun styleTabComboTextLen() = scaledScreenWidth / (if (styleIsNarrowScreen) 16 else 64)
 fun styleTabComboFontSize() = "${COMMON_FONT_SIZE}rem"
-fun styleTabComboPadding() = "${if (screenDPR <= 1.0) 0.55 else 0.55}rem"
-fun styleTabComboMargin() = "0 0 ${sTabComboMargin()}rem 0"
-fun styleTabCloserButtonMargin() = "0 0 ${sTabComboMargin()}rem ${sTabComboMargin()}rem"
+fun styleTabComboPadding() = "0.55rem"
+fun styleTabComboMargin() = "0 0 ${tabComboMargin}rem 0"
+fun styleTabCloserButtonMargin() = "0 0 ${tabComboMargin}rem ${tabComboMargin}rem"
 
-private fun sTabTitleTopPadding() = if (screenDPR <= 1.0) 0.7 else 0.7
-private fun sTabTitleSidePadding() = if (screenDPR <= 1.0) 0.6 else 0.6
-private fun sTabTitleBottomPadding() = if (screenDPR <= 1.0) 0.7 else 0.7
-private fun sTabCloserTopPadding() = if (screenDPR <= 1.0) 1.2 else 1.2
-private fun sTabCloserSidePadding() = if (screenDPR <= 1.0) 0.4 else 0.4
-private fun sTabCloserBottomPadding() = if (screenDPR <= 1.0) 1.2 else 1.2
-fun styleTabCurrentTitlePadding() = "${sTabTitleTopPadding()}rem ${sTabTitleSidePadding()}rem ${sTabTitleBottomPadding()}rem ${sTabTitleSidePadding()}rem"
-fun styleTabOtherTitlePadding() = "${sTabTitleTopPadding()}rem ${sTabTitleSidePadding()}rem ${sTabTitleBottomPadding()}rem ${sTabTitleSidePadding()}rem"
-fun styleTabButtonFontSize() = "${COMMON_FONT_SIZE}rem"
-fun styleTabCurrentCloserPadding() = "${sTabCloserTopPadding()}rem ${sTabCloserSidePadding()}rem ${sTabCloserBottomPadding()}rem ${sTabCloserSidePadding()}rem"
-fun styleTabOtherCloserPadding() = "${sTabCloserTopPadding()}rem ${sTabCloserSidePadding()}rem ${sTabCloserBottomPadding()}rem ${sTabCloserSidePadding()}rem"
+var styleTabCurrentTitlePadding = "0.7rem 0.6rem 0.7rem 0.6rem"
+var styleTabOtherTitlePadding = "0.7rem 0.6rem 0.7rem 0.6rem"
+var styleTabButtonFontSize = "${COMMON_FONT_SIZE}rem"
+var styleTabCurrentCloserPadding = "${if (screenDPR <= 1.0) 1.4 else 1.2}rem 0.4rem ${if (screenDPR <= 1.0) 1.4 else 1.2}rem 0.4rem"
+var styleTabOtherCloserPadding = "${if (screenDPR <= 1.0) 1.4 else 1.2}rem 0.4rem ${if (screenDPR <= 1.0) 1.4 else 1.2}rem 0.4rem"
 
-//--- Popup Menu
+//--- TABLE --------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-private fun styleMenuItemTopBottomPad() = if (screenDPR <= 1.0) 0.8 else 0.8
-private fun styleMenuItemSidePad_0() = if (screenDPR <= 1.0) 0.0 else 0.0   // 0.1
-private fun styleMenuItemSidePad_1() = if (screenDPR <= 1.0) 1.0 else 1.0
-private fun styleMenuItemSidePad_2() = if (screenDPR <= 1.0) 2.0 else 2.0
+var colorTableHeaderBack: () -> String = { colorMainBack1 }
+var colorTableToolbarBack: () -> String = { colorMainBack1 }
+var colorTablePagebarBack: () -> String = { colorMainBack1 }
 
-fun styleMenuStartTop() = "${if (screenDPR <= 1.0) 3.4 else 3.4}rem"
-fun styleMenuStartPadding() = "${if (screenDPR <= 1.0) 1.0 else 1.0}rem " +
-    "${if (screenDPR <= 1.0) 1.0 else 1.0}rem " +
-    "${if (screenDPR <= 1.0) 1.0 else 1.0}rem " +
-    "${if (screenDPR <= 1.0) 1.0 else 1.0}rem"
+var colorTableFindButtonBack: () -> String = { colorButtonBack() }
+var styleTableFindEditorBorderRadius: () -> String = { styleInputBorderRadius }
+var styleTableFindButtonBorderRadius: () -> String = { styleButtonBorderRadius }
+var styleTableFindControlMargin: () -> String = { styleCommonMargin() }
+fun styleTableFindEditLength() = scaledScreenWidth / (if (screenDPR <= 1.0) 64 else 24)
+val styleTableFindEditorFontSize = "${COMMON_FONT_SIZE}rem"
+fun styleTableFindEditorPadding() = when (styleIconSize) {
+    36 -> "0.56rem"
+    48 -> "0.95rem"
+    else -> "0.56rem"   // пусть лучше будет поменьше, чем раздирать тулбар
+}
 
-fun styleMenuWidth() = if (styleIsNarrowScreen) "85%" else if (!styleIsHiddenMenuBar) "20rem" else "auto"
-fun styleMenuFontSize() = "${if (screenDPR <= 1.0) 1.0 else 1.0}rem"
-fun styleMenuItemPadding_0() = "${styleMenuItemTopBottomPad()}rem ${styleMenuItemSidePad_0()}rem ${styleMenuItemTopBottomPad()}rem ${styleMenuItemSidePad_0()}rem"
-fun styleMenuItemPadding_1() = "${styleMenuItemTopBottomPad()}rem ${styleMenuItemSidePad_1()}rem ${styleMenuItemTopBottomPad()}rem ${styleMenuItemSidePad_1()}rem"
-fun styleMenuItemPadding_2() = "${styleMenuItemTopBottomPad()}rem ${styleMenuItemSidePad_2()}rem ${styleMenuItemTopBottomPad()}rem ${styleMenuItemSidePad_2()}rem"
+var colorToolbarButtonBack: () -> String = { colorButtonBack() }
+var colorRefreshButtonBack: () -> String = { colorButtonBack() }
+var styleToolbarButtonBorder: () -> String = { "1px solid ${colorButtonBorder()}" }
 
-//--- Table
+var styleTableCaptionBack: () -> String = { colorMainBack1 }
+var styleTableCaptionPadding: () -> String = { styleControlPadding() }
+var styleTableCaptionBorderLeft: () -> String = { "0.5px solid $${colorMainBorder()}" }
+var styleTableCaptionBorderTop: () -> String = { "1px solid ${colorMainBorder()}" }
+var styleTableCaptionBorderRight: () -> String = { "0.5px solid ${colorMainBorder()}" }
+var styleTableCaptionBorderBottom: () -> String = { "1px solid ${colorMainBorder()}" }
+var styleTableCaptionAlignH: () -> String = { "center" }    // flex-start
+var styleTableCaptionAlignV: () -> String = { "center" }    // flex-start
+var styleTableCaptionFontSize: () -> String = { styleTableTextFontSize() }
+var styleTableCaptionFontWeight: () -> String = { "normal" }
 
-fun styleTableFindEditLength() = scaledScreenWidth / (if (screenDPR <= 1.0) 48 else 24)
-fun styleTableFindEditorFontSize() = "${COMMON_FONT_SIZE}rem"
+var colorGroupBack0: () -> String = { COLOR_MAIN_BACK_0 }
+var colorGroupBack1: () -> String = { COLOR_MAIN_BACK_0 }
 
-fun styleTableTextFontSize() = "${if (!styleIsNarrowScreen) 1.0 else 0.8}rem"
+var colorTableRowBack0: () -> String = { COLOR_MAIN_BACK_0 }
+var colorTableRowBack1: () -> String = { COLOR_MAIN_BACK_0 }
 
-private fun sTablePageBarTopBottomPadding() = if (screenDPR <= 1.0) 0.3 else 0.3
-fun styleTablePageBarPadding() = "${sTablePageBarTopBottomPadding()}rem $CONTROL_PADDING ${sTablePageBarTopBottomPadding()}rem $CONTROL_PADDING"
-fun styleTablePageButtonWidth(buttonCount: Int) =
+var colorTableRowHover: () -> String = { colorCurrentAndHover }
+
+var styleTableTextFontSize: () -> String = { "${if (!styleIsNarrowScreen) 1.0 else 0.8}rem" }
+
+var colorTablePageBarCurrentBack: () -> String = { colorButtonBack() }
+var styleTablePageBarOtherBorder: () -> String = { "1px solid ${colorButtonBorder()}" }
+
+private const val tablePageBarTopBottomPadding = 0.3
+fun styleTablePageBarPadding() = "${tablePageBarTopBottomPadding}rem $CONTROL_PADDING ${tablePageBarTopBottomPadding}rem $CONTROL_PADDING"
+var styleTablePageButtonWidth: (Int) -> String = { buttonCount ->
     if (styleIsNarrowScreen) {
         val buttonWidth = when (buttonCount) {
             4 -> 3.4    // 5.2 - слишком крупно и глуповато, используется всего один раз
@@ -258,8 +334,9 @@ fun styleTablePageButtonWidth(buttonCount: Int) =
     } else {
         "6.0rem"
     }
+}
 
-fun styleTablePageButtonFontSize(buttonCount: Int) =
+var styleTablePageButtonFontSize: (Int) -> String = { buttonCount ->
     if (styleIsNarrowScreen) {
         val fontSize = when (buttonCount) {
             4 -> 1.7    // 2.6 - слишком крупно и глуповато, используется всего один раз
@@ -273,8 +350,17 @@ fun styleTablePageButtonFontSize(buttonCount: Int) =
     } else {
         "2.6rem"
     }
+}
 
-//--- Form
+//--- FORM ---------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+var colorFormBack: () -> String = { colorMainBack1 }
+var styleFormLabelWeight: () -> String = { "normal" }
+var colorFormButtonBack: () -> String = { colorButtonBack() }
+var styleFormButtonBorder: () -> String = { "1px solid ${colorButtonBorder()}" }
+var colorFormActionButtonSaveBack: () -> String = { colorButtonBack() }
+var colorFormActionButtonOtherBack: () -> String = { colorButtonBack() }
+var styleFormActionButtonBorder: () -> String = { "1px solid ${colorButtonBorder()}" }
 
 fun styleFormEditBoxColumn(initSize: Int) = if (!styleIsNarrowScreen) initSize else if (initSize <= scaledScreenWidth / 19) initSize else scaledScreenWidth / 19
 
@@ -286,18 +372,51 @@ fun styleFormCheckboxAndRadioMargin() = "0.5rem"
 fun styleFileNameButtonPadding() = "0.95rem"
 fun styleFileNameButtonMargin() = "0.1rem"
 
+const val COLOR_FORM_SWITCH_BACK_ON = COLOR_MAIN_BACK_0
+
+//--- GRAPHIC ------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+const val COLOR_GRAPHIC_TIME_LINE = "hsl(180,100%,50%)"
+const val COLOR_GRAPHIC_LABEL_BACK = "hsl(60,100%,50%)"
+const val COLOR_GRAPHIC_LABEL_BORDER = "hsl(60,100%,25%)"
+const val COLOR_GRAPHIC_AXIS_DEFAULT = "hsl(0,0%,50%)"
+const val COLOR_GRAPHIC_DATA_BACK = "hsla(60,100%,50%,0.5)"
+
+var colorGraphicToolbarBack: () -> String = { colorMainBack1 }
+
+//--- XY -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+const val COLOR_XY_LABEL_BACK = "hsl(60,100%,50%)"
+const val COLOR_XY_LABEL_BORDER = "hsl(60,100%,25%)"
+
+const val COLOR_XY_LINE = "hsl(180,100%,50%)"
+
+const val COLOR_XY_DISTANCER = "hsl(30,100%,50%)"
+
+const val COLOR_XY_ZONE_CASUAL = "hsla(60,100%,50%,0.25)"    // полупрозрачный жёлтый
+const val COLOR_XY_ZONE_ACTUAL = "hsla(30,100%,50%,0.25)"    // полупрозрачный оранжевый
+const val COLOR_XY_ZONE_BORDER = "hsl(0,100%,50%)"          // красный
+
+var colorXyToolbarBack: () -> String = { colorMainBack1 }
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
 //--- Graphic
 
-fun styleGraphicVisibilityTop() = "${if (screenDPR <= 1.0) 9.0 else 9.0}rem"
+fun styleGraphicVisibilityTop() = "10.5rem"
 fun styleGraphicVisibilityMaxWidth() = if (styleIsNarrowScreen) "85%" else "20rem"
-fun styleGraphicDataTop() = "${if (screenDPR <= 1.0) 9.0 else 9.0}rem"
+fun styleGraphicDataTop() = "10.8rem"
 fun styleGraphicDataMaxWidth() = if (styleIsNarrowScreen) "85%" else "30rem"
 fun styleGraphicTimeLabelPadding() = "$CONTROL_PADDING $CONTROL_LEFT_RIGHT_SIDE_PADDING $CONTROL_PADDING $CONTROL_LEFT_RIGHT_SIDE_PADDING"
 
 //--- Xy
 
-private val XY_PADDING = "${if (screenDPR <= 1.0) 0.2 else 0.2}rem"
-private val XY_SIDE_PADDING = "${if (screenDPR <= 1.0) 0.4 else 0.4}rem"
+private val XY_PADDING = "0.2rem"
+private val XY_SIDE_PADDING = "0.4rem"
 
 fun styleXyDistancerPadding() = "$XY_PADDING $XY_SIDE_PADDING $XY_PADDING $XY_SIDE_PADDING"
 fun styleXyTextPadding() = "$XY_PADDING $XY_SIDE_PADDING $XY_PADDING $XY_SIDE_PADDING"

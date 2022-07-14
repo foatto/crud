@@ -262,7 +262,10 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                          v-bind:src="formButton.icon"
                          v-on:click="invoke( formButton.url, formButton.withNewData )"
                          v-bind:key="'fb_'+$tabId+'_'+formButton.id"
-                         v-bind:style="style_icon_button"
+                         v-bind:style="[ 
+                            style_action_button , 
+                            { 'background' : ( formButton.withNewData ? '${colorFormActionButtonSaveBack()}': '${colorFormActionButtonOtherBack()}' ) } 
+                         ]"
                          v-bind:title="formButton.tooltip"
                     >
                     <span v-else>
@@ -721,7 +724,7 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
             "display" to "grid",
             "grid-template-rows" to "repeat(${rowIndex + 1},max-content)",
             "grid-template-columns" to "repeat($maxColumnCount,auto)",
-            "background" to colorMainBack1
+            "background" to colorFormBack(),
         )
         //--- перепакуем внутренние списки в массивы
         that().hmFormCellVisible = hmFormCellVisible.mapValues { entry -> entry.value.toTypedArray() }
@@ -772,10 +775,10 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                 "flex-wrap" to "wrap",
                 "justify-content" to "center",
                 "align-items" to "center",        // "baseline" ?
-                "border-top" to if (!styleIsNarrowScreen) "none" else "1px solid $colorMainBorder",
-                "border-bottom" to "1px solid $colorMainBorder",
+                "border-top" to if (!styleIsNarrowScreen) "none" else "1px solid ${colorMainBorder()}",
+                "border-bottom" to "1px solid ${colorMainBorder()}",
                 "padding" to styleControlPadding(),
-                "background" to colorMainBack1,
+                "background" to colorFormBack(),
             ),
             "style_button_bar" to json(
                 "flex-grow" to 0,
@@ -785,27 +788,35 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                 "flex-wrap" to "wrap",
                 "justify-content" to if (!styleIsNarrowScreen) "center" else "space-between",
                 "align-items" to "center",
-                "border-top" to "1px solid $colorMainBorder",
+                "border-top" to "1px solid ${colorMainBorder()}",
                 "padding" to styleControlPadding(),
-                "background" to colorMainBack1,
+                "background" to colorFormBack(),
             ),
             "style_title" to json(
                 "font-size" to styleControlTitleTextFontSize(),
                 "padding" to styleControlTitlePadding(),
             ),
+            "style_action_button" to json(
+                "border" to styleFormActionButtonBorder(),
+                "border-radius" to styleButtonBorderRadius,
+                "font-size" to styleCommonButtonFontSize(),
+                "padding" to styleIconButtonPadding(),
+                "margin" to styleCommonMargin(),
+                "cursor" to "pointer",
+            ),
             "style_icon_button" to json(
-                "background" to colorButtonBack,
-                "border" to "1px solid $colorButtonBorder",
-                "border-radius" to BORDER_RADIUS,
+                "background" to colorFormButtonBack(),
+                "border" to styleFormButtonBorder(),
+                "border-radius" to styleButtonBorderRadius,
                 "font-size" to styleCommonButtonFontSize(),
                 "padding" to styleIconButtonPadding(),
                 "margin" to styleCommonMargin(),
                 "cursor" to "pointer",
             ),
             "style_text_button" to json(
-                "background" to colorButtonBack,
-                "border" to "1px solid $colorButtonBorder",
-                "border-radius" to BORDER_RADIUS,
+                "background" to colorButtonBack(),
+                "border" to "1px solid ${colorButtonBorder()}",
+                "border-radius" to styleButtonBorderRadius,
                 "font-size" to styleCommonButtonFontSize(),
                 "padding" to styleTextButtonPadding(),
                 "margin" to styleCommonMargin(),
@@ -813,31 +824,36 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
             ),
             "style_form_row_label" to json(
                 "font-size" to styleControlTextFontSize(),
+                "font-weight" to styleFormLabelWeight(),
             ),
             "style_form_row_input" to json(
                 "background" to COLOR_MAIN_BACK_0,
-                "border" to "1px solid $colorMainBorder",
-                "border-radius" to BORDER_RADIUS_SMALL,
+                "border" to "1px solid ${colorMainBorder()}",
+                "border-radius" to styleInputBorderRadius,
                 "font-size" to styleControlTextFontSize(),
                 "padding" to styleCommonEditorPadding(),
                 "margin" to styleCommonMargin(),
             ),
             "style_form_row_checkbox" to json(
-                "transform" to styleControlCheckBoxTransform(),
+                "appearance" to "none",
+                "width" to styleCheckBoxWidth,
+                "height" to styleCheckBoxHeight,
+                "border" to styleCheckBoxBorder(),
+                "border-radius" to styleInputBorderRadius,
                 "margin" to styleFormCheckboxAndRadioMargin(),
             ),
             "style_form_switch_off" to json(
                 "background" to colorMainBack1,
-                "border" to "1px solid $colorMainBorder",
-                "border-radius" to BORDER_RADIUS,
+                "border" to "1px solid ${colorMainBorder()}",
+                "border-radius" to styleButtonBorderRadius,
                 "font-size" to styleCommonButtonFontSize(),
                 "padding" to styleFileNameButtonPadding(),
                 "cursor" to "pointer",
             ),
             "style_form_switch_on" to json(
                 "background" to COLOR_FORM_SWITCH_BACK_ON,
-                "border" to "1px solid $colorMainBorder",
-                "border-radius" to BORDER_RADIUS,
+                "border" to "1px solid ${colorMainBorder()}",
+                "border-radius" to styleButtonBorderRadius,
                 "font-size" to styleCommonButtonFontSize(),
                 "padding" to styleFileNameButtonPadding(),
                 "cursor" to "pointer",
@@ -862,9 +878,9 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                 "align-items" to "center",
             ),
             "style_row_file_name_button" to json(
-                "background" to colorButtonBack,
-                "border" to "1px solid $colorButtonBorder",
-                "border-radius" to BORDER_RADIUS,
+                "background" to colorButtonBack(),
+                "border" to "1px solid ${colorButtonBorder()}",
+                "border-radius" to styleButtonBorderRadius,
                 "font-size" to styleCommonButtonFontSize(),
                 "padding" to styleFileNameButtonPadding(),
                 "margin" to styleFileNameButtonMargin(),

@@ -42,48 +42,19 @@ private class OfficeIndex : Index() {
         colorMainBack2 = getHSL(OFFICE_FIRM_COLOR_1_H, OFFICE_FIRM_COLOR_1_S, 85)
         colorMainBack3 = getHSL(OFFICE_FIRM_COLOR_1_H, OFFICE_FIRM_COLOR_1_S, 80)
 
-        colorMainBorder = getHSL(OFFICE_FIRM_COLOR_3_H, OFFICE_FIRM_COLOR_3_S, OFFICE_FIRM_COLOR_3_L)
-
-        colorButtonBack = colorMainBack0
-        colorButtonBorder = colorMainBorder
-
-        colorLogonBackAround = colorMainBack1
-        colorLogonBackCenter = colorMainBack2
-        colorLogonBorder = colorMainBorder
-        colorLogonButtonBack = colorButtonBack
-        colorLogonButtonBorder = colorButtonBorder
-
-        colorMainMenuBack = colorMainBack1
-        colorPopupMenuBack = colorMainBack1
-        colorMenuBorder = colorMainBorder
-        colorMenuDelimiter = colorMainBack3
-/*
-var colorMenuBack0 = colorMainBack1
-var colorMenuBackHover0 = colorCurrentAndHover
-var styleMenuBold0 = false
-var colorMenuTextHover0: String? = null
-
-var colorMenuBackN = colorMainBack1
-var colorMenuBackHoverN = colorCurrentAndHover
-var styleMenuBoldN = false
-var colorMenuTextHoverN: String? = null
- */
-
-        colorTableRowBack1 = colorMainBack0
-
-        colorGroupBack0 = getHSL(OFFICE_FIRM_COLOR_3_H, 80, 90)
-        colorGroupBack1 = getHSL(OFFICE_FIRM_COLOR_3_H, 80, 95)
-
-        colorDialogBack = getHSLA(OFFICE_FIRM_COLOR_1_H, OFFICE_FIRM_COLOR_1_S, OFFICE_FIRM_COLOR_1_L, 0.75)
-        colorDialogBorder = colorMainBorder
-        colorDialogBackCenter = colorMainBack1
-        colorDialogButtonBack = colorButtonBack
-        colorDialogButtonBorder = colorMainBorder
+        colorMainBorder = { getHSL(OFFICE_FIRM_COLOR_3_H, OFFICE_FIRM_COLOR_3_S, OFFICE_FIRM_COLOR_3_L) }
 
         colorWaitBack = getHSLA(OFFICE_FIRM_COLOR_2_H, OFFICE_FIRM_COLOR_2_S, 95, 0.75)
         colorWaitLoader0 = getHSL(OFFICE_FIRM_COLOR_2_H, OFFICE_FIRM_COLOR_2_S, 80)
         colorWaitLoader1 = getHSL(OFFICE_FIRM_COLOR_2_H, OFFICE_FIRM_COLOR_2_S, 85)
         colorWaitLoader2 = getHSL(OFFICE_FIRM_COLOR_2_H, OFFICE_FIRM_COLOR_2_S, 90)
         colorWaitLoader3 = getHSL(OFFICE_FIRM_COLOR_2_H, OFFICE_FIRM_COLOR_2_S, 95)
+
+        colorDialogBack = getHSLA(OFFICE_FIRM_COLOR_1_H, OFFICE_FIRM_COLOR_1_S, OFFICE_FIRM_COLOR_1_L, 0.75)
+
+        colorGroupBack0 = { getHSL(OFFICE_FIRM_COLOR_3_H, 80, 90) }
+        colorGroupBack1 = { getHSL(OFFICE_FIRM_COLOR_3_H, 80, 95) }
+
+        colorTableRowBack1 = { colorMainBack0 }
     }
 }

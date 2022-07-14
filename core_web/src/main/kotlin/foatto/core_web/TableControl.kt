@@ -30,7 +30,7 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                     <button v-if="titleData.url"
                             v-on:click="invoke( titleData.url, false )"
                             v-bind:key="'thb'+titleData.id"
-                            v-bind:style="[ style_text_button, style_button_with_border ]"
+                            v-bind:style="style_title_button"
                     >
                             
                         {{ titleData.text }}
@@ -46,7 +46,7 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                     <img src="/web/images/ic_reply_all_${styleIconNameSuffix()}dp.png" 
                          v-if="selectorCancelURL"
                          v-on:click="invoke( selectorCancelURL, false )"
-                         v-bind:style="[ style_icon_button, style_button_with_border ]"
+                         v-bind:style="style_toolbar_button"
                          title="Отменить выбор"
                     >
                     <input type="text"
@@ -59,12 +59,12 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                     >
                     <img src="/web/images/ic_search_${styleIconNameSuffix()}dp.png" 
                          v-on:click="doFind( false )"
-                         v-bind:style="[ style_icon_button, style_button_with_border ]"
+                         v-bind:style="style_find_button"
                          title="Искать"
                     >
                     <img src="/web/images/ic_youtube_searched_for_${styleIconNameSuffix()}dp.png" 
                          v-show="findText" 
-                         v-bind:style="[ style_icon_button, style_button_with_border ]"
+                         v-bind:style="style_find_button"
                          v-on:click="doFind( true )"
                          title="Отключить поиск"
                     >
@@ -76,24 +76,24 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                          v-bind:key="'add'+addButton.id"
                          v-bind:src="addButton.icon"                         
                          v-bind:title="addButton.tooltip"
-                         v-bind:style="[ style_icon_button, style_button_with_border ]"
+                         v-bind:style="style_toolbar_button"
                          v-on:click="invoke( addButton.url, false )"
                     >
                     <img src="/web/images/ic_mode_edit_${styleIconNameSuffix()}dp.png" 
                          v-show="( !${styleIsNarrowScreen} || !isFindTextVisible ) && isFormButtonVisible" 
-                         v-bind:style="[ style_icon_button, style_button_with_border ]"
+                         v-bind:style="style_toolbar_button"
                          title="Открыть форму"
                          v-on:click="doForm()"
                     >
                     <img src="/web/images/ic_exit_to_app_${styleIconNameSuffix()}dp.png" 
                          v-show="( !${styleIsNarrowScreen} || !isFindTextVisible ) && isGotoButtonVisible" 
-                         v-bind:style="[ style_icon_button, style_button_with_border ]"
+                         v-bind:style="style_toolbar_button"
                          title="Перейти"
                          v-on:click="doGoto()"
                     >
                     <img src="/web/images/ic_menu_${styleIconNameSuffix()}dp.png" 
                          v-show="( !${styleIsNarrowScreen} || !isFindTextVisible ) && isPopupButtonVisible" 
-                         v-bind:style="[ style_icon_button, style_button_with_border ]"
+                         v-bind:style="style_toolbar_button"
                          title="Показать операции по строке"
                          v-on:click="doPopup()"
                     >
@@ -104,7 +104,7 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                             v-show="!${styleIsNarrowScreen} || (!isFindTextVisible && !serverButton.isForWideScreenOnly)" 
                             v-bind:key="'sb'+serverButton.id"
                             v-on:click="invoke( serverButton.url, serverButton.inNewWindow )"
-                            v-bind:style="[ style_icon_button, style_button_with_border ]"
+                            v-bind:style="style_toolbar_button"
                             v-bind:title="serverButton.tooltip"
                     >
                         <img v-if="serverButton.icon" v-bind:src="serverButton.icon">
@@ -119,7 +119,7 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                             v-show="!${styleIsNarrowScreen} || (!isFindTextVisible && !clientButton.isForWideScreenOnly)" 
                             v-bind:key="'cb'+clientButton.id"
                             v-on:click="clientAction( clientButton.action, clientButton.params )"
-                            v-bind:style="[ style_icon_button, style_button_with_border ]"
+                            v-bind:style="style_toolbar_button"
                             v-bind:title="clientButton.tooltip"
                     >
                         <img v-if="clientButton.icon" v-bind:src="clientButton.icon">
@@ -147,7 +147,7 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                     >
                     <img src="/web/images/ic_sync_${styleIconNameSuffix()}dp.png" 
                          v-show="( !${styleIsNarrowScreen} || !isFindTextVisible )"
-                         v-bind:style="[ style_icon_button, style_button_with_border ]"
+                         v-bind:style="style_refresh_button"
                          title="Обновить"
                          v-on:click="invoke( '$appParam', false )"
                     >
@@ -160,7 +160,7 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                      v-bind:style="[
                         gridData.cellStyle,
                         { 'background' : ( gridData.row >= 0 && currentRow >= gridData.row && currentRow < gridData.row + gridData.rowSpan ?
-                                          '$colorCurrentAndHover' : gridData.backColor ) }
+                                          '${colorTableRowHover()}' : gridData.backColor ) }
                      ]"
                      v-on:dblclick.prevent="gridData.row >= 0 && arrRowData[ gridData.row ].rowURL ?
                                     invoke( arrRowData[ gridData.row ].rowURL, arrRowData[ gridData.row ].itRowURLInNewWindow ) : null"
@@ -230,13 +230,13 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                     <button v-if="pageButton.url"
                             v-on:click="invoke( pageButton.url, false )"
                             v-bind:key="'pb'+pageButton.id"
-                            v-bind:style="[ style_icon_button, style_button_with_border, style_page_button ]">
+                            v-bind:style="[ style_page_other_button_base, style_page_button ]">
 
                         {{pageButton.text}}
                     </button>
                     <button v-else
                           v-bind:key="'ps'+pageButton.id"
-                          v-bind:style="[ style_icon_button, style_button_no_border, style_page_button ]">
+                          v-bind:style="[ style_page_current_button_base, style_page_button ]">
                           
                         {{pageButton.text}}
                     </button>
@@ -405,20 +405,21 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                         "grid-area" to "${startRow + 1} / ${index + 1} / ${startRow + 2} / ${index + 2}",
                         "justify-self" to "stretch",
                         "align-self" to "stretch",
-                        "border-left" to "0.5px solid $colorMainBorder",
-                        "border-top" to "none",
-                        "border-right" to "0.5px solid $colorMainBorder",
-                        "border-bottom" to "1px solid $colorMainBorder",
+                        "border-left" to styleTableCaptionBorderLeft(),
+                        "border-top" to "none", // used toolbar bottom border instead
+                        "border-right" to styleTableCaptionBorderRight(),
+                        "border-bottom" to styleTableCaptionBorderBottom(),
                         "cursor" to if (url.isBlank()) {
                             "default"
                         } else {
                             "pointer"
                         },
                         "display" to "flex",
-                        "justify-content" to "center",
-                        "align-items" to "center",
-                        "font-size" to styleTableTextFontSize(),
-                        "padding" to styleControlPadding(),
+                        "justify-content" to styleTableCaptionAlignH(),
+                        "align-items" to styleTableCaptionAlignH(),
+                        "font-size" to styleTableCaptionFontSize(),
+                        "font-weight" to styleTableCaptionFontWeight(),
+                        "padding" to styleTableCaptionPadding(),
                         //--- sticky header
                         "position" to "sticky",
                         "top" to "0",
@@ -427,11 +428,9 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                     elementStyle = json(
                     ),
                     rowSpan = 1,
-                    backColor = colorMainBack1,
+                    backColor = styleTableCaptionBack(),
                     tooltip = if (url.isBlank()) "" else "Сортировать по этому столбцу",
-                    textCellData = TableTextCellData_(
-                        text = text
-                    ),
+                    textCellData = TableTextCellData_(text = text), // the parameter name is urgent!
                     row = -1            // special row number as flag for table header row
                 )
                 captionCell.cellURL = url
@@ -445,12 +444,12 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                 val backColor =
                     when (tc.backColorType.toString()) {
                         TableCellBackColorType.DEFINED.toString() -> getColorFromInt(tc.backColor)
-                        TableCellBackColorType.GROUP_0.toString() -> colorGroupBack0
-                        TableCellBackColorType.GROUP_1.toString() -> colorGroupBack1
+                        TableCellBackColorType.GROUP_0.toString() -> colorGroupBack0()
+                        TableCellBackColorType.GROUP_1.toString() -> colorGroupBack1()
                         else -> if (tc.row % 2 == 0) {
-                            colorTableRowBack0
+                            colorTableRowBack0()
                         } else {
-                            colorTableRowBack1
+                            colorTableRowBack1()
                         }
                     }
                 val textColor =
@@ -481,7 +480,6 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                     "grid-area" to "${startRow + tc.row + 1} / ${tc.col + 1} / ${startRow + tc.row + 1 + tc.rowSpan} / ${tc.col + 1 + tc.colSpan}",
                     "justify-self" to "stretch",
                     "align-self" to "stretch",
-                    //--- пока не будем менять размер вместе с толщиной шрифта (потом сделаем явную передачу увеличения размера шрифта)
                     "font-weight" to (if (tc.fontStyle == 0) "normal" else "bold"),
                     "padding" to styleControlPadding()
                 )
@@ -560,9 +558,9 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                                     url = cellData.url,
                                     inNewWindow = cellData.inNewWindow,
                                     style = json(
-                                        "border" to "1px solid $colorButtonBorder",
+                                        "border" to "1px solid ${colorButtonBorder()}",
                                         "border-radius" to styleButtonBorderRadius,
-                                        "background" to colorButtonBack,
+                                        "background" to colorButtonBack(),
                                         "color" to textColor,
                                         "font-size" to styleCommonButtonFontSize(),
                                         "padding" to styleTextButtonPadding(),
@@ -878,9 +876,9 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                 "flex-wrap" to "wrap",
                 "justify-content" to "center",
                 "align-items" to "center",        // "baseline" ?
-                "border-top" to if (!styleIsNarrowScreen) "none" else "1px solid $colorMainBorder",
+                "border-top" to if (!styleIsNarrowScreen) "none" else "1px solid ${colorMainBorder()}",
                 "padding" to styleControlPadding(),
-                "background" to colorMainBack1,
+                "background" to colorTableHeaderBack(),
             ),
             "style_toolbar" to json(
                 "flex-grow" to 0,
@@ -890,9 +888,9 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                 "flex-wrap" to "wrap",
                 "justify-content" to "space-between",
                 "align-items" to "center",
-                "border-bottom" to "1px solid $colorMainBorder",
+                "border-bottom" to styleTableCaptionBorderTop(),
                 "padding" to styleControlPadding(),
-                "background" to colorMainBack1,
+                "background" to colorTableToolbarBack(),
             ),
             "style_toolbar_block" to json(
                 "display" to "flex",
@@ -900,6 +898,24 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                 "flex-wrap" to "nowrap",
                 "justify-content" to "center",
                 "align-items" to "center",
+            ),
+            "style_toolbar_button" to json(
+                "background" to colorToolbarButtonBack(),
+                "font-size" to styleCommonButtonFontSize(),
+                "padding" to styleIconButtonPadding(),
+                "margin" to styleCommonMargin(),
+                "cursor" to "pointer",
+                "border" to styleToolbarButtonBorder(),
+                "border-radius" to styleButtonBorderRadius,
+            ),
+            "style_refresh_button" to json(
+                "background" to colorRefreshButtonBack(),
+                "font-size" to styleCommonButtonFontSize(),
+                "padding" to styleIconButtonPadding(),
+                "margin" to styleCommonMargin(),
+                "cursor" to "pointer",
+                "border" to styleToolbarButtonBorder(),
+                "border-radius" to styleButtonBorderRadius,
             ),
             "style_pagebar" to json(
                 "flex-grow" to 0,
@@ -909,48 +925,62 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                 "flex-wrap" to "wrap",
                 "justify-content" to "center",
                 "align-items" to "center",
-                "border-top" to "1px solid $colorMainBorder",
+                "border-top" to "1px solid ${colorMainBorder()}",
                 "padding" to styleTablePageBarPadding(),
-                "background" to colorMainBack1,
+                "background" to colorTablePagebarBack(),
             ),
             "style_title" to json(
                 "font-size" to styleControlTitleTextFontSize(),
                 "padding" to styleControlTitlePadding(),
             ),
-            "style_icon_button" to json(
-                "background" to colorButtonBack,
-                "font-size" to styleCommonButtonFontSize(),
-                "padding" to styleIconButtonPadding(),
-                "margin" to styleCommonMargin(),
-                "cursor" to "pointer"
-            ),
-            "style_text_button" to json(
-                "background" to colorButtonBack,
+            "style_title_button" to json(
+                "background" to colorButtonBack(),
                 "font-size" to styleCommonButtonFontSize(),
                 "padding" to styleTextButtonPadding(),
                 "margin" to styleCommonMargin(),
                 "cursor" to "pointer",
-            ),
-            "style_button_with_border" to json(
-                "border" to "1px solid $colorButtonBorder",
+                "border" to "1px solid ${colorButtonBorder()}",
                 "border-radius" to styleButtonBorderRadius,
-            ),
-            "style_button_no_border" to json(
-                "border" to "none",
             ),
             "style_find_editor_len" to styleTableFindEditLength(),
             "style_find_editor" to json(
-                "border" to "1px solid $colorMainBorder",
-                "border-radius" to styleInputBorderRadius,
+                "border" to "1px solid ${colorMainBorder()}",
+                "border-radius" to styleTableFindEditorBorderRadius(),
                 "font-size" to styleTableFindEditorFontSize,
                 "padding" to styleTableFindEditorPadding(),
-                "margin" to styleCommonMargin(),
+                "margin" to styleTableFindControlMargin(),
+            ),
+            "style_find_button" to json(
+                "background" to colorTableFindButtonBack(),
+                "font-size" to styleCommonButtonFontSize(),
+                "padding" to styleIconButtonPadding(),
+                "margin" to styleTableFindControlMargin(),
+                "cursor" to "pointer",
+                "border" to "1px solid ${colorButtonBorder()}",
+                "border-radius" to styleTableFindButtonBorderRadius(),
             ),
             "style_cursor_box" to json(
                 "border" to "none",
                 "outline" to "none",
                 "background" to "hsla(0,0%,0%,0)",
                 "color" to "hsla(0,0%,0%,0)",
+            ),
+            "style_page_current_button_base" to json(
+                "background" to colorTablePageBarCurrentBack(),
+                "font-size" to styleCommonButtonFontSize(),
+                "padding" to styleIconButtonPadding(),
+                "margin" to styleCommonMargin(),
+                "cursor" to "pointer",
+                "border" to "none",
+            ),
+            "style_page_other_button_base" to json(
+                "background" to colorButtonBack(),
+                "font-size" to styleCommonButtonFontSize(),
+                "padding" to styleIconButtonPadding(),
+                "margin" to styleCommonMargin(),
+                "cursor" to "pointer",
+                "border" to styleTablePageBarOtherBorder(),
+                "border-radius" to styleButtonBorderRadius,
             ),
             "style_page_button" to json(
                 //--- определяются в зависимости от кол-ва кнопок
@@ -964,9 +994,9 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                 "bottom" to if (styleIsNarrowScreen) "20%" else "10%",
                 "width" to styleMenuWidth(),
                 //"min-width" to styleMenuWidth(), - не уверен, что потребуется
-                "background" to colorPopupMenuBack,
+                "background" to colorPopupMenuBack(),
                 "color" to colorMenuTextDefault,
-                "border" to "1px solid $colorMenuBorder",
+                "border" to "1px solid ${colorMenuBorder()}",
                 "border-radius" to styleFormBorderRadius,
                 "font-size" to styleMenuFontSize(0),
                 "padding" to styleMenuStartPadding,
