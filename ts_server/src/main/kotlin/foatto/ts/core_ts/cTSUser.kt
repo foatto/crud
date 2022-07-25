@@ -45,8 +45,8 @@ class cTSUser : cStandart() {
         (hmColumnData[mc.columnControlEnabled] as DataBoolean).value = controlEnableSaved((hmColumnData[mc.columnId] as DataInt).intValue)
     }
 
-    override fun getTableColumnStyle(rowNo: Int, isNewRow: Boolean, hmColumnData: Map<iColumn, iData>, column: iColumn, tci: TableCell) {
-        super.getTableColumnStyle(rowNo, isNewRow, hmColumnData, column, tci)
+    override fun getTableColumnStyle(isNewRow: Boolean, hmColumnData: Map<iColumn, iData>, column: iColumn, tci: TableCell) {
+        super.getTableColumnStyle(isNewRow, hmColumnData, column, tci)
 
         val mc = model as mTSUser
 

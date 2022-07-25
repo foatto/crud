@@ -43,8 +43,8 @@ class cTask : cStandart() {
         return isReaded
     }
 
-    override fun getTableColumnStyle(rowNo: Int, isNewRow: Boolean, hmColumnData: Map<iColumn, iData>, column: iColumn, tci: TableCell) {
-        super.getTableColumnStyle(rowNo, isNewRow, hmColumnData, column, tci)
+    override fun getTableColumnStyle(isNewRow: Boolean, hmColumnData: Map<iColumn, iData>, column: iColumn, tci: TableCell) {
+        super.getTableColumnStyle(isNewRow, hmColumnData, column, tci)
 
         val mt = model as mTask
         if (column == mt.columnTaskSubj) {

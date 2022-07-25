@@ -101,8 +101,8 @@ class cCatalog : cAbstractHierarchy() {
         (hmColumnData[mc.columnCatalogAllCount] as DataDouble).doubleValue = countAll
     }
 
-    override fun getTableColumnStyle(rowNo: Int, isNewRow: Boolean, hmColumnData: Map<iColumn, iData>, column: iColumn, tci: TableCell) {
-        super.getTableColumnStyle(rowNo, isNewRow, hmColumnData, column, tci)
+    override fun getTableColumnStyle(isNewRow: Boolean, hmColumnData: Map<iColumn, iData>, column: iColumn, tci: TableCell) {
+        super.getTableColumnStyle(isNewRow, hmColumnData, column, tci)
 
         if (column is ColumnInt && (hmColumnData[column] as DataInt).intValue < 0 || column is ColumnDouble && (hmColumnData[column] as DataDouble).doubleValue < 0) {
 

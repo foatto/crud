@@ -16,8 +16,8 @@ import foatto.mms.core_mms.sensor.config.SensorConfig
 
 class cDevice : cStandart() {
 
-    override fun getTableColumnStyle(rowNo: Int, isNewRow: Boolean, hmColumnData: Map<iColumn, iData>, column: iColumn, tci: TableCell) {
-        super.getTableColumnStyle(rowNo, isNewRow, hmColumnData, column, tci)
+    override fun getTableColumnStyle(isNewRow: Boolean, hmColumnData: Map<iColumn, iData>, column: iColumn, tci: TableCell) {
+        super.getTableColumnStyle(isNewRow, hmColumnData, column, tci)
 
         val md = model as mDevice
         if (column == md.columnSerialNo) {

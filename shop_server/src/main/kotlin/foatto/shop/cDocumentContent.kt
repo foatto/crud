@@ -183,8 +183,8 @@ class cDocumentContent : cStandart() {
         (hmColumnData[mdc.columnCostOut] as DataDouble).doubleValue = (hmColumnData[if (isUseDestNum) mdc.columnDestNum else mdc.columnSourNum] as DataDouble).doubleValue * price
     }
 
-    override fun getTableColumnStyle(rowNo: Int, isNewRow: Boolean, hmColumnData: Map<iColumn, iData>, column: iColumn, tci: TableCell) {
-        super.getTableColumnStyle(rowNo, isNewRow, hmColumnData, column, tci)
+    override fun getTableColumnStyle(isNewRow: Boolean, hmColumnData: Map<iColumn, iData>, column: iColumn, tci: TableCell) {
+        super.getTableColumnStyle(isNewRow, hmColumnData, column, tci)
 
         val mdc = model as mDocumentContent
 

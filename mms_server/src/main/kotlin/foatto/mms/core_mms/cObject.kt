@@ -22,8 +22,8 @@ class cObject : cStandart() {
         alPermission.add(Pair(PERM_REMOTE_CONTROL, "20 Remote Control"))
     }
 
-    override fun getTableColumnStyle(rowNo: Int, isNewRow: Boolean, hmColumnData: Map<iColumn, iData>, column: iColumn, tci: TableCell) {
-        super.getTableColumnStyle(rowNo, isNewRow, hmColumnData, column, tci)
+    override fun getTableColumnStyle(isNewRow: Boolean, hmColumnData: Map<iColumn, iData>, column: iColumn, tci: TableCell) {
+        super.getTableColumnStyle(isNewRow, hmColumnData, column, tci)
 
         val md = model as mObject
         if (column == md.columnObjectName) {

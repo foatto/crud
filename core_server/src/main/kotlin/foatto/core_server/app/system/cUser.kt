@@ -78,8 +78,8 @@ class cUser : cAbstractHierarchy() {
 
     override fun doExpand(pid: Int) = userConfig.loadFullSubUserList(conn, pid)
 
-    override fun getTableColumnStyle(rowNo: Int, isNewRow: Boolean, hmColumnData: Map<iColumn, iData>, column: iColumn, tci: TableCell) {
-        super.getTableColumnStyle(rowNo, isNewRow, hmColumnData, column, tci)
+    override fun getTableColumnStyle(isNewRow: Boolean, hmColumnData: Map<iColumn, iData>, column: iColumn, tci: TableCell) {
+        super.getTableColumnStyle(isNewRow, hmColumnData, column, tci)
 
         val mu = model as mUser
         if (column == mu.columnRecordFullName && (hmColumnData[mu.columnRecordType] as DataComboBox).intValue != OrgType.ORG_TYPE_DIVISION) {

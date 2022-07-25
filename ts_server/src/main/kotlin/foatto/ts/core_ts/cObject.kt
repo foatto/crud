@@ -71,8 +71,8 @@ class cObject : cStandart() {
         return super.getTable(hmOut)
     }
 
-    override fun getTableColumnStyle(rowNo: Int, isNewRow: Boolean, hmColumnData: Map<iColumn, iData>, column: iColumn, tci: TableCell) {
-        super.getTableColumnStyle(rowNo, isNewRow, hmColumnData, column, tci)
+    override fun getTableColumnStyle(isNewRow: Boolean, hmColumnData: Map<iColumn, iData>, column: iColumn, tci: TableCell) {
+        super.getTableColumnStyle(isNewRow, hmColumnData, column, tci)
 
         val id = (hmColumnData[model.columnId] as DataInt).intValue
         val objectConfig = hmObjectConfigCache.getOrPut(id) { (application as iTSApplication).getObjectConfig(userConfig, id) }
