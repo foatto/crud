@@ -159,13 +159,12 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                      v-bind:key="'gd'+gridData.id"
                      v-bind:style="[
                         gridData.cellStyle,
-                        { 'background' : ( gridData.row >= 0 && currentRow >= gridData.row && currentRow < gridData.row + gridData.rowSpan ?
-                                          '${colorTableRowHover()}' : gridData.backColor ) }
+                        { 'background' : ( gridData.dataRow >= 0 && gridData.dataRow == currentRow ? '${colorTableRowHover()}' : gridData.backColor ) }
                      ]"
-                     v-on:dblclick.prevent="gridData.row >= 0 && arrRowData[ gridData.row ].rowURL ?
-                                    invoke( arrRowData[ gridData.row ].rowURL, arrRowData[ gridData.row ].itRowURLInNewWindow ) : null"
-                     v-on:click="gridData.cellURL ? invoke( gridData.cellURL, false ) : setCurrentRow( gridData.row )"
-                     v-on:click.right.prevent="gridData.row >= 0 ? showPopupMenu( gridData.row, ${'$'}event ) : null"
+                     v-on:dblclick.prevent="gridData.dataRow >= 0 && arrRowData[ gridData.dataRow ].rowURL ?
+                                    invoke( arrRowData[ gridData.dataRow ].rowURL, arrRowData[ gridData.dataRow ].itRowURLInNewWindow ) : null"
+                     v-on:click="gridData.cellURL ? invoke( gridData.cellURL, false ) : setCurrentRow( gridData.dataRow )"
+                     v-on:click.right.prevent="gridData.dataRow >= 0 ? showPopupMenu( gridData.dataRow, ${'$'}event ) : null"
                 >
                     
                     <template v-if="gridData.cellType == '${TableCellType.CHECKBOX}'"> 
@@ -431,7 +430,8 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                     backColor = styleTableCaptionBack(),
                     tooltip = if (url.isBlank()) "" else "Сортировать по этому столбцу",
                     textCellData = TableTextCellData_(text = text), // the parameter name is urgent!
-                    row = -1            // special row number as flag for table header row
+                    // special row number as flag for table header row
+                    dataRow = -1,
                 )
                 captionCell.cellURL = url
                 alGridData.add(captionCell)
@@ -446,7 +446,7 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                         TableCellBackColorType.DEFINED.toString() -> getColorFromInt(tc.backColor)
                         TableCellBackColorType.GROUP_0.toString() -> colorGroupBack0()
                         TableCellBackColorType.GROUP_1.toString() -> colorGroupBack1()
-                        else -> if (tc.row % 2 == 0) {
+                        else -> if (tc.dataRow % 2 == 0) {
                             colorTableRowBack0()
                         } else {
                             colorTableRowBack1()
@@ -642,7 +642,7 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
                         textCellData = textCellData,
                         arrButtonCellData = alButtonCellData.toTypedArray(),
                         arrGridCellData = alGridCellData.map { it.toTypedArray() }.toTypedArray(),
-                        row = tc.row,
+                        dataRow = tc.dataRow,
                     )
                 )
                 maxRow = max(maxRow, startRow + tc.row + tc.rowSpan)
@@ -686,24 +686,27 @@ fun tableControl(appParam: String, tableResponse: TableResponse, tabId: Int) = v
             val currentRow = that().currentRow.unsafeCast<Int>()
 
             //--- проверка лишней не будет
-            if (currentRow >= 0 && arrRowData[currentRow].formURL.isNotEmpty())
+            if (currentRow >= 0 && arrRowData[currentRow].formURL.isNotEmpty()) {
                 that().invoke(arrRowData[currentRow].formURL, false)
+            }
         },
         "doGoto" to {
             val arrRowData = that().arrRowData.unsafeCast<Array<TableRowData>>()
             val currentRow = that().currentRow.unsafeCast<Int>()
 
             //--- проверка лишней не будет
-            if (currentRow >= 0 && arrRowData[currentRow].gotoURL.isNotEmpty())
+            if (currentRow >= 0 && arrRowData[currentRow].gotoURL.isNotEmpty()) {
                 that().invoke(arrRowData[currentRow].gotoURL, arrRowData[currentRow].itGotoURLInNewWindow)
+            }
         },
         "doPopup" to {
             val arrRowData = that().arrRowData.unsafeCast<Array<TableRowData>>()
             val currentRow = that().currentRow.unsafeCast<Int>()
 
             //--- проверка лишней не будет
-            if (currentRow >= 0 && arrRowData[currentRow].alPopupData.isNotEmpty())
+            if (currentRow >= 0 && arrRowData[currentRow].alPopupData.isNotEmpty()) {
                 that().showPopupMenu(currentRow, null)
+            }
         },
         "setCurrentRow" to { rowNo: Int ->
             setCurrentRow(that(), rowNo)
@@ -1084,7 +1087,8 @@ private class TableGridData(
     val arrGridCellData: Array<Array<TableGridCellData_>>? = null,
 
     //--- для работы с row data popup menu
-    val row: Int
+    val dataRow: Int,
+
 //    var minWidth = 0
 ) {
     //--- для работы caption-click

@@ -69,9 +69,9 @@ class DataString(aColumn: iColumn) : DataAbstract(aColumn) {
         setError(text, message)
     }
 
-    override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell {
+    override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, dataRowNo: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell {
         if (isShowEmptyTableCell) {
-            return TableCell(row, col, column.rowSpan, column.colSpan)
+            return TableCell(row, col, column.rowSpan, column.colSpan, dataRowNo)
         }
 
         return TableCell(
@@ -79,6 +79,8 @@ class DataString(aColumn: iColumn) : DataAbstract(aColumn) {
             aCol = col,
             aRowSpan = column.rowSpan,
             aColSpan = column.colSpan,
+            aDataRow = dataRowNo,
+
             aAlign = column.tableAlign,
             aMinWidth = column.minWidth,
             aIsWordWrap = column.isWordWrap,

@@ -57,11 +57,11 @@ class DataTime3Int(aColumn: iColumn) : DataAbstractTime(aColumn) {
         }
     }
 
-    override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell {
+    override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, dataRowNo: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell {
         val ct = column as ColumnTime3Int
 
         return if (isShowEmptyTableCell) {
-            TableCell(row, col, column.rowSpan, column.colSpan)
+            TableCell(row, col, column.rowSpan, column.colSpan, dataRowNo)
         }
         else {
             TableCell(
@@ -69,6 +69,8 @@ class DataTime3Int(aColumn: iColumn) : DataAbstractTime(aColumn) {
                 aCol = col,
                 aRowSpan = column.rowSpan,
                 aColSpan = column.colSpan,
+                aDataRow = dataRowNo,
+
                 aAlign = column.tableAlign,
                 aMinWidth = column.minWidth,
                 aIsWordWrap = column.isWordWrap,

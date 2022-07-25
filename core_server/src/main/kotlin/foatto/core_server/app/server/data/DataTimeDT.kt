@@ -55,22 +55,28 @@ class DataTimeDT(aColumn: iColumn) : DataAbstractTime(aColumn) {
         }
     }
 
-    override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell {
+    override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, dataRowNo: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell {
         val ct = column as ColumnTimeDT
 
-        return if (isShowEmptyTableCell) TableCell(row, col, column.rowSpan, column.colSpan)
-        else TableCell(
-            aRow = row,
-            aCol = col,
-            aRowSpan = column.rowSpan,
-            aColSpan = column.colSpan,
-            aAlign = column.tableAlign,
-            aMinWidth = column.minWidth,
-            aIsWordWrap = column.isWordWrap,
-            aTooltip = column.caption,
+        return if (isShowEmptyTableCell) {
+            TableCell(row, col, column.rowSpan, column.colSpan, dataRowNo)
+        }
+        else {
+            TableCell(
+                aRow = row,
+                aCol = col,
+                aRowSpan = column.rowSpan,
+                aColSpan = column.colSpan,
+                aDataRow = dataRowNo,
 
-            aText = if (ct.withSecond) Time_HMS(localTime) else Time_HM(localTime)
-        )
+                aAlign = column.tableAlign,
+                aMinWidth = column.minWidth,
+                aIsWordWrap = column.isWordWrap,
+                aTooltip = column.caption,
+
+                aText = if (ct.withSecond) Time_HMS(localTime) else Time_HM(localTime)
+            )
+        }
     }
 
     override fun getFormCell(rootDirName: String, conn: CoreAdvancedConnection, isUseThousandsDivider: Boolean, decimalDivider: Char): FormCell {

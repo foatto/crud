@@ -27,9 +27,9 @@ class DataGrid(aColumn: iColumn) : DataAbstract(aColumn) {
 
     override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameId: String?, id: Int) = true
 
-    override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell {
+    override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, dataRowNo: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell {
         if (isShowEmptyTableCell) {
-            return TableCell(row, col, column.rowSpan, column.colSpan)
+            return TableCell(row, col, column.rowSpan, column.colSpan, dataRowNo)
         }
 
         val tc = TableCell(
@@ -37,6 +37,8 @@ class DataGrid(aColumn: iColumn) : DataAbstract(aColumn) {
             aCol = col,
             aRowSpan = column.rowSpan,
             aColSpan = column.colSpan,
+            aDataRow = dataRowNo,
+
             aAlign = column.tableAlign,
             aMinWidth = 0,
             aTooltip = column.caption,

@@ -48,6 +48,9 @@ class TableCell(val row: Int, val col: Int) {
     var rowSpan = 1
     var colSpan = 1
 
+    //--- number of logic/data row
+    var dataRow = -1
+
     var cellType = TableCellType.TEXT
 
     var align = TableCellAlign.LEFT
@@ -80,15 +83,16 @@ class TableCell(val row: Int, val col: Int) {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    private constructor(aRow: Int, aCol: Int, aRowSpan: Int, aColSpan: Int, aMinWidth: Int, aCellType: TableCellType) : this(aRow, aCol) {
+    private constructor(aRow: Int, aCol: Int, aRowSpan: Int, aColSpan: Int, aDataRow: Int, aMinWidth: Int, aCellType: TableCellType) : this(aRow, aCol) {
         rowSpan = aRowSpan
         colSpan = aColSpan
+        dataRow = aDataRow
         minWidth = aMinWidth
         cellType = aCellType
     }
 
     //--- empty colorless cell with a stretch
-    constructor(aRow: Int, aCol: Int, aRowSpan: Int, aColSpan: Int) : this(aRow, aCol, aRowSpan, aColSpan, 0, TableCellType.TEXT)
+    constructor(aRow: Int, aCol: Int, aRowSpan: Int, aColSpan: Int, aDataRow: Int) : this(aRow, aCol, aRowSpan, aColSpan, aDataRow, 0, TableCellType.TEXT)
 
     //--- checkbox cell
     constructor(
@@ -96,13 +100,15 @@ class TableCell(val row: Int, val col: Int) {
         aCol: Int,
         aRowSpan: Int,
         aColSpan: Int,
+        aDataRow: Int,
+
         aAlign: TableCellAlign,
         aMinWidth: Int,
         aTooltip: String,
 
         aBooleanValue: Boolean
 
-    ) : this(aRow, aCol, aRowSpan, aColSpan, aMinWidth, TableCellType.CHECKBOX) {
+    ) : this(aRow, aCol, aRowSpan, aColSpan, aDataRow, aMinWidth, TableCellType.CHECKBOX) {
 
         align = aAlign
         tooltip = aTooltip
@@ -116,6 +122,8 @@ class TableCell(val row: Int, val col: Int) {
         aCol: Int,
         aRowSpan: Int,
         aColSpan: Int,
+        aDataRow: Int,
+
         aAlign: TableCellAlign,
         aMinWidth: Int,
         aIsWordWrap: Boolean,
@@ -125,7 +133,7 @@ class TableCell(val row: Int, val col: Int) {
         aImage: String = "",
         aText: String = ""
 
-    ) : this(aRow, aCol, aRowSpan, aColSpan, aMinWidth, TableCellType.TEXT) {
+    ) : this(aRow, aCol, aRowSpan, aColSpan, aDataRow, aMinWidth, TableCellType.TEXT) {
 
         align = aAlign
         isWordWrap = aIsWordWrap
@@ -144,6 +152,8 @@ class TableCell(val row: Int, val col: Int) {
         aCol: Int,
         aRowSpan: Int,
         aColSpan: Int,
+        aDataRow: Int,
+
         aAlign: TableCellAlign,
         aMinWidth: Int,
         aTooltip: String,
@@ -155,7 +165,7 @@ class TableCell(val row: Int, val col: Int) {
         aUrl: String,
         aInNewWindow: Boolean = false
 
-    ) : this(aRow, aCol, aRowSpan, aColSpan, aMinWidth, TableCellType.BUTTON) {
+    ) : this(aRow, aCol, aRowSpan, aColSpan, aDataRow, aMinWidth, TableCellType.BUTTON) {
 
         align = aAlign
         tooltip = aTooltip
@@ -175,13 +185,15 @@ class TableCell(val row: Int, val col: Int) {
         aCol: Int,
         aRowSpan: Int,
         aColSpan: Int,
+        aDataRow: Int,
+
         aAlign: TableCellAlign,
         aMinWidth: Int,
         aTooltip: String,
 
         aCellType: TableCellType,
 
-    ) : this(aRow, aCol, aRowSpan, aColSpan, aMinWidth, aCellType) {
+    ) : this(aRow, aCol, aRowSpan, aColSpan, aDataRow, aMinWidth, aCellType) {
 
         align = aAlign
         tooltip = aTooltip
@@ -289,6 +301,11 @@ class TableRowData(
     val alPopupData: Array<TablePopupData> = arrayOf()
 )
 
-class TablePopupData(val group: String, val url: String, val text: String, val inNewWindow: Boolean)
+class TablePopupData(
+    val group: String,
+    val url: String,
+    val text: String,
+    val inNewWindow: Boolean
+)
 
 

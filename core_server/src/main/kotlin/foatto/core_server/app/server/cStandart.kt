@@ -732,7 +732,8 @@ open class cStandart {
             rsTable = stmTable.executeQuery(sqlStr)
         }
 
-        var dataRowCount = 0    // счетчик логических строк (без учета отображения группировок)
+        var dataRowCount = 0        // счетчик логических строк на текущей странице (без учета отображения группировок)
+        var globalRowCount = 0      // общий счётчик логических строк (для нумерации строк) (без учета отображения группировок)
         var tableRowCount = 0       // общий счетчик физических строк (с учетом отображения группировок)
         var nextPageExist = false
         val alTableCell = mutableListOf<TableCell>()
@@ -752,20 +753,32 @@ open class cStandart {
             //--- если строчка по поиску проходит ( т.е. засчитывается в состав искомых строк ),
             //--- но пропускается как "строка из предыдущих страниц", то возвращаем пустую строку
             val rowCount: Int
-            if (aliasConfig.pageSize > 0 && dataRowCount < pageNo * aliasConfig.pageSize) {
+            if (aliasConfig.pageSize > 0 && globalRowCount < pageNo * aliasConfig.pageSize) {
                 rowCount = 0
             } else {
                 //--- возможная догенерация данных после фильтров поиска и страничной разбивки
                 generateTableColumnDataAfterFilter(hmColumnData)
-                rowCount = getTableRow(hmColumnData, dataRowCount + 1, tableRowCount, selectorID, selectorParam, refererID, alTableCell, alTableRowData, hmOut)
+                rowCount = getTableRow(
+                    hmColumnData = hmColumnData,
+                    dataRowNo = dataRowCount,
+                    globalRowNo = globalRowCount,
+                    tableRowStart = tableRowCount,
+                    selectorID = selectorID,
+                    selectorParam = selectorParam,
+                    refererID = refererID,
+                    alTableCell = alTableCell,
+                    alTableRowData = alTableRowData,
+                    hmOut = hmOut
+                )
+                dataRowCount++
             }
             //--- вынесено сюда, чтобы нумерация строк работала независимо от наличия постраничной разбивки
-            dataRowCount++
+            globalRowCount++
             tableRowCount += rowCount
             if ((hmColumnData[model.columnId] as DataInt).intValue == currentRowID) {
-                currentRowNo = tableRowCount - 1
+                currentRowNo = dataRowCount - 1
             }
-            if (aliasConfig.pageSize > 0 && dataRowCount >= (pageNo + 1) * aliasConfig.pageSize) {
+            if (aliasConfig.pageSize > 0 && globalRowCount >= (pageNo + 1) * aliasConfig.pageSize) {
                 nextPageExist = true
                 break
             }
@@ -909,6 +922,7 @@ open class cStandart {
                 conn = conn,
                 row = -1,
                 col = -1,
+                dataRowNo = -1,
                 isUseThousandsDivider = userConfig.upIsUseThousandsDivider,
                 decimalDivider = userConfig.upDecimalDivider
             )
@@ -990,6 +1004,7 @@ open class cStandart {
     protected fun getTableRow(
         hmColumnData: Map<iColumn, iData>,
         dataRowNo: Int,
+        globalRowNo: Int,
         tableRowStart: Int,
         selectorID: String?,
         selectorParam: SelectorParameter?,
@@ -1022,6 +1037,7 @@ open class cStandart {
                 conn = conn,
                 row = -1,
                 col = -1,
+                dataRowNo = -1,
                 isUseThousandsDivider = userConfig.upIsUseThousandsDivider,
                 decimalDivider = userConfig.upDecimalDivider
             ).textCellData.text
@@ -1059,6 +1075,7 @@ open class cStandart {
                             aCol = col,
                             aRowSpan = 1,
                             aColSpan = spanCellCount,
+                            aDataRow = -1,
                             aAlign = TableCellAlign.LEFT,
                             aMinWidth = 0,
                             aIsWordWrap = false,
@@ -1069,7 +1086,6 @@ open class cStandart {
                 )
 
                 //--- эта строка таблицы не содержит tooltip-ов, popup-menu и ссылок
-                alTableRowData.add(TableRowData())
                 rowCount++
 
                 //--- установить новое значение группировочного поля
@@ -1135,11 +1151,12 @@ open class cStandart {
                             aCol = col,
                             aRowSpan = tableRowCount,
                             aColSpan = 1,
+                            aDataRow = dataRowNo,
                             aAlign = TableCellAlign.CENTER,
                             aMinWidth = 0,
                             aIsWordWrap = false,
                             aTooltip = "Номер строки",
-                            aText = dataRowNo.toString()
+                            aText = (globalRowNo + 1).toString()
                         )
                     )
                 col++
@@ -1148,7 +1165,7 @@ open class cStandart {
             //--- подготовка функции возврата значения из таблицы в вызывающую форму
             if (selectorParam != null) {
                 if (rowIndex == 0) {
-                    val tci = getTableRowSelectButton(row, col, selectorParam, hmColumnData, hmOut)
+                    val tci = getTableRowSelectButton(row, col, dataRowNo, selectorParam, hmColumnData, hmOut)
                     //--- сигнатуру метода getTableRowSelectButton не меняем,
                     //--- т.к. он и сложно перекрывается наследниками и применяется и в старых методах, а просто вручную правим rowSpan
                     tci.rowSpan = tableRowCount
@@ -1176,6 +1193,7 @@ open class cStandart {
                             aCol = col,
                             aRowSpan = tableRowCount,
                             aColSpan = 1,
+                            aDataRow = dataRowNo,
                             aAlign = TableCellAlign.LEFT,
                             aMinWidth = 0,
                             aIsWordWrap = true,
@@ -1219,6 +1237,7 @@ open class cStandart {
                         conn = conn,
                         row = row,
                         col = col + colIndex,
+                        dataRowNo = dataRowNo,
                         isUseThousandsDivider = userConfig.upIsUseThousandsDivider,
                         decimalDivider = userConfig.upDecimalDivider
                     )
@@ -1226,21 +1245,21 @@ open class cStandart {
                     TableCell(row, col + colIndex)
                 }
                 //--- стиль столбца ( возможно перекрытие из описания самого класса )
-                getTableColumnStyle(dataRowNo, isNewRow, hmColumnData, column, tci)
+                getTableColumnStyle(isNewRow, hmColumnData, column, tci)
                 alTableCell.add(tci)
             }
-            alTableRowData.add(
-                TableRowData(
-                    formURL = formURL,
-                    rowURL = rowURL,
-                    itRowURLInNewWindow = itRowURLInNewWindow,
-                    gotoURL = gotoURL,
-                    itGotoURLInNewWindow = itGotoURLInNewWindow,
-                    alPopupData = alPopupData.toTypedArray()
-                )
-            )
             rowCount++
         }
+        alTableRowData.add(
+            TableRowData(
+                formURL = formURL,
+                rowURL = rowURL,
+                itRowURLInNewWindow = itRowURLInNewWindow,
+                gotoURL = gotoURL,
+                itGotoURLInNewWindow = itGotoURLInNewWindow,
+                alPopupData = alPopupData.toTypedArray()
+            )
+        )
 
         //--- необходимо "прочитывать" строки уже сразу после их вывода в таблице, без обязательного входа в форму
         if (aliasConfig.isNewAutoRead && isNewRow) {
@@ -1279,13 +1298,14 @@ open class cStandart {
 
     //--- hmColumnData может пригодиться в наследниках для дополнительного выделения группы
     //--- ( например, дополнительно выделить красным текстом просроченные задания )
-    protected open fun getTableColumnStyle(rowNo: Int, isNewRow: Boolean, hmColumnData: Map<iColumn, iData>, column: iColumn, tci: TableCell) {
+    protected open fun getTableColumnStyle(isNewRow: Boolean, hmColumnData: Map<iColumn, iData>, column: iColumn, tci: TableCell) {
         tci.fontStyle = if (isNewRow) 1 else 0
     }
 
     protected open fun getTableRowSelectButton(
         row: Int,
         col: Int,
+        dataRowNo: Int,
         selectorParam: SelectorParameter,
         hmColumnData: Map<iColumn, iData>,
         hmOut: MutableMap<String, Any>
@@ -1324,6 +1344,8 @@ open class cStandart {
             aCol = col,
             aRowSpan = 1,
             aColSpan = 1,
+            aDataRow = dataRowNo,
+
             aAlign = TableCellAlign.LEFT,
             aMinWidth = 0,
             aTooltip = "Выбрать эту строку",
@@ -1407,11 +1429,11 @@ open class cStandart {
         hmNewParentData[aliasConfig.alias] = (hmColumnData[model.alChildData[indexChild].column] as DataInt).intValue
     }
 
-    //--- для наследников - можно изменить реакцию на действие по умолчанию ( двойной клик по строке таблицы )
+    //--- для наследников - можно изменить реакцию на действие по умолчанию (двойной клик по строке таблицы)
     protected open fun newTableRowDefaultOperation(selectorParam: SelectorParameter?, hmColumnData: Map<iColumn, iData>, hmOut: MutableMap<String, Any>): String? =
         //--- в режиме селектора double-click делает возврат строки аналогично нажатию соответствующей кнопки
         selectorParam?.let {
-            getTableRowSelectButton(-1, -1, selectorParam, hmColumnData, hmOut).arrButtonCellData.first().url
+            getTableRowSelectButton(-1, -1, -1, selectorParam, hmColumnData, hmOut).arrButtonCellData.first().url
         }
 
     protected open fun isOpenFormURLInNewWindow(): Boolean = true

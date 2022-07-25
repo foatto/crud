@@ -87,7 +87,7 @@ open class cAbstractHierarchy : cStandart() {
         return alAddButtonList
     }
 
-    override fun getTableRowSelectButton(row: Int, col: Int, selectorParam: SelectorParameter, hmColumnData: Map<iColumn, iData>, hmOut: MutableMap<String, Any>): TableCell {
+    override fun getTableRowSelectButton(row: Int, col: Int, dataRowNo: Int, selectorParam: SelectorParameter, hmColumnData: Map<iColumn, iData>, hmOut: MutableMap<String, Any>): TableCell {
         val m = model as mAbstractHierarchy
 
         val dataRecordType = hmColumnData[m.columnRecordType] as DataComboBox
@@ -96,7 +96,7 @@ open class cAbstractHierarchy : cStandart() {
             dataRecordType.intValue == mAbstractHierarchy.RECORD_TYPE_FOLDER && m.isSelectableFolder ||
             dataRecordType.intValue != mAbstractHierarchy.RECORD_TYPE_FOLDER && m.isSelectableItem
         ) {
-            super.getTableRowSelectButton(row, col, selectorParam, hmColumnData, hmOut)
+            super.getTableRowSelectButton(row, col, dataRowNo, selectorParam, hmColumnData, hmOut)
         } else {
             TableCell(row, col)
         }

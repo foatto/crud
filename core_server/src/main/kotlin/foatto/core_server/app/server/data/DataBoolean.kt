@@ -35,15 +35,17 @@ class DataBoolean(aColumn: iColumn) : DataAbstract(aColumn) {
         return true
     }
 
-    override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell =
+    override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, dataRowNo: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell =
         if(isShowEmptyTableCell) {
-            TableCell(row, col, column.rowSpan, column.colSpan)
+            TableCell(row, col, column.rowSpan, column.colSpan, dataRowNo)
         }
         else TableCell(
             aRow = row,
             aCol = col,
             aRowSpan = column.rowSpan,
             aColSpan = column.colSpan,
+            aDataRow = dataRowNo,
+
             aAlign = column.tableAlign,
             aMinWidth = column.minWidth,
             aTooltip = column.caption,
