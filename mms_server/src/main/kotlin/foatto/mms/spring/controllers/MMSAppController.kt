@@ -17,7 +17,6 @@ import foatto.sql.CoreAdvancedStatement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
-import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -426,6 +425,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
                         aMinIgnore = sensorEntity.minIgnore ?: 0.0,
                         aMaxIgnore = sensorEntity.maxIgnore ?: 0.0,
                         isAbsoluteCount = (sensorEntity.isAbsoluteCount ?: 0) != 0,
+                        inOutType = sensorEntity.inOutType ?: SensorConfigBase.CALC_TYPE_OUT,
                         liquidName = sensorEntity.liquidName ?: "",
                     )
                 }
@@ -451,6 +451,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
                         aSmoothTime = (sensorEntity.smoothTime ?: 0) * 60,
                         aMinIgnore = sensorEntity.minIgnore ?: 0.0,
                         aMaxIgnore = sensorEntity.maxIgnore ?: 0.0,
+                        inOutType = sensorEntity.inOutType ?: SensorConfigBase.CALC_TYPE_OUT,
                         liquidName = sensorEntity.liquidName ?: "",
                     )
                 }

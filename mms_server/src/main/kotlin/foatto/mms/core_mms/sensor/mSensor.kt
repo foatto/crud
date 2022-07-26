@@ -16,6 +16,7 @@ import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.mAbstract
 import foatto.mms.core_mms.ObjectSelector
 import foatto.mms.core_mms.sensor.config.SensorConfig
+import foatto.mms.core_mms.sensor.config.SensorConfigBase
 import foatto.mms.core_mms.sensor.config.SensorConfigGeo
 import foatto.mms.core_mms.sensor.config.SensorConfigLiquidLevel
 import foatto.sql.CoreAdvancedStatement
@@ -323,8 +324,17 @@ class mSensor : mAbstract() {
         }
 
         //--- applies only to (fuel) counter sensors
+
         val columnIsAbsoluteCount = ColumnBoolean(modelTableName, "is_absolute_count", "Накопительный счётчик", false).apply {
             addFormVisible(columnSensorType, true, counterSensorTypes)
+        }
+
+        //--- applies for counter and summary volume/mass sensors
+
+        val columnInOutType = ColumnRadioButton(modelTableName, "in_out_type", "Тип учёта", SensorConfigBase.CALC_TYPE_OUT).apply {
+            addChoice(SensorConfigBase.CALC_TYPE_IN, "Входящий/заправочный счётчик")
+            addChoice(SensorConfigBase.CALC_TYPE_OUT, "Исходящий/расходный счётчик")
+            addFormVisible(columnSensorType, true, counterSensorTypes + liquidSummarySensorTypes)
         }
 
         //        ColumnDouble columnFuelUsingMax = new ColumnDouble(  tableName, "liquid_using_max", "Максимально возможный расход [л/час]", 10, 0, 100.0  );
@@ -522,6 +532,8 @@ class mSensor : mAbstract() {
         }
 
         alFormColumn.add(columnIsAbsoluteCount)
+
+        alFormColumn.add(columnInOutType)
 
         alFormColumn.add(columnSmoothMethod)
         alFormColumn.add(columnSmoothTime)

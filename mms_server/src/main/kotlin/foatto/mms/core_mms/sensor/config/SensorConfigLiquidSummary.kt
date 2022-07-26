@@ -11,6 +11,7 @@ class SensorConfigLiquidSummary(
     aSmoothTime: Int,
     aMinIgnore: Double,
     aMaxIgnore: Double,
+    val inOutType: Int,
     val liquidName: String
 ) : SensorConfigBase(
     aId = aId,

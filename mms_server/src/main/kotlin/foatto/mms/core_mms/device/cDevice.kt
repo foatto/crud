@@ -13,6 +13,7 @@ import foatto.core_server.app.server.data.iData
 import foatto.core_server.ds.AbstractTelematicHandler
 import foatto.mms.core_mms.ds.GalileoHandler
 import foatto.mms.core_mms.sensor.config.SensorConfig
+import foatto.mms.core_mms.sensor.config.SensorConfigBase
 
 class cDevice : cStandart() {
 
@@ -742,12 +743,12 @@ class cDevice : cStandart() {
                     id , object_id , name , group_name , descr , 
                     port_num , 
                     sensor_type , cmd_on_id , cmd_off_id , beg_ye , beg_mo , beg_da ,
-                    smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , is_absolute_count , liquid_name            
+                    smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , is_absolute_count , in_out_type , liquid_name            
                 ) VALUES ( 
                     ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix $descrBody $descrPostfix' , 
                     ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
                     $sensorType , 0, 0 , 2000 , 1 , 1 ,
-                    0 , 0 , 0 , 0 , 1 , ''                            
+                    0 , 0 , 0 , 0 , 1 , ${SensorConfigBase.CALC_TYPE_OUT} , ''                            
                 )
             """
         )

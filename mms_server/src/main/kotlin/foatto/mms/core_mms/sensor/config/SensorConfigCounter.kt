@@ -12,6 +12,7 @@ class SensorConfigCounter(
     aMinIgnore: Double,
     aMaxIgnore: Double,
     val isAbsoluteCount: Boolean,
+    val inOutType: Int,
     val liquidName: String
 ) : SensorConfigBase(
     aId = aId,

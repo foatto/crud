@@ -134,6 +134,11 @@ class SensorConfigEntity(
     @Column(name = "energo_phase")
     val phase: Int?,
 
+    //--- for counter and mass/volume accumulated sensors
+
+    @Column(name = "in_out_type")
+    val inOutType: Int?,
+
     //--- liquid level sensors only
 
     @Column(name = "container_type")
