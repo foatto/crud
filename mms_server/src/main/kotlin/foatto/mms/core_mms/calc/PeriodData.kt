@@ -89,6 +89,17 @@ class WorkPeriodData(aBegTime: Int, aEndTime: Int, private var workState: Int) :
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+class CounterPeriodData(aBegTime: Int, aEndTime: Int, private var counterState: Int) : AbstractPeriodData(aBegTime, aEndTime) {
+
+    override fun getState(): Int = counterState
+
+    override fun setState(aState: Int) {
+        counterState = aState
+    }
+}
+
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 class LiquidStatePeriodData(var begPos: Int, var endPos: Int, var colorIndex: GraphicColorIndex)
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
