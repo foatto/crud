@@ -7,8 +7,6 @@ abstract class SensorConfigBase(
     aDescr: String,
     aPortNum: Int,
     aSensorType: Int,
-    val smoothMethod: Int,
-    val smoothTime: Int,
     val minIgnore: Double,
     val maxIgnore: Double,
 ) : SensorConfig(
@@ -19,11 +17,6 @@ abstract class SensorConfigBase(
     portNum = aPortNum,
     sensorType = aSensorType
 ) {
-
-    companion object {
-        const val CALC_TYPE_IN = 0    // входящий счётчик
-        const val CALC_TYPE_OUT = 1   // исходящий счётчик
-    }
 
     //--- must be double, so as not to run into errors with integer division later
     val alValueSensor = mutableListOf<Double>()

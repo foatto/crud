@@ -7,8 +7,6 @@ class SensorConfigEnergoSummary(
     aDescr: String,
     aPortNum: Int,
     aSensorType: Int,
-    aSmoothMethod: Int,
-    aSmoothTime: Int,
     aMinIgnore: Double,
     aMaxIgnore: Double,
 ) : SensorConfigBase(
@@ -18,8 +16,6 @@ class SensorConfigEnergoSummary(
     aDescr = aDescr,
     aPortNum = aPortNum,
     aSensorType = aSensorType,
-    smoothMethod = aSmoothMethod,
-    smoothTime = aSmoothTime,
     minIgnore = aMinIgnore,
     maxIgnore = aMaxIgnore,
 )

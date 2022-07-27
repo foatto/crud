@@ -412,7 +412,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
                         liquidNorm = sensorEntity.liquidNorm ?: 0.0,
                     )
                 }
-                SensorConfig.SENSOR_LIQUID_USING -> {
+                SensorConfig.SENSOR_LIQUID_USING, SensorConfig.SENSOR_MASS_ACCUMULATED, SensorConfig.SENSOR_VOLUME_ACCUMULATED -> {
                     hmSC[portNum] = SensorConfigCounter(
                         aId = sensorEntity.id,
                         aName = sensorEntity.name,
@@ -420,12 +420,14 @@ class MMSAppController : CoreAppController(), iMMSApplication {
                         aDescr = sensorEntity.descr,
                         aPortNum = portNum,
                         aSensorType = sensorType,
-                        aSmoothMethod = sensorEntity.smoothMethod ?: 0,
-                        aSmoothTime = (sensorEntity.smoothTime ?: 0) * 60,
                         aMinIgnore = sensorEntity.minIgnore ?: 0.0,
                         aMaxIgnore = sensorEntity.maxIgnore ?: 0.0,
-                        isAbsoluteCount = (sensorEntity.isAbsoluteCount ?: 0) != 0,
-                        inOutType = sensorEntity.inOutType ?: SensorConfigBase.CALC_TYPE_OUT,
+                        isAbsoluteCount = if(sensorType == SensorConfig.SENSOR_LIQUID_USING) {
+                            (sensorEntity.isAbsoluteCount ?: 0) != 0
+                        } else {
+                            true
+                        },
+                        inOutType = sensorEntity.inOutType ?: SensorConfigCounter.CALC_TYPE_OUT,
                         liquidName = sensorEntity.liquidName ?: "",
                     )
                 }
@@ -439,22 +441,6 @@ class MMSAppController : CoreAppController(), iMMSApplication {
                         sensorType = sensorType,
                     )
                 }
-                SensorConfig.SENSOR_MASS_ACCUMULATED, SensorConfig.SENSOR_VOLUME_ACCUMULATED -> {
-                    hmSC[portNum] = SensorConfigLiquidSummary(
-                        aId = sensorEntity.id,
-                        aName = sensorEntity.name,
-                        aGroup = sensorEntity.group,
-                        aDescr = sensorEntity.descr,
-                        aPortNum = portNum,
-                        aSensorType = sensorType,
-                        aSmoothMethod = sensorEntity.smoothMethod ?: 0,
-                        aSmoothTime = (sensorEntity.smoothTime ?: 0) * 60,
-                        aMinIgnore = sensorEntity.minIgnore ?: 0.0,
-                        aMaxIgnore = sensorEntity.maxIgnore ?: 0.0,
-                        inOutType = sensorEntity.inOutType ?: SensorConfigBase.CALC_TYPE_OUT,
-                        liquidName = sensorEntity.liquidName ?: "",
-                    )
-                }
                 SensorConfig.SENSOR_ENERGO_COUNT_AD, SensorConfig.SENSOR_ENERGO_COUNT_AR,
                 SensorConfig.SENSOR_ENERGO_COUNT_RD, SensorConfig.SENSOR_ENERGO_COUNT_RR -> {
                     hmSC[portNum] = SensorConfigEnergoSummary(
@@ -464,8 +450,6 @@ class MMSAppController : CoreAppController(), iMMSApplication {
                         aDescr = sensorEntity.descr,
                         aPortNum = portNum,
                         aSensorType = sensorType,
-                        aSmoothMethod = sensorEntity.smoothMethod ?: 0,
-                        aSmoothTime = (sensorEntity.smoothTime ?: 0) * 60,
                         aMinIgnore = sensorEntity.minIgnore ?: 0.0,
                         aMaxIgnore = sensorEntity.maxIgnore ?: 0.0,
                     )
@@ -482,8 +466,8 @@ class MMSAppController : CoreAppController(), iMMSApplication {
                         aDescr = sensorEntity.descr,
                         aPortNum = portNum,
                         aSensorType = sensorType,
-                        aSmoothMethod = sensorEntity.smoothMethod ?: 0,
-                        aSmoothTime = (sensorEntity.smoothTime ?: 0) * 60,
+                        smoothMethod = sensorEntity.smoothMethod ?: 0,
+                        smoothTime = (sensorEntity.smoothTime ?: 0) * 60,
                         aMinIgnore = sensorEntity.minIgnore ?: 0.0,
                         aMaxIgnore = sensorEntity.maxIgnore ?: 0.0,
                         minView = sensorEntity.minView ?: 0.0,

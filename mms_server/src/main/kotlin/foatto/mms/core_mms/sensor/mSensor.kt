@@ -17,6 +17,7 @@ import foatto.core_server.app.server.mAbstract
 import foatto.mms.core_mms.ObjectSelector
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigBase
+import foatto.mms.core_mms.sensor.config.SensorConfigCounter
 import foatto.mms.core_mms.sensor.config.SensorConfigGeo
 import foatto.mms.core_mms.sensor.config.SensorConfigLiquidLevel
 import foatto.sql.CoreAdvancedStatement
@@ -118,14 +119,14 @@ class mSensor : mAbstract() {
         val geoSensorType = setOf(SensorConfig.SENSOR_GEO)
         val workSensorType = setOf(SensorConfig.SENSOR_WORK)
 
-        val counterSensorTypes = setOf(SensorConfig.SENSOR_LIQUID_USING)
-
-        val counterStateSensorType = setOf(SensorConfig.SENSOR_LIQUID_USING_COUNTER_STATE)
-
-        val liquidSummarySensorTypes = setOf(
+        val counterSensorAndSummaryTypes = setOf(
+            SensorConfig.SENSOR_LIQUID_USING,
             SensorConfig.SENSOR_MASS_ACCUMULATED,
             SensorConfig.SENSOR_VOLUME_ACCUMULATED,
         )
+
+        val counterStateSensorType = setOf(SensorConfig.SENSOR_LIQUID_USING_COUNTER_STATE)
+
         val energoSummarySensorTypes = setOf(
             SensorConfig.SENSOR_ENERGO_COUNT_AD,
             SensorConfig.SENSOR_ENERGO_COUNT_AR,
@@ -264,18 +265,18 @@ class mSensor : mAbstract() {
             addFormVisible(columnSensorType, true, workSensorType)
         }
 
-        //--- for smoothable sensors (counting and analog sensors)
+        //--- for smoothable sensors (analog sensors only)
 
         val columnSmoothMethod = ColumnComboBox(modelTableName, "smooth_method", "Метод сглаживания", SensorConfig.SMOOTH_METOD_MEDIAN).apply {
             addChoice(SensorConfig.SMOOTH_METOD_MEDIAN, "Медиана")
             addChoice(SensorConfig.SMOOTH_METOD_AVERAGE, "Среднее арифметическое")
             addChoice(SensorConfig.SMOOTH_METOD_AVERAGE_SQUARE, "Среднее квадратическое")
             addChoice(SensorConfig.SMOOTH_METOD_AVERAGE_GEOMETRIC, "Среднее геометрическое")
-            addFormVisible(columnSensorType, false, signalSensorType + geoSensorType + workSensorType + counterSensorTypes + counterStateSensorType)
+            addFormVisible(columnSensorType, true, analogSensorTypes)
         }
 
         val columnSmoothTime = ColumnInt(modelTableName, "smooth_time", "Период сглаживания [мин]", 10, 0).apply {
-            addFormVisible(columnSensorType, false, signalSensorType + geoSensorType + workSensorType + counterSensorTypes + counterStateSensorType)
+            addFormVisible(columnSensorType, true, analogSensorTypes)
         }
 
         //--- common for all sensors, except for geo and total sensors --------------------------------------------------------------------------------
@@ -310,7 +311,7 @@ class mSensor : mAbstract() {
             addFormVisible(
                 columnSensorType,
                 true,
-                geoSensorType + workSensorType + counterSensorTypes + liquidSummarySensorTypes + liquidLevelSensorType
+                geoSensorType + workSensorType + counterSensorAndSummaryTypes + liquidLevelSensorType
             )
         }
 
@@ -325,16 +326,16 @@ class mSensor : mAbstract() {
 
         //--- applies only to (fuel) counter sensors
 
-        val columnIsAbsoluteCount = ColumnBoolean(modelTableName, "is_absolute_count", "Накопительный счётчик", false).apply {
-            addFormVisible(columnSensorType, true, counterSensorTypes)
+        val columnIsAbsoluteCount = ColumnBoolean(modelTableName, "is_absolute_count", "Накопительный счётчик", true).apply {
+            addFormVisible(columnSensorType, true, counterSensorAndSummaryTypes)
         }
 
         //--- applies for counter and summary volume/mass sensors
 
-        val columnInOutType = ColumnRadioButton(modelTableName, "in_out_type", "Тип учёта", SensorConfigBase.CALC_TYPE_OUT).apply {
-            addChoice(SensorConfigBase.CALC_TYPE_IN, "Входящий/заправочный счётчик")
-            addChoice(SensorConfigBase.CALC_TYPE_OUT, "Исходящий/расходный счётчик")
-            addFormVisible(columnSensorType, true, counterSensorTypes + liquidSummarySensorTypes)
+        val columnInOutType = ColumnRadioButton(modelTableName, "in_out_type", "Тип учёта", SensorConfigCounter.CALC_TYPE_OUT).apply {
+            addChoice(SensorConfigCounter.CALC_TYPE_IN, "Входящий/заправочный счётчик")
+            addChoice(SensorConfigCounter.CALC_TYPE_OUT, "Исходящий/расходный счётчик")
+            addFormVisible(columnSensorType, true, counterSensorAndSummaryTypes)
         }
 
         //        ColumnDouble columnFuelUsingMax = new ColumnDouble(  tableName, "liquid_using_max", "Максимально возможный расход [л/час]", 10, 0, 100.0  );

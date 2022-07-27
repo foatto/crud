@@ -46,11 +46,13 @@ open class SensorConfig(
         const val SENSOR_VOLUME_FLOW = 13
 
         //--- учётные величины - отчёты
+
+        //--- Исторически сложилось так, что это три разных датчика (трёх разных производителей и возможностей)
+        //--- но используются они пока одинаково.
+        //--- Возможно, когда-нибудь их удастся объединить.
         const val SENSOR_MASS_ACCUMULATED = 14
         const val SENSOR_VOLUME_ACCUMULATED = 15
-
-        //--- учётные величины - отчёты
-        const val SENSOR_LIQUID_USING = 16   // расходомер/счётчик
+        const val SENSOR_LIQUID_USING = 16
 
         //--- сигнальная величина - состояние расходомера/счётчика
         const val SENSOR_LIQUID_USING_COUNTER_STATE = 17

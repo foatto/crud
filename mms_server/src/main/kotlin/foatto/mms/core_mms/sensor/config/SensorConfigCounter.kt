@@ -7,8 +7,6 @@ class SensorConfigCounter(
     aDescr: String,
     aPortNum: Int,
     aSensorType: Int,
-    aSmoothMethod: Int,
-    aSmoothTime: Int,
     aMinIgnore: Double,
     aMaxIgnore: Double,
     val isAbsoluteCount: Boolean,
@@ -21,12 +19,13 @@ class SensorConfigCounter(
     aDescr = aDescr,
     aPortNum = aPortNum,
     aSensorType = aSensorType,
-    smoothMethod = aSmoothMethod,
-    smoothTime = aSmoothTime,
     minIgnore = aMinIgnore,
     maxIgnore = aMaxIgnore,
 ) {
     companion object {
+        const val CALC_TYPE_IN = 0    // входящий счётчик
+        const val CALC_TYPE_OUT = 1   // исходящий счётчик
+
         const val STATUS_UNKNOWN = 0
         const val STATUS_IDLE = 1
         const val STATUS_NORMAL = 2
