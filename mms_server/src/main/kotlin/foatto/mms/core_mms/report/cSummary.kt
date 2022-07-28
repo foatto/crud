@@ -16,7 +16,9 @@ class cSummary : cStandartPeriodSummary() {
 
     override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
         val returnURL = super.doSave(action, alFormData, hmOut)
-        if (returnURL != null) return returnURL
+        if (returnURL != null) {
+            return returnURL
+        }
 
         fillReportParam(model as mUODGP)
 

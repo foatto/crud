@@ -9,6 +9,8 @@ class SensorConfigCounter(
     aSensorType: Int,
     aMinIgnore: Double,
     aMaxIgnore: Double,
+    val minOnTime: Int,
+    val minOffTime: Int,
     val isAbsoluteCount: Boolean,
     val inOutType: Int,
     val liquidName: String

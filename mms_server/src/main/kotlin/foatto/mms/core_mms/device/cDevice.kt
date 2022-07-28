@@ -744,12 +744,12 @@ class cDevice : cStandart() {
                     id , object_id , name , group_name , descr , 
                     port_num , 
                     sensor_type , cmd_on_id , cmd_off_id , beg_ye , beg_mo , beg_da ,
-                    smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , is_absolute_count , in_out_type , liquid_name            
+                    min_on_time, min_off_time, ignore_min_sensor , ignore_max_sensor , is_absolute_count , in_out_type , liquid_name            
                 ) VALUES ( 
                     ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix $descrBody $descrPostfix' , 
                     ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
                     $sensorType , 0, 0 , 2000 , 1 , 1 ,
-                    0 , 0 , 0 , 0 , 1 , ${SensorConfigCounter.CALC_TYPE_OUT} , ''                            
+                    1 , 1 , 0 , 0 , 1 , ${SensorConfigCounter.CALC_TYPE_OUT} , ''                            
                 )
             """
         )
@@ -772,12 +772,12 @@ class cDevice : cStandart() {
                     id , object_id , name , group_name , descr , 
                     port_num , 
                     sensor_type , cmd_on_id , cmd_off_id , beg_ye , beg_mo , beg_da ,
-                    smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , is_absolute_count             
+                    ignore_min_sensor , ignore_max_sensor , is_absolute_count             
                 ) VALUES ( 
                     ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix $descrBody $descrPostfix' , 
                     ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
                     $sensorType , 0, 0 , 2000 , 1 , 1 ,
-                    0 , 0 , 0 , 0 , 1                            
+                    0 , 0 , 1                            
                 )
             """
         )

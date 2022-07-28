@@ -16,7 +16,6 @@ import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.mAbstract
 import foatto.mms.core_mms.ObjectSelector
 import foatto.mms.core_mms.sensor.config.SensorConfig
-import foatto.mms.core_mms.sensor.config.SensorConfigBase
 import foatto.mms.core_mms.sensor.config.SensorConfigCounter
 import foatto.mms.core_mms.sensor.config.SensorConfigGeo
 import foatto.mms.core_mms.sensor.config.SensorConfigLiquidLevel
@@ -119,7 +118,7 @@ class mSensor : mAbstract() {
         val geoSensorType = setOf(SensorConfig.SENSOR_GEO)
         val workSensorType = setOf(SensorConfig.SENSOR_WORK)
 
-        val counterSensorAndSummaryTypes = setOf(
+        val counterAndSummarySensorTypes = setOf(
             SensorConfig.SENSOR_LIQUID_USING,
             SensorConfig.SENSOR_MASS_ACCUMULATED,
             SensorConfig.SENSOR_VOLUME_ACCUMULATED,
@@ -211,14 +210,6 @@ class mSensor : mAbstract() {
             addFormVisible(columnSensorType, true, workSensorType + signalSensorType)
         }
 
-        val columnMinOnTime = ColumnInt(modelTableName, "min_on_time", "Минимальное время работы [сек]", 10, 1).apply {
-            addFormVisible(columnSensorType, true, workSensorType)
-        }
-
-        val columnMinOffTime = ColumnInt(modelTableName, "min_off_time", "Минимальное время простоя [сек]", 10, 1).apply {
-            addFormVisible(columnSensorType, true, workSensorType)
-        }
-
         val columnBegWorkValue = ColumnDouble(modelTableName, "beg_work_value", "Наработка на момент установки датчика [мото-час]", 10, 1, 0.0).apply {
             addFormVisible(columnSensorType, true, workSensorType)
         }
@@ -263,6 +254,16 @@ class mSensor : mAbstract() {
         val columnSignalOff = ColumnString(modelTableName, "signal_off", "Сигналы, разрешающие отключение", STRING_COLUMN_WIDTH).apply {
             formPinMode = FormPinMode.OFF
             addFormVisible(columnSensorType, true, workSensorType)
+        }
+
+        //--- discrete and counter sensors: equipment operating time; -----------------------------------------------------------------------------
+
+        val columnMinOnTime = ColumnInt(modelTableName, "min_on_time", "Минимальное время работы [сек]", 10, 1).apply {
+            addFormVisible(columnSensorType, true, workSensorType + counterAndSummarySensorTypes)
+        }
+
+        val columnMinOffTime = ColumnInt(modelTableName, "min_off_time", "Минимальное время простоя [сек]", 10, 1).apply {
+            addFormVisible(columnSensorType, true, workSensorType + counterAndSummarySensorTypes)
         }
 
         //--- for smoothable sensors (analog sensors only)
@@ -311,7 +312,7 @@ class mSensor : mAbstract() {
             addFormVisible(
                 columnSensorType,
                 true,
-                geoSensorType + workSensorType + counterSensorAndSummaryTypes + liquidLevelSensorType
+                geoSensorType + workSensorType + counterAndSummarySensorTypes + liquidLevelSensorType
             )
         }
 
@@ -327,7 +328,7 @@ class mSensor : mAbstract() {
         //--- applies only to (fuel) counter sensors
 
         val columnIsAbsoluteCount = ColumnBoolean(modelTableName, "is_absolute_count", "Накопительный счётчик", true).apply {
-            addFormVisible(columnSensorType, true, counterSensorAndSummaryTypes)
+            addFormVisible(columnSensorType, true, counterAndSummarySensorTypes)
         }
 
         //--- applies for counter and summary volume/mass sensors
@@ -335,7 +336,7 @@ class mSensor : mAbstract() {
         val columnInOutType = ColumnRadioButton(modelTableName, "in_out_type", "Тип учёта", SensorConfigCounter.CALC_TYPE_OUT).apply {
             addChoice(SensorConfigCounter.CALC_TYPE_IN, "Входящий/заправочный счётчик")
             addChoice(SensorConfigCounter.CALC_TYPE_OUT, "Исходящий/расходный счётчик")
-            addFormVisible(columnSensorType, true, counterSensorAndSummaryTypes)
+            addFormVisible(columnSensorType, true, counterAndSummarySensorTypes)
         }
 
         //        ColumnDouble columnFuelUsingMax = new ColumnDouble(  tableName, "liquid_using_max", "Максимально возможный расход [л/час]", 10, 0, 100.0  );

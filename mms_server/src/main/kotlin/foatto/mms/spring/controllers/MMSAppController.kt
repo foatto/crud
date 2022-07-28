@@ -422,6 +422,8 @@ class MMSAppController : CoreAppController(), iMMSApplication {
                         aSensorType = sensorType,
                         aMinIgnore = sensorEntity.minIgnore ?: 0.0,
                         aMaxIgnore = sensorEntity.maxIgnore ?: 0.0,
+                        minOnTime = sensorEntity.minOnTime ?: 0,
+                        minOffTime = sensorEntity.minOffTime ?: 0,
                         isAbsoluteCount = if(sensorType == SensorConfig.SENSOR_LIQUID_USING) {
                             (sensorEntity.isAbsoluteCount ?: 0) != 0
                         } else {

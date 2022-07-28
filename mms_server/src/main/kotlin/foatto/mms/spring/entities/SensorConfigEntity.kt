@@ -69,12 +69,6 @@ class SensorConfigEntity(
     @Column(name = "active_value")
     val activeValue: Int?,
 
-    @Column(name = "min_on_time")
-    val minOnTime: Int?,
-
-    @Column(name = "min_off_time")
-    val minOffTime: Int?,
-
     @Column(name = "beg_work_value")
     val begWorkValue: Double?,
 
@@ -89,6 +83,14 @@ class SensorConfigEntity(
 
     @Column(name = "signal_off")
     val signalOff: String?,
+
+    //--- discrete/work/signal & counter sensors
+
+    @Column(name = "min_on_time")
+    val minOnTime: Int?,
+
+    @Column(name = "min_off_time")
+    val minOffTime: Int?,
 
     //--- base sensor attributes
 
