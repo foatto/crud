@@ -73,6 +73,7 @@ object MMSFunction {
     fun fillChildDataForPeriodicReports(columnID: ColumnInt, alChildData: MutableList<ChildData>) {
         val aliases = mutableListOf(
             "mms_report_summary",
+            "mms_report_summary_bngre",
             "mms_report_day_work",
             "mms_report_work_shift",
             "mms_report_waybill",

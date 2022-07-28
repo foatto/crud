@@ -4,7 +4,9 @@ import foatto.core.app.graphic.GraphicActionRequest
 import foatto.core.app.graphic.GraphicActionResponse
 import foatto.core.app.xy.XyActionRequest
 import foatto.core.app.xy.XyActionResponse
-import foatto.core.link.*
+import foatto.core.link.AppRequest
+import foatto.core.link.AppResponse
+import foatto.core.link.MenuData
 import foatto.core.util.AdvancedLogger
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
@@ -17,7 +19,9 @@ import foatto.sql.CoreAdvancedStatement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class MMSAppController : CoreAppController(), iMMSApplication {
@@ -93,6 +97,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
         val alMenuCommonReport = mutableListOf<MenuData>()
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuCommonReport, "mms_report_summary", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuCommonReport, "mms_report_summary_bngre", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuCommonReport, "mms_report_day_work", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuCommonReport, "mms_report_work_shift", false)
 
@@ -361,6 +366,10 @@ class MMSAppController : CoreAppController(), iMMSApplication {
                         aDescr = sensorEntity.descr,
                         aPortNum = portNum,
                         aSensorType = sensorType,
+                        aSerialNo = sensorEntity.serialNo,
+                        aBegYe = sensorEntity.begYe,
+                        aBegMo = sensorEntity.begMo,
+                        aBegDa = sensorEntity.begDa,
                         boundValue = sensorEntity.boundValue ?: 0,
                         activeValue = sensorEntity.activeValue ?: 0,
                         minIgnore = sensorEntity.minIgnore ?: 0.0,
@@ -375,6 +384,10 @@ class MMSAppController : CoreAppController(), iMMSApplication {
                         aDescr = sensorEntity.descr,
                         aPortNum = portNum,
                         aSensorType = sensorType,
+                        aSerialNo = sensorEntity.serialNo,
+                        aBegYe = sensorEntity.begYe,
+                        aBegMo = sensorEntity.begMo,
+                        aBegDa = sensorEntity.begDa,
                         minMovingTime = sensorEntity.minMovingTime ?: 0,
                         minParkingTime = sensorEntity.minParkingTime ?: 0,
                         minOverSpeedTime = sensorEntity.minOverSpeedTime ?: 0,
@@ -397,6 +410,10 @@ class MMSAppController : CoreAppController(), iMMSApplication {
                         aDescr = sensorEntity.descr,
                         aPortNum = portNum,
                         aSensorType = sensorType,
+                        aSerialNo = sensorEntity.serialNo,
+                        aBegYe = sensorEntity.begYe,
+                        aBegMo = sensorEntity.begMo,
+                        aBegDa = sensorEntity.begDa,
                         boundValue = sensorEntity.boundValue ?: 0,
                         activeValue = sensorEntity.activeValue ?: 0,
                         minOnTime = sensorEntity.minOnTime ?: 0,
@@ -420,11 +437,15 @@ class MMSAppController : CoreAppController(), iMMSApplication {
                         aDescr = sensorEntity.descr,
                         aPortNum = portNum,
                         aSensorType = sensorType,
+                        aSerialNo = sensorEntity.serialNo,
+                        aBegYe = sensorEntity.begYe,
+                        aBegMo = sensorEntity.begMo,
+                        aBegDa = sensorEntity.begDa,
                         aMinIgnore = sensorEntity.minIgnore ?: 0.0,
                         aMaxIgnore = sensorEntity.maxIgnore ?: 0.0,
                         minOnTime = sensorEntity.minOnTime ?: 0,
                         minOffTime = sensorEntity.minOffTime ?: 0,
-                        isAbsoluteCount = if(sensorType == SensorConfig.SENSOR_LIQUID_USING) {
+                        isAbsoluteCount = if (sensorType == SensorConfig.SENSOR_LIQUID_USING) {
                             (sensorEntity.isAbsoluteCount ?: 0) != 0
                         } else {
                             true
@@ -441,6 +462,10 @@ class MMSAppController : CoreAppController(), iMMSApplication {
                         descr = sensorEntity.descr,
                         portNum = portNum,
                         sensorType = sensorType,
+                        serialNo = sensorEntity.serialNo,
+                        begYe = sensorEntity.begYe,
+                        begMo = sensorEntity.begMo,
+                        begDa = sensorEntity.begDa,
                     )
                 }
                 SensorConfig.SENSOR_ENERGO_COUNT_AD, SensorConfig.SENSOR_ENERGO_COUNT_AR,
@@ -452,6 +477,10 @@ class MMSAppController : CoreAppController(), iMMSApplication {
                         aDescr = sensorEntity.descr,
                         aPortNum = portNum,
                         aSensorType = sensorType,
+                        aSerialNo = sensorEntity.serialNo,
+                        aBegYe = sensorEntity.begYe,
+                        aBegMo = sensorEntity.begMo,
+                        aBegDa = sensorEntity.begDa,
                         aMinIgnore = sensorEntity.minIgnore ?: 0.0,
                         aMaxIgnore = sensorEntity.maxIgnore ?: 0.0,
                     )
@@ -468,6 +497,10 @@ class MMSAppController : CoreAppController(), iMMSApplication {
                         aDescr = sensorEntity.descr,
                         aPortNum = portNum,
                         aSensorType = sensorType,
+                        aSerialNo = sensorEntity.serialNo,
+                        aBegYe = sensorEntity.begYe,
+                        aBegMo = sensorEntity.begMo,
+                        aBegDa = sensorEntity.begDa,
                         smoothMethod = sensorEntity.smoothMethod ?: 0,
                         smoothTime = (sensorEntity.smoothTime ?: 0) * 60,
                         aMinIgnore = sensorEntity.minIgnore ?: 0.0,
@@ -488,6 +521,10 @@ class MMSAppController : CoreAppController(), iMMSApplication {
                         aDescr = sensorEntity.descr,
                         aPortNum = portNum,
                         aSensorType = sensorType,
+                        aSerialNo = sensorEntity.serialNo,
+                        aBegYe = sensorEntity.begYe,
+                        aBegMo = sensorEntity.begMo,
+                        aBegDa = sensorEntity.begDa,
                         aSmoothMethod = sensorEntity.smoothMethod ?: 0,
                         aSmoothTime = (sensorEntity.smoothTime ?: 0) * 60,
                         aMinIgnore = sensorEntity.minIgnore ?: 0.0,
@@ -507,6 +544,10 @@ class MMSAppController : CoreAppController(), iMMSApplication {
                         aDescr = sensorEntity.descr,
                         aPortNum = portNum,
                         aSensorType = sensorType,
+                        aSerialNo = sensorEntity.serialNo,
+                        aBegYe = sensorEntity.begYe,
+                        aBegMo = sensorEntity.begMo,
+                        aBegDa = sensorEntity.begDa,
                         aSmoothMethod = sensorEntity.smoothMethod ?: 0,
                         aSmoothTime = (sensorEntity.smoothTime ?: 0) * 60,
                         aMinIgnore = sensorEntity.minIgnore ?: 0.0,
@@ -552,7 +593,6 @@ class MMSAppController : CoreAppController(), iMMSApplication {
 
         return objectConfig
     }
-
 
 //    //--- 1000 секунд = примерно 16-17 мин
 //    private val DEVICE_CONFIG_OUT_PERIOD = 1_000
@@ -636,6 +676,5 @@ class MMSAppController : CoreAppController(), iMMSApplication {
 //
 //        return TMResponse()
 //    }
-
 
 }
