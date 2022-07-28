@@ -32,8 +32,9 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
     var gcd: GeoCalcData? = null
     val tmWork = sortedMapOf<String, WorkCalcData>()
     val tmEnergo = sortedMapOf<String, Double>()
-    val tmLiquidUsing = sortedMapOf<String, Double>()   // liquid using by sensor descr
+    val tmLiquidUsing = sortedMapOf<String, Double>()
     val tmLiquidLevel = sortedMapOf<String, LiquidLevelCalcData>()
+    val tmCounterData = sortedMapOf<String, CounterCalcData>()
 
     val tmGroupSum = sortedMapOf<String, CalcSumData>() // sums by group
     val allSumData = CalcSumData()                  // overall sum
@@ -122,17 +123,15 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
 
             //--- liquid calc sensor
             oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_USING]?.values?.forEach { sc ->
-                calcLiquidCalcSensor(alRawTime, alRawData, sc as SensorConfigCounter, begTime, endTime, result)
+                calcCounterOrAccumulatedSensor(alRawTime, alRawData, sc as SensorConfigCounter, begTime, endTime, result)
             }
-
             //--- volume accumulated values sensor
             oc.hmSensorConfig[SensorConfig.SENSOR_VOLUME_ACCUMULATED]?.values?.forEach { sc ->
-                calcLiquidSummary(alRawTime, alRawData, sc as SensorConfigLiquidSummary, begTime, endTime, result)
+                calcCounterOrAccumulatedSensor(alRawTime, alRawData, sc as SensorConfigCounter, begTime, endTime, result)
             }
-
             //--- mass accumulated values sensor
             oc.hmSensorConfig[SensorConfig.SENSOR_MASS_ACCUMULATED]?.values?.forEach { sc ->
-                calcLiquidSummary(alRawTime, alRawData, sc as SensorConfigLiquidSummary, begTime, endTime, result)
+                calcCounterOrAccumulatedSensor(alRawTime, alRawData, sc as SensorConfigCounter, begTime, endTime, result)
             }
 
             //--- liquid level sensors
@@ -181,6 +180,12 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                     graphicHandler = AnalogGraphicHandler()
                 )
                 result.tmDensity[sc.descr] = aLine
+                //--- прикрепить данные по плотности с данным по расходомеру
+                result.tmCounterData.forEach { (_, counterCalcData) ->
+                    if (counterCalcData.scc.group == sc.group) {
+                        counterCalcData.density = aLine
+                    }
+                }
             }
 
             if (oc.scg != null) {
@@ -198,7 +203,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             var maxSmoothTime = 0
             oc.hmSensorConfig.values.forEach { hmSC ->
                 hmSC.values.forEach { sensorConfig ->
-                    if (sensorConfig is SensorConfigBase) {
+                    if (sensorConfig is SensorConfigAnalogue) {
                         maxSmoothTime = max(maxSmoothTime, sensorConfig.smoothTime)
                     }
                 }
@@ -1168,36 +1173,22 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             byTypeAll[0] = byPhaseAll + e
         }
 
-        private fun calcLiquidCalcSensor(
+        private fun calcCounterOrAccumulatedSensor(
             alRawTime: List<Int>,
             alRawData: List<AdvancedByteBuffer>,
-            scu: SensorConfigCounter,
+            scc: SensorConfigCounter,
             begTime: Int,
             endTime: Int,
             result: ObjectCalc
         ) {
             //--- if the name of the liquid (fuel) is given, then add its consumption to the general list
-            if (scu.liquidName.isNotBlank()) {
-                val liquidUsing = getSensorCountData(alRawTime, alRawData, scu, begTime, endTime)
+            if (scc.liquidName.isNotBlank()) {
+                val counterCalcData = calcCounterOrAccumulatedSensor(alRawTime, alRawData, scc, begTime, endTime)
 
-                result.tmLiquidUsing["${scu.descr} ${scu.liquidName}"] = liquidUsing
-                addLiquidUsingSum(scu.group, scu.liquidName, liquidUsing, result)
-            }
-        }
+                result.tmCounterData[scc.descr] = counterCalcData
 
-        private fun calcLiquidSummary(
-            alRawTime: List<Int>,
-            alRawData: List<AdvancedByteBuffer>,
-            scls: SensorConfigLiquidSummary,
-            begTime: Int,
-            endTime: Int,
-            result: ObjectCalc
-        ) {
-            if (scls.liquidName.isNotBlank()) {
-                val liquidUsing = calcLiquidAccumulatedSensor(alRawTime, alRawData, scls, begTime, endTime)
-
-                result.tmLiquidUsing["${scls.descr} ${scls.liquidName}"] = liquidUsing
-                addLiquidUsingSum(scls.group, scls.liquidName, liquidUsing, result)
+                result.tmLiquidUsing["${scc.descr} ${scc.liquidName}"] = counterCalcData.value
+                addLiquidUsingSum(scc.group, scc.liquidName, counterCalcData.value, result)
             }
         }
 
@@ -1239,52 +1230,128 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             result.allSumData.addLiquidUsing(liquidName, using)
         }
 
-        private fun calcLiquidAccumulatedSensor(
+        //--- universal function for determining the REAL sum of counter values
+        private fun calcCounterOrAccumulatedSensor(
             alRawTime: List<Int>,
             alRawData: List<AdvancedByteBuffer>,
-            scls: SensorConfigLiquidSummary,
+            scc: SensorConfigCounter,
             begTime: Int,
             endTime: Int
-        ): Double {
+        ): CounterCalcData {
             //--- counters that give absolute values in their readings can reset it on command or overflow.
             //--- you will have to catch each such reset (the algorithm is somewhat similar to the search for refueling / draining)
             //--- also skip sudden dots with a zero counter
-            var begSensorData = 0.0
+//            var begSensorData = 0.0
             var begValue = 0.0
-            var lastSensorData = 0.0
+//            var lastSensorData = 0.0
             var lastValue = 0.0
             var sumValue = 0.0
+            val alPeriod = mutableListOf<AbstractPeriodData>()
 
-            for (i in alRawTime.indices) {
-                val curTime = alRawTime[i]
+            var workBeginTime = 0
+            var delayBeginTime = 0
+            var curTime = 0
+
+            for (pos in alRawTime.indices) {
+                curTime = alRawTime[pos]
+
                 if (curTime < begTime) {
                     continue
                 }
                 if (curTime > endTime) {
+                    if (pos > 0) {
+                        curTime = alRawTime[pos - 1]
+                    }
                     break
                 }
 
-                val sensorData = AbstractObjectStateCalc.getSensorData(scls.portNum, alRawData[i])?.toDouble() ?: continue
+                val sensorData = AbstractObjectStateCalc.getSensorData(scc.portNum, alRawData[pos])?.toDouble() ?: continue
                 //--- ignore outbound values
-                if (isIgnoreSensorData(scls, sensorData)) {
+                if (isIgnoreSensorData(scc, sensorData)) {
                     continue
                 }
 
-                val sensorValue = AbstractObjectStateCalc.getSensorValue(scls.alValueSensor, scls.alValueData, sensorData)
+                val sensorValue = AbstractObjectStateCalc.getSensorValue(scc.alValueSensor, scc.alValueData, sensorData)
 
-                if (begSensorData <= 0) {
-                    begSensorData = sensorData
-                    begValue = sensorValue
-                } else if (sensorData < lastSensorData) {
-                    sumValue += lastValue - begValue
-                    begValue = sensorValue
+                if (scc.isAbsoluteCount) {
+                    if (begValue <= 0) {
+//                    if (begSensorData <= 0) {
+//                        begSensorData = sensorData
+                        begValue = sensorValue
+//                    } else if (sensorData < lastSensorData) {
+                    } else if (sensorValue < lastValue) {
+                        sumValue += lastValue - begValue
+                        begValue = sensorValue
+                    }
+                    //--- work on time
+                    if (sensorValue > lastValue) {
+                        //--- record of previous downtime
+                        if (delayBeginTime != 0) {
+                            alPeriod.add(CounterPeriodData(delayBeginTime, curTime, 0))
+                            delayBeginTime = 0
+                        }
+                        //--- Beginning of work
+                        if (workBeginTime == 0) {
+                            workBeginTime = curTime
+                        }
+                    } else {    //--- wofk off time
+                        //--- record of previous work
+                        if (workBeginTime != 0) {
+                            alPeriod.add(CounterPeriodData(workBeginTime, curTime, 1))
+                            workBeginTime = 0
+                        }
+                        //--- start of downtime
+                        if (delayBeginTime == 0) {
+                            delayBeginTime = curTime
+                        }
+                    }
+//                    lastSensorData = sensorData
+                    lastValue = sensorValue
+                } else {
+                    sumValue += sensorValue
+                    //--- still in work?
+                    if (sensorValue > 0) {
+                        //--- record of previous downtime
+                        if (delayBeginTime != 0) {
+                            alPeriod.add(CounterPeriodData(delayBeginTime, curTime, 0))
+                            delayBeginTime = 0
+                        }
+                        //--- Beginning of work
+                        if (workBeginTime == 0) {
+                            workBeginTime = curTime
+                        }
+                    } else {
+                        //--- record of previous work
+                        if (workBeginTime != 0) {
+                            alPeriod.add(CounterPeriodData(workBeginTime, curTime, 1))
+                            workBeginTime = 0
+                        }
+                        //--- start of downtime
+                        if (delayBeginTime == 0) {
+                            delayBeginTime = curTime
+                        }
+                    }
                 }
-                lastSensorData = sensorData
-                lastValue = sensorValue
             }
-            sumValue += lastValue - begValue
+            if (scc.isAbsoluteCount) {
+                sumValue += lastValue - begValue
+            }
+            //--- record of the last unclosed event
+            if (workBeginTime != 0) {
+                alPeriod.add(CounterPeriodData(workBeginTime, curTime, 1))
+            }
+            if (delayBeginTime != 0) {
+                alPeriod.add(CounterPeriodData(delayBeginTime, curTime, 0))
+            }
 
-            return sumValue
+            //--- merging of work / downtime periods according to minimum durations
+            mergePeriods(alPeriod, scc.minOnTime, scc.minOffTime)
+
+            return CounterCalcData(
+                scc = scc,
+                value = sumValue,
+                alWorkOnOff = alPeriod,
+            )
         }
 
         //--- not yet applied
@@ -1634,61 +1701,6 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             } else {
                 return 0.0
             }
-        }
-
-        //--- universal function for determining the REAL sum of counter values
-        private fun getSensorCountData(
-            alRawTime: List<Int>,
-            alRawData: List<AdvancedByteBuffer>,
-            scu: SensorConfigCounter,
-            begTime: Int,
-            endTime: Int
-        ): Double {
-            //--- counters that give absolute values in their readings can reset it on command or overflow.
-            //--- you will have to catch each such reset (the algorithm is somewhat similar to the search for refueling / draining)
-            //--- also skip sudden dots with a zero counter
-            var begSensorData = 0.0
-            var begValue = 0.0
-            var lastSensorData = 0.0
-            var lastValue = 0.0
-            var sumValue = 0.0
-
-            for (pos in alRawTime.indices) {
-                val rawTime = alRawTime[pos]
-
-                if (rawTime < begTime) {
-                    continue
-                }
-                if (rawTime > endTime) {
-                    break
-                }
-
-                val sensorData = AbstractObjectStateCalc.getSensorData(scu.portNum, alRawData[pos])?.toDouble() ?: continue
-                //--- ignore outbound values
-                if (isIgnoreSensorData(scu, sensorData)) {
-                    continue
-                }
-
-                val sensorValue = AbstractObjectStateCalc.getSensorValue(scu.alValueSensor, scu.alValueData, sensorData)
-
-                if (scu.isAbsoluteCount) {
-                    if (begSensorData <= 0) {
-                        begSensorData = sensorData
-                        begValue = sensorValue
-                    } else if (sensorData < lastSensorData) {
-                        sumValue += lastValue - begValue
-                        begValue = sensorValue
-                    }
-                    lastSensorData = sensorData
-                    lastValue = sensorValue
-                } else {
-                    sumValue += sensorValue
-                }
-            }
-            if (scu.isAbsoluteCount) {
-                sumValue += lastValue - begValue
-            }
-            return sumValue
         }
 
 //        private fun searchGDL(aLine: GraphicDataContainer, time: Int): Double {
