@@ -7,6 +7,10 @@ class SensorConfigGeo(
     aDescr: String,
     aPortNum: Int,
     aSensorType: Int,
+    aSerialNo: String,
+    aBegYe: Int,
+    aBegMo: Int,
+    aBegDa: Int,
     val minMovingTime: Int,
     val minParkingTime: Int,
     val minOverSpeedTime: Int,
@@ -19,7 +23,18 @@ class SensorConfigGeo(
     val liquidName: String,
     val liquidNorm: Double,
     val maxSpeedLimit: Int,
-) : SensorConfig(aId, aName, aGroup, aDescr, aPortNum, aSensorType) {
+) : SensorConfig(
+    id = aId,
+    name = aName,
+    group = aGroup,
+    descr = aDescr,
+    portNum = aPortNum,
+    sensorType = aSensorType,
+    serialNo = aSerialNo,
+    begYe = aBegYe,
+    begMo = aBegMo,
+    begDa = aBegDa,
+) {
 
     companion object {
 

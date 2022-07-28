@@ -7,6 +7,10 @@ abstract class SensorConfigBase(
     aDescr: String,
     aPortNum: Int,
     aSensorType: Int,
+    aSerialNo: String,
+    aBegYe: Int,
+    aBegMo: Int,
+    aBegDa: Int,
     val minIgnore: Double,
     val maxIgnore: Double,
 ) : SensorConfig(
@@ -15,7 +19,11 @@ abstract class SensorConfigBase(
     group = aGroup,
     descr = aDescr,
     portNum = aPortNum,
-    sensorType = aSensorType
+    sensorType = aSensorType,
+    serialNo = aSerialNo,
+    begYe = aBegYe,
+    begMo = aBegMo,
+    begDa = aBegDa,
 ) {
 
     //--- must be double, so as not to run into errors with integer division later

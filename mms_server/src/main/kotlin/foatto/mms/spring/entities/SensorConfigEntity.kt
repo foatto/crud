@@ -26,11 +26,15 @@ class SensorConfigEntity(
     @Column(name = "sensor_type")
     val sensorType: Int,
 
-//--- not use
-//    serial_no           VARCHAR( 250 ), -- серийный номер
-//    beg_ye              INT,    -- дата ввода в эксплуатацию
-//    beg_mo              INT,
-//    beg_da              INT,
+    @Column(name = "serial_no")
+    val serialNo: String,      // sensor group name for sensors logical linking
+
+    @Column(name = "beg_ye")
+    val begYe: Int,
+    @Column(name = "beg_mo")
+    val begMo: Int,
+    @Column(name = "beg_da")
+    val begDa: Int,
 
     //--- geo-sensor data
 

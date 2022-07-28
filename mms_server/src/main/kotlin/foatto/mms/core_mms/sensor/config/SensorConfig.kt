@@ -7,6 +7,10 @@ open class SensorConfig(
     val descr: String,      // видимое/выводимое описание датчика
     val portNum: Int,
     val sensorType: Int,
+    val serialNo: String,
+    val begYe: Int,
+    val begMo: Int,
+    val begDa: Int,
 ) {
 
     companion object {

@@ -7,6 +7,10 @@ class SensorConfigEnergoSummary(
     aDescr: String,
     aPortNum: Int,
     aSensorType: Int,
+    aSerialNo: String,
+    aBegYe: Int,
+    aBegMo: Int,
+    aBegDa: Int,
     aMinIgnore: Double,
     aMaxIgnore: Double,
 ) : SensorConfigBase(
@@ -16,6 +20,10 @@ class SensorConfigEnergoSummary(
     aDescr = aDescr,
     aPortNum = aPortNum,
     aSensorType = aSensorType,
+    aSerialNo = aSerialNo,
+    aBegYe = aBegYe,
+    aBegMo = aBegMo,
+    aBegDa = aBegDa,
     minIgnore = aMinIgnore,
     maxIgnore = aMaxIgnore,
 )
