@@ -18,7 +18,11 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 import java.io.IOException
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
 import java.util.*
+import javax.net.ssl.SSLContext
+import javax.net.ssl.X509TrustManager
 
 abstract class CoreReplicator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
 
@@ -72,7 +76,14 @@ abstract class CoreReplicator(aConfigFileName: String) : CoreServiceWorker(aConf
 
             index++
 
-            alHttpClient += HttpClient(Apache).config {
+            alHttpClient += HttpClient(Apache) {
+                engine {
+                    sslContext = SSLContext.getInstance("TLS")
+                        .apply {
+                            init(null, arrayOf(TrustAllX509TrustManager()), SecureRandom())
+                        }
+                }
+
                 install(JsonFeature) {
                     serializer = JacksonSerializer()
                 }
@@ -97,7 +108,10 @@ abstract class CoreReplicator(aConfigFileName: String) : CoreServiceWorker(aConf
                 }
             }
         }
-
+/*
+val client = HttpClient(Apache) {
+    // install other features ....
+} */
         cyclePause = hmConfig[CONFIG_CYCLE_PAUSE]!!.toLong() * 1000
     }
 
@@ -231,4 +245,12 @@ abstract class CoreReplicator(aConfigFileName: String) : CoreServiceWorker(aConf
         }
     }
 
+}
+
+class TrustAllX509TrustManager : X509TrustManager {
+    override fun getAcceptedIssuers(): Array<X509Certificate?> = arrayOfNulls(0)
+
+    override fun checkClientTrusted(certs: Array<X509Certificate?>?, authType: String?) {}
+
+    override fun checkServerTrusted(certs: Array<X509Certificate?>?, authType: String?) {}
 }
