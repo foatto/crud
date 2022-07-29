@@ -4,7 +4,7 @@ import foatto.core.link.FormData
 import foatto.core.util.DateTime_DMY
 import foatto.core.util.DateTime_YMDHMS
 import foatto.core.util.getSplittedDouble
-import foatto.mms.core_mms.calc.CalcSumData
+import foatto.core_server.app.server.data.DataDouble
 import foatto.mms.core_mms.calc.ObjectCalc
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigCounter
@@ -26,7 +26,8 @@ class cSummaryBNGRE : cStandartPeriodSummary() {
 
         val m = model as mSummaryBNGRE
 
-        fillReportParam(m.sos)
+        hmReportParam["report_period_begin_value"] = (hmColumnData[m.columnPeriodBeginValue] as DataDouble).doubleValue
+//        fillReportParam(m.sos)
 
         return getReport()
     }
@@ -54,7 +55,8 @@ class cSummaryBNGRE : cStandartPeriodSummary() {
         //        int reportObject = (Integer) hmReportParam.get( "report_object" );
         val reportDepartment = hmReportParam["report_department"] as Int
         val reportGroup = hmReportParam["report_group"] as Int
-        val reportOutGroupSum = hmReportParam["report_out_group_sum"] as Boolean
+        val periodBeginValue = hmReportParam["report_period_begin_value"] as Double
+//        val reportOutGroupSum = hmReportParam["report_out_group_sum"] as Boolean
 
         val (begTime, endTime) = getBegEndTimeFromParam()
 
@@ -81,18 +83,20 @@ class cSummaryBNGRE : cStandartPeriodSummary() {
                 sheet = sheet,
                 aOffsY = offsY,
                 objectCalc = objectCalc,
-                isOutGroupSum = reportOutGroupSum,
+                periodBeginValue,
+//                isOutGroupSum = reportOutGroupSum,
             )
         }
+        offsY++
 
-        sheet.addCell(Label(0, offsY, "ИТОГО общее", wcfCellCBStdYellow))
-        sheet.mergeCells(0, offsY, getColumnCount(1), offsY + 2)
-        offsY += 4
-
-        offsY = outSumData(sheet, offsY, allSumCollector.sumUser, true, null)
+//        sheet.addCell(Label(0, offsY, "ИТОГО общее", wcfCellCBStdYellow))
+//        sheet.mergeCells(0, offsY, getColumnCount(1), offsY + 2)
+//        offsY += 4
+//
+//        offsY = outSumData(sheet, offsY, allSumCollector.sumUser, true, null)
 
         sheet.addCell(Label(4, offsY, getPreparedAt(), wcfCellL))
-        sheet.mergeCells(4, offsY, 7, offsY)
+        //sheet.mergeCells(4, offsY, 7, offsY)
     }
 
     private fun defineSummaryReportHeadersBNGRE(sheet: WritableSheet, aOffsY: Int): Int {
@@ -125,9 +129,21 @@ class cSummaryBNGRE : cStandartPeriodSummary() {
         sheet: WritableSheet,
         aOffsY: Int,
         objectCalc: ObjectCalc,
-        isOutGroupSum: Boolean,
+        periodBeginValue: Double,
+//        isOutGroupSum: Boolean,
     ): Int {
         var offsY = aOffsY
+
+        sheet.addCell(Label(5, offsY, "Остаток на начало периода", wcfTitleName))
+        sheet.addCell(
+            Label(
+                6,
+                offsY,
+                getSplittedDouble(periodBeginValue, ObjectCalc.getPrecision(periodBeginValue), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider),
+                wcfCellC
+            )
+        )
+        offsY++
 
         //--- report on liquid/fuel using
         sheet.addCell(Label(1, offsY, "Наименование [ед.изм.]", wcfCaptionHC))
@@ -137,8 +153,11 @@ class cSummaryBNGRE : cStandartPeriodSummary() {
         sheet.addCell(Label(5, offsY, "Плотность", wcfCaptionHC))
         sheet.addCell(Label(6, offsY, "Приход", wcfCaptionHC))
         sheet.addCell(Label(7, offsY, "Расход", wcfCaptionHC))
-
         offsY++
+
+        var sumIn = 0.0
+        var sumOut = 0.0
+
         objectCalc.tmCounterData.filter { (_, counterData) ->
             counterData.scc.sensorType == SensorConfig.SENSOR_MASS_ACCUMULATED
         }.forEach { (counterDescr, counterData) ->
@@ -172,75 +191,45 @@ class cSummaryBNGRE : cStandartPeriodSummary() {
             val sValue = getSplittedDouble(counterData.value, ObjectCalc.getPrecision(counterData.value), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
             if (counterData.scc.inOutType == SensorConfigCounter.CALC_TYPE_IN) {
                 sheet.addCell(Label(6, offsY, sValue, wcfCellC))
+                sumIn += counterData.value
             } else {
                 sheet.addCell(Label(7, offsY, sValue, wcfCellC))
-
+                sumOut += counterData.value
             }
-
             offsY++
         }
+        sheet.addCell(Label(5, offsY, "ИТОГО:", wcfCaptionHC))
+        sheet.addCell(Label(6, offsY, getSplittedDouble(sumIn, ObjectCalc.getPrecision(sumIn), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCaptionHC))
+        sheet.addCell(Label(7, offsY, getSplittedDouble(sumOut, ObjectCalc.getPrecision(sumOut), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCaptionHC))
         offsY++
 
-        //--- withdrawal of the amount for each amount group
-        if (isOutGroupSum && objectCalc.tmGroupSum.size > 1) {
-            objectCalc.tmGroupSum.forEach { (sumName, sumData) ->
-                sheet.addCell(Label(1, offsY, "ИТОГО по '$sumName':", wcfCellRBStdYellow))
-                offsY++
-
-                offsY = outGroupSum(sheet, offsY, sumData)
-                offsY++
-            }
-        }
-
-        sheet.addCell(Label(1, offsY, "ИТОГО:", wcfCellRBStdYellow))
+        sheet.addCell(Label(5, offsY, "Остаток на конец периода", wcfTitleName))
+        sheet.addCell(
+            Label(
+                7,
+                offsY,
+                getSplittedDouble(periodBeginValue + sumIn - sumOut, ObjectCalc.getPrecision(periodBeginValue + sumIn - sumOut), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider),
+                wcfCellC
+            )
+        )
         offsY++
 
-        offsY = outGroupSum(sheet, offsY, objectCalc.allSumData)
-        offsY++
-
-        return offsY
-    }
-
-    private fun outGroupSum(sheet: WritableSheet, aOffsY: Int, sumData: CalcSumData): Int {
-        var offsY = aOffsY
-
-        if (sumData.tmEnergo.isNotEmpty()) {
-            sheet.addCell(Label(1, offsY++, "Расход/генерация э/энергии", wcfCellRBStdYellow))
-
-            sheet.addCell(Label(1, offsY, "Наименование", wcfCellRBStdYellow))
-            sheet.addCell(Label(2, offsY, "Расход/генерация", wcfCellRBStdYellow))
-            sheet.addCell(Label(3, offsY, "Средний расход топлива", wcfCellRBStdYellow))
-            offsY++
-
-            sumData.tmEnergo.forEach { (sensorType, dataByPhase) ->
-                dataByPhase.forEach { (phase, value) ->
-                    sheet.addCell(Label(1, offsY, (SensorConfig.hmSensorDescr[sensorType] ?: "(неизв. тип датчика)") + ObjectCalc.getPhaseDescr(phase), wcfCellRBStdYellow))
-                    sheet.addCell(Label(2, offsY, getSplittedDouble(value, ObjectCalc.getPrecision(value), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
-                    val tmLiquidUsing = sumData.tmLiquidUsing
-                    val sAvgUsing = if (tmLiquidUsing.size == 1 && value > 0) {
-                        getSplittedDouble(tmLiquidUsing[tmLiquidUsing.firstKey()]!! / value, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
-                    } else {
-                        "-"
-                    }
-                    sheet.addCell(Label(3, offsY, sAvgUsing, wcfCellC))
-                    offsY++
-                }
-            }
-        }
-
-        if (sumData.tmLiquidUsing.isNotEmpty()) {
-            sheet.addCell(Label(1, offsY++, "Расход жидкостей/топлива", wcfCellRBStdYellow))
-
-            sheet.addCell(Label(1, offsY, "Наименование", wcfCellRBStdYellow))
-            sheet.addCell(Label(2, offsY, "Расход", wcfCellRBStdYellow))
-            offsY++
-
-            sumData.tmLiquidUsing.forEach { (name, using) ->
-                sheet.addCell(Label(1, offsY, name, wcfCellRBStdYellow))
-                sheet.addCell(Label(2, offsY, getSplittedDouble(using, ObjectCalc.getPrecision(using), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
-                offsY++
-            }
-        }
+//        //--- withdrawal of the amount for each amount group
+//        if (isOutGroupSum && objectCalc.tmGroupSum.size > 1) {
+//            objectCalc.tmGroupSum.forEach { (sumName, sumData) ->
+//                sheet.addCell(Label(1, offsY, "ИТОГО по '$sumName':", wcfCellRBStdYellow))
+//                offsY++
+//
+//                offsY = outGroupSum(sheet, offsY, sumData)
+//                offsY++
+//            }
+//        }
+//
+//        sheet.addCell(Label(1, offsY, "ИТОГО:", wcfCellRBStdYellow))
+//        offsY++
+//
+//        offsY = outGroupSum(sheet, offsY, objectCalc.allSumData)
+//        offsY++
 
         return offsY
     }
