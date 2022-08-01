@@ -1614,6 +1614,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                                 llcd.usingTotal += calcUsing
                             }
                         }
+                        else -> {}
                     }
                 }
             }

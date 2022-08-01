@@ -204,6 +204,7 @@ class XyElementData(
                     }
                 }
             }
+            else -> {}
         }
     }
 
@@ -222,6 +223,7 @@ class XyElementData(
                 //--- последняя точка служебная, в полигон не войдёт
                 return if (alPoint.size > 3) AddPointStatus.COMPLETEABLE else AddPointStatus.NOT_COMPLETEABLE
             }
+            else -> {}
         }
         return AddPointStatus.NOT_COMPLETEABLE
     }
@@ -236,6 +238,7 @@ class XyElementData(
                     points += "${it.x},${it.y} "
                 }
             }
+            else -> {}
         }
     }
 
@@ -249,6 +252,7 @@ class XyElementData(
                     points += "${it.x},${it.y} "
                 }
             }
+            else -> {}
         }
     }
 
@@ -262,6 +266,7 @@ class XyElementData(
                     points += "${it.x},${it.y} "
                 }
             }
+            else -> {}
         }
     }
 
@@ -276,6 +281,7 @@ class XyElementData(
                     points += "${it.x},${it.y} "
                 }
             }
+            else -> {}
         }
     }
 
@@ -308,6 +314,8 @@ class XyElementData(
                     xyActionRequest.hmParam[it.first] = it.second()
                 }
             }
+
+            else -> {}
 //            //--- приводим в локальные/экранные размеры
 //            actionElement!!.element.imageWidth *= xyModel.viewCoord.scale / scaleKoef
 //            actionElement!!.element.imageHeight *= xyModel.viewCoord.scale / scaleKoef
@@ -348,6 +356,8 @@ class XyElementData(
                     xyElement = xyElement
                 )
             }
+
+            else -> {}
 //            //--- приводим в локальные/экранные размеры
 //            actionElement!!.element.imageWidth *= xyModel.viewCoord.scale / scaleKoef
 //            actionElement!!.element.imageHeight *= xyModel.viewCoord.scale / scaleKoef

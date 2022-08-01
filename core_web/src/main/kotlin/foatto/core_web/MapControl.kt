@@ -335,6 +335,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                     that.moveStartPoint = XyPoint(mouseX, mouseY)
                     that.moveEndPoint = XyPoint(mouseX, mouseY)
                 }
+                else -> {}
             }
             that.isMouseDown = true
         },
@@ -406,6 +407,7 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                         moveEndPoint.set(mouseX, mouseY)
                         that().moveEndPoint = moveEndPoint
                     }
+                    else -> {}
                 }
             }
             //--- mouse moved
@@ -472,6 +474,8 @@ fun mapControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply
                         val addElement = that().addElement.unsafeCast<XyElementData>()
                         addElement.setLastPoint(mouseX, mouseY)
                     }
+
+                    else -> {}
                 }
             }
         },

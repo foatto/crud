@@ -379,11 +379,11 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                     }
                 }
                 //--- else try set focus to next field or first sub-field in next field
-                if(nextGridId == -1 && nextSubGridId == -1) {
+                if (nextGridId == -1 && nextSubGridId == -1) {
                     if (curIndex < arrGridData.lastIndex) {
                         var nextIndex = curIndex + 1
                         //--- search non-label element
-                        while(nextIndex <= arrGridData.lastIndex && arrGridData[nextIndex].cellType == FormCellType_.LABEL) {
+                        while (nextIndex <= arrGridData.lastIndex && arrGridData[nextIndex].cellType == FormCellType_.LABEL) {
                             nextIndex++
                         }
                         val nextGridData = arrGridData[nextIndex]
@@ -399,10 +399,10 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                 }
 
 //                Vue.nextTick {
-                    val element = document.getElementById(nextFocusId)
-                    if (element is HTMLElement) {
-                        element.focus()
-                    }
+                val element = document.getElementById(nextFocusId)
+                if (element is HTMLElement) {
+                    element.focus()
+                }
 //                }
             }
         },
@@ -417,21 +417,27 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                     FormCellType_.STRING -> {
                         alFormData.add(FormData(stringValue = if (withNewValues) gridData.text else gridData.oldText))
                     }
+
                     FormCellType_.TEXT -> {
                         alFormData.add(FormData(textValue = if (withNewValues) gridData.text else gridData.oldText))
                     }
+
                     FormCellType_.CHECKBOX, FormCellType_.SWITCH -> {
                         alFormData.add(FormData(booleanValue = if (withNewValues) gridData.bool else gridData.oldBool))
                     }
+
                     FormCellType_.DATE, FormCellType_.TIME, FormCellType_.DATE_TIME -> {
                         alFormData.add(FormData(alDateTimeValue = (if (withNewValues) gridData.arrDateTime else gridData.oldArrDateTime)!!.toList()))
                     }
+
                     FormCellType_.COMBO -> {
                         alFormData.add(FormData(comboValue = if (withNewValues) gridData.combo else gridData.oldCombo))
                     }
+
                     FormCellType_.RADIO -> {
                         alFormData.add(FormData(comboValue = if (withNewValues) gridData.combo else gridData.oldCombo))
                     }
+
                     FormCellType_.FILE -> {
                         alFormData.add(FormData(
                             fileId = gridData.fileID,
@@ -443,6 +449,8 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                             alFileRemovedId = if (withNewValues) gridData.alFileRemovedID else listOf()
                         ))
                     }
+
+                    else -> {}
                 }
             }
             that().`$parent`.invoke(AppRequest(action = formAppParam, alFormData = alFormData))
@@ -485,12 +493,14 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                         hmFormCellCaption[gridCellID] = mutableListOf()
                         alFormCellMasterPreAction.add(formGridData)
                     }
+
                     FormCellType.COMBO.toString() -> {
                         hmFormCellMaster[formCell.comboName] = gridCellID
                         hmFormCellVisible[gridCellID] = mutableListOf()
                         hmFormCellCaption[gridCellID] = mutableListOf()
                         alFormCellMasterPreAction.add(formGridData)
                     }
+
                     FormCellType.RADIO.toString() -> {
                         hmFormCellMaster[formCell.comboName] = gridCellID
                         hmFormCellVisible[gridCellID] = mutableListOf()
@@ -597,24 +607,29 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                 FormCellType.STRING.toString(), FormCellType.INT.toString(), FormCellType.DOUBLE.toString() -> {
                     isEmptyFieldValue = formCell.value.isEmpty()
                 }
+
                 FormCellType.TEXT.toString() -> {
                     isEmptyFieldValue = formCell.textValue.isEmpty()
                 }
+
                 FormCellType.BOOLEAN.toString() -> {
                     hmFormCellMaster[formCell.booleanName] = gridCellID
                     hmFormCellVisible[gridCellID] = mutableListOf()
                     hmFormCellCaption[gridCellID] = mutableListOf()
                     alFormCellMasterPreAction.add(formGridData)
                 }
+
                 FormCellType.DATE.toString(), FormCellType.TIME.toString(), FormCellType.DATE_TIME.toString() -> {
                     isEmptyFieldValue = formCell.alDateTimeField[0].second.isEmpty()
                 }
+
                 FormCellType.COMBO.toString() -> {
                     hmFormCellMaster[formCell.comboName] = gridCellID
                     hmFormCellVisible[gridCellID] = mutableListOf()
                     hmFormCellCaption[gridCellID] = mutableListOf()
                     alFormCellMasterPreAction.add(formGridData)
                 }
+
                 FormCellType.RADIO.toString() -> {
                     hmFormCellMaster[formCell.comboName] = gridCellID
                     hmFormCellVisible[gridCellID] = mutableListOf()
@@ -964,6 +979,7 @@ private fun getFormGridData(formCell: FormCell, gridCellID: Int, itHidden: Boole
                 itReadOnly = !formCell.itEditable,
             )
         }
+
         FormCellType.TEXT.toString() -> {
             FormGridData(
                 id = gridCellID,
@@ -977,6 +993,7 @@ private fun getFormGridData(formCell: FormCell, gridCellID: Int, itHidden: Boole
                 itReadOnly = !formCell.itEditable,
             )
         }
+
         FormCellType.BOOLEAN.toString() -> {
             FormGridData(
                 id = gridCellID,
@@ -993,6 +1010,7 @@ private fun getFormGridData(formCell: FormCell, gridCellID: Int, itHidden: Boole
                 arrSwitchText = formCell.arrSwitchText,
             )
         }
+
         FormCellType.DATE.toString(), FormCellType.TIME.toString(), FormCellType.DATE_TIME.toString() -> {
             FormGridData(
                 id = gridCellID,
@@ -1000,9 +1018,11 @@ private fun getFormGridData(formCell: FormCell, gridCellID: Int, itHidden: Boole
                     FormCellType.DATE -> {
                         FormCellType_.DATE
                     }
+
                     FormCellType.TIME -> {
                         FormCellType_.TIME
                     }
+
                     else -> {
                         FormCellType_.DATE_TIME
                     }
@@ -1020,6 +1040,7 @@ private fun getFormGridData(formCell: FormCell, gridCellID: Int, itHidden: Boole
                 arrSubId = alSubId.toTypedArray()
             }
         }
+
         FormCellType.COMBO.toString() -> {
             FormGridData(
                 id = gridCellID,
@@ -1032,6 +1053,7 @@ private fun getFormGridData(formCell: FormCell, gridCellID: Int, itHidden: Boole
                 itReadOnly = !formCell.itEditable,
             )
         }
+
         FormCellType.RADIO.toString() -> {
             FormGridData(
                 id = gridCellID,
@@ -1050,6 +1072,7 @@ private fun getFormGridData(formCell: FormCell, gridCellID: Int, itHidden: Boole
                 arrSubId = alSubId.toTypedArray()
             }
         }
+
         FormCellType.FILE.toString() -> {
             FormGridData(
                 id = gridCellID,
@@ -1090,16 +1113,19 @@ private fun doVisibleAndCaptionChangeBody(that: dynamic, gdMaster: FormGridData)
                     0
                 }
             }
+
             FormCellType_.COMBO -> if (gdMaster.itHidden) {
                 gdMaster.oldCombo
             } else {
                 gdMaster.combo
             }
+
             FormCellType_.RADIO -> if (gdMaster.itHidden) {
                 gdMaster.oldCombo
             } else {
                 gdMaster.combo
             }
+
             else -> 0
         }
 
