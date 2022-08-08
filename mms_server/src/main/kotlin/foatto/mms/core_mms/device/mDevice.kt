@@ -240,12 +240,13 @@ class mDevice : mAbstractUserSelector() {
         //----------------------------------------------------------------------------------------------------------------------
 
         addUniqueColumn(columnSerialNo, "")
-        addUniqueColumn(
-            listOf(
-                UniqueColumnData(os.columnObject),
-                UniqueColumnData(columnDeviceIndex),
-            )
-        )
+//--- need to add use empty/zero values of columnObject
+//        addUniqueColumn(
+//            listOf(
+//                UniqueColumnData(os.columnObject),
+//                UniqueColumnData(columnDeviceIndex),
+//            )
+//        )
 
         //----------------------------------------------------------------------------------------------------------------------
 

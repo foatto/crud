@@ -136,12 +136,12 @@ class mDevice : mAbstract() {
         //----------------------------------------------------------------------------------------------------------------------
 
         addUniqueColumn(columnSerialNo, "")
-        addUniqueColumn(
-            listOf(
-                UniqueColumnData(os.columnObject),
-                UniqueColumnData(columnDeviceIndex),
-            )
-        )
+//        addUniqueColumn(
+//            listOf(
+//                UniqueColumnData(os.columnObject),
+//                UniqueColumnData(columnDeviceIndex),
+//            )
+//        )
 
         //----------------------------------------------------------------------------------------------------------------------
 
