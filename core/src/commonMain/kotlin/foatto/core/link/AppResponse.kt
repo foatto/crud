@@ -10,6 +10,9 @@ class AppResponse(
     val xy: XyResponse? = null,
     val composite: CompositeResponse? = null,
 ) {
+
+    var currentUserName = ""
+
     //--- temporarily use Array of Pair instead of Map, because there is no way to deserialize Map in Kotlin / JS (and List is deserialized to Array)
     var hmUserProperty: Array<Pair<String, String>>? = null
 //    var hmUserProperty: Map<String,String>? = null

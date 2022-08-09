@@ -318,6 +318,7 @@ open class Index {
                     "dialogButtonOkText" to "OK",
                     "dialogButtonCancelText" to "Отмена",
 
+                    "currentUserName" to "",
                     "scaleKoef" to 1.0,
                     "timeOffset" to 0,
 

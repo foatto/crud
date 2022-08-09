@@ -176,6 +176,7 @@ fun appControl(startAppParam: String, tabId: Int) = vueComponentOptions().apply 
                             //                            if( appResponse.code == Code.LOGON_SUCCESS_BUT_OLD )
                             //                                showWarning( "Система безопасности", "Срок действия пароля истек.\nПожалуйста, смените пароль." )
                             //
+                            that.`$root`.currentUserName = appResponse.currentUserName
                             appResponse.hmUserProperty!!.forEach {
                                 if (it.first == UP_TIME_OFFSET) {
                                     //--- на сервере может лежать как в секундах, так и в миллисекундах (старый вариант)

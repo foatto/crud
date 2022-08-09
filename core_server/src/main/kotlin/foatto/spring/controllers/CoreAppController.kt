@@ -282,6 +282,7 @@ abstract class CoreAppController : iApplication {
                     val hmAliasConfig = getAliasConfig(stm, chmSession, hmOut)
                     val userConfig = chmSession[iApplication.USER_CONFIG] as UserConfig
 
+                    appResponse.currentUserName = UserConfig.hmUserFullNames[userConfig.userId] ?: "(неизвестный пользователь)"
                     //--- временно используем List вместо Map, т.к. в Kotlin/JS нет возможности десериализовать Map (а List десериализуется в Array)
                     appResponse.hmUserProperty = userConfig.hmUserProperty.toList().toTypedArray()
                     appResponse.arrMenuData = menuInit(stm, hmAliasConfig, userConfig).toTypedArray()
@@ -290,7 +291,6 @@ abstract class CoreAppController : iApplication {
                         //println( "$upKey = $upValue" )
                         userConfig.saveUserProperty(conn, upKey, upValue)
                     }
-
 //                    logQuery( "Logon result: $logonResult" )
                 }
             }

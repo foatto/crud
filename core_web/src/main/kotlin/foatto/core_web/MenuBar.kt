@@ -95,7 +95,7 @@ fun menuBar(arrMenuData: Array<MenuData>) = vueComponentOptions().apply {
 
     this.mounted = {
         //--- добавить клиентское меню и преобразовать в локальную структуру
-        that().arrMenuData = addClientMenu(arrMenuData)
+        that().arrMenuData = addClientMenu(that(), arrMenuData)
     }
 
     this.data = {
@@ -156,23 +156,21 @@ fun menuBar(arrMenuData: Array<MenuData>) = vueComponentOptions().apply {
     }
 }
 
-private fun addClientMenu(arrMenuData: Array<MenuData>): Array<MenuData> {
+private fun addClientMenu(that: dynamic, arrMenuData: Array<MenuData>): Array<MenuData> {
     val alSubMenu = mutableListOf<MenuData>()
 
 //    miUserDoc = MenuItem( "Руководство пользователя" )
 //    miUserDoc.onAction = this as EventHandler<ActionEvent>
 //    menuClientStaticMenu.items.add( miUserDoc )
 
+    alSubMenu.add(MenuData("", "Пользователь: " + that.`$root`.currentUserName.unsafeCast<String>(), null))
+    alSubMenu.add(MenuData(CMD_CHANGE_PASSWORD, "Сменить пароль", null))
+    alSubMenu.add(MenuData(CMD_LOGOFF, "Выход из системы", null))
+
+    alSubMenu.add(MenuData("", ""))
+
     alSubMenu.add(MenuData(CMD_SET_START_PAGE, "Установить вкладку как стартовую", null))
     alSubMenu.add(MenuData(CMD_CLEAR_START_PAGE, "Очистить установку стартовой", null))
-
-    alSubMenu.add(MenuData("", ""))
-
-    alSubMenu.add(MenuData(CMD_CHANGE_PASSWORD, "Сменить пароль", null))
-
-    alSubMenu.add(MenuData("", ""))
-
-    alSubMenu.add(MenuData(CMD_LOGOFF, "Выход из системы", null))
 
     alSubMenu.add(MenuData("", ""))
 
