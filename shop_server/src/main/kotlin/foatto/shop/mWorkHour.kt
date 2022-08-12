@@ -58,11 +58,25 @@ class mWorkHour : mAbstract() {
             aCaption = "Отработано [час]",
             aCols = 10,
             aPrecision = 1,
-            aDefaultValue = application.workHourInWorkDay?.toDoubleOrNull() ?: 8.0
+            aDefaultValue = application.workHourInWorkDay?.toDoubleOrNull() ?: 9.0
         ).apply {
             setEmptyData(0.0, "-")
             minValue = 0.0
             maxValue = 12.0
+            tableAlign = TableCellAlign.CENTER
+        }
+
+        val columnHourTax = ColumnDouble(
+            aTableName = modelTableName,
+            aFieldName = "hour_tax",
+            aCaption = "Ставка [руб/час]",
+            aCols = 10,
+            aPrecision = 1,
+            aDefaultValue = application.alWorkDayHourTax.firstOrNull()?.toDoubleOrNull() ?: 90.0
+        ).apply {
+            setEmptyData(0.0, "-")
+            minValue = 0.0
+//            maxValue = 12.0
             tableAlign = TableCellAlign.CENTER
         }
 
@@ -83,6 +97,7 @@ class mWorkHour : mAbstract() {
 
         addTableColumn(columnWorker)
         addTableColumn(columnWorkHour)
+        addTableColumn(columnHourTax)
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -91,6 +106,7 @@ class mWorkHour : mAbstract() {
         alFormColumn.add(columnWorker)
         alFormColumn.add(columnWorkDate)
         alFormColumn.add(columnWorkHour)
+        alFormColumn.add(columnHourTax)
 
         //----------------------------------------------------------------------------------------------------------------------
 

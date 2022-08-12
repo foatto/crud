@@ -61,14 +61,17 @@ class ShopAppController : CoreAppController(), iShopApplication {
     @Value("\${work_hour.hour_in_work_day}")
     override val workHourInWorkDay: String? = null
 
-    @Value("\${work_hour.hour_in_saturday}")
-    override val workHourInSaturday: String? = null
+    @Value("\${work_hour.hour_in_holy_day}")
+    override val workHourInHolyDay: String? = null
 
     @Value("\${work_hour.user_id}")
     override val alWorkHourUserId: Array<String> = emptyArray()
 
-    @Value("\${work_hour.per_hour_tax}")
-    override val alWorkHourPerHourTax: Array<String> = emptyArray()
+    @Value("\${work_hour.work_day_hour_tax}")
+    override val alWorkDayHourTax: Array<String> = emptyArray()
+
+    @Value("\${work_hour.holy_day_hour_tax}")
+    override val alHolyDayHourTax: Array<String> = emptyArray()
 
     @Value("\${work_hour.sales_percent}")
     override val alWorkHourSalesPercent: Array<String> = emptyArray()

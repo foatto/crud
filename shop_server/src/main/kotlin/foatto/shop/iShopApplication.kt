@@ -20,13 +20,14 @@ interface iShopApplication : iApplication {
     val fiscalPlace: String?
 
     val workHourInWorkDay: String?
-    val workHourInSaturday: String?
+    val workHourInHolyDay: String?
     val alWorkHourUserId: Array<String>
-    val alWorkHourPerHourTax: Array<String>
+    val alWorkDayHourTax: Array<String>
+    val alHolyDayHourTax: Array<String>
     val alWorkHourSalesPercent: Array<String>
     val otherSharePart: String?
 
-    fun getDocumentDate(docId:Int): Triple<Int, Int, Int>
+    fun getDocumentDate(docId: Int): Triple<Int, Int, Int>
     fun isDocumentFiscable(docId: Int): Boolean
 
     fun checkCatalogMarkable(aCatalogId: Int): Boolean
