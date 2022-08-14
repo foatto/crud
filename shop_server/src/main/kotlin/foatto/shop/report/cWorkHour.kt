@@ -118,38 +118,39 @@ class cWorkHour : cAbstractShopReport() {
             val tmDayMoney = tmWorkMoney.getOrPut(workerId) { mutableMapOf() }
             for (day in 1..maxDaysInMonth) {
                 val dayHour = tmDayHour[day]?.first
-                if (dayHour != null && dayHour > 0.0) {
+                val fullSalesPercent = hmSalesInDay[day]!! * hmUserSalesPercent[workerId]!! / 100
+                val mySalesPercent = if (dayHour != null && dayHour > 0.0) {
                     val (workHour, perHourTax) = tmDayHour[day]!!   // exactly not null
                     //--- hourly tax
                     val hourTax = workHour * perHourTax
                     //--- sales percents
-                    val fullSalesPercent = hmSalesInDay[day]!! * hmUserSalesPercent[workerId]!! / 100
-                    val mySalesPercent = (workHour / hmMaxHourInDay[day]!!) * fullSalesPercent
-                    val othersSalesPercent = fullSalesPercent - mySalesPercent
+                    val mySalesPercentLocal = (workHour / hmMaxHourInDay[day]!!) * fullSalesPercent
 
                     tmDayMoney[day] = tmDayMoney[day]?.let { (prevHourTax, prevSalesPercent) ->
-                        Pair(prevHourTax + hourTax, prevSalesPercent + mySalesPercent)
-                    } ?: Pair(hourTax, mySalesPercent)
+                        Pair(prevHourTax + hourTax, prevSalesPercent + mySalesPercentLocal)
+                    } ?: Pair(hourTax, mySalesPercentLocal)
 
-                    //--- if worked non-fullday
-                    if (othersSalesPercent > 0 && tmWorkHourAndTax.size > 1) {
-                        tmWorkHourAndTax.forEach { (otherWorkerId, tmOtherDayHour) ->
-                            if (otherWorkerId != workerId) {
-                                //--- if other manager worked in this day
-                                val otherDayWorkHour = tmOtherDayHour[day]?.first
-                                if (otherDayWorkHour != null && otherDayWorkHour > 0.0) {
-                                    val otherWorkersCount = tmWorkHourAndTax.size - 1
-                                    val addPercent = othersSalesPercent / otherWorkersCount * otherSharePart
-
-                                    val tmOtherDayMoney = tmWorkMoney.getOrPut(otherWorkerId) { mutableMapOf() }
-                                    tmOtherDayMoney[day] = tmOtherDayMoney[day]?.let { (otherPrevHourTax, otherPrevSalesPercent) ->
-                                        Pair(otherPrevHourTax, otherPrevSalesPercent + addPercent)
-                                    } ?: Pair(0.0, addPercent)
-                                }
+                    mySalesPercentLocal
+                } else {
+                    0.0
+                }
+                val othersSalesPercent = fullSalesPercent - mySalesPercent
+                //--- if worked non-fullday
+                if (othersSalesPercent > 0 && tmWorkHourAndTax.size > 1) {
+                    val otherWorkersCount = tmWorkHourAndTax.size - 1
+                    val addPercent = othersSalesPercent / otherWorkersCount * otherSharePart
+                    tmWorkHourAndTax.forEach { (otherWorkerId, tmOtherDayHour) ->
+                        if (otherWorkerId != workerId) {
+                            //--- if other manager worked in this day
+                            val otherDayWorkHour = tmOtherDayHour[day]?.first
+                            if (otherDayWorkHour != null && otherDayWorkHour > 0.0) {
+                                val tmOtherDayMoney = tmWorkMoney.getOrPut(otherWorkerId) { mutableMapOf() }
+                                tmOtherDayMoney[day] = tmOtherDayMoney[day]?.let { (otherPrevHourTax, otherPrevSalesPercent) ->
+                                    Pair(otherPrevHourTax, otherPrevSalesPercent + addPercent)
+                                } ?: Pair(0.0, addPercent)
                             }
                         }
                     }
-
                 }
             }
         }
@@ -186,7 +187,7 @@ class cWorkHour : cAbstractShopReport() {
 
                 sheet.addCell(Label(dx, offsY + dy, day.toString(), wcfCellCBStdYellow))
                 sheet.addCell(Label(dx, offsY + dy + 1, sWorkHour, wcfCellC))
-                workHour?.let { wh ->
+                if (workHour != null && workHour > 0) {
 //                    val perHourTax = wh * hmUserHourTax[workerId]!!
 //                    val salesPercent = (wh / hmMaxHourInDay[day]!!) * hmSalesInDay[day]!! * hmUserSalesPercent[workerId]!! / 100
                     val dayMoney = tmDayMoney[day]!!
