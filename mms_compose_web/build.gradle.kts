@@ -1,0 +1,52 @@
+val isBuildSupressWarning: String by project
+
+val kotlinLanguageVersion: String by project
+val kotlinApiVersion: String by project
+
+plugins {
+    kotlin("multiplatform")
+
+    id("org.jetbrains.compose")
+
+    `maven-publish`
+}
+
+kotlin {
+    js(IR) {
+        browser()
+//        browser {
+//            testTask {
+//                testLogging.showStandardStreams = true
+//                useKarma {
+//                    useChromeHeadless()
+//                    useFirefox()
+//                }
+//            }
+//        }
+        binaries.executable()
+    }
+    sourceSets {
+        val jsMain by getting {
+            dependencies {
+                api(project(":core_compose_web"))
+            }
+        }
+//        val jsTest by getting {
+//            dependencies {
+//                implementation(kotlin("test-js"))
+//            }
+//        }
+    }
+}
+
+tasks {
+    build {
+        doLast {
+            delete("/home/foatto/MMSServerSpring/web/compose")
+            copy {
+                from("/home/foatto/crud/mms_compose_web/build/distributions")
+                into("/home/foatto/MMSServerSpring/web/compose")
+            }
+        }
+    }
+}
