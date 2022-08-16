@@ -1,6 +1,5 @@
 package foatto.spring.controllers
 
-import foatto.spring.CoreSpringApp
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -18,6 +17,11 @@ class CoreStaticFileDownloadController {
     @GetMapping(value = ["/"])
     fun downloadRoot(response: HttpServletResponse) {
         CoreAppController.download(response, "${rootDirName}/web/index.html")
+    }
+
+    @GetMapping(value = ["/compose.html"])
+    fun downloadComposeRoot(response: HttpServletResponse) {
+        CoreAppController.download(response, "${rootDirName}/web/index_compose.html")
     }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -56,6 +60,15 @@ class CoreStaticFileDownloadController {
         fileName: String
     ) {
         CoreAppController.download(response, "${rootDirName}/web/lib/$fileName")
+    }
+
+    @GetMapping(value = ["/web/compose/{fileName}"])
+    fun downloadWebCompose(
+        response: HttpServletResponse,
+        @PathVariable("fileName")
+        fileName: String
+    ) {
+        CoreAppController.download(response, "${rootDirName}/web/compose/$fileName")
     }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
