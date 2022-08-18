@@ -1,15 +1,54 @@
-//import foatto.core.app.*
-//import foatto.core_web.external.vue.Vue
-//import foatto.core_web.external.vue.VueComponentOptions
-//import foatto.core_web.external.vue.that
-//import foatto.core_web.external.vue.vueComponentOptions
-//import kotlinx.browser.document
-//import kotlinx.browser.localStorage
-//import kotlinx.browser.window
-//import org.w3c.dom.HTMLSpanElement
-//import kotlin.js.Json
-//import kotlin.js.json
-//
+import androidx.compose.runtime.Composable
+import org.jetbrains.compose.web.css.padding
+import org.jetbrains.compose.web.css.px
+import org.jetbrains.compose.web.dom.Div
+
+open class Index(
+    val styleIsNarrowScreen: Boolean,
+    val styleIsHiddenMenuBar: Boolean,
+) {
+
+    @Composable
+    fun getBody() {
+
+        //--- участок дизайна для широкого экрана с постоянным меню слева
+        if (styleIsNarrowScreen || styleIsHiddenMenuBar) {
+        } else {
+//                """
+//                    <div v-bind:style="style_top_container">
+//                        <component v-if="menuBar && isShowMainMenu"
+//                                   v-bind:is="menuBar"
+//                """ +
+//                    styleMenuBar +
+//                    """
+//                        >
+//                        </component>
+//                        <div id="$MENU_CLOSER_BUTTON_ID"
+//                             v-bind:style="style_menu_closer"
+//                        >
+//                            <button v-bind:style="style_menu_closer_button"
+//                                    v-on:click="isShowMainMenu=!isShowMainMenu"
+//                            >
+//                                {{ isShowMainMenu ? '&lt;' : '&gt;' }}
+//                            </button>
+//                        </div>
+//                """
+        }
+
+        //--- main container
+        Div(
+            attrs = {
+                //+ add attrs here
+                style {
+                    padding(25.px)
+                }
+            }
+        ) {
+
+        }
+    }
+}
+
 //const val LOCAL_STORAGE_APP_PARAM = "app_param"
 //
 //const val TOP_BAR_ID = "top_bar"
@@ -17,7 +56,7 @@
 //
 //var dialogActionFun: (that: dynamic) -> Unit = { _: dynamic -> }
 
-open class Index {
+//open class Index {
 
 //    fun init() {
 //
@@ -42,29 +81,6 @@ open class Index {
 //        //----------------------------------------------------------------------------------------------------------------------------------------------------------------
 //
 //
-//            this.template = if (styleIsNarrowScreen || styleIsHiddenMenuBar) {
-//                ""
-//            } else {
-//                """
-//                    <div v-bind:style="style_top_container">
-//                        <component v-if="menuBar && isShowMainMenu"
-//                                   v-bind:is="menuBar"
-//                """ +
-//                    styleMenuBar +
-//                    """
-//                        >
-//                        </component>
-//                        <div id="$MENU_CLOSER_BUTTON_ID"
-//                             v-bind:style="style_menu_closer"
-//                        >
-//                            <button v-bind:style="style_menu_closer_button"
-//                                    v-on:click="isShowMainMenu=!isShowMainMenu"
-//                            >
-//                                {{ isShowMainMenu ? '&lt;' : '&gt;' }}
-//                            </button>
-//                        </div>
-//                """
-//            } +
 //                """
 //                    <div v-bind:style="style_main_container">
 //                """ +
@@ -525,6 +541,6 @@ open class Index {
 //
 //    private class TabInfo(val id: Int, var arrText: Array<String>, var tooltip: String)
 //    private class TabComp(val comp: VueComponentOptions)
-}
+//}
 
 
