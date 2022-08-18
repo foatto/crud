@@ -1,12 +1,16 @@
 import org.jetbrains.compose.web.renderComposable
 
 fun main() {
+    val index = MMSIndex()
     renderComposable(rootElementId = "root") {
-        Body()
+        index.getBody()
     }
 }
 
-class MMSIndex {
+private class MMSIndex : Index(
+    styleIsNarrowScreen = false,
+    styleIsHiddenMenuBar = true,    //false, - для начала типовой дизайн
+) {
 }
 
 //import foatto.core_web.*
@@ -40,7 +44,6 @@ class MMSIndex {
 //
 ////--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //
-//private class MMSIndex : Index() {
 //
 //    init {
 //        styleIsHiddenMenuBar = false
