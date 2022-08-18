@@ -1,7 +1,8 @@
 import androidx.compose.runtime.Composable
-import org.jetbrains.compose.web.css.padding
-import org.jetbrains.compose.web.css.px
+import org.jetbrains.compose.web.css.*
+import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Div
+import org.jetbrains.compose.web.dom.Text
 
 open class Index(
     val styleIsNarrowScreen: Boolean,
@@ -10,10 +11,10 @@ open class Index(
 
     @Composable
     fun getBody() {
-
-        //--- участок дизайна для широкого экрана с постоянным меню слева
         if (styleIsNarrowScreen || styleIsHiddenMenuBar) {
+            getMainContainer()
         } else {
+            //--- участок дизайна для широкого экрана с постоянным меню слева
 //                """
 //                    <div v-bind:style="style_top_container">
 //                        <component v-if="menuBar && isShowMainMenu"
@@ -33,18 +34,187 @@ open class Index(
 //                            </button>
 //                        </div>
 //                """
+            getMainContainer()
+//           + styleTopBar
+//                if (styleIsNarrowScreen || styleIsHiddenMenuBar) {
+//                    ""
+//                } else {
+//                    """
+//                        </div>
+//                    """
+//                }
         }
+    }
 
-        //--- main container
+    @Composable
+    fun getMainContainer() {
         Div(
             attrs = {
-                //+ add attrs here
                 style {
-                    padding(25.px)
+                    display(DisplayStyle.Flex)
+                    flexDirection(FlexDirection.Column)
+//                        "width" to "100%",
+//                        "height" to "100%",
                 }
             }
         ) {
 
+            Div(
+                // id="tab_panel"
+                attrs = {
+                    style {
+                        // v-bind:style="[ { 'display' : ( isTabPanelVisible ? 'flex' : 'none' ) } ]
+                        display(DisplayStyle.Flex)
+                        flexDirection(FlexDirection.Row)
+                        flexWrap(FlexWrap.Wrap)
+                        flexGrow(0)
+                        flexShrink(0)
+                        justifyContent(
+                            if (!styleIsNarrowScreen) {
+                                JustifyContent.FlexStart
+                            } else {
+                                JustifyContent.SpaceBetween
+                            }
+
+                        )
+//                        //--- необязательно - пусть лучше по высоте равны кнопке меню
+//                        //"align-items" to "flex-end",            // прижимаем вкладки к нижнему контролу
+//                        "padding" to styleTabPanelPadding(),
+//                        "background" to colorTabPanelBack,
+                    }
+                }
+            ) {
+
+//                if (styleIsNarrowScreen || styleIsHiddenMenuBar) {
+//                    """
+//                        <component v-if="menuBar" v-bind:is="menuBar"></component>
+//                    """
+//                } else {
+//                    ""
+//                } +
+
+                if (styleIsNarrowScreen) {
+//                    """
+//                        <select v-model="currentTabIndex"
+//                                v-bind:style="style_tab_combo"
+//                        >
+//                            <option v-for="(tab, index) in arrTabInfo"
+//                                    v-bind:value="index"
+//                            >
+//                                {{ tab.arrText[0] }}
+//                            </option>
+//                        </select>
+//                        <img src="/web/images/ic_close_black_48dp.png"
+//                             v-show="arrTabInfo.length > 0"
+//                             v-bind:style="style_tab_closer_button"
+//                             v-on:click="closeTabByIndex( currentTabIndex )"
+//                             title="Закрыть вкладку"
+//                        >
+//                    """
+                } else {
+                    alTabInfo.forEachIndexed { tabIndex, tabInfo ->
+                        Button(
+                            // v-show="tab.arrText"
+                            attrs = {
+                                style {
+                                    background(
+                                        if (currentTabIndex.value == tabIndex) {
+                                            colorTabCurrentBack()
+                                        } else {
+                                            colorTabOtherBack()
+                                        }
+                                    )
+
+                                    border {
+                                        left(0.cssRem)
+                                    }
+//                        "border-left" to styleTabCurrentTitleBorderLeft(),
+//                        "border-top" to styleTabCurrentTitleBorderTop(),
+//                        "border-right" to styleTabCurrentTitleBorderRight(),
+//                        "border-bottom" to styleTabCurrentTitleBorderBottom(),
+//                        "border-left" to styleTabOtherTitleBorderLeft(),
+//                        "border-top" to styleTabOtherTitleBorderTop(),
+//                        "border-right" to styleTabOtherTitleBorderRight(),
+//                        "border-bottom" to styleTabOtherTitleBorderBottom(),
+
+                                    borderRadius(
+                                        topLeft = styleFormBorderRadius.cssRem,
+                                        topRight = 0.cssRem,
+                                        bottomRight = 0.cssRem,
+                                        bottomLeft = 0.cssRem
+                                    )
+                                    fontSize(styleTabButtonFontSize.cssRem)
+                                    padding(
+                                        if (currentTabIndex.value == tabIndex) {
+                                            styleTabCurrentTitlePadding
+                                        } else {
+                                            styleTabOtherTitlePadding
+                                        }
+                                    )
+                                    cursor("pointer")
+                                }
+                                onClick {
+                                    currentTabIndex.value = tabIndex
+                                }
+                            }
+                        ) {
+                            Text(
+                                tabInfo.arrText[0] + " = " +
+                                    if (currentTabIndex.value == tabIndex) {
+                                        "+++"
+                                    } else {
+                                        "---"
+                                    }
+                            )
+                        }
+                    }
+
+//                            <button
+//                                    v-bind:style="currentTabIndex == tabIndex ? style_tab_current_title : style_tab_other_title"
+//                                    v-on:click=""
+//                                    v-bind:key="'t'+tab.id"
+//                                    v-bind:title="tab.tooltip"
+//                            >
+//                                <span v-for="(title, textIndex) in tab.arrText"
+//                                      v-bind:style="{ 'font-weight': ( currentTabIndex == tabIndex && textIndex == 0 ? 'bold' : 'normal' ) }"
+//                                >
+//                                    {{title}}
+//                                    <br>
+//                                </span>
+//                            </button>
+//                            <img src="/web/images/ic_close_black_16dp.png"
+//                                 width=16
+//                                 height=16
+//                                 v-show="tab.arrText[0]"
+//                                 v-bind:style="currentTabIndex == tabIndex ? style_tab_current_closer : style_tab_other_closer"
+//                                 v-on:click="closeTabByIndex( tabIndex )"
+//                                 v-bind:key="'c'+tab.id"
+//                                 title="Закрыть вкладку"
+//                            >
+
+//                    "style_tab_current_closer" to json(
+//                        "background" to colorTabCurrentBack(),
+//                        "border-left" to styleTabCurrentCloserBorderLeft(),
+//                        "border-top" to styleTabCurrentCloserBorderTop(),
+//                        "border-right" to styleTabCurrentCloserBorderRight(),
+//                        "border-bottom" to styleTabCurrentCloserBorderBottom(),
+//                        "border-radius" to "0 $styleFormBorderRadius 0 0",
+//                        "padding" to styleTabCurrentCloserPadding,
+//                        "cursor" to "pointer"
+//                    ),
+//                    "style_tab_other_closer" to json(
+//                        "background" to colorTabOtherBack(),
+//                        "border-left" to styleTabOtherCloserBorderLeft(),
+//                        "border-top" to styleTabOtherCloserBorderTop(),
+//                        "border-right" to styleTabOtherCloserBorderRight(),
+//                        "border-bottom" to styleTabOtherCloserBorderBottom(),
+//                        "border-radius" to "0 $styleFormBorderRadius 0 0",
+//                        "padding" to styleTabOtherCloserPadding,
+//                        "cursor" to "pointer"
+//                    ),
+
+                }
+            }
         }
     }
 }
@@ -79,74 +249,6 @@ open class Index(
 //        hmTableIcon[ICON_NAME_PRINT] = "/web/images/ic_print_${styleIconNameSuffix()}dp.png"
 //
 //        //----------------------------------------------------------------------------------------------------------------------------------------------------------------
-//
-//
-//                """
-//                    <div v-bind:style="style_main_container">
-//                """ +
-//                if (styleIsNarrowScreen || styleIsHiddenMenuBar) {
-//                    ""
-//                } else {
-//                    styleTopBar
-//                } +
-//                """
-//                        <div id="tab_panel" v-bind:style="[ style_tab_panel, { 'display' : ( isTabPanelVisible ? 'flex' : 'none' ) } ]">
-//                """ +
-//                if (styleIsNarrowScreen || styleIsHiddenMenuBar) {
-//                    """
-//                        <component v-if="menuBar" v-bind:is="menuBar"></component>
-//                    """
-//                } else {
-//                    ""
-//                } +
-//                if (styleIsNarrowScreen) {
-//                    """
-//                        <select v-model="currentTabIndex"
-//                                v-bind:style="style_tab_combo"
-//                        >
-//                            <option v-for="(tab, index) in arrTabInfo"
-//                                    v-bind:value="index"
-//                            >
-//                                {{ tab.arrText[0] }}
-//                            </option>
-//                        </select>
-//                        <img src="/web/images/ic_close_black_48dp.png"
-//                             v-show="arrTabInfo.length > 0"
-//                             v-bind:style="style_tab_closer_button"
-//                             v-on:click="closeTabByIndex( currentTabIndex )"
-//                             title="Закрыть вкладку"
-//                        >
-//                    """
-//                } else {
-//                    """
-//                        <template v-for="(tab, tabIndex) in arrTabInfo">
-//                            <button v-show="tab.arrText"
-//                                    v-bind:style="currentTabIndex == tabIndex ? style_tab_current_title : style_tab_other_title"
-//                                    v-on:click="currentTabIndex = tabIndex"
-//                                    v-bind:key="'t'+tab.id"
-//                                    v-bind:title="tab.tooltip"
-//                            >
-//                                <span v-for="(title, textIndex) in tab.arrText"
-//                                      v-bind:style="{ 'font-weight': ( currentTabIndex == tabIndex && textIndex == 0 ? 'bold' : 'normal' ) }"
-//                                >
-//                                    {{title}}
-//                                    <br>
-//                                </span>
-//                            </button>
-//                            <img src="/web/images/ic_close_black_16dp.png"
-//                                 width=16
-//                                 height=16
-//                                 v-show="tab.arrText[0]"
-//                                 v-bind:style="currentTabIndex == tabIndex ? style_tab_current_closer : style_tab_other_closer"
-//                                 v-on:click="closeTabByIndex( tabIndex )"
-//                                 v-bind:key="'c'+tab.id"
-//                                 title="Закрыть вкладку"
-//                            >
-//                        </template>
-//                    """
-//                } +
-//                """
-//                        </div>
 //
 //                        <template v-if="currentTabIndex >= 0 && arrTabComp.length > 0">
 //                            <keep-alive>
@@ -200,14 +302,6 @@ open class Index(
 //                            </div>
 //                        </div>
 //                    </div>
-//                """ +
-//                if (styleIsNarrowScreen || styleIsHiddenMenuBar) {
-//                    ""
-//                } else {
-//                    """
-//                        </div>
-//                    """
-//                }
 //
 //            this.methods = json(
 //                "setMenuBar" to { menuData: Json ->
@@ -342,27 +436,6 @@ open class Index(
 //                        "width" to "100%",
 //                        "height" to "100%",
 //                    ),
-//                    "style_main_container" to json(
-//                        "display" to "flex",
-//                        "flex-direction" to "column",
-//                        "width" to "100%",
-//                        "height" to "100%",
-//                    ),
-//                    "style_tab_panel" to json(
-//                        "flex-grow" to 0,
-//                        "flex-shrink" to 0,
-//                        "flex-direction" to "row",
-//                        "flex-wrap" to "wrap",
-//                        "justify-content" to if (!styleIsNarrowScreen) {
-//                            "flex-start"
-//                        } else {
-//                            "space-between"
-//                        },
-//                        //--- необязательно - пусть лучше по высоте равны кнопке меню
-//                        //"align-items" to "flex-end",            // прижимаем вкладки к нижнему контролу
-//                        "padding" to styleTabPanelPadding(),
-//                        "background" to colorTabPanelBack,
-//                    ),
 //
 //                    "style_menu_closer" to json(
 //                        "display" to "flex",
@@ -402,48 +475,6 @@ open class Index(
 //                        "cursor" to "pointer"
 //                    ),
 //
-//                    "style_tab_current_title" to json(
-//                        "background" to colorTabCurrentBack(),
-//                        "border-left" to styleTabCurrentTitleBorderLeft(),
-//                        "border-top" to styleTabCurrentTitleBorderTop(),
-//                        "border-right" to styleTabCurrentTitleBorderRight(),
-//                        "border-bottom" to styleTabCurrentTitleBorderBottom(),
-//                        "border-radius" to "$styleFormBorderRadius 0 0 0",
-//                        "font-size" to styleTabButtonFontSize,
-//                        "padding" to styleTabCurrentTitlePadding,
-//                        "cursor" to "pointer",
-//                    ),
-//                    "style_tab_current_closer" to json(
-//                        "background" to colorTabCurrentBack(),
-//                        "border-left" to styleTabCurrentCloserBorderLeft(),
-//                        "border-top" to styleTabCurrentCloserBorderTop(),
-//                        "border-right" to styleTabCurrentCloserBorderRight(),
-//                        "border-bottom" to styleTabCurrentCloserBorderBottom(),
-//                        "border-radius" to "0 $styleFormBorderRadius 0 0",
-//                        "padding" to styleTabCurrentCloserPadding,
-//                        "cursor" to "pointer"
-//                    ),
-//                    "style_tab_other_title" to json(
-//                        "background" to colorTabOtherBack(),
-//                        "border-left" to styleTabOtherTitleBorderLeft(),
-//                        "border-top" to styleTabOtherTitleBorderTop(),
-//                        "border-right" to styleTabOtherTitleBorderRight(),
-//                        "border-bottom" to styleTabOtherTitleBorderBottom(),
-//                        "border-radius" to "$styleFormBorderRadius 0 0 0",
-//                        "font-size" to styleTabButtonFontSize,
-//                        "padding" to styleTabOtherTitlePadding,
-//                        "cursor" to "pointer",
-//                    ),
-//                    "style_tab_other_closer" to json(
-//                        "background" to colorTabOtherBack(),
-//                        "border-left" to styleTabOtherCloserBorderLeft(),
-//                        "border-top" to styleTabOtherCloserBorderTop(),
-//                        "border-right" to styleTabOtherCloserBorderRight(),
-//                        "border-bottom" to styleTabOtherCloserBorderBottom(),
-//                        "border-radius" to "0 $styleFormBorderRadius 0 0",
-//                        "padding" to styleTabOtherCloserPadding,
-//                        "cursor" to "pointer"
-//                    ),
 //
 //                    "style_wait" to json(
 //                        "position" to "fixed",
@@ -539,7 +570,6 @@ open class Index(
 //
 //    open fun addBeforeMounted() {}
 //
-//    private class TabInfo(val id: Int, var arrText: Array<String>, var tooltip: String)
 //    private class TabComp(val comp: VueComponentOptions)
 //}
 

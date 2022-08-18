@@ -1,6 +1,9 @@
 import org.jetbrains.compose.web.renderComposable
 
 fun main() {
+    alTabInfo.add(TabInfo(id = 0, arrText = arrayOf("aaa"), tooltip = "AAA"))
+    alTabInfo.add(TabInfo(id = 1, arrText = arrayOf("bbb"), tooltip = "BBB"))
+
     val index = MMSIndex()
     renderComposable(rootElementId = "root") {
         index.getBody()
