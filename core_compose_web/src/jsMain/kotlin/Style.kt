@@ -1,4 +1,7 @@
 import kotlinx.browser.window
+import org.jetbrains.compose.web.css.CSSColorValue
+import org.jetbrains.compose.web.css.Color
+import org.jetbrains.compose.web.css.hsl
 
 ////--- Z-INDEX ------------------------------------------------------------------------------------------------------------------------------------------------------------
 //
@@ -65,10 +68,10 @@ var colorMainBack1 = getHSL(0, 0, MAIN_BACK_LIGHTNESS_1)     // panels, menus
 var colorMainBack2 = getHSL(0, 0, MAIN_BACK_LIGHTNESS_2)     // non-active tabs
 var colorMainBack3 = getHSL(0, 0, MAIN_BACK_LIGHTNESS_3)     // menu delimiters
 
-////--- BORDER -------------------------------------------------------------------------------------------------------------------------------------------------------------
-//
-//var colorMainBorder: () -> String = { getHSL(0, 0, 0) }
-//
+//--- BORDER -------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+var colorMainBorder: () -> CSSColorValue = { hsl(0, 0, 0) }
+
 var styleFormBorderRadius = if (screenDPR <= 1.0) 0.2 else 0.4
 //var styleButtonBorderRadius = "${if (screenDPR <= 1.0) 0.2 else 0.4}rem"
 //var styleInputBorderRadius = "${if (screenDPR <= 1.0) 0.2 else 0.4}rem"
@@ -96,7 +99,7 @@ val COMMON_FONT_SIZE = 1.0  //if( screenDPR <= 1.0 ) 1.0 else 1.0
 //
 //fun styleControlPadding() = CONTROL_PADDING
 //fun styleControlTitlePadding() = "0 $CONTROL_PADDING 0 $CONTROL_PADDING"
-//fun styleIconButtonPadding() = "0.0rem"
+val styleIconButtonPadding = 0
 //fun styleTextButtonPadding() = "0.2rem"
 //var styleStateServerButtonTextPadding: () -> String = { styleTextButtonPadding() }
 //var styleStateServerButtonTextFontWeight = "normal"
@@ -107,12 +110,12 @@ val COMMON_FONT_SIZE = 1.0  //if( screenDPR <= 1.0 ) 1.0 else 1.0
 //fun styleTableGridCellTypePadding() = "$CONTROL_TOP_DOWN_SIDE_PADDING $CONTROL_PADDING $CONTROL_TOP_DOWN_SIDE_PADDING $CONTROL_PADDING"
 //
 //fun styleCommonMargin() = "0 $CONTROL_MARGIN 0 $CONTROL_MARGIN"
-//
-////--- Button ---
-//
-//var colorButtonBack: () -> String = { colorMainBack0 }
+
+//--- Button ---
+
+var colorButtonBack: () -> String = { colorMainBack0 }
 //var colorButtonBorder: () -> String = { colorMainBorder() }
-//
+
 ////--- Checkbox ---
 //
 //var styleCheckBoxWidth = "2rem"
@@ -167,10 +170,10 @@ val COMMON_FONT_SIZE = 1.0  //if( screenDPR <= 1.0 ) 1.0 else 1.0
 ////------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //
 //var colorCurrentAndHover = "hsl(60,100%,90%)"
-//
-////--- padding & margin for menu icon & tab panel
-//private val menuTabPadMar = 0.3
-//
+
+//--- padding & margin for menu icon & tab panel
+val menuTabPadMar = 0.3
+
 ////--- MENUS --------------------------------------------------------------------------------------------------------------------------------------------------------------
 //
 ////--- Main Menu ---
@@ -230,45 +233,6 @@ val COMMON_FONT_SIZE = 1.0  //if( screenDPR <= 1.0 ) 1.0 else 1.0
 ////--- APP CONTROL --------------------------------------------------------------------------------------------------------------------------------------------------------
 //
 //var styleAppControlPadding: () -> String = { "0" }
-//
-////--- TAB PANEL ----------------------------------------------------------------------------------------------------------------------------------------------------------
-//
-//var colorTabPanelBack = COLOR_MAIN_BACK_0
-//var styleTabPanelPadding: () -> String = { "${menuTabPadMar}rem ${menuTabPadMar}rem 0 ${menuTabPadMar}rem" }
-
-var colorTabCurrentBack: () -> String = { colorMainBack1 }
-//var styleTabCurrentTitleBorderLeft: () -> String = { "1px solid ${colorMainBorder()}" }
-//var styleTabCurrentTitleBorderTop: () -> String = { "1px solid ${colorMainBorder()}" }
-//var styleTabCurrentTitleBorderRight: () -> String = { "none" }
-//var styleTabCurrentTitleBorderBottom: () -> String = { "none" }
-//var styleTabCurrentCloserBorderLeft: () -> String = { "none" }
-//var styleTabCurrentCloserBorderTop: () -> String = { "1px solid ${colorMainBorder()}" }
-//var styleTabCurrentCloserBorderRight: () -> String = { "1px solid ${colorMainBorder()}" }
-//var styleTabCurrentCloserBorderBottom: () -> String = { "1px solid $colorMainBack1" }
-
-var colorTabOtherBack: () -> String = { colorMainBack2 }
-//var styleTabOtherTitleBorderLeft: () -> String = { "1px solid ${colorMainBorder()}" }
-//var styleTabOtherTitleBorderTop: () -> String = { "1px solid ${colorMainBorder()}" }
-//var styleTabOtherTitleBorderRight: () -> String = { "none" }
-//var styleTabOtherTitleBorderBottom: () -> String = { "1px solid ${colorMainBorder()}" }
-//var styleTabOtherCloserBorderLeft: () -> String = { "none" }
-//var styleTabOtherCloserBorderTop: () -> String = { "1px solid ${colorMainBorder()}" }
-//var styleTabOtherCloserBorderRight: () -> String = { "1px solid ${colorMainBorder()}" }
-//var styleTabOtherCloserBorderBottom: () -> String = { "1px solid ${colorMainBorder()}" }
-//
-////--- tab-combo - только на устройствах с узким экраном
-//private val tabComboMargin = menuTabPadMar
-//fun styleTabComboTextLen() = scaledScreenWidth / (if (styleIsNarrowScreen) 16 else 64)
-//fun styleTabComboFontSize() = "${COMMON_FONT_SIZE}rem"
-//fun styleTabComboPadding() = "0.55rem"
-//fun styleTabComboMargin() = "0 0 ${tabComboMargin}rem 0"
-//fun styleTabCloserButtonMargin() = "0 0 ${tabComboMargin}rem ${tabComboMargin}rem"
-//
-var styleTabCurrentTitlePadding = "0.7rem 0.6rem 0.7rem 0.6rem"
-var styleTabOtherTitlePadding = "0.7rem 0.6rem 0.7rem 0.6rem"
-var styleTabButtonFontSize = COMMON_FONT_SIZE
-//var styleTabCurrentCloserPadding = "${if (screenDPR <= 1.0) 1.4 else 1.2}rem 0.4rem ${if (screenDPR <= 1.0) 1.4 else 1.2}rem 0.4rem"
-//var styleTabOtherCloserPadding = "${if (screenDPR <= 1.0) 1.4 else 1.2}rem 0.4rem ${if (screenDPR <= 1.0) 1.4 else 1.2}rem 0.4rem"
 //
 ////--- TABLE --------------------------------------------------------------------------------------------------------------------------------------------------------------
 //

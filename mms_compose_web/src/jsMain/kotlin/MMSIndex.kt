@@ -11,9 +11,14 @@ fun main() {
 }
 
 private class MMSIndex : Index(
-    styleIsNarrowScreen = false,
-    styleIsHiddenMenuBar = true,    //false, - для начала типовой дизайн
+    styleIsHiddenMenuBar = true,    //false, - для начала сделаем типовой дизайн
 ) {
+
+    override fun init() {
+        super.init()
+
+
+    }
 }
 
 //import foatto.core_web.*
