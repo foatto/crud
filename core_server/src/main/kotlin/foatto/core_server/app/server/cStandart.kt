@@ -980,11 +980,13 @@ open class cStandart {
                         tc.textCellData.text
                     } + ' '
             }
+
             TableCellType.BUTTON -> {
                 tc.arrButtonCellData.forEach { tbcd ->
                     cellText += tbcd.text + ' '
                 }
             }
+
             TableCellType.GRID -> {
                 tc.arrGridCellData.forEach { gridRow ->
                     gridRow.forEach { tgcd ->
@@ -2016,24 +2018,26 @@ open class cStandart {
                     //--- special case: getUniqueCheckValue(0) - "unique ignore data" not used for multi-column data
                     uniqueColumnData.ignore == null || uniqueColumnData.ignore != hmColumnData[uniqueColumnData.column]!!.getUniqueCheckValue(0)
                 }
-                val alFieldCheck = mutableListOf<Pair<String, Any>>()
-                alFilteredUniqueCheckData.forEach { uniqueColumnData ->
-                    for (ci in 0 until uniqueColumnData.column.getFieldCount()) {
-                        alFieldCheck += Pair(uniqueColumnData.column.getFieldName(ci), hmColumnData[uniqueColumnData.column]!!.getUniqueCheckValue(ci))
-                    }
-                }
-                val existingCheckResult = stm.checkExisting(
-                    aTableName = model.modelTableName,
-                    alFieldCheck = alFieldCheck,
-                    aFieldID = model.columnId.getFieldName(),
-                    id = id
-                )
-                if (existingCheckResult) {
+                if (alFilteredUniqueCheckData.isNotEmpty()) {
+                    val alFieldCheck = mutableListOf<Pair<String, Any>>()
                     alFilteredUniqueCheckData.forEach { uniqueColumnData ->
-                        hmColumnData[uniqueColumnData.column]!!.setUniqueCheckingError("Это значение уже существует")
+                        for (ci in 0 until uniqueColumnData.column.getFieldCount()) {
+                            alFieldCheck += Pair(uniqueColumnData.column.getFieldName(ci), hmColumnData[uniqueColumnData.column]!!.getUniqueCheckValue(ci))
+                        }
                     }
+                    val existingCheckResult = stm.checkExisting(
+                        aTableName = model.modelTableName,
+                        alFieldCheck = alFieldCheck,
+                        aFieldID = model.columnId.getFieldName(),
+                        id = id
+                    )
+                    if (existingCheckResult) {
+                        alFilteredUniqueCheckData.forEach { uniqueColumnData ->
+                            hmColumnData[uniqueColumnData.column]!!.setUniqueCheckingError("Это значение уже существует")
+                        }
+                    }
+                    isValid = isValid and !existingCheckResult
                 }
-                isValid = isValid and !existingCheckResult
             }
         }
         return isValid
