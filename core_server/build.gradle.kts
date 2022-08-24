@@ -7,6 +7,7 @@ val kotlinJvmTarget: String by project
 val jacksonModuleKotlinVersion: String by project
 val javaxMailApiVersion: String by project
 val jExcelApiVersion: String by project
+val jooqVersion: String by project
 val ktorVersion: String by project
 val minioVersion: String by project
 val postgresJdbcVersion: String by project
@@ -35,9 +36,16 @@ dependencies {
     api("org.springframework.boot:spring-boot-starter-data-jpa:$springBootVersion")
 // compile group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.10.0'
 
+    //--- в режиме тестирования пока буду прописывать отдельные зависимости
+    //api("org.springframework.boot:spring-boot-starter-jooq:$springBootVersion")
+
     runtimeOnly("org.postgresql:postgresql:$postgresJdbcVersion")
     runtimeOnly("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonModuleKotlinVersion")
     //implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.11.2")
+
+    api("org.jooq:jooq:$jooqVersion")
+    api("org.jooq:jooq-meta:$jooqVersion")
+    api("org.jooq:jooq-codegen:$jooqVersion")
 
     api("com.sun.mail:javax.mail:$javaxMailApiVersion")
     api("javax.mail:javax.mail-api:$javaxMailApiVersion")
