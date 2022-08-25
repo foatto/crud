@@ -1,12 +1,10 @@
-package foatto.spring.entities
+package foatto.jpa.entities
 
 import javax.persistence.Embeddable
 
 @Embeddable
-class DateTimeEntity(
+class DateEntity(
     val ye: Int,
     val mo: Int,
     val da: Int,
-    val ho: Int,
-    val mi: Int,
 )

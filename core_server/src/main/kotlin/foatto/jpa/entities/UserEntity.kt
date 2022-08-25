@@ -1,4 +1,4 @@
-package foatto.spring.entities
+package foatto.jpa.entities
 
 import javax.persistence.*
 
@@ -65,7 +65,7 @@ class UserEntity(
     @Column(name = "last_ip")
     val lastIP: String,
 
-) {
+    ) {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
