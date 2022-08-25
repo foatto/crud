@@ -1,6 +1,5 @@
 package foatto.core_server.app
 
-import foatto.core_server.app.server.UserDTO
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedStatement
 
@@ -25,7 +24,11 @@ interface iApplication {
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    fun getUserDTO(userId: Int): UserDTO
+    var hmUserFullNames: Map<Int, String>
+    var hmUserShortNames: Map<Int, String>
+
+    fun reloadUserNames(conn: CoreAdvancedConnection)
+//    fun getUserDTO(userId: Int): UserDTO
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

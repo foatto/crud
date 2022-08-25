@@ -216,7 +216,7 @@ class TSAppController : CoreAppController(), iTSApplication {
         }
 
         //--- add the name of the object with its short login name
-        val shortUserName = UserConfig.hmUserShortNames[objectEntity.userId]
+        val shortUserName = hmUserShortNames[objectEntity.userId]
 
         val objectConfig = ObjectConfig(
             objectId = objectId,
@@ -227,7 +227,7 @@ class TSAppController : CoreAppController(), iTSApplication {
 
         //--- fill report title
         objectConfig.alTitleName.add("Владелец:")
-        objectConfig.alTitleValue.add(UserConfig.hmUserFullNames[objectConfig.userId] ?: "(неизвестно)")
+        objectConfig.alTitleValue.add(hmUserFullNames[objectConfig.userId] ?: "(неизвестно)")
         objectConfig.alTitleName.add("Наименование:")
         objectConfig.alTitleValue.add(objectConfig.name)
         objectConfig.alTitleName.add("Модель:")

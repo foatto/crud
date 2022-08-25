@@ -20,18 +20,19 @@ import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.OrgType
 import foatto.core_server.app.server.UserConfig
-import foatto.core_server.app.server.UserDTO
 import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.xy.XyStartData
 import foatto.core_server.app.xy.server.document.sdcXyAbstract
+import foatto.jooq.core.tables.SystemUsers
+import foatto.jpa.repositories.UserRepository
 import foatto.spring.CoreSpringApp
-import foatto.spring.repositories.UserRepository
 import foatto.sql.AdvancedConnection
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedStatement
+import org.jooq.SQLDialect
+import org.jooq.impl.DSL
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -66,6 +67,14 @@ abstract class CoreAppController : iApplication {
             response.outputStream.write(file.readBytes())
         }
     }
+
+    private enum class DataAccessMethodEnum {
+        JDBC,
+        JOOQ,
+        JPA,
+    }
+
+    private val currentDataAccessMethod = DataAccessMethodEnum.JOOQ
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -282,7 +291,7 @@ abstract class CoreAppController : iApplication {
                     val hmAliasConfig = getAliasConfig(stm, chmSession, hmOut)
                     val userConfig = chmSession[iApplication.USER_CONFIG] as UserConfig
 
-                    appResponse.currentUserName = UserConfig.hmUserFullNames[userConfig.userId] ?: "(неизвестный пользователь)"
+                    appResponse.currentUserName = hmUserFullNames[userConfig.userId] ?: "(неизвестный пользователь)"
                     //--- временно используем List вместо Map, т.к. в Kotlin/JS нет возможности десериализовать Map (а List десериализуется в Array)
                     appResponse.hmUserProperty = userConfig.hmUserProperty.toList().toTypedArray()
                     appResponse.arrMenuData = menuInit(stm, hmAliasConfig, userConfig).toTypedArray()
@@ -294,6 +303,7 @@ abstract class CoreAppController : iApplication {
 //                    logQuery( "Logon result: $logonResult" )
                 }
             }
+
             else -> {
                 var userConfig: UserConfig? = chmSession[iApplication.USER_CONFIG] as? UserConfig
                 when (appRequest.action) {
@@ -314,6 +324,7 @@ abstract class CoreAppController : iApplication {
                             )
                         )
                     }
+
                     AppAction.XY -> {
 //                        if( userLogMode == SYSTEM_LOG_ALL ) logQuery( hmParam )
                         val docTypeName = hmParam[AppParameter.ALIAS]
@@ -358,6 +369,7 @@ abstract class CoreAppController : iApplication {
                             compositeStartData = chmSession[AppParameter.COMPOSITE_START_DATA + compositeStartDataID] as CompositeStartData
                         )
                     }
+
                     else -> {
                         val aliasName = hmParam[AppParameter.ALIAS] ?: throw BusinessException("Не указано имя модуля.")
 
@@ -368,6 +380,7 @@ abstract class CoreAppController : iApplication {
                         //--- то подгрузим хотя бы гостевой логин
                         if (!aliasConfig.isAuthorization && userConfig == null) {
                             //--- при отсутствии оного загрузим гостевой логин
+                            reloadUserNames(conn)
                             userConfig = UserConfig.getConfig(conn, UserConfig.USER_GUEST)
                             hmOut[iApplication.USER_CONFIG] = userConfig // уйдет в сессию
                         }
@@ -388,11 +401,13 @@ abstract class CoreAppController : iApplication {
 
                                     appResponse = AppResponse(code = ResponseCode.TABLE, table = page.getTable(hmOut))
                                 }
+
                                 AppAction.FORM -> {
                                     if (CoreSpringApp.userLogMode == CoreSpringApp.SYSTEM_LOG_ALL) logQuery(hmParam)
 
                                     appResponse = AppResponse(code = ResponseCode.FORM, form = page.getForm(hmOut))
                                 }
+
                                 AppAction.FIND -> {
                                     if (CoreSpringApp.userLogMode == CoreSpringApp.SYSTEM_LOG_ALL) logQuery(hmParam)
 
@@ -407,6 +422,7 @@ abstract class CoreAppController : iApplication {
                                             AppResponse(code = ResponseCode.REDIRECT, redirect = findRedirectURL)
                                         }
                                 }
+
                                 else -> {
                                     if (checkLogSkipAliasPrefix(aliasName)) {
                                         if (CoreSpringApp.userLogMode == CoreSpringApp.SYSTEM_LOG_ALL) {
@@ -712,6 +728,7 @@ abstract class CoreAppController : iApplication {
 
         //--- исключение из правил: сразу же записываем в сессию информацию по успешно залогиненному пользователю,
         //--- т.к. эта инфа понадобится в той же команде (для выдачи меню и т.п.)
+        reloadUserNames(conn)
         chmSession[iApplication.USER_CONFIG] = UserConfig.getConfig(conn, userID)
 
         stm.close()
@@ -804,48 +821,103 @@ abstract class CoreAppController : iApplication {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    override var hmUserFullNames = mapOf<Int, String>()
+    override var hmUserShortNames = mapOf<Int, String>()
+
     @Autowired
     private lateinit var userRepository: UserRepository
 
-    override fun getUserDTO(userId: Int): UserDTO {
-        val userEntity = userRepository.findByIdOrNull(userId) ?: "User not exist for user_id = $userId".let {
-            AdvancedLogger.error(it)
-            throw Exception(it)
+    override fun reloadUserNames(conn: CoreAdvancedConnection) {
+        val hmFullName = mutableMapOf<Int, String>()
+        val hmShortName = mutableMapOf<Int, String>()
+
+        when (currentDataAccessMethod) {
+            DataAccessMethodEnum.JDBC -> {
+                val stm = conn.createStatement()
+                val rs = stm.executeQuery(" SELECT id , full_name , short_name FROM SYSTEM_users WHERE id <> 0 ")
+                while (rs.next()) {
+                    val id = rs.getInt(1)
+                    hmFullName[id] = rs.getString(2).trim()
+                    hmShortName[id] = rs.getString(3).trim()
+                }
+                rs.close()
+                stm.close()
+            }
+
+            DataAccessMethodEnum.JOOQ -> {
+                //!!! temporarily two bad ideas at once:
+                //--- 1. conn is AdvancedConnection
+                //--- 2. used SQLDialect.POSTGRES only
+                val dslContext = DSL.using((conn as AdvancedConnection).conn, SQLDialect.POSTGRES)
+                val result = dslContext.select(
+                    SystemUsers.SYSTEM_USERS.ID,
+                    SystemUsers.SYSTEM_USERS.FULL_NAME,
+                    SystemUsers.SYSTEM_USERS.SHORT_NAME,
+                ).from(SystemUsers.SYSTEM_USERS)
+                    .where(SystemUsers.SYSTEM_USERS.ID.notEqual(0))
+                    .fetch()
+                result.forEach { record3 ->
+                    record3.getValue(SystemUsers.SYSTEM_USERS.ID)?.let { id ->
+                        hmFullName[id] = record3.getValue(SystemUsers.SYSTEM_USERS.FULL_NAME)?.trim() ?: ""
+                        hmShortName[id] = record3.getValue(SystemUsers.SYSTEM_USERS.SHORT_NAME)?.trim() ?: ""
+                    }
+                }
+            }
+
+            DataAccessMethodEnum.JPA -> {
+                val userEntities = userRepository.findAll()
+                userEntities.forEach { userEntity ->
+                    if (userEntity.id != 0) {
+                        hmFullName[userEntity.id] = userEntity.fullName
+                        hmShortName[userEntity.id] = userEntity.shortName
+                    }
+                }
+            }
         }
 
-        return UserDTO(
-            id = userEntity.id,
-            parentId = userEntity.parentId,
-            userId = userEntity.userId,
-            isDisabled = userEntity.isDisabled != 0,
-            orgType = userEntity.orgType,
-            login = userEntity.login,
-            password = userEntity.password,
-            fullName = userEntity.fullName,
-            shortName = userEntity.shortName,
-            atCount = userEntity.atCount,
-            lastLoginDateTime = arrayOf(
-                userEntity.lastLoginDateTime.ye,
-                userEntity.lastLoginDateTime.mo,
-                userEntity.lastLoginDateTime.da,
-                userEntity.lastLoginDateTime.ho,
-                userEntity.lastLoginDateTime.mi,
-                0
-            ),
-            passwordLastChangeDate = arrayOf(
-                userEntity.passwordLastChangeDate.ye,
-                userEntity.passwordLastChangeDate.mo,
-                userEntity.passwordLastChangeDate.da,
-                0,
-                0,
-                0
-            ),
-            eMail = userEntity.eMail,
-            contactInfo = userEntity.contactInfo,
-            fileId = userEntity.fileId,
-            lastIP = userEntity.lastIP,
-        )
+        hmUserFullNames = hmFullName.toMap()
+        hmUserShortNames = hmShortName.toMap()
     }
 
+//    override fun getUserDTO(userId: Int): UserDTO {
+//        val userEntity = userRepository.findByIdOrNull(userId) ?: "User not exist for user_id = $userId".let {
+//            AdvancedLogger.error(it)
+//            throw Exception(it)
+//        }
+//
+//        return UserDTO(
+//            id = userEntity.id,
+//            parentId = userEntity.parentId,
+//            userId = userEntity.userId,
+//            isDisabled = userEntity.isDisabled != 0,
+//            orgType = userEntity.orgType,
+//            login = userEntity.login,
+//            password = userEntity.password,
+//            fullName = userEntity.fullName,
+//            shortName = userEntity.shortName,
+//            atCount = userEntity.atCount,
+//            lastLoginDateTime = arrayOf(
+//                userEntity.lastLoginDateTime.ye,
+//                userEntity.lastLoginDateTime.mo,
+//                userEntity.lastLoginDateTime.da,
+//                userEntity.lastLoginDateTime.ho,
+//                userEntity.lastLoginDateTime.mi,
+//                0
+//            ),
+//            passwordLastChangeDate = arrayOf(
+//                userEntity.passwordLastChangeDate.ye,
+//                userEntity.passwordLastChangeDate.mo,
+//                userEntity.passwordLastChangeDate.da,
+//                0,
+//                0,
+//                0
+//            ),
+//            eMail = userEntity.eMail,
+//            contactInfo = userEntity.contactInfo,
+//            fileId = userEntity.fileId,
+//            lastIP = userEntity.lastIP,
+//        )
+//    }
+//
 }
 

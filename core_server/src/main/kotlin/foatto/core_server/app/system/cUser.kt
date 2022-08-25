@@ -60,8 +60,9 @@ class cUser : cAbstractHierarchy() {
             }
         }
 
-        fun refreshUserConfig(conn: CoreAdvancedConnection, userId: Int, hmOut: MutableMap<String, Any>) {
+        fun refreshUserConfig(application: iApplication, conn: CoreAdvancedConnection, userId: Int, hmOut: MutableMap<String, Any>) {
             //--- обновим конфигурацию текущего пользователя (более всего необходимо обновление списка пользователей id=name)
+            application.reloadUserNames(conn)
             hmOut[iApplication.USER_CONFIG] = UserConfig.getConfig(conn, userId)
         }
 
@@ -101,7 +102,7 @@ class cUser : cAbstractHierarchy() {
         var postURL = super.postAdd(id, hmColumnData, hmOut)
 
         //--- обновим конфигурацию текущего пользователя (более всего необходимо обновление списка пользователей id=name)
-        refreshUserConfig(conn, userConfig.userId, hmOut)
+        refreshUserConfig(application, conn, userConfig.userId, hmOut)
 
         //--- создать запись индивидуального сдвига часового пояса
         addTimeZone(stm, id)
@@ -121,7 +122,7 @@ class cUser : cAbstractHierarchy() {
         val postURL = super.postEdit(action, id, hmColumnData, hmOut)
 
         //--- обновим конфигурацию текущего пользователя (более всего необходимо обновление списка пользователей id=name
-        refreshUserConfig(conn, userConfig.userId, hmOut)
+        refreshUserConfig(application, conn, userConfig.userId, hmOut)
 
         return postURL
     }

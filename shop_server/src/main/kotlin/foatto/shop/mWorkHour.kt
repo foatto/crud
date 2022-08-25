@@ -45,7 +45,7 @@ class mWorkHour : mAbstract() {
         columnWorker = ColumnRadioButton(modelTableName, "worker_id", "Работник").apply {
             alWorkerId.forEach { sUserId ->
                 val userId = sUserId.toInt()
-                addChoice(userId, UserConfig.hmUserFullNames[userId] ?: "(неизвестный работник)")
+                addChoice(userId, application.hmUserFullNames[userId] ?: "(неизвестный работник)")
             }
             setSavedDefault(userConfig)
         }

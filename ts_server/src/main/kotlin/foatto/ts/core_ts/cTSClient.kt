@@ -40,7 +40,7 @@ class cTSClient : cClient() {
         val postURL = super.postEdit(action, id, hmColumnData, hmOut)
 
         //--- обновим конфигурацию текущего пользователя (более всего необходимо обновление списка пользователей id=name
-        cUser.refreshUserConfig(conn, userConfig.userId, hmOut)
+        cUser.refreshUserConfig(application, conn, userConfig.userId, hmOut)
 
         //--- обновление привязки пользователя/клиента и роли управления приборами
         changeControlEnabledRoleLink(model as mTSClient, id, hmColumnData)

@@ -191,7 +191,7 @@ class cTask : cOfficeReport() {
                 continue
             }
 
-            val userName = UserConfig.hmUserFullNames[rs.getInt(3)]!!
+            val userName = application.hmUserFullNames[rs.getInt(3)]!!
             val ye = rs.getInt(4)
             val mo = rs.getInt(5)
             val da = rs.getInt(6)

@@ -44,7 +44,7 @@ class mUODGPS : mP() {
         alFormHiddenColumn.add(columnId)
 
         uodg = UODGSelector()
-        uodg.fillColumns(modelTableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn)
+        uodg.fillColumns(application, modelTableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn)
 
         addReportPeriodFormColumns()
 

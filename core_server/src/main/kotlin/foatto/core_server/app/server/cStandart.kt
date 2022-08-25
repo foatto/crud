@@ -557,7 +557,9 @@ open class cStandart {
 
     //--- для случаев, когда id записи задаётся явным/особым образом ( например, в формах просмотра/редактирования/удаления одиночной записи )
     private fun getRecordUserID(hmColumnData: Map<iColumn, iData>, id: Int): Int {
-        if (model.columnUser == null) return 0
+        if (model.columnUser == null) {
+            return 0
+        }
 
         val userID = (hmColumnData[model.columnUser!!] as DataAbstractIntValue).intValue
         //--- проверка на совладельца
@@ -566,12 +568,20 @@ open class cStandart {
 
     protected fun getRecordUserName(recordUserID: Int): String {
         var recordUserName: String?
-        if (recordUserID == 0) recordUserName = "(общее)"
-        else if (recordUserID == userConfig.userId) recordUserName = ""
+        if (recordUserID == 0) {
+            recordUserName = "(общее)"
+        }
+        else if (recordUserID == userConfig.userId) {
+            recordUserName = ""
+        }
         else {
-            recordUserName = UserConfig.hmUserShortNames[recordUserID]
-            if (recordUserName.isNullOrEmpty()) recordUserName = UserConfig.hmUserFullNames[recordUserID]
-            if (recordUserName == null) recordUserName = "(неизвестно)"
+            recordUserName = application.hmUserShortNames[recordUserID]
+            if (recordUserName.isNullOrEmpty()) {
+                recordUserName = application.hmUserFullNames[recordUserID]
+            }
+            if (recordUserName == null) {
+                recordUserName = "(неизвестно)"
+            }
         }
         return recordUserName
     }
@@ -580,8 +590,12 @@ open class cStandart {
 
     protected open fun fillHeader(selectorID: String?, withAnchors: Boolean, alPath: MutableList<Pair<String, String>>, hmOut: MutableMap<String, Any>) {
         //--- иерархические таблицы всегда имеют в заголовке описание предыдущего пути
-        if (model.isExpandable()) getExpandPath(selectorID, withAnchors, alPath)
-        else alPath.add(Pair("", aliasConfig.descr))
+        if (model.isExpandable()) {
+            getExpandPath(selectorID, withAnchors, alPath)
+        }
+        else {
+            alPath.add(Pair("", aliasConfig.descr))
+        }
     }
 
     //--- в базовой реализации возвращает исходный pid

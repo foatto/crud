@@ -1,6 +1,6 @@
 package foatto.shop.spring.entities
 
-import foatto.spring.entities.DateEntity
+import foatto.jpa.entities.DateEntity
 import javax.persistence.*
 
 @Entity

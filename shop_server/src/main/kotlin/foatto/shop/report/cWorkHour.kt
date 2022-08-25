@@ -171,7 +171,7 @@ class cWorkHour : cAbstractShopReport() {
         tmWorkMoney.forEach { (workerId, tmDayMoney) ->
             val tmDayHour = tmWorkHourAndTax[workerId]!!
 
-            sheet.addCell(Label(0, offsY, UserConfig.hmUserFullNames[workerId] ?: "(неизвестный работник)", wcfCellLBStdRed))
+            sheet.addCell(Label(0, offsY, application.hmUserFullNames[workerId] ?: "(неизвестный работник)", wcfCellLBStdRed))
             sheet.mergeCells(0, offsY, MAX_DAY_IN_ROW - 1, offsY)
             offsY += 2
 

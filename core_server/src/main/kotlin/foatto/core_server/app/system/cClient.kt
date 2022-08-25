@@ -49,7 +49,7 @@ open class cClient : cStandart() {
         val mc = model as mClient
 
         //--- обновим конфигурацию текущего пользователя (более всего необходимо обновление списка пользователей id=name)
-        cUser.refreshUserConfig(conn, userConfig.userId, hmOut)
+        cUser.refreshUserConfig(application, conn, userConfig.userId, hmOut)
 
         //--- создать запись индивидуального сдвига часового пояса
         cUser.addTimeZone(stm, id)
@@ -72,7 +72,7 @@ open class cClient : cStandart() {
         val postURL = super.postEdit(action, id, hmColumnData, hmOut)
 
         //--- обновим конфигурацию текущего пользователя (более всего необходимо обновление списка пользователей id=name
-        cUser.refreshUserConfig(conn, userConfig.userId, hmOut)
+        cUser.refreshUserConfig(application, conn, userConfig.userId, hmOut)
 
         return postURL
     }

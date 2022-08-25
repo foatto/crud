@@ -99,7 +99,7 @@ class mDevice : mAbstract() {
 
         val columnObjectUserName = ColumnComboBox("TS_object", "user_id", "Пользователь").apply {
             addChoice(0, "")
-            UserConfig.hmUserFullNames.forEach { (userID, userName) ->
+            application.hmUserFullNames.forEach { (userID, userName) ->
                 addChoice(
                     value = userID,
                     tableDescr = if (userID == userConfig.userId || userName.isBlank()) {

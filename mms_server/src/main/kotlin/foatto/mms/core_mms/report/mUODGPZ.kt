@@ -56,7 +56,7 @@ class mUODGPZ : mP() {
         alFormHiddenColumn.add(columnReportZone)
 
         uodg = UODGSelector()
-        uodg.fillColumns(modelTableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn)
+        uodg.fillColumns(application, modelTableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn)
 
         addReportPeriodFormColumns()
 

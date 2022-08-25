@@ -21,14 +21,8 @@ class UserConfig private constructor(
         val ROLE_GUEST = -1
         val ROLE_ADMIN = -2
 
-        lateinit var hmUserFullNames: Map<Int, String>
-        lateinit var hmUserShortNames: Map<Int, String>
-
-        fun getConfig(conn: CoreAdvancedConnection): Map<Int, UserConfig> {
+        fun getConfigs(conn: CoreAdvancedConnection): Map<Int, UserConfig> {
             val stm = conn.createStatement()
-
-            //--- загружаем оющий для всех список полных и сокращённых имён пользователей
-            loadUserName(stm)
 
             //--- первичная загрузка данных
             val hmResult = mutableMapOf<Int, UserConfig>()
@@ -55,9 +49,6 @@ class UserConfig private constructor(
         fun getConfig(conn: CoreAdvancedConnection, id: Int): UserConfig {
             val stm = conn.createStatement()
 
-            //--- загружаем общий для всех список полных и сокращённых имён пользователей
-            loadUserName(stm)
-
             //--- первичная загрузка данных
             val rs = stm.executeQuery(" SELECT id , parent_id , org_type , e_mail FROM SYSTEM_users WHERE id = $id ")
             rs.next()
@@ -72,22 +63,6 @@ class UserConfig private constructor(
 
             stm.close()
             return uc
-        }
-
-        private fun loadUserName(stm: CoreAdvancedStatement) {
-            val hmFullName = mutableMapOf<Int, String>()
-            val hmShortName = mutableMapOf<Int, String>()
-
-            val rs = stm.executeQuery(" SELECT id , full_name , short_name FROM SYSTEM_users WHERE id <> 0 ")
-            while (rs.next()) {
-                val id = rs.getInt(1)
-                hmFullName[id] = rs.getString(2).trim()
-                hmShortName[id] = rs.getString(3).trim()
-            }
-            rs.close()
-
-            hmUserFullNames = hmFullName.toMap()
-            hmUserShortNames = hmShortName.toMap()
         }
     }
 

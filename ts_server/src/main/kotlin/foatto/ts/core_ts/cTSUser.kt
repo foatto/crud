@@ -77,7 +77,7 @@ class cTSUser : cStandart() {
         val postURL = super.postAdd(id, hmColumnData, hmOut)
 
         //--- обновим конфигурацию текущего пользователя (более всего необходимо обновление списка пользователей id=name)
-        cUser.refreshUserConfig(conn, userConfig.userId, hmOut)
+        cUser.refreshUserConfig(application, conn, userConfig.userId, hmOut)
 
         //--- создать запись индивидуального сдвига часового пояса
         cUser.addTimeZone(stm, id)
@@ -103,7 +103,7 @@ class cTSUser : cStandart() {
         val postURL = super.postEdit(action, id, hmColumnData, hmOut)
 
         //--- обновим конфигурацию текущего пользователя (более всего необходимо обновление списка пользователей id=name
-        cUser.refreshUserConfig(conn, userConfig.userId, hmOut)
+        cUser.refreshUserConfig(application, conn, userConfig.userId, hmOut)
 
         //--- обновление привязки пользователя/клиента и роли управления приборами
         changeControlEnabledRoleLink(model as mTSUser, id, hmColumnData)

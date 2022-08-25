@@ -72,7 +72,7 @@ class cCompany : cStandart() {
         stmUser.close()
 
         //--- обновим конфигурацию текущего пользователя (более всего необходимо обновление списка пользователей id=name)
-        cUser.refreshUserConfig(conn, userConfig.userId, hmOut)
+        cUser.refreshUserConfig(application, conn, userConfig.userId, hmOut)
 
         return postURL
     }
@@ -102,7 +102,7 @@ class cCompany : cStandart() {
         stmUser.close()
 
         //--- обновим конфигурацию текущего пользователя (более всего необходимо обновление списка пользователей id=name
-        cUser.refreshUserConfig(conn, userConfig.userId, hmOut)
+        cUser.refreshUserConfig(application, conn, userConfig.userId, hmOut)
 
         return postURL
     }

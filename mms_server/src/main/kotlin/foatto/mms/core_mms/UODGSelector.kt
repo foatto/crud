@@ -1,5 +1,6 @@
 package foatto.mms.core_mms
 
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.UserRelation
 import foatto.core_server.app.server.column.ColumnComboBox
@@ -19,13 +20,13 @@ class UODGSelector {
     lateinit var columnDepartment: ColumnInt
         private set
 
-    fun fillColumns(tableUODG: String, userConfig: UserConfig, hmParentColumn: MutableMap<String, iColumn>, alFormHiddenColumn: MutableList<iColumn>, alFormColumn: MutableList<iColumn>) {
+    fun fillColumns(application: iApplication, tableUODG: String, userConfig: UserConfig, hmParentColumn: MutableMap<String, iColumn>, alFormHiddenColumn: MutableList<iColumn>, alFormColumn: MutableList<iColumn>) {
 
         columnObjectUser = ColumnComboBox(tableUODG, "object_user_id", "По владельцу объектов", 0)
         columnObjectUser.addChoice(0, "(все доступные)")
         columnObjectUser.addChoice(userConfig.userId, "(только свои)")
         for (uID in userConfig.getUserIDList(UserRelation.WORKER))
-            columnObjectUser.addChoice(uID, UserConfig.hmUserFullNames[uID]!!)
+            columnObjectUser.addChoice(uID, application.hmUserFullNames[uID]!!)
 
         val columnobjectId = ColumnInt("MMS_object", "id")
         columnObject = ColumnInt(tableUODG, "object_id", columnobjectId)
