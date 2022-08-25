@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 abstract class CoreAdvancedConnection(dbConfig: DBConfig) {
 
-    var dialect: SQLDialect = SQLDialect.POSTGRESQL
+    var dialect: CoreSQLDialectEnum = CoreSQLDialectEnum.POSTGRESQL
         protected set
 
     private val alReplicationName = mutableListOf<String>()
@@ -33,7 +33,7 @@ abstract class CoreAdvancedConnection(dbConfig: DBConfig) {
         //--- без имён реплицируемых серверов репликация считается выключенной
         if (dbConfig.replName != null) {
             val replicationNames = dbConfig.replName.split(",", " ").filter { it.isNotBlank() }
-            if(replicationNames.isNotEmpty()) {
+            if (replicationNames.isNotEmpty()) {
                 alReplicationName.addAll(replicationNames)
                 //--- фильтр начинается с символа "!" = фильтр - чёрный список, иначе фильтр - белый список
                 var dbReplicationFilter = dbConfig.replFilter
@@ -61,7 +61,7 @@ abstract class CoreAdvancedConnection(dbConfig: DBConfig) {
         //--- коммит обязательно должен быть общий, чтобы реплики не пропускались ни в коем случае
         //--- conn.commit();
 
-        if(alReplicationName.isNotEmpty()) {
+        if (alReplicationName.isNotEmpty()) {
             if (alReplicationSQL.isNotEmpty()) {
                 //--- один буфер на всех
                 val bbOut = getReplicationData(alReplicationSQL)
@@ -93,7 +93,7 @@ abstract class CoreAdvancedConnection(dbConfig: DBConfig) {
     //--- различные вариации организации ограничения кол-ва возвращаемых строк
     fun getPreLimit(limit: Int): StringBuilder {
         val sb = StringBuilder()
-        if (dialect == SQLDialect.MSSQL) {
+        if (dialect == CoreSQLDialectEnum.MSSQL) {
             sb.append(" TOP( ").append(limit).append(" ) ")
         }
         return sb
@@ -101,7 +101,7 @@ abstract class CoreAdvancedConnection(dbConfig: DBConfig) {
 
     fun getMidLimit(limit: Int): StringBuilder {
         val sb = StringBuilder()
-        if (dialect == SQLDialect.ORACLE) {
+        if (dialect == CoreSQLDialectEnum.ORACLE) {
             sb.append(" AND ROWNUM <= ").append(limit)
         }
         return sb
@@ -109,7 +109,7 @@ abstract class CoreAdvancedConnection(dbConfig: DBConfig) {
 
     fun getPostLimit(limit: Int): StringBuilder {
         val sb = StringBuilder()
-        if (dialect == SQLDialect.H2 || dialect == SQLDialect.POSTGRESQL || dialect == SQLDialect.SQLITE) {
+        if (dialect == CoreSQLDialectEnum.H2 || dialect == CoreSQLDialectEnum.POSTGRESQL || dialect == CoreSQLDialectEnum.SQLITE) {
             sb.append(" LIMIT ").append(limit)
         }
         return sb
@@ -203,7 +203,7 @@ abstract class CoreAdvancedConnection(dbConfig: DBConfig) {
 
         //--- конвертация SQL-диалектозависимых ключевых слов на другие между парой SQL-диалектов.
         //--- проверяются только ключевые слова, применяемые в системе и именно в таком виде, в котором они вводятся
-        fun convertDialect(aSql: String, sourDialect: SQLDialect, destDialect: SQLDialect): String {
+        fun convertDialect(aSql: String, sourDialect: CoreSQLDialectEnum, destDialect: CoreSQLDialectEnum): String {
             var sql = aSql
             //--- одинаковые диалекты не конвертируем
             if (sourDialect == destDialect) {
@@ -214,7 +214,7 @@ abstract class CoreAdvancedConnection(dbConfig: DBConfig) {
                 .replace(sourDialect.hexFieldTypeName, destDialect.hexFieldTypeName)
             //--- частный случай - убираем clustered-index только в mssql-варианте
             //--- (обязательной необходимости зеркальной операции - добавления clustered-опции - не определено)
-            if (sourDialect == SQLDialect.MSSQL) {
+            if (sourDialect == CoreSQLDialectEnum.MSSQL) {
                 sql = sql.replace(sourDialect.createClusteredIndex, destDialect.createClusteredIndex)
             }
 

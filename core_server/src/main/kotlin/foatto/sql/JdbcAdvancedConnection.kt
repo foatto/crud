@@ -4,17 +4,17 @@ abstract class JdbcAdvancedConnection(dbConfig: DBConfig) : CoreAdvancedConnecti
 
     init {
         dialect = if (dbConfig.url.startsWith("jdbc:h2")) {
-            SQLDialect.H2
+            CoreSQLDialectEnum.H2
         } else if (dbConfig.url.startsWith("jdbc:sqlserver")) {
-            SQLDialect.MSSQL
+            CoreSQLDialectEnum.MSSQL
         } else if (dbConfig.url.startsWith("jdbc:oracle")) {
-            SQLDialect.ORACLE
+            CoreSQLDialectEnum.ORACLE
         } else if (dbConfig.url.startsWith("jdbc:postgresql")) {
-            SQLDialect.POSTGRESQL
+            CoreSQLDialectEnum.POSTGRESQL
         } else if (dbConfig.url.startsWith("jdbc:sqlite")) {
-            SQLDialect.SQLITE
+            CoreSQLDialectEnum.SQLITE
         } else {
-            SQLDialect.POSTGRESQL
+            CoreSQLDialectEnum.POSTGRESQL
         }
     }
 }

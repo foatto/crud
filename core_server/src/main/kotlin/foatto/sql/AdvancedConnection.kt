@@ -6,22 +6,22 @@ import java.util.*
 
 class AdvancedConnection(dbConfig: DBConfig) : JdbcAdvancedConnection(dbConfig) {
 
-    private val conn: Connection
+    val conn: Connection
 
     init {
         val dbProperty = Properties()
         dbProperty["user"] = dbConfig.login
         dbProperty["password"] = dbConfig.password
 
-        if (dialect == SQLDialect.H2) {
+        if (dialect == CoreSQLDialectEnum.H2) {
             // пока вроде нечего
-        } else if (dialect == SQLDialect.MSSQL) {
+        } else if (dialect == CoreSQLDialectEnum.MSSQL) {
             // пока вроде нечего
-        } else if (dialect == SQLDialect.ORACLE) {
+        } else if (dialect == CoreSQLDialectEnum.ORACLE) {
             // пока вроде нечего
-        } else if (dialect == SQLDialect.POSTGRESQL) {
+        } else if (dialect == CoreSQLDialectEnum.POSTGRESQL) {
             // пока вроде нечего
-        } else if (dialect == SQLDialect.SQLITE) {
+        } else if (dialect == CoreSQLDialectEnum.SQLITE) {
             dbProperty["busy_timeout"] = "5000"
             //--- загоняет открытие соединения в бесконечный цикл с ошибкой
             //--- java.sql.BatchUpdateException: batch entry 0: query returns results.
@@ -37,15 +37,15 @@ class AdvancedConnection(dbConfig: DBConfig) : JdbcAdvancedConnection(dbConfig) 
 
         val stm = conn.createStatement()
 
-        if (dialect == SQLDialect.H2) {
+        if (dialect == CoreSQLDialectEnum.H2) {
             // пока вроде нечего
-        } else if (dialect == SQLDialect.MSSQL) {
+        } else if (dialect == CoreSQLDialectEnum.MSSQL) {
             stm.executeUpdate("SET DATEFORMAT ymd")
-        } else if (dialect == SQLDialect.ORACLE) {
+        } else if (dialect == CoreSQLDialectEnum.ORACLE) {
             stm.executeUpdate("ALTER SESSION SET nls_date_format='yyyy.mm.dd hh24:mi:ss'")
-        } else if (dialect == SQLDialect.POSTGRESQL) {
+        } else if (dialect == CoreSQLDialectEnum.POSTGRESQL) {
             // пока вроде нечего
-        } else if (dialect == SQLDialect.SQLITE) {
+        } else if (dialect == CoreSQLDialectEnum.SQLITE) {
             stm.executeUpdate("PRAGMA journal_mode = WAL")
             stm.executeUpdate("PRAGMA journal_size_limit = -1")
         }

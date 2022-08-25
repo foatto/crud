@@ -7,7 +7,7 @@ import foatto.core.util.getRandomLong
 abstract class CoreAdvancedStatement(val conn: CoreAdvancedConnection) {
 
     //--- для тех случаев, когда лень только из-за этого передавать Connection в параметрах ---
-    val dialect: SQLDialect = conn.dialect
+    val dialect: CoreSQLDialectEnum = conn.dialect
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -137,9 +137,9 @@ abstract class CoreAdvancedStatement(val conn: CoreAdvancedConnection) {
     fun getHexValue(bbData: AdvancedByteBuffer): String {
         val hex = bbData.getHex(null, false)
         return when (dialect) {
-            SQLDialect.H2 -> "X'$hex'"
-            SQLDialect.MSSQL -> "0x$hex"
-            SQLDialect.POSTGRESQL -> "'\\x$hex'"
+            CoreSQLDialectEnum.H2 -> "X'$hex'"
+            CoreSQLDialectEnum.MSSQL -> "0x$hex"
+            CoreSQLDialectEnum.POSTGRESQL -> "'\\x$hex'"
             else -> "'$hex'"
         }
     }

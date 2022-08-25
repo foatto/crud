@@ -8,7 +8,7 @@ import foatto.core.util.AdvancedByteBuffer
 import foatto.core.util.AdvancedLogger
 import foatto.core.util.readFileToBuffer
 import foatto.sql.CoreAdvancedConnection
-import foatto.sql.SQLDialect
+import foatto.sql.CoreSQLDialectEnum
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
 import io.ktor.client.features.*
@@ -205,7 +205,7 @@ val client = HttpClient(Apache) {
                             }
                         }
                     }
-                    val sourDialect = SQLDialect.hmDialect[getReplicationResponse.dialect]!!
+                    val sourDialect = CoreSQLDialectEnum.hmDialect[getReplicationResponse.dialect]!!
                     val timeKey = getReplicationResponse.timeKey
                     if (timeKey != -1L) {
                         isWorked = true

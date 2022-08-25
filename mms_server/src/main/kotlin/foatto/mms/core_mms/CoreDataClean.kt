@@ -5,7 +5,7 @@ import foatto.core.util.clearOldFiles
 import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.getDateTimeArray
 import foatto.core_server.service.CoreServiceWorker
-import foatto.sql.SQLDialect
+import foatto.sql.CoreSQLDialectEnum
 import java.io.File
 import java.time.ZoneId
 import kotlin.math.max
@@ -110,13 +110,13 @@ abstract class CoreDataClean(aConfigFileName: String) : CoreServiceWorker(aConfi
             }
 
             //--- для H2 базы команды ALTER INDEX не реализовано
-            if (alConn[0].dialect == SQLDialect.H2) {
+            if (alConn[0].dialect == CoreSQLDialectEnum.H2) {
             }
             //--- для SQLite базы команды ALTER INDEX не реализовано
-            else if (alConn[0].dialect == SQLDialect.SQLITE) {
+            else if (alConn[0].dialect == CoreSQLDialectEnum.SQLITE) {
             }
             //--- для MMS_data_NNN в PostgreSQL периодически делаем специфическую "кластерную" переиндексацию,
-            else if (alConn[0].dialect == SQLDialect.POSTGRESQL) {
+            else if (alConn[0].dialect == CoreSQLDialectEnum.POSTGRESQL) {
                 for (i in alDBConfig.indices) {
                     alStm[i].executeUpdate(" CLUSTER MMS_data_$objectId USING MMS_data_${objectId}_ontime ")
                     alConn[i].commit()
@@ -146,13 +146,13 @@ abstract class CoreDataClean(aConfigFileName: String) : CoreServiceWorker(aConfi
         alConn[0].commit()
 
         //--- для H2 базы команды ALTER INDEX не реализовано
-        if (alConn[0].dialect == SQLDialect.H2) {
+        if (alConn[0].dialect == CoreSQLDialectEnum.H2) {
         }
         //--- для SQLite базы команды ALTER INDEX не реализовано
-        else if (alConn[0].dialect == SQLDialect.SQLITE) {
+        else if (alConn[0].dialect == CoreSQLDialectEnum.SQLITE) {
         }
         //--- для PostgreSQL свой синтаксис
-        else if (alConn[0].dialect == SQLDialect.POSTGRESQL) {
+        else if (alConn[0].dialect == CoreSQLDialectEnum.POSTGRESQL) {
             alStm[0].executeUpdate(" REINDEX TABLE MMS_day_work ")
         }
         //--- у прочих диалектов просто перестраиваем индексы
@@ -169,13 +169,13 @@ abstract class CoreDataClean(aConfigFileName: String) : CoreServiceWorker(aConfi
         alConn[0].commit()
 
         //--- для H2 базы команды ALTER INDEX не реализовано
-        if (alConn[0].dialect == SQLDialect.H2) {
+        if (alConn[0].dialect == CoreSQLDialectEnum.H2) {
         }
         //--- для SQLite базы команды ALTER INDEX не реализовано
-        else if (alConn[0].dialect == SQLDialect.SQLITE) {
+        else if (alConn[0].dialect == CoreSQLDialectEnum.SQLITE) {
         }
         //--- для PostgreSQL свой синтаксис
-        else if (alConn[0].dialect == SQLDialect.POSTGRESQL) {
+        else if (alConn[0].dialect == CoreSQLDialectEnum.POSTGRESQL) {
             alStm[0].executeUpdate(" REINDEX TABLE MMS_work_shift_data ")
         }
         //--- у прочих диалектов просто перестраиваем индексы

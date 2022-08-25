@@ -6,7 +6,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 
-abstract class CoreAdvancedResultSet(val dialect: SQLDialect) {
+abstract class CoreAdvancedResultSet(val dialect: CoreSQLDialectEnum) {
 
     //--- судя по документации, реализация функции isAfterLast в различных jdbc-драйверах не гарантирована,
     //--- поэтому эмулируем её через запоминание последнего состояния функции next

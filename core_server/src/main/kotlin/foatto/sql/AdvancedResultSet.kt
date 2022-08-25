@@ -7,7 +7,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 
-class AdvancedResultSet(aDialect: SQLDialect, val rs: ResultSet) : CoreAdvancedResultSet(aDialect) {
+class AdvancedResultSet(aDialect: CoreSQLDialectEnum, val rs: ResultSet) : CoreAdvancedResultSet(aDialect) {
 
     override fun close() {
         rs.close()

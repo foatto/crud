@@ -1,6 +1,6 @@
 package foatto.sql
 
-enum class SQLDialect(
+enum class CoreSQLDialectEnum(
     val dialect: String,
     //--- наименование целочисленного типа
     val integerFieldTypeName: String,

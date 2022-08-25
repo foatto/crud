@@ -11,7 +11,7 @@ import foatto.core.util.readFileToBuffer
 import foatto.spring.CoreSpringApp
 import foatto.sql.AdvancedConnection
 import foatto.sql.CoreAdvancedConnection
-import foatto.sql.SQLDialect
+import foatto.sql.CoreSQLDialectEnum
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
@@ -100,7 +100,7 @@ class CoreReplicationController {
         val stm = conn.createStatement()
 
         val alReplicationSQL = putReplicationRequest.alSQL.map {
-            CoreAdvancedConnection.convertDialect(it, SQLDialect.hmDialect[sourDialect]!!, conn.dialect)
+            CoreAdvancedConnection.convertDialect(it, CoreSQLDialectEnum.hmDialect[sourDialect]!!, conn.dialect)
         }
 
         //--- проверка на приём этой реплики в предыдущей сессии связи
