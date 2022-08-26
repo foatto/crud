@@ -1,9 +1,7 @@
 package foatto.office.service
 
-import foatto.core_server.app.server.UserConfig
 import foatto.core_server.service.CoreServiceWorker
 import foatto.sql.AdvancedConnection
-import foatto.sql.CoreAdvancedResultSet
 import java.util.*
 import kotlin.system.exitProcess
 
@@ -61,15 +59,22 @@ class Tasker(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
     }
 
     override fun cycle() {
-        val hmUserConfig = UserConfig.getConfig(alConn[0])
+        val hmUserFullNames = mutableMapOf<Int, String>()
 
-        for (userID in hmUserConfig.keys) {
+        var rs = alStm[0].executeQuery(" SELECT id , full_name FROM SYSTEM_users WHERE id <> 0 ")
+        while (rs.next()) {
+            val id = rs.getInt(1)
+            hmUserFullNames[id] = rs.getString(2).trim()
+        }
+        rs.close()
+
+        for (userId in hmUserFullNames.keys) {
             //--- босс сам себя наказывать не будет (наверное)
-            if (userID == bossUserID) {
+            if (userId == bossUserID) {
                 continue
             }
             //--- приёмную наказывать тоже не за что - она инструмент наказания
-            if (userID == receptionUserID) {
+            if (userId == receptionUserID) {
                 continue
             }
 
@@ -78,12 +83,12 @@ class Tasker(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
             //--- загрузим список просроченных поручений
             val alTaskID = mutableListOf<Int>()
             val alTaskSubj = mutableListOf<String>()
-            var rs: CoreAdvancedResultSet = alStm[0].executeQuery(
+            rs = alStm[0].executeQuery(
                 """
                     SELECT ye , mo , da , id , subj 
                     FROM OFFICE_task 
                     WHERE out_user_id = $bossUserID 
-                    AND in_user_id = $userID
+                    AND in_user_id = $userId
                     AND in_active = 1 
                     AND in_archive = 0 
                     ORDER BY ye , mo , da 
@@ -131,7 +136,7 @@ class Tasker(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                             ye = ${toDay[GregorianCalendar.YEAR]} ,
                             mo = ${toDay[GregorianCalendar.MONTH] + 1} ,
                             da = ${toDay[GregorianCalendar.DAY_OF_MONTH]} ,
-                            subj = '! Пригласить: ${UserConfig.hmUserFullNames[userID]}\n по поручению: ${alTaskSubj[taskIndex]}'
+                            subj = '! Пригласить: ${hmUserFullNames[userId]}\n по поручению: ${alTaskSubj[taskIndex]}'
                             WHERE id = $taskID
                         """
                     //--- в переписку добавить "!" и userID ответственного для последующих отчетов
@@ -142,7 +147,7 @@ class Tasker(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                             $rowID , $bossUserID , $taskID , 
                             ${toDay[GregorianCalendar.YEAR]} , 
                             ${toDay[GregorianCalendar.MONTH] + 1} , 
-                            ${toDay[GregorianCalendar.DAY_OF_MONTH]} , 0 , 0 , '!$userID' ) 
+                            ${toDay[GregorianCalendar.DAY_OF_MONTH]} , 0 , 0 , '!$userId' ) 
                         """
                     alStm[0].executeUpdate(sqlTask)
                     alStm[0].executeUpdate(sqlTaskThread)

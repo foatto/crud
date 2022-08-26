@@ -49,12 +49,21 @@ class TaskDayState(aConfigFileName: String) : CoreServiceWorker(aConfigFileName)
     override fun cycle() {
         //--- загрузка двух отдельных конфигурации пользователей,
         //--- на всякий случай, чтобы итераторы во вложенных циклах не перемешались
-        val hmUserConfigOut = UserConfig.getConfig(alConn[0])
-        val hmUserConfigIn = UserConfig.getConfig(alConn[0])
+        val hsUserIdOut = mutableSetOf<Int>()
+        val hsUserIdIn = mutableSetOf<Int>()
+
+        val rs = alStm[0].executeQuery(" SELECT id FROM SYSTEM_users WHERE id <> 0 ")
+        while (rs.next()) {
+            val id = rs.getInt(1)
+            hsUserIdOut += id
+            hsUserIdIn += id
+        }
+        rs.close()
+
         val arrToday = getDateTimeArray(toDay)
 
-        hmUserConfigOut.keys.forEach { outUserID ->
-            hmUserConfigIn.keys.forEach { inUserID ->
+        hsUserIdOut.forEach { outUserID ->
+            hsUserIdIn.forEach { inUserID ->
                 val taskState = getTaskState(outUserID, inUserID)
                 if (taskState.first > 0) {
                     //--- запишем (обновим или добавим) статистику за сегодня

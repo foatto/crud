@@ -6,10 +6,14 @@ import foatto.core.util.getDateTimeArray
 import foatto.core.util.prepareForSQL
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.service.CoreServiceWorker
+import foatto.jooq.core.tables.SystemUsers
 import foatto.office.mTask
 import foatto.office.mTaskThread
+import foatto.spring.controllers.CoreAppController
 import foatto.sql.AdvancedConnection
 import foatto.sql.CoreAdvancedResultSet
+import org.jooq.SQLDialect
+import org.jooq.impl.DSL
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.*
@@ -78,7 +82,8 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
 
     private var cyclePause: Long = 0L
 
-    private lateinit var hmUserConfig: Map<Int, UserConfig>
+    private val hmUserEmail = mutableMapOf<Int, String>()
+    private val hmUserFullNames = mutableMapOf<Int, String>()
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -130,10 +135,19 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         //--- между циклами/проходами могут появиться новые данные по адресам электронной почты,
         //--- лучше их перезагружать каждый раз, не дожидаясь очередной перезагрузки
         /*if( hmUserConfig == null )*/
-        hmUserConfig = UserConfig.getConfig(alConn[0])
+        hmUserEmail.clear()
+        hmUserFullNames.clear()
+
+        var rs = alStm[0].executeQuery(" SELECT id , e_mail , full_name FROM SYSTEM_users WHERE id <> 0 ")
+        while (rs.next()) {
+            val id = rs.getInt(1)
+            hmUserEmail[id] = rs.getString(2).trim()
+            hmUserFullNames[id] = rs.getString(3).trim()
+        }
+        rs.close()
 
         //--- загрузка оповещений на отправку
-        val rs = alStm[0].executeQuery(
+        rs = alStm[0].executeQuery(
             """
                 SELECT id , tag , row_id 
                 FROM SYSTEM_alert
@@ -229,7 +243,7 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         AdvancedLogger.debug("Task Year = ${arrDT[0]}")
 
         //--- если этого пользователя не существует или нет e-mail для оповещений, пропускаем из обработки
-        val eMail = hmUserConfig[inUserID]?.eMail
+        val eMail = hmUserEmail[inUserID]
         AdvancedLogger.debug("to User e-mail: '$eMail'")
         if (!eMail.isNullOrBlank() && eMail.contains("@")) {
             //--- проверим, а не прочитано ли уже оппонентом это сообщение
@@ -250,7 +264,7 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                 val sbMailSubj = "Office#${mTask.ALERT_TAG}#$rowID#$inUserID#"
                 //--- готовим текст самого письма
                 val sbMailBody = "Новое поручение:" +
-                    "\nПоручитель: ${UserConfig.hmUserFullNames[outUserID]}" +
+                    "\nПоручитель: ${hmUserFullNames[outUserID]}" +
                     "\nТема поручения: $taskSubj" +
                     "\nСрок исполнения: ${DateTime_DMYHMS(arrDT)}"
                 //--- отправляем письмо
@@ -301,7 +315,7 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                 continue
             }
             //--- если у этого пользователя нет e-mail для оповещений, пропускаем из обработки
-            val eMail = hmUserConfig[arrUserID[i]]?.eMail
+            val eMail = hmUserEmail[arrUserID[i]]
             AdvancedLogger.debug("to User e-mail: $eMail")
             if (eMail.isNullOrBlank() || !eMail.contains("@")) {
                 continue
@@ -336,7 +350,11 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                     val userID = rs.getInt(2)
                     val arrDT = arrayOf(rs.getInt(3), rs.getInt(4), rs.getInt(5), rs.getInt(6), rs.getInt(7), 0)
                     val msg = rs.getString(8)
-                    val userFullName = if (userID == 0) "" else UserConfig.hmUserFullNames[userID]
+                    val userFullName = if (userID == 0) {
+                        ""
+                    } else {
+                        hmUserFullNames[userID]
+                    }
                     val sbTmp = userFullName +
                         " [ " + DateTime_DMYHMS(arrDT) + "]:\n" +
                         msg + "\n\n"
@@ -546,8 +564,8 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
             actionDescr = "# Поручение перемещено в архив #"
         } else {
             //--- если есть однозначное совпадение (содержание в полном имени) пользователя, то переназначить
-            UserConfig.hmUserFullNames.keys.forEach { uID ->
-                val userName = UserConfig.hmUserFullNames[uID]?.uppercase(Locale.getDefault())
+            hmUserFullNames.keys.forEach { uID ->
+                val userName = hmUserFullNames[uID]?.uppercase(Locale.getDefault())
                 //--- есть такой пользователь
                 if (userName != null && userName.contains(cmd)) {
                     //--- если это в первый (единственный) раз, то запомним этого пользователя
@@ -561,7 +579,7 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
             }
             if (newUserID != 0) {
                 action = ACTION_CHANGE_USER
-                actionDescr = "# Поручение перенаправлено пользователю: ${UserConfig.hmUserFullNames[newUserID]} #"
+                actionDescr = "# Поручение перенаправлено пользователю: ${hmUserFullNames[newUserID]} #"
             } else {
                 //--- проверям на наличии числа - сдвига срока или даты, на которое перенести поручение
                 val st = StringTokenizer(cmd, ".")
