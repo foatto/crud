@@ -23,9 +23,10 @@ import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.xy.XyStartData
 import foatto.core_server.app.xy.server.document.sdcXyAbstract
+import foatto.jooq.core.tables.SystemUserProperty
 import foatto.jooq.core.tables.SystemUsers
-import foatto.jpa.repositories.UserRepository
 import foatto.spring.CoreSpringApp
+import foatto.spring.jpa.repositories.UserRepository
 import foatto.sql.AdvancedConnection
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedStatement
@@ -293,11 +294,10 @@ abstract class CoreAppController : iApplication {
 
                     appResponse.currentUserName = hmUserFullNames[userConfig.userId] ?: "(неизвестный пользователь)"
                     //--- временно используем List вместо Map, т.к. в Kotlin/JS нет возможности десериализовать Map (а List десериализуется в Array)
-                    appResponse.hmUserProperty = userConfig.hmUserProperty.toList().toTypedArray()
+                    appResponse.hmUserProperty = loadUserProperies(conn, userConfig.userId).toList().toTypedArray()
                     appResponse.arrMenuData = menuInit(stm, hmAliasConfig, userConfig).toTypedArray()
 
                     for ((upKey, upValue) in appRequest.logon!!.hmSystemProperties) {
-                        //println( "$upKey = $upValue" )
                         userConfig.saveUserProperty(conn, upKey, upValue)
                     }
 //                    logQuery( "Logon result: $logonResult" )
@@ -381,7 +381,7 @@ abstract class CoreAppController : iApplication {
                         if (!aliasConfig.isAuthorization && userConfig == null) {
                             //--- при отсутствии оного загрузим гостевой логин
                             reloadUserNames(conn)
-                            userConfig = UserConfig.getConfig(conn, UserConfig.USER_GUEST)
+                            userConfig = UserConfig.getConfig(conn, UserConfig.USER_GUEST, this)
                             hmOut[iApplication.USER_CONFIG] = userConfig // уйдет в сессию
                         }
                         //--- если класс требует обязательную аутентификацию,
@@ -729,7 +729,7 @@ abstract class CoreAppController : iApplication {
         //--- исключение из правил: сразу же записываем в сессию информацию по успешно залогиненному пользователю,
         //--- т.к. эта инфа понадобится в той же команде (для выдачи меню и т.п.)
         reloadUserNames(conn)
-        chmSession[iApplication.USER_CONFIG] = UserConfig.getConfig(conn, userID)
+        chmSession[iApplication.USER_CONFIG] = UserConfig.getConfig(conn, userID, this)
 
         stm.close()
         //--- проверяем просроченность пароля
@@ -877,6 +877,44 @@ abstract class CoreAppController : iApplication {
 
         hmUserFullNames = hmFullName.toMap()
         hmUserShortNames = hmShortName.toMap()
+    }
+
+    override fun loadUserProperies(conn: CoreAdvancedConnection, userId: Int): Map<String, String> {
+        val hmUserProperty = mutableMapOf<String, String>()
+
+        when (currentDataAccessMethod) {
+            DataAccessMethodEnum.JDBC, DataAccessMethodEnum.JPA /* not implemented yet */ -> {
+                val stm = conn.createStatement()
+                val rs = stm.executeQuery(" SELECT property_name , property_value FROM SYSTEM_user_property WHERE user_id = $userId ")
+                while (rs.next()) {
+                    hmUserProperty[rs.getString(1).trim()] = rs.getString(2).trim()
+                }
+                rs.close()
+                stm.close()
+            }
+
+            DataAccessMethodEnum.JOOQ -> {
+                //!!! temporarily two bad ideas at once:
+                //--- 1. conn is AdvancedConnection
+                //--- 2. used SQLDialect.POSTGRES only
+                val dslContext = DSL.using((conn as AdvancedConnection).conn, SQLDialect.POSTGRES)
+                val result = dslContext.select(
+                    SystemUserProperty.SYSTEM_USER_PROPERTY.PROPERTY_NAME,
+                    SystemUserProperty.SYSTEM_USER_PROPERTY.PROPERTY_VALUE,
+                ).from(SystemUserProperty.SYSTEM_USER_PROPERTY)
+                    .where(SystemUserProperty.SYSTEM_USER_PROPERTY.USER_ID.equal(userId))
+                    .fetch()
+                result.forEach { record2 ->
+                    val name = record2.getValue(SystemUserProperty.SYSTEM_USER_PROPERTY.PROPERTY_NAME)
+                    val value = record2.getValue(SystemUserProperty.SYSTEM_USER_PROPERTY.PROPERTY_VALUE)
+                    if (name != null && value != null) {
+                        hmUserProperty[name] = value
+                    }
+                }
+            }
+        }
+
+        return hmUserProperty
     }
 
 //    override fun getUserDTO(userId: Int): UserDTO {

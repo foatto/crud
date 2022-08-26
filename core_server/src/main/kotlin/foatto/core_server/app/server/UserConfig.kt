@@ -4,12 +4,14 @@ import foatto.core.app.UP_DECIMAL_DIVIDER
 import foatto.core.app.UP_IS_USE_THOUSANDS_DIVIDER
 import foatto.core.app.UP_TIME_OFFSET
 import foatto.core.util.getZoneId
+import foatto.core_server.app.iApplication
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedResultSet
 import foatto.sql.CoreAdvancedStatement
 import java.time.ZoneId
 
 class UserConfig private constructor(
+    val hmUserProperty: Map<String, String>,
     rs: CoreAdvancedResultSet,
 ) : Cloneable {
 
@@ -21,45 +23,19 @@ class UserConfig private constructor(
         val ROLE_GUEST = -1
         val ROLE_ADMIN = -2
 
-        fun getConfigs(conn: CoreAdvancedConnection): Map<Int, UserConfig> {
+        fun getConfig(conn: CoreAdvancedConnection, userId: Int, application: iApplication): UserConfig {
             val stm = conn.createStatement()
 
             //--- первичная загрузка данных
-            val hmResult = mutableMapOf<Int, UserConfig>()
-
-            val rs = stm.executeQuery(" SELECT id , parent_id , org_type , e_mail FROM SYSTEM_users WHERE id <> 0 ")
-            while (rs.next()) {
-                val uc = UserConfig(rs)
-                hmResult[uc.userId] = uc
-            }
-            rs.close()
-
-            //--- вторичная загруза данных
-            for (uc in hmResult.values) {
-                uc.loadRole(stm)
-                uc.loadUserPermission(stm)
-                uc.loadUserIDList(stm)
-                uc.loadUserProperty(stm)
-            }
-
-            stm.close()
-            return hmResult
-        }
-
-        fun getConfig(conn: CoreAdvancedConnection, id: Int): UserConfig {
-            val stm = conn.createStatement()
-
-            //--- первичная загрузка данных
-            val rs = stm.executeQuery(" SELECT id , parent_id , org_type , e_mail FROM SYSTEM_users WHERE id = $id ")
+            val rs = stm.executeQuery(" SELECT id , parent_id , org_type , e_mail FROM SYSTEM_users WHERE id = $userId ")
             rs.next()
-            val uc = UserConfig(rs)
+            val uc = UserConfig(application.loadUserProperies(conn, userId), rs)
             rs.close()
 
             //--- вторичная загрузка данных
             uc.loadRole(stm)
             uc.loadUserPermission(stm)
             uc.loadUserIDList(stm)
-            uc.loadUserProperty(stm)
 
             stm.close()
             return uc
@@ -90,9 +66,6 @@ class UserConfig private constructor(
     //--- списки пользователей по отношениям
     private val hmRelationUser = mutableMapOf<String, Set<Int>>()
 
-    //--- список дополнительных параметров/св-в пользователя
-    val hmUserProperty = mutableMapOf<String, String>()
-
     val upTimeOffset: Int
         get() = hmUserProperty[UP_TIME_OFFSET]?.toIntOrNull() ?: 0
     val upZoneId: ZoneId
@@ -117,13 +90,6 @@ class UserConfig private constructor(
 
     fun getUserIDList(relation: String): Set<Int> = hmRelationUser[relation]!!
 
-    //--- загрузка дополнительных параметров пользователя
-    private fun loadUserProperty(stm: CoreAdvancedStatement) {
-        val rs = stm.executeQuery(" SELECT property_name , property_value FROM SYSTEM_user_property WHERE user_id = $userId ")
-        while (rs.next()) setUserProperty(rs.getString(1), rs.getString(2))
-        rs.close()
-    }
-
     fun getUserProperty(name: String): String? = hmUserProperty[name]
 
     //--- сохранение дополнительных параметров пользователя
@@ -134,12 +100,8 @@ class UserConfig private constructor(
             stm.executeUpdate(" INSERT INTO SYSTEM_user_property ( user_id , property_name , property_value ) VALUES ( $userId , '$upName' , '$upValue' ) ")
         }
 
-        setUserProperty(upName, upValue)
+//!!! вывести в iApplication        setUserProperty(upName, upValue)
         stm.close()
-    }
-
-    private fun setUserProperty(name: String, value: String) {
-        hmUserProperty[name] = value
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

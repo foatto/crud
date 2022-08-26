@@ -28,6 +28,8 @@ interface iApplication {
     var hmUserShortNames: Map<Int, String>
 
     fun reloadUserNames(conn: CoreAdvancedConnection)
+    fun loadUserProperies(conn: CoreAdvancedConnection, userId: Int): Map<String, String>
+
 //    fun getUserDTO(userId: Int): UserDTO
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------

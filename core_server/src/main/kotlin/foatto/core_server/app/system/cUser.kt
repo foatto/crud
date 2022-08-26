@@ -63,7 +63,7 @@ class cUser : cAbstractHierarchy() {
         fun refreshUserConfig(application: iApplication, conn: CoreAdvancedConnection, userId: Int, hmOut: MutableMap<String, Any>) {
             //--- обновим конфигурацию текущего пользователя (более всего необходимо обновление списка пользователей id=name)
             application.reloadUserNames(conn)
-            hmOut[iApplication.USER_CONFIG] = UserConfig.getConfig(conn, userId)
+            hmOut[iApplication.USER_CONFIG] = UserConfig.getConfig(conn, userId, application)
         }
 
         fun addTimeZone(stm: CoreAdvancedStatement, id: Int) {
