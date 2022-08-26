@@ -13,7 +13,6 @@ import foatto.mms.core_mms.calc.AbstractObjectStateCalc
 import foatto.mms.core_mms.calc.ObjectCalc
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.iMMSApplication
-import java.util.*
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -83,10 +82,9 @@ class sdcSpeed : sdcAbstractGraphic() {
                 val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 3, false)
                 //--- показывать график пробега только чистому админу -
                 //--- в отладочных целях для быстрого поиска точек с неправильными пробегами
-                val aDistance = if (userConfig.isAdmin && userConfig.roleCount == 1) {
+                val aDistance = if (userConfig.isCleanAdmin) {
                     GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 1, 1, false)
-                }
-                else {
+                } else {
                     null
                 }
                 val aZone = GraphicDataContainer(GraphicDataContainer.ElementType.TEXT, 0, 0, false)

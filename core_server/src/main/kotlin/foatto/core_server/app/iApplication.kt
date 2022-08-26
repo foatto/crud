@@ -29,6 +29,7 @@ interface iApplication {
 
     fun reloadUserNames(conn: CoreAdvancedConnection)
     fun loadUserProperies(conn: CoreAdvancedConnection, userId: Int): MutableMap<String, String>
+    fun loadAdminRoles(conn: CoreAdvancedConnection, userId: Int): Pair<Boolean, Boolean>
 
 //    fun getUserDTO(userId: Int): UserDTO
 

@@ -12,6 +12,10 @@ import java.time.ZoneId
 
 class UserConfig private constructor(
     val hmUserProperty: MutableMap<String, String>,
+    //--- принадлежность пользователя к предопределённым ролям
+    val isAdmin: Boolean,
+    //--- позволяет отличить "чистого" админа от "частично админов" - монтажников/наладчиков и т.п.
+    val isCleanAdmin: Boolean,
     rs: CoreAdvancedResultSet,
 ) : Cloneable {
 
@@ -19,21 +23,24 @@ class UserConfig private constructor(
         //--- предопреденные userID
         const val USER_GUEST = -1
 
-        //--- предопределенные roleID
-        val ROLE_GUEST = -1
-        val ROLE_ADMIN = -2
-
         fun getConfig(conn: CoreAdvancedConnection, userId: Int, application: iApplication): UserConfig {
             val stm = conn.createStatement()
 
+            val (isAdmin, isCleanAdmin) = application.loadAdminRoles(conn, userId)
             //--- первичная загрузка данных
-            val rs = stm.executeQuery(" SELECT id , parent_id , org_type , e_mail FROM SYSTEM_users WHERE id = $userId ")
+            // e_mail not used
+            //val rs = stm.executeQuery(" SELECT id , parent_id , org_type , e_mail FROM SYSTEM_users WHERE id = $userId ")
+            val rs = stm.executeQuery(" SELECT id , parent_id , org_type FROM SYSTEM_users WHERE id = $userId ")
             rs.next()
-            val uc = UserConfig(application.loadUserProperies(conn, userId), rs)
+            val uc = UserConfig(
+                hmUserProperty = application.loadUserProperies(conn, userId),
+                isAdmin = isAdmin,
+                isCleanAdmin = isCleanAdmin,
+                rs = rs
+            )
             rs.close()
 
             //--- вторичная загрузка данных
-            uc.loadRole(stm)
             uc.loadUserPermission(stm)
             uc.loadUserIDList(stm)
 
@@ -48,17 +55,7 @@ class UserConfig private constructor(
     private var parentID = 0
     var orgType = 0
 
-    var eMail: String = ""
-
-    //--- принадлежность пользователя к предопределённым ролям
-    var isGuest = false
-        private set
-    var isAdmin = false
-        private set
-
-    //--- кол-во ролей у пользователя - позволяет отличить "чистого" админа от "частично админов" - монтажников/наладчиков и т.п.
-    var roleCount = 0
-        private set
+//    var eMail: String = "" - not used
 
     //--- список прав доступа пользователя
     val userPermission = mutableMapOf<String, Set<String>>()
@@ -83,7 +80,7 @@ class UserConfig private constructor(
         userId = rs.getInt(1)
         parentID = rs.getInt(2)
         orgType = rs.getInt(3)
-        eMail = rs.getString(4)
+//        eMail = rs.getString(4) - not used
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -125,25 +122,6 @@ class UserConfig private constructor(
 
         stm.close()
         return hsUser
-    }
-
-    private fun loadRole(stm: CoreAdvancedStatement) {
-        isGuest = false
-        isAdmin = false
-        roleCount = 0
-        //--- загрузить список ролей пользователя
-        val rs = stm.executeQuery(" SELECT role_id FROM SYSTEM_user_role WHERE user_id = $userId ")
-        while (rs.next()) {
-            val roleID = rs.getInt(1)
-            if (roleID == ROLE_GUEST) {
-                isGuest = true
-            }
-            if (roleID == ROLE_ADMIN) {
-                isAdmin = true
-            }
-            roleCount++
-        }
-        rs.close()
     }
 
     private fun loadUserPermission(stm: CoreAdvancedStatement) {

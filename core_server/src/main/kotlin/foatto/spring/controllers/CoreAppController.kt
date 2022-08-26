@@ -24,6 +24,7 @@ import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.xy.XyStartData
 import foatto.core_server.app.xy.server.document.sdcXyAbstract
 import foatto.jooq.core.tables.SystemUserProperty
+import foatto.jooq.core.tables.SystemUserRole
 import foatto.jooq.core.tables.SystemUsers
 import foatto.spring.CoreSpringApp
 import foatto.spring.jpa.repositories.UserRepository
@@ -67,6 +68,10 @@ abstract class CoreAppController : iApplication {
             response.setContentLength(file.length().toInt())
             response.outputStream.write(file.readBytes())
         }
+
+        //!!! предопределенные roleID - вывести в application.yaml
+        //private val ROLE_GUEST = -1
+        private val ROLE_ADMIN = -2
     }
 
     private enum class DataAccessMethodEnum {
@@ -917,7 +922,55 @@ abstract class CoreAppController : iApplication {
         return hmUserProperty
     }
 
-//    override fun getUserDTO(userId: Int): UserDTO {
+    override fun loadAdminRoles(conn: CoreAdvancedConnection, userId: Int): Pair<Boolean, Boolean> {
+        var isAdmin = false
+        var roleCount = 0
+
+        when (currentDataAccessMethod) {
+            DataAccessMethodEnum.JDBC, DataAccessMethodEnum.JPA /* not implemented yet */ -> {
+                val stm = conn.createStatement()
+                //--- загрузить список ролей пользователя
+                val rs = stm.executeQuery(" SELECT role_id FROM SYSTEM_user_role WHERE user_id = $userId ")
+                while (rs.next()) {
+                    val roleId = rs.getInt(1)
+//                    if (roleId == ROLE_GUEST) {
+//                        isGuest = true
+//                    }
+                    if (roleId == ROLE_ADMIN) {
+                        isAdmin = true
+                    }
+                    roleCount++
+                }
+                stm.close()
+            }
+
+            DataAccessMethodEnum.JOOQ -> {
+                //!!! temporarily two bad ideas at once:
+                //--- 1. conn is AdvancedConnection
+                //--- 2. used SQLDialect.POSTGRES only
+                val dslContext = DSL.using((conn as AdvancedConnection).conn, SQLDialect.POSTGRES)
+                val result = dslContext.select(
+                    SystemUserRole.SYSTEM_USER_ROLE.ROLE_ID,
+                ).from(SystemUserRole.SYSTEM_USER_ROLE)
+                    .where(SystemUserRole.SYSTEM_USER_ROLE.USER_ID.equal(userId))
+                    .fetch()
+                result.forEach { record1 ->
+                    val roleId = record1.getValue(SystemUserRole.SYSTEM_USER_ROLE.ROLE_ID)
+//                    if (roleId == ROLE_GUEST) {
+//                        isGuest = true
+//                    }
+                    if (roleId == ROLE_ADMIN) {
+                        isAdmin = true
+                    }
+                    roleCount++
+                }
+            }
+        }
+
+        return Pair(isAdmin, isAdmin && roleCount == 1)
+    }
+
+    //    override fun getUserDTO(userId: Int): UserDTO {
 //        val userEntity = userRepository.findByIdOrNull(userId) ?: "User not exist for user_id = $userId".let {
 //            AdvancedLogger.error(it)
 //            throw Exception(it)
