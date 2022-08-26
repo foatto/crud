@@ -11,7 +11,7 @@ import foatto.sql.CoreAdvancedStatement
 import java.time.ZoneId
 
 class UserConfig private constructor(
-    val hmUserProperty: Map<String, String>,
+    val hmUserProperty: MutableMap<String, String>,
     rs: CoreAdvancedResultSet,
 ) : Cloneable {
 
@@ -100,8 +100,9 @@ class UserConfig private constructor(
             stm.executeUpdate(" INSERT INTO SYSTEM_user_property ( user_id , property_name , property_value ) VALUES ( $userId , '$upName' , '$upValue' ) ")
         }
 
-//!!! вывести в iApplication        setUserProperty(upName, upValue)
         stm.close()
+
+        hmUserProperty[upName] = upValue
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -879,7 +879,7 @@ abstract class CoreAppController : iApplication {
         hmUserShortNames = hmShortName.toMap()
     }
 
-    override fun loadUserProperies(conn: CoreAdvancedConnection, userId: Int): Map<String, String> {
+    override fun loadUserProperies(conn: CoreAdvancedConnection, userId: Int): MutableMap<String, String> {
         val hmUserProperty = mutableMapOf<String, String>()
 
         when (currentDataAccessMethod) {
