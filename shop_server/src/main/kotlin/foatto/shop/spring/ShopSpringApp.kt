@@ -10,7 +10,7 @@ import org.springframework.context.event.EventListener
 import org.springframework.web.servlet.config.annotation.EnableWebMvc
 
 @SpringBootApplication(
-    scanBasePackages = ["foatto.spring", "foatto.jpa", "foatto.shop.spring"],
+    scanBasePackages = ["foatto.spring", "foatto.shop.spring"],
 )
 @EnableWebMvc
 class ShopSpringApp : CoreSpringApp() {

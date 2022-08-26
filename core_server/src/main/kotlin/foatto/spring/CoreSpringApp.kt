@@ -9,15 +9,13 @@ import foatto.core_server.app.AppParameter
 import foatto.core_server.app.xy.server.document.sdcXyAbstract
 import foatto.sql.DBConfig
 import foatto.util.MinioProxy
-import io.minio.MinioClient
-import okhttp3.OkHttpClient
-import okhttp3.Protocol
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.autoconfigure.domain.EntityScan
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 import java.io.File
 import java.time.ZoneId
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.TimeUnit
 import kotlin.math.min
 
 //--- добавлять у каждого наследника
@@ -27,6 +25,7 @@ import kotlin.math.min
     scanBasePackages = ["foatto.spring"],
 )
 class CoreSpringApp {
+
 //    companion object {
 //        @JvmStatic
 //        fun main(args: Array<String>) {

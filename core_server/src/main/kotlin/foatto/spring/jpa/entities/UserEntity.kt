@@ -1,4 +1,4 @@
-package foatto.jpa.entities
+package foatto.spring.jpa.entities
 
 import javax.persistence.*
 
