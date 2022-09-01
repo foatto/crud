@@ -63,7 +63,7 @@ class cUser : cAbstractHierarchy() {
         fun refreshUserConfig(application: iApplication, conn: CoreAdvancedConnection, userId: Int, hmOut: MutableMap<String, Any>) {
             //--- обновим конфигурацию текущего пользователя (более всего необходимо обновление списка пользователей id=name)
             application.reloadUserNames(conn)
-            hmOut[iApplication.USER_CONFIG] = UserConfig.getConfig(conn, userId, application)
+            hmOut[iApplication.USER_CONFIG] = UserConfig.getConfig(application, conn, userId)
         }
 
         fun addTimeZone(stm: CoreAdvancedStatement, id: Int) {
@@ -77,7 +77,25 @@ class cUser : cAbstractHierarchy() {
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun doExpand(pid: Int) = userConfig.loadFullSubUserList(conn, pid)
+    override fun doExpand(pid: Int): Set<Int> {
+        val hsUser = mutableSetOf<Int>()
+        hsUser += pid
+
+        val alDivisionList = mutableListOf(pid)
+
+        //--- именно через отдельный индекс, т.к. alDivisionList пополняется в процессе прохода
+        var i = 0
+        while (i < alDivisionList.size) {
+            val pID = alDivisionList[i]
+            hsUser += application.loadUserIdList(conn, pID, OrgType.ORG_TYPE_DIVISION)
+            hsUser += application.loadUserIdList(conn, pID, OrgType.ORG_TYPE_BOSS)
+            hsUser += application.loadUserIdList(conn, pID, OrgType.ORG_TYPE_WORKER)
+
+            alDivisionList += application.loadUserIdList(conn, pID, OrgType.ORG_TYPE_DIVISION)
+            i++
+        }
+        return hsUser
+    }
 
     override fun getTableColumnStyle(isNewRow: Boolean, hmColumnData: Map<iColumn, iData>, column: iColumn, tci: TableCell) {
         super.getTableColumnStyle(isNewRow, hmColumnData, column, tci)

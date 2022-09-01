@@ -6,43 +6,45 @@ import foatto.core.app.UP_TIME_OFFSET
 import foatto.core.util.getZoneId
 import foatto.core_server.app.iApplication
 import foatto.sql.CoreAdvancedConnection
-import foatto.sql.CoreAdvancedResultSet
 import foatto.sql.CoreAdvancedStatement
 import java.time.ZoneId
 
 class UserConfig private constructor(
-    val hmUserProperty: MutableMap<String, String>,
+    val userId: Int,
+    private val parentId: Int,
+    val orgType: Int,
     //--- принадлежность пользователя к предопределённым ролям
     val isAdmin: Boolean,
     //--- позволяет отличить "чистого" админа от "частично админов" - монтажников/наладчиков и т.п.
     val isCleanAdmin: Boolean,
-    rs: CoreAdvancedResultSet,
+    val hmUserProperty: MutableMap<String, String>,
 ) : Cloneable {
 
     companion object {
         //--- предопреденные userID
         const val USER_GUEST = -1
 
-        fun getConfig(conn: CoreAdvancedConnection, userId: Int, application: iApplication): UserConfig {
+        fun getConfig(application: iApplication, conn: CoreAdvancedConnection, userId: Int): UserConfig {
             val stm = conn.createStatement()
 
             val (isAdmin, isCleanAdmin) = application.loadAdminRoles(conn, userId)
+
             //--- первичная загрузка данных
-            // e_mail not used
-            //val rs = stm.executeQuery(" SELECT id , parent_id , org_type , e_mail FROM SYSTEM_users WHERE id = $userId ")
             val rs = stm.executeQuery(" SELECT id , parent_id , org_type FROM SYSTEM_users WHERE id = $userId ")
             rs.next()
             val uc = UserConfig(
-                hmUserProperty = application.loadUserProperies(conn, userId),
+                userId = rs.getInt(1),
+                parentId = rs.getInt(2),
+                orgType = rs.getInt(3),
                 isAdmin = isAdmin,
                 isCleanAdmin = isCleanAdmin,
-                rs = rs
+                hmUserProperty = application.loadUserProperies(conn, userId),
             )
             rs.close()
 
             //--- вторичная загрузка данных
             uc.loadUserPermission(stm)
-            uc.loadUserIDList(stm)
+            uc.loadUserIDList(application, conn)
 
             stm.close()
             return uc
@@ -50,10 +52,6 @@ class UserConfig private constructor(
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    var userId = 0
-    private var parentID = 0
-    var orgType = 0
 
 //    var eMail: String = "" - not used
 
@@ -76,15 +74,6 @@ class UserConfig private constructor(
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    init {
-        userId = rs.getInt(1)
-        parentID = rs.getInt(2)
-        orgType = rs.getInt(3)
-//        eMail = rs.getString(4) - not used
-    }
-
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     fun getUserIDList(relation: String): Set<Int> = hmRelationUser[relation]!!
 
     fun getUserProperty(name: String): String? = hmUserProperty[name]
@@ -103,26 +92,6 @@ class UserConfig private constructor(
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    fun loadFullSubUserList(conn: CoreAdvancedConnection, startPID: Int): Set<Int> {
-        val stm = conn.createStatement()
-
-        val hsUser = mutableSetOf<Int>()
-        hsUser.add(startPID)
-        val alDivisionList = mutableListOf<Int>()
-        alDivisionList.add(startPID)
-        //--- именно через .indices, т.к. alDivisionList пополняется в процессе прохода
-        for (i in alDivisionList.indices) {
-            val pID = alDivisionList[i]
-            loadIDList(stm, pID, OrgType.ORG_TYPE_DIVISION, hsUser)
-            loadIDList(stm, pID, OrgType.ORG_TYPE_BOSS, hsUser)
-            loadIDList(stm, pID, OrgType.ORG_TYPE_WORKER, hsUser)
-            loadDivisionList(stm, pID, alDivisionList)
-        }
-
-        stm.close()
-        return hsUser
-    }
 
     private fun loadUserPermission(stm: CoreAdvancedStatement) {
         val userPermissionEnable = mutableMapOf<String, MutableSet<String>>()
@@ -176,102 +145,87 @@ class UserConfig private constructor(
     }
 
     //--- загрузка userID других пользователей относительно положения с данным пользователем
-    private fun loadUserIDList(stm: CoreAdvancedStatement) {
+    private fun loadUserIDList(application: iApplication, conn: CoreAdvancedConnection) {
         //--- список всех пользователей,
         //--- из которого путем последовательного исключения основных категорий пользователей
         //--- образуется список пользователей категории "все остальные"
-        val hsOtherUser = loadSubUserList(stm, 0)
+        val hsOtherUsers = loadSubUserList(application, conn, 0)
         //--- добавить к списку пользователей псевдопользователя с userID == 0
         //--- (чтобы потом правильно обрабатывать (унаследованные) "ничьи" записи)
-        hsOtherUser.add(0)
+        hsOtherUsers.add(0)
 
-        var hsUserID: MutableSet<Int>
+        //--- ничейное (userId == 0)
+        val hsNobodyUserIds = setOf(0)
+        hsOtherUsers -= hsNobodyUserIds
+        hmRelationUser[UserRelation.NOBODY] = hsNobodyUserIds
 
-        //--- ничейное (userID == 0)
-        hsUserID = mutableSetOf()
-        hsUserID.add(0)
-        hsOtherUser.removeAll(hsUserID)
-        hmRelationUser[UserRelation.NOBODY] = hsUserID
+        //--- свой userId
+        val hsSelfUserIds = setOf(userId)
+        hsOtherUsers -= hsSelfUserIds
+        hmRelationUser[UserRelation.SELF] = hsSelfUserIds
 
-        //--- свой userID
-        hsUserID = mutableSetOf()
-        hsUserID.add(userId)
-        hsOtherUser.removeAll(hsUserID)
-        hmRelationUser[UserRelation.SELF] = hsUserID
+        //--- userId коллег одного уровня в одном подразделении
+        val hsEqualUserIds = application.loadUserIdList(conn, parentId, orgType)
+        hsOtherUsers -= hsEqualUserIds
+        hmRelationUser[UserRelation.EQUAL] = hsEqualUserIds
 
-        //--- userID коллег одного уровня в одном подразделении
-        hsUserID = mutableSetOf()
-        loadIDList(stm, parentID, orgType, hsUserID)
-        hsOtherUser.removeAll(hsUserID)
-        hmRelationUser[UserRelation.EQUAL] = hsUserID
-
-        //--- userID начальников
-        hsUserID = mutableSetOf()
-        var pID = 0
-        if (orgType == OrgType.ORG_TYPE_WORKER) pID = parentID
-        else if (parentID != 0) pID = getParentID(stm, parentID)
-        loadIDList(stm, pID, OrgType.ORG_TYPE_BOSS, hsUserID)
-        while (pID != 0) {
-            pID = getParentID(stm, pID)
-            loadIDList(stm, pID, OrgType.ORG_TYPE_BOSS, hsUserID)
+        //--- userId начальников
+        val hsBossUserIds = mutableSetOf<Int>()
+        var pId = if (orgType == OrgType.ORG_TYPE_WORKER) {
+            parentId
+        } else if (parentId != 0) {
+            application.getUserParentId(conn, parentId)
+        } else {
+            0
         }
-        hsOtherUser.removeAll(hsUserID)
-        hmRelationUser[UserRelation.BOSS] = hsUserID
+        hsBossUserIds += application.loadUserIdList(conn, pId, OrgType.ORG_TYPE_BOSS)
+        while (pId != 0) {
+            pId = application.getUserParentId(conn, pId)
+            hsBossUserIds += application.loadUserIdList(conn, pId, OrgType.ORG_TYPE_BOSS)
+        }
+        hsOtherUsers -= hsBossUserIds
+        hmRelationUser[UserRelation.BOSS] = hsBossUserIds
 
-        //--- userID подчиненных
+        //--- userId подчиненных
+        val hsWorkerUserIds = mutableSetOf<Int>()
         if (orgType == OrgType.ORG_TYPE_BOSS) {
-            hsUserID = mutableSetOf()
             //--- на своем уровне
-            loadIDList(stm, parentID, OrgType.ORG_TYPE_WORKER, hsUserID)
+            hsWorkerUserIds += application.loadUserIdList(conn, parentId, OrgType.ORG_TYPE_WORKER)
             //--- начальники подчиненных подразделений также являются прямыми подчиненными
-            val alDivisionList = mutableListOf<Int>()
-            loadDivisionList(stm, parentID, alDivisionList)
-            //--- именно через .indices, т.к. alDivisionList пополняется в процессе прохода
-            for (i in alDivisionList.indices) {
-                val bpID = alDivisionList[i]
-                loadIDList(stm, bpID, OrgType.ORG_TYPE_BOSS, hsUserID)
-                loadIDList(stm, bpID, OrgType.ORG_TYPE_WORKER, hsUserID)
-                loadDivisionList(stm, bpID, alDivisionList)
-            }
-            hsOtherUser.removeAll(hsUserID)
-            hmRelationUser[UserRelation.WORKER] = hsUserID
-        } else hmRelationUser[UserRelation.WORKER] = mutableSetOf()
+            val alDivisionList = application.loadUserIdList(conn, parentId, OrgType.ORG_TYPE_DIVISION).toMutableList()
+            //--- именно через отдельный индекс, т.к. alDivisionList пополняется в процессе прохода
+            var i = 0
+            while (i < alDivisionList.size) {
+                val bpId = alDivisionList[i]
+                hsWorkerUserIds += application.loadUserIdList(conn, bpId, OrgType.ORG_TYPE_BOSS)
+                hsWorkerUserIds += application.loadUserIdList(conn, bpId, OrgType.ORG_TYPE_WORKER)
 
-        hmRelationUser[UserRelation.OTHER] = hsOtherUser
+                alDivisionList += application.loadUserIdList(conn, bpId, OrgType.ORG_TYPE_DIVISION)
+                i++
+            }
+        }
+        hsOtherUsers -= hsWorkerUserIds
+        hmRelationUser[UserRelation.WORKER] = hsWorkerUserIds
+
+        hmRelationUser[UserRelation.OTHER] = hsOtherUsers
     }
 
-    private fun loadSubUserList(stm: CoreAdvancedStatement, startPID: Int): MutableSet<Int> {
+    private fun loadSubUserList(application: iApplication, conn: CoreAdvancedConnection, startPID: Int): MutableSet<Int> {
         val hsUser = mutableSetOf<Int>()
-        val alDivisionList = mutableListOf<Int>()
-        alDivisionList.add(startPID)
-        //--- именно через .indices, т.к. alDivisionList пополняется в процессе прохода
-        for (i in alDivisionList.indices) {
+
+        val alDivisionList = mutableListOf(startPID)
+
+        //--- именно через отдельный индекс, т.к. alDivisionList пополняется в процессе прохода
+        var i = 0
+        while (i < alDivisionList.size) {
             val pID = alDivisionList[i]
-            loadIDList(stm, pID, OrgType.ORG_TYPE_BOSS, hsUser)
-            loadIDList(stm, pID, OrgType.ORG_TYPE_WORKER, hsUser)
-            loadDivisionList(stm, pID, alDivisionList)
+            hsUser += application.loadUserIdList(conn, pID, OrgType.ORG_TYPE_BOSS)
+            hsUser += application.loadUserIdList(conn, pID, OrgType.ORG_TYPE_WORKER)
+
+            alDivisionList += application.loadUserIdList(conn, pID, OrgType.ORG_TYPE_DIVISION)
+            i++
         }
         return hsUser
-    }
-
-    private fun loadIDList(stm: CoreAdvancedStatement, pID: Int, ot: Int, hsUserID: MutableSet<Int>) {
-        val rs = stm.executeQuery(" SELECT id FROM SYSTEM_users WHERE id <> 0 AND parent_id = $pID AND org_type = $ot ")
-        while (rs.next()) hsUserID.add(rs.getInt(1))
-        rs.close()
-    }
-
-    private fun loadDivisionList(stm: CoreAdvancedStatement, pID: Int, alDivisionList: MutableList<Int>) {
-        val rs = stm.executeQuery(" SELECT id FROM SYSTEM_users WHERE id <> 0 AND parent_id = $pID AND org_type = ${OrgType.ORG_TYPE_DIVISION} ")
-        while (rs.next()) alDivisionList.add(rs.getInt(1))
-        rs.close()
-    }
-
-    private fun getParentID(stm: CoreAdvancedStatement, uID: Int): Int {
-        var pID = 0
-        val rs = stm.executeQuery(" SELECT parent_id FROM SYSTEM_users WHERE id = $uID ")
-        if (rs.next()) pID = rs.getInt(1)
-        rs.close()
-        return pID
     }
 
 }

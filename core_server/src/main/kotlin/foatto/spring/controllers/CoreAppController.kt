@@ -23,9 +23,9 @@ import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.xy.XyStartData
 import foatto.core_server.app.xy.server.document.sdcXyAbstract
-import foatto.jooq.core.tables.SystemUserProperty
-import foatto.jooq.core.tables.SystemUserRole
-import foatto.jooq.core.tables.SystemUsers
+import foatto.jooq.core.tables.references.SYSTEM_USERS
+import foatto.jooq.core.tables.references.SYSTEM_USER_PROPERTY
+import foatto.jooq.core.tables.references.SYSTEM_USER_ROLE
 import foatto.spring.CoreSpringApp
 import foatto.spring.jpa.repositories.UserRepository
 import foatto.sql.AdvancedConnection
@@ -386,7 +386,7 @@ abstract class CoreAppController : iApplication {
                         if (!aliasConfig.isAuthorization && userConfig == null) {
                             //--- при отсутствии оного загрузим гостевой логин
                             reloadUserNames(conn)
-                            userConfig = UserConfig.getConfig(conn, UserConfig.USER_GUEST, this)
+                            userConfig = UserConfig.getConfig(this, conn, UserConfig.USER_GUEST)
                             hmOut[iApplication.USER_CONFIG] = userConfig // уйдет в сессию
                         }
                         //--- если класс требует обязательную аутентификацию,
@@ -734,7 +734,7 @@ abstract class CoreAppController : iApplication {
         //--- исключение из правил: сразу же записываем в сессию информацию по успешно залогиненному пользователю,
         //--- т.к. эта инфа понадобится в той же команде (для выдачи меню и т.п.)
         reloadUserNames(conn)
-        chmSession[iApplication.USER_CONFIG] = UserConfig.getConfig(conn, userID, this)
+        chmSession[iApplication.USER_CONFIG] = UserConfig.getConfig(this, conn, userID)
 
         stm.close()
         //--- проверяем просроченность пароля
@@ -855,16 +855,16 @@ abstract class CoreAppController : iApplication {
                 //--- 2. used SQLDialect.POSTGRES only
                 val dslContext = DSL.using((conn as AdvancedConnection).conn, SQLDialect.POSTGRES)
                 val result = dslContext.select(
-                    SystemUsers.SYSTEM_USERS.ID,
-                    SystemUsers.SYSTEM_USERS.FULL_NAME,
-                    SystemUsers.SYSTEM_USERS.SHORT_NAME,
-                ).from(SystemUsers.SYSTEM_USERS)
-                    .where(SystemUsers.SYSTEM_USERS.ID.notEqual(0))
+                    SYSTEM_USERS.ID,
+                    SYSTEM_USERS.FULL_NAME,
+                    SYSTEM_USERS.SHORT_NAME,
+                ).from(SYSTEM_USERS)
+                    .where(SYSTEM_USERS.ID.notEqual(0))
                     .fetch()
                 result.forEach { record3 ->
-                    record3.getValue(SystemUsers.SYSTEM_USERS.ID)?.let { id ->
-                        hmFullName[id] = record3.getValue(SystemUsers.SYSTEM_USERS.FULL_NAME)?.trim() ?: ""
-                        hmShortName[id] = record3.getValue(SystemUsers.SYSTEM_USERS.SHORT_NAME)?.trim() ?: ""
+                    record3.getValue(SYSTEM_USERS.ID)?.let { id ->
+                        hmFullName[id] = record3.getValue(SYSTEM_USERS.FULL_NAME)?.trim() ?: ""
+                        hmShortName[id] = record3.getValue(SYSTEM_USERS.SHORT_NAME)?.trim() ?: ""
                     }
                 }
             }
@@ -904,14 +904,14 @@ abstract class CoreAppController : iApplication {
                 //--- 2. used SQLDialect.POSTGRES only
                 val dslContext = DSL.using((conn as AdvancedConnection).conn, SQLDialect.POSTGRES)
                 val result = dslContext.select(
-                    SystemUserProperty.SYSTEM_USER_PROPERTY.PROPERTY_NAME,
-                    SystemUserProperty.SYSTEM_USER_PROPERTY.PROPERTY_VALUE,
-                ).from(SystemUserProperty.SYSTEM_USER_PROPERTY)
-                    .where(SystemUserProperty.SYSTEM_USER_PROPERTY.USER_ID.equal(userId))
+                    SYSTEM_USER_PROPERTY.PROPERTY_NAME,
+                    SYSTEM_USER_PROPERTY.PROPERTY_VALUE,
+                ).from(SYSTEM_USER_PROPERTY)
+                    .where(SYSTEM_USER_PROPERTY.USER_ID.equal(userId))
                     .fetch()
                 result.forEach { record2 ->
-                    val name = record2.getValue(SystemUserProperty.SYSTEM_USER_PROPERTY.PROPERTY_NAME)
-                    val value = record2.getValue(SystemUserProperty.SYSTEM_USER_PROPERTY.PROPERTY_VALUE)
+                    val name = record2.getValue(SYSTEM_USER_PROPERTY.PROPERTY_NAME)
+                    val value = record2.getValue(SYSTEM_USER_PROPERTY.PROPERTY_VALUE)
                     if (name != null && value != null) {
                         hmUserProperty[name] = value
                     }
@@ -941,6 +941,7 @@ abstract class CoreAppController : iApplication {
                     }
                     roleCount++
                 }
+                rs.close()
                 stm.close()
             }
 
@@ -950,12 +951,12 @@ abstract class CoreAppController : iApplication {
                 //--- 2. used SQLDialect.POSTGRES only
                 val dslContext = DSL.using((conn as AdvancedConnection).conn, SQLDialect.POSTGRES)
                 val result = dslContext.select(
-                    SystemUserRole.SYSTEM_USER_ROLE.ROLE_ID,
-                ).from(SystemUserRole.SYSTEM_USER_ROLE)
-                    .where(SystemUserRole.SYSTEM_USER_ROLE.USER_ID.equal(userId))
+                    SYSTEM_USER_ROLE.ROLE_ID,
+                ).from(SYSTEM_USER_ROLE)
+                    .where(SYSTEM_USER_ROLE.USER_ID.equal(userId))
                     .fetch()
                 result.forEach { record1 ->
-                    val roleId = record1.getValue(SystemUserRole.SYSTEM_USER_ROLE.ROLE_ID)
+                    val roleId = record1.getValue(SYSTEM_USER_ROLE.ROLE_ID)
 //                    if (roleId == ROLE_GUEST) {
 //                        isGuest = true
 //                    }
@@ -970,7 +971,78 @@ abstract class CoreAppController : iApplication {
         return Pair(isAdmin, isAdmin && roleCount == 1)
     }
 
-    //    override fun getUserDTO(userId: Int): UserDTO {
+    override fun loadUserIdList(conn: CoreAdvancedConnection, parentId: Int, orgType: Int): Set<Int> {
+        val hsUserId = mutableSetOf<Int>()
+
+        when (currentDataAccessMethod) {
+            DataAccessMethodEnum.JDBC, DataAccessMethodEnum.JPA /* not implemented yet */ -> {
+                val stm = conn.createStatement()
+                val rs = stm.executeQuery(" SELECT id FROM SYSTEM_users WHERE id <> 0 AND parent_id = $parentId AND org_type = $orgType ")
+                while (rs.next()) {
+                    hsUserId += rs.getInt(1)
+                }
+                rs.close()
+                stm.close()
+            }
+
+            DataAccessMethodEnum.JOOQ -> {
+                //!!! temporarily two bad ideas at once:
+                //--- 1. conn is AdvancedConnection
+                //--- 2. used SQLDialect.POSTGRES only
+                val dslContext = DSL.using((conn as AdvancedConnection).conn, SQLDialect.POSTGRES)
+                val result = dslContext.select(
+                    SYSTEM_USERS.ID,
+                ).from(SYSTEM_USERS)
+                    .where(SYSTEM_USERS.ID.notEqual(0))
+                    .and(SYSTEM_USERS.PARENT_ID.equal(parentId))
+                    .and(SYSTEM_USERS.ORG_TYPE.equal(orgType))
+                    .fetch()
+                result.forEach { record1 ->
+                    record1.getValue(SYSTEM_USERS.ID)?.let { userId ->
+                        hsUserId += userId
+                    }
+                }
+            }
+        }
+
+        return hsUserId
+    }
+
+    override fun getUserParentId(conn: CoreAdvancedConnection, userId: Int): Int {
+        var parentId = 0
+
+        when (currentDataAccessMethod) {
+            DataAccessMethodEnum.JDBC, DataAccessMethodEnum.JPA /* not implemented yet */ -> {
+                val stm = conn.createStatement()
+                val rs = stm.executeQuery(" SELECT parent_id FROM SYSTEM_users WHERE id = $userId ")
+                if (rs.next()) {
+                    parentId = rs.getInt(1)
+                }
+                rs.close()
+                stm.close()
+            }
+
+            DataAccessMethodEnum.JOOQ -> {
+                //!!! temporarily two bad ideas at once:
+                //--- 1. conn is AdvancedConnection
+                //--- 2. used SQLDialect.POSTGRES only
+                val dslContext = DSL.using((conn as AdvancedConnection).conn, SQLDialect.POSTGRES)
+                val record1 = dslContext.select(
+                    SYSTEM_USERS.PARENT_ID,
+                ).from(SYSTEM_USERS)
+                    .where(SYSTEM_USERS.ID.equal(userId))
+                    .fetchOne()
+                record1?.getValue(SYSTEM_USERS.PARENT_ID)?.let { pid ->
+                    parentId = pid
+                }
+            }
+        }
+
+        return parentId
+    }
+
+
+//    override fun getUserDTO(userId: Int): UserDTO {
 //        val userEntity = userRepository.findByIdOrNull(userId) ?: "User not exist for user_id = $userId".let {
 //            AdvancedLogger.error(it)
 //            throw Exception(it)

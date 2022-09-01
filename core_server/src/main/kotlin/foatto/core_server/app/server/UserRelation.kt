@@ -8,6 +8,12 @@ object UserRelation {
     const val OTHER = "other"                 // все остальные
     const val NOBODY = "nobody"               // ничейные == общие
 
-    val arrNameDescr = arrayOf( Pair( SELF, SELF ), Pair( EQUAL, EQUAL ), Pair( BOSS, BOSS ), Pair( WORKER, WORKER ), Pair( OTHER, OTHER ), Pair( NOBODY, NOBODY ) )
-    //    private static String[] arrDescr = { "своё", "коллеги", "руководство", "подчиненные", "все остальные", "общие" };
+    val arrNameDescr = arrayOf(
+        Pair(SELF, SELF),
+        Pair(EQUAL, EQUAL),
+        Pair(BOSS, BOSS),
+        Pair(WORKER, WORKER),
+        Pair(OTHER, OTHER),
+        Pair(NOBODY, NOBODY)
+    )
 }
