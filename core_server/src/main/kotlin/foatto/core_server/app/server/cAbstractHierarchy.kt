@@ -50,7 +50,7 @@ open class cAbstractHierarchy : cStandart() {
         //--- when editing when selecting from hierarchical tables at the start of the selector, you must set the desired parentID
         //--- parentID defined in selectID (i.e. edit mode)
         if (selectorParam.selectedId != 0) {
-            hmParentData[aliasConfig.alias] = getSelfParentID(selectorParam.selectedId)
+            hmParentData[aliasConfig.alias] = getSelfParentId(selectorParam.selectedId)
             //--- so that with further passes through the hierarchy, this starting installation no longer works
             selectorParam.selectedId = 0
         } else if (selectorParam.selectedParentId != 0) {

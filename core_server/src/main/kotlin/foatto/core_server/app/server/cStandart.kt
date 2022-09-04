@@ -221,44 +221,44 @@ open class cStandart {
         //--- добавление базовых прав доступа
         alPermission.add(Pair(PERM_ACCESS, "01 Access"))
 
-        if (!model.isUseParentUserID() && model.columnUser == null) {
+        if (!model.isUseParentUserId() && model.columnUser == null) {
             alPermission.add(Pair(PERM_TABLE, "02 Table"))
         } else {
             addPermDef(PERM_TABLE, "02", "Table")
         }
 
-        if (!model.isUseParentUserID() && model.columnUser == null) {
+        if (!model.isUseParentUserId() && model.columnUser == null) {
             alPermission.add(Pair(PERM_FORM, "03 Form"))
         } else {
             addPermDef(PERM_FORM, "03", "Form")
         }
 
-        if (model.isUseParentUserID()) {
+        if (model.isUseParentUserId()) {
             addPermDef(PERM_ADD, "04", "Add")
         } else {
             alPermission.add(Pair(PERM_ADD, "04 Add"))
         }
 
-        if (!model.isUseParentUserID() && model.columnUser == null) {
+        if (!model.isUseParentUserId() && model.columnUser == null) {
             alPermission.add(Pair(PERM_EDIT, "05 Edit"))
         } else {
             addPermDef(PERM_EDIT, "05", "Edit")
         }
 
-        if (!model.isUseParentUserID() && model.columnUser == null) {
+        if (!model.isUseParentUserId() && model.columnUser == null) {
             alPermission.add(Pair(PERM_DELETE, "06 Delete"))
         } else {
             addPermDef(PERM_DELETE, "06", "Delete")
         }
 
         if (model.columnActive != null && model.columnArchive != null) {
-            if (!model.isUseParentUserID() && model.columnUser == null) {
+            if (!model.isUseParentUserId() && model.columnUser == null) {
                 alPermission.add(Pair(PERM_ARCHIVE, "07 Archive"))
             } else {
                 addPermDef(PERM_ARCHIVE, "07", "Archive")
             }
 
-            if (!model.isUseParentUserID() && model.columnUser == null) {
+            if (!model.isUseParentUserId() && model.columnUser == null) {
                 alPermission.add(Pair(PERM_UNARCHIVE, "08 Unarchive"))
             } else {
                 addPermDef(PERM_UNARCHIVE, "08", "Unarchive")
@@ -272,7 +272,7 @@ open class cStandart {
         }
     }
 
-    protected open fun isAddEnabled(): Boolean = if (model.isUseParentUserID()) {
+    protected open fun isAddEnabled(): Boolean = if (model.isUseParentUserId()) {
         checkPerm(PERM_ADD, parentUserId)
     } else {
         hsPermission.contains(PERM_ADD)
@@ -295,10 +295,10 @@ open class cStandart {
         id != 0 && checkPerm(PERM_DELETE, getRecordUserID(hmColumnData, id)) && !isExistDepencies(id)
 
     protected fun checkPerm(permName: String, recordUserID: Int): Boolean =
-        if (!model.isUseParentUserID() && model.columnUser == null) {
+        if (!model.isUseParentUserId() && model.columnUser == null) {
             hsPermission.contains(permName)
         } else {
-            checkPerm(userConfig, hsPermission, permName, if (model.isUseParentUserID()) parentUserId else recordUserID)
+            checkPerm(userConfig, hsPermission, permName, if (model.isUseParentUserId()) parentUserId else recordUserID)
         }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -501,7 +501,6 @@ open class cStandart {
             hmColumnData[column] = data
         }
         val recordUserID = getRecordUserID(hmColumnData)
-
         return if (checkPerm(permName, recordUserID)) {
             hmColumnData
         } else {
@@ -509,7 +508,7 @@ open class cStandart {
         }
     }
 
-    protected fun getSelfParentID(id: Int): Int {
+    protected fun getSelfParentId(id: Int): Int {
         val sql = " SELECT ${model.hmParentColumn[aliasConfig.alias]!!.getFieldName(0)} FROM ${model.modelTableName} WHERE ${model.columnId.getFieldName()} = $id"
         //System.out.println(  sb.toString()  );
         val rs = stm.executeQuery(sql)
@@ -1550,11 +1549,18 @@ open class cStandart {
             }
             //--- для модулей с виртуальными таблицами чтение не делаем
             if (model.modelTableName != mAbstract.FAKE_TABLE_NAME) {
-                //--- теперь загрузим запись ( в случае добавления загружаем предварительно заполненную 0-ю служебную запись -
-                //--- все только для того, чтобы избежать автозаполнения через скрипты )
-                val sqlStr = getSQLString(false, id, alColumnList, null, null, null)
-                //System.out.println(  "--- getForm ------------------------------------------------"  );
-                //AdvancedLogger.error(  "sqlStr = " + sqlStr  );
+                //--- теперь загрузим запись (в случае добавления загружаем предварительно заполненную 0-ю служебную запись -
+                //--- все только для того, чтобы избежать автозаполнения через скрипты)
+                val sqlStr = getSQLString(
+                    isForTable = false,
+                    id = id,
+                    alColumnList = alColumnList,
+                    alSortColumn = null,
+                    alSortDirect = null,
+                    alFindWord = null
+                )
+//println("--- getForm ------------------------------------------------")
+//println("sqlStr = $sqlStr")
                 val rs = stm.executeQuery(sqlStr)
                 if (rs.next()) {
                     hmColumnData = getColumnData(rs, false, alColumnList)

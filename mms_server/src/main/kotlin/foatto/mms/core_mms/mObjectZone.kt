@@ -11,7 +11,7 @@ import foatto.sql.CoreAdvancedStatement
 
 class mObjectZone : mAbstract() {
 
-    override fun isUseParentUserID(): Boolean {
+    override fun isUseParentUserId(): Boolean {
         return true
     }
 

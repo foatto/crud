@@ -11,7 +11,7 @@ import java.time.ZoneId
 
 class UserConfig private constructor(
     val userId: Int,
-    private val parentId: Int,
+    val parentId: Int,
     val orgType: Int,
     //--- принадлежность пользователя к предопределённым ролям
     val isAdmin: Boolean,

@@ -95,7 +95,7 @@ abstract class mAbstract {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    open fun isUseParentUserID(): Boolean = false
+    open fun isUseParentUserId(): Boolean = false
     open fun isExpandable(): Boolean = false
 
     open fun getAddAlertTag(): String? = null
