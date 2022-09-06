@@ -2,6 +2,7 @@ package foatto.core_server.app.server.column
 
 import foatto.core.link.FormPinMode
 import foatto.core.link.TableCellAlign
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.FormColumnCaptionData
 import foatto.core_server.app.server.FormColumnVisibleData
 import foatto.core_server.app.server.UserConfig
@@ -58,7 +59,7 @@ interface iColumn {
     fun addSelectorColumn(columnTo: iColumn, columnFrom: iColumn)
 
     fun setSavedDefault(userConfig: UserConfig)
-    fun saveDefault(conn: CoreAdvancedConnection, userConfig: UserConfig, hmColumnData: Map<iColumn, iData>)
+    fun saveDefault(application: iApplication, conn: CoreAdvancedConnection, userConfig: UserConfig, hmColumnData: Map<iColumn, iData>)
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -1,5 +1,6 @@
 package foatto.core_server.app.server.column
 
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.data.DataComboBox
 import foatto.core_server.app.server.data.iData
@@ -10,8 +11,8 @@ class ColumnComboBox(aTableName: String, aFieldName: String, aCaption: String, a
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun saveDefault(conn: CoreAdvancedConnection, userConfig: UserConfig, hmColumnData: Map<iColumn, iData>) {
-        userConfig.saveUserProperty(conn, savedDefaultPropertyName, (hmColumnData[this] as DataComboBox).intValue.toString())
+    override fun saveDefault(application: iApplication, conn: CoreAdvancedConnection, userConfig: UserConfig, hmColumnData: Map<iColumn, iData>) {
+        application.saveUserProperty(conn, userConfig, savedDefaultPropertyName, (hmColumnData[this] as DataComboBox).intValue.toString())
     }
 
     override fun getData() = DataComboBox(this)

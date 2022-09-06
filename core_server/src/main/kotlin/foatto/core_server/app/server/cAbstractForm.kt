@@ -31,7 +31,7 @@ open class cAbstractForm : cStandart() {
         if (returnURL == null) {
             for (column in hmColumnData.keys) {
                 if (column.isSavedDefault) {
-                    column.saveDefault(conn, userConfig, hmColumnData)
+                    column.saveDefault(application, conn, userConfig, hmColumnData)
                 }
             }
         }

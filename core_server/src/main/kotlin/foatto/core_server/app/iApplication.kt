@@ -1,5 +1,6 @@
 package foatto.core_server.app
 
+import foatto.core_server.app.server.UserConfig
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedStatement
 
@@ -28,10 +29,9 @@ interface iApplication {
     var hmUserShortNames: Map<Int, String>
 
     fun reloadUserNames(conn: CoreAdvancedConnection)
-    fun loadUserProperies(conn: CoreAdvancedConnection, userId: Int): MutableMap<String, String>
-    fun loadAdminRoles(conn: CoreAdvancedConnection, userId: Int): Pair<Boolean, Boolean>
     fun loadUserIdList(conn: CoreAdvancedConnection, parentId: Int, orgType: Int): Set<Int>
-    fun getUserParentId(conn: CoreAdvancedConnection, userId: Int): Int
+    fun getUserConfig(conn: CoreAdvancedConnection, userId: Int): UserConfig
+    fun saveUserProperty(conn: CoreAdvancedConnection, userConfig: UserConfig, upName: String, upValue: String)
 
 //    fun getUserDTO(userId: Int): UserDTO
 

@@ -1,5 +1,6 @@
 package foatto.core_server.app.server.column
 
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.data.DataString
 import foatto.core_server.app.server.data.iData
@@ -48,8 +49,8 @@ class ColumnString(
         defaultValue = userConfig.getUserProperty(savedDefaultPropertyName)
     }
 
-    override fun saveDefault(conn: CoreAdvancedConnection, userConfig: UserConfig, hmColumnData: Map<iColumn, iData>) {
-        userConfig.saveUserProperty(conn, savedDefaultPropertyName, (hmColumnData[this] as DataString).text)
+    override fun saveDefault(application: iApplication, conn: CoreAdvancedConnection, userConfig: UserConfig, hmColumnData: Map<iColumn, iData>) {
+        application.saveUserProperty(conn, userConfig, savedDefaultPropertyName, (hmColumnData[this] as DataString).text)
     }
 
     override fun getData() = DataString(this)

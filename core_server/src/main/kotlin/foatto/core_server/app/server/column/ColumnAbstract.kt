@@ -2,6 +2,7 @@ package foatto.core_server.app.server.column
 
 import foatto.core.link.FormPinMode
 import foatto.core.link.TableCellAlign
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.FormColumnCaptionData
 import foatto.core_server.app.server.FormColumnVisibleData
 import foatto.core_server.app.server.UserConfig
@@ -77,7 +78,7 @@ abstract class ColumnAbstract : iColumn {
     //--- основная часть полей не умеет сохранять своё default-значение, ибо незачем
     override fun setSavedDefault(userConfig: UserConfig) {}
 
-    override fun saveDefault(conn: CoreAdvancedConnection, userConfig: UserConfig, hmColumnData: Map<iColumn, iData>) {}
+    override fun saveDefault(application: iApplication, conn: CoreAdvancedConnection, userConfig: UserConfig, hmColumnData: Map<iColumn, iData>) {}
 
 //--- перекрыто для нормальной работы HashMap.get при передаче описаний полей/столбцов между модулями ---------------------------------------------------------------------------------
 
