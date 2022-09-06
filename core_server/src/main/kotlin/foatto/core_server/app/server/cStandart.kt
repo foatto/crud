@@ -165,11 +165,11 @@ open class cStandart {
         //--- получить конфигурацию всех алиасов
         hmAliasConfig = aHmAliasConfig
         //--- получить конфигурацию класса
-        aliasConfig = aAliasConfig // ( AliasConfig ) aAliasConfig.clone();
+        aliasConfig = aAliasConfig
         //--- получить xy-конфигурацию
         hmXyDocumentConfig = aHmXyDocumentConfig
         //--- получить конфигурацию пользователя
-        userConfig = aUserConfig   //( UserConfig ) aUserConfig.clone();
+        userConfig = aUserConfig
 
         zoneId = userConfig.upZoneId
 
@@ -2083,7 +2083,7 @@ open class cStandart {
             }
             //--- сохраняем значение запоминаемого поля
             if (column.isSavedDefault) {
-                column.saveDefault(conn, userConfig, hmColumnData)
+                column.saveDefault(application, conn, userConfig, hmColumnData)
             }
             //--- виртуальные поля не записываем
             if (column.isVirtual) {
@@ -2111,7 +2111,7 @@ open class cStandart {
             }
             //--- сохраняем значение запоминаемого поля
             if (column.isSavedDefault) {
-                column.saveDefault(conn, userConfig, hmColumnData)
+                column.saveDefault(application, conn, userConfig, hmColumnData)
             }
             //--- виртуальные поля не записываем
             if (column.isVirtual) {
