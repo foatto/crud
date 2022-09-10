@@ -14,7 +14,7 @@ class cTask : cStandart() {
 
     //--- можно добавлять поручение, только в активных исходящих поручениях
     //--- (в принципе, это можно отобразить через права доступа, но подстраховаться не помешает)
-    override fun isAddEnabled(): Boolean = aliasConfig.alias == "office_task_out"
+    override fun isAddEnabled(): Boolean = aliasConfig.name == "office_task_out"
 
     override fun getTableRowIsReaded(valueID: Int?): Boolean {
         //--- проверка своей записи - если она не читана, то достаточно, можно переписку не проверять
@@ -22,12 +22,12 @@ class cTask : cStandart() {
 
         if (isReaded && valueID != null) {
             //--- сколько всего сообщений в этой ветке обсуждения
-            var rs = stm.executeQuery(" SELECT COUNT(*) FROM OFFICE_task_thread WHERE task_id = $valueID")
+            var rs = conn.executeQuery(" SELECT COUNT(*) FROM OFFICE_task_thread WHERE task_id = $valueID")
             val countAll = if (rs.next()) rs.getInt(1) else 0
             rs.close()
 
             //--- сколько прочитанных сообщений в этой ветке обсуждения
-            rs = stm.executeQuery(
+            rs = conn.executeQuery(
                 " SELECT COUNT(*) FROM SYSTEM_new " +
                     " WHERE table_name = 'OFFICE_task_thread' " +
                     " AND user_id = ${userConfig.userId} " +

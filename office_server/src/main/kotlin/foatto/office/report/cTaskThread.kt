@@ -60,7 +60,7 @@ class cTaskThread : cOfficeReport() {
         //--- в алиасе написано "Распечатать поручение", не пойдёт как заголовок
         sheet.addCell(Label(1, offsY++, "Поручение", wcfTitleL))
 
-        var rs = stm.executeQuery(" SELECT out_user_id , in_user_id , ye , mo , da , subj FROM OFFICE_task WHERE id = $reportTask ")
+        var rs = conn.executeQuery(" SELECT out_user_id , in_user_id , ye , mo , da , subj FROM OFFICE_task WHERE id = $reportTask ")
         if (rs.next()) {
             sheet.addCell(Label(1, offsY, "От кого:", wcfTitleName))
             sheet.addCell(Label(2, offsY, application.hmUserFullNames[rs.getInt(1)], wcfTitleValue))
@@ -101,7 +101,7 @@ class cTaskThread : cOfficeReport() {
         offsY++
 
         var countNN = 1
-        rs = stm.executeQuery(
+        rs = conn.executeQuery(
             " SELECT user_id , ye , mo , da , ho , mi , message FROM OFFICE_task_thread WHERE task_id = $reportTask ORDER BY ye DESC , mo DESC , da DESC , ho DESC , mi DESC "
         )
         while (rs.next()) {

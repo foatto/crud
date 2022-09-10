@@ -1,7 +1,6 @@
 package foatto.office.service
 
 import foatto.core.util.getDateTimeArray
-import foatto.core_server.app.server.UserConfig
 import foatto.core_server.service.CoreServiceWorker
 import foatto.sql.AdvancedConnection
 import java.time.ZoneId
@@ -42,7 +41,6 @@ class TaskDayState(aConfigFileName: String) : CoreServiceWorker(aConfigFileName)
         alDBConfig.forEach {
             val conn = AdvancedConnection(it)
             alConn.add(conn)
-            alStm.add(conn.createStatement())
         }
     }
 
@@ -52,7 +50,7 @@ class TaskDayState(aConfigFileName: String) : CoreServiceWorker(aConfigFileName)
         val hsUserIdOut = mutableSetOf<Int>()
         val hsUserIdIn = mutableSetOf<Int>()
 
-        val rs = alStm[0].executeQuery(" SELECT id FROM SYSTEM_users WHERE id <> 0 ")
+        val rs = alConn[0].executeQuery(" SELECT id FROM SYSTEM_users WHERE id <> 0 ")
         while (rs.next()) {
             val id = rs.getInt(1)
             hsUserIdOut += id
@@ -79,11 +77,11 @@ class TaskDayState(aConfigFileName: String) : CoreServiceWorker(aConfigFileName)
                             AND da = ${arrToday[2]}
                         """
                     //--- попробуем обновить статистику
-                    if (alStm[0].executeUpdate(sqlUpdate) == 0) //--- если не обновилось - добавляем запись
-                        alStm[0].executeUpdate(
+                    if (alConn[0].executeUpdate(sqlUpdate) == 0) //--- если не обновилось - добавляем запись
+                        alConn[0].executeUpdate(
                             """
                                 INSERT INTO OFFICE_task_day_state ( id , out_user_id , in_user_id , ye , mo , da , count_red , count_all ) VALUES ( 
-                                ${alStm[0].getNextIntId("OFFICE_task_day_state", "id")} , 
+                                ${alConn[0].getNextIntId("OFFICE_task_day_state", "id")} , 
                                 $outUserID , 
                                 $inUserID , 
                                 ${arrToday[0]} ,
@@ -104,7 +102,7 @@ class TaskDayState(aConfigFileName: String) : CoreServiceWorker(aConfigFileName)
         var countAll = 0
         var countRed = 0
         //--- загрузим список поручений по данной паре автор/исполнитель
-        val rs = alStm[0].executeQuery(
+        val rs = alConn[0].executeQuery(
             """
                 SELECT ye , mo , da
                 FROM OFFICE_task 

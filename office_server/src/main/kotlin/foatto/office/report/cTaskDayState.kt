@@ -116,7 +116,7 @@ class cTaskDayState : cOfficeReport() {
         }
         sb += " ORDER BY SYSTEM_users.full_name , OFFICE_task_day_state.ye , OFFICE_task_day_state.mo , OFFICE_task_day_state.da "
 
-        val rs = stm.executeQuery(sb)
+        val rs = conn.executeQuery(sb)
         var lastUserName = ""
         while (rs.next()) {
             val userName = rs.getString(1)

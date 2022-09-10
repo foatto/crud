@@ -14,7 +14,7 @@ import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.column.ColumnTime3Int
 import foatto.core_server.app.server.mAbstract
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 
 class mPeople : mAbstract() {
 
@@ -35,7 +35,7 @@ class mPeople : mAbstract() {
 
     override fun init(
         application: iApplication,
-        aStm: CoreAdvancedStatement,
+        aConn: CoreAdvancedConnection,
         aliasConfig: AliasConfig,
         userConfig: UserConfig,
         aHmParam: Map<String, String>,
@@ -43,12 +43,12 @@ class mPeople : mAbstract() {
         id: Int?
     ) {
 
-        super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+        super.init(application, aConn, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         //----------------------------------------------------------------------------------------------------------------------
 
         //--- это обычный контакт (people) или сопровождаемый клиент (client) ?
-        val isPeople = aliasConfig.alias == "office_people"
+        val isPeople = aliasConfig.name == "office_people"
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -189,8 +189,10 @@ class mPeople : mAbstract() {
         //---------------------------------------------------------------------------------------------------------------
 
         val columnBusiness = ColumnComboBox(modelTableName, "business_id", "Направление деятельности", 0).apply {
-            val rs = stm.executeQuery(" SELECT id , name FROM OFFICE_business ")
-            while (rs.next()) addChoice(rs.getInt(1), rs.getString(2))
+            val rs = conn.executeQuery(" SELECT id , name FROM OFFICE_business ")
+            while (rs.next()) {
+                addChoice(rs.getInt(1), rs.getString(2))
+            }
             rs.close()
         }
 
@@ -231,7 +233,7 @@ class mPeople : mAbstract() {
         alTableHiddenColumn.add(columnCompanyContactInfo)
         alTableHiddenColumn.add(columnCityPhoneCode)
 
-        if (aliasConfig.alias == "office_client_in_work") {
+        if (aliasConfig.name == "office_client_in_work") {
             alTableGroupColumn.add(columnClientPlanDate)
             alTableGroupColumn.add(columnClientPlanTime)
         } else {

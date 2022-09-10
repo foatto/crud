@@ -4,16 +4,11 @@ import foatto.core.util.AdvancedLogger
 import foatto.core.util.DateTime_DMYHMS
 import foatto.core.util.getDateTimeArray
 import foatto.core.util.prepareForSQL
-import foatto.core_server.app.server.UserConfig
 import foatto.core_server.service.CoreServiceWorker
-import foatto.jooq.core.tables.SystemUsers
 import foatto.office.mTask
 import foatto.office.mTaskThread
-import foatto.spring.controllers.CoreAppController
 import foatto.sql.AdvancedConnection
 import foatto.sql.CoreAdvancedResultSet
-import org.jooq.SQLDialect
-import org.jooq.impl.DSL
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.*
@@ -126,7 +121,6 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         alDBConfig.forEach {
             val conn = AdvancedConnection(it)
             alConn.add(conn)
-            alStm.add(conn.createStatement())
         }
     }
 
@@ -138,7 +132,7 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         hmUserEmail.clear()
         hmUserFullNames.clear()
 
-        var rs = alStm[0].executeQuery(" SELECT id , e_mail , full_name FROM SYSTEM_users WHERE id <> 0 ")
+        var rs = alConn[0].executeQuery(" SELECT id , e_mail , full_name FROM SYSTEM_users WHERE id <> 0 ")
         while (rs.next()) {
             val id = rs.getInt(1)
             hmUserEmail[id] = rs.getString(2).trim()
@@ -147,7 +141,7 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         rs.close()
 
         //--- загрузка оповещений на отправку
-        rs = alStm[0].executeQuery(
+        rs = alConn[0].executeQuery(
             """
                 SELECT id , tag , row_id 
                 FROM SYSTEM_alert
@@ -166,20 +160,23 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                     sendTask(rowID)
                     AdvancedLogger.info("New Task Sended.")
                 }
+
                 mTaskThread.ALERT_TAG -> {
                     sendTaskThread(rowID)
                     AdvancedLogger.info("New TaskThread Sended.")
                 }
+
                 "reminder" /*mReminder.ALERT_TAG*/ -> {
                     //sendReminder(rowID)
                     //AdvancedLogger.info("Reminder Sended.")
                     AdvancedLogger.error("Reminder not supported yet.")
                 }
+
                 else -> {
                     AdvancedLogger.error("Unknown tag = $tag")
                 }
             }
-            alStm[0].executeUpdate(" DELETE FROM SYSTEM_alert WHERE id = $alertID")
+            alConn[0].executeUpdate(" DELETE FROM SYSTEM_alert WHERE id = $alertID")
             alConn[0].commit()
         } else {
             rs.close()
@@ -219,7 +216,7 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
 
     private fun sendTask(rowID: Int) {
         //--- загрузим поручение
-        var rs: CoreAdvancedResultSet = alStm[0].executeQuery(
+        var rs: CoreAdvancedResultSet = alConn[0].executeQuery(
             " SELECT out_user_id , in_user_id , subj , ye , mo , da FROM OFFICE_task WHERE id = $rowID"
         )
         if (!rs.next()) {
@@ -247,7 +244,7 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         AdvancedLogger.debug("to User e-mail: '$eMail'")
         if (!eMail.isNullOrBlank() && eMail.contains("@")) {
             //--- проверим, а не прочитано ли уже оппонентом это сообщение
-            rs = alStm[0].executeQuery(
+            rs = alConn[0].executeQuery(
                 """
                      SELECT * FROM SYSTEM_new 
                      WHERE table_name = 'OFFICE_task' 
@@ -278,7 +275,7 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
 
     private fun sendTaskThread(rowID: Int) {
         //--- загрузим новое сообщение из переписки
-        var rs = alStm[0].executeQuery(
+        var rs = alConn[0].executeQuery(
             " SELECT user_id , task_id FROM OFFICE_task_thread WHERE id = $rowID"
         )
         if (!rs.next()) {
@@ -291,7 +288,7 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         rs.close()
 
         //--- загрузим само поручение
-        rs = alStm[0].executeQuery(
+        rs = alConn[0].executeQuery(
             " SELECT out_user_id , in_user_id , subj FROM OFFICE_task WHERE id = $taskID"
         )
         if (!rs.next()) {
@@ -322,7 +319,7 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
             }
 
             //--- проверим, а не прочитано ли уже оппонентом это сообщение
-            rs = alStm[0].executeQuery(
+            rs = alConn[0].executeQuery(
                 """
                     SELECT * FROM SYSTEM_new 
                     WHERE table_name = 'OFFICE_task_thread' 
@@ -337,7 +334,7 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                 var sbThread = ""
                 var isOriginalMessagePosted = false
                 //--- загрузим последние сообщения из переписки (в обратном порядке)
-                rs = alStm[0].executeQuery(
+                rs = alConn[0].executeQuery(
                     """
                         SELECT id , user_id , ye , mo , da , ho , mi , message
                         FROM OFFICE_task_thread 
@@ -622,6 +619,7 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                     } catch (t: Throwable) {
                         AdvancedLogger.debug("Wrong cmd = '$cmd'")
                     }
+
                     else -> {
                         AdvancedLogger.debug("Wrong tokens count in cmd = '$cmd'")
                     }
@@ -669,8 +667,8 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         }
 
         //--- в любом случае пишем сообщение
-        val rowID = alStm[0].getNextIntId("OFFICE_task_thread", "id")
-        alStm[0].executeUpdate(
+        val rowID = alConn[0].getNextIntId("OFFICE_task_thread", "id")
+        alConn[0].executeUpdate(
             """
                 INSERT INTO OFFICE_task_thread ( id , user_id , task_id , ye , mo , da , ho , mi , message ) VALUES (
                     $rowID , $userID , $taskID , 
@@ -680,17 +678,17 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
             """
         )
         //--- и создаём оповещение по этому сообщению
-        alStm[0].executeUpdate(
+        alConn[0].executeUpdate(
             """
                 INSERT INTO SYSTEM_alert ( id , alert_time , tag , row_id ) VALUES ( 
-                    ${alStm[0].getNextIntId("SYSTEM_alert", "id")} , -1 , '${mTaskThread.ALERT_TAG}' , $rowID 
+                    ${alConn[0].getNextIntId("SYSTEM_alert", "id")} , -1 , '${mTaskThread.ALERT_TAG}' , $rowID 
                 ) 
             """
         )
 
         //--- если отправитель сообщения является автором поручения, то выполним его команды
         when (action) {
-            ACTION_DELETE -> alStm[0].executeUpdate(
+            ACTION_DELETE -> alConn[0].executeUpdate(
                 """
                     UPDATE OFFICE_task 
                     SET in_active = 0 , in_archive = 1 
@@ -698,11 +696,12 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                     AND out_user_id = $userID
                 """
             )
+
             ACTION_CHANGE_USER -> {
                 //--- сменим исполнителя и продлим поручение на 1 день позже даты отправления его сообщения
                 val gcNextDay = ZonedDateTime.of(arrDT[0], arrDT[1], arrDT[2], 0, 0, 0, 0, ZoneId.systemDefault())
                 arrDT = getDateTimeArray(gcNextDay.plusDays(1))
-                alStm[0].executeUpdate(
+                alConn[0].executeUpdate(
                     """
                         UPDATE OFFICE_task 
                         SET in_user_id = $newUserID , 
@@ -714,11 +713,12 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                     """
                 )
             }
+
             ACTION_TIME_SHIFT -> {
                 //--- продлим поручение на N дней позже даты отправления его сообщения
                 val gcNextDay = ZonedDateTime.of(arrDT[0], arrDT[1], arrDT[2], 0, 0, 0, 0, ZoneId.systemDefault())
                 arrDT = getDateTimeArray(gcNextDay.plusDays(dayShift.toLong()))
-                alStm[0].executeUpdate(
+                alConn[0].executeUpdate(
                     """
                         UPDATE OFFICE_task 
                         SET ye = ${arrDT[0]} , 
@@ -729,8 +729,9 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                     """
                 )
             }
+
             ACTION_TIME_SET ->             //--- продлим поручение до указанного срока
-                alStm[0].executeUpdate(
+                alConn[0].executeUpdate(
                     """
                         UPDATE OFFICE_task 
                         SET ye = $newYe , 

@@ -54,14 +54,13 @@ class Tasker(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         alDBConfig.forEach {
             val conn = AdvancedConnection(it)
             alConn.add(conn)
-            alStm.add(conn.createStatement())
         }
     }
 
     override fun cycle() {
         val hmUserFullNames = mutableMapOf<Int, String>()
 
-        var rs = alStm[0].executeQuery(" SELECT id , full_name FROM SYSTEM_users WHERE id <> 0 ")
+        var rs = alConn[0].executeQuery(" SELECT id , full_name FROM SYSTEM_users WHERE id <> 0 ")
         while (rs.next()) {
             val id = rs.getInt(1)
             hmUserFullNames[id] = rs.getString(2).trim()
@@ -83,7 +82,7 @@ class Tasker(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
             //--- загрузим список просроченных поручений
             val alTaskID = mutableListOf<Int>()
             val alTaskSubj = mutableListOf<String>()
-            rs = alStm[0].executeQuery(
+            rs = alConn[0].executeQuery(
                 """
                     SELECT ye , mo , da , id , subj 
                     FROM OFFICE_task 
@@ -113,7 +112,7 @@ class Tasker(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                 val taskID = alTaskID[taskIndex]
                 //--- если переписка пуста, значит подчинённый должен был ответить
                 var messageUserID = bossUserID
-                rs = alStm[0].executeQuery(
+                rs = alConn[0].executeQuery(
                     """
                         SELECT user_id 
                         FROM OFFICE_task_thread 
@@ -140,7 +139,7 @@ class Tasker(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                             WHERE id = $taskID
                         """
                     //--- в переписку добавить "!" и userID ответственного для последующих отчетов
-                    val rowID = alStm[0].getNextIntId("OFFICE_task_thread", "id")
+                    val rowID = alConn[0].getNextIntId("OFFICE_task_thread", "id")
                     val sqlTaskThread =
                         """
                             INSERT INTO OFFICE_task_thread ( id , user_id , task_id , ye , mo , da , ho , mi , message ) VALUES ( 
@@ -149,8 +148,8 @@ class Tasker(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                             ${toDay[GregorianCalendar.MONTH] + 1} , 
                             ${toDay[GregorianCalendar.DAY_OF_MONTH]} , 0 , 0 , '!$userId' ) 
                         """
-                    alStm[0].executeUpdate(sqlTask)
-                    alStm[0].executeUpdate(sqlTaskThread)
+                    alConn[0].executeUpdate(sqlTask)
+                    alConn[0].executeUpdate(sqlTaskThread)
 
                     //--- одного наказания за один раз достаточно
                     break

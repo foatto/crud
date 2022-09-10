@@ -6,7 +6,7 @@ import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.*
 import foatto.core_server.app.server.mAbstract
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 
 class mReminder : mAbstract() {
 
@@ -63,13 +63,13 @@ class mReminder : mAbstract() {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
+    override fun init(application: iApplication, aConn: CoreAdvancedConnection, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
 
-        super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+        super.init(application, aConn, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-        when (aliasConfig.alias.removeSuffix("_archive")) {
+        when (aliasConfig.name.removeSuffix("_archive")) {
             "office_reminder" -> type = REMINDER_TYPE_NO_REMINDER // все напоминания одним списком
             "office_reminder_call" -> type = REMINDER_TYPE_CALL
             "office_reminder_meet" -> type = REMINDER_TYPE_MEET

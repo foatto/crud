@@ -13,14 +13,14 @@ class cTaskThread : cStandart() {
     override fun fillHeader(selectorID: String?, withAnchors: Boolean, alPath: MutableList<Pair<String, String>>, hmOut: MutableMap<String, Any>) {
         val parentTaskID: Int = getParentId("office_task_out") ?: getParentId("office_task_in") ?: getParentId("office_task_out_archive") ?: getParentId("office_task_in_archive")!!
 
-        val rs = stm.executeQuery(
+        val rs = conn.executeQuery(
             if (withAnchors) {
                 " SELECT subj FROM OFFICE_task WHERE id = $parentTaskID "
             } else {
-                " SELECT ${stm.getPreLimit(1)} message FROM OFFICE_task_thread " +
-                    " WHERE task_id = $parentTaskID ${stm.getMidLimit(1)} " +
+                " SELECT ${conn.getPreLimit(1)} message FROM OFFICE_task_thread " +
+                    " WHERE task_id = $parentTaskID ${conn.getMidLimit(1)} " +
                     " ORDER BY ye DESC, mo DESC, da DESC, ho DESC, mi DESC " +
-                    " ${stm.getPostLimit(1)} "
+                    " ${conn.getPostLimit(1)} "
             }
         )
 

@@ -51,7 +51,7 @@ abstract class cOfficeReport : cAbstractReport() {
     //        Statement stm = DBFunction.createStatement( conn );
     //        if( reportDepartment != 0 ) {
     //            String name = "(неизвестно)";
-    //            CoreAdvancedResultSet rs = stm.executeQuery( new StringBuilder( " SELECT name FROM MMS_department WHERE id = " )
+    //            CoreAdvancedResultSet rs = conn.executeQuery( new StringBuilder( " SELECT name FROM MMS_department WHERE id = " )
     //                                                       .append( reportDepartment ).toString() );
     //            if( rs.next() ) name = rs.getString( 1 );
     //            rs.close();
@@ -62,7 +62,7 @@ abstract class cOfficeReport : cAbstractReport() {
     //        }
     //        if( reportGroup != 0 ) {
     //            String name = "(неизвестно)";
-    //            CoreAdvancedResultSet rs = stm.executeQuery( new StringBuilder( " SELECT name FROM MMS_group WHERE id = " )
+    //            CoreAdvancedResultSet rs = conn.executeQuery( new StringBuilder( " SELECT name FROM MMS_group WHERE id = " )
     //                                                       .append( reportGroup ).toString() );
     //            if( rs.next() ) name = rs.getString( 1 );
     //            rs.close();

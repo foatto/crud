@@ -152,7 +152,7 @@ class cTask : cOfficeReport() {
         val reportUser = hmReportParam["report_user"] as Int
         val reportSumOnly = hmReportParam["report_sum_only"] as Boolean
 
-        var rs = stm.executeQuery(" SELECT id FROM SYSTEM_alias WHERE name = 'office_task_out' ")
+        var rs = conn.executeQuery(" SELECT id FROM SYSTEM_alias WHERE name = 'office_task_out' ")
         rs.next()
         val taskOutAliasID = rs.getInt(1)
         rs.close()
@@ -171,7 +171,7 @@ class cTask : cOfficeReport() {
                 " AND in_user_id = $reportUser"
             } +
             " ORDER BY ye , mo , da "
-        rs = stm.executeQuery(sb)
+        rs = conn.executeQuery(sb)
         while (rs.next()) {
             val rID: Int = rs.getInt(1)
             val uID: Int = rs.getInt(2)

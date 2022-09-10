@@ -71,18 +71,18 @@
 //
 //    public static void refreshPlannedInvites( CoreAdvancedStatement stm, int aMeetingID ) {
 //        //--- удалить предыдущие приглашения вместе с напоминаниями
-//        stm.executeUpdate( new StringBuilder(
+//        conn.executeUpdate( new StringBuilder(
 //            " DELETE FROM OFFICE_reminder WHERE id IN ( " )
 //            .append( " SELECT reminder_id FROM OFFICE_meeting_invite WHERE is_plan = 1 AND meeting_id = " ).append( aMeetingID )
 //            .append( " ) " ) );
-//        stm.executeUpdate( new StringBuilder(
+//        conn.executeUpdate( new StringBuilder(
 //            " DELETE FROM OFFICE_meeting_invite WHERE is_plan = 1 AND meeting_id = " ).append( aMeetingID ).toString() );
 //
 //        //--- собрать список докладчиков и ответственных
 //        ArrayList<Integer> alOrderNo = new ArrayList<>();
 //        ArrayList<Integer> alUserID = new ArrayList<>();
 //        ArrayList<String> alUserName = new ArrayList<>();
-//        CoreAdvancedResultSet rs = stm.executeQuery( new StringBuilder(
+//        CoreAdvancedResultSet rs = conn.executeQuery( new StringBuilder(
 //            " SELECT order_no , speaker_id , speaker_name FROM OFFICE_meeting_plan " )
 //            .append( " WHERE meeting_id = " ).append( aMeetingID ).toString() );
 //        while( rs.next() ) {
@@ -100,7 +100,7 @@
 //            int reminderID = userID == 0 ? 0 : createReminder( stm, aMeetingID, userID );
 //            int id = stm.getNextID( "OFFICE_meeting_invite", "id" );
 //
-//            stm.executeUpdate( new StringBuilder(
+//            conn.executeUpdate( new StringBuilder(
 //                " INSERT INTO OFFICE_meeting_invite ( " )
 //                .append( " id , meeting_id , order_no , invite_id , invite_name , reminder_id , is_plan , is_present ) VALUES ( " )
 //                .append( id ).append( " , " ).append( aMeetingID ).append( " , " ).append( alOrderNo.get( i ) ).append( " , " )
@@ -117,7 +117,7 @@
 //        if( arrMeetingInfo[ 0 ] != null ) {
 //            reminderID = stm.getNextID( "OFFICE_reminder", "id" );
 //
-//            stm.executeUpdate( new StringBuilder(
+//            conn.executeUpdate( new StringBuilder(
 //                " INSERT INTO OFFICE_reminder ( id , user_id , in_archive , type , ye , mo , da , ho , mi , people_id , subj , descr ) VALUES ( " )
 //                .append( reminderID ).append( " , " ).append( aUserID ).append( " , 0 , " ).append( mReminder.REMINDER_TYPE_MEETING ).append( " , " )
 //                .append( arrMeetingInfo[ 2 ] ).append( " , " ).append( arrMeetingInfo[ 3 ] ).append( " , " ).append( arrMeetingInfo[ 4 ] ).append( " , " )
@@ -132,7 +132,7 @@
 //        Object[] arrMeetingInfo = collectInfoForReminder( stm, aMeetingID );
 //
 //        if( arrMeetingInfo[ 0 ] != null ) {
-//            stm.executeUpdate( new StringBuilder(
+//            conn.executeUpdate( new StringBuilder(
 //                " UPDATE OFFICE_reminder SET " )
 //                .append( "   user_id = " ).append( aUserID )
 //                .append( " , ye = " ).append( arrMeetingInfo[ 2 ] )
@@ -151,7 +151,7 @@
 //        StringBuilder sbDescr = new StringBuilder();
 //        int ye = 0, mo = 0, da = 0, ho = 0, mi = 0;
 //
-//        CoreAdvancedResultSet rs = stm.executeQuery( new StringBuilder(
+//        CoreAdvancedResultSet rs = conn.executeQuery( new StringBuilder(
 //            " SELECT subj , ye , mo , da , ho , mi , place FROM OFFICE_meeting WHERE id = " ).append( aMeetingID ) );
 //        if( rs.next() ) {
 //            subj = rs.getString( 1 );
@@ -167,7 +167,7 @@
 //        //--- соберём инфу по повестке дня
 //        if( subj != null ) {
 //            sbDescr.append( "\nПовестка дня: " );
-//            rs = stm.executeQuery( new StringBuilder(
+//            rs = conn.executeQuery( new StringBuilder(
 //                " SELECT order_no , subj , speaker_name FROM OFFICE_meeting_plan WHERE meeting_id = " )
 //                .append( aMeetingID ).append( " ORDER BY order_no " ).toString() );
 //            while( rs.next() ) {

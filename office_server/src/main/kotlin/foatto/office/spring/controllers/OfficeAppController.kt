@@ -6,7 +6,7 @@ import foatto.core.link.MenuData
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.spring.controllers.CoreAppController
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
@@ -39,7 +39,7 @@ class OfficeAppController : CoreAppController() {
         return alias.startsWith("office_report_")
     }
 
-    override fun menuInit(stm: CoreAdvancedStatement, hmAliasConfig: Map<String, AliasConfig>, userConfig: UserConfig): List<MenuData> {
+    override fun menuInit(conn: CoreAdvancedConnection, hmAliasConfig: Map<String, AliasConfig>, userConfig: UserConfig): List<MenuData> {
 
         val alMenu = mutableListOf<MenuData>()
         val hmAliasPerm = userConfig.userPermission

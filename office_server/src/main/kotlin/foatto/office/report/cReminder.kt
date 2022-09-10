@@ -2,7 +2,6 @@ package foatto.office.report
 
 import foatto.core.link.FormData
 import foatto.core.util.DateTime_DMYHMS
-import foatto.core.util.DateTime_YMDHMS
 import foatto.core_server.app.server.OtherOwnerData.getOtherOwner
 import foatto.core_server.app.server.data.DataDate3Int
 import foatto.office.mReminder
@@ -13,7 +12,6 @@ import jxl.write.Label
 import jxl.write.WritableSheet
 import java.time.ZoneId
 import java.time.ZonedDateTime
-import java.util.*
 
 class cReminder : cOfficeReport() {
 
@@ -133,7 +131,7 @@ class cReminder : cOfficeReport() {
         val gcEnd = ZonedDateTime.of(reportEndYear, reportEndMonth, reportEndDay, 0, 0, 0, 0, ZoneId.systemDefault())
         gcEnd.plusDays(1) // т.е. конец периода для dd2.mm.yyyy на самом деле == dd2+1.mm.yyyy 00:00
 
-        var rs = stm.executeQuery(" SELECT id FROM SYSTEM_alias WHERE name = 'office_reminder' ")
+        var rs = conn.executeQuery(" SELECT id FROM SYSTEM_alias WHERE name = 'office_reminder' ")
         rs.next()
         val reminderAliasID = rs.getInt(1)
         rs.close()
@@ -155,8 +153,7 @@ class cReminder : cOfficeReport() {
                 AND OFFICE_reminder.in_active = 1
                 ORDER BY OFFICE_reminder.type , OFFICE_reminder.ye , OFFICE_reminder.mo , OFFICE_reminder.da , OFFICE_reminder.ho , OFFICE_reminder.mi
             """
-        val stmRS = conn.createStatement()
-        rs = stmRS.executeQuery(sb)
+        rs = conn.executeQuery(sb)
         while (rs.next()) {
             val rID = rs.getInt(1)
             val uID = rs.getInt(2)
@@ -183,7 +180,6 @@ class cReminder : cOfficeReport() {
             }
         }
         rs.close()
-        stmRS.close()
 
         return alResult
     }
