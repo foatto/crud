@@ -2,6 +2,7 @@ package foatto.sql
 
 import foatto.core.util.AdvancedByteBuffer
 import foatto.core.util.getRandomInt
+import foatto.core.util.getRandomLong
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.FileVisitResult
@@ -13,7 +14,7 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 abstract class CoreAdvancedConnection(dbConfig: DBConfig) {
 
@@ -27,7 +28,7 @@ abstract class CoreAdvancedConnection(dbConfig: DBConfig) {
 
     private val alReplicationSQL = mutableListOf<String>()
 
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     init {
         //--- без имён реплицируемых серверов репликация считается выключенной
@@ -53,9 +54,19 @@ abstract class CoreAdvancedConnection(dbConfig: DBConfig) {
         replicationPath = dbConfig.replPath
     }
 
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    abstract fun createStatement(): CoreAdvancedStatement
+    fun executeUpdate(sql: String, withReplication: Boolean = true): Int {
+        val result = executeUpdate(sql)
+        if (withReplication) {
+            addReplicationSQL(sql)
+        }
+        return result
+    }
+
+    protected abstract fun executeUpdate(sql: String): Int
+
+    abstract fun executeQuery(sql: String): CoreAdvancedResultSet
 
     open fun commit() {
         //--- коммит обязательно должен быть общий, чтобы реплики не пропускались ни в коем случае
@@ -90,6 +101,8 @@ abstract class CoreAdvancedConnection(dbConfig: DBConfig) {
         //conn.close();
     }
 
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     //--- различные вариации организации ограничения кол-ва возвращаемых строк
     fun getPreLimit(limit: Int): StringBuilder {
         val sb = StringBuilder()
@@ -114,6 +127,8 @@ abstract class CoreAdvancedConnection(dbConfig: DBConfig) {
         }
         return sb
     }
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     fun addReplicationSQL(sql: String) {
         //--- для черного списка результат по умолчанию положительный, для белого - отрицательный
@@ -155,6 +170,67 @@ abstract class CoreAdvancedConnection(dbConfig: DBConfig) {
         return tmFile
     }
 
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    fun getNextIntId(aTableName: String, aFieldId: String): Int {
+        return getNextIntId(arrayOf(aTableName), arrayOf(aFieldId))
+    }
+
+    //--- вернуть следующее уникальное значение поля среди нескольких таблиц
+    fun getNextIntId(arrTableName: Array<String>, arrFieldIds: Array<String>): Int {
+        var nextId: Int
+        OUT@
+        while (true) {
+            nextId = getRandomInt()
+            if (nextId == 0) {
+                continue
+            }
+            for (i in arrTableName.indices) {
+                if (checkExisting(arrTableName[i], arrFieldIds[i], nextId, null, 0)) {
+                    continue@OUT
+                }
+            }
+            return nextId
+        }
+    }
+
+    fun getNextLongId(aTableName: String, aFieldId: String): Long {
+        return getNextLongId(arrayOf(aTableName), arrayOf(aFieldId))
+    }
+
+    //--- вернуть следующее уникальное значение поля среди нескольких таблиц
+    fun getNextLongId(arrTableName: Array<String>, arrFieldIds: Array<String>): Long {
+        var nextId: Long
+        OUT@
+        while (true) {
+            nextId = getRandomLong()
+            if (nextId == 0L) {
+                continue
+            }
+            for (i in arrTableName.indices) {
+                if (checkExisting(arrTableName[i], arrFieldIds[i], nextId)) {
+                    continue@OUT
+                }
+            }
+            return nextId
+        }
+    }
+
+    abstract fun checkExisting(aTableName: String, aFieldCheck: String, aValue: Any, aFieldID: String? = null, id: Number = 0): Boolean
+    abstract fun checkExisting(aTableName: String, alFieldCheck: List<Pair<String, Any>>, aFieldID: String? = null, id: Number = 0): Boolean
+
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    // '${bbData.getHex( null, false )}'
+    fun getHexValue(bbData: AdvancedByteBuffer): String {
+        val hex = bbData.getHex(null, false)
+        return when (dialect) {
+            CoreSQLDialectEnum.H2 -> "X'$hex'"
+            CoreSQLDialectEnum.MSSQL -> "0x$hex"
+            CoreSQLDialectEnum.POSTGRESQL -> "'\\x$hex'"
+            else -> "'$hex'"
+        }
+    }
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     private class ReplicationFileVisitor(val tmFile: SortedMap<Long, MutableList<File>>, val maxSize: Int) : SimpleFileVisitor<Path>() {

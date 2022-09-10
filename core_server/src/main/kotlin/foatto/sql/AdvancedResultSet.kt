@@ -3,15 +3,20 @@ package foatto.sql
 import foatto.core.util.AdvancedByteBuffer
 import java.nio.ByteOrder
 import java.sql.ResultSet
+import java.sql.Statement
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 
-class AdvancedResultSet(aDialect: CoreSQLDialectEnum, val rs: ResultSet) : CoreAdvancedResultSet(aDialect) {
+class AdvancedResultSet(
+    aDialect: CoreSQLDialectEnum,
+    val stm: Statement,
+    val rs: ResultSet,
+) : CoreAdvancedResultSet(aDialect) {
 
     override fun close() {
         rs.close()
-        //rs = null
+        stm.close()
     }
 
     override operator fun next(): Boolean {

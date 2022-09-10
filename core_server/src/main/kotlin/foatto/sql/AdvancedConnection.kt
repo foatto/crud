@@ -52,7 +52,23 @@ class AdvancedConnection(dbConfig: DBConfig) : JdbcAdvancedConnection(dbConfig) 
         stm.close()
     }
 
-    override fun createStatement() = AdvancedStatement(this, conn.createStatement())
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    override fun executeUpdate(sql: String): Int {
+        val stm = conn.createStatement()
+        val result = stm.executeUpdate(sql)
+        stm.close()
+
+        return result
+    }
+
+    override fun executeQuery(sql: String): CoreAdvancedResultSet {
+        val stm = conn.createStatement()
+        return AdvancedResultSet(dialect, stm, stm.executeQuery(sql))
+        //--- will be close by AdvancedResultSet.close()
+    }
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     override fun commit() {
         super.commit()
@@ -70,6 +86,70 @@ class AdvancedConnection(dbConfig: DBConfig) : JdbcAdvancedConnection(dbConfig) 
         super.close()
 
         conn.close()
-        //conn = null
     }
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    override fun checkExisting(aTableName: String, aFieldCheck: String, aValue: Any, aFieldID: String?, id: Number): Boolean {
+        val stringBound = if (aValue is String) {
+            "'"
+        } else {
+            ""
+        }
+        val andFieldIDCheck = if (aFieldID != null) {
+            " AND $aFieldID <> $id "
+        } else {
+            ""
+        }
+
+        val stm = conn.createStatement()
+        val rs = stm.executeQuery(
+            """
+                SELECT $aFieldCheck 
+                FROM $aTableName 
+                WHERE $aFieldCheck = $stringBound$aValue$stringBound 
+                $andFieldIDCheck 
+            """
+        )
+        val isExist = rs.next()
+        rs.close()
+        stm.close()
+
+        return isExist
+    }
+
+    override fun checkExisting(aTableName: String, alFieldCheck: List<Pair<String, Any>>, aFieldID: String?, id: Number): Boolean {
+        var checks = ""
+        alFieldCheck.forEach { fieldCheckData ->
+            if (checks.isNotEmpty()) {
+                checks += " AND "
+            }
+            val stringBound = if (fieldCheckData.second is String) {
+                "'"
+            } else {
+                ""
+            }
+            checks += "${fieldCheckData.first} = $stringBound${fieldCheckData.second}$stringBound"
+        }
+        val andFieldIDCheck = if (aFieldID != null) {
+            " AND $aFieldID <> $id "
+        } else {
+            ""
+        }
+        val stm = conn.createStatement()
+        val rs = stm.executeQuery(
+            """
+                SELECT ${alFieldCheck[0].first} 
+                FROM $aTableName 
+                WHERE $checks 
+                $andFieldIDCheck 
+            """
+        )
+        val isExist = rs.next()
+        rs.close()
+        stm.close()
+
+        return isExist
+    }
+
 }
