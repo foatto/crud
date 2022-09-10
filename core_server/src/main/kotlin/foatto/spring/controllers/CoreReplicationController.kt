@@ -28,7 +28,6 @@ class CoreReplicationController {
         val getReplicationBegTime = getCurrentTimeInt()
 
         val conn = AdvancedConnection(CoreSpringApp.dbConfig)
-        val stm = conn.createStatement()
 
         val getReplicationResponse = GetReplicationResponse(conn.dialect.dialect)
 
@@ -71,7 +70,6 @@ class CoreReplicationController {
         //--- зафиксировать любые изменения в базе/
         conn.commit()
 
-        stm.close()
         conn.close()
 
         //--- если запрос длился/обрабатывался дольше MAX_TIME_PER_REQUEST, покажем его
@@ -97,14 +95,13 @@ class CoreReplicationController {
         val timeKey = putReplicationRequest.timeKey
 
         val conn = AdvancedConnection(CoreSpringApp.dbConfig)
-        val stm = conn.createStatement()
 
         val alReplicationSQL = putReplicationRequest.alSQL.map {
             CoreAdvancedConnection.convertDialect(it, CoreSQLDialectEnum.hmDialect[sourDialect]!!, conn.dialect)
         }
 
         //--- проверка на приём этой реплики в предыдущей сессии связи
-        val rs = stm.executeQuery(" SELECT 1 FROM SYSTEM_replication_send WHERE dest_name = '$destName' AND sour_name = '$sourName' AND time_key = $timeKey")
+        val rs = conn.executeQuery(" SELECT 1 FROM SYSTEM_replication_send WHERE dest_name = '$destName' AND sour_name = '$sourName' AND time_key = $timeKey")
         val isAlReadyReceived = rs.next()
         rs.close()
         //--- такую реплику мы ещё не получали
@@ -116,7 +113,7 @@ class CoreReplicationController {
                 //--- не будет обращаться (т.е. ведёт себя как типовая клиентская программа) -
                 //--- поэтому передадим реплику другим именованым партнёрам
                 for (sql in alReplicationSQL) {
-                    stm.executeUpdate(sql, sourName.isEmpty())
+                    conn.executeUpdate(sql, sourName.isEmpty())
                     //                            //--- на время отладки репликатора
                     //                            AdvancedLogger.debug( sql );
                 }
@@ -128,9 +125,9 @@ class CoreReplicationController {
             }
 
             //--- и в этой же транзакции запомним имя/номер реплики
-            if (stm.executeUpdate(" UPDATE SYSTEM_replication_send SET time_key = $timeKey WHERE dest_name = '$destName' AND sour_name = '$sourName' ", false) == 0) {
+            if (conn.executeUpdate(" UPDATE SYSTEM_replication_send SET time_key = $timeKey WHERE dest_name = '$destName' AND sour_name = '$sourName' ", false) == 0) {
 
-                stm.executeUpdate(" INSERT INTO SYSTEM_replication_send ( dest_name , sour_name , time_key ) VALUES ( '$destName' , '$sourName' , $timeKey ) ", false)
+                conn.executeUpdate(" INSERT INTO SYSTEM_replication_send ( dest_name , sour_name , time_key ) VALUES ( '$destName' , '$sourName' , $timeKey ) ", false)
             }
         }
         //--- просто ответ
@@ -139,7 +136,6 @@ class CoreReplicationController {
         //--- зафиксировать любые изменения в базе
         conn.commit()
 
-        stm.close()
         conn.close()
 
         //--- если запрос длился/обрабатывался дольше MAX_TIME_PER_REQUEST, покажем его

@@ -8,7 +8,6 @@ import foatto.core.link.TableCellType
 import foatto.core_server.app.server.column.iColumn
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedResultSet
-import foatto.sql.CoreAdvancedStatement
 
 class DataGrid(aColumn: iColumn) : DataAbstract(aColumn) {
 
@@ -25,7 +24,7 @@ class DataGrid(aColumn: iColumn) : DataAbstract(aColumn) {
 
     override fun loadFromDefault() {}
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameId: String?, id: Int) = true
+    override fun loadFromForm(conn: CoreAdvancedConnection, formData: FormData, fieldNameId: String?, id: Int) = true
 
     override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, dataRowNo: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell {
         if (isShowEmptyTableCell) {

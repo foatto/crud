@@ -7,7 +7,6 @@ import foatto.core.link.TableCell
 import foatto.core.util.DateTime_DMY
 import foatto.core_server.app.server.column.iColumn
 import foatto.sql.CoreAdvancedConnection
-import foatto.sql.CoreAdvancedStatement
 import java.time.LocalDate
 
 abstract class DataAbstractDate(aColumn: iColumn) : DataAbstract(aColumn) {
@@ -21,7 +20,7 @@ abstract class DataAbstractDate(aColumn: iColumn) : DataAbstract(aColumn) {
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameId: String?, id: Int): Boolean {
+    override fun loadFromForm(conn: CoreAdvancedConnection, formData: FormData, fieldNameId: String?, id: Int): Boolean {
         val sDa = formData.alDateTimeValue!![0]
         val sMo = formData.alDateTimeValue!![1]
         val sYe = formData.alDateTimeValue!![2]

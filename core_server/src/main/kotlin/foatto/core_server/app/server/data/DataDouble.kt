@@ -9,7 +9,6 @@ import foatto.core_server.app.server.column.ColumnDouble
 import foatto.core_server.app.server.column.iColumn
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedResultSet
-import foatto.sql.CoreAdvancedStatement
 
 class DataDouble(aColumn: iColumn) : DataAbstract(aColumn) {
 
@@ -38,7 +37,7 @@ class DataDouble(aColumn: iColumn) : DataAbstract(aColumn) {
         clearError()
     }
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameId: String?, id: Int): Boolean {
+    override fun loadFromForm(conn: CoreAdvancedConnection, formData: FormData, fieldNameId: String?, id: Int): Boolean {
         val strValue = formData.stringValue!!
 
         if (cd.isRequired && strValue.isBlank()) {

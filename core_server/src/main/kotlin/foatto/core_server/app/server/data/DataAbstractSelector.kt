@@ -7,7 +7,6 @@ import foatto.core.link.TableCell
 import foatto.core_server.app.server.column.ColumnAbstractSelector
 import foatto.core_server.app.server.column.iColumn
 import foatto.sql.CoreAdvancedConnection
-import foatto.sql.CoreAdvancedStatement
 
 abstract class DataAbstractSelector(aColumn: iColumn, aFormCellType: FormCellType) : DataAbstractIntValue(aColumn) {
 
@@ -20,7 +19,7 @@ abstract class DataAbstractSelector(aColumn: iColumn, aFormCellType: FormCellTyp
         clearError()
     }
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameId: String?, id: Int): Boolean {
+    override fun loadFromForm(conn: CoreAdvancedConnection, formData: FormData, fieldNameId: String?, id: Int): Boolean {
         val cas = column as ColumnAbstractSelector
         cas.requiredExcept?.let {
             if (formData.comboValue!! == cas.requiredExcept) {

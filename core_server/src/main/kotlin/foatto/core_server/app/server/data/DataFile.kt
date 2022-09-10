@@ -9,7 +9,6 @@ import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.column.iColumn
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedResultSet
-import foatto.sql.CoreAdvancedStatement
 
 class DataFile(
     val application: iApplication,
@@ -34,7 +33,7 @@ class DataFile(
 
     override fun loadFromDefault() {}
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameId: String?, id: Int): Boolean {
+    override fun loadFromForm(conn: CoreAdvancedConnection, formData: FormData, fieldNameId: String?, id: Int): Boolean {
         fileId = formData.fileId!!
         hmFileAdd = formData.hmFileAdd!!.mapKeys { it.key.toInt() }
         alFileRemovedIds = formData.alFileRemovedId!!
@@ -91,25 +90,25 @@ class DataFile(
 
     override fun getFieldSQLValue(index: Int): String = "$fileId"
 
-    override fun preSave(rootDirName: String, stm: CoreAdvancedStatement) {
+    override fun preSave(rootDirName: String, conn: CoreAdvancedConnection) {
         //--- по каждому добавляемому файлу
         if (hmFileAdd.isNotEmpty()) {
             //--- при создании записи установим значение fileId
             if (fileId == 0) {
-                fileId = stm.getNextIntId("SYSTEM_file_store", "file_id")
+                fileId = conn.getNextIntId("SYSTEM_file_store", "file_id")
             }
             hmFileAdd.forEach { (fromClientId, fileName) ->
-                application.saveFile(stm, fileId, fromClientId, fileName)
+                application.saveFile(conn, fileId, fromClientId, fileName)
             }
         }
         //--- по каждому удаляемому файлу
         for (idForDelete in alFileRemovedIds) {
-            application.deleteFile(stm, fileId, idForDelete)
+            application.deleteFile(conn, fileId, idForDelete)
         }
     }
 
-    override fun preDelete(rootDirName: String, stm: CoreAdvancedStatement) {
-        application.deleteFile(stm, fileId)
+    override fun preDelete(rootDirName: String, conn: CoreAdvancedConnection) {
+        application.deleteFile(conn, fileId)
     }
 
     override fun setData(data: iData) {

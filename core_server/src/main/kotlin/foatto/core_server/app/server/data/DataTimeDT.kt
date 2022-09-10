@@ -10,7 +10,6 @@ import foatto.core_server.app.server.column.ColumnTimeDT
 import foatto.core_server.app.server.column.iColumn
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedResultSet
-import foatto.sql.CoreAdvancedStatement
 import java.time.LocalTime
 
 class DataTimeDT(aColumn: iColumn) : DataAbstractTime(aColumn) {
@@ -36,7 +35,7 @@ class DataTimeDT(aColumn: iColumn) : DataAbstractTime(aColumn) {
         errorText = null
     }
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameId: String?, id: Int): Boolean {
+    override fun loadFromForm(conn: CoreAdvancedConnection, formData: FormData, fieldNameId: String?, id: Int): Boolean {
         val ct = column as ColumnTimeDT
 
         val sHo = formData.alDateTimeValue!![0]

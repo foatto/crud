@@ -44,8 +44,7 @@ object OtherOwnerData {
     private fun reloadOtherOwnerData(conn: CoreAdvancedConnection): Map<Int, Map<Int, Set<Int>>> {
         val hmOtherOwnerData = mutableMapOf<Int, MutableMap<Int, MutableSet<Int>>>()
 
-        val stm = conn.createStatement()
-        val rs = stm.executeQuery(" SELECT alias_id , row_id , user_id FROM SYSTEM_other_owner ")
+        val rs = conn.executeQuery(" SELECT alias_id , row_id , user_id FROM SYSTEM_other_owner ")
         while (rs.next()) {
             val aliasID = rs.getInt(1)
             val rowID = rs.getInt(2)
@@ -57,7 +56,6 @@ object OtherOwnerData {
             hsUser += userID
         }
         rs.close()
-        stm.close()
 
         return hmOtherOwnerData
     }

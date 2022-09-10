@@ -8,7 +8,6 @@ import foatto.core.util.getSplittedLong
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.iColumn
 import foatto.sql.CoreAdvancedConnection
-import foatto.sql.CoreAdvancedStatement
 
 class DataInt(aColumn: iColumn) : DataAbstractIntValue(aColumn) {
 
@@ -21,7 +20,7 @@ class DataInt(aColumn: iColumn) : DataAbstractIntValue(aColumn) {
         clearError()
     }
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameId: String?, id: Int): Boolean {
+    override fun loadFromForm(conn: CoreAdvancedConnection, formData: FormData, fieldNameId: String?, id: Int): Boolean {
         val strValue = formData.stringValue!!
 
         if (ci.isRequired && strValue.isBlank()) {

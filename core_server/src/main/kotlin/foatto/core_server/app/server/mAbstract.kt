@@ -7,7 +7,7 @@ import foatto.core_server.app.server.column.ColumnSimple
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.column.iUniqableColumn
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 import java.time.ZoneId
 import java.util.*
 import kotlin.math.max
@@ -22,7 +22,7 @@ abstract class mAbstract {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    protected lateinit var stm: CoreAdvancedStatement
+    protected lateinit var conn: CoreAdvancedConnection
     protected lateinit var hmParam: Map<String, String>
 
     lateinit var modelTableName: String
@@ -75,22 +75,22 @@ abstract class mAbstract {
 
     open fun init(
         application: iApplication,
-        aStm: CoreAdvancedStatement,
+        aConn: CoreAdvancedConnection,
         aliasConfig: AliasConfig,
         userConfig: UserConfig,
         aHmParam: Map<String, String>,
         hmParentData: MutableMap<String, Int>,
         id: Int?
     ) {
-        stm = aStm
+        conn = aConn
 
-        isArchiveAlias = aliasConfig.alias.endsWith(ALIAS_NAME_ARCHIVE_POSTFIX)
+        isArchiveAlias = aliasConfig.name.endsWith(ALIAS_NAME_ARCHIVE_POSTFIX)
 
         zoneId = userConfig.upZoneId
 
         hmParam = aHmParam
 
-        textFieldMaxSize = stm.dialect.textFieldMaxSize
+        textFieldMaxSize = conn.dialect.textFieldMaxSize
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

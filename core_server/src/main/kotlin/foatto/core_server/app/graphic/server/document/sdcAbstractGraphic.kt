@@ -8,7 +8,6 @@ import foatto.core_server.app.graphic.server.GraphicStartData
 import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.UserConfig
 import foatto.sql.CoreAdvancedConnection
-import foatto.sql.CoreAdvancedStatement
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.concurrent.ConcurrentHashMap
@@ -71,17 +70,15 @@ abstract class sdcAbstractGraphic {
 
     protected lateinit var application: iApplication
     protected lateinit var conn: CoreAdvancedConnection
-    protected lateinit var stm: CoreAdvancedStatement
     protected lateinit var chmSession: ConcurrentHashMap<String, Any>
     protected lateinit var userConfig: UserConfig
     protected lateinit var documentTypeName: String
 
     protected lateinit var zoneId: ZoneId
 
-    fun init(aApplication: iApplication, aConn: CoreAdvancedConnection, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aUserConfig: UserConfig, aDocumentTypeName: String) {
+    fun init(aApplication: iApplication, aConn: CoreAdvancedConnection, aChmSession: ConcurrentHashMap<String, Any>, aUserConfig: UserConfig, aDocumentTypeName: String) {
         application = aApplication
         conn = aConn
-        stm = aStm
         chmSession = aChmSession
         //--- получить конфигурацию по подключенному пользователю
         userConfig = aUserConfig

@@ -29,7 +29,6 @@ class Replicator(aConfigFileName: String) : CoreReplicator(aConfigFileName) {
         alDBConfig.forEach {
             val conn = AdvancedConnection(it)
             alConn.add(conn)
-            alStm.add(conn.createStatement())
         }
     }
 

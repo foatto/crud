@@ -108,10 +108,10 @@ abstract class CoreReplicator(aConfigFileName: String) : CoreServiceWorker(aConf
                 }
             }
         }
-/*
-val client = HttpClient(Apache) {
-    // install other features ....
-} */
+        /*
+        val client = HttpClient(Apache) {
+            // install other features ....
+        } */
         cyclePause = hmConfig[CONFIG_CYCLE_PAUSE]!!.toLong() * 1000
     }
 
@@ -184,7 +184,7 @@ val client = HttpClient(Apache) {
                     sqlLog = ""
 
                     //--- что мы успешно получили в прошлый раз?
-                    val rs = alStm[0].executeQuery(" SELECT time_key FROM SYSTEM_replication_receive WHERE dest_name = '$destName' ")
+                    val rs = alConn[0].executeQuery(" SELECT time_key FROM SYSTEM_replication_receive WHERE dest_name = '$destName' ")
                     val prevTimeKey = if (rs.next()) {
                         rs.getLong(1)
                     } else {
@@ -216,11 +216,11 @@ val client = HttpClient(Apache) {
                             //println("SQL = '$it'")
 
                             sqlLog += (if (sqlLog.isEmpty()) "" else "\n") + it
-                            alStm[0].executeUpdate(CoreAdvancedConnection.convertDialect(it, sourDialect, alConn[0].dialect), false)
+                            alConn[0].executeUpdate(CoreAdvancedConnection.convertDialect(it, sourDialect, alConn[0].dialect), false)
                         }
                         //--- и в этой же транзакции запомним имя/номер реплики
-                        if (alStm[0].executeUpdate(" UPDATE SYSTEM_replication_receive SET time_key = $timeKey WHERE dest_name = '$destName' ", false) == 0) {
-                            alStm[0].executeUpdate(" INSERT INTO SYSTEM_replication_receive ( dest_name , time_key ) VALUES ( '$destName' , $timeKey ) ", false)
+                        if (alConn[0].executeUpdate(" UPDATE SYSTEM_replication_receive SET time_key = $timeKey WHERE dest_name = '$destName' ", false) == 0) {
+                            alConn[0].executeUpdate(" INSERT INTO SYSTEM_replication_receive ( dest_name , time_key ) VALUES ( '$destName' , $timeKey ) ", false)
                         }
                         alConn[0].commit()
                     }

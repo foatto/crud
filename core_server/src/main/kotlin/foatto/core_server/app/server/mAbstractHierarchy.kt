@@ -5,7 +5,7 @@ import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.column.ColumnComboBox
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 
 open class mAbstractHierarchy : mAbstract() {
 
@@ -43,7 +43,7 @@ open class mAbstractHierarchy : mAbstract() {
 
     override fun init(
         application: iApplication,
-        aStm: CoreAdvancedStatement,
+        aConn: CoreAdvancedConnection,
         aliasConfig: AliasConfig,
         userConfig: UserConfig,
         aHmParam: Map<String, String>,
@@ -51,14 +51,14 @@ open class mAbstractHierarchy : mAbstract() {
         id: Int?
     ) {
 
-        super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+        super.init(application, aConn, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         commonAliasName += (if (isArchiveAlias) ALIAS_NAME_ARCHIVE_POSTFIX else "")
         folderAliasName += (if (isArchiveAlias) ALIAS_NAME_ARCHIVE_POSTFIX else "")
         itemAliasName += (if (isArchiveAlias) ALIAS_NAME_ARCHIVE_POSTFIX else "")
 
-        isSelectableFolder = aliasConfig.alias == commonAliasName || aliasConfig.alias == folderAliasName
-        isSelectableItem = aliasConfig.alias == commonAliasName || aliasConfig.alias == itemAliasName
+        isSelectableFolder = aliasConfig.name == commonAliasName || aliasConfig.name == folderAliasName
+        isSelectableItem = aliasConfig.name == commonAliasName || aliasConfig.name == itemAliasName
         selfLinkParentTableName = "${modelTableName}__PARENT"
 
         columnId = ColumnInt(modelTableName, "id")
@@ -83,7 +83,7 @@ open class mAbstractHierarchy : mAbstract() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-        alChildData.add(ChildData(aliasConfig.alias, columnId, aNewGroup = true, aDefaultOperation = true))
+        alChildData.add(ChildData(aliasConfig.name, columnId, aNewGroup = true, aDefaultOperation = true))
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -98,13 +98,14 @@ open class mAbstractHierarchy : mAbstract() {
         return if (id == null || id == 0) {
             hmParam[RECORD_TYPE_PARAM]?.toIntOrNull() ?: defaultRecordType
         } else {
-            val rs = stm.executeQuery(" SELECT $recordTypeFieldName FROM $modelTableName WHERE id = $id ")
+            val rs = conn.executeQuery(" SELECT $recordTypeFieldName FROM $modelTableName WHERE id = $id ")
             val result = if (rs.next()) {
                 rs.getInt(1)
             } else {
                 defaultRecordType
             }
             rs.close()
+
             result
         }
     }

@@ -7,7 +7,6 @@ import foatto.core_server.app.server.column.ColumnBoolean
 import foatto.core_server.app.server.column.iColumn
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedResultSet
-import foatto.sql.CoreAdvancedStatement
 
 class DataBoolean(aColumn: iColumn) : DataAbstract(aColumn) {
 
@@ -30,7 +29,7 @@ class DataBoolean(aColumn: iColumn) : DataAbstract(aColumn) {
         value = validate(cb.defaultValue)
     }
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameId: String?, id: Int): Boolean {
+    override fun loadFromForm(conn: CoreAdvancedConnection, formData: FormData, fieldNameId: String?, id: Int): Boolean {
         value = formData.booleanValue!!
         return true
     }

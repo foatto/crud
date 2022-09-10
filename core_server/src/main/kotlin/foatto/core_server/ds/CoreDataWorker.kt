@@ -3,12 +3,10 @@ package foatto.core_server.ds
 import foatto.core.util.AdvancedLogger
 import foatto.core.util.getCurrentTimeInt
 import foatto.sql.CoreAdvancedConnection
-import foatto.sql.CoreAdvancedStatement
 
 abstract class CoreDataWorker protected constructor(val dataServer: CoreDataServer) : Thread() {
 
     lateinit var conn: CoreAdvancedConnection
-    lateinit var stm: CoreAdvancedStatement
 
     init {
         openDB()
@@ -77,7 +75,7 @@ abstract class CoreDataWorker protected constructor(val dataServer: CoreDataServ
         var lastSQLCheck = aLastSQLCheck
         if (getCurrentTimeInt() - lastSQLCheck > dataServer.dbPingInterval) {
             try {
-                val rs = stm.executeQuery(dataServer.dbPingQuery)
+                val rs = conn.executeQuery(dataServer.dbPingQuery)
                 rs.next()
                 rs.close()
             } catch (t: Throwable) {
@@ -93,7 +91,6 @@ abstract class CoreDataWorker protected constructor(val dataServer: CoreDataServ
 
     private fun openDB() {
         conn = openConnection()
-        stm = conn.createStatement()
     }
 
     //--- открытие коннектов к базе - имеет свои особенности на разных платформах
@@ -101,12 +98,6 @@ abstract class CoreDataWorker protected constructor(val dataServer: CoreDataServ
 
     //--- закрытие баз - своих особенностей на разных платформах не обнаружилось
     private fun closeDB() {
-        try {
-            stm.close()
-        } catch (re: Throwable) {
-            AdvancedLogger.error(re)
-        }
-
         try {
             conn.close()
         } catch (re: Throwable) {

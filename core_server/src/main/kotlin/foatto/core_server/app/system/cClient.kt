@@ -20,7 +20,7 @@ open class cClient : cStandart() {
             """    
                 AND $tn.${mc.columnId.getFieldName()} > 0 
                 AND $tn.${mc.columnRecordType.getFieldName()} = ${OrgType.ORG_TYPE_WORKER} 
-                AND $tn.${mc.columnParent.getFieldName()} = ${mc.getClientParentId(application, aliasConfig.alias)} 
+                AND $tn.${mc.columnParent.getFieldName()} = ${mc.getClientParentId(application, aliasConfig.name)} 
             """
     }
 
@@ -39,7 +39,7 @@ open class cClient : cStandart() {
     }
 
     override fun preSave(id: Int, hmColumnData: Map<iColumn, iData>) {
-        cUser.checkAndSetNewPassword(stm, id, hmColumnData[(model as mClient).columnUserPassword] as? DataString)
+        cUser.checkAndSetNewPassword(conn, id, hmColumnData[(model as mClient).columnUserPassword] as? DataString)
         super.preSave(id, hmColumnData)
     }
 
@@ -52,12 +52,12 @@ open class cClient : cStandart() {
         cUser.refreshUserConfig(application, conn, userConfig.userId, hmOut)
 
         //--- создать запись индивидуального сдвига часового пояса
-        cUser.addTimeZone(stm, id)
+        cUser.addTimeZone(conn, id)
 
         //--- автосоздание привязки пользователя/клиента и его типовых ролей
-        mc.getClientRoleIds(application, aliasConfig.alias).forEach { clientRoleId ->
-            val nextId = stm.getNextIntId("SYSTEM_user_role", "id")
-            stm.executeUpdate(
+        mc.getClientRoleIds(application, aliasConfig.name).forEach { clientRoleId ->
+            val nextId = conn.getNextIntId("SYSTEM_user_role", "id")
+            conn.executeUpdate(
                 """
                     INSERT INTO SYSTEM_user_role( id , role_id , user_id ) 
                     VALUES ( $nextId , $clientRoleId , $id )

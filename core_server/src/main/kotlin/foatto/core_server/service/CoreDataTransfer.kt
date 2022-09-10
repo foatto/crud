@@ -77,7 +77,7 @@ abstract class CoreDataTransfer(aConfigFileName: String) : CoreServiceWorker(aCo
 //                            alConn[1].commit()
 //                        }
 //                    } else {
-                    alStm[1].executeUpdate(sql)
+                    alConn[1].executeUpdate(sql)
                     alConn[1].commit()
 //                    }
                 } else {
@@ -177,11 +177,11 @@ abstract class CoreDataTransfer(aConfigFileName: String) : CoreServiceWorker(aCo
     ) {
 
         //--- создаём таблицу
-        alStm[1].executeUpdate(sql)
+        alConn[1].executeUpdate(sql)
         alConn[1].commit()
 
         //--- копируем данные
-        val rs = alStm[0].executeQuery(" SELECT $fieldNames FROM $tableName ")
+        val rs = alConn[0].executeQuery(" SELECT $fieldNames FROM $tableName ")
         var interCommitCounter = 0
         while (rs.next()) {
             var sFieldValue = ""
@@ -210,7 +210,7 @@ abstract class CoreDataTransfer(aConfigFileName: String) : CoreServiceWorker(aCo
                             ""
                         }
             }
-            alStm[1].executeUpdate(" INSERT INTO $tableName ( $fieldNames ) VALUES ( $sFieldValue ); ")
+            alConn[1].executeUpdate(" INSERT INTO $tableName ( $fieldNames ) VALUES ( $sFieldValue ); ")
             if (++interCommitCounter / 1000 == 0) {
                 alConn[1].commit()
             }

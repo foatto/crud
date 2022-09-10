@@ -60,7 +60,7 @@ class cRolePermission : cStandart() {
         sPerm += " ORDER BY SYSTEM_alias.descr , SYSTEM_permission.descr "
 
         val alAliasData = mutableListOf<AliasData>()
-        var rs = stm.executeQuery(sPerm)
+        var rs = conn.executeQuery(sPerm)
         while (rs.next()) alAliasData.add(AliasData(rs.getString(1), rs.getInt(2), rs.getString(3)))
         rs.close()
 
@@ -72,7 +72,7 @@ class cRolePermission : cStandart() {
         sRole += " ORDER BY name "
 
         val tmRoleData = TreeMap<String, Int>()
-        rs = stm.executeQuery(sRole)
+        rs = conn.executeQuery(sRole)
         while (rs.next()) tmRoleData[rs.getString(1)] = rs.getInt(2)
         rs.close()
 
@@ -93,7 +93,7 @@ class cRolePermission : cStandart() {
                 val sSQL = " SELECT id , permission_value FROM SYSTEM_role_permission " +
                     " WHERE permission_id = ${ad.permID} " +
                     " AND role_id = ${tmRoleData[roleDescr]} "
-                rs = stm.executeQuery(sSQL)
+                rs = conn.executeQuery(sSQL)
                 if (rs.next()) {
                     val pid = rs.getInt(1)
                     val pv = rs.getInt(2)
@@ -158,21 +158,21 @@ class cRolePermission : cStandart() {
         val idListID = hmParam[ID_LIST_ID]
         val sIDList = chmSession[ID_LIST_ID + idListID] as String
 
-/*
-        //!!! переделать обратно на StringTokenizer
-        String[] arrID = sIDList.split( "," );
-        for( String pid : arrID )
-            dataWorker.alStm.get( 0 ).executeUpdate(
-                new StringBuilder( " UPDATE SYSTEM_role_permission SET permission_value = " )
-                          .append( bbIn.getBoolean() ? 1 : 0 ).append( " WHERE id = " ).append( pid ).toString() );
+        /*
+                //!!! переделать обратно на StringTokenizer
+                String[] arrID = sIDList.split( "," );
+                for( String pid : arrID )
+                    dataWorker.alStm.get( 0 ).executeUpdate(
+                        new StringBuilder( " UPDATE SYSTEM_role_permission SET permission_value = " )
+                                  .append( bbIn.getBoolean() ? 1 : 0 ).append( " WHERE id = " ).append( pid ).toString() );
 
- */
+         */
         val arrID = sIDList.split(",")
-        for (i in arrID.indices)
-            stm.executeUpdate(
+        for (i in arrID.indices) {
+            conn.executeUpdate(
                 " UPDATE SYSTEM_role_permission SET permission_value = ${(if (alFormData[i].booleanValue!!) 1 else 0)} WHERE id = ${arrID[i]} "
             )
-
+        }
         return AppParameter.setParam(chmSession[AppParameter.REFERER + hmParam[AppParameter.REFERER]] as String, AppParameter.ID, id.toString())
     }
 

@@ -1,7 +1,7 @@
 package foatto.core_server.app.server.data
 
 import foatto.core_server.app.server.column.iColumn
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 
 abstract class DataAbstract(aColumn: iColumn) : iData, Cloneable {
 
@@ -13,8 +13,8 @@ abstract class DataAbstract(aColumn: iColumn) : iData, Cloneable {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun preSave(rootDirName: String, stm: CoreAdvancedStatement) {}
-    override fun preDelete(rootDirName: String, stm: CoreAdvancedStatement) {}
+    override fun preSave(rootDirName: String, conn: CoreAdvancedConnection) {}
+    override fun preDelete(rootDirName: String, conn: CoreAdvancedConnection) {}
     override fun getError(): String? = errorText
 
     //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

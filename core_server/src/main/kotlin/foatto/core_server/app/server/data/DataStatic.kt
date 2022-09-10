@@ -8,7 +8,6 @@ import foatto.core_server.app.server.column.ColumnStatic
 import foatto.core_server.app.server.column.iColumn
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedResultSet
-import foatto.sql.CoreAdvancedStatement
 
 class DataStatic(aColumn: iColumn) : DataAbstract(aColumn) {
 
@@ -18,7 +17,7 @@ class DataStatic(aColumn: iColumn) : DataAbstract(aColumn) {
     override fun loadFromDB(rs: CoreAdvancedResultSet, aPosRS: Int) = 0
 
     override fun loadFromDefault() {}
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameId: String?, id: Int) = true
+    override fun loadFromForm(conn: CoreAdvancedConnection, formData: FormData, fieldNameId: String?, id: Int) = true
 
     override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, dataRowNo: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell =
         if (isShowEmptyTableCell) {

@@ -1,6 +1,6 @@
 package foatto.core_server.app.server.column
 
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 
 abstract class ColumnSimple : ColumnAbstract() {
 
@@ -24,8 +24,8 @@ abstract class ColumnSimple : ColumnAbstract() {
 //        arrFieldName = aArrFieldName
 //    }
 
-    fun fillCombo(stm: CoreAdvancedStatement, tableName: String, fieldName: String) {
-        val rs = stm.executeQuery(
+    fun fillCombo(conn: CoreAdvancedConnection, tableName: String, fieldName: String) {
+        val rs = conn.executeQuery(
             """
                 SELECT DISTINCT $fieldName 
                 FROM $tableName 

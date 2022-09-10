@@ -6,7 +6,6 @@ import foatto.core.link.TableCell
 import foatto.core_server.app.server.column.iColumn
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedResultSet
-import foatto.sql.CoreAdvancedStatement
 
 interface iData {
 
@@ -20,7 +19,7 @@ interface iData {
 
     fun loadFromDB(rs: CoreAdvancedResultSet, aPosRS: Int): Int
     fun loadFromDefault()
-    fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameId: String?, id: Int): Boolean
+    fun loadFromForm(conn: CoreAdvancedConnection, formData: FormData, fieldNameId: String?, id: Int): Boolean
 
     fun getUniqueCheckValue(index: Int): Any = Any()
 
@@ -32,9 +31,9 @@ interface iData {
 
     fun getFieldSQLValue(index: Int): String
 
-    fun preSave(rootDirName: String, stm: CoreAdvancedStatement)
+    fun preSave(rootDirName: String, conn: CoreAdvancedConnection)
 
-    fun preDelete(rootDirName: String, stm: CoreAdvancedStatement)
+    fun preDelete(rootDirName: String, conn: CoreAdvancedConnection)
 
     fun setData(data: iData)
 

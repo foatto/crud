@@ -9,7 +9,6 @@ import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.column.iColumn
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedResultSet
-import foatto.sql.CoreAdvancedStatement
 import kotlin.math.min
 
 class DataString(aColumn: iColumn) : DataAbstract(aColumn) {
@@ -43,7 +42,7 @@ class DataString(aColumn: iColumn) : DataAbstract(aColumn) {
         clearError()
     }
 
-    override fun loadFromForm(stm: CoreAdvancedStatement, formData: FormData, fieldNameId: String?, id: Int): Boolean {
+    override fun loadFromForm(conn: CoreAdvancedConnection, formData: FormData, fieldNameId: String?, id: Int): Boolean {
         text = if (cs.rows == 0) {
             formData.stringValue!!
         } else {

@@ -77,19 +77,13 @@ abstract class sdcXyMap : sdcXyAbstract() {
                 " ORDER BY element_id "
 
             //--- загрузка двух наборов - point и property
-            val stmPoint = conn.createStatement()
-            val stmProperty = conn.createStatement()
-
-            val rsPoint = stmPoint.executeQuery(sPoint)
-            val rsProperty = stmProperty.executeQuery(sProperty)
+            val rsPoint = conn.executeQuery(sPoint)
+            val rsProperty = conn.executeQuery(sProperty)
 
             loadPointsAndProperties(sd, viewCoord.scale, rsPoint, rsProperty, hsReadOnlyObject, alElementData)
 
             rsPoint.close()
             rsProperty.close()
-
-            stmPoint.close()
-            stmProperty.close()
         }
 
         val alElement = alElementData.map { it.first }.toMutableList()
@@ -125,7 +119,7 @@ abstract class sdcXyMap : sdcXyAbstract() {
         //--- список для одного элемента делается в целях совместимости с loadPointsAndProperties
         val alElementData = mutableListOf<Pair<XyElement, XyPoint>>()
 
-        val rs = stm.executeQuery(
+        val rs = conn.executeQuery(
             " SELECT type_name , id , object_id , prj_x1 , prj_y1 , point_data " +
                 " FROM XY_element " +
                 " WHERE id = $elementId "
@@ -142,19 +136,13 @@ abstract class sdcXyMap : sdcXyAbstract() {
             " WHERE element_id = $elementId "
 
         //--- загрузка двух наборов - point и property
-        val stmPoint = conn.createStatement()
-        val stmProperty = conn.createStatement()
-
-        val rsPoint = stm.executeQuery(sPoint)
-        val rsProperty = stm.executeQuery(sProperty)
+        val rsPoint = conn.executeQuery(sPoint)
+        val rsProperty = conn.executeQuery(sProperty)
 
         loadPointsAndProperties(sd, viewCoord.scale, rsPoint, rsProperty, emptySet(), alElementData)
 
         rsPoint.close()
         rsProperty.close()
-
-        stmPoint.close()
-        stmProperty.close()
 
         return XyActionResponse(element = alElementData.first().first)
     }
@@ -170,7 +158,7 @@ abstract class sdcXyMap : sdcXyAbstract() {
         val dx = xyActionRequest.dx!!
         val dy = xyActionRequest.dy!!
 
-        stm.executeUpdate(
+        conn.executeUpdate(
             " UPDATE XY_element SET " +
                 " prj_x1 = prj_x1 + ( $dx ) , " +
                 " prj_y1 = prj_y1 + ( $dy ) , " +
@@ -212,7 +200,7 @@ abstract class sdcXyMap : sdcXyAbstract() {
                 " ORDER BY id "
             ///*if( AppServlet.xyLog != null )*/ AppServlet.xyLog.debug( sb.toString() );
 
-            val rs = stm.executeQuery(s)
+            val rs = conn.executeQuery(s)
             while (rs.next())
                 alElementData.add(loadElement(rs, viewCoord))
             rs.close()
@@ -390,7 +378,7 @@ abstract class sdcXyMap : sdcXyAbstract() {
         val maxY = xyElement.alPoint.maxByOrNull { it.y }!!.y
 
         //--- сначала запишем в hex-поле, сколько влезет
-        val maxHexPointCount = stm.dialect.binaryFieldMaxSize / POINT_SIZE_IN_BIN
+        val maxHexPointCount = conn.dialect.binaryFieldMaxSize / POINT_SIZE_IN_BIN
         val hexPointCount = xyElement.alPoint.size.coerceAtMost(maxHexPointCount)
         val bbPoint = AdvancedByteBuffer(hexPointCount * POINT_SIZE_IN_BIN)
         for (i in 0 until hexPointCount) {
@@ -402,21 +390,21 @@ abstract class sdcXyMap : sdcXyAbstract() {
         bbPoint.flip()
 
         if (isAddElement) {
-            stm.executeUpdate(
+            conn.executeUpdate(
                 " INSERT INTO XY_element ( id , type_name , object_id , prj_x1 , prj_y1 , prj_x2 , prj_y2 , point_data ) VALUES ( " +
-                    " ${xyElement.elementId} , '${xyElement.typeName}' , ${xyElement.objectId} , $minX , $minY , $maxX , $maxY , ${stm.getHexValue(bbPoint)} ) "
+                    " ${xyElement.elementId} , '${xyElement.typeName}' , ${xyElement.objectId} , $minX , $minY , $maxX , $maxY , ${conn.getHexValue(bbPoint)} ) "
             )
         } else {
-            stm.executeUpdate(
-                " UPDATE XY_element SET prj_x1 = $minX , prj_y1 = $minY , prj_x2 = $maxX , prj_y2 = $maxY , point_data = ${stm.getHexValue(bbPoint)} " +
+            conn.executeUpdate(
+                " UPDATE XY_element SET prj_x1 = $minX , prj_y1 = $minY , prj_x2 = $maxX , prj_y2 = $maxY , point_data = ${conn.getHexValue(bbPoint)} " +
                     " WHERE id = ${xyElement.elementId} "
             )
-            stm.executeUpdate(" DELETE FROM XY_point WHERE element_id = ${xyElement.elementId} ")
+            conn.executeUpdate(" DELETE FROM XY_point WHERE element_id = ${xyElement.elementId} ")
         }
         //--- запись точек, не влезших в hex-поле, если таковые есть
         for (i in maxHexPointCount until xyElement.alPoint.size) {
             val p = xyElement.alPoint[i]
-            stm.executeUpdate(
+            conn.executeUpdate(
                 " INSERT INTO XY_point ( element_id , sort_id , prj_x , prj_y ) VALUES ( " +
                     //--- запись относительных координат в точки позволит перемещать элемент простым смещением prjX..Y_1..2 без попутного апдейта этих точек
                     " ${xyElement.elementId} , ${i - maxHexPointCount} , ${p.x - minX} , ${p.y - minY} ) "

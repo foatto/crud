@@ -51,8 +51,7 @@ class AppMonitor(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                     AppMonitor(args[0]).run()
                     exitCode = 1
                 } else println("Usage: ${serviceWorkerName} <ini-file-name>")
-            }
-            catch(t: Throwable) {
+            } catch (t: Throwable) {
                 t.printStackTrace()
             }
 
@@ -84,7 +83,7 @@ class AppMonitor(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         super.loadConfig()
 
         var index = 0
-        while(true) {
+        while (true) {
             val descr = hmConfig[CONFIG_CHECK_DESCR_ + index] ?: break
 
             alCheckDescr.add(descr)
@@ -104,7 +103,7 @@ class AppMonitor(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         smtpPassword = hmConfig[CONFIG_SMTP_PASSWORD]
 
         index = 0
-        while(true) {
+        while (true) {
             val optionName = hmConfig[CONFIG_SMTP_OPTION_NAME_ + index] ?: break
 
             hmSmtpOption[optionName] = hmConfig[CONFIG_SMTP_OPTION_VALUE_ + index]!!
@@ -117,19 +116,18 @@ class AppMonitor(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         alDBConfig.forEach {
             val conn = AdvancedConnection(it)
             alConn.add(conn)
-            alStm.add(conn.createStatement())
         }
     }
 
     override fun cycle() {
 
-        for(checkIndex in alCheckType.indices) {
-            when(alCheckType[checkIndex]) {
+        for (checkIndex in alCheckType.indices) {
+            when (alCheckType[checkIndex]) {
                 //--- проверка наличия/даты последних файлов в папке (обычно логов)
                 0 -> {
                     val lftv = LastFileTimeVisitor()
                     Files.walkFileTree(Paths.get(alCheckData[checkIndex]), lftv)
-                    if(lftv.lastFileTime < getCurrentTimeInt() - alCheckLag[checkIndex]) {
+                    if (lftv.lastFileTime < getCurrentTimeInt() - alCheckLag[checkIndex]) {
                         sendMail(email, alCheckDescr[checkIndex], DateTime_YMDHMS(zoneId, lftv.lastFileTime))
                     }
                 }
@@ -137,12 +135,12 @@ class AppMonitor(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                 1 -> {
                     var firstFileTime = Int.MAX_VALUE
                     val arrFile = File(alCheckData[checkIndex]).listFiles()
-                    for(file in arrFile!!) {
-                        if(file.exists()) {
+                    for (file in arrFile!!) {
+                        if (file.exists()) {
                             firstFileTime = min(firstFileTime, (file.lastModified() / 1000).toInt())
                         }
                     }
-                    if(firstFileTime < getCurrentTimeInt() - alCheckLag[checkIndex]) {
+                    if (firstFileTime < getCurrentTimeInt() - alCheckLag[checkIndex]) {
                         sendMail(email, alCheckDescr[checkIndex], DateTime_YMDHMS(zoneId, firstFileTime))
                     }
                 }
@@ -159,7 +157,7 @@ class AppMonitor(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
     //--- отправка письма
     private fun sendMail(eMail: String?, subj: String, body: String) {
         val props = System.getProperties()
-        for(key in hmSmtpOption.keys) props[key] = hmSmtpOption[key]
+        for (key in hmSmtpOption.keys) props[key] = hmSmtpOption[key]
 
         val session = Session.getDefaultInstance(props, null)
         val transport = session.getTransport("smtp")
@@ -177,7 +175,7 @@ class AppMonitor(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         transport.sendMessage(msg, arrayOf(InternetAddress(eMail)))
         transport.close()
 
-        AdvancedLogger.debug( "Mail sended.\nSubj: $subj\nBody: $body" )
+        AdvancedLogger.debug("Mail sended.\nSubj: $subj\nBody: $body")
     }
 
     //----------------------------------------------------------------------------------------------------------------------------------------
@@ -188,7 +186,7 @@ class AppMonitor(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
 
         override fun visitFile(path: Path, fileAttributes: BasicFileAttributes): FileVisitResult {
 
-            if(fileAttributes.isRegularFile) lastFileTime = max(lastFileTime, (fileAttributes.lastModifiedTime().toMillis() / 1000).toInt())
+            if (fileAttributes.isRegularFile) lastFileTime = max(lastFileTime, (fileAttributes.lastModifiedTime().toMillis() / 1000).toInt())
 
             return FileVisitResult.CONTINUE
         }

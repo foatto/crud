@@ -172,7 +172,7 @@
 //        }
 //
 //        //--- установка времени на камерах
-//        CoreAdvancedResultSet rs = stm.executeQuery( new StringBuilder(
+//        CoreAdvancedResultSet rs = conn.executeQuery( new StringBuilder(
 //                                    " SELECT url_time , login , pwd FROM VC_camera WHERE id <> 0 " ) );
 //        while( rs.next() ) {
 //            int p = 1;

@@ -9,7 +9,6 @@ import foatto.core.util.getCurrentTimeInt
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.OrgType
-import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.cAbstractHierarchy
 import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.data.DataBoolean
@@ -18,7 +17,6 @@ import foatto.core_server.app.server.data.DataDate3Int
 import foatto.core_server.app.server.data.DataString
 import foatto.core_server.app.server.data.iData
 import foatto.sql.CoreAdvancedConnection
-import foatto.sql.CoreAdvancedStatement
 import java.util.*
 
 class cUser : cAbstractHierarchy() {
@@ -40,12 +38,12 @@ class cUser : cAbstractHierarchy() {
             }
         }
 
-        fun checkAndSetNewPassword(stm: CoreAdvancedStatement, id: Int, pwd: DataString?) {
+        fun checkAndSetNewPassword(conn: CoreAdvancedConnection, id: Int, pwd: DataString?) {
             var oldPassword = ""
             //--- запомнить старое значение пароля для возможной шифрации нового заданного пароля
             //--- на всякий случай проверка
             if (id != 0) {
-                val rs = stm.executeQuery(" SELECT pwd FROM SYSTEM_users WHERE id = $id ")
+                val rs = conn.executeQuery(" SELECT pwd FROM SYSTEM_users WHERE id = $id ")
                 if (rs.next()) {
                     oldPassword = rs.getString(1)
                 }
@@ -66,9 +64,9 @@ class cUser : cAbstractHierarchy() {
             hmOut[iApplication.USER_CONFIG] = application.getUserConfig(conn, userId)
         }
 
-        fun addTimeZone(stm: CoreAdvancedStatement, id: Int) {
+        fun addTimeZone(conn: CoreAdvancedConnection, id: Int) {
             val gc = GregorianCalendar()
-            stm.executeUpdate(
+            conn.executeUpdate(
                 " INSERT INTO SYSTEM_user_property( user_id , property_name , property_value ) VALUES ( " +
                     " $id , '$UP_TIME_OFFSET' , '${gc.timeZone.getOffset(gc.timeInMillis) / 1000}' ) "
             )
@@ -112,7 +110,7 @@ class cUser : cAbstractHierarchy() {
     }
 
     override fun preSave(id: Int, hmColumnData: Map<iColumn, iData>) {
-        checkAndSetNewPassword(stm, id, hmColumnData[(model as mUser).columnUserPassword] as? DataString)
+        checkAndSetNewPassword(conn, id, hmColumnData[(model as mUser).columnUserPassword] as? DataString)
         super.preSave(id, hmColumnData)
     }
 
@@ -123,7 +121,7 @@ class cUser : cAbstractHierarchy() {
         refreshUserConfig(application, conn, userConfig.userId, hmOut)
 
         //--- создать запись индивидуального сдвига часового пояса
-        addTimeZone(stm, id)
+        addTimeZone(conn, id)
 
         if ((hmColumnData[(model as mUser).columnRecordType] as DataComboBox).intValue != OrgType.ORG_TYPE_DIVISION) {
             val refererID = hmParam[AppParameter.REFERER]
