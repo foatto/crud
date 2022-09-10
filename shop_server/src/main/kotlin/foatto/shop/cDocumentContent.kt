@@ -18,7 +18,6 @@ import foatto.core_server.app.server.data.*
 import foatto.shop.mDocumentContent.Companion.ADD_OVER_MARK_CODE
 import foatto.shop_core.app.*
 import foatto.sql.CoreAdvancedConnection
-import foatto.sql.CoreAdvancedStatement
 import java.util.concurrent.ConcurrentHashMap
 
 class cDocumentContent : cStandart() {
@@ -39,8 +38,8 @@ class cDocumentContent : cStandart() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun init(aApplication: iApplication, aConn: CoreAdvancedConnection, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig) {
-        super.init(aApplication, aConn, aStm, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
+    override fun init(aApplication: iApplication, aConn: CoreAdvancedConnection, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig) {
+        super.init(aApplication, aConn, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
 
         for (name in DocumentTypeConfig.hmAliasDocType.keys) {
             docId = getParentId(name)
@@ -48,9 +47,9 @@ class cDocumentContent : cStandart() {
                 break
             }
         }
-        docType = DocumentTypeConfig.hmAliasDocType[aliasConfig.alias]!!
+        docType = DocumentTypeConfig.hmAliasDocType[aliasConfig.name]!!
         /*if( docType == DocumentTypeConfig.TYPE_IN || docType == DocumentTypeConfig.TYPE_RETURN_IN ) mPrice.PRICE_TYPE_IN else*/
-        hmPrice = PriceData.loadPrice(stm, mPrice.PRICE_TYPE_OUT)
+        hmPrice = PriceData.loadPrice(conn, mPrice.PRICE_TYPE_OUT)
     }
 
     override fun definePermission() {
@@ -111,8 +110,8 @@ class cDocumentContent : cStandart() {
             var docDa = 0
             var discount = 0.0
             var localDocType = 0
-            val hmWarehouse = mWarehouse.fillWarehouseMap(stm)
-            val rs = stm.executeQuery(
+            val hmWarehouse = mWarehouse.fillWarehouseMap(conn)
+            val rs = conn.executeQuery(
                 " SELECT SHOP_doc.doc_no , SHOP_doc.doc_type , SHOP_doc.doc_ye , SHOP_doc.doc_mo , SHOP_doc.doc_da , " +
                     " SHOP_doc.sour_id , SHOP_doc.dest_id , SHOP_client.name , SHOP_doc.descr , SHOP_doc.discount " +
                     " FROM SHOP_doc , SHOP_client " +
@@ -145,8 +144,9 @@ class cDocumentContent : cStandart() {
                 sHeader += ", скидка $discount % "
             }
             rs.close()
+
             //--- подсчёт стоимости накладной
-            docCost = cDocument.calcDocCountAndCost(stm, hmPrice, docId!!, localDocType, zoneId, docYe, docMo, docDa, discount).second
+            docCost = cDocument.calcDocCountAndCost(conn, hmPrice, docId!!, localDocType, zoneId, docYe, docMo, docDa, discount).second
             sHeader += ", общая стоимость: ${getSplittedDouble(docCost, 2, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)}"
         }
         alPath.add(Pair("", sHeader))
@@ -205,7 +205,7 @@ class cDocumentContent : cStandart() {
                 caption = "Добавить",
                 tooltip = "Добавить",
                 icon = ICON_NAME_ADD_ITEM,
-                url = getParamURL(aliasConfig.alias, AppAction.FORM, refererID, 0, hmParentData, parentUserId, null)
+                url = getParamURL(aliasConfig.name, AppAction.FORM, refererID, 0, hmParentData, parentUserId, null)
             )
         )
 
@@ -221,7 +221,7 @@ class cDocumentContent : cStandart() {
                     caption = "Добавить маркированный товар",
                     tooltip = "Добавить маркированный товар",
                     icon = ICON_NAME_ADD_MARKED_ITEM,
-                    url = getParamURL(aliasConfig.alias, AppAction.FORM, refererID, 0, hmParentData, parentUserId, "&$ADD_OVER_MARK_CODE=1")
+                    url = getParamURL(aliasConfig.name, AppAction.FORM, refererID, 0, hmParentData, parentUserId, "&$ADD_OVER_MARK_CODE=1")
                 )
             )
         }
@@ -385,6 +385,7 @@ class cDocumentContent : cStandart() {
                             }
                         }
                     }
+
                     DocumentTypeConfig.TYPE_OUT,
                     DocumentTypeConfig.TYPE_DESTROY,
                     DocumentTypeConfig.TYPE_RETURN_IN,
@@ -456,6 +457,7 @@ class cDocumentContent : cStandart() {
                             }
                         }
                     }
+
                     DocumentTypeConfig.TYPE_RESORT -> {
                         val sourCatalogId = sourCatalogData.intValue
                         val isSourMarkable = (application as iShopApplication).checkCatalogMarkable(sourCatalogId)
@@ -565,7 +567,7 @@ class cDocumentContent : cStandart() {
                 "in_archive",
                 "parent_id",
                 false,
-                stm
+                conn,
             )
         }
         autoUpdateDiscount()
@@ -593,27 +595,27 @@ class cDocumentContent : cStandart() {
                     //--- если преобразование в число получилось, значит там была цена и её можно убрать из названия
                     priceStr.toDouble()
                     destName = (destName.substring(0, p1) + destName.substring(p2 + 1)).trim()
-                    stm.executeUpdate(" UPDATE SHOP_catalog SET name = '$destName' WHERE id = $destID ")
+                    conn.executeUpdate(" UPDATE SHOP_catalog SET name = '$destName' WHERE id = $destID ")
                 } catch (t: Throwable) {
                     AdvancedLogger.error(t)
                 }
             }
             //--- меняем дату цены по умолчанию на дату документа
-            stm.executeUpdate(
+            conn.executeUpdate(
                 " UPDATE SHOP_price SET ye = ${dataDate.year} , mo = ${dataDate.monthValue} , da = ${dataDate.dayOfMonth} , price_note = 'Из пересортицы' " +
                     " WHERE catalog_id = $destID AND price_type = ${mPrice.PRICE_TYPE_OUT} AND ye = 2000 AND mo = 1 AND da = 1 "
             )
             //--- переносим розничные цены стартого товара к новому
-            stm.executeUpdate(" UPDATE SHOP_price SET catalog_id = $destID WHERE catalog_id = $sourID AND price_type = ${mPrice.PRICE_TYPE_OUT} ")
+            conn.executeUpdate(" UPDATE SHOP_price SET catalog_id = $destID WHERE catalog_id = $sourID AND price_type = ${mPrice.PRICE_TYPE_OUT} ")
             //--- меняем ссылки в операциях со старого товара на новый
-            stm.executeUpdate(" UPDATE SHOP_doc_content SET sour_id = $destID WHERE sour_id = $sourID ")
-            stm.executeUpdate(" UPDATE SHOP_doc_content SET dest_id = $destID WHERE dest_id = $sourID ")
+            conn.executeUpdate(" UPDATE SHOP_doc_content SET sour_id = $destID WHERE sour_id = $sourID ")
+            conn.executeUpdate(" UPDATE SHOP_doc_content SET dest_id = $destID WHERE dest_id = $sourID ")
             //--- удаляем текущую запись с пересортицей
-            stm.executeUpdate(" DELETE FROM SHOP_doc_content WHERE id = $id ")
+            conn.executeUpdate(" DELETE FROM SHOP_doc_content WHERE id = $id ")
             //--- удаляем оставшиеся (закупочные) цены стартого товара
-            stm.executeUpdate(" DELETE FROM SHOP_price WHERE catalog_id = $sourID ")
+            conn.executeUpdate(" DELETE FROM SHOP_price WHERE catalog_id = $sourID ")
             //--- удаляем старый товар
-            stm.executeUpdate(" DELETE FROM SHOP_catalog WHERE id = $sourID ")
+            conn.executeUpdate(" DELETE FROM SHOP_catalog WHERE id = $sourID ")
         }
         autoUpdateDiscount()
 
@@ -629,21 +631,20 @@ class cDocumentContent : cStandart() {
     private fun updateDocumentContentEditTime(hmColumnData: Map<iColumn, iData>, isCurTime: Boolean) {
         val mdc = model as mDocumentContent
 
-        stm.executeUpdate(
+        conn.executeUpdate(
             StringBuilder(
                 " UPDATE SHOP_doc SET content_edit_time = "
             )
                 .append(if (isCurTime) getCurrentTimeInt() else (hmColumnData[mdc.columnEditTime] as DataDateTimeInt).zonedDateTime.toEpochSecond().toInt())
-                .append(" WHERE id = ").append((hmColumnData[mdc.columnDocument] as DataInt).intValue)
+                .append(" WHERE id = ").append((hmColumnData[mdc.columnDocument] as DataInt).intValue).toString()
         )
-
     }
 
     private fun autoUpdateDiscount() {
         docId?.let { docId ->
             if (docType == DocumentTypeConfig.TYPE_OUT) {
                 val (docYe, docMo, docDa) = (application as iShopApplication).getDocumentDate(docId)
-                docCost = cDocument.calcDocCountAndCost(stm, hmPrice, docId, docType, zoneId, docYe, docMo, docDa, 0.0).second
+                docCost = cDocument.calcDocCountAndCost(conn, hmPrice, docId, docType, zoneId, docYe, docMo, docDa, 0.0).second
 
                 val discountLimits = (application as iShopApplication).discountLimits.map { it.toDouble() }
                 val discountValues = (application as iShopApplication).discountValues.map { it.toDouble() }
@@ -655,7 +656,7 @@ class cDocumentContent : cStandart() {
                     }
                     discount = discountValues[index]
                 }
-                stm.executeUpdate(" UPDATE SHOP_doc SET discount = $discount WHERE id = $docId")
+                conn.executeUpdate(" UPDATE SHOP_doc SET discount = $discount WHERE id = $docId")
             }
         }
     }

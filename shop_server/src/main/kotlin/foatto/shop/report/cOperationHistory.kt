@@ -66,7 +66,7 @@ class cOperationHistory : cAbstractReport() {
 
     override fun postReport(sheet: WritableSheet) {
 
-        hmWarehouseName = mWarehouse.fillWarehouseMap(stm)
+        hmWarehouseName = mWarehouse.fillWarehouseMap(conn)
         //--- понадобится еще и отсортированный список наименований магазинов
         tmWarehouseID = sortedMapOf()
         for ((wID, wName) in hmWarehouseName) {
@@ -76,7 +76,7 @@ class cOperationHistory : cAbstractReport() {
         }
         //--- соберём инфу по элементам каталога
         hmCatalogName = mutableMapOf()
-        val rs = stm.executeQuery(" SELECT id , name FROM SHOP_catalog WHERE id <> 0 AND record_type = ${mAbstractHierarchy.RECORD_TYPE_ITEM} ")
+        val rs = conn.executeQuery(" SELECT id , name FROM SHOP_catalog WHERE id <> 0 AND record_type = ${mAbstractHierarchy.RECORD_TYPE_ITEM} ")
         while (rs.next()) {
             hmCatalogName[rs.getInt(1)] = rs.getString(2)
         }
@@ -179,13 +179,15 @@ class cOperationHistory : cAbstractReport() {
 
         //--- загрузка инфы по переоценкам
         val alPriceData = ArrayList<PriceData>()
-        var rs = stm.executeQuery(
+        var rs = conn.executeQuery(
             " SELECT ye , mo , da , price_type , price_value FROM SHOP_price " +
                 " WHERE catalog_id = $reportCatalogDest " +
                 (if (isMerchant) "" else " AND price_type = ${mPrice.PRICE_TYPE_OUT} ") +
                 " ORDER BY ye , mo , da "
         )
-        while (rs.next()) alPriceData.add(PriceData(rs.getInt(1), rs.getInt(2), rs.getInt(3), rs.getInt(4), rs.getDouble(5)))
+        while (rs.next()) {
+            alPriceData.add(PriceData(rs.getInt(1), rs.getInt(2), rs.getInt(3), rs.getInt(4), rs.getDouble(5)))
+        }
         rs.close()
 
         val alResult = ArrayList<OperationHistoryResult>()
@@ -208,7 +210,7 @@ class cOperationHistory : cAbstractReport() {
             hmCurrentHWState[wID] = 0.0
         }
 
-        rs = stm.executeQuery(sbSQL)
+        rs = conn.executeQuery(sbSQL)
         while (rs.next()) {
             val rowDocType = rs.getInt(1)
 

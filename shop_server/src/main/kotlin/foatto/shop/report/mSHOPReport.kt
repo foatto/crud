@@ -10,7 +10,7 @@ import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.mAbstractReport
 import foatto.shop.DocumentTypeConfig
 import foatto.shop.mWarehouse
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 import java.time.LocalDate
 
 abstract class mSHOPReport : mAbstractReport() {
@@ -64,15 +64,23 @@ abstract class mSHOPReport : mAbstractReport() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
+    override fun init(
+        application: iApplication,
+        aConn: CoreAdvancedConnection,
+        aliasConfig: AliasConfig,
+        userConfig: UserConfig,
+        aHmParam: Map<String, String>,
+        hmParentData: MutableMap<String, Int>,
+        id: Int?
+    ) {
 
-        super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+        super.init(application, aConn, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
-        val hmAliasConfig = AliasConfig.getConfig(stm)
+        val hmAliasConfigs = application.getAliasConfig(conn)
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val alWarehouse = mWarehouse.fillWarehouseList(stm)
+        val alWarehouse = mWarehouse.fillWarehouseList(conn)
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -83,8 +91,10 @@ abstract class mSHOPReport : mAbstractReport() {
             parentDocID = hmParentData[an]
             if (parentDocID != null) {
                 parentDocType = dt
-                val rs = stm.executeQuery(" SELECT client_id FROM SHOP_doc WHERE id = $parentDocID ")
-                if (rs.next()) parentClient = rs.getInt(1)
+                val rs = conn.executeQuery(" SELECT client_id FROM SHOP_doc WHERE id = $parentDocID ")
+                if (rs.next()) {
+                    parentClient = rs.getInt(1)
+                }
                 rs.close()
 
                 break
@@ -132,8 +142,9 @@ abstract class mSHOPReport : mAbstractReport() {
         columnDocumentType = ColumnComboBox(modelTableName, "doc_type", "Тип накладной", parentDocType).apply {
             isVirtual = true
             isEditable = isReportDocumentType
-            for ((dt, an) in DocumentTypeConfig.hmDocTypeAlias)
-                addChoice(dt, hmAliasConfig[an]!!.descr)
+            for ((dt, an) in DocumentTypeConfig.hmDocTypeAlias) {
+                addChoice(dt, hmAliasConfigs[an]?.descr ?: "(неизвестный тип накладной = $dt : '$an')")
+            }
         }
         //--- спецполя для одновременной установки клиента и типа накладной, чтобы отдельно его не хватать
         val columnClient_ = ColumnInt("SHOP_doc", "client_id")

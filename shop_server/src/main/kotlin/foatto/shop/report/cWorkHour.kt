@@ -84,7 +84,7 @@ class cWorkHour : cAbstractShopReport() {
         //--- загрузка табеля/рабочих часов
         val tmWorkHourAndTax = sortedMapOf<Int, MutableMap<Int, Pair<Double, Double>>>()
         val hmMaxHourInDay = mutableMapOf<Int, Double>()
-        val rs = stm.executeQuery(
+        val rs = conn.executeQuery(
             """ 
                 SELECT worker_id , da , work_hour , hour_tax 
                 FROM SHOP_work_hour 

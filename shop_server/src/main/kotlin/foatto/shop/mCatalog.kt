@@ -18,7 +18,7 @@ import foatto.core_server.app.server.column.ColumnDouble
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.mAbstractHierarchy
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 import java.time.LocalDate
 
 class mCatalog : mAbstractHierarchy() {
@@ -57,7 +57,7 @@ class mCatalog : mAbstractHierarchy() {
 
     override fun init(
         application: iApplication,
-        aStm: CoreAdvancedStatement,
+        aConn: CoreAdvancedConnection,
         aliasConfig: AliasConfig,
         userConfig: UserConfig,
         aHmParam: Map<String, String>,
@@ -65,14 +65,14 @@ class mCatalog : mAbstractHierarchy() {
         id: Int?
     ) {
 
-        super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+        super.init(application, aConn, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         //--- получить данные по правам доступа
-        val hsPermission = userConfig.userPermission[aliasConfig.alias]
+        val hsPermission = userConfig.userPermission[aliasConfig.name]
         //--- при добавлении модуля в систему прав доступа к нему ещё нет
         val isMerchant = hsPermission?.contains(cCatalog.PERM_MERCHANT) ?: false
 
-        val alWarehouse = mWarehouse.fillWarehouseList(stm)
+        val alWarehouse = mWarehouse.fillWarehouseList(conn)
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

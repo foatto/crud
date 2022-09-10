@@ -46,7 +46,7 @@ class cMinusDetector : cAbstractReport() {
 
     override fun postReport(sheet: WritableSheet) {
 
-        hmWarehouseName = mWarehouse.fillWarehouseMap(stm)
+        hmWarehouseName = mWarehouse.fillWarehouseMap(conn)
         //--- понадобится еще и отсортированный список наименований магазинов
         tmWarehouseID = TreeMap()
         for (wID in hmWarehouseName.keys)
@@ -55,7 +55,7 @@ class cMinusDetector : cAbstractReport() {
                 tmWarehouseID[hmWarehouseName[wID]!!] = wID
         //--- соберём инфу по элементам каталога
         tmCatalogID = TreeMap()
-        val rs = stm.executeQuery(" SELECT name , id FROM SHOP_catalog WHERE id <> 0 AND record_type = ${mAbstractHierarchy.RECORD_TYPE_ITEM} ")
+        val rs = conn.executeQuery(" SELECT name , id FROM SHOP_catalog WHERE id <> 0 AND record_type = ${mAbstractHierarchy.RECORD_TYPE_ITEM} ")
         while (rs.next()) tmCatalogID[rs.getString(1)] = rs.getInt(2)
         rs.close()
 
@@ -153,7 +153,7 @@ class cMinusDetector : cAbstractReport() {
             hmCurrentHWState[tmWarehouseID[wName]!!] = 0.0
         }
 
-        val rs = stm.executeQuery(sSQL)
+        val rs = conn.executeQuery(sSQL)
         while (rs.next()) {
             val arrCurDate = arrayOf(rs.getInt(1), rs.getInt(2), rs.getInt(3))
 

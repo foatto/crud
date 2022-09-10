@@ -21,7 +21,6 @@ import foatto.shop.mWarehouse
 import foatto.shop.report.fiscal.Atol
 import foatto.shop.report.fiscal.iFiscal
 import foatto.sql.CoreAdvancedConnection
-import foatto.sql.CoreAdvancedStatement
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
 import io.ktor.client.features.*
@@ -72,10 +71,10 @@ class cDocContent : cAbstractReport() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun init(aApplication: iApplication, aConn: CoreAdvancedConnection, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig) {
-        super.init(aApplication, aConn, aStm, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
+    override fun init(aApplication: iApplication, aConn: CoreAdvancedConnection, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig) {
+        super.init(aApplication, aConn, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
 
-        hmPrice = PriceData.loadPrice(stm, mPrice.PRICE_TYPE_OUT)
+        hmPrice = PriceData.loadPrice(conn, mPrice.PRICE_TYPE_OUT)
     }
 
     override fun isFormAutoClick(): Boolean {
@@ -105,11 +104,11 @@ class cDocContent : cAbstractReport() {
         hmReportParam["report_document_type"] = docType
         hmReportParam["report_catalog_dest"] = (hmColumnData[mdc.columnCatalogDest] as DataInt).intValue
 
-        return if (aliasConfig.alias == "shop_fiscal_doc_content") {
+        return if (aliasConfig.name == "shop_fiscal_doc_content") {
             //--- дополнительная проверка (вдруг ещё нажимали на кнопку в том же окне)
             var isFiscable = false
             if (docType == DocumentTypeConfig.TYPE_OUT && docID != 0) {
-                val rs = stm.executeQuery(" SELECT is_fiscaled FROM SHOP_doc WHERE id = $docID ")
+                val rs = conn.executeQuery(" SELECT is_fiscaled FROM SHOP_doc WHERE id = $docID ")
                 isFiscable = rs.next() && rs.getInt(1) == 0
                 rs.close()
             }
@@ -153,7 +152,7 @@ class cDocContent : cAbstractReport() {
         val reportDocumentType = hmReportParam["report_document_type"] as Int
         val reportCatalogDest = hmReportParam["report_catalog_dest"] as Int
 
-        val hmWarehouseName = mWarehouse.fillWarehouseMap(stm)
+        val hmWarehouseName = mWarehouse.fillWarehouseMap(conn)
         var discount = 0.0
 
         defineFormats(8, 2, 0)
@@ -171,7 +170,7 @@ class cDocContent : cAbstractReport() {
 
         //--- заголовок отчёта зависит от указанных параметров
         if (reportDocument != 0) {
-            val rs = stm.executeQuery(
+            val rs = conn.executeQuery(
                 " SELECT SHOP_doc.sour_id , SHOP_doc.dest_id , SHOP_doc.doc_no , SHOP_doc.doc_ye , SHOP_doc.doc_mo , SHOP_doc.doc_da , " +
                     " SHOP_client.name , SHOP_doc.descr , SHOP_doc.discount " +
                     " FROM SHOP_doc , SHOP_client " +
@@ -242,7 +241,7 @@ class cDocContent : cAbstractReport() {
             rs.close()
         } else {
             if (reportDocumentClient != 0) {
-                val rs = stm.executeQuery(" SELECT name FROM SHOP_client WHERE id = $reportDocumentClient ")
+                val rs = conn.executeQuery(" SELECT name FROM SHOP_client WHERE id = $reportDocumentClient ")
                 if (rs.next()) {
                     sheet.addCell(Label(1, offsY, "Контрагент:", wcfTitleName))
                     sheet.addCell(Label(2, offsY, rs.getString(1), wcfTitleValue))
@@ -256,7 +255,7 @@ class cDocContent : cAbstractReport() {
                 offsY++
             }
             if (reportCatalogDest != 0) {
-                val rs = stm.executeQuery(" SELECT name FROM SHOP_catalog WHERE id = $reportCatalogDest ")
+                val rs = conn.executeQuery(" SELECT name FROM SHOP_catalog WHERE id = $reportCatalogDest ")
                 if (rs.next()) {
                     sheet.addCell(Label(1, offsY, "Наименование:", wcfTitleName))
                     sheet.addCell(Label(2, offsY, rs.getString(1), wcfTitleValue))
@@ -370,7 +369,7 @@ class cDocContent : cAbstractReport() {
                 sWhereAND +
                 " ORDER BY $sOrderBy "
 
-        val rs = stm.executeQuery(sSQL)
+        val rs = conn.executeQuery(sSQL)
         var countNN = 1
         var sumNum = 0.0
         var sumCostOut = 0.0
@@ -449,6 +448,7 @@ class cDocContent : cAbstractReport() {
             sumCostOut += priceOut * num
         }
         rs.close()
+
         offsY++
 
         //--- при выводе состава всех типов накладных сумма бессмысленна
@@ -536,7 +536,7 @@ class cDocContent : cAbstractReport() {
         var docDa = 0
         var discount = 0.0
 
-        var rs = stm.executeQuery(" SELECT doc_ye , doc_mo , doc_da , discount FROM SHOP_doc WHERE id = $docId ")
+        var rs = conn.executeQuery(" SELECT doc_ye , doc_mo , doc_da , discount FROM SHOP_doc WHERE id = $docId ")
         if (rs.next()) {
             docYe = rs.getInt(1)
             docMo = rs.getInt(2)
@@ -552,7 +552,7 @@ class cDocContent : cAbstractReport() {
             " AND SHOP_doc_content.is_deleted = 0 " +
             " AND SHOP_doc_content.sour_id = SHOP_catalog.id "
 
-        rs = stm.executeQuery(sSQL)
+        rs = conn.executeQuery(sSQL)
         while (rs.next()) {
             val price = PriceData.getPrice(hmPrice, rs.getInt(1), zoneId, docYe, docMo, docDa) * (1 - discount / 100)
             val name = rs.getString(2).trim().apply {
@@ -582,7 +582,7 @@ class cDocContent : cAbstractReport() {
             fiscalPlace = fiscalPlace,
         )
         if (fiscalOnceOnly) {
-            stm.executeUpdate(" UPDATE SHOP_doc SET is_fiscaled = 1 WHERE id = $docId ")
+            conn.executeUpdate(" UPDATE SHOP_doc SET is_fiscaled = 1 WHERE id = $docId ")
         }
     }
 

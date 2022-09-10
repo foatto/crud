@@ -10,7 +10,7 @@ import foatto.core_server.app.server.column.ColumnDouble
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.mAbstract
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 
 class mPrice : mAbstract() {
 
@@ -22,9 +22,9 @@ class mPrice : mAbstract() {
 
     lateinit var columnPriceType: ColumnComboBox
 
-    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
+    override fun init(application: iApplication, aConn: CoreAdvancedConnection, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
 
-        super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+        super.init(application, aConn, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -44,7 +44,7 @@ class mPrice : mAbstract() {
         columnCatalogName.addSelectorColumn(columnCatalog, columnCatalogID)
         columnCatalogName.addSelectorColumn(columnCatalogName)   //, columnCatalogName );
 
-        columnPriceType = ColumnComboBox(modelTableName, "price_type", "Тип цены", if (aliasConfig.alias == "shop_price_in") PRICE_TYPE_IN else PRICE_TYPE_OUT)
+        columnPriceType = ColumnComboBox(modelTableName, "price_type", "Тип цены", if (aliasConfig.name == "shop_price_in") PRICE_TYPE_IN else PRICE_TYPE_OUT)
         columnPriceType.addChoice(PRICE_TYPE_IN, "Закупочная цена")
         columnPriceType.addChoice(PRICE_TYPE_OUT, "Розничная цена")
 

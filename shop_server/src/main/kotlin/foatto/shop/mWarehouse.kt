@@ -9,13 +9,13 @@ import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.mAbstract
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 
 class mWarehouse : mAbstract() {
 
-    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
+    override fun init(application: iApplication, aConn: CoreAdvancedConnection, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
 
-        super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+        super.init(application, aConn, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -68,9 +68,10 @@ class mWarehouse : mAbstract() {
 
     companion object {
 
-        fun fillWarehouseList(stm: CoreAdvancedStatement): List<Pair<Int, String>> {
+        fun fillWarehouseList(conn: CoreAdvancedConnection): List<Pair<Int, String>> {
             val alWarehouse = mutableListOf<Pair<Int, String>>()
-            val rs = stm.executeQuery(" SELECT id , name FROM SHOP_warehouse WHERE id <> 0 ORDER BY name ")
+
+            val rs = conn.executeQuery(" SELECT id , name FROM SHOP_warehouse WHERE id <> 0 ORDER BY name ")
             while (rs.next()) {
                 alWarehouse += Pair(rs.getInt(1), rs.getString(2))
             }
@@ -79,12 +80,12 @@ class mWarehouse : mAbstract() {
             return alWarehouse
         }
 
-        fun fillWarehouseMap(stm: CoreAdvancedStatement): Map<Int, String> {
+        fun fillWarehouseMap(conn: CoreAdvancedConnection): Map<Int, String> {
             val hmWarehouseName = mutableMapOf<Int, String>()
             //--- пустое имя для warehouseID == 0 тоже может пригодиться
             hmWarehouseName[0] = "(все склады / магазины)"
 
-            val rs = stm.executeQuery(" SELECT id , name FROM SHOP_warehouse WHERE id <> 0 ORDER BY name ")
+            val rs = conn.executeQuery(" SELECT id , name FROM SHOP_warehouse WHERE id <> 0 ORDER BY name ")
             while (rs.next()) {
                 hmWarehouseName[rs.getInt(1)] = rs.getString(2)
             }

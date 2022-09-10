@@ -12,7 +12,7 @@ import foatto.core_server.app.server.column.ColumnDouble
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.mAbstract
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 
 class mDocumentContent : mAbstract() {
 
@@ -69,7 +69,7 @@ class mDocumentContent : mAbstract() {
 
     override fun init(
         application: iApplication,
-        aStm: CoreAdvancedStatement,
+        aConn: CoreAdvancedConnection,
         aliasConfig: AliasConfig,
         userConfig: UserConfig,
         aHmParam: Map<String, String>,
@@ -77,7 +77,7 @@ class mDocumentContent : mAbstract() {
         id: Int?,
     ) {
 
-        super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+        super.init(application, aConn, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         var docID: Int? = null
         for (name in DocumentTypeConfig.hmAliasDocType.keys) {
@@ -85,11 +85,11 @@ class mDocumentContent : mAbstract() {
             if (docID != null) break
         }
 
-        val hmAliasConfig = AliasConfig.getConfig(stm)
+        val hmAliasConfigs = application.getAliasConfig(conn)
 
-        val alWarehouse = mWarehouse.fillWarehouseList(stm)
+        val alWarehouse = mWarehouse.fillWarehouseList(conn)
 
-        val docType = DocumentTypeConfig.hmAliasDocType[aliasConfig.alias]
+        val docType = DocumentTypeConfig.hmAliasDocType[aliasConfig.name]
 
         val isUseSourWarehouse = DocumentTypeConfig.hsUseSourWarehouse.contains(docType)
         val isUseDestWarehouse = DocumentTypeConfig.hsUseDestWarehouse.contains(docType)
@@ -99,7 +99,7 @@ class mDocumentContent : mAbstract() {
         val isUseDestNum = DocumentTypeConfig.hsUseDestNum.contains(docType)
 
         //--- получить данные по правам доступа
-        val hsPermission = userConfig.userPermission[aliasConfig.alias]
+        val hsPermission = userConfig.userPermission[aliasConfig.name]
         //--- при добавлении модуля в систему прав доступа к нему ещё нет
         val isAuditMode = hsPermission?.contains(cDocumentContent.PERM_AUDIT_MODE) ?: false
 
@@ -130,8 +130,9 @@ class mDocumentContent : mAbstract() {
         columnDocument = ColumnInt(modelTableName, "doc_id", columnDocumentID, docID)
 
         columnDocumentType = ColumnComboBox("SHOP_doc", "doc_type", "Тип накладной").apply {
-            for ((dt, an) in DocumentTypeConfig.hmDocTypeAlias)
-                addChoice(dt, hmAliasConfig[an]!!.descr)
+            for ((dt, an) in DocumentTypeConfig.hmDocTypeAlias) {
+                addChoice(dt, hmAliasConfigs[an]?.descr ?: "(неизвестный тип накладной = $dt : '$an')")
+            }
         }
         columnDocumentDate = ColumnDate3Int("SHOP_doc", "doc_ye", "doc_mo", "doc_da", "Дата")
 

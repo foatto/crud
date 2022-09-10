@@ -1,6 +1,6 @@
 package foatto.shop.report
 
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 
 class DocumentData(
     val id: Int,
@@ -22,10 +22,10 @@ class DocumentData(
     lateinit var alDCD: MutableList<DocumentContentData>
 
     companion object {
-        fun loadDocumentData(stm: CoreAdvancedStatement): List<DocumentData> {
+        fun loadDocumentData(conn: CoreAdvancedConnection): List<DocumentData> {
             val alDD = mutableListOf<DocumentData>()
 
-            val rs = stm.executeQuery(
+            val rs = conn.executeQuery(
                 """
                     SELECT id , doc_type , sour_id , dest_id , doc_no , doc_ye , doc_mo , doc_da , client_id , discount , descr 
                     FROM SHOP_doc 
@@ -51,7 +51,7 @@ class DocumentData(
             }
 
             for (dd in alDD) {
-                dd.alDCD = DocumentContentData.loadDocumentContentData(stm, dd.id)
+                dd.alDCD = DocumentContentData.loadDocumentContentData(conn, dd.id)
             }
 
             return alDD

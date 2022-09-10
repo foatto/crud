@@ -10,30 +10,27 @@ import foatto.shop.PriceData
 import foatto.shop.cDocument
 import foatto.shop.mPrice
 import foatto.sql.CoreAdvancedConnection
-import foatto.sql.CoreAdvancedStatement
 import java.util.concurrent.ConcurrentHashMap
 
 abstract class cAbstractShopReport : cAbstractReport() {
 
     private lateinit var hmPrice: Map<Int, List<Pair<Int, Double>>>
 
-    override fun init(aApplication: iApplication, aConn: CoreAdvancedConnection, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig) {
-        super.init(aApplication, aConn, aStm, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
+    override fun init(aApplication: iApplication, aConn: CoreAdvancedConnection, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig) {
+        super.init(aApplication, aConn, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
 
-        hmPrice = PriceData.loadPrice(stm, mPrice.PRICE_TYPE_OUT)
+        hmPrice = PriceData.loadPrice(conn, mPrice.PRICE_TYPE_OUT)
     }
 
     //--- расчёт суммы нескольких документов
     protected fun calcOut(aWarehouseID: Int, arrDT: Array<Int>): Double {
-        val stmCalc = conn.createStatement()
-
         //--- получаем список документов
         val alDocID = mutableListOf<Int>()
         val alDocType = mutableListOf<Int>()
         val alDocDiscount = mutableListOf<Double>()
 
         //--- для всех продаж
-        var rs = stmCalc.executeQuery(
+        var rs = conn.executeQuery(
             """
                 SELECT id , discount 
                 FROM SHOP_doc 
@@ -53,7 +50,7 @@ abstract class cAbstractShopReport : cAbstractReport() {
         rs.close()
 
         //--- для всех возвратов от покупателя
-        rs = stmCalc.executeQuery(
+        rs = conn.executeQuery(
             """
                 SELECT id , discount 
                 FROM SHOP_doc 
@@ -80,10 +77,8 @@ abstract class cAbstractShopReport : cAbstractReport() {
             val discount = alDocDiscount[i]
 
             result += (if (docType == DocumentTypeConfig.TYPE_OUT) 1 else -1) *
-                cDocument.calcDocCountAndCost(stmCalc, hmPrice, docID, docType, zoneId, arrDT[0], arrDT[1], arrDT[2], discount).second
+                cDocument.calcDocCountAndCost(conn, hmPrice, docID, docType, zoneId, arrDT[0], arrDT[1], arrDT[2], discount).second
         }
-
-        stmCalc.close()
 
         return result
     }

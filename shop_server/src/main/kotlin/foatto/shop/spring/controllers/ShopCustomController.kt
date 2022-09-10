@@ -23,7 +23,6 @@ class ShopCustomController {
     ): CustomResponse {
 
         val conn = AdvancedConnection(CoreSpringApp.dbConfig)
-        val stm = conn.createStatement()
 
         when (customRequest.command) {
             CUSTOM_COMMAND_SAVE_DOC_PAYMENT -> {
@@ -32,7 +31,7 @@ class ShopCustomController {
                 val paySberbank = customRequest.hmData[PARAM_DOC_PAYMENT_SBERBANK]!!
                 val paySertificate = customRequest.hmData[PARAM_DOC_PAYMENT_SERTIFICATE]!!
 
-                stm.executeUpdate(
+                conn.executeUpdate(
                     """
                         UPDATE SHOP_doc SET
                         pay_terminal = $payTerminal ,      
@@ -46,8 +45,6 @@ class ShopCustomController {
 
         //--- зафиксировать любые изменения в базе/
         conn.commit()
-
-        stm.close()
         conn.close()
 
         return CustomResponse()

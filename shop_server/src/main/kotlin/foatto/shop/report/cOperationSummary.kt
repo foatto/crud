@@ -43,7 +43,7 @@ class cOperationSummary : cAbstractOperationState() {
 
         collectWarehouseInfo()
         collectItemInfo()
-        hmCatalogParent = cAbstractHierarchy.getCatalogParent(stm, "SHOP_catalog")
+        hmCatalogParent = cAbstractHierarchy.getCatalogParent(conn, "SHOP_catalog")
 
         tmItem = TreeMap()
         //--- рекурсивный расчет
@@ -150,7 +150,7 @@ class cOperationSummary : cAbstractOperationState() {
                         " SHOP_doc.doc_ye = ${arrEndDT!![0]} AND SHOP_doc.doc_mo < ${arrEndDT!![1]} OR " +
                         " SHOP_doc.doc_ye = ${arrEndDT!![0]} AND SHOP_doc.doc_mo = ${arrEndDT!![1]} AND SHOP_doc.doc_da <= ${arrEndDT!![2]} ) "
 
-                val rs = stm.executeQuery(sSQL)
+                val rs = conn.executeQuery(sSQL)
                 while(rs.next()) {
                     val num = rs.getDouble(1)
                     val docYe = rs.getInt(2)

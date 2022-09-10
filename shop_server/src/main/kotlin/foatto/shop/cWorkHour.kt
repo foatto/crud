@@ -22,7 +22,7 @@ class cWorkHour : cStandart() {
         val curDay = curDateData.localDate.dayOfMonth
         val maxDaysInMonth = curDateData.localDate.month.length(curDateData.localDate.isLeapYear)
 
-        val rs = stm.executeQuery(
+        val rs = conn.executeQuery(
             """ 
                 SELECT COUNT(*) 
                 FROM SHOP_work_hour 
@@ -54,11 +54,11 @@ class cWorkHour : cStandart() {
                     //--- не будем дублировать уже созданную запись
                     if (workerId == currentWorkerId && day == curDay) {
                     } else if (workHour > 0.0) {
-                        stm.executeUpdate(
+                        conn.executeUpdate(
                             """
                                 INSERT INTO SHOP_work_hour ( id , worker_id , ye , mo , da , work_hour , hour_tax )
                                 VALUES ( 
-                                    ${stm.getNextIntId("SHOP_work_hour", "id")} ,
+                                    ${conn.getNextIntId("SHOP_work_hour", "id")} ,
                                     $workerId , $curYear , $curMonth , $day , $workHour , $hourTax                                                                        
                                 )
                             """

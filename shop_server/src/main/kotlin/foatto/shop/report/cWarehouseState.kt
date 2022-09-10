@@ -36,11 +36,11 @@ class cWarehouseState : cAbstractOperationState() {
 
         collectWarehouseInfo()
         collectItemInfo()
-        hmCatalogParent = cAbstractHierarchy.getCatalogParent(stm, "SHOP_catalog")
+        hmCatalogParent = cAbstractHierarchy.getCatalogParent(conn, "SHOP_catalog")
 
         hmDestCount = mutableMapOf()
         hmSourCount = mutableMapOf()
-        cCatalog.loadCatalogCount(stm, null, arrEndDT, hmDestCount, hmSourCount)
+        cCatalog.loadCatalogCount(conn, null, arrEndDT, hmDestCount, hmSourCount)
 
         tmItem = TreeMap()
         //--- рекурсивный расчет

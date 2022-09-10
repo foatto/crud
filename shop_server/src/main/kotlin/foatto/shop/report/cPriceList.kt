@@ -24,11 +24,11 @@ class cPriceList : cAbstractCatalogReport() {
 
         collectWarehouseInfo()
         collectItemInfo()
-        hmCatalogParent = cAbstractHierarchy.getCatalogParent(stm, "SHOP_catalog")
+        hmCatalogParent = cAbstractHierarchy.getCatalogParent(conn, "SHOP_catalog")
 
         hmDestCount = mutableMapOf()
         hmSourCount = mutableMapOf()
-        cCatalog.loadCatalogCount(stm, null, null, hmDestCount, hmSourCount)
+        cCatalog.loadCatalogCount(conn, null, null, hmDestCount, hmSourCount)
 
         tmItem = TreeMap()
         //--- рекурсивный расчет

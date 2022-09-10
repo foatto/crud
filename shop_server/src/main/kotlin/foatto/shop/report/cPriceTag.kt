@@ -12,7 +12,6 @@ import foatto.core_server.app.server.data.DataInt
 import foatto.shop.PriceData
 import foatto.shop.mPrice
 import foatto.sql.CoreAdvancedConnection
-import foatto.sql.CoreAdvancedStatement
 import jxl.CellView
 import jxl.format.*
 import jxl.write.Label
@@ -29,10 +28,10 @@ class cPriceTag : cAbstractReport() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun init(aApplication: iApplication, aConn: CoreAdvancedConnection, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig) {
-        super.init(aApplication, aConn, aStm, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
+    override fun init(aApplication: iApplication, aConn: CoreAdvancedConnection, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig) {
+        super.init(aApplication, aConn, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
 
-        hmPrice = PriceData.loadPrice(stm, mPrice.PRICE_TYPE_OUT)
+        hmPrice = PriceData.loadPrice(conn, mPrice.PRICE_TYPE_OUT)
     }
 
     override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
@@ -130,7 +129,7 @@ class cPriceTag : cAbstractReport() {
                 var catalogPrice = 0.0
 
                 if (catalogID != 0) {
-                    val rs = stm.executeQuery(" SELECT name FROM SHOP_catalog WHERE id = $catalogID ")
+                    val rs = conn.executeQuery(" SELECT name FROM SHOP_catalog WHERE id = $catalogID ")
                     if (rs.next()) {
                         catalogName = rs.getString(1)
 

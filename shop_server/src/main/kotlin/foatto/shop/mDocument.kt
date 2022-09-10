@@ -9,7 +9,7 @@ import foatto.core_server.app.server.DependData
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.*
 import foatto.core_server.app.server.mAbstract
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 
 class mDocument : mAbstract() {
 
@@ -42,7 +42,7 @@ class mDocument : mAbstract() {
 
     override fun init(
         application: iApplication,
-        aStm: CoreAdvancedStatement,
+        aConn: CoreAdvancedConnection,
         aliasConfig: AliasConfig,
         userConfig: UserConfig,
         aHmParam: Map<String, String>,
@@ -50,15 +50,15 @@ class mDocument : mAbstract() {
         id: Int?
     ) {
 
-        super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+        super.init(application, aConn, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
-        val docType = DocumentTypeConfig.hmAliasDocType[aliasConfig.alias]!!
-        val hmAliasConfig = AliasConfig.getConfig(stm)
-        val alWarehouse = mWarehouse.fillWarehouseList(stm)
+        val docType = DocumentTypeConfig.hmAliasDocType[aliasConfig.name]!!
+        val hmAliasConfigs = application.getAliasConfig(conn)
+        val alWarehouse = mWarehouse.fillWarehouseList(conn)
         val parentWarehouseId = hmParentData["shop_warehouse"]
 
         //--- получить данные по правам доступа
-        val hsPermission = userConfig.userPermission[aliasConfig.alias]
+        val hsPermission = userConfig.userPermission[aliasConfig.name]
         //--- при добавлении модуля в систему прав доступа к нему ещё нет
         val isAuditMode = hsPermission?.contains(cDocument.PERM_AUDIT_MODE) ?: false
 
@@ -89,7 +89,7 @@ class mDocument : mAbstract() {
         columnDocumentType = ColumnComboBox(modelTableName, "doc_type", "Тип накладной", docType).apply {
             isEditable = false    // это информационное поле, значение устанавливается программно
             for ((dt, an) in DocumentTypeConfig.hmDocTypeAlias) {
-                addChoice(dt, hmAliasConfig[an]!!.descr)
+                addChoice(dt, hmAliasConfigs[an]?.descr ?: "(неизвестный тип накладной = $dt : '$an')")
             }
         }
 
@@ -266,7 +266,7 @@ class mDocument : mAbstract() {
         //----------------------------------------------------------------------------------------------------------------------
 
         alChildData += ChildData(
-            aAlias = DocumentTypeConfig.hmAliasChild[aliasConfig.alias]!!,
+            aAlias = DocumentTypeConfig.hmAliasChild[aliasConfig.name]!!,
             aColumn = columnId,
             aNewGroup = true,
             aDefaultOperation = true

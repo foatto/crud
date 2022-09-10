@@ -5,7 +5,7 @@ import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.mAbstractReport
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 import java.time.LocalDate
 
 class mWorkHour : mAbstractReport() {
@@ -15,7 +15,7 @@ class mWorkHour : mAbstractReport() {
 
     override fun init(
         application: iApplication,
-        aStm: CoreAdvancedStatement,
+        aConn: CoreAdvancedConnection,
         aliasConfig: AliasConfig,
         userConfig: UserConfig,
         aHmParam: Map<String, String>,
@@ -23,7 +23,7 @@ class mWorkHour : mAbstractReport() {
         id: Int?
     ) {
 
-        super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+        super.init(application, aConn, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         val now = LocalDate.now()
 

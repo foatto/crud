@@ -22,7 +22,6 @@ import foatto.core_server.app.server.data.DataString
 import foatto.core_server.app.server.data.iData
 import foatto.core_server.app.server.mAbstractHierarchy
 import foatto.sql.CoreAdvancedConnection
-import foatto.sql.CoreAdvancedStatement
 import java.time.ZonedDateTime
 import java.util.concurrent.ConcurrentHashMap
 
@@ -42,16 +41,16 @@ class cCatalog : cAbstractHierarchy() {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     override fun init(
-        aApplication: iApplication, aConn: CoreAdvancedConnection, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig
+        aApplication: iApplication, aConn: CoreAdvancedConnection, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig
     ) {
-        super.init(aApplication, aConn, aStm, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
+        super.init(aApplication, aConn, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
 
-        hmPriceIn = PriceData.loadPrice(stm, mPrice.PRICE_TYPE_IN)
-        hmPriceOut = PriceData.loadPrice(stm, mPrice.PRICE_TYPE_OUT)
+        hmPriceIn = PriceData.loadPrice(conn, mPrice.PRICE_TYPE_IN)
+        hmPriceOut = PriceData.loadPrice(conn, mPrice.PRICE_TYPE_OUT)
         today = getCurrentTimeInt()
 
         //--- получить данные по правам доступа
-        val hsPermission = userConfig.userPermission[aliasConfig.alias]
+        val hsPermission = userConfig.userPermission[aliasConfig.name]
         //--- при добавлении модуля в систему прав доступа к нему ещё нет
         isMerchant = hsPermission?.contains(PERM_MERCHANT) ?: false
     }
@@ -63,11 +62,11 @@ class cCatalog : cAbstractHierarchy() {
     }
 
     override fun getTable(hmOut: MutableMap<String, Any>): TableResponse {
-        alWarehouse = mWarehouse.fillWarehouseList(stm)
+        alWarehouse = mWarehouse.fillWarehouseList(conn)
 
         hmDestCount.clear()
         hmSourCount.clear()
-        loadCatalogCount(stm, null, null, hmDestCount, hmSourCount)/*DocumentTypeConfig.TYPE_ALL, null,*/
+        loadCatalogCount(conn, null, null, hmDestCount, hmSourCount)/*DocumentTypeConfig.TYPE_ALL, null,*/
 
         return super.getTable(hmOut)
     }
@@ -82,7 +81,7 @@ class cCatalog : cAbstractHierarchy() {
         val hsID: Set<Int>
         if (recordType == mAbstractHierarchy.RECORD_TYPE_FOLDER) {
             //--- возвращаем ID только от items
-            hsID = expandCatalog(stm, model.modelTableName, catalogID, true)
+            hsID = expandCatalog(conn, model.modelTableName, catalogID, true)
             //--- если в результате только один элемент и тот равен ID группы элементов, значит группа пустая
             (hmColumnData[mc.columnCatalogRowCount] as DataString).text = (if (hsID.size == 1 && hsID.contains(catalogID)) 0 else hsID.size).toString()
         } else {
@@ -179,25 +178,27 @@ class cCatalog : cAbstractHierarchy() {
         val arrPriceDate = getDateTimeArray(priceDate)
 
         //--- если новая цена равна старой - пропускаем
-        val rs = stm.executeQuery(
+        val rs = conn.executeQuery(
             " SELECT price_value FROM SHOP_price WHERE catalog_id = $catalogID AND price_type = $priceType ORDER BY ye DESC , mo DESC , da DESC "
         )
         val lastPrice = if (rs.next()) rs.getDouble(1) else 0.0
         rs.close()
-        if (lastPrice == priceValue) return
+
+        if (lastPrice == priceValue) {
+            return
+        }
 
         //--- сначала попробуем просто поменять сегодняшнюю цену (вдруг её сегодня уже меняли), чтобы не получилось ДВЕ сегодняшних цены
-        if (stm.executeUpdate(
+        if (conn.executeUpdate(
                 " UPDATE SHOP_price SET price_value = $priceValue " +
                     " WHERE catalog_id = $catalogID " +
                     " AND price_type  = $priceType " +
                     " AND ye = ${arrPriceDate[0]} AND mo = ${arrPriceDate[1]} AND da = ${arrPriceDate[2]} "
             ) == 0
         ) {
-
             //--- такой цены не нашлось - просто добавляем
-            val nextID = stm.getNextIntId("SHOP_price", "id")
-            stm.executeUpdate(
+            val nextID = conn.getNextIntId("SHOP_price", "id")
+            conn.executeUpdate(
                 " INSERT INTO SHOP_price ( id, catalog_id, price_type, ye, mo, da, price_value, price_note ) VALUES ( " +
                     " $nextID , $catalogID , $priceType , " +
                     " ${arrPriceDate[0]} , ${arrPriceDate[1]} , ${arrPriceDate[2]} , " +
@@ -213,13 +214,12 @@ class cCatalog : cAbstractHierarchy() {
         const val PERM_MERCHANT = "merchant"
 
         fun loadCatalogCount(
-            stm: CoreAdvancedStatement,
+            conn: CoreAdvancedConnection,
             aClientID: Int?, //int aDocType, int[] arrBegDT,
             arrEndDT: Array<Int>?,
             hmDest: MutableMap<Int, MutableMap<Int, Double>>,
             hmSour: MutableMap<Int, MutableMap<Int, Double>>
         ) {
-
             val whereClient = if (aClientID == null) "" else " AND SHOP_doc.client_id = $aClientID"
 
             val whereDocType = ""
@@ -242,7 +242,7 @@ class cCatalog : cAbstractHierarchy() {
                     " SHOP_doc.doc_ye = ${arrEndDT[0]} AND SHOP_doc.doc_mo = ${arrEndDT[1]} AND SHOP_doc.doc_da <= ${arrEndDT[2]} ) "
 
             //--- суммирование всяческих приходов
-            var rs = stm.executeQuery(
+            var rs = conn.executeQuery(
                 " SELECT SHOP_doc_content.dest_id , SHOP_doc.dest_id , SUM( SHOP_doc_content.dest_num ) " +
                     " FROM SHOP_doc_content , SHOP_doc " +
                     " WHERE SHOP_doc_content.doc_id = SHOP_doc.id " +
@@ -265,7 +265,7 @@ class cCatalog : cAbstractHierarchy() {
             rs.close()
 
             //--- вычитание всяческих расходов
-            rs = stm.executeQuery(
+            rs = conn.executeQuery(
                 " SELECT SHOP_doc_content.sour_id , SHOP_doc.sour_id , SUM( SHOP_doc_content.sour_num ) " +
                     " FROM SHOP_doc_content , SHOP_doc " +
                     " WHERE SHOP_doc_content.doc_id = SHOP_doc.id " +
@@ -319,11 +319,11 @@ class cCatalog : cAbstractHierarchy() {
 
 //--- старая ненужная версия, пусть полежит.
 //--- теперь это единообразно делается в cAbstractHierarchy
-//        fun moveToArchive(stm: CoreAdvancedStatement, catalogID: Int) {
+//        fun moveToArchive(conn: CoreAdvancedConnection, catalogID: Int) {
 //            var archiveID = 0
 //            //--- определяем ID папки с архивом:
 //            //--- текущий вариант: это должна быть самая первая по алфавиту корневая папка
-//            var rs = stm.executeQuery(" SELECT id FROM SHOP_catalog WHERE id <> 0 AND parent_id = 0 ORDER BY name ")
+//            var rs = conn.executeQuery(" SELECT id FROM SHOP_catalog WHERE id <> 0 AND parent_id = 0 ORDER BY name ")
 //            if(rs.next()) archiveID = rs.getInt(1)
 //            rs.close()
 //
@@ -331,7 +331,7 @@ class cCatalog : cAbstractHierarchy() {
 //            val alParentID = mutableListOf<Int>()
 //            val alParentName = mutableListOf<String>()
 //            //--- стартовое значение
-//            rs = stm.executeQuery(" SELECT parent_id FROM SHOP_catalog WHERE id = $catalogID ")
+//            rs = conn.executeQuery(" SELECT parent_id FROM SHOP_catalog WHERE id = $catalogID ")
 //            if(rs.next()) alParentID.add(rs.getInt(1))
 //            rs.close()
 //
@@ -339,7 +339,7 @@ class cCatalog : cAbstractHierarchy() {
 //                val pID = alParentID[0]
 //                if(pID == 0) break
 //
-//                rs = stm.executeQuery(" SELECT parent_id , name FROM SHOP_catalog WHERE id = $pID ")
+//                rs = conn.executeQuery(" SELECT parent_id , name FROM SHOP_catalog WHERE id = $pID ")
 //                if(rs.next()) {
 //                    alParentID.add(0, rs.getInt(1))
 //                    alParentName.add(0, "${rs.getString(2)} (архив)")
@@ -352,13 +352,13 @@ class cCatalog : cAbstractHierarchy() {
 //            for(parentName in alParentName) {
 //                //--- проверка существования такой папки в архиве
 //                var existID = 0
-//                rs = stm.executeQuery(" SELECT id FROM SHOP_catalog WHERE parent_id = $parentID AND name = '$parentName$' ")
+//                rs = conn.executeQuery(" SELECT id FROM SHOP_catalog WHERE parent_id = $parentID AND name = '$parentName$' ")
 //                if(rs.next()) existID = rs.getInt(1)
 //                rs.close()
 //                //--- такой папки нет - создаём сами
 //                if(existID == 0) {
 //                    existID = stm.getNextID("SHOP_catalog", "id")
-//                    stm.executeUpdate(
+//                    conn.executeUpdate(
 //                        " INSERT INTO SHOP_catalog ( id , parent_id , record_type , name , is_production, profit_add ) VALUES ( " +
 //                            " $existID , $parentID , ${mAbstractHierarchy.RECORD_TYPE_FOLDER} , '$parentName' , 0 , 0 ) "
 //                    )
@@ -367,7 +367,7 @@ class cCatalog : cAbstractHierarchy() {
 //                parentID = existID
 //            }
 //            //--- меняем ссылку на родительскую папку
-//            stm.executeUpdate(" UPDATE SHOP_catalog SET parent_id = $parentID WHERE id = $catalogID ")
+//            conn.executeUpdate(" UPDATE SHOP_catalog SET parent_id = $parentID WHERE id = $catalogID ")
 //        }
     }
 

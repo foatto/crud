@@ -1,29 +1,17 @@
 package foatto.shop.report
 
 import foatto.core.link.FormData
-import foatto.core.link.XyDocumentConfig
 import foatto.core.util.DateTime_DMY
 import foatto.core.util.getSplittedDouble
-import foatto.core_server.app.iApplication
-import foatto.core_server.app.server.AliasConfig
-import foatto.core_server.app.server.UserConfig
-import foatto.core_server.app.server.cAbstractReport
 import foatto.core_server.app.server.data.DataComboBox
 import foatto.core_server.app.server.data.DataDate3Int
-import foatto.shop.DocumentTypeConfig
-import foatto.shop.PriceData
-import foatto.shop.cDocument
-import foatto.shop.mPrice
 import foatto.shop.mWarehouse
-import foatto.sql.CoreAdvancedConnection
-import foatto.sql.CoreAdvancedStatement
 import jxl.CellView
 import jxl.format.PageOrientation
 import jxl.format.PaperSize
 import jxl.write.Label
 import jxl.write.WritableSheet
 import java.time.ZonedDateTime
-import java.util.concurrent.ConcurrentHashMap
 
 class cCashHistory : cAbstractShopReport() {
 
@@ -80,7 +68,7 @@ class cCashHistory : cAbstractShopReport() {
         //--- суммируем недостачу с начала текущего года
         val gcDiffSumStart = ZonedDateTime.of(ZonedDateTime.now(zoneId).year, 1, 1, 0, 0, 0, 0, zoneId)
 
-        val hmWarehouseName = mWarehouse.fillWarehouseMap(stm)
+        val hmWarehouseName = mWarehouse.fillWarehouseMap(conn)
 
         defineFormats(8, 2, 0)
 
@@ -152,7 +140,7 @@ class cCashHistory : cAbstractShopReport() {
         var sumDebtIn = 0.0
         var sumDiff = 0.0
 
-        val rs = stm.executeQuery(
+        val rs = conn.executeQuery(
             " SELECT ye , mo , da , cash_put , cash_used , debt_out , debt_in , cash_rest , descr FROM SHOP_cash WHERE warehouse_id = $reportWarehouse ORDER BY ye , mo , da "
         )
         while (rs.next()) {

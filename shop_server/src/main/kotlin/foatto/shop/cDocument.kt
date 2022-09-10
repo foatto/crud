@@ -13,7 +13,6 @@ import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.data.*
 import foatto.sql.CoreAdvancedConnection
-import foatto.sql.CoreAdvancedStatement
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.concurrent.ConcurrentHashMap
@@ -28,7 +27,7 @@ class cDocument : cStandart() {
 
         //--- расчёт всех параметров накладной: кол-во строк, стоимость с учётом скидки
         fun calcDocCountAndCost(
-            stm: CoreAdvancedStatement,
+            conn: CoreAdvancedConnection,
             hmPrice: Map<Int, List<Pair<Int, Double>>>,
             docID: Int,
             docType: Int,
@@ -39,11 +38,11 @@ class cDocument : cStandart() {
             discount: Double
         ): Pair<Int, Double> {
             val zdt = ZonedDateTime.of(ye, mo, da, 0, 0, 0, 0, zoneId)
-            return calcDocCountAndCost(stm, hmPrice, docID, docType, zdt.toEpochSecond().toInt(), discount)
+            return calcDocCountAndCost(conn, hmPrice, docID, docType, zdt.toEpochSecond().toInt(), discount)
         }
 
         fun calcDocCountAndCost(
-            stm: CoreAdvancedStatement,
+            conn: CoreAdvancedConnection,
             hmPrice: Map<Int, List<Pair<Int, Double>>>,
             docID: Int,
             docType: Int,
@@ -53,7 +52,7 @@ class cDocument : cStandart() {
             val fnNum = if (DocumentTypeConfig.hsUseDestNum.contains(docType)) "dest_num" else "sour_num"
             val fnCatalog = if (DocumentTypeConfig.hsUseDestCatalog.contains(docType)) "dest_id" else "sour_id"
 
-            val rs = stm.executeQuery(" SELECT $fnNum , $fnCatalog FROM SHOP_doc_content WHERE doc_id = $docID AND is_deleted = 0 ")
+            val rs = conn.executeQuery(" SELECT $fnNum , $fnCatalog FROM SHOP_doc_content WHERE doc_id = $docID AND is_deleted = 0 ")
             var rowCount = 0
             var costSum = 0.0
             while (rs.next()) {
@@ -78,11 +77,11 @@ class cDocument : cStandart() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun init(aApplication: iApplication, aConn: CoreAdvancedConnection, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig) {
-        super.init(aApplication, aConn, aStm, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
+    override fun init(aApplication: iApplication, aConn: CoreAdvancedConnection, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig) {
+        super.init(aApplication, aConn, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
 
-        docType = DocumentTypeConfig.hmAliasDocType[aliasConfig.alias]!!
-        hmPrice = PriceData.loadPrice(stm, mPrice.PRICE_TYPE_OUT)
+        docType = DocumentTypeConfig.hmAliasDocType[aliasConfig.name]!!
+        hmPrice = PriceData.loadPrice(conn, mPrice.PRICE_TYPE_OUT)
     }
 
     override fun definePermission() {
@@ -95,7 +94,7 @@ class cDocument : cStandart() {
         super.fillHeader(selectorID, withAnchors, alPath, hmOut)
 
         getParentId("shop_warehouse")?.let { pid ->
-            alPath.add(Pair("", "[" + (mWarehouse.fillWarehouseMap(stm)[pid] ?: "") + "]"))
+            alPath.add(Pair("", "[" + (mWarehouse.fillWarehouseMap(conn)[pid] ?: "") + "]"))
         }
     }
 
@@ -136,7 +135,7 @@ class cDocument : cStandart() {
         val docTime = (hmColumnData[md.columnDocumentDate] as DataDate3Int).localDate.atStartOfDay(zoneId).toEpochSecond().toInt()
         val discount = (hmColumnData[md.columnDocumentDiscount] as DataDouble).doubleValue
 
-        val (rowCount, docCost) = calcDocCountAndCost(stm, hmPrice, docID, rowDocType, docTime, discount)
+        val (rowCount, docCost) = calcDocCountAndCost(conn, hmPrice, docID, rowDocType, docTime, discount)
         (hmColumnData[md.columnDocumentRowCount] as DataInt).intValue = rowCount
         (hmColumnData[md.columnDocumentCostOut] as DataDouble).doubleValue = docCost
     }
@@ -178,7 +177,7 @@ class cDocument : cStandart() {
         val dataDocNo = (hmColumnData[md.columnDocumentNo] as DataString)
         if (id == 0 && dataDocNo.text.isBlank()) {
             var maxDocNo = 0
-            val rs = stm.executeQuery(
+            val rs = conn.executeQuery(
                 " SELECT doc_no FROM SHOP_doc WHERE doc_type = $docType AND doc_ye = ${ZonedDateTime.now().year} "
             )
             while (rs.next()) {
@@ -187,10 +186,13 @@ class cDocument : cStandart() {
                 maxDocNo = max(maxDocNo, rs.getString(1).toIntOrNull() ?: 0)
             }
             rs.close()
+
             //--- дополняем номер нулями спереди, чтобы сортировка не сбивалась
             //--- (стандартный padStart( 5, '0' ) не пойдёт, т.к. он обрезает более длинную строку до 5 символов
             val sb = StringBuilder().append(maxDocNo + 1)
-            while (sb.length < 5) sb.insert(0, '0')
+            while (sb.length < 5) {
+                sb.insert(0, '0')
+            }
             dataDocNo.text = sb.toString()
         }
 
@@ -216,8 +218,8 @@ class cDocument : cStandart() {
         //--- если добавление не из формы, а из главного меню - то переходим на состав накладной
         if (refererID == null) {
             val hmDocContentParentData = mutableMapOf<String, Int>()
-            hmDocContentParentData[aliasConfig.alias] = id
-            postURL = getParamURL(DocumentTypeConfig.hmAliasChild[aliasConfig.alias]!!, AppAction.TABLE, refererID, 0, hmDocContentParentData, null, null)
+            hmDocContentParentData[aliasConfig.name] = id
+            postURL = getParamURL(DocumentTypeConfig.hmAliasChild[aliasConfig.name]!!, AppAction.TABLE, refererID, 0, hmDocContentParentData, null, null)
         }
 
         return postURL
@@ -282,7 +284,7 @@ class cDocument : cStandart() {
 //            .append( sbWarehouse )
 //            .append( sbDocType )
 //            .append( sbDT );
-//        CoreAdvancedResultSet rs = stm.executeQuery( sbSQL.toString() );
+//        CoreAdvancedResultSet rs = conn.executeQuery( sbSQL.toString() );
 //        while( rs.next() ) {
 //            alDocID.add( rs.getInt( 1 ) );
 //            alDocDiscount.add( rs.getDouble( 2 ) );
@@ -295,7 +297,7 @@ class cDocument : cStandart() {
 //            int docID = alDocID.get( i );
 //            double discount = alDocDiscount.get( i );
 //
-//            rs = stm.executeQuery( getDocCostSQL( docID, aDocType ) );
+//            rs = conn.executeQuery( getDocCostSQL( docID, aDocType ) );
 //            if( rs.next() )
 //                result += rs.getDouble( 2 ) * ( 1 - discount / 100 );
 //            rs.close();

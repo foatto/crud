@@ -9,7 +9,6 @@ import jxl.format.PageOrientation
 import jxl.format.PaperSize
 import jxl.write.Label
 import jxl.write.WritableSheet
-import java.util.*
 
 class cDocErrorDetector : cAbstractReport() {
 
@@ -42,14 +41,13 @@ class cDocErrorDetector : cAbstractReport() {
         printKeyH = 2.0
     }
 
-    override fun postReport( sheet: WritableSheet ) {
+    override fun postReport(sheet: WritableSheet) {
 
         val alDER = calcReport()
 
         try {
             defineFormats(8, 2, 0)
-        }
-        catch(aThrowable: Throwable) {
+        } catch (aThrowable: Throwable) {
             aThrowable.printStackTrace()
         }
 
@@ -66,20 +64,20 @@ class cDocErrorDetector : cAbstractReport() {
         alCaption.add("Описание ошибки")
         alDim.add(85)
 
-        for(i in alDim.indices) {
+        for (i in alDim.indices) {
             val cvNN = CellView()
             cvNN.size = alDim[i] * 256
             sheet.setColumnView(i, cvNN)
         }
         //--- вывод заголовков
         var offsX = 0  // счётчик позиций из-за переменного кол-ва заголовков
-        for(caption in alCaption)
+        for (caption in alCaption)
             sheet.addCell(Label(offsX++, offsY, caption, wcfCaptionHC))
 
         offsY++
 
         var countNN = 1
-        for(errorDescr in alDER) {
+        for (errorDescr in alDER) {
             offsX = 0
 
             sheet.addCell(Label(offsX++, offsY, (countNN++).toString(), wcfNN))
@@ -89,7 +87,7 @@ class cDocErrorDetector : cAbstractReport() {
         }
         offsY++
 
-        sheet.addCell( Label( 1, offsY, getPreparedAt(), wcfCellL ) )
+        sheet.addCell(Label(1, offsY, getPreparedAt(), wcfCellL))
         //sheet.mergeCells( 1, offsY, 3, offsY );
     }
 
@@ -98,13 +96,13 @@ class cDocErrorDetector : cAbstractReport() {
 
         val alDER = mutableListOf<String>()
 
-        val alDD = DocumentData.loadDocumentData( stm )
+        val alDD = DocumentData.loadDocumentData(conn)
 
         //--- ищем пустые накладные и накладные с дублирующимися строками внутри себя
-        for(dd in alDD) {
+        for (dd in alDD) {
             val alDCD = dd.alDCD
 
-            if(alDCD.isEmpty()) {
+            if (alDCD.isEmpty()) {
                 alDER.add(
                     StringBuilder("Пустая накладная № ")
                         .append(dd.docNo).append(" от ")
@@ -116,12 +114,12 @@ class cDocErrorDetector : cAbstractReport() {
             val isUseSour = DocumentTypeConfig.hsUseSourCatalog.contains(dd.type)
             val isUseDest = DocumentTypeConfig.hsUseDestCatalog.contains(dd.type)
 
-            for(i in 0 until alDCD.size - 1) {
+            for (i in 0 until alDCD.size - 1) {
                 val dcd0 = alDCD[i]
-                for(j in i + 1 until alDCD.size) {
+                for (j in i + 1 until alDCD.size) {
                     val dcd1 = alDCD[j]
 
-                    if(isUseSour && dcd0.sourID == dcd1.sourID || isUseDest && dcd0.destID == dcd1.destID)
+                    if (isUseSour && dcd0.sourID == dcd1.sourID || isUseDest && dcd0.destID == dcd1.destID)
 
                         alDER.add(
                             StringBuilder("Совпадающие строки в накладной № ")
@@ -133,22 +131,22 @@ class cDocErrorDetector : cAbstractReport() {
         }
 
         //--- ищем накладные, отличающиеся друг от друга не более чем на одну строку
-        for(i in 0 until alDD.size - 1) {
+        for (i in 0 until alDD.size - 1) {
             val dd0 = alDD[i]
             val alDCD0 = dd0.alDCD
 
             //--- пустые накладные сравнивать бессмысленно
-            if(alDCD0.isEmpty()) continue
+            if (alDCD0.isEmpty()) continue
 
-            for(j in i + 1 until alDD.size) {
+            for (j in i + 1 until alDD.size) {
                 val dd1 = alDD[j]
                 val alDCD1 = dd1.alDCD
 
                 //--- пустые накладные сравнивать бессмысленно
-                if(alDCD1.isEmpty()) continue
+                if (alDCD1.isEmpty()) continue
 
                 //--- накладные разных типов не сравниваем и сразу пропускаем
-                if(dd0.type != dd1.type) continue
+                if (dd0.type != dd1.type) continue
 
                 val isUseSourCatalog = DocumentTypeConfig.hsUseSourCatalog.contains(dd0.type)
                 val isUseDestCatalog = DocumentTypeConfig.hsUseDestCatalog.contains(dd0.type)
@@ -156,27 +154,24 @@ class cDocErrorDetector : cAbstractReport() {
                 val isUseDestNum = DocumentTypeConfig.hsUseDestNum.contains(dd0.type)
 
                 var diffCount = 0
-                OUT_K@ for(k0 in alDCD0.indices)
-                    for(k1 in alDCD1.indices)
+                OUT_K@ for (k0 in alDCD0.indices)
+                    for (k1 in alDCD1.indices)
 
-                        if(isUseSourCatalog && alDCD0[k0].sourID != alDCD1[k1].sourID) {
+                        if (isUseSourCatalog && alDCD0[k0].sourID != alDCD1[k1].sourID) {
                             diffCount++
                             break@OUT_K
-                        }
-                        else if(isUseDestCatalog && alDCD0[k0].destID != alDCD1[k1].destID) {
+                        } else if (isUseDestCatalog && alDCD0[k0].destID != alDCD1[k1].destID) {
                             diffCount++
                             break@OUT_K
-                        }
-                        else if(isUseSourNum && alDCD0[k0].sourNum != alDCD1[k1].sourNum) {
+                        } else if (isUseSourNum && alDCD0[k0].sourNum != alDCD1[k1].sourNum) {
                             diffCount++
                             break@OUT_K
-                        }
-                        else if(isUseDestNum && alDCD0[k0].destNum != alDCD1[k1].destNum) {
+                        } else if (isUseDestNum && alDCD0[k0].destNum != alDCD1[k1].destNum) {
                             diffCount++
                             break@OUT_K
                         }
 
-                if(diffCount == 0)
+                if (diffCount == 0)
                     alDER.add(
                         StringBuilder("Совпадающие накладные № ")
                             .append(dd0.docNo).append(" от ").append(DateTime_DMY(dd0.arrDT))

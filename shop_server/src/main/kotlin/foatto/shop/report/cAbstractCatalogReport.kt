@@ -14,7 +14,6 @@ import foatto.shop.PriceData
 import foatto.shop.mPrice
 import foatto.shop.mWarehouse
 import foatto.sql.CoreAdvancedConnection
-import foatto.sql.CoreAdvancedStatement
 import jxl.format.PageOrientation
 import jxl.format.PaperSize
 import java.util.*
@@ -42,10 +41,10 @@ abstract class cAbstractCatalogReport : cAbstractReport() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun init(aApplication: iApplication, aConn: CoreAdvancedConnection, aStm: CoreAdvancedStatement, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig) {
-        super.init(aApplication, aConn, aStm, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
+    override fun init(aApplication: iApplication, aConn: CoreAdvancedConnection, aChmSession: ConcurrentHashMap<String, Any>, aHmParam: Map<String, String>, aHmAliasConfig: Map<String, AliasConfig>, aAliasConfig: AliasConfig, aHmXyDocumentConfig: Map<String, XyDocumentConfig>, aUserConfig: UserConfig) {
+        super.init(aApplication, aConn, aChmSession, aHmParam, aHmAliasConfig, aAliasConfig, aHmXyDocumentConfig, aUserConfig)
 
-        hmPrice = PriceData.loadPrice(stm, mPrice.PRICE_TYPE_OUT)
+        hmPrice = PriceData.loadPrice(conn, mPrice.PRICE_TYPE_OUT)
     }
 
     override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
@@ -93,21 +92,23 @@ abstract class cAbstractCatalogReport : cAbstractReport() {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     protected fun collectWarehouseInfo() {
-        hmWarehouseName = mWarehouse.fillWarehouseMap(stm)
+        hmWarehouseName = mWarehouse.fillWarehouseMap(conn)
         //--- понадобится еще и отсортированный список наименований магазинов
         tmWarehouseID = TreeMap()
         // "все склады" нам не нужны, сами напишем
-        for((wID, wName) in hmWarehouseName)
-            if(wID != 0)
+        for ((wID, wName) in hmWarehouseName) {
+            if (wID != 0) {
                 tmWarehouseID[wName] = wID
+            }
+        }
     }
 
     protected fun collectItemInfo() {
         //--- соберём инфу по элементам каталога
         hmItemInfo = mutableMapOf()
         hmItemInfo[0] = ItemInfo(0, ROOT_ITEM_NAME, true)
-        val rs = stm.executeQuery(" SELECT id , name , record_type FROM SHOP_catalog WHERE id <> 0 ")
-        while(rs.next()) {
+        val rs = conn.executeQuery(" SELECT id , name , record_type FROM SHOP_catalog WHERE id <> 0 ")
+        while (rs.next()) {
             val id = rs.getInt(1)
             hmItemInfo[id] = ItemInfo(id, rs.getString(2), rs.getInt(3) == mAbstractHierarchy.RECORD_TYPE_FOLDER)
         }
@@ -118,7 +119,7 @@ abstract class cAbstractCatalogReport : cAbstractReport() {
 
     protected class CalcItem(val ii: ItemInfo, val parentName: String?) {
         //--- список подэлементов (если == null, значит это элемент, а не папка)
-        var tmSubItem: TreeMap<String, CalcItem>? = if(ii.isFolder) TreeMap() else null
+        var tmSubItem: TreeMap<String, CalcItem>? = if (ii.isFolder) TreeMap() else null
 
         //--- кол-во наименований - только для папок
         var subItemCount = 0

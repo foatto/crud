@@ -14,7 +14,7 @@ import foatto.shop.spring.repositories.CatalogRepository
 import foatto.shop.spring.repositories.DocumentContentRepository
 import foatto.shop.spring.repositories.DocumentRepository
 import foatto.spring.controllers.CoreAppController
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
@@ -109,7 +109,7 @@ class ShopAppController : CoreAppController(), iShopApplication {
         //               alias.startsWith(  "ft_show_"  );
     }
 
-    override fun menuInit(stm: CoreAdvancedStatement, hmAliasConfig: Map<String, AliasConfig>, userConfig: UserConfig): List<MenuData> {
+    override fun menuInit(conn: CoreAdvancedConnection, hmAliasConfig: Map<String, AliasConfig>, userConfig: UserConfig): List<MenuData> {
 
         val alMenu = mutableListOf<MenuData>()
         val hmAliasPerm = userConfig.userPermission
