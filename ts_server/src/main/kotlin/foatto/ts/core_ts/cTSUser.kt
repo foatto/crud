@@ -69,7 +69,7 @@ class cTSUser : cStandart() {
     }
 
     override fun preSave(id: Int, hmColumnData: Map<iColumn, iData>) {
-        cUser.checkAndSetNewPassword(stm, id, hmColumnData[(model as mTSUser).columnUserPassword] as? DataString)
+        cUser.checkAndSetNewPassword(conn, id, hmColumnData[(model as mTSUser).columnUserPassword] as? DataString)
         super.preSave(id, hmColumnData)
     }
 
@@ -80,12 +80,12 @@ class cTSUser : cStandart() {
         cUser.refreshUserConfig(application, conn, userConfig.userId, hmOut)
 
         //--- создать запись индивидуального сдвига часового пояса
-        cUser.addTimeZone(stm, id)
+        cUser.addTimeZone(conn, id)
 
         //--- автосоздание привязки пользователя/клиента и его типовых ролей
         (application as iTSApplication).alTSUserRoleId.forEach { clientRoleId ->
-            val nextId = stm.getNextIntId("SYSTEM_user_role", "id")
-            stm.executeUpdate(
+            val nextId = conn.getNextIntId("SYSTEM_user_role", "id")
+            conn.executeUpdate(
                 """
                     INSERT INTO SYSTEM_user_role( id , role_id , user_id ) 
                     VALUES ( $nextId , $clientRoleId , $id )
@@ -114,8 +114,7 @@ class cTSUser : cStandart() {
     private fun controlEnableSaved(id: Int): Boolean {
         val controlRoleId = (application as iTSApplication).controlEnabledRoleId
 
-        val stm = conn.createStatement()
-        val rs = stm.executeQuery(
+        val rs = conn.executeQuery(
             """
                 SELECT id FROM SYSTEM_user_role 
                 WHERE role_id = $controlRoleId  
@@ -124,7 +123,6 @@ class cTSUser : cStandart() {
         )
         val result = rs.next()
         rs.close()
-        stm.close()
 
         return result
     }
@@ -135,8 +133,8 @@ class cTSUser : cStandart() {
 
         if (isControlEnabled) {
             if (!controlEnableSaved(id)) {
-                val nextId = stm.getNextIntId("SYSTEM_user_role", "id")
-                stm.executeUpdate(
+                val nextId = conn.getNextIntId("SYSTEM_user_role", "id")
+                conn.executeUpdate(
                     """
                         INSERT INTO SYSTEM_user_role( id , role_id , user_id ) 
                         VALUES ( $nextId , $controlRoleId , $id )
@@ -144,7 +142,7 @@ class cTSUser : cStandart() {
                 )
             }
         } else {
-            stm.executeUpdate(
+            conn.executeUpdate(
                 """
                     DELETE FROM SYSTEM_user_role
                     WHERE role_id = $controlRoleId  

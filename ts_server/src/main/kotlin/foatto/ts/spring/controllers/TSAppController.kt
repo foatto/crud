@@ -17,7 +17,7 @@ import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.spring.CoreSpringApp
 import foatto.spring.controllers.CoreAppController
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 import foatto.ts.core_ts.ObjectConfig
 import foatto.ts.core_ts.sensor.config.SensorConfig
 import foatto.ts.core_ts.sensor.config.SensorConfigAnalogue
@@ -106,7 +106,7 @@ class TSAppController : CoreAppController(), iTSApplication {
     override fun checkLogSkipAliasPrefix(alias: String): Boolean =
         alias.startsWith("ts_report_") || alias.startsWith("ts_graphic_") || alias.startsWith("ts_show_")
 
-    override fun menuInit(stm: CoreAdvancedStatement, hmAliasConfig: Map<String, AliasConfig>, userConfig: UserConfig): List<MenuData> {
+    override fun menuInit(conn: CoreAdvancedConnection, hmAliasConfig: Map<String, AliasConfig>, userConfig: UserConfig): List<MenuData> {
 
         val alMenu = mutableListOf<MenuData>()
         val hmAliasPerm = userConfig.userPermission

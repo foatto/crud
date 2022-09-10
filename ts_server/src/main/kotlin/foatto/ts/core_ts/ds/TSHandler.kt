@@ -4,25 +4,14 @@ import foatto.core.util.AdvancedByteBuffer
 import foatto.core.util.AdvancedLogger
 import foatto.core.util.DateTime_YMDHMS
 import foatto.core.util.getCurrentTimeInt
-import foatto.core.util.getDateTimeArray
 import foatto.core.util.getFileWriter
 import foatto.core_server.app.server.column.ColumnRadioButton
-import foatto.core_server.ds.AbstractHandler
 import foatto.core_server.ds.AbstractTelematicHandler
-import foatto.core_server.ds.CoreDataServer
 import foatto.core_server.ds.CoreDataWorker
 import foatto.sql.CoreAdvancedConnection
-import foatto.sql.CoreAdvancedStatement
 import foatto.sql.SQLBatch
 import java.io.File
-import java.nio.channels.SelectionKey
 import java.nio.channels.SocketChannel
-import java.time.ZoneId
-import java.util.*
-import java.util.concurrent.ConcurrentHashMap
-import kotlin.math.ceil
-import kotlin.math.floor
-import kotlin.math.round
 
 abstract class TSHandler : AbstractTelematicHandler() {
 
@@ -40,10 +29,10 @@ abstract class TSHandler : AbstractTelematicHandler() {
 
 //        //--- пришлось делать в виде static, т.к. VideoServer не является потомком TSHandler,
 //        //--- а в AbstractHandler не знает про прикладные TS-таблицы
-//        fun getCommand(stm: CoreAdvancedStatement, aDeviceID: Int): Pair<Int, String?> {
+//        fun getCommand(conn: CoreAdvancedConnection, aDeviceID: Int): Pair<Int, String?> {
 //            var cmdID = 0
 //            var cmdStr: String? = null
-//            val rs = stm.executeQuery(
+//            val rs = conn.executeQuery(
 //                " SELECT TS_device_command_history.id , TS_device_command.cmd " +
 //                    " FROM TS_device_command_history , TS_device_command " +
 //                    " WHERE TS_device_command_history.command_id = TS_device_command.id " +
@@ -59,9 +48,9 @@ abstract class TSHandler : AbstractTelematicHandler() {
 //            return Pair(cmdID, cmdStr)
 //        }
 //
-//        fun setCommandSended(stm: CoreAdvancedStatement, cmdID: Int) {
+//        fun setCommandSended(conn: CoreAdvancedConnection, cmdID: Int) {
 //            //--- отметим успешную отправку команды
-//            stm.executeUpdate(" UPDATE TS_device_command_history SET for_send = 0 , send_time = ${getCurrentTimeInt()} WHERE id = $cmdID")
+//            conn.executeUpdate(" UPDATE TS_device_command_history SET for_send = 0 , send_time = ${getCurrentTimeInt()} WHERE id = $cmdID")
 //        }
     }
 
@@ -82,16 +71,16 @@ abstract class TSHandler : AbstractTelematicHandler() {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     override fun prepareErrorCommand(dataWorker: CoreDataWorker) {
-        writeError(dataWorker.conn, dataWorker.stm, " Disconnect from serial No = $serialNo")
+        writeError(dataWorker.conn, " Disconnect from serial No = $serialNo")
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     protected fun loadDeviceConfig(dataWorker: CoreDataWorker): Boolean {
-        deviceConfig = DeviceConfig.getDeviceConfig(dataWorker.stm, serialNo)
+        deviceConfig = DeviceConfig.getDeviceConfig(dataWorker.conn, serialNo)
         //--- неизвестный контроллер
         if (deviceConfig == null) {
-            writeError(dataWorker.conn, dataWorker.stm, "Unknown serial No = $serialNo")
+            writeError(dataWorker.conn, "Unknown serial No = $serialNo")
             writeJournal(
                 dirJournalLog = dirJournalLog,
                 zoneId = zoneId,
@@ -104,16 +93,16 @@ abstract class TSHandler : AbstractTelematicHandler() {
         return true
     }
 
-    protected fun writeError(conn: CoreAdvancedConnection, stm: CoreAdvancedStatement, aError: String) {
+    protected fun writeError(conn: CoreAdvancedConnection, aError: String) {
         status += " Error;"
         errorText = aError
         if (deviceConfig != null && serialNo.isNotEmpty()) {
-            writeSession(conn, stm, false)
+            writeSession(conn, false)
         }
         AdvancedLogger.error(aError)
     }
 
-    protected fun writeSession(conn: CoreAdvancedConnection, stm: CoreAdvancedStatement, isOk: Boolean) {
+    protected fun writeSession(conn: CoreAdvancedConnection, isOk: Boolean) {
         //--- какое д.б. имя лог-файла для текущего дня и часа
         val logTime = DateTime_YMDHMS(zoneId, getCurrentTimeInt())
         val curLogFileName = logTime.substring(0, 13).replace('.', '-').replace(' ', '-')
@@ -150,7 +139,7 @@ abstract class TSHandler : AbstractTelematicHandler() {
             out.flush()
             out.close()
 
-            stm.executeUpdate(
+            conn.executeUpdate(
                 """
                     UPDATE TS_device SET 
                     fw_version = '$fwVersion' , 
@@ -167,13 +156,13 @@ abstract class TSHandler : AbstractTelematicHandler() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    protected fun addPoint(stm: CoreAdvancedStatement, time: Int, bbData: AdvancedByteBuffer, sqlBatchData: SQLBatch) {
+    protected fun addPoint(conn: CoreAdvancedConnection, time: Int, bbData: AdvancedByteBuffer, sqlBatchData: SQLBatch) {
         //--- если возможен режим оффлайн-загрузки данных по этому контроллеру (например, через android-посредника),
         //--- то возможно и повторение точек. В этом случае надо удалить предыдущую(ие) точку(и) с таким же временем.
         //--- Поскольку это очень затратная операция, то по умолчанию режим оффлайн-загрузки данных не включен
         //if (deviceConfig!!.isOfflineMode) sqlBatchData.add(" DELETE FROM TS_data_${deviceConfig!!.objectId} WHERE ontime = $time ; ")
         bbData.flip()
-        sqlBatchData.add(" INSERT INTO TS_data_${deviceConfig!!.objectId} ( ontime , sensor_data ) VALUES ( $time , ${stm.getHexValue(bbData)} ); ")
+        sqlBatchData.add(" INSERT INTO TS_data_${deviceConfig!!.objectId} ( ontime , sensor_data ) VALUES ( $time , ${conn.getHexValue(bbData)} ); ")
     }
 
 }

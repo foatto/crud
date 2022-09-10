@@ -20,7 +20,7 @@ class cObjectSetup : cStandart() {
 
     override fun getCalculatedFormColumnData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {
         val objectConfig = (application as iTSApplication).getObjectConfig(userConfig, getParentId("ts_object")!!)
-        val objectState = ObjectState.getState(stm, objectConfig)
+        val objectState = ObjectState.getState(conn, objectConfig)
 
         objectState.lastDateTime?.let { lastDateTime ->
             val mos = model as mObjectSetup

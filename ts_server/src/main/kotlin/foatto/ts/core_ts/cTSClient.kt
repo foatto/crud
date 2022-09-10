@@ -51,8 +51,7 @@ class cTSClient : cClient() {
     private fun controlEnableSaved(id: Int): Boolean {
         val controlRoleId = (application as iTSApplication).controlEnabledRoleId
 
-        val stm = conn.createStatement()
-        val rs = stm.executeQuery(
+        val rs = conn.executeQuery(
             """
                 SELECT id FROM SYSTEM_user_role 
                 WHERE role_id = $controlRoleId  
@@ -61,7 +60,6 @@ class cTSClient : cClient() {
         )
         val result = rs.next()
         rs.close()
-        stm.close()
 
         return result
     }
@@ -72,8 +70,8 @@ class cTSClient : cClient() {
 
         if (isControlEnabled) {
             if (!controlEnableSaved(id)) {
-                val nextId = stm.getNextIntId("SYSTEM_user_role", "id")
-                stm.executeUpdate(
+                val nextId = conn.getNextIntId("SYSTEM_user_role", "id")
+                conn.executeUpdate(
                     """
                         INSERT INTO SYSTEM_user_role( id , role_id , user_id ) 
                         VALUES ( $nextId , $controlRoleId , $id )
@@ -81,7 +79,7 @@ class cTSClient : cClient() {
                 )
             }
         } else {
-            stm.executeUpdate(
+            conn.executeUpdate(
                 """
                     DELETE FROM SYSTEM_user_role
                     WHERE role_id = $controlRoleId  

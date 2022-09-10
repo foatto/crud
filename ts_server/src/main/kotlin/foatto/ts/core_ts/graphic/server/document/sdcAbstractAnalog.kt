@@ -33,7 +33,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         val objectConfig = (application as iTSApplication).getObjectConfig(userConfig, sd.objectId)
 
         //--- единоразово загрузим данные по объекту
-        val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(stm, objectConfig, begTime, endTime)
+        val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(conn, objectConfig, begTime, endTime)
 
         val tmElement = sortedMapOf<String, GraphicElement>()
         val tmElementVisibleConfig = sortedMapOf<String, Triple<String, String, Boolean>>()

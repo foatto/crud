@@ -2,7 +2,7 @@ package foatto.ts.core_ts.ds
 
 import foatto.core.app.UP_TIME_OFFSET
 import foatto.core.util.getZoneId
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 import java.time.ZoneId
 
 class DeviceConfig {
@@ -17,10 +17,10 @@ class DeviceConfig {
 
     companion object {
 
-        fun getDeviceConfig(stm: CoreAdvancedStatement, serialNo: String): DeviceConfig? {
+        fun getDeviceConfig(conn: CoreAdvancedConnection, serialNo: String): DeviceConfig? {
             var dc: DeviceConfig? = null
 
-            var rs = stm.executeQuery(
+            var rs = conn.executeQuery(
                 """
                     SELECT TS_device.id , TS_object.id , TS_object.user_id , TS_device.device_index 
                     FROM TS_object , TS_device 
@@ -39,7 +39,7 @@ class DeviceConfig {
             rs.close()
 
             if (dc != null) {
-                rs = stm.executeQuery(" SELECT property_value FROM SYSTEM_user_property WHERE user_id = ${dc.userID} AND property_name = '$UP_TIME_OFFSET' ")
+                rs = conn.executeQuery(" SELECT property_value FROM SYSTEM_user_property WHERE user_id = ${dc.userID} AND property_name = '$UP_TIME_OFFSET' ")
                 dc.zoneId = if (rs.next()) {
                     getZoneId(rs.getString(1).toInt())
                 } else {

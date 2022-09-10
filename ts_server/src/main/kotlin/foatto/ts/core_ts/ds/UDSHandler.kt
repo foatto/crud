@@ -72,7 +72,7 @@ class UDSHandler : TSHandler() {
                 val udsDataPacket = udsRawPacket.normalize(zoneId)
                 val bbData = dataToByteBuffer(dataWorker, udsDataPacket)
 
-                addPoint(dataWorker.stm, pointTime, bbData, sqlBatchData)
+                addPoint(dataWorker.conn, pointTime, bbData, sqlBatchData)
                 dataCount++
 
                 if (firstPointTime == 0) {
@@ -88,10 +88,10 @@ class UDSHandler : TSHandler() {
                 break
             }
         }
-        sqlBatchData.execute(dataWorker.stm)
+        sqlBatchData.execute(dataWorker.conn)
 
 //        //--- ищем последнюю команду на отправку, независимо от статуса
-//        val rs = dataWorker.stm.executeQuery(
+//        val rs = dataWorker.conn.executeQuery(
 //            """
 //                SELECT id , send_status , command
 //                FROM TS_device_command_history
@@ -126,7 +126,7 @@ class UDSHandler : TSHandler() {
 //        outBuf(bbOut)
 //        //--- write send status & time
 //        if(!sendStatus) {
-//            dataWorker.stm.executeUpdate(
+//            dataWorker.conn.executeUpdate(
 //                """
 //                    UPDATE TS_device_command_history SET
 //                    send_status = 1 ,
@@ -140,7 +140,7 @@ class UDSHandler : TSHandler() {
         //--- данные успешно переданы - теперь можно завершить транзакцию
         status += " Ok;"
         errorText = ""
-        writeSession(dataWorker.conn, dataWorker.stm, true)
+        writeSession(dataWorker.conn, true)
 
         //--- для возможного режима постоянного/длительного соединения
         bbIn.compact()     // нельзя .clear(), т.к. копятся данные следующего пакета

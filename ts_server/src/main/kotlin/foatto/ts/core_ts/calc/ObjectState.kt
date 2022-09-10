@@ -1,9 +1,8 @@
 package foatto.ts.core_ts.calc
 
 import foatto.core.util.AdvancedByteBuffer
-import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.getSplittedDouble
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 import foatto.ts.core_ts.ObjectConfig
 import foatto.ts.core_ts.sensor.config.SensorConfig
 import foatto.ts.core_ts.sensor.config.SensorConfigAnalogue
@@ -34,7 +33,7 @@ class ObjectState {
         private const val MAX_VIEW_PERIOD = 1 * 30 * 24 * 60 * 60
 
         fun getState(
-            stm: CoreAdvancedStatement,
+            conn: CoreAdvancedConnection,
             oc: ObjectConfig,
         ): ObjectState {
             val result = ObjectState()
@@ -75,7 +74,7 @@ class ObjectState {
 //                    FROM TS_data_${oc.objectId}
 //                    ORDER BY ontime DESC
 //                """
-            val inRs = stm.executeQuery(sql)
+            val inRs = conn.executeQuery(sql)
             while (inRs.next()) {
                 val curTime = inRs.getInt(1)
                 val bbIn = inRs.getByteBuffer(2, ByteOrder.BIG_ENDIAN)

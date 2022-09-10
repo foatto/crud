@@ -19,7 +19,6 @@ import foatto.core_server.app.xy.XyStartObjectParsedData
 import foatto.core_server.app.xy.server.document.sdcXyState
 import foatto.core_server.ds.AbstractTelematicHandler
 import foatto.sql.CoreAdvancedConnection
-import foatto.sql.CoreAdvancedStatement
 import foatto.ts.core_ts.cObject
 import foatto.ts.core_ts.calc.ObjectState
 import foatto.ts.core_ts.device.cDevice
@@ -56,7 +55,6 @@ class sdcTSState : sdcXyState() {
     override fun init(
         aApplication: iApplication,
         aConn: CoreAdvancedConnection,
-        aStm: CoreAdvancedStatement,
         aChmSession: ConcurrentHashMap<String, Any>,
         aUserConfig: UserConfig,
         aDocumentConfig: XyDocumentConfig
@@ -78,7 +76,7 @@ class sdcTSState : sdcXyState() {
         hmOutElementTypeAlias[TYPE_STATE_TEXT_TEXT] = "ts_object"
         hmOutElementTypeAlias[TYPE_STATE_VALUE_BAR] = "ts_object"
 
-        super.init(aApplication, aConn, aStm, aChmSession, aUserConfig, aDocumentConfig)
+        super.init(aApplication, aConn, aChmSession, aUserConfig, aDocumentConfig)
     }
 
     override fun getCoords(startParamId: String): XyActionResponse {
@@ -125,7 +123,7 @@ class sdcTSState : sdcXyState() {
         if (!command.isNullOrBlank()) {
             var deviceID = 0
             val deviceIndex = chmElementPort[elementId]!! / AbstractTelematicHandler.MAX_PORT_PER_DEVICE
-            val rs = stm.executeQuery(
+            val rs = conn.executeQuery(
                 """
                     SELECT id FROM TS_device WHERE object_id = $objectId AND device_index = $deviceIndex
                 """
@@ -136,13 +134,13 @@ class sdcTSState : sdcXyState() {
             rs.close()
 
             if (deviceID != 0) {
-                stm.executeUpdate(
+                conn.executeUpdate(
                     """
                         INSERT INTO TS_device_command_history ( id , 
                             user_id , device_id , object_id , 
                             command , create_time , 
                             send_status , send_time ) VALUES ( 
-                            ${stm.getNextIntId("TS_device_command_history", "id")} , 
+                            ${conn.getNextIntId("TS_device_command_history", "id")} , 
                             ${userConfig.userId} , $deviceID , $objectId , 
                             '$command' , ${getCurrentTimeInt()} , 
                             0 , 0 )  
@@ -180,7 +178,7 @@ class sdcTSState : sdcXyState() {
         hmParams: MutableMap<String, String>,
     ) {
         val objectConfig = (application as iTSApplication).getObjectConfig(userConfig, objectParamData.objectId)
-        val objectState = ObjectState.getState(stm, objectConfig)
+        val objectState = ObjectState.getState(conn, objectConfig)
 
         //--- left textual column
 

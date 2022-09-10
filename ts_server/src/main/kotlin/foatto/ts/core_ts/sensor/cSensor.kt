@@ -12,7 +12,7 @@ class cSensor : cTSOneObjectParent() {
             val ms = model as mSensor
 
             val sb = StringBuilder()
-            val rs = stm.executeQuery(" SELECT value_sensor , value_data FROM TS_sensor_calibration WHERE sensor_id = $id ORDER BY value_sensor ")
+            val rs = conn.executeQuery(" SELECT value_sensor , value_data FROM TS_sensor_calibration WHERE sensor_id = $id ORDER BY value_sensor ")
             while (rs.next()) {
                 sb.append(rs.getDouble(1)).append(" = ").append(rs.getDouble(2)).append('\n')
             }
@@ -43,7 +43,7 @@ class cSensor : cTSOneObjectParent() {
 
         val calibration = (hmColumnData[ms.columnCalibrationText] as DataString).text
         //--- очистка предыдущей тарировки
-        stm.executeUpdate(" DELETE FROM TS_sensor_calibration WHERE sensor_id = $id ")
+        conn.executeUpdate(" DELETE FROM TS_sensor_calibration WHERE sensor_id = $id ")
         calibration.split('\n').forEach {
             val alSensorData = it.split('=')
             if (alSensorData.size == 2) {
@@ -51,9 +51,9 @@ class cSensor : cTSOneObjectParent() {
                 val dataValue = alSensorData[1].trim().toDoubleOrNull()
 
                 if (sensorValue != null && dataValue != null) {
-                    stm.executeUpdate(
+                    conn.executeUpdate(
                         " INSERT INTO TS_sensor_calibration ( id , sensor_id , value_sensor , value_data ) VALUES ( +" +
-                            stm.getNextIntId("TS_sensor_calibration", "id") +
+                            conn.getNextIntId("TS_sensor_calibration", "id") +
                             " , $id , $sensorValue , $dataValue ) "
                     )
                 }

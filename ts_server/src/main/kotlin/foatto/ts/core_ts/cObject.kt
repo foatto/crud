@@ -39,8 +39,7 @@ class cObject : cStandart() {
         if (alias == "ts_company") {
             if (parentUserIdFromCompanyId == null) {
                 hmParentData[alias]?.let { companyId ->
-                    val stm = conn.createStatement()
-                    val rs = stm.executeQuery(
+                    val rs = conn.executeQuery(
                         """
                             SELECT id 
                             FROM SYSTEM_users 
@@ -54,7 +53,6 @@ class cObject : cStandart() {
                         parentUserIdFromCompanyId = 0
                     }
                     rs.close()
-                    stm.close()
                 } ?: run {
                     parentUserIdFromCompanyId = 0
                 }
@@ -76,7 +74,7 @@ class cObject : cStandart() {
 
         val id = (hmColumnData[model.columnId] as DataInt).intValue
         val objectConfig = hmObjectConfigCache.getOrPut(id) { (application as iTSApplication).getObjectConfig(userConfig, id) }
-        val objectState = hmObjectStateCache.getOrPut(id) { ObjectState.getState(stm, objectConfig) }
+        val objectState = hmObjectStateCache.getOrPut(id) { ObjectState.getState(conn, objectConfig) }
 
         val md = model as mObject
         when (column) {
@@ -88,6 +86,7 @@ class cObject : cStandart() {
                     tci.backColor = brightColor
                 }
             }
+
             md.columnLastDateTime -> {
                 tci.foreColorType = TableCellForeColorType.DEFINED
 
@@ -124,8 +123,7 @@ class cObject : cStandart() {
 
         //--- заменим company-id на реальный user-id
         val dataUser = hmColumnData[model.columnUser!!] as DataInt
-        val stm = conn.createStatement()
-        val rs = stm.executeQuery(
+        val rs = conn.executeQuery(
             """
                 SELECT id FROM SYSTEM_users 
                 WHERE parent_id = ${dataUser.intValue}
@@ -133,13 +131,12 @@ class cObject : cStandart() {
             """
         )
         //--- да, в этом поле лежит company-id, меняем его на user-id
-        if(rs.next()) {
+        if (rs.next()) {
             dataUser.intValue = rs.getInt(1)
         }
         //--- иначе там лежит уже готовый/правильный user-id, ничего не трогаем
 
         rs.close()
-        stm.close()
     }
 
     override fun getCalculatedFormColumnData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {
@@ -158,24 +155,24 @@ class cObject : cStandart() {
         super.postDelete(id, hmColumnData)
         deleteDataTable(id)
 
-        stm.executeUpdate(" DELETE FROM TS_sensor_calibration WHERE sensor_id IN ( SELECT id FROM TS_sensor WHERE object_id = $id ) ")
-        stm.executeUpdate(" DELETE FROM TS_sensor WHERE object_id = $id ")
+        conn.executeUpdate(" DELETE FROM TS_sensor_calibration WHERE sensor_id IN ( SELECT id FROM TS_sensor WHERE object_id = $id ) ")
+        conn.executeUpdate(" DELETE FROM TS_sensor WHERE object_id = $id ")
     }
 
     private fun createDataTable(id: Int) {
-        stm.executeUpdate(" CREATE TABLE TS_data_$id ( ontime ${stm.dialect.integerFieldTypeName} NOT NULL, sensor_data ${stm.dialect.hexFieldTypeName} ) ")
-        stm.executeUpdate(stm.dialect.createClusteredIndex + " TS_data_${id}_ontime ON TS_data_$id ( ontime ) ")
+        conn.executeUpdate(" CREATE TABLE TS_data_$id ( ontime ${conn.dialect.integerFieldTypeName} NOT NULL, sensor_data ${conn.dialect.hexFieldTypeName} ) ")
+        conn.executeUpdate(conn.dialect.createClusteredIndex + " TS_data_${id}_ontime ON TS_data_$id ( ontime ) ")
     }
 
     private fun deleteDataTable(id: Int) {
-        stm.executeUpdate(" DROP TABLE TS_data_$id ")
+        conn.executeUpdate(" DROP TABLE TS_data_$id ")
     }
 
     private fun generateColumnData(id: Int, hmColumnData: MutableMap<iColumn, iData>) {
         val m = model as mObject
 
         val objectConfig = hmObjectConfigCache.getOrPut(id) { (application as iTSApplication).getObjectConfig(userConfig, id) }
-        val objectState = hmObjectStateCache.getOrPut(id) { ObjectState.getState(stm, objectConfig) }
+        val objectState = hmObjectStateCache.getOrPut(id) { ObjectState.getState(conn, objectConfig) }
 
         val curState = objectState.tmStateValue.values.firstOrNull()
 
@@ -183,6 +180,7 @@ class cObject : cStandart() {
             null -> {
                 mObject.TROUBLE_CONNECT
             }
+
             SensorConfigState.STATE_UNPASS_DOWN,
             SensorConfigState.STATE_UNPASS_UP,
             SensorConfigState.STATE_WIRE_RUNOUT,
@@ -190,6 +188,7 @@ class cObject : cStandart() {
             SensorConfigState.STATE_STOPPED_BY_SERVER -> {
                 mObject.TROUBLE_ERROR
             }
+
             SensorConfigState.STATE_UNPASS_UP_1_METER_DOWN,
             SensorConfigState.STATE_UNPASS_DOWN_PAUSE,
             SensorConfigState.STATE_UNPASS_DOWN_1_METER_UP,
@@ -198,6 +197,7 @@ class cObject : cStandart() {
             SensorConfigState.STATE_UNPASS_DOWN_1_METER_UP_ -> {
                 mObject.TROUBLE_WARNING
             }
+
             else -> {
                 if (getCurrentTimeInt() - (objectState.lastDateTime ?: 0) > 3600) {
                     mObject.TROUBLE_CONNECT

@@ -4,7 +4,7 @@ import foatto.core.app.graphic.GraphicDataContainer
 import foatto.core.app.graphic.GraphicLineData
 import foatto.core.util.AdvancedByteBuffer
 import foatto.core_server.app.server.UserConfig
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 import foatto.ts.core_ts.ObjectConfig
 import foatto.ts.core_ts.graphic.server.graphic_handler.iGraphicHandler
 import foatto.ts.core_ts.sensor.config.SensorConfig
@@ -22,7 +22,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
         //--- the maximum allowable time interval between points
         const val MAX_WORK_TIME_INTERVAL = 10 * 60
 
-        fun calcObject(stm: CoreAdvancedStatement, userConfig: UserConfig, oc: ObjectConfig, begTime: Int, endTime: Int): ObjectCalc {
+        fun calcObject(conn: CoreAdvancedConnection, userConfig: UserConfig, oc: ObjectConfig, begTime: Int, endTime: Int): ObjectCalc {
 
             val result = ObjectCalc(oc)
 
@@ -75,7 +75,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             return result
         }
 
-        fun loadAllSensorData(stm: CoreAdvancedStatement, oc: ObjectConfig, begTime: Int, endTime: Int): Pair<List<Int>, List<AdvancedByteBuffer>> {
+        fun loadAllSensorData(conn: CoreAdvancedConnection, oc: ObjectConfig, begTime: Int, endTime: Int): Pair<List<Int>, List<AdvancedByteBuffer>> {
             var maxSmoothTime = 0
             oc.hmSensorConfig.values.forEach { hmSC ->
                 hmSC.values.forEach { sensorConfig ->
@@ -99,7 +99,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                     ORDER BY ontime
                 """
 
-            val inRs = stm.executeQuery(sql)
+            val inRs = conn.executeQuery(sql)
             while (inRs.next()) {
                 alRawTime.add(inRs.getInt(1))
                 alRawData.add(inRs.getByteBuffer(2, ByteOrder.BIG_ENDIAN))

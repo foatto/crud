@@ -53,8 +53,7 @@ class cCompany : cStandart() {
         }
         val fullName = (hmColumnData[mc.columnRecordFullName] as DataString).text
 
-        val stmUser = conn.createStatement()
-        stmUser.executeUpdate(
+        conn.executeUpdate(
             """
                 INSERT INTO SYSTEM_users( 
                     id , parent_id , user_id , is_disabled , org_type , 
@@ -62,14 +61,13 @@ class cCompany : cStandart() {
                     at_ye , at_mo , at_da , at_ho , at_mi ,  
                     pwd_ye , pwd_mo , pwd_da                     
                 ) VALUES (
-                    ${stm.getNextIntId("SYSTEM_users", "id")} , $id , 0 , $disabledValue , ${OrgType.ORG_TYPE_WORKER} ,
+                    ${conn.getNextIntId("SYSTEM_users", "id")} , $id , 0 , $disabledValue , ${OrgType.ORG_TYPE_WORKER} ,
                     '${getRandomInt()}' , '${getRandomInt()}' , '$fullName' , '' , 0 ,
                     2000 , 1 , 1 , 0 , 0 ,
                     2100 , 1 , 1
                 );
             """
         )
-        stmUser.close()
 
         //--- обновим конфигурацию текущего пользователя (более всего необходимо обновление списка пользователей id=name)
         cUser.refreshUserConfig(application, conn, userConfig.userId, hmOut)
@@ -89,8 +87,7 @@ class cCompany : cStandart() {
         }
         val fullName = (hmColumnData[mc.columnRecordFullName] as DataString).text
 
-        val stmUser = conn.createStatement()
-        stmUser.executeUpdate(
+        conn.executeUpdate(
             """
                 UPDATE SYSTEM_users SET
                     is_disabled = $disabledValue ,
@@ -99,7 +96,6 @@ class cCompany : cStandart() {
                 AND org_type = ${OrgType.ORG_TYPE_WORKER}  
             """
         )
-        stmUser.close()
 
         //--- обновим конфигурацию текущего пользователя (более всего необходимо обновление списка пользователей id=name
         cUser.refreshUserConfig(application, conn, userConfig.userId, hmOut)
@@ -112,8 +108,7 @@ class cCompany : cStandart() {
 
         //--- check for pseudo-sub-user's objects
         if (!result) {
-            val checkStm = conn.createStatement()
-            val rs = checkStm.executeQuery(
+            val rs = conn.executeQuery(
                 """
                     SELECT id FROM TS_object WHERE user_id IN (
                         SELECT id FROM SYSTEM_users 
@@ -124,13 +119,11 @@ class cCompany : cStandart() {
             )
             result = rs.next()
             rs.close()
-            checkStm.close()
         }
 
         //--- check real sub-user's existing
         if (!result) {
-            val checkStm = conn.createStatement()
-            val rs = checkStm.executeQuery(
+            val rs = conn.executeQuery(
                 """
                     SELECT id FROM SYSTEM_users 
                     WHERE parent_id = $id
@@ -139,7 +132,6 @@ class cCompany : cStandart() {
             )
             result = rs.next()
             rs.close()
-            checkStm.close()
         }
 
         return result
@@ -149,14 +141,12 @@ class cCompany : cStandart() {
         super.postDelete(id, hmColumnData)
 
         //--- delete pseudo sub-user
-        val delStm = conn.createStatement()
-        delStm.executeUpdate(
+        conn.executeUpdate(
             """
                 DELETE FROM SYSTEM_users 
                 WHERE parent_id = $id
                 AND org_type = ${OrgType.ORG_TYPE_WORKER}  
             """
         )
-        delStm.close()
     }
 }

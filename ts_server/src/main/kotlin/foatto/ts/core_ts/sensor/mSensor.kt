@@ -11,7 +11,7 @@ import foatto.core_server.app.server.column.ColumnDouble
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.mAbstract
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 import foatto.ts.core_ts.ObjectSelector
 import foatto.ts.core_ts.sensor.config.SensorConfig
 
@@ -24,7 +24,7 @@ class mSensor : mAbstract() {
 
     override fun init(
         application: iApplication,
-        aStm: CoreAdvancedStatement,
+        aConn: CoreAdvancedConnection,
         aliasConfig: AliasConfig,
         userConfig: UserConfig,
         aHmParam: Map<String, String>,
@@ -32,7 +32,7 @@ class mSensor : mAbstract() {
         id: Int?
     ) {
 
-        super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+        super.init(application, aConn, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         val parentObjectId = hmParentData["ts_object"]
 
@@ -50,7 +50,7 @@ class mSensor : mAbstract() {
 
         val columnSensorGroup = ColumnString(modelTableName, "group_name", "Группа датчиков", STRING_COLUMN_WIDTH).apply {
             addCombo("")
-            val rs = stm.executeQuery(
+            val rs = conn.executeQuery(
                 " SELECT DISTINCT group_name FROM $columnTableName WHERE object_id = $parentObjectId AND group_name IS NOT NULL AND group_name <> '' ORDER BY group_name "
             )
             while (rs.next()) {
@@ -74,7 +74,7 @@ class mSensor : mAbstract() {
             //--- arrange the types of sensors depending on their "popularity" (ie frequency of use)
             val hmSensorDescr = mutableMapOf<Int, String>()
             hmSensorDescr.putAll(SensorConfig.hmSensorDescr)
-            val rs = stm.executeQuery(
+            val rs = conn.executeQuery(
                 """
                      SELECT sensor_type, COUNT( * ) AS aaa 
                      FROM TS_sensor 
@@ -95,6 +95,7 @@ class mSensor : mAbstract() {
                 }
             }
             rs.close()
+
             //--- add leftovers from unpopular sensors
             hmSensorDescr.forEach { (sensorType, descr) ->
                 addChoice(sensorType, descr)
