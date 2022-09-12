@@ -28,7 +28,7 @@ abstract class MMSHandler : AbstractTelematicHandler() {
         const val DEVICE_ID_DIVIDER = 10_000_000
 
         const val DEVICE_TYPE_GALILEO = 1
-        const val DEVICE_TYPE_PETROLINE = 2
+//        const val DEVICE_TYPE_PETROLINE = 2
         const val DEVICE_TYPE_PULSAR_DATA = 3
 //        const val DEVICE_TYPE_ARNAVI = 4
 //        const val DEVICE_TYPE_ESCORT = 5
@@ -46,7 +46,7 @@ abstract class MMSHandler : AbstractTelematicHandler() {
             columnDeviceType.defaultValue = DEVICE_TYPE_GALILEO
 
             columnDeviceType.addChoice(DEVICE_TYPE_GALILEO, "Galileo")
-            columnDeviceType.addChoice(DEVICE_TYPE_PETROLINE, "Petroline")
+//            columnDeviceType.addChoice(DEVICE_TYPE_PETROLINE, "Petroline")
             columnDeviceType.addChoice(DEVICE_TYPE_PULSAR_DATA, "Pulsar Data")
 //            columnDeviceType.addChoice(DEVICE_TYPE_ARNAVI, "Arnavi")
 //            columnDeviceType.addChoice(DEVICE_TYPE_ESCORT, "Escort")
