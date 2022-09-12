@@ -1,5 +1,6 @@
 package foatto.ts.core_ts
 
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.data.DataBoolean
 import foatto.core_server.app.server.data.DataInt
@@ -39,8 +40,8 @@ class cTSClient : cClient() {
     override fun postEdit(action: String, id: Int, hmColumnData: Map<iColumn, iData>, hmOut: MutableMap<String, Any>): String? {
         val postURL = super.postEdit(action, id, hmColumnData, hmOut)
 
-        //--- обновим конфигурацию текущего пользователя (более всего необходимо обновление списка пользователей id=name
-        cUser.refreshUserConfig(application, conn, userConfig.userId, hmOut)
+        //--- обновим конфигурацию текущего пользователя (более всего необходимо обновление списка пользователей id=name)
+        hmOut[iApplication.USER_CONFIG] = application.getUserConfig(conn, userConfig.userId)
 
         //--- обновление привязки пользователя/клиента и роли управления приборами
         changeControlEnabledRoleLink(model as mTSClient, id, hmColumnData)

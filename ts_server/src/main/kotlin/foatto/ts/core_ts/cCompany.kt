@@ -4,6 +4,7 @@ import foatto.core.link.TableCell
 import foatto.core.link.TableCellForeColorType
 import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.getRandomInt
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.OrgType
 import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.column.iColumn
@@ -38,7 +39,7 @@ class cCompany : cStandart() {
 
             //--- раскраска фона имени пользователя в зависимости от времени последнего входа в систему
             tci.foreColorType = TableCellForeColorType.DEFINED
-            tci.foreColor = cUser.getUserNameColor(isDisabled, getCurrentTimeInt())
+            tci.foreColor = application.getUserNameColor(isDisabled, getCurrentTimeInt())
         }
     }
 
@@ -70,7 +71,7 @@ class cCompany : cStandart() {
         )
 
         //--- обновим конфигурацию текущего пользователя (более всего необходимо обновление списка пользователей id=name)
-        cUser.refreshUserConfig(application, conn, userConfig.userId, hmOut)
+        hmOut[iApplication.USER_CONFIG] = application.getUserConfig(conn, userConfig.userId)
 
         return postURL
     }
@@ -97,8 +98,8 @@ class cCompany : cStandart() {
             """
         )
 
-        //--- обновим конфигурацию текущего пользователя (более всего необходимо обновление списка пользователей id=name
-        cUser.refreshUserConfig(application, conn, userConfig.userId, hmOut)
+        //--- обновим конфигурацию текущего пользователя (более всего необходимо обновление списка пользователей id=name)
+        hmOut[iApplication.USER_CONFIG] = application.getUserConfig(conn, userConfig.userId)
 
         return postURL
     }

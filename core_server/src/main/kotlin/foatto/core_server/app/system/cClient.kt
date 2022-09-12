@@ -1,7 +1,9 @@
 package foatto.core_server.app.system
 
+import foatto.core.app.UP_TIME_OFFSET
 import foatto.core.link.TableCell
 import foatto.core.link.TableCellForeColorType
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.OrgType
 import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.column.iColumn
@@ -9,6 +11,7 @@ import foatto.core_server.app.server.data.DataBoolean
 import foatto.core_server.app.server.data.DataDate3Int
 import foatto.core_server.app.server.data.DataString
 import foatto.core_server.app.server.data.iData
+import java.util.*
 
 open class cClient : cStandart() {
 
@@ -34,12 +37,12 @@ open class cClient : cStandart() {
 
             //--- раскраска фона имени пользователя в зависимости от времени последнего входа в систему
             tci.foreColorType = TableCellForeColorType.DEFINED
-            tci.foreColor = cUser.getUserNameColor(isDisabled, lastLogonTime)
+            tci.foreColor = application.getUserNameColor(isDisabled, lastLogonTime)
         }
     }
 
     override fun preSave(id: Int, hmColumnData: Map<iColumn, iData>) {
-        cUser.checkAndSetNewPassword(conn, id, hmColumnData[(model as mClient).columnUserPassword] as? DataString)
+        application.checkAndSetNewPassword(conn, id, hmColumnData[(model as mClient).columnUserPassword] as? DataString)
         super.preSave(id, hmColumnData)
     }
 
@@ -48,11 +51,14 @@ open class cClient : cStandart() {
 
         val mc = model as mClient
 
-        //--- обновим конфигурацию текущего пользователя (более всего необходимо обновление списка пользователей id=name)
-        cUser.refreshUserConfig(application, conn, userConfig.userId, hmOut)
-
         //--- создать запись индивидуального сдвига часового пояса
-        cUser.addTimeZone(conn, id)
+        application.saveUserProperty(
+            conn = conn,
+            userId = id,
+            userConfig = null,
+            upName = UP_TIME_OFFSET,
+            upValue = (TimeZone.getDefault().rawOffset / 1000).toString()
+        )
 
         //--- автосоздание привязки пользователя/клиента и его типовых ролей
         mc.getClientRoleIds(application, aliasConfig.name).forEach { clientRoleId ->
@@ -65,14 +71,17 @@ open class cClient : cStandart() {
             )
         }
 
+        //--- обновим конфигурацию текущего пользователя (более всего необходимо обновление списка пользователей id=name)
+        hmOut[iApplication.USER_CONFIG] = application.getUserConfig(conn, userConfig.userId)
+
         return postURL
     }
 
     override fun postEdit(action: String, id: Int, hmColumnData: Map<iColumn, iData>, hmOut: MutableMap<String, Any>): String? {
         val postURL = super.postEdit(action, id, hmColumnData, hmOut)
 
-        //--- обновим конфигурацию текущего пользователя (более всего необходимо обновление списка пользователей id=name
-        cUser.refreshUserConfig(application, conn, userConfig.userId, hmOut)
+        //--- обновим конфигурацию текущего пользователя (более всего необходимо обновление списка пользователей id=name)
+        hmOut[iApplication.USER_CONFIG] = application.getUserConfig(conn, userConfig.userId)
 
         return postURL
     }

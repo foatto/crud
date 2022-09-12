@@ -12,7 +12,13 @@ class ColumnRadioButton(aTableName: String, aFieldName: String, aCaption: String
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     override fun saveDefault(application: iApplication, conn: CoreAdvancedConnection, userConfig: UserConfig, hmColumnData: Map<iColumn, iData>) {
-        application.saveUserProperty(conn, userConfig, savedDefaultPropertyName, (hmColumnData[this] as DataRadioButton).intValue.toString())
+        application.saveUserProperty(
+            conn = conn,
+            userId = null,
+            userConfig = userConfig,
+            upName = savedDefaultPropertyName,
+            upValue = (hmColumnData[this] as DataRadioButton).intValue.toString()
+        )
     }
 
     override fun getData() = DataRadioButton(this)

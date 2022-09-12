@@ -12,7 +12,13 @@ class ColumnComboBox(aTableName: String, aFieldName: String, aCaption: String, a
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     override fun saveDefault(application: iApplication, conn: CoreAdvancedConnection, userConfig: UserConfig, hmColumnData: Map<iColumn, iData>) {
-        application.saveUserProperty(conn, userConfig, savedDefaultPropertyName, (hmColumnData[this] as DataComboBox).intValue.toString())
+        application.saveUserProperty(
+            conn = conn,
+            userId = null,
+            userConfig = userConfig,
+            upName = savedDefaultPropertyName,
+            upValue = (hmColumnData[this] as DataComboBox).intValue.toString()
+        )
     }
 
     override fun getData() = DataComboBox(this)

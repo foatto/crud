@@ -65,7 +65,13 @@ class ColumnInt(
     }
 
     override fun saveDefault(application: iApplication, conn: CoreAdvancedConnection, userConfig: UserConfig, hmColumnData: Map<iColumn, iData>) {
-        application.saveUserProperty(conn, userConfig, savedDefaultPropertyName, (hmColumnData[this] as DataInt).intValue.toString(radix))
+        application.saveUserProperty(
+            conn = conn,
+            userId = null,
+            userConfig = userConfig,
+            upName = savedDefaultPropertyName,
+            upValue = (hmColumnData[this] as DataInt).intValue.toString(radix)
+        )
     }
 
     override fun getData() = DataInt(this)

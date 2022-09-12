@@ -1,7 +1,9 @@
 package foatto.ts.core_ts
 
+import foatto.core.app.UP_TIME_OFFSET
 import foatto.core.link.TableCell
 import foatto.core.link.TableCellForeColorType
+import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.OrgType
 import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.column.iColumn
@@ -12,6 +14,7 @@ import foatto.core_server.app.server.data.DataString
 import foatto.core_server.app.server.data.iData
 import foatto.core_server.app.system.cUser
 import foatto.ts.iTSApplication
+import java.util.*
 
 class cTSUser : cStandart() {
 
@@ -56,7 +59,7 @@ class cTSUser : cStandart() {
 
             //--- раскраска фона имени пользователя в зависимости от времени последнего входа в систему
             tci.foreColorType = TableCellForeColorType.DEFINED
-            tci.foreColor = cUser.getUserNameColor(isDisabled, lastLogonTime)
+            tci.foreColor = application.getUserNameColor(isDisabled, lastLogonTime)
         }
     }
 
@@ -69,18 +72,24 @@ class cTSUser : cStandart() {
     }
 
     override fun preSave(id: Int, hmColumnData: Map<iColumn, iData>) {
-        cUser.checkAndSetNewPassword(conn, id, hmColumnData[(model as mTSUser).columnUserPassword] as? DataString)
+        application.checkAndSetNewPassword(conn, id, hmColumnData[(model as mTSUser).columnUserPassword] as? DataString)
         super.preSave(id, hmColumnData)
     }
 
     override fun postAdd(id: Int, hmColumnData: Map<iColumn, iData>, hmOut: MutableMap<String, Any>): String? {
         val postURL = super.postAdd(id, hmColumnData, hmOut)
 
-        //--- обновим конфигурацию текущего пользователя (более всего необходимо обновление списка пользователей id=name)
-        cUser.refreshUserConfig(application, conn, userConfig.userId, hmOut)
-
         //--- создать запись индивидуального сдвига часового пояса
-        cUser.addTimeZone(conn, id)
+        application.saveUserProperty(
+            conn = conn,
+            userId = id,
+            userConfig = null,
+            upName = UP_TIME_OFFSET,
+            upValue = (TimeZone.getDefault().rawOffset / 1000).toString()
+        )
+
+        //--- обновим конфигурацию текущего пользователя (более всего необходимо обновление списка пользователей id=name)
+        hmOut[iApplication.USER_CONFIG] = application.getUserConfig(conn, userConfig.userId)
 
         //--- автосоздание привязки пользователя/клиента и его типовых ролей
         (application as iTSApplication).alTSUserRoleId.forEach { clientRoleId ->
@@ -102,8 +111,8 @@ class cTSUser : cStandart() {
     override fun postEdit(action: String, id: Int, hmColumnData: Map<iColumn, iData>, hmOut: MutableMap<String, Any>): String? {
         val postURL = super.postEdit(action, id, hmColumnData, hmOut)
 
-        //--- обновим конфигурацию текущего пользователя (более всего необходимо обновление списка пользователей id=name
-        cUser.refreshUserConfig(application, conn, userConfig.userId, hmOut)
+        //--- обновим конфигурацию текущего пользователя (более всего необходимо обновление списка пользователей id=name)
+        hmOut[iApplication.USER_CONFIG] = application.getUserConfig(conn, userConfig.userId)
 
         //--- обновление привязки пользователя/клиента и роли управления приборами
         changeControlEnabledRoleLink(model as mTSUser, id, hmColumnData)

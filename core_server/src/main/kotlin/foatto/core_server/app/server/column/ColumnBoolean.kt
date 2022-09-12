@@ -28,7 +28,13 @@ class ColumnBoolean(aTableName: String, aFieldName: String, aCaption: String = "
     }
 
     override fun saveDefault(application: iApplication, conn: CoreAdvancedConnection, userConfig: UserConfig, hmColumnData: Map<iColumn, iData>) {
-        application.saveUserProperty(conn, userConfig, savedDefaultPropertyName, (hmColumnData[this] as DataBoolean).value.toString())
+        application.saveUserProperty(
+            conn = conn,
+            userId = null,
+            userConfig = userConfig,
+            upName = savedDefaultPropertyName,
+            upValue = (hmColumnData[this] as DataBoolean).value.toString()
+        )
     }
 
     override fun getData() = DataBoolean(this)

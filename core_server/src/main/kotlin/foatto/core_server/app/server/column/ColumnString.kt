@@ -50,7 +50,7 @@ class ColumnString(
     }
 
     override fun saveDefault(application: iApplication, conn: CoreAdvancedConnection, userConfig: UserConfig, hmColumnData: Map<iColumn, iData>) {
-        application.saveUserProperty(conn, userConfig, savedDefaultPropertyName, (hmColumnData[this] as DataString).text)
+        application.saveUserProperty(conn = conn, userId = null, userConfig = userConfig, upName = savedDefaultPropertyName, upValue = (hmColumnData[this] as DataString).text)
     }
 
     override fun getData() = DataString(this)

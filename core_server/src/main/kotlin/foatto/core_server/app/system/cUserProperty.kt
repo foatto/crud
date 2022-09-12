@@ -53,18 +53,21 @@ class cUserProperty : cStandart() {
 
         application.saveUserProperty(
             conn = conn,
+            userId = null,
             userConfig = userConfig,
             upName = UP_TIME_OFFSET,
             upValue = (hmColumnData[mup.columnTimeShift] as DataComboBox).intValue.toString()
         )
         application.saveUserProperty(
             conn = conn,
+            userId = null,
             userConfig = userConfig,
             upName = UP_IS_USE_THOUSANDS_DIVIDER,
             upValue = (hmColumnData[mup.columnDivideThousands] as DataBoolean).value.toString()
         )
         application.saveUserProperty(
             conn = conn,
+            userId = null,
             userConfig = userConfig,
             upName = UP_DECIMAL_DIVIDER,
             upValue = if ((hmColumnData[mup.columnDividerChar] as DataRadioButton).intValue == 0) {

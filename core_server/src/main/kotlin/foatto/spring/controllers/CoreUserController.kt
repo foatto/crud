@@ -4,8 +4,6 @@ import foatto.core.link.ChangePasswordRequest
 import foatto.core.link.ChangePasswordResponse
 import foatto.core.link.LogoffRequest
 import foatto.core.link.LogoffResponse
-import foatto.core.link.SaveUserPropertyRequest
-import foatto.core.link.SaveUserPropertyResponse
 import foatto.core.util.AdvancedLogger
 import foatto.core.util.getCurrentTimeInt
 import foatto.core_server.app.iApplication
@@ -21,47 +19,6 @@ import java.util.concurrent.ConcurrentHashMap
 @RestController
 class CoreUserController {
 
-    @PostMapping("/api/save_user_property")
-    fun saveUserProperty(
-        @RequestBody
-        saveUserPropertyRequest: SaveUserPropertyRequest
-    ): SaveUserPropertyResponse {
-        val saveUserPropertyBegTime = getCurrentTimeInt()
-
-        val conn = AdvancedConnection(CoreSpringApp.dbConfig)
-        val stm = conn.createStatement()
-
-//        logQuery( hmParam )
-        val upName = saveUserPropertyRequest.name
-        val upValue = saveUserPropertyRequest.value
-
-        //--- загрузка/создании сессии
-        val chmSession = CoreSpringApp.chmSessionStore.getOrPut(saveUserPropertyRequest.sessionId) { ConcurrentHashMap() }
-        val userConfig: UserConfig? = chmSession[iApplication.USER_CONFIG] as? UserConfig
-
-        if (userConfig != null) {
-            userConfig.saveUserProperty(conn, upName, upValue)
-        }
-        else {
-            AdvancedLogger.error("User config not defined for saved property, name = '$upName', value = '$upValue'.")
-        }
-
-        //--- зафиксировать любые изменения в базе/
-        conn.commit()
-
-        stm.close()
-        conn.close()
-
-        //--- если запрос длился/обрабатывался дольше MAX_TIME_PER_REQUEST, покажем его
-        if (getCurrentTimeInt() - saveUserPropertyBegTime > CoreSpringApp.MAX_TIME_PER_REQUEST) {
-            AdvancedLogger.error("--- Long Save User Property Query = " + (getCurrentTimeInt() - saveUserPropertyBegTime))
-            AdvancedLogger.error(saveUserPropertyRequest.toString())
-        }
-        //AdvancedLogger.error( "Query time = " + ( System.currentTimeMillis() - appBegTime ) / 1000 );
-
-        return SaveUserPropertyResponse()
-    }
-
     @PostMapping("/api/change_password")
     fun changePassword(
         @RequestBody
@@ -70,7 +27,6 @@ class CoreUserController {
         val changePasswordBegTime = getCurrentTimeInt()
 
         val conn = AdvancedConnection(CoreSpringApp.dbConfig)
-        val stm = conn.createStatement()
 
 //        logQuery( hmParam )
 
@@ -82,7 +38,7 @@ class CoreUserController {
         val userConfig: UserConfig? = chmSession[iApplication.USER_CONFIG] as? UserConfig
 
         if (userConfig != null)
-            stm.executeUpdate(
+            conn.executeUpdate(
                 " UPDATE SYSTEM_users SET pwd = '$newPassword' , " +
                     " pwd_ye = ${toDay.year} , pwd_mo = ${toDay.monthValue} , pwd_da = ${toDay.dayOfMonth}" +
                     " WHERE id = ${userConfig.userId} "
@@ -91,7 +47,6 @@ class CoreUserController {
         //--- зафиксировать любые изменения в базе/
         conn.commit()
 
-        stm.close()
         conn.close()
 
         //--- если запрос длился/обрабатывался дольше MAX_TIME_PER_REQUEST, покажем его
