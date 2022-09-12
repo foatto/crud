@@ -46,7 +46,7 @@ class cOverSpeed : cMMSReport() {
 
     override fun postReport(sheet: WritableSheet) {
         //--- загрузить данные по ВСЕМ зонам (reportZone используется только для последующей фильтрации)
-        val hmZoneData = ZoneData.getZoneData(stm, userConfig, 0)
+        val hmZoneData = ZoneData.getZoneData(conn, userConfig, 0)
         val alAllResult = calcReport(hmZoneData)
 
         //--- загрузка стартовых параметров
@@ -149,7 +149,7 @@ class cOverSpeed : cMMSReport() {
             if (oc.scg == null) continue
 
             val hmZoneLimit = ZoneLimitData.getZoneLimit(
-                stm = stm,
+                conn = conn,
                 userConfig = userConfig,
                 objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, objectId),
                 hmZoneData = hmZoneData,
@@ -157,7 +157,7 @@ class cOverSpeed : cMMSReport() {
             )
 
             //--- единоразово загрузим данные по всем датчикам объекта
-            val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(stm, oc, begTime, endTime)
+            val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(conn, oc, begTime, endTime)
 
             val gcd = ObjectCalc.calcGeoSensor(
                 alRawTime = alRawTime,

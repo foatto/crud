@@ -26,7 +26,6 @@ import foatto.mms.core_mms.sensor.config.SensorConfigWork
 import foatto.mms.core_mms.sensor.config.SignalConfig
 import foatto.mms.iMMSApplication
 import foatto.sql.CoreAdvancedConnection
-import foatto.sql.CoreAdvancedStatement
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.log10
@@ -71,7 +70,6 @@ class sdcMMSState : sdcXyState() {
     override fun init(
         aApplication: iApplication,
         aConn: CoreAdvancedConnection,
-        aStm: CoreAdvancedStatement,
         aChmSession: ConcurrentHashMap<String, Any>,
         aUserConfig: UserConfig,
         aDocumentConfig: XyDocumentConfig
@@ -101,7 +99,7 @@ class sdcMMSState : sdcXyState() {
         hmOutElementTypeAlias[TYPE_STATE_S_FIGURE_25D] = "mms_object"
         hmOutElementTypeAlias[TYPE_STATE_S_TEXT_25D] = "mms_object"
 
-        super.init(aApplication, aConn, aStm, aChmSession, aUserConfig, aDocumentConfig)
+        super.init(aApplication, aConn, aChmSession, aUserConfig, aDocumentConfig)
     }
 
     override fun getCoords(startParamId: String): XyActionResponse {
@@ -147,7 +145,7 @@ class sdcMMSState : sdcXyState() {
         if (commandID != 0) {
             var deviceID = 0
             val deviceIndex = chmElementPort[elementId]!! / AbstractTelematicHandler.MAX_PORT_PER_DEVICE
-            val rs = stm.executeQuery(
+            val rs = conn.executeQuery(
                 """
                     SELECT id 
                     FROM MMS_device 
@@ -161,13 +159,13 @@ class sdcMMSState : sdcXyState() {
             rs.close()
 
             if (deviceID != 0) {
-                stm.executeUpdate(
+                conn.executeUpdate(
                     """
                         INSERT INTO MMS_device_command_history ( id , 
                             user_id , device_id , object_id , 
                             command_id , edit_time , 
                             for_send , send_time ) VALUES ( 
-                            ${stm.getNextIntId("MMS_device_command_history", "id")} , 
+                            ${conn.getNextIntId("MMS_device_command_history", "id")} , 
                             ${userConfig.userId} , $deviceID , $objectId , 
                             $commandID , ${getCurrentTimeInt()} , 
                             1 , 0 ) 
@@ -199,7 +197,7 @@ class sdcMMSState : sdcXyState() {
 
     private fun getElementList(scale: Int, objectParamData: XyStartObjectParsedData, isRemoteControlPermission: Boolean): List<XyElement> {
         val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, objectParamData.objectId)
-        val objectState = ObjectState.getState(stm, objectConfig)
+        val objectState = ObjectState.getState(conn, objectConfig)
 
         //--- составляем иерархию ёмкостей и оборудования
 

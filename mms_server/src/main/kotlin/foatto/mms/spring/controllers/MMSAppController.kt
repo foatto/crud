@@ -15,7 +15,7 @@ import foatto.mms.core_mms.sensor.config.*
 import foatto.mms.iMMSApplication
 import foatto.mms.spring.repositories.ObjectRepository
 import foatto.spring.controllers.CoreAppController
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
@@ -71,7 +71,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
         //               alias.startsWith(  "ft_report_"  )
     }
 
-    override fun menuInit(stm: CoreAdvancedStatement, hmAliasConfig: Map<String, AliasConfig>, userConfig: UserConfig): List<MenuData> {
+    override fun menuInit(conn: CoreAdvancedConnection, hmAliasConfig: Map<String, AliasConfig>, userConfig: UserConfig): List<MenuData> {
 
         val alMenu = mutableListOf<MenuData>()
         val hmAliasPerm = userConfig.userPermission
@@ -376,6 +376,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
                         maxIgnore = sensorEntity.maxIgnore ?: 0.0,
                     )
                 }
+
                 SensorConfig.SENSOR_GEO -> {
                     objectConfig.scg = SensorConfigGeo(
                         aId = sensorEntity.id,
@@ -402,6 +403,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
                         maxSpeedLimit = (sensorEntity.maxLimit ?: 0.0).toInt(),
                     )
                 }
+
                 SensorConfig.SENSOR_WORK -> {
                     hmSC[portNum] = SensorConfigWork(
                         aId = sensorEntity.id,
@@ -429,6 +431,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
                         liquidNorm = sensorEntity.liquidNorm ?: 0.0,
                     )
                 }
+
                 SensorConfig.SENSOR_LIQUID_USING, SensorConfig.SENSOR_MASS_ACCUMULATED, SensorConfig.SENSOR_VOLUME_ACCUMULATED -> {
                     hmSC[portNum] = SensorConfigCounter(
                         aId = sensorEntity.id,
@@ -454,6 +457,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
                         liquidName = sensorEntity.liquidName ?: "",
                     )
                 }
+
                 SensorConfig.SENSOR_LIQUID_USING_COUNTER_STATE -> {
                     hmSC[portNum] = SensorConfig(
                         id = sensorEntity.id,
@@ -468,6 +472,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
                         begDa = sensorEntity.begDa,
                     )
                 }
+
                 SensorConfig.SENSOR_ENERGO_COUNT_AD, SensorConfig.SENSOR_ENERGO_COUNT_AR,
                 SensorConfig.SENSOR_ENERGO_COUNT_RD, SensorConfig.SENSOR_ENERGO_COUNT_RR -> {
                     hmSC[portNum] = SensorConfigEnergoSummary(
@@ -485,6 +490,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
                         aMaxIgnore = sensorEntity.maxIgnore ?: 0.0,
                     )
                 }
+
                 SensorConfig.SENSOR_LIQUID_FLOW_CALC, SensorConfig.SENSOR_WEIGHT,
                 SensorConfig.SENSOR_TURN, SensorConfig.SENSOR_PRESSURE,
                 SensorConfig.SENSOR_TEMPERATURE, SensorConfig.SENSOR_VOLTAGE,
@@ -511,6 +517,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
                         maxLimit = sensorEntity.maxLimit ?: 0.0,
                     )
                 }
+
                 SensorConfig.SENSOR_ENERGO_VOLTAGE, SensorConfig.SENSOR_ENERGO_CURRENT,
                 SensorConfig.SENSOR_ENERGO_POWER_KOEF, SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
                 SensorConfig.SENSOR_ENERGO_POWER_REACTIVE, SensorConfig.SENSOR_ENERGO_POWER_FULL -> {
@@ -536,6 +543,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
                         aMaxLimit = sensorEntity.maxLimit ?: 0.0,
                     )
                 }
+
                 SensorConfig.SENSOR_LIQUID_LEVEL -> {
                     hmSC[portNum] = SensorConfigLiquidLevel(
                         aId = sensorEntity.id,
@@ -572,6 +580,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
                         decAddTimeAfter = sensorEntity.decAddTimeAfter ?: 0,
                     )
                 }
+
                 else -> {
                     AdvancedLogger.error("Unknown sensorType = $sensorType for sensorId = ${sensorEntity.id}")
                 }
@@ -600,7 +609,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
 //    private val chmDeviceConfigData = ConcurrentHashMap<String, DeviceConfig>()
 //    private val chmDeviceConfigTime = ConcurrentHashMap<String, Int>()
 //
-//    private fun loadDeviceConfig(stm: CoreAdvancedStatement, serialNo: String): DeviceConfig? {
+//    private fun loadDeviceConfig(conn: CoreAdvancedConnection, serialNo: String): DeviceConfig? {
 //        //--- во избежание многократной перезагрузки конфигурации прибора в случае,
 //        //--- когда в каждом пакете данных идёт IMEI-код.
 //        //--- и раз в 16-17 мин перезагружаем конфигурацию контроллера на случай его перепривязки к другому объекту

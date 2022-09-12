@@ -585,7 +585,7 @@ class cWorkShiftCompare : cMMSReport() {
             //.append( " AND end_dt > " ).append( begTime );
             if (reportWorker != 0) sbSQL.append(" AND MMS_work_shift.worker_id = ").append(reportWorker)
         }
-        var rs = stm.executeQuery(sbSQL.toString())
+        var rs = conn.executeQuery(sbSQL.toString())
         while (rs.next()) {
             val oID = rs.getInt(1)
             val sID = rs.getInt(2)
@@ -614,6 +614,7 @@ class cWorkShiftCompare : cMMSReport() {
                     begDT = begDoc
                     endDT = endDoc
                 }
+
                 else -> {
                     begDT = begDoc
                     endDT = endDoc
@@ -625,7 +626,7 @@ class cWorkShiftCompare : cMMSReport() {
 
         //--- "бумажная/документальная" информация по путевке
         for (wsd in alWSD) {
-            rs = stm.executeQuery(" SELECT data_type, descr , data_value FROM MMS_work_shift_data WHERE shift_id = ${wsd.shiftID}")
+            rs = conn.executeQuery(" SELECT data_type, descr , data_value FROM MMS_work_shift_data WHERE shift_id = ${wsd.shiftID}")
             while (rs.next()) {
                 when (rs.getInt(1)) {
                     SensorConfig.SENSOR_WORK -> wsd.tmWorkHour[rs.getString(2)] = rs.getDouble(3)
@@ -638,7 +639,7 @@ class cWorkShiftCompare : cMMSReport() {
         for (wsd in alWSD) {
             val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, wsd.objectId)
 
-            tmResult[StringBuilder().append(wsd.begTime).append(objectConfig.name).toString()] = WorkShiftCalcResult(wsd, ObjectCalc.calcObject(stm, userConfig, objectConfig, wsd.begTime - reportAddBefore, wsd.endTime + reportAddAfter))
+            tmResult[StringBuilder().append(wsd.begTime).append(objectConfig.name).toString()] = WorkShiftCalcResult(wsd, ObjectCalc.calcObject(conn, userConfig, objectConfig, wsd.begTime - reportAddBefore, wsd.endTime + reportAddAfter))
         }
         return tmResult
 

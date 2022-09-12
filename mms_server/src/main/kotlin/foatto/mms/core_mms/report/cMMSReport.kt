@@ -2,7 +2,6 @@ package foatto.mms.core_mms.report
 
 import foatto.core.util.DateTime_DMY
 import foatto.core.util.DateTime_DMYHMS
-import foatto.core_server.app.server.OtherOwnerData
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.cAbstractReport
 import foatto.core_server.app.server.data.DataBoolean
@@ -222,7 +221,7 @@ abstract class cMMSReport : cAbstractReport() {
         var offsY = aOffsY
         if (reportDepartment != 0) {
             var name = "(неизвестно)"
-            val rs = stm.executeQuery(" SELECT name FROM MMS_department WHERE id = $reportDepartment ")
+            val rs = conn.executeQuery(" SELECT name FROM MMS_department WHERE id = $reportDepartment ")
             if (rs.next()) name = rs.getString(1)
             rs.close()
 
@@ -232,7 +231,7 @@ abstract class cMMSReport : cAbstractReport() {
         }
         if (reportGroup != 0) {
             var name = "(неизвестно)"
-            val rs = stm.executeQuery(" SELECT name FROM MMS_group WHERE id = $reportGroup ")
+            val rs = conn.executeQuery(" SELECT name FROM MMS_group WHERE id = $reportGroup ")
             if (rs.next()) name = rs.getString(1)
             rs.close()
 
@@ -296,11 +295,10 @@ abstract class cMMSReport : cAbstractReport() {
 
         private var objectAliasID = 0
         fun loadObjectList(conn: CoreAdvancedConnection, userConfig: UserConfig, userID: Int, departmentID: Int, groupID: Int, alObject: MutableList<Int>) {
-            val stm = conn.createStatement()
 
             //--- однократная инициализация aliasID
             if (objectAliasID == 0) {
-                val rs = stm.executeQuery(" SELECT id FROM SYSTEM_alias WHERE name = 'mms_object' ")
+                val rs = conn.executeQuery(" SELECT id FROM SYSTEM_alias WHERE name = 'mms_object' ")
                 if (rs.next()) {
                     objectAliasID = rs.getInt(1)
                 }
@@ -314,19 +312,18 @@ abstract class cMMSReport : cAbstractReport() {
             if (groupID != 0) sb.append(" AND group_id = ").append(groupID)
             sb.append(" ORDER BY name ")
 
-            val rs = stm.executeQuery(sb.toString())
+            val rs = conn.executeQuery(sb.toString())
             while (rs.next()) {
                 val aID = rs.getInt(1)
                 val uID = rs.getInt(2)
 
                 if (userID != 0 ||
-                    checkPerm(userConfig, hsObjectPermission, PERM_TABLE, OtherOwnerData.getOtherOwner(conn, objectAliasID, aID, uID, userConfig.userId))
+                    checkPerm(userConfig, hsObjectPermission, PERM_TABLE, uID)
                 ) {
                     alObject.add(aID)
                 }
             }
             rs.close()
-            stm.close()
         }
     }
 }

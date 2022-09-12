@@ -19,7 +19,7 @@ import foatto.mms.core_mms.graphic.server.graphic_handler.AnalogGraphicHandler
 import foatto.mms.core_mms.graphic.server.graphic_handler.LiquidGraphicHandler
 import foatto.mms.core_mms.graphic.server.graphic_handler.iGraphicHandler
 import foatto.mms.core_mms.sensor.config.*
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 import java.nio.ByteOrder
 import java.util.*
 import kotlin.math.abs
@@ -93,11 +93,11 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
         //--- used to calculate the average fuel consumption during refueling / draining
         private const val MAX_CALC_PREV_NORMAL_PERIOD = 3 * 60 * 60
 
-        fun calcObject(stm: CoreAdvancedStatement, userConfig: UserConfig, oc: ObjectConfig, begTime: Int, endTime: Int): ObjectCalc {
+        fun calcObject(conn: CoreAdvancedConnection, userConfig: UserConfig, oc: ObjectConfig, begTime: Int, endTime: Int): ObjectCalc {
 
             val result = ObjectCalc(oc)
 
-            val (alRawTime, alRawData) = loadAllSensorData(stm, oc, begTime, endTime)
+            val (alRawTime, alRawData) = loadAllSensorData(conn, oc, begTime, endTime)
 
             //--- if geo-sensors are registered - we sum up the mileage
             oc.scg?.let { scg ->
@@ -136,7 +136,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
 
             //--- liquid level sensors
             oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_LEVEL]?.values?.forEach { sc ->
-                calcLiquidLevel(alRawTime, alRawData, stm, oc, sc as SensorConfigLiquidLevel, begTime, endTime, 0, result)
+                calcLiquidLevel(alRawTime, alRawData, conn, oc, sc as SensorConfigLiquidLevel, begTime, endTime, 0, result)
             }
 
             //--- some analogue sensors
@@ -199,7 +199,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             return result
         }
 
-        fun loadAllSensorData(stm: CoreAdvancedStatement, oc: ObjectConfig, begTime: Int, endTime: Int): Pair<List<Int>, List<AdvancedByteBuffer>> {
+        fun loadAllSensorData(conn: CoreAdvancedConnection, oc: ObjectConfig, begTime: Int, endTime: Int): Pair<List<Int>, List<AdvancedByteBuffer>> {
             var maxSmoothTime = 0
             oc.hmSensorConfig.values.forEach { hmSC ->
                 hmSC.values.forEach { sensorConfig ->
@@ -221,7 +221,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                     " WHERE ontime >= ${begTime - maxSmoothTime} AND ontime <= ${endTime + maxSmoothTime} " +
                     " ORDER BY ontime "
 
-            val inRs = stm.executeQuery(sql)
+            val inRs = conn.executeQuery(sql)
             while (inRs.next()) {
                 alRawTime.add(inRs.getInt(1))
                 alRawData.add(inRs.getByteBuffer(2, ByteOrder.BIG_ENDIAN))
@@ -554,7 +554,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
         fun calcLiquidLevelSensor(
             alRawTime: List<Int>,
             alRawData: List<AdvancedByteBuffer>,
-            stm: CoreAdvancedStatement,
+            conn: CoreAdvancedConnection,
             oc: ObjectConfig,
             sca: SensorConfigLiquidLevel,
             begTime: Int,
@@ -567,7 +567,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             getSmoothLiquidGraphicData(alRawTime, alRawData, oc.scg, sca, begTime, endTime, axisIndex, aLine, alLSPD)
 
             val llcd = LiquidLevelCalcData(sca.containerType, aLine, alLSPD)
-            calcLiquidUsingByLevel(sca, llcd, stm, oc, begTime, endTime, axisIndex)
+            calcLiquidUsingByLevel(sca, llcd, conn, oc, begTime, endTime, axisIndex)
 
             return llcd
         }
@@ -994,7 +994,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
 
         //--- we collect periods, values and place of refueling / draining
         fun calcIncDec(
-            stm: CoreAdvancedStatement,
+            conn: CoreAdvancedConnection,
             alRawTime: List<Int>,
             alRawData: List<AdvancedByteBuffer>,
             oc: ObjectConfig,
@@ -1016,7 +1016,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             getSmoothLiquidGraphicData(alRawTime, alRawData, oc.scg, sca, begTime, endTime, axisIndex, aLine, alLSPD)
 
             val llcd = LiquidLevelCalcData(sca.containerType, aLine, alLSPD)
-            calcLiquidUsingByLevel(sca, llcd, stm, oc, begTime, endTime, axisIndex)
+            calcLiquidUsingByLevel(sca, llcd, conn, oc, begTime, endTime, axisIndex)
 
             for (lspd in llcd.alLSPD!!) {
                 val begGLD = llcd.aLine!!.alGLD[lspd.begPos]
@@ -1195,7 +1195,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
         private fun calcLiquidLevel(
             alRawTime: List<Int>,
             alRawData: List<AdvancedByteBuffer>,
-            stm: CoreAdvancedStatement,
+            conn: CoreAdvancedConnection,
             oc: ObjectConfig,
             scll: SensorConfigLiquidLevel,
             begTime: Int,
@@ -1203,7 +1203,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             axisIndex: Int,
             result: ObjectCalc
         ) {
-            val llcd = calcLiquidLevelSensor(alRawTime, alRawData, stm, oc, scll, begTime, endTime, axisIndex)
+            val llcd = calcLiquidLevelSensor(alRawTime, alRawData, conn, oc, scll, begTime, endTime, axisIndex)
 
             result.tmLiquidLevel[scll.descr] = llcd
 
@@ -1575,7 +1575,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
         private fun calcLiquidUsingByLevel(
             sca: SensorConfigLiquidLevel,
             llcd: LiquidLevelCalcData,
-            stm: CoreAdvancedStatement,
+            conn: CoreAdvancedConnection,
             oc: ObjectConfig,
             begTime: Int,
             endTime: Int,
@@ -1594,26 +1594,29 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                         GraphicColorIndex.LINE_NORMAL_0 -> {
                             llcd.usingTotal += begGDL.y - endGDL.y
                         }
+
                         GraphicColorIndex.LINE_ABOVE_0 -> {
                             llcd.incTotal += endGDL.y - begGDL.y
                             if (sca.isUsingCalc) {
                                 //--- looking for the previous normal period
-                                val avgUsing = getPrevNormalPeriodAverageUsing(llcd, i, stm, oc, sca, begTime, endTime, axisIndex)
+                                val avgUsing = getPrevNormalPeriodAverageUsing(llcd, i, conn, oc, sca, begTime, endTime, axisIndex)
                                 val calcUsing = avgUsing * (endGDL.x - begGDL.x)
                                 llcd.usingCalc += calcUsing
                                 llcd.usingTotal += calcUsing
                             }
                         }
+
                         GraphicColorIndex.LINE_BELOW_0 -> {
                             llcd.decTotal += begGDL.y - endGDL.y
                             if (sca.isUsingCalc) {
                                 //--- looking for the previous normal period
-                                val avgUsing = getPrevNormalPeriodAverageUsing(llcd, i, stm, oc, sca, begTime, endTime, axisIndex)
+                                val avgUsing = getPrevNormalPeriodAverageUsing(llcd, i, conn, oc, sca, begTime, endTime, axisIndex)
                                 val calcUsing = avgUsing * (endGDL.x - begGDL.x)
                                 llcd.usingCalc += calcUsing
                                 llcd.usingTotal += calcUsing
                             }
                         }
+
                         else -> {}
                     }
                 }
@@ -1624,7 +1627,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
         private fun getPrevNormalPeriodAverageUsing(
             llcd: LiquidLevelCalcData,
             curPos: Int,
-            stm: CoreAdvancedStatement,
+            conn: CoreAdvancedConnection,
             oc: ObjectConfig,
             sca: SensorConfigLiquidLevel,
             begTime: Int,
@@ -1654,7 +1657,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             //--- no suitable normal site was found in the entire requested period - we request an extended period
             if (lspdPrevNorm == null) {
                 //--- let's extend the period into the past with a two-fold margin - this will not greatly affect the processing speed
-                val (alRawTimeExt, alRawDataExt) = loadAllSensorData(stm, oc, begTime - MAX_CALC_PREV_NORMAL_PERIOD * 2, endTime)
+                val (alRawTimeExt, alRawDataExt) = loadAllSensorData(conn, oc, begTime - MAX_CALC_PREV_NORMAL_PERIOD * 2, endTime)
 
                 val aLineExt = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2, false)
                 val alLSPDExt = mutableListOf<LiquidStatePeriodData>()

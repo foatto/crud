@@ -1,7 +1,6 @@
 package foatto.mms
 
 import foatto.core.util.AdvancedLogger
-import foatto.core_server.app.server.DependData
 import foatto.core_server.service.CoreServiceWorker
 import foatto.sql.AdvancedConnection
 import kotlin.system.exitProcess
@@ -52,7 +51,6 @@ class ClientDBPrepare(aConfigFileName: String) : CoreServiceWorker(aConfigFileNa
         alDBConfig.forEach {
             val conn = AdvancedConnection(it)
             alConn.add(conn)
-            alStm.add(conn.createStatement())
         }
     }
 
@@ -66,7 +64,7 @@ class ClientDBPrepare(aConfigFileName: String) : CoreServiceWorker(aConfigFileNa
         //--- расширяем список оставляемых пользователей (на случай, если там заданы id подразделений/групп пользователей)
         // alUserIDDest.forEach { - даёт ConcurrentModifException, т.к. дополняется на ходу, только через индексы
         for (i in 0 until alAdminIDDest.size) {
-            val rs = alStm[0].executeQuery(" SELECT id FROM SYSTEM_users WHERE id <> 0 AND parent_id = ${alAdminIDDest[i]} ")
+            val rs = alConn[0].executeQuery(" SELECT id FROM SYSTEM_users WHERE id <> 0 AND parent_id = ${alAdminIDDest[i]} ")
             while (rs.next()) {
                 alAdminIDDest.add(rs.getInt(1))
             }
@@ -77,7 +75,7 @@ class ClientDBPrepare(aConfigFileName: String) : CoreServiceWorker(aConfigFileNa
         //--- расширяем список оставляемых пользователей (на случай, если там заданы id подразделений/групп пользователей)
         // alUserIDDest.forEach { - даёт ConcurrentModifException, т.к. дополняется на ходу, только через индексы
         for (i in 0 until alUserIDDest.size) {
-            val rs = alStm[0].executeQuery(" SELECT id FROM SYSTEM_users WHERE id <> 0 AND parent_id = ${alUserIDDest[i]} ")
+            val rs = alConn[0].executeQuery(" SELECT id FROM SYSTEM_users WHERE id <> 0 AND parent_id = ${alUserIDDest[i]} ")
             while (rs.next()) {
                 alUserIDDest.add(rs.getInt(1))
             }
@@ -88,7 +86,7 @@ class ClientDBPrepare(aConfigFileName: String) : CoreServiceWorker(aConfigFileNa
         //--- составляем список ID удаляемых объектов
 
         val alobjectId = mutableListOf<Int>()
-        val rs = alStm[0].executeQuery(" SELECT id FROM MMS_object WHERE id <> 0 AND user_id NOT IN ( $sUserIDList ) ")
+        val rs = alConn[0].executeQuery(" SELECT id FROM MMS_object WHERE id <> 0 AND user_id NOT IN ( $sUserIDList ) ")
         while (rs.next()) {
             alobjectId.add(rs.getInt(1))
         }
@@ -99,22 +97,22 @@ class ClientDBPrepare(aConfigFileName: String) : CoreServiceWorker(aConfigFileNa
         //--- удаляем data-таблицы согласно списка
 
         for (objectId in alobjectId) {
-            alStm[0].executeUpdate(" DROP TABLE MMS_data_$objectId ")
+            alConn[0].executeUpdate(" DROP TABLE MMS_data_$objectId ")
             alConn[0].commit()
         }
         AdvancedLogger.info("MMS_data_XXX")
 
         //--- чистим объекты
 
-        alStm[0].executeUpdate(" DELETE FROM MMS_object WHERE id <> 0 AND user_id NOT IN ( $sUserIDList ) ")
-        alStm[0].executeUpdate(" REINDEX TABLE MMS_object ")
+        alConn[0].executeUpdate(" DELETE FROM MMS_object WHERE id <> 0 AND user_id NOT IN ( $sUserIDList ) ")
+        alConn[0].executeUpdate(" REINDEX TABLE MMS_object ")
         alConn[0].commit()
         AdvancedLogger.info("MMS_object")
 
         //--- чистим зоны
 
-        alStm[0].executeUpdate(" DELETE FROM MMS_zone WHERE id <> 0 AND user_id NOT IN ( $sUserIDList ) ")
-        alStm[0].executeUpdate(" REINDEX TABLE MMS_zone ")
+        alConn[0].executeUpdate(" DELETE FROM MMS_zone WHERE id <> 0 AND user_id NOT IN ( $sUserIDList ) ")
+        alConn[0].executeUpdate(" REINDEX TABLE MMS_zone ")
         alConn[0].commit()
         AdvancedLogger.info("MMS_zone")
 
@@ -147,8 +145,8 @@ class ClientDBPrepare(aConfigFileName: String) : CoreServiceWorker(aConfigFileNa
         alDI.add(DependInfo("MMS_device_command_history", "device_id", "MMS_device", "id"))
 
         for (di in alDI) {
-            alStm[0].executeUpdate(" DELETE FROM ${di.destTable} WHERE id <> 0 AND ${di.destField} <> 0 AND ${di.destField} NOT IN ( SELECT ${di.sourField} FROM ${di.sourTable} ) ")
-            alStm[0].executeUpdate(StringBuilder(" REINDEX TABLE ").append(di.destTable))
+            alConn[0].executeUpdate(" DELETE FROM ${di.destTable} WHERE id <> 0 AND ${di.destField} <> 0 AND ${di.destField} NOT IN ( SELECT ${di.sourField} FROM ${di.sourTable} ) ")
+            alConn[0].executeUpdate(" REINDEX TABLE ${di.destTable}")
             alConn[0].commit()
             AdvancedLogger.info(di.destTable)
         }
@@ -159,31 +157,31 @@ class ClientDBPrepare(aConfigFileName: String) : CoreServiceWorker(aConfigFileNa
         alDI2.add(DependInfo("XY_point", "element_id", "XY_element", "id"))
         alDI2.add(DependInfo("XY_property", "element_id", "XY_element", "id"))
         for (di in alDI2) {
-            alStm[0].executeUpdate(" DELETE FROM ${di.destTable} WHERE ${di.destField} <> 0 AND ${di.destField} NOT IN ( SELECT ${di.sourField} FROM ${di.sourTable} ) ")
-            alStm[0].executeUpdate(StringBuilder(" REINDEX TABLE ").append(di.destTable))
+            alConn[0].executeUpdate(" DELETE FROM ${di.destTable} WHERE ${di.destField} <> 0 AND ${di.destField} NOT IN ( SELECT ${di.sourField} FROM ${di.sourTable} ) ")
+            alConn[0].executeUpdate(" REINDEX TABLE ${di.destTable}")
             alConn[0].commit()
             AdvancedLogger.info(di.destTable)
         }
 
         //--- очистка независимых таблиц
 
-        alStm[0].executeUpdate(" DELETE FROM MMS_service_order ")
-        alStm[0].executeUpdate(" REINDEX TABLE MMS_service_order ")
+        alConn[0].executeUpdate(" DELETE FROM MMS_service_order ")
+        alConn[0].executeUpdate(" REINDEX TABLE MMS_service_order ")
         alConn[0].commit()
         AdvancedLogger.info("MMS_service_order")
 
         //--- дополнительные зачистки
 
-        alStm[0].executeUpdate(" DELETE FROM MMS_device WHERE object_id = 0 ")
-        alStm[0].executeUpdate(" REINDEX TABLE MMS_device ")
+        alConn[0].executeUpdate(" DELETE FROM MMS_device WHERE object_id = 0 ")
+        alConn[0].executeUpdate(" REINDEX TABLE MMS_device ")
         alConn[0].commit()
         AdvancedLogger.info("MMS_device")
 
         //--- зачистка ненужных пользователей
-        alStm[0].executeUpdate(" DELETE FROM SYSTEM_users WHERE id <> 0 AND id NOT IN ( $sAdminIDList , $sUserIDList ) ")
-        alStm[0].executeUpdate(" DELETE FROM SYSTEM_user_role WHERE id <> 0 AND user_id <> 0 AND user_id NOT IN ( SELECT id FROM SYSTEM_users ) ")
-        alStm[0].executeUpdate(" DELETE FROM SYSTEM_user_property WHERE user_id <> 0 AND user_id NOT IN ( SELECT id FROM SYSTEM_users ) ")
-        alStm[0].executeUpdate(" DELETE FROM SYSTEM_new WHERE user_id <> 0 AND user_id NOT IN ( SELECT id FROM SYSTEM_users ) ")
+        alConn[0].executeUpdate(" DELETE FROM SYSTEM_users WHERE id <> 0 AND id NOT IN ( $sAdminIDList , $sUserIDList ) ")
+        alConn[0].executeUpdate(" DELETE FROM SYSTEM_user_role WHERE id <> 0 AND user_id <> 0 AND user_id NOT IN ( SELECT id FROM SYSTEM_users ) ")
+        alConn[0].executeUpdate(" DELETE FROM SYSTEM_user_property WHERE user_id <> 0 AND user_id NOT IN ( SELECT id FROM SYSTEM_users ) ")
+        alConn[0].executeUpdate(" DELETE FROM SYSTEM_new WHERE user_id <> 0 AND user_id NOT IN ( SELECT id FROM SYSTEM_users ) ")
         alConn[0].commit()
         AdvancedLogger.info("SYSTEM_users")
 

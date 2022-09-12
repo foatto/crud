@@ -45,7 +45,7 @@ class cParking : cMMSReport() {
 
     override fun postReport(sheet: WritableSheet) {
         //--- загрузить данные по ВСЕМ зонам (reportZone используется только для последующей фильтрации)
-        val hmZoneData = ZoneData.getZoneData(stm, userConfig, 0)
+        val hmZoneData = ZoneData.getZoneData(conn, userConfig, 0)
         val alAllResult = calcReport(hmZoneData)
 
         //--- загрузка стартовых параметров
@@ -169,7 +169,7 @@ class cParking : cMMSReport() {
             if (oc.scg == null) continue
 
             //--- единоразово загрузим данные по всем датчикам объекта
-            val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(stm, oc, begTime, endTime)
+            val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(conn, oc, begTime, endTime)
 
             //--- в обычных расчётах нам не нужны точки траектории, поэтому даем максимальный масштаб.
             //--- превышения тоже не нужны, поэтому даём maxEnabledOverSpeed = 0
@@ -187,7 +187,7 @@ class cParking : cMMSReport() {
                 //--- фильтр по геозонам, если задано
                 if (reportZone != 0 && !inZone) continue
 
-                gpd.calc = ObjectCalc.calcObject(stm, userConfig, oc, gpd.begTime, gpd.endTime)
+                gpd.calc = ObjectCalc.calcObject(conn, userConfig, oc, gpd.begTime, gpd.endTime)
                 gpd.sbZoneName = getSBFromIterable(iterable = tsZoneName, delimiter = ", ")
 
                 alObjectResult.add(gpd)

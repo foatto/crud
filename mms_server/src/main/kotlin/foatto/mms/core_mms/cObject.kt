@@ -34,7 +34,7 @@ class cObject : cStandart() {
             } else {
                 val id = (hmColumnData[model.columnId] as DataInt).intValue
 
-                val rs = stm.executeQuery(" SELECT MAX(ontime) FROM MMS_data_${id} ")
+                val rs = conn.executeQuery(" SELECT MAX(ontime) FROM MMS_data_${id} ")
                 val lastDataTime = if (rs.next()) {
                     rs.getInt(1)
                 } else {
@@ -60,7 +60,7 @@ class cObject : cStandart() {
 
     //protected open fun getNextID( hmColumnData: HashMap<iColumn,iData> ): Int {
     override fun getNextID(hmColumnData: Map<iColumn, iData>): Int {
-        return stm.getNextIntId(arrayOf("MMS_object", "MMS_zone"), arrayOf("id", "id"))
+        return conn.getNextIntId(arrayOf("MMS_object", "MMS_zone"), arrayOf("id", "id"))
     }
 
     override fun postAdd(id: Int, hmColumnData: Map<iColumn, iData>, hmOut: MutableMap<String, Any>): String? {
@@ -75,7 +75,7 @@ class cObject : cStandart() {
         val mo = model as mObject
 
         val userID = (hmColumnData[mo.columnUser!!] as DataAbstractIntValue).intValue
-        stm.executeUpdate(" UPDATE MMS_day_work SET user_id = $userID WHERE object_id = $id ")
+        conn.executeUpdate(" UPDATE MMS_day_work SET user_id = $userID WHERE object_id = $id ")
 
         return postURL
     }
@@ -84,21 +84,21 @@ class cObject : cStandart() {
         super.postDelete(id, hmColumnData)
         deleteDataTable(id)
 
-        stm.executeUpdate(" DELETE FROM MMS_work_shift_data WHERE shift_id IN ( SELECT id FROM MMS_work_shift WHERE object_id = $id ) ")
-        stm.executeUpdate(" DELETE FROM MMS_work_shift WHERE object_id = $id ")
+        conn.executeUpdate(" DELETE FROM MMS_work_shift_data WHERE shift_id IN ( SELECT id FROM MMS_work_shift WHERE object_id = $id ) ")
+        conn.executeUpdate(" DELETE FROM MMS_work_shift WHERE object_id = $id ")
 
-        stm.executeUpdate(" DELETE FROM MMS_sensor_calibration WHERE sensor_id IN ( SELECT id FROM MMS_sensor WHERE object_id = $id ) ")
-        stm.executeUpdate(" DELETE FROM MMS_equip_service_shedule WHERE equip_id IN ( SELECT id FROM MMS_sensor WHERE object_id = $id ) ")
-        stm.executeUpdate(" DELETE FROM MMS_equip_service_history WHERE equip_id IN ( SELECT id FROM MMS_sensor WHERE object_id = $id ) ")
-        stm.executeUpdate(" DELETE FROM MMS_sensor WHERE object_id = $id ")
+        conn.executeUpdate(" DELETE FROM MMS_sensor_calibration WHERE sensor_id IN ( SELECT id FROM MMS_sensor WHERE object_id = $id ) ")
+        conn.executeUpdate(" DELETE FROM MMS_equip_service_shedule WHERE equip_id IN ( SELECT id FROM MMS_sensor WHERE object_id = $id ) ")
+        conn.executeUpdate(" DELETE FROM MMS_equip_service_history WHERE equip_id IN ( SELECT id FROM MMS_sensor WHERE object_id = $id ) ")
+        conn.executeUpdate(" DELETE FROM MMS_sensor WHERE object_id = $id ")
     }
 
     private fun createDataTable(id: Int) {
-        stm.executeUpdate(" CREATE TABLE MMS_data_$id ( ontime ${stm.dialect.integerFieldTypeName} NOT NULL, sensor_data ${stm.dialect.hexFieldTypeName} ) ")
-        stm.executeUpdate(stm.dialect.createClusteredIndex + " MMS_data_${id}_ontime ON MMS_data_$id ( ontime ) ")
+        conn.executeUpdate(" CREATE TABLE MMS_data_$id ( ontime ${conn.dialect.integerFieldTypeName} NOT NULL, sensor_data ${conn.dialect.hexFieldTypeName} ) ")
+        conn.executeUpdate(conn.dialect.createClusteredIndex + " MMS_data_${id}_ontime ON MMS_data_$id ( ontime ) ")
     }
 
     private fun deleteDataTable(id: Int) {
-        stm.executeUpdate(" DROP TABLE MMS_data_$id ")
+        conn.executeUpdate(" DROP TABLE MMS_data_$id ")
     }
 }

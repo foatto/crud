@@ -207,7 +207,6 @@ open class GalileoHandler : MMSHandler() {
                 if (packetHeader.toInt() != 0x01) {
                     writeError(
                         conn = dataWorker.conn,
-                        stm = dataWorker.stm,
                         dirSessionLog = dirSessionLog,
                         zoneId = zoneId,
                         deviceConfig = deviceConfig,
@@ -226,7 +225,6 @@ open class GalileoHandler : MMSHandler() {
                 if (iridiumStatusSession < 0 || iridiumStatusSession > 2) {
                     writeError(
                         conn = dataWorker.conn,
-                        stm = dataWorker.stm,
                         dirSessionLog = dirSessionLog,
                         zoneId = zoneId,
                         deviceConfig = deviceConfig,
@@ -267,7 +265,6 @@ open class GalileoHandler : MMSHandler() {
                 } else {
                     writeError(
                         conn = dataWorker.conn,
-                        stm = dataWorker.stm,
                         dirSessionLog = dirSessionLog,
                         zoneId = zoneId,
                         deviceConfig = deviceConfig,
@@ -304,7 +301,6 @@ open class GalileoHandler : MMSHandler() {
                 if (packetHeader.toInt() != 0x01) {
                     writeError(
                         conn = dataWorker.conn,
-                        stm = dataWorker.stm,
                         dirSessionLog = dirSessionLog,
                         zoneId = zoneId,
                         deviceConfig = deviceConfig,
@@ -654,6 +650,7 @@ open class GalileoHandler : MMSHandler() {
                                     }
                                 }
                             }
+
                             else -> {
                                 AdvancedLogger.error("serialNo = $serialNo\n модуль сбора данных: версия $dataVersion больше не поддерживается. Используйте свежий скрипт/прошивку.")
                                 return false
@@ -812,7 +809,7 @@ open class GalileoHandler : MMSHandler() {
             savePoint(dataWorker, pointTime, sqlBatchData)
         }
 
-        sqlBatchData.execute(dataWorker.stm)
+        sqlBatchData.execute(dataWorker.conn)
 
         //--- при передаче через iridium отвечать не надо
         if (!isIridium) {
@@ -822,7 +819,7 @@ open class GalileoHandler : MMSHandler() {
         //--- проверка на наличие команды терминалу
 
         deviceConfig?.let { dc ->
-            val (cmdID, cmdStr) = getCommand(dataWorker.stm, dc.deviceId)
+            val (cmdID, cmdStr) = getCommand(dataWorker.conn, dc.deviceId)
 
             //--- команда есть
             if (cmdStr != null) {
@@ -854,7 +851,7 @@ open class GalileoHandler : MMSHandler() {
                     outBuf(bbOut)
                 }
                 //--- отметим успешную отправку команды
-                setCommandSended(dataWorker.stm, cmdID)
+                setCommandSended(dataWorker.conn, cmdID)
                 status += " CommandSend;"
             }
         }
@@ -865,7 +862,6 @@ open class GalileoHandler : MMSHandler() {
         deviceConfig?.let { dc ->
             writeSession(
                 conn = dataWorker.conn,
-                stm = dataWorker.stm,
                 dirSessionLog = dirSessionLog,
                 zoneId = zoneId,
                 deviceConfig = dc,
@@ -999,7 +995,7 @@ open class GalileoHandler : MMSHandler() {
             putDigitalSensor(deviceConfig!!.index, tmESDReverseCameraFlow, PORT_NUM_ESD_REVERSE_CAMERA_FLOW, bbData)
             putDigitalSensor(deviceConfig!!.index, tmESDReverseCameraTemperature, PORT_NUM_ESD_REVERSE_CAMERA_TEMPERATURE, 4, bbData)
 
-            addPoint(dataWorker.stm, deviceConfig!!, pointTime, bbData, sqlBatchData)
+            addPoint(dataWorker.conn, deviceConfig!!, pointTime, bbData, sqlBatchData)
             dataCount++
         }
         dataCountAll++

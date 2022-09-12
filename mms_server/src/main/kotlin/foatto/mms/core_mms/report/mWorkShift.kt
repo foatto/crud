@@ -11,7 +11,7 @@ import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.mAbstractReport
 import foatto.mms.core_mms.MMSFunction
 import foatto.mms.core_mms.UODGSelector
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 import java.time.LocalDate
 
 class mWorkShift : mAbstractReport() {
@@ -50,13 +50,13 @@ class mWorkShift : mAbstractReport() {
     //----------------------------------------------------------------------------------------------------------------------
 
     override fun init(
-        application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?
+        application: iApplication, aConn: CoreAdvancedConnection, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?
     ) {
 
-        super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+        super.init(application, aConn, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         //--- это отчёт по путевым листам или рабочим сменам? (mms_waybill vs. mms_work_shift)
-        val isWaybillReport = aliasConfig.alias == "mms_report_waybill"
+        val isWaybillReport = aliasConfig.name == "mms_report_waybill"
 
         //--- отдельно возьмём парентов по сменам,
         //--- т.к. в трёх исходных парентах ещё может быть журнал посменных работ,
@@ -68,7 +68,7 @@ class mWorkShift : mAbstractReport() {
         //        boolean isCommonList = hmParentData.get( "mms_object" ) == null;
 
         //--- отдельная обработка перехода от журнала (суточных) пробегов
-        val arrADR = MMSFunction.getDayWorkParent(stm, hmParentData)
+        val arrADR = MMSFunction.getDayWorkParent(conn, hmParentData)
 
         //----------------------------------------------------------------------------------------------------------------------
 

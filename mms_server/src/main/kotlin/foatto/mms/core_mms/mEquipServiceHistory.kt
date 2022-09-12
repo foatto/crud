@@ -9,13 +9,13 @@ import foatto.core_server.app.server.column.ColumnDouble
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.mAbstract
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 
 class mEquipServiceHistory : mAbstract() {
 
-    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
+    override fun init(application: iApplication, aConn: CoreAdvancedConnection, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
 
-        super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+        super.init(application, aConn, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         val sensorID = hmParentData["mms_equip"]
 
@@ -32,9 +32,11 @@ class mEquipServiceHistory : mAbstract() {
         val columnEquip = ColumnInt(modelTableName, "equip_id", sensorID)
 
         val columnServiceName = ColumnComboBox(modelTableName, "shedule_id", "Наименование", 0)
-        if(sensorID != null) {
-            val rs = stm.executeQuery(" SELECT id , name FROM MMS_equip_service_shedule WHERE equip_id = $sensorID ORDER BY name ")
-            while(rs.next()) columnServiceName.addChoice(rs.getInt(1), rs.getString(2))
+        if (sensorID != null) {
+            val rs = conn.executeQuery(" SELECT id , name FROM MMS_equip_service_shedule WHERE equip_id = $sensorID ORDER BY name ")
+            while (rs.next()) {
+                columnServiceName.addChoice(rs.getInt(1), rs.getString(2))
+            }
             rs.close()
         }
 

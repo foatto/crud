@@ -105,7 +105,7 @@ class cEquipService : cMMSReport() {
             val hmSCW = objectConfig.hmSensorConfig[SensorConfig.SENSOR_WORK]
             if (hmSCW == null || hmSCW.isEmpty()) continue
 
-            val objectCalc = ObjectCalc.calcObject(stm, userConfig, objectConfig, zdtBeg.toEpochSecond().toInt(), zdtEnd.toEpochSecond().toInt())
+            val objectCalc = ObjectCalc.calcObject(conn, userConfig, objectConfig, zdtBeg.toEpochSecond().toInt(), zdtEnd.toEpochSecond().toInt())
 
             //--- пропускаем, если нет данных по работе
             if (objectCalc.tmWork.isEmpty()) continue
@@ -123,14 +123,14 @@ class cEquipService : cMMSReport() {
                 val wcd = objectCalc.tmWork[scw.descr] ?: continue
 
                 val alESD = ArrayList<EquipServiceData>()
-                var rs = stm.executeQuery(
+                var rs = conn.executeQuery(
                     StringBuilder().append(" SELECT id , name , period ").append(" FROM MMS_equip_service_shedule ").append(" WHERE equip_id = ").append(scw.id).append(" ORDER BY name ").toString()
                 )
                 while (rs.next()) alESD.add(EquipServiceData(rs.getInt(1), rs.getString(2), rs.getDouble(3)))
                 rs.close()
 
                 for (esd in alESD) {
-                    rs = stm.executeQuery(
+                    rs = conn.executeQuery(
                         StringBuilder().append(" SELECT ye , mo , da , work_hour ").append(" FROM MMS_equip_service_history ").append(" WHERE shedule_id = ").append(esd.id).append(" ORDER BY ye DESC , mo DESC , da DESC ").toString()
                     )
                     //--- только одну первую строку (один из вариантов реализации TOP(1))

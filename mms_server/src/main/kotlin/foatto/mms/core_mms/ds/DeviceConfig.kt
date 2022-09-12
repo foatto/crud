@@ -4,7 +4,7 @@ import foatto.core.app.UP_TIME_OFFSET
 import foatto.core.util.getZoneId
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigGeo
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 import java.time.ZoneId
 
 class DeviceConfig {
@@ -21,10 +21,10 @@ class DeviceConfig {
 
     companion object {
 
-        fun getDeviceConfig(stm: CoreAdvancedStatement, serialNo: String): DeviceConfig? {
+        fun getDeviceConfig(conn: CoreAdvancedConnection, serialNo: String): DeviceConfig? {
             var dc: DeviceConfig? = null
 
-            var rs = stm.executeQuery(
+            var rs = conn.executeQuery(
                 """
                     SELECT MMS_device.id , MMS_object.id , MMS_object.user_id , MMS_object.is_auto_work_shift , MMS_device.device_index  
                     FROM MMS_object , MMS_device 
@@ -44,11 +44,11 @@ class DeviceConfig {
             rs.close()
 
             if (dc != null) {
-                rs = stm.executeQuery(" SELECT speed_round_rule FROM MMS_sensor WHERE object_id = ${dc.objectId} AND sensor_type = ${SensorConfig.SENSOR_GEO}")
+                rs = conn.executeQuery(" SELECT speed_round_rule FROM MMS_sensor WHERE object_id = ${dc.objectId} AND sensor_type = ${SensorConfig.SENSOR_GEO}")
                 dc.speedRoundRule = if (rs.next()) rs.getInt(1) else SensorConfigGeo.SPEED_ROUND_RULE_STANDART
                 rs.close()
 
-                rs = stm.executeQuery(" SELECT property_value FROM SYSTEM_user_property WHERE user_id = ${dc.userId} AND property_name = '$UP_TIME_OFFSET' ")
+                rs = conn.executeQuery(" SELECT property_value FROM SYSTEM_user_property WHERE user_id = ${dc.userId} AND property_name = '$UP_TIME_OFFSET' ")
                 dc.zoneId = if (rs.next()) getZoneId(rs.getString(1).toInt()) else ZoneId.systemDefault()
                 rs.close()
             }

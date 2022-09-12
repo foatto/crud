@@ -84,12 +84,12 @@ abstract class cShowAbstractObject : cAbstractForm() {
         val hmActualZone = mutableMapOf<Int, Boolean>()
         val hmAllZone = mutableMapOf<Int, Boolean>()
         if (showZoneType != ZONE_SHOW_NONE) {
-            hmZoneData = ZoneData.getZoneData(stm, userConfig, 0)
+            hmZoneData = ZoneData.getZoneData(conn, userConfig, 0)
             for (objectIndex in sd.alStartObjectData.indices) {
                 val objectId = sd.alStartObjectData[objectIndex].objectId
                 //--- загрузить список зон, непосредственно-привязанных и привязанных через путевые листы - маршруты
                 val hmZoneLimit = ZoneLimitData.getZoneLimit(
-                    stm = stm,
+                    conn = conn,
                     userConfig = userConfig,
                     objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, objectId),
                     hmZoneData = hmZoneData,

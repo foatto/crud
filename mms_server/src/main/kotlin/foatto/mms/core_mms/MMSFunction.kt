@@ -4,19 +4,20 @@ import foatto.core.link.AppAction
 import foatto.core.util.getDateTime
 import foatto.core_server.app.server.ChildData
 import foatto.core_server.app.server.column.ColumnInt
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 
 object MMSFunction {
 
-    fun getDayWorkParent(aStm: CoreAdvancedStatement, aHmParentData: MutableMap<String, Int>): Array<Int>? {
+    fun getDayWorkParent(conn: CoreAdvancedConnection, aHmParentData: MutableMap<String, Int>): Array<Int>? {
         //--- отдельная обработка перехода от журнала (суточных) пробегов
         val parentDayWork = aHmParentData["mms_day_work"] ?: return null
 
-        val rs = aStm.executeQuery(" SELECT object_id , ye , mo , da FROM MMS_day_work WHERE id = $parentDayWork ")
+        val rs = conn.executeQuery(" SELECT object_id , ye , mo , da FROM MMS_day_work WHERE id = $parentDayWork ")
         rs.next()
+
         //--- добавляем парента - объект
         aHmParentData["mms_object"] = rs.getInt(1)
         val arrParentData = arrayOf(rs.getInt(2), rs.getInt(3), rs.getInt(4))
@@ -26,7 +27,7 @@ object MMSFunction {
     }
 
     fun getDayShiftWorkParent(
-        aStm: CoreAdvancedStatement,
+        conn: CoreAdvancedConnection,
         aZoneId: ZoneId,
         aHmParentData: MutableMap<String, Int>,
         isFactTime: Boolean
@@ -38,7 +39,7 @@ object MMSFunction {
         val parentShift: Int? = aHmParentData["mms_work_shift"] ?: aHmParentData["mms_waybill"] ?: aHmParentData["mms_shift_work"]
 
         if (parentShift != null) {
-            val rs = aStm.executeQuery(
+            val rs = conn.executeQuery(
                 " SELECT object_id , " +
                     (if (isFactTime) " beg_dt_fact " else " beg_dt ") + " , " +
                     (if (isFactTime) " end_dt_fact " else " end_dt ") +
@@ -47,13 +48,13 @@ object MMSFunction {
             rs.next()
             //--- добавляем парента - объект
             aHmParentData["mms_object"] = rs.getInt(1)
-
             zdtBeg = getDateTime(aZoneId, rs.getInt(2))
             zdtEnd = getDateTime(aZoneId, rs.getInt(3))
+
             rs.close()
         } else {
             //--- отдельная обработка перехода от журнала (суточных) пробегов,
-            val arrADR = getDayWorkParent(aStm, aHmParentData)
+            val arrADR = getDayWorkParent(conn, aHmParentData)
             if (arrADR != null) {
                 zdtBeg = ZonedDateTime.of(arrADR[0], arrADR[1], arrADR[2], 0, 0, 0, 0, aZoneId)
                 zdtEnd = ZonedDateTime.of(arrADR[0], arrADR[1], arrADR[2], 0, 0, 0, 0, aZoneId).plus(1, ChronoUnit.DAYS)

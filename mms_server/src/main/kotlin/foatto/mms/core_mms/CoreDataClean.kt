@@ -85,7 +85,7 @@ abstract class CoreDataClean(aConfigFileName: String) : CoreServiceWorker(aConfi
     override fun cycle() {
         //--- загрузка списка обрабатываемых в этом цикле а/м
         val hmObject = mutableMapOf<Int, String>()
-        val rsObject = alStm[0].executeQuery(" SELECT id , name FROM MMS_object WHERE id <> 0 ")
+        val rsObject = alConn[0].executeQuery(" SELECT id , name FROM MMS_object WHERE id <> 0 ")
         while (rsObject.next()) {
             hmObject[rsObject.getInt(1)] = rsObject.getString(2)
         }
@@ -105,7 +105,7 @@ abstract class CoreDataClean(aConfigFileName: String) : CoreServiceWorker(aConfi
             //--- стираем старые данные
             var row = 0
             for (i in alDBConfig.indices) {
-                row += alStm[i].executeUpdate(" DELETE FROM MMS_data_$objectId WHERE ontime < ${alExpireTime[i]} ")
+                row += alConn[i].executeUpdate(" DELETE FROM MMS_data_$objectId WHERE ontime < ${alExpireTime[i]} ")
                 alConn[i].commit()
             }
 
@@ -118,7 +118,7 @@ abstract class CoreDataClean(aConfigFileName: String) : CoreServiceWorker(aConfi
             //--- для MMS_data_NNN в PostgreSQL периодически делаем специфическую "кластерную" переиндексацию,
             else if (alConn[0].dialect == CoreSQLDialectEnum.POSTGRESQL) {
                 for (i in alDBConfig.indices) {
-                    alStm[i].executeUpdate(" CLUSTER MMS_data_$objectId USING MMS_data_${objectId}_ontime ")
+                    alConn[i].executeUpdate(" CLUSTER MMS_data_$objectId USING MMS_data_${objectId}_ontime ")
                     alConn[i].commit()
                 }
             }
@@ -126,7 +126,7 @@ abstract class CoreDataClean(aConfigFileName: String) : CoreServiceWorker(aConfi
             //--- т.к. она не сохраняется по времени
             else {
                 for (i in alDBConfig.indices) {
-                    alStm[i].executeUpdate(" ALTER INDEX ALL ON MMS_data_$objectId REBUILD ")
+                    alConn[i].executeUpdate(" ALTER INDEX ALL ON MMS_data_$objectId REBUILD ")
                     alConn[i].commit()
                 }
             }
@@ -140,7 +140,7 @@ abstract class CoreDataClean(aConfigFileName: String) : CoreServiceWorker(aConfi
 
         val arrDT = getDateTimeArray(zoneId, getCurrentTimeInt() - maxExpirePeriod)
 
-        var rowCountDW = alStm[0].executeUpdate(
+        var rowCountDW = alConn[0].executeUpdate(
             " DELETE FROM MMS_day_work WHERE ye < ${arrDT[0]} OR ye = ${arrDT[0]} AND mo < ${arrDT[1]} OR ye = ${arrDT[0]} AND mo = ${arrDT[1]} AND da < ${arrDT[2]} "
         )
         alConn[0].commit()
@@ -153,18 +153,18 @@ abstract class CoreDataClean(aConfigFileName: String) : CoreServiceWorker(aConfi
         }
         //--- для PostgreSQL свой синтаксис
         else if (alConn[0].dialect == CoreSQLDialectEnum.POSTGRESQL) {
-            alStm[0].executeUpdate(" REINDEX TABLE MMS_day_work ")
+            alConn[0].executeUpdate(" REINDEX TABLE MMS_day_work ")
         }
         //--- у прочих диалектов просто перестраиваем индексы
         else {
-            alStm[0].executeUpdate(" ALTER INDEX ALL ON MMS_day_work REBUILD ")
+            alConn[0].executeUpdate(" ALTER INDEX ALL ON MMS_day_work REBUILD ")
         }
         alConn[0].commit()
         AdvancedLogger.debug("MMS_day_work = $rowCountDW rows")
 
-        val rowCountWS = alStm[0].executeUpdate(" DELETE FROM MMS_work_shift WHERE end_dt < ${getCurrentTimeInt() - maxExpirePeriod}")
+        val rowCountWS = alConn[0].executeUpdate(" DELETE FROM MMS_work_shift WHERE end_dt < ${getCurrentTimeInt() - maxExpirePeriod}")
         if (rowCountWS > 0) {
-            alStm[0].executeUpdate(" DELETE FROM MMS_work_shift_data WHERE shift_id NOT IN ( SELECT id FROM MMS_work_shift ) ")
+            alConn[0].executeUpdate(" DELETE FROM MMS_work_shift_data WHERE shift_id NOT IN ( SELECT id FROM MMS_work_shift ) ")
         }
         alConn[0].commit()
 
@@ -176,11 +176,11 @@ abstract class CoreDataClean(aConfigFileName: String) : CoreServiceWorker(aConfi
         }
         //--- для PostgreSQL свой синтаксис
         else if (alConn[0].dialect == CoreSQLDialectEnum.POSTGRESQL) {
-            alStm[0].executeUpdate(" REINDEX TABLE MMS_work_shift_data ")
+            alConn[0].executeUpdate(" REINDEX TABLE MMS_work_shift_data ")
         }
         //--- у прочих диалектов просто перестраиваем индексы
         else {
-            alStm[0].executeUpdate(" ALTER INDEX ALL ON MMS_work_shift_data REBUILD ")
+            alConn[0].executeUpdate(" ALTER INDEX ALL ON MMS_work_shift_data REBUILD ")
         }
         alConn[0].commit()
         AdvancedLogger.debug("MMS_work_shift_data = $rowCountWS rows")

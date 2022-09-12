@@ -141,7 +141,7 @@ class cDevice : cStandart() {
 //        val deviceID = (hmColumnData[md.columnDevice] as DataInt).intValue
 //        val objectId = (hmColumnData[md.columnObject] as DataInt).intValue
 //
-//        stm.executeUpdate(" DELETE FROM VC_camera WHERE name = '$deviceID' AND object_id <> $objectId ")
+//        conn.executeUpdate(" DELETE FROM VC_camera WHERE name = '$deviceID' AND object_id <> $objectId ")
 //    }
 
     private fun createESDSensors(
@@ -712,14 +712,14 @@ class cDevice : cStandart() {
         portNum: Int,
         descrBody: String,
     ) {
-        stm.executeUpdate(
+        conn.executeUpdate(
             """
                 INSERT INTO MMS_sensor( 
                     id , object_id , name , group_name , descr , 
                     port_num , 
                     sensor_type , cmd_on_id , cmd_off_id , beg_ye , beg_mo , beg_da 
                 ) VALUES ( 
-                    ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix $descrBody $descrPostfix' , 
+                    ${conn.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix $descrBody $descrPostfix' , 
                     ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
                     $sensorType , 0 , 0 , 2000 , 1 , 1 
                 )
@@ -738,7 +738,7 @@ class cDevice : cStandart() {
         portNum: Int,
         descrBody: String,
     ) {
-        stm.executeUpdate(
+        conn.executeUpdate(
             """
                 INSERT INTO MMS_sensor( 
                     id , object_id , name , group_name , descr , 
@@ -746,7 +746,7 @@ class cDevice : cStandart() {
                     sensor_type , cmd_on_id , cmd_off_id , beg_ye , beg_mo , beg_da ,
                     min_on_time, min_off_time, ignore_min_sensor , ignore_max_sensor , is_absolute_count , in_out_type , liquid_name            
                 ) VALUES ( 
-                    ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix $descrBody $descrPostfix' , 
+                    ${conn.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix $descrBody $descrPostfix' , 
                     ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
                     $sensorType , 0, 0 , 2000 , 1 , 1 ,
                     1 , 1 , 0 , 0 , 1 , ${SensorConfigCounter.CALC_TYPE_OUT} , ''                            
@@ -766,7 +766,7 @@ class cDevice : cStandart() {
         portNum: Int,
         descrBody: String,
     ) {
-        stm.executeUpdate(
+        conn.executeUpdate(
             """
                 INSERT INTO MMS_sensor( 
                     id , object_id , name , group_name , descr , 
@@ -774,7 +774,7 @@ class cDevice : cStandart() {
                     sensor_type , cmd_on_id , cmd_off_id , beg_ye , beg_mo , beg_da ,
                     ignore_min_sensor , ignore_max_sensor , is_absolute_count             
                 ) VALUES ( 
-                    ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix $descrBody $descrPostfix' , 
+                    ${conn.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix $descrBody $descrPostfix' , 
                     ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
                     $sensorType , 0, 0 , 2000 , 1 , 1 ,
                     0 , 0 , 1                            
@@ -794,7 +794,7 @@ class cDevice : cStandart() {
         portNum: Int,
         descrBody: String,
     ) {
-        stm.executeUpdate(
+        conn.executeUpdate(
             """
                 INSERT INTO MMS_sensor( 
                     id , object_id , name , group_name , descr , 
@@ -803,7 +803,7 @@ class cDevice : cStandart() {
                     smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , 
                     analog_min_view , analog_max_view , analog_min_limit , analog_max_limit                
                 ) VALUES ( 
-                    ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix $descrBody $descrPostfix' , 
+                    ${conn.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix $descrBody $descrPostfix' , 
                     ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
                     $sensorType , 0, 0 , 2000 , 1 , 1 ,
                     0 , 0 , 0 , 0 ,                             
@@ -825,7 +825,7 @@ class cDevice : cStandart() {
         descrBody: String,
         phase: Int,
     ) {
-        stm.executeUpdate(
+        conn.executeUpdate(
             """
                 INSERT INTO MMS_sensor( 
                     id , object_id , name , group_name , descr , 
@@ -834,7 +834,7 @@ class cDevice : cStandart() {
                     smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , 
                     analog_min_view , analog_max_view , analog_min_limit , analog_max_limit , energo_phase                 
                 ) VALUES ( 
-                    ${stm.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix $descrBody $descrPostfix' , 
+                    ${conn.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix $descrBody $descrPostfix' , 
                     ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
                     $sensorType , 0, 0 , 2000 , 1 , 1 ,
                     0 , 0 , 0 , 0 ,                             

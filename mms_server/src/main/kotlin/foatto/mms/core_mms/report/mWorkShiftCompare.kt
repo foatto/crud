@@ -12,7 +12,7 @@ import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.mAbstractReport
 import foatto.mms.core_mms.MMSFunction
 import foatto.mms.core_mms.UODGSelector
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 import java.time.LocalDate
 
 class mWorkShiftCompare : mAbstractReport() {
@@ -45,15 +45,15 @@ class mWorkShiftCompare : mAbstractReport() {
 
     //----------------------------------------------------------------------------------------------------------------------
 
-    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
+    override fun init(application: iApplication, aConn: CoreAdvancedConnection, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
 
-        super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+        super.init(application, aConn, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         //--- это отчёт по путевым листам или рабочим сменам? (mms_waybill vs. mms_work_shift)
-        val isWaybillReport = aliasConfig.alias == "mms_report_waybill_compare"
+        val isWaybillReport = aliasConfig.name == "mms_report_waybill_compare"
 
         //--- отдельная обработка перехода от журнала (суточных) пробегов
-        val arrADR = MMSFunction.getDayWorkParent(stm, hmParentData)
+        val arrADR = MMSFunction.getDayWorkParent(conn, hmParentData)
 
         //----------------------------------------------------------------------------------------------------------------------
 

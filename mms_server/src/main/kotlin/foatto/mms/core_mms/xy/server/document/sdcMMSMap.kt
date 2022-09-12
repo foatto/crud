@@ -36,7 +36,6 @@ import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigWork
 import foatto.mms.iMMSApplication
 import foatto.sql.CoreAdvancedConnection
-import foatto.sql.CoreAdvancedStatement
 import java.nio.ByteOrder
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -66,7 +65,6 @@ class sdcMMSMap : sdcXyMap() {
     override fun init(
         aApplication: iApplication,
         aConn: CoreAdvancedConnection,
-        aStm: CoreAdvancedStatement,
         aChmSession: ConcurrentHashMap<String, Any>,
         aUserConfig: UserConfig,
         aDocumentConfig: XyDocumentConfig
@@ -90,7 +88,7 @@ class sdcMMSMap : sdcXyMap() {
 
         //------
 
-        super.init(aApplication, aConn, aStm, aChmSession, aUserConfig, aDocumentConfig)
+        super.init(aApplication, aConn, aChmSession, aUserConfig, aDocumentConfig)
     }
 
     override fun getCoords(startParamId: String): XyActionResponse {
@@ -115,7 +113,7 @@ class sdcMMSMap : sdcXyMap() {
         if (sbStaticobjectId.isNotEmpty()) {
             //--- именно MIN/MAX, т.к. одному статическому объекту может соответствовать несколько элементов
             //--- (нельзя убирать проверку на COUNT, т.к. при отсутствии выборки все равно вернется строка с null-значениями)
-            val inRs = stm.executeQuery(
+            val inRs = conn.executeQuery(
                 " SELECT COUNT( * ) , MIN( prj_x1 ) , MIN( prj_y1 ) , MAX( prj_x2 ) , MAX( prj_y2 ) FROM XY_element WHERE object_id IN ( $sbStaticobjectId ) "
             )
             if (inRs.next() && inRs.getInt(1) > 0) {
@@ -133,7 +131,7 @@ class sdcMMSMap : sdcXyMap() {
             objectConfig.scg?.let {
                 //--- если траекторные элементы глобально не запрещены
                 if (objectParamData.begTime < objectParamData.endTime) {
-                    val inRs = stm.executeQuery(
+                    val inRs = conn.executeQuery(
                         " SELECT sensor_data FROM MMS_data_${objectParamData.objectId} WHERE ontime >= ${objectParamData.begTime} AND ontime <= ${objectParamData.endTime} "
                     )
                     while (inRs.next()) {
@@ -147,7 +145,7 @@ class sdcMMSMap : sdcXyMap() {
                 }
                 //--- если по траектории ничего не нашлось, пробуем по последнему положению объекта
                 if (!isFound) {
-                    val objectState = ObjectState.getState(stm, objectConfig)
+                    val objectState = ObjectState.getState(conn, objectConfig)
                     //--- если текущее положение не в будущем относительно запрашиваемого периода и есть последние координаты
                     if (objectState.lastGeoTime != null && objectState.lastGeoTime!! <= objectParamData.endTime && objectState.pixPoint != null) {
                         getMinMaxCoords(objectState.pixPoint!!, minXY, maxXY)
@@ -166,7 +164,7 @@ class sdcMMSMap : sdcXyMap() {
 
     override fun getElements(xyActionRequest: XyActionRequest): XyActionResponse {
 
-        hmZoneData = ZoneData.getZoneData(stm, userConfig, 0)
+        hmZoneData = ZoneData.getZoneData(conn, userConfig, 0)
 
         return super.getElements(xyActionRequest)
     }
@@ -178,19 +176,19 @@ class sdcMMSMap : sdcXyMap() {
         val sd = chmSession[AppParameter.XY_START_DATA + xyStartDataID] as XyStartData
 
         val xyElement = xyActionRequest.xyElement!!
-        xyElement.elementId = stm.getNextIntId("XY_element", "id")
-        xyElement.objectId = stm.getNextIntId(arrayOf("MMS_object", "MMS_zone"), arrayOf("id", "id"))
+        xyElement.elementId = conn.getNextIntId("XY_element", "id")
+        xyElement.objectId = conn.getNextIntId(arrayOf("MMS_object", "MMS_zone"), arrayOf("id", "id"))
 
         val zoneName = xyActionRequest.hmParam[PARAM_ZONE_NAME] ?: "-"
         val zoneDescr = xyActionRequest.hmParam[PARAM_ZONE_DESCR] ?: "-"
 
-        stm.executeUpdate(
+        conn.executeUpdate(
             " INSERT INTO MMS_zone ( id , user_id , name , descr, outer_id ) VALUES ( ${xyElement.objectId} , $userID , '${prepareForSQL(zoneName)}' , '${prepareForSQL(zoneDescr)}' , '' ) "
         )
 
         putElement(xyElement, true)
 
-        stm.executeUpdate(
+        conn.executeUpdate(
             " INSERT INTO XY_property ( element_id , property_name , property_value ) VALUES ( " +
                 "${xyElement.elementId} , '${XyProperty.TOOL_TIP_TEXT}' , '${getZoneTooltip(zoneName, zoneDescr)}' ) "
         )
@@ -215,7 +213,7 @@ class sdcMMSMap : sdcXyMap() {
         if (objectConfig.scg == null) return
 
         val hmZoneLimit = ZoneLimitData.getZoneLimit(
-            stm = stm,
+            conn = conn,
             userConfig = userConfig,
             objectConfig = objectConfig,
             hmZoneData = hmZoneData,
@@ -229,7 +227,7 @@ class sdcMMSMap : sdcXyMap() {
             val maxEnabledOverSpeed = (application as iMMSApplication).maxEnabledOverSpeed
 
             //--- грузим данные за период
-            val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(stm, objectConfig, objectParamData.begTime, objectParamData.endTime)
+            val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(conn, objectConfig, objectParamData.begTime, objectParamData.endTime)
             //--- Хоть какая-то экономия трафика. ( 16 - достаточное огрубление - и стрелки видно и не слишком грубо срезано )
             val gcd = ObjectCalc.calcGeoSensor(
                 alRawTime = alRawTime,
@@ -420,7 +418,7 @@ class sdcMMSMap : sdcXyMap() {
         }
 
         //--- генерация индикатора текущего положения
-        val objectState = ObjectState.getState(stm, objectConfig)
+        val objectState = ObjectState.getState(conn, objectConfig)
 
         //--- если текущее положение не в будущем относительно запрашиваемого периода
         //--- и есть последние координаты

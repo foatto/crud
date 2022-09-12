@@ -37,7 +37,7 @@ class sdcSpeed : sdcAbstractGraphic() {
         val maxEnabledOverSpeed = (application as iMMSApplication).maxEnabledOverSpeed
 
         //--- загрузить данные по зонам
-        val hmZoneData = ZoneData.getZoneData(stm, userConfig, 0)
+        val hmZoneData = ZoneData.getZoneData(conn, userConfig, 0)
 
         val oc = (application as iMMSApplication).getObjectConfig(userConfig, sd.objectId)
         //--- загрузка заголовочной информации по объекту
@@ -64,7 +64,7 @@ class sdcSpeed : sdcAbstractGraphic() {
             //--- а сейчас уже можно и нужно проверять на видимость графика
             if (isGraphicVisible) {
                 val hmZoneLimit = ZoneLimitData.getZoneLimit(
-                    stm = stm,
+                    conn = conn,
                     userConfig = userConfig,
                     objectConfig = oc,
                     hmZoneData = hmZoneData,
@@ -73,7 +73,7 @@ class sdcSpeed : sdcAbstractGraphic() {
                 val alZoneSpeedLimit = hmZoneLimit[ZoneLimitData.TYPE_LIMIT_SPEED]
 
                 //--- единоразово загрузим данные по объекту
-                val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(stm, oc, x1, x2)
+                val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(conn, oc, x1, x2)
 
                 //--- Типовой размер массива = кол-во точек по горизонтали = 3840 ( максимальная ширина экрана ), пусть будет 4000
                 //--- Если включён показ линий и выключено сглаживание, то точки можно не показывать,

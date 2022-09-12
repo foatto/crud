@@ -6,11 +6,10 @@ import foatto.core.util.getAngle
 import foatto.core.util.getCurrentTimeInt
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.sensor.config.SensorConfig
-import foatto.mms.core_mms.sensor.config.SensorConfigCounter
 import foatto.mms.core_mms.sensor.config.SensorConfigLiquidLevel
 import foatto.mms.core_mms.sensor.config.SensorConfigSignal
 import foatto.mms.core_mms.sensor.config.SensorConfigWork
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 
 class ObjectState {
 
@@ -40,13 +39,13 @@ class ObjectState {
         private const val DEFAULT_VIEW_PERIOD = 30 * 24 * 60 * 60
 
         fun getState(
-            stm: CoreAdvancedStatement,
+            conn: CoreAdvancedConnection,
             oc: ObjectConfig,
             viewPeriod: Int = DEFAULT_VIEW_PERIOD,
         ): ObjectState {
 
             val curTime = getCurrentTimeInt()
-            val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(stm, oc, curTime - viewPeriod, curTime)
+            val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(conn, oc, curTime - viewPeriod, curTime)
 
             //--- store last existing data time
             val result = ObjectState()

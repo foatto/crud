@@ -105,7 +105,7 @@ class cMovingDetail : cMMSReport() {
             if (objectConfig.scg == null) continue
 
             //--- единоразово загрузим данные по всем датчикам объекта
-            val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(stm, objectConfig, begTime, endTime)
+            val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(conn, objectConfig, begTime, endTime)
 
             //--- в обычных расчётах нам не нужны точки траектории, поэтому даем максимальный масштаб.
             //--- превышения тоже не нужны, поэтому даём maxEnabledOverSpeed = 0
@@ -122,7 +122,7 @@ class cMovingDetail : cMMSReport() {
             for (apd in gcd.alMovingAndParking) {
                 val gpd = apd as GeoPeriodData
 
-                val calc = ObjectCalc.calcObject(stm, userConfig, objectConfig, gpd.begTime, gpd.endTime)
+                val calc = ObjectCalc.calcObject(conn, userConfig, objectConfig, gpd.begTime, gpd.endTime)
 
                 offsX = 0
                 sheet.addCell(Label(offsX++, offsY, (countNNInObject++).toString(), wcfNN))
@@ -155,7 +155,7 @@ class cMovingDetail : cMMSReport() {
             }
             offsY++
 
-            val calcSum = ObjectCalc.calcObject(stm, userConfig, objectConfig, begTime, endTime)
+            val calcSum = ObjectCalc.calcObject(conn, userConfig, objectConfig, begTime, endTime)
 
             sheet.addCell(Label(1, offsY, "В движении:", wcfCellRB))
             sheet.mergeCells(1, offsY, 3, offsY)

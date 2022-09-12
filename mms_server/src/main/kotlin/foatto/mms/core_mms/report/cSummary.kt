@@ -57,12 +57,12 @@ class cSummary : cStandartPeriodSummary() {
         var countNN = 1
         for (objectIndex in alobjectId.indices) {
             val objectConfig = alObjectConfig[objectIndex]
-            val objectCalc = ObjectCalc.calcObject(stm, userConfig, objectConfig, begTime, endTime)
+            val objectCalc = ObjectCalc.calcObject(conn, userConfig, objectConfig, begTime, endTime)
 
             allSumCollector.add(null, objectCalc)
 
             val troubles = if (reportOutTroubles) {
-                val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(stm, objectConfig, begTime, endTime)
+                val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(conn, objectConfig, begTime, endTime)
                 val t = GraphicDataContainer(GraphicDataContainer.ElementType.TEXT, 0, 0, false)
                 sdcAbstractAnalog.checkCommonTrouble(alRawTime, alRawData, objectConfig, begTime, endTime, t)
                 //--- ловим ошибки с датчиков уровня топлива

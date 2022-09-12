@@ -11,7 +11,6 @@ import foatto.mms.core_mms.ds.PulsarData
 import foatto.spring.CoreSpringApp
 import foatto.sql.AdvancedConnection
 import foatto.sql.CoreAdvancedConnection
-import foatto.sql.CoreAdvancedStatement
 import foatto.sql.SQLBatch
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.PathVariable
@@ -129,7 +128,6 @@ class MMSPulsarDataController {
         val dirJournalLog = File(configJournalLogPath)
 
         val conn = AdvancedConnection(CoreSpringApp.dbConfig)
-        val stm = conn.createStatement()
 
         //--- время начала сессии
         val begTime = getCurrentTimeInt()
@@ -148,7 +146,7 @@ class MMSPulsarDataController {
             if (pulsarData.deviceID != null) {
                 if (pulsarData.blockID == BLOCK_ID) {
                     serialNo = pulsarData.deviceID
-                    deviceConfig = DeviceConfig.getDeviceConfig(stm, serialNo)
+                    deviceConfig = DeviceConfig.getDeviceConfig(conn, serialNo)
                     //--- неизвестный контроллер
                     if (deviceConfig == null) {
                         outDeviceParseError(dirJournalLog, request.remoteAddr, "Unknown serialNo = $serialNo")
@@ -223,7 +221,7 @@ class MMSPulsarDataController {
                     } ?: run {
                         outDataParseError(serialNo, "vals is null")
                     }
-                    savePoint(conn, stm, deviceConfig!!, pointTime, sqlBatchData)
+                    savePoint(conn, deviceConfig!!, pointTime, sqlBatchData)
                 } ?: run {
                     outDataParseError(serialNo, "dateTime is null")
                 }
@@ -233,13 +231,12 @@ class MMSPulsarDataController {
         deviceConfig?.let {
             status += " DataRead;"
 
-            sqlBatchData.execute(stm)
+            sqlBatchData.execute(conn)
 
             //--- данные успешно переданы - теперь можно завершить транзакцию
             status += " Ok;"
             MMSHandler.writeSession(
                 conn = conn,
-                stm = stm,
                 dirSessionLog = dirSessionLog,
                 zoneId = zoneId,
                 deviceConfig = deviceConfig,
@@ -264,7 +261,6 @@ class MMSPulsarDataController {
         //--- зафиксировать любые изменения в базе/
         conn.commit()
 
-        stm.close()
         conn.close()
     }
 
@@ -272,7 +268,6 @@ class MMSPulsarDataController {
 
     private fun savePoint(
         conn: CoreAdvancedConnection,
-        stm: CoreAdvancedStatement,
         deviceConfig: DeviceConfig,
         pointTime: Int,
         sqlBatchData: SQLBatch,
@@ -377,7 +372,7 @@ class MMSPulsarDataController {
 //            putDigitalSensor(tmESDReverseCameraFlow, 528, bbData)
 //            putDigitalSensor(tmESDReverseCameraTemperature, 532, bbData)
 
-            MMSHandler.addPoint(stm, deviceConfig, pointTime, bbData, sqlBatchData)
+            MMSHandler.addPoint(conn, deviceConfig, pointTime, bbData, sqlBatchData)
             dataCount++
         }
         dataCountAll++

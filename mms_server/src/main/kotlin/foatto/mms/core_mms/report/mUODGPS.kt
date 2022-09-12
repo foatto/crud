@@ -6,7 +6,7 @@ import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.mms.core_mms.MMSFunction
 import foatto.mms.core_mms.UODGSelector
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 
 class mUODGPS : mP() {
 
@@ -19,13 +19,13 @@ class mUODGPS : mP() {
     //----------------------------------------------------------------------------------------------------------------------
 
     override fun init(
-        application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?
+        application: iApplication, aConn: CoreAdvancedConnection, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?
     ) {
 
-        super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+        super.init(application, aConn, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         //--- отдельная обработка перехода от журнала суточных работ/рабочих смен/путёвок/журнала сменных работ
-        val arrDT = MMSFunction.getDayShiftWorkParent(stm, zoneId, hmParentData, false)
+        val arrDT = MMSFunction.getDayShiftWorkParent(conn, zoneId, hmParentData, false)
 
         //----------------------------------------------------------------------------------------------------------------------
 

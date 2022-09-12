@@ -19,7 +19,7 @@ import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigCounter
 import foatto.mms.core_mms.sensor.config.SensorConfigGeo
 import foatto.mms.core_mms.sensor.config.SensorConfigLiquidLevel
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 
 class mSensor : mAbstract() {
 
@@ -30,7 +30,7 @@ class mSensor : mAbstract() {
 
     override fun init(
         application: iApplication,
-        aStm: CoreAdvancedStatement,
+        aConn: CoreAdvancedConnection,
         aliasConfig: AliasConfig,
         userConfig: UserConfig,
         aHmParam: Map<String, String>,
@@ -38,12 +38,12 @@ class mSensor : mAbstract() {
         id: Int?
     ) {
 
-        super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+        super.init(application, aConn, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         val parentObjectId = hmParentData["mms_object"]
 
         //--- this is "equipment" (for users) or full "sensors" (for installers)?
-        val isEquip = aliasConfig.alias == "mms_equip"
+        val isEquip = aliasConfig.name == "mms_equip"
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -59,7 +59,7 @@ class mSensor : mAbstract() {
 
         val columnSensorGroup = ColumnString(modelTableName, "group_name", "Группа датчиков", STRING_COLUMN_WIDTH).apply {
             addCombo("")
-            val rs = stm.executeQuery(
+            val rs = conn.executeQuery(
                 " SELECT DISTINCT group_name FROM $columnTableName WHERE object_id = $parentObjectId AND group_name IS NOT NULL AND group_name <> '' ORDER BY group_name "
             )
             while (rs.next()) {
@@ -85,7 +85,7 @@ class mSensor : mAbstract() {
             //--- arrange the types of sensors depending on their "popularity" (ie frequency of use)
             val hmSensorDescr = mutableMapOf<Int, String>()
             hmSensorDescr.putAll(SensorConfig.hmSensorDescr)
-            val rs = stm.executeQuery(" SELECT sensor_type, COUNT( * ) AS aaa FROM MMS_sensor GROUP BY sensor_type ORDER BY aaa DESC ")
+            val rs = conn.executeQuery(" SELECT sensor_type, COUNT( * ) AS aaa FROM MMS_sensor GROUP BY sensor_type ORDER BY aaa DESC ")
             while (rs.next()) {
                 val sensorType = rs.getInt(1)
                 //--- theoretically, incorrect / non-existent / obsolete (including zero) types of sensors are possible

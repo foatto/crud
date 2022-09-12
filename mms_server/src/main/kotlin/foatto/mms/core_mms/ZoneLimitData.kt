@@ -2,8 +2,8 @@ package foatto.mms.core_mms
 
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.cStandart
+import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedResultSet
-import foatto.sql.CoreAdvancedStatement
 
 class ZoneLimitData {
 
@@ -82,7 +82,7 @@ class ZoneLimitData {
         //    }
 
         fun getZoneLimit(
-            stm: CoreAdvancedStatement,
+            conn: CoreAdvancedConnection,
             userConfig: UserConfig,
             objectConfig: ObjectConfig,
             hmZoneData: Map<Int, ZoneData>,
@@ -103,20 +103,21 @@ class ZoneLimitData {
             //            .append( " PLA_user_zone.beg_ho , PLA_user_zone.beg_mi , PLA_user_zone.end_ho , PLA_user_zone.end_mi , " )
             //            .append( " PLA_user_zone.is_periodical " )
             var sbSQL = " SELECT MMS_user_zone.user_id , MMS_zone.id , MMS_user_zone.zone_type , MMS_user_zone.max_speed " +
-                        " FROM MMS_user_zone, MMS_zone " +
-                        " WHERE MMS_user_zone.zone_id = MMS_zone.id "
-            if( zoneType != 0 ) sbSQL += " AND MMS_user_zone.zone_type = $zoneType "
-            var rs = stm.executeQuery( sbSQL )
-            while( rs.next() ) {
-                val userZoneUserID = rs.getInt( 1 )
-                val zoneID = rs.getInt( 2 )
+                " FROM MMS_user_zone, MMS_zone " +
+                " WHERE MMS_user_zone.zone_id = MMS_zone.id "
+            if (zoneType != 0) sbSQL += " AND MMS_user_zone.zone_type = $zoneType "
+            var rs = conn.executeQuery(sbSQL)
+            while (rs.next()) {
+                val userZoneUserID = rs.getInt(1)
+                val zoneID = rs.getInt(2)
 
-                val zoneData = hmZoneData [zoneID ] ?: continue
+                val zoneData = hmZoneData[zoneID] ?: continue
 
-                if( cStandart.checkPerm( userConfig, hsUserZonePermission, cStandart.PERM_TABLE, userZoneUserID ) &&
-                    cStandart.checkPerm( userConfig, hsZonePermission, cStandart.PERM_TABLE, zoneData.userID ) )
+                if (cStandart.checkPerm(userConfig, hsUserZonePermission, cStandart.PERM_TABLE, userZoneUserID) &&
+                    cStandart.checkPerm(userConfig, hsZonePermission, cStandart.PERM_TABLE, zoneData.userId)
+                )
 
-                    loadOneZoneData( zoneData, rs, hmZoneLimit/*, begTime, endTime*/ )
+                    loadOneZoneData(zoneData, rs, hmZoneLimit/*, begTime, endTime*/)
             }
             rs.close()
 
@@ -128,17 +129,17 @@ class ZoneLimitData {
             //            .append( " PLA_auto_zone.is_periodical " )
             // первое нулевое "поле" - для совместимости с загрузкой user_zone
             sbSQL = " SELECT 0, MMS_zone.id , MMS_object_zone.zone_type , MMS_object_zone.max_speed " +
-                    " FROM MMS_object_zone , MMS_zone " +
+                " FROM MMS_object_zone , MMS_zone " +
                 " WHERE MMS_object_zone.zone_id = MMS_zone.id AND MMS_object_zone.object_id = ${objectConfig.objectId} "
-            if( zoneType != 0 ) sbSQL += " AND MMS_object_zone.zone_type = $zoneType "
-            rs = stm.executeQuery( sbSQL )
-            while( rs.next() ) {
-                val zoneID = rs.getInt( 2 )
+            if (zoneType != 0) sbSQL += " AND MMS_object_zone.zone_type = $zoneType "
+            rs = conn.executeQuery(sbSQL)
+            while (rs.next()) {
+                val zoneID = rs.getInt(2)
 
-                val zoneData = hmZoneData[ zoneID ] ?: continue
+                val zoneData = hmZoneData[zoneID] ?: continue
 
                 if (cStandart.checkPerm(userConfig, hsObjectZonePermission, cStandart.PERM_TABLE, objectConfig.userId) &&
-                    cStandart.checkPerm(userConfig, hsZonePermission, cStandart.PERM_TABLE, zoneData.userID)
+                    cStandart.checkPerm(userConfig, hsZonePermission, cStandart.PERM_TABLE, zoneData.userId)
                 )
 
                     loadOneZoneData(zoneData, rs, hmZoneLimit/*, begTime, endTime*/)
@@ -156,7 +157,7 @@ class ZoneLimitData {
             //                     .append( " AND beg_dt < '" ).append( StringFunction.DateTime_YMDHMS( endTime ) ).append( "' " )
             //                     .append( " AND end_dt > '" ).append( StringFunction.DateTime_YMDHMS( begTime ) ).append( "' " );
             //            else sbSQL.append( " WHERE id = " ).append( aWaybillID );
-            //            rs = stm.executeQuery( sbSQL.toString() );
+            //            rs = conn.executeQuery( sbSQL.toString() );
             //            while( rs.next() ) {
             //                if( ! cStandart.checkPerm( aUserConfig, hsWaybillPermission, cStandart.PERM_TABLE, rs.getInt( 1 ) ) ) continue;
             //                alWaybillID.add( rs.getInt( 2 ) );
@@ -178,7 +179,7 @@ class ZoneLimitData {
             //                    .append( " FROM PLA_waybill_route " )
             //                    .append( " WHERE waybill_id = " ).append( waybillID )
             //                    .append( " ORDER BY pos " ).toString();
-            //                rs = stm.executeQuery( sqlStr );
+            //                rs = conn.executeQuery( sqlStr );
             //                while( rs.next() ) alRouteID.add( rs.getInt( 1 ) );
             //                rs.close();
             //
@@ -193,11 +194,11 @@ class ZoneLimitData {
 
         private fun loadOneZoneData(aZoneData: ZoneData, rs: CoreAdvancedResultSet, hmZoneLimit: MutableMap<Int, MutableList<ZoneLimitData>> /*long begTime, long endTime*/) {
             //--- если графическое представление зоны отсутствует, то не загружаем
-            if( aZoneData.polygon == null ) return
+            if (aZoneData.polygon == null) return
 
             val zld = ZoneLimitData()
             zld.zoneData = aZoneData
-            val zoneType = rs.getInt( 3 )
+            val zoneType = rs.getInt(3)
             //        //--- задано ли временнОе ограничение по зоне
             //        if( rs.getInt( 4 ) == 1 ) {
             //            int begYear = rs.getInt( 5 );
@@ -241,15 +242,15 @@ class ZoneLimitData {
             //            //--- если не найдено ни одного временного диапазона, пересекающегося с заданным, то в список не добавляем
             //            if( ! isFind ) return;
             //        }
-            zld.maxSpeed = rs.getInt( 4 )  // rs.getInt( 16 );
+            zld.maxSpeed = rs.getInt(4)  // rs.getInt( 16 );
 
             //--- добавляем информацию по зональному ограничению
-            var alZoneLimit: MutableList<ZoneLimitData>? = hmZoneLimit[ zoneType ]
-            if( alZoneLimit == null ) {
+            var alZoneLimit: MutableList<ZoneLimitData>? = hmZoneLimit[zoneType]
+            if (alZoneLimit == null) {
                 alZoneLimit = mutableListOf()
-                hmZoneLimit[ zoneType ] = alZoneLimit
+                hmZoneLimit[zoneType] = alZoneLimit
             }
-            alZoneLimit.add( zld )
+            alZoneLimit.add(zld)
         }
     }
 

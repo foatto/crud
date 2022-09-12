@@ -27,7 +27,7 @@ class cDayWork : cStandart() {
 
         val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectId)
         try {
-            val calc = ObjectCalc.calcObject(stm, userConfig, oc, begTime, endTime)
+            val calc = ObjectCalc.calcObject(conn, userConfig, oc, begTime, endTime)
 
             (hmColumnData[mODW.columnRun] as DataString).text = calc.sGeoRun
 

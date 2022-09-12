@@ -84,7 +84,6 @@ class PLAHandler : MMSHandler() {
             if (packetHeader!!.signature != PacketHeader.PACKET_SIGNATURE) {
                 writeError(
                     conn = dataWorker.conn,
-                    stm = dataWorker.stm,
                     dirSessionLog = dirSessionLog,
                     zoneId = zoneId,
                     deviceConfig = deviceConfig,
@@ -114,7 +113,6 @@ class PLAHandler : MMSHandler() {
             val errorCode = bbIn.getByte().toInt() and 0xFF
             writeError(
                 conn = dataWorker.conn,
-                stm = dataWorker.stm,
                 dirSessionLog = dirSessionLog,
                 zoneId = zoneId,
                 deviceConfig = deviceConfig,
@@ -147,7 +145,6 @@ class PLAHandler : MMSHandler() {
                 if (packetHeader!!.packetSize != 7) {
                     writeError(
                         conn = dataWorker.conn,
-                        stm = dataWorker.stm,
                         dirSessionLog = dirSessionLog,
                         zoneId = zoneId,
                         deviceConfig = deviceConfig,
@@ -170,7 +167,6 @@ class PLAHandler : MMSHandler() {
                 if (serialNo.isEmpty()) {
                     writeError(
                         conn = dataWorker.conn,
-                        stm = dataWorker.stm,
                         dirSessionLog = dirSessionLog,
                         zoneId = zoneId,
                         deviceConfig = deviceConfig,
@@ -189,7 +185,6 @@ class PLAHandler : MMSHandler() {
                 if (fwVersion.toInt() < 0x400) {
                     writeError(
                         conn = dataWorker.conn,
-                        stm = dataWorker.stm,
                         dirSessionLog = dirSessionLog,
                         zoneId = zoneId,
                         deviceConfig = deviceConfig,
@@ -206,13 +201,12 @@ class PLAHandler : MMSHandler() {
                     return false
                 }
                 //--- наше петромапское извращение - записываем HEX-номер версии прошивки в как бы десятичном виде
-                deviceConfig = DeviceConfig.getDeviceConfig(dataWorker.stm, serialNo)
+                deviceConfig = DeviceConfig.getDeviceConfig(dataWorker.conn, serialNo)
                 //--- неизвестный контроллер
                 if (deviceConfig == null) {
                     sendDelay()
                     writeError(
                         conn = dataWorker.conn,
-                        stm = dataWorker.stm,
                         dirSessionLog = dirSessionLog,
                         zoneId = zoneId,
                         deviceConfig = deviceConfig,
@@ -244,7 +238,6 @@ class PLAHandler : MMSHandler() {
                 if (packetHeader!!.packetSize != 40 + 128) {
                     writeError(
                         conn = dataWorker.conn,
-                        stm = dataWorker.stm,
                         dirSessionLog = dirSessionLog,
                         zoneId = zoneId,
                         deviceConfig = deviceConfig,
@@ -277,8 +270,8 @@ class PLAHandler : MMSHandler() {
                     bbData.putInt(p.wgsX).putInt(p.wgsY).putShort(p.speed).putInt(p.dist)
 
                     sqlBatchData = SQLBatch()
-                    addPoint(dataWorker.stm, deviceConfig!!, p.time, bbData, sqlBatchData)
-                    sqlBatchData.execute(dataWorker.stm)
+                    addPoint(dataWorker.conn, deviceConfig!!, p.time, bbData, sqlBatchData)
+                    sqlBatchData.execute(dataWorker.conn)
                     dataWorker.conn.commit()
                 }
                 status += " CurPos;"
@@ -301,7 +294,6 @@ class PLAHandler : MMSHandler() {
                     errorText = ""
                     writeSession(
                         conn = dataWorker.conn,
-                        stm = dataWorker.stm,
                         dirSessionLog = dirSessionLog,
                         zoneId = zoneId,
                         deviceConfig = deviceConfig!!,
@@ -325,7 +317,6 @@ class PLAHandler : MMSHandler() {
                 errorText = ""
                 writeSession(
                     conn = dataWorker.conn,
-                    stm = dataWorker.stm,
                     dirSessionLog = dirSessionLog,
                     zoneId = zoneId,
                     deviceConfig = deviceConfig!!,
@@ -349,7 +340,6 @@ class PLAHandler : MMSHandler() {
                 if (packetHeader!!.packetSize % 40 != 0) {
                     writeError(
                         conn = dataWorker.conn,
-                        stm = dataWorker.stm,
                         dirSessionLog = dirSessionLog,
                         zoneId = zoneId,
                         deviceConfig = deviceConfig,
@@ -383,12 +373,12 @@ class PLAHandler : MMSHandler() {
                         putSensorPortNumAndDataSize(deviceConfig!!.index, SensorConfig.GEO_PORT_NUM, SensorConfig.GEO_DATA_SIZE, bbData)
                         bbData.putInt(p.wgsX).putInt(p.wgsY).putShort(p.speed).putInt(p.dist)
 
-                        addPoint(dataWorker.stm, deviceConfig!!, p.time, bbData, sqlBatchData)
+                        addPoint(dataWorker.conn, deviceConfig!!, p.time, bbData, sqlBatchData)
                     }
                     if (firstPointTime == 0) firstPointTime = p.time
                     lastPointTime = p.time
                 }
-                sqlBatchData.execute(dataWorker.stm)
+                sqlBatchData.execute(dataWorker.conn)
                 dataWorker.conn.commit()
 
                 //--- есть/остались ещё точки? (используем -1, т.к. dataCount  у нас начинается с 1 - первой точкой становится CUR_COORD)
@@ -404,7 +394,6 @@ class PLAHandler : MMSHandler() {
                 errorText = ""
                 writeSession(
                     conn = dataWorker.conn,
-                    stm = dataWorker.stm,
                     dirSessionLog = dirSessionLog,
                     zoneId = zoneId,
                     deviceConfig = deviceConfig!!,
@@ -524,7 +513,7 @@ class PLAHandler : MMSHandler() {
     //
     //        //--- загрузить конфигурацию
     //        HashMap<String,String> hmConfig = new HashMap<>();
-    //        CoreAdvancedResultSet rs = stm.executeQuery( new StringBuilder(
+    //        CoreAdvancedResultSet rs = conn.executeQuery( new StringBuilder(
     //            " SELECT param_name , param_value FROM MMS_device_config WHERE device_id IN ( 0 , " ).append( deviceID )
     //            .append( " ) ORDER BY device_id " ).toString() );
     //        while( rs.next() ) hmConfig.put( rs.getString( 1 ).trim(), rs.getString( 2 ).trim() );

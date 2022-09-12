@@ -9,7 +9,6 @@ import foatto.core_server.app.server.data.DataDate3Int
 import foatto.core_server.app.server.data.DataInt
 import foatto.mms.core_mms.calc.ObjectCalc
 import foatto.mms.core_mms.graphic.server.document.sdcAbstractAnalog
-import foatto.mms.core_mms.graphic.server.document.sdcAnalog
 import foatto.mms.core_mms.graphic.server.document.sdcLiquid
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigAnalogue
@@ -112,7 +111,7 @@ class cWorkShift : cAbstractPeriodSummary() {
             }
         }
 
-        val rs = stm.executeQuery(sbSQL.toString())
+        val rs = conn.executeQuery(sbSQL.toString())
         while (rs.next()) {
             val objectId = rs.getInt(1)
             //--- если список не был ранее заполнен (для варианта с явно указанным reportWorkShift)
@@ -266,9 +265,9 @@ class cWorkShift : cAbstractPeriodSummary() {
 
             val t1 = wsd.begTimeDoc - reportAddBefore
             val t2 = wsd.endTimeDoc + reportAddAfter
-            val wscr = WorkShiftCalcResult(wsd, ObjectCalc.calcObject(stm, userConfig, objectConfig, t1, t2), zoneId)
+            val wscr = WorkShiftCalcResult(wsd, ObjectCalc.calcObject(conn, userConfig, objectConfig, t1, t2), zoneId)
             if (reportOutTroubles) {
-                val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(stm, objectConfig, t1, t2)
+                val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(conn, objectConfig, t1, t2)
                 val troubles = GraphicDataContainer(GraphicDataContainer.ElementType.TEXT, 0, 0, false)
                 sdcAbstractAnalog.checkCommonTrouble(alRawTime, alRawData, objectConfig, t1, t2, troubles)
                 //--- ловим ошибки с датчиков уровня топлива

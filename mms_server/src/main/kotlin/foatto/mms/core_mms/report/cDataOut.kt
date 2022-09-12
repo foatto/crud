@@ -19,7 +19,7 @@ class cDataOut : cMMSReport() {
 
     override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
         val returnURL = super.doSave(action, alFormData, hmOut)
-        if(returnURL != null) return returnURL
+        if (returnURL != null) return returnURL
 
         fillReportParam(model as mOP)
 
@@ -68,19 +68,19 @@ class cDataOut : cMMSReport() {
         val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, reportObject)
         //--- соберём все номера портов
         val tmSensorPortType = TreeMap<Int, Int>()
-        for((sensorType,hmSC) in objectConfig.hmSensorConfig) {
-            for(portNum in hmSC.keys) tmSensorPortType[portNum] = sensorType
+        for ((sensorType, hmSC) in objectConfig.hmSensorConfig) {
+            for (portNum in hmSC.keys) tmSensorPortType[portNum] = sensorType
         }
         //--- отдельно доберём geo-датчик, если есть
-        if(objectConfig.scg != null) tmSensorPortType[SensorConfig.GEO_PORT_NUM] = SensorConfig.SENSOR_GEO
+        if (objectConfig.scg != null) tmSensorPortType[SensorConfig.GEO_PORT_NUM] = SensorConfig.SENSOR_GEO
 
         //--- связка номер порта - позиция в отчёте
         val tmPortIndex = TreeMap<Int, Int>()
         var portIndex = 0
-        for(portNum in tmSensorPortType.keys) tmPortIndex[portNum] = portIndex++
+        for (portNum in tmSensorPortType.keys) tmPortIndex[portNum] = portIndex++
 
         //--- единоразово загрузим данные по всем датчикам объекта
-        val ( alRawTime, alRawData ) = ObjectCalc.loadAllSensorData(stm, objectConfig, begTime, endTime)
+        val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(conn, objectConfig, begTime, endTime)
 
         defineFormats(8, 2, 0)
         var offsY = fillReportTitleWithTime(sheet)
@@ -92,9 +92,9 @@ class cDataOut : cMMSReport() {
         val alDim = mutableListOf<Int>()
         alDim.add(5)    // "N п/п"
         alDim.add(9)    // Время UTC в две строки
-        for(i in 0 until tmSensorPortType.size) alDim.add((140 - 5 - 9) / tmSensorPortType.size)
+        for (i in 0 until tmSensorPortType.size) alDim.add((140 - 5 - 9) / tmSensorPortType.size)
 
-        for(i in alDim.indices) {
+        for (i in alDim.indices) {
             val cvNN = CellView()
             cvNN.size = alDim[i] * 256
             sheet.setColumnView(i, cvNN)
@@ -103,29 +103,29 @@ class cDataOut : cMMSReport() {
         //--- вывод заголовка
         sheet.addCell(Label(0, offsY, "№ п/п", wcfCaptionHC))
         sheet.addCell(Label(1, offsY, "Время UTC", wcfCaptionHC))
-        for(portNum in tmPortIndex.keys) sheet.addCell(Label(2 + tmPortIndex[portNum]!!, offsY, Integer.toString(portNum), wcfCaptionHC))
+        for (portNum in tmPortIndex.keys) sheet.addCell(Label(2 + tmPortIndex[portNum]!!, offsY, Integer.toString(portNum), wcfCaptionHC))
         offsY++
 
         var countNN = 1
-        for(pos in alRawTime.indices) {
+        for (pos in alRawTime.indices) {
             val curTime = alRawTime[pos]
             //--- данные до запрашиваемого диапазона (расширенные для сглаживания)
             //--- в данном случае не интересны и их можно пропустить
-            if(curTime < begTime) continue
+            if (curTime < begTime) continue
             //--- данные после запрашиваемого диапазона (расширенные для сглаживания)
             //--- в данном случае не интересны и можно прекращать обработку
-            if(curTime > endTime) break
+            if (curTime > endTime) break
 
             sheet.addCell(Label(0, offsY, (countNN++).toString(), wcfNN))
             sheet.addCell(Label(1, offsY, DateTime_YMDHMS(zoneId0, alRawTime[pos]), wcfCellC))
 
             val bb = alRawData[pos]
-            while(bb.hasRemaining()) {
+            while (bb.hasRemaining()) {
                 val (portNum, dataSize) = AbstractObjectStateCalc.getSensorPortNumAndDataSize(bb)
                 //--- по каждому номеру порта - составляем визуальное представление значения
                 val sensorValue = AbstractObjectStateCalc.getSensorString(tmSensorPortType[portNum], dataSize, bb)
                 //--- выводим только определённые/прописанные порты
-                if(tmSensorPortType.containsKey(portNum)) sheet.addCell(Label(2 + tmPortIndex[portNum]!!, offsY, sensorValue, wcfCellC))
+                if (tmSensorPortType.containsKey(portNum)) sheet.addCell(Label(2 + tmPortIndex[portNum]!!, offsY, sensorValue, wcfCellC))
             }
             offsY++
         }

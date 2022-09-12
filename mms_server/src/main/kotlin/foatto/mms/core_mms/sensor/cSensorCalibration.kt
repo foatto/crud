@@ -50,7 +50,7 @@ class cSensorCalibration : cStandart() {
         val alSensorValue = mutableListOf<Double?>()
         val alDataValue = mutableListOf<Double?>()
 
-        val rs = stm.executeQuery(sqlCalibration)
+        val rs = conn.executeQuery(sqlCalibration)
         while (rs.next()) {
             alSensorValue.add(rs.getDouble(1))
             alDataValue.add(rs.getDouble(2))
@@ -152,7 +152,7 @@ class cSensorCalibration : cStandart() {
 
         val sensorID = hmParam[SENSOR_ID]!!.toInt()
         //--- удалить старые записи
-        stm.executeUpdate(" DELETE FROM MMS_sensor_calibration WHERE sensor_id = $sensorID ")
+        conn.executeUpdate(" DELETE FROM MMS_sensor_calibration WHERE sensor_id = $sensorID ")
         //--- добавить новые
         var i = 0
         while (i < alFormData.size) {
@@ -170,9 +170,9 @@ class cSensorCalibration : cStandart() {
                 continue
             }
             //--- неправильно введенные числа тоже игнорируем
-            stm.executeUpdate(
+            conn.executeUpdate(
                 " INSERT INTO MMS_sensor_calibration ( id, sensor_id , value_sensor , value_data ) VALUES ( " +
-                    stm.getNextIntId("MMS_sensor_calibration", "id") + " , $sensorID , $sensorValue , $dataValue ) "
+                    conn.getNextIntId("MMS_sensor_calibration", "id") + " , $sensorID , $sensorValue , $dataValue ) "
             )
         }
 

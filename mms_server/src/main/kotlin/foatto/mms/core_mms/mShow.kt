@@ -9,7 +9,7 @@ import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnRadioButton
 import foatto.core_server.app.server.column.ColumnTime3Int
 import foatto.core_server.app.server.mAbstract
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -34,12 +34,12 @@ open class mShow : mAbstract() {
 
     override fun getSaveButonCaption(aAliasConfig: AliasConfig): String = "Показать"
 
-    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
+    override fun init(application: iApplication, aConn: CoreAdvancedConnection, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
 
-        super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+        super.init(application, aConn, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         //--- отдельная обработка перехода от журнала суточных работ/рабочих смен/путёвок/журнала сменных работ
-        val arrDT = MMSFunction.getDayShiftWorkParent(stm, zoneId, hmParentData, false)
+        val arrDT = MMSFunction.getDayShiftWorkParent(conn, zoneId, hmParentData, false)
 
         //----------------------------------------------------------------------------------------------------------------------
 

@@ -243,7 +243,7 @@ class cObjectZone : cMMSReport() {
         }
 
         //--- загрузить данные по зонам
-        val hmZoneData = ZoneData.getZoneData(stm, userConfig, reportZone)
+        val hmZoneData = ZoneData.getZoneData(conn, userConfig, reportZone)
 
         for (objectId in alobjectId) {
             val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectId)
@@ -254,7 +254,7 @@ class cObjectZone : cMMSReport() {
             val alZoneCalc = ArrayList<ObjectZoneCalcResult>()
 
             //--- грузим данные за период
-            val pair = ObjectCalc.loadAllSensorData(stm, oc, begTime, endTime)
+            val pair = ObjectCalc.loadAllSensorData(conn, oc, begTime, endTime)
             val alRawTime = pair.component1()
             val alRawData = pair.component2()
 
@@ -293,7 +293,7 @@ class cObjectZone : cMMSReport() {
                         i++
                     } else {
                         cr.endTime = curTime
-                        cr.calc = ObjectCalc.calcObject(stm, userConfig, oc, cr.begTime, cr.endTime)
+                        cr.calc = ObjectCalc.calcObject(conn, userConfig, oc, cr.begTime, cr.endTime)
 
                         alResult.add(cr)
                         alZoneCalc.removeAt(i)
@@ -307,7 +307,7 @@ class cObjectZone : cMMSReport() {
             //--- по каждой обрабатываемой сейчас зоне для данного автомобиля
             for (cr in alZoneCalc) {
                 cr.endTime = curTime
-                cr.calc = ObjectCalc.calcObject(stm, userConfig, oc, cr.begTime, cr.endTime)
+                cr.calc = ObjectCalc.calcObject(conn, userConfig, oc, cr.begTime, cr.endTime)
 
                 alResult.add(cr)
             }

@@ -36,13 +36,11 @@ class ObjectMonitor(aConfigFileName: String) : CoreServiceWorker(aConfigFileName
             var exitCode = 0   // нормальный выход с прерыванием цикла запусков
             try {
                 serviceWorkerName = "ObjectMonitor"
-                if(args.size == 1) {
+                if (args.size == 1) {
                     ObjectMonitor(args[0]).run()
                     exitCode = 1
-                }
-                else println("Usage: $serviceWorkerName <ini-file-name>")
-            }
-            catch(t: Throwable) {
+                } else println("Usage: $serviceWorkerName <ini-file-name>")
+            } catch (t: Throwable) {
                 t.printStackTrace()
             }
 
@@ -67,9 +65,9 @@ class ObjectMonitor(aConfigFileName: String) : CoreServiceWorker(aConfigFileName
     override fun loadConfig() {
         super.loadConfig()
 
-        noDataCheckPeriod = (hmConfig[NO_DATA_CHECK_PERIOD]?.toIntOrNull() ?: 1 ) * 60 * 60
+        noDataCheckPeriod = (hmConfig[NO_DATA_CHECK_PERIOD]?.toIntOrNull() ?: 1) * 60 * 60
 
-        alDefaultEmail = hmConfig[DEFAULT_EMAIL]?.split( " ", ",", ";" )?.filter { it.isNotEmpty() } ?: emptyList()
+        alDefaultEmail = hmConfig[DEFAULT_EMAIL]?.split(" ", ",", ";")?.filter { it.isNotEmpty() } ?: emptyList()
 
         smtpServer = hmConfig[CONFIG_SMTP_SERVER]!!
         smtpPort = hmConfig[CONFIG_SMTP_PORT]!!.toInt()
@@ -77,7 +75,7 @@ class ObjectMonitor(aConfigFileName: String) : CoreServiceWorker(aConfigFileName
         smtpPassword = hmConfig[CONFIG_SMTP_PASSWORD]!!
 
         var index = 0
-        while(true) {
+        while (true) {
             val optionName = hmConfig[CONFIG_SMTP_OPTION_NAME_ + index] ?: break
 
             hmSmtpOption[optionName] = hmConfig[CONFIG_SMTP_OPTION_VALUE_ + index]!!
@@ -90,68 +88,66 @@ class ObjectMonitor(aConfigFileName: String) : CoreServiceWorker(aConfigFileName
         alDBConfig.forEach {
             val conn = AdvancedConnection(it)
             alConn.add(conn)
-            alStm.add(conn.createStatement())
         }
     }
 
     override fun cycle() {
 
-        val hmObjectEmail = mutableMapOf<Int,List<String>>()
-        var rs = alStm[ 0 ].executeQuery( " SELECT e_mail, id FROM MMS_object WHERE id <> 0 " )
-        while( rs.next() ) {
-            val email = rs.getString( 1 )
-            if( email.isNotBlank() )
-                hmObjectEmail[ rs.getInt( 2 ) ] = email.split( " ", ",", ";" ).filter { it.isNotEmpty() }
+        val hmObjectEmail = mutableMapOf<Int, List<String>>()
+        var rs = alConn[0].executeQuery(" SELECT e_mail, id FROM MMS_object WHERE id <> 0 ")
+        while (rs.next()) {
+            val email = rs.getString(1)
+            if (email.isNotBlank())
+                hmObjectEmail[rs.getInt(2)] = email.split(" ", ",", ";").filter { it.isNotEmpty() }
         }
         rs.close()
 
-        val hmUserEmail = mutableMapOf<Int,List<String>>()
-        rs = alStm[ 0 ].executeQuery( " SELECT e_mail, id FROM SYSTEM_users WHERE id <> 0 " )
-        while( rs.next() ) {
-            val email = rs.getString( 1 )
-            if( email.isNotBlank() )
-                hmUserEmail[ rs.getInt( 2 ) ] = email.split( " ", ",", ";" ).filter { it.isNotEmpty() }
+        val hmUserEmail = mutableMapOf<Int, List<String>>()
+        rs = alConn[0].executeQuery(" SELECT e_mail, id FROM SYSTEM_users WHERE id <> 0 ")
+        while (rs.next()) {
+            val email = rs.getString(1)
+            if (email.isNotBlank())
+                hmUserEmail[rs.getInt(2)] = email.split(" ", ",", ";").filter { it.isNotEmpty() }
         }
         rs.close()
 
         val alObject = mutableListOf<ObjectData>()
-        rs = alStm[ 0 ].executeQuery( " SELECT id , user_id , name , last_alert FROM MMS_object WHERE id <> 0 AND is_disabled = 0 " )
-        while( rs.next() ) {
-            alObject.add( ObjectData( rs.getInt( 1 ), rs.getInt( 2 ), rs.getString( 3 ), rs.getInt( 4 ) ) )
+        rs = alConn[0].executeQuery(" SELECT id , user_id , name , last_alert FROM MMS_object WHERE id <> 0 AND is_disabled = 0 ")
+        while (rs.next()) {
+            alObject.add(ObjectData(rs.getInt(1), rs.getInt(2), rs.getString(3), rs.getInt(4)))
         }
         rs.close()
 
         alObject.forEach {
             var message = ""
 
-            rs = alStm[ 0 ].executeQuery( " SELECT ontime FROM MMS_data_${it.objectId} ORDER BY ontime DESC " )
-            if( rs.next() ) {
+            rs = alConn[0].executeQuery(" SELECT ontime FROM MMS_data_${it.objectId} ORDER BY ontime DESC ")
+            if (rs.next()) {
                 val lastDataTime = rs.getInt(1)
 
-                if( getCurrentTimeInt() - lastDataTime > noDataCheckPeriod )
+                if (getCurrentTimeInt() - lastDataTime > noDataCheckPeriod)
                     message = "Нет данных от объекта '${it.name}'"
-            }
-            else {
+            } else {
                 message = "Нет данных от объекта '${it.name}'"
             }
             rs.close()
 
             //--- свежие данные есть - снимаем время последнего алерта
-            if( message.isBlank() ) {
-                alStm[ 0 ].executeUpdate( " UPDATE MMS_object SET last_alert = 0 WHERE id = ${it.objectId} " )
+            if (message.isBlank()) {
+                alConn[0].executeUpdate(" UPDATE MMS_object SET last_alert = 0 WHERE id = ${it.objectId} ")
             }
             //--- свежих данных нет и после последнего алерта прошло достаточное время
-            else if( getCurrentTimeInt() - it.lastAlertTime > NO_REPEAT_ALERT_PERIOD ) {
-                val alEmail = hmObjectEmail[ it.objectId ] ?: hmUserEmail[ it.userId ] ?: alDefaultEmail
-                sendMail( alEmail, "Система контроля технологического оборудования и транспорта \"Пульсар\"", message )
+            else if (getCurrentTimeInt() - it.lastAlertTime > NO_REPEAT_ALERT_PERIOD) {
+                val alEmail = hmObjectEmail[it.objectId] ?: hmUserEmail[it.userId] ?: alDefaultEmail
+                sendMail(alEmail, "Система контроля технологического оборудования и транспорта \"Пульсар\"", message)
 
                 //--- обновляем время последнего алерта, чтобы не беспокоить ещё месяц
-                alStm[ 0 ].executeUpdate( " UPDATE MMS_object SET last_alert = ${getCurrentTimeInt()} WHERE id = ${it.objectId} " )
+                alConn[0].executeUpdate(" UPDATE MMS_object SET last_alert = ${getCurrentTimeInt()} WHERE id = ${it.objectId} ")
 
                 //--- чтоб нас в спамеры не засчитали :)
-                Thread.sleep( 60_000 )
+                Thread.sleep(60_000)
             }
-            alConn[ 0 ].commit()
+            alConn[0].commit()
         }
     }
 
@@ -174,7 +170,7 @@ class ObjectMonitor(aConfigFileName: String) : CoreServiceWorker(aConfigFileName
         val msg = MimeMessage(session)
         msg.sentDate = Date()
         msg.setFrom(InternetAddress(smtpLogin))
-        msg.setRecipients(Message.RecipientType.TO, arrRecipient )
+        msg.setRecipients(Message.RecipientType.TO, arrRecipient)
         msg.subject = subj
         msg.setText(body)
         msg.saveChanges()
@@ -182,7 +178,7 @@ class ObjectMonitor(aConfigFileName: String) : CoreServiceWorker(aConfigFileName
         transport.sendMessage(msg, arrRecipient)
         transport.close()
 
-        AdvancedLogger.debug( "Mail sended.\nSubj: $subj\nBody: $body" )
+        AdvancedLogger.debug("Mail sended.\nSubj: $subj\nBody: $body")
     }
 
     private class ObjectData(

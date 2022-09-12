@@ -11,7 +11,7 @@ import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.mAbstract
 import foatto.mms.core_mms.ObjectSelector
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 import java.time.ZonedDateTime
 
 class mDeviceCommandHistory : mAbstract() {
@@ -19,9 +19,9 @@ class mDeviceCommandHistory : mAbstract() {
     lateinit var columnEditTime: ColumnDateTimeInt
         private set
 
-    override fun init(application: iApplication, aStm: CoreAdvancedStatement, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
+    override fun init(application: iApplication, aConn: CoreAdvancedConnection, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
 
-        super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+        super.init(application, aConn, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -30,7 +30,7 @@ class mDeviceCommandHistory : mAbstract() {
 
         //--- если переход из списка контроллеров, то подгрузим соответствующий объект ( если прикреплён )
         if (parentObjectId == null && parentDeviceID != null) {
-            val rs = stm.executeQuery(" SELECT object_id FROM MMS_device WHERE id = $parentDeviceID ")
+            val rs = conn.executeQuery(" SELECT object_id FROM MMS_device WHERE id = $parentDeviceID ")
             rs.next()
             parentObjectId = rs.getInt(1)
             rs.close()
@@ -54,7 +54,7 @@ class mDeviceCommandHistory : mAbstract() {
             columnDevice.defaultValue = parentDeviceID
             columnDevice.addChoice(parentDeviceID, parentDeviceID.toString())
         } else if (parentObjectId != null) {
-            val rs = stm.executeQuery(" SELECT id FROM MMS_device WHERE object_id = $parentObjectId ORDER BY device_index ")
+            val rs = conn.executeQuery(" SELECT id FROM MMS_device WHERE object_id = $parentObjectId ORDER BY device_index ")
             //--- первая строка станет дефолтным значение
             if (rs.next()) {
                 val deviceID = rs.getInt(1)

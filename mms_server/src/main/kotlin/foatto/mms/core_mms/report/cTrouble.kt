@@ -166,7 +166,7 @@ class cTrouble : cMMSReport() {
             val objectKey = sbObjectKey.toString()
 
             val curTime = getCurrentTimeInt()
-            val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(stm, oc, curTime - (application as iMMSApplication).expirePeriod * 7 * 24 * 60 * 60, curTime)
+            val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(conn, oc, curTime - (application as iMMSApplication).expirePeriod * 7 * 24 * 60 * 60, curTime)
 
             val lastDataTime = alRawTime.lastOrNull()
             if (lastDataTime != null) {
@@ -202,7 +202,7 @@ class cTrouble : cMMSReport() {
                     }
                 }
                 //--- отдельный пункт "неисправности" - передвижной объект имеет почти нулевые пробеги за заданный период
-                val objectCalc = ObjectCalc.calcObject(stm, userConfig, oc, curTime - reportPeriod, curTime)
+                val objectCalc = ObjectCalc.calcObject(conn, userConfig, oc, curTime - reportPeriod, curTime)
                 //--- пробег менее 100 метров
                 if (objectCalc.gcd!!.run < 0.1) {
                     addTrouble(tmResult, objectKey, TroubleData(curTime - reportPeriod, "Объект", "Нет пробега", TroubleLevel.ERROR))

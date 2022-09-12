@@ -12,7 +12,6 @@ import foatto.core_server.ds.CoreDataWorker
 import foatto.mms.core_mms.cWorkShift
 import foatto.mms.core_mms.sensor.config.SensorConfigGeo
 import foatto.sql.CoreAdvancedConnection
-import foatto.sql.CoreAdvancedStatement
 import foatto.sql.SQLBatch
 import java.io.File
 import java.nio.channels.SocketChannel
@@ -59,10 +58,10 @@ abstract class MMSHandler : AbstractTelematicHandler() {
 
         //--- пришлось делать в виде static, т.к. VideoServer не является потомком MMSHandler,
         //--- а в AbstractHandler не знает про прикладные MMS-таблицы
-        fun getCommand(stm: CoreAdvancedStatement, deviceID: Int): Pair<Int, String?> {
+        fun getCommand(conn: CoreAdvancedConnection, deviceID: Int): Pair<Int, String?> {
             var cmdID = 0
             var cmdStr: String? = null
-            val rs = stm.executeQuery(
+            val rs = conn.executeQuery(
                 """
                      SELECT MMS_device_command_history.id , MMS_device_command.cmd 
                      FROM MMS_device_command_history , MMS_device_command 
@@ -81,9 +80,9 @@ abstract class MMSHandler : AbstractTelematicHandler() {
             return Pair(cmdID, cmdStr)
         }
 
-        fun setCommandSended(stm: CoreAdvancedStatement, cmdID: Int) {
+        fun setCommandSended(conn: CoreAdvancedConnection, cmdID: Int) {
             //--- отметим успешную отправку команды
-            stm.executeUpdate(
+            conn.executeUpdate(
                 """ 
                     UPDATE MMS_device_command_history 
                     SET for_send = 0 , send_time = ${getCurrentTimeInt()} 
@@ -92,32 +91,32 @@ abstract class MMSHandler : AbstractTelematicHandler() {
             )
         }
 
-        fun addPoint(stm: CoreAdvancedStatement, deviceConfig: DeviceConfig, time: Int, bbData: AdvancedByteBuffer, sqlBatchData: SQLBatch) {
+        fun addPoint(conn: CoreAdvancedConnection, deviceConfig: DeviceConfig, time: Int, bbData: AdvancedByteBuffer, sqlBatchData: SQLBatch) {
             //--- если объект прописан, то записываем точки, иначе просто пропускаем
             if (deviceConfig.objectId != 0) {
                 bbData.flip()
                 sqlBatchData.add(
                     """
                         INSERT INTO MMS_data_${deviceConfig.objectId} ( ontime , sensor_data ) 
-                        VALUES ( $time , ${stm.getHexValue(bbData)} ) 
+                        VALUES ( $time , ${conn.getHexValue(bbData)} ) 
                     """
                 )
                 //--- создаем новую пустую запись по суточной работе при необходимости
-                checkAndCreateDayWork(stm, deviceConfig, time)
+                checkAndCreateDayWork(conn, deviceConfig, time)
                 //--- создаем новую пустую запись по рабочей смене при необходимости
                 if (deviceConfig.isAutoWorkShift) {
-                    checkAndCreateWorkShift(stm, deviceConfig, time)
+                    checkAndCreateWorkShift(conn, deviceConfig, time)
                 }
             }
         }
 
-        private fun checkAndCreateDayWork(stm: CoreAdvancedStatement, deviceConfig: DeviceConfig, time: Int) {
+        private fun checkAndCreateDayWork(conn: CoreAdvancedConnection, deviceConfig: DeviceConfig, time: Int) {
             val arrLastDT = chmLastDayWork[deviceConfig.objectId]
             val arrDT = getDateTimeArray(deviceConfig.zoneId, time)
             //--- создаем новую пустую запись по дневной работе при необходимости
             if (arrLastDT == null || arrLastDT[0] != arrDT[0] || arrLastDT[1] != arrDT[1] || arrLastDT[2] != arrDT[2]) {
                 //--- создадим пустую запись по дневной работе , если ее не было
-                val rsADR = stm.executeQuery(
+                val rsADR = conn.executeQuery(
                     """
                         SELECT id 
                         FROM MMS_day_work 
@@ -131,10 +130,10 @@ abstract class MMSHandler : AbstractTelematicHandler() {
                 rsADR.close()
 
                 if (!isExist) {
-                    stm.executeUpdate(
+                    conn.executeUpdate(
                         """
                             INSERT INTO MMS_day_work ( id , user_id , object_id , ye , mo , da ) VALUES ( 
-                            ${stm.getNextIntId("MMS_day_work", "id")} , ${deviceConfig.userId} , ${deviceConfig.objectId} , ${arrDT[0]} , ${arrDT[1]} , ${arrDT[2]} )
+                            ${conn.getNextIntId("MMS_day_work", "id")} , ${deviceConfig.userId} , ${deviceConfig.objectId} , ${arrDT[0]} , ${arrDT[1]} , ${arrDT[2]} )
                         """
                     )
                 }
@@ -142,10 +141,10 @@ abstract class MMSHandler : AbstractTelematicHandler() {
             }
         }
 
-        private fun checkAndCreateWorkShift(stm: CoreAdvancedStatement, deviceConfig: DeviceConfig, time: Int) {
+        private fun checkAndCreateWorkShift(conn: CoreAdvancedConnection, deviceConfig: DeviceConfig, time: Int) {
             var lastTime: Int? = chmLastWorkShift[deviceConfig.objectId]
             if (lastTime == null || lastTime < time) {
-                lastTime = cWorkShift.autoCreateWorkShift(stm, deviceConfig.userId, deviceConfig.objectId)
+                lastTime = cWorkShift.autoCreateWorkShift(conn, deviceConfig.userId, deviceConfig.objectId)
                 //--- создать не удалось - нет стартового шаблона - обнулим флаг автосоздания
                 if (lastTime == null) {
                     //--- практически невозможная ситуация - включенный флаг автосоздания рабочих смен
@@ -161,7 +160,6 @@ abstract class MMSHandler : AbstractTelematicHandler() {
 
         fun writeSession(
             conn: CoreAdvancedConnection,
-            stm: CoreAdvancedStatement,
             dirSessionLog: File,
             zoneId: ZoneId,
             deviceConfig: DeviceConfig,
@@ -206,7 +204,7 @@ abstract class MMSHandler : AbstractTelematicHandler() {
             out.flush()
             out.close()
 
-            stm.executeUpdate(
+            conn.executeUpdate(
                 """
                     UPDATE MMS_device SET 
                     fw_version = '$fwVersion' , 
@@ -222,7 +220,6 @@ abstract class MMSHandler : AbstractTelematicHandler() {
 
         fun writeError(
             conn: CoreAdvancedConnection,
-            stm: CoreAdvancedStatement,
             dirSessionLog: File,
             zoneId: ZoneId,
             deviceConfig: DeviceConfig?,
@@ -239,7 +236,6 @@ abstract class MMSHandler : AbstractTelematicHandler() {
             deviceConfig?.let {
                 writeSession(
                     conn = conn,
-                    stm = stm,
                     dirSessionLog = dirSessionLog,
                     zoneId = zoneId,
                     deviceConfig = deviceConfig,
@@ -278,7 +274,6 @@ abstract class MMSHandler : AbstractTelematicHandler() {
     override fun prepareErrorCommand(dataWorker: CoreDataWorker) {
         writeError(
             conn = dataWorker.conn,
-            stm = dataWorker.stm,
             dirSessionLog = dirSessionLog,
             zoneId = zoneId,
             deviceConfig = deviceConfig,
@@ -299,12 +294,11 @@ abstract class MMSHandler : AbstractTelematicHandler() {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     protected fun loadDeviceConfig(dataWorker: CoreDataWorker): Boolean {
-        deviceConfig = DeviceConfig.getDeviceConfig(dataWorker.stm, serialNo)
+        deviceConfig = DeviceConfig.getDeviceConfig(dataWorker.conn, serialNo)
         //--- неизвестный контроллер
         if (deviceConfig == null) {
             writeError(
                 conn = dataWorker.conn,
-                stm = dataWorker.stm,
                 dirSessionLog = dirSessionLog,
                 zoneId = zoneId,
                 deviceConfig = deviceConfig,

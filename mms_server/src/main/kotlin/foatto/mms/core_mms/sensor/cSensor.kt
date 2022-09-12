@@ -9,11 +9,11 @@ import foatto.mms.core_mms.sensor.config.SensorConfig
 class cSensor : cMMSOneObjectParent() {
 
     //--- "оборудование" нельзя добавить, оно является другим отображением "датчика работы оборудования"
-    override fun isAddEnabled(): Boolean = aliasConfig.alias != "mms_equip"
+    override fun isAddEnabled(): Boolean = aliasConfig.name != "mms_equip"
 
     override fun addSQLWhere(hsTableRenameList: Set<String>): String {
         var s = super.addSQLWhere(hsTableRenameList)
-        if (aliasConfig.alias == "mms_equip") {
+        if (aliasConfig.name == "mms_equip") {
             s += " AND ${renameTableName(hsTableRenameList, model.modelTableName)}." +
                 "${(model as mSensor).columnSensorType.getFieldName()} = ${SensorConfig.SENSOR_WORK} "
         }
@@ -25,7 +25,7 @@ class cSensor : cMMSOneObjectParent() {
             val ms = model as mSensor
 
             val sb = StringBuilder()
-            val rs = stm.executeQuery(" SELECT value_sensor , value_data FROM MMS_sensor_calibration WHERE sensor_id = $id ORDER BY value_sensor ")
+            val rs = conn.executeQuery(" SELECT value_sensor , value_data FROM MMS_sensor_calibration WHERE sensor_id = $id ORDER BY value_sensor ")
             while (rs.next()) {
                 sb.append(rs.getDouble(1)).append(" = ").append(rs.getDouble(2)).append('\n')
             }
@@ -56,7 +56,7 @@ class cSensor : cMMSOneObjectParent() {
 
         val calibration = (hmColumnData[ms.columnCalibrationText] as DataString).text
         //--- очистка предыдущей тарировки
-        stm.executeUpdate(" DELETE FROM MMS_sensor_calibration WHERE sensor_id = $id ")
+        conn.executeUpdate(" DELETE FROM MMS_sensor_calibration WHERE sensor_id = $id ")
         calibration.split('\n').forEach {
             val alSensorData = it.split('=')
             if (alSensorData.size == 2) {
@@ -64,9 +64,9 @@ class cSensor : cMMSOneObjectParent() {
                 val dataValue = alSensorData[1].trim().toDoubleOrNull()
 
                 if (sensorValue != null && dataValue != null) {
-                    stm.executeUpdate(
+                    conn.executeUpdate(
                         " INSERT INTO MMS_sensor_calibration ( id , sensor_id , value_sensor , value_data ) VALUES ( +" +
-                            stm.getNextIntId("MMS_sensor_calibration", "id") +
+                            conn.getNextIntId("MMS_sensor_calibration", "id") +
                             " , $id , $sensorValue , $dataValue ) "
                     )
                 }

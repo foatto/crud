@@ -20,7 +20,7 @@ class cShiftWork : cStandart() {
         val endTime = (hmColumnData[m.columnShiftEndDoc] as DataDateTimeInt).zonedDateTime.toEpochSecond().toInt()
 
         val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectId)
-        val calc = ObjectCalc.calcObject(stm, userConfig, oc, begTime, endTime)
+        val calc = ObjectCalc.calcObject(conn, userConfig, oc, begTime, endTime)
 
         (hmColumnData[m.columnObjectShiftWorkRun] as DataString).text = calc.sGeoRun
         (hmColumnData[m.columnObjectShiftWorkHourName] as DataString).text = calc.sWorkName
