@@ -12,7 +12,7 @@ import foatto.core_server.app.server.column.ColumnDouble
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.mAbstractUserSelector
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 
 class mWorkShift : mAbstractUserSelector() {
 
@@ -25,7 +25,7 @@ class mWorkShift : mAbstractUserSelector() {
 
     override fun init(
         application: iApplication,
-        aStm: CoreAdvancedStatement,
+        aConn: CoreAdvancedConnection,
         aliasConfig: AliasConfig,
         userConfig: UserConfig,
         aHmParam: Map<String, String>,
@@ -33,18 +33,20 @@ class mWorkShift : mAbstractUserSelector() {
         id: Int?
     ) {
 
-        super.init(application, aStm, aliasConfig, userConfig, aHmParam, hmParentData, id)
+        super.init(application, aConn, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         //--- это "путевой лист" или "рабочая смена"? (mms_waybill vs. mms_work_shift)
-        val isWaybill = aliasConfig.alias == "mms_waybill"
+        val isWaybill = aliasConfig.name == "mms_waybill"
 
         val parentObjectId = hmParentData["mms_object"]
 
         //--- определим опцию автосоздания рабочих смен
         var isAutoWorkShift: Boolean? = false
-        if(!isWaybill && parentObjectId != null) {
-            val rs = stm.executeQuery(" SELECT is_auto_work_shift FROM MMS_object WHERE id = $parentObjectId ")
-            if(rs.next()) isAutoWorkShift = rs.getInt(1) != 0
+        if (!isWaybill && parentObjectId != null) {
+            val rs = conn.executeQuery(" SELECT is_auto_work_shift FROM MMS_object WHERE id = $parentObjectId ")
+            if (rs.next()) {
+                isAutoWorkShift = rs.getInt(1) != 0
+            }
             rs.close()
         }
 
@@ -64,7 +66,7 @@ class mWorkShift : mAbstractUserSelector() {
 
         val columnShiftNo = ColumnString(
             modelTableName, "shift_no",
-            if(isWaybill) "Номер путевого листа" else "", STRING_COLUMN_WIDTH
+            if (isWaybill) "Номер путевого листа" else "", STRING_COLUMN_WIDTH
         )
 
         val columnShiftBegDoc = ColumnDateTimeInt(modelTableName, "beg_dt", "Начало", false, zoneId)
@@ -84,7 +86,7 @@ class mWorkShift : mAbstractUserSelector() {
 
         val columnRun = ColumnDouble(
             modelTableName, "run",
-            if(isWaybill) "Пробег [км]" else "", 10, 1, 0.0
+            if (isWaybill) "Пробег [км]" else "", 10, 1, 0.0
         )
 
         columnIsAutoWorkShift = ColumnBoolean(
@@ -99,7 +101,7 @@ class mWorkShift : mAbstractUserSelector() {
         alTableHiddenColumn.add(columnUser!!)
         alTableHiddenColumn.add(columnWorker)
 
-        if(parentObjectId == null)
+        if (parentObjectId == null)
             alTableGroupColumn.add(columnShiftBegDoc)
         else
             addTableColumn(columnShiftBegDoc)
@@ -120,7 +122,7 @@ class mWorkShift : mAbstractUserSelector() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        if(isWaybill) {
+        if (isWaybill) {
             addTableColumn(columnShiftNo)
             addTableColumn(columnWorkerTabNo)
             addTableColumn(columnWorkerName)
@@ -132,15 +134,15 @@ class mWorkShift : mAbstractUserSelector() {
             alTableHiddenColumn.add(columnRun)
         }
 
-        (if(isWaybill) alFormColumn else alFormHiddenColumn).add(columnShiftNo)
+        (if (isWaybill) alFormColumn else alFormHiddenColumn).add(columnShiftNo)
         alFormColumn.add(columnShiftBegDoc)
         alFormColumn.add(columnShiftEndDoc)
         alFormColumn.add(columnShiftBegFact)
         alFormColumn.add(columnShiftEndFact)
-        (if(isWaybill) alFormColumn else alFormHiddenColumn).add(columnWorkerTabNo)
-        (if(isWaybill) alFormColumn else alFormHiddenColumn).add(columnWorkerName)
-        (if(isWaybill) alFormColumn else alFormHiddenColumn).add(columnRun)
-        (if(isWaybill) alFormHiddenColumn else alFormColumn).add(columnIsAutoWorkShift)
+        (if (isWaybill) alFormColumn else alFormHiddenColumn).add(columnWorkerTabNo)
+        (if (isWaybill) alFormColumn else alFormHiddenColumn).add(columnWorkerName)
+        (if (isWaybill) alFormColumn else alFormHiddenColumn).add(columnRun)
+        (if (isWaybill) alFormHiddenColumn else alFormColumn).add(columnIsAutoWorkShift)
 
         //----------------------------------------------------------------------------------------------------------------------
 

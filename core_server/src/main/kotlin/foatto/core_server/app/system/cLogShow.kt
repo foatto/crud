@@ -52,7 +52,7 @@ class cLogShow : cAbstractForm() {
         }
 
         //--- заполнение текста заголовка информацией по объекту
-        sd.shortTitle = aliasConfig.alias
+        sd.shortTitle = aliasConfig.name
         sd.fullTitle = ""
 
         //--- заполнение текста заголовка информацией по периоду времени
@@ -70,7 +70,7 @@ class cLogShow : cAbstractForm() {
         val paramID = getRandomInt()
         hmOut[AppParameter.GRAPHIC_START_DATA + paramID] = sd
 
-        return getParamURL(aliasConfig.alias, AppAction.GRAPHIC, null, null, null, null, "&${AppParameter.GRAPHIC_START_DATA}=$paramID")
+        return getParamURL(aliasConfig.name, AppAction.GRAPHIC, null, null, null, null, "&${AppParameter.GRAPHIC_START_DATA}=$paramID")
     }
 }
 

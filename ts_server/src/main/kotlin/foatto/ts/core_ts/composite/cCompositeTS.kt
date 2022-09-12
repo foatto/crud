@@ -148,7 +148,7 @@ class cCompositeTS : cAbstractForm() {
         hmOut[AppParameter.COMPOSITE_START_DATA + compositeParamID] = csd
 
         return getParamURL(
-            aAlias = aliasConfig.alias,
+            aAlias = aliasConfig.name,
             aAction = AppAction.COMPOSITE,
             aRefererId = null,
             aId = null,

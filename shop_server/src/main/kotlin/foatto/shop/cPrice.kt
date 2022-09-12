@@ -7,11 +7,11 @@ class cPrice : cStandart() {
     override fun addSQLWhere(hsTableRenameList: Set<String>): String {
 
         var sSQL = ""
-        if( aliasConfig.alias != "shop_price" ) {
+        if( aliasConfig.name != "shop_price" ) {
             val mp = model as mPrice
             val tableName = renameTableName( hsTableRenameList, model.modelTableName )
             val typeFieldName = mp.columnPriceType.getFieldName( 0 )
-            val typeValue = if( aliasConfig.alias == "shop_price_in" ) mPrice.PRICE_TYPE_IN else mPrice.PRICE_TYPE_OUT
+            val typeValue = if( aliasConfig.name == "shop_price_in" ) mPrice.PRICE_TYPE_IN else mPrice.PRICE_TYPE_OUT
 
             sSQL = " AND $tableName.$typeFieldName = $typeValue "
         }

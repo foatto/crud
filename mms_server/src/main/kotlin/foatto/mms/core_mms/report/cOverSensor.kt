@@ -27,7 +27,9 @@ class cOverSensor : cMMSReport() {
 
     override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
         val returnURL = super.doSave(action, alFormData, hmOut)
-        if (returnURL != null) return returnURL
+        if (returnURL != null) {
+            return returnURL
+        }
 
         fillReportParam(model as mUODGPZ)
 
@@ -53,7 +55,7 @@ class cOverSensor : cMMSReport() {
 
     override fun postReport(sheet: WritableSheet) {
         var sensorType = 0
-        when (aliasConfig.alias) {
+        when (aliasConfig.name) {
             "mms_report_over_weight" -> sensorType = SensorConfig.SENSOR_WEIGHT
             "mms_report_over_turn" -> sensorType = SensorConfig.SENSOR_TURN
             "mms_report_over_pressure" -> sensorType = SensorConfig.SENSOR_PRESSURE
@@ -72,7 +74,7 @@ class cOverSensor : cMMSReport() {
         }
 
         //--- загрузить данные по ВСЕМ зонам (reportZone используется только для последующей фильтрации)
-        val hmZoneData = ZoneData.getZoneData(stm, userConfig, 0)
+        val hmZoneData = ZoneData.getZoneData(conn, userConfig, 0)
         val alAllResult = calcReport(sensorType, hmZoneData)
 
         //--- загрузка стартовых параметров
@@ -194,7 +196,7 @@ class cOverSensor : cMMSReport() {
             val alObjectResult = mutableListOf<OverSensorPeriodData>()
 
             //--- load data on all sensors of the object once
-            val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(stm, objectConfig, begTime, endTime)
+            val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(conn, objectConfig, begTime, endTime)
 
             for (portNum in hmSensorConfig.keys) {
                 val scsc = hmSensorConfig[portNum] as SensorConfigAnalogue

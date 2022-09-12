@@ -2,7 +2,6 @@ package foatto.office.report
 
 import foatto.core.link.FormData
 import foatto.core.util.DateTime_DMYHMS
-import foatto.core_server.app.server.OtherOwnerData.getOtherOwner
 import foatto.core_server.app.server.data.DataDate3Int
 import foatto.office.mReminder
 import jxl.CellView
@@ -131,11 +130,6 @@ class cReminder : cOfficeReport() {
         val gcEnd = ZonedDateTime.of(reportEndYear, reportEndMonth, reportEndDay, 0, 0, 0, 0, ZoneId.systemDefault())
         gcEnd.plusDays(1) // т.е. конец периода для dd2.mm.yyyy на самом деле == dd2+1.mm.yyyy 00:00
 
-        var rs = conn.executeQuery(" SELECT id FROM SYSTEM_alias WHERE name = 'office_reminder' ")
-        rs.next()
-        val reminderAliasID = rs.getInt(1)
-        rs.close()
-
         val hsObjectPermission = userConfig.userPermission["office_reminder"]!!
         val sb =
             """
@@ -153,18 +147,17 @@ class cReminder : cOfficeReport() {
                 AND OFFICE_reminder.in_active = 1
                 ORDER BY OFFICE_reminder.type , OFFICE_reminder.ye , OFFICE_reminder.mo , OFFICE_reminder.da , OFFICE_reminder.ho , OFFICE_reminder.mi
             """
-        rs = conn.executeQuery(sb)
+        val rs = conn.executeQuery(sb)
         while (rs.next()) {
             val rID = rs.getInt(1)
-            val uID = rs.getInt(2)
+            val userId = rs.getInt(2)
             val time = ZonedDateTime.of(rs.getInt(3), rs.getInt(4), rs.getInt(5), rs.getInt(6), rs.getInt(7), 0, 0, zoneId)
-            //--- применяем именно conn-версию getOtherOwner, т.к. текущий Statement занят
             if (time in gcBeg..gcEnd
                 && checkPerm(
                     aUserConfig = userConfig,
                     aHsPermission = hsObjectPermission,
                     permName = PERM_TABLE,
-                    recordUserID = getOtherOwner(conn, reminderAliasID, rID, uID, userConfig.userId)
+                    recordUserId = userId,
                 )
             ) {
                 alResult += ReminderData(

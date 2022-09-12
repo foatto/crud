@@ -9,6 +9,7 @@ import foatto.core.app.xy.XyActionResponse
 import foatto.core.link.*
 import foatto.core.util.AdvancedLogger
 import foatto.core.util.BusinessException
+import foatto.core.util.encodePassword
 import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.getFilledNumberString
 import foatto.core_server.app.AppParameter
@@ -22,6 +23,7 @@ import foatto.core_server.app.server.OrgType
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.UserRelation
 import foatto.core_server.app.server.cStandart
+import foatto.core_server.app.server.data.DataString
 import foatto.core_server.app.xy.XyStartData
 import foatto.core_server.app.xy.server.document.sdcXyAbstract
 import foatto.jooq.core.tables.references.SYSTEM_ALIAS
@@ -35,7 +37,6 @@ import foatto.spring.CoreSpringApp
 import foatto.spring.jpa.repositories.UserRepository
 import foatto.sql.AdvancedConnection
 import foatto.sql.CoreAdvancedConnection
-import foatto.sql.CoreAdvancedStatement
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 import org.springframework.beans.factory.annotation.Autowired
@@ -43,6 +44,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.multipart.MultipartFile
 import java.io.File
@@ -121,8 +123,7 @@ abstract class CoreAppController : iApplication {
     override fun getFileList(conn: CoreAdvancedConnection, fileId: Int): List<Pair<Int, String>> {
         val alFileStoreData = mutableListOf<Pair<Int, String>>()
 
-        val stm = conn.createStatement()
-        val rs = stm.executeQuery(
+        val rs = conn.executeQuery(
             """
                 SELECT id , name , dir 
                 FROM SYSTEM_file_store 
@@ -141,14 +142,13 @@ abstract class CoreAppController : iApplication {
             chmFileTime[fileUrl] = getCurrentTimeInt()
         }
         rs.close()
-        stm.close()
 
         return alFileStoreData
     }
 
-    override fun saveFile(stm: CoreAdvancedStatement, fileId: Int, idFromClient: Int, fileName: String) {
+    override fun saveFile(conn: CoreAdvancedConnection, fileId: Int, idFromClient: Int, fileName: String) {
         val fileFromClient = File(tempDirName, idFromClient.toString())
-        val fileStoreId = stm.getNextIntId("SYSTEM_file_store", "id")
+        val fileStoreId = conn.getNextIntId("SYSTEM_file_store", "id")
 
         val dirName = CoreSpringApp.minioProxy?.let { minioProxy ->
             minioProxy.saveFile(
@@ -169,7 +169,7 @@ abstract class CoreAppController : iApplication {
             newDirName
         }
         //--- сохранить запись о файле
-        stm.executeUpdate(
+        conn.executeUpdate(
             """
                 INSERT INTO SYSTEM_file_store ( id , file_id , name , dir ) 
                 VALUES ( $fileStoreId , $fileId , '$fileName' , '$dirName' ) 
@@ -177,7 +177,7 @@ abstract class CoreAppController : iApplication {
         )
     }
 
-    override fun deleteFile(stm: CoreAdvancedStatement, fileId: Int, id: Int?) {
+    override fun deleteFile(conn: CoreAdvancedConnection, fileId: Int, id: Int?) {
         val sbSQLDiff = id?.let {
             " AND id = $id "
         } ?: ""
@@ -190,7 +190,7 @@ abstract class CoreAppController : iApplication {
                 $sbSQLDiff 
             """
 
-        val rs = stm.executeQuery(sbSQL)
+        val rs = conn.executeQuery(sbSQL)
         while (rs.next()) {
             val storeId = rs.getInt(1)
             val fileName = rs.getString(2)
@@ -207,7 +207,7 @@ abstract class CoreAppController : iApplication {
         }
         rs.close()
 
-        stm.executeUpdate(
+        conn.executeUpdate(
             """
                 DELETE FROM SYSTEM_file_store 
                 WHERE file_id = $fileId 
@@ -273,7 +273,6 @@ abstract class CoreAppController : iApplication {
         lateinit var appResponse: AppResponse
 
         val conn = AdvancedConnection(CoreSpringApp.dbConfig)
-        val stm = conn.createStatement()
 
         //--- загрузка/создании сессии
         val chmSession = CoreSpringApp.chmSessionStore.getOrPut(appRequest.sessionId) { ConcurrentHashMap() }
@@ -299,16 +298,19 @@ abstract class CoreAppController : iApplication {
                 appResponse = AppResponse(logonResult)
 
                 if (logonResult == ResponseCode.LOGON_SUCCESS || logonResult == ResponseCode.LOGON_SUCCESS_BUT_OLD) {
-                    val hmAliasConfig = getAliasConfig(stm, chmSession, hmOut)
+                    //--- вытаскиваем (или загружаем при необходимости) aliasConfig
+                    val hmAliasConfigs = chmSession.getOrPut(CoreSpringApp.ALIAS_CONFIG) { getAliasConfig(conn) } as Map<String, AliasConfig>
+                    hmOut[CoreSpringApp.ALIAS_CONFIG] = hmAliasConfigs
+
                     val userConfig = chmSession[iApplication.USER_CONFIG] as UserConfig
 
                     appResponse.currentUserName = hmUserFullNames[userConfig.userId] ?: "(неизвестный пользователь)"
                     //--- временно используем List вместо Map, т.к. в Kotlin/JS нет возможности десериализовать Map (а List десериализуется в Array)
                     appResponse.hmUserProperty = loadUserProperies(conn, userConfig.userId).toList().toTypedArray()
-                    appResponse.arrMenuData = menuInit(stm, hmAliasConfig, userConfig).toTypedArray()
+                    appResponse.arrMenuData = menuInit(conn, hmAliasConfigs, userConfig).toTypedArray()
 
                     for ((upKey, upValue) in appRequest.logon!!.hmSystemProperties) {
-                        saveUserProperty(conn, userConfig, upKey, upValue)
+                        saveUserProperty(conn = conn, userId = null, userConfig = userConfig, upName = upKey, upValue = upValue)
                     }
 //                    logQuery( "Logon result: $logonResult" )
                 }
@@ -381,16 +383,18 @@ abstract class CoreAppController : iApplication {
                     }
 
                     else -> {
-                        val aliasName = hmParam[AppParameter.ALIAS] ?: throw BusinessException("Не указано имя модуля.")
+                        val aliasName = hmParam[AppParameter.ALIAS] ?: throw BusinessException("Module name is not defined.")
 
-                        val hmAliasConfig = getAliasConfig(stm, chmSession, hmOut)
-                        val aliasConfig = hmAliasConfig[aliasName] ?: throw BusinessException("Модуль '$aliasName' не существует.")
+                        //--- вытаскиваем (или загружаем при необходимости) aliasConfig
+                        val hmAliasConfigs = chmSession.getOrPut(CoreSpringApp.ALIAS_CONFIG) { getAliasConfig(conn) } as Map<String, AliasConfig>
+                        hmOut[CoreSpringApp.ALIAS_CONFIG] = hmAliasConfigs
+
+                        val aliasConfig = hmAliasConfigs[aliasName] ?: throw BusinessException("The module '$aliasName' is not exist.")
 
                         //--- если класс не требует обязательной аутентификации и нет никакого логина,
                         //--- то подгрузим хотя бы гостевой логин
                         if (!aliasConfig.isAuthorization && userConfig == null) {
                             //--- при отсутствии оного загрузим гостевой логин
-                            reloadUserNames(conn)
                             userConfig = getUserConfig(conn, UserConfig.USER_GUEST)
                             hmOut[iApplication.USER_CONFIG] = userConfig // уйдет в сессию
                         }
@@ -405,7 +409,7 @@ abstract class CoreAppController : iApplication {
                             }
 
                             val page = Class.forName(aliasConfig.controlClassName).getConstructor().newInstance() as cStandart
-                            page.init(this, conn, stm, chmSession, hmParam, hmAliasConfig, aliasConfig, CoreSpringApp.hmXyDocumentConfig, userConfig)
+                            page.init(this, conn, chmSession, hmParam, hmAliasConfigs, aliasConfig, CoreSpringApp.hmXyDocumentConfig, userConfig)
                             when (appRequest.action) {
                                 AppAction.TABLE -> {
                                     if (CoreSpringApp.userLogMode == CoreSpringApp.SYSTEM_LOG_ALL) logQuery(hmParam)
@@ -461,7 +465,6 @@ abstract class CoreAppController : iApplication {
         //--- зафиксировать любые изменения в базе/
         conn.commit()
 
-        stm.close()
         conn.close()
 
         //--- обновить данные в сессии только после успешной записи данных
@@ -491,7 +494,6 @@ abstract class CoreAppController : iApplication {
         val xyBegTime = getCurrentTimeInt()
 
         val conn = AdvancedConnection(CoreSpringApp.dbConfig)
-        val stm = conn.createStatement()
 
         //--- загрузка/создании сессии
         val chmSession = CoreSpringApp.chmSessionStore.getOrPut(xyActionRequest.sessionId) { ConcurrentHashMap() }
@@ -510,7 +512,7 @@ abstract class CoreAppController : iApplication {
         val xyDocConfig = CoreSpringApp.hmXyDocumentConfig[docTypeName]!!
 
         val doc = Class.forName(xyDocConfig.serverClassName).getConstructor().newInstance() as sdcXyAbstract
-        doc.init(this, conn, stm, chmSession, userConfig, xyDocConfig)
+        doc.init(this, conn, chmSession, userConfig, xyDocConfig)
 
         val xyActionResponse =
             when (xyActionRequest.action) {
@@ -526,7 +528,6 @@ abstract class CoreAppController : iApplication {
         //--- зафиксировать любые изменения в базе/
         conn.commit()
 
-        stm.close()
         conn.close()
 
         //--- обновить данные в сессии только после успешной записи данных
@@ -556,7 +557,6 @@ abstract class CoreAppController : iApplication {
         val graphicBegTime = getCurrentTimeInt()
 
         val conn = AdvancedConnection(CoreSpringApp.dbConfig)
-        val stm = conn.createStatement()
 
         //--- загрузка/создании сессии
         val chmSession = CoreSpringApp.chmSessionStore.getOrPut(graphicActionRequest.sessionId) { ConcurrentHashMap() }
@@ -573,7 +573,7 @@ abstract class CoreAppController : iApplication {
         val userConfig: UserConfig = chmSession[iApplication.USER_CONFIG] as? UserConfig ?: throw BusinessException("Не найден пользователь в сессии!")
         val serverDocumentControlClassName = GraphicDocumentConfig.hmConfig[graphicActionRequest.documentTypeName]!!.serverControlClassName
         val doc = Class.forName(serverDocumentControlClassName).getConstructor().newInstance() as sdcAbstractGraphic
-        doc.init(this, conn, stm, chmSession, userConfig, graphicActionRequest.documentTypeName)
+        doc.init(this, conn, chmSession, userConfig, graphicActionRequest.documentTypeName)
 
         val graphicActionResponse =
             when (graphicActionRequest.action) {
@@ -584,7 +584,6 @@ abstract class CoreAppController : iApplication {
         //--- зафиксировать любые изменения в базе/
         conn.commit()
 
-        stm.close()
         conn.close()
 
         //--- обновить данные в сессии только после успешной записи данных
@@ -601,6 +600,45 @@ abstract class CoreAppController : iApplication {
         //AdvancedLogger.error( "Query time = " + ( System.currentTimeMillis() - appBegTime ) / 1000 );
 
         return graphicActionResponse
+    }
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @PostMapping("/api/save_user_property")
+    fun saveUserProperty(
+        @RequestBody
+        saveUserPropertyRequest: SaveUserPropertyRequest
+    ): SaveUserPropertyResponse {
+        val saveUserPropertyBegTime = getCurrentTimeInt()
+
+        val conn = AdvancedConnection(CoreSpringApp.dbConfig)
+
+//        logQuery( hmParam )
+        val upName = saveUserPropertyRequest.name
+        val upValue = saveUserPropertyRequest.value
+
+        //--- загрузка/создании сессии
+        val chmSession = CoreSpringApp.chmSessionStore.getOrPut(saveUserPropertyRequest.sessionId) { ConcurrentHashMap() }
+        val userConfig: UserConfig? = chmSession[iApplication.USER_CONFIG] as? UserConfig
+
+        if (userConfig != null) {
+            saveUserProperty(conn = conn, userId = null, userConfig = userConfig, upName = upName, upValue = upValue)
+        } else {
+            AdvancedLogger.error("User config not defined for saved property, name = '$upName', value = '$upValue'.")
+        }
+
+        //--- зафиксировать любые изменения в базе/
+        conn.commit()
+        conn.close()
+
+        //--- если запрос длился/обрабатывался дольше MAX_TIME_PER_REQUEST, покажем его
+        if (getCurrentTimeInt() - saveUserPropertyBegTime > CoreSpringApp.MAX_TIME_PER_REQUEST) {
+            AdvancedLogger.error("--- Long Save User Property Query = " + (getCurrentTimeInt() - saveUserPropertyBegTime))
+            AdvancedLogger.error(saveUserPropertyRequest.toString())
+        }
+        //AdvancedLogger.error( "Query time = " + ( System.currentTimeMillis() - appBegTime ) / 1000 );
+
+        return SaveUserPropertyResponse()
     }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -656,7 +694,7 @@ abstract class CoreAppController : iApplication {
     protected open fun checkLogSkipAliasPrefix(alias: String): Boolean = false
 
     //--- для перекрытия классами-наследниками
-    protected abstract fun menuInit(stm: CoreAdvancedStatement, hmAliasConfig: Map<String, AliasConfig>, userConfig: UserConfig): List<MenuData>
+    protected abstract fun menuInit(conn: CoreAdvancedConnection, hmAliasConfig: Map<String, AliasConfig>, userConfig: UserConfig): List<MenuData>
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -696,8 +734,6 @@ abstract class CoreAppController : iApplication {
     }
 
     private fun checkLogon(conn: CoreAdvancedConnection, aLogin: String, aPassword: String, chmSession: ConcurrentHashMap<String, Any>): ResponseCode {
-        val stm = conn.createStatement()
-
         //--- загрузка данных по активному пользователю с данным логином
         var userID = 0
         var isDisabled = false
@@ -706,7 +742,7 @@ abstract class CoreAppController : iApplication {
         val toDay = ZonedDateTime.now()
         lateinit var atDay: ZonedDateTime
         lateinit var pwdDay: ZonedDateTime
-        val rs = stm.executeQuery(
+        val rs = conn.executeQuery(
             " SELECT id , is_disabled , pwd , at_count , at_ye , at_mo , at_da , at_ho , at_mi , pwd_ye , pwd_mo , pwd_da " +
                 " FROM SYSTEM_users WHERE org_type <> ${OrgType.ORG_TYPE_DIVISION} AND login = '$aLogin' "
         )
@@ -728,21 +764,19 @@ abstract class CoreAppController : iApplication {
         if (atCount >= CoreSpringApp.MAX_LOGON_ATTEMPT && toDay.isBefore(atDay)) return ResponseCode.LOGON_SYSTEM_BLOCKED
         //--- пароль неправильный
         if (aPassword != userPassword) {
-            setAttemptData(stm, true, toDay, userID)
+            setAttemptData(conn, true, toDay, userID)
             return ResponseCode.LOGON_FAILED
         }
         //--- пароль правильный, сбрасываем счетчик
-        setAttemptData(stm, false, toDay, userID)
+        setAttemptData(conn, false, toDay, userID)
         //--- отдельно сохраняем сохраняем прочие user-info
         //--- (т.к. setAttemptData может быть использован в различных местах без последующего saveUserInfo)
         //saveUserInfo( userID )
 
         //--- исключение из правил: сразу же записываем в сессию информацию по успешно залогиненному пользователю,
         //--- т.к. эта инфа понадобится в той же команде (для выдачи меню и т.п.)
-        reloadUserNames(conn)
         chmSession[iApplication.USER_CONFIG] = getUserConfig(conn, userID)
 
-        stm.close()
         //--- проверяем просроченность пароля
         return if (toDay.isAfter(pwdDay)) {
             ResponseCode.LOGON_SUCCESS_BUT_OLD
@@ -751,8 +785,8 @@ abstract class CoreAppController : iApplication {
         }
     }
 
-    private fun setAttemptData(stm: CoreAdvancedStatement, incCount: Boolean, toDay: ZonedDateTime, userID: Int) {
-        stm.executeUpdate(
+    private fun setAttemptData(conn: CoreAdvancedConnection, incCount: Boolean, toDay: ZonedDateTime, userID: Int) {
+        conn.executeUpdate(
             " UPDATE SYSTEM_users SET at_count = ${if (incCount) "at_count + 1" else "0"} , " +
                 " at_ye = ${toDay.year} , at_mo = ${toDay.monthValue} , at_da = ${toDay.dayOfMonth} , " +
                 " at_ho = ${toDay.hour} , at_mi = ${toDay.minute} WHERE id = $userID "
@@ -811,16 +845,6 @@ abstract class CoreAppController : iApplication {
 //        else bbOut.putLong( 0 )
 //    }
 
-    private fun getAliasConfig(stm: CoreAdvancedStatement, chmSession: ConcurrentHashMap<String, Any>, hmOut: MutableMap<String, Any>): Map<String, AliasConfig> {
-        //--- вытаскиваем (или загружаем при необходимости) aliasConfig
-        var hmAliasConfig: Map<String, AliasConfig>? = chmSession[CoreSpringApp.ALIAS_CONFIG] as? Map<String, AliasConfig>
-        if (hmAliasConfig == null) {
-            hmAliasConfig = AliasConfig.getConfig(stm)
-            hmOut[CoreSpringApp.ALIAS_CONFIG] = hmAliasConfig
-        }
-        return hmAliasConfig
-    }
-
     private fun createTableMenu(hmAliasConfig: Map<String, AliasConfig>, alias: String): MenuData {
         val ac = hmAliasConfig[alias]
         return MenuData("${AppParameter.ALIAS}=$alias&${AppParameter.ACTION}=${AppAction.TABLE}", ac?.descr ?: "")
@@ -838,21 +862,171 @@ abstract class CoreAppController : iApplication {
     @Autowired
     private lateinit var userRepository: UserRepository
 
-    override fun reloadUserNames(conn: CoreAdvancedConnection) {
+    override fun loadUserIdList(conn: CoreAdvancedConnection, parentId: Int, orgType: Int): Set<Int> {
+        val hsUserId = mutableSetOf<Int>()
+
+        when (currentDataAccessMethod) {
+            DataAccessMethodEnum.JDBC, DataAccessMethodEnum.JPA /* not implemented yet */ -> {
+                val rs = conn.executeQuery(" SELECT id FROM SYSTEM_users WHERE id <> 0 AND parent_id = $parentId AND org_type = $orgType ")
+                while (rs.next()) {
+                    hsUserId += rs.getInt(1)
+                }
+                rs.close()
+            }
+
+            DataAccessMethodEnum.JOOQ -> {
+                //!!! temporarily two bad ideas at once:
+                //--- 1. conn is AdvancedConnection
+                //--- 2. used SQLDialect.POSTGRES only
+                val dslContext = DSL.using((conn as AdvancedConnection).conn, SQLDialect.POSTGRES)
+                val result = dslContext.select(
+                    SYSTEM_USERS.ID,
+                ).from(SYSTEM_USERS)
+                    .where(SYSTEM_USERS.ID.notEqual(0))
+                    .and(SYSTEM_USERS.PARENT_ID.equal(parentId))
+                    .and(SYSTEM_USERS.ORG_TYPE.equal(orgType))
+                    .fetch()
+                result.forEach { record1 ->
+                    record1.getValue(SYSTEM_USERS.ID)?.let { userId ->
+                        hsUserId += userId
+                    }
+                }
+            }
+        }
+
+        return hsUserId
+    }
+
+    override fun getUserConfig(conn: CoreAdvancedConnection, userId: Int): UserConfig {
+        val (isAdmin, isCleanAdmin) = loadAdminRoles(conn, userId)
+        lateinit var userConfig: UserConfig
+
+        when (currentDataAccessMethod) {
+            DataAccessMethodEnum.JDBC, DataAccessMethodEnum.JPA /* not implemented yet */ -> {
+                val rs = conn.executeQuery(" SELECT parent_id , org_type FROM SYSTEM_users WHERE id = $userId ")
+                rs.next()
+                userConfig = UserConfig(
+                    userId = userId,
+                    parentId = rs.getInt(1),
+                    orgType = rs.getInt(2),
+                    isAdmin = isAdmin,
+                    isCleanAdmin = isCleanAdmin,
+                    hmUserProperty = loadUserProperies(conn, userId),
+                )
+                rs.close()
+            }
+
+            DataAccessMethodEnum.JOOQ -> {
+                //!!! temporarily two bad ideas at once:
+                //--- 1. conn is AdvancedConnection
+                //--- 2. used SQLDialect.POSTGRES only
+                val dslContext = DSL.using((conn as AdvancedConnection).conn, SQLDialect.POSTGRES)
+                dslContext.select(
+                    SYSTEM_USERS.PARENT_ID,
+                    SYSTEM_USERS.ORG_TYPE,
+                ).from(SYSTEM_USERS)
+                    .where(SYSTEM_USERS.ID.equal(userId))
+                    .fetchOne()?.let { record2 ->
+                        userConfig = UserConfig(
+                            userId = userId,
+                            parentId = record2.getValue(SYSTEM_USERS.PARENT_ID) ?: 0,
+                            orgType = record2.getValue(SYSTEM_USERS.ORG_TYPE) ?: OrgType.ORG_TYPE_WORKER,
+                            isAdmin = isAdmin,
+                            isCleanAdmin = isCleanAdmin,
+                            hmUserProperty = loadUserProperies(conn, userId),
+                        )
+                    }
+            }
+        }
+
+        //--- вторичная загрузка данных
+        reloadUserNames(conn)
+        loadUserPermission(conn, userConfig)
+        loadUserIDList(conn, userConfig)
+
+        return userConfig
+    }
+
+    override fun saveUserProperty(conn: CoreAdvancedConnection, userId: Int?, userConfig: UserConfig?, upName: String, upValue: String) {
+        val uId = userId ?: userConfig?.userId ?: return
+
+        when (currentDataAccessMethod) {
+            DataAccessMethodEnum.JDBC, DataAccessMethodEnum.JPA /* not implemented yet */ -> {
+                if (conn.executeUpdate(" UPDATE SYSTEM_user_property SET property_value = '$upValue' WHERE user_id = $uId AND property_name = '$upName' ") == 0) {
+                    conn.executeUpdate(" INSERT INTO SYSTEM_user_property ( user_id , property_name , property_value ) VALUES ( $uId , '$upName' , '$upValue' ) ")
+                }
+            }
+
+            DataAccessMethodEnum.JOOQ -> {
+                //!!! temporarily two bad ideas at once:
+                //--- 1. conn is AdvancedConnection
+                //--- 2. used SQLDialect.POSTGRES only
+                val dslContext = DSL.using((conn as AdvancedConnection).conn, SQLDialect.POSTGRES)
+
+                if (dslContext.update(SYSTEM_USER_PROPERTY)
+                        .set(SYSTEM_USER_PROPERTY.PROPERTY_VALUE, upValue)
+                        .where(SYSTEM_USER_PROPERTY.USER_ID.equal(uId))
+                        .and(SYSTEM_USER_PROPERTY.PROPERTY_NAME.equal(upName))
+                        .execute() == 0
+                ) {
+
+                    dslContext.insertInto(SYSTEM_USER_PROPERTY, SYSTEM_USER_PROPERTY.USER_ID, SYSTEM_USER_PROPERTY.PROPERTY_NAME, SYSTEM_USER_PROPERTY.PROPERTY_VALUE)
+                        .values(uId, upName, upValue)
+                        .execute()
+                }
+            }
+        }
+        userConfig?.hmUserProperty?.put(upName, upValue)
+    }
+
+    //--- раскраска фона имени пользователя в зависимости от времени последнего входа в систему
+    override fun getUserNameColor(isDisabled: Boolean, lastLogonTime: Int): Int {
+        val curTime = getCurrentTimeInt()
+
+        return if (isDisabled) {
+            cStandart.TABLE_CELL_FORE_COLOR_DISABLED
+        } else if (curTime - lastLogonTime > 7 * 24 * 60 * 60) {
+            cStandart.TABLE_CELL_FORE_COLOR_CRITICAL
+        } else if (curTime - lastLogonTime > 1 * 24 * 60 * 60) {
+            cStandart.TABLE_CELL_FORE_COLOR_WARNING
+        } else {
+            cStandart.TABLE_CELL_FORE_COLOR_NORMAL
+        }
+    }
+
+    override fun checkAndSetNewPassword(conn: CoreAdvancedConnection, id: Int, pwd: DataString?) {
+        var oldPassword = ""
+        //--- запомнить старое значение пароля для возможной шифрации нового заданного пароля
+        //--- на всякий случай проверка
+        if (id != 0) {
+            val rs = conn.executeQuery(" SELECT pwd FROM SYSTEM_users WHERE id = $id ")
+            if (rs.next()) {
+                oldPassword = rs.getString(1)
+            }
+            rs.close()
+        }
+        pwd?.let {
+            val newPassword = pwd.text
+            //--- если пароль не менялся, лишний раз перешифровывать не будем
+            if (newPassword != oldPassword) {
+                pwd.text = encodePassword(newPassword)
+            }
+        }
+    }
+
+    private fun reloadUserNames(conn: CoreAdvancedConnection) {
         val hmFullName = mutableMapOf<Int, String>()
         val hmShortName = mutableMapOf<Int, String>()
 
         when (currentDataAccessMethod) {
             DataAccessMethodEnum.JDBC -> {
-                val stm = conn.createStatement()
-                val rs = stm.executeQuery(" SELECT id , full_name , short_name FROM SYSTEM_users WHERE id <> 0 ")
+                val rs = conn.executeQuery(" SELECT id , full_name , short_name FROM SYSTEM_users WHERE id <> 0 ")
                 while (rs.next()) {
                     val id = rs.getInt(1)
                     hmFullName[id] = rs.getString(2).trim()
                     hmShortName[id] = rs.getString(3).trim()
                 }
                 rs.close()
-                stm.close()
             }
 
             DataAccessMethodEnum.JOOQ -> {
@@ -890,94 +1064,6 @@ abstract class CoreAppController : iApplication {
         hmUserShortNames = hmShortName.toMap()
     }
 
-    override fun loadUserIdList(conn: CoreAdvancedConnection, parentId: Int, orgType: Int): Set<Int> {
-        val hsUserId = mutableSetOf<Int>()
-
-        when (currentDataAccessMethod) {
-            DataAccessMethodEnum.JDBC, DataAccessMethodEnum.JPA /* not implemented yet */ -> {
-                val stm = conn.createStatement()
-                val rs = stm.executeQuery(" SELECT id FROM SYSTEM_users WHERE id <> 0 AND parent_id = $parentId AND org_type = $orgType ")
-                while (rs.next()) {
-                    hsUserId += rs.getInt(1)
-                }
-                rs.close()
-                stm.close()
-            }
-
-            DataAccessMethodEnum.JOOQ -> {
-                //!!! temporarily two bad ideas at once:
-                //--- 1. conn is AdvancedConnection
-                //--- 2. used SQLDialect.POSTGRES only
-                val dslContext = DSL.using((conn as AdvancedConnection).conn, SQLDialect.POSTGRES)
-                val result = dslContext.select(
-                    SYSTEM_USERS.ID,
-                ).from(SYSTEM_USERS)
-                    .where(SYSTEM_USERS.ID.notEqual(0))
-                    .and(SYSTEM_USERS.PARENT_ID.equal(parentId))
-                    .and(SYSTEM_USERS.ORG_TYPE.equal(orgType))
-                    .fetch()
-                result.forEach { record1 ->
-                    record1.getValue(SYSTEM_USERS.ID)?.let { userId ->
-                        hsUserId += userId
-                    }
-                }
-            }
-        }
-
-        return hsUserId
-    }
-
-    override fun getUserConfig(conn: CoreAdvancedConnection, userId: Int): UserConfig {
-        val (isAdmin, isCleanAdmin) = loadAdminRoles(conn, userId)
-        lateinit var userConfig: UserConfig
-
-        when (currentDataAccessMethod) {
-            DataAccessMethodEnum.JDBC, DataAccessMethodEnum.JPA /* not implemented yet */ -> {
-                val stm = conn.createStatement()
-                val rs = stm.executeQuery(" SELECT parent_id , org_type FROM SYSTEM_users WHERE id = $userId ")
-                rs.next()
-                userConfig = UserConfig(
-                    userId = userId,
-                    parentId = rs.getInt(1),
-                    orgType = rs.getInt(2),
-                    isAdmin = isAdmin,
-                    isCleanAdmin = isCleanAdmin,
-                    hmUserProperty = loadUserProperies(conn, userId),
-                )
-                rs.close()
-                stm.close()
-            }
-
-            DataAccessMethodEnum.JOOQ -> {
-                //!!! temporarily two bad ideas at once:
-                //--- 1. conn is AdvancedConnection
-                //--- 2. used SQLDialect.POSTGRES only
-                val dslContext = DSL.using((conn as AdvancedConnection).conn, SQLDialect.POSTGRES)
-                dslContext.select(
-                    SYSTEM_USERS.PARENT_ID,
-                    SYSTEM_USERS.ORG_TYPE,
-                ).from(SYSTEM_USERS)
-                    .where(SYSTEM_USERS.ID.equal(userId))
-                    .fetchOne()?.let { record2 ->
-                        userConfig = UserConfig(
-                            userId = userId,
-                            parentId = record2.getValue(SYSTEM_USERS.PARENT_ID) ?: 0,
-                            orgType = record2.getValue(SYSTEM_USERS.ORG_TYPE) ?: OrgType.ORG_TYPE_WORKER,
-                            isAdmin = isAdmin,
-                            isCleanAdmin = isCleanAdmin,
-                            hmUserProperty = loadUserProperies(conn, userId),
-                        )
-                    }
-            }
-        }
-
-        //--- вторичная загрузка данных
-        loadUserPermission(conn, userConfig)
-        loadUserIDList(conn, userConfig)
-
-        return userConfig
-    }
-
     private fun loadUserPermission(conn: CoreAdvancedConnection, userConfig: UserConfig) {
         val userPermissionEnable = mutableMapOf<String, MutableSet<String>>()
         val userPermissionDisable = mutableMapOf<String, MutableSet<String>>()
@@ -985,8 +1071,7 @@ abstract class CoreAppController : iApplication {
         //--- загрузить права доступа для этого пользователя
         when (currentDataAccessMethod) {
             DataAccessMethodEnum.JDBC, DataAccessMethodEnum.JPA /* not implemented yet */ -> {
-                val stm = conn.createStatement()
-                val rs = stm.executeQuery(
+                val rs = conn.executeQuery(
                     """
                         SELECT SYSTEM_alias.name , SYSTEM_permission.name , SYSTEM_role.name 
                         FROM SYSTEM_alias , SYSTEM_permission , SYSTEM_role_permission , SYSTEM_user_role , SYSTEM_role 
@@ -1019,7 +1104,6 @@ abstract class CoreAppController : iApplication {
                     hsPerm += permName
                 }
                 rs.close()
-                stm.close()
             }
 
             DataAccessMethodEnum.JOOQ -> {
@@ -1068,38 +1152,6 @@ abstract class CoreAppController : iApplication {
         for ((alias, hsPerm) in userPermissionDisable) {
             userConfig.userPermission[alias]?.minus(hsPerm)
         }
-    }
-
-    override fun saveUserProperty(conn: CoreAdvancedConnection, userConfig: UserConfig, upName: String, upValue: String) {
-        when (currentDataAccessMethod) {
-            DataAccessMethodEnum.JDBC, DataAccessMethodEnum.JPA /* not implemented yet */ -> {
-                val stm = conn.createStatement()
-                if (stm.executeUpdate(" UPDATE SYSTEM_user_property SET property_value = '$upValue' WHERE user_id = ${userConfig.userId} AND property_name = '$upName' ") == 0) {
-                    stm.executeUpdate(" INSERT INTO SYSTEM_user_property ( user_id , property_name , property_value ) VALUES ( ${userConfig.userId} , '$upName' , '$upValue' ) ")
-                }
-                stm.close()
-            }
-
-            DataAccessMethodEnum.JOOQ -> {
-                //!!! temporarily two bad ideas at once:
-                //--- 1. conn is AdvancedConnection
-                //--- 2. used SQLDialect.POSTGRES only
-                val dslContext = DSL.using((conn as AdvancedConnection).conn, SQLDialect.POSTGRES)
-
-                if (dslContext.update(SYSTEM_USER_PROPERTY)
-                        .set(SYSTEM_USER_PROPERTY.PROPERTY_VALUE, upValue)
-                        .where(SYSTEM_USER_PROPERTY.USER_ID.equal(userConfig.userId))
-                        .and(SYSTEM_USER_PROPERTY.PROPERTY_NAME.equal(upName))
-                        .execute() == 0
-                ) {
-
-                    dslContext.insertInto(SYSTEM_USER_PROPERTY, SYSTEM_USER_PROPERTY.USER_ID, SYSTEM_USER_PROPERTY.PROPERTY_NAME, SYSTEM_USER_PROPERTY.PROPERTY_VALUE)
-                        .values(userConfig.userId, upName, upValue)
-                        .execute()
-                }
-            }
-        }
-        userConfig.hmUserProperty[upName] = upValue
     }
 
     //--- загрузка userID других пользователей относительно положения с данным пользователем
@@ -1191,13 +1243,11 @@ abstract class CoreAppController : iApplication {
 
         when (currentDataAccessMethod) {
             DataAccessMethodEnum.JDBC, DataAccessMethodEnum.JPA /* not implemented yet */ -> {
-                val stm = conn.createStatement()
-                val rs = stm.executeQuery(" SELECT parent_id FROM SYSTEM_users WHERE id = $userId ")
+                val rs = conn.executeQuery(" SELECT parent_id FROM SYSTEM_users WHERE id = $userId ")
                 if (rs.next()) {
                     parentId = rs.getInt(1)
                 }
                 rs.close()
-                stm.close()
             }
 
             DataAccessMethodEnum.JOOQ -> {
@@ -1225,9 +1275,8 @@ abstract class CoreAppController : iApplication {
 
         when (currentDataAccessMethod) {
             DataAccessMethodEnum.JDBC, DataAccessMethodEnum.JPA /* not implemented yet */ -> {
-                val stm = conn.createStatement()
                 //--- загрузить список ролей пользователя
-                val rs = stm.executeQuery(" SELECT role_id FROM SYSTEM_user_role WHERE user_id = $userId ")
+                val rs = conn.executeQuery(" SELECT role_id FROM SYSTEM_user_role WHERE user_id = $userId ")
                 while (rs.next()) {
                     val roleId = rs.getInt(1)
 //                    if (roleId == ROLE_GUEST) {
@@ -1239,7 +1288,6 @@ abstract class CoreAppController : iApplication {
                     roleCount++
                 }
                 rs.close()
-                stm.close()
             }
 
             DataAccessMethodEnum.JOOQ -> {
@@ -1273,13 +1321,11 @@ abstract class CoreAppController : iApplication {
 
         when (currentDataAccessMethod) {
             DataAccessMethodEnum.JDBC, DataAccessMethodEnum.JPA /* not implemented yet */ -> {
-                val stm = conn.createStatement()
-                val rs = stm.executeQuery(" SELECT property_name , property_value FROM SYSTEM_user_property WHERE user_id = $userId ")
+                val rs = conn.executeQuery(" SELECT property_name , property_value FROM SYSTEM_user_property WHERE user_id = $userId ")
                 while (rs.next()) {
                     hmUserProperty[rs.getString(1).trim()] = rs.getString(2).trim()
                 }
                 rs.close()
-                stm.close()
             }
 
             DataAccessMethodEnum.JOOQ -> {
@@ -1346,5 +1392,99 @@ abstract class CoreAppController : iApplication {
 //        )
 //    }
 //
+
+    override fun getAliasConfig(conn: CoreAdvancedConnection, aliasId: Int?, aliasName: String?): Map<String, AliasConfig> {
+        val hmAliasConfigs = mutableMapOf<String, AliasConfig>()
+
+        when (currentDataAccessMethod) {
+            DataAccessMethodEnum.JDBC, DataAccessMethodEnum.JPA /* not implemented yet */ -> {
+                val sSQL =
+                    """
+                        SELECT id, name, control_name, model_name, descr, authorization_need, 
+                        show_row_no, show_user_column, table_page_size, newable, new_auto_read, default_parent_user 
+                        FROM SYSTEM_alias "
+                        WHERE 
+                    """ +
+                        if (aliasId != null) {
+                            " id = $aliasId "
+                        } else if (aliasName != null) {
+                            " name = '$aliasName' "
+                        } else {
+                            " id <> 0 "
+                        }
+
+                val rs = conn.executeQuery(sSQL)
+                while (rs.next()) {
+                    val aliasConfig = AliasConfig(
+                        id = rs.getInt(1),
+                        name = rs.getString(2),
+                        controlClassName = rs.getString(3),
+                        modelClassName = rs.getString(4),
+                        descr = rs.getString(5),
+                        isAuthorization = rs.getInt(6) == 1,
+                        isShowRowNo = rs.getInt(7) == 1,
+                        isShowUserColumn = rs.getInt(8) == 1,
+                        pageSize = rs.getInt(9),
+                        isNewable = rs.getInt(10) == 1,
+                        isNewAutoRead = rs.getInt(11) == 1,
+                        isDefaultParentUser = rs.getInt(12) == 1,
+                    )
+                    hmAliasConfigs[aliasConfig.name] = aliasConfig
+                }
+                rs.close()
+            }
+
+            DataAccessMethodEnum.JOOQ -> {
+                //!!! temporarily two bad ideas at once:
+                //--- 1. conn is AdvancedConnection
+                //--- 2. used SQLDialect.POSTGRES only
+                val dslContext = DSL.using((conn as AdvancedConnection).conn, SQLDialect.POSTGRES)
+                val result = dslContext.select(
+                    SYSTEM_ALIAS.ID,
+                    SYSTEM_ALIAS.NAME,
+                    SYSTEM_ALIAS.CONTROL_NAME,
+                    SYSTEM_ALIAS.MODEL_NAME,
+                    SYSTEM_ALIAS.DESCR,
+                    SYSTEM_ALIAS.AUTHORIZATION_NEED,
+                    SYSTEM_ALIAS.SHOW_ROW_NO,
+                    SYSTEM_ALIAS.SHOW_USER_COLUMN,
+                    SYSTEM_ALIAS.TABLE_PAGE_SIZE,
+                    SYSTEM_ALIAS.NEWABLE,
+                    SYSTEM_ALIAS.NEW_AUTO_READ,
+                    SYSTEM_ALIAS.DEFAULT_PARENT_USER,
+                ).from(SYSTEM_ALIAS)
+                    .where(
+                        if (aliasId != null) {
+                            SYSTEM_ALIAS.ID.equal(aliasId)
+                        } else if (aliasName != null) {
+                            SYSTEM_ALIAS.NAME.equal(aliasName)
+                        } else {
+                            SYSTEM_ALIAS.ID.notEqual(0)
+                        }
+                    )
+                    .fetch()
+
+                result.forEach { record12 ->
+                    val aliasConfig = AliasConfig(
+                        id = record12.getValue(SYSTEM_ALIAS.ID) ?: 0,
+                        name = record12.getValue(SYSTEM_ALIAS.NAME) ?: "",
+                        controlClassName = record12.getValue(SYSTEM_ALIAS.CONTROL_NAME) ?: "",
+                        modelClassName = record12.getValue(SYSTEM_ALIAS.MODEL_NAME) ?: "",
+                        descr = record12.getValue(SYSTEM_ALIAS.DESCR) ?: "",
+                        isAuthorization = record12.getValue(SYSTEM_ALIAS.AUTHORIZATION_NEED) == 1,
+                        isShowRowNo = record12.getValue(SYSTEM_ALIAS.SHOW_ROW_NO) == 1,
+                        isShowUserColumn = record12.getValue(SYSTEM_ALIAS.SHOW_USER_COLUMN) == 1,
+                        pageSize = record12.getValue(SYSTEM_ALIAS.TABLE_PAGE_SIZE) ?: 0,
+                        isNewable = record12.getValue(SYSTEM_ALIAS.NEWABLE) == 1,
+                        isNewAutoRead = record12.getValue(SYSTEM_ALIAS.NEW_AUTO_READ) == 1,
+                        isDefaultParentUser = record12.getValue(SYSTEM_ALIAS.DEFAULT_PARENT_USER) == 1,
+                    )
+                    hmAliasConfigs[aliasConfig.name] = aliasConfig
+                }
+            }
+        }
+
+        return hmAliasConfigs
+    }
 }
 

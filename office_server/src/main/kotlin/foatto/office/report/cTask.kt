@@ -2,8 +2,6 @@ package foatto.office.report
 
 import foatto.core.link.FormData
 import foatto.core.util.DateTime_DMY
-import foatto.core_server.app.server.OtherOwnerData.getOtherOwner
-import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.data.DataBoolean
 import foatto.core_server.app.server.data.DataInt
 import jxl.CellView
@@ -11,7 +9,6 @@ import jxl.format.PageOrientation
 import jxl.format.PaperSize
 import jxl.write.Label
 import jxl.write.WritableSheet
-import java.lang.Integer.min
 import java.time.ZonedDateTime
 import java.util.*
 
@@ -152,11 +149,6 @@ class cTask : cOfficeReport() {
         val reportUser = hmReportParam["report_user"] as Int
         val reportSumOnly = hmReportParam["report_sum_only"] as Boolean
 
-        var rs = conn.executeQuery(" SELECT id FROM SYSTEM_alias WHERE name = 'office_task_out' ")
-        rs.next()
-        val taskOutAliasID = rs.getInt(1)
-        rs.close()
-
         val hsObjectPermission = userConfig.userPermission["office_task_out"]!!
         val toDay = ZonedDateTime.now(zoneId)
         val sb = """ 
@@ -171,21 +163,15 @@ class cTask : cOfficeReport() {
                 " AND in_user_id = $reportUser"
             } +
             " ORDER BY ye , mo , da "
-        rs = conn.executeQuery(sb)
+        val rs = conn.executeQuery(sb)
         while (rs.next()) {
             val rID: Int = rs.getInt(1)
-            val uID: Int = rs.getInt(2)
+            val userId: Int = rs.getInt(2)
             if (!checkPerm(
                     aUserConfig = userConfig,
                     aHsPermission = hsObjectPermission,
                     permName = PERM_TABLE,
-                    recordUserID = getOtherOwner(
-                        conn = conn,
-                        aliasID = taskOutAliasID,
-                        rowID = rID,
-                        rowUserID = uID,
-                        otherUserID = userConfig.userId
-                    )
+                    recordUserId = userId,
                 )
             ) {
                 continue

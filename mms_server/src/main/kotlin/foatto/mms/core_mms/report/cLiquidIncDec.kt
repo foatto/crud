@@ -32,7 +32,7 @@ class cLiquidIncDec : cMMSReport() {
         if (returnURL != null) return returnURL
 
         //--- это отчёт по заправкам вне путевых листов?
-        isWaybill = aliasConfig.alias == "mms_report_liquid_inc_waybill"
+        isWaybill = aliasConfig.name == "mms_report_liquid_inc_waybill"
 
         if (isWaybill) {
             val m = model as mLiquidIncWaybill
@@ -86,7 +86,7 @@ class cLiquidIncDec : cMMSReport() {
 
     override fun postReport(sheet: WritableSheet) {
         //--- загрузить данные по ВСЕМ зонам (reportZone используется только для последующей фильтрации)
-        val hmZoneData = ZoneData.getZoneData(stm, userConfig, 0)
+        val hmZoneData = ZoneData.getZoneData(conn, userConfig, 0)
         val alResult = calcReport(hmZoneData)
 
         //--- загрузка стартовых параметров
@@ -184,7 +184,7 @@ class cLiquidIncDec : cMMSReport() {
 
         val reportZone = hmReportParam["report_zone"] as Int
 
-        val isInc = aliasConfig.alias == "mms_report_liquid_inc" || isWaybill
+        val isInc = aliasConfig.name == "mms_report_liquid_inc" || isWaybill
 
         val (begTime, endTime) = getBegEndTimeFromParam()
 
@@ -209,7 +209,7 @@ class cLiquidIncDec : cMMSReport() {
             val alBeg = ArrayList<Int>()
             val alEnd = ArrayList<Int>()
             if (isWaybill) {
-                val rs = stm.executeQuery(
+                val rs = conn.executeQuery(
                     " SELECT beg_dt , end_dt , beg_dt_fact , end_dt_fact FROM MMS_work_shift " +
                         " WHERE object_id = $objectId"
                 )
@@ -221,14 +221,14 @@ class cLiquidIncDec : cMMSReport() {
             }
 
             //--- единоразово загрузим данные по всем датчикам объекта
-            val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(stm, oc, begTime, endTime)
+            val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(conn, oc, begTime, endTime)
 
             val tmObjectResult = TreeMap<String, LiquidIncDecData>()
             for (portNum in hmSCLL.keys) {
                 val sca = hmSCLL[portNum] as SensorConfigLiquidLevel
                 //--- собираем заправки или сливы по одному датчику
                 val alSCAResult = ObjectCalc.calcIncDec(
-                    stm = stm,
+                    conn = conn,
                     alRawTime = alRawTime,
                     alRawData = alRawData,
                     oc = oc,

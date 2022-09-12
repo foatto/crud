@@ -11,7 +11,7 @@ import foatto.core_server.app.server.data.DataComboBox
 import foatto.core_server.app.server.data.DataInt
 import foatto.core_server.app.server.data.DataString
 import foatto.core_server.app.server.data.iData
-import foatto.sql.CoreAdvancedStatement
+import foatto.sql.CoreAdvancedConnection
 
 open class cAbstractHierarchy : cStandart() {
 
@@ -43,24 +43,24 @@ open class cAbstractHierarchy : cStandart() {
 
     override fun isOpenFormURLInNewWindow(): Boolean = false
 
-    override fun doExpand(pid: Int) = expandCatalog(stm, model.modelTableName, pid, false)
+    override fun doExpand(pid: Int) = expandCatalog(conn, model.modelTableName, pid, false)
 
     override fun setSelectorParent(selectorParam: SelectorParameter) {
         super.setSelectorParent(selectorParam)
         //--- when editing when selecting from hierarchical tables at the start of the selector, you must set the desired parentID
         //--- parentID defined in selectID (i.e. edit mode)
         if (selectorParam.selectedId != 0) {
-            hmParentData[aliasConfig.alias] = getSelfParentId(selectorParam.selectedId)
+            hmParentData[aliasConfig.name] = getSelfParentId(selectorParam.selectedId)
             //--- so that with further passes through the hierarchy, this starting installation no longer works
             selectorParam.selectedId = 0
         } else if (selectorParam.selectedParentId != 0) {
-            hmParentData[aliasConfig.alias] = selectorParam.selectedParentId
+            hmParentData[aliasConfig.name] = selectorParam.selectedParentId
             //--- so that with further passes through the hierarchy, this starting installation no longer works
             selectorParam.selectedParentId = 0
         }
         //--- always save last parentId at hierarchical selector
-        hmParentData[aliasConfig.alias]?.let {
-            chmSession[AppParameter.SAVED_SELECTOR_PARENT + aliasConfig.alias] = it
+        hmParentData[aliasConfig.name]?.let {
+            chmSession[AppParameter.SAVED_SELECTOR_PARENT + aliasConfig.name] = it
         }
     }
 
@@ -73,7 +73,7 @@ open class cAbstractHierarchy : cStandart() {
                 tooltip = it.tooltip,
                 icon = it.icon,
                 url = getParamURL(
-                    aAlias = aliasConfig.alias,
+                    aAlias = aliasConfig.name,
                     aAction = AppAction.FORM,
                     aRefererId = refererID,
                     aId = 0,
@@ -105,7 +105,7 @@ open class cAbstractHierarchy : cStandart() {
     override fun getTableRowGoto(selectorID: String?, hmColumnData: Map<iColumn, iData>, indexChild: Int, alPopupData: MutableList<TablePopupData>): String? {
         val m = model as mAbstractHierarchy
         val childAlias = model.alChildData[indexChild].alias as String
-        if (childAlias == aliasConfig.alias) {
+        if (childAlias == aliasConfig.name) {
             val dataRecordType = hmColumnData[m.columnRecordType] as DataComboBox
             return if (dataRecordType.intValue == mAbstractHierarchy.RECORD_TYPE_FOLDER) {
                 super.getTableRowGoto(selectorID, hmColumnData, indexChild, alPopupData)
@@ -127,7 +127,7 @@ open class cAbstractHierarchy : cStandart() {
         //--- 1. это не селектор (т.е. не надо возвращать значений из текущей строки)
         //--- 2. это селектор, но это строка с папкой (в этом случае производится вход в папку, а не возврат значений из текущей строки)
         //--- 3. это селектор и это строка-элемент (не папка), но текущий алиас == выбор папки, поэтому не нужен значений из текущей строки
-        return if (selectorParam == null || dataRecordType.intValue == mAbstractHierarchy.RECORD_TYPE_FOLDER || aliasConfig.alias == m.folderAliasName) {
+        return if (selectorParam == null || dataRecordType.intValue == mAbstractHierarchy.RECORD_TYPE_FOLDER || aliasConfig.name == m.folderAliasName) {
             null
         } else {
             //--- в остальных случаях перекрываем на стандартный возврат значения из селектора
@@ -178,7 +178,7 @@ open class cAbstractHierarchy : cStandart() {
                 archiveFieldName = model.columnArchive!!.getFieldName(),
                 parentFieldName = (model as mAbstractHierarchy).columnParent.getFieldName(),
                 isNode = (hmColumnData[(model as mAbstractHierarchy).columnRecordType] as DataComboBox).intValue == mAbstractHierarchy.RECORD_TYPE_FOLDER,
-                stm = stm
+                conn = conn
             )
         }
 
@@ -190,9 +190,9 @@ open class cAbstractHierarchy : cStandart() {
     companion object {
 
         //--- загрузка полной структуры каталога: key = parent_id, value = list of ids
-        fun getCatalogParent(stm: CoreAdvancedStatement, tableName: String): Map<Int, List<Int>> {
+        fun getCatalogParent(conn: CoreAdvancedConnection, tableName: String): Map<Int, List<Int>> {
             val hmCatalogParent = mutableMapOf<Int, MutableList<Int>>()
-            val rs = stm.executeQuery(" SELECT parent_id , id FROM $tableName WHERE id <> 0 ORDER BY parent_id , id ")
+            val rs = conn.executeQuery(" SELECT parent_id , id FROM $tableName WHERE id <> 0 ORDER BY parent_id , id ")
             while (rs.next()) {
                 val parentID = rs.getInt(1)
                 val alID = hmCatalogParent.getOrPut(parentID) { mutableListOf() }
@@ -204,8 +204,8 @@ open class cAbstractHierarchy : cStandart() {
         }
 
         //--- выгрузка всех подэлементов заданного узла в линейный список
-        fun expandCatalog(stm: CoreAdvancedStatement, tableName: String, pid: Int, isItemsOnly: Boolean): Set<Int> {
-            val hmCatalogParent = getCatalogParent(stm, tableName)
+        fun expandCatalog(conn: CoreAdvancedConnection, tableName: String, pid: Int, isItemsOnly: Boolean): Set<Int> {
+            val hmCatalogParent = getCatalogParent(conn, tableName)
 
             //--- генерируем полный список подузлов
             val alId = mutableListOf<Int>()
@@ -227,7 +227,9 @@ open class cAbstractHierarchy : cStandart() {
 
             //--- если список пустой, то одно из двух - или pid не узел или в нём нет вложенных элементов.
             //--- тогда надо вернуть хотя бы исходный pid
-            if (hsResult.isEmpty()) hsResult.add(pid)
+            if (hsResult.isEmpty()) {
+                hsResult.add(pid)
+            }
 
             return hsResult
         }
@@ -241,23 +243,26 @@ open class cAbstractHierarchy : cStandart() {
             archiveFieldName: String,
             parentFieldName: String,
             isNode: Boolean,
-            stm: CoreAdvancedStatement
+            conn: CoreAdvancedConnection
         ) {
             //--- устанавливаем только один соответствующий флаг в вышестоящих узлах
             //--- (т.е. вышестоящие узлы становятся "также и в архиве")
             var curId = id
             while (true) {
-                val rs = stm.executeQuery(" SELECT $parentFieldName FROM $tableName WHERE $idFieldName = $curId ")
+                val rs = conn.executeQuery(" SELECT $parentFieldName FROM $tableName WHERE $idFieldName = $curId ")
                 val parentId = if (rs.next()) rs.getInt(1) else 0
                 rs.close()
 
-                if (parentId == 0) break
+                if (parentId == 0) {
+                    break
+                }
 
-                stm.executeUpdate(
+                conn.executeUpdate(
                     " UPDATE $tableName " +
                         " SET ${if (action == AppAction.ARCHIVE) archiveFieldName else activeFieldName} = 1 " +
                         " WHERE $idFieldName = $parentId "
                 )
+
                 curId = parentId
             }
 
@@ -271,7 +276,7 @@ open class cAbstractHierarchy : cStandart() {
                     val alNewId = mutableListOf<Int>()
 
                     alCurId.forEach {
-                        val rs = stm.executeQuery(" SELECT $idFieldName FROM $tableName WHERE $parentFieldName = $it ")
+                        val rs = conn.executeQuery(" SELECT $idFieldName FROM $tableName WHERE $parentFieldName = $it ")
                         while (rs.next()) alNewId.add(rs.getInt(1))
                         rs.close()
                     }
@@ -283,7 +288,7 @@ open class cAbstractHierarchy : cStandart() {
                 }
 
                 alId.forEach {
-                    stm.executeUpdate(
+                    conn.executeUpdate(
                         " UPDATE $tableName " +
                             " SET ${if (action == AppAction.ARCHIVE) archiveFieldName else activeFieldName} = 1 " +
                             "  ,  ${if (action == AppAction.ARCHIVE) activeFieldName else archiveFieldName} = 0 " +

@@ -90,7 +90,7 @@ class cGraphicMMS : cAbstractForm() {
         val paramID = getRandomInt()
         hmOut[AppParameter.GRAPHIC_START_DATA + paramID] = sd
 
-        return getParamURL(aliasConfig.alias, AppAction.GRAPHIC, null, null, null, null, "&${AppParameter.GRAPHIC_START_DATA}=$paramID")
+        return getParamURL(aliasConfig.name, AppAction.GRAPHIC, null, null, null, null, "&${AppParameter.GRAPHIC_START_DATA}=$paramID")
     }
 }
 

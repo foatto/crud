@@ -7,7 +7,7 @@ class cLogSession : cLogText() {
 
     //--- по умолчанию возвращаем просто соответствующую папку логов
     override fun getLogDir(): File? =
-        application.hmAliasLogDir[aliasConfig.alias]?.let { dirName ->
+        application.hmAliasLogDir[aliasConfig.name]?.let { dirName ->
             val dirLog = File(dirName)
 
             getParentId("mms_device")?.let {

@@ -21,7 +21,7 @@ open class cLogText : cStandart() {
     //---------------------------------------------------------------------------------------------------------------
 
     //--- по умолчанию возвращаем просто соответствующую папку логов
-    protected open fun getLogDir(): File? = application.hmAliasLogDir[aliasConfig.alias]?.let { File(it) }
+    protected open fun getLogDir(): File? = application.hmAliasLogDir[aliasConfig.name]?.let { File(it) }
 
     //--- понятно что будет регулироваться правами доступа, но лишняя предосторожность не помешает
     override fun isAddEnabled() = false
