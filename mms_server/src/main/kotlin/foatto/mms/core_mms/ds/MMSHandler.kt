@@ -25,8 +25,6 @@ abstract class MMSHandler : AbstractTelematicHandler() {
 
     companion object {
 
-        const val DEVICE_ID_DIVIDER = 10_000_000
-
         const val DEVICE_TYPE_GALILEO = 1
 //        const val DEVICE_TYPE_PETROLINE = 2
         const val DEVICE_TYPE_PULSAR_DATA = 3
