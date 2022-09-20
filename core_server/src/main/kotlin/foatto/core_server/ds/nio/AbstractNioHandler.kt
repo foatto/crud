@@ -1,4 +1,4 @@
-package foatto.core_server.ds
+package foatto.core_server.ds.nio
 
 import foatto.core.util.AdvancedByteBuffer
 import foatto.core.util.AdvancedLogger
@@ -7,7 +7,7 @@ import java.nio.channels.SelectionKey
 import java.nio.channels.SocketChannel
 import java.util.concurrent.ConcurrentLinkedQueue
 
-abstract class AbstractHandler {
+abstract class AbstractNioHandler {
 
     //--- время последней обработки/укладки в очередь
     @Volatile
@@ -26,7 +26,7 @@ abstract class AbstractHandler {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    protected lateinit var dataServer: CoreDataServer
+    protected lateinit var dataServer: CoreNioServer
     var selectionKey: SelectionKey? = null
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -36,7 +36,7 @@ abstract class AbstractHandler {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    open fun init(aDataServer: CoreDataServer, aSelectionKey: SelectionKey) {
+    open fun init(aDataServer: CoreNioServer, aSelectionKey: SelectionKey) {
         dataServer = aDataServer
         selectionKey = aSelectionKey
 
@@ -45,23 +45,24 @@ abstract class AbstractHandler {
 
     //--- всякие освобождающие ресурсы/память процедуры
     fun free() {
-        selectionKey?.let {
+        selectionKey?.let { sk ->
             //--- закрыть/удалить мёртвое/ошибочное соединение
             try {
-                val socketChannel = selectionKey!!.channel() as SocketChannel
+                val socketChannel = sk.channel() as SocketChannel
                 AdvancedLogger.debug("Connection closed = ${socketChannel.remoteAddress}")
                 socketChannel.close()
             } catch (t: Throwable) {
                 AdvancedLogger.error(t)
             }
 
-            selectionKey!!.attach(null)    // отвяжем себя от него
-            selectionKey!!.cancel()
+            sk.attach(null)    // отвяжем себя от него
+            sk.cancel()
+            //--- именно selectionKey, а не локальный sk
             selectionKey = null            // отвяжем его от себя
         }
     }
 
-    open fun work(dataWorker: CoreDataWorker): Boolean {
+    open fun work(dataWorker: CoreNioWorker): Boolean {
         //--- Намеренно не будем проверять:
         //--- - на null - т.к. других забирателей данных из очереди нет
         //--- - нулевой размер буфера в очереди для CMD_DATA - таких там просто не должно быть,
@@ -75,14 +76,17 @@ abstract class AbstractHandler {
                 preWork()
                 return true
             }
+
             DataMessage.CMD_DATA -> {
                 bbIn.put(dataMessage.byteBuffer!!.buffer).flip()
                 return oneWork(dataWorker)
             }
+
             DataMessage.CMD_CLOSE ->
                 //--- это не ошибка, а нормальное закрытие канала клиентом
                 //writeError( dataWorker.alConn.get( 0 ), dataWorker.alStm.get( 0 ), new StringBuilder( " Disconnect from controller ID = " ).append( getControllerID() ).toString() );
                 return false
+
             DataMessage.CMD_ERROR -> {
                 prepareErrorCommand(dataWorker)
                 return false
@@ -94,8 +98,8 @@ abstract class AbstractHandler {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     protected abstract fun preWork()
-    protected abstract fun oneWork(dataWorker: CoreDataWorker): Boolean
-    protected abstract fun prepareErrorCommand(dataWorker: CoreDataWorker)
+    protected abstract fun oneWork(dataWorker: CoreNioWorker): Boolean
+    protected abstract fun prepareErrorCommand(dataWorker: CoreNioWorker)
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

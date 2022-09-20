@@ -44,7 +44,7 @@ class mDayWork : mAbstractReport() {
         super.init(application, aConn, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
         //--- отдельная обработка перехода от журнала (суточных) пробегов
-        val arrADR = MMSFunction.getDayWorkParent(conn, hmParentData)
+        val arrDT = MMSFunction.getDayWorkParent(conn, hmParentData)
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -57,12 +57,16 @@ class mDayWork : mAbstractReport() {
         //----------------------------------------------------------------------------------------------------------------------
 
         columnReportBegDate = ColumnDate3Int(modelTableName, "beg_ye", "beg_mo", "beg_da", "Начало периода").apply {
-            if (arrADR != null) default = LocalDate.of(arrADR[0], arrADR[1], arrADR[2])
+            arrDT?.let {
+                default = LocalDate.of(arrDT[0], arrDT[1], arrDT[2])
+            }
             isVirtual = true
         }
 
         columnReportEndDate = ColumnDate3Int(modelTableName, "end_ye", "end_mo", "end_da", "Конец периода").apply {
-            if (arrADR != null) default = LocalDate.of(arrADR[0], arrADR[1], arrADR[2])
+            arrDT?.let {
+                default = LocalDate.of(arrDT[0], arrDT[1], arrDT[2])
+            }
             isVirtual = true
         }
 
@@ -82,9 +86,9 @@ class mDayWork : mAbstractReport() {
         uodg = UODGSelector()
         uodg.fillColumns(application, modelTableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn)
 
-        alFormColumn.add(columnReportBegDate)
-        alFormColumn.add(columnReportEndDate)
-        alFormColumn.add(columnReportGroupType)
+        alFormColumn += columnReportBegDate
+        alFormColumn += columnReportEndDate
+        alFormColumn += columnReportGroupType
 
         sros = SummaryReportOptionSelector()
         sros.fillColumns(userConfig, modelTableName, alFormColumn)

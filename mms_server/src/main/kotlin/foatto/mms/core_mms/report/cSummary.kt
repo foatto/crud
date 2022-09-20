@@ -2,10 +2,8 @@ package foatto.mms.core_mms.report
 
 import foatto.core.app.graphic.GraphicDataContainer
 import foatto.core.link.FormData
-import foatto.core.util.DateTime_DMYHMS
 import foatto.mms.core_mms.calc.ObjectCalc
 import foatto.mms.core_mms.graphic.server.document.sdcAbstractAnalog
-import foatto.mms.core_mms.graphic.server.document.sdcAnalog
 import foatto.mms.core_mms.graphic.server.document.sdcLiquid
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigAnalogue
@@ -55,7 +53,7 @@ class cSummary : cStandartPeriodSummary() {
 
         val allSumCollector = ReportSumCollector()
         var countNN = 1
-        for (objectIndex in alobjectId.indices) {
+        for (objectIndex in alObjectId.indices) {
             val objectConfig = alObjectConfig[objectIndex]
             val objectCalc = ObjectCalc.calcObject(conn, userConfig, objectConfig, begTime, endTime)
 

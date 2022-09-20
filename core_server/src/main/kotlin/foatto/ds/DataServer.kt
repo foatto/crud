@@ -1,9 +1,9 @@
 package foatto.ds
 
-import foatto.core_server.ds.CoreDataServer
+import foatto.core_server.ds.nio.CoreNioServer
 import kotlin.system.exitProcess
 
-class DataServer(aConfigFileName: String) : CoreDataServer(aConfigFileName) {
+class DataServer(aConfigFileName: String) : CoreNioServer(aConfigFileName) {
 
     companion object {
         @JvmStatic

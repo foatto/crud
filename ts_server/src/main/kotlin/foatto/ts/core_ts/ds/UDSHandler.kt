@@ -7,7 +7,7 @@ import foatto.core.util.AdvancedLogger
 import foatto.core.util.YMDHMS_DateTime
 import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.getDateTimeInt
-import foatto.core_server.ds.CoreDataWorker
+import foatto.core_server.ds.nio.CoreNioWorker
 import foatto.sql.SQLBatch
 import java.nio.ByteOrder
 
@@ -24,7 +24,7 @@ class UDSHandler : TSHandler() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun oneWork(dataWorker: CoreDataWorker): Boolean {
+    override fun oneWork(dataWorker: CoreNioWorker): Boolean {
         //        //--- данных нет - ждём
         //        if( ! bbIn.hasRemaining() ) {
         //            bbIn.compact();
@@ -157,7 +157,7 @@ class UDSHandler : TSHandler() {
         return true
     }
 
-    private fun dataToByteBuffer(dataWorker: CoreDataWorker, udsDataPacket: UDSDataPacket): AdvancedByteBuffer {
+    private fun dataToByteBuffer(dataWorker: CoreNioWorker, udsDataPacket: UDSDataPacket): AdvancedByteBuffer {
         val bbData = AdvancedByteBuffer(dataWorker.conn.dialect.textFieldMaxSize / 2)
 
         // Код текущего состояния установки УДС

@@ -5,8 +5,8 @@ import foatto.core.util.AdvancedLogger
 import foatto.core.util.DateTime_YMDHMS
 import foatto.core.util.crc16_modbus
 import foatto.core.util.getCurrentTimeInt
-import foatto.core_server.ds.CoreDataServer
-import foatto.core_server.ds.CoreDataWorker
+import foatto.core_server.ds.nio.CoreNioServer
+import foatto.core_server.ds.nio.CoreNioWorker
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigCounter
 import foatto.sql.SQLBatch
@@ -173,13 +173,13 @@ open class GalileoHandler : MMSHandler() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun init(aDataServer: CoreDataServer, aSelectionKey: SelectionKey) {
+    override fun init(aDataServer: CoreNioServer, aSelectionKey: SelectionKey) {
         deviceType = DEVICE_TYPE_GALILEO
 
         super.init(aDataServer, aSelectionKey)
     }
 
-    override fun oneWork(dataWorker: CoreDataWorker): Boolean {
+    override fun oneWork(dataWorker: CoreNioWorker): Boolean {
         //--- Iridium-заголовок
         if (isIridium) {
             //--- в данном случае - версия протокола
@@ -894,7 +894,7 @@ open class GalileoHandler : MMSHandler() {
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    private fun savePoint(dataWorker: CoreDataWorker, pointTime: Int, sqlBatchData: SQLBatch) {
+    private fun savePoint(dataWorker: CoreNioWorker, pointTime: Int, sqlBatchData: SQLBatch) {
         val curTime = getCurrentTimeInt()
         AdvancedLogger.debug("pointTime = ${DateTime_YMDHMS(ZoneId.systemDefault(), pointTime)}")
         if (pointTime > curTime - MAX_PAST_TIME && pointTime < curTime + MAX_FUTURE_TIME) {

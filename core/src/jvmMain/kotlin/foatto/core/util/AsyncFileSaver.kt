@@ -16,20 +16,22 @@ class AsyncFileSaver : Thread() {
         //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         private val clqFileData = ConcurrentLinkedQueue<FileData>()
-        //!!! у котлиновского Any нет функций wait/notify, заменить в будущем на более идиоматичный вариант
-        private val lock = java.lang.Object()
-        @Volatile private var inWork = true
 
-        private class FileData( val fileName: CharSequence, val bbFileData: AdvancedByteBuffer)
+        //!!! у котлиновского Any нет функций wait/notify, заменить в будущем на более идиоматичный вариант
+        private val lock = Object()
+        @Volatile
+        private var inWork = true
+
+        private class FileData(val fileName: CharSequence, val bbFileData: AdvancedByteBuffer)
 
         //--- внешнее статическое API -------------------------------------------------------------------------------------------------------------------------------------------------
 
-        fun init( rootDirName: String ) {
-            rootDir = File( rootDirName )
+        fun init(rootDirName: String) {
+            rootDir = File(rootDirName)
             AsyncFileSaver().start()
         }
 
-        fun put( fileName: CharSequence, bbFileData: AdvancedByteBuffer) {
+        fun put(fileName: CharSequence, bbFileData: AdvancedByteBuffer) {
             clqFileData.offer(FileData(fileName, bbFileData))
             synchronized(lock) {
                 //--- notifyAll() не нужен - на одно событие одного обработчика достаточно разбудить один процесс-worker
@@ -37,7 +39,9 @@ class AsyncFileSaver : Thread() {
             }
         }
 
-        fun close() { inWork = false }
+        fun close() {
+            inWork = false
+        }
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -45,32 +49,31 @@ class AsyncFileSaver : Thread() {
     override fun run() {
         var sleepTime = 0
 
-        while(inWork) {
+        while (inWork) {
             try {
                 val fileData = clqFileData.poll()
-                if( fileData == null )
+                if (fileData == null)
                     synchronized(lock) {
                         try {
-                            lock.wait( (++sleepTime) * 1000L )
+                            lock.wait((++sleepTime) * 1000L)
+                        } catch (e: InterruptedException) {
                         }
-                        catch( e: InterruptedException ) {}
                     }
                 else {
                     sleepTime = 0
 
-                    val file = File(rootDir, fileData.fileName.toString() )
-                    val fileChannel = FileOutputStream( file ).channel
-                    fileChannel.write( fileData.bbFileData.buffer )
+                    val file = File(rootDir, fileData.fileName.toString())
+                    val fileChannel = FileOutputStream(file).channel
+                    fileChannel.write(fileData.bbFileData.buffer)
                     fileChannel.close()
                 }
-            }
-            catch( t: Throwable ) {
+            } catch (t: Throwable) {
                 t.printStackTrace()
                 //--- небольшая пауза, чтобы не загрузить систему в случае циклической ошибки
                 try {
-                    sleep( 100_000 )
+                    sleep(100_000)
+                } catch (t2: Throwable) {
                 }
-                catch(t2: Throwable) {}
             }
         }
     }

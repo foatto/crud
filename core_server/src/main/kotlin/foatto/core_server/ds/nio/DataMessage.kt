@@ -1,4 +1,4 @@
-package foatto.core_server.ds
+package foatto.core_server.ds.nio
 
 import foatto.core.util.AdvancedByteBuffer
 

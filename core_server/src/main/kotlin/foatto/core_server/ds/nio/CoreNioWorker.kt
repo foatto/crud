@@ -1,10 +1,10 @@
-package foatto.core_server.ds
+package foatto.core_server.ds.nio
 
 import foatto.core.util.AdvancedLogger
 import foatto.core.util.getCurrentTimeInt
 import foatto.sql.CoreAdvancedConnection
 
-abstract class CoreDataWorker protected constructor(val dataServer: CoreDataServer) : Thread() {
+abstract class CoreNioWorker protected constructor(val dataServer: CoreNioServer) : Thread() {
 
     lateinit var conn: CoreAdvancedConnection
 
@@ -41,11 +41,17 @@ abstract class CoreDataWorker protected constructor(val dataServer: CoreDataServ
                         var isOk = true
 
                         val begTime = getCurrentTimeInt()
-                        while (isOk && !handler.clqIn.isEmpty()) isOk = handler.work(this)
+                        while (isOk && !handler.clqIn.isEmpty()) {
+                            isOk = handler.work(this)
+                        }
                         dataServer.workTime += getCurrentTimeInt() - begTime
 
-                        if (isOk) dataServer.putHandler(handler)
-                        else dataServer.putForClose(handler)
+                        if (isOk) {
+                            dataServer.putHandler(handler)
+                        }
+                        else {
+                            dataServer.putForClose(handler)
+                        }
                     } catch (t: Throwable) {
                         AdvancedLogger.error(t)
                         dataServer.putForClose(handler)

@@ -1,4 +1,4 @@
-package foatto.core_server.ds
+package foatto.core_server.ds.nio
 
 import foatto.core.util.AdvancedByteBuffer
 import foatto.core.util.AdvancedLogger
@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.min
 
-abstract class CoreDataServer protected constructor(private val configFileName: String) {
+abstract class CoreNioServer protected constructor(private val configFileName: String) {
 
     companion object {
 
@@ -96,13 +96,13 @@ abstract class CoreDataServer protected constructor(private val configFileName: 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     //--- очередь Handler'ов для обработки входной информации: препроцессинга или чтения/обработки данных
-    private var clqIn = ConcurrentLinkedQueue<AbstractHandler>()
+    private var clqIn = ConcurrentLinkedQueue<AbstractNioHandler>()
 
     //--- очередь Handler'ов для обработки выходной информации: записи или закрытия
-    private var clqOut: ConcurrentLinkedQueue<AbstractHandler> = ConcurrentLinkedQueue()
+    private var clqOut: ConcurrentLinkedQueue<AbstractNioHandler> = ConcurrentLinkedQueue()
 
     //--- очередь Handler'ов на закрытие
-    private var clqClose = ConcurrentLinkedQueue<AbstractHandler>()
+    private var clqClose = ConcurrentLinkedQueue<AbstractNioHandler>()
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -194,7 +194,9 @@ abstract class CoreDataServer protected constructor(private val configFileName: 
 
                 //--- если обработчиков совсем не осталось (например, позакрывались из-за пропажи коннекта к базе),
                 //--- или это первый цикл работы сервера, то запустим новый обработчик
-                if (workerCount <= 0) runNewDataWorker()
+                if (workerCount <= 0) {
+                    runNewDataWorker()
+                }
 
                 val keyCount = selector.select(selectorTimeOut * 1000L)
                 if (keyCount == 0) {
@@ -222,7 +224,7 @@ abstract class CoreDataServer protected constructor(private val configFileName: 
                         //socketChannel.socket().setReceiveBufferSize( 512 * 1024 );
                         //socketChannel.socket().setSendBufferSize( 512 * 1024 );
                         //--- привязка сокетного канала и его обработчика
-                        val handler = hmServerSocketChannelClass[ssc]!!.getConstructor().newInstance() as AbstractHandler
+                        val handler = hmServerSocketChannelClass[ssc]!!.getConstructor().newInstance() as AbstractNioHandler
                         handler.init(this, socketChannel.register(selector, SelectionKey.OP_READ, handler))
 
                         //--- добавить в список обрабатываемых объектов
@@ -234,7 +236,7 @@ abstract class CoreDataServer protected constructor(private val configFileName: 
                         AdvancedLogger.debug("Connection opened = ${socketChannel.socket().inetAddress}")
                         AdvancedLogger.debug("Handler [create] = ${clqIn.size}")
                     } else if (key.isReadable) {
-                        val handler = key.attachment() as AbstractHandler
+                        val handler = key.attachment() as AbstractNioHandler
                         val socketChannel = key.channel() as SocketChannel
                         //--- собственно чтение
                         try {
@@ -242,25 +244,31 @@ abstract class CoreDataServer protected constructor(private val configFileName: 
                             val bb = AdvancedByteBuffer(startBufSize)
                             val num = socketChannel.read(bb.buffer)
                             //--- канал нормально закрыт клиентом
-                            if (num == -1) putMessage(handler, DataMessage(DataMessage.CMD_CLOSE))
+                            if (num == -1) {
+                                putMessage(handler, DataMessage(DataMessage.CMD_CLOSE))
+                            }
                             //--- волшебный случай, однако стоит предусмотреть
-                            else if (num == 0) AdvancedLogger.error("num == 0")
+                            else if (num == 0) {
+                                AdvancedLogger.error("num == 0")
+                            }
                             else {
                                 bb.flip()
                                 putMessage(handler, DataMessage(byteBuffer = bb))
 
                                 //--- если буфер был полностью заполнен и памяти хватит, чтобы его увеличить, то вероятно, его не хватает и его надо/можно увеличить
-                                if (num == startBufSize && startBufSize * 2 < (runtime.maxMemory() - (runtime.totalMemory() - runtime.freeMemory())) / 2)
+                                if (num == startBufSize && startBufSize * 2 < (runtime.maxMemory() - (runtime.totalMemory() - runtime.freeMemory())) / 2) {
                                     startBufSize *= 2
+                                }
                                 //--- если буфер заполнен менее чем наполовину и его ещё можно уменьшить, то его стоит/можно уменьшить
-                                else if (num < startBufSize / 2 && startBufSize > 8)
+                                else if (num < startBufSize / 2 && startBufSize > 8) {
                                     startBufSize /= 2
+                                }
                             }
                         } catch (t: Throwable) {
                             closeOnError(key, handler, socketChannel, t)
                         }
                     } else if (key.isWritable) {
-                        val handler = key.attachment() as AbstractHandler
+                        val handler = key.attachment() as AbstractNioHandler
                         val socketChannel = key.channel() as SocketChannel
                         try {
                             //--- только один разочек, чтобы главный поток селектора не "зависал" на отправке больших данных клиентам на медленных каналах
@@ -270,10 +278,14 @@ abstract class CoreDataServer protected constructor(private val configFileName: 
                                 //--- попытаемся записать буфер в сокет
                                 socketChannel.write(dataMessage.byteBuffer!!.buffer)
                                 //--- если записался полностью, удаляем из очереди
-                                if (dataMessage.byteBuffer.remaining() == 0) handler.clqOut.poll()
+                                if (dataMessage.byteBuffer.remaining() == 0) {
+                                    handler.clqOut.poll()
+                                }
                             }
                             //--- если запись закончена, переходим в режим чтения/ожидания входящих данных
-                            if (handler.clqOut.isEmpty()) key.interestOps(SelectionKey.OP_READ)
+                            if (handler.clqOut.isEmpty()) {
+                                key.interestOps(SelectionKey.OP_READ)
+                            }
                         } catch (t: Throwable) {
                             closeOnError(key, handler, socketChannel, t)
                         }
@@ -303,11 +315,15 @@ abstract class CoreDataServer protected constructor(private val configFileName: 
                     handler.free()
 
                     //--- проверка: этот цикл не должен сработать ни разу - т.к. закрываемый объект вместо clqIn должен попасть в clqClose
-                    while (clqIn.remove(handler)) AdvancedLogger.error("Handler in clqIn at closing time !")
+                    while (clqIn.remove(handler)) {
+                        AdvancedLogger.error("Handler in clqIn at closing time !")
+                    }
 
                     //--- проверка: этот цикл не должен сработать ни разу - т.к. закрываемый объект не может попасть в clqOut,
                     //--- т.к. в clqClose он попадает не в режиме работы, а сам clqOut уже очищен в предыдущем блоке
-                    while (clqOut.remove(handler)) AdvancedLogger.error("Handler in clqOut at closing time !")
+                    while (clqOut.remove(handler)) {
+                        AdvancedLogger.error("Handler in clqOut at closing time !")
+                    }
 
                     AdvancedLogger.debug("Handler [close] = ${clqIn.size}")
                 }
@@ -316,8 +332,11 @@ abstract class CoreDataServer protected constructor(private val configFileName: 
                     val alsessionId = ArrayList<Long>(chmSessionTime.size)
                     //--- чтобы не получить ошибку при удалении во время перебора -
                     //--- просто запишем sessionId, а удалять будем позже по списку
-                    for (sessionId in chmSessionTime.keys)
-                        if (getCurrentTimeInt() - chmSessionTime[sessionId]!! > maxSessionInactiveTime) alsessionId.add(sessionId)
+                    for (sessionId in chmSessionTime.keys) {
+                        if (getCurrentTimeInt() - chmSessionTime[sessionId]!! > maxSessionInactiveTime) {
+                            alsessionId.add(sessionId)
+                        }
+                    }
                     for (sessionId in alsessionId) {
                         chmSessionTime.remove(sessionId)
                         chmSessionStore.remove(sessionId)
@@ -352,7 +371,7 @@ abstract class CoreDataServer protected constructor(private val configFileName: 
         }
     }
 
-    private fun closeOnError(key: SelectionKey, handler: AbstractHandler, socketChannel: SocketChannel, t: Throwable) {
+    private fun closeOnError(key: SelectionKey, handler: AbstractNioHandler, socketChannel: SocketChannel, t: Throwable) {
         //--- надо сразу же отменить регистрацию ключа в селекторе,
         //--- чтобы до реального закрытия обработчика не нагенерировалась куча входящих ошибок
         //--- (в close этот ключ ещё раз закроется, но это не критично)
@@ -372,8 +391,8 @@ abstract class CoreDataServer protected constructor(private val configFileName: 
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    fun getHandler(): AbstractHandler? {
-        var result: AbstractHandler? = null
+    fun getHandler(): AbstractNioHandler? {
+        var result: AbstractNioHandler? = null
         //--- size() слишком дорогая операция, чтобы крутить её в цикле
         val count = clqIn.size
         //--- очередь заданий достаточно прокрутить только один раз за один запрос
@@ -395,7 +414,9 @@ abstract class CoreDataServer protected constructor(private val configFileName: 
                     break
                 }
                 //--- кладём обратно в очередь пустое задание
-                else clqIn.offer(handler)
+                else {
+                    clqIn.offer(handler)
+                }
             }
             //--- ура, мы нашли задание с непустой входной очередью
             else {
@@ -404,7 +425,11 @@ abstract class CoreDataServer protected constructor(private val configFileName: 
             }
         }
         //--- сколько успешных запросов подряд получилось?
-        successResultCount = if (result == null) 0 else successResultCount + 1
+        successResultCount = if (result == null) {
+            0
+        } else {
+            successResultCount + 1
+        }
         try {
             //--- не пора ли запустить ещё один worker?
             if (successResultCount > workerCount && workerCount < maxWorkerCount) {
@@ -419,7 +444,7 @@ abstract class CoreDataServer protected constructor(private val configFileName: 
         return result
     }
 
-    private fun putMessage(handler: AbstractHandler, dataMessage: DataMessage) {
+    private fun putMessage(handler: AbstractNioHandler, dataMessage: DataMessage) {
         handler.clqIn.offer(dataMessage)
         synchronized(lock) {
             //--- notifyAll() не нужен - на одно событие одного обработчика достаточно разбудить один процесс-worker
@@ -427,18 +452,18 @@ abstract class CoreDataServer protected constructor(private val configFileName: 
         }
     }
 
-    fun putHandler(handler: AbstractHandler) {
+    fun putHandler(handler: AbstractNioHandler) {
         handler.lastWorkTime = getCurrentTimeInt()
         clqIn.offer(handler)
     }
 
-    fun putForWrite(handler: AbstractHandler) {
+    fun putForWrite(handler: AbstractNioHandler) {
         handler.lastWorkTime = getCurrentTimeInt()
         clqOut.offer(handler)
         selector.wakeup()
     }
 
-    fun putForClose(handler: AbstractHandler) {
+    fun putForClose(handler: AbstractNioHandler) {
         clqClose.offer(handler)
         selector.wakeup()
     }

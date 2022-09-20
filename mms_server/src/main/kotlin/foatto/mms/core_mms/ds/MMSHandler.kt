@@ -8,7 +8,7 @@ import foatto.core.util.getDateTimeArray
 import foatto.core.util.getFileWriter
 import foatto.core_server.app.server.column.ColumnRadioButton
 import foatto.core_server.ds.AbstractTelematicHandler
-import foatto.core_server.ds.CoreDataWorker
+import foatto.core_server.ds.nio.CoreNioWorker
 import foatto.mms.core_mms.cWorkShift
 import foatto.mms.core_mms.sensor.config.SensorConfigGeo
 import foatto.sql.CoreAdvancedConnection
@@ -269,7 +269,7 @@ abstract class MMSHandler : AbstractTelematicHandler() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun prepareErrorCommand(dataWorker: CoreDataWorker) {
+    override fun prepareErrorCommand(dataWorker: CoreNioWorker) {
         writeError(
             conn = dataWorker.conn,
             dirSessionLog = dirSessionLog,
@@ -291,7 +291,7 @@ abstract class MMSHandler : AbstractTelematicHandler() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    protected fun loadDeviceConfig(dataWorker: CoreDataWorker): Boolean {
+    protected fun loadDeviceConfig(dataWorker: CoreNioWorker): Boolean {
         deviceConfig = DeviceConfig.getDeviceConfig(dataWorker.conn, serialNo)
         //--- неизвестный контроллер
         if (deviceConfig == null) {

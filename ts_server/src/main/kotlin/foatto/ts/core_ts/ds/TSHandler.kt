@@ -7,7 +7,7 @@ import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.getFileWriter
 import foatto.core_server.app.server.column.ColumnRadioButton
 import foatto.core_server.ds.AbstractTelematicHandler
-import foatto.core_server.ds.CoreDataWorker
+import foatto.core_server.ds.nio.CoreNioWorker
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.SQLBatch
 import java.io.File
@@ -70,13 +70,13 @@ abstract class TSHandler : AbstractTelematicHandler() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun prepareErrorCommand(dataWorker: CoreDataWorker) {
+    override fun prepareErrorCommand(dataWorker: CoreNioWorker) {
         writeError(dataWorker.conn, " Disconnect from serial No = $serialNo")
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    protected fun loadDeviceConfig(dataWorker: CoreDataWorker): Boolean {
+    protected fun loadDeviceConfig(dataWorker: CoreNioWorker): Boolean {
         deviceConfig = DeviceConfig.getDeviceConfig(dataWorker.conn, serialNo)
         //--- неизвестный контроллер
         if (deviceConfig == null) {
