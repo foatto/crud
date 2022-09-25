@@ -76,6 +76,7 @@ object MMSFunction {
             "mms_report_summary",
             "mms_report_summary_bngre",
             "mms_report_day_work",
+            "mms_report_day_work_bngre",
             "mms_report_work_shift",
             "mms_report_waybill",
             "mms_report_waybill_compare",

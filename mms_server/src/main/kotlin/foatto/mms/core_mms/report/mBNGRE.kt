@@ -3,10 +3,7 @@ package foatto.mms.core_mms.report
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnDouble
 
-class mSummaryBNGRE : mUODGP() {
-
-//    lateinit var sos: SumOptionSelector
-//        private set
+class mBNGRE : mOP() {
 
     lateinit var columnPeriodBeginValue: ColumnDouble
         private set
@@ -25,11 +22,4 @@ class mSummaryBNGRE : mUODGP() {
 
         alFormColumn.add(columnPeriodBeginValue)
     }
-
-//    override fun addOptionsColumns(userConfig: UserConfig) {
-//        super.addOptionsColumns(userConfig)
-//
-//        sos = SumOptionSelector()
-//        sos.fillColumns(userConfig, modelTableName, alFormColumn)
-//    }
 }

@@ -99,6 +99,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuCommonReport, "mms_report_summary", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuCommonReport, "mms_report_summary_bngre", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuCommonReport, "mms_report_day_work", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuCommonReport, "mms_report_day_work_bngre", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuCommonReport, "mms_report_work_shift", false)
 
         if (alMenuCommonReport.size > 0) {

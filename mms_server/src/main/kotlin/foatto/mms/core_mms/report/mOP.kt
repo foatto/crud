@@ -8,7 +8,7 @@ import foatto.mms.core_mms.MMSFunction
 import foatto.mms.core_mms.ObjectSelector
 import foatto.sql.CoreAdvancedConnection
 
-class mOP : mP() {
+open class mOP : mP() {
 
     private lateinit var os: ObjectSelector
 
@@ -40,15 +40,35 @@ class mOP : mP() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
+        defineOptionsColumns(userConfig)
+
+        //----------------------------------------------------------------------------------------------------------------------
+
         alFormHiddenColumn.add(columnId)
 
         //----------------------------------------------------------------------------------------------------------------------
 
         os = ObjectSelector()
-        os.fillColumns(this, true, true, alTableHiddenColumn, alFormHiddenColumn, alFormColumn, hmParentColumn, false, -1)
+        os.fillColumns(
+            model = this,
+            isRequired = true,
+            isSelector = true,
+            alTableHiddenColumn = alTableHiddenColumn,
+            alFormHiddenColumn = alFormHiddenColumn,
+            alFormColumn = alFormColumn,
+            hmParentColumn = hmParentColumn,
+            aSingleObjectMode = false,
+            addedStaticColumnCount = -1
+        )
 
         //----------------------------------------------------------------------------------------------------------------------
 
         addReportPeriodFormColumns()
+
+        addOptionsColumns(userConfig)
     }
+
+    open fun defineOptionsColumns(userConfig: UserConfig) {}
+
+    open fun addOptionsColumns(userConfig: UserConfig) {}
 }
