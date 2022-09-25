@@ -36,8 +36,10 @@ interface iApplication {
     fun checkAndSetNewPassword(conn: CoreAdvancedConnection, id: Int, pwd: DataString?)
 
     fun getAliasConfig(conn: CoreAdvancedConnection, aliasId: Int? = null, aliasName: String? = null): Map<String, AliasConfig>
+    fun deletePermissions(conn: CoreAdvancedConnection, aliasId: Int)
+    fun loadRoleIdList(conn: CoreAdvancedConnection): List<Int>
 
-//    fun getUserDTO(userId: Int): UserDTO
+    //    fun getUserDTO(userId: Int): UserDTO
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

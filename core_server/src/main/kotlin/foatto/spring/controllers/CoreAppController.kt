@@ -39,6 +39,7 @@ import foatto.sql.AdvancedConnection
 import foatto.sql.CoreAdvancedConnection
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
+import org.jooq.impl.DSL.select
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.GetMapping
@@ -1393,6 +1394,8 @@ abstract class CoreAppController : iApplication {
 //    }
 //
 
+//--- Alias Configs, Roles and Permissions -------------------------------------------------------------------------------------------------------------------------------
+
     override fun getAliasConfig(conn: CoreAdvancedConnection, aliasId: Int?, aliasName: String?): Map<String, AliasConfig> {
         val hmAliasConfigs = mutableMapOf<String, AliasConfig>()
 
@@ -1485,6 +1488,65 @@ abstract class CoreAppController : iApplication {
         }
 
         return hmAliasConfigs
+    }
+
+    override fun deletePermissions(conn: CoreAdvancedConnection, aliasId: Int) {
+        when (currentDataAccessMethod) {
+            DataAccessMethodEnum.JDBC, DataAccessMethodEnum.JPA /* not implemented yet */ -> {
+                //--- удаляем все cRolePermission
+                conn.executeUpdate(" DELETE FROM SYSTEM_role_permission WHERE permission_id IN ( SELECT id FROM SYSTEM_permission WHERE class_id = $aliasId ) ")
+                //--- удаляем все cPermission от класса
+                conn.executeUpdate(" DELETE FROM SYSTEM_permission WHERE class_id = $aliasId ")
+            }
+
+            DataAccessMethodEnum.JOOQ -> {
+                //!!! temporarily two bad ideas at once:
+                //--- 1. conn is AdvancedConnection
+                //--- 2. used SQLDialect.POSTGRES only
+                val dslContext = DSL.using((conn as AdvancedConnection).conn, SQLDialect.POSTGRES)
+
+                dslContext.deleteFrom(SYSTEM_ROLE_PERMISSION)
+                    .where(
+                        SYSTEM_ROLE_PERMISSION.PERMISSION_ID.`in`(
+                            select(SYSTEM_PERMISSION.ID)
+                                .from(SYSTEM_PERMISSION)
+                                .where(SYSTEM_PERMISSION.CLASS_ID.equal(aliasId))
+                        )
+                    )
+                dslContext.deleteFrom(SYSTEM_PERMISSION)
+                    .where(SYSTEM_PERMISSION.CLASS_ID.equal(aliasId))
+            }
+        }
+    }
+
+    override fun loadRoleIdList(conn: CoreAdvancedConnection): List<Int> {
+        val alRoleIds = mutableListOf<Int>()
+
+        when (currentDataAccessMethod) {
+            DataAccessMethodEnum.JDBC, DataAccessMethodEnum.JPA /* not implemented yet */ -> {
+                val rs = conn.executeQuery(" SELECT id FROM SYSTEM_role WHERE id <> 0 ")
+                while (rs.next()) {
+                    alRoleIds + rs.getInt(1)
+                }
+                rs.close()
+            }
+
+            DataAccessMethodEnum.JOOQ -> {
+                //!!! temporarily two bad ideas at once:
+                //--- 1. conn is AdvancedConnection
+                //--- 2. used SQLDialect.POSTGRES only
+                val dslContext = DSL.using((conn as AdvancedConnection).conn, SQLDialect.POSTGRES)
+
+                val result = dslContext.select(SYSTEM_ROLE.ID).from(SYSTEM_ROLE).where(SYSTEM_ROLE.ID.notEqual(0)).fetch()
+                result.forEach { record1 ->
+                    record1.getValue(SYSTEM_ROLE.ID)?.let { roleId ->
+                        alRoleIds += roleId
+                    }
+                }
+            }
+        }
+
+        return alRoleIds
     }
 }
 

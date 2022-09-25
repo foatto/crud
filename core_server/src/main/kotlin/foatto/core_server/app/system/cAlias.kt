@@ -21,27 +21,19 @@ class cAlias : cStandart() {
     override fun postDelete(id: Int, hmColumnData: Map<iColumn, iData>) {
         super.postDelete(id, hmColumnData)
 
-        //--- удаляем все cRolePermission
-        conn.executeUpdate(" DELETE FROM SYSTEM_role_permission WHERE permission_id IN ( SELECT id FROM SYSTEM_permission WHERE class_id = $id ) ")
-        //--- удаляем все cPermission от класса
-        conn.executeUpdate(" DELETE FROM SYSTEM_permission WHERE class_id = $id ")
+        application.deletePermissions(conn, id)
     }
 
     private fun refreshPerm(id: Int) {
         //--- обновляем список permission и связанных с ними записей
         //--- загрузить список ролей для возможного будущего автоматического создания или удаления
-        val alRole = mutableListOf<Int>()
-        var rs = conn.executeQuery(" SELECT id FROM SYSTEM_role WHERE id <> 0 ")
-        while (rs.next()) {
-            alRole.add(rs.getInt(1))
-        }
-        rs.close()
+        val alRoleIds = application.loadRoleIdList(conn)
 
         //--- загрузить существующий список прав доступа
-        val hmPerm = mutableMapOf<String, Int>()
-        rs = conn.executeQuery(" SELECT name, id FROM SYSTEM_permission WHERE class_id = $id ")
+        val hmOldPermissions = mutableMapOf<String, Int>()
+        var rs = conn.executeQuery(" SELECT name, id FROM SYSTEM_permission WHERE class_id = $id ")
         while (rs.next()) {
-            hmPerm[rs.getString(1)] = rs.getInt(2)
+            hmOldPermissions[rs.getString(1)] = rs.getInt(2)
         }
         rs.close()
 
@@ -68,18 +60,18 @@ class cAlias : cStandart() {
                 conn.executeUpdate(
                     " INSERT INTO SYSTEM_permission ( id, class_id, name, descr ) VALUES ( $nextPermID , $id , '$permName' , '$permDescr' ) "
                 )
-                for (roleID in alRole) {
+                alRoleIds.forEach { roleId ->
                     val nextRolePermID = conn.getNextIntId("SYSTEM_role_permission", "id")
                     conn.executeUpdate(
-                        " INSERT INTO SYSTEM_role_permission ( id, role_id, permission_id, permission_value ) VALUES ( $nextRolePermID , $roleID , $nextPermID , 0 ) "
+                        " INSERT INTO SYSTEM_role_permission ( id, role_id, permission_id, permission_value ) VALUES ( $nextRolePermID , $roleId , $nextPermID , 0 ) "
                     )
                 }
             }
             //--- удалим его из списка загруженных прав доступа
-            hmPerm.remove(permName)
+            hmOldPermissions.remove(permName)
         }
         //--- теперь удаляем лишние права доступа
-        for ((_, permID) in hmPerm) {
+        for ((_, permID) in hmOldPermissions) {
             conn.executeUpdate(" DELETE FROM SYSTEM_permission WHERE id = $permID ")
             conn.executeUpdate(" DELETE FROM SYSTEM_role_permission WHERE permission_id = $permID ")
         }
