@@ -169,10 +169,6 @@ open class GalileoHandler : MMSHandler() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    protected open val isIridium: Boolean = false
-
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     override fun init(aDataServer: CoreNioServer, aSelectionKey: SelectionKey) {
         deviceType = DEVICE_TYPE_GALILEO
 
@@ -180,147 +176,42 @@ open class GalileoHandler : MMSHandler() {
     }
 
     override fun oneWork(dataWorker: CoreNioWorker): Boolean {
-        //--- Iridium-заголовок
-        if (isIridium) {
-            //--- в данном случае - версия протокола
-            if (packetHeader.toInt() == 0) {
-                //--- будем ждать загрузки максимально полного заголовка
-                //--- (если он не полный - то "непрочитанный" остаток безопасно уйдёт в полезную нагрузку,
-                //--- т.к. опциональная часть заголовка много меньше полезной нагрузки)
-                if (bbIn.remaining() < 1 + 2 + 1 + 2 + 4 + 15 + 1 + 2 + 2 + 4 + 1 + 2 + 1 + 1 + 2 + 1 + 2 + 4 + 1 + 2) {
-                    bbIn.compact()
-                    return true
-                }
-                packetHeader = bbIn.getByte()  // версия протокола
-                bbIn.getShort()    // общая длина пакета
-                bbIn.getByte()     // Тэг 0х01
-                bbIn.getShort()    // размер данных тэга
-                bbIn.getInt()      // ID пакета
-                val arrIridiumIMEI = ByteArray(15)
-                bbIn.get(arrIridiumIMEI)    // IMEI
-                val iridiumIMEI = String(arrIridiumIMEI)
-                val iridiumStatusSession = bbIn.getByte().toInt()
-                bbIn.getShort()    // номер пакета
-                bbIn.getShort()    // пустое поле
-                bbIn.getInt()      // время отправки пакета
-
-                if (packetHeader.toInt() != 0x01) {
-                    writeError(
-                        conn = dataWorker.conn,
-                        dirSessionLog = dirSessionLog,
-                        zoneId = zoneId,
-                        deviceConfig = deviceConfig,
-                        fwVersion = fwVersion,
-                        begTime = begTime,
-                        address = (selectionKey!!.channel() as SocketChannel).localAddress.hostname,
-                        status = status,
-                        errorText = "Wrong Iridium protocol version = $packetHeader for IMEI = $iridiumIMEI",
-                        dataCount = dataCount,
-                        dataCountAll = dataCountAll,
-                        firstPointTime = firstPointTime,
-                        lastPointTime = lastPointTime,
-                    )
-                    return false
-                }
-                if (iridiumStatusSession < 0 || iridiumStatusSession > 2) {
-                    writeError(
-                        conn = dataWorker.conn,
-                        dirSessionLog = dirSessionLog,
-                        zoneId = zoneId,
-                        deviceConfig = deviceConfig,
-                        fwVersion = fwVersion,
-                        begTime = begTime,
-                        address = (selectionKey!!.channel() as SocketChannel).localAddress.hostname,
-                        status = status,
-                        errorText = "Wrong Iridium session status = $iridiumStatusSession for IMEI = $iridiumIMEI",
-                        dataCount = dataCount,
-                        dataCountAll = dataCountAll,
-                        firstPointTime = firstPointTime,
-                        lastPointTime = lastPointTime,
-                    )
-                    return false
-                }
-
-                var tag = bbIn.getByte().toInt()
-                //--- опциональный тэг
-                if (tag == 0x03) {
-                    bbIn.getShort()    // размер данных тэга
-                    bbIn.getByte()     // флаги
-                    bbIn.getByte()     // широта - градусы
-                    bbIn.getShort()    // широта - минуты с точностью до тысячных
-                    bbIn.getByte()     // долгота - градусы
-                    bbIn.getShort()    // долгота - минуты с точностью до тысячных
-                    bbIn.getInt()      // CEP радиус
-
-                    tag = bbIn.getByte().toInt()
-                }
-                //--- основной тэг
-                if (tag == 0x02) {
-                    //--- данные в Iridium-заголовке идут в BidEndian, в отличие от остальных галилео-данных.
-                    //--- чтобы не переключать BidEndian-режим из-за одного только размера пакета,
-                    //--- проще у него самого байты переставить
-                    val b1 = bbIn.getByte()
-                    val b2 = bbIn.getByte()
-                    packetSize = (b1.toInt() and 0xFF shl 8) or (b2.toInt() and 0xFF)
-                } else {
-                    writeError(
-                        conn = dataWorker.conn,
-                        dirSessionLog = dirSessionLog,
-                        zoneId = zoneId,
-                        deviceConfig = deviceConfig,
-                        fwVersion = fwVersion,
-                        begTime = begTime,
-                        address = (selectionKey!!.channel() as SocketChannel).localAddress.hostname,
-                        status = status,
-                        errorText = "Unknown Iridium tag = $tag for IMEI = $iridiumIMEI",
-                        dataCount = dataCount,
-                        dataCountAll = dataCountAll,
-                        firstPointTime = firstPointTime,
-                        lastPointTime = lastPointTime,
-                    )
-                    return false
-                }
+        //--- магический байт-заголовок
+        if (packetHeader.toInt() == 0) {
+            if (bbIn.remaining() < 1 + 2) {
+                bbIn.compact()
+                return true
             }
-        }
-        //--- Стандартный заголовок
-        else {
-            //--- магический байт-заголовок
-            if (packetHeader.toInt() == 0) {
-                if (bbIn.remaining() < 1 + 2) {
-                    bbIn.compact()
-                    return true
-                }
-                packetHeader = bbIn.getByte()
-                packetSize = bbIn.getShort().toInt() and 0xFFFF
+            packetHeader = bbIn.getByte()
+            packetSize = bbIn.getShort().toInt() and 0xFFFF
 
-                //--- старший бит - признак наличия данных в архиве
-                //boolean isDataReady = ( packetSize & 0x8000 ) != 0; // накой надо? непонятно...
-                //--- длина пакета - остальные/младшие 15 бит
-                packetSize = packetSize and 0x7FFF
+            //--- старший бит - признак наличия данных в архиве
+            //boolean isDataReady = ( packetSize & 0x8000 ) != 0; // накой надо? непонятно...
+            //--- длина пакета - остальные/младшие 15 бит
+            packetSize = packetSize and 0x7FFF
 
-                if (packetHeader.toInt() != 0x01) {
-                    writeError(
-                        conn = dataWorker.conn,
-                        dirSessionLog = dirSessionLog,
-                        zoneId = zoneId,
-                        deviceConfig = deviceConfig,
-                        fwVersion = fwVersion,
-                        begTime = begTime,
-                        address = (selectionKey!!.channel() as SocketChannel).localAddress.hostname,
-                        status = status,
-                        errorText = "Wrong packet header = $packetHeader for serialNo = $serialNo",
-                        dataCount = dataCount,
-                        dataCountAll = dataCountAll,
-                        firstPointTime = firstPointTime,
-                        lastPointTime = lastPointTime,
-                    )
-                    return false
-                }
+            if (packetHeader.toInt() != 0x01) {
+                writeError(
+                    conn = dataWorker.conn,
+                    dirSessionLog = dirSessionLog,
+                    zoneId = zoneId,
+                    deviceConfig = deviceConfig,
+                    fwVersion = fwVersion,
+                    begTime = begTime,
+                    address = (selectionKey!!.channel() as SocketChannel).localAddress.hostname,
+                    status = status,
+                    errorText = "Wrong packet header = $packetHeader for serialNo = $serialNo",
+                    dataCount = dataCount,
+                    dataCountAll = dataCountAll,
+                    firstPointTime = firstPointTime,
+                    lastPointTime = lastPointTime,
+                )
+                return false
             }
         }
 
         //--- ждём основные данные + 2 байта CRC (0, если данные передавались через iridium, там не передается CRC)
-        if (bbIn.remaining() < packetSize + (if (isIridium) 0 else 2)) {
+        if (bbIn.remaining() < packetSize + 2) {
             bbIn.compact()
             return true
         }
@@ -333,7 +224,7 @@ open class GalileoHandler : MMSHandler() {
 
         //--- обработка данных, кроме последних 2 байт CRC
         //--- (0, если данные передавались через iridium, там не передается CRC)
-        while (bbIn.remaining() > if (isIridium) 0 else 2) {
+        while (bbIn.remaining() > 2) {
             //AdvancedLogger.debug( "remaining = " + bbIn.remaining() );
             //--- тег данных
             val tag = bbIn.getByte().toInt() and 0xFF
@@ -796,11 +687,8 @@ open class GalileoHandler : MMSHandler() {
             }
         }
         //--- при передаче через iridium crc-код возвращать не надо
-        val crc = if (isIridium) {
-            0
-        } else {
-            bbIn.getShort()
-        }
+        val crc = bbIn.getShort()
+
         //AdvancedLogger.debug( "remaining = " + bbIn.remaining() );
         status += " DataRead;"
 
@@ -811,10 +699,7 @@ open class GalileoHandler : MMSHandler() {
 
         sqlBatchData.execute(dataWorker.conn)
 
-        //--- при передаче через iridium отвечать не надо
-        if (!isIridium) {
-            sendAccept(crc)
-        }
+        sendAccept(crc)
 
         //--- проверка на наличие команды терминалу
 
