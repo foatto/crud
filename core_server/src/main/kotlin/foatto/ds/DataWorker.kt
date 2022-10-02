@@ -5,9 +5,9 @@ import foatto.core_server.ds.nio.CoreNioWorker
 import foatto.sql.AdvancedConnection
 import foatto.sql.CoreAdvancedConnection
 
-class DataWorker constructor(aDataServer: CoreNioServer) : CoreNioWorker(aDataServer) {
+class DataWorker(aDataServer: CoreNioServer) : CoreNioWorker(aDataServer) {
 
     override fun openConnection(): CoreAdvancedConnection {
-        return AdvancedConnection(dataServer.dBConfig)
+        return AdvancedConnection(dataServer.dbConfig)
     }
 }

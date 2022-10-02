@@ -10,10 +10,12 @@ import foatto.core_server.app.server.data.DataDateTimeInt
 import foatto.core_server.app.server.data.DataInt
 import foatto.core_server.app.server.data.DataString
 import foatto.core_server.app.server.data.iData
-import foatto.core_server.ds.AbstractTelematicHandler
+import foatto.core_server.ds.CoreTelematicFunction
+import foatto.core_server.ds.nio.AbstractTelematicNioHandler
+import foatto.mms.core_mms.ds.GalileoFunction
 import foatto.mms.core_mms.ds.GalileoHandler
+import foatto.mms.core_mms.ds.MMSTelematicFunction
 import foatto.mms.core_mms.sensor.config.SensorConfig
-import foatto.mms.core_mms.sensor.config.SensorConfigBase
 import foatto.mms.core_mms.sensor.config.SensorConfigCounter
 
 class cDevice : cStandart() {
@@ -165,7 +167,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_LIQUID_USING_COUNTER_STATE,
-                    portNum = GalileoHandler.PORT_NUM_ESD_STATUS,
+                    portNum = GalileoFunction.PORT_NUM_ESD_STATUS,
                     descrBody = "Состояние расходомера",
                 )
                 addCounterSensor(
@@ -176,7 +178,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_LIQUID_USING,
-                    portNum = GalileoHandler.PORT_NUM_ESD_VOLUME,
+                    portNum = GalileoFunction.PORT_NUM_ESD_VOLUME,
                     descrBody = "Расходомер",
                 )
                 addAnalogueSensor(
@@ -187,7 +189,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_VOLUME_FLOW,
-                    portNum = GalileoHandler.PORT_NUM_ESD_FLOW,
+                    portNum = GalileoFunction.PORT_NUM_ESD_FLOW,
                     descrBody = "Скорость потока",
                 )
                 addCounterSensor(
@@ -198,7 +200,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_LIQUID_USING,
-                    portNum = GalileoHandler.PORT_NUM_ESD_CAMERA_VOLUME,
+                    portNum = GalileoFunction.PORT_NUM_ESD_CAMERA_VOLUME,
                     descrBody = "Расходомер камеры подачи",
                 )
                 addAnalogueSensor(
@@ -209,7 +211,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_VOLUME_FLOW,
-                    portNum = GalileoHandler.PORT_NUM_ESD_CAMERA_FLOW,
+                    portNum = GalileoFunction.PORT_NUM_ESD_CAMERA_FLOW,
                     descrBody = "Скорость потока камеры подачи",
                 )
                 addAnalogueSensor(
@@ -220,7 +222,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_TEMPERATURE,
-                    portNum = GalileoHandler.PORT_NUM_ESD_CAMERA_TEMPERATURE,
+                    portNum = GalileoFunction.PORT_NUM_ESD_CAMERA_TEMPERATURE,
                     descrBody = "Температура камеры подачи",
                 )
                 addCounterSensor(
@@ -231,7 +233,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_LIQUID_USING,
-                    portNum = GalileoHandler.PORT_NUM_ESD_REVERSE_CAMERA_VOLUME,
+                    portNum = GalileoFunction.PORT_NUM_ESD_REVERSE_CAMERA_VOLUME,
                     descrBody = "Расходомер камеры обратки",
                 )
                 addAnalogueSensor(
@@ -242,7 +244,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_VOLUME_FLOW,
-                    portNum = GalileoHandler.PORT_NUM_ESD_REVERSE_CAMERA_FLOW,
+                    portNum = GalileoFunction.PORT_NUM_ESD_REVERSE_CAMERA_FLOW,
                     descrBody = "Скорость потока камеры обратки",
                 )
                 addAnalogueSensor(
@@ -253,7 +255,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_TEMPERATURE,
-                    portNum = GalileoHandler.PORT_NUM_ESD_REVERSE_CAMERA_TEMPERATURE,
+                    portNum = GalileoFunction.PORT_NUM_ESD_REVERSE_CAMERA_TEMPERATURE,
                     descrBody = "Температура камеры обратки",
                 )
             }
@@ -281,7 +283,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_MASS_FLOW,
-                    portNum = GalileoHandler.PORT_NUM_EMIS_MASS_FLOW,
+                    portNum = GalileoFunction.PORT_NUM_EMIS_MASS_FLOW,
                     descrBody = "Массовый расход",
                 )
                 addAnalogueSensor(
@@ -292,7 +294,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_DENSITY,
-                    portNum = GalileoHandler.PORT_NUM_EMIS_DENSITY,
+                    portNum = GalileoFunction.PORT_NUM_EMIS_DENSITY,
                     descrBody = "Плотность",
                 )
                 addAnalogueSensor(
@@ -303,7 +305,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_TEMPERATURE,
-                    portNum = GalileoHandler.PORT_NUM_EMIS_TEMPERATURE,
+                    portNum = GalileoFunction.PORT_NUM_EMIS_TEMPERATURE,
                     descrBody = "Температура",
                 )
                 addAnalogueSensor(
@@ -314,7 +316,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_VOLUME_FLOW,
-                    portNum = GalileoHandler.PORT_NUM_EMIS_VOLUME_FLOW,
+                    portNum = GalileoFunction.PORT_NUM_EMIS_VOLUME_FLOW,
                     descrBody = "Объёмный расход",
                 )
                 addCounterSensor(
@@ -325,7 +327,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_LIQUID_USING,
-                    portNum = GalileoHandler.PORT_NUM_EMIS_ACCUMULATED_MASS,
+                    portNum = GalileoFunction.PORT_NUM_EMIS_ACCUMULATED_MASS,
                     descrBody = "Накопленная масса",
                 )
                 addCounterSensor(
@@ -336,7 +338,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_LIQUID_USING,
-                    portNum = GalileoHandler.PORT_NUM_EMIS_ACCUMULATED_VOLUME,
+                    portNum = GalileoFunction.PORT_NUM_EMIS_ACCUMULATED_VOLUME,
                     descrBody = "Накопленный объём",
                 )
             }
@@ -365,7 +367,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_ENERGO_COUNT_AD,
-                    portNum = GalileoHandler.PORT_NUM_MERCURY_COUNT_ACTIVE_DIRECT,
+                    portNum = GalileoFunction.PORT_NUM_MERCURY_COUNT_ACTIVE_DIRECT,
                     descrBody = "Электроэнергия активная прямая",
                 )
                 addEnergoCounterSensor(
@@ -376,7 +378,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_ENERGO_COUNT_AR,
-                    portNum = GalileoHandler.PORT_NUM_MERCURY_COUNT_ACTIVE_REVERSE,
+                    portNum = GalileoFunction.PORT_NUM_MERCURY_COUNT_ACTIVE_REVERSE,
                     descrBody = "Электроэнергия активная обратная",
                 )
                 addEnergoCounterSensor(
@@ -387,7 +389,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_ENERGO_COUNT_RD,
-                    portNum = GalileoHandler.PORT_NUM_MERCURY_COUNT_REACTIVE_DIRECT,
+                    portNum = GalileoFunction.PORT_NUM_MERCURY_COUNT_REACTIVE_DIRECT,
                     descrBody = "Электроэнергия реактивная прямая",
                 )
                 addEnergoCounterSensor(
@@ -398,7 +400,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_ENERGO_COUNT_RR,
-                    portNum = GalileoHandler.PORT_NUM_MERCURY_COUNT_REACTIVE_REVERSE,
+                    portNum = GalileoFunction.PORT_NUM_MERCURY_COUNT_REACTIVE_REVERSE,
                     descrBody = "Электроэнергия реактивная обратная",
                 )
 
@@ -410,7 +412,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_ENERGO_VOLTAGE,
-                    portNum = GalileoHandler.PORT_NUM_MERCURY_VOLTAGE_A,
+                    portNum = GalileoFunction.PORT_NUM_MERCURY_VOLTAGE_A,
                     descrBody = "Напряжение по фазе A",
                     phase = 1,
                 )
@@ -422,7 +424,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_ENERGO_VOLTAGE,
-                    portNum = GalileoHandler.PORT_NUM_MERCURY_VOLTAGE_B,
+                    portNum = GalileoFunction.PORT_NUM_MERCURY_VOLTAGE_B,
                     descrBody = "Напряжение по фазе B",
                     phase = 2,
                 )
@@ -434,7 +436,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_ENERGO_VOLTAGE,
-                    portNum = GalileoHandler.PORT_NUM_MERCURY_VOLTAGE_C,
+                    portNum = GalileoFunction.PORT_NUM_MERCURY_VOLTAGE_C,
                     descrBody = "Напряжение по фазе C",
                     phase = 3,
                 )
@@ -447,7 +449,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_ENERGO_CURRENT,
-                    portNum = GalileoHandler.PORT_NUM_MERCURY_CURRENT_A,
+                    portNum = GalileoFunction.PORT_NUM_MERCURY_CURRENT_A,
                     descrBody = "Ток по фазе A",
                     phase = 1,
                 )
@@ -459,7 +461,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_ENERGO_CURRENT,
-                    portNum = GalileoHandler.PORT_NUM_MERCURY_CURRENT_B,
+                    portNum = GalileoFunction.PORT_NUM_MERCURY_CURRENT_B,
                     descrBody = "Ток по фазе B",
                     phase = 2,
                 )
@@ -471,7 +473,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_ENERGO_CURRENT,
-                    portNum = GalileoHandler.PORT_NUM_MERCURY_CURRENT_C,
+                    portNum = GalileoFunction.PORT_NUM_MERCURY_CURRENT_C,
                     descrBody = "Ток по фазе C",
                     phase = 3,
                 )
@@ -484,7 +486,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_ENERGO_CURRENT,
-                    portNum = GalileoHandler.PORT_NUM_MERCURY_CURRENT_A,
+                    portNum = GalileoFunction.PORT_NUM_MERCURY_CURRENT_A,
                     descrBody = "Ток по фазе A",
                     phase = 1,
                 )
@@ -496,7 +498,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_ENERGO_CURRENT,
-                    portNum = GalileoHandler.PORT_NUM_MERCURY_CURRENT_B,
+                    portNum = GalileoFunction.PORT_NUM_MERCURY_CURRENT_B,
                     descrBody = "Ток по фазе B",
                     phase = 2,
                 )
@@ -508,7 +510,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_ENERGO_CURRENT,
-                    portNum = GalileoHandler.PORT_NUM_MERCURY_CURRENT_C,
+                    portNum = GalileoFunction.PORT_NUM_MERCURY_CURRENT_C,
                     descrBody = "Ток по фазе C",
                     phase = 3,
                 )
@@ -521,7 +523,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_ENERGO_POWER_KOEF,
-                    portNum = GalileoHandler.PORT_NUM_MERCURY_POWER_KOEF_A,
+                    portNum = GalileoFunction.PORT_NUM_MERCURY_POWER_KOEF_A,
                     descrBody = "Коэффициент мощности по фазе A",
                     phase = 1,
                 )
@@ -533,7 +535,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_ENERGO_POWER_KOEF,
-                    portNum = GalileoHandler.PORT_NUM_MERCURY_POWER_KOEF_B,
+                    portNum = GalileoFunction.PORT_NUM_MERCURY_POWER_KOEF_B,
                     descrBody = "Коэффициент мощности по фазе B",
                     phase = 2,
                 )
@@ -545,7 +547,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_ENERGO_POWER_KOEF,
-                    portNum = GalileoHandler.PORT_NUM_MERCURY_POWER_KOEF_C,
+                    portNum = GalileoFunction.PORT_NUM_MERCURY_POWER_KOEF_C,
                     descrBody = "Коэффициент мощности по фазе C",
                     phase = 3,
                 )
@@ -558,7 +560,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
-                    portNum = GalileoHandler.PORT_NUM_MERCURY_POWER_ACTIVE_A,
+                    portNum = GalileoFunction.PORT_NUM_MERCURY_POWER_ACTIVE_A,
                     descrBody = "Мощность активная по фазе A",
                     phase = 1,
                 )
@@ -570,7 +572,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
-                    portNum = GalileoHandler.PORT_NUM_MERCURY_POWER_ACTIVE_B,
+                    portNum = GalileoFunction.PORT_NUM_MERCURY_POWER_ACTIVE_B,
                     descrBody = "Мощность активная по фазе B",
                     phase = 2,
                 )
@@ -582,7 +584,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
-                    portNum = GalileoHandler.PORT_NUM_MERCURY_POWER_ACTIVE_C,
+                    portNum = GalileoFunction.PORT_NUM_MERCURY_POWER_ACTIVE_C,
                     descrBody = "Мощность активная по фазе C",
                     phase = 3,
                 )
@@ -595,7 +597,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_ENERGO_POWER_REACTIVE,
-                    portNum = GalileoHandler.PORT_NUM_MERCURY_POWER_REACTIVE_A,
+                    portNum = GalileoFunction.PORT_NUM_MERCURY_POWER_REACTIVE_A,
                     descrBody = "Мощность реактивная по фазе A",
                     phase = 1,
                 )
@@ -607,7 +609,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_ENERGO_POWER_REACTIVE,
-                    portNum = GalileoHandler.PORT_NUM_MERCURY_POWER_REACTIVE_B,
+                    portNum = GalileoFunction.PORT_NUM_MERCURY_POWER_REACTIVE_B,
                     descrBody = "Мощность реактивная по фазе B",
                     phase = 2,
                 )
@@ -619,7 +621,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_ENERGO_POWER_REACTIVE,
-                    portNum = GalileoHandler.PORT_NUM_MERCURY_POWER_REACTIVE_C,
+                    portNum = GalileoFunction.PORT_NUM_MERCURY_POWER_REACTIVE_C,
                     descrBody = "Мощность реактивная по фазе C",
                     phase = 3,
                 )
@@ -632,7 +634,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_ENERGO_POWER_FULL,
-                    portNum = GalileoHandler.PORT_NUM_MERCURY_POWER_FULL_A,
+                    portNum = GalileoFunction.PORT_NUM_MERCURY_POWER_FULL_A,
                     descrBody = "Мощность полная по фазе A",
                     phase = 1,
                 )
@@ -644,7 +646,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_ENERGO_POWER_FULL,
-                    portNum = GalileoHandler.PORT_NUM_MERCURY_POWER_FULL_B,
+                    portNum = GalileoFunction.PORT_NUM_MERCURY_POWER_FULL_B,
                     descrBody = "Мощность полная по фазе B",
                     phase = 2,
                 )
@@ -656,7 +658,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_ENERGO_POWER_FULL,
-                    portNum = GalileoHandler.PORT_NUM_MERCURY_POWER_FULL_C,
+                    portNum = GalileoFunction.PORT_NUM_MERCURY_POWER_FULL_C,
                     descrBody = "Мощность полная по фазе C",
                     phase = 3,
                 )
@@ -669,7 +671,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
-                    portNum = GalileoHandler.PORT_NUM_MERCURY_POWER_ACTIVE_ABC,
+                    portNum = GalileoFunction.PORT_NUM_MERCURY_POWER_ACTIVE_ABC,
                     descrBody = "Мощность активная по всем фазам",
                     phase = 0,
                 )
@@ -681,7 +683,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_ENERGO_POWER_REACTIVE,
-                    portNum = GalileoHandler.PORT_NUM_MERCURY_POWER_REACTIVE_ABC,
+                    portNum = GalileoFunction.PORT_NUM_MERCURY_POWER_REACTIVE_ABC,
                     descrBody = "Мощность реактивная по всем фазам",
                     phase = 0,
                 )
@@ -693,7 +695,7 @@ class cDevice : cStandart() {
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_ENERGO_POWER_FULL,
-                    portNum = GalileoHandler.PORT_NUM_MERCURY_POWER_FULL_ABC,
+                    portNum = GalileoFunction.PORT_NUM_MERCURY_POWER_FULL_ABC,
                     descrBody = "Мощность полная по всем фазам",
                     phase = 0,
                 )
@@ -720,7 +722,7 @@ class cDevice : cStandart() {
                     sensor_type , cmd_on_id , cmd_off_id , beg_ye , beg_mo , beg_da 
                 ) VALUES ( 
                     ${conn.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix $descrBody $descrPostfix' , 
-                    ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
+                    ${deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
                     $sensorType , 0 , 0 , 2000 , 1 , 1 
                 )
             """
@@ -747,7 +749,7 @@ class cDevice : cStandart() {
                     min_on_time, min_off_time, ignore_min_sensor , ignore_max_sensor , is_absolute_count , in_out_type , liquid_name            
                 ) VALUES ( 
                     ${conn.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix $descrBody $descrPostfix' , 
-                    ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
+                    ${deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
                     $sensorType , 0, 0 , 2000 , 1 , 1 ,
                     1 , 1 , 0 , 0 , 1 , ${SensorConfigCounter.CALC_TYPE_OUT} , ''                            
                 )
@@ -775,7 +777,7 @@ class cDevice : cStandart() {
                     ignore_min_sensor , ignore_max_sensor , is_absolute_count             
                 ) VALUES ( 
                     ${conn.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix $descrBody $descrPostfix' , 
-                    ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
+                    ${deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
                     $sensorType , 0, 0 , 2000 , 1 , 1 ,
                     0 , 0 , 1                            
                 )
@@ -804,7 +806,7 @@ class cDevice : cStandart() {
                     analog_min_view , analog_max_view , analog_min_limit , analog_max_limit                
                 ) VALUES ( 
                     ${conn.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix $descrBody $descrPostfix' , 
-                    ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
+                    ${deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
                     $sensorType , 0, 0 , 2000 , 1 , 1 ,
                     0 , 0 , 0 , 0 ,                             
                     0 , 0 , 0 , 0                              
@@ -835,7 +837,7 @@ class cDevice : cStandart() {
                     analog_min_view , analog_max_view , analog_min_limit , analog_max_limit , energo_phase                 
                 ) VALUES ( 
                     ${conn.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix $descrBody $descrPostfix' , 
-                    ${deviceIndex * AbstractTelematicHandler.MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
+                    ${deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
                     $sensorType , 0, 0 , 2000 , 1 , 1 ,
                     0 , 0 , 0 , 0 ,                             
                     0 , 0 , 0 , 0 , $phase                              

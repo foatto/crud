@@ -4,9 +4,11 @@ import foatto.core.util.AdvancedByteBuffer
 import foatto.core.util.AdvancedLogger
 import foatto.core.util.DateTime_YMDHMS
 import foatto.core.util.getCurrentTimeInt
-import foatto.core_server.ds.AbstractTelematicHandler
+import foatto.core_server.ds.CoreTelematicFunction
+import foatto.core_server.ds.nio.AbstractTelematicNioHandler
 import foatto.mms.core_mms.ds.DeviceConfig
-import foatto.mms.core_mms.ds.MMSHandler
+import foatto.mms.core_mms.ds.MMSTelematicFunction
+import foatto.mms.core_mms.ds.nio.MMSNioHandler
 import foatto.mms.core_mms.ds.PulsarData
 import foatto.spring.CoreSpringApp
 import foatto.sql.AdvancedConnection
@@ -235,7 +237,7 @@ class MMSPulsarDataController {
 
             //--- данные успешно переданы - теперь можно завершить транзакцию
             status += " Ok;"
-            MMSHandler.writeSession(
+            MMSTelematicFunction.writeSession(
                 conn = conn,
                 dirSessionLog = dirSessionLog,
                 zoneId = zoneId,
@@ -274,7 +276,7 @@ class MMSPulsarDataController {
     ) {
         val curTime = getCurrentTimeInt()
         AdvancedLogger.debug("pointTime = ${DateTime_YMDHMS(ZoneId.systemDefault(), pointTime)}")
-        if (pointTime > curTime - AbstractTelematicHandler.MAX_PAST_TIME && pointTime < curTime + AbstractTelematicHandler.MAX_FUTURE_TIME) {
+        if (pointTime > curTime - CoreTelematicFunction.MAX_PAST_TIME && pointTime < curTime + CoreTelematicFunction.MAX_FUTURE_TIME) {
             val bbData = AdvancedByteBuffer(conn.dialect.textFieldMaxSize / 2)
 
 //            //--- напряжения основного и резервного питаний
@@ -307,59 +309,59 @@ class MMSPulsarDataController {
 //            putDigitalSensor(tmRS485Temp, 40, 4, bbData)
 //
 //            putDigitalSensor(tmUserData, 100, 4, bbData)
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmCountSensor, 110, bbData)
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmLevelSensor, 120, bbData)
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmVoltageSensor, 140, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmCountSensor, 110, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmLevelSensor, 120, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmVoltageSensor, 140, bbData)
 
             //--- данные по электросчётчику ---
 
             //--- значения счётчиков от последнего сброса (активная/реактивная прямая/обратная)
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmEnergoCountActiveDirect, 160, bbData)
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmEnergoCountActiveReverse, 164, bbData)
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmEnergoCountReactiveDirect, 168, bbData)
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmEnergoCountReactiveReverse, 172, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCountActiveDirect, 160, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCountActiveReverse, 164, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCountReactiveDirect, 168, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCountReactiveReverse, 172, bbData)
 
             //--- напряжение по фазам A1..4, B1..4, C1..4
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmEnergoVoltageA, 180, bbData)
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmEnergoVoltageB, 184, bbData)
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmEnergoVoltageC, 188, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoVoltageA, 180, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoVoltageB, 184, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoVoltageC, 188, bbData)
 
             //--- ток по фазам A1..4, B1..4, C1..4
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmEnergoCurrentA, 200, bbData)
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmEnergoCurrentB, 204, bbData)
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmEnergoCurrentC, 208, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCurrentA, 200, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCurrentB, 204, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCurrentC, 208, bbData)
 
             //--- коэффициент мощности по фазам A1..4, B1..4, C1..4
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmEnergoPowerKoefA, 220, bbData)
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmEnergoPowerKoefB, 224, bbData)
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmEnergoPowerKoefC, 228, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerKoefA, 220, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerKoefB, 224, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerKoefC, 228, bbData)
 
             //--- активная мощность по фазам A1..4, B1..4, C1..4
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmEnergoPowerActiveA, 232, bbData)
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmEnergoPowerActiveB, 236, bbData)
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmEnergoPowerActiveC, 240, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerActiveA, 232, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerActiveB, 236, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerActiveC, 240, bbData)
 
             //--- реактивная мощность по фазам A1..4, B1..4, C1..4
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmEnergoPowerReactiveA, 244, bbData)
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmEnergoPowerReactiveB, 248, bbData)
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmEnergoPowerReactiveC, 252, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerReactiveA, 244, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerReactiveB, 248, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerReactiveC, 252, bbData)
 
             //--- полная мощность по фазам A1..4, B1..4, C1..4
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmEnergoPowerFullA, 256, bbData)
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmEnergoPowerFullB, 260, bbData)
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmEnergoPowerFullC, 264, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerFullA, 256, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerFullB, 260, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerFullC, 264, bbData)
 
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmMassFlow, 270, bbData)
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmDensity, 280, bbData)
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmTemperature, 290, bbData)
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmVolumeFlow, 300, bbData)
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmAccumulatedMass, 310, bbData)
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmAccumulatedVolume, 320, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmMassFlow, 270, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmDensity, 280, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmTemperature, 290, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmVolumeFlow, 300, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmAccumulatedMass, 310, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmAccumulatedVolume, 320, bbData)
 
             //--- мощность по трём фазам: активная, реактивная, суммарная
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmEnergoPowerActiveABC, 330, bbData)
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmEnergoPowerReactiveABC, 340, bbData)
-            AbstractTelematicHandler.putDigitalSensor(deviceConfig.index, tmEnergoPowerFullABC, 350, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerActiveABC, 330, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerReactiveABC, 340, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerFullABC, 350, bbData)
 
 //            //--- EuroSens Delta
 //            putDigitalSensor(tmESDStatus, 500, bbData)
@@ -372,7 +374,7 @@ class MMSPulsarDataController {
 //            putDigitalSensor(tmESDReverseCameraFlow, 528, bbData)
 //            putDigitalSensor(tmESDReverseCameraTemperature, 532, bbData)
 
-            MMSHandler.addPoint(conn, deviceConfig, pointTime, bbData, sqlBatchData)
+            MMSTelematicFunction.addPoint(conn, deviceConfig, pointTime, bbData, sqlBatchData)
             dataCount++
         }
         dataCountAll++
@@ -463,7 +465,7 @@ class MMSPulsarDataController {
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     private fun outDeviceParseError(dirJournalLog: File, address: String, e: String) {
-        AbstractTelematicHandler.writeJournal(
+        CoreTelematicFunction.writeJournal(
             dirJournalLog = dirJournalLog,
             zoneId = zoneId,
             address = address,

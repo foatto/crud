@@ -16,7 +16,8 @@ import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.xy.XyStartData
 import foatto.core_server.app.xy.XyStartObjectParsedData
 import foatto.core_server.app.xy.server.document.sdcXyState
-import foatto.core_server.ds.AbstractTelematicHandler
+import foatto.core_server.ds.CoreTelematicFunction
+import foatto.core_server.ds.nio.AbstractTelematicNioHandler
 import foatto.mms.core_mms.cObject
 import foatto.mms.core_mms.calc.ObjectState
 import foatto.mms.core_mms.sensor.config.SensorConfig
@@ -144,7 +145,7 @@ class sdcMMSState : sdcXyState() {
         val commandID = chmElementCommand[elementId]
         if (commandID != 0) {
             var deviceID = 0
-            val deviceIndex = chmElementPort[elementId]!! / AbstractTelematicHandler.MAX_PORT_PER_DEVICE
+            val deviceIndex = chmElementPort[elementId]!! / CoreTelematicFunction.MAX_PORT_PER_DEVICE
             val rs = conn.executeQuery(
                 """
                     SELECT id 

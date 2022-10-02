@@ -17,7 +17,8 @@ import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.xy.XyStartData
 import foatto.core_server.app.xy.XyStartObjectParsedData
 import foatto.core_server.app.xy.server.document.sdcXyState
-import foatto.core_server.ds.AbstractTelematicHandler
+import foatto.core_server.ds.CoreTelematicFunction
+import foatto.core_server.ds.nio.AbstractTelematicNioHandler
 import foatto.sql.CoreAdvancedConnection
 import foatto.ts.core_ts.cObject
 import foatto.ts.core_ts.calc.ObjectState
@@ -122,7 +123,7 @@ class sdcTSState : sdcXyState() {
         val command = chmElementCommand[elementId]
         if (!command.isNullOrBlank()) {
             var deviceID = 0
-            val deviceIndex = chmElementPort[elementId]!! / AbstractTelematicHandler.MAX_PORT_PER_DEVICE
+            val deviceIndex = chmElementPort[elementId]!! / CoreTelematicFunction.MAX_PORT_PER_DEVICE
             val rs = conn.executeQuery(
                 """
                     SELECT id FROM TS_device WHERE object_id = $objectId AND device_index = $deviceIndex

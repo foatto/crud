@@ -9,7 +9,8 @@ import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnRadioButton
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.mAbstract
-import foatto.mms.core_mms.ds.MMSHandler
+import foatto.mms.core_mms.ds.MMSTelematicFunction
+import foatto.mms.core_mms.ds.nio.MMSNioHandler
 import foatto.sql.CoreAdvancedConnection
 
 class mDeviceCommand : mAbstract() {
@@ -29,7 +30,7 @@ class mDeviceCommand : mAbstract() {
         //----------------------------------------------------------------------------------------------------------------------------------------
 
         val columnDeviceType = ColumnRadioButton(modelTableName, "type", "Тип устройства")
-        MMSHandler.fillDeviceTypeColumn(columnDeviceType)
+        MMSTelematicFunction.fillDeviceTypeColumn(columnDeviceType)
 
         val columnName = ColumnString(modelTableName, "name", "Наименование", STRING_COLUMN_WIDTH)
         val columnDescr = ColumnString(modelTableName, "descr", "Описание", STRING_COLUMN_WIDTH)

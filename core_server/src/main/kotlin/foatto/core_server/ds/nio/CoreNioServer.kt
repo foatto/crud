@@ -67,7 +67,7 @@ abstract class CoreNioServer protected constructor(private val configFileName: S
     private var maxSessionInactiveTime = 0
 
     //--- параметры SQL-базы
-    lateinit var dBConfig: DBConfig
+    lateinit var dbConfig: DBConfig
 
     //--- интервал проверки SQL-соединения [мин]
     var dbPingInterval = 0
@@ -139,7 +139,7 @@ abstract class CoreNioServer protected constructor(private val configFileName: S
         maxHandlerInactiveTime = 60 * hmConfig[CONFIG_MAX_HANDLER_INACTIVE_TIME]!!.toInt()
         maxSessionInactiveTime = 60 * hmConfig[CONFIG_MAX_SESSION_INACTIVE_TIME]!!.toInt()
 
-        dBConfig = DBConfig.loadConfig(hmConfig).first()
+        dbConfig = DBConfig.loadConfig(hmConfig).first()
 
         dbPingInterval = 60 * hmConfig[CONFIG_DB_PING_INTERVAL]!!.toInt()
         dbPingQuery = hmConfig[CONFIG_DB_PING_QUERY]!!

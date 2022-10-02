@@ -6,14 +6,15 @@ import foatto.core.util.DateTime_YMDHMS
 import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.getFileWriter
 import foatto.core_server.app.server.column.ColumnRadioButton
-import foatto.core_server.ds.AbstractTelematicHandler
+import foatto.core_server.ds.CoreTelematicFunction
+import foatto.core_server.ds.nio.AbstractTelematicNioHandler
 import foatto.core_server.ds.nio.CoreNioWorker
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.SQLBatch
 import java.io.File
 import java.nio.channels.SocketChannel
 
-abstract class TSHandler : AbstractTelematicHandler() {
+abstract class TSHandler : AbstractTelematicNioHandler() {
 
     companion object {
 
@@ -81,7 +82,7 @@ abstract class TSHandler : AbstractTelematicHandler() {
         //--- неизвестный контроллер
         if (deviceConfig == null) {
             writeError(dataWorker.conn, "Unknown serial No = $serialNo")
-            writeJournal(
+            CoreTelematicFunction.writeJournal(
                 dirJournalLog = dirJournalLog,
                 zoneId = zoneId,
                 address = (selectionKey!!.channel() as SocketChannel).remoteAddress.toString() + " -> " + (selectionKey!!.channel() as SocketChannel).localAddress.toString(),

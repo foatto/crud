@@ -7,6 +7,7 @@ import foatto.core.util.AdvancedLogger
 import foatto.core.util.YMDHMS_DateTime
 import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.getDateTimeInt
+import foatto.core_server.ds.CoreTelematicFunction
 import foatto.core_server.ds.nio.CoreNioWorker
 import foatto.sql.SQLBatch
 import java.nio.ByteOrder
@@ -67,7 +68,7 @@ class UDSHandler : TSHandler() {
             //--- если объект прописан, то записываем точки, иначе просто пропускаем
             //--- также пропускаем точки из будущего и далёкого прошлого
             val curTime = getCurrentTimeInt()
-            if (deviceConfig?.objectId != 0 && pointTime > curTime - MAX_PAST_TIME && pointTime < curTime + MAX_FUTURE_TIME) {
+            if (deviceConfig?.objectId != 0 && pointTime > curTime - CoreTelematicFunction.MAX_PAST_TIME && pointTime < curTime + CoreTelematicFunction.MAX_FUTURE_TIME) {
                 fwVersion = udsRawPacket.version ?: ""
                 val udsDataPacket = udsRawPacket.normalize(zoneId)
                 val bbData = dataToByteBuffer(dataWorker, udsDataPacket)
@@ -161,55 +162,55 @@ class UDSHandler : TSHandler() {
         val bbData = AdvancedByteBuffer(dataWorker.conn.dialect.textFieldMaxSize / 2)
 
         // Код текущего состояния установки УДС
-        putSensorData(deviceConfig!!.index, 0, 4, udsDataPacket.state, bbData)
+        CoreTelematicFunction.putSensorData(deviceConfig!!.index, 0, 4, udsDataPacket.state, bbData)
         // Глубина (в метрах)
-        putSensorData(deviceConfig!!.index, 1, udsDataPacket.depth, bbData)
+        CoreTelematicFunction.putSensorData(deviceConfig!!.index, 1, udsDataPacket.depth, bbData)
         // Скорость спуска (метров/час)
-        putSensorData(deviceConfig!!.index, 2, udsDataPacket.speed, bbData)
+        CoreTelematicFunction.putSensorData(deviceConfig!!.index, 2, udsDataPacket.speed, bbData)
         // Нагрузка на привод (%)
-        putSensorData(deviceConfig!!.index, 3, udsDataPacket.load, bbData)
+        CoreTelematicFunction.putSensorData(deviceConfig!!.index, 3, udsDataPacket.load, bbData)
         // Дата и время начала следующей чистки
-        putSensorData(deviceConfig!!.index, 4, 4, udsDataPacket.nextCleanindDateTime, bbData)
+        CoreTelematicFunction.putSensorData(deviceConfig!!.index, 4, 4, udsDataPacket.nextCleanindDateTime, bbData)
         // Глубина чистки (параметр настройки)
-        putSensorData(deviceConfig!!.index, 5, udsDataPacket.cleaningDepth, bbData)
+        CoreTelematicFunction.putSensorData(deviceConfig!!.index, 5, udsDataPacket.cleaningDepth, bbData)
         // Период чистки (параметр настройки)
-        putSensorData(deviceConfig!!.index, 6, 4, udsDataPacket.cleaningPeriod, bbData)
+        CoreTelematicFunction.putSensorData(deviceConfig!!.index, 6, 4, udsDataPacket.cleaningPeriod, bbData)
         // Скорость чистки (параметр настройки)
-        putSensorData(deviceConfig!!.index, 7, udsDataPacket.cleaningSpeed, bbData)
+        CoreTelematicFunction.putSensorData(deviceConfig!!.index, 7, udsDataPacket.cleaningSpeed, bbData)
         // Уровень сигнала сотовой связи
-        putSensorData(deviceConfig!!.index, 8, udsDataPacket.signalLevel, bbData)
+        CoreTelematicFunction.putSensorData(deviceConfig!!.index, 8, udsDataPacket.signalLevel, bbData)
         // Счётчик количества перезагрузок модема
-        putSensorData(deviceConfig!!.index, 9, 4, udsDataPacket.mrc, bbData)
+        CoreTelematicFunction.putSensorData(deviceConfig!!.index, 9, 4, udsDataPacket.mrc, bbData)
         // Ограничение нагрузки на привод (параметр настройки)
-        putSensorData(deviceConfig!!.index, 10, udsDataPacket.driveLoadRestrict, bbData)
+        CoreTelematicFunction.putSensorData(deviceConfig!!.index, 10, udsDataPacket.driveLoadRestrict, bbData)
         // Строка с содержимым результата AT-команды запроса баланса (если баланс не запрашивался, указывается “-1”)
-        putSensorData(deviceConfig!!.index, 11, udsDataPacket.balance, bbData)
+        CoreTelematicFunction.putSensorData(deviceConfig!!.index, 11, udsDataPacket.balance, bbData)
         // Глубина парковки скребка (параметр настройки)
-        putSensorData(deviceConfig!!.index, 12, udsDataPacket.parkDepth, bbData)
+        CoreTelematicFunction.putSensorData(deviceConfig!!.index, 12, udsDataPacket.parkDepth, bbData)
         // Количество попыток прохода препятствия (параметр настройки)
-        putSensorData(deviceConfig!!.index, 13, 4, udsDataPacket.passAttempt, bbData)
+        CoreTelematicFunction.putSensorData(deviceConfig!!.index, 13, 4, udsDataPacket.passAttempt, bbData)
         // Синхронизация с запуском ЭЦН (параметр настройки)
-        putSensorData(deviceConfig!!.index, 14, 4, udsDataPacket.ecnStart, bbData)
+        CoreTelematicFunction.putSensorData(deviceConfig!!.index, 14, 4, udsDataPacket.ecnStart, bbData)
         // Пауза между проходами препятствия (параметр настройки)
-        putSensorData(deviceConfig!!.index, 15, 4, udsDataPacket.passDelay, bbData)
+        CoreTelematicFunction.putSensorData(deviceConfig!!.index, 15, 4, udsDataPacket.passDelay, bbData)
         // Текущая темп. внутри станции УДС (29,3˚С) (реле №1)
-        putSensorData(deviceConfig!!.index, 16, udsDataPacket.temp1, bbData)
+        CoreTelematicFunction.putSensorData(deviceConfig!!.index, 16, udsDataPacket.temp1, bbData)
         // Текущая темп. на улице (23,4 ˚С) (реле №2)
-        putSensorData(deviceConfig!!.index, 17, udsDataPacket.temp2, bbData)
+        CoreTelematicFunction.putSensorData(deviceConfig!!.index, 17, udsDataPacket.temp2, bbData)
         // Уровень температуры внутри (параметр настройки)
-        putSensorData(deviceConfig!!.index, 18, udsDataPacket.setPoint1, bbData)
+        CoreTelematicFunction.putSensorData(deviceConfig!!.index, 18, udsDataPacket.setPoint1, bbData)
         // Уровень температуры снаружи (параметр настройки)
-        putSensorData(deviceConfig!!.index, 19, udsDataPacket.setPoint2, bbData)
+        CoreTelematicFunction.putSensorData(deviceConfig!!.index, 19, udsDataPacket.setPoint2, bbData)
         // Работает или не работает реле №1 (температура)
-        putSensorData(deviceConfig!!.index, 20, 1, if (udsDataPacket.relay1State) 1 else 0, bbData)
+        CoreTelematicFunction.putSensorData(deviceConfig!!.index, 20, 1, if (udsDataPacket.relay1State) 1 else 0, bbData)
         // Работает или не работает реле №2 (температура)
-        putSensorData(deviceConfig!!.index, 21, 1, if (udsDataPacket.relay2State) 1 else 0, bbData)
+        CoreTelematicFunction.putSensorData(deviceConfig!!.index, 21, 1, if (udsDataPacket.relay2State) 1 else 0, bbData)
         // Работает или не работает канал №1
-        putSensorData(deviceConfig!!.index, 22, 1, if (udsDataPacket.channel1Error) 1 else 0, bbData)
+        CoreTelematicFunction.putSensorData(deviceConfig!!.index, 22, 1, if (udsDataPacket.channel1Error) 1 else 0, bbData)
         // Работает или не работает канал №2
-        putSensorData(deviceConfig!!.index, 23, 1, if (udsDataPacket.channel2Error) 1 else 0, bbData)
+        CoreTelematicFunction.putSensorData(deviceConfig!!.index, 23, 1, if (udsDataPacket.channel2Error) 1 else 0, bbData)
         // Работает или не работает модуль ТРМ (общее управление температурными датчиками)
-        putSensorData(deviceConfig!!.index, 24, 1, if (udsDataPacket.trmFail) 1 else 0, bbData)
+        CoreTelematicFunction.putSensorData(deviceConfig!!.index, 24, 1, if (udsDataPacket.trmFail) 1 else 0, bbData)
 
         return bbData
     }
