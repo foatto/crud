@@ -10,6 +10,7 @@ val jExcelApiVersion: String by project
 val jooqVersion: String by project
 val ktorVersion: String by project
 val minioVersion: String by project
+val nettyVersion: String by project
 val postgresJdbcVersion: String by project
 val springBootVersion: String by project
 
@@ -57,6 +58,8 @@ dependencies {
 //    api("io.ktor:ktor-client-auth-jvm:$ktorVersion")
 
     api("io.minio:minio:$minioVersion")
+
+    api("io.netty:netty-all:$nettyVersion")
 
     api(project(":core"))
 
