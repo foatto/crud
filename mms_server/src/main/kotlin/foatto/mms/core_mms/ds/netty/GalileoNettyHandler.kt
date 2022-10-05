@@ -865,6 +865,8 @@ class GalileoNettyHandler(
         bbOut.writeShortLE(crc.toInt())
 
         ctx.write(bbOut)
+
+        bbOut.release()
     }
 
     private fun clearSensorArrays() {
