@@ -5,10 +5,8 @@ import foatto.core.util.AdvancedLogger
 import foatto.core.util.DateTime_YMDHMS
 import foatto.core.util.getCurrentTimeInt
 import foatto.core_server.ds.CoreTelematicFunction
-import foatto.core_server.ds.nio.AbstractTelematicNioHandler
 import foatto.mms.core_mms.ds.DeviceConfig
 import foatto.mms.core_mms.ds.MMSTelematicFunction
-import foatto.mms.core_mms.ds.nio.MMSNioHandler
 import foatto.mms.core_mms.ds.PulsarData
 import foatto.spring.CoreSpringApp
 import foatto.sql.AdvancedConnection
@@ -147,7 +145,11 @@ class MMSPulsarDataController {
             //--- first initial row in data packet array
             if (pulsarData.deviceID != null) {
                 if (pulsarData.blockID == BLOCK_ID) {
-                    serialNo = pulsarData.deviceID
+                    if (pulsarData.deviceID == null) {
+                        outDeviceParseError(dirJournalLog, request.remoteAddr, "Empty deviceId")
+                        break
+                    }
+                    serialNo = pulsarData.deviceID!!
                     deviceConfig = DeviceConfig.getDeviceConfig(conn, serialNo)
                     //--- неизвестный контроллер
                     if (deviceConfig == null) {
