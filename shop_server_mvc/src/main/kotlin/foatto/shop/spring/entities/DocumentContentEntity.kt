@@ -39,7 +39,7 @@ class DocumentContentEntity(
     @Column(name = "mark_code")
     val markCode: String,
 
-) {
+    ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is DocumentContentEntity) return false

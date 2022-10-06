@@ -4,25 +4,19 @@ val kotlinLanguageVersion: String by project
 val kotlinApiVersion: String by project
 val kotlinJvmTarget: String by project
 
+val shopServerVersion: String by project
+
 plugins {
     kotlin("jvm")
 
-    kotlin("plugin.spring")
-    kotlin("plugin.jpa")
-
-    id("io.spring.dependency-management")
-    id("org.springframework.boot")
+    `maven-publish`
 }
+
+version = shopServerVersion
 
 dependencies {
     api(project(":core_server"))
     api(project(":shop_core"))
-}
-
-allOpen {
-    annotation("javax.persistence.Entity")
-    annotation("javax.persistence.MappedSuperclass")
-    annotation("javax.persistence.Embeddable")
 }
 
 tasks {
@@ -37,14 +31,5 @@ tasks {
     }
     jar {
         enabled = true
-    }
-    build {
-        doLast {
-            delete("/home/foatto/ShopServerSpring/lib")
-            copy {
-                from("build/libs/shop_server-plain.jar", configurations["runtimeClasspath"])
-                into("/home/foatto/ShopServerSpring/lib")
-            }
-        }
     }
 }
