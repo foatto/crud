@@ -9,9 +9,7 @@ import io.minio.RemoveObjectArgs
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import java.io.InputStream
-import java.net.URLConnection
 import java.util.concurrent.TimeUnit
-import javax.servlet.http.HttpServletResponse
 
 class MinioProxy(
     endPoint: String,
@@ -37,20 +35,6 @@ class MinioProxy(
                     .build()
             )
             .build()
-    }
-
-    fun loadFileToHttpResponse(
-        objectName: String,
-        fileName: String,
-        response: HttpServletResponse,
-        bucketName: String = defaultBucketName,
-    ) {
-        val mimeType = URLConnection.guessContentTypeFromName(fileName)
-        val byteArray = loadFileAsByteArray(objectName, bucketName)
-
-        response.contentType = mimeType
-        response.setContentLength(byteArray.size)
-        response.outputStream.write(byteArray)
     }
 
     fun loadFileAsByteArray(

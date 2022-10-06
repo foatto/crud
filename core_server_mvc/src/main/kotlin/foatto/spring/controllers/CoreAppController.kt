@@ -249,11 +249,14 @@ abstract class CoreAppController : iApplication {
         val fileTime = chmFileTime[fileUrl] ?: 0
         if (getCurrentTimeInt() < fileTime + (fileAccessPeriod.toIntOrNull() ?: 24) * 60 * 60) {
 
-            CoreSpringApp.minioProxy?.loadFileToHttpResponse(
-                objectName = dirName,
-                fileName = fileName,
-                response = response,
-            ) ?: run {
+            CoreSpringApp.minioProxy?.let { minioProxy ->
+                val mimeType = URLConnection.guessContentTypeFromName(fileName)
+                val byteArray = minioProxy.loadFileAsByteArray(dirName)
+
+                response.contentType = mimeType
+                response.setContentLength(byteArray.size)
+                response.outputStream.write(byteArray)
+            } ?: run {
                 download(response, "$rootDirName$fileUrl")
             }
         } else {
