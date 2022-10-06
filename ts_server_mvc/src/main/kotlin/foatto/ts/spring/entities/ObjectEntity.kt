@@ -18,7 +18,7 @@ class ObjectEntity(
     @OneToMany(mappedBy = "obj", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     var sensors: MutableSet<SensorConfigEntity> = mutableSetOf(),
 
-) {
+    ) {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
