@@ -2,7 +2,7 @@
 
 CRUD - it is a platform for the rapid creation of information systems. [[Версия на русском языке](README_ru.md)]
 
-## Описание возможностей платформы
+## Description of platform features
 
 The client part of the platform supports the following types of displayed information:
    - table views;
@@ -29,18 +29,18 @@ Deprecated and already removed platform features:
    - ancient android-client in Java for "Android 4.x";
 
 Currently, four applied projects that are in a production have been implemented on this platform:
-  - ["Pulsar" - transport and technological facilities control system] (https://pulsar.report):
+  - ["Pulsar" - transport and technological facilities control system](https://pulsar.report):
     - transport control - mileage, location in geofences, etc.;
     - operation of drilling equipment;
     - power generation installations;
     - control of the level and consumption of fuel in tanks and cisterns;
-  - [Order Execution Control System] (http://crm.magnol.ru)
-  - [Retail and Warehouse Management System]:
+  - [Order Execution Control System](http://crm.magnol.ru)
+  - Retail and Warehouse Management System:
     - Support for retail operations;
     - support for online cash registers and ATOL receipt printers;
     - support for the product labeling system;
     - support of warehouse accounting;
-  - [Control system for well dewaxing units "UDS-Techno"]
+  - Control system for well dewaxing units "UDS-Techno"
 
 ## Project structure description
 
@@ -115,7 +115,7 @@ Currently under development.
 
 ### mms: core, web, compose_web, server, server_mvc
 
-A group of application modules implementing the project ["Pulsar" - transport and technological facilities control system] (https://pulsar.report):
+A group of application modules implementing the project ["Pulsar" - transport and technological facilities control system](https://pulsar.report):
   - core: contains mms-specific common modules, similar to the core common module;
   - web: contains mms-specific settings for the color scheme of the client side and special design elements;
   - server: contains business logic modules of the application part:
@@ -129,7 +129,7 @@ A group of application modules implementing the project ["Pulsar" - transport an
       - various analog values;
       - signal sensors;
     - protocol handler classes for devices/controllers of various types (in versions for NIO.2 and Netty telematics servers):
-      - [Galileo] (https://7gis.ru)
+      - [Galileo](https://7gis.ru)
       - obsolete and no longer supported: ADM, Arnavi, Galileo Iridium, Mielta, Wialon IPS;
     - data preparation modules for displaying and changing applied geo-information on a cartographic substrate (point and text objects, vector geofences);
     - data preparation modules for displaying the state of objects in a SCADA-like form;
@@ -167,19 +167,19 @@ A group of application modules implementing the project ["Pulsar" - transport an
 
 ### office: core, web, server, server_mvc
 
-Group of application modules implementing the project [Instruction Execution Control System] (http://crm.magnol.ru)
+Group of application modules implementing the project [Instruction Execution Control System](http://crm.magnol.ru)
 
 (in the process of being documented...)
 
 ### shop: core, web, server, server_mvc
 
-A group of application modules implementing the project [System of retail trade and warehouse accounting]
+A group of application modules implementing the project "System of retail trade and warehouse accounting"
 
 (in the process of being documented...)
 
 ### ts: core, web, server, server_mvc
 
-A group of application modules implementing the project [Control system for well dewaxing units "UDS-Techno"]
+A group of application modules implementing the project "Control system for well dewaxing units "UDS-Techno"
 
 (in the process of being documented...)
 
