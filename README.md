@@ -1,6 +1,6 @@
 # foatto.CRUD
 
-CRUD - it is a platform for the rapid creation of information systems. [Версия на русском языке]("README_ru.md")
+CRUD - it is a platform for the rapid creation of information systems. [[Версия на русском языке]("README_ru.md")]
 
 ## Описание возможностей платформы
 
