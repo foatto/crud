@@ -34,12 +34,18 @@ Currently, four applied projects that are in a production have been implemented 
     - operation of drilling equipment;
     - power generation installations;
     - control of the level and consumption of fuel in tanks and cisterns;
+
+    In production since 2006.
   - [Order Execution Control System](http://crm.magnol.ru)
+
+    In production since 2003.
   - Retail and Warehouse Management System:
     - Support for retail operations;
     - support for online cash registers and ATOL receipt printers;
     - support for the product labeling system;
     - support of warehouse accounting;
+
+    In production since 2014.
   - Control system for well dewaxing units "UDS-Techno"
 
 ## Project structure description
