@@ -26,21 +26,11 @@ class UDSHandler : TSHandler() {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     override fun oneWork(dataWorker: CoreNioWorker): Boolean {
-        //        //--- данных нет - ждём
-        //        if( ! bbIn.hasRemaining() ) {
-        //            bbIn.compact();
-        //            return true;
-        //        }
 
         val arrByte = ByteArray(bbIn.remaining())
         bbIn.get(arrByte)
         sbData.append(String(arrByte))
-
-//        //--- минимальный размер пакета = 5 символов/байт
-//        if( sbData.length < 5 ) {
-//            bbIn.compact()
-//            return true
-//        }
+//AdvancedLogger.debug("sbData = $sbData")
 
         //--- хотя бы один пакет собрался в общей строке данных?
         var packetEndPos = sbData.indexOf("\r\n")

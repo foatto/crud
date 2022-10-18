@@ -157,6 +157,7 @@ class TSAppController : CoreAppController(), iTSApplication {
         addSeparator(alMenuDevice)
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDevice, "ts_log_journal", true)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuDevice, "ts_log_ds_uds", true)
 
         if (alMenuDevice.size > 1) {
             alMenu.add(MenuData("", "Приборы", alMenuDevice.toTypedArray()))
