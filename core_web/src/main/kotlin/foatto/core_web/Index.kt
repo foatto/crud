@@ -110,7 +110,8 @@ open class Index {
                         <template v-for="(tab, tabIndex) in arrTabInfo">
                             <button v-show="tab.arrText"
                                     v-bind:style="currentTabIndex == tabIndex ? style_tab_current_title : style_tab_other_title"
-                                    v-on:click="currentTabIndex = tabIndex"
+                                    v-on:click.left="currentTabIndex = tabIndex"
+                                    v-on:click.middle="closeTabByIndex( tabIndex )"
                                     v-bind:key="'t'+tab.id"
                                     v-bind:title="tab.tooltip"
                             >
