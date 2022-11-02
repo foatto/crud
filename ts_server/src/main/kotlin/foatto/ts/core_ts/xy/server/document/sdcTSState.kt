@@ -367,7 +367,7 @@ class sdcTSState : sdcXyState() {
             }
 
             objectState.tmSetupValue[cDevice.CLEANING_DEPTH_SHOW_POS]?.let { cleaningDepthStr ->
-                val cleaningDepth = cleaningDepthStr.toDouble()
+                val cleaningDepth = cleaningDepthStr.replace(" ", "").toDouble()
                 //--- скорректированное значение, чтобы указатель не уходил за края шкалы
                 val correctedCleaningDepth = getCorrectedValue(sca, cleaningDepth)
                 val downY = y + GRID_STEP * DEPTH_SCALE_COUNT
@@ -393,7 +393,7 @@ class sdcTSState : sdcXyState() {
             }
 
             objectState.tmSetupValue[cDevice.PARKING_DEPTH_SHOW_POS]?.let { parkingDepthStr ->
-                val parkingDepth = parkingDepthStr.toDouble()
+                val parkingDepth = parkingDepthStr.replace(" ", "").toDouble()
                 //--- скорректированное значение, чтобы указатель не уходил за края шкалы
                 val correctedParkingDepth = getCorrectedValue(sca, parkingDepth)
                 val downY = y + GRID_STEP * DEPTH_SCALE_COUNT
@@ -428,7 +428,7 @@ class sdcTSState : sdcXyState() {
 
         val LOAD_SCALE_COUNT = 5
 
-        objectConfig.hmSensorConfig[SensorConfig.SENSOR_LOAD]?.entries?.firstOrNull()?.let { (portNum, sc) ->
+        objectConfig.hmSensorConfig[SensorConfig.SENSOR_LOAD]?.entries?.firstOrNull()?.let { (_, sc) ->
             val sca = sc as SensorConfigAnalogue
 
             alElement += createTextText(
@@ -462,7 +462,7 @@ class sdcTSState : sdcXyState() {
             }
 
             objectState.tmSetupValue[cDevice.DRIVE_LOAD_RESTRICT_SHOW_POS]?.let { driveLoadRestictStr ->
-                val driveLoadRestict = driveLoadRestictStr.toDouble()
+                val driveLoadRestict = driveLoadRestictStr.replace(" ", "").toDouble()
                 //--- скорректированное значение, чтобы указатель не уходил за края шкалы
                 val correctedDriveLoadRestict = getCorrectedValue(sca, driveLoadRestict)
                 val downY = y + GRID_STEP * LOAD_SCALE_COUNT
