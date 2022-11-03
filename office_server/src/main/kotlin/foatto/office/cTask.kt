@@ -5,6 +5,7 @@ import foatto.core.link.TableCellForeColorType
 import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.data.DataDate3Int
+import foatto.core_server.app.server.data.DataInt
 import foatto.core_server.app.server.data.iData
 import java.time.ZonedDateTime
 
@@ -22,18 +23,32 @@ class cTask : cStandart() {
 
         if (isReaded && valueID != null) {
             //--- сколько всего сообщений в этой ветке обсуждения
-            var rs = conn.executeQuery(" SELECT COUNT(*) FROM OFFICE_task_thread WHERE task_id = $valueID")
-            val countAll = if (rs.next()) rs.getInt(1) else 0
+            var rs = conn.executeQuery(
+                """
+                    SELECT COUNT(*) FROM OFFICE_task_thread WHERE task_id = $valueID
+                """
+            )
+            val countAll = if (rs.next()) {
+                rs.getInt(1)
+            } else {
+                0
+            }
             rs.close()
 
             //--- сколько прочитанных сообщений в этой ветке обсуждения
             rs = conn.executeQuery(
-                " SELECT COUNT(*) FROM SYSTEM_new " +
-                    " WHERE table_name = 'OFFICE_task_thread' " +
-                    " AND user_id = ${userConfig.userId} " +
-                    " AND row_id IN ( SELECT id FROM OFFICE_task_thread WHERE task_id = $valueID ) "
+                """
+                    SELECT COUNT(*) FROM SYSTEM_new
+                    WHERE table_name = 'OFFICE_task_thread'  
+                    AND user_id = ${userConfig.userId}  
+                    AND row_id IN ( SELECT id FROM OFFICE_task_thread WHERE task_id = $valueID )
+                """
             )
-            val countReaded = if (rs.next()) rs.getInt(1) else 0
+            val countReaded = if (rs.next()) {
+                rs.getInt(1)
+            } else {
+                0
+            }
             rs.close()
 
             //--- если кол-во прочитанных сообщений равно общему кол-ву сообщений в этой ветке,
@@ -56,6 +71,28 @@ class cTask : cStandart() {
                     tci.foreColor = TABLE_CELL_FORE_COLOR_CRITICAL
                 }
             }
+        }
+    }
+
+    override fun doAdd(alColumnList: List<iColumn>, hmColumnData: MutableMap<iColumn, iData>, hmOut: MutableMap<String, Any>): Pair<Int, String?> {
+        val isTaskOwner = aliasConfig.name.startsWith("office_task_out")
+        val m = model as mTask
+
+        return if (isTaskOwner) {
+            var result = Pair(0, null as String?)
+            m.alColumnOtherUser.forEach { colOtherUser ->
+                val otherUserId = (hmColumnData[colOtherUser] as DataInt).intValue
+                //--- если этот исполнитель задан
+                if (otherUserId != 0) {
+                    //--- устанавливаем значение стандартного поля, чтобы воспользоваться процедурой стандартного добавления
+                    (hmColumnData[m.columnOtherUser] as DataInt).intValue = otherUserId
+                    //--- далее стандартное сохранение
+                    result = super.doAdd(alColumnList, hmColumnData, hmOut)
+                }
+            }
+            result
+        } else {
+            super.doAdd(alColumnList, hmColumnData, hmOut)
         }
     }
 }

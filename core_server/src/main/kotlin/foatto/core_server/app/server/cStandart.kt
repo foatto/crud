@@ -208,7 +208,7 @@ open class cStandart {
         if (model.isExpandable() && getParentId(aliasConfig.name) == null) {
             hmParentData[aliasConfig.name] = 0
         }
-        model.init(application, conn, aliasConfig, userConfig, hmParam, hmParentData, getIDFromParam())
+        model.init(application, conn, aliasConfig, userConfig, hmParam, hmParentData, getIdFromParam())
     }
 
 //--- permission part -----------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -303,7 +303,7 @@ open class cStandart {
     //--- различные алиасы одного класса равны между собой в смысле parent-отношений
     protected open fun isAliasesEquals(alias1: String, alias2: String): Boolean = alias1 == alias2
 
-    protected fun getIDFromParam(): Int? = hmParam[AppParameter.ID]?.toIntOrNull()
+    protected fun getIdFromParam(): Int? = hmParam[AppParameter.ID]?.toIntOrNull()
 
     protected open fun getParentId(alias: String?): Int? = hmParentData[alias]
 
@@ -732,7 +732,7 @@ open class cStandart {
         val alTableCell = mutableListOf<TableCell>()
         val alTableRowData = mutableListOf<TableRowData>()
 
-        val currentRowID = getIDFromParam()    // id текущей строки ( если вообще задан )
+        val currentRowID = getIdFromParam()    // id текущей строки ( если вообще задан )
         var currentRowNo = -1                  // номер текущей строки
         while (isNextDataInTable(rsTable)) {
             val hmColumnData = getColumnData(rsTable, true, alColumnList) ?: continue
@@ -1479,7 +1479,7 @@ open class cStandart {
 //--- form part -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     open fun getForm(hmOut: MutableMap<String, Any>): FormResponse {
-        val id = getIDFromParam()!!
+        val id = getIdFromParam()!!
 
         val alColumnList = mutableListOf<iColumn>()
         alColumnList.addAll(model.alFormHiddenColumn)
@@ -1849,7 +1849,7 @@ open class cStandart {
             it.isRequired = true    // номер версии должен быть заполнен
         }
 
-        var id = getIDFromParam()!!
+        var id = getIdFromParam()!!
 
         //--- ошибки ввода в форме
         val returnURL = checkInput(id, alFormData, alColumnList, hmColumnData, hmOut)
@@ -1878,32 +1878,33 @@ open class cStandart {
         preSave(id, hmColumnData)
         //--- пред-обработка ( сохранение файлов/картинок/проч. в серверных папках )
         for (column in alColumnList) {
-            if (column == model.columnId) continue             // своё id-поле пропускаем, т.к. не изменяется
-            if (column.isVirtual) continue                     // виртуальным полям нельзя делать предзапись
+            //--- своё id-поле пропускаем, т.к. не изменяется
+            if (column == model.columnId) {
+                continue
+            }
+            //--- виртуальным полям нельзя делать предзапись
+            if (column.isVirtual) {
+                continue
+            }
             if (column.columnTableName == model.modelTableName) {
                 hmColumnData[column]!!.preSave(application.rootDirName, conn)
             }
         }
-        val postURL: String?
-        val alertTag: String?
+        val postUrl: String?
         if (id == 0) {
-            id = getNextID(hmColumnData)
-            model.columnVersionId?.let {
-                val versionId = conn.getNextIntId(model.modelTableName, it.getFieldName())
-                (hmColumnData[it] as DataInt).intValue = versionId
-            }
-            doInsert(id, alColumnList, hmColumnData)
-            addIsReaded(id)
-            postURL = postAdd(id, hmColumnData, hmOut)
-            alertTag = model.getAddAlertTag()
+            val (addId, addPostUrl) = doAdd(alColumnList, hmColumnData, hmOut)
+            id = addId
+            postUrl = addPostUrl
         }
         //--- изменение версии - как добавление, только versionId переопределять уже не надо
         else if (isVersionChanged) {
-            id = getNextID(hmColumnData)
+            id = getNextId(hmColumnData)
             doInsert(id, alColumnList, hmColumnData)
             addIsReaded(id)
-            postURL = postAdd(id, hmColumnData, hmOut)
-            alertTag = model.getAddAlertTag()
+            postUrl = postAdd(id, hmColumnData, hmOut)
+            model.getAddAlertTag()?.let { alertTag ->
+                doAlert(id, hmColumnData, alertTag)
+            }
         }
         //--- обычное редактирование
         else {
@@ -1920,15 +1921,13 @@ open class cStandart {
             }
             doUpdate(id, alColumnList, hmColumnData)
             deleteIsReaded(id, false)
-            postURL = postEdit(action, id, hmColumnData, hmOut)
-            alertTag = model.getEditAlertTag()
-        }
-        //--- запись оповещения об изменении по необходимости
-        alertTag?.let {
-            doAlert(id, hmColumnData, it)
+            postUrl = postEdit(action, id, hmColumnData, hmOut)
+            model.getEditAlertTag()?.let { alertTag ->
+                doAlert(id, hmColumnData, alertTag)
+            }
         }
 
-        return postURL ?: AppParameter.setParam(chmSession[AppParameter.REFERER + hmParam[AppParameter.REFERER]] as String, AppParameter.ID, id.toString())
+        return postUrl ?: AppParameter.setParam(chmSession[AppParameter.REFERER + hmParam[AppParameter.REFERER]] as String, AppParameter.ID, id.toString())
     }
 
     protected fun checkInput(id: Int, alFormData: List<FormData>, alColumnList: List<iColumn>, hmColumnData: MutableMap<iColumn, iData>, hmOut: MutableMap<String, Any>): String? {
@@ -2051,8 +2050,23 @@ open class cStandart {
     //--- для классов-наследников - пред-обработка сохранения
     protected open fun preSave(id: Int, hmColumnData: Map<iColumn, iData>) {}
 
-    protected open fun getNextID(hmColumnData: Map<iColumn, iData>): Int {
+    protected open fun getNextId(hmColumnData: Map<iColumn, iData>): Int {
         return conn.getNextIntId(model.modelTableName, model.columnId.getFieldName())
+    }
+
+    protected open fun doAdd(alColumnList: List<iColumn>, hmColumnData: MutableMap<iColumn, iData>, hmOut: MutableMap<String, Any>): Pair<Int, String?> {
+        val id = getNextId(hmColumnData)
+        model.columnVersionId?.let {
+            val versionId = conn.getNextIntId(model.modelTableName, it.getFieldName())
+            (hmColumnData[it] as DataInt).intValue = versionId
+        }
+        doInsert(id, alColumnList, hmColumnData)
+        addIsReaded(id)
+        val postUrl = postAdd(id, hmColumnData, hmOut)
+        model.getAddAlertTag()?.let { alertTag ->
+            doAlert(id, hmColumnData, alertTag)
+        }
+        return Pair(id, postUrl)
     }
 
     protected open fun doInsert(id: Int, alColumnList: List<iColumn>, hmColumnData: Map<iColumn, iData>): Int {
@@ -2082,9 +2096,7 @@ open class cStandart {
             }
         }
 
-        val result = conn.executeUpdate(" INSERT INTO ${model.modelTableName}( $sFieldList ) VALUES ( $sValueList ) ")
-
-        return result
+        return conn.executeUpdate(" INSERT INTO ${model.modelTableName}( $sFieldList ) VALUES ( $sValueList ) ")
     }
 
     protected fun doUpdate(id: Int, alColumnList: List<iColumn>, hmColumnData: Map<iColumn, iData>): Int {
@@ -2115,9 +2127,8 @@ open class cStandart {
                 }
             }
         }
-        val result = conn.executeUpdate(" UPDATE ${model.modelTableName} SET $sFieldList WHERE ${model.columnId.getFieldName()} = $id ")
 
-        return result
+        return conn.executeUpdate(" UPDATE ${model.modelTableName} SET $sFieldList WHERE ${model.columnId.getFieldName()} = $id ")
     }
 
     //--- для классов-наследников - пост-обработка после добавления
@@ -2126,10 +2137,10 @@ open class cStandart {
     //--- для классов-наследников - пост-обработка после редактирования
     protected open fun postEdit(action: String, id: Int, hmColumnData: Map<iColumn, iData>, hmOut: MutableMap<String, Any>): String? = null
 
-    private fun doAlert(id: Int, hmColumnData: Map<iColumn, iData>, alertTag: String) {
+    protected fun doAlert(id: Int, hmColumnData: Map<iColumn, iData>, alertTag: String) {
         //--- если оповещение должно быть уникальным ( не повторяться ),
         //--- то удалим предыдущую версию, если она ещё есть в очереди
-        if (model.isUniqueAlertRowID()) {
+        if (model.isUniqueAlertRowId()) {
             conn.executeUpdate(" DELETE FROM SYSTEM_alert WHERE tag = '$alertTag' AND row_id = $id ")
         }
         //--- если заданы поля, то приготовим дату/время для оповещения
@@ -2166,7 +2177,7 @@ open class cStandart {
 //--- delete part ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     fun doDelete(alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String {
-        val id = getIDFromParam()!!
+        val id = getIdFromParam()!!
 
         val alColumnList = mutableListOf<iColumn>()
         alColumnList.addAll(model.alFormHiddenColumn)
