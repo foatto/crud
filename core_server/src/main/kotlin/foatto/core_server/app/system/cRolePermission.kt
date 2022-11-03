@@ -26,7 +26,7 @@ class cRolePermission : cStandart() {
 
     override fun getForm(hmOut: MutableMap<String, Any>): FormResponse {
 
-        val id = getIDFromParam()
+        val id = getIdFromParam()
         //--- мегаформа установки прав доступа открывается только при попытке их создания,
         //--- иначе запускаем обычную привычную форму
         if (id != 0) {
@@ -150,7 +150,7 @@ class cRolePermission : cStandart() {
     }
 
     override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
-        val id = getIDFromParam()
+        val id = getIdFromParam()
         //--- мегаформа установки прав доступа сохраняет только при попытке их создания,
         //--- иначе запускаем обычный процесс сохранения
         if (id != 0) return super.doSave(action, alFormData, hmOut)

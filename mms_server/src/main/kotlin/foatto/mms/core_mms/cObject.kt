@@ -59,7 +59,7 @@ class cObject : cStandart() {
     }
 
     //protected open fun getNextID( hmColumnData: HashMap<iColumn,iData> ): Int {
-    override fun getNextID(hmColumnData: Map<iColumn, iData>): Int {
+    override fun getNextId(hmColumnData: Map<iColumn, iData>): Int {
         return conn.getNextIntId(arrayOf("MMS_object", "MMS_zone"), arrayOf("id", "id"))
     }
 

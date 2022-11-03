@@ -17,7 +17,7 @@ import foatto.mms.core_mms.xy.server.document.sdcMMSMap.Companion.getZoneTooltip
 
 class cZone : cStandart() {
 
-    override fun getNextID(hmColumnData: Map<iColumn, iData>) = conn.getNextIntId(arrayOf("MMS_object", "MMS_zone"), arrayOf("id", "id"))
+    override fun getNextId(hmColumnData: Map<iColumn, iData>) = conn.getNextIntId(arrayOf("MMS_object", "MMS_zone"), arrayOf("id", "id"))
 
     override fun getAddButtonURL(refererID: String, hmOut: MutableMap<String, Any>): MutableList<AddActionButton> {
         val alAddButtonList = super.getAddButtonURL(refererID, hmOut)

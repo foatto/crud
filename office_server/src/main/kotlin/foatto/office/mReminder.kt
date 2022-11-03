@@ -55,7 +55,7 @@ class mReminder : mAbstract() {
     override fun getEditAlertTag() = ALERT_TAG
 
     //--- прежнее (устаревшее) оповещение должно быть удалено
-    override fun isUniqueAlertRowID() = true
+    override fun isUniqueAlertRowId() = true
 
     override fun getDateTimeColumns(): Array<iColumn> {
         return arrayOf(columnAlertTime, columnDate, columnTime)

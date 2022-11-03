@@ -100,7 +100,7 @@ abstract class mAbstract {
 
     open fun getAddAlertTag(): String? = null
     open fun getEditAlertTag(): String? = null
-    open fun isUniqueAlertRowID(): Boolean = false
+    open fun isUniqueAlertRowId(): Boolean = false
     open fun getDateTimeColumns(): Array<iColumn>? = null
 
     open fun getAdditionalTables(hsTableRenameList: MutableSet<String>): MutableSet<String> = hsAdditionalTables

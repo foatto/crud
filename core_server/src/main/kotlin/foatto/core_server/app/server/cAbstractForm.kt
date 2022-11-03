@@ -22,7 +22,7 @@ open class cAbstractForm : cStandart() {
         alColumnList.addAll(model.alFormHiddenColumn)
         alColumnList.addAll(model.alFormColumn)
 
-        val id = getIDFromParam()!!
+        val id = getIdFromParam()!!
 
         //--- ошибки ввода в форме
         val returnURL = checkInput(id, alFormData, alColumnList, hmColumnData, hmOut)

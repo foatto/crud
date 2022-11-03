@@ -26,7 +26,7 @@ class cSensorCalibration : cStandart() {
 
     override fun getForm(hmOut: MutableMap<String, Any>): FormResponse {
 
-        val id = getIDFromParam()
+        val id = getIdFromParam()
         //--- мегаформа ввода калибровок открывается только при попытке их создания,
         //--- иначе запускаем обычную привычную форму
         if (id != 0) {
@@ -143,7 +143,7 @@ class cSensorCalibration : cStandart() {
 
     override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
 
-        val id = getIDFromParam()
+        val id = getIdFromParam()
         //--- мегаформа ввода калибровок сохраняет только при попытке их создания,
         //--- иначе запускаем обычный процесс сохранения
         if (id != 0) {
