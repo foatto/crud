@@ -47,6 +47,8 @@ class cTask : cOfficeReport() {
         //--- загрузка стартовых параметров
         val reportSumOnly = hmReportParam["report_sum_only"] as Boolean
 
+        val toDay = ZonedDateTime.now(zoneId)
+
         defineFormats(8, 2, 0)
 
 //        var offsY = 0
@@ -99,7 +101,7 @@ class cTask : cOfficeReport() {
                 Label(
                     3,
                     offsY,
-                    td.firstDate,
+                    DateTime_DMY(td.firstDate),
                     if (td.countRed == 0) {
                         wcfCellCB
                     } else {
@@ -111,16 +113,27 @@ class cTask : cOfficeReport() {
             if (!reportSumOnly) {
                 //--- в начале и конце блока списка поручений по пользователю - по пустой строке разделителя
                 offsY++
-                for (taskStr in td.alTask) {
+                td.alTask.forEach { (taskSubj, taskDate) ->
                     sheet.addCell(
                         Label(
                             0,
                             offsY,
-                            taskStr,    //.replace('\n', ' '),
+                            taskSubj,    //.replace('\n', ' '),
                             wcfCellL
                         )
                     )
-                    //sheet.mergeCells(0, offsY, 3, offsY) - из-за этого глючит автоматическое расширение ячейки по содержимому
+                    sheet.addCell(
+                        Label(
+                            3,
+                            offsY,
+                            DateTime_DMY(taskDate),
+                            if (taskDate.isBefore(toDay)) {
+                                wcfCellCRedStd
+                            } else {
+                                wcfCellC
+                            }
+                        )
+                    )
                     offsY++
                 }
                 //--- в начале и конце блока списка поручений по пользователю - по пустой строке разделителя
@@ -145,39 +158,67 @@ class cTask : cOfficeReport() {
     private fun calcReport(): SortedMap<String, TaskData> {
         val tmResult = sortedMapOf<String, TaskData>()
 
+        val forOutTasks = aliasConfig.name.endsWith("_out")
+
         //--- загрузка стартовых параметров
         val reportUser = hmReportParam["report_user"] as Int
         val reportSumOnly = hmReportParam["report_sum_only"] as Boolean
 
-        val hsObjectPermission = userConfig.userPermission["office_task_out"]!!
+        val hsTaskPermission = if (forOutTasks) {
+            userConfig.userPermission["office_task_out"]!!
+        } else {
+            userConfig.userPermission["office_task_in"]!!
+        }
         val toDay = ZonedDateTime.now(zoneId)
-        val sb = """ 
-            SELECT id , out_user_id , in_user_id , ye , mo , da , subj 
-            FROM OFFICE_task 
-            WHERE id <> 0 
-            AND in_archive = 0
-            """ +
-            if (reportUser == 0) {
+
+        var sql =
+            """ 
+                SELECT id , out_user_id , in_user_id , ye , mo , da , subj 
+                FROM OFFICE_task 
+                WHERE id <> 0 
+                AND in_archive = 0
+            """
+        if (forOutTasks) {
+            sql += if (reportUser == 0) {
                 " AND in_user_id <> 0 "
             } else {
                 " AND in_user_id = $reportUser"
-            } +
-            " ORDER BY ye , mo , da "
-        val rs = conn.executeQuery(sb)
+            }
+        } else {
+            sql += if (reportUser == 0) {
+                " AND out_user_id <> 0 "
+            } else {
+                " AND out_user_id = $reportUser"
+            }
+        }
+        sql += " ORDER BY ye , mo , da "
+
+        val rs = conn.executeQuery(sql)
         while (rs.next()) {
-            val rID: Int = rs.getInt(1)
-            val userId: Int = rs.getInt(2)
+            val id = rs.getInt(1)
+            val outUserId = rs.getInt(2)
+            val inUserId = rs.getInt(3)
+
             if (!checkPerm(
                     aUserConfig = userConfig,
-                    aHsPermission = hsObjectPermission,
+                    aHsPermission = hsTaskPermission,
                     permName = PERM_TABLE,
-                    recordUserId = userId,
+                    recordUserId = if (forOutTasks) {
+                        outUserId
+                    } else {
+                        inUserId
+                    },
                 )
             ) {
                 continue
             }
 
-            val userName = application.hmUserFullNames[rs.getInt(3)]!!
+            val userName = application.hmUserFullNames[if (forOutTasks) {
+                inUserId
+            } else {
+                outUserId
+            }]!!
+
             val ye = rs.getInt(4)
             val mo = rs.getInt(5)
             val da = rs.getInt(6)
@@ -186,7 +227,7 @@ class cTask : cOfficeReport() {
             val isRed = gc.isBefore(toDay)
             var td = tmResult[userName]
             if (td == null) {
-                td = TaskData(userName, 0, 0, DateTime_DMY(gc))
+                td = TaskData(userName, 0, 0, gc)
                 tmResult[userName] = td
             }
             if (isRed) {
@@ -194,7 +235,7 @@ class cTask : cOfficeReport() {
             }
             td.countAll++
             if (!reportSumOnly) {
-                td.alTask.add(DateTime_DMY(gc) + " - " + subj)
+                td.alTask.add(Pair(subj, gc))
             }
         }
         rs.close()
@@ -205,8 +246,8 @@ class cTask : cOfficeReport() {
         var userName: String,
         var countRed: Int,
         var countAll: Int,
-        var firstDate: String,
+        var firstDate: ZonedDateTime,
     ) {
-        var alTask = mutableListOf<String>()
+        var alTask = mutableListOf<Pair<String, ZonedDateTime>>()
     }
 }
