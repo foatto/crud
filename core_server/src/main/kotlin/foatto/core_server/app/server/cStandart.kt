@@ -1661,7 +1661,8 @@ open class cStandart {
                     caption = "Удалить",
                     iconName = ICON_NAME_DELETE,
                     withNewData = false,
-                    key = BUTTON_KEY_NONE
+                    key = BUTTON_KEY_NONE,
+                    question = model.deleteQuestion,
                 )
             )
         }

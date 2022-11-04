@@ -25,6 +25,8 @@ abstract class mAbstract {
     protected lateinit var conn: CoreAdvancedConnection
     protected lateinit var hmParam: Map<String, String>
 
+    var deleteQuestion: String? = null
+
     lateinit var modelTableName: String
         protected set
     lateinit var columnId: ColumnInt

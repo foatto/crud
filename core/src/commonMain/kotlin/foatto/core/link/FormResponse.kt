@@ -90,6 +90,7 @@ class FormButton(
     val caption: String,
     val iconName: String,
     val withNewData: Boolean,
-    val key: Int
+    val key: Int,
+    val question: String? = null,
 )
 

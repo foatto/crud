@@ -54,6 +54,8 @@ class mTask : mAbstract() {
         id: Int?
     ) {
 
+        deleteQuestion = "Подтвердите удаление, пожалуйста"
+
         super.init(application, aConn, aliasConfig, userConfig, aHmParam, hmParentData, id)
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------

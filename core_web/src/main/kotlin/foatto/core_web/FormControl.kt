@@ -43,7 +43,7 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
             <div v-bind:style="style_header">
                 <template v-for="titleData in arrTitleData">
                     <button v-if="titleData.url"
-                            v-on:click="invoke( titleData.url, false )"
+                            v-on:click="invoke( titleData.url, false, null )"
                             v-bind:key="'fhb_'+$tabId+'_'+titleData.id"
                             v-bind:style="style_text_button">
 
@@ -77,8 +77,8 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                            v-bind:style="style_form_row_input"
                            v-on:focus="selectAllText( ${'$'}event )"
                            v-on:keyup.enter.exact="doNextFocus( gridData.id, -1 )"
-                           v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true ) : null"
-                           v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
+                           v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true, null ) : null"
+                           v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false, null ) : null"
                            v-on:keyup.f4="closeTabById()"
                     >
 
@@ -90,8 +90,8 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                               v-bind:readonly="gridData.itReadOnly"
                               v-bind:style="style_form_row_input"
                               v-on:keyup.enter.exact="doNextFocus( gridData.id, -1 )"
-                              v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true ) : null"
-                              v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
+                              v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true, null ) : null"
+                              v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false, null ) : null"
                               v-on:keyup.f4="closeTabById()"
                     >
                     </textarea>
@@ -104,8 +104,8 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                            v-bind:readonly="gridData.itReadOnly"
                            v-bind:style="style_form_row_checkbox"
                            v-on:keyup.enter.exact="doNextFocus( gridData.id, -1 )"
-                           v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true ) : null"
-                           v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
+                           v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true, null ) : null"
+                           v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false, null ) : null"
                            v-on:keyup.f4="closeTabById()"
                     >
 
@@ -115,8 +115,8 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                                     v-bind:style="gridData.bool ? style_form_switch_off : style_form_switch_on"
                                     title="gridData.arrSwitchText[0]"                                                                        
                                     v-on:keyup.enter.exact="doNextFocus( gridData.id, -1 )"
-                                    v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true ) : null"
-                                    v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
+                                    v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true, null ) : null"
+                                    v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false, null ) : null"
                                     v-on:keyup.f4="closeTabById()"
                             >
                                 {{ gridData.arrSwitchText[0] }}
@@ -127,8 +127,8 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                                     v-bind:style="gridData.bool ? style_form_switch_on : style_form_switch_off"
                                     title="gridData.arrSwitchText[1]"                                                                        
                                     v-on:keyup.enter.exact="doNextFocus( gridData.id, -1 )"
-                                    v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true ) : null"
-                                    v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
+                                    v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true, null ) : null"
+                                    v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false, null ) : null"
                                     v-on:keyup.f4="closeTabById()"
                             >
                                 {{ gridData.arrSwitchText[1] }}
@@ -144,8 +144,8 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                                v-bind:readonly="gridData.itReadOnly"
                                v-bind:style="style_form_row_input"
                                v-on:keyup.enter.exact="doNextFocus( gridData.id, gridData.arrSubId[index] )"
-                               v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true ) : null"
-                               v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
+                               v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true, null ) : null"
+                               v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false, null ) : null"
                                v-on:keyup.f4="closeTabById()"
                         >
                     </template>
@@ -157,8 +157,8 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                                 v-bind:readonly="gridData.itReadOnly"
                                 v-bind:style="style_form_row_combo"
                                 v-on:keyup.enter.exact="doNextFocus( gridData.id, -1 )"
-                                v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true ) : null"
-                                v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
+                                v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true, null ) : null"
+                                v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false, null ) : null"
                                 v-on:keyup.f4="closeTabById()"
                         >
                             <option v-for="comboData in gridData.arrComboData"
@@ -179,8 +179,8 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                                    v-bind:readonly="gridData.itReadOnly"
                                    v-bind:style="style_form_row_radio_button"
                                    v-on:keyup.enter.exact="doNextFocus( gridData.id, gridData.arrSubId[index] )"
-                                   v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true ) : null"
-                                   v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
+                                   v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true, null ) : null"
+                                   v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false, null ) : null"
                                    v-on:keyup.f4="closeTabById()"
                             >
                             <span v-bind:style="style_form_row_radio_label"
@@ -200,8 +200,8 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                                     v-bind:style="style_row_file_name_button"
                                     title="Показать файл"                                                                        
                                     v-on:keyup.enter.exact="doNextFocus( gridData.id, -1 )"
-                                    v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true ) : null"
-                                    v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
+                                    v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true, null ) : null"
+                                    v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false, null ) : null"
                                     v-on:keyup.f4="closeTabById()"
                             >
                                 <span v-html="fileData.text">
@@ -226,8 +226,8 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                                 v-bind:style="style_row_file_name_button"
                                 title="Добавить файл(ы)"                                                                        
                                 v-on:keyup.enter.exact="doNextFocus( gridData.id, -1 )"
-                                v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true ) : null"
-                                v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false ) : null"
+                                v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true, null ) : null"
+                                v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false, null ) : null"
                                 v-on:keyup.f4="closeTabById()"
                         >
                             Добавить файл(ы)
@@ -236,14 +236,14 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                     
                     <img src="/web/images/ic_reply_black_48dp.png"
                          v-if="gridData.selectorSetURL"
-                         v-on:click="invoke( gridData.selectorSetURL, true )"
+                         v-on:click="invoke( gridData.selectorSetURL, true, null )"
                          v-bind:style="style_icon_button"
                          title="Выбрать из справочника"
                     >
 
                     <img src="/web/images/ic_delete_forever_black_48dp.png"
                          v-if="gridData.selectorClearURL"
-                         v-on:click="invoke( gridData.selectorClearURL, true )"
+                         v-on:click="invoke( gridData.selectorClearURL, true, null )"
                          v-bind:style="style_icon_button"
                          title="Очистить выбор"
                     >
@@ -260,7 +260,7 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                 <template v-for="formButton in arrFormButton">
                     <img v-if="formButton.icon" 
                          v-bind:src="formButton.icon"
-                         v-on:click="invoke( formButton.url, formButton.withNewData )"
+                         v-on:click="invoke( formButton.url, formButton.withNewData, formButton.question )"
                          v-bind:key="'fb_'+$tabId+'_'+formButton.id"
                          v-bind:style="[ 
                             style_action_button , 
@@ -406,54 +406,18 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
 //                }
             }
         },
-        "invoke" to { formAppParam: String, withNewData: Boolean ->
-            val arrGridData = that().arrGridData.unsafeCast<Array<FormGridData>>()
-            val alFormData = mutableListOf<FormData>()
-
-            arrGridData.forEach { gridData ->
-                val withNewValues = withNewData && !gridData.itHidden
-
-                when (gridData.cellType) {
-                    FormCellType_.STRING -> {
-                        alFormData.add(FormData(stringValue = if (withNewValues) gridData.text else gridData.oldText))
-                    }
-
-                    FormCellType_.TEXT -> {
-                        alFormData.add(FormData(textValue = if (withNewValues) gridData.text else gridData.oldText))
-                    }
-
-                    FormCellType_.CHECKBOX, FormCellType_.SWITCH -> {
-                        alFormData.add(FormData(booleanValue = if (withNewValues) gridData.bool else gridData.oldBool))
-                    }
-
-                    FormCellType_.DATE, FormCellType_.TIME, FormCellType_.DATE_TIME -> {
-                        alFormData.add(FormData(alDateTimeValue = (if (withNewValues) gridData.arrDateTime else gridData.oldArrDateTime)!!.toList()))
-                    }
-
-                    FormCellType_.COMBO -> {
-                        alFormData.add(FormData(comboValue = if (withNewValues) gridData.combo else gridData.oldCombo))
-                    }
-
-                    FormCellType_.RADIO -> {
-                        alFormData.add(FormData(comboValue = if (withNewValues) gridData.combo else gridData.oldCombo))
-                    }
-
-                    FormCellType_.FILE -> {
-                        alFormData.add(FormData(
-                            fileId = gridData.fileID,
-                            hmFileAdd = if (withNewValues) {
-                                gridData.hmFileAdd.mapKeys { it.key.toString() }
-                            } else {
-                                mapOf()
-                            },
-                            alFileRemovedId = if (withNewValues) gridData.alFileRemovedID else listOf()
-                        ))
-                    }
-
-                    else -> {}
+        "invoke" to { formAppParam: String, withNewData: Boolean, dialogQuestion: String? ->
+            val mainThat = that()
+            dialogQuestion?.let {
+                dialogActionFun = { that: dynamic ->
+                    doInvoke(mainThat, formAppParam, withNewData)
                 }
+                mainThat.`$root`.dialogQuestion = dialogQuestion
+                mainThat.`$root`.showDialogCancel = true
+                mainThat.`$root`.showDialog = true
+            } ?: run {
+                doInvoke(mainThat, formAppParam, withNewData)
             }
-            that().`$parent`.invoke(AppRequest(action = formAppParam, alFormData = alFormData))
         }
     )
 
@@ -718,12 +682,16 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
                     withNewData = it.withNewData,
                     icon = icon,
                     text = caption,
-                    tooltip = it.caption
+                    tooltip = it.caption,
+                    question = it.question,
                 )
             )
             //--- назначение кнопок на горячие клавиши
             when (it.key) {
-                BUTTON_KEY_AUTOCLICK -> if (autoClickURL == null) autoClickURL = it.url
+                BUTTON_KEY_AUTOCLICK -> if (autoClickURL == null) {
+                    autoClickURL = it.url
+                }
+
                 BUTTON_KEY_SAVE -> that().formSaveURL = it.url
                 BUTTON_KEY_EXIT -> that().formExitURL = it.url
             }
@@ -753,7 +721,7 @@ fun formControl(formResponse: FormResponse, tabId: Int) = vueComponentOptions().
             doVisibleAndCaptionChangeBody(that(), gridData)
         }
         if (autoClickURL != null) {
-            that().invoke(autoClickURL, true)
+            that().invoke(autoClickURL, true, null)
         } else if (autoFocusId != null) {
             Vue.nextTick {
                 val element = document.getElementById(autoFocusId!!)
@@ -1148,6 +1116,56 @@ private fun doVisibleAndCaptionChangeBody(that: dynamic, gdMaster: FormGridData)
     }
 }
 
+private fun doInvoke(that: dynamic, formAppParam: String, withNewData: Boolean) {
+    val arrGridData = that.arrGridData.unsafeCast<Array<FormGridData>>()
+    val alFormData = mutableListOf<FormData>()
+
+    arrGridData.forEach { gridData ->
+        val withNewValues = withNewData && !gridData.itHidden
+
+        when (gridData.cellType) {
+            FormCellType_.STRING -> {
+                alFormData.add(FormData(stringValue = if (withNewValues) gridData.text else gridData.oldText))
+            }
+
+            FormCellType_.TEXT -> {
+                alFormData.add(FormData(textValue = if (withNewValues) gridData.text else gridData.oldText))
+            }
+
+            FormCellType_.CHECKBOX, FormCellType_.SWITCH -> {
+                alFormData.add(FormData(booleanValue = if (withNewValues) gridData.bool else gridData.oldBool))
+            }
+
+            FormCellType_.DATE, FormCellType_.TIME, FormCellType_.DATE_TIME -> {
+                alFormData.add(FormData(alDateTimeValue = (if (withNewValues) gridData.arrDateTime else gridData.oldArrDateTime)!!.toList()))
+            }
+
+            FormCellType_.COMBO -> {
+                alFormData.add(FormData(comboValue = if (withNewValues) gridData.combo else gridData.oldCombo))
+            }
+
+            FormCellType_.RADIO -> {
+                alFormData.add(FormData(comboValue = if (withNewValues) gridData.combo else gridData.oldCombo))
+            }
+
+            FormCellType_.FILE -> {
+                alFormData.add(FormData(
+                    fileId = gridData.fileID,
+                    hmFileAdd = if (withNewValues) {
+                        gridData.hmFileAdd.mapKeys { it.key.toString() }
+                    } else {
+                        mapOf()
+                    },
+                    alFileRemovedId = if (withNewValues) gridData.alFileRemovedID else listOf()
+                ))
+            }
+
+            else -> {}
+        }
+    }
+    that.`$parent`.invoke(AppRequest(action = formAppParam, alFormData = alFormData))
+}
+
 private enum class FormCellType_ { LABEL, STRING, TEXT, CHECKBOX, SWITCH, DATE, TIME, DATE_TIME, COMBO, RADIO, FILE }
 
 private class FormTitleData(val id: Int, val url: String, val text: String)
@@ -1211,9 +1229,10 @@ private class FormButtonData(
     val id: Int,
     val url: String,
     val withNewData: Boolean,
+    val question: String?,
     val icon: String,
     val text: String,
-    val tooltip: String
+    val tooltip: String,
 )
 
 /*
