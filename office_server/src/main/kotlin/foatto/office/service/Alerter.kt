@@ -150,19 +150,19 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
             """
         )
         if (rs.next()) {
-            val alertID = rs.getInt(1)
+            val alertId = rs.getInt(1)
             val tag = rs.getString(2)
-            val rowID = rs.getInt(3)
+            val rowId = rs.getInt(3)
             rs.close()
 
             when (tag) {
                 mTask.ALERT_TAG -> {
-                    sendTask(rowID)
+                    sendTask(rowId)
                     AdvancedLogger.info("New Task Sended.")
                 }
 
                 mTaskThread.ALERT_TAG -> {
-                    sendTaskThread(rowID)
+                    sendTaskThread(rowId)
                     AdvancedLogger.info("New TaskThread Sended.")
                 }
 
@@ -176,7 +176,7 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                     AdvancedLogger.error("Unknown tag = $tag")
                 }
             }
-            alConn[0].executeUpdate(" DELETE FROM SYSTEM_alert WHERE id = $alertID")
+            alConn[0].executeUpdate(" DELETE FROM SYSTEM_alert WHERE id = $alertId")
             alConn[0].commit()
         } else {
             rs.close()
@@ -273,46 +273,46 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         AdvancedLogger.debug("-".repeat(20))
     }
 
-    private fun sendTaskThread(rowID: Int) {
+    private fun sendTaskThread(taskThreadId: Int) {
         //--- загрузим новое сообщение из переписки
         var rs = alConn[0].executeQuery(
-            " SELECT user_id , task_id FROM OFFICE_task_thread WHERE id = $rowID"
+            " SELECT user_id , task_id FROM OFFICE_task_thread WHERE id = $taskThreadId "
         )
         if (!rs.next()) {
             rs.close()
-            AdvancedLogger.error("Task thread not found for ID = $rowID")
+            AdvancedLogger.error("Task thread not found for ID = $taskThreadId")
             return
         }
-        val curUserID = rs.getInt(1)
-        val taskID = rs.getInt(2)
+        val curUserId = rs.getInt(1)
+        val taskId = rs.getInt(2)
         rs.close()
 
         //--- загрузим само поручение
         rs = alConn[0].executeQuery(
-            " SELECT out_user_id , in_user_id , subj FROM OFFICE_task WHERE id = $taskID"
+            " SELECT out_user_id , in_user_id , subj FROM OFFICE_task WHERE id = $taskId "
         )
         if (!rs.next()) {
             rs.close()
-            AdvancedLogger.error("Task not found for ID = $taskID")
+            AdvancedLogger.error("Task not found for ID = $taskId")
             return
         }
-        val arrUserID = arrayOf(rs.getInt(1), rs.getInt(2))
+        val arrUserId = arrayOf(rs.getInt(1), rs.getInt(2))
         val taskSubj = rs.getString(3)
         rs.close()
 
         AdvancedLogger.debug("--- send new task thread ---")
-        AdvancedLogger.debug("Current UserID = $curUserID")
-        AdvancedLogger.debug("Task ID = $taskID")
+        AdvancedLogger.debug("Current UserID = $curUserId")
+        AdvancedLogger.debug("Task ID = $taskId")
         AdvancedLogger.debug("Task Subj = $taskSubj")
 
         //--- для каждой стороны поручения
-        for (i in arrUserID.indices) {
+        for (i in arrUserId.indices) {
             //--- автора последнего сообщения пропускаем из рассмотрения
-            if (arrUserID[i] == curUserID) {
+            if (arrUserId[i] == curUserId) {
                 continue
             }
             //--- если у этого пользователя нет e-mail для оповещений, пропускаем из обработки
-            val eMail = hmUserEmail[arrUserID[i]]
+            val eMail = hmUserEmail[arrUserId[i]]
             AdvancedLogger.debug("to User e-mail: $eMail")
             if (eMail.isNullOrBlank() || !eMail.contains("@")) {
                 continue
@@ -323,8 +323,8 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                 """
                     SELECT * FROM SYSTEM_new 
                     WHERE table_name = 'OFFICE_task_thread' 
-                    AND row_id = $rowID
-                    AND user_id = ${arrUserID[i]}
+                    AND row_id = $taskThreadId
+                    AND user_id = ${arrUserId[i]}
                 """
             )
             val isReaded = rs.next()
@@ -338,19 +338,19 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                     """
                         SELECT id , user_id , ye , mo , da , ho , mi , message
                         FROM OFFICE_task_thread 
-                        WHERE task_id = $taskID
+                        WHERE task_id = $taskId
                         ORDER BY ye DESC , mo DESC , da DESC , ho DESC , mi DESC
                     """
                 )
                 while (rs.next()) {
                     val id = rs.getInt(1)
-                    val userID = rs.getInt(2)
+                    val userId = rs.getInt(2)
                     val arrDT = arrayOf(rs.getInt(3), rs.getInt(4), rs.getInt(5), rs.getInt(6), rs.getInt(7), 0)
                     val msg = rs.getString(8)
-                    val userFullName = if (userID == 0) {
+                    val userFullName = if (userId == 0) {
                         ""
                     } else {
-                        hmUserFullNames[userID]
+                        hmUserFullNames[userId]
                     }
                     val sbTmp = userFullName +
                         " [ " + DateTime_DMYHMS(arrDT) + "]:\n" +
@@ -358,23 +358,25 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                     //--- сообщения в тело письма складываем в прямом порядке
                     sbThread = sbTmp + sbThread
                     //--- собственно оригинальное сообщение, ради которого весь шум, уже добавлено в письмо?
-                    if (id == rowID) {
+                    if (id == taskThreadId) {
                         isOriginalMessagePosted = true
                     }
                     //--- если оригинальное сообщение уже добавлено в письмо,
                     //--- то складываем вплоть до предыдущего сообщения от оппонента
                     //--- (чтобы оппонент не потерял нити обсуждения)
-                    if (isOriginalMessagePosted && userID != curUserID) {
+                    if (isOriginalMessagePosted && userId != curUserId) {
                         break
                     }
                 }
                 rs.close()
                 //--- готовим тему письма
-                val sbMailSubj = "Office#${mTaskThread.ALERT_TAG}#$taskID#${arrUserID[i]}#"
+                val sbMailSubj = "Office#${mTaskThread.ALERT_TAG}#$taskId#${arrUserId[i]}#"
                 //--- готовим текст самого письма
                 val sbMailBody = "Обсуждение по поручению:\n$taskSubj\n${"-".repeat(20)}\n$sbThread"
                 //--- отправляем письмо
                 sendMail(eMail, sbMailSubj, sbMailBody)
+                //--- ставим отметку, что письмо отправлено
+                alConn[0].executeUpdate(" UPDATE OFFICE_task_thread SET sended_over_email = 1 WHERE id = $taskThreadId ")
             } else {
                 AdvancedLogger.debug("Task thread not sended: task already readed by user.")
             }

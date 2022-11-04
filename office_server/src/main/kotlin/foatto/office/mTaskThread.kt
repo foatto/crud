@@ -4,6 +4,7 @@ import foatto.core.link.FormPinMode
 import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
+import foatto.core_server.app.server.column.ColumnBoolean
 import foatto.core_server.app.server.column.ColumnDate3Int
 import foatto.core_server.app.server.column.ColumnFile
 import foatto.core_server.app.server.column.ColumnInt
@@ -53,6 +54,10 @@ class mTaskThread : mAbstract() {
         columnTaskThreadMessage = ColumnString(modelTableName, "message", "Обсуждение", 12, STRING_COLUMN_WIDTH, textFieldMaxSize)
         columnTaskThreadMessage.formPinMode = FormPinMode.OFF
 
+        val columnTaskThreadSendedOverEmail = ColumnBoolean(modelTableName, "sended_over_email", "Отправлено через e-mail").apply {
+            isEditable = false
+        }
+
         val columnFile = ColumnFile(application, modelTableName, "file_id", "Файлы")
         columnFile.formPinMode = FormPinMode.OFF
 
@@ -65,6 +70,7 @@ class mTaskThread : mAbstract() {
         addTableColumn(columnTaskThreadDate)
         addTableColumn(columnTaskThreadTime)
         addTableColumn(columnTaskThreadMessage)
+        addTableColumn(columnTaskThreadSendedOverEmail)
         addTableColumn(columnFile)
 
         alFormHiddenColumn.add(columnId)
@@ -72,6 +78,7 @@ class mTaskThread : mAbstract() {
         alFormHiddenColumn.add(columnTask)
         alFormHiddenColumn.add(columnTaskThreadDate)
         alFormHiddenColumn.add(columnTaskThreadTime)
+        alFormHiddenColumn.add(columnTaskThreadSendedOverEmail)
 
         alFormColumn.add(columnTaskThreadMessage)
         alFormColumn.add(columnFile)
