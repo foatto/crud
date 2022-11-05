@@ -2,6 +2,7 @@ package foatto.office.service
 
 import foatto.core.util.AdvancedLogger
 import foatto.core.util.DateTime_DMYHMS
+import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.getDateTimeArray
 import foatto.core.util.prepareForSQL
 import foatto.core_server.service.CoreServiceWorker
@@ -495,7 +496,7 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         return result
     }
 
-    private fun receiveTaskThread(taskID: Int, userID: Int, date: Date, mailBody: String) {
+    private fun receiveTaskThread(taskId: Int, userId: Int, date: Date, mailBody: String) {
         var arrDT = getDateTimeArray(ZoneId.systemDefault(), (date.time / 1000).toInt())
         AdvancedLogger.debug("--- MAIL BODY start ---")
         AdvancedLogger.debug(mailBody)
@@ -673,7 +674,7 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         alConn[0].executeUpdate(
             """
                 INSERT INTO OFFICE_task_thread ( id , user_id , task_id , ye , mo , da , ho , mi , message ) VALUES (
-                    $rowID , $userID , $taskID , 
+                    $rowID , $userId , $taskId , 
                     ${arrDT[0]} , ${arrDT[1]} , ${arrDT[2]} , ${arrDT[3]} , ${arrDT[4]} ,
                     '${prepareForSQL(sbMailBody)}' 
                 ) 
@@ -693,9 +694,11 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
             ACTION_DELETE -> alConn[0].executeUpdate(
                 """
                     UPDATE OFFICE_task 
-                    SET in_active = 0 , in_archive = 1 
-                    WHERE id = $taskID
-                    AND out_user_id = $userID
+                    SET in_active = 0 , 
+                        in_archive = 1 , 
+                        last_update = ${getCurrentTimeInt()} 
+                    WHERE id = $taskId
+                    AND out_user_id = $userId
                 """
             )
 
@@ -709,9 +712,10 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                         SET in_user_id = $newUserID , 
                             ye = ${arrDT[0]} , 
                             mo = ${arrDT[1]} , 
-                            da = ${arrDT[2]}
-                        WHERE id = $taskID
-                        AND out_user_id = $userID
+                            da = ${arrDT[2]} ,
+                            last_update = ${getCurrentTimeInt()}
+                        WHERE id = $taskId
+                        AND out_user_id = $userId
                     """
                 )
             }
@@ -725,9 +729,10 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                         UPDATE OFFICE_task 
                         SET ye = ${arrDT[0]} , 
                             mo = ${arrDT[1]} , 
-                            da = ${arrDT[2]}
-                        WHERE id = $taskID
-                        AND out_user_id = $userID
+                            da = ${arrDT[2]} ,
+                            last_update = ${getCurrentTimeInt()}
+                        WHERE id = $taskId
+                        AND out_user_id = $userId
                     """
                 )
             }
@@ -738,9 +743,10 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                         UPDATE OFFICE_task 
                         SET ye = $newYe , 
                             mo = $newMo , 
-                            da = $newDa
-                        WHERE id = $taskID
-                        AND out_user_id = $userID
+                            da = $newDa ,
+                            last_update = ${getCurrentTimeInt()}
+                        WHERE id = $taskId
+                        AND out_user_id = $userId
                     """
                 )
         }

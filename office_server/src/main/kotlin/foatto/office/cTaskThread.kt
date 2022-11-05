@@ -3,8 +3,10 @@ package foatto.office
 import foatto.core.app.ICON_NAME_PRINT
 import foatto.core.link.AppAction
 import foatto.core.link.ServerActionButton
+import foatto.core.util.getCurrentTimeInt
 import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.column.iColumn
+import foatto.core_server.app.server.data.DataInt
 import foatto.core_server.app.server.data.DataString
 import foatto.core_server.app.server.data.iData
 
@@ -70,4 +72,16 @@ class cTaskThread : cStandart() {
         return alSAB
     }
 
+    override fun preSave(id: Int, hmColumnData: Map<iColumn, iData>) {
+        super.preSave(id, hmColumnData)
+
+        val mtt = model as mTaskThread
+        conn.executeUpdate(
+            """
+                UPDATE OFFICE_task 
+                SET last_update = ${getCurrentTimeInt()} 
+                WHERE id = ${(hmColumnData[mtt.columnTask] as DataInt).intValue} 
+            """
+        )
+    }
 }

@@ -9,6 +9,7 @@ import foatto.core_server.app.server.DependData
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnBoolean
 import foatto.core_server.app.server.column.ColumnDate3Int
+import foatto.core_server.app.server.column.ColumnDateTimeInt
 import foatto.core_server.app.server.column.ColumnFile
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
@@ -31,6 +32,8 @@ class mTask : mAbstract() {
     lateinit var columnTaskSubj: ColumnString
         private set
     lateinit var columnFile: ColumnFile
+        private set
+    lateinit var columnTaskLastUpdate: ColumnDateTimeInt
         private set
 
     lateinit var columnOtherUser: ColumnInt
@@ -89,6 +92,10 @@ class mTask : mAbstract() {
             formPinMode = FormPinMode.OFF
         }
 
+        columnTaskLastUpdate = ColumnDateTimeInt(modelTableName, "last_update", "Последнее обновление", true, zoneId).apply {
+            isEditable = false
+        }
+
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         val alColumnOtherUserName = mutableListOf<ColumnString>()
@@ -145,10 +152,12 @@ class mTask : mAbstract() {
         } else {
             alTableGroupColumn += columnOtherUserName
         }
-        alTableGroupColumn += columnDate
+//        alTableGroupColumn += columnDate
 
+        addTableColumn(columnDate)
         addTableColumn(columnTaskSubj)
         addTableColumn(columnFile)
+        addTableColumn(columnTaskLastUpdate)
 
         alFormHiddenColumn += columnId
         alFormHiddenColumn += columnUser!!
@@ -159,6 +168,7 @@ class mTask : mAbstract() {
         if (id == 0 && isTaskOwner) {
             alFormHiddenColumn += alColumnOtherUser
         }
+        alFormHiddenColumn += columnTaskLastUpdate
 
         //--- Во избежание позднейших "улучшений/оптимизаций": именно такое "лишнее" сравнение. Сравнивать id != 0 вместо else нельзя, т.к. там может быть и null.
         if (id == 0 && isTaskOwner) {

@@ -19,6 +19,8 @@ class mTaskThread : mAbstract() {
         val ALERT_TAG = "task_thread"
     }
 
+    lateinit var columnTask: ColumnInt
+        private set
     lateinit var columnTaskThreadMessage: ColumnString
         private set
 
@@ -46,7 +48,7 @@ class mTaskThread : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnTask = ColumnInt(modelTableName, "task_id", parentTaskID)
+        columnTask = ColumnInt(modelTableName, "task_id", parentTaskID)
 
         val columnTaskThreadDate = ColumnDate3Int(modelTableName, "ye", "mo", "da", "Дата")
         val columnTaskThreadTime = ColumnTime3Int(modelTableName, "ho", "mi", null, "Время")

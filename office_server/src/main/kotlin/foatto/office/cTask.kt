@@ -2,9 +2,11 @@ package foatto.office
 
 import foatto.core.link.TableCell
 import foatto.core.link.TableCellForeColorType
+import foatto.core.util.getCurrentTimeInt
 import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.data.DataDate3Int
+import foatto.core_server.app.server.data.DataDateTimeInt
 import foatto.core_server.app.server.data.DataInt
 import foatto.core_server.app.server.data.iData
 import java.time.ZonedDateTime
@@ -72,6 +74,13 @@ class cTask : cStandart() {
                 }
             }
         }
+    }
+
+    override fun preSave(id: Int, hmColumnData: Map<iColumn, iData>) {
+        super.preSave(id, hmColumnData)
+
+        val mt = model as mTask
+        (hmColumnData[mt.columnTaskLastUpdate] as DataDateTimeInt).setDateTime(getCurrentTimeInt())
     }
 
     override fun doAdd(alColumnList: List<iColumn>, hmColumnData: MutableMap<iColumn, iData>, hmOut: MutableMap<String, Any>): Pair<Int, String?> {
