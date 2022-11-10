@@ -688,6 +688,14 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                 ) 
             """
         )
+        //--- и обновляем время последнего обновления
+        alConn[0].executeUpdate(
+            """
+                UPDATE OFFICE_task 
+                SET last_update = ${getCurrentTimeInt()} 
+                WHERE id = $taskId
+            """
+        )
 
         //--- если отправитель сообщения является автором поручения, то выполним его команды
         when (action) {
@@ -695,8 +703,7 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                 """
                     UPDATE OFFICE_task 
                     SET in_active = 0 , 
-                        in_archive = 1 , 
-                        last_update = ${getCurrentTimeInt()} 
+                        in_archive = 1  
                     WHERE id = $taskId
                     AND out_user_id = $userId
                 """
@@ -712,8 +719,7 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                         SET in_user_id = $newUserID , 
                             ye = ${arrDT[0]} , 
                             mo = ${arrDT[1]} , 
-                            da = ${arrDT[2]} ,
-                            last_update = ${getCurrentTimeInt()}
+                            da = ${arrDT[2]} 
                         WHERE id = $taskId
                         AND out_user_id = $userId
                     """
@@ -729,8 +735,7 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                         UPDATE OFFICE_task 
                         SET ye = ${arrDT[0]} , 
                             mo = ${arrDT[1]} , 
-                            da = ${arrDT[2]} ,
-                            last_update = ${getCurrentTimeInt()}
+                            da = ${arrDT[2]} 
                         WHERE id = $taskId
                         AND out_user_id = $userId
                     """
@@ -743,8 +748,7 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                         UPDATE OFFICE_task 
                         SET ye = $newYe , 
                             mo = $newMo , 
-                            da = $newDa ,
-                            last_update = ${getCurrentTimeInt()}
+                            da = $newDa 
                         WHERE id = $taskId
                         AND out_user_id = $userId
                     """

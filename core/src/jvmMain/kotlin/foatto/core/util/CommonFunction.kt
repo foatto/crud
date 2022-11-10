@@ -331,27 +331,36 @@ fun loadConfig(
 ): MutableMap<String, String> {
 
     val fileConfig = File(fileName)
-    if (!fileConfig.exists()) return hmConfig
+    if (!fileConfig.exists()) {
+        return hmConfig
+    }
 
     val alIni = loadTextFile(fileName, charset, commentMark, true)
-    for (line in alIni) {
+    for (line in alIni) { 
         val key = line.substringBefore('=', "").trim()
         var value = line.substringAfter('=', "").trim()
 
-        if (key.isEmpty() || value.isEmpty()) continue
+        if (key.isEmpty() || value.isEmpty()) {
+            continue
+        }
 
         //--- включение другого ini-файла
-        if (includeMark != null && includeMark.isNotEmpty() && key.startsWith(includeMark))
+        if (!includeMark.isNullOrEmpty() && key.startsWith(includeMark)) {
             loadConfig(File(fileConfig.parentFile, value).canonicalPath, charset, commentMark, includeMark, paramMark, hmConfig)
+        }
         else {
             //--- применение/вставка/замена ранее загруженных параметров в текущее значение
             //--- (например, $root_dir$ )
-            if (paramMark != null && paramMark.isNotEmpty()) {
+            if (!paramMark.isNullOrEmpty()) {
                 while (true) {
                     val pos1 = value.indexOf(paramMark)
-                    if (pos1 == -1) break
+                    if (pos1 == -1) {
+                        break
+                    }
                     val pos2 = value.indexOf(paramMark, pos1 + paramMark.length)
-                    if (pos2 == -1) break
+                    if (pos2 == -1) {
+                        break
+                    }
 
                     val paramName = value.substring(pos1 + paramMark.length, pos2)
                     val paramValue = hmConfig[paramName]
@@ -359,7 +368,7 @@ fun loadConfig(
                     value = value.substring(0, pos1) + (paramValue ?: "") + value.substring(pos2 + paramMark.length)
                 }
             }
-            hmConfig.put(key, value)
+            hmConfig[key] = value
         }
     }
     return hmConfig
