@@ -10,6 +10,7 @@ import foatto.core.util.getDateTimeInt
 import foatto.core_server.ds.CoreTelematicFunction
 import foatto.core_server.ds.nio.CoreNioWorker
 import foatto.sql.SQLBatch
+import foatto.ts_core.app.CMD_NO_COMMAND
 import java.nio.ByteOrder
 
 class UDSHandler : TSHandler() {
@@ -81,52 +82,52 @@ class UDSHandler : TSHandler() {
         }
         sqlBatchData.execute(dataWorker.conn)
 
-//        //--- ищем последнюю команду на отправку, независимо от статуса
-//        val rs = dataWorker.conn.executeQuery(
-//            """
-//                SELECT id , send_status , command
-//                FROM TS_device_command_history
-//                WHERE device_id = ${deviceConfig!!.deviceId}
-//                ORDER BY create_time DESC
-//            """
-//        )
-//        var commandId = 0
-//        var sendStatus = true   // default (for 'not founded', for example0 as sended already
-//        var command = ""
-//        if (rs.next()) {
-//            commandId = rs.getInt(1)
-//            sendStatus = rs.getInt(2) != 0
-//            command = rs.getString(3)
-//        }
-//        rs.close()
-//        //--- если команда ещё не отправлена - работаем дальше.
-//        //--- независимо от этого все предыдущие неотправленные команды игнориуем как устаревшие
-//        val commandData = CommandData(
-//            id = serialNo.toInt(),
-//            state = if (!sendStatus) {
-//                command
-//            } else {
-//                ""
-//            },
-//        )
-//        val commandDataString = objectMapper.writeValueAsString(commandData)
-//AdvancedLogger.debug("commandDataString = '$commandDataString'")
-//        //--- send command
-//        val bbOut = AdvancedByteBuffer(commandDataString.length, byteOrder)
-//        bbOut.put(commandDataString.toByteArray())
-//        outBuf(bbOut)
-//        //--- write send status & time
-//        if(!sendStatus) {
-//            dataWorker.conn.executeUpdate(
-//                """
-//                    UPDATE TS_device_command_history SET
-//                    send_status = 1 ,
-//                    send_time = ${getCurrentTimeInt()}
-//                    WHERE id = $commandId
-//                """
-//            )
-//            status += " Command Send;"
-//        }
+        //--- ищем последнюю команду на отправку, независимо от статуса
+        val rs = dataWorker.conn.executeQuery(
+            """
+                SELECT id , send_status , command
+                FROM TS_device_command_history
+                WHERE device_id = ${deviceConfig!!.deviceId}
+                ORDER BY create_time DESC
+            """
+        )
+        var commandId = 0
+        var sendStatus = true   // default (for 'not founded', for example0 as sended already
+        var command = ""
+        if (rs.next()) {
+            commandId = rs.getInt(1)
+            sendStatus = rs.getInt(2) != 0
+            command = rs.getString(3)
+        }
+        rs.close()
+        //--- если команда ещё не отправлена - работаем дальше.
+        //--- независимо от этого все предыдущие неотправленные команды игнорируем как устаревшие
+        val commandData = CommandData(
+            id = serialNo.toInt(),
+            state = if (!sendStatus) {
+                command
+            } else {
+                CMD_NO_COMMAND
+            },
+        )
+        val commandDataString = objectMapper.writeValueAsString(commandData)
+AdvancedLogger.debug("commandDataString = '$commandDataString'")
+        //--- send command
+        val bbOut = AdvancedByteBuffer(commandDataString.length, byteOrder)
+        bbOut.put(commandDataString.toByteArray())
+        outBuf(bbOut)
+        //--- write send status & time
+        if (!sendStatus) {
+            dataWorker.conn.executeUpdate(
+                """
+                    UPDATE TS_device_command_history SET
+                    send_status = 1 ,
+                    send_time = ${getCurrentTimeInt()}
+                    WHERE id = $commandId
+                """
+            )
+            status += " Command Send;"
+        }
 
         //--- данные успешно переданы - теперь можно завершить транзакцию
         status += " Ok;"

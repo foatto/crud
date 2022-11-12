@@ -18,7 +18,6 @@ import foatto.core_server.app.xy.XyStartData
 import foatto.core_server.app.xy.XyStartObjectParsedData
 import foatto.core_server.app.xy.server.document.sdcXyState
 import foatto.core_server.ds.CoreTelematicFunction
-import foatto.core_server.ds.nio.AbstractTelematicNioHandler
 import foatto.sql.CoreAdvancedConnection
 import foatto.ts.core_ts.cObject
 import foatto.ts.core_ts.calc.ObjectState
@@ -27,6 +26,10 @@ import foatto.ts.core_ts.sensor.config.SensorConfig
 import foatto.ts.core_ts.sensor.config.SensorConfigAnalogue
 import foatto.ts.core_ts.sensor.config.SensorConfigState
 import foatto.ts.iTSApplication
+import foatto.ts_core.app.CMD_START_BLIND_CLIMB
+import foatto.ts_core.app.CMD_START_DOWN
+import foatto.ts_core.app.CMR_RESTART
+import foatto.ts_core.app.CMR_STOP
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
 import kotlin.math.min
@@ -122,7 +125,7 @@ class sdcTSState : sdcXyState() {
 
         val command = chmElementCommand[elementId]
         if (!command.isNullOrBlank()) {
-            var deviceID = 0
+            var deviceId = 0
             val deviceIndex = chmElementPort[elementId]!! / CoreTelematicFunction.MAX_PORT_PER_DEVICE
             val rs = conn.executeQuery(
                 """
@@ -130,11 +133,11 @@ class sdcTSState : sdcXyState() {
                 """
             )
             if (rs.next()) {
-                deviceID = rs.getInt(1)
+                deviceId = rs.getInt(1)
             }
             rs.close()
 
-            if (deviceID != 0) {
+            if (deviceId != 0) {
                 conn.executeUpdate(
                     """
                         INSERT INTO TS_device_command_history ( id , 
@@ -142,7 +145,7 @@ class sdcTSState : sdcXyState() {
                             command , create_time , 
                             send_status , send_time ) VALUES ( 
                             ${conn.getNextIntId("TS_device_command_history", "id")} , 
-                            ${userConfig.userId} , $deviceID , $objectId , 
+                            ${userConfig.userId} , $deviceId , $objectId , 
                             '$command' , ${getCurrentTimeInt()} , 
                             0 , 0 )  
                     """
@@ -496,7 +499,7 @@ class sdcTSState : sdcXyState() {
                 backColor = SensorConfigState.COLOR_PURPLE_BRIGHT,
             ).onEach { clickableText ->
                 //--- set command to this element
-                chmElementCommand[clickableText.elementId] = "clstart"
+                chmElementCommand[clickableText.elementId] = CMD_START_BLIND_CLIMB
                 //--- set sensor port_num (for define device_id over device_index over port_num)
                 chmElementPort[clickableText.elementId] = 0 // sc.portNum - now used one device per object only
             }
@@ -510,7 +513,7 @@ class sdcTSState : sdcXyState() {
                 dialogQuestion = "Вы хотите начать спуск?",
                 backColor = SensorConfigState.COLOR_GREEN_BRIGHT,
             ).onEach { clickableText ->
-                chmElementCommand[clickableText.elementId] = "cldesc"
+                chmElementCommand[clickableText.elementId] = CMD_START_DOWN
                 chmElementPort[clickableText.elementId] = 0 // sc.portNum - now used one device per object only
             }
             y += GRID_STEP * 2
@@ -523,7 +526,7 @@ class sdcTSState : sdcXyState() {
                 dialogQuestion = "Вы хотите перезапустить УДС?",
                 backColor = SensorConfigState.COLOR_BLUE_BRIGHT,
             ).onEach { clickableText ->
-                chmElementCommand[clickableText.elementId] = "reset"
+                chmElementCommand[clickableText.elementId] = CMR_RESTART
                 chmElementPort[clickableText.elementId] = 0 // sc.portNum - now used one device per object only
             }
             y += GRID_STEP * 2
@@ -536,7 +539,7 @@ class sdcTSState : sdcXyState() {
                 dialogQuestion = "Вы хотите остановить работу станции?",
                 backColor = SensorConfigState.COLOR_ORANGE_BRIGHT,
             ).onEach { clickableText ->
-                chmElementCommand[clickableText.elementId] = "stop"
+                chmElementCommand[clickableText.elementId] = CMR_STOP
                 chmElementPort[clickableText.elementId] = 0 // sc.portNum - now used one device per object only
             }
         }
