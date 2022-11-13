@@ -15,9 +15,11 @@ dependencies {
 }
 
 kotlin {
-    js {
+    js {// LEGACY-backend version
+//    js(IR) {  // IR-backend version
         browser {
         }
+        binaries.executable()
     }
 }
 
@@ -34,6 +36,7 @@ tasks {
     build {
         doLast {
             delete("/home/foatto/TSServerSpring/web/lib")
+            //--- LEGACY-backend version
             copy {
                 from(zipTree("build/libs/ts_web.jar"))
                 into("/home/foatto/TSServerSpring/web/lib")
@@ -44,6 +47,15 @@ tasks {
                     into("/home/foatto/TSServerSpring/web/lib")
                 }
             }
+            //--- IR-backend version
+//            copy {
+//                from("build/distributions")
+//                into("/home/foatto/TSServerSpring/web/lib")
+//            }
+//            copy {
+//                from("build/compileSync/main/productionExecutable/kotlin")
+//                into("/home/foatto/TSServerSpring/web/lib")
+//            }
         }
     }
 }

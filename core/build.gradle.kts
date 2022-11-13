@@ -15,7 +15,8 @@ plugins {
 version = coreVersion
 
 kotlin {
-    js {
+    js {// LEGACY-backend version
+//    js(IR) {  // IR-backend version
         browser {
         }
     }
