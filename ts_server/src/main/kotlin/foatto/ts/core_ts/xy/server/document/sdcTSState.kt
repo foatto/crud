@@ -26,10 +26,8 @@ import foatto.ts.core_ts.sensor.config.SensorConfig
 import foatto.ts.core_ts.sensor.config.SensorConfigAnalogue
 import foatto.ts.core_ts.sensor.config.SensorConfigState
 import foatto.ts.iTSApplication
-import foatto.ts_core.app.CMD_START_BLIND_CLIMB
-import foatto.ts_core.app.CMD_START_DOWN
-import foatto.ts_core.app.CMR_RESTART
-import foatto.ts_core.app.CMR_STOP
+import foatto.ts_core.app.CommandStatusCode
+import foatto.ts_core.app.DeviceCommand
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
 import kotlin.math.min
@@ -147,7 +145,7 @@ class sdcTSState : sdcXyState() {
                             ${conn.getNextIntId("TS_device_command_history", "id")} , 
                             ${userConfig.userId} , $deviceId , $objectId , 
                             '$command' , ${getCurrentTimeInt()} , 
-                            0 , 0 )  
+                            ${CommandStatusCode.NOT_SENDED} , 0 )  
                     """
                 )
             }
@@ -499,7 +497,7 @@ class sdcTSState : sdcXyState() {
                 backColor = SensorConfigState.COLOR_PURPLE_BRIGHT,
             ).onEach { clickableText ->
                 //--- set command to this element
-                chmElementCommand[clickableText.elementId] = CMD_START_BLIND_CLIMB
+                chmElementCommand[clickableText.elementId] = DeviceCommand.CMD_START_BLIND_CLIMB
                 //--- set sensor port_num (for define device_id over device_index over port_num)
                 chmElementPort[clickableText.elementId] = 0 // sc.portNum - now used one device per object only
             }
@@ -513,7 +511,7 @@ class sdcTSState : sdcXyState() {
                 dialogQuestion = "Вы хотите начать спуск?",
                 backColor = SensorConfigState.COLOR_GREEN_BRIGHT,
             ).onEach { clickableText ->
-                chmElementCommand[clickableText.elementId] = CMD_START_DOWN
+                chmElementCommand[clickableText.elementId] = DeviceCommand.CMD_START_DOWN
                 chmElementPort[clickableText.elementId] = 0 // sc.portNum - now used one device per object only
             }
             y += GRID_STEP * 2
@@ -526,7 +524,7 @@ class sdcTSState : sdcXyState() {
                 dialogQuestion = "Вы хотите перезапустить УДС?",
                 backColor = SensorConfigState.COLOR_BLUE_BRIGHT,
             ).onEach { clickableText ->
-                chmElementCommand[clickableText.elementId] = CMR_RESTART
+                chmElementCommand[clickableText.elementId] = DeviceCommand.CMD_RESTART
                 chmElementPort[clickableText.elementId] = 0 // sc.portNum - now used one device per object only
             }
             y += GRID_STEP * 2
@@ -539,7 +537,7 @@ class sdcTSState : sdcXyState() {
                 dialogQuestion = "Вы хотите остановить работу станции?",
                 backColor = SensorConfigState.COLOR_ORANGE_BRIGHT,
             ).onEach { clickableText ->
-                chmElementCommand[clickableText.elementId] = CMR_STOP
+                chmElementCommand[clickableText.elementId] = DeviceCommand.CMD_STOP
                 chmElementPort[clickableText.elementId] = 0 // sc.portNum - now used one device per object only
             }
         }

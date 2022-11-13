@@ -10,7 +10,8 @@ import foatto.core.util.getDateTimeInt
 import foatto.core_server.ds.CoreTelematicFunction
 import foatto.core_server.ds.nio.CoreNioWorker
 import foatto.sql.SQLBatch
-import foatto.ts_core.app.CMD_NO_COMMAND
+import foatto.ts_core.app.CommandStatusCode
+import foatto.ts_core.app.DeviceCommand
 import java.nio.ByteOrder
 
 class UDSHandler : TSHandler() {
@@ -107,11 +108,12 @@ class UDSHandler : TSHandler() {
             state = if (!sendStatus) {
                 command
             } else {
-                CMD_NO_COMMAND
+                DeviceCommand.CMD_NO_COMMAND
             },
         )
         val commandDataString = objectMapper.writeValueAsString(commandData)
-AdvancedLogger.debug("commandDataString = '$commandDataString'")
+        AdvancedLogger.debug("commandDataString = '$commandDataString'")
+
         //--- send command
         val bbOut = AdvancedByteBuffer(commandDataString.length, byteOrder)
         bbOut.put(commandDataString.toByteArray())
@@ -120,13 +122,21 @@ AdvancedLogger.debug("commandDataString = '$commandDataString'")
         if (!sendStatus) {
             dataWorker.conn.executeUpdate(
                 """
-                    UPDATE TS_device_command_history SET
-                    send_status = 1 ,
-                    send_time = ${getCurrentTimeInt()}
+                    UPDATE TS_device_command_history 
+                    SET send_status = ${CommandStatusCode.SENDED} ,
+                        send_time = ${getCurrentTimeInt()}
                     WHERE id = $commandId
                 """
             )
             status += " Command Send;"
+            //--- mark other unused/non-sended commands as 'deleted'
+            dataWorker.conn.executeUpdate(
+                """
+                    UPDATE TS_device_command_history 
+                    SET send_status = ${CommandStatusCode.DELETED} 
+                    WHERE send_status = ${CommandStatusCode.NOT_SENDED}
+                """
+            )
         }
 
         //--- данные успешно переданы - теперь можно завершить транзакцию

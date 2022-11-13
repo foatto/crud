@@ -4,7 +4,6 @@ import foatto.core.link.FormPinMode
 import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
-import foatto.core_server.app.server.column.ColumnBoolean
 import foatto.core_server.app.server.column.ColumnComboBox
 import foatto.core_server.app.server.column.ColumnDateTimeInt
 import foatto.core_server.app.server.column.ColumnInt
@@ -12,6 +11,7 @@ import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.mAbstract
 import foatto.sql.CoreAdvancedConnection
 import foatto.ts.core_ts.ObjectSelector
+import foatto.ts_core.app.CommandStatusCode
 import java.time.ZonedDateTime
 
 class mDeviceCommandHistory : mAbstract() {
@@ -50,7 +50,12 @@ class mDeviceCommandHistory : mAbstract() {
             isEditable = false
         }
 
-        val columnSendStatus = ColumnBoolean(modelTableName, "send_status", "Статус отправки", false)
+        val columnStatus = ColumnComboBox(modelTableName, "send_status", "Статус отправки", CommandStatusCode.NOT_SENDED).apply {
+            addChoice(CommandStatusCode.NOT_SENDED, "")
+            addChoice(CommandStatusCode.SENDED, "Отправлено")
+            addChoice(CommandStatusCode.DELETED, "Удалено")
+            isEditable = false
+        }
 
         val columnSendTime = ColumnDateTimeInt(modelTableName, "send_time", "Время отправки", true, zoneId).apply {
             default = ZonedDateTime.of(2000, 1, 1, 0, 0, 0, 0, zoneId)
@@ -81,7 +86,7 @@ class mDeviceCommandHistory : mAbstract() {
         addTableColumn(columnDeviceSerialNo)
         addTableColumn(columnCommand)
         addTableColumn(columnCreateTime)
-        addTableColumn(columnSendStatus)
+        addTableColumn(columnStatus)
         addTableColumn(columnSendTime)
 
         addTableColumn(columnObjectUserName)
@@ -93,7 +98,7 @@ class mDeviceCommandHistory : mAbstract() {
         alFormColumn.add(columnDeviceSerialNo)
         alFormColumn.add(columnCommand)
         alFormColumn.add(columnCreateTime)
-        alFormColumn.add(columnSendStatus)
+        alFormColumn.add(columnStatus)
         alFormColumn.add(columnSendTime)
 
         //----------------------------------------------------------------------------------------------------------------------
