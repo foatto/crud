@@ -103,6 +103,9 @@ class UDSRawPacket(
 
     // Версия прошивки станции УДС
     val version: String? = null,    // "1.8.1"
+
+    // IMEI код модема
+    val imei: String? = null,
 ) {
     fun normalize(zoneId: ZoneId) = UDSDataPacket(
         state = state.toInt(),

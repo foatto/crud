@@ -63,6 +63,9 @@ abstract class TSHandler : AbstractTelematicNioHandler() {
     //--- серийный номер прибора
     protected var serialNo = ""
 
+    //--- IMEI код модема
+    protected var imei = ""
+
     //--- номер версии прошивки
     protected var fwVersion = ""
 
@@ -144,6 +147,7 @@ abstract class TSHandler : AbstractTelematicNioHandler() {
                 """
                     UPDATE TS_device SET 
                     fw_version = '$fwVersion' , 
+                    imei = '$imei' , 
                     last_session_time = ${getCurrentTimeInt()} , 
                     last_session_status = '$status' ,
                     last_session_error = '${if (isOk || errorText.isEmpty()) "" else errorText}' 

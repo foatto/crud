@@ -80,6 +80,10 @@ class mDevice : mAbstract() {
             formPinMode = FormPinMode.OFF
         }
 
+        val columnDeviceImei = ColumnString(modelTableName, "imei", "IMEI", 10).apply {
+            isEditable = false
+        }
+
         columnDeviceLastSessionTime = ColumnDateTimeInt(modelTableName, "last_session_time", "Время последней сессии", true, zoneId).apply {
             isEditable = false
         }
@@ -145,11 +149,13 @@ class mDevice : mAbstract() {
         //----------------------------------------------------------------------------------------------------------------------
 
         addTableColumn(columnDeviceFwVer)
+        addTableColumn(columnDeviceImei)
         addTableColumn(columnDeviceLastSessionTime)
         addTableColumn(columnDeviceLastSessionStatusText)
         addTableColumn(columnDeviceLastSessionErrorText)
 
         alFormColumn += columnDeviceFwVer
+        alFormColumn += columnDeviceImei
         alFormColumn += columnDeviceLastSessionTime
         alFormColumn += columnDeviceLastSessionStatusText
         alFormColumn += columnDeviceLastSessionErrorText
