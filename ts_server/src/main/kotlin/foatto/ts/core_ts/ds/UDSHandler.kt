@@ -11,7 +11,6 @@ import foatto.core_server.ds.CoreTelematicFunction
 import foatto.core_server.ds.nio.CoreNioWorker
 import foatto.sql.SQLBatch
 import foatto.ts_core.app.CommandStatusCode
-import foatto.ts_core.app.DeviceCommand
 import java.nio.ByteOrder
 
 class UDSHandler : TSHandler() {
@@ -62,6 +61,8 @@ class UDSHandler : TSHandler() {
             val curTime = getCurrentTimeInt()
             if (deviceConfig?.objectId != 0 && pointTime > curTime - CoreTelematicFunction.MAX_PAST_TIME && pointTime < curTime + CoreTelematicFunction.MAX_FUTURE_TIME) {
                 fwVersion = udsRawPacket.version ?: ""
+                imei = udsRawPacket.imei ?: ""
+
                 val udsDataPacket = udsRawPacket.normalize(zoneId)
                 val bbData = dataToByteBuffer(dataWorker, udsDataPacket)
 
@@ -103,23 +104,18 @@ class UDSHandler : TSHandler() {
         rs.close()
         //--- если команда ещё не отправлена - работаем дальше.
         //--- независимо от этого все предыдущие неотправленные команды игнорируем как устаревшие
-        val commandData = CommandData(
-            id = serialNo.toInt(),
-            state = if (!sendStatus) {
-                command
-            } else {
-                DeviceCommand.CMD_NO_COMMAND
-            },
-        )
-        val commandDataString = objectMapper.writeValueAsString(commandData)
-        AdvancedLogger.debug("commandDataString = '$commandDataString'")
-
-        //--- send command
-        val bbOut = AdvancedByteBuffer(commandDataString.length, byteOrder)
-        bbOut.put(commandDataString.toByteArray())
-        outBuf(bbOut)
-        //--- write send status & time
         if (!sendStatus) {
+            val commandData = CommandData(
+                id = serialNo.toInt(),
+                state = command,
+            )
+            val commandDataString = objectMapper.writeValueAsString(commandData)
+            AdvancedLogger.debug("commandDataString = '$commandDataString'")
+            //--- send command
+            val bbOut = AdvancedByteBuffer(commandDataString.length, byteOrder)
+            bbOut.put(commandDataString.toByteArray())
+            outBuf(bbOut)
+            //--- write send status & time
             dataWorker.conn.executeUpdate(
                 """
                     UPDATE TS_device_command_history 
@@ -220,9 +216,5 @@ class UDSHandler : TSHandler() {
 
 private class CommandData(
     val id: Int,
-    val pass: String = "bb9ec852de3e8f7609d3676ede4444fa",  //--- for compatibility, removed later
     val state: String,
-    //--- for compatibility, removed later
-    val crc16L: Int = 0,
-    val crc16H: Int = 0,
 )
