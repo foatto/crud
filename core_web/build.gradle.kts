@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
+import org.jetbrains.kotlin.gradle.tasks.KotlinJsDce
 
 val isBuildSupressWarning: String by project
 
@@ -48,4 +49,8 @@ tasks.withType<Kotlin2JsCompile>().configureEach {
         suppressWarnings = isBuildSupressWarning.toBoolean()
         sourceMap = true
     }
+}
+
+tasks.withType<KotlinJsDce>().configureEach {
+    jvmArgs.add("-Xss2m")
 }
