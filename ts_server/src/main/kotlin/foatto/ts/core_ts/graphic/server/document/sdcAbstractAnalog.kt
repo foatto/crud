@@ -92,7 +92,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         tmElement: SortedMap<String, GraphicElement>,
         tmElementVisibleConfig: SortedMap<String, Triple<String, String, Boolean>>,
     ) {
-        val graphicVisibilityKey = "$UP_GRAPHIC_VISIBLE${objectConfig.objectId}_${alSca.first().portNum}"
+        val graphicVisibilityKey = "$UP_GRAPHIC_VISIBLE${objectConfig.objectId}_${alSca.firstOrNull()?.portNum}"
         val isGraphicVisible = userConfig.getUserProperty(graphicVisibilityKey)?.toBooleanStrictOrNull() ?: true
         tmElementVisibleConfig[graphicTitle] = Triple(graphicTitle, graphicVisibilityKey, isGraphicVisible)
 
