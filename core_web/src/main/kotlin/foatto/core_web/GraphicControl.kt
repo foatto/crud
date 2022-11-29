@@ -210,27 +210,27 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
         """
         </div>
     """
-/*
-    private val panTimeBar = HBox( iAppContainer.DEFAULT_SPACING )
-    private val arrTxtDateTime = arrayOfNulls<TextField>( 10 )
-    private lateinit var butShowForTime: Button
+    /*
+        private val panTimeBar = HBox( iAppContainer.DEFAULT_SPACING )
+        private val arrTxtDateTime = arrayOfNulls<TextField>( 10 )
+        private lateinit var butShowForTime: Button
 
-        //--- нижняя панель временнОго масштабирования
-        for( i in arrTxtDateTime.indices ) {
-            arrTxtDateTime[ i ] = TextField()
-            arrTxtDateTime[ i ]!!.setPrefColumnCount( if( i == 2 || i == 7 ) 4 else 2 )
-            arrTxtDateTime[ i ]!!.setAlignment( Pos.CENTER )
-            arrTxtDateTime[ i ]!!.setFont( curControlFont )
-            arrTxtDateTime[ i ]!!.setOnKeyPressed( this )
-        }
+            //--- нижняя панель временнОго масштабирования
+            for( i in arrTxtDateTime.indices ) {
+                arrTxtDateTime[ i ] = TextField()
+                arrTxtDateTime[ i ]!!.setPrefColumnCount( if( i == 2 || i == 7 ) 4 else 2 )
+                arrTxtDateTime[ i ]!!.setAlignment( Pos.CENTER )
+                arrTxtDateTime[ i ]!!.setFont( curControlFont )
+                arrTxtDateTime[ i ]!!.setOnKeyPressed( this )
+            }
 
-        butShowForTime = Button( "Показать" )
-        butShowForTime.tooltip = Tooltip( "Показать график на заданный период" )
-        butShowForTime.setOnAction( this )
+            butShowForTime = Button( "Показать" )
+            butShowForTime.tooltip = Tooltip( "Показать график на заданный период" )
+            butShowForTime.setOnAction( this )
 
-        panTimeBar.children.addAll( Label( "Начало:" ), arrTxtDateTime[ 0 ], Label( "." ), arrTxtDateTime[ 1 ], Label( "." ), arrTxtDateTime[ 2 ], Label( " " ), arrTxtDateTime[ 3 ], Label( ":" ), arrTxtDateTime[ 4 ], Label( "Окончание:" ), arrTxtDateTime[ 5 ], Label( "." ), arrTxtDateTime[ 6 ], Label( "." ), arrTxtDateTime[ 7 ], Label( " " ), arrTxtDateTime[ 8 ], Label( ":" ), arrTxtDateTime[ 9 ], butShowForTime )
+            panTimeBar.children.addAll( Label( "Начало:" ), arrTxtDateTime[ 0 ], Label( "." ), arrTxtDateTime[ 1 ], Label( "." ), arrTxtDateTime[ 2 ], Label( " " ), arrTxtDateTime[ 3 ], Label( ":" ), arrTxtDateTime[ 4 ], Label( "Окончание:" ), arrTxtDateTime[ 5 ], Label( "." ), arrTxtDateTime[ 6 ], Label( "." ), arrTxtDateTime[ 7 ], Label( " " ), arrTxtDateTime[ 8 ], Label( ":" ), arrTxtDateTime[ 9 ], butShowForTime )
 
- */
+     */
 
     this.methods = json(
         "grRefreshView" to { aThat: dynamic, aView: GraphicViewCoord? ->
@@ -336,6 +336,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                     that().panPointOldY = mouseY
                     that().panDX = 0
                 }
+
                 GraphicWorkMode.ZOOM_BOX -> {
                     //            case SELECT_FOR_PRINT:
                     val arrViewBoxBody = getGraphicViewBoxBody(that())
@@ -421,6 +422,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
 
                         setGraphicTextOffset(that, svgCoords.bodyLeft, svgCoords.bodyTop)
                     }
+
                     GraphicWorkMode.ZOOM_BOX -> {
                         //            case SELECT_FOR_PRINT:
                         val mouseRect = that().mouseRect.unsafeCast<MouseRectData>()
@@ -646,28 +648,28 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
             }
         },
     )
-/*
-                else if( comp == butShowForTime ) {
-                    try {
-                        val begTime = Arr_DateTime( appContainer.timeZone, arrayOf(
-                            Integer.parseInt( arrTxtDateTime[ 2 ]!!.text ), Integer.parseInt( arrTxtDateTime[ 1 ]!!.text ), Integer.parseInt( arrTxtDateTime[ 0 ]!!.text ),
-                            Integer.parseInt( arrTxtDateTime[ 3 ]!!.text ), Integer.parseInt( arrTxtDateTime[ 4 ]!!.text ), 0 ) )
-                        val endTime = Arr_DateTime( appContainer.timeZone, arrayOf(
-                            Integer.parseInt( arrTxtDateTime[ 7 ]!!.text ), Integer.parseInt( arrTxtDateTime[ 6 ]!!.text ), Integer.parseInt( arrTxtDateTime[ 5 ]!!.text ),
-                            Integer.parseInt( arrTxtDateTime[ 8 ]!!.text ), Integer.parseInt( arrTxtDateTime[ 9 ]!!.text ), 0 ) )
-                        val graphicWidth = endTime - begTime
+    /*
+                    else if( comp == butShowForTime ) {
+                        try {
+                            val begTime = Arr_DateTime( appContainer.timeZone, arrayOf(
+                                Integer.parseInt( arrTxtDateTime[ 2 ]!!.text ), Integer.parseInt( arrTxtDateTime[ 1 ]!!.text ), Integer.parseInt( arrTxtDateTime[ 0 ]!!.text ),
+                                Integer.parseInt( arrTxtDateTime[ 3 ]!!.text ), Integer.parseInt( arrTxtDateTime[ 4 ]!!.text ), 0 ) )
+                            val endTime = Arr_DateTime( appContainer.timeZone, arrayOf(
+                                Integer.parseInt( arrTxtDateTime[ 7 ]!!.text ), Integer.parseInt( arrTxtDateTime[ 6 ]!!.text ), Integer.parseInt( arrTxtDateTime[ 5 ]!!.text ),
+                                Integer.parseInt( arrTxtDateTime[ 8 ]!!.text ), Integer.parseInt( arrTxtDateTime[ 9 ]!!.text ), 0 ) )
+                            val graphicWidth = endTime - begTime
 
-                        if( graphicWidth < GraphicModel.MIN_SCALE_X ) showError( "Ошибка задания периода", "Слишком короткий период для показа графика" )
-                        else if( graphicWidth > GraphicModel.MAX_SCALE_X ) showError( "Ошибка задания периода", "Слишком большой период для показа графика" )
-                        else grRefreshView( GraphicViewCoord( begTime, endTime ), 0 )
+                            if( graphicWidth < GraphicModel.MIN_SCALE_X ) showError( "Ошибка задания периода", "Слишком короткий период для показа графика" )
+                            else if( graphicWidth > GraphicModel.MAX_SCALE_X ) showError( "Ошибка задания периода", "Слишком большой период для показа графика" )
+                            else grRefreshView( GraphicViewCoord( begTime, endTime ), 0 )
+                        }
+                        catch( nfe: NumberFormatException ) {
+                            showError( "Ошибка задания периода", "Неправильно заданы дата/время" )
+                        }
+
                     }
-                    catch( nfe: NumberFormatException ) {
-                        showError( "Ошибка задания периода", "Неправильно заданы дата/время" )
-                    }
 
-                }
-
- */
+     */
     this.mounted = {
         that().`$root`.setTabInfo(tabId, graphicResponse.shortTitle, graphicResponse.fullTitle)
         that().arrTitle = graphicResponse.fullTitle.split('\n').filter { it.isNotBlank() }.toTypedArray()
@@ -1656,7 +1658,7 @@ private fun fillGraphicData(
             val index = gdc.alGLD.indexOfFirst { gld ->
                 gld.x >= cursorTime
             }
-            val y = if (index != -1) {
+            val s = (if (index != -1) {
                 val gld = gdc.alGLD[index]
                 if (gld.x == cursorTime) {
                     gld.y
@@ -1668,8 +1670,13 @@ private fun fillGraphicData(
                 }
             } else {
                 null
-            }
-            val s = y?.let {
+            })?.let { yValue ->
+                yValue * if (gdc.itReversedY) {
+                    -1
+                } else {
+                    1
+                }
+            }?.let { y ->
                 getSplittedDouble(y, yData.prec, true, '.')
             } ?: "-"
             alGraphicData += "${yData.title} = $s"
