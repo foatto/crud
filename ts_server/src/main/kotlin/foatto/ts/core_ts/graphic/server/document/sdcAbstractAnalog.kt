@@ -184,7 +184,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                         gld.y
                     }?.let { maxGLD ->
                         if (maxGLD.y > sca.maxGraphicView - viewStep) {
-                            val maxShift = ceil(maxGLD.y - (sca.maxGraphicView - viewStep) / viewStep) * viewStep
+                            val maxShift = ceil((maxGLD.y - (sca.maxGraphicView - viewStep)) / viewStep) * viewStep
                             sca.maxGraphicView + maxShift
                         } else {
                             sca.maxGraphicView

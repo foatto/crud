@@ -2014,7 +2014,11 @@ private fun drawTimePane(
             for (i in alTextLine.indices) {
                 alTextSpan.add(
                     SVGTextSpan(
-                        dy = "${(if (i == 0) 0.2 else 1.0) * scaleKoef}rem",
+                        dy = if(isFirefox) {
+                            "${(if (i == 0) 0.2 else 1.0) * scaleKoef * 16}px"
+                        } else {
+                            "${(if (i == 0) 0.2 else 1.0) * scaleKoef}rem"
+                        },
                         text = alTextLine[i].trim()
                     )
                 )

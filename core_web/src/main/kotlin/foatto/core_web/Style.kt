@@ -40,6 +40,9 @@ fun styleIsTouchScreen(): Boolean {
     ).unsafeCast<Boolean>()
 }
 
+//--- especially for workaround of bug in SVG textspan dy
+val isFirefox = window.navigator.userAgent.contains("Firefox")
+
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 //--- по умолчанию - тёмные иконки на светлом фоне

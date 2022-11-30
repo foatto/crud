@@ -122,11 +122,29 @@ private class TSIndex : Index() {
                                      v-on:click="setInterval(0)"
                                      title="Обновить сейчас"
                                 >
+                                <img src="/web/images/ic_replay_1_black_48dp.png"
+                                     v-if="refreshInterval != 1"
+                                     v-bind:style="style_icon_button"
+                                     v-on:click="setInterval(1)"
+                                     title="Обновлять каждую секунду"
+                                >
+                                <img src="/web/images/ic_replay_5_black_48dp.png"
+                                     v-if="refreshInterval != 5"
+                                     v-bind:style="style_icon_button"
+                                     v-on:click="setInterval(5)"
+                                     title="Обновлять каждые 5 сек"
+                                >
                                 <img src="/web/images/ic_replay_10_black_48dp.png"
                                      v-if="refreshInterval != 10"
                                      v-bind:style="style_icon_button"
                                      v-on:click="setInterval(10)"
                                      title="Обновлять каждые 10 сек"
+                                >
+                                <img src="/web/images/ic_replay_30_black_48dp.png"
+                                     v-if="refreshInterval != 30"
+                                     v-bind:style="style_icon_button"
+                                     v-on:click="setInterval(30)"
+                                     title="Обновлять каждые 30 сек"
                                 >
                             </span>
                         </div>
@@ -135,20 +153,7 @@ private class TSIndex : Index() {
                             <div v-bind:style="[ style_comp, { 'grid-area': '1 / 1 / 2 / 2' } ]">
 
                     """ +
-/*
-                                <img src="/web/images/ic_replay_5_black_48dp.png"
-                                     v-if="refreshInterval != 5"
-                                     v-bind:style="style_icon_button"
-                                     v-on:click="setInterval(5)"
-                                     title="Обновлять каждые 5 сек"
-                                >
-                                <img src="/web/images/ic_replay_30_black_48dp.png"
-                                     v-if="refreshInterval != 30"
-                                     v-bind:style="style_icon_button"
-                                     v-on:click="setInterval(30)"
-                                     title="Обновлять каждые 30 сек"
-                                >
- */
+
                     getXyElementTemplate(tabId, false, "") +
 
                     """
