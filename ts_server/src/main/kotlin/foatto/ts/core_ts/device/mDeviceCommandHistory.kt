@@ -16,6 +16,9 @@ import java.time.ZonedDateTime
 
 class mDeviceCommandHistory : mAbstract() {
 
+    lateinit var columnStatus: ColumnComboBox
+        private set
+
     override fun init(application: iApplication, aConn: CoreAdvancedConnection, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
 
         super.init(application, aConn, aliasConfig, userConfig, aHmParam, hmParentData, id)
@@ -50,7 +53,7 @@ class mDeviceCommandHistory : mAbstract() {
             isEditable = false
         }
 
-        val columnStatus = ColumnComboBox(modelTableName, "send_status", "Статус отправки", CommandStatusCode.NOT_SENDED).apply {
+        columnStatus = ColumnComboBox(modelTableName, "send_status", "Статус отправки", CommandStatusCode.NOT_SENDED).apply {
             addChoice(CommandStatusCode.NOT_SENDED, "")
             addChoice(CommandStatusCode.SENDED, "Отправлено")
             addChoice(CommandStatusCode.DELETED, "Удалено")
