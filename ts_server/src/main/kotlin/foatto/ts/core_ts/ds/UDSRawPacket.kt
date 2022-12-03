@@ -1,137 +1,170 @@
 package foatto.ts.core_ts.ds
 
-import com.fasterxml.jackson.annotation.JsonProperty
-import foatto.core.util.YMDHMS_DateTime
-import foatto.core.util.getDateTimeInt
-import java.time.ZoneId
-
 class UDSRawPacket(
 
+//--- Идентификационные параметры ------------------------------------------
+
+    // Версия протокола. 1 - УДС-101, 2,3,x - для всех новых
+    val ver: Int,
+
     // Идентификатор (серийный №) установки УДС
-    @JsonProperty("uds-id")
-    val udsId: String,              // "1"
-
-    // Текущее внутреннее время на установке
-    val datetime: String,           // "2000-11-15 14:54:50"
-
-    // Код текущего состояния установки УДС
-    val state: String,              // "23"
-
-    // Глубина (в метрах)
-    val depth: String,              // "0"
-
-    // Скорость спуска (метров/час)
-    val speed: String,              // "0"
-
-    // Нагрузка на привод (%)
-    val load: String,               // "0"
-
-    // Дата и время начала следующей чистки
-    val ncc: String,                // "0001-01-01 00:00:00"
-
-    // Глубина чистки (параметр настройки)
-    val cds: String,                // "1000"
-
-    // Период чистки (параметр настройки)
-    val cps: String,                // "30"
-
-    // Скорость чистки (параметр настройки)
-    val css: String,                // "441"
-
-    // Уровень сигнала сотовой связи
-    @JsonProperty("linklev")
-    val linkLevel: String,          // "22"
-
-    // Счётчик количества перезагрузок модема
-    val mrc: String,                // "4"
-
-    // Ограничение нагрузки на привод (параметр настройки)
-    val cls: String,                // "150"
-
-    // Строка с содержимым результата AT-команды запроса баланса (если баланс не запрашивался, указывается “-1”)
-    val balance: String? = "-1",    // "-1"
-
-    // Глубина парковки скребка (параметр настройки)
-    @JsonProperty("park_depth")
-    val parkDepth: String,          // "98"
-
-    // Количество попыток прохода препятствия (параметр настройки)
-    @JsonProperty("pass_attempt")
-    val passAttempt: String,        // "50"
-
-    // Синхронизация с запуском ЭЦН  (параметр настройки)
-    @JsonProperty("ecnstart")
-    val ecnStart: String,           // "0"
-
-    // Пауза между проходами препятствия (параметр настройки)
-    @JsonProperty("pass_delay")
-    val passDelay: String,          // "10"
-
-    // Текущая темп. внутри станции УДС (29,3˚С) (реле №1)
-    val temp1: String,              // "293"
-
-    // Текущая темп. на улице (23,4 ˚С) (реле №2)
-    val temp2: String,              // "234"
-
-    // Уровень температуры внутри (параметр настройки)
-    @JsonProperty("setpoint1")
-    val setPoint1: String,          // "200"
-
-    // Уровень температуры снаружи (параметр настройки)
-    @JsonProperty("setpoint2")
-    val setPoint2: String,          // "500"
-
-    // Работает или не работает реле №1 (температура)
-    @JsonProperty("relay1state")
-    val relay1State: String,        // "False"
-
-    // Работает или не работает реле №2 (температура)
-    @JsonProperty("relay2state")
-    val relay2State: String,        // "False"
-
-    // Работает или не работает канал №1
-    @JsonProperty("channel1error")
-    val channel1Error: String,      // "True"
-
-    // Работает или не работает канал №2
-    @JsonProperty("channel2error")
-    val channel2Error: String,      // "True"
-
-    // Работает или не работает модуль ТРМ (общее управление температурными датчиками)
-    @JsonProperty("trmfail")
-    val trmFail: String,            // "True"
+    val id: Int,
 
     // Версия прошивки станции УДС
-    val version: String? = null,    // "1.8.1"
+    // sample: "1.8.1"
+    val vers: String? = null,
+
+    // Текущее внутреннее время на установке
+    // единицы : Unix Time в секундах с 1/1/2000 0:0:0
+    val timeSys: Int,
 
     // IMEI код модема
     val imei: String? = null,
-) {
-    fun normalize(zoneId: ZoneId) = UDSDataPacket(
+
+//--- Основные/рабочие параметры ------------------------------------------
+
+    // Код текущего состояния установки УДС
+    val state: Short,
+
+    // Глубина
+    // единицы  : метры
+    // дискрета : 1м
+    val depth: Int,
+
+    // Скорость спуска
+    // единицы  : метр/час
+    // дискрета : 1м/ч
+    val speed: Int,
+
+    // Нагрузка на привод
+    // единицы  : %
+    // дискрета : 1%
+    val load: Int,
+
+    // Дата и время начала следующей чистки
+    // единицы  : Unix Time в секундах с 1/1/2000 0:0:0
+    val cycTime: Int,
+
+//--- Параметры настройки ------------------------------------------
+
+    // Синхронизация с запуском ЭЦН (параметр настройки)
+    // 0 - нет синхронизации
+    // 1 - есть
+    val cycPump: Byte,
+
+    // Период чистки (параметр настройки)
+    // единицы  : часы
+    // дискрета : 1 час
+    val cycPeriod: Short,
+
+    // Глубина чистки (параметр настройки)
+    // единицы  : метры
+    // дискрета : 1м
+    val cycDepth: Int,
+
+    // Глубина парковки скребка (параметр настройки)
+    // единицы  : метры
+    // дискрета : 1м
+    val cycPark: Int,
+
+    // Скорость чистки (параметр настройки)
+    // единицы  : метр/час
+    // дискрета : 1м/ч
+    val cycSpeed: Short,
+
+    // Ограничение нагрузки на привод (параметр настройки)
+    // единицы  : процент
+    // дискрета : 1%
+    val cycLoad: Short,
+
+    // Пауза между проходами препятствия (параметр настройки)
+    // единицы  : секунды
+    // дискрета : 1сек
+    val cycPause: Short,
+
+    // Количество попыток прохода препятствия (параметр настройки)
+    val cycTry: Short,
+
+//--- Параметры модема/связи ------------------------------------------
+
+    // Счётчик количества перезагрузок модема
+    val mdmRC: Int,
+
+    // Уровень сигнала сотовой связи
+    // единицы  : % для данного модема от 100
+    // дискрета : 1%
+    val mdmCSQ: Short,
+
+    // Строка с содержимым результата AT-команды запроса баланса
+    // если баланс не запрашивался - параметр не передается
+    val mdmMany: Int? = null,
+
+//--- Параметры температуры ------------------------------------------
+
+    // Текущая темп. внутри станции УДС (29,3С) (реле №1)
+    // единицы  : градусы цельсия
+    // дискрета : 0.1 градус
+    val chT1cur: Int? = null,
+
+    // Текущая темп. на улице (23,4 С) (реле №2)
+    // единицы  : градусы цельсия
+    // дискрета : 0.1 градус
+    val chT2cur: Int? = null,
+
+    // Уровень температуры внутри (параметр настройки)
+    // единицы  : градусы цельсия
+    // дискрета : 0.1 градус
+    val chT1set: Int? = null,
+
+    // Уровень температуры снаружи (параметр настройки)
+    // единицы  : градусы цельсия
+    // дискрета : 0.1 градус
+    val chT2set: Int? = null,
+
+    // Работает или не работает реле №1 (температура)
+    val chT1on: Byte? = null,
+
+    // Работает или не работает реле №2 (температура)
+    val chT2on: Byte? = null,
+
+    // Работает или не работает канал №1
+    val chT1state: Byte? = null,
+
+    // Работает или не работает канал №2
+    val chT2state: Byte? = null,
+
+    // Работает или не работает модуль ТРМ (общее управление температурными датчиками)
+    val chTcmn: Byte? = null,
+
+    ) {
+    fun normalize() = UDSDataPacket(
         state = state.toInt(),
         depth = depth.toDouble(),
         speed = speed.toDouble(),
         load = load.toDouble(),
-        nextCleanindDateTime = getDateTimeInt(YMDHMS_DateTime(zoneId, ncc)),
-        cleaningDepth = cds.toDouble(),
-        cleaningPeriod = cps.toInt(),
-        cleaningSpeed = css.toDouble(),
-        signalLevel = linkLevel.toDouble(),
-        mrc = mrc.toInt(),
-        driveLoadRestrict = cls.toDouble(),
-        balance = balance?.toDoubleOrNull() ?: -1.0,
-        parkDepth = parkDepth.toDouble(),
-        passAttempt = passAttempt.toInt(),
-        ecnStart = ecnStart.toInt(),
-        passDelay = passDelay.toInt(),
-        temp1 = temp1.toDouble() / 10,
-        temp2 = temp2.toDouble() / 10,
-        setPoint1 = setPoint1.toDouble() / 10,
-        setPoint2 = setPoint2.toDouble() / 10,
-        relay1State = relay1State.lowercase().toBoolean(),
-        relay2State = relay2State.lowercase().toBoolean(),
-        channel1Error = channel1Error.lowercase().toBoolean(),
-        channel2Error = channel2Error.lowercase().toBoolean(),
-        trmFail = trmFail.lowercase().toBoolean(),
+        nextCleanindDateTime = UDSHandler.UDS_RAW_PACKET_TIME_BASE + cycTime,
+
+        ecnRunSync = cycPump.toInt() == 1,
+        cleaningPeriod = cycPeriod.toInt(),
+        cleaningDepth = cycDepth.toDouble(),
+        parkDepth = cycPark.toDouble(),
+        cleaningSpeed = cycSpeed.toDouble(),
+        driveLoadRestrict = cycLoad.toDouble(),
+        passDelay = cycPause.toInt(),
+        passAttempt = cycTry.toInt(),
+
+        modemRestartCount = mdmRC,
+        signalLevel = mdmCSQ.toDouble(),
+        balance = mdmMany?.toDouble() ?: -1.0,
+
+        t1Current = chT1cur?.toDouble()?.div(10),
+        t2Current = chT2cur?.toDouble()?.div(10),
+        t1Setup = chT1set?.toDouble()?.div(10),
+        t2Setup = chT2set?.toDouble()?.div(10),
+        t1State = chT1on?.toInt() == 1,
+        t2State = chT2on?.toInt() == 1,
+        ch1State = chT1state?.toInt() == 1,
+        ch2State = chT2state?.toInt() == 1,
+        tpmState = chTcmn?.toInt() == 1,
     )
 }

@@ -2,78 +2,86 @@ package foatto.ts.core_ts.ds
 
 class UDSDataPacket(
 
+//--- Основные/рабочие параметры ------------------------------------------
+
     // Код текущего состояния установки УДС
-    val state: Int,              // "23"
+    val state: Int,
 
     // Глубина (в метрах)
-    val depth: Double,              // "0"
+    val depth: Double,
 
     // Скорость спуска (метров/час)
-    val speed: Double,              // "0"
+    val speed: Double,
 
     // Нагрузка на привод (%)
-    val load: Double,               // "0"
+    val load: Double,
 
     // Дата и время начала следующей чистки
-    val nextCleanindDateTime: Int,                // "0001-01-01 00:00:00"
+    val nextCleanindDateTime: Int,
 
-    // Глубина чистки (параметр настройки)
-    val cleaningDepth: Double,                // "1000"
+//--- Параметры настройки ------------------------------------------
+
+    // Синхронизация с запуском ЭЦН  (параметр настройки)
+    val ecnRunSync: Boolean,
 
     // Период чистки (параметр настройки)
-    val cleaningPeriod: Int,                // "30"
+    val cleaningPeriod: Int,
+
+    // Глубина чистки (параметр настройки)
+    val cleaningDepth: Double,
+
+    // Глубина парковки скребка (параметр настройки)
+    val parkDepth: Double,
 
     // Скорость чистки (параметр настройки)
     val cleaningSpeed: Double,                // "441"
 
-    // Уровень сигнала сотовой связи
-    val signalLevel: Double,          // "22"
-
-    // Счётчик количества перезагрузок модема
-    val mrc: Int,                // "4"
-
     // Ограничение нагрузки на привод (параметр настройки)
     val driveLoadRestrict: Double,                // "150"
-
-    // Строка с содержимым результата AT-команды запроса баланса (если баланс не запрашивался, указывается “-1”)
-    val balance: Double,    // "-1"
-
-    // Глубина парковки скребка (параметр настройки)
-    val parkDepth: Double,          // "98"
-
-    // Количество попыток прохода препятствия (параметр настройки)
-    val passAttempt: Int,        // "50"
-
-    // Синхронизация с запуском ЭЦН  (параметр настройки)
-    val ecnStart: Int,           // "0"
 
     // Пауза между проходами препятствия (параметр настройки)
     val passDelay: Int,          // "10"
 
+    // Количество попыток прохода препятствия (параметр настройки)
+    val passAttempt: Int,        // "50"
+
+//--- Параметры модема/связи ------------------------------------------
+
+    // Счётчик количества перезагрузок модема
+    val modemRestartCount: Int,
+
+    // Уровень сигнала сотовой связи
+    val signalLevel: Double,
+
+    // Строка с содержимым результата AT-команды запроса баланса (если баланс не запрашивался, указывается “-1”)
+    val balance: Double,
+
+//--- Параметры температуры ------------------------------------------
+
     // Текущая темп. внутри станции УДС (29,3˚С) (реле №1)
-    val temp1: Double,              // "293"
+    val t1Current: Double?,
 
     // Текущая темп. на улице (23,4 ˚С) (реле №2)
-    val temp2: Double,              // "234"
+    val t2Current: Double?,
 
     // Уровень температуры внутри (параметр настройки)
-    val setPoint1: Double,          // "200"
+    val t1Setup: Double?,
 
     // Уровень температуры снаружи (параметр настройки)
-    val setPoint2: Double,          // "500"
+    val t2Setup: Double?,
 
     // Работает или не работает реле №1 (температура)
-    val relay1State: Boolean,        // "False"
+    val t1State: Boolean?,
 
     // Работает или не работает реле №2 (температура)
-    val relay2State: Boolean,        // "False"
+    val t2State: Boolean?,
 
     // Работает или не работает канал №1
-    val channel1Error: Boolean,      // "True"
+    val ch1State: Boolean?,
 
     // Работает или не работает канал №2
-    val channel2Error: Boolean,      // "True"
+    val ch2State: Boolean?,
 
     // Работает или не работает модуль ТРМ (общее управление температурными датчиками)
-    val trmFail: Boolean,            // "True"
+    val tpmState: Boolean?,
 )
