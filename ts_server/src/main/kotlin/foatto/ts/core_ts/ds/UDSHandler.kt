@@ -16,7 +16,7 @@ import java.time.ZoneOffset
 class UDSHandler : TSHandler() {
 
     companion object {
-        val UDS_RAW_PACKET_TIME_BASE = (OffsetDateTime.of(2000, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC).toEpochSecond() / 1000).toInt()
+        val UDS_RAW_PACKET_TIME_BASE = OffsetDateTime.of(2000, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC).toEpochSecond().toInt()
     }
 
     // private val objectMapper: ObjectMapper = ObjectMapper().findAndRegisterModules()
