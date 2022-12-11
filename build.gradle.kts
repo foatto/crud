@@ -4,7 +4,7 @@ plugins {
 //    kotlin("android").apply(false)
     kotlin("jvm").apply(false)
 
-//    id("org.jetbrains.compose").apply(false)
+    id("org.jetbrains.compose").apply(false)
 
 //--- in mpp part
 //    id("com.android.library") apply false
@@ -21,10 +21,11 @@ plugins {
 //--- allprojects не нужен, в корневом "проекте" нет исходников
 subprojects {
     repositories {
-//        google()
-//        gradlePluginPortal()
         mavenCentral()
 //        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+//        google()
+//--- по документации вроде как не нужны
+//        gradlePluginPortal()
     }
 }
 

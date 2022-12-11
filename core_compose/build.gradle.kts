@@ -47,7 +47,7 @@ kotlin {
 //                api(compose.foundation)
 //                api(compose.material)
 
-//                api(project(":core")) - пока непобедимая ошибка
+//                api(project(":core")) - временно непобедимая ошибка, пока полностью не перейду на js(IR)
             }
         }
 //        val commonTest by getting {
@@ -58,10 +58,9 @@ kotlin {
         val jsMain by getting {
             dependencies {
                 api(compose.web.core)
-////!!! will need in future
-////    api(compose.web.svg)
+                api(compose.web.svg)
 
-//                api(project(":core")) - пока непобедимая ошибка
+//                api(project(":core")) - временно непобедимая ошибка, пока полностью не перейду на js(IR)
             }
         }
 //        val jsTest by getting {

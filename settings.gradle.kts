@@ -2,15 +2,16 @@ rootProject.name = "crud"
 
 pluginManagement {
     val kotlinVersion: String by settings
-//    val composePluginVersion: String by settings
+    val composePluginVersion: String by settings
     val springDependencyManagementPluginVersion: String by settings
     val springBootVersion: String by settings
 
 //    repositories {
-//        google()
 //        gradlePluginPortal()
-//        mavenCentral()
 //        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+//--- по документации вроде как не нужны
+//        mavenCentral()
+//        google()
 //    }
 
     plugins {
@@ -19,7 +20,7 @@ pluginManagement {
 //        kotlin("android").version(kotlinVersion)
         kotlin("jvm").version(kotlinVersion)
 
-//        id("org.jetbrains.compose").version(composePluginVersion)
+        id("org.jetbrains.compose").version(composePluginVersion)
 
 //--- in mpp part
 //        id("com.android.library").version(extra["agp.version"] as String)
@@ -37,15 +38,15 @@ pluginManagement {
 include(
     ":core",
     ":core_web",
-//    ":core_compose",
-//    ":core_compose_web",
+    ":core_compose",
+    ":core_compose_web",
     ":core_server",
     ":core_server_mvc",
 //    ":core_server_flux",
 
     ":mms_core",
     ":mms_web",
-//    ":mms_compose_web",
+    ":mms_compose_web",
     ":mms_server",
     ":mms_server_mvc",
 //    ":mms_server_flux",

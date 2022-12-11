@@ -7,8 +7,6 @@ plugins {
     kotlin("multiplatform")
 
     id("org.jetbrains.compose")
-
-    `maven-publish`
 }
 
 kotlin {
