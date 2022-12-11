@@ -98,7 +98,7 @@ class UDSHandler : TSHandler() {
             """
         )
         var commandId = 0
-        var sendStatus = true   // default (for 'not founded', for example0 as sended already
+        var sendStatus = true   // default (for 'not founded', for example, as sended already
         var command = ""
         if (rs.next()) {
             commandId = rs.getInt(1)
