@@ -5,15 +5,24 @@ import org.jetbrains.compose.web.attributes.selected
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 
-//!!! try 'val' instead 'var' ?
-var alTabInfo = mutableStateListOf<TabInfo>()
+//--- Tab state ---
+
 var currentTabIndex = mutableStateOf(0)
+val alTabInfo = mutableStateListOf<TabInfo>()
+val alTabComp = mutableStateListOf<TabComp>()
 
 class TabInfo(
     val id: Int,
     var arrText: Array<String>, // try List<String> in Web, may don't work
     var tooltip: String,
 )
+class TabComp(val comp: AppControl)
+
+//--- Tab non-state variables ---
+
+var lastTabId = 0
+
+//--- Tab style ---
 
 var colorTabPanelBack = COLOR_MAIN_BACK_0
 var styleTabPanelPaddingTop = menuTabPadMar
@@ -68,6 +77,8 @@ var styleTabOtherCloserPaddingBottom = if (screenDPR <= 1.0) 1.4 else 1.2
 var styleTabOtherCloserPaddingLeft = 0.4
 
 var styleTabButtonFontSize = COMMON_FONT_SIZE
+
+//--- Tab Panel ---
 
 class TabPanel(
     val styleIsHiddenMenuBar: Boolean,
