@@ -1,5 +1,8 @@
 package foatto.core.link
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 class TableResponse(
     val tab: String,
     val arrHeader: Array<Pair<String, String>>,
@@ -16,6 +19,7 @@ class TableResponse(
     val arrPageButton: Array<Pair<String, String>>
 )
 
+@Serializable
 class AddActionButton(
     val caption: String,
     val tooltip: String,
@@ -23,6 +27,7 @@ class AddActionButton(
     val url: String
 )
 
+@Serializable
 class ServerActionButton(
     val caption: String,
     val tooltip: String,
@@ -32,6 +37,7 @@ class ServerActionButton(
     val isForWideScreenOnly: Boolean,
 )
 
+@Serializable
 class ClientActionButton(
     val caption: String,
     val tooltip: String,
@@ -41,6 +47,7 @@ class ClientActionButton(
     val isForWideScreenOnly: Boolean,
 )
 
+@Serializable
 class TableCell(val row: Int, val col: Int) {
 
     //--- common data for all cell types
@@ -270,12 +277,14 @@ enum class TableCellBackColorType {
     GROUP_1
 }
 
+@Serializable
 class TableTextCellData(
     val icon: String = "",
     val image: String = "",
     val text: String = "",
 )
 
+@Serializable
 class TableButtonCellData(
     val icon: String = "",
     val image: String = "",
@@ -284,6 +293,7 @@ class TableButtonCellData(
     val inNewWindow: Boolean = false
 )
 
+@Serializable
 class TableGridCellData(
     val icon: String = "",
     val image: String = "",
@@ -292,6 +302,7 @@ class TableGridCellData(
 //    val inNewWindow: Boolean = false
 )
 
+@Serializable
 class TableRowData(
     val formURL: String = "",
     val rowURL: String = "",
@@ -301,6 +312,7 @@ class TableRowData(
     val alPopupData: Array<TablePopupData> = arrayOf()
 )
 
+@Serializable
 class TablePopupData(
     val group: String,
     val url: String,

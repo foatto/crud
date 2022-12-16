@@ -6,6 +6,8 @@ val kotlinApiVersion: String by project
 plugins {
     kotlin("multiplatform")
 
+    kotlin("plugin.serialization")
+
     id("org.jetbrains.compose")
 }
 

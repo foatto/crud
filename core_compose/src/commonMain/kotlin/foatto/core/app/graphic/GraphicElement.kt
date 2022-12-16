@@ -1,5 +1,8 @@
 package foatto.core.app.graphic
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 class GraphicElement(
     val graphicTitle: String,
     val alLegend: Array<Triple<Int, Boolean, String>>,   // color-index, is-back, descr
@@ -8,6 +11,7 @@ class GraphicElement(
     var alGDC: Array<GraphicDataContainer>,
 )
 
+@Serializable
 class AxisYData(
     val title: String,
     var min: Double,

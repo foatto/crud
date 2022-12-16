@@ -4,10 +4,14 @@ val kotlinLanguageVersion: String by project
 val kotlinApiVersion: String by project
 val kotlinJvmTarget: String by project
 
+val kotlinxSerializationVersion: String by project
+
 val coreComposeVersion: String by project
 
 plugins {
     kotlin("multiplatform")
+
+    kotlin("plugin.serialization")
 
     id("org.jetbrains.compose")
 //    id("com.android.library")
@@ -47,6 +51,8 @@ kotlin {
 //                api(compose.foundation)
 //                api(compose.material)
 
+                api("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion")
+
 //                api(project(":core")) - временно непобедимая ошибка, пока полностью не перейду на js(IR)
             }
         }
@@ -59,6 +65,8 @@ kotlin {
             dependencies {
                 api(compose.web.core)
                 api(compose.web.svg)
+
+                api("org.jetbrains.kotlinx:kotlinx-serialization-json-js:$kotlinxSerializationVersion")
 
 //                api(project(":core")) - временно непобедимая ошибка, пока полностью не перейду на js(IR)
             }

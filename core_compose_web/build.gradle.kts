@@ -8,6 +8,8 @@ val coreComposeWebVersion: String by project
 plugins {
     kotlin("multiplatform")
 
+    kotlin("plugin.serialization")
+
     id("org.jetbrains.compose")
 
     `maven-publish`

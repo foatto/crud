@@ -1,7 +1,9 @@
 package foatto.core.app.xy.geom
 
+import kotlinx.serialization.Serializable
 import kotlin.math.sqrt
 
+@Serializable
 class XyPoint(var x: Int, var y: Int) {
 
     constructor(aX: Float, aY: Float) : this(aX.toInt(), aY.toInt())

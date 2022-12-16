@@ -1,5 +1,8 @@
 package foatto.core.link
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 class XyResponse(
     val documentConfig: XyDocumentConfig,
     val startParamId: String,
@@ -8,6 +11,7 @@ class XyResponse(
     val arrServerActionButton: Array<XyServerActionButton>,
 )
 
+@Serializable
 class XyDocumentConfig(
     val name: String,
     val descr: String,
@@ -17,6 +21,7 @@ class XyDocumentConfig(
     val alElementConfig: Array<Pair<String, XyElementConfig>>
 )
 
+@Serializable
 class XyElementConfig(
     val name: String,
     val clientType: XyElementClientType,
@@ -31,6 +36,7 @@ class XyElementConfig(
 //    val itEditableText: Boolean,
 )
 
+@Serializable
 class XyServerActionButton(
     val caption: String,
     val tooltip: String,

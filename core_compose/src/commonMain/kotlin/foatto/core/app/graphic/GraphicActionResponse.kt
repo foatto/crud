@@ -1,5 +1,8 @@
 package foatto.core.app.graphic
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 class GraphicActionResponse(
     //--- answer on GET_COORDS
     val begTime: Int? = null,

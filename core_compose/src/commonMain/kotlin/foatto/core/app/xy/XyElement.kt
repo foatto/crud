@@ -2,7 +2,9 @@ package foatto.core.app.xy
 
 import foatto.core.app.iCoreAppContainer
 import foatto.core.app.xy.geom.XyPoint
+import kotlinx.serialization.Serializable
 
+@Serializable
 class XyElement(
     val typeName: String,
     var elementId: Int,

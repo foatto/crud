@@ -20,6 +20,8 @@ pluginManagement {
 //        kotlin("android").version(kotlinVersion)
         kotlin("jvm").version(kotlinVersion)
 
+        kotlin("plugin.serialization").version(kotlinVersion)
+
         id("org.jetbrains.compose").version(composePluginVersion)
 
 //--- in mpp part

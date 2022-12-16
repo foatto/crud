@@ -4,6 +4,8 @@ plugins {
 //    kotlin("android").apply(false)
     kotlin("jvm").apply(false)
 
+    kotlin("plugin.serialization").apply(false)
+
     id("org.jetbrains.compose").apply(false)
 
 //--- in mpp part
