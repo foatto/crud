@@ -1,6 +1,9 @@
 package foatto.core.link
 
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 @Serializable
 class AppResponse(
@@ -50,7 +53,9 @@ class MenuData(
     val url: String,
     val text: String,
     val arrSubMenu: Array<MenuData>? = null,
-    val itHover: Boolean = false
+    var itHover: Boolean = false,   // убрать после полного перехода на Compose
+    @Transient
+    val isHover: MutableState<Boolean> = mutableStateOf(false),
 )
 
 @Serializable
