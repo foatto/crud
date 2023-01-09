@@ -25,24 +25,27 @@ private fun getStyleTabComboMargins(): Array<CSSSize> = arrayOf(0.cssRem, 0.cssR
 private fun getStyleTabCloserButtonMargins(): Array<CSSSize> = arrayOf(0.cssRem, 0.cssRem, tabComboMargin, tabComboMargin)
 
 var getColorTabCurrentBack: () -> CSSColorValue = { colorMainBack1 }
-var arrStyleTabCurrentTitleBorder: Array<CSSSize> = arrayOf(1.px, 0.px, 0.px, 1.px)
+var arrStyleTabCurrentTitleBorderWidth: Array<CSSSize> = arrayOf(1.px, 0.px, 0.px, 1.px)
+var arrStyleTabCurrentTitleBorderColor: Array<CSSColorValue> = arrayOf(colorMainBorder, colorMainBorder, colorMainBorder, colorMainBorder)
 var arrStyleTabCurrentCloserBorderWidth: Array<CSSSize> = arrayOf(1.px, 1.px, 1.px, 0.px)
 var arrStyleTabCurrentCloserBorderColor: Array<CSSColorValue> = arrayOf(colorMainBorder, colorMainBorder, colorMainBack1, colorMainBorder)
 
-private var colorTabOtherBack: () -> CSSColorValue = { colorMainBack2 }
-private var arrStyleTabOtherTitleBorder: Array<CSSSize> = arrayOf(1.px, 0.px, 1.px, 1.px)
-private var arrStyleTabOtherCloserBorder: Array<CSSSize> = arrayOf(1.px, 1.px, 1.px, 0.px)
+var getColorTabOtherBack: () -> CSSColorValue = { colorMainBack2 }
+var arrStyleTabOtherTitleBorderWidth: Array<CSSSize> = arrayOf(1.px, 0.px, 1.px, 1.px)
+var arrStyleTabOtherTitleBorderColor: Array<CSSColorValue> = arrayOf(colorMainBorder, colorMainBorder, colorMainBorder, colorMainBorder)
+var arrStyleTabOtherCloserBorderWidth: Array<CSSSize> = arrayOf(1.px, 1.px, 1.px, 0.px)
+var arrStyleTabOtherCloserBorderColor: Array<CSSColorValue> = arrayOf(colorMainBorder, colorMainBorder, colorMainBorder, colorMainBorder)
 
-private var arrStyleTabCurrentTitlePadding: Array<CSSSize> = arrayOf(0.7.cssRem, 0.6.cssRem, 0.7.cssRem, 0.6.cssRem)
-private var arrStyleTabOtherTitlePadding: Array<CSSSize> = arrayOf(0.7.cssRem, 0.6.cssRem, 0.7.cssRem, 0.6.cssRem)
+var arrStyleTabCurrentTitlePadding: Array<CSSSize> = arrayOf(0.7.cssRem, 0.6.cssRem, 0.7.cssRem, 0.6.cssRem)
+var arrStyleTabOtherTitlePadding: Array<CSSSize> = arrayOf(0.7.cssRem, 0.6.cssRem, 0.7.cssRem, 0.6.cssRem)
 
-private var arrStyleTabCurrentCloserPadding: Array<CSSSize> = arrayOf(
+var arrStyleTabCurrentCloserPadding: Array<CSSSize> = arrayOf(
     (if (screenDPR <= 1.0) 1.4 else 1.2).cssRem,
     0.4.cssRem,
     (if (screenDPR <= 1.0) 1.4 else 1.2).cssRem,
     0.4.cssRem,
 )
-private var arrStyleTabOtherCloserPadding: Array<CSSSize> = arrayOf(
+var arrStyleTabOtherCloserPadding: Array<CSSSize> = arrayOf(
     (if (screenDPR <= 1.0) 1.4 else 1.2).cssRem,
     0.4.cssRem,
     (if (screenDPR <= 1.0) 1.4 else 1.2).cssRem,
@@ -163,17 +166,58 @@ class TabPanel(
                                     if (currentTabIndex.value == tabIndex) {
                                         getColorTabCurrentBack()
                                     } else {
-                                        colorTabOtherBack()
+                                        getColorTabOtherBack()
                                     }
                                 )
-                                setBorder(
-                                    color = colorMainBorder,
-                                    arrWidth = if (currentTabIndex.value == tabIndex) {
-                                        arrStyleTabCurrentTitleBorder
-                                    } else {
-                                        arrStyleTabOtherTitleBorder
-                                    },
-                                    arrRadius = arrayOf(styleFormBorderRadius, 0.cssRem, 0.cssRem, 0.cssRem)
+                                //--- переключаемые стили должны заменять друг друга полностью
+                                if (currentTabIndex.value == tabIndex) {
+                                    borderTop(
+                                        width = arrStyleTabCurrentTitleBorderWidth[0],
+                                        lineStyle = LineStyle.Solid,
+                                        color = arrStyleTabCurrentTitleBorderColor[0],
+                                    )
+                                    borderRight(
+                                        width = arrStyleTabCurrentTitleBorderWidth[1],
+                                        lineStyle = LineStyle.Solid,
+                                        color = arrStyleTabCurrentTitleBorderColor[1],
+                                    )
+                                    borderBottom(
+                                        width = arrStyleTabCurrentTitleBorderWidth[2],
+                                        lineStyle = LineStyle.Solid,
+                                        color = arrStyleTabCurrentTitleBorderColor[2],
+                                    )
+                                    borderLeft(
+                                        width = arrStyleTabCurrentTitleBorderWidth[3],
+                                        lineStyle = LineStyle.Solid,
+                                        color = arrStyleTabCurrentTitleBorderColor[3],
+                                    )
+                                } else {
+                                    borderTop(
+                                        width = arrStyleTabOtherTitleBorderWidth[0],
+                                        lineStyle = LineStyle.Solid,
+                                        color = arrStyleTabOtherTitleBorderColor[0],
+                                    )
+                                    borderRight(
+                                        width = arrStyleTabOtherTitleBorderWidth[1],
+                                        lineStyle = LineStyle.Solid,
+                                        color = arrStyleTabOtherTitleBorderColor[1],
+                                    )
+                                    borderBottom(
+                                        width = arrStyleTabOtherTitleBorderWidth[2],
+                                        lineStyle = LineStyle.Solid,
+                                        color = arrStyleTabOtherTitleBorderColor[2],
+                                    )
+                                    borderLeft(
+                                        width = arrStyleTabOtherTitleBorderWidth[3],
+                                        lineStyle = LineStyle.Solid,
+                                        color = arrStyleTabOtherTitleBorderColor[3],
+                                    )
+                                }
+                                borderRadius(
+                                    topLeft = styleFormBorderRadius,
+                                    topRight = 0.cssRem,
+                                    bottomRight = 0.cssRem,
+                                    bottomLeft = 0.cssRem,
                                 )
                                 fontSize(styleTabButtonFontSize)
                                 setPaddings(
@@ -220,7 +264,7 @@ class TabPanel(
                                     if (currentTabIndex.value == tabIndex) {
                                         getColorTabCurrentBack()
                                     } else {
-                                        colorTabOtherBack()
+                                        getColorTabOtherBack()
                                     }
                                 )
                                 //--- переключаемые стили должны заменять друг друга полностью
@@ -247,24 +291,24 @@ class TabPanel(
                                     )
                                 } else {
                                     borderTop(
-                                        width = arrStyleTabOtherCloserBorder[0],
+                                        width = arrStyleTabOtherCloserBorderWidth[0],
                                         lineStyle = LineStyle.Solid,
-                                        color = colorMainBorder,
+                                        color = arrStyleTabOtherCloserBorderColor[0],
                                     )
                                     borderRight(
-                                        width = arrStyleTabOtherCloserBorder[1],
+                                        width = arrStyleTabOtherCloserBorderWidth[1],
                                         lineStyle = LineStyle.Solid,
-                                        color = colorMainBorder,
+                                        color = arrStyleTabOtherCloserBorderColor[1],
                                     )
                                     borderBottom(
-                                        width = arrStyleTabOtherCloserBorder[2],
+                                        width = arrStyleTabOtherCloserBorderWidth[2],
                                         lineStyle = LineStyle.Solid,
-                                        color = colorMainBorder,
+                                        color = arrStyleTabOtherCloserBorderColor[2],
                                     )
                                     borderLeft(
-                                        width = arrStyleTabOtherCloserBorder[3],
+                                        width = arrStyleTabOtherCloserBorderWidth[3],
                                         lineStyle = LineStyle.Solid,
-                                        color = colorMainBorder,
+                                        color = arrStyleTabOtherCloserBorderColor[3],
                                     )
                                 }
                                 borderRadius(
