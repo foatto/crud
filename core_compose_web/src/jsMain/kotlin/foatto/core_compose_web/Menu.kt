@@ -71,7 +71,7 @@ private val styleMenuIconButtonMargin: Array<CSSSize> = if (styleIsNarrowScreen)
 
 //--- Main & Popup Menus ---
 
-private val arrStyleMenuStartPadding: Array<CSSSize> = arrayOf(1.0.cssRem, 1.0.cssRem, 1.0.cssRem, 1.0.cssRem)
+val arrStyleMenuStartPadding: Array<CSSSize> = arrayOf(1.0.cssRem, 1.0.cssRem, 1.0.cssRem, 1.0.cssRem)
 private fun getStyleMenuItemTopBottomPad(level: Int) = if (styleIsNarrowScreen) {
     arrayOf(0.8, 0.6, 0.4)[level]
 } else {
@@ -79,7 +79,7 @@ private fun getStyleMenuItemTopBottomPad(level: Int) = if (styleIsNarrowScreen) 
 }
 
 private val arrStyleMenuItemSidePad = arrayOf(0.0, 1.0, 2.0)
-private val arrStyleMenuFontSize: Array<CSSSize> = arrayOf(1.0.cssRem, 0.9.cssRem, 0.8.cssRem)
+val arrStyleMenuFontSize: Array<CSSSize> = arrayOf(1.0.cssRem, 0.9.cssRem, 0.8.cssRem)
 private fun getStyleMenuItemPadding(level: Int): Array<CSSSize> = arrayOf(
     getStyleMenuItemTopBottomPad(level).cssRem,
     arrStyleMenuItemSidePad[level].cssRem,
@@ -87,7 +87,7 @@ private fun getStyleMenuItemPadding(level: Int): Array<CSSSize> = arrayOf(
     arrStyleMenuItemSidePad[level].cssRem,
 )
 
-private fun StyleScope.setMenuWidth() {
+fun StyleScope.setMenuWidth() {
     if (styleIsNarrowScreen) {
         width(85.percent)
         minWidth(85.percent)
