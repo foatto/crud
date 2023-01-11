@@ -1,11 +1,9 @@
 package foatto.mms_compose_web
 
 import foatto.core_compose_web.*
+import foatto.core_compose_web.control.*
 import foatto.core_compose_web.style.*
-import org.jetbrains.compose.web.css.cssRem
-import org.jetbrains.compose.web.css.hsl
-import org.jetbrains.compose.web.css.hsla
-import org.jetbrains.compose.web.css.px
+import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.renderComposable
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -69,9 +67,6 @@ private class MMSRoot : Root(
         }
         styleButtonBorderRadius = buttonBorderRadius.cssRem
         styleInputBorderRadius = 0.0.cssRem
-
-        colorButtonBack = colorMainBack0
-        colorButtonBorder = colorMainBorder
 
         colorWaitBack = hsla(MMS_FIRM_COLOR_1_H, MMS_FIRM_COLOR_1_S, 95, 0.75)
         colorWaitLoader0 = hsl(MMS_FIRM_COLOR_1_H, MMS_FIRM_COLOR_1_S, 80)
@@ -187,10 +182,10 @@ private class MMSRoot : Root(
         colorMenuTextDefault = COLOR_MAIN_BACK_0
         getColorMenuBorder = { colorMainBorder }
         getColorMenuDelimiter = { colorMainBack3 }
-        colorMenuBackHover0 = hsl(206, 56, 35)
-        colorMenuTextHover0 = null
-        colorMenuBackHoverN = hsla(0, 0, 0, 0.0)  // прозрачный
-        colorMenuTextHoverN = hsl(0, 0, 75)
+        getColorMenuBackHover0 = { hsl(206, 56, 35) }
+        getColorMenuTextHover0 = { null }
+        getColorMenuBackHoverN = { hsla(0, 0, 0, 0.0) }  // прозрачный
+        getColorMenuTextHoverN = { hsl(0, 0, 75) }
 
         //--- приводит к багу по расчёту ширины svg-зоны в xy/graphic-модулях
         //styleAppControlPadding = { if (getStyleIsNarrowScreen) "0" else "1.0rem 1.0rem 0 1.0rem" }
@@ -222,6 +217,89 @@ private class MMSRoot : Root(
         arrStyleTabOtherTitlePadding = arrayOf(0.1.cssRem, 0.6.cssRem, 0.1.cssRem, 1.0.cssRem)
         arrStyleTabOtherCloserPadding = arrayOf(closerPaddingTopBottom, 0.4.cssRem, closerPaddingTopBottom, 0.4.cssRem)
 
+        getColorTableHeaderBack = { COLOR_MAIN_BACK_0 }
+        getColorTableToolbarBack = { COLOR_MAIN_BACK_0 }
+        getColorTablePagebarBack = { COLOR_MAIN_BACK_0 }
+
+        getColorTableFindButtonBack = { COLOR_MAIN_BACK_0 }
+        getStyleTableFindEditorBorderRadius = {
+            arrayOf(
+                (if (screenDPR <= 1.0) 0.2 else 0.4).cssRem,
+                0.cssRem,
+                0.cssRem,
+                (if (screenDPR <= 1.0) 0.2 else 0.4).cssRem,
+            )
+        }
+        getStyleTableFindButtonBorderRadius = {
+            arrayOf(
+                0.cssRem,
+                (if (screenDPR <= 1.0) 0.2 else 0.4).cssRem,
+                (if (screenDPR <= 1.0) 0.2 else 0.4).cssRem,
+                0.cssRem,
+            )
+        }
+        getStyleTableFindControlMargin = { arrayOf(0.cssRem, 0.cssRem, 0.cssRem, 0.cssRem) }
+
+        val colorBackOrange = hsl(34, 92, 62)
+        val colorBackGreen = hsl(135, 54, 79)
+
+        getColorToolbarButtonBack = { colorBackOrange }
+        getColorRefreshButtonBack = { colorBackGreen }
+        getStyleToolbarButtonBorder = { BorderData(getColorButtonBorder(), LineStyle.Solid, 0.px, styleButtonBorderRadius) }    // none
+
+        getColorTableCaptionBack = { hsl(214, 11, 87) }
+        getStyleTableCaptionPadding = { arrayOf(1.0.cssRem, 1.0.cssRem, 1.0.cssRem, 1.0.cssRem) }
+        getStyleTableCaptionBorderLeft = { BorderData(colorMainBorder, LineStyle.Solid, 0.px, 0.cssRem) }    // none
+        getStyleTableCaptionBorderTop = { BorderData(colorMainBorder, LineStyle.Solid, 0.px, 0.cssRem) }    // none
+        getStyleTableCaptionBorderRight = { BorderData(hsl(214, 6, 77), LineStyle.Solid, 1.px, 0.cssRem) }
+        getStyleTableCaptionBorderBottom = { BorderData(colorMainBorder, LineStyle.Solid, 0.px, 0.cssRem) } // none
+        getStyleTableCaptionAlignH = { AlignItems.FlexStart }
+        getStyleTableCaptionAlignV = { JustifyContent.FlexStart }
+        getStyleTableCaptionFontSize = { (if (!styleIsNarrowScreen) 0.8 else 0.6).cssRem }
+        getStyleTableCaptionFontWeight = { "bold" }
+
+        colorTableGroupBack0 = hsl(200, 10, 94)
+        colorTableGroupBack1 = hsl(200, 10, 97)
+
+        colorTableRowBack1 = colorMainBack0
+
+        getColorTableRowHover = { hsl(133, 54, 93) }
+
+        getStyleTableTextFontSize = { (if (!styleIsNarrowScreen) 0.8 else 0.6).cssRem }
+
+        getColorTablePageBarCurrentBack = { colorBackOrange }
+        getStyleTablePageBarOtherBorder = { BorderData(getColorButtonBorder(), LineStyle.Solid, 0.px, styleButtonBorderRadius) }    // none
+
+        getStyleTablePageButtonWidth = { buttonCount ->
+            if (styleIsNarrowScreen) {
+                when (buttonCount) {
+                    4 -> 3.4    // 5.2 - слишком крупно и глуповато, используется всего один раз
+                    5 -> 3.4    // 4.1 - используется всего один раз
+                    6 -> 3.4
+                    7 -> 2.9
+                    8 -> 2.5
+                    else -> 2.0
+                }.cssRem
+            } else {
+                3.0.cssRem  // 6.0
+            }
+        }
+
+        getStyleTablePageButtonFontSize = { buttonCount ->
+            if (styleIsNarrowScreen) {
+                when (buttonCount) {
+                    4 -> 1.7    // 2.6 - слишком крупно и глуповато, используется всего один раз
+                    5 -> 1.7    // 2.0 - используется всего один раз
+                    6 -> 1.7
+                    7 -> 1.4
+                    8 -> 1.2
+                    else -> 1.0
+                }.cssRem
+            } else {
+                1.3.cssRem  // 2.6
+            }
+        }
+
 
 
 
@@ -232,77 +310,6 @@ private class MMSRoot : Root(
 }
 
 /*
-        colorTableHeaderBack = { COLOR_MAIN_BACK_0 }
-        colorTableToolbarBack = { COLOR_MAIN_BACK_0 }
-        colorTablePagebarBack = { COLOR_MAIN_BACK_0 }
-
-        colorTableFindButtonBack = { COLOR_MAIN_BACK_0 }
-        styleTableFindEditorBorderRadius = { "${if (getScreenDPR <= 1.0) 0.2 else 0.4}rem 0 0 ${if (getScreenDPR <= 1.0) 0.2 else 0.4}rem" }
-        styleTableFindButtonBorderRadius = { "0 ${if (getScreenDPR <= 1.0) 0.2 else 0.4}rem ${if (getScreenDPR <= 1.0) 0.2 else 0.4}rem 0" }
-        styleTableFindControlMargin = { "0" }
-
-        val COLOR_BACK_ORANGE = getHSL(34, 92, 62)
-        val COLOR_BACK_GREEN = getHSL(135, 54, 79)
-
-        colorToolbarButtonBack = { COLOR_BACK_ORANGE }
-        colorRefreshButtonBack = { COLOR_BACK_GREEN }
-        styleToolbarButtonBorder = { "none" }
-
-        styleTableCaptionBack = { getHSL(214, 11, 87) }
-        styleTableCaptionPadding = { "1.0rem 1.0rem 1.0rem 1.0rem" }
-        styleTableCaptionBorderLeft = { "none" }
-        styleTableCaptionBorderTop = { "none" }
-        styleTableCaptionBorderRight = { "1px solid ${getHSL(214, 6, 77)}" }
-        styleTableCaptionBorderBottom = { "none" }
-        styleTableCaptionAlignH = { "flex-start" }
-        styleTableCaptionAlignV = { "flex-start" }
-        styleTableCaptionFontSize = { "${if (!getStyleIsNarrowScreen) 0.8 else 0.6}rem" }
-        styleTableCaptionFontWeight = { "bold" }
-
-        colorGroupBack0 = { getHSL(200, 10, 94) }
-        colorGroupBack1 = { getHSL(200, 10, 97) }
-
-        colorTableRowBack1 = { getColorMainBack0 }
-
-        colorTableRowHover = { getHSL(133, 54, 93) }
-
-        styleTableTextFontSize = { "${if (!getStyleIsNarrowScreen) 0.8 else 0.6}rem" }
-
-        colorTablePageBarCurrentBack = { COLOR_BACK_ORANGE }
-        styleTablePageBarOtherBorder = { "none" }
-
-        styleTablePageButtonWidth = { buttonCount ->
-            if (getStyleIsNarrowScreen) {
-                val buttonWidth = when (buttonCount) {
-                    4 -> 3.4    // 5.2 - слишком крупно и глуповато, используется всего один раз
-                    5 -> 3.4    // 4.1 - используется всего один раз
-                    6 -> 3.4
-                    7 -> 2.9
-                    8 -> 2.5
-                    else -> 2.0
-                }
-                "${buttonWidth}rem"
-            } else {
-                "3.0rem"// 6.0
-            }
-        }
-
-        styleTablePageButtonFontSize = { buttonCount ->
-            if (getStyleIsNarrowScreen) {
-                val fontSize = when (buttonCount) {
-                    4 -> 1.7    // 2.6 - слишком крупно и глуповато, используется всего один раз
-                    5 -> 1.7    // 2.0 - используется всего один раз
-                    6 -> 1.7
-                    7 -> 1.4
-                    8 -> 1.2
-                    else -> 1.0
-                }
-                "${fontSize}rem"
-            } else {
-                "1.3rem"// 2.6
-            }
-        }
-
         colorFormBack = { COLOR_MAIN_BACK_0 }
         styleFormLabelWeight = { "bold" }
         colorFormButtonBack = { COLOR_MAIN_BACK_0 }
