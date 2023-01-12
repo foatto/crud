@@ -53,7 +53,9 @@ class MenuData(
     val url: String,
     val text: String,
     val arrSubMenu: Array<MenuData>? = null,
-    var itHover: Boolean = false,   // убрать после полного перехода на Compose
+    var itHover: Boolean = false,   //!!! unused, убрать после полного перехода на Compose
+    @Transient
+    val inNewWindow: Boolean = false,
     @Transient
     val isHover: MutableState<Boolean> = mutableStateOf(false),
 )

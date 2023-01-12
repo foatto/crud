@@ -45,11 +45,11 @@ var colorMenuTextDefault: CSSColorValue = COLOR_MAIN_TEXT
 var getColorMenuBorder: () -> CSSColorValue = { colorMainBorder }
 var getColorMenuDelimiter: () -> CSSColorValue = { colorMainBack3 }
 
-var colorMenuBackHover0: CSSColorValue = colorCurrentAndHover
-var colorMenuTextHover0: CSSColorValue? = null
+var getColorMenuBackHover0: () -> CSSColorValue = { colorCurrentAndHover }
+var getColorMenuTextHover0: () -> CSSColorValue? = { null }
 
-var colorMenuBackHoverN: CSSColorValue = colorCurrentAndHover
-var colorMenuTextHoverN: CSSColorValue? = null
+var getColorMenuBackHoverN: () -> CSSColorValue = { colorCurrentAndHover }
+var getColorMenuTextHoverN: () -> CSSColorValue? = { null }
 
 val MENU_DELIMITER: String = "-".repeat(60)
 
@@ -111,26 +111,26 @@ class Menu(
         //    miUserDoc.onAction = this as EventHandler<ActionEvent>
         //    menuClientStaticMenu.items.add( miUserDoc )
 
-        alClientSubMenu.add(MenuData("", "Пользователь: " + root.currentUserName, null))
-        alClientSubMenu.add(MenuData(CMD_CHANGE_PASSWORD, "Сменить пароль", null))
-        alClientSubMenu.add(MenuData(CMD_LOGOFF, "Выход из системы", null))
+        alClientSubMenu.add(MenuData(url = "", text = "Пользователь: " + root.currentUserName, arrSubMenu = null))
+        alClientSubMenu.add(MenuData(url = CMD_CHANGE_PASSWORD, text = "Сменить пароль", arrSubMenu = null))
+        alClientSubMenu.add(MenuData(url = CMD_LOGOFF, text = "Выход из системы", arrSubMenu = null))
 
-        alClientSubMenu.add(MenuData("", ""))
+        alClientSubMenu.add(MenuData(url = "", text = ""))
 
-        alClientSubMenu.add(MenuData(CMD_SET_START_PAGE, "Установить вкладку как стартовую", null))
-        alClientSubMenu.add(MenuData(CMD_CLEAR_START_PAGE, "Очистить установку стартовой", null))
+        alClientSubMenu.add(MenuData(url = CMD_SET_START_PAGE, text = "Установить вкладку как стартовую", arrSubMenu = null))
+        alClientSubMenu.add(MenuData(url = CMD_CLEAR_START_PAGE, text = "Очистить установку стартовой", arrSubMenu = null))
 
-        alClientSubMenu.add(MenuData("", ""))
+        alClientSubMenu.add(MenuData(url = "", text = ""))
 
-        alClientSubMenu.add(MenuData("", "outer width = ${window.outerWidth}", null))
-        alClientSubMenu.add(MenuData("", "outer height = ${window.outerHeight}", null))
-        alClientSubMenu.add(MenuData("", "inner width = ${window.innerWidth}", null))
-        alClientSubMenu.add(MenuData("", "inner height = ${window.innerHeight}", null))
-        alClientSubMenu.add(MenuData("", "device pixel ratio = ${window.devicePixelRatio}", null))
-        alClientSubMenu.add(MenuData("", "touch screen = ${getStyleIsTouchScreen()}", null))
+        alClientSubMenu.add(MenuData(url = "", text = "outer width = ${window.outerWidth}", arrSubMenu = null))
+        alClientSubMenu.add(MenuData(url = "", text = "outer height = ${window.outerHeight}", arrSubMenu = null))
+        alClientSubMenu.add(MenuData(url = "", text = "inner width = ${window.innerWidth}", arrSubMenu = null))
+        alClientSubMenu.add(MenuData(url = "", text = "inner height = ${window.innerHeight}", arrSubMenu = null))
+        alClientSubMenu.add(MenuData(url = "", text = "device pixel ratio = ${window.devicePixelRatio}", arrSubMenu = null))
+        alClientSubMenu.add(MenuData(url = "", text = "touch screen = ${getStyleIsTouchScreen()}", arrSubMenu = null))
 
         val alMenuData = arrMenuData.toMutableList()
-        alMenuData.add(MenuData("", "Дополнительно", alClientSubMenu.toTypedArray()))
+        alMenuData.add(MenuData(url = "", text = "Дополнительно", arrSubMenu = alClientSubMenu.toTypedArray()))
 
         arrMenuData = alMenuData.toTypedArray()
     }
@@ -148,7 +148,7 @@ class Menu(
                             flexShrink(0)
                             alignSelf(AlignSelf.FlexStart)
                             position(Position.Relative)
-                            backgroundColor(colorButtonBack)
+                            backgroundColor(getColorButtonBack())
                             setBorder(
                                 color = colorMainBorder,
                                 radius = styleFormBorderRadius,
@@ -237,7 +237,7 @@ class Menu(
 //                                            } else {
 //                                                colorMenuBackHoverN
 //                                            }
-                                            colorMenuBackHover0
+                                            getColorMenuBackHover0()
                                         } else if (isMainMenu) {
                                             getColorMainMenuBack()
                                         } else {
@@ -249,7 +249,7 @@ class Menu(
 //                                    } else {
 //                                        colorMenuTextHoverN
                                     /*}*/
-                                    colorMenuTextHover0?.let { colorMenuTextHover ->
+                                    getColorMenuTextHover0()?.let { colorMenuTextHover ->
                                         color(
                                             if (menuData.isHover.value) {
                                                 colorMenuTextHover
@@ -287,7 +287,7 @@ class Menu(
 //                                            } else {
 //                                                colorMenuBackHoverN
 //                                            }
-                                        colorMenuBackHoverN
+                                        getColorMenuBackHoverN()
                                     } else if (isMainMenu) {
                                         getColorMainMenuBack()
                                     } else {
@@ -297,8 +297,8 @@ class Menu(
                                 color(
                                     if (menuData.url.isNotEmpty() || menuData.text.isNotEmpty()) {
                                         if (menuData.isHover.value) {
-                                            colorMenuTextHoverN?.let {
-                                                colorMenuTextHoverN
+                                            getColorMenuTextHoverN()?.let {
+                                                getColorMenuTextHoverN()
                                             } ?: colorMenuTextDefault
                                         } else {
                                             colorMenuTextDefault
@@ -309,7 +309,7 @@ class Menu(
                                 )
                             }
                             onClick {
-                                clickableMenu.menuClick(menuData.url)
+                                clickableMenu.menuClick(menuData.url, menuData.inNewWindow)
                             }
                             onMouseEnter {
                                 menuData.isHover.value = menuData.text.isNotEmpty()
@@ -334,7 +334,7 @@ class Menu(
         }
     }
 
-    override fun menuClick(url: String) {
+    override fun menuClick(url: String, inNewWindow: Boolean) {
         root.isShowMainMenu.value = false
 
         when (url) {
