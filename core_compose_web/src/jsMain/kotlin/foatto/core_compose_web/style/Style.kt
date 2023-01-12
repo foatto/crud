@@ -101,7 +101,7 @@ private val CONTROL_MARGIN = 0.1.cssRem
 
 val CONTROL_PADDING = 0.3.cssRem
 val CONTROL_TOP_DOWN_SIDE_PADDING = 0.1.cssRem
-private val CONTROL_LEFT_RIGHT_SIDE_PADDING = 0.4.cssRem
+val CONTROL_LEFT_RIGHT_SIDE_PADDING = 0.4.cssRem
 private val CONTROL_BIG_PADDING = 0.95.cssRem
 
 val styleControlTitleTextFontSize = COMMON_FONT_SIZE
@@ -142,28 +142,6 @@ var colorCurrentAndHover = hsl(60, 100, 90)
 //--- padding & margin for menu icon & tab panel
 val menuTabPadMar = 0.3.cssRem
 
-//--- FORM ---------------------------------------------------------------------------------------------------------------------------------------------------------------
-//
-//var colorFormBack: () -> String = { foatto.core_compose_web.getColorMainBack1 }
-//var styleFormLabelWeight: () -> String = { "normal" }
-//var colorFormButtonBack: () -> String = { foatto.core_compose_web.style.getGetColorButtonBack() }
-//var styleFormButtonBorder: () -> String = { "1px solid ${foatto.core_compose_web.style.getGetColorButtonBorder()}" }
-//var colorFormActionButtonSaveBack: () -> String = { foatto.core_compose_web.style.getGetColorButtonBack() }
-//var colorFormActionButtonOtherBack: () -> String = { foatto.core_compose_web.style.getGetColorButtonBack() }
-//var styleFormActionButtonBorder: () -> String = { "1px solid ${foatto.core_compose_web.style.getGetColorButtonBorder()}" }
-//
-//fun styleFormEditBoxColumn(initSize: Int) = if (!foatto.core_compose_web.getStyleIsNarrowScreen) initSize else if (initSize <= foatto.core_compose_web.getScaledScreenWidth / 19) initSize else foatto.core_compose_web.getScaledScreenWidth / 19
-//
-////--- ! не убирать, так удобнее выравнивать label на форме, чем каждому тексту прописывать уникальный стиль
-//fun styleFormRowPadding() = CONTROL_LEFT_RIGHT_SIDE_PADDING
-//fun styleFormRowTopBottomPadding() = "0.1rem"
-//fun styleFormLabelPadding() = "0.6rem"
-//fun styleFormCheckboxAndRadioMargin() = "0.5rem"
-//fun styleFileNameButtonPadding() = "0.95rem"
-//fun styleFileNameButtonMargin() = "0.1rem"
-//
-//const val COLOR_FORM_SWITCH_BACK_ON = foatto.core_compose_web.style.getCOLOR_MAIN_BACK_0
-//
 ////--- GRAPHIC ------------------------------------------------------------------------------------------------------------------------------------------------------------
 //
 //const val COLOR_GRAPHIC_TIME_LINE = "hsl(180,100%,50%)"
