@@ -21,6 +21,7 @@ import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.attributes.placeholder
 import org.jetbrains.compose.web.attributes.size
 import org.jetbrains.compose.web.css.*
+import org.jetbrains.compose.web.css.properties.appearance
 import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Img
@@ -42,9 +43,9 @@ private val arrStyleAppControlPaddings: Array<CSSSize> = arrayOf(0.cssRem, 0.css
 var getColorLogonBackAround: () -> CSSColorValue = { colorMainBack1 }
 var getColorLogonBackCenter: () -> CSSColorValue = { colorMainBack2 }
 var getColorLogonBorder: () -> CSSColorValue = { colorMainBorder }
-var getColorLogonButtonBack: () -> CSSColorValue = { colorButtonBack }
+var getColorLogonButtonBack: () -> CSSColorValue = { getColorButtonBack() }
 var colorLogonButtonText: CSSColorValue = COLOR_MAIN_TEXT
-var getColorLogonButtonBorder: () -> CSSColorValue = { colorButtonBorder }
+var getColorLogonButtonBorder: () -> CSSColorValue = { getColorButtonBorder() }
 
 var styleLogonTopExpanderContent: String = "&nbsp;"
 var styleLogonLogo: String = "logo.png"
@@ -261,10 +262,10 @@ class AppControl(
                             ) {
                                 Input(InputType.Checkbox) {
                                     style {
-                                        property("appearance", "none")
+                                        appearance("none")
                                         width(styleCheckBoxWidth)
                                         height(styleCheckBoxHeight)
-                                        setBorder(styleCheckBoxBorder)
+                                        setBorder(getStyleCheckBoxBorder())
                                         setMargins(arrStyleLogonCheckBoxMargin)
                                     }
                                     id("logon_2")

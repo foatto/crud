@@ -1,4 +1,9 @@
-package org.jetbrains.compose.web.css
+package org.jetbrains.compose.web.css.properties
+
+import org.jetbrains.compose.web.css.CSSColorValue
+import org.jetbrains.compose.web.css.CSSNumeric
+import org.jetbrains.compose.web.css.LineStyle
+import org.jetbrains.compose.web.css.StyleScope
 
 fun StyleScope.borderTop(
     width: CSSNumeric,

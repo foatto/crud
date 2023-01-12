@@ -36,7 +36,7 @@ var colorWaitLoader3: CSSColorValue = hsl(60, 100, 95)
 var colorDialogBack: CSSColorValue = hsla(0, 0, 0, 0.75)
 private val getColorDialogBorder: () -> CSSColorValue = { colorMainBorder }
 private val getColorDialogBackCenter: () -> CSSColorValue = { colorMainBack1 }
-private val getColorDialogButtonBack: () -> CSSColorValue = { colorButtonBack }
+private val getColorDialogButtonBack: () -> CSSColorValue = { getColorButtonBack() }
 private val getColorDialogButtonBorder: () -> CSSColorValue = { colorMainBorder }
 
 private val styleDialogCellPadding: CSSSize = 1.0.cssRem

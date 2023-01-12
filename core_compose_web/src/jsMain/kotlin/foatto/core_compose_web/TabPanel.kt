@@ -8,6 +8,10 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import foatto.core_compose_web.style.*
 import org.jetbrains.compose.web.attributes.selected
 import org.jetbrains.compose.web.css.*
+import org.jetbrains.compose.web.css.properties.borderBottom
+import org.jetbrains.compose.web.css.properties.borderLeft
+import org.jetbrains.compose.web.css.properties.borderRight
+import org.jetbrains.compose.web.css.properties.borderTop
 import org.jetbrains.compose.web.dom.*
 
 //--- Tab style ---
@@ -16,13 +20,13 @@ var colorTabPanelBack: CSSColorValue = COLOR_MAIN_BACK_0
 var arrStyleTabPanelPadding: Array<CSSSize> = arrayOf(menuTabPadMar, menuTabPadMar, 0.cssRem, menuTabPadMar)
 
 //--- tab-combo - только на устройствах с узким экраном
-private val tabComboMargin = menuTabPadMar
+private val getTabComboMargin: () -> CSSSize = { menuTabPadMar }
 
 fun getStyleTabComboTextLen(): Int = scaledScreenWidth / (if (styleIsNarrowScreen) 16 else 64)
 private val styleTabComboFontSize = COMMON_FONT_SIZE
 private val styleTabComboPadding = 0.55.cssRem
-private fun getStyleTabComboMargins(): Array<CSSSize> = arrayOf(0.cssRem, 0.cssRem, tabComboMargin, 0.cssRem)
-private fun getStyleTabCloserButtonMargins(): Array<CSSSize> = arrayOf(0.cssRem, 0.cssRem, tabComboMargin, tabComboMargin)
+private fun getStyleTabComboMargins(): Array<CSSSize> = arrayOf(0.cssRem, 0.cssRem, getTabComboMargin(), 0.cssRem)
+private fun getStyleTabCloserButtonMargins(): Array<CSSSize> = arrayOf(0.cssRem, 0.cssRem, getTabComboMargin(), getTabComboMargin())
 
 var getColorTabCurrentBack: () -> CSSColorValue = { colorMainBack1 }
 var arrStyleTabCurrentTitleBorderWidth: Array<CSSSize> = arrayOf(1.px, 0.px, 0.px, 1.px)
@@ -115,7 +119,7 @@ class TabPanel(
                         style {
                             flexGrow(1)
                             flexShrink(1)
-                            backgroundColor(colorButtonBack)
+                            backgroundColor(getColorButtonBack())
                             setBorder(color = colorMainBorder, radius = styleFormBorderRadius)
                             fontSize(styleTabComboFontSize)
                             padding(styleTabComboPadding)
@@ -144,7 +148,7 @@ class TabPanel(
                                 flexGrow(0)
                                 flexShrink(0)
                                 alignSelf(AlignSelf.FlexStart)  //"flex-end" - сдвигает в правый нижний угол
-                                backgroundColor(colorButtonBack)
+                                backgroundColor(getColorButtonBack())
                                 setBorder(color = colorMainBorder, radius = styleFormBorderRadius)
                                 padding(styleIconButtonPadding)
                                 setMargins(getStyleTabCloserButtonMargins())
