@@ -3,7 +3,13 @@ package foatto.mms_compose_web
 import foatto.core_compose_web.*
 import foatto.core_compose_web.control.*
 import foatto.core_compose_web.style.*
-import org.jetbrains.compose.web.css.*
+import org.jetbrains.compose.web.css.AlignItems
+import org.jetbrains.compose.web.css.JustifyContent
+import org.jetbrains.compose.web.css.LineStyle
+import org.jetbrains.compose.web.css.cssRem
+import org.jetbrains.compose.web.css.hsl
+import org.jetbrains.compose.web.css.hsla
+import org.jetbrains.compose.web.css.px
 import org.jetbrains.compose.web.renderComposable
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -245,14 +251,14 @@ private class MMSRoot : Root(
 
         getColorToolbarButtonBack = { colorBackOrange }
         getColorRefreshButtonBack = { colorBackGreen }
-        getStyleToolbarButtonBorder = { BorderData(getColorButtonBorder(), LineStyle.Solid, 0.px, styleButtonBorderRadius) }    // none
+        getStyleToolbarButtonBorder = { noBorder }
 
         getColorTableCaptionBack = { hsl(214, 11, 87) }
         getStyleTableCaptionPadding = { arrayOf(1.0.cssRem, 1.0.cssRem, 1.0.cssRem, 1.0.cssRem) }
-        getStyleTableCaptionBorderLeft = { BorderData(colorMainBorder, LineStyle.Solid, 0.px, 0.cssRem) }    // none
-        getStyleTableCaptionBorderTop = { BorderData(colorMainBorder, LineStyle.Solid, 0.px, 0.cssRem) }    // none
+        getStyleTableCaptionBorderLeft = { noBorder }
+        getStyleTableCaptionBorderTop = { noBorder }
         getStyleTableCaptionBorderRight = { BorderData(hsl(214, 6, 77), LineStyle.Solid, 1.px, 0.cssRem) }
-        getStyleTableCaptionBorderBottom = { BorderData(colorMainBorder, LineStyle.Solid, 0.px, 0.cssRem) } // none
+        getStyleTableCaptionBorderBottom = { noBorder }
         getStyleTableCaptionAlignH = { AlignItems.FlexStart }
         getStyleTableCaptionAlignV = { JustifyContent.FlexStart }
         getStyleTableCaptionFontSize = { (if (!styleIsNarrowScreen) 0.8 else 0.6).cssRem }
@@ -268,7 +274,7 @@ private class MMSRoot : Root(
         getStyleTableTextFontSize = { (if (!styleIsNarrowScreen) 0.8 else 0.6).cssRem }
 
         getColorTablePageBarCurrentBack = { colorBackOrange }
-        getStyleTablePageBarOtherBorder = { BorderData(getColorButtonBorder(), LineStyle.Solid, 0.px, styleButtonBorderRadius) }    // none
+        getStyleTablePageBarOtherBorder = { noBorder }
 
         getStyleTablePageButtonWidth = { buttonCount ->
             if (styleIsNarrowScreen) {
@@ -300,6 +306,13 @@ private class MMSRoot : Root(
             }
         }
 
+        getColorFormBack = { COLOR_MAIN_BACK_0 }
+        styleFormLabelWeight = "bold"
+        getColorFormButtonBack = { COLOR_MAIN_BACK_0 }
+        getStyleFormButtonBorder = { noBorder }
+        getColorFormActionButtonSaveBack = { colorBackGreen }
+        getColorFormActionButtonOtherBack = { colorBackOrange }
+        getStyleFormActionButtonBorder = { noBorder }
 
 
 
@@ -310,13 +323,6 @@ private class MMSRoot : Root(
 }
 
 /*
-        colorFormBack = { COLOR_MAIN_BACK_0 }
-        styleFormLabelWeight = { "bold" }
-        colorFormButtonBack = { COLOR_MAIN_BACK_0 }
-        styleFormButtonBorder = { "none" }
-        colorFormActionButtonSaveBack = { COLOR_BACK_GREEN }
-        colorFormActionButtonOtherBack = { COLOR_BACK_ORANGE }
-        styleFormActionButtonBorder = { "none" }
 
         colorGraphicToolbarBack = { COLOR_MAIN_BACK_0 }
 
