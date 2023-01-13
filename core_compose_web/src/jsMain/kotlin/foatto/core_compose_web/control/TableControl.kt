@@ -505,7 +505,8 @@ class TableControl(
                     ) {
                         when (gridData.cellType) {
                             TableCellType.CHECKBOX -> {
-                                CheckboxInput(gridData.booleanValue!!) {
+                                Input(InputType.Checkbox) {
+                                    checked(gridData.booleanValue!!)
                                     title(gridData.tooltip)
                                     style {
                                         gridData.elementStyle(this)
@@ -515,7 +516,6 @@ class TableControl(
                                     }
                                 }
                             }
-
                             TableCellType.TEXT -> {
                                 if (gridData.textCellData?.icon?.isNotEmpty() == true) {
                                     Img(
