@@ -49,9 +49,6 @@ private val arrStyleDialogButtonPadding: Array<CSSSize> = arrayOf(
 )
 //private val arrStyleDialogButtonMargin: Array<CSSSize> = arrayOf(1.0.cssRem, 0.cssRem, 0.cssRem, 0.cssRem)
 
-//var dialogActionFun: (that: dynamic) -> Unit = { _: dynamic -> }
-var dialogActionFun: () -> Unit = {}
-
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 const val LOCAL_STORAGE_APP_PARAM: String = "app_param"
@@ -73,9 +70,10 @@ open class Root(
     private val alControl = mutableStateListOf<AppControl>()
     private val waitCount = mutableStateOf(0)
 
-    private val showDialog = mutableStateOf(false)
-    private val showDialogCancel = mutableStateOf(false)
-    private val dialogQuestion = mutableStateOf("")
+    var dialogActionFun: () -> Unit = {}
+    var dialogQuestion: MutableState<String> = mutableStateOf("")
+    var showDialogCancel: MutableState<Boolean> = mutableStateOf(false)
+    var showDialog: MutableState<Boolean> = mutableStateOf(false)
     private val dialogButtonOkText = mutableStateOf("OK")
     private val dialogButtonCancelText = mutableStateOf("Отмена")
 
