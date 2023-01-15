@@ -50,7 +50,7 @@ private class OfficeIndex : Index() {
         colorWaitLoader2 = getHSL(OFFICE_FIRM_COLOR_2_H, OFFICE_FIRM_COLOR_2_S, 90)
         colorWaitLoader3 = getHSL(OFFICE_FIRM_COLOR_2_H, OFFICE_FIRM_COLOR_2_S, 95)
 
-        colorDialogBack = getHSLA(OFFICE_FIRM_COLOR_1_H, OFFICE_FIRM_COLOR_1_S, OFFICE_FIRM_COLOR_1_L, 0.75)
+        colorDialogBack = getHSLA(OFFICE_FIRM_COLOR_1_H, OFFICE_FIRM_COLOR_1_S, OFFICE_FIRM_COLOR_1_L, 0.95)
 
         colorGroupBack0 = { getHSL(OFFICE_FIRM_COLOR_3_H, 80, 90) }
         colorGroupBack1 = { getHSL(OFFICE_FIRM_COLOR_3_H, 80, 95) }

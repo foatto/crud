@@ -80,7 +80,7 @@ private class MMSRoot : Root(
         colorWaitLoader2 = hsl(MMS_FIRM_COLOR_1_H, MMS_FIRM_COLOR_1_S, 90)
         colorWaitLoader3 = hsl(MMS_FIRM_COLOR_1_H, MMS_FIRM_COLOR_1_S, 95)
 
-        colorDialogBack = hsla(MMS_FIRM_COLOR_1_H, MMS_FIRM_COLOR_1_S, MMS_FIRM_COLOR_1_L, 0.75)
+        colorDialogBack = hsla(MMS_FIRM_COLOR_1_H, MMS_FIRM_COLOR_1_S, MMS_FIRM_COLOR_1_L, 0.95)
 
         styleLogonTopExpanderContent =
             """

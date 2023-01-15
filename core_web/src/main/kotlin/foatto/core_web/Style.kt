@@ -96,6 +96,7 @@ private val CONTROL_BIG_PADDING = "0.95rem"
 fun styleControlTitleTextFontSize() = "${COMMON_FONT_SIZE}rem"
 fun styleControlTextFontSize() = "${COMMON_FONT_SIZE}rem"
 fun styleCommonButtonFontSize() = "${COMMON_FONT_SIZE}rem"
+fun styleDialogTextFontSize() = "${COMMON_FONT_SIZE + 2}rem"
 
 fun styleControlRadioTransform() = "scale(${if (!styleIsNarrowScreen) COMMON_FONT_SIZE * 1.5 else COMMON_FONT_SIZE})"
 
@@ -134,7 +135,7 @@ var colorWaitLoader3 = "hsl(60,100%,95%)"
 
 //--- DIALOG -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-var colorDialogBack = "hsla(0,0%,0%,0.75)"
+var colorDialogBack = "hsla(0,0%,0%,0.95)"
 var colorDialogBorder: () -> String = { colorMainBorder() }
 var colorDialogBackCenter: () -> String = { colorMainBack1 }
 var colorDialogButtonBack: () -> String = { colorButtonBack() }

@@ -53,7 +53,7 @@ private class ShopIndex : Index() {
         colorWaitLoader2 = getHSL(SHOP_FIRM_COLOR_1_H, SHOP_FIRM_COLOR_1_S, 90)
         colorWaitLoader3 = getHSL(SHOP_FIRM_COLOR_1_H, SHOP_FIRM_COLOR_1_S, 95)
 
-        colorDialogBack = getHSLA(SHOP_FIRM_COLOR_1_H, SHOP_FIRM_COLOR_1_S, SHOP_FIRM_COLOR_1_L, 0.75)
+        colorDialogBack = getHSLA(SHOP_FIRM_COLOR_1_H, SHOP_FIRM_COLOR_1_S, SHOP_FIRM_COLOR_1_L, 0.95)
 
         //--- менять здесь
         //styleDarkIcon = true

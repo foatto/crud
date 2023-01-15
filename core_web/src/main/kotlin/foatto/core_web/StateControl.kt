@@ -322,9 +322,9 @@ fun getStateComponentData() = json(
     ),
     "style_state_alert_text" to json(
         "align-self" to "center",
-        "font-size" to styleControlTextFontSize(),
+        "font-size" to styleDialogTextFontSize(),
         "font-weight" to "bold",
-        "color" to COLOR_MAIN_TEXT,
+        "color" to COLOR_MAIN_BACK_0,
     ),
 )
 

@@ -33,11 +33,13 @@ var colorWaitLoader3: CSSColorValue = hsl(60, 100, 95)
 
 //--- DIALOG ---------------------------------------------------------------------------------------------------------------------------------------------------
 
-var colorDialogBack: CSSColorValue = hsla(0, 0, 0, 0.75)
+var colorDialogBack: CSSColorValue = hsla(0, 0, 0, 0.95)
 private val getColorDialogBorder: () -> CSSColorValue = { colorMainBorder }
 private val getColorDialogBackCenter: () -> CSSColorValue = { colorMainBack1 }
 private val getColorDialogButtonBack: () -> CSSColorValue = { getColorButtonBack() }
 private val getColorDialogButtonBorder: () -> CSSColorValue = { colorMainBorder }
+
+private val styleDialogTextFontSize = (COMMON_FONT_SIZE.value + 2).cssRem
 
 private val styleDialogCellPadding: CSSSize = 1.0.cssRem
 private val arrStyleDialogControlPadding: Array<CSSSize> = arrayOf(0.4.cssRem, 0.cssRem, 0.4.cssRem, 0.cssRem)
@@ -270,9 +272,9 @@ open class Root(
                             attrs = {
                                 style {
                                     alignSelf(AlignSelf.Center)
-                                    fontSize(styleControlTextFontSize)
+                                    fontSize(styleDialogTextFontSize)
                                     fontWeight("bold")
-                                    color(COLOR_MAIN_TEXT)
+                                    color(COLOR_MAIN_BACK_0)
                                 }
                             }
                         ) {

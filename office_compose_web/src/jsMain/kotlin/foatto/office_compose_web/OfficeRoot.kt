@@ -61,7 +61,7 @@ private class OfficeRoot : Root(
         colorWaitLoader2 = hsl(OFFICE_FIRM_COLOR_2_H, OFFICE_FIRM_COLOR_2_S, 90)
         colorWaitLoader3 = hsl(OFFICE_FIRM_COLOR_2_H, OFFICE_FIRM_COLOR_2_S, 95)
 
-        colorDialogBack = hsla(OFFICE_FIRM_COLOR_1_H, OFFICE_FIRM_COLOR_1_S, OFFICE_FIRM_COLOR_1_L, 0.75)
+        colorDialogBack = hsla(OFFICE_FIRM_COLOR_1_H, OFFICE_FIRM_COLOR_1_S, OFFICE_FIRM_COLOR_1_L, 0.95)
 
         colorTableGroupBack0 = hsl(OFFICE_FIRM_COLOR_3_H, 80, 90)
         colorTableGroupBack1 = hsl(OFFICE_FIRM_COLOR_3_H, 80, 95)

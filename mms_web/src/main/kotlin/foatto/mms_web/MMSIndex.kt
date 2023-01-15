@@ -68,7 +68,7 @@ private class MMSIndex : Index() {
         colorWaitLoader2 = getHSL(MMS_FIRM_COLOR_1_H, MMS_FIRM_COLOR_1_S, 90)
         colorWaitLoader3 = getHSL(MMS_FIRM_COLOR_1_H, MMS_FIRM_COLOR_1_S, 95)
 
-        colorDialogBack = getHSLA(MMS_FIRM_COLOR_1_H, MMS_FIRM_COLOR_1_S, MMS_FIRM_COLOR_1_L, 0.75)
+        colorDialogBack = getHSLA(MMS_FIRM_COLOR_1_H, MMS_FIRM_COLOR_1_S, MMS_FIRM_COLOR_1_L, 0.95)
 
         styleLogonTopExpanderContent =
             """

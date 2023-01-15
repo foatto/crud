@@ -58,7 +58,7 @@ private class ShopRoot : Root(
         colorWaitLoader2 = hsl(SHOP_FIRM_COLOR_1_H, SHOP_FIRM_COLOR_1_S, 90)
         colorWaitLoader3 = hsl(SHOP_FIRM_COLOR_1_H, SHOP_FIRM_COLOR_1_S, 95)
 
-        colorDialogBack = hsla(SHOP_FIRM_COLOR_1_H, SHOP_FIRM_COLOR_1_S, SHOP_FIRM_COLOR_1_L, 0.75)
+        colorDialogBack = hsla(SHOP_FIRM_COLOR_1_H, SHOP_FIRM_COLOR_1_S, SHOP_FIRM_COLOR_1_L, 0.95)
 
         //--- менять здесь
         //styleDarkIcon = true
