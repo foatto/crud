@@ -185,7 +185,8 @@ class cObject : cStandart() {
             SensorConfigState.STATE_UNPASS_UP,
             SensorConfigState.STATE_WIRE_RUNOUT,
             SensorConfigState.STATE_DRIVE_PROTECT,
-            SensorConfigState.STATE_STOPPED_BY_SERVER -> {
+            SensorConfigState.STATE_STOPPED_BY_SERVER,
+            SensorConfigState.STATE_BLOCKED_BY_SERVER -> {
                 mObject.TROUBLE_ERROR
             }
 

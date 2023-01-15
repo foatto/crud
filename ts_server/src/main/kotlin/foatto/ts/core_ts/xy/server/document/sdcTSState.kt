@@ -220,6 +220,10 @@ class sdcTSState : sdcXyState() {
             //!!! предусмотреть кастомизацию сообщение в зависимости от типа объекта/устройства
             hmParams[STATE_ALERT_MESSAGE] = "Работа УДС-Техно остановлена.\nТребуется выезд на скважину для перезагрузки станции."
         }
+        else if (curState == SensorConfigState.STATE_BLOCKED_BY_SERVER) {
+            //!!! предусмотреть кастомизацию сообщение в зависимости от типа объекта/устройства
+            hmParams[STATE_ALERT_MESSAGE] = "Работа УДС-Техно заблокирована."
+        }
 
         alElement += createStateText(objectConfig.objectId, scale, x, y, "Подъём", SensorConfigState.STATE_UP, curState)
         y += GRID_STEP * 3 / 4
@@ -492,8 +496,8 @@ class sdcTSState : sdcXyState() {
                 scale = scale,
                 x = x,
                 y = y,
-                text = "\nСлепой подъём\n\n",
-                dialogQuestion = "Вы хотите запустить слепой подъем?",
+                text = "\nПодъём и парковка\n\n",
+                dialogQuestion = "Начать подъём и парковку?",
                 backColor = SensorConfigState.COLOR_PURPLE_BRIGHT,
             ).onEach { clickableText ->
                 //--- set command to this element
@@ -507,8 +511,8 @@ class sdcTSState : sdcXyState() {
                 scale = scale,
                 x = x,
                 y = y,
-                text = "\nНачать спуск\n\n",
-                dialogQuestion = "Вы хотите начать спуск?",
+                text = "\nРабочий цикл\n\n",
+                dialogQuestion = "Запустить рабочий цикл?",
                 backColor = SensorConfigState.COLOR_GREEN_BRIGHT,
             ).onEach { clickableText ->
                 chmElementCommand[clickableText.elementId] = DeviceCommand.CMD_START_DOWN
@@ -521,7 +525,7 @@ class sdcTSState : sdcXyState() {
                 x = x,
                 y = y,
                 text = "\nПерезапуск станции\n\n",
-                dialogQuestion = "Вы хотите перезапустить УДС?",
+                dialogQuestion = "Перезапустить станцию?",
                 backColor = SensorConfigState.COLOR_BLUE_BRIGHT,
             ).onEach { clickableText ->
                 chmElementCommand[clickableText.elementId] = DeviceCommand.CMD_RESTART
@@ -534,7 +538,7 @@ class sdcTSState : sdcXyState() {
                 x = x,
                 y = y,
                 text = "\nОстановить работу\n\n",
-                dialogQuestion = "Вы хотите остановить работу станции?",
+                dialogQuestion = "Остановить работу станции?",
                 backColor = SensorConfigState.COLOR_ORANGE_BRIGHT,
             ).onEach { clickableText ->
                 chmElementCommand[clickableText.elementId] = DeviceCommand.CMD_STOP

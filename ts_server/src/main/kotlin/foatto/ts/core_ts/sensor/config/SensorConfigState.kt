@@ -26,6 +26,7 @@ class SensorConfigState(
         val STATE_WIRE_RUNOUT = 22
         val STATE_DRIVE_PROTECT = 23
         val STATE_STOPPED_BY_SERVER = 24
+        val STATE_BLOCKED_BY_SERVER = 25
 
         val COLOR_UNKNOWN_BRIGHT = 0xFF_FF_00_00.toInt()
         val COLOR_UNKNOWN_DARK = 0xFF_80_00_00.toInt()
@@ -70,6 +71,7 @@ class SensorConfigState(
             STATE_WIRE_RUNOUT to StateInfo("Выбег проволоки", COLOR_RED_BRIGHT, COLOR_RED_DARK),
             STATE_DRIVE_PROTECT to StateInfo("Защита привода", COLOR_RED_BRIGHT, COLOR_RED_DARK),
             STATE_STOPPED_BY_SERVER to StateInfo("Остановка с сервера", COLOR_RED_BRIGHT, COLOR_RED_DARK),
+            STATE_BLOCKED_BY_SERVER to StateInfo("Блокировка с сервера", COLOR_RED_BRIGHT, COLOR_RED_DARK),
         )
 
         val alStateLegend = listOf(
