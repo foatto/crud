@@ -172,8 +172,8 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                     aLine.alGLD.minByOrNull { gld ->
                         gld.y
                     }?.let { minGLD ->
-                        if (minGLD.y < sca.minGraphicView + viewStep) {
-                            val minShift = ceil((sca.minGraphicView + viewStep - minGLD.y) / viewStep) * viewStep
+                        if (minGLD.y < sca.minGraphicView) {
+                            val minShift = ceil((sca.minGraphicView - minGLD.y) / viewStep) * viewStep
                             sca.minGraphicView - minShift
                         } else {
                             sca.minGraphicView
@@ -183,8 +183,8 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                     aLine.alGLD.maxByOrNull { gld ->
                         gld.y
                     }?.let { maxGLD ->
-                        if (maxGLD.y > sca.maxGraphicView - viewStep) {
-                            val maxShift = ceil((maxGLD.y - (sca.maxGraphicView - viewStep)) / viewStep) * viewStep
+                        if (maxGLD.y > sca.maxGraphicView) {
+                            val maxShift = ceil((maxGLD.y - sca.maxGraphicView) / viewStep) * viewStep
                             sca.maxGraphicView + maxShift
                         } else {
                             sca.maxGraphicView
