@@ -9,6 +9,7 @@ import foatto.core.link.AppResponse
 import foatto.core.link.LogonRequest
 import foatto.core.link.ResponseCode
 import foatto.core_compose_web.control.EmptyControl
+import foatto.core_compose_web.control.FormControl
 import foatto.core_compose_web.control.TableControl
 import foatto.core_compose_web.control.iControl
 import foatto.core_compose_web.link.invokeApp
@@ -270,8 +271,9 @@ class AppControl(
                                     }
                                     id("logon_2")
                                     checked(isRememberMe.value)
-                                    onInput { event ->
-                                        isRememberMe.value = event.value
+                                    //onInput { syntheticInputEvent -> - тоже можно
+                                    onChange { syntheticChangeEvent ->
+                                        isRememberMe.value = syntheticChangeEvent.value
                                     }
                                     onKeyUp { event ->
                                         if (event.key == "Enter") {
@@ -443,8 +445,11 @@ class AppControl(
                     }
 
                     ResponseCode.FORM.toString() -> {
-//                        curControl.value = formControl(appResponse.form!!, tabId)
+                        val formControl = FormControl(root, this, appResponse.form!!, tabId)
+                        curControl.value = formControl
                         responseCode.value = appResponse.code
+
+                        formControl.start()
                     }
 
                     ResponseCode.GRAPHIC.toString() -> {
