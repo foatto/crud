@@ -22,7 +22,13 @@ import org.jetbrains.compose.web.css.properties.borderRight
 import org.jetbrains.compose.web.css.properties.borderTop
 import org.jetbrains.compose.web.css.properties.userSelect
 import org.jetbrains.compose.web.css.properties.zIndex
-import org.jetbrains.compose.web.dom.*
+import org.jetbrains.compose.web.dom.Button
+import org.jetbrains.compose.web.dom.ContentBuilder
+import org.jetbrains.compose.web.dom.Div
+import org.jetbrains.compose.web.dom.Img
+import org.jetbrains.compose.web.dom.Input
+import org.jetbrains.compose.web.dom.Span
+import org.jetbrains.compose.web.dom.Text
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLSpanElement
 import kotlin.math.max
@@ -416,10 +422,10 @@ class TableControl(
                         onInput { event ->
                             findText.value = event.value
                         }
-//                        onKeyUp { event ->
-//                            if (event.key == "Enter") {
-//                                doFind(false)
-//                            }
+                        onKeyUp { event ->
+                            if (event.key == "Enter") {
+                                doFind(false)
+                            }
 //                                       v-on:keyup.up="doKeyUp()"
 //                                       v-on:keyup.down="doKeyDown()"
 //                                       v-on:keyup.home="doKeyHome()"
@@ -429,7 +435,7 @@ class TableControl(
 //                                       v-on:keyup.enter="doKeyEnter()"
 //                                       v-on:keyup.esc="doKeyEsc()"
 //                                       v-on:keyup.f4="closeTabById()"
-//                        }
+                        }
                     }
                     if (!styleIsNarrowScreen || !isFindTextVisible.value) {
                         Img(
@@ -516,6 +522,7 @@ class TableControl(
                                     }
                                 }
                             }
+
                             TableCellType.TEXT -> {
                                 if (gridData.textCellData?.icon?.isNotEmpty() == true) {
                                     Img(
@@ -1038,14 +1045,15 @@ class TableControl(
                 TableCellType.TEXT.toString() -> {
                     val icon = hmTableIcon[tc.textCellData.icon] ?: ""
                     //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
-                    var text = if (tc.textCellData.icon.isNotBlank() && icon.isBlank()) {
+                    val text = if (tc.textCellData.icon.isNotBlank() && icon.isBlank()) {
                         tc.textCellData.icon
                     } else {
-                        tc.textCellData.text.replace("\n", "<br>")
+                        tc.textCellData.text    //.replace("\n", "<br>")
                     }
-                    if (!tc.isWordWrap) {
-                        text = text.replace(" ", "&nbsp;")
-                    }
+                    //--- restore or finally remove word wrap?
+                    //if (!tc.isWordWrap) {
+                    //    text = text.replace(" ", "&nbsp;")
+                    //}
                     textCellData = TableTextCellData_(
                         icon = icon,
                         image = tc.textCellData.image,
@@ -1076,7 +1084,7 @@ class TableControl(
                         val text = if (cellData.icon.isNotBlank() && icon.isBlank()) {
                             cellData.icon
                         } else {
-                            cellData.text.replace("\n", "<br>")
+                            cellData.text   //.replace("\n", "<br>")
                         }
                         alButtonCellData.add(
                             TableButtonCellData_(
@@ -1118,11 +1126,12 @@ class TableControl(
                             var text = if (cellData.icon.isNotBlank() && icon.isBlank()) {
                                 cellData.icon
                             } else {
-                                cellData.text.replace("\n", "<br>")
+                                cellData.text   //.replace("\n", "<br>")
                             }
-                            if (!tc.isWordWrap) {
-                                text = text.replace(" ", "&nbsp;")
-                            }
+                            //--- restore or finally remove word wrap?
+                            //if (!tc.isWordWrap) {
+                            //    text = text.replace(" ", "&nbsp;")
+                            //}
                             alGridCellData.last().add(
                                 TableGridCellData_(
                                     icon = icon,
