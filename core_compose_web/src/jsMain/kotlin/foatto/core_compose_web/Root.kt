@@ -195,7 +195,7 @@ open class Root(
                             }
                         }
                     ) {
-                        Text("&nbsp;")
+                        Br()    //Text("&nbsp;")
                     }
                     Div(
                         attrs = {
@@ -224,7 +224,7 @@ open class Root(
                             }
                         }
                     ) {
-                        Text("&nbsp;")
+                        Br()    //Text("&nbsp;")
                     }
                 }
             }
@@ -253,7 +253,7 @@ open class Root(
                             }
                         }
                     ) {
-                        Text("&nbsp;")
+                        Br()    //Text("&nbsp;")
                     }
                     Div(
                         attrs = {
@@ -306,7 +306,7 @@ open class Root(
                             ) {
                                 Text(dialogButtonOkText.value)
                             }
-                            Text("&nbsp;")
+                            //Text("&nbsp;")
                             if (showDialogCancel.value) {
                                 Button(
                                     attrs = {
@@ -335,7 +335,7 @@ open class Root(
                             }
                         }
                     ) {
-                        Text("&nbsp;")
+                        Br()    //Text("&nbsp;")
                     }
                 }
             }
