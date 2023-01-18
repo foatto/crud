@@ -104,16 +104,25 @@ class mSensor : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
+        val analogSensors = setOf(
+            SensorConfig.SENSOR_DEPTH,
+            SensorConfig.SENSOR_SPEED,
+            SensorConfig.SENSOR_LOAD,
+            SensorConfig.SENSOR_TEMPERATURE_IN,
+            SensorConfig.SENSOR_TEMPERATURE_OUT,
+            SensorConfig.SENSOR_SIGNAL_LEVEL,
+        )
+
         //--- for smoothable sensors (counting and analog sensors)
 
         val columnSmoothMethod = ColumnComboBox(modelTableName, "smooth_method", "Метод сглаживания", SensorConfig.SMOOTH_METOD_MEDIAN).apply {
             addChoice(SensorConfig.SMOOTH_METOD_MEDIAN, "Медиана")
             addChoice(SensorConfig.SMOOTH_METOD_AVERAGE, "Среднее арифметическое")
-            addFormVisible(columnSensorType, false, setOf(SensorConfig.SENSOR_STATE))
+            addFormVisible(columnSensorType, true, analogSensors)
         }
 
         val columnSmoothTime = ColumnInt(modelTableName, "smooth_time", "Период сглаживания [мин]", 10, 0).apply {
-            addFormVisible(columnSensorType, false, setOf(SensorConfig.SENSOR_STATE))
+            addFormVisible(columnSensorType, true, analogSensors)
         }
 
         //--- common for all sensors, except for geo and total sensors --------------------------------------------------------------------------------
@@ -127,7 +136,7 @@ class mSensor : mAbstract() {
             aDefaultValue = 0.0,
         ).apply {
             formPinMode = FormPinMode.OFF
-            addFormVisible(columnSensorType, false, setOf(SensorConfig.SENSOR_STATE))
+            addFormVisible(columnSensorType, true, analogSensors)
         }
 
         val columnIgnoreMax = ColumnDouble(
@@ -138,42 +147,42 @@ class mSensor : mAbstract() {
             aPrecision = -1,
             aDefaultValue = Integer.MAX_VALUE.toDouble(),
         ).apply {
-            addFormVisible(columnSensorType, false, setOf(SensorConfig.SENSOR_STATE))
+            addFormVisible(columnSensorType, true, analogSensors)
         }
 
         //--- analog / measuring sensors ---------------------------------------------------------------------------------
 
         val columnAnalogMinView = ColumnDouble(modelTableName, "analog_min_view", "Минимальное отображаемое значение на графике", 10, 3, 0.0).apply {
             formPinMode = FormPinMode.OFF
-            addFormVisible(columnSensorType, false, setOf(SensorConfig.SENSOR_STATE))
+            addFormVisible(columnSensorType, true, analogSensors)
         }
 
         val columnAnalogMaxView = ColumnDouble(modelTableName, "analog_max_view", "Максимальное отображаемое значение на графике", 10, 3, 100.0).apply {
-            addFormVisible(columnSensorType, false, setOf(SensorConfig.SENSOR_STATE))
+            addFormVisible(columnSensorType, true, analogSensors)
         }
 
         val columnAnalogMinLimit = ColumnDouble(modelTableName, "analog_min_limit", "Минимальное рабочее значение на графике", 10, 3, 0.0).apply {
             formPinMode = FormPinMode.OFF
-            addFormVisible(columnSensorType, false, setOf(SensorConfig.SENSOR_STATE))
+            addFormVisible(columnSensorType, true, analogSensors)
         }
 
         val columnAnalogMaxLimit = ColumnDouble(modelTableName, "analog_max_limit", "Максимальное рабочее значение на графике", 10, 3, 100.0).apply {
-            addFormVisible(columnSensorType, false, setOf(SensorConfig.SENSOR_STATE))
+            addFormVisible(columnSensorType, true, analogSensors)
         }
 
         val columnStateMinView = ColumnDouble(modelTableName, "state_min_view", "Минимальное отображаемое значение на шкале", 10, 3, 0.0).apply {
             formPinMode = FormPinMode.OFF
-            addFormVisible(columnSensorType, false, setOf(SensorConfig.SENSOR_STATE))
+            addFormVisible(columnSensorType, true, analogSensors)
         }
 
         val columnStateMaxView = ColumnDouble(modelTableName, "state_max_view", "Максимальное отображаемое значение на шкале", 10, 3, 100.0).apply {
-            addFormVisible(columnSensorType, false, setOf(SensorConfig.SENSOR_STATE))
+            addFormVisible(columnSensorType, true, analogSensors)
         }
 
         //--- any calibrable sensors ---
 
         columnCalibrationText = ColumnString(modelTableName, "_calibration_text", "Тарировка датчика", 20, STRING_COLUMN_WIDTH, 64000).apply {
-            addFormVisible(columnSensorType, false, setOf(SensorConfig.SENSOR_STATE))
+            addFormVisible(columnSensorType, true, analogSensors)
             isVirtual = true
         }
 
