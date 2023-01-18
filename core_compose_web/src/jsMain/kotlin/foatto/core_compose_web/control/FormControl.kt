@@ -2,7 +2,10 @@ package foatto.core_compose_web.control
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.toMutableStateList
 import foatto.core.app.*
 import foatto.core.link.AppRequest
 import foatto.core.link.FormCell
@@ -10,23 +13,25 @@ import foatto.core.link.FormCellType
 import foatto.core.link.FormData
 import foatto.core.link.FormPinMode
 import foatto.core.link.FormResponse
+import foatto.core.util.getRandomInt
 import foatto.core_compose_web.AppControl
 import foatto.core_compose_web.Root
+import foatto.core_compose_web.link.invokeUploadFormFile
 import foatto.core_compose_web.style.*
 import kotlinx.browser.document
-import org.jetbrains.compose.web.attributes.InputType
-import org.jetbrains.compose.web.attributes.cols
-import org.jetbrains.compose.web.attributes.disabled
-import org.jetbrains.compose.web.attributes.multiple
-import org.jetbrains.compose.web.attributes.readOnly
-import org.jetbrains.compose.web.attributes.rows
-import org.jetbrains.compose.web.attributes.size
+import org.jetbrains.compose.web.ExperimentalComposeWebApi
+import org.jetbrains.compose.web.attributes.*
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.css.properties.appearance
 import org.jetbrains.compose.web.css.properties.borderBottom
 import org.jetbrains.compose.web.css.properties.borderTop
 import org.jetbrains.compose.web.dom.*
+import org.jetbrains.compose.web.events.SyntheticFocusEvent
+import org.jetbrains.compose.web.events.SyntheticKeyboardEvent
 import org.w3c.dom.HTMLElement
+import org.w3c.dom.HTMLInputElement
+import org.w3c.dom.asList
+import org.w3c.files.FileList
 import kotlin.math.max
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -86,12 +91,8 @@ class FormControl(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-// mutable state data
-
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     private val alTitleData = mutableListOf<FormTitleData>()
-    private val alGridData = mutableListOf<FormGridData>()
+    private val alGridData = mutableStateListOf<FormGridData>()
 
     private val hmFormCellVisible = mutableMapOf<Int, MutableList<FormCellVisibleInfo>>()
     private val hmFormCellCaption = mutableMapOf<Int, MutableList<FormCellCaptionInfo>>()
@@ -105,6 +106,7 @@ class FormControl(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    @OptIn(ExperimentalComposeWebApi::class)
     @Composable
     override fun getBody() {
         Div(
@@ -200,7 +202,7 @@ class FormControl(
                                     gridData.styleAdd(this)
                                 }
                                 if (!gridData.isVisible.value) {
-                                    hidden()    //!!! точно ли подходящий способ???
+                                    hidden()
                                 }
                             }
                         ) {
@@ -214,7 +216,11 @@ class FormControl(
                                             }
                                         }
                                     ) {
-                                        Text(gridData.text.value)
+                                        if (gridData.text.value == BR) {
+                                            Br()
+                                        } else {
+                                            Text(gridData.text.value)
+                                        }
                                     }
                                 }
 
@@ -233,27 +239,21 @@ class FormControl(
                                             padding(styleCommonEditorPadding)
                                             setMargins(arrStyleCommonMargin)
                                         }
-                                        id("'i_${tabId}_${gridData.id}")
+                                        id(getFocusId(gridData.id))
                                         size(gridData.colCount)
                                         if (gridData.isReadOnly) {
                                             readOnly()
                                         }
                                         value(gridData.text.value)
-                                        onInput { event ->
-                                            gridData.text.value = event.value
+                                        onInput { syntheticInputEvent ->
+                                            gridData.text.value = syntheticInputEvent.value
                                         }
-//                                        onFocusIn {
-//                                            selectAllText($ { '$' } event )
-//                                        }
-//                                        onKeyUp { event ->
-//                                            if (event.key == "Enter") {
-//                                                doNextFocus(0)
-//                                            }
-//                           v-on:keyup.enter.exact="doNextFocus( gridData.id, -1 )"
-//                           v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true, null ) : null"
-//                           v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false, null ) : null"
-//                           v-on:keyup.f4="closeTabById()"
-//                                        }
+                                        onFocusIn { syntheticFocusEvent ->
+                                            selectAllText(syntheticFocusEvent)
+                                        }
+                                        onKeyUp { syntheticKeyboardEvent ->
+                                            doKeyUp(gridData, syntheticKeyboardEvent)
+                                        }
                                     }
                                 }
 
@@ -266,21 +266,20 @@ class FormControl(
                                             padding(styleCommonEditorPadding)
                                             setMargins(arrStyleCommonMargin)
                                         }
-                                        id("'i_${tabId}_${gridData.id}")
+                                        id(getFocusId(gridData.id))
                                         rows(gridData.rowCount)
                                         cols(gridData.colCount)
                                         if (gridData.isReadOnly) {
                                             readOnly()
                                         }
                                         value(gridData.text.value)
-                                        onInput { event ->
-                                            gridData.text.value = event.value
+                                        onInput { syntheticInputEvent ->
+                                            gridData.text.value = syntheticInputEvent.value
+                                        }
+                                        onKeyUp { syntheticKeyboardEvent ->
+                                            doKeyUp(gridData, syntheticKeyboardEvent)
                                         }
                                     }
-//                              v-on:keyup.enter.exact="doNextFocus( gridData.id, -1 )"
-//                              v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true, null ) : null"
-//                              v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false, null ) : null"
-//                              v-on:keyup.f4="closeTabById()"
                                 }
 
                                 FormCellTypeClient.CHECKBOX -> {
@@ -292,24 +291,21 @@ class FormControl(
                                             setBorder(getStyleCheckBoxBorder())
                                             margin(styleFormCheckboxAndRadioMargin)
                                         }
-                                        id("'i_${tabId}_${gridData.id}")
+                                        id(getFocusId(gridData.id))
                                         if (gridData.isReadOnly) {
                                             readOnly()
                                         }
                                         checked(gridData.bool.value)
-                                        onInput { event ->
-                                            gridData.bool.value = event.value
+                                        //onInput { syntheticInputEvent -> - тоже можно
+                                        onChange { syntheticChangeEvent ->
+                                            gridData.bool.value = syntheticChangeEvent.value
+                                            if (!gridData.isReadOnly) {
+                                                doVisibleAndCaptionChange(gridData)
+                                            }
                                         }
-//                                        onKeyUp { event ->
-//                                            if (event.key == "Enter") {
-//                                                doNextFocus(2)
-//                                            }
-//                                        }
-//                           v-on:keyup.enter.exact="doNextFocus( gridData.id, -1 )"
-//                           v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true, null ) : null"
-//                           v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false, null ) : null"
-//                           v-on:keyup.f4="closeTabById()"
-//                           v-on:change="gridData.itReadOnly ? null : doVisibleAndCaptionChange( gridData )"
+                                        onKeyUp { syntheticKeyboardEvent ->
+                                            doKeyUp(gridData, syntheticKeyboardEvent)
+                                        }
                                     }
                                 }
 
@@ -329,16 +325,20 @@ class FormControl(
                                                 padding(styleFileNameButtonPadding)
                                                 cursor("pointer")
                                             }
-                                            id("'i_${tabId}_${gridData.id}_0")
+                                            id(getFocusId(gridData.id, 0))
                                             if (gridData.isReadOnly) {
                                                 disabled()
                                             }
                                             title(gridData.alSwitchText[0])
-//                            <button v-on:click="gridData.itReadOnly || !gridData.bool ? null : doVisibleAndCaptionChange( gridData )"
-//                                    v-on:keyup.enter.exact="doNextFocus( gridData.id, -1 )"
-//                                    v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true, null ) : null"
-//                                    v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false, null ) : null"
-//                                    v-on:keyup.f4="closeTabById()"
+                                            onClick {
+                                                if (!(gridData.isReadOnly || !gridData.bool.value)) {
+                                                    gridData.bool.value = !gridData.bool.value
+                                                    doVisibleAndCaptionChange(gridData)
+                                                }
+                                            }
+                                            onKeyUp { syntheticKeyboardEvent ->
+                                                doKeyUp(gridData, syntheticKeyboardEvent)
+                                            }
                                         }
                                     ) {
                                         Text(gridData.alSwitchText[0])
@@ -359,16 +359,20 @@ class FormControl(
                                                 padding(styleFileNameButtonPadding)
                                                 cursor("pointer")
                                             }
-                                            id("'i_${tabId}_${gridData.id}_1")
+                                            id(getFocusId(gridData.id, 1))
                                             if (gridData.isReadOnly) {
                                                 disabled()
                                             }
                                             title(gridData.alSwitchText[1])
-//                            <button v-on:click="gridData.itReadOnly || gridData.bool ? null : doVisibleAndCaptionChange( gridData )"
-//                                    v-on:keyup.enter.exact="doNextFocus( gridData.id, -1 )"
-//                                    v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true, null ) : null"
-//                                    v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false, null ) : null"
-//                                    v-on:keyup.f4="closeTabById()"
+                                            onClick {
+                                                if (!(gridData.isReadOnly || gridData.bool.value)) {
+                                                    gridData.bool.value = !gridData.bool.value
+                                                    doVisibleAndCaptionChange(gridData)
+                                                }
+                                            }
+                                            onKeyUp { syntheticKeyboardEvent ->
+                                                doKeyUp(gridData, syntheticKeyboardEvent)
+                                            }
                                         }
                                     ) {
                                         Text(gridData.alSwitchText[1])
@@ -385,7 +389,7 @@ class FormControl(
                                                 padding(styleCommonEditorPadding)
                                                 setMargins(arrStyleCommonMargin)
                                             }
-                                            id("'i_${tabId}_${gridData.id}_${gridData.alSubId[index]}")
+                                            id(getFocusId(gridData.id, gridData.alSubId?.get(index)))
                                             size(
                                                 if (index == 2 && gridData.cellType != FormCellTypeClient.TIME) {
                                                     2
@@ -397,18 +401,17 @@ class FormControl(
                                                 readOnly()
                                             }
                                             value(gridData.alDateTime[index].value)
-                                            onInput { event ->
-                                                gridData.alDateTime[index].value = event.value
+                                            onInput { syntheticInputEvent ->
+                                                gridData.alDateTime[index].value = syntheticInputEvent.value
                                             }
-//                                            onFocusIn {
-//                                                selectAllText($ { '$' } event )
-//                                            }
+                                            onFocusIn { syntheticFocusEvent ->
+                                                selectAllText(syntheticFocusEvent)
+                                            }
+                                            onKeyUp { syntheticKeyboardEvent ->
+                                                doKeyUp(gridData, syntheticKeyboardEvent)
+                                            }
                                         }
                                     }
-//                               v-on:keyup.enter.exact="doNextFocus( gridData.id, gridData.arrSubId[index] )"
-//                               v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true, null ) : null"
-//                               v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false, null ) : null"
-//                               v-on:keyup.f4="closeTabById()"
                                 }
 
                                 FormCellTypeClient.COMBO -> {
@@ -419,57 +422,78 @@ class FormControl(
                                                 padding(styleCommonEditorPadding)
                                                 setMargins(arrStyleCommonMargin)
                                             }
-                                            id("'i_${tabId}_${gridData.id}")
+                                            id(getFocusId(gridData.id))
                                             if (gridData.isReadOnly) {
                                                 disabled()
                                             }
-//                        <select v-model="gridData.combo"
-//                                v-on:change="gridData.itReadOnly ? null : doVisibleAndCaptionChange( gridData )"
-//                                v-on:keyup.enter.exact="doNextFocus( gridData.id, -1 )"
-//                                v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true, null ) : null"
-//                                v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false, null ) : null"
-//                                v-on:keyup.f4="closeTabById()"
+                                            //onInput { syntheticInputEvent -> - тоже можно
+                                            onChange { syntheticChangeEvent ->
+                                                if (!gridData.isReadOnly) {
+                                                    syntheticChangeEvent.value?.let { value ->
+                                                        gridData.combo.value = value.toInt()
+                                                        doVisibleAndCaptionChange(gridData)
+                                                    }
+                                                }
+                                            }
+                                            onKeyUp { syntheticKeyboardEvent ->
+                                                doKeyUp(gridData, syntheticKeyboardEvent)
+                                            }
                                         }
                                     ) {
-//                            <option v-for="comboData in gridData.arrComboData"
-//                                    v-bind:value="comboData.value"
-//                            >
-//                                {{ comboData.text }}
-//                            </option>
+                                        for (comboData in gridData.alComboData) {
+                                            Option(
+                                                value = comboData.value.toString(),
+                                                attrs = {
+                                                    if (gridData.combo.value == comboData.value) {
+                                                        selected()
+                                                    }
+                                                }
+                                            ) {
+                                                Text(comboData.text)
+                                            }
+                                        }
                                     }
                                 }
 
                                 FormCellTypeClient.RADIO -> {
-                                    gridData.alComboData.forEachIndexed { index, comboData ->
-                                        Input(InputType.Radio) {
-                                            style {
-//                                                transform {
-//                        "transform" to styleControlRadioTransform(),
-//                                                }
-                                                margin(styleFormCheckboxAndRadioMargin)
-                                            }
-                                            id("'i_${tabId}_${gridData.id}_${gridData.alSubId[index]}")
-                                            if (gridData.isReadOnly) {
-                                                readOnly()
-                                            }
-//                                   v-model="gridData.combo"
-//                                   v-bind:value="comboData.value"
-//                                   v-on:change="gridData.itReadOnly ? null : doVisibleAndCaptionChange( gridData )"
-//                                   v-on:keyup.enter.exact="doNextFocus( gridData.id, gridData.arrSubId[index] )"
-//                                   v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true, null ) : null"
-//                                   v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false, null ) : null"
-//                                   v-on:keyup.f4="closeTabById()"
-                                        }
-                                        Span(
-                                            attrs = {
+                                    RadioGroup(
+                                        checkedValue = gridData.combo.value.toString(),
+                                    ) {
+                                        gridData.alComboData.forEachIndexed { index, comboData ->
+                                            RadioInput(
+                                                value = comboData.value.toString(),
+                                            ) {
                                                 style {
-                                                    fontSize(styleControlTextFontSize)
+                                                    //                                                transform {
+                                                    //                        "transform" to styleControlRadioTransform(),
+                                                    //                                                }
+                                                    margin(styleFormCheckboxAndRadioMargin)
+                                                }
+                                                id(getFocusId(gridData.id, gridData.alSubId?.get(index)))
+                                                if (gridData.isReadOnly) {
+                                                    readOnly()
+                                                }
+                                                onInput { syntheticInputEvent ->
+                                                    gridData.combo.value = comboData.value
+                                                    if (!gridData.isReadOnly) {
+                                                        doVisibleAndCaptionChange(gridData)
+                                                    }
+                                                }
+                                                onKeyUp { syntheticKeyboardEvent ->
+                                                    doKeyUp(gridData, syntheticKeyboardEvent)
                                                 }
                                             }
-                                        ) {
-                                            Text(comboData.text)
+                                            Span(
+                                                attrs = {
+                                                    style {
+                                                        fontSize(styleControlTextFontSize)
+                                                    }
+                                                }
+                                            ) {
+                                                Text(comboData.text)
+                                            }
+                                            Br()
                                         }
-                                        Br()
                                     }
                                 }
 
@@ -500,12 +524,15 @@ class FormControl(
                                                     if (fileData.id < 0) {
                                                         disabled()
                                                     }
+                                                    onClick {
+                                                        if (fileData.id >= 0) {
+                                                            showFile(fileData.url)
+                                                        }
+                                                    }
+                                                    onKeyUp { syntheticKeyboardEvent ->
+                                                        doKeyUp(gridData, syntheticKeyboardEvent)
+                                                    }
                                                 }
-//                            <button v-on:click="fileData.id < 0 ? null : showFile( fileData.url )"
-//                                    v-on:keyup.enter.exact="doNextFocus( gridData.id, -1 )"
-//                                    v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true, null ) : null"
-//                                    v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false, null ) : null"
-//                                    v-on:keyup.f4="closeTabById()"
                                             ) {
                                                 Text(fileData.text)
                                             }
@@ -522,7 +549,12 @@ class FormControl(
                                                             cursor("pointer")
                                                         }
                                                         title("Удалить файл")
-//                                 v-on:click="deleteFile( gridData, fileData )"
+                                                        onClick {
+                                                            deleteFile(gridData, fileData)
+                                                        }
+                                                        onKeyUp { syntheticKeyboardEvent ->
+                                                            doKeyUp(gridData, syntheticKeyboardEvent)
+                                                        }
                                                     }
                                                 )
                                             }
@@ -533,9 +565,13 @@ class FormControl(
                                         style {
                                             display(DisplayStyle.None)
                                         }
-                                        id("fileInput")
+                                        id(getFocusId(gridData.id))
                                         multiple()
-//                               v-on:change="addFile( gridData, ${'$'}event )"
+                                        onInput { syntheticInputEvent ->
+                                            //filePath = it.value - from examples
+                                            val files = (syntheticInputEvent.target as? HTMLInputElement)?.files
+                                            addFile(gridData, files)
+                                        }
                                     }
                                     if (!gridData.isReadOnly) {
                                         Button(
@@ -549,11 +585,12 @@ class FormControl(
                                                     cursor("pointer")
                                                 }
                                                 title("Добавить файл(ы)")
-//                                v-on:click="addFileDialog('fileInput')"
-//                                v-on:keyup.enter.exact="doNextFocus( gridData.id, -1 )"
-//                                v-on:keyup.enter.ctrl.exact="formSaveURL ? invoke( formSaveURL, true, null ) : null"
-//                                v-on:keyup.esc.exact="formExitURL ? invoke( formExitURL, false, null ) : null"
-//                                v-on:keyup.f4="closeTabById()"
+                                                onClick {
+                                                    addFileDialog(getFocusId(gridData.id))
+                                                }
+                                                onKeyUp { syntheticKeyboardEvent ->
+                                                    doKeyUp(gridData, syntheticKeyboardEvent)
+                                                }
                                             }
                                         ) {
                                             Text("Добавить файл(ы)")
@@ -562,7 +599,7 @@ class FormControl(
                                 }
                             }
 
-                            if (gridData.selectorSetURL.isEmpty()) {
+                            if (gridData.selectorSetURL.isNotEmpty()) {
                                 Img(
                                     src = "/web/images/ic_reply_black_48dp.png",
                                     attrs = {
@@ -578,11 +615,14 @@ class FormControl(
                                         onClick {
                                             call(gridData.selectorSetURL, true, null)
                                         }
+                                        onKeyUp { syntheticKeyboardEvent ->
+                                            doKeyUp(gridData, syntheticKeyboardEvent)
+                                        }
                                     }
                                 )
                             }
 
-                            if (gridData.selectorClearURL.isEmpty()) {
+                            if (gridData.selectorClearURL.isNotEmpty()) {
                                 Img(
                                     src = "/web/images/ic_delete_forever_black_48dp.png",
                                     attrs = {
@@ -597,6 +637,9 @@ class FormControl(
                                         title("Очистить выбор")
                                         onClick {
                                             call(gridData.selectorClearURL, true, null)
+                                        }
+                                        onKeyUp { syntheticKeyboardEvent ->
+                                            doKeyUp(gridData, syntheticKeyboardEvent)
                                         }
                                     }
                                 )
@@ -706,7 +749,7 @@ class FormControl(
         val alFormCellMasterPreAction = mutableListOf<FormGridData>()
         var autoClickUrl: String? = null
 
-        rowIndex = getGridFormCaptions(formResponse.alFormColumn, rowIndex, 0, alGridData)
+        rowIndex = getGridFormTopBottomCaptions(formResponse.alFormColumn, rowIndex, 0, alGridData)
         //--- с запасом отдадим предыдущую сотню id-шек на построение grid-заголовков
         var gridCellId = 100
 
@@ -714,7 +757,7 @@ class FormControl(
         for (formCell in formResponse.alFormCell) {
             //--- поле без заголовка считается невидимым (hidden)
             if (formCell.caption.isEmpty()) {
-                val formGridData = getFormGridData(
+                val formGridData = getFormDataCell(
                     formCell = formCell,
                     gridCellId = gridCellId,
                     itHidden = true
@@ -760,20 +803,10 @@ class FormControl(
                 } else {
                     //--- добавим разделитель для отвязки от предыдущего блока полей ввода
                     rowIndex++
-
-                    val emptyCell = FormGridData(
-                        id = gridCellId,
-                        cellType = FormCellTypeClient.LABEL,
-                        style = {
-                            gridArea("${rowIndex + 1}", "1", "${rowIndex + 2}", "2")
-                        },
-                        styleAdd = {},
-                        aText = "<br>",
-                    )
+                    val emptyCell = getFormEmptyCell(gridCellId, rowIndex)
 
                     alGridData.add(emptyCell)
-                    alSlaveId.add(gridCellId)
-                    gridCellId++
+                    alSlaveId.add(gridCellId++)
 
                     rowIndex++
                 }
@@ -782,51 +815,11 @@ class FormControl(
             //--- если это обычная форма или первое поле в строке GRID-формы, то добавляем левый заголовок поля
             var captionGridCell: FormGridData? = null
             if (formResponse.alFormColumn.isEmpty() || columnNo == 0) {
-                val isWideOrGrid = !styleIsNarrowScreen || formResponse.alFormColumn.isNotEmpty()
-                captionGridCell = FormGridData(
-                    id = gridCellId,
-                    cellType = FormCellTypeClient.LABEL,
-                    style = {
-                        gridArea("${rowIndex + 1}", "${columnIndex + 1}", "${rowIndex + 2}", "${columnIndex + 2}")
-                        justifySelf(
-                            if (isWideOrGrid) {
-                                "flex-end"
-                            } else {
-                                "flex-start"
-                            }
-                        )
-                        alignSelf(AlignSelf.Center)
-                        paddingTop(
-                            if (isWideOrGrid) {
-                                styleFormRowTopBottomPadding
-                            } else {
-                                styleFormLabelPadding
-                            }
-                        )
-                        paddingRight(
-                            if (isWideOrGrid) {
-                                styleFormRowPadding
-                            } else {
-                                0.px
-                            }
-                        )
-                        paddingBottom(styleFormRowTopBottomPadding)
-                        paddingLeft(
-                            if (isWideOrGrid) {
-                                0.px
-                            } else {
-                                styleFormLabelPadding
-                            }
-                        )
-                    },
-                    styleAdd = {},
-                    aText = formCell.caption,
-                )
+                captionGridCell = getFormLabelCell(formCell, gridCellId, rowIndex, columnIndex)
 
                 alGridData.add(captionGridCell)
+                alSlaveId.add(gridCellId++)
 
-                alSlaveId.add(gridCellId)
-                gridCellId++
                 //--- если это широкий экран или строка GRID-формы
                 if (!styleIsNarrowScreen || formResponse.alFormColumn.isNotEmpty()) {
                     columnIndex++
@@ -835,7 +828,7 @@ class FormControl(
                 }
             }
 
-            val formGridData = getFormGridData(
+            val formGridData = getFormDataCell(
                 formCell = formCell,
                 gridCellId = gridCellId,
                 itHidden = false,
@@ -847,19 +840,11 @@ class FormControl(
             if (!getStyleIsTouchScreen()) {
                 //--- set autofocus from server
                 if (formCell.itAutoFocus) {
-                    autoFocusId = if (formGridData.alSubId.isNotEmpty()) {
-                        "i_${tabId}_${formGridData.id}_${formGridData.alSubId[0]}"
-                    } else {
-                        "i_${tabId}_${formGridData.id}"
-                    }
+                    autoFocusId = getFocusId(formGridData.id, formGridData.alSubId?.get(0))
                 }
                 //--- automatic autofocus setting
                 else if (autoFocusId == null && !formGridData.isReadOnly) {
-                    autoFocusId = if (formGridData.alSubId.isNotEmpty()) {
-                        "i_${tabId}_${formGridData.id}_${formGridData.alSubId[0]}"
-                    } else {
-                        "i_${tabId}_${formGridData.id}"
-                    }
+                    autoFocusId = getFocusId(formGridData.id, formGridData.alSubId?.get(0))
                 }
             }
             alGridData.add(formGridData)
@@ -901,8 +886,7 @@ class FormControl(
                     alFormCellMasterPreAction.add(formGridData)
                 }
             }
-            alSlaveId.add(gridCellId)
-            gridCellId++
+            alSlaveId.add(gridCellId++)
 
             columnNo++
 
@@ -916,16 +900,11 @@ class FormControl(
             //--- если это последнее поле в строке GRID-формы, то добавляем правый заголовок поля
             if (formResponse.alFormColumn.isNotEmpty() && columnNo == formResponse.columnCount) {
                 alGridData.add(
-                    FormGridData(
-                        id = gridCellId++,
-                        cellType = FormCellTypeClient.LABEL,
-                        style = {
-                            gridArea("${rowIndex + 1}", "${columnIndex + 1}", "${rowIndex + 2}", "${columnIndex + 2}")
-                            justifySelf("flex-start")
-                            alignSelf(AlignSelf.Center)
-                        },
-                        styleAdd = {},
-                        aText = formCell.caption,
+                    getGridFormRightCaption(
+                        formCell = formCell,
+                        gridCellId = gridCellId++,
+                        rowIndex = rowIndex,
+                        columnIndex = columnIndex,
                     )
                 )
 
@@ -961,7 +940,7 @@ class FormControl(
 
             maxColumnCount = max(maxColumnCount, columnIndex)
         }
-        rowIndex = getGridFormCaptions(formResponse.alFormColumn, rowIndex + 1, gridCellId, alGridData)
+        rowIndex = getGridFormTopBottomCaptions(formResponse.alFormColumn, rowIndex + 1, gridCellId, alGridData)
 
         formResponse.alFormButton.forEach { formButton ->
             val icon = hmFormIcon[formButton.iconName] ?: ""
@@ -1001,7 +980,7 @@ class FormControl(
 
         //--- начальные установки видимости и caption-зависимостей
         for (gridData in alFormCellMasterPreAction) {
-            doVisibleAndCaptionChangeBody(gridData)
+            doVisibleAndCaptionChange(gridData)
         }
 
         autoClickUrl?.let { acUrl ->
@@ -1016,7 +995,7 @@ class FormControl(
         }
     }
 
-    private fun getGridFormCaptions(alFormColumn: Array<String>, aRowIndex: Int, aGridCellId: Int, alGridData: MutableList<FormGridData>): Int {
+    private fun getGridFormTopBottomCaptions(alFormColumn: Array<String>, aRowIndex: Int, aGridCellId: Int, alGridData: MutableList<FormGridData>): Int {
         var rowIndex = aRowIndex
         var gridCellId = aGridCellId
         //--- верхние/нижние заголовки столбцов GRID-формы
@@ -1044,7 +1023,85 @@ class FormControl(
         return rowIndex
     }
 
-    private fun getFormGridData(
+    private fun getGridFormRightCaption(
+        formCell: FormCell,
+        gridCellId: Int,
+        rowIndex: Int,
+        columnIndex: Int,
+    ) = FormGridData(
+        id = gridCellId,
+        cellType = FormCellTypeClient.LABEL,
+        style = {
+            gridArea("${rowIndex + 1}", "${columnIndex + 1}", "${rowIndex + 2}", "${columnIndex + 2}")
+            justifySelf("flex-start")
+            alignSelf(AlignSelf.Center)
+        },
+        styleAdd = {},
+        aText = formCell.caption,
+    )
+
+    private fun getFormEmptyCell(
+        gridCellId: Int,
+        rowIndex: Int,
+    ) = FormGridData(
+        id = gridCellId,
+        cellType = FormCellTypeClient.LABEL,
+        style = {
+            gridArea("${rowIndex + 1}", "1", "${rowIndex + 2}", "2")
+        },
+        styleAdd = {},
+        aText = BR,
+    )
+
+    private fun getFormLabelCell(
+        formCell: FormCell,
+        gridCellId: Int,
+        rowIndex: Int,
+        columnIndex: Int,
+    ): FormGridData {
+        val isWideOrGrid = !styleIsNarrowScreen || formResponse.alFormColumn.isNotEmpty()
+        return FormGridData(
+            id = gridCellId,
+            cellType = FormCellTypeClient.LABEL,
+            style = {
+                gridArea("${rowIndex + 1}", "${columnIndex + 1}", "${rowIndex + 2}", "${columnIndex + 2}")
+                justifySelf(
+                    if (isWideOrGrid) {
+                        "flex-end"
+                    } else {
+                        "flex-start"
+                    }
+                )
+                alignSelf(AlignSelf.Center)
+                paddingTop(
+                    if (isWideOrGrid) {
+                        styleFormRowTopBottomPadding
+                    } else {
+                        styleFormLabelPadding
+                    }
+                )
+                paddingRight(
+                    if (isWideOrGrid) {
+                        styleFormRowPadding
+                    } else {
+                        0.px
+                    }
+                )
+                paddingBottom(styleFormRowTopBottomPadding)
+                paddingLeft(
+                    if (isWideOrGrid) {
+                        0.px
+                    } else {
+                        styleFormLabelPadding
+                    }
+                )
+            },
+            styleAdd = {},
+            aText = formCell.caption,
+        )
+    }
+
+    private fun getFormDataCell(
         formCell: FormCell,
         gridCellId: Int,
         itHidden: Boolean,
@@ -1171,9 +1228,9 @@ class FormControl(
                     aAlDateTime = formCell.alDateTimeField.map { it.second },
                     isReadOnly = !formCell.itEditable,
                 ).apply {
-                    alSubId.clear()
+                    alSubId = mutableListOf()
                     alDateTime.indices.forEach { i ->
-                        alSubId += i
+                        alSubId?.add(i)
                     }
                 }
             }
@@ -1204,9 +1261,9 @@ class FormControl(
                     alComboData = formCell.alComboData.map { FormComboData(it.first, it.second) },
                     isReadOnly = !formCell.itEditable,
                 ).apply {
-                    alSubId.clear()
+                    alSubId = mutableListOf()
                     alComboData.indices.forEach { i ->
-                        alSubId += i
+                        alSubId?.add(i)
                     }
                 }
             }
@@ -1220,7 +1277,7 @@ class FormControl(
                     isHidden = itHidden,
                     error = formCell.errorMessage,
                     fileId = formCell.fileID,
-                    alFileData = formCell.alFile.map { FormFileData(it.first, it.second, it.third) },
+                    alFileData = formCell.alFile.map { FormFileData(it.first, it.second, it.third) }.toMutableStateList(),
                 )
             }
             //--- недогадливость (ошибка) парсера/компилятора из-за использования enum.toString() - на самом деле больше нет вариантов
@@ -1242,7 +1299,7 @@ class FormControl(
         return gridData
     }
 
-    private fun doVisibleAndCaptionChangeBody(gdMaster: FormGridData) {
+    private fun doVisibleAndCaptionChange(gdMaster: FormGridData) {
         //--- определение контрольного значения
         val controlValue =
             when (gdMaster.cellType) {
@@ -1274,7 +1331,6 @@ class FormControl(
 
                 else -> 0
             }
-
         hmFormCellVisible[gdMaster.id]?.let { alFCVI ->
             alFCVI.forEach { fcvi ->
                 alGridData.find { gd -> gd.id == fcvi.id }?.let { gdSlave ->
@@ -1294,121 +1350,134 @@ class FormControl(
         }
     }
 
-    /*
-            "selectAllText" to { event: Event ->
-                //--- программный селект текста на тачскринах вызывает показ надоедливого окошка с копированием/вырезанием текста (и так на каждый input)
-                if (!styleIsTouchScreen()) {
-                    (event.target as? HTMLInputElement)?.select()
-                }
-            },
-            "closeTabById" to {
-                that().`$root`.closeTabById(tabId)
-            },
-            "doVisibleAndCaptionChange" to { gdMaster: FormGridData ->
-                val that = that()
-                if (gdMaster.cellType == FormCellType_.SWITCH) {
-                    //--- из-за применения onlick
-                    Vue.nextTick {
-                        //--- manual switch because button realization instead standart checkbox
-                        gdMaster.bool = !gdMaster.bool
-                        doVisibleAndCaptionChangeBody(that, gdMaster)
+    private fun selectAllText(syntheticFocusEvent: SyntheticFocusEvent) {
+        //--- программный селект текста на тачскринах вызывает показ надоедливого окошка с копированием/вырезанием текста (и так на каждый input)
+        if (!getStyleIsTouchScreen()) {
+            (syntheticFocusEvent.target as? HTMLInputElement)?.select()
+        }
+    }
+
+    private fun doKeyUp(gridData: FormGridData, syntheticKeyboardEvent: SyntheticKeyboardEvent) {
+        when (syntheticKeyboardEvent.key) {
+            "Enter" -> {
+                if (syntheticKeyboardEvent.ctrlKey) {
+                    if (formSaveUrl.isNotEmpty()) {
+                        call(formSaveUrl, true, null)
                     }
                 } else {
-                    doVisibleAndCaptionChangeBody(that, gdMaster)
+                    doNextFocus(gridData.id, -1)
                 }
-            },
-            "showFile" to { url: String ->
-                that().`$root`.openTab(url)
-            },
-            "deleteFile" to { gridData: FormGridData, fileData: FormFileData ->
-                gridData.arrFileData = gridData.arrFileData!!.filter { it.id != fileData.id }.toTypedArray()
-                //--- сохраним ID удаляемого файла для передачи на сервер
-                if (fileData.id > 0) {
-                    gridData.alFileRemovedID.add(fileData.id)
+            }
+
+            "Escape" -> {
+                if (formExitUrl.isNotEmpty()) {
+                    call(formExitUrl, false, null)
                 }
-                //--- или просто удалим ранее добавленный файл из списка
-                else {
-                    gridData.hmFileAdd.remove(fileData.id)
-                }
-            },
-            "addFileDialog" to { id: String ->
-                (document.getElementById(id) as HTMLElement).click()
-            },
-            "addFile" to { gridData: FormGridData, event: Event ->
-                val files = (event.target as? HTMLInputElement)?.files
-                files?.let {
-                    val alFileData = gridData.arrFileData!!.toMutableList()
-                    val hmFileAdd = gridData.hmFileAdd
+            }
 
-                    val formData = org.w3c.xhr.FormData().also {
-                        for (file in files.asList()) {
-                            val id = -getRandomInt()
+            "F4" -> {
+                closeTabById()
+            }
+        }
+    }
 
-                            alFileData.add(FormFileData(id, "", file.name))
-                            hmFileAdd[id] = file.name
+    private fun doNextFocus(gridDataId: Int, gridDataSubId: Int) {
+        val curIndex = alGridData.indexOfFirst { formGridData ->
+            formGridData.id == gridDataId
+        }
 
-                            it.append("form_file_ids", id.toString())
-                            it.append("form_file_blobs", file)
-                        }
+        if (curIndex >= 0) {
+            val curGridData = alGridData[curIndex]
+
+            var nextGridId = -1
+            var nextSubGridId = -1
+
+            //--- try set focus to next sub-field into fields group (date/time-textfields or radio-buttons)
+            curGridData.alSubId?.let { alSubId ->
+                val curSubIndex = alSubId.indexOf(gridDataSubId)
+                if (curSubIndex >= 0) {
+                    if (curSubIndex < alSubId.lastIndex) {
+                        nextGridId = gridDataId
+                        nextSubGridId = alSubId[curSubIndex + 1]
                     }
-
-                    invokeUploadFormFile(formData)
-
-                    gridData.arrFileData = alFileData.toTypedArray()
                 }
-            },
-            "doNextFocus" to { gridDataId: Int, gridDataSubId: Int ->
-                val arrGridData = that().arrGridData.unsafeCast<Array<FormGridData>>()
-
-                val curIndex = arrGridData.indexOfFirst { formGridData ->
-                    formGridData.id == gridDataId
+            }
+            //--- else try set focus to next field or first sub-field in next field
+            if (nextGridId == -1 && nextSubGridId == -1) {
+                if (curIndex < alGridData.lastIndex) {
+                    var nextIndex = curIndex + 1
+                    //--- search non-label element
+                    while (nextIndex <= alGridData.lastIndex && alGridData[nextIndex].cellType == FormCellTypeClient.LABEL) {
+                        nextIndex++
+                    }
+                    val nextGridData = alGridData[nextIndex]
+                    nextGridId = nextGridData.id
+                    nextSubGridId = nextGridData.alSubId?.firstOrNull() ?: -1
                 }
+            }
 
-                if (curIndex >= 0) {
-                    val curGridData = arrGridData[curIndex]
-
-                    var nextGridId = -1
-                    var nextSubGridId = -1
-
-                    //--- try set focus to next sub-field into fields group (date/time-textfields or radio-buttons)
-                    curGridData.arrSubId?.let { arrSubId ->
-                        val curSubIndex = arrSubId.indexOf(gridDataSubId)
-                        if (curSubIndex >= 0) {
-                            if (curSubIndex < arrSubId.lastIndex) {
-                                nextGridId = gridDataId
-                                nextSubGridId = arrSubId[curSubIndex + 1]
-                            }
-                        }
-                    }
-                    //--- else try set focus to next field or first sub-field in next field
-                    if (nextGridId == -1 && nextSubGridId == -1) {
-                        if (curIndex < arrGridData.lastIndex) {
-                            var nextIndex = curIndex + 1
-                            //--- search non-label element
-                            while (nextIndex <= arrGridData.lastIndex && arrGridData[nextIndex].cellType == FormCellType_.LABEL) {
-                                nextIndex++
-                            }
-                            val nextGridData = arrGridData[nextIndex]
-                            nextGridId = nextGridData.id
-                            nextSubGridId = nextGridData.arrSubId?.firstOrNull() ?: -1
-                        }
-                    }
-
-                    val nextFocusId = if (nextSubGridId < 0) {
-                        "i_${tabId}_${nextGridId}"
-                    } else {
-                        "i_${tabId}_${nextGridId}_${nextSubGridId}"
-                    }
-
-    //                Vue.nextTick {
-                    val element = document.getElementById(nextFocusId)
-                    if (element is HTMLElement) {
-                        element.focus()
-                    }
-    //                }
+            val nextFocusId = getFocusId(
+                nextGridId, if (nextSubGridId < 0) {
+                    null
+                } else {
+                    nextSubGridId
                 }
-            },
-     */
+            )
+
+//                Vue.nextTick {
+            val element = document.getElementById(nextFocusId)
+            if (element is HTMLElement) {
+                element.focus()
+            }
+//                }
+        }
+    }
+
+    private fun closeTabById() {
+        root.closeTabById(tabId)
+    }
+
+    private fun showFile(url: String) {
+        root.openTab(url)
+    }
+
+    private fun deleteFile(gridData: FormGridData, fileData: FormFileData) {
+        gridData.alFileData.removeAll { formFileData ->
+            formFileData.id == fileData.id
+        }
+        //--- сохраним ID удаляемого файла для передачи на сервер
+        if (fileData.id > 0) {
+            gridData.alFileRemovedID.add(fileData.id)
+        }
+        //--- или просто удалим ранее добавленный файл из списка
+        else {
+            gridData.hmFileAdd.remove(fileData.id)
+        }
+    }
+
+    private fun addFileDialog(id: String) {
+        (document.getElementById(id) as HTMLElement).click()
+    }
+
+    private fun addFile(gridData: FormGridData, files: FileList?) {
+        files?.let {
+            val hmFileAdd = gridData.hmFileAdd
+
+            val formData = org.w3c.xhr.FormData().also {
+                for (file in files.asList()) {
+                    val id = -getRandomInt()
+
+                    gridData.alFileData.add(FormFileData(id, "", file.name))
+                    hmFileAdd[id] = file.name
+
+                    it.append("form_file_ids", id.toString())
+                    it.append("form_file_blobs", file)
+                }
+            }
+
+            invokeUploadFormFile(formData)
+        }
+    }
 
     private fun call(formAppParam: String, withNewData: Boolean, dialogQuestion: String?) {
         dialogQuestion?.let {
@@ -1510,6 +1579,13 @@ class FormControl(
         appControl.call(AppRequest(action = formAppParam, alFormData = alFormData))
     }
 
+    private fun getFocusId(gridId: Int, subGridId: Int? = null): String =
+        subGridId?.let {
+            "i_${tabId}_${gridId}_${subGridId}"
+        } ?: run {
+            "i_${tabId}_${gridId}"
+        }
+
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1527,7 +1603,7 @@ private class FormGridData(
     val styleAdd: StyleScope.() -> Unit,
 
     val isHidden: Boolean = false,
-    var isVisible: MutableState<Boolean> = mutableStateOf(true),
+    val isVisible: MutableState<Boolean> = mutableStateOf(true),
     val error: String = "",
 
     aText: String = "",
@@ -1545,9 +1621,9 @@ private class FormGridData(
     val alComboData: List<FormComboData> = emptyList(),
 
     val fileId: Int = 0,
-    var alFileData: List<FormFileData> = emptyList(),
+    var alFileData: SnapshotStateList<FormFileData> = mutableStateListOf(),
 ) {
-    var alSubId: MutableList<Int> = mutableListOf()
+    var alSubId: MutableList<Int>? = null
 
     var text: MutableState<String> = mutableStateOf(aText)
     val oldText: String = aText
