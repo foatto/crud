@@ -314,7 +314,7 @@ private class MMSRoot : Root(
         getColorFormActionButtonOtherBack = { colorBackOrange }
         getStyleFormActionButtonBorder = { noBorder }
 
-
+        getColorGraphicToolbarBack = { COLOR_MAIN_BACK_0 }
 
 
 
@@ -323,11 +323,5 @@ private class MMSRoot : Root(
 }
 
 /*
-
-        colorGraphicToolbarBack = { COLOR_MAIN_BACK_0 }
-
         colorXyToolbarBack = { COLOR_MAIN_BACK_0 }
-    }
-
-}
 */
