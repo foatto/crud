@@ -57,8 +57,6 @@ private val styleFormRowPadding = CONTROL_LEFT_RIGHT_SIDE_PADDING
 private val styleFormRowTopBottomPadding = 0.1.cssRem
 private val styleFormLabelPadding = 0.6.cssRem
 private val styleFormCheckboxAndRadioMargin = 0.5.cssRem
-private val styleFileNameButtonPadding = 0.95.cssRem
-private val styleFileNameButtonMargin = 0.1.cssRem
 
 private val colorFormSwitchBackOn = COLOR_MAIN_BACK_0
 
