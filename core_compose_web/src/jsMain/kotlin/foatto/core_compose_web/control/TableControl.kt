@@ -333,11 +333,11 @@ class TableControl(
                         attrs = {
                             style {
                                 backgroundColor(getColorTableFindButtonBack())
+                                setBorder(color = getColorButtonBorder(), arrRadius = getStyleTableFindButtonBorderRadius())
                                 fontSize(styleCommonButtonFontSize)
                                 padding(styleIconButtonPadding)
                                 setMargins(getStyleTableFindControlMargin())
                                 cursor("pointer")
-                                setBorder(color = getColorButtonBorder(), arrRadius = getStyleTableFindButtonBorderRadius())
                             }
                             title("Искать")
                             onClick {
@@ -351,11 +351,11 @@ class TableControl(
                             attrs = {
                                 style {
                                     backgroundColor(getColorTableFindButtonBack())
+                                    setBorder(color = getColorButtonBorder(), arrRadius = getStyleTableFindButtonBorderRadius())
                                     fontSize(styleCommonButtonFontSize)
                                     padding(styleIconButtonPadding)
                                     setMargins(getStyleTableFindControlMargin())
                                     cursor("pointer")
-                                    setBorder(color = getColorButtonBorder(), arrRadius = getStyleTableFindButtonBorderRadius())
                                 }
                                 title("Отключить поиск")
                                 onClick {
@@ -730,27 +730,26 @@ class TableControl(
     }
 
     @Composable
-    private fun getToolBarSpan(content: ContentBuilder<HTMLSpanElement>) = Span(
-        attrs = {
-            style {
-                display(DisplayStyle.Flex)
-                flexDirection(FlexDirection.Row)
-                flexWrap(FlexWrap.Nowrap)
-                justifyContent(JustifyContent.Center)
-                alignItems(AlignItems.Center)
+    private fun getToolBarSpan(content: ContentBuilder<HTMLSpanElement>) =
+        Span(
+            attrs = {
+                style {
+                    display(DisplayStyle.Flex)
+                    flexDirection(FlexDirection.Row)
+                    flexWrap(FlexWrap.Nowrap)
+                    justifyContent(JustifyContent.Center)
+                    alignItems(AlignItems.Center)
+                }
             }
+        ) {
+            content()
         }
-    ) {
-        content()
-    }
 
     @Composable
     private fun getToolBarIconButton(src: String, title: String, onClick: () -> Unit) =
         Img(
             src = src,
             attrs = {
-                title(title)
-                //--- style_toolbar_button
                 style {
                     backgroundColor(getColorToolbarButtonBack())
                     fontSize(styleCommonButtonFontSize)
@@ -759,6 +758,7 @@ class TableControl(
                     setMargins(arrStyleCommonMargin)
                     cursor("pointer")
                 }
+                title(title)
                 onClick {
                     onClick()
                 }
