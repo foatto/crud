@@ -146,23 +146,12 @@ var colorCurrentAndHover = hsl(60, 100, 90)
 //--- padding & margin for menu icon & tab panel
 val menuTabPadMar = 0.3.cssRem
 
-////--- GRAPHIC ------------------------------------------------------------------------------------------------------------------------------------------------------------
-//
-//const val COLOR_GRAPHIC_TIME_LINE = "hsl(180,100%,50%)"
-//const val COLOR_GRAPHIC_LABEL_BACK = "hsl(60,100%,50%)"
-//const val COLOR_GRAPHIC_LABEL_BORDER = "hsl(60,100%,25%)"
-//const val COLOR_GRAPHIC_AXIS_DEFAULT = "hsl(0,0%,50%)"
-//const val COLOR_GRAPHIC_DATA_BACK = "hsla(60,100%,50%,0.5)"
-//
-//var colorGraphicToolbarBack: () -> String = { foatto.core_compose_web.getColorMainBack1 }
-//
-//fun styleGraphicVisibilityTop() = "10.5rem"
-//fun styleGraphicVisibilityMaxWidth() = if (foatto.core_compose_web.getStyleIsNarrowScreen) "85%" else "20rem"
-//fun styleGraphicDataTop() = "10.8rem"
-//fun styleGraphicDataMaxWidth() = if (foatto.core_compose_web.getStyleIsNarrowScreen) "85%" else "30rem"
-//fun styleGraphicTimeLabelPadding() = "$CONTROL_PADDING $CONTROL_LEFT_RIGHT_SIDE_PADDING $CONTROL_PADDING $CONTROL_LEFT_RIGHT_SIDE_PADDING"
-//
-////--- XY -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+//--- Form  & Graphic ------------------------------------------------------------------------------------------------------------------------------------------
+
+val styleFileNameButtonPadding = 0.95.cssRem
+val styleFileNameButtonMargin = 0.1.cssRem
+
+////--- XY -----------------------------------------------------------------------------------------------------------------------------------------------------
 //
 //const val COLOR_XY_LABEL_BACK = "hsl(60,100%,50%)"
 //const val COLOR_XY_LABEL_BORDER = "hsl(60,100%,25%)"
