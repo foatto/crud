@@ -20,7 +20,11 @@ import org.jetbrains.compose.web.dom.Span
 import org.jetbrains.compose.web.dom.Summary
 import org.jetbrains.compose.web.dom.Text
 
-//const val MENU_BAR_ID = "menu_bar"
+//--- Element Ids ----------------------------------------------------------------------------------------------------------------------------------------------
+
+const val MENU_BAR_ID = "menu_bar"
+
+//--- Client Commands ---
 
 private const val CMD_SET_START_PAGE = "set_start_page"
 private const val CMD_CLEAR_START_PAGE = "clear_start_page"

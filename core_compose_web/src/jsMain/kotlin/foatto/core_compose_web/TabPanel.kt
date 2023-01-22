@@ -14,6 +14,10 @@ import org.jetbrains.compose.web.css.properties.borderRight
 import org.jetbrains.compose.web.css.properties.borderTop
 import org.jetbrains.compose.web.dom.*
 
+//--- Element Ids ----------------------------------------------------------------------------------------------------------------------------------------------
+
+const val TAB_PANEL_ID = "tab_panel"
+
 //--- Tab style ---
 
 var colorTabPanelBack: CSSColorValue = COLOR_MAIN_BACK_0
@@ -80,7 +84,6 @@ class TabPanel(
     @Composable
     fun getBody() {
         Div(
-            // id="tab_panel"
             attrs = {
                 style {
                     display(
@@ -107,6 +110,7 @@ class TabPanel(
                     backgroundColor(colorTabPanelBack)
                     setPaddings(arrStyleTabPanelPadding)
                 }
+                id(TAB_PANEL_ID)
             }
         ) {
             if (styleIsNarrowScreen || styleIsHiddenMenuBar) {

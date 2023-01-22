@@ -23,6 +23,11 @@ import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Text
 import org.w3c.dom.HTMLSpanElement
 
+//--- Element Ids ----------------------------------------------------------------------------------------------------------------------------------------------
+
+const val TOP_BAR_ID = "top_bar_id"
+const val MENU_CLOSER_BUTTON_ID = "menu_closer_button_id"
+
 //--- WAIT -----------------------------------------------------------------------------------------------------------------------------------------------------
 
 var colorWaitBack: CSSColorValue = hsla(0, 0, 100, 0.7)
@@ -443,10 +448,6 @@ open class Root(
         showDialog.value = false
     }
 }
-
-//const val TOP_BAR_ID = "top_bar"
-//const val MENU_CLOSER_BUTTON_ID = "menu_closer_button_id"
-//
 
 //        //----------------------------------------------------------------------------------------------------------------------------------------------------------------
 //
