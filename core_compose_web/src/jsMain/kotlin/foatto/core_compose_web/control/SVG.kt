@@ -1,5 +1,7 @@
 package foatto.core_compose_web.control
 
+import androidx.compose.runtime.MutableState
+
 const val MIN_USER_RECT_SIZE = 8
 
 abstract class SvgElement(val tooltip: String)
@@ -33,8 +35,8 @@ class SvgRect(
     val stroke: String = "none",
     val fill: String = "none",
     val strokeWidth: Int = 0,
-    val rx: String = "",    // м.б. в виде 0.1rem или типа того
-    val ry: String = "",
+    val rx: Number = 0,    // в чистом SVG м.б. в виде 0.1rem или типа того, но в Compose это абстрактный Number без единицы измерения, видимо, просто .px
+    val ry: Number = 0,
     tooltip: String = ""
 ) : SvgElement(tooltip)
 
@@ -67,11 +69,11 @@ class SVGTextSpan(
 //--- пусть будет общим для Graphic & Xy ------------------------------------------------------------
 
 class MouseRectData(
-    var isVisible: Boolean,
-    var x1: Int,
-    var y1: Int,
-    var x2: Int,
-    var y2: Int,
-    var lineWidth: Int
+    val isVisible: MutableState<Boolean>,
+    val x1: MutableState<Int>,
+    val y1: MutableState<Int>,
+    val x2: MutableState<Int>,
+    val y2: MutableState<Int>,
+    val lineWidth: MutableState<Int>,
 )
 
