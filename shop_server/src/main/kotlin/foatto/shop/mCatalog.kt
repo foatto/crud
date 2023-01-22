@@ -106,16 +106,27 @@ class mCatalog : mAbstractHierarchy() {
 
         val columnIsProduction = ColumnBoolean(modelTableName, "is_production", "Собственное производство").apply {
             addFormVisible(columnRecordType, true, setOf(RECORD_TYPE_ITEM))
-            tableCaption = "Собс. пр-во"
+            tableCaption = "Собс.пр-во"
         }
 
         val columnProfitAdd = ColumnInt(modelTableName, "profit_add", "Добавочная наценка", 10).apply {
-            tableCaption = "Добав. наценка"
+            tableCaption = "Доб.нац."
+        }
+
+        val columnCatalogNote = ColumnString(
+            aTableName = modelTableName,
+            aFieldName = "note",
+            aCaption = "Дополнительная информация",
+            aRows = 12,
+            aCols = STRING_COLUMN_WIDTH,
+            aMaxSize = textFieldMaxSize
+        ).apply {
+            tableCaption = "Доп.инф."
         }
 
         columnCatalogPriceDate = ColumnDate3Int(modelTableName, "_price_ye", "_price_mo", "_price_da", "Дата установки цены").apply {
             isVirtual = true
-            tableCaption = "Дата устан. цены"
+            tableCaption = "Дата уст.цены"
             addFormVisible(columnRecordType, true, setOf(RECORD_TYPE_ITEM))
             default = LocalDate.now(zoneId)
             //gc.add( GregorianCalendar.DAY_OF_MONTH, 1 ) - оказалось неудобно, т.к. цена завтрашняя и сегодня она не отображается, что вводит в заблуждение
@@ -124,21 +135,21 @@ class mCatalog : mAbstractHierarchy() {
         columnCatalogPriceIn = ColumnDouble(modelTableName, "_price_in", "Закупочная цена", 10, 2).apply {
             isVirtual = true
             addFormVisible(columnRecordType, true, setOf(RECORD_TYPE_ITEM))
-            tableCaption = "Закуп. цена"
+            tableCaption = "Закуп.цена"
             tableAlign = TableCellAlign.RIGHT
         }
 
         columnCatalogPriceOut = ColumnDouble(modelTableName, "_price_out", "Розничная цена", 10, 2).apply {
             isVirtual = true
             addFormVisible(columnRecordType, true, setOf(RECORD_TYPE_ITEM))
-            tableCaption = "Розн. цена"
+            tableCaption = "Розн.цена"
             tableAlign = TableCellAlign.RIGHT
         }
 
         columnCatalogRowCount = ColumnString(modelTableName, "_row_count", "Кол-во наименований", 10).apply {
             isVirtual = true
             emptyValueString = ""
-            tableCaption = "Кол-во наим."
+            tableCaption = "Кол.наим."
             tableAlign = TableCellAlign.RIGHT
         }
 
@@ -178,6 +189,7 @@ class mCatalog : mAbstractHierarchy() {
             addTableColumn(columnProfitAdd)
             addTableColumn(columnCatalogPriceDate)
             addTableColumn(columnCatalogPriceIn)
+            addTableColumn(columnCatalogNote)
         } else {
             alTableHiddenColumn.add(columnIsProduction)
             alTableHiddenColumn.add(columnProfitAdd)
@@ -198,6 +210,7 @@ class mCatalog : mAbstractHierarchy() {
             alFormColumn.add(columnCatalogPriceDate)
             alFormColumn.add(columnCatalogPriceIn)
             alFormColumn.add(columnCatalogPriceOut)
+            alFormColumn.add(columnCatalogNote)
         }
         alFormColumn.add(columnParentFullName)
 
