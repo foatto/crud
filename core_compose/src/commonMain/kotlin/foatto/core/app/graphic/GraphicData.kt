@@ -10,6 +10,7 @@ class GraphicDataContainer(
     val lineWidth: Int = 0,
     val itReversedY: Boolean,
 ) {
+    @Serializable
     enum class ElementType { BACK, LINE, TEXT }
 
     var alGBD: Array<GraphicBackData> = arrayOf()
