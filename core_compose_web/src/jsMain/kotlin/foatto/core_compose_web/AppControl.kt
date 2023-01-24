@@ -10,6 +10,7 @@ import foatto.core.link.LogonRequest
 import foatto.core.link.ResponseCode
 import foatto.core_compose_web.control.EmptyControl
 import foatto.core_compose_web.control.FormControl
+import foatto.core_compose_web.control.GraphicControl
 import foatto.core_compose_web.control.TableControl
 import foatto.core_compose_web.control.iControl
 import foatto.core_compose_web.link.invokeApp
@@ -23,6 +24,7 @@ import org.jetbrains.compose.web.attributes.placeholder
 import org.jetbrains.compose.web.attributes.size
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.css.properties.appearance
+import org.jetbrains.compose.web.dom.Br
 import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Img
@@ -48,7 +50,7 @@ var getColorLogonButtonBack: () -> CSSColorValue = { getColorButtonBack() }
 var colorLogonButtonText: CSSColorValue = COLOR_MAIN_TEXT
 var getColorLogonButtonBorder: () -> CSSColorValue = { getColorButtonBorder() }
 
-var styleLogonTopExpanderContent: String = "&nbsp;"
+//var styleLogonTopExpanderContent: String = "&nbsp;"
 var styleLogonLogo: String = "logo.png"
 var styleLogonLogoContent: String = ""
 
@@ -153,7 +155,7 @@ class AppControl(
                                 }
                             }
                         ) {
-                            Text(styleLogonTopExpanderContent)
+//                            Text(styleLogonTopExpanderContent)
                         }
                         Div(
                             attrs = {
@@ -325,7 +327,7 @@ class AppControl(
                                 }
                             }
                         ) {
-                            Text("&nbsp;")
+                            Br()
                         }
                     }
                 }
@@ -453,8 +455,11 @@ class AppControl(
                     }
 
                     ResponseCode.GRAPHIC.toString() -> {
-//                        curControl.value = graphicControl(appResponse.graphic!!, tabId)
+                        val graphicControl = GraphicControl(root, this, appResponse.graphic!!, tabId)
+                        curControl.value = graphicControl
                         responseCode.value = appResponse.code
+
+                        graphicControl.start()
                     }
 
                     ResponseCode.XY.toString() -> {
