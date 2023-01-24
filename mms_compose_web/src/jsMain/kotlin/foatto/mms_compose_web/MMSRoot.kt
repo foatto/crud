@@ -82,18 +82,18 @@ private class MMSRoot : Root(
 
         colorDialogBack = hsla(MMS_FIRM_COLOR_1_H, MMS_FIRM_COLOR_1_S, MMS_FIRM_COLOR_1_L, 0.95)
 
-        styleLogonTopExpanderContent =
-            """
-                <br>
-                <img src="/web/images/logo_pla.png">
-                <br>
-                <span v-bind:style="{ 'color' : 'white' , 'font-size' : '${if (styleIsNarrowScreen) "1rem" else "2rem"}' }">
-                    СИСТЕМА КОНТРОЛЯ
-                    ТЕХНОЛОГИЧЕСКОГО ОБОРУДОВАНИЯ И ТРАНСПОРТА
-                    «ПУЛЬСАР»
-                </span>
-                <br>
-            """
+//        styleLogonTopExpanderContent =
+//            """
+//                <br>
+//                <img src="/web/images/logo_pla.png">
+//                <br>
+//                <span v-bind:style="{ 'color' : 'white' , 'font-size' : '${if (styleIsNarrowScreen) "1rem" else "2rem"}' }">
+//                    СИСТЕМА КОНТРОЛЯ
+//                    ТЕХНОЛОГИЧЕСКОГО ОБОРУДОВАНИЯ И ТРАНСПОРТА
+//                    «ПУЛЬСАР»
+//                </span>
+//                <br>
+//            """
 
         styleLogonLogo = "index-icon.png"
         styleLogonLogoContent = if (styleIsNarrowScreen) {
@@ -314,7 +314,7 @@ private class MMSRoot : Root(
         getColorFormActionButtonOtherBack = { colorBackOrange }
         getStyleFormActionButtonBorder = { noBorder }
 
-        getColorGraphicToolbarBack = { COLOR_MAIN_BACK_0 }
+//        getColorGraphicToolbarBack = { COLOR_MAIN_BACK_0 }
 
 
 
