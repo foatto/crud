@@ -24,6 +24,7 @@ class mDevice : mAbstract() {
         private val MAX_DEVICE_COUNT_PER_OBJECT = 65
     }
 
+    lateinit var columnDeviceIsLocked: ColumnBoolean
     lateinit var columnDeviceIndex: ColumnInt
     lateinit var columnDeviceType: ColumnRadioButton
     lateinit var columnSerialNo: ColumnString
@@ -60,6 +61,8 @@ class mDevice : mAbstract() {
         columnId = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
+
+        columnDeviceIsLocked = ColumnBoolean(modelTableName, "is_locked", "Блокирован")
 
         columnDeviceIndex = ColumnInt(modelTableName, "device_index", "Порядковый номер устройства на объекте", 10, 0).apply {
             minValue = 0
@@ -98,7 +101,7 @@ class mDevice : mAbstract() {
             isVirtual = true
         }
 
-        //--- вручную добавленное поле для обозначения владельца а/м ---
+        //--- вручную добавленное поле для обозначения владельца объекта ---
 
         val columnObjectUserName = ColumnComboBox("TS_object", "user_id", "Пользователь").apply {
             addChoice(0, "")
@@ -118,6 +121,7 @@ class mDevice : mAbstract() {
 
         alTableHiddenColumn += columnId
 
+        addTableColumn(columnDeviceIsLocked)
         addTableColumn(columnDeviceIndex)
         addTableColumn(columnDeviceType)
         addTableColumn(columnSerialNo)
@@ -126,6 +130,7 @@ class mDevice : mAbstract() {
 
         alFormHiddenColumn += columnId
 
+        alFormColumn += columnDeviceIsLocked
         alFormColumn += columnDeviceType
         alFormColumn += columnSerialNo
         alFormColumn += columnDeviceCell
@@ -134,7 +139,17 @@ class mDevice : mAbstract() {
         //----------------------------------------------------------------------------------------------------------------------
 
         os = ObjectSelector()
-        os.fillColumns(this, false, true, alTableHiddenColumn, alFormHiddenColumn, alFormColumn, hmParentColumn, false, -1)
+        os.fillColumns(
+            model = this,
+            isRequired = false,
+            isSelector = true,
+            alTableHiddenColumn = alTableHiddenColumn,
+            alFormHiddenColumn = alFormHiddenColumn,
+            alFormColumn = alFormColumn,
+            hmParentColumn = hmParentColumn,
+            aSingleObjectMode = false,
+            addedStaticColumnCount = -1
+        )
 
         //----------------------------------------------------------------------------------------------------------------------
 

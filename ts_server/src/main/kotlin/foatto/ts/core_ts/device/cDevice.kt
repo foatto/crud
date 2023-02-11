@@ -2,7 +2,6 @@ package foatto.ts.core_ts.device
 
 import foatto.core.link.TableCell
 import foatto.core.link.TableCellForeColorType
-import foatto.core.util.getCurrentTimeInt
 import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.data.DataBoolean
@@ -12,9 +11,9 @@ import foatto.core_server.app.server.data.DataRadioButton
 import foatto.core_server.app.server.data.DataString
 import foatto.core_server.app.server.data.iData
 import foatto.core_server.ds.CoreTelematicFunction
-import foatto.core_server.ds.nio.AbstractTelematicNioHandler
 import foatto.ts.core_ts.sensor.config.SensorConfig
 import foatto.ts.core_ts.sensor.config.SensorConfigSetup
+import foatto.ts_core.app.DeviceCommand
 
 class cDevice : cStandart() {
 
@@ -31,20 +30,56 @@ class cDevice : cStandart() {
         if (column == md.columnSerialNo) {
             tci.foreColorType = TableCellForeColorType.DEFINED
 
+            val isLocked = (hmColumnData[md.columnDeviceIsLocked] as DataBoolean).value
             val lastSessionTime = (hmColumnData[md.columnDeviceLastSessionTime] as DataDateTimeInt).zonedDateTime.toEpochSecond().toInt()
-            //--- раскраска номера контроллера в зависимости от времени последнего входа в систему
-            val curTime = getCurrentTimeInt()
 
-            if (lastSessionTime == 0) {
-                tci.foreColor = TABLE_CELL_FORE_COLOR_DISABLED
-            } else if (curTime - lastSessionTime > 7 * 24 * 60 * 60) {
+            if (isLocked) {
                 tci.foreColor = TABLE_CELL_FORE_COLOR_CRITICAL
-            } else if (curTime - lastSessionTime > 1 * 24 * 60 * 60) {
-                tci.foreColor = TABLE_CELL_FORE_COLOR_WARNING
+            } else if (lastSessionTime == 0) {
+                tci.foreColor = TABLE_CELL_FORE_COLOR_DISABLED
+//            } else if (curTime - lastSessionTime > 1 * 24 * 60 * 60) {
+//                tci.foreColor = TABLE_CELL_FORE_COLOR_WARNING - пока не используется
             } else {
                 tci.foreColor = TABLE_CELL_FORE_COLOR_NORMAL
             }
         }
+    }
+
+    override fun preSave(id: Int, hmColumnData: Map<iColumn, iData>) {
+        val md = model as mDevice
+
+        var oldLockedValue = false
+        if (id != 0) {
+            val rs = conn.executeQuery(" SELECT is_locked FROM TS_device WHERE id = $id ")
+            if (rs.next()) {
+                oldLockedValue = rs.getInt(1) != 0
+            }
+            rs.close()
+        }
+
+        val newLockedValue = (hmColumnData[md.columnDeviceIsLocked] as DataBoolean).value
+        val objectId = (hmColumnData[md.columnObject] as DataInt).intValue
+
+        //--- block device
+        if (!oldLockedValue && newLockedValue) {
+            cDeviceCommandHistory.addDeviceCommand(
+                conn = conn,
+                userId = userConfig.userId,
+                deviceId = id,
+                objectId = objectId,
+                command = DeviceCommand.CMD_LOCK,
+            )
+        } else if (oldLockedValue && !newLockedValue) { // unblock device
+            cDeviceCommandHistory.addDeviceCommand(
+                conn = conn,
+                userId = userConfig.userId,
+                deviceId = id,
+                objectId = objectId,
+                command = DeviceCommand.CMD_FREE,
+            )
+        }
+
+        super.preSave(id, hmColumnData)
     }
 
     override fun postAdd(id: Int, hmColumnData: Map<iColumn, iData>, hmOut: MutableMap<String, Any>): String? {

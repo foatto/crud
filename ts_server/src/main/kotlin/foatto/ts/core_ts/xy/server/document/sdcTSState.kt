@@ -22,6 +22,7 @@ import foatto.sql.CoreAdvancedConnection
 import foatto.ts.core_ts.cObject
 import foatto.ts.core_ts.calc.ObjectState
 import foatto.ts.core_ts.device.cDevice
+import foatto.ts.core_ts.device.cDeviceCommandHistory
 import foatto.ts.core_ts.sensor.config.SensorConfig
 import foatto.ts.core_ts.sensor.config.SensorConfigAnalogue
 import foatto.ts.core_ts.sensor.config.SensorConfigState
@@ -136,17 +137,12 @@ class sdcTSState : sdcXyState() {
             rs.close()
 
             if (deviceId != 0) {
-                conn.executeUpdate(
-                    """
-                        INSERT INTO TS_device_command_history ( id , 
-                            user_id , device_id , object_id , 
-                            command , create_time , 
-                            send_status , send_time ) VALUES ( 
-                            ${conn.getNextIntId("TS_device_command_history", "id")} , 
-                            ${userConfig.userId} , $deviceId , $objectId , 
-                            '$command' , ${getCurrentTimeInt()} , 
-                            ${CommandStatusCode.NOT_SENDED} , 0 )  
-                    """
+                cDeviceCommandHistory.addDeviceCommand(
+                    conn = conn,
+                    userId = userConfig.userId,
+                    deviceId = deviceId,
+                    objectId = objectId,
+                    command = command,
                 )
             }
         }
