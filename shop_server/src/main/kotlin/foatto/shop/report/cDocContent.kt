@@ -42,7 +42,6 @@ class cDocContent : cAbstractReport() {
 
     private val arrDocTitle = arrayOf("ИП Карипова Гульнара Дамировна", "ИНН 165007039790  ОГРН 318169000001873")
 
-    // private val objectMapper: ObjectMapper = ObjectMapper().findAndRegisterModules()
     private val objectMapper = jacksonObjectMapper()
 
     private val httpClient = HttpClient(Apache).config {

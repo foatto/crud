@@ -4,8 +4,6 @@ import foatto.core.app.UP_TIME_OFFSET
 import foatto.core.link.AppAction
 import foatto.core.link.TableCell
 import foatto.core.link.TableCellForeColorType
-import foatto.core.util.encodePassword
-import foatto.core.util.getCurrentTimeInt
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.OrgType
@@ -16,7 +14,6 @@ import foatto.core_server.app.server.data.DataComboBox
 import foatto.core_server.app.server.data.DataDate3Int
 import foatto.core_server.app.server.data.DataString
 import foatto.core_server.app.server.data.iData
-import foatto.sql.CoreAdvancedConnection
 import java.util.*
 
 class cUser : cAbstractHierarchy() {

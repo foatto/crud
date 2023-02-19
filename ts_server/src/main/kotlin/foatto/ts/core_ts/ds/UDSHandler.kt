@@ -19,7 +19,6 @@ class UDSHandler : TSHandler() {
         val UDS_RAW_PACKET_TIME_BASE = OffsetDateTime.of(2000, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC).toEpochSecond().toInt()
     }
 
-    // private val objectMapper: ObjectMapper = ObjectMapper().findAndRegisterModules()
     private val objectMapper = jacksonObjectMapper()
 
     private val sbData = StringBuilder()
