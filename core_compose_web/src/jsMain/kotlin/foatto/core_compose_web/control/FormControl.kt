@@ -1000,12 +1000,16 @@ class FormControl(
         if (alFormColumn.isNotEmpty()) {
             var columnIndex = 1
             for (caption in alFormColumn) {
+                //--- иначе в style-лямбде будут использоваться только самые последние значения rowIndex/colIndex
+                //--- и все тексты уползут в самую правую ячейку
+                val ri = rowIndex
+                val ci = columnIndex
                 alGridData.add(
                     FormGridData(
                         id = gridCellId++,
                         cellType = FormCellTypeClient.LABEL,
                         style = {
-                            gridArea("${rowIndex + 1}", "${columnIndex + 1}", "${rowIndex + 2}", "${columnIndex + 2}")
+                            gridArea("${ri + 1}", "${ci + 1}", "${ri + 2}", "${ci + 2}")
                             justifySelf("center")
                             alignSelf(AlignSelf.Center)
                             padding(styleFormRowPadding)
