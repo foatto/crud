@@ -4,18 +4,18 @@ import androidx.compose.runtime.MutableState
 
 const val MIN_USER_RECT_SIZE = 8
 
-abstract class SvgElement(val tooltip: String)
+abstract class SvgElementData(val tooltip: String)
 
-class SvgCircle(
+class SvgCircleData(
     val cx: Int,
     val cy: Int,
     val radius: Int,
     val stroke: String = "",
     val fill: String = "",
     tooltip: String = ""
-) : SvgElement(tooltip)
+) : SvgElementData(tooltip)
 
-class SvgLine(
+class SvgLineData(
     val x1: Int,
     val y1: Int,
     val x2: Int,
@@ -24,10 +24,9 @@ class SvgLine(
     val width: Int,
     val dash: String = "",
     tooltip: String = ""
-) : SvgElement(tooltip)
+) : SvgElementData(tooltip)
 
-//<rect x="0" y="0" width="200" height="100" fill="#BBC42A" rx="5" ry="10"/>
-class SvgRect(
+class SvgRectData(
     val x: Int,
     val y: Int,
     val width: Int,
@@ -38,33 +37,33 @@ class SvgRect(
     val rx: Number = 0,    // в чистом SVG м.б. в виде 0.1rem или типа того, но в Compose это абстрактный Number без единицы измерения, видимо, просто .px
     val ry: Number = 0,
     tooltip: String = ""
-) : SvgElement(tooltip)
+) : SvgElementData(tooltip)
 
-class SvgText(
+class SvgTextData(
     val x: Int,
     val y: Int,
     val text: String,
     val stroke: String,
-    val hAnchor: String,
+    var hAnchor: String,    // may be reassigned later
     val vAnchor: String,
     val transform: String = "",
     tooltip: String = ""
-) : SvgElement(tooltip)
+) : SvgElementData(tooltip)
 
-class SvgMultiLineText(
-    val x: Int,
-    val y: Int,
-    val arrText: Array<SVGTextSpan>,
-    val stroke: String,
-    var hAnchor: String,
-    val vAnchor: String,
-    tooltip: String = ""
-) : SvgElement(tooltip)
+//class SvgMultiLineText(
+//    val x: Int,
+//    val y: Int,
+//    val arrText: Array<SVGTextSpan>,
+//    val stroke: String,
+//    var hAnchor: String,
+//    val vAnchor: String,
+//    tooltip: String = ""
+//) : SvgElement(tooltip)
 
-class SVGTextSpan(
-    val dy: String,
-    val text: String
-)
+//class SVGTextSpan(
+//    val dy: String,
+//    val text: String
+//)
 
 //--- пусть будет общим для Graphic & Xy ------------------------------------------------------------
 
