@@ -124,7 +124,7 @@ var styleStateServerButtonTextFontWeight = "normal"
 
 val styleCommonEditorPadding = CONTROL_BIG_PADDING
 
-//fun styleControlTooltipPadding() = "$CONTROL_PADDING $CONTROL_LEFT_RIGHT_SIDE_PADDING $CONTROL_PADDING $CONTROL_LEFT_RIGHT_SIDE_PADDING"
+val arrStyleControlTooltipPadding: Array<CSSSize> = arrayOf(CONTROL_PADDING, CONTROL_LEFT_RIGHT_SIDE_PADDING, CONTROL_PADDING, CONTROL_LEFT_RIGHT_SIDE_PADDING)
 
 val arrStyleCommonMargin: Array<CSSSize> = arrayOf(0.cssRem, CONTROL_MARGIN, 0.cssRem, CONTROL_MARGIN)
 

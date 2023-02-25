@@ -84,7 +84,7 @@ private fun getStyleMenuItemTopBottomPad(level: Int) = if (styleIsNarrowScreen) 
 
 private val arrStyleMenuItemSidePad = arrayOf(0.0, 1.0, 2.0)
 val arrStyleMenuFontSize: Array<CSSSize> = arrayOf(1.0.cssRem, 0.9.cssRem, 0.8.cssRem)
-private fun getStyleMenuItemPadding(level: Int): Array<CSSSize> = arrayOf(
+fun getStyleMenuItemPadding(level: Int): Array<CSSSize> = arrayOf(
     getStyleMenuItemTopBottomPad(level).cssRem,
     arrStyleMenuItemSidePad[level].cssRem,
     getStyleMenuItemTopBottomPad(level).cssRem,
