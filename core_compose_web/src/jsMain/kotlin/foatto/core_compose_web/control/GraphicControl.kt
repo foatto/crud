@@ -22,9 +22,7 @@ import foatto.core_compose_web.*
 import foatto.core_compose_web.link.invokeGraphic
 import foatto.core_compose_web.link.invokeSaveUserProperty
 import foatto.core_compose_web.style.*
-import foatto.core_compose_web.util.DateTime_DMYHMS
-import foatto.core_compose_web.util.DateTime_YMDHMS
-import foatto.core_compose_web.util.getColorFromInt
+import foatto.core_compose_web.util.*
 import kotlinx.browser.document
 import kotlinx.browser.window
 import org.jetbrains.compose.web.ExperimentalComposeWebSvgApi

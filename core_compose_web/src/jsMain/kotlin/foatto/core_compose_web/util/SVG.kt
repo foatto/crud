@@ -1,4 +1,4 @@
-package foatto.core_compose_web.control
+package foatto.core_compose_web.util
 
 import androidx.compose.runtime.MutableState
 
