@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.web.events.SyntheticMouseEvent
 import foatto.core.link.*
 import foatto.core_compose_web.*
+import foatto.core_compose_web.control.model.TitleData
 import foatto.core_compose_web.style.*
 import foatto.core_compose_web.util.getColorFromInt
 import kotlinx.browser.document
@@ -23,14 +24,12 @@ import org.jetbrains.compose.web.css.properties.borderTop
 import org.jetbrains.compose.web.css.properties.userSelect
 import org.jetbrains.compose.web.css.properties.zIndex
 import org.jetbrains.compose.web.dom.Button
-import org.jetbrains.compose.web.dom.ContentBuilder
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Img
 import org.jetbrains.compose.web.dom.Input
 import org.jetbrains.compose.web.dom.Span
 import org.jetbrains.compose.web.dom.Text
 import org.w3c.dom.HTMLElement
-import org.w3c.dom.HTMLSpanElement
 import kotlin.math.max
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -144,8 +143,8 @@ class TableControl(
     private val appControl: AppControl,
     private val appParam: String,
     private val tableResponse: TableResponse,
-    private val tabId: Int
-) : iControl, iClickableMenu {
+    tabId: Int,
+) : AbstractControl(tabId), iClickableMenu {
 
     companion object {
         val hmTableIcon: MutableMap<String, String> = mutableMapOf()
@@ -165,7 +164,6 @@ class TableControl(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    private val alTitleData = mutableStateListOf<TableTitleData>()
     private val selectorCancelUrl = mutableStateOf("")
     private val isFindTextVisible = mutableStateOf(!styleIsNarrowScreen)
     private val findUrl = mutableStateOf("")
@@ -201,75 +199,11 @@ class TableControl(
 
     @Composable
     override fun getBody() {
-        Div(
-            attrs = {
-                style {
-                    flexGrow(1)
-                    flexShrink(1)
-                    display(DisplayStyle.Flex)
-                    flexDirection(FlexDirection.Column)
-                    height(100.percent)
-                }
-            }
-        ) {
+        getMainDiv {
 
-            //--- Table Title
-            Div(
-                attrs = {
-                    style {
-                        flexGrow(0)
-                        flexShrink(0)
-                        display(DisplayStyle.Flex)
-                        flexDirection(FlexDirection.Row)
-                        flexWrap(FlexWrap.Wrap)
-                        justifyContent(JustifyContent.Center)
-                        alignItems(AlignItems.Center)
-                        borderTop(
-                            width = (if (!styleIsNarrowScreen) {
-                                0
-                            } else {
-                                1
-                            }).px,
-                            lineStyle = LineStyle.Solid,
-                            color = colorMainBorder,
-                        )
-                        padding(styleControlPadding)
-                        backgroundColor(getColorTableHeaderBack())
-                    }
-                }
-            ) {
-                alTitleData.forEach { titleData ->
-                    if (titleData.url.isNotEmpty()) {
-                        Button(
-                            attrs = {
-                                style {
-                                    backgroundColor(getColorButtonBack())
-                                    setBorder(color = getColorButtonBorder(), radius = styleButtonBorderRadius)
-                                    fontSize(styleCommonButtonFontSize)
-                                    padding(styleTextButtonPadding)
-                                    setMargins(arrStyleCommonMargin)
-                                    cursor("pointer")
-                                }
-                                onClick {
-                                    call(titleData.url, false)
-                                }
-                            }
-                        ) {
-                            Text(titleData.text)
-                        }
-                    } else {
-                        Span(
-                            attrs = {
-                                style {
-                                    fontSize(styleControlTitleTextFontSize)
-                                    setPaddings(arrStyleControlTitlePadding)
-                                }
-                            }
-                        ) {
-                            Text(titleData.text)
-                        }
-                    }
-                }
+            //--- Table Header
+            getTableAndFormHeader(false) { url: String ->
+                call(url, false)
             }
 
             //--- Table Toolbar
@@ -729,45 +663,9 @@ class TableControl(
         }
     }
 
-    @Composable
-    private fun getToolBarSpan(content: ContentBuilder<HTMLSpanElement>) =
-        Span(
-            attrs = {
-                style {
-                    display(DisplayStyle.Flex)
-                    flexDirection(FlexDirection.Row)
-                    flexWrap(FlexWrap.Nowrap)
-                    justifyContent(JustifyContent.Center)
-                    alignItems(AlignItems.Center)
-                }
-            }
-        ) {
-            content()
-        }
-
-    @Composable
-    private fun getToolBarIconButton(src: String, title: String, onClick: () -> Unit) =
-        Img(
-            src = src,
-            attrs = {
-                style {
-                    backgroundColor(getColorToolbarButtonBack())
-                    fontSize(styleCommonButtonFontSize)
-                    setBorder(getStyleToolbarButtonBorder())
-                    padding(styleIconButtonPadding)
-                    setMargins(arrStyleCommonMargin)
-                    cursor("pointer")
-                }
-                title(title)
-                onClick {
-                    onClick()
-                }
-            }
-        )
-
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    fun start() {
+    override fun start() {
         readHeader()
         selectorCancelUrl.value = tableResponse.selectorCancelURL
 
@@ -804,7 +702,7 @@ class TableControl(
                     " | "
                 }
                 ) + text
-            alTitleData.add(TableTitleData(url, text))
+            alTitleData.add(TitleData(url, text))
             //--- запомним последнюю кнопку заголовка в табличном режиме как кнопку отмены или возврата на уровень выше
             //butTableCancel = button - not used yet
         }
@@ -1421,8 +1319,6 @@ class TableControl(
     }
 
  */
-
-private class TableTitleData(val url: String, val text: String)
 
 private class AddActionButton_(
     val icon: String,
