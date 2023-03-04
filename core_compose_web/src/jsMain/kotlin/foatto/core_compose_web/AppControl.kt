@@ -8,11 +8,8 @@ import foatto.core.link.AppRequest
 import foatto.core.link.AppResponse
 import foatto.core.link.LogonRequest
 import foatto.core.link.ResponseCode
-import foatto.core_compose_web.control.EmptyControl
-import foatto.core_compose_web.control.FormControl
-import foatto.core_compose_web.control.GraphicControl
-import foatto.core_compose_web.control.TableControl
-import foatto.core_compose_web.control.iControl
+import foatto.core.link.XyDocumentClientType
+import foatto.core_compose_web.control.*
 import foatto.core_compose_web.link.invokeApp
 import foatto.core_compose_web.style.*
 import foatto.core_compose_web.util.encodePassword
@@ -97,7 +94,7 @@ class AppControl(
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     private val responseCode = mutableStateOf(ResponseCode.LOGON_NEED)
-    private val curControl = mutableStateOf<iControl>(EmptyControl())
+    private val curControl = mutableStateOf<AbstractControl>(EmptyControl())
 
     private val login = mutableStateOf("")
     private val password = mutableStateOf("")
@@ -463,14 +460,17 @@ class AppControl(
                     }
 
                     ResponseCode.XY.toString() -> {
-//                        appResponse.xy?.let { xy ->
-//                            curControl.value = when (xy.documentConfig.clientType.toString()) {
-//                                XyDocumentClientType.MAP.toString() -> mapControl(xy, tabId)
-//                                XyDocumentClientType.STATE.toString() -> stateControl(xy, tabId)
-//                                else -> mapControl(xy, tabId)
-//                            }
-//                        }
-                        responseCode.value = appResponse.code
+                        appResponse.xy?.let { xy ->
+                             val xyControl = when (xy.documentConfig.clientType.toString()) {
+                                XyDocumentClientType.MAP.toString() -> MapControl(root, this, xy, tabId)
+                                XyDocumentClientType.STATE.toString() -> StateControl(root, this, xy, tabId)
+                                else -> MapControl(root, this, xy, tabId)
+                            }
+                            curControl.value = xyControl
+                            responseCode.value = appResponse.code
+
+                            xyControl.start()
+                        }
                     }
 //!!!            ResponseCode.VIDEO_ONLINE, ResponseCode.VIDEO_ARCHIVE -> {
 //                val vcstartParamId = bbIn.getShortString()

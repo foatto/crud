@@ -314,14 +314,8 @@ private class MMSRoot : Root(
         getColorFormActionButtonOtherBack = { colorBackOrange }
         getStyleFormActionButtonBorder = { noBorder }
 
-        getColorGraphicToolbarBack = { COLOR_MAIN_BACK_0 }
-
-
+        getColorGraphicAndXyToolbarBack = { COLOR_MAIN_BACK_0 }
 
         super.init()
     }
 }
-
-/*
-        colorXyToolbarBack = { COLOR_MAIN_BACK_0 }
-*/

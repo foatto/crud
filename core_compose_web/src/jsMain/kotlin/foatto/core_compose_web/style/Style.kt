@@ -57,7 +57,7 @@ fun getStyleIsTouchScreen(): Boolean {
 }
 
 //--- especially for workaround of bug in SVG textspan dy
-val isFirefox: Boolean = window.navigator.userAgent.contains("Firefox")
+//val isFirefox: Boolean = window.navigator.userAgent.contains("Firefox")
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -72,18 +72,20 @@ fun getStyleIconNameSuffix(): String = (if (styleDarkIcon) "black" else "white")
 
 //--- MAIN BACK ------------------------------------------------------------------------------------------------------------------------------------------------
 
+val COLOR_TRANSPARENT: CSSColorValue = hsla(0, 0, 0, 0)
+
 val COLOR_MAIN_BACK_0: CSSColorValue = hsl(0, 0, 100)  // main background - white color for input fields, etc.
 
 //--- different gray tones by default
-private val MAIN_BACK_LIGHTNESS_0 = 97
-private val MAIN_BACK_LIGHTNESS_1 = 94
-private val MAIN_BACK_LIGHTNESS_2 = 88
-private val MAIN_BACK_LIGHTNESS_3 = 82
+private const val MAIN_BACK_LIGHTNESS_0 = 97
+private const val MAIN_BACK_LIGHTNESS_1 = 94
+private const val MAIN_BACK_LIGHTNESS_2 = 88
+private const val MAIN_BACK_LIGHTNESS_3 = 82
 
-var colorMainBack0 = hsl(0, 0, MAIN_BACK_LIGHTNESS_0)     // buttons
-var colorMainBack1 = hsl(0, 0, MAIN_BACK_LIGHTNESS_1)     // panels, menus
-var colorMainBack2 = hsl(0, 0, MAIN_BACK_LIGHTNESS_2)     // non-active tabs
-var colorMainBack3 = hsl(0, 0, MAIN_BACK_LIGHTNESS_3)     // menu delimiters
+var colorMainBack0: CSSColorValue = hsl(0, 0, MAIN_BACK_LIGHTNESS_0)     // buttons
+var colorMainBack1: CSSColorValue = hsl(0, 0, MAIN_BACK_LIGHTNESS_1)     // panels, menus
+var colorMainBack2: CSSColorValue = hsl(0, 0, MAIN_BACK_LIGHTNESS_2)     // non-active tabs
+var colorMainBack3: CSSColorValue = hsl(0, 0, MAIN_BACK_LIGHTNESS_3)     // menu delimiters
 
 //--- BORDER ---------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -146,31 +148,14 @@ var colorCurrentAndHover = hsl(60, 100, 90)
 //--- padding & margin for menu icon & tab panel
 val menuTabPadMar = 0.3.cssRem
 
-//--- Form  & Graphic ------------------------------------------------------------------------------------------------------------------------------------------
+//--- Form & Graphic -------------------------------------------------------------------------------------------------------------------------------------------
 
 val styleFileNameButtonPadding = 0.95.cssRem
 val styleFileNameButtonMargin = 0.1.cssRem
 
-////--- XY -----------------------------------------------------------------------------------------------------------------------------------------------------
-//
-//const val COLOR_XY_LABEL_BACK = "hsl(60,100%,50%)"
-//const val COLOR_XY_LABEL_BORDER = "hsl(60,100%,25%)"
-//
-//const val COLOR_XY_LINE = "hsl(180,100%,50%)"
-//
-//const val COLOR_XY_DISTANCER = "hsl(30,100%,50%)"
-//
-//const val COLOR_XY_ZONE_CASUAL = "hsla(60,100%,50%,0.25)"    // полупрозрачный жёлтый
-//const val COLOR_XY_ZONE_ACTUAL = "hsla(30,100%,50%,0.25)"    // полупрозрачный оранжевый
-//const val COLOR_XY_ZONE_BORDER = "hsl(0,100%,50%)"          // красный
-//
-//var colorXyToolbarBack: () -> String = { foatto.core_compose_web.getColorMainBack1 }
-//
-//private val XY_PADDING = "0.2rem"
-//private val XY_SIDE_PADDING = "0.4rem"
-//
-//fun styleXyDistancerPadding() = "$XY_PADDING $XY_SIDE_PADDING $XY_PADDING $XY_SIDE_PADDING"
-//fun styleXyTextPadding() = "$XY_PADDING $XY_SIDE_PADDING $XY_PADDING $XY_SIDE_PADDING"
+//--- Graphic & Xy ---------------------------------------------------------------------------------------------------------------------------------------------
+
+var getColorGraphicAndXyToolbarBack: () -> CSSColorValue = { colorMainBack1 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 

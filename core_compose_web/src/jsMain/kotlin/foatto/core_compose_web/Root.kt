@@ -39,14 +39,14 @@ var colorWaitLoader3: CSSColorValue = hsl(60, 100, 95)
 //--- DIALOG ---------------------------------------------------------------------------------------------------------------------------------------------------
 
 var colorDialogBack: CSSColorValue = hsla(0, 0, 0, 0.95)
-private val getColorDialogBorder: () -> CSSColorValue = { colorMainBorder }
-private val getColorDialogBackCenter: () -> CSSColorValue = { colorMainBack1 }
+val getColorDialogBorder: () -> CSSColorValue = { colorMainBorder }
+val getColorDialogBackCenter: () -> CSSColorValue = { colorMainBack1 }
 private val getColorDialogButtonBack: () -> CSSColorValue = { getColorButtonBack() }
 private val getColorDialogButtonBorder: () -> CSSColorValue = { colorMainBorder }
 
-private val styleDialogTextFontSize = (COMMON_FONT_SIZE.value + 2).cssRem
+val styleDialogTextFontSize = (COMMON_FONT_SIZE.value + 2).cssRem
 
-private val styleDialogCellPadding: CSSSize = 1.0.cssRem
+val styleDialogCellPadding: CSSSize = 1.0.cssRem
 private val arrStyleDialogControlPadding: Array<CSSSize> = arrayOf(0.4.cssRem, 0.cssRem, 0.4.cssRem, 0.cssRem)
 private val arrStyleDialogButtonPadding: Array<CSSSize> = arrayOf(
     1.0.cssRem,
@@ -87,7 +87,6 @@ open class Root(
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     var currentUserName: String = ""
-    var scaleKoef: Double = 1.0
     var timeOffset: Int = 0
     var curAppParam: String = ""
 
