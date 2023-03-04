@@ -19,6 +19,7 @@ import foatto.core.link.GraphicResponse
 import foatto.core.link.SaveUserPropertyRequest
 import foatto.core.util.getSplittedDouble
 import foatto.core_compose_web.*
+import foatto.core_compose_web.control.model.TitleData
 import foatto.core_compose_web.link.invokeGraphic
 import foatto.core_compose_web.link.invokeSaveUserProperty
 import foatto.core_compose_web.style.*
@@ -29,13 +30,11 @@ import org.jetbrains.compose.web.ExperimentalComposeWebSvgApi
 import org.jetbrains.compose.web.attributes.*
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.css.keywords.auto
-import org.jetbrains.compose.web.css.properties.borderTop
 import org.jetbrains.compose.web.css.properties.userSelect
 import org.jetbrains.compose.web.css.properties.zIndex
 import org.jetbrains.compose.web.dom.*
 import org.jetbrains.compose.web.svg.*
 import org.w3c.dom.Element
-import org.w3c.dom.HTMLSpanElement
 import kotlin.js.Date
 import kotlin.math.abs
 import kotlin.math.floor
@@ -50,9 +49,7 @@ private val COLOR_GRAPHIC_TIME_LINE = hsl(180, 100, 50)
 private val COLOR_GRAPHIC_LABEL_BACK = hsl(60, 100, 50)
 private val COLOR_GRAPHIC_LABEL_BORDER = hsl(60, 100, 25)
 private val COLOR_GRAPHIC_AXIS_DEFAULT = hsl(0, 0, 50)
-private val COLOR_GRAPHIC_DATA_BACK = hsla(60, 100, 50, 0.6)
-
-var getColorGraphicToolbarBack: () -> CSSColorValue = { colorMainBack1 }
+private val COLOR_GRAPHIC_DATA_BACK = hsla(60, 100, 50, 0.7)
 
 private val styleGraphicVisibilityTop = 10.5.cssRem
 private val styleGraphicDataTop = 10.8.cssRem
@@ -135,18 +132,16 @@ private enum class GraphicWorkMode {
     PAN, ZOOM_BOX/*, SELECT_FOR_PRINT*/
 }
 
+private const val GRAPHIC_PREFIX = "graphic"
+
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class GraphicControl(
     private val root: Root,
     private val appControl: AppControl,
     private val graphicResponse: GraphicResponse,
-    private val tabId: Int
-) : iControl {
-
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    private val GRAPHIC_PREFIX = "graphic"
+    tabId: Int,
+) : AbstractControl(tabId) {
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -168,12 +163,6 @@ class GraphicControl(
     )
 
     private val alTimeLabel = mutableStateListOf(TimeLabelData(), TimeLabelData(), TimeLabelData())
-
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    private val alTitle = mutableListOf<String>()
-
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     private val alGrLegend = mutableStateListOf<LegendData>()
     private val alElement = mutableStateListOf<Pair<String, GraphicElement>>()
@@ -221,98 +210,15 @@ class GraphicControl(
 
     @Composable
     override fun getBody() {
-//--- оно как-то без этого обходится???
-//            attrs = {
-//                style {
-//                    flexGrow(1)
-//                    flexShrink(1)
-//                    display(DisplayStyle.Flex)
-//                    flexDirection(FlexDirection.Column)
-//                    height(100.percent)
-//                }
-//            }
-        Div {
-
-            //--- Graphic Title
-            Div(
-                attrs = {
-                    id("${GRAPHIC_PREFIX}_title_$tabId")
-                    style {
-                        display(DisplayStyle.Flex)
-                        flexDirection(FlexDirection.Row)
-                        flexWrap(FlexWrap.Wrap)
-                        justifyContent(JustifyContent.SpaceBetween)
-                        alignItems(AlignItems.Center)
-                        padding(styleControlPadding)
-                        backgroundColor(getColorGraphicToolbarBack())
-                        borderTop(
-                            width = (if (!styleIsNarrowScreen) {
-                                0
-                            } else {
-                                1
-                            }).px,
-                            lineStyle = LineStyle.Solid,
-                            color = colorMainBorder,
-                        )
-                    }
-                }
-            ) {
-                getToolBarSpan {}
-                Span(
-                    attrs = {
-                        style {
-                            display(DisplayStyle.Flex)
-                            flexDirection(FlexDirection.Row)
-                            flexWrap(FlexWrap.Nowrap)
-                            justifyContent(JustifyContent.Center)
-                            alignItems(AlignItems.Center)
-                            fontSize(styleControlTitleTextFontSize)
-                            setPaddings(arrStyleControlTitlePadding)
-                            display(DisplayStyle.Flex)
-                            flexDirection(FlexDirection.Column)
-                        }
-                    }
-                ) {
-                    alTitle.forEachIndexed { index, title ->
-                        Span(
-                            attrs = {
-                                style {
-                                    fontWeight(
-                                        if (alTitle.size > 1 && index == 0) {
-                                            "bold"
-                                        } else {
-                                            "normal"
-                                        }
-                                    )
-                                }
-                            }
-                        ) {
-                            Text(title)
-                        }
-                    }
-                }
-                getToolBarSpan {}
-            }
+        getMainDiv {
+            //--- Graphic Header
+            getGraphicAndXyHeader(GRAPHIC_PREFIX)
 
             //--- Graphic Toolbar
-            Div(
-                attrs = {
-                    id("${GRAPHIC_PREFIX}_toolbar_$tabId")
-                    style {
-                        // style="[ style_toolbar
-                        display(DisplayStyle.Flex)
-                        flexDirection(FlexDirection.Row)
-                        flexWrap(FlexWrap.Wrap)
-                        justifyContent(JustifyContent.SpaceBetween)
-                        alignItems(AlignItems.Center)
-                        padding(styleControlPadding)
-                        backgroundColor(getColorGraphicToolbarBack())
-                    }
-                }
-            ) {
+            getGraphicAndXyToolbar(GRAPHIC_PREFIX) {
                 getToolBarSpan {
-                    getToolBarIconButton("/web/images/ic_open_with_black_48dp.png", "Перемещение по графику", { setModePan() })
-                    getToolBarIconButton("/web/images/ic_search_black_48dp.png", "Выбор области для показа", { setModeZoomBox() })
+                    getToolBarIconButton("/web/images/ic_open_with_black_48dp.png", "Перемещение по графику", { setMode(GraphicWorkMode.PAN) })
+                    getToolBarIconButton("/web/images/ic_search_black_48dp.png", "Выбор области для показа", { setMode(GraphicWorkMode.ZOOM_BOX) })
                 }
                 getToolBarSpan {
                     getToolBarIconButton("/web/images/ic_zoom_in_black_48dp.png", "Ближе", { zoomIn() })
@@ -445,46 +351,9 @@ class GraphicControl(
                     )
                 }
             }
-
             getGraphicElementTemplate(true)
         }
     }
-
-    @Composable
-    private fun getToolBarSpan(content: ContentBuilder<HTMLSpanElement>) =
-        Span(
-            attrs = {
-                style {
-                    display(DisplayStyle.Flex)
-                    flexDirection(FlexDirection.Row)
-                    flexWrap(FlexWrap.Nowrap)
-                    justifyContent(JustifyContent.Center)
-                    alignItems(AlignItems.Center)
-                }
-            }
-        ) {
-            content()
-        }
-
-    @Composable
-    private fun getToolBarIconButton(src: String, title: String, onClick: () -> Unit) =
-        Img(
-            src = src,
-            attrs = {
-                style {
-                    backgroundColor(getColorToolbarButtonBack())
-                    fontSize(styleCommonButtonFontSize)
-                    setBorder(getStyleToolbarButtonBorder())
-                    padding(styleIconButtonPadding)
-                    setMargins(arrStyleCommonMargin)
-                    cursor("pointer")
-                }
-                title(title)
-                onClick {
-                    onClick()
-                }
-            }
-        )
 
     //--- предположительно, static метод
     @OptIn(ExperimentalComposeWebSvgApi::class)
@@ -499,7 +368,7 @@ class GraphicControl(
                 }
                 if (withInteractive) {
                     onWheel { syntheticWheelEvent ->
-                        onMouseWheel(syntheticWheelEvent)
+                        onGrMouseWheel(syntheticWheelEvent)
                         syntheticWheelEvent.preventDefault()
                     }
                 }
@@ -538,7 +407,7 @@ class GraphicControl(
                             text = axisText.text,
                             attrs = {
                                 style {
-                                    fontSize((1.0 * root.scaleKoef).cssRem)
+                                    fontSize((1.0 * scaleKoef).cssRem)
                                 }
                                 fill(axisText.stroke)
                                 attr("text-anchor", axisText.hAnchor)
@@ -558,15 +427,15 @@ class GraphicControl(
                     height(grSvgHeight.value)
                     if (withInteractive) {
                         onMouseDown { syntheticMouseEvent ->
-                            onMousePressed(false, syntheticMouseEvent.offsetX, syntheticMouseEvent.offsetY)
+                            onGrMousePressed(false, syntheticMouseEvent.offsetX, syntheticMouseEvent.offsetY)
                             syntheticMouseEvent.preventDefault()
                         }
                         onMouseMove { syntheticMouseEvent ->
-                            onMouseMove(false, syntheticMouseEvent.offsetX, syntheticMouseEvent.offsetY)
+                            onGrMouseMove(false, syntheticMouseEvent.offsetX, syntheticMouseEvent.offsetY)
                             syntheticMouseEvent.preventDefault()
                         }
                         onMouseUp { syntheticMouseEvent ->
-                            onMouseReleased(
+                            onGrMouseReleased(
                                 false,
                                 syntheticMouseEvent.offsetX,
                                 syntheticMouseEvent.offsetY,
@@ -577,22 +446,22 @@ class GraphicControl(
                             syntheticMouseEvent.preventDefault()
                         }
                         onWheel { syntheticWheelEvent ->
-                            onMouseWheel(syntheticWheelEvent)
+                            onGrMouseWheel(syntheticWheelEvent)
                             syntheticWheelEvent.preventDefault()
                         }
                         onTouchStart { syntheticTouchEvent ->
                             val firstTouch = syntheticTouchEvent.changedTouches.item(0)!!
-                            onMousePressed(true, firstTouch.clientX.toDouble(), firstTouch.clientY.toDouble())
+                            onGrMousePressed(true, firstTouch.clientX.toDouble(), firstTouch.clientY.toDouble())
                             syntheticTouchEvent.preventDefault()
                         }
                         onTouchMove { syntheticTouchEvent ->
                             val firstTouch = syntheticTouchEvent.changedTouches.item(0)!!
-                            onMouseMove(true, firstTouch.clientX.toDouble(), firstTouch.clientY.toDouble())
+                            onGrMouseMove(true, firstTouch.clientX.toDouble(), firstTouch.clientY.toDouble())
                             syntheticTouchEvent.preventDefault()
                         }
                         onTouchEnd { syntheticTouchEvent ->
                             val firstTouch = syntheticTouchEvent.changedTouches.item(0)!!
-                            onMouseReleased(
+                            onGrMouseReleased(
                                 true,
                                 firstTouch.clientX.toDouble(),
                                 firstTouch.clientY.toDouble(),
@@ -612,7 +481,7 @@ class GraphicControl(
                         text = element.title.text,
                         attrs = {
                             style {
-                                fontSize((1.0 * root.scaleKoef).cssRem)
+                                fontSize((1.0 * scaleKoef).cssRem)
                             }
                             fill(element.title.stroke)
                             attr("text-anchor", element.title.hAnchor)
@@ -650,7 +519,7 @@ class GraphicControl(
                             text = axisText.text,
                             attrs = {
                                 style {
-                                    fontSize((1.0 * root.scaleKoef).cssRem)
+                                    fontSize((1.0 * scaleKoef).cssRem)
                                 }
                                 fill(axisText.stroke)
                                 attr("text-anchor", axisText.hAnchor)
@@ -667,14 +536,13 @@ class GraphicControl(
                                 fill(graphicPoint.fill)
                                 if (withInteractive) {
                                     onMouseEnter { syntheticMouseEvent ->
-                                        onMouseOver(syntheticMouseEvent, graphicPoint)
+                                        onGrMouseOver(syntheticMouseEvent, graphicPoint)
                                     }
                                     onMouseLeave {
-                                        onMouseOut()
+                                        onGrMouseOut()
                                     }
                                 }
                             }
-
                         )
                     }
                     for (graphicLine in element.alGraphicLine) {
@@ -689,10 +557,10 @@ class GraphicControl(
                                 attr("stroke-dasharray", graphicLine.dash)
                                 if (withInteractive) {
                                     onMouseEnter { syntheticMouseEvent ->
-                                        onMouseOver(syntheticMouseEvent, graphicLine)
+                                        onGrMouseOver(syntheticMouseEvent, graphicLine)
                                     }
                                     onMouseLeave {
-                                        onMouseOut()
+                                        onGrMouseOut()
                                     }
                                 }
                             }
@@ -802,7 +670,7 @@ class GraphicControl(
                             text = legendText.text,
                             attrs = {
                                 style {
-                                    fontSize((1.0 * root.scaleKoef).cssRem)
+                                    fontSize((1.0 * scaleKoef).cssRem)
                                 }
                                 fill(legendText.stroke)
                                 attr("text-anchor", legendText.hAnchor)
@@ -826,10 +694,10 @@ class GraphicControl(
                                 }
                                 if (withInteractive) {
                                     onMouseEnter { syntheticMouseEvent ->
-                                        onMouseOver(syntheticMouseEvent, graphicText)
+                                        onGrMouseOver(syntheticMouseEvent, graphicText)
                                     }
                                     onMouseLeave {
-                                        onMouseOut()
+                                        onGrMouseOut()
                                     }
                                 }
                             }
@@ -893,16 +761,16 @@ class GraphicControl(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    fun start() {
+    override fun start() {
         root.setTabInfo(tabId, graphicResponse.shortTitle, graphicResponse.fullTitle)
-        alTitle.addAll(graphicResponse.fullTitle.split('\n').filter { it.isNotBlank() })
+        alTitleData += graphicResponse.fullTitle.split('\n').filter { it.isNotBlank() }.map { TitleData("", it) }
 
         doGraphicSpecificComponentMounted(null)
     }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    //--- предположительно, static метод
+    //--- предположительно, static метод из-за Composite Control
     private fun doGraphicSpecificComponentMounted(svgHeight: Int?) {
         svgHeight?.let {
             grSvgHeight.value = svgHeight
@@ -915,8 +783,7 @@ class GraphicControl(
                 action = GraphicAction.GET_COORDS,
                 startParamId = graphicResponse.startParamId
             )
-        )
-        { graphicActionResponse: GraphicActionResponse ->
+        ) { graphicActionResponse: GraphicActionResponse ->
 
             val newViewCoord = GraphicViewCoord(graphicActionResponse.begTime!!, graphicActionResponse.endTime!!)
             grRefreshView(newViewCoord)
@@ -928,7 +795,6 @@ class GraphicControl(
     private fun grRefreshView(aView: GraphicViewCoord?) {
         doGraphicRefresh(
             graphicResponse = graphicResponse,
-            tabId = tabId,
             elementPrefix = GRAPHIC_PREFIX,
             arrAddElements = emptyArray(),
             aView = aView,
@@ -938,7 +804,6 @@ class GraphicControl(
 
     private fun doGraphicRefresh(
         graphicResponse: GraphicResponse,
-        tabId: Int,
         elementPrefix: String,
         arrAddElements: Array<Element>,
         aView: GraphicViewCoord?,
@@ -953,7 +818,6 @@ class GraphicControl(
                 viewCoord
             }
 
-        val scaleKoef = root.scaleKoef
 
         if (withWait) {
             root.setWait(true)
@@ -972,7 +836,7 @@ class GraphicControl(
 
         ) { graphicActionResponse: GraphicActionResponse ->
 
-            val svgBodyTop = calcBodyLeftAndTop(tabId, elementPrefix, arrAddElements).second
+            val svgBodyTop = calcBodyLeftAndTop(elementPrefix, arrAddElements).second
             grSvgHeight.value = window.innerHeight - svgBodyTop
 
             alElement.clear()
@@ -1149,7 +1013,6 @@ class GraphicControl(
     }
 
     private fun calcBodyLeftAndTop(
-        tabId: Int,
         elementPrefix: String,
         arrAddElements: Array<Element>,
     ): Pair<Int, Int> {
@@ -1474,7 +1337,6 @@ class GraphicControl(
         alAxisText: MutableList<SvgTextData>
     ) {
         val timeOffset = root.timeOffset
-        val scaleKoef = root.scaleKoef
 
         val timeWidth = t2 - t1
 
@@ -1754,26 +1616,21 @@ class GraphicControl(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    private fun setModePan() {
-        //when( newMode ) {
-        //    WorkMode.PAN      -> {
-        //            stackPane.cursor = Cursor.MOVE
-        //    }
-        //    WorkMode.ZOOM_BOX -> {
-        //            stackPane.cursor = Cursor.CROSSHAIR
-        //    }
-        //}
-        isPanButtonDisabled.value = true
-        isZoomButtonDisabled.value = false
+    private fun setMode(newMode: GraphicWorkMode) {
+        when (newMode) {
+            GraphicWorkMode.PAN -> {
+                isPanButtonDisabled.value = true
+                isZoomButtonDisabled.value = false
+//                stackPane.cursor = Cursor.MOVE
+            }
 
-        grCurMode.value = GraphicWorkMode.PAN
-    }
-
-    private fun setModeZoomBox() {
-        isPanButtonDisabled.value = false
-        isZoomButtonDisabled.value = true
-
-        grCurMode.value = GraphicWorkMode.ZOOM_BOX
+            GraphicWorkMode.ZOOM_BOX -> {
+                isPanButtonDisabled.value = false
+                isZoomButtonDisabled.value = true
+//                stackPane.cursor = Cursor.CROSSHAIR
+            }
+        }
+        grCurMode.value = newMode
     }
 
     private fun zoomIn() {
@@ -1815,12 +1672,11 @@ class GraphicControl(
         grRefreshView(null)
     }
 
-    private fun onMouseOver(syntheticMouseEvent: SyntheticMouseEvent, graphicElement: SvgElementData) {
+    private fun onGrMouseOver(syntheticMouseEvent: SyntheticMouseEvent, graphicElement: SvgElementData) {
         val mouseOffsetY = syntheticMouseEvent.offsetY.toInt()
         val mouseClientX = syntheticMouseEvent.clientX
         val mouseClientY = syntheticMouseEvent.clientY
 
-        val scaleKoef = root.scaleKoef
         val arrViewBoxBody = getGraphicViewBoxBody()
 
         if (graphicElement is SvgLineData) {
@@ -1856,7 +1712,7 @@ class GraphicControl(
         }
     }
 
-    private fun onMouseOut() {
+    private fun onGrMouseOut() {
         //--- через 3 сек выключить тултип, если не было других активаций тултипов
         //--- причина: баг (?) в том, что mouseleave вызывается сразу после mouseenter,
         //--- причём после ухода с графика других mouseleave не вызывается.
@@ -1867,12 +1723,12 @@ class GraphicControl(
         }, 3000)
     }
 
-    private fun onMousePressed(isNeedOffsetCompensation: Boolean, aMouseX: Double, aMouseY: Double) {
+    private fun onGrMousePressed(isNeedOffsetCompensation: Boolean, aMouseX: Double, aMouseY: Double) {
         var mouseX = aMouseX.toInt()
         var mouseY = aMouseY.toInt()
 
         //!!! в случае работы в сложной схеме могут поехать y-координаты
-        val (svgBodyLeft, svgBodyTop) = calcBodyLeftAndTop(tabId, "graphic", emptyArray())
+        val (svgBodyLeft, svgBodyTop) = calcBodyLeftAndTop(GRAPHIC_PREFIX, emptyArray())
 
         if (isNeedOffsetCompensation) {
             mouseX -= svgBodyLeft
@@ -1910,12 +1766,12 @@ class GraphicControl(
         isMouseDown = true
     }
 
-    private fun onMouseMove(isNeedOffsetCompensation: Boolean, aMouseX: Double, aMouseY: Double) {
+    private fun onGrMouseMove(isNeedOffsetCompensation: Boolean, aMouseX: Double, aMouseY: Double) {
         var mouseX = aMouseX.toInt()
         var mouseY = aMouseY.toInt()
 
         //!!! в случае работы в сложной схеме могут поехать y-координаты
-        val (svgBodyLeft, svgBodyTop) = calcBodyLeftAndTop(tabId, "graphic", emptyArray())
+        val (svgBodyLeft, svgBodyTop) = calcBodyLeftAndTop(GRAPHIC_PREFIX, emptyArray())
 
         if (isNeedOffsetCompensation) {
             mouseX -= svgBodyLeft
@@ -2003,7 +1859,7 @@ class GraphicControl(
         }
     }
 
-    private fun onMouseReleased(
+    private fun onGrMouseReleased(
         isNeedOffsetCompensation: Boolean,
         aMouseX: Double,
         aMouseY: Double,
@@ -2135,13 +1991,13 @@ class GraphicControl(
         }
     }
 
-    private fun onMouseWheel(syntheticWheelEvent: SyntheticWheelEvent) {
+    private fun onGrMouseWheel(syntheticWheelEvent: SyntheticWheelEvent) {
         val isCtrl = syntheticWheelEvent.ctrlKey
         val mouseX = syntheticWheelEvent.offsetX.toInt()
         val deltaY = syntheticWheelEvent.deltaY.toInt()
 
         //!!! в случае работы в сложной схеме могут поехать y-координаты
-        val (svgBodyLeft, svgBodyTop) = calcBodyLeftAndTop(tabId, "graphic", emptyArray())
+        val (svgBodyLeft, svgBodyTop) = calcBodyLeftAndTop(GRAPHIC_PREFIX, emptyArray())
 
         if (grCurMode.value == GraphicWorkMode.PAN && !isMouseDown || grCurMode.value == GraphicWorkMode.ZOOM_BOX && !isMouseDown) {
             //|| grControl.curMode == GraphicModel.WorkMode.SELECT_FOR_PRINT && grControl.selectorX1 < 0  ) {
