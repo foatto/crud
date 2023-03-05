@@ -1,28 +1,45 @@
 package foatto.core_compose_web.control
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.web.events.SyntheticMouseEvent
 import androidx.compose.web.events.SyntheticWheelEvent
+import foatto.core.app.xy.XyAction
+import foatto.core.app.xy.XyActionRequest
+import foatto.core.app.xy.XyProjection
 import foatto.core.app.xy.XyViewCoord
 import foatto.core.app.xy.config.XyBitmapType
+import foatto.core.app.xy.geom.XyLine
+import foatto.core.app.xy.geom.XyPoint
+import foatto.core.app.xy.geom.XyRect
+import foatto.core.link.XyElementConfig
 import foatto.core.link.XyResponse
+import foatto.core.util.getRandomInt
+import foatto.core.util.getSplittedDouble
 import foatto.core_compose_web.AppControl
 import foatto.core_compose_web.Root
+import foatto.core_compose_web.control.model.AddPointStatus
+import foatto.core_compose_web.control.model.MouseRectData
 import foatto.core_compose_web.control.model.XyElementData
-import foatto.core_compose_web.style.arrStyleCommonMargin
-import foatto.core_compose_web.style.scaleKoef
-import foatto.core_compose_web.style.setBorder
-import foatto.core_compose_web.style.setMargins
-import foatto.core_compose_web.style.styleCommonButtonFontSize
-import foatto.core_compose_web.style.styleIconButtonPadding
-import foatto.core_compose_web.style.styleIsNarrowScreen
+import foatto.core_compose_web.control.model.XyElementDataType
+import foatto.core_compose_web.link.invokeXy
+import foatto.core_compose_web.style.*
 import foatto.core_compose_web.util.MIN_USER_RECT_SIZE
-import foatto.core_compose_web.util.MouseRectData
 import org.jetbrains.compose.web.ExperimentalComposeWebSvgApi
+import org.jetbrains.compose.web.attributes.stroke
+import org.jetbrains.compose.web.attributes.strokeDasharray
+import org.jetbrains.compose.web.attributes.strokeWidth
 import org.jetbrains.compose.web.css.*
+import org.jetbrains.compose.web.css.properties.userSelect
+import org.jetbrains.compose.web.css.properties.verticalAlign
+import org.jetbrains.compose.web.dom.Button
+import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.ElementScope
 import org.jetbrains.compose.web.dom.Img
+import org.jetbrains.compose.web.dom.Span
+import org.jetbrains.compose.web.dom.Text
 import org.jetbrains.compose.web.events.SyntheticTouchEvent
 import org.jetbrains.compose.web.svg.*
 import org.w3c.dom.svg.SVGElement
@@ -41,7 +58,9 @@ private enum class MapWorkMode {
 //--- опции выбора
 private enum class SelectOption { SET, ADD, REVERT, DELETE }
 
-private val COLOR_XY_LINE: CSSColorValue = hsl(180, 100, 50)
+private val COLOR_MAP_LINE: CSSColorValue = hsl(180, 100, 50)
+private val COLOR_MAP_LINE_WIDTH = max(1.0, scaleKoef).roundToInt()
+private val COLOR_MAP_DISTANCER = hsl(30, 100, 50)
 
 private const val mapBitmapTypeName = XyBitmapType.MS   // на текущий момент MapSurfer - наиболее правильная карта
 
@@ -68,8 +87,7 @@ class MapControl(
     private val isZoomInButtonDisabled = mutableStateOf(false)
     private val isZoomOutButtonDisabled = mutableStateOf(false)
 
-    //                "arrAddEC" to arrayOf<XyElementConfig>(),
-//                "isAddElementButtonVisible" to false,
+    private val isAddElementButtonVisible = mutableStateOf(false)
     private val isEditPointButtonVisible = mutableStateOf(false)
     private val isMoveElementsButtonVisible = mutableStateOf(false)
 
@@ -78,37 +96,33 @@ class MapControl(
 
     private val isRefreshButtonDisabled = mutableStateOf(false)
 
-//    private val alDistancerLine = mutableStateListOf<XyElementData>()
-//    private val alDistancerDist = mutableStateListOf<Double>()
-//    private val alDistancerText = mutableStateListOf<XyElementData>()
-//    private val distancerSumText = XyElementData(type = XyElementDataType.HTML_TEXT, elementId = -1, objectId = -1)
+    private val alDistancerLine = mutableStateListOf<DistancerLineData>()   // contains state-fields
+    private val alDistancerDist = mutableStateListOf<Double>()
+    private val alDistancerText = mutableStateListOf<DistancerTextData>()
+    private val distancerSumTextVisible = mutableStateOf(false)             // contains state-fields
+    private val distancerSumText = DistancerTextData()                      // contains state-fields
 
-    private val mouseRect = MouseRectData(
-        isVisible = mutableStateOf(false),
-        x1 = mutableStateOf(0),
-        y1 = mutableStateOf(0),
-        x2 = mutableStateOf(0),
-        y2 = mutableStateOf(0),
-        lineWidth = mutableStateOf(1),
-    )
+    private val mouseRect = MouseRectData()                                 // contains state-fields
+
+    private var addElement = mutableStateOf<XyElementData?>(null)
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     private var curMode = MapWorkMode.PAN
     private var isMouseDown = false
-
     private var panPointOldX = 0
     private var panPointOldY = 0
     private var panDX = 0
     private var panDY = 0
 
-//                "addElement" to null,
-//                "editElement" to null,
-//                "editPointIndex" to -1,
-//
-//                "arrMoveElement" to null,
-//                "moveStartPoint" to null,
-//                "moveEndPoint" to null
+    private val alAddEC = mutableListOf<XyElementConfig>()
+
+    private var editElement: XyElementData? = null
+    private var editPointIndex = -1
+
+    private val alMoveElement = mutableListOf<XyElementData>()
+    private var moveStartPoint: XyPoint? = null
+    private var moveEndPoint: XyPoint? = null
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -121,56 +135,62 @@ class MapControl(
             //--- Map Toolbar
             getGraphicAndXyToolbar(MAP_PREFIX) {
                 getToolBarSpan {
-                    getToolBarIconButton("/web/images/ic_open_with_black_48dp.png", "Перемещение по карте", { setMode(MapWorkMode.PAN) })
-                    getToolBarIconButton("/web/images/ic_search_black_48dp.png", "Выбор области для показа", { setMode(MapWorkMode.ZOOM_BOX) })
+                    getToolBarIconButton("/web/images/ic_open_with_black_48dp.png", "Перемещение по карте") { setMode(MapWorkMode.PAN) }
+                    getToolBarIconButton("/web/images/ic_search_black_48dp.png", "Выбор области для показа") { setMode(MapWorkMode.ZOOM_BOX) }
                     if (!styleIsNarrowScreen) {
-                        getToolBarIconButton("/web/images/ic_linear_scale_black_48dp.png", "Измерение расстояний", { setMode(MapWorkMode.DISTANCER) })
+                        getToolBarIconButton("/web/images/ic_linear_scale_black_48dp.png", "Измерение расстояний") { setMode(MapWorkMode.DISTANCER) }
                     }
-                    getToolBarIconButton("/web/images/ic_touch_app_black_48dp.png", "Работа с объектами", { setMode(MapWorkMode.SELECT_FOR_ACTION) })
+                    getToolBarIconButton("/web/images/ic_touch_app_black_48dp.png", "Работа с объектами") { setMode(MapWorkMode.SELECT_FOR_ACTION) }
                 }
                 getToolBarSpan {
-                    getToolBarIconButton("/web/images/ic_zoom_in_black_48dp.png", "Ближе", { zoomIn() })
-                    getToolBarIconButton("/web/images/ic_zoom_out_black_48dp.png", "Дальше", { zoomOut() })
+                    getToolBarIconButton("/web/images/ic_zoom_in_black_48dp.png", "Ближе") { zoomIn() }
+                    getToolBarIconButton("/web/images/ic_zoom_out_black_48dp.png", "Дальше") { zoomOut() }
                 }
                 getToolBarSpan {
-//                <template v-if="isAddElementButtonVisible">
-//                    <span v-show="arrAddEC.length > 0">
-//                        Добавить:
-//                    </span>
-//                    <button v-for="ec in arrAddEC"
-//                            v-on:click="startAdd( ec )"
-//                            v-bind:style="style_text_button"
-//                            v-bind:title="'Добавить `' + ec.descrForAction + '`'"
-//                    >
-//                        {{ec.descrForAction}}
-//                    </button>
-//                </template>
-//    "style_text_button" to json(
-//        "background" to colorButtonBack(),
-//        "border" to "1px solid ${colorButtonBorder()}",
-//        "border-radius" to styleButtonBorderRadius,
-//        "font-size" to styleCommonButtonFontSize(),
-//        "padding" to styleTextButtonPadding(),//styleCommonEditorPadding(),
-//        "margin" to styleCommonMargin(),
-//        "cursor" to "pointer"
-//    ),
+                    if (isAddElementButtonVisible.value) {
+                        if (alAddEC.isNotEmpty()) {
+                            Span {
+                                Text("Добавить:")
+                            }
+                        }
+                        for (ec in alAddEC) {
+                            Button(
+                                attrs = {
+                                    style {
+                                        backgroundColor(getColorButtonBack())
+                                        setBorder(color = getColorButtonBorder(), radius = styleButtonBorderRadius)
+                                        fontSize(styleCommonButtonFontSize)
+                                        padding(styleTextButtonPadding)
+                                        setMargins(arrStyleCommonMargin)
+                                        cursor("pointer")
+                                    }
+                                    title("Добавить ${ec.descrForAction}")
+                                    onClick {
+                                        startAdd(ec)
+                                    }
+                                }
+                            ) {
+                                Text(ec.descrForAction)
+                            }
+                        }
+                    }
                 }
-//                getToolBarSpan {
-//                    if (isEditPointButtonVisible.value) {
-//                        getToolBarIconButton("/web/images/ic_format_shapes_black_48dp.png", "Редактирование точек", { startEditPoint() })
-//                    }
-//                    if (isMoveElementsButtonVisible.value) {
-//                        getToolBarIconButton("/web/images/ic_zoom_out_map_black_48dp.png", "Перемещение объектов", { startMoveElements() })
-//                    }
-//                }
-//                getToolBarSpan {
-//                    if (isActionOkButtonVisible.value) {
-//                        getToolBarIconButton("/web/images/ic_save_black_48dp.png", "Сохранить", { actionOk() })
-//                    }
-//                    if (isActionCancelButtonVisible.value) {
-//                        getToolBarIconButton("/web/images/ic_exit_to_app_black_48dp.png", "Отменить", { actionCancel() })
-//                    }
-//                }
+                getToolBarSpan {
+                    if (isEditPointButtonVisible.value) {
+                        getToolBarIconButton("/web/images/ic_format_shapes_black_48dp.png", "Редактирование точек") { startEditPoint() }
+                    }
+                    if (isMoveElementsButtonVisible.value) {
+                        getToolBarIconButton("/web/images/ic_zoom_out_map_black_48dp.png", "Перемещение объектов") { startMoveElements() }
+                    }
+                }
+                getToolBarSpan {
+                    if (isActionOkButtonVisible.value) {
+                        getToolBarIconButton("/web/images/ic_save_black_48dp.png", "Сохранить") { actionOk() }
+                    }
+                    if (isActionCancelButtonVisible.value) {
+                        getToolBarIconButton("/web/images/ic_exit_to_app_black_48dp.png", "Отменить") { actionCancel() }
+                    }
+                }
                 getToolBarSpan {
                     Img(
                         src = "/web/images/ic_sync_black_48dp.png",
@@ -194,30 +214,43 @@ class MapControl(
 
             getXyElementTemplate(true)
 
-//            for (distancerText in alDistancerText) {
-//                Div(
-//                    attrs = {
-//                        style {
-////             v-bind:style="[distancerText.pos, distancerText.style]"
-//                        }
-//                    }
-//                ) {
-//                    Text(distancerText.text.value)
-//                }
-//            }
-//
-//            if (distancerSumText.isVisible.value) {
-//                Div(
-//                    attrs = {
-//                        style {
-////             v-bind:style="[distancerSumText.pos, distancerSumText.style]"
-//                        }
-//                    }
-//                ) {
-//                    Text(distancerSumText.text.value)
-//                }
-//            }
+            for (distancerText in alDistancerText) {
+                Div(
+                    attrs = {
+                        style {
+                            setDistancerTextStyle()
+                            distancerText.pos.value(this)
+                        }
+                    }
+                ) {
+                    Text(distancerText.text.value)
+                }
+            }
+
+            if (distancerSumTextVisible.value) {
+                Div(
+                    attrs = {
+                        style {
+                            setDistancerTextStyle()
+                            distancerSumText.pos.value(this)
+                        }
+                    }
+                ) {
+                    Text(distancerSumText.text.value)
+                }
+            }
         }
+    }
+
+    private fun StyleScope.setDistancerTextStyle() {
+        position(Position.Absolute)
+        color(COLOR_MAIN_TEXT)
+        backgroundColor(COLOR_XY_LABEL_BACK)
+        textAlign("center")
+        verticalAlign("baseline")
+        setBorder(color = COLOR_XY_LABEL_BORDER, width = (1 * scaleKoef).px, radius = (2 * scaleKoef).px)
+        setPaddings(arrStyleXyDistancerPadding)
+        userSelect(if (styleIsNarrowScreen) "none" else "auto")
     }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -235,8 +268,10 @@ class MapControl(
                     width = abs(mouseRect.x2.value - mouseRect.x1.value),
                     height = abs(mouseRect.y2.value - mouseRect.y1.value),
                     attrs = {
-                        fill(COLOR_XY_LINE.toString())
-//                        opacity(0.25)
+                        fill(COLOR_MAP_LINE.toString())
+                        style {
+                            opacity(0.25)
+                        }
                     }
                 )
                 Line(
@@ -245,8 +280,8 @@ class MapControl(
                     x2 = mouseRect.x2.value,
                     y2 = mouseRect.y1.value,
                     attrs = {
-                        attr("stroke", COLOR_XY_LINE.toString())
-                        attr("stroke-width", mouseRect.lineWidth.toString())
+                        stroke(COLOR_MAP_LINE)
+                        strokeWidth(COLOR_MAP_LINE_WIDTH)
                     }
                 )
                 Line(
@@ -255,8 +290,8 @@ class MapControl(
                     x2 = mouseRect.x2.value,
                     y2 = mouseRect.y2.value,
                     attrs = {
-                        attr("stroke", COLOR_XY_LINE.toString())
-                        attr("stroke-width", mouseRect.lineWidth.toString())
+                        stroke(COLOR_MAP_LINE)
+                        strokeWidth(COLOR_MAP_LINE_WIDTH)
                     }
                 )
                 Line(
@@ -265,8 +300,8 @@ class MapControl(
                     x2 = mouseRect.x1.value,
                     y2 = mouseRect.y2.value,
                     attrs = {
-                        attr("stroke", COLOR_XY_LINE.toString())
-                        attr("stroke-width", mouseRect.lineWidth.toString())
+                        stroke(COLOR_MAP_LINE)
+                        strokeWidth(COLOR_MAP_LINE_WIDTH)
                     }
                 )
                 Line(
@@ -275,36 +310,50 @@ class MapControl(
                     x2 = mouseRect.x1.value,
                     y2 = mouseRect.y1.value,
                     attrs = {
-                        attr("stroke", COLOR_XY_LINE.toString())
-                        attr("stroke-width", mouseRect.lineWidth.toString())
+                        stroke(COLOR_MAP_LINE)
+                        strokeWidth(COLOR_MAP_LINE_WIDTH)
                     }
                 )
             }
 
-//            for (distancerLine in alDistancerLine) {
-//                Line(
-//                    x1 = distancerLine.x1!!,
-//                    y1 = distancerLine.y1!!,
-//                    x2 = distancerLine.x2!!,
-//                    y2 = distancerLine.y2!!,
-//                    attrs = {
-//                        attr("stroke", distancerLine.stroke!!)
-//                        attr("stroke-width", distancerLine.strokeWidth.toString())
-//                        attr("stroke-dasharray", distancerLine.strokeDash)
-//                    }
-//                )
-//            }
+            for (distancerLine in alDistancerLine) {
+                Line(
+                    x1 = distancerLine.x1.value,
+                    y1 = distancerLine.y1.value,
+                    x2 = distancerLine.x2.value,
+                    y2 = distancerLine.y2.value,
+                    attrs = {
+                        stroke(COLOR_MAP_DISTANCER)
+                        strokeWidth((4 * scaleKoef).roundToInt())
+                        strokeDasharray("${scaleKoef * 4},${scaleKoef * 4}")
+                    }
+                )
+            }
 
-//        <template v-if="addElement">
-//            <polygon v-if="addElement.type == '${XyElementDataType.POLYGON}'"
-//                     v-bind:points="addElement.points"
-//                     v-bind:stroke="addElement.itSelected ? '$COLOR_XY_ZONE_BORDER' : addElement.stroke"
-//                     v-bind:fill="addElement.fill"
-//                     v-bind:stroke-width="addElement.strokeWidth"
-//                     v-bind:stroke-dasharray="addElement.itSelected ? addElement.strokeDash : ''"
-//                     v-bind:transform="addElement.transform"
-//            />
-//        </template>
+            addElement.value?.let { element ->
+                if (element.type == XyElementDataType.POLYGON) {
+                    Polygon(
+                        points = element.arrPoints!!,
+                        attrs = {
+                            element.transform?.let {
+                                transform(element.transform)
+                            }
+                            stroke(if (element.itSelected) COLOR_XY_POLYGON_BORDER else (element.stroke ?: COLOR_TRANSPARENT))
+                            element.strokeWidth?.let {
+                                strokeWidth(element.strokeWidth)
+                            }
+                            if (element.itSelected) {
+                                strokeDasharray(element.strokeDash ?: "")
+                            } else {
+                                strokeDasharray("")
+                            }
+                            element.fill?.let {
+                                fill(element.fill.toString())
+                            }
+                        }
+                    )
+                }
+            }
         }
     }
 
@@ -317,7 +366,7 @@ class MapControl(
 //        mapBitmapTypeName = if( bitmapMapMode.isNullOrEmpty() ) XyBitmapType.MS else bitmapMapMode
 
         //--- подготовка данных для меню добавления
-//        arrAddEC = xyResponse.documentConfig.alElementConfig.filter { it.second.descrForAction.isNotEmpty() }.map { it.second }.toTypedArray()
+        alAddEC.addAll(xyResponse.documentConfig.alElementConfig.filter { it.second.descrForAction.isNotEmpty() }.map { it.second })
 
         doXyMounted(
             elementPrefix = MAP_PREFIX,
@@ -361,7 +410,7 @@ class MapControl(
         isMoveElementsButtonVisible.value = false
     }
 
-    //--------------------------------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     override fun onXyMouseOver(syntheticMouseEvent: SyntheticMouseEvent, xyElement: XyElementData) {
         when (curMode.toString()) {
@@ -397,41 +446,43 @@ class MapControl(
                     y1.value = mouseY
                     x2.value = mouseX
                     y2.value = mouseY
-                    lineWidth.value = max(1.0, scaleKoef).roundToInt()
                 }
             }
-//            MapWorkMode.ACTION_EDIT_POINT -> {
-//                val clickRect = getXyClickRect(mouseX, mouseY)
-//                val editElement = that().editElement.unsafeCast<XyElementData>()
-//                var editPointIndex = -1
-//                //--- попытаемся найти вершину, на которую кликнули
-//                for (i in 0..editElement.alPoint!!.lastIndex)
-//                    if (clickRect.isContains(editElement.alPoint[i])) {
-//                        editPointIndex = i
-//                        break
-//                    }
-//                //--- если кликнутую вершину не нашли, попытаемся найти отрезок, на который кликнули
-//                if (editPointIndex == -1) {
-//                    for (i in 0..editElement.alPoint.lastIndex)
-//                        if (clickRect.isIntersects(
-//                                XyLine(
-//                                    editElement.alPoint[i],
-//                                    editElement.alPoint[if (i == editElement.alPoint.lastIndex) 0 else (i + 1)]
-//                                )
-//                            )
-//                        ) {
-//                            //--- в месте клика на отрезке добавляем точку, которую будем двигать
-//                            editPointIndex = i + 1
-//                            editElement.insertPoint(editPointIndex, mouseX, mouseY)
-//                            break
-//                        }
-//                }
-//                that().editPointIndex = editPointIndex
-//            }
-//            MapWorkMode.ACTION_MOVE -> {
-//                that.moveStartPoint = XyPoint(mouseX, mouseY)
-//                that.moveEndPoint = XyPoint(mouseX, mouseY)
-//            }
+
+            MapWorkMode.ACTION_EDIT_POINT -> {
+                editElement?.let { editElement ->
+                    val clickRect = getXyClickRect(mouseX, mouseY)
+                    editPointIndex = -1
+                    //--- попытаемся найти вершину, на которую кликнули
+                    for (i in 0..editElement.alPoint!!.lastIndex)
+                        if (clickRect.isContains(editElement.alPoint[i])) {
+                            editPointIndex = i
+                            break
+                        }
+                    //--- если кликнутую вершину не нашли, попытаемся найти отрезок, на который кликнули
+                    if (editPointIndex == -1) {
+                        for (i in 0..editElement.alPoint.lastIndex)
+                            if (clickRect.isIntersects(
+                                    XyLine(
+                                        p1 = editElement.alPoint[i],
+                                        p2 = editElement.alPoint[if (i == editElement.alPoint.lastIndex) 0 else (i + 1)]
+                                    )
+                                )
+                            ) {
+                                //--- в месте клика на отрезке добавляем точку, которую будем двигать
+                                editPointIndex = i + 1
+                                editElement.insertPoint(editPointIndex, mouseX, mouseY)
+                                break
+                            }
+                    }
+                }
+            }
+
+            MapWorkMode.ACTION_MOVE -> {
+                moveStartPoint = XyPoint(mouseX, mouseY)
+                moveEndPoint = XyPoint(mouseX, mouseY)
+            }
+
             else -> {}
         }
         isMouseDown = true
@@ -474,20 +525,22 @@ class MapControl(
                         mouseRect.y2.value = mouseY
                     }
                 }
-//                MapWorkMode.ACTION_EDIT_POINT.toString() -> {
-//                    val editElement = that().editElement.unsafeCast<XyElementData>()
-//                    val editPointIndex = that().editPointIndex.unsafeCast<Int>()
-//                    if (editPointIndex != -1)
-//                        editElement.setPoint(editPointIndex, mouseX, mouseY)
-//                }
-//                MapWorkMode.ACTION_MOVE.toString() -> {
-//                    val arrMoveElement = that().arrMoveElement.unsafeCast<Array<XyElementData>>()
-//                    val moveEndPoint = that().moveEndPoint.unsafeCast<XyPoint>()
-//                    for (element in arrMoveElement)
-//                        element.moveRel(mouseX - moveEndPoint.x, mouseY - moveEndPoint.y)
-//                    moveEndPoint.set(mouseX, mouseY)
-//                    that().moveEndPoint = moveEndPoint
-//                }
+
+                MapWorkMode.ACTION_EDIT_POINT.toString() -> {
+                    if (editPointIndex != -1) {
+                        editElement?.setPoint(editPointIndex, mouseX, mouseY)
+                    }
+                }
+
+                MapWorkMode.ACTION_MOVE.toString() -> {
+                    moveEndPoint?.let { moveEndPoint ->
+                        for (element in alMoveElement) {
+                            element.moveRel(mouseX - moveEndPoint.x, mouseY - moveEndPoint.y)
+                        }
+                        moveEndPoint.set(mouseX, mouseY)
+                    }
+                }
+
                 else -> {}
             }
         }
@@ -495,65 +548,52 @@ class MapControl(
         else {
             when (curMode.toString()) {
                 MapWorkMode.DISTANCER.toString() -> {
-//                    val alDistancerLine = that().arrDistancerLine.unsafeCast<Array<XyElementData>>().toMutableList()
-//                    val alDistancerDist = that().arrDistancerDist.unsafeCast<Array<Double>>().toMutableList()
-//                    val alDistancerText = that().arrDistancerText.unsafeCast<Array<XyElementData>>().toMutableList()
-//                    val distancerSumText = that().distancerSumText.unsafeCast<XyElementData>()
-//
-//                    if (alDistancerLine.isNotEmpty()) {
-//                        val line = alDistancerLine.last()
-//                        line.x2 = mouseX
-//                        line.y2 = mouseY
-//
-//                        val dist = XyProjection.distancePrj(
-//                            XyPoint(
-//                                viewCoord.x1 + mouseToReal(scaleKoef, viewCoord.scale, line.x1!!),
-//                                viewCoord.y1 + mouseToReal(scaleKoef, viewCoord.scale, line.y1!!)
-//                            ),
-//                            XyPoint(
-//                                viewCoord.x1 + mouseToReal(scaleKoef, viewCoord.scale, line.x2!!),
-//                                viewCoord.y1 + mouseToReal(scaleKoef, viewCoord.scale, line.y2!!)
-//                            ),
-//                            viewCoord.scale
-//                        ) / 1000.0
-//
-//                        alDistancerDist[alDistancerDist.lastIndex] = dist
-//
-//                        val distancerSumDist = alDistancerDist.sum()
-//
-//                        val text = alDistancerText.last()
-//                        text.x = (line.x1 + line.x2!!) / 2
-//                        text.y = (line.y1 + line.y2!!) / 2
-//                        text.text = getSplittedDouble(dist, 1, true, '.')
-//                        text.pos = json(
-//                            "left" to "${svgCoords.bodyLeft + text.x!!}px",
-//                            "top" to "${svgCoords.bodyTop + text.y!!}px"
-//                        )
-//
-//                        distancerSumText.x = mouseX
-//                        distancerSumText.y = mouseY
-//                        //--- иногда вышибает округлятор в getSplittedDouble
-//                        distancerSumText.text =
-//                            try {
-//                                getSplittedDouble(distancerSumDist, 1, true, '.')
-//                            } catch (t: Throwable) {
-//                                distancerSumText.text
-//                            }
-//                        distancerSumText.pos = json(
-//                            "left" to "${svgCoords.bodyLeft + mouseX + 16}px",
-//                            "top" to "${svgCoords.bodyTop + mouseY + 16}px"
-//                        )
-//
-//                        that().arrDistancerLine = alDistancerLine.toTypedArray()
-//                        that().arrDistancerDist = alDistancerDist.toTypedArray()
-//                        that().arrDistancerText = alDistancerText.toTypedArray()
-//                        //that().distancerSumText = distancerSumText - излишне
-//                    }
+                    alDistancerLine.lastOrNull()?.let { line ->
+                        line.x2.value = mouseX
+                        line.y2.value = mouseY
+
+                        val dist = XyProjection.distancePrj(
+                            XyPoint(
+                                xyViewCoord.x1 + mouseToReal(scaleKoef, xyViewCoord.scale, line.x1.value),
+                                xyViewCoord.y1 + mouseToReal(scaleKoef, xyViewCoord.scale, line.y1.value)
+                            ),
+                            XyPoint(
+                                xyViewCoord.x1 + mouseToReal(scaleKoef, xyViewCoord.scale, line.x2.value),
+                                xyViewCoord.y1 + mouseToReal(scaleKoef, xyViewCoord.scale, line.y2.value)
+                            ),
+                            xyViewCoord.scale
+                        ) / 1000.0
+
+                        alDistancerDist[alDistancerDist.lastIndex] = dist
+
+                        val distancerSumDist = alDistancerDist.sum()
+
+                        val text = alDistancerText.last()
+                        val textX = (line.x1.value + line.x2.value) / 2
+                        val textY = (line.y1.value + line.y2.value) / 2
+                        text.text.value = getSplittedDouble(dist, 1, true, '.')
+                        text.pos.value = {
+                            left((xySvgLeft + textX).px)
+                            top((xySvgTop + textY).px)
+                        }
+
+                        //--- иногда вышибает округлятор в getSplittedDouble
+                        distancerSumText.text.value =
+                            try {
+                                getSplittedDouble(distancerSumDist, 1, true, '.')
+                            } catch (t: Throwable) {
+                                distancerSumText.text.value
+                            }
+                        val (newX, newY) = getGraphixAndXyTooltipCoord(xySvgLeft + mouseX, xySvgTop + mouseY)
+                        distancerSumText.pos.value = {
+                            left(newX.px)
+                            top(newY.px)
+                        }
+                    }
                 }
 
                 MapWorkMode.ACTION_ADD.toString() -> {
-//                    val addElement = that().addElement.unsafeCast<XyElementData>()
-//                    addElement.setLastPoint(mouseX, mouseY)
+                    addElement.value?.setLastPoint(mouseX, mouseY)
                 }
 
                 else -> {}
@@ -612,160 +652,127 @@ class MapControl(
                 }
             }
 
-//            MapWorkMode.DISTANCER.toString() -> {
-//                val alDistancerLine = that().arrDistancerLine.unsafeCast<Array<XyElementData>>().toMutableList()
-//                val alDistancerDist = that().arrDistancerDist.unsafeCast<Array<Double>>().toMutableList()
-//                val alDistancerText = that().arrDistancerText.unsafeCast<Array<XyElementData>>().toMutableList()
-//
-//                //--- при первом клике заводим сумму, отключаем тулбар и включаем кнопку отмены линейки
-//                if (alDistancerLine.isEmpty()) {
-//                    that().distancerSumText = XyElementData(
-//                        type = XyElementDataType.HTML_TEXT,
-//                        elementId = -getRandomInt(),
-//                        objectId = 0,
-//                        x = mouseX,
-//                        y = mouseY,
-//                        text = "0.0",
-//                        pos = json(
-//                            "left" to "${svgCoords.bodyLeft + mouseX + 16}px",
-//                            "top" to "${svgCoords.bodyTop + mouseY + 16}px"
-//                        ),
-//                        style = json(
-//                            "position" to "absolute",
-//                            "color" to COLOR_MAIN_TEXT,
-//                            "text-align" to "center",
-//                            "vertical-align" to "baseline",
-//                            "border-radius" to "${2 * scaleKoef}px",
-//                            "border" to "${1 * scaleKoef}px solid $COLOR_XY_LABEL_BORDER",
-//                            "background" to COLOR_XY_LABEL_BACK,
-//                            "padding" to styleXyDistancerPadding(),
-//                            "user-select" to if (styleIsNarrowScreen) "none" else "auto"
-//                        )
-//                    )
-//                    disableToolbar(that())
-//                    that().isActionCancelButtonVisible = true
-//                }
-//                alDistancerLine.add(
-//                    XyElementData(
-//                        type = XyElementDataType.LINE,
-//                        elementId = -getRandomInt(),
-//                        objectId = 0,
-//                        x1 = mouseX,
-//                        y1 = mouseY,
-//                        x2 = mouseX,
-//                        y2 = mouseY,
-//                        stroke = COLOR_XY_DISTANCER,
-//                        strokeWidth = (4 * scaleKoef).roundToInt(),
-//                        strokeDash = "${scaleKoef * 4},${scaleKoef * 4}"
-//                    )
-//                )
-//
-//                alDistancerDist.add(0.0)
-//
-//                alDistancerText.add(
-//                    XyElementData(
-//                        type = XyElementDataType.HTML_TEXT,
-//                        elementId = -getRandomInt(),
-//                        objectId = 0,
-//                        x = mouseX,
-//                        y = mouseY,
-//                        text = "0.0",
-//                        pos = json(
-//                            "left" to "${svgCoords.bodyLeft + mouseX}px",
-//                            "top" to "${svgCoords.bodyTop + mouseY}px"
-//                        ),
-//                        style = json(
-//                            "position" to "absolute",
-//                            "color" to COLOR_MAIN_TEXT,
-//                            "text-align" to "center",
-//                            "vertical-align" to "baseline",
-//                            "border-radius" to "${2 * scaleKoef}px",
-//                            "border" to "${1 * scaleKoef}px solid $COLOR_XY_LABEL_BORDER",
-//                            "background" to COLOR_XY_LABEL_BACK,
-//                            "padding" to styleXyDistancerPadding(),
-//                            "user-select" to if (styleIsNarrowScreen) "none" else "auto"
-//                        )
-//                    )
-//                )
-//
-//                that().arrDistancerLine = alDistancerLine.toTypedArray()
-//                that().arrDistancerDist = alDistancerDist.toTypedArray()
-//                that().arrDistancerText = alDistancerText.toTypedArray()
-//            }
-//
-//            MapWorkMode.SELECT_FOR_ACTION.toString() -> {
-//                val mouseRect = that().mouseRect.unsafeCast<MouseRectData>()
-//
-//                if (mouseRect.isVisible) {
-//                    mouseRect.isVisible = false
-//
-//                    //--- установим опцию выбора
-//                    val selectOption =
-//                        if (shiftKey) SelectOption.ADD
-//                        else if (ctrlKey) SelectOption.REVERT
-//                        else if (altKey) SelectOption.DELETE
-//                        else SelectOption.SET
-//
-//                    //--- в обычном режиме ( т.е. без доп.клавиш ) предварительно развыберем остальные элементы
-//                    if (selectOption == SelectOption.SET) xyDeselectAll(that())
-//
-//                    val mouseXyRect = XyRect(
-//                        min(mouseRect.x1, mouseRect.x2), min(mouseRect.y1, mouseRect.y2),
-//                        abs(mouseRect.x1 - mouseRect.x2), abs(mouseRect.y1 - mouseRect.y2)
-//                    )
-//                    var editableElementCount = 0
-//                    var editElement: XyElementData? = null
-//                    var itMoveable = false
-//                    val alMoveElement = mutableListOf<XyElementData>()
-//                    for (element in getXyElementList(that(), mouseXyRect, true)) {
-//                        element.itSelected = when (selectOption) {
-//                            SelectOption.SET,
-//                            SelectOption.ADD -> true
-//                            SelectOption.REVERT -> !element.itSelected
-//                            SelectOption.DELETE -> false
-//                        }
-//                        if (element.itSelected) {
-//                            if (element.itEditablePoint) {
-//                                editableElementCount++
-//                                editElement = element
-//                            }
-//                            if (element.itMoveable) {
-//                                itMoveable = true
-//                                alMoveElement.add(element)
-//                            }
-//                        }
-//                    }
-//                    //--- проверка на возможность создания элементов при данном масштабе - пока не проверяем, т.к. геозоны можно создавать при любом масштабе
-//                    //for( mi in hmAddMenuEC.keys ) {
-//                    //    val tmpActionAddEC = hmAddMenuEC[ mi ]!!
-//                    //    mi.isDisable = xyModel.viewCoord.scale < tmpActionAddEC.scaleMin || xyModel.viewCoord.scale > tmpActionAddEC.scaleMax
-//                    //}
-//                    that().isEditPointButtonVisible = editableElementCount == 1
-//                    that().editElement = editElement
-//                    //--- предварительная краткая проверка на наличие выбранных передвигабельных объектов
-//                    that().isMoveElementsButtonVisible = itMoveable
-//                    that().arrMoveElement = alMoveElement.toTypedArray()
-//                }
-//            }
-//            MapWorkMode.ACTION_ADD.toString() -> {
-//                val addElement = that().addElement.unsafeCast<XyElementData>()
-//
-//                val actionAddPointStatus = addElement.addPoint(mouseX, mouseY)
-//
-//                if (actionAddPointStatus == AddPointStatus.COMPLETED) that().doAddElement()
-//                else that().isActionOkButtonVisible = actionAddPointStatus == AddPointStatus.COMPLETEABLE
-//            }
-//            MapWorkMode.ACTION_EDIT_POINT.toString() -> {
-//                val editPointIndex = that().editPointIndex.unsafeCast<Int>()
-//                if (editPointIndex != -1) {
-//                    editOnePoint(that())
-//                    that().editPointIndex = -1
-//                }
-//            }
-//            MapWorkMode.ACTION_MOVE.toString() -> {
-//                doMoveElements(that(), xyResponse.documentConfig.name, xyResponse.startParamId, scaleKoef, viewCoord)
-//                that().setMode(MapWorkMode.SELECT_FOR_ACTION)
-//            }
+            MapWorkMode.DISTANCER.toString() -> {
+                //--- при первом клике заводим сумму, отключаем тулбар и включаем кнопку отмены линейки
+                val (newX, newY) = getGraphixAndXyTooltipCoord(xySvgLeft + mouseX, xySvgTop + mouseY)
+                if (alDistancerLine.isEmpty()) {
+                    distancerSumText.apply {
+                        text.value = "0.0"
+                        pos.value = {
+                            left(newX.px)
+                            top(newY.px)
+                        }
+                    }
+                    distancerSumTextVisible.value = true
+                    disableToolbar()
+                    isActionCancelButtonVisible.value = true
+                }
+                alDistancerLine.add(
+                    DistancerLineData(
+                        x1 = mutableStateOf(mouseX),
+                        y1 = mutableStateOf(mouseY),
+                        x2 = mutableStateOf(mouseX),
+                        y2 = mutableStateOf(mouseY),
+                    )
+                )
+
+                alDistancerDist.add(0.0)
+
+                alDistancerText.add(
+                    DistancerTextData().apply {
+                        text.value = "0.0"
+                        pos.value = {
+                            left(newX.px)
+                            top(newY.px)
+                        }
+                    }
+                )
+            }
+
+            MapWorkMode.SELECT_FOR_ACTION.toString() -> {
+                if (mouseRect.isVisible.value) {
+                    mouseRect.isVisible.value = false
+
+                    //--- установим опцию выбора
+                    val selectOption =
+                        if (shiftKey) SelectOption.ADD
+                        else if (ctrlKey) SelectOption.REVERT
+                        else if (altKey) SelectOption.DELETE
+                        else SelectOption.SET
+
+                    //--- в обычном режиме ( т.е. без доп.клавиш ) предварительно развыберем остальные элементы
+                    if (selectOption == SelectOption.SET) {
+                        xyDeselectAll()
+                    }
+
+                    val mouseXyRect = XyRect(
+                        min(mouseRect.x1.value, mouseRect.x2.value), min(mouseRect.y1.value, mouseRect.y2.value),
+                        abs(mouseRect.x1.value - mouseRect.x2.value), abs(mouseRect.y1.value - mouseRect.y2.value)
+                    )
+                    var editableElementCount = 0
+                    var itMoveable = false
+                    val alMoveElement = mutableListOf<XyElementData>()
+                    for (element in getXyElementList(mouseXyRect, true)) {
+                        element.itSelected = when (selectOption) {
+                            SelectOption.SET,
+                            SelectOption.ADD -> {
+                                true
+                            }
+
+                            SelectOption.REVERT -> {
+                                !element.itSelected
+                            }
+
+                            SelectOption.DELETE -> {
+                                false
+                            }
+                        }
+                        if (element.itSelected) {
+                            if (element.itEditablePoint) {
+                                editableElementCount++
+                                editElement = element
+                            }
+                            if (element.itMoveable) {
+                                itMoveable = true
+                                alMoveElement.add(element)
+                            }
+                        }
+                    }
+                    //--- проверка на возможность создания элементов при данном масштабе - пока не проверяем, т.к. геозоны можно создавать при любом масштабе
+                    //for( mi in hmAddMenuEC.keys ) {
+                    //    val tmpActionAddEC = hmAddMenuEC[ mi ]!!
+                    //    mi.isDisable = xyModel.viewCoord.scale < tmpActionAddEC.scaleMin || xyModel.viewCoord.scale > tmpActionAddEC.scaleMax
+                    //}
+                    isEditPointButtonVisible.value = editableElementCount == 1
+                    //--- предварительная краткая проверка на наличие выбранных передвигабельных объектов
+                    isMoveElementsButtonVisible.value = itMoveable
+                    //!!! retainAll???
+                    alMoveElement.clear()
+                    alMoveElement.addAll(alMoveElement)
+                }
+            }
+
+            MapWorkMode.ACTION_ADD.toString() -> {
+                val actionAddPointStatus = addElement.value?.addPoint(mouseX, mouseY)
+
+                if (actionAddPointStatus == AddPointStatus.COMPLETED) {
+                    actionOk()
+                } else {
+                    isActionOkButtonVisible.value = actionAddPointStatus == AddPointStatus.COMPLETEABLE
+                }
+            }
+
+            MapWorkMode.ACTION_EDIT_POINT.toString() -> {
+                if (editPointIndex != -1) {
+                    editOnePoint()
+                    editPointIndex = -1
+                }
+            }
+
+            MapWorkMode.ACTION_MOVE.toString() -> {
+                doMoveElements()
+                setMode(MapWorkMode.SELECT_FOR_ACTION)
+            }
         }
         isMouseDown = false
     }
@@ -838,16 +845,17 @@ class MapControl(
             MapWorkMode.DISTANCER.toString() -> {
                 isDistancerButtonDisabled.value = false
                 isActionCancelButtonVisible.value = false
-//                arrDistancerLine = arrayOf<XyElementData>()
-//                arrDistancerDist = arrayOf<Double>()
-//                arrDistancerText = arrayOf<XyElementData>()
-//                distancerSumText = null
+                alDistancerLine.clear()
+                alDistancerDist.clear()
+                alDistancerText.clear()
+                distancerSumText.text.value = ""
+                distancerSumTextVisible.value = false
             }
 
             MapWorkMode.SELECT_FOR_ACTION.toString() -> {
                 isSelectButtonDisabled.value = false
 
-//                isAddElementButtonVisible.value = false
+                isAddElementButtonVisible.value = false
                 isEditPointButtonVisible.value = false
                 isMoveElementsButtonVisible.value = false
             }
@@ -881,7 +889,7 @@ class MapControl(
             MapWorkMode.SELECT_FOR_ACTION.toString() -> {
                 isSelectButtonDisabled.value = true
                 //stackPane.cursor = Cursor.DEFAULT
-//                isAddElementButtonVisible = true
+                isAddElementButtonVisible.value = true
                 isEditPointButtonVisible.value = false
                 isMoveElementsButtonVisible.value = false
                 isActionOkButtonVisible.value = false
@@ -949,145 +957,140 @@ class MapControl(
         isZoomButtonDisabled.value = true
         isDistancerButtonDisabled.value = true
         isSelectButtonDisabled.value = true
-    
+
         isZoomInButtonDisabled.value = true
         isZoomOutButtonDisabled.value = true
-    
+
         isRefreshButtonDisabled.value = true
     }
-    
+
     private fun enableToolbar() {
         isPanButtonDisabled.value = false
         isZoomButtonDisabled.value = false
         isDistancerButtonDisabled.value = false
         isSelectButtonDisabled.value = false
-    
+
         isZoomInButtonDisabled.value = false
         isZoomOutButtonDisabled.value = false
-    
+
         isRefreshButtonDisabled.value = false
     }
 
-}
+    private fun startAdd(elementConfig: XyElementConfig) {
+        addElement.value = getXyEmptyElementData(elementConfig)
+        setMode(MapWorkMode.ACTION_ADD)
+    }
 
-/*
-    this.methods = json(
-        "startAdd" to { elementConfig: XyElementConfig ->
-            val scaleKoef = that().`$root`.scaleKoef.unsafeCast<Double>()
+    private fun startEditPoint() {
+        //--- в старой версии мы предварительно прятали из модели текущую (адаптированную под текущий масштаб и координаты)
+        //--- версию addElement, чтобы не мешала загрузке и работе с полной версией со всеми негенерализованными точками.
+        //--- учитывая, что интерактив у нас сейчас идёт только с зонами, нарисованными вручную и точки там далеки друг от друга и не подвержены генерализации,
+        //--- можно считать, что загрузка полной копии редактируемого элемента не нужна
+        setMode(MapWorkMode.ACTION_EDIT_POINT)
+    }
 
-            that().addElement = getXyEmptyElementData(scaleKoef, elementConfig)
-            that().setMode(MapWorkMode.ACTION_ADD)
-        },
-        "startEditPoint" to {
-            //--- в старой версии мы предварительно прятали из модели текущую (адаптированную под текущий масштаб и координаты)
-            //--- версию addElement, чтобы не мешала загрузке и работе с полной версией со всеми негенерализованными точками.
-            //--- учитывая, что интерактив у нас сейчас идёт только с зонами, нарисованными вручную и точки там далеки друг от друга и не подвержены генерализации,
-            //--- можно считать, что загрузка полной копии редактируемого элемента не нужна
-            that().setMode(MapWorkMode.ACTION_EDIT_POINT)
-        },
-        "startMoveElements" to {
-            that().setMode(MapWorkMode.ACTION_MOVE)
-        },
-        "actionOk" to {
-            val scaleKoef = that().`$root`.scaleKoef.unsafeCast<Double>()
-            val viewCoord = that().xyViewCoord.unsafeCast<XyViewCoord>()
-            val curMode = that().curMode.unsafeCast<MapWorkMode>()
+    private fun startMoveElements() {
+        setMode(MapWorkMode.ACTION_MOVE)
+    }
 
-            when (curMode.toString()) {
-                MapWorkMode.ACTION_ADD.toString() -> {
-                    val addElement = that().addElement.unsafeCast<XyElementData>()
-                    addElement.doAddElement(that(), xyResponse.documentConfig.name, xyResponse.startParamId, scaleKoef, viewCoord)
-                    that().addElement = null
-                }
-                MapWorkMode.ACTION_EDIT_POINT.toString() -> {
-                    val editElement = that().editElement.unsafeCast<XyElementData>()
-                    editElement.doEditElementPoint(that(), xyResponse.documentConfig.name, xyResponse.startParamId, scaleKoef, viewCoord)
-                }
+    private fun actionOk() {
+        when (curMode.toString()) {
+            MapWorkMode.ACTION_ADD.toString() -> {
+                addElement.value?.doAddElement(root, this, xyResponse.documentConfig.name, xyResponse.startParamId, scaleKoef, xyViewCoord)
+                addElement.value = null
             }
-            //that().xyRefreshView( null, null, true ) - делается внути методов doAdd/doEdit/doMove по завершении операций
-            that().setMode(MapWorkMode.SELECT_FOR_ACTION)
-        },
-        "actionCancel" to {
-            val curMode = that().curMode.unsafeCast<MapWorkMode>()
 
-            when (curMode.toString()) {
-                MapWorkMode.DISTANCER.toString() -> {
-                    //--- включить кнопки, но кнопку линейки выключить обратно
-                    enableToolbar(that())
-                    that().isDistancerButtonDisabled = true
-                    that().arrDistancerLine = arrayOf<XyElementData>()
-                    that().arrDistancerDist = arrayOf<Double>()
-                    that().arrDistancerText = arrayOf<XyElementData>()
-                    that().distancerSumText = null
-                    that().isActionCancelButtonVisible = false
-                }
-                MapWorkMode.ACTION_ADD.toString() -> {
-                    that().addElement = null
-                    that().xyRefreshView(null, null, true)
-                    that().setMode(MapWorkMode.SELECT_FOR_ACTION)
-                }
-                MapWorkMode.ACTION_EDIT_POINT.toString() -> {
-                    that().editElement = null
-                    that().xyRefreshView(null, null, true)
-                    that().setMode(MapWorkMode.SELECT_FOR_ACTION)
-                }
+            MapWorkMode.ACTION_EDIT_POINT.toString() -> {
+                editElement?.doEditElementPoint(root, this, xyResponse.documentConfig.name, xyResponse.startParamId, scaleKoef, xyViewCoord)
             }
-            null
         }
-    )
+        //that().xyRefreshView( null, null, true ) - делается внути методов doAdd/doEdit/doMove по завершении операций
+        setMode(MapWorkMode.SELECT_FOR_ACTION)
+    }
 
+    private fun actionCancel() {
+        when (curMode.toString()) {
+            MapWorkMode.DISTANCER.toString() -> {
+                //--- включить кнопки, но кнопку линейки выключить обратно
+                enableToolbar()
+                isDistancerButtonDisabled.value = true
+                alDistancerLine.clear()
+                alDistancerDist.clear()
+                alDistancerText.clear()
+                distancerSumText.text.value = ""
+                distancerSumTextVisible.value = false
+                isActionCancelButtonVisible.value = false
+            }
 
-}
+            MapWorkMode.ACTION_ADD.toString() -> {
+                addElement.value = null
+                xyRefreshView(null, true)
+                setMode(MapWorkMode.SELECT_FOR_ACTION)
+            }
 
-private fun editOnePoint(that: dynamic) {
-    val scaleKoef = that.`$root`.scaleKoef.unsafeCast<Double>()
-    val editElement = that.editElement.unsafeCast<XyElementData>()
-    val editPointIndex = that.editPointIndex.unsafeCast<Int>()
+            MapWorkMode.ACTION_EDIT_POINT.toString() -> {
+                editElement = null
+                xyRefreshView(null, true)
+                setMode(MapWorkMode.SELECT_FOR_ACTION)
+            }
+        }
+    }
 
-    //--- с крайними точками незамкнутой полилинии нечего доделывать
-    //if( editElement.type != XyElementDataType.POLYGON && ( editPointIndex == 0 || editPointIndex == editElement.alPoint!!.lastIndex ) ) return
+    private fun editOnePoint() {
+        //--- с крайними точками незамкнутой полилинии нечего доделывать
+        //if( editElement.type != XyElementDataType.POLYGON && ( editPointIndex == 0 || editPointIndex == editElement.alPoint!!.lastIndex ) ) return
 
-    //--- берем передвигаемую, предыдущую и последующую точки
-    val p0 = editElement.alPoint!![editPointIndex]
-    val p1 = editElement.alPoint[if (editPointIndex == 0) editElement.alPoint.lastIndex else editPointIndex - 1]
-    val p2 = editElement.alPoint[if (editPointIndex == editElement.alPoint.lastIndex) 0 else editPointIndex + 1]
+        //--- берем передвигаемую, предыдущую и последующую точки
+        editElement?.let { editElement ->
+            val p0 = editElement.alPoint!![editPointIndex]
+            val p1 = editElement.alPoint[if (editPointIndex == 0) editElement.alPoint.lastIndex else editPointIndex - 1]
+            val p2 = editElement.alPoint[if (editPointIndex == editElement.alPoint.lastIndex) 0 else editPointIndex + 1]
 
-    //--- если рабочая точка достаточно близка к отрезку,
-    //--- то считаем, что рабочая точка (почти :) лежит на отрезке,
-    //--- соединяющем предыдущую и последущую точки, и ее можно удалить за ненадобностью
-    val isRemovable = XyLine.distanceSeg(p1.x.toDouble(), p1.y.toDouble(), p2.x.toDouble(), p2.y.toDouble(), p0.x.toDouble(), p0.y.toDouble()) <= scaleKoef * 2
+            //--- если рабочая точка достаточно близка к отрезку,
+            //--- то считаем, что рабочая точка (почти :) лежит на отрезке,
+            //--- соединяющем предыдущую и последущую точки, и ее можно удалить за ненадобностью
+            val isRemovable = XyLine.distanceSeg(p1.x.toDouble(), p1.y.toDouble(), p2.x.toDouble(), p2.y.toDouble(), p0.x.toDouble(), p0.y.toDouble()) <= scaleKoef * 2
 
-    //--- если точку можно удалить и элемент не является замкнутым или кол-во точек у него больше 3-х
-    //--- ( т.е. даже если элемент замкнутый, то после удаления точки еще 3 точки у него останутся )
-//    if( isRemovable && ( !actionElement!!.element.itClosed || actionElement!!.element.alPoint.size > 3 ) )
+            //--- если точку можно удалить и элемент не является замкнутым или кол-во точек у него больше 3-х
+            //--- ( т.е. даже если элемент замкнутый, то после удаления точки еще 3 точки у него останутся )
+            //    if( isRemovable && ( !actionElement!!.element.itClosed || actionElement!!.element.alPoint.size > 3 ) )
 
-    //--- сейчас работаем только с полигонами. Если сейчас больше трёх точек, значит после удаления останется как минимум 3 точки, что достаточно.
-    if (isRemovable && editElement.alPoint.size > 3) {
-        editElement.removePoint(editPointIndex)
+            //--- сейчас работаем только с полигонами. Если сейчас больше трёх точек, значит после удаления останется как минимум 3 точки, что достаточно.
+            if (isRemovable && editElement.alPoint.size > 3) {
+                editElement.removePoint(editPointIndex)
+            }
+        }
+    }
+
+    private fun doMoveElements() {
+        val xyActionRequest = XyActionRequest(
+            documentTypeName = xyResponse.documentConfig.name,
+            action = XyAction.MOVE_ELEMENTS,
+            startParamId = xyResponse.startParamId,
+
+            alActionElementIds = alMoveElement.map { it.elementId },
+            dx = ((moveEndPoint!!.x - moveStartPoint!!.x) * xyViewCoord.scale / scaleKoef).roundToInt(),
+            dy = ((moveEndPoint!!.y - moveStartPoint!!.y) * xyViewCoord.scale / scaleKoef).roundToInt()
+        )
+
+        root.setWait(true)
+        invokeXy(
+            xyActionRequest
+        ) {
+            root.setWait(false)
+            xyRefreshView(null, true)
+        }
     }
 }
 
-private fun doMoveElements(that: dynamic, documentTypeName: String, startParamId: String, scaleKoef: Double, viewCoord: XyViewCoord) {
-    val arrMoveElement = that.arrMoveElement.unsafeCast<Array<XyElementData>>()
-    val moveStartPoint = that.moveStartPoint.unsafeCast<XyPoint>()
-    val moveEndPoint = that.moveEndPoint.unsafeCast<XyPoint>()
+private class DistancerLineData(
+    val x1: MutableState<Int>,
+    val y1: MutableState<Int>,
+    val x2: MutableState<Int>,
+    val y2: MutableState<Int>,
+)
 
-    val xyActionRequest = XyActionRequest(
-        documentTypeName = documentTypeName,
-        action = XyAction.MOVE_ELEMENTS,
-        startParamId = startParamId,
-
-        alActionElementIds = arrMoveElement.map { it.elementId!! },
-        dx = ((moveEndPoint.x - moveStartPoint.x) * viewCoord.scale / scaleKoef).roundToInt(),
-        dy = ((moveEndPoint.y - moveStartPoint.y) * viewCoord.scale / scaleKoef).roundToInt()
-    )
-
-    that.`$root`.setWait(true)
-    invokeXy(
-        xyActionRequest,
-        {
-            that.`$root`.setWait(false)
-            that.xyRefreshView(that, null, true)
-        }
-    )
-} */
+private class DistancerTextData(
+    val pos: MutableState<StyleScope.() -> Unit> = mutableStateOf({}),
+    val text: MutableState<String> = mutableStateOf(""),
+)
