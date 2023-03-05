@@ -29,8 +29,6 @@ import org.w3c.dom.Element
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-private enum class StateWorkMode { PAN }
-
 private const val START_EXPAND_KOEF = 0.0
 
 private const val STATE_PREFIX = "state"
@@ -53,7 +51,6 @@ class StateControl(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    private var curMode = StateWorkMode.PAN
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -65,11 +62,6 @@ class StateControl(
 
             //--- State Toolbar
             getGraphicAndXyToolbar(STATE_PREFIX) {
-//--- пока не имеет смысла, т.к. режим только один
-//                getToolBarSpan {
-//                    getToolBarIconButton("/web/images/ic_open_with_black_48dp.png", "Перемещение по графику", { setModePan() })
-//                    getToolBarIconButton("/web/images/ic_search_black_48dp.png", "Выбор области для показа", { setModeZoomBox() })
-//                }
                 getToolBarSpan {
 //                        <button v-for="serverButton in arrXyServerButton"
 //                                v-show="!${styleIsNarrowScreen} || !serverButton.isForWideScreenOnly"
@@ -268,34 +260,30 @@ class StateControl(
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     private fun doStateTextPressed(xyElement: XyElementData) {
-        when (curMode) {
-            StateWorkMode.PAN -> {
-                root.dialogActionFun = {
-                    val xyActionRequest = XyActionRequest(
-                        documentTypeName = xyResponse.documentConfig.name,
-                        action = XyAction.CLICK_ELEMENT,
-                        startParamId = xyResponse.startParamId,
-                        elementId = xyElement.elementId,
-                        objectId = xyElement.objectId
-                    )
+        root.dialogActionFun = {
+            val xyActionRequest = XyActionRequest(
+                documentTypeName = xyResponse.documentConfig.name,
+                action = XyAction.CLICK_ELEMENT,
+                startParamId = xyResponse.startParamId,
+                elementId = xyElement.elementId,
+                objectId = xyElement.objectId
+            )
 
-                    root.setWait(true)
-                    invokeXy(
-                        xyActionRequest
-                    ) {
-                        root.setWait(false)
+            root.setWait(true)
+            invokeXy(
+                xyActionRequest
+            ) {
+                root.setWait(false)
 
-                        root.dialogActionFun = {}
-                        root.dialogQuestion.value = "Действие выполнено!"
-                        root.showDialogCancel.value = false
-                        root.showDialog.value = true
-                    }
-                }
-                root.dialogQuestion.value = xyElement.dialogQuestion!!
-                root.showDialogCancel.value = true
+                root.dialogActionFun = {}
+                root.dialogQuestion.value = "Действие выполнено!"
+                root.showDialogCancel.value = false
                 root.showDialog.value = true
             }
         }
+        root.dialogQuestion.value = xyElement.dialogQuestion!!
+        root.showDialogCancel.value = true
+        root.showDialog.value = true
     }
 
 }
