@@ -19,6 +19,7 @@ import foatto.core.link.GraphicResponse
 import foatto.core.link.SaveUserPropertyRequest
 import foatto.core.util.getSplittedDouble
 import foatto.core_compose_web.*
+import foatto.core_compose_web.control.model.MouseRectData
 import foatto.core_compose_web.control.model.TitleData
 import foatto.core_compose_web.link.invokeGraphic
 import foatto.core_compose_web.link.invokeSaveUserProperty
@@ -50,6 +51,7 @@ private val COLOR_GRAPHIC_LABEL_BACK = hsl(60, 100, 50)
 private val COLOR_GRAPHIC_LABEL_BORDER = hsl(60, 100, 25)
 private val COLOR_GRAPHIC_AXIS_DEFAULT = hsl(0, 0, 50)
 private val COLOR_GRAPHIC_DATA_BACK = hsla(60, 100, 50, 0.7)
+private val COLOR_GRAPHIC_LINE_WIDTH = max(1.0, scaleKoef).roundToInt()
 
 private val styleGraphicVisibilityTop = 10.5.cssRem
 private val styleGraphicDataTop = 10.8.cssRem
@@ -153,14 +155,7 @@ class GraphicControl(
     private val alGraphicVisibleData = mutableStateListOf<GraphicVisibleData>()
     private val alGraphicDataData = mutableStateListOf<String>()
 
-    private val mouseRect = MouseRectData(
-        isVisible = mutableStateOf(false),
-        x1 = mutableStateOf(0),
-        y1 = mutableStateOf(0),
-        x2 = mutableStateOf(0),
-        y2 = mutableStateOf(0),
-        lineWidth = mutableStateOf(1),
-    )
+    private val mouseRect = MouseRectData()     // contains state-fields
 
     private val alTimeLabel = mutableStateListOf(TimeLabelData(), TimeLabelData(), TimeLabelData())
 
@@ -182,7 +177,6 @@ class GraphicControl(
     private val grTooltipText = mutableStateOf("")
     private val grTooltipLeft = mutableStateOf(0.px)
     private val grTooltipTop = mutableStateOf(0.px)
-    private val grTooltipOffTime = mutableStateOf(0.0)
 
     private val grTimeLine = LineData(
         isVisible = mutableStateOf(false),
@@ -205,6 +199,7 @@ class GraphicControl(
     private var panPointOldX = 0
     private var panPointOldY = 0
     private var panDX = 0
+    private var grTooltipOffTime = 0.0
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -217,12 +212,12 @@ class GraphicControl(
             //--- Graphic Toolbar
             getGraphicAndXyToolbar(GRAPHIC_PREFIX) {
                 getToolBarSpan {
-                    getToolBarIconButton("/web/images/ic_open_with_black_48dp.png", "Перемещение по графику", { setMode(GraphicWorkMode.PAN) })
-                    getToolBarIconButton("/web/images/ic_search_black_48dp.png", "Выбор области для показа", { setMode(GraphicWorkMode.ZOOM_BOX) })
+                    getToolBarIconButton("/web/images/ic_open_with_black_48dp.png", "Перемещение по графику") { setMode(GraphicWorkMode.PAN) }
+                    getToolBarIconButton("/web/images/ic_search_black_48dp.png", "Выбор области для показа") { setMode(GraphicWorkMode.ZOOM_BOX) }
                 }
                 getToolBarSpan {
-                    getToolBarIconButton("/web/images/ic_zoom_in_black_48dp.png", "Ближе", { zoomIn() })
-                    getToolBarIconButton("/web/images/ic_zoom_out_black_48dp.png", "Дальше", { zoomOut() })
+                    getToolBarIconButton("/web/images/ic_zoom_in_black_48dp.png", "Ближе") { zoomIn() }
+                    getToolBarIconButton("/web/images/ic_zoom_out_black_48dp.png", "Дальше") { zoomOut() }
                 }
                 getToolBarSpan {
                     getToolBarIconButton(
@@ -394,9 +389,9 @@ class GraphicControl(
                             x2 = axisLine.x2,
                             y2 = axisLine.y2,
                             attrs = {
-                                attr("stroke", axisLine.stroke)
-                                attr("stroke-width", axisLine.width.toString())
-                                attr("stroke-dasharray", axisLine.dash)
+                                stroke(axisLine.stroke)
+                                strokeWidth(axisLine.width)
+                                strokeDasharray(axisLine.dash)
                             }
                         )
                     }
@@ -409,9 +404,9 @@ class GraphicControl(
                                 style {
                                     fontSize((1.0 * scaleKoef).cssRem)
                                 }
-                                fill(axisText.stroke)
-                                attr("text-anchor", axisText.hAnchor)
-                                attr("dominant-baseline", axisText.vAnchor)
+                                fill(axisText.stroke.toString())
+                                textAnchor(axisText.hAnchor)
+                                dominantBaseline(axisText.vAnchor)
                                 transform(axisText.transform)
                             }
                         )
@@ -450,25 +445,28 @@ class GraphicControl(
                             syntheticWheelEvent.preventDefault()
                         }
                         onTouchStart { syntheticTouchEvent ->
-                            val firstTouch = syntheticTouchEvent.changedTouches.item(0)!!
-                            onGrMousePressed(true, firstTouch.clientX.toDouble(), firstTouch.clientY.toDouble())
+                            syntheticTouchEvent.changedTouches.item(0)?.let { firstTouch ->
+                                onGrMousePressed(true, firstTouch.clientX.toDouble(), firstTouch.clientY.toDouble())
+                            }
                             syntheticTouchEvent.preventDefault()
                         }
                         onTouchMove { syntheticTouchEvent ->
-                            val firstTouch = syntheticTouchEvent.changedTouches.item(0)!!
-                            onGrMouseMove(true, firstTouch.clientX.toDouble(), firstTouch.clientY.toDouble())
+                            syntheticTouchEvent.changedTouches.item(0)?.let { firstTouch ->
+                                onGrMouseMove(true, firstTouch.clientX.toDouble(), firstTouch.clientY.toDouble())
+                            }
                             syntheticTouchEvent.preventDefault()
                         }
                         onTouchEnd { syntheticTouchEvent ->
-                            val firstTouch = syntheticTouchEvent.changedTouches.item(0)!!
-                            onGrMouseReleased(
-                                true,
-                                firstTouch.clientX.toDouble(),
-                                firstTouch.clientY.toDouble(),
-                                syntheticTouchEvent.shiftKey,
-                                syntheticTouchEvent.ctrlKey,
-                                syntheticTouchEvent.altKey
-                            )
+                            syntheticTouchEvent.changedTouches.item(0)?.let { firstTouch ->
+                                onGrMouseReleased(
+                                    isNeedOffsetCompensation = true,
+                                    aMouseX = firstTouch.clientX.toDouble(),
+                                    aMouseY = firstTouch.clientY.toDouble(),
+                                    shiftKey = syntheticTouchEvent.shiftKey,
+                                    ctrlKey = syntheticTouchEvent.ctrlKey,
+                                    altKey = syntheticTouchEvent.altKey
+                                )
+                            }
                             syntheticTouchEvent.preventDefault()
                         }
                     }
@@ -483,9 +481,9 @@ class GraphicControl(
                             style {
                                 fontSize((1.0 * scaleKoef).cssRem)
                             }
-                            fill(element.title.stroke)
-                            attr("text-anchor", element.title.hAnchor)
-                            attr("dominant-baseline", element.title.vAnchor)
+                            fill(element.title.stroke.toString())
+                            textAnchor(element.title.hAnchor)
+                            dominantBaseline(element.title.vAnchor)
                         }
                     )
                     for (graphicBack in element.alGraphicBack) {
@@ -506,9 +504,9 @@ class GraphicControl(
                             x2 = axisLine.x2,
                             y2 = axisLine.y2,
                             attrs = {
-                                attr("stroke", axisLine.stroke)
-                                attr("stroke-width", axisLine.width.toString())
-                                attr("stroke-dasharray", axisLine.dash)
+                                stroke(axisLine.stroke)
+                                strokeWidth(axisLine.width)
+                                strokeDasharray(axisLine.dash)
                             }
                         )
                     }
@@ -521,9 +519,9 @@ class GraphicControl(
                                 style {
                                     fontSize((1.0 * scaleKoef).cssRem)
                                 }
-                                fill(axisText.stroke)
-                                attr("text-anchor", axisText.hAnchor)
-                                attr("dominant-baseline", axisText.vAnchor)
+                                fill(axisText.stroke.toString())
+                                textAnchor(axisText.hAnchor)
+                                dominantBaseline(axisText.vAnchor)
                             }
                         )
                     }
@@ -552,9 +550,9 @@ class GraphicControl(
                             x2 = graphicLine.x2,
                             y2 = graphicLine.y2,
                             attrs = {
-                                attr("stroke", graphicLine.stroke)
-                                attr("stroke-width", graphicLine.width.toString())
-                                attr("stroke-dasharray", graphicLine.dash)
+                                stroke(graphicLine.stroke)
+                                strokeWidth(graphicLine.width)
+                                strokeDasharray(graphicLine.dash)
                                 if (withInteractive) {
                                     onMouseEnter { syntheticMouseEvent ->
                                         onGrMouseOver(syntheticMouseEvent, graphicLine)
@@ -575,8 +573,8 @@ class GraphicControl(
                         x2 = grTimeLine.x2.value,
                         y2 = grTimeLine.y2.value,
                         attrs = {
-                            attr("stroke", COLOR_GRAPHIC_TIME_LINE.toString())
-                            attr("stroke-width", grTimeLine.width.toString())
+                            stroke(COLOR_GRAPHIC_TIME_LINE)
+                            strokeWidth(grTimeLine.width.value)
                         }
                     )
                 }
@@ -600,8 +598,8 @@ class GraphicControl(
                         x2 = mouseRect.x2.value,
                         y2 = mouseRect.y1.value,
                         attrs = {
-                            attr("stroke", COLOR_GRAPHIC_TIME_LINE.toString())
-                            attr("stroke-width", mouseRect.lineWidth.toString())
+                            stroke(COLOR_GRAPHIC_TIME_LINE)
+                            strokeWidth(COLOR_GRAPHIC_LINE_WIDTH)
                         }
                     )
                     Line(
@@ -610,8 +608,8 @@ class GraphicControl(
                         x2 = mouseRect.x2.value,
                         y2 = mouseRect.y2.value,
                         attrs = {
-                            attr("stroke", COLOR_GRAPHIC_TIME_LINE.toString())
-                            attr("stroke-width", mouseRect.lineWidth.toString())
+                            stroke(COLOR_GRAPHIC_TIME_LINE)
+                            strokeWidth(COLOR_GRAPHIC_LINE_WIDTH)
                         }
                     )
                     Line(
@@ -620,8 +618,8 @@ class GraphicControl(
                         x2 = mouseRect.x1.value,
                         y2 = mouseRect.y2.value,
                         attrs = {
-                            attr("stroke", COLOR_GRAPHIC_TIME_LINE.toString())
-                            attr("stroke-width", mouseRect.lineWidth.toString())
+                            stroke(COLOR_GRAPHIC_TIME_LINE)
+                            strokeWidth(COLOR_GRAPHIC_LINE_WIDTH)
                         }
                     )
                     Line(
@@ -630,8 +628,8 @@ class GraphicControl(
                         x2 = mouseRect.x1.value,
                         y2 = mouseRect.y1.value,
                         attrs = {
-                            attr("stroke", COLOR_GRAPHIC_TIME_LINE.toString())
-                            attr("stroke-width", mouseRect.lineWidth.toString())
+                            stroke(COLOR_GRAPHIC_TIME_LINE)
+                            strokeWidth(COLOR_GRAPHIC_LINE_WIDTH)
                         }
                     )
                 }
@@ -656,7 +654,7 @@ class GraphicControl(
                             width = legendBack.width,
                             height = legendBack.height,
                             attrs = {
-                                attr("stroke", legendBack.stroke)
+                                stroke(legendBack.stroke)
                                 fill(legendBack.fill)
                                 rx(legendBack.rx)
                                 ry(legendBack.ry)
@@ -672,9 +670,9 @@ class GraphicControl(
                                 style {
                                     fontSize((1.0 * scaleKoef).cssRem)
                                 }
-                                fill(legendText.stroke)
-                                attr("text-anchor", legendText.hAnchor)
-                                attr("dominant-baseline", legendText.vAnchor)
+                                fill(legendText.stroke.toString())
+                                textAnchor(legendText.hAnchor)
+                                dominantBaseline(legendText.vAnchor)
                                 transform(legendText.transform)
                             }
                         )
@@ -741,13 +739,7 @@ class GraphicControl(
                                 backgroundColor(COLOR_GRAPHIC_LABEL_BACK)
                                 setBorder(color = COLOR_GRAPHIC_LABEL_BORDER, radius = styleButtonBorderRadius)
                                 setPaddings(arrStyleControlTooltipPadding)
-                                userSelect(
-                                    if (styleIsNarrowScreen) {
-                                        "none"
-                                    } else {
-                                        "auto"
-                                    }
-                                )
+                                userSelect(if (styleIsNarrowScreen) "none" else "auto")
                                 left(grTooltipLeft.value)
                                 top(grTooltipTop.value)
                             }
@@ -855,8 +847,8 @@ class GraphicControl(
                 }
             )
 
-            val hmIndexColor = graphicActionResponse.arrIndexColor.associate { e ->
-                e.first.toString() to getColorFromInt(e.second)
+            val hmIndexColor = graphicActionResponse.arrIndexColor.associate { (colorIndex, intColor) ->
+                colorIndex.toString() to getColorFromInt(intColor)
             }
             alGrLegend.clear()
             alGrLegend.addAll(graphicActionResponse.arrLegend.map { (color, isBack, text) ->
@@ -1112,7 +1104,7 @@ class GraphicControl(
             x = (MIN_GRID_STEP_X * scaleKoef).roundToInt(),
             y = (pixDrawTopY - 4 * scaleKoef).roundToInt(),
             text = element.graphicTitle,
-            stroke = COLOR_MAIN_TEXT.toString(),
+            stroke = COLOR_MAIN_TEXT,
             hAnchor = "start",
             vAnchor = "text-bottom"
         )
@@ -1227,7 +1219,7 @@ class GraphicControl(
                                     y1 = prevDrawY.toInt(),
                                     x2 = drawX,
                                     y2 = drawY.toInt(),
-                                    stroke = hmIndexColor[gld.colorIndex.toString()].toString(),
+                                    stroke = hmIndexColor[gld.colorIndex.toString()]!!,
                                     width = (cagdc.lineWidth * scaleKoef).roundToInt(),
                                     tooltip = alAxisYDataIndex[axisYIndex].toString()
                                 )
@@ -1289,12 +1281,12 @@ class GraphicControl(
                                     width((rect.width - 2 * scaleKoef).px)      // чтобы избежать некрасивого перекрытия прямоугольников
                                     height((rect.height - 2 * scaleKoef).px)
                                     setBorder(
-                                        color = hmIndexColor[gtd.borderColorIndex.toString()]!!,
+                                        color = hmIndexColor[gtd.borderColorIndex.toString()] ?: COLOR_MAIN_TEXT,
                                         width = (1 * scaleKoef).px,
                                         radius = (2 * scaleKoef).px,
                                     )
-                                    color(hmIndexColor[gtd.textColorIndex.toString()]!!)
-                                    backgroundColor(hmIndexColor[gtd.fillColorIndex.toString()]!!)
+                                    color(hmIndexColor[gtd.textColorIndex.toString()] ?: COLOR_MAIN_TEXT)
+                                    backgroundColor(hmIndexColor[gtd.fillColorIndex.toString()] ?: COLOR_MAIN_BACK_0)
                                     fontSize((1.0 * scaleKoef).cssRem)
                                     userSelect(if (styleIsNarrowScreen) "none" else "auto")
                                 },
@@ -1373,7 +1365,7 @@ class GraphicControl(
                 y1 = pixDrawTopY,
                 x2 = pixDrawX,
                 y2 = pixDrawY0 + (2 * scaleKoef).roundToInt(),
-                stroke = COLOR_GRAPHIC_AXIS_DEFAULT.toString(),
+                stroke = COLOR_GRAPHIC_AXIS_DEFAULT,
                 width = max(1, scaleKoef.roundToInt()),
                 //--- если насечка переходит в линию сетки, то возможно меняется стиль линии
                 dash = if (pixDrawTopY < pixDrawY0 && (notchX + timeOffset) % labelStepX != 0) {
@@ -1393,7 +1385,7 @@ class GraphicControl(
                             x = pixDrawX,
                             y = (pixDrawY0 + (2 + (if (i == 0) 0.2 else 1.2) * 16) * scaleKoef).toInt(),
                             text = alTextLine[i].trim(),
-                            stroke = COLOR_GRAPHIC_AXIS_DEFAULT.toString(),
+                            stroke = COLOR_GRAPHIC_AXIS_DEFAULT,
                             hAnchor = "middle",
                             vAnchor = "hanging",
                         )
@@ -1414,7 +1406,7 @@ class GraphicControl(
             y1 = pixDrawY0,
             x2 = pixWidth,
             y2 = pixDrawY0,
-            stroke = COLOR_GRAPHIC_AXIS_DEFAULT.toString(),
+            stroke = COLOR_GRAPHIC_AXIS_DEFAULT,
             width = max(1, scaleKoef.roundToInt()),
             //--- если насечка переходит в линию сетки, то возможно меняется стиль линии
             dash = if (pixDrawTopY < pixDrawY0 && (notchX + timeOffset) % labelStepX != 0) {
@@ -1486,7 +1478,7 @@ class GraphicControl(
                 y1 = drawY.toInt(),
                 x2 = /*if( axisIndex == 0 ) pixDrawWidth else*/ axisX,
                 y2 = drawY.toInt(),
-                stroke = COLOR_GRAPHIC_AXIS_DEFAULT.toString(),
+                stroke = COLOR_GRAPHIC_AXIS_DEFAULT,
                 width = max(1, scaleKoef.roundToInt()),
                 //--- если насечка переходит в линию сетки, то возможно меняется стиль линии
                 dash = "${scaleKoef * 2},${scaleKoef * 2}"
@@ -1501,7 +1493,7 @@ class GraphicControl(
                         y1 = drawY.toInt(),
                         x2 = pixBodyWidth,
                         y2 = drawY.toInt(),
-                        stroke = COLOR_GRAPHIC_AXIS_DEFAULT.toString(),
+                        stroke = COLOR_GRAPHIC_AXIS_DEFAULT,
                         width = max(1, scaleKoef.roundToInt()),
                         //--- если насечка переходит в линию сетки, то возможно меняется стиль линии
                         dash = "${scaleKoef * 2},${scaleKoef * 2}"
@@ -1520,7 +1512,7 @@ class GraphicControl(
                     x = axisX - (2 * scaleKoef).roundToInt(),
                     y = drawY.toInt() - (2 * scaleKoef).roundToInt(),
                     text = getSplittedDouble(value, precY, true, '.'),
-                    stroke = hmIndexColor[ayd.colorIndex.toString()].toString(),
+                    stroke = hmIndexColor[ayd.colorIndex.toString()]!!,
                     hAnchor = "end",
                     vAnchor = "text-bottom"
                 )
@@ -1534,7 +1526,7 @@ class GraphicControl(
             y1 = pixDrawY0,
             x2 = axisX,
             y2 = pixDrawTopY,
-            stroke = hmIndexColor[ayd.colorIndex.toString()].toString(),
+            stroke = hmIndexColor[ayd.colorIndex.toString()]!!,
             width = max(1, scaleKoef.roundToInt())
         )
         alAxisLine.add(line)
@@ -1546,7 +1538,7 @@ class GraphicControl(
             x = axisTextX,
             y = axisTextY,
             text = ayd.title,
-            stroke = hmIndexColor[ayd.colorIndex.toString()].toString(),
+            stroke = hmIndexColor[ayd.colorIndex.toString()]!!,
             hAnchor = "middle",
             vAnchor = "hanging",
             transform = "rotate(-90 $axisTextX $axisTextY)"
@@ -1584,7 +1576,7 @@ class GraphicControl(
             y = y1,
             width = width,
             height = pixDrawHeight,
-            stroke = getColorFromInt(color).toString(),
+            stroke = getColorFromInt(color),
             fill = if (isBack) {
                 getColorFromInt(color).toString()
             } else {
@@ -1602,11 +1594,7 @@ class GraphicControl(
             x = textX,
             y = textY,
             text = text,
-            stroke = if (isBack) {
-                COLOR_MAIN_TEXT
-            } else {
-                getColorFromInt(color)
-            }.toString(),
+            stroke = if (isBack) COLOR_MAIN_TEXT else getColorFromInt(color),
             hAnchor = "start",
             vAnchor = "hanging",
             transform = "rotate(-90 $textX $textY)"
@@ -1689,24 +1677,22 @@ class GraphicControl(
             }
             val tooltipValue = getSplittedDouble(value, yData.prec, true, '.')
 
-            val tooltipX = mouseClientX - (0 * scaleKoef).roundToInt()
-            val tooltipY = mouseClientY - (32 * scaleKoef).roundToInt()
+            val (tooltipX, tooltipY) = getGraphixAndXyTooltipCoord(mouseClientX, mouseClientY)
 
             grTooltipVisible.value = true
             grTooltipText.value = tooltipValue
             grTooltipLeft.value = tooltipX.px
             grTooltipTop.value = tooltipY.px
-            grTooltipOffTime.value = Date().getTime() + 3000
+            grTooltipOffTime = Date().getTime() + 3000
 
         } else if (graphicElement.tooltip.isNotEmpty()) {
-            val tooltipX = mouseClientX - (0 * scaleKoef).roundToInt()
-            val tooltipY = mouseClientY - (32 * scaleKoef).roundToInt()
+            val (tooltipX, tooltipY) = getGraphixAndXyTooltipCoord(mouseClientX, mouseClientY)
 
             grTooltipVisible.value = true
             grTooltipText.value = graphicElement.tooltip.replace("\n", "<br>")
             grTooltipLeft.value = tooltipX.px
             grTooltipTop.value = tooltipY.px
-            grTooltipOffTime.value = Date().getTime() + 3000
+            grTooltipOffTime = Date().getTime() + 3000
         } else {
             grTooltipVisible.value = false
         }
@@ -1716,11 +1702,7 @@ class GraphicControl(
         //--- через 3 сек выключить тултип, если не было других активаций тултипов
         //--- причина: баг (?) в том, что mouseleave вызывается сразу после mouseenter,
         //--- причём после ухода с графика других mouseleave не вызывается.
-        window.setTimeout({
-            if (Date().getTime() > grTooltipOffTime.value) {
-                grTooltipVisible.value = false
-            }
-        }, 3000)
+        setGraphicAndXyTooltipOffTimeout(grTooltipOffTime, grTooltipVisible)
     }
 
     private fun onGrMousePressed(isNeedOffsetCompensation: Boolean, aMouseX: Double, aMouseY: Double) {
@@ -1755,7 +1737,6 @@ class GraphicControl(
                     y1.value = arrViewBoxBody[1]
                     x2.value = mouseX
                     y2.value = arrViewBoxBody[1] + arrViewBoxBody[3] - scaleKoef.roundToInt()
-                    lineWidth.value = max(1, scaleKoef.roundToInt())
                 }
 
                 setTimeLabel(svgBodyLeft, grSvgBodyWidth.value, mouseX, alTimeLabel[1])
