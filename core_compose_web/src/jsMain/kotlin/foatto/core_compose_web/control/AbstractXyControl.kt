@@ -13,6 +13,7 @@ import foatto.core.app.xy.XyActionResponse
 import foatto.core.app.xy.XyElement
 import foatto.core.app.xy.XyViewCoord
 import foatto.core.app.xy.geom.XyPoint
+import foatto.core.app.xy.geom.XyRect
 import foatto.core.link.XyElementClientType
 import foatto.core.link.XyElementConfig
 import foatto.core.link.XyResponse
@@ -27,10 +28,16 @@ import foatto.core_compose_web.control.model.XyElementData
 import foatto.core_compose_web.control.model.XyElementDataType
 import foatto.core_compose_web.link.invokeXy
 import foatto.core_compose_web.style.*
+import foatto.core_compose_web.util.MIN_USER_RECT_SIZE
 import foatto.core_compose_web.util.getColorFromInt
 import kotlinx.browser.document
 import kotlinx.browser.window
 import org.jetbrains.compose.web.ExperimentalComposeWebSvgApi
+import org.jetbrains.compose.web.attributes.dominantBaseline
+import org.jetbrains.compose.web.attributes.stroke
+import org.jetbrains.compose.web.attributes.strokeDasharray
+import org.jetbrains.compose.web.attributes.strokeWidth
+import org.jetbrains.compose.web.attributes.textAnchor
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.css.properties.userSelect
 import org.jetbrains.compose.web.css.properties.verticalAlign
@@ -47,19 +54,17 @@ import kotlin.math.roundToInt
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-private val COLOR_XY_LABEL_BACK = hsl(60, 100, 50)
-private val COLOR_XY_LABEL_BORDER = hsl(60, 100, 25)
+val COLOR_XY_LABEL_BACK = hsl(60, 100, 50)
+val COLOR_XY_LABEL_BORDER = hsl(60, 100, 25)
 
-private val COLOR_XY_DISTANCER = hsl(30, 100, 50)
-
-private val COLOR_XY_ZONE_CASUAL = hsla(60, 100, 50, 0.25)  // полупрозрачный жёлтый
-private val COLOR_XY_ZONE_ACTUAL = hsla(30, 100, 50, 0.25)  // полупрозрачный оранжевый
-private val COLOR_XY_ZONE_BORDER = hsl(0, 100, 50)          // красный
+private val COLOR_XY_POLYGON_CASUAL = hsla(60, 100, 50, 0.25)  // полупрозрачный жёлтый
+private val COLOR_XY_POLYGON_ACTUAL = hsla(30, 100, 50, 0.25)  // полупрозрачный оранжевый
+val COLOR_XY_POLYGON_BORDER: CSSColorValue = hsl(0, 100, 50)          // красный
 
 private val XY_PADDING = 0.2.cssRem
 private val XY_SIDE_PADDING = 0.4.cssRem
 
-private val arrStyleXyDistancerPadding: Array<CSSSize> = arrayOf(
+val arrStyleXyDistancerPadding: Array<CSSSize> = arrayOf(
     XY_PADDING,
     XY_SIDE_PADDING,
     XY_PADDING,
@@ -96,10 +101,10 @@ abstract class AbstractXyControl(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    protected var xySvgLeft = 0
-    protected var xySvgTop = 0
+    protected var xySvgLeft: Int = 0
+    protected var xySvgTop: Int = 0
 
-    protected var xyViewCoord = XyViewCoord(1, 0, 0, 1, 1)
+    protected var xyViewCoord: XyViewCoord = XyViewCoord(1, 0, 0, 1, 1)
 
     private var xyTooltipOffTime = 0.0
 
@@ -126,12 +131,12 @@ abstract class AbstractXyControl(
                 }
                 onMouseUp { syntheticMouseEvent ->
                     onXyMouseReleased(
-                        false,
-                        syntheticMouseEvent.offsetX,
-                        syntheticMouseEvent.offsetY,
-                        syntheticMouseEvent.shiftKey,
-                        syntheticMouseEvent.ctrlKey,
-                        syntheticMouseEvent.altKey
+                        isNeedOffsetCompensation = false,
+                        aMouseX = syntheticMouseEvent.offsetX,
+                        aMouseY = syntheticMouseEvent.offsetY,
+                        shiftKey = syntheticMouseEvent.shiftKey,
+                        ctrlKey = syntheticMouseEvent.ctrlKey,
+                        altKey = syntheticMouseEvent.altKey
                     )
                     syntheticMouseEvent.preventDefault()
                 }
@@ -142,25 +147,28 @@ abstract class AbstractXyControl(
                     }
                 }
                 onTouchStart { syntheticTouchEvent ->
-                    val firstTouch = syntheticTouchEvent.changedTouches.item(0)!!
-                    onXyMousePressed(true, firstTouch.clientX.toDouble(), firstTouch.clientY.toDouble())
+                    syntheticTouchEvent.changedTouches.item(0)?.let { firstTouch ->
+                        onXyMousePressed(true, firstTouch.clientX.toDouble(), firstTouch.clientY.toDouble())
+                    }
                     syntheticTouchEvent.preventDefault()
                 }
                 onTouchMove { syntheticTouchEvent ->
-                    val firstTouch = syntheticTouchEvent.changedTouches.item(0)!!
-                    onXyMouseMove(true, firstTouch.clientX.toDouble(), firstTouch.clientY.toDouble())
+                    syntheticTouchEvent.changedTouches.item(0)?.let { firstTouch ->
+                        onXyMouseMove(true, firstTouch.clientX.toDouble(), firstTouch.clientY.toDouble())
+                    }
                     syntheticTouchEvent.preventDefault()
                 }
                 onTouchEnd { syntheticTouchEvent ->
-                    val firstTouch = syntheticTouchEvent.changedTouches.item(0)!!
-                    onXyMouseReleased(
-                        true,
-                        firstTouch.clientX.toDouble(),
-                        firstTouch.clientY.toDouble(),
-                        syntheticTouchEvent.shiftKey,
-                        syntheticTouchEvent.ctrlKey,
-                        syntheticTouchEvent.altKey
-                    )
+                    syntheticTouchEvent.changedTouches.item(0)?.let { firstTouch ->
+                        onXyMouseReleased(
+                            isNeedOffsetCompensation = true,
+                            aMouseX = firstTouch.clientX.toDouble(),
+                            aMouseY = firstTouch.clientY.toDouble(),
+                            shiftKey = syntheticTouchEvent.shiftKey,
+                            ctrlKey = syntheticTouchEvent.ctrlKey,
+                            altKey = syntheticTouchEvent.altKey
+                        )
+                    }
                     syntheticTouchEvent.preventDefault()
                 }
             }
@@ -170,16 +178,26 @@ abstract class AbstractXyControl(
                     when (element.type.toString()) {
                         XyElementDataType.CIRCLE.toString() -> {
                             Circle(
-                                cx = element.x!!,
-                                cy = element.y!!,
-                                r = element.radius!!,
+                                cx = element.x,
+                                cy = element.y,
+                                r = element.radius,
                                 attrs = {
-                                    fill(element.fill!!)
-//                                    stroke(element.stroke)
-//                        v-bind:stroke-width="element.strokeWidth"
-//                        v-bind:stroke-dasharray="element.itSelected ? element.strokeDash : ''"
                                     element.transform?.let {
                                         transform(element.transform)
+                                    }
+                                    element.stroke?.let {
+                                        stroke(element.stroke)
+                                    }
+                                    element.strokeWidth?.let {
+                                        strokeWidth(element.strokeWidth)
+                                    }
+                                    if (element.itSelected) {
+                                        strokeDasharray(element.strokeDash ?: "")
+                                    } else {
+                                        strokeDasharray("")
+                                    }
+                                    element.fill?.let {
+                                        fill(element.fill.toString())
                                     }
                                     onMouseEnter { syntheticMouseEvent ->
                                         onXyMouseOver(syntheticMouseEvent, element)
@@ -193,17 +211,27 @@ abstract class AbstractXyControl(
 
                         XyElementDataType.ELLIPSE.toString() -> {
                             Ellipse(
-                                cx = element.x!!,
-                                cy = element.y!!,
-                                rx = element.rx!!,
-                                ry = element.ry!!,
+                                cx = element.x,
+                                cy = element.y,
+                                rx = element.rx,
+                                ry = element.ry,
                                 attrs = {
-                                    fill(element.fill!!)
-//                                    stroke(element.stroke)
-//                        v-bind:stroke-width="element.strokeWidth"
-//                        v-bind:stroke-dasharray="element.itSelected ? element.strokeDash : ''"
                                     element.transform?.let {
                                         transform(element.transform)
+                                    }
+                                    element.stroke?.let {
+                                        stroke(element.stroke)
+                                    }
+                                    element.strokeWidth?.let {
+                                        strokeWidth(element.strokeWidth)
+                                    }
+                                    if (element.itSelected) {
+                                        strokeDasharray(element.strokeDash ?: "")
+                                    } else {
+                                        strokeDasharray("")
+                                    }
+                                    element.fill?.let {
+                                        fill(element.fill.toString())
                                     }
                                     onMouseEnter { syntheticMouseEvent ->
                                         onXyMouseOver(syntheticMouseEvent, element)
@@ -217,12 +245,12 @@ abstract class AbstractXyControl(
 
                         XyElementDataType.IMAGE.toString() -> {
                             Image(
-                                href = element.url!!,
+                                href = element.url,
                                 attrs = {
-                                    x(element.x!!)
-                                    y(element.y!!)
-                                    width(element.width!!)
-                                    height(element.height!!)
+                                    x(element.x)
+                                    y(element.y)
+                                    width(element.width)
+                                    height(element.height)
                                     element.transform?.let {
                                         transform(element.transform)
                                     }
@@ -238,15 +266,21 @@ abstract class AbstractXyControl(
 
                         XyElementDataType.LINE.toString() -> {
                             Line(
-                                x1 = element.x1!!,
-                                y1 = element.y1!!,
-                                x2 = element.x2!!,
-                                y2 = element.y2!!,
+                                x1 = element.x1,
+                                y1 = element.y1,
+                                x2 = element.x2,
+                                y2 = element.y2,
                                 attrs = {
-                                    attr("stroke", element.stroke!!)
-                                    attr("stroke-width", element.strokeWidth.toString())
+                                    element.stroke?.let {
+                                        stroke(element.stroke)
+                                    }
+                                    element.strokeWidth?.let {
+                                        strokeWidth(element.strokeWidth)
+                                    }
                                     if (element.itSelected) {
-                                        attr("stroke-dasharray", element.strokeDash)
+                                        strokeDasharray(element.strokeDash ?: "")
+                                    } else {
+                                        strokeDasharray("")
                                     }
                                     onMouseEnter { syntheticMouseEvent ->
                                         onXyMouseOver(syntheticMouseEvent, element)
@@ -263,12 +297,22 @@ abstract class AbstractXyControl(
                             Path(
                                 d = element.strPoints!!,
                                 attrs = {
-//                      v-bind:stroke="element.stroke"
-//                      v-bind:fill="element.fill"
-//                      v-bind:stroke-width="element.strokeWidth"
-//                      v-bind:stroke-dasharray="element.itSelected ? element.strokeDash : ''"
                                     element.transform?.let {
                                         transform(element.transform)
+                                    }
+                                    element.stroke?.let {
+                                        stroke(element.stroke)
+                                    }
+                                    element.strokeWidth?.let {
+                                        strokeWidth(element.strokeWidth)
+                                    }
+                                    if (element.itSelected) {
+                                        strokeDasharray(element.strokeDash ?: "")
+                                    } else {
+                                        strokeDasharray("")
+                                    }
+                                    element.fill?.let {
+                                        fill(element.fill.toString())
                                     }
                                     onMouseEnter { syntheticMouseEvent ->
                                         onXyMouseOver(syntheticMouseEvent, element)
@@ -282,14 +326,24 @@ abstract class AbstractXyControl(
 
                         XyElementDataType.POLYLINE.toString() -> {
                             Polyline(
-                                points = element.arrPoints!!,
+                                points = element.arrPoints.value,
                                 attrs = {
-                                    fill(element.fill!!)
-//                          v-bind:stroke="element.stroke"
-//                          v-bind:stroke-width="element.strokeWidth"
-//                          v-bind:stroke-dasharray="element.itSelected ? element.strokeDash : ''"
                                     element.transform?.let {
                                         transform(element.transform)
+                                    }
+                                    element.stroke?.let {
+                                        stroke(element.stroke)
+                                    }
+                                    element.strokeWidth?.let {
+                                        strokeWidth(element.strokeWidth)
+                                    }
+                                    if (element.itSelected) {
+                                        strokeDasharray(element.strokeDash ?: "")
+                                    } else {
+                                        strokeDasharray("")
+                                    }
+                                    element.fill?.let {
+                                        fill(element.fill.toString())
                                     }
                                     onMouseEnter { syntheticMouseEvent ->
                                         onXyMouseOver(syntheticMouseEvent, element)
@@ -303,17 +357,25 @@ abstract class AbstractXyControl(
 
                         XyElementDataType.POLYGON.toString() -> {
                             Polygon(
-                                points = element.arrPoints!!,
+                                points = element.arrPoints.value,
                                 attrs = {
                                     style {
                                         element.style(this)
                                     }
-                                    fill(element.fill!!)
-//                         v-bind:stroke="element.itSelected ? '$COLOR_XY_ZONE_BORDER' : element.stroke"
-//                         v-bind:stroke-width="element.strokeWidth"
-//                         v-bind:stroke-dasharray="element.itSelected ? element.strokeDash : ''"
                                     element.transform?.let {
                                         transform(element.transform)
+                                    }
+                                    stroke(if (element.itSelected) COLOR_XY_POLYGON_BORDER else (element.stroke ?: COLOR_TRANSPARENT))
+                                    element.strokeWidth?.let {
+                                        strokeWidth(element.strokeWidth)
+                                    }
+                                    if (element.itSelected) {
+                                        strokeDasharray(element.strokeDash ?: "")
+                                    } else {
+                                        strokeDasharray("")
+                                    }
+                                    element.fill?.let {
+                                        fill(element.fill.toString())
                                     }
                                     onMouseEnter { syntheticMouseEvent ->
                                         onXyMouseOver(syntheticMouseEvent, element)
@@ -339,19 +401,29 @@ abstract class AbstractXyControl(
 
                         XyElementDataType.RECT.toString() -> {
                             Rect(
-                                x = element.x!!,
-                                y = element.y!!,
-                                width = element.width!!,
-                                height = element.height!!,
+                                x = element.x,
+                                y = element.y,
+                                width = element.width,
+                                height = element.height,
                                 attrs = {
-                                    fill(element.fill!!)
-                                    rx(element.rx!!)
-                                    ry(element.ry!!)
-//                      v-bind:stroke="element.stroke"
-//                      v-bind:stroke-width="element.strokeWidth"
-//                      v-bind:stroke-dasharray="element.itSelected ? element.strokeDash : ''"
+                                    rx(element.rx)
+                                    ry(element.ry)
                                     element.transform?.let {
                                         transform(element.transform)
+                                    }
+                                    element.stroke?.let {
+                                        stroke(element.stroke)
+                                    }
+                                    element.strokeWidth?.let {
+                                        strokeWidth(element.strokeWidth)
+                                    }
+                                    if (element.itSelected) {
+                                        strokeDasharray(element.strokeDash ?: "")
+                                    } else {
+                                        strokeDasharray("")
+                                    }
+                                    element.fill?.let {
+                                        fill(element.fill.toString())
                                     }
                                     onMouseEnter { syntheticMouseEvent ->
                                         onXyMouseOver(syntheticMouseEvent, element)
@@ -365,20 +437,22 @@ abstract class AbstractXyControl(
 
                         XyElementDataType.SVG_TEXT.toString() -> {
                             SvgText(
-                                x = element.x!!,
-                                y = element.y!!,
-                                text = element.text!!,
+                                x = element.x,
+                                y = element.y,
+                                text = element.text,
                                 attrs = {
                                     style {
                                         fontSize((1.0 * scaleKoef).cssRem)
                                         element.style(this)
                                     }
-                                    fill(element.stroke!!)
-                                    attr("text-anchor", element.hAnchor!!)
-                                    attr("dominant-baseline", element.vAnchor!!)
                                     element.transform?.let {
                                         transform(element.transform)
                                     }
+                                    element.fill?.let {
+                                        fill(element.fill.toString())
+                                    }
+                                    textAnchor(element.hAnchor)
+                                    dominantBaseline(element.vAnchor)
                                     onMouseEnter { syntheticMouseEvent ->
                                         onXyMouseOver(syntheticMouseEvent, element)
                                     }
@@ -454,13 +528,7 @@ abstract class AbstractXyControl(
                         backgroundColor(COLOR_XY_LABEL_BACK)
                         setBorder(color = COLOR_XY_LABEL_BORDER, radius = styleButtonBorderRadius)
                         setPaddings(arrStyleControlTooltipPadding)
-                        userSelect(
-                            if (styleIsNarrowScreen) {
-                                "none"
-                            } else {
-                                "auto"
-                            }
-                        )
+                        userSelect(if (styleIsNarrowScreen) "none" else "auto")
                     }
                 }
             ) {
@@ -630,7 +698,7 @@ abstract class AbstractXyControl(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    protected abstract fun xyRefreshView(aView: XyViewCoord?, withWait: Boolean)
+    abstract fun xyRefreshView(aView: XyViewCoord?, withWait: Boolean)
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -789,7 +857,7 @@ abstract class AbstractXyControl(
                             y = ((p.y - xyViewCoord.y1) / xyViewCoord.scale * scaleKoef).roundToInt(),
                             width = (element.imageWidth / xyViewCoord.scale * scaleKoef).roundToInt(),
                             height = (element.imageHeight / xyViewCoord.scale * scaleKoef).roundToInt(),
-                            stroke = "gray",
+                            stroke = hsl(0, 0, 50), // gray
                             strokeWidth = 1, //scaleKoef,
                             strokeDash = "${scaleKoef * 2},${scaleKoef * 2}",
                             tooltip = element.imageName,
@@ -854,9 +922,9 @@ abstract class AbstractXyControl(
                                 type = XyElementDataType.POLYGON,
                                 elementId = element.elementId,
                                 objectId = element.objectId,
-                                arrPoints = points,
-                                stroke = drawColor.toString(),
-                                fill = fillColor.toString(),
+                                arrPoints = mutableStateOf(points),
+                                stroke = drawColor,
+                                fill = fillColor,
                                 strokeWidth = max(1.0, lineWidth * scaleKoef).roundToInt(),
                                 strokeDash = "${scaleKoef * lineWidth * 2},${scaleKoef * lineWidth * 2}",
                                 transform = "rotate(${element.rotateDegree} $x $y)",
@@ -876,8 +944,8 @@ abstract class AbstractXyControl(
                                     x = x,
                                     y = y,
                                     radius = halfX,
-                                    stroke = drawColor.toString(),
-                                    fill = fillColor.toString(),
+                                    fill = fillColor,
+                                    stroke = drawColor,
                                     strokeWidth = max(1.0, lineWidth * scaleKoef).roundToInt(),
                                     strokeDash = "${scaleKoef * lineWidth * 2},${scaleKoef * lineWidth * 2}",
                                     transform = "rotate(${element.rotateDegree} $x $y)",
@@ -895,8 +963,8 @@ abstract class AbstractXyControl(
                                     y = y,
                                     rx = (element.markerSize * scaleKoef / 2).roundToInt(),
                                     ry = (element.markerSize2 * scaleKoef / 2).roundToInt(),
-                                    stroke = drawColor.toString(),
-                                    fill = fillColor.toString(),
+                                    stroke = drawColor,
+                                    fill = fillColor,
                                     strokeWidth = max(1.0, lineWidth * scaleKoef).roundToInt(),
                                     strokeDash = "${scaleKoef * lineWidth * 2},${scaleKoef * lineWidth * 2}",
                                     transform = "rotate(${element.rotateDegree} $x $y)",
@@ -919,8 +987,8 @@ abstract class AbstractXyControl(
                                 elementId = element.elementId,
                                 objectId = element.objectId,
                                 strPoints = path,
-                                stroke = drawColor.toString(),
-                                fill = fillColor.toString(),
+                                stroke = drawColor,
+                                fill = fillColor,
                                 strokeWidth = max(1.0, lineWidth * scaleKoef).roundToInt(),
                                 strokeDash = "${scaleKoef * lineWidth * 2},${scaleKoef * lineWidth * 2}",
                                 transform = "rotate(${element.rotateDegree} $x $y)",
@@ -942,9 +1010,9 @@ abstract class AbstractXyControl(
                                 type = XyElementDataType.POLYGON,
                                 elementId = element.elementId,
                                 objectId = element.objectId,
-                                arrPoints = points,
-                                stroke = drawColor.toString(),
-                                fill = fillColor.toString(),
+                                arrPoints = mutableStateOf(points),
+                                stroke = drawColor,
+                                fill = fillColor,
                                 strokeWidth = max(1.0, lineWidth * scaleKoef).roundToInt(),
                                 strokeDash = "${scaleKoef * lineWidth * 2},${scaleKoef * lineWidth * 2}",
                                 transform = "rotate(${element.rotateDegree} $x $y)",
@@ -966,8 +1034,8 @@ abstract class AbstractXyControl(
                                 elementId = element.elementId,
                                 objectId = element.objectId,
                                 strPoints = path,
-                                stroke = drawColor.toString(),
-                                fill = fillColor.toString(),
+                                stroke = drawColor,
+                                fill = fillColor,
                                 strokeWidth = max(1.0, lineWidth * scaleKoef).roundToInt(),
                                 strokeDash = "${scaleKoef * lineWidth * 2},${scaleKoef * lineWidth * 2}",
                                 transform = "rotate(${element.rotateDegree} $x $y)",
@@ -987,8 +1055,8 @@ abstract class AbstractXyControl(
                                 y = y - halfY,
                                 width = 2 * halfX,
                                 height = 2 * halfY,
-                                stroke = drawColor.toString(),
-                                fill = fillColor.toString(),
+                                stroke = drawColor,
+                                fill = fillColor,
                                 strokeWidth = max(1.0, lineWidth * scaleKoef).roundToInt(),
                                 strokeDash = "${scaleKoef * lineWidth * 2},${scaleKoef * lineWidth * 2}",
                                 transform = "rotate(${element.rotateDegree} $x $y)",
@@ -1009,9 +1077,9 @@ abstract class AbstractXyControl(
                                 type = XyElementDataType.POLYGON,
                                 elementId = element.elementId,
                                 objectId = element.objectId,
-                                arrPoints = points,
-                                stroke = drawColor.toString(),
-                                fill = fillColor.toString(),
+                                arrPoints = mutableStateOf(points),
+                                stroke = drawColor,
+                                fill = fillColor,
                                 strokeWidth = max(1.0, lineWidth * scaleKoef).roundToInt(),
                                 strokeDash = "${scaleKoef * lineWidth * 2},${scaleKoef * lineWidth * 2}",
                                 transform = "rotate(${element.rotateDegree} $x $y)",
@@ -1047,9 +1115,9 @@ abstract class AbstractXyControl(
                         },
                         elementId = element.elementId,
                         objectId = element.objectId,
-                        arrPoints = points.toTypedArray(),
-                        stroke = drawColor.toString(),
-                        fill = fillColor.toString(),
+                        arrPoints = mutableStateOf(points.toTypedArray()),
+                        stroke = drawColor,
+                        fill = fillColor,
                         strokeWidth = max(1.0, lineWidth * scaleKoef).roundToInt(),
                         strokeDash = "${scaleKoef * lineWidth * 2},${scaleKoef * lineWidth * 2}",
                         tooltip = element.toolTipText,
@@ -1110,7 +1178,7 @@ abstract class AbstractXyControl(
                         hAnchor = hAnchor,
                         vAnchor = vAlign,
                         text = element.text,
-                        stroke = textColor.toString(),
+                        stroke = textColor,
                         tooltip = element.toolTipText,
                         itReadOnly = element.itReadOnly,
                         isVisible = true,
@@ -1259,7 +1327,7 @@ abstract class AbstractXyControl(
                             y1 = ((p1.y - xyViewCoord.y1) / xyViewCoord.scale * scaleKoef).roundToInt(),
                             x2 = ((p2.x - xyViewCoord.x1) / xyViewCoord.scale * scaleKoef).roundToInt(),
                             y2 = ((p2.y - xyViewCoord.y1) / xyViewCoord.scale * scaleKoef).roundToInt(),
-                            stroke = getColorFromInt(element.alDrawColor[i]).toString(),
+                            stroke = getColorFromInt(element.alDrawColor[i]),
                             strokeWidth = max(1.0, lineWidth * scaleKoef).roundToInt(),
                             tooltip = element.alToolTip[i],
                             itReadOnly = element.itReadOnly
@@ -1284,9 +1352,9 @@ abstract class AbstractXyControl(
                         type = XyElementDataType.POLYGON,
                         elementId = element.elementId,
                         objectId = element.objectId,
-                        arrPoints = points.toTypedArray(),
-                        stroke = COLOR_XY_ZONE_ACTUAL.toString(),
-                        fill = COLOR_XY_ZONE_ACTUAL.toString(),
+                        arrPoints = mutableStateOf(points.toTypedArray()),
+                        stroke = COLOR_XY_POLYGON_ACTUAL,
+                        fill = COLOR_XY_POLYGON_ACTUAL,
                         strokeWidth = (2 * scaleKoef).roundToInt(),
                         strokeDash = "${scaleKoef * 2 /*lineWidth*/ * 2},${scaleKoef * 2 /*lineWidth*/ * 2}",
                         tooltip = element.toolTipText,
@@ -1300,7 +1368,7 @@ abstract class AbstractXyControl(
         }
     }
 
-    private fun getXyEmptyElementData(scaleKoef: Double, elementConfig: XyElementConfig): XyElementData? {
+    protected fun getXyEmptyElementData(elementConfig: XyElementConfig): XyElementData? {
         var result: XyElementData? = null
 
         when (elementConfig.clientType.toString()) {
@@ -1330,9 +1398,9 @@ abstract class AbstractXyControl(
                     type = XyElementDataType.POLYGON,
                     elementId = -getRandomInt(),
                     objectId = 0,
-                    arrPoints = emptyArray(),
-                    stroke = COLOR_XY_ZONE_ACTUAL.toString(),
-                    fill = COLOR_XY_ZONE_ACTUAL.toString(),
+                    arrPoints = mutableStateOf(emptyArray()),
+                    stroke = COLOR_XY_POLYGON_ACTUAL,
+                    fill = COLOR_XY_POLYGON_ACTUAL,
                     strokeWidth = (2 * scaleKoef).roundToInt(),
                     strokeDash = "${scaleKoef * 2 /*lineWidth*/ * 2},${scaleKoef * 2 /*lineWidth*/ * 2}",
                     tooltip = "",
@@ -1363,9 +1431,7 @@ abstract class AbstractXyControl(
 
     protected open fun onXyMouseOver(syntheticMouseEvent: SyntheticMouseEvent, xyElement: XyElementData) {
         if (!xyElement.tooltip.isNullOrBlank()) {
-//!!! сделать общую функцию расположения тултипа для графиков и ХУ
-            val tooltipX = syntheticMouseEvent.clientX - (0 * scaleKoef).roundToInt()
-            val tooltipY = syntheticMouseEvent.clientY - (32 * scaleKoef).roundToInt()
+            val (tooltipX, tooltipY) = getGraphixAndXyTooltipCoord(syntheticMouseEvent.clientX, syntheticMouseEvent.clientY)
 
             xyTooltipVisible.value = true
             xyTooltipText.value = xyElement.tooltip
@@ -1377,16 +1443,11 @@ abstract class AbstractXyControl(
         }
     }
 
-    //!!! сделать общую функцию выключения тултипа для графиков и ХУ
     private fun onXyMouseOut() {
         //--- через 3 сек выключить тултип, если не было других активаций тултипов
         //--- причина: баг (?) в том, что mouseleave вызывается сразу после mouseenter,
         //--- причём после ухода с графика других mouseleave не вызывается.
-        window.setTimeout({
-            if (Date().getTime() > xyTooltipOffTime) {
-                xyTooltipVisible.value = false
-            }
-        }, 3000)
+        setGraphicAndXyTooltipOffTimeout(xyTooltipOffTime, xyTooltipVisible)
     }
 
     protected abstract fun onXyMousePressed(isNeedOffsetCompensation: Boolean, aMouseX: Double, aMouseY: Double)
@@ -1404,8 +1465,8 @@ abstract class AbstractXyControl(
         for (arrLayer in alXyElement) {
             for (xyElement in arrLayer) {
                 if (xyElement.type == XyElementDataType.HTML_TEXT) {
-                    val newX = xyElement.x!! - arrViewBoxBody[0]
-                    val newY = xyElement.y!! - arrViewBoxBody[1]
+                    val newX = xyElement.x - arrViewBoxBody[0]
+                    val newY = xyElement.y - arrViewBoxBody[1]
 
                     xyElement.isVisible = newX >= 0 && newY >= 0 && newX < arrViewBoxBody[2] && newY /*- xyOffsY*/ < arrViewBoxBody[3]
 
@@ -1426,6 +1487,12 @@ abstract class AbstractXyControl(
         }
     }
 
+    protected fun getXyClickRect(mouseX: Int, mouseY: Int): XyRect = XyRect(mouseX - MIN_USER_RECT_SIZE / 2, mouseY - MIN_USER_RECT_SIZE / 2, MIN_USER_RECT_SIZE, MIN_USER_RECT_SIZE)
+
+    fun getXyElementList(rect: XyRect, isCollectEditableOnly: Boolean): List<XyElementData> =
+        alXyElement.flatten().filter { xyElement ->
+            isCollectEditableOnly.xor(xyElement.itReadOnly) && xyElement.isIntersects(rect)
+        }.asReversed()
 
 }
 
@@ -1459,15 +1526,6 @@ abstract class AbstractXyControl(
 //
 //    return alResult.asReversed()
 //}
-
-fun getXyElementList(that: dynamic, rect: XyRect, isCollectEditableOnly: Boolean): List<XyElementData> {
-    val arrXyElement = that.arrXyElement.unsafeCast<Array<Array<XyElementData>>>()
-    return arrXyElement.flatten().filter { xyElement ->
-        isCollectEditableOnly.xor(xyElement.itReadOnly) && xyElement.isIntersects(rect)
-    }.asReversed()
-}
-
-fun getXyClickRect(mouseX: Int, mouseY: Int): XyRect = XyRect(mouseX - MIN_USER_RECT_SIZE / 2, mouseY - MIN_USER_RECT_SIZE / 2, MIN_USER_RECT_SIZE, MIN_USER_RECT_SIZE)
 
 fun readXyServerActionButton(that: dynamic, arrServerActionButton: Array<XyServerActionButton>) {
     var serverButtonID = 0
