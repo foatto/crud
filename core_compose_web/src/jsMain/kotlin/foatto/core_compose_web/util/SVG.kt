@@ -1,6 +1,7 @@
 package foatto.core_compose_web.util
 
-import androidx.compose.runtime.MutableState
+import foatto.core_compose_web.style.COLOR_TRANSPARENT
+import org.jetbrains.compose.web.css.CSSColorValue
 
 const val MIN_USER_RECT_SIZE = 8
 
@@ -10,7 +11,7 @@ class SvgCircleData(
     val cx: Int,
     val cy: Int,
     val radius: Int,
-    val stroke: String = "",
+    val stroke: CSSColorValue = COLOR_TRANSPARENT,
     val fill: String = "",
     tooltip: String = ""
 ) : SvgElementData(tooltip)
@@ -20,7 +21,7 @@ class SvgLineData(
     val y1: Int,
     val x2: Int,
     val y2: Int,
-    val stroke: String,
+    val stroke: CSSColorValue,
     val width: Int,
     val dash: String = "",
     tooltip: String = ""
@@ -31,9 +32,9 @@ class SvgRectData(
     val y: Int,
     val width: Int,
     val height: Int,
-    val stroke: String = "none",
-    val fill: String = "none",
+    val stroke: CSSColorValue = COLOR_TRANSPARENT,
     val strokeWidth: Int = 0,
+    val fill: String = "none",
     val rx: Number = 0,    // в чистом SVG м.б. в виде 0.1rem или типа того, но в Compose это абстрактный Number без единицы измерения, видимо, просто .px
     val ry: Number = 0,
     tooltip: String = ""
@@ -43,7 +44,7 @@ class SvgTextData(
     val x: Int,
     val y: Int,
     val text: String,
-    val stroke: String,
+    val stroke: CSSColorValue,
     var hAnchor: String,    // may be reassigned later
     val vAnchor: String,
     val transform: String = "",
@@ -64,15 +65,4 @@ class SvgTextData(
 //    val dy: String,
 //    val text: String
 //)
-
-//--- пусть будет общим для Graphic & Xy ------------------------------------------------------------
-
-class MouseRectData(
-    val isVisible: MutableState<Boolean>,
-    val x1: MutableState<Int>,
-    val y1: MutableState<Int>,
-    val x2: MutableState<Int>,
-    val y2: MutableState<Int>,
-    val lineWidth: MutableState<Int>,
-)
 
