@@ -9,7 +9,13 @@ import foatto.core.link.AppResponse
 import foatto.core.link.LogonRequest
 import foatto.core.link.ResponseCode
 import foatto.core.link.XyDocumentClientType
-import foatto.core_compose_web.control.*
+import foatto.core_compose_web.control.AbstractControl
+import foatto.core_compose_web.control.EmptyControl
+import foatto.core_compose_web.control.FormControl
+import foatto.core_compose_web.control.GraphicControl
+import foatto.core_compose_web.control.MapControl
+import foatto.core_compose_web.control.StateControl
+import foatto.core_compose_web.control.TableControl
 import foatto.core_compose_web.link.invokeApp
 import foatto.core_compose_web.style.*
 import foatto.core_compose_web.util.encodePassword
@@ -461,7 +467,7 @@ class AppControl(
 
                     ResponseCode.XY.toString() -> {
                         appResponse.xy?.let { xy ->
-                             val xyControl = when (xy.documentConfig.clientType.toString()) {
+                            val xyControl = when (xy.documentConfig.clientType.toString()) {
                                 XyDocumentClientType.MAP.toString() -> MapControl(root, this, xy, tabId)
                                 XyDocumentClientType.STATE.toString() -> StateControl(root, this, xy, tabId)
                                 else -> MapControl(root, this, xy, tabId)
