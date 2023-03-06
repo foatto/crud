@@ -1,5 +1,7 @@
 package foatto.core_compose_web.control.model
 
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import foatto.core.app.xy.XyAction
 import foatto.core.app.xy.XyActionRequest
 import foatto.core.app.xy.XyElement
@@ -45,7 +47,7 @@ class XyElementData(
 
     //--- точки для SVG могут быть затребованы или строкой или одномерным массивом чисел (бардак в SVG, да)
     var strPoints: String? = null,
-    var arrPoints: Array<out Number>? = null,
+    var arrPoints: MutableState<Array<out Number>> = mutableStateOf(emptyArray()),
 
     val width: Int = 0,
     val height: Int = 0,
@@ -399,6 +401,6 @@ class XyElementData(
             points += xyPoint.x
             points += xyPoint.y
         }
-        arrPoints = points.toTypedArray()
+        arrPoints.value = points.toTypedArray()
     }
 }

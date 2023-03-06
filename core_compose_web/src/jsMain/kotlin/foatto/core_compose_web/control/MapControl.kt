@@ -16,7 +16,6 @@ import foatto.core.app.xy.geom.XyPoint
 import foatto.core.app.xy.geom.XyRect
 import foatto.core.link.XyElementConfig
 import foatto.core.link.XyResponse
-import foatto.core.util.getRandomInt
 import foatto.core.util.getSplittedDouble
 import foatto.core_compose_web.AppControl
 import foatto.core_compose_web.Root
@@ -333,7 +332,7 @@ class MapControl(
             addElement.value?.let { element ->
                 if (element.type == XyElementDataType.POLYGON) {
                     Polygon(
-                        points = element.arrPoints!!,
+                        points = element.arrPoints.value,
                         attrs = {
                             element.transform?.let {
                                 transform(element.transform)
@@ -710,8 +709,8 @@ class MapControl(
                         abs(mouseRect.x1.value - mouseRect.x2.value), abs(mouseRect.y1.value - mouseRect.y2.value)
                     )
                     var editableElementCount = 0
-                    var itMoveable = false
-                    val alMoveElement = mutableListOf<XyElementData>()
+                    isMoveElementsButtonVisible.value = false
+                    alMoveElement.clear()
                     for (element in getXyElementList(mouseXyRect, true)) {
                         element.itSelected = when (selectOption) {
                             SelectOption.SET,
@@ -733,7 +732,8 @@ class MapControl(
                                 editElement = element
                             }
                             if (element.itMoveable) {
-                                itMoveable = true
+                                //--- предварительная краткая проверка на наличие выбранных передвигабельных объектов
+                                isMoveElementsButtonVisible.value = true
                                 alMoveElement.add(element)
                             }
                         }
@@ -744,11 +744,6 @@ class MapControl(
                     //    mi.isDisable = xyModel.viewCoord.scale < tmpActionAddEC.scaleMin || xyModel.viewCoord.scale > tmpActionAddEC.scaleMax
                     //}
                     isEditPointButtonVisible.value = editableElementCount == 1
-                    //--- предварительная краткая проверка на наличие выбранных передвигабельных объектов
-                    isMoveElementsButtonVisible.value = itMoveable
-                    //!!! retainAll???
-                    alMoveElement.clear()
-                    alMoveElement.addAll(alMoveElement)
                 }
             }
 
