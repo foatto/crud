@@ -233,13 +233,12 @@ class TableControl(
                 }
             ) {
                 getToolBarSpan {
-                    if (selectorCancelUrl.value.isNotEmpty()) {
-                        getToolBarIconButton(
-                            "/web/images/ic_reply_all_${getStyleIconNameSuffix()}dp.png",
-                            "Отменить выбор",
-                        ) {
-                            call(selectorCancelUrl.value, false)
-                        }
+                    getToolBarIconButton(
+                        isVisible = selectorCancelUrl.value.isNotEmpty(),
+                        src = "/web/images/ic_reply_all_${getStyleIconNameSuffix()}dp.png",
+                        title = "Отменить выбор",
+                    ) {
+                        call(selectorCancelUrl.value, false)
                     }
                     if (isFindTextVisible.value) {
                         Input(InputType.Text) {
@@ -300,45 +299,56 @@ class TableControl(
                     }
                 }
                 getToolBarSpan {
-                    if (!styleIsNarrowScreen || !isFindTextVisible.value) {
-                        for (addButton in alAddButton) {
-                            getToolBarIconButton(addButton.icon, addButton.tooltip) {
-                                call(addButton.url, false)
-                            }
+                    for (addButton in alAddButton) {
+                        getToolBarIconButton(
+                            isVisible = !styleIsNarrowScreen || !isFindTextVisible.value,
+                            src = addButton.icon,
+                            title = addButton.tooltip
+                        ) {
+                            call(addButton.url, false)
                         }
                     }
-                    if ((!styleIsNarrowScreen || !isFindTextVisible.value) && isFormButtonVisible.value) {
-                        getToolBarIconButton("/web/images/ic_mode_edit_${getStyleIconNameSuffix()}dp.png", "Открыть форму") {
-                            doForm()
-                        }
+                    getToolBarIconButton(
+                        isVisible = (!styleIsNarrowScreen || !isFindTextVisible.value) && isFormButtonVisible.value,
+                        src = "/web/images/ic_mode_edit_${getStyleIconNameSuffix()}dp.png",
+                        title = "Открыть форму"
+                    ) {
+                        doForm()
                     }
-
-                    if ((!styleIsNarrowScreen || !isFindTextVisible.value) && isGotoButtonVisible.value) {
-                        getToolBarIconButton("/web/images/ic_exit_to_app_${getStyleIconNameSuffix()}dp.png", "Перейти") {
-                            doGoto()
-                        }
+                    getToolBarIconButton(
+                        isVisible = (!styleIsNarrowScreen || !isFindTextVisible.value) && isGotoButtonVisible.value,
+                        src = "/web/images/ic_exit_to_app_${getStyleIconNameSuffix()}dp.png",
+                        title = "Перейти"
+                    ) {
+                        doGoto()
                     }
-                    if ((!styleIsNarrowScreen || !isFindTextVisible.value) && isPopupButtonVisible.value) {
-                        getToolBarIconButton("/web/images/ic_menu_${getStyleIconNameSuffix()}dp.png", "Показать операции по строке") {
-                            doPopup()
-                        }
+                    getToolBarIconButton(
+                        isVisible = (!styleIsNarrowScreen || !isFindTextVisible.value) && isPopupButtonVisible.value,
+                        src = "/web/images/ic_menu_${getStyleIconNameSuffix()}dp.png",
+                        title = "Показать операции по строке"
+                    ) {
+                        doPopup()
                     }
                 }
                 getToolBarSpan {
                     for (serverButton in alServerButton) {
-                        if (!styleIsNarrowScreen || (!isFindTextVisible.value && !serverButton.isForWideScreenOnly)) {
-                            getToolBarIconButton(serverButton.icon, serverButton.tooltip) {
-                                call(serverButton.url, serverButton.inNewWindow)
-                            }
+                        getToolBarIconButton(
+                            isVisible = !styleIsNarrowScreen || (!isFindTextVisible.value && !serverButton.isForWideScreenOnly),
+                            src = serverButton.icon,
+                            title = serverButton.tooltip
+                        ) {
+                            call(serverButton.url, serverButton.inNewWindow)
                         }
                     }
                 }
                 getToolBarSpan {
                     for (clientButton in alClientButton) {
-                        if (!styleIsNarrowScreen || (!isFindTextVisible.value && !clientButton.isForWideScreenOnly)) {
-                            getToolBarIconButton(clientButton.icon, clientButton.tooltip) {
-                                clientAction(clientButton.action, clientButton.params)
-                            }
+                        getToolBarIconButton(
+                            isVisible = !styleIsNarrowScreen || (!isFindTextVisible.value && !clientButton.isForWideScreenOnly),
+                            src = clientButton.icon,
+                            title = clientButton.tooltip
+                        ) {
+                            clientAction(clientButton.action, clientButton.params)
                         }
                     }
                 }

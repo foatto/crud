@@ -39,7 +39,7 @@ abstract class AbstractControl(
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @Composable
-    protected fun getMainDiv(content: ContentBuilder<HTMLDivElement>): Unit =
+    protected fun getMainDiv(content: ContentBuilder<HTMLDivElement>) {
         Div(
             attrs = {
                 style {
@@ -53,6 +53,7 @@ abstract class AbstractControl(
         ) {
             content()
         }
+    }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -60,7 +61,7 @@ abstract class AbstractControl(
     protected fun getTableAndFormHeader(
         withBottomBorder: Boolean,
         call: (url: String) -> Unit,
-    ): Unit =
+    ) {
         Div(
             attrs = {
                 style {
@@ -117,11 +118,12 @@ abstract class AbstractControl(
                 }
             }
         }
+    }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @Composable
-    protected fun getGraphicAndXyHeader(prefix: String) =
+    protected fun getGraphicAndXyHeader(prefix: String) {
         Div(
             attrs = {
                 id("${prefix}_title_$tabId")
@@ -181,11 +183,12 @@ abstract class AbstractControl(
             }
             getToolBarSpan {}
         }
+    }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @Composable
-    protected fun getGraphicAndXyToolbar(prefix: String, content: ContentBuilder<HTMLDivElement>) =
+    protected fun getGraphicAndXyToolbar(prefix: String, content: ContentBuilder<HTMLDivElement>) {
         Div(
             attrs = {
                 id("${prefix}_toolbar_$tabId")
@@ -202,11 +205,12 @@ abstract class AbstractControl(
         ) {
             content()
         }
+    }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @Composable
-    protected fun getToolBarSpan(content: ContentBuilder<HTMLSpanElement>) =
+    protected fun getToolBarSpan(content: ContentBuilder<HTMLSpanElement>) {
         Span(
             attrs = {
                 style {
@@ -220,28 +224,32 @@ abstract class AbstractControl(
         ) {
             content()
         }
+    }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @Composable
-    protected fun getToolBarIconButton(src: String, title: String, onClick: () -> Unit) =
-        Img(
-            src = src,
-            attrs = {
-                style {
-                    backgroundColor(getColorToolbarButtonBack())
-                    setBorder(getStyleToolbarButtonBorder())
-                    fontSize(styleCommonButtonFontSize)
-                    padding(styleIconButtonPadding)
-                    setMargins(arrStyleCommonMargin)
-                    cursor("pointer")
+    protected fun getToolBarIconButton(isVisible: Boolean, src: String, title: String, onClick: () -> Unit) {
+        if (isVisible) {
+            Img(
+                src = src,
+                attrs = {
+                    style {
+                        backgroundColor(getColorToolbarButtonBack())
+                        setBorder(getStyleToolbarButtonBorder())
+                        fontSize(styleCommonButtonFontSize)
+                        padding(styleIconButtonPadding)
+                        setMargins(arrStyleCommonMargin)
+                        cursor("pointer")
+                    }
+                    title(title)
+                    onClick {
+                        onClick()
+                    }
                 }
-                title(title)
-                onClick {
-                    onClick()
-                }
-            }
-        )
+            )
+        }
+    }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
