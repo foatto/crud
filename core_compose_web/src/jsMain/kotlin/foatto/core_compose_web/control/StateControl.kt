@@ -1,17 +1,23 @@
 package foatto.core_compose_web.control
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.web.events.SyntheticMouseEvent
 import androidx.compose.web.events.SyntheticWheelEvent
+import foatto.core.app.STATE_ALERT_MESSAGE
 import foatto.core.app.xy.XyAction
 import foatto.core.app.xy.XyActionRequest
+import foatto.core.app.xy.XyActionResponse
 import foatto.core.app.xy.XyViewCoord
 import foatto.core.link.XyResponse
+import foatto.core.link.XyServerActionButton
 import foatto.core_compose_web.AppControl
 import foatto.core_compose_web.Root
 import foatto.core_compose_web.colorDialogBack
+import foatto.core_compose_web.control.TableControl.Companion.hmTableIcon
 import foatto.core_compose_web.control.model.XyElementData
+import foatto.core_compose_web.control.model.XyServerActionButtonData
 import foatto.core_compose_web.getColorDialogBackCenter
 import foatto.core_compose_web.getColorDialogBorder
 import foatto.core_compose_web.link.invokeXy
@@ -21,11 +27,11 @@ import foatto.core_compose_web.styleDialogTextFontSize
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.css.properties.zIndex
 import org.jetbrains.compose.web.dom.Br
+import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Img
 import org.jetbrains.compose.web.dom.Text
 import org.jetbrains.compose.web.events.SyntheticTouchEvent
-import org.w3c.dom.Element
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -44,13 +50,12 @@ class StateControl(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-//    "arrXyServerButton" to arrayOf<XyServerActionButton_>(),
+    private val alXyServerButton = mutableStateListOf<XyServerActionButtonData>()
 
     private val showStateAlert = mutableStateOf(false)
     private val stateAlertMessage = mutableStateOf("")
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -63,61 +68,72 @@ class StateControl(
             //--- State Toolbar
             getGraphicAndXyToolbar(STATE_PREFIX) {
                 getToolBarSpan {
-//                        <button v-for="serverButton in arrXyServerButton"
-//                                v-show="!${styleIsNarrowScreen} || !serverButton.isForWideScreenOnly"
-//                                v-bind:key="'sb'+serverButton.id"
-//                                v-on:click="invokeServerButton( serverButton.url )"
-//                                v-bind:style="[
-//                                    style_icon_button,
-//                                    { 'padding' : ( serverButton.icon ? '${styleIconButtonPadding()}' : '${styleStateServerButtonTextPadding()}' ) },
-//                                    { 'font-weight' : '${styleStateServerButtonTextFontWeight}' }
-//                                ]"
-//                                v-bind:title="serverButton.tooltip"
-//                        >
-//                            <img v-if="serverButton.icon" v-bind:src="serverButton.icon">
-//                            <span v-else v-html="serverButton.caption">
-//                            </span>
-//                        </button>
-//!!! сравнить со стилями в getToolBarIconButton !!!
-//    "style_icon_button" to json(
-//        "background" to colorToolbarButtonBack(),
-//        "border" to styleToolbarButtonBorder(),
-//        "border-radius" to styleButtonBorderRadius,
-//        "font-size" to styleCommonButtonFontSize(),
-//        "padding" to styleIconButtonPadding(),
-//        "margin" to styleCommonMargin(),
-//        "cursor" to "pointer"
-//    ),
+                    // empty, for refresh buttons to right side align
                 }
                 getToolBarSpan {
-                    listOf(0, 1, 5, 10, 30).forEach { interval ->
-                        Img(
-                            src = "/web/images/ic_replay_${if (interval == 0) "" else "${interval}_"}black_48dp.png",
-                            attrs = {
-                                style {
-                                    backgroundColor(getColorRefreshButtonBack())
-                                    setBorder(getStyleToolbarButtonBorder())
-                                    fontSize(styleCommonButtonFontSize)
-                                    padding(styleIconButtonPadding)
-                                    setMargins(arrStyleCommonMargin)
-                                    cursor("pointer")
-                                }
-                                title(
-                                    when (interval) {
-                                        0 -> "Обновить сейчас"
-                                        1 -> "Обновлять каждую секунду"
-                                        else -> "Обновлять каждые $interval сек"
+                    for (serverButton in alXyServerButton) {
+                        if (!styleIsNarrowScreen || !serverButton.isForWideScreenOnly) {
+                            Button(
+                                attrs = {
+                                    style {
+                                        backgroundColor(getColorToolbarButtonBack())
+                                        setBorder(getStyleToolbarButtonBorder())
+                                        padding(
+                                            if (serverButton.icon.isNotEmpty()) {
+                                                styleIconButtonPadding
+                                            } else {
+                                                getStyleStateServerButtonTextPadding()
+                                            }
+                                        )
+                                        setMargins(arrStyleCommonMargin)
+                                        fontSize(styleCommonButtonFontSize)
+                                        fontWeight(styleStateServerButtonTextFontWeight)
+                                        cursor("pointer")
                                     }
-                                )
-                                onClick {
-//                                    setInterval(interval)
+                                    title(serverButton.tooltip)
+                                    onClick {
+                                        invokeServerButton(serverButton.url)
+                                    }
+                                }
+                            ) {
+                                if (serverButton.icon.isNotEmpty()) {
+                                    Img(src = serverButton.icon)
+                                } else {
+                                    Text(serverButton.caption)
                                 }
                             }
-                        )
+                        }
+                    }
+                    getToolBarSpan {
+                        // 1s-interval shortly too
+                        listOf(0, /*1,*/ 5, 10, 30).forEach { interval ->
+                            Img(
+                                src = "/web/images/ic_replay_${if (interval == 0) "" else "${interval}_"}black_48dp.png",
+                                attrs = {
+                                    style {
+                                        backgroundColor(getColorRefreshButtonBack())
+                                        setBorder(getStyleToolbarButtonBorder())
+                                        fontSize(styleCommonButtonFontSize)
+                                        padding(styleIconButtonPadding)
+                                        setMargins(arrStyleCommonMargin)
+                                        cursor("pointer")
+                                    }
+                                    title(
+                                        when (interval) {
+                                            0 -> "Обновить сейчас"
+                                            1 -> "Обновлять каждую секунду"
+                                            else -> "Обновлять каждые $interval сек"
+                                        }
+                                    )
+                                    onClick {
+//                                    setInterval(interval)
+                                    }
+                                }
+                            )
+                        }
                     }
                 }
             }
-
             getXyElementTemplate(true)
 
             if (showStateAlert.value) {
@@ -189,7 +205,7 @@ class StateControl(
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     override fun start() {
-//        readXyServerActionButton(that(), xyResponse.arrServerActionButton)
+        readXyServerActionButton(xyResponse.arrServerActionButton)
 
         doXyMounted(
             elementPrefix = STATE_PREFIX,
@@ -203,32 +219,54 @@ class StateControl(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    private fun readXyServerActionButton(arrServerActionButton: Array<XyServerActionButton>) {
+        var serverButtonId = 0
+        alXyServerButton.clear()
+        for (sab in arrServerActionButton) {
+            val icon = hmTableIcon[sab.icon] ?: ""
+            //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
+            val caption = if (sab.icon.isNotBlank() && icon.isBlank()) {
+                sab.icon
+            } else {
+                sab.caption //!!!.replace("\n", "<br>")
+            }
+            alXyServerButton.add(
+                XyServerActionButtonData(
+                    id = serverButtonId++,
+                    caption = caption,
+                    tooltip = sab.tooltip,
+                    icon = icon,
+                    url = sab.url,
+                    isForWideScreenOnly = sab.isForWideScreenOnly,
+                )
+            )
+        }
+    }
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     override fun xyRefreshView(aView: XyViewCoord?, withWait: Boolean) {
         doStateRefreshView(
-            arrAddElements = emptyArray(),
             aView = aView,
             withWait = withWait,
-//            doAdditionalWork = { aThat: dynamic, xyActionResponse: XyActionResponse ->
-//                xyActionResponse.arrParams?.firstOrNull { pair ->
-//                    pair.first == STATE_ALERT_MESSAGE
-//                }?.let { pair ->
-//                    aThat.showStateAlert = true
-//                    aThat.stateAlertMessage = pair.second
-//                }
-//            },
+            doAdditionalWork = { xyActionResponse: XyActionResponse ->
+                xyActionResponse.arrParams?.firstOrNull { pair ->
+                    pair.first == STATE_ALERT_MESSAGE
+                }?.let { pair ->
+                    stateAlertMessage.value = pair.second
+                    showStateAlert.value = true
+                }
+            },
         )
     }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     private fun doStateRefreshView(
-        arrAddElements: Array<Element>,
         aView: XyViewCoord?,
         withWait: Boolean,
-//        doAdditionalWork: (aThat: dynamic, xyActionResponse: XyActionResponse) -> Unit = { _: dynamic, _: XyActionResponse -> },
+        doAdditionalWork: (xyActionResponse: XyActionResponse) -> Unit = { _: XyActionResponse -> },
     ) {
-//        val svgCoords = defineXySvgCoords(that, tabId, elementPrefix, arrAddElements)
-
         aView?.let {
             //--- принимаем новый ViewCoord как есть, но корректируем масштаб в зависимости от текущего размера выводимой области
             aView.scale = calcXyScale(aView.x1, aView.y1, aView.x2, aView.y2)
@@ -238,7 +276,7 @@ class StateControl(
         getXyElements(
             mapBitmapTypeName = "",
             withWait = withWait,
-//            doAdditionalWork = doAdditionalWork,
+            doAdditionalWork = doAdditionalWork,
         )
     }
 
@@ -255,6 +293,12 @@ class StateControl(
 
     override fun onXyTextPressed(syntheticTouchEvent: SyntheticTouchEvent, xyElement: XyElementData) {
         doStateTextPressed(xyElement)
+    }
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    private fun invokeServerButton(url: String) {
+        root.openTab(url)
     }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -293,13 +337,8 @@ class StateControl(
 
 var statePostMountFun: (that: dynamic) -> Unit = { _: dynamic -> }
 
-@Suppress("UnsafeCastFromDynamic")
-fun stateControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().apply {
 
     this.methods = json(
-        "invokeServerButton" to { url: String ->
-            that().`$root`.openTab(url)
-        },
         "setInterval" to { sec: Int ->
             val that = that()
 
@@ -318,10 +357,5 @@ fun stateControl(xyResponse: XyResponse, tabId: Int) = vueComponentOptions().app
 
             that.refreshInterval = sec
         },
-        "onXyTextPressed" to { event: Event, xyElement: XyElementData ->
-        },
-    )
-
-}
 
  */
