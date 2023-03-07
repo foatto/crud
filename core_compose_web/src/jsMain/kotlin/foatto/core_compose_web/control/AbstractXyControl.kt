@@ -43,6 +43,7 @@ import org.jetbrains.compose.web.css.properties.userSelect
 import org.jetbrains.compose.web.css.properties.verticalAlign
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.ElementScope
+import org.jetbrains.compose.web.dom.Img
 import org.jetbrains.compose.web.dom.Text
 import org.jetbrains.compose.web.events.SyntheticTouchEvent
 import org.jetbrains.compose.web.svg.*
@@ -99,6 +100,8 @@ abstract class AbstractXyControl(
     private val xyTooltipLeft = mutableStateOf(0.px)
     private val xyTooltipTop = mutableStateOf(0.px)
 
+    protected val refreshInterval: MutableState<Int> = mutableStateOf(0)
+
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     protected var xySvgLeft: Int = 0
@@ -108,68 +111,103 @@ abstract class AbstractXyControl(
 
     private var xyTooltipOffTime = 0.0
 
-//    "refreshInterval" to 0,
-//    "refreshHandlerId" to 0,
+    private var refreshHandlerId = 0
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @Composable
+    protected fun getRefreshSubToolbar() {
+        getToolBarSpan {
+            // 1s-interval shortly too
+            listOf(0, /*1,*/ 5, 10, 30).forEach { interval ->
+                if (interval == 0 || interval != refreshInterval.value) {
+                    Img(
+                        src = "/web/images/ic_replay_${if (interval == 0) "" else "${interval}_"}black_48dp.png",
+                        attrs = {
+                            style {
+                                backgroundColor(getColorRefreshButtonBack())
+                                setBorder(getStyleToolbarButtonBorder())
+                                fontSize(styleCommonButtonFontSize)
+                                padding(styleIconButtonPadding)
+                                setMargins(arrStyleCommonMargin)
+                                cursor("pointer")
+                            }
+                            title(
+                                when (interval) {
+                                    0 -> "Обновить сейчас"
+                                    1 -> "Обновлять каждую секунду"
+                                    else -> "Обновлять каждые $interval сек"
+                                }
+                            )
+                            onClick {
+                                setInterval(interval)
+                            }
+                        }
+                    )
+                }
+            }
+        }
+    }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @OptIn(ExperimentalComposeWebSvgApi::class)
     @Composable
-    fun getXyElementTemplate(withInteractive: Boolean) {
+    protected fun getXyElementTemplate(withInteractive: Boolean) {
         Svg(
             viewBox = xyViewBoxBody.value,
             attrs = {
                 width(xySvgWidth.value)
                 height(xySvgHeight.value)
-                onMouseDown { syntheticMouseEvent ->
-                    onXyMousePressed(false, syntheticMouseEvent.offsetX, syntheticMouseEvent.offsetY)
-                    syntheticMouseEvent.preventDefault()
-                }
-                onMouseMove { syntheticMouseEvent ->
-                    onXyMouseMove(false, syntheticMouseEvent.offsetX, syntheticMouseEvent.offsetY)
-                    syntheticMouseEvent.preventDefault()
-                }
-                onMouseUp { syntheticMouseEvent ->
-                    onXyMouseReleased(
-                        isNeedOffsetCompensation = false,
-                        aMouseX = syntheticMouseEvent.offsetX,
-                        aMouseY = syntheticMouseEvent.offsetY,
-                        shiftKey = syntheticMouseEvent.shiftKey,
-                        ctrlKey = syntheticMouseEvent.ctrlKey,
-                        altKey = syntheticMouseEvent.altKey
-                    )
-                    syntheticMouseEvent.preventDefault()
-                }
-                if (withInteractive) {
+                if (refreshInterval.value == 0 && withInteractive) {
+                    onMouseDown { syntheticMouseEvent ->
+                        onXyMousePressed(false, syntheticMouseEvent.offsetX, syntheticMouseEvent.offsetY)
+                        syntheticMouseEvent.preventDefault()
+                    }
+                    onMouseMove { syntheticMouseEvent ->
+                        onXyMouseMove(false, syntheticMouseEvent.offsetX, syntheticMouseEvent.offsetY)
+                        syntheticMouseEvent.preventDefault()
+                    }
+                    onMouseUp { syntheticMouseEvent ->
+                        onXyMouseReleased(
+                            isNeedOffsetCompensation = false,
+                            aMouseX = syntheticMouseEvent.offsetX,
+                            aMouseY = syntheticMouseEvent.offsetY,
+                            shiftKey = syntheticMouseEvent.shiftKey,
+                            ctrlKey = syntheticMouseEvent.ctrlKey,
+                            altKey = syntheticMouseEvent.altKey
+                        )
+                        syntheticMouseEvent.preventDefault()
+                    }
                     onWheel { syntheticWheelEvent ->
                         onXyMouseWheel(syntheticWheelEvent)
                         syntheticWheelEvent.preventDefault()
                     }
-                }
-                onTouchStart { syntheticTouchEvent ->
-                    syntheticTouchEvent.changedTouches.item(0)?.let { firstTouch ->
-                        onXyMousePressed(true, firstTouch.clientX.toDouble(), firstTouch.clientY.toDouble())
+                    onTouchStart { syntheticTouchEvent ->
+                        syntheticTouchEvent.changedTouches.item(0)?.let { firstTouch ->
+                            onXyMousePressed(true, firstTouch.clientX.toDouble(), firstTouch.clientY.toDouble())
+                        }
+                        syntheticTouchEvent.preventDefault()
                     }
-                    syntheticTouchEvent.preventDefault()
-                }
-                onTouchMove { syntheticTouchEvent ->
-                    syntheticTouchEvent.changedTouches.item(0)?.let { firstTouch ->
-                        onXyMouseMove(true, firstTouch.clientX.toDouble(), firstTouch.clientY.toDouble())
+                    onTouchMove { syntheticTouchEvent ->
+                        syntheticTouchEvent.changedTouches.item(0)?.let { firstTouch ->
+                            onXyMouseMove(true, firstTouch.clientX.toDouble(), firstTouch.clientY.toDouble())
+                        }
+                        syntheticTouchEvent.preventDefault()
                     }
-                    syntheticTouchEvent.preventDefault()
-                }
-                onTouchEnd { syntheticTouchEvent ->
-                    syntheticTouchEvent.changedTouches.item(0)?.let { firstTouch ->
-                        onXyMouseReleased(
-                            isNeedOffsetCompensation = true,
-                            aMouseX = firstTouch.clientX.toDouble(),
-                            aMouseY = firstTouch.clientY.toDouble(),
-                            shiftKey = syntheticTouchEvent.shiftKey,
-                            ctrlKey = syntheticTouchEvent.ctrlKey,
-                            altKey = syntheticTouchEvent.altKey
-                        )
+                    onTouchEnd { syntheticTouchEvent ->
+                        syntheticTouchEvent.changedTouches.item(0)?.let { firstTouch ->
+                            onXyMouseReleased(
+                                isNeedOffsetCompensation = true,
+                                aMouseX = firstTouch.clientX.toDouble(),
+                                aMouseY = firstTouch.clientY.toDouble(),
+                                shiftKey = syntheticTouchEvent.shiftKey,
+                                ctrlKey = syntheticTouchEvent.ctrlKey,
+                                altKey = syntheticTouchEvent.altKey
+                            )
+                        }
+                        syntheticTouchEvent.preventDefault()
                     }
-                    syntheticTouchEvent.preventDefault()
                 }
             }
         ) {
@@ -383,18 +421,6 @@ abstract class AbstractXyControl(
                                     onMouseLeave {
                                         onXyMouseOut()
                                     }
-                                    onMouseDown { syntheticMouseEvent ->
-                                        if (!element.itReadOnly) {
-                                            onXyTextPressed(syntheticMouseEvent, element)
-                                        }
-                                        syntheticMouseEvent.preventDefault()
-                                    }
-                                    onTouchStart { syntheticTouchEvent ->
-                                        if (!element.itReadOnly) {
-                                            onXyTextPressed(syntheticTouchEvent, element)
-                                        }
-                                        syntheticTouchEvent.preventDefault()
-                                    }
                                 }
                             )
                         }
@@ -459,6 +485,9 @@ abstract class AbstractXyControl(
                                     onMouseLeave {
                                         onXyMouseOut()
                                     }
+                                    //--- поскольку нажатия на тексты могут быть срочными/неотложными действиями операторов/диспетчеров,
+                                    //--- то отрабатываем их независимо от режима обновления экрана и режима включенности интерактива
+                                    //if (refreshInterval.value == 0 && withInteractive) {
                                     onMouseDown { syntheticMouseEvent ->
                                         if (!element.itReadOnly) {
                                             onXyTextPressed(syntheticMouseEvent, element)
@@ -497,6 +526,9 @@ abstract class AbstractXyControl(
                             onMouseLeave {
                                 onXyMouseOut()
                             }
+                            //--- поскольку нажатия на тексты могут быть срочными/неотложными действиями операторв/диспетчеров,
+                            //--- то отрабатываем их независимо от режима обновления экрана и режима включенности интерактива
+                            //if (refreshInterval.value == 0 && withInteractive) {
                             onMouseDown { syntheticMouseEvent ->
                                 if (!element.itReadOnly) {
                                     onXyTextPressed(syntheticMouseEvent, element)
@@ -781,7 +813,7 @@ abstract class AbstractXyControl(
     protected fun getXyElements(
         mapBitmapTypeName: String,
         withWait: Boolean,
-//        doAdditionalWork: (aThat: dynamic, xyActionResponse: XyActionResponse) -> Unit = { _: dynamic, _: XyActionResponse -> },
+        doAdditionalWork: (xyActionResponse: XyActionResponse) -> Unit = { _: XyActionResponse -> },
     ) {
         if (withWait) {
             root.setWait(true)
@@ -808,7 +840,7 @@ abstract class AbstractXyControl(
                 root.setWait(false)
             }
 
-//            doAdditionalWork(that, xyActionResponse)
+            doAdditionalWork(xyActionResponse)
         }
     }
 
@@ -1459,6 +1491,22 @@ abstract class AbstractXyControl(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    protected fun setInterval(sec: Int) {
+        window.clearInterval(refreshHandlerId)
+
+        if (sec == 0) {
+            xyRefreshView(null, true)
+        } else {
+            refreshHandlerId = window.setInterval({
+                xyRefreshView(null, false)
+            }, sec * 1000)
+        }
+
+        refreshInterval.value = sec
+    }
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     protected fun setXyTextOffset() {
         val arrViewBoxBody = getXyViewBoxBody()
 
@@ -1527,37 +1575,5 @@ abstract class AbstractXyControl(
 //    return alResult.asReversed()
 //}
 
-fun readXyServerActionButton(that: dynamic, arrServerActionButton: Array<XyServerActionButton>) {
-    var serverButtonID = 0
-    val alServerButton = mutableListOf<XyServerActionButton_>()
-    for (sab in arrServerActionButton) {
-        val icon = hmTableIcon[sab.icon] ?: ""
-        //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
-        val caption = if (sab.icon.isNotBlank() && icon.isBlank()) {
-            sab.icon
-        } else {
-            sab.caption.replace("\n", "<br>")
-        }
-        alServerButton.add(
-            XyServerActionButton_(
-                id = serverButtonID++,
-                caption = caption,
-                tooltip = sab.tooltip,
-                icon = icon,
-                url = sab.url,
-                isForWideScreenOnly = sab.isForWideScreenOnly,
-            )
-        )
-    }
-    that.arrXyServerButton = alServerButton.toTypedArray()
-}
 
-class XyServerActionButton_(
-    val id: Int,
-    val caption: String,
-    val tooltip: String,
-    val icon: String,
-    val url: String,
-    val isForWideScreenOnly: Boolean,
-)
  */
