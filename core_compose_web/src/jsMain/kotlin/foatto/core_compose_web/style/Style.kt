@@ -64,7 +64,7 @@ fun getStyleIsTouchScreen(): Boolean {
 //--- по умолчанию - тёмные иконки на светлом фоне
 var styleDarkIcon: Boolean = true
 
-//--- по умолчанию - иконки размером 36dp (пока только на toolbar'ах)
+//--- по умолчанию - иконки размером 36dp (пока только на toolbar'ах, в остальных местах 48)
 var styleIconSize: Int = 36  // м.б. 48
 
 //--- суффикс наименовани типовой иконки material design

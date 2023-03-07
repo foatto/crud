@@ -16,6 +16,7 @@ import foatto.core.link.FormResponse
 import foatto.core.util.getRandomInt
 import foatto.core_compose_web.AppControl
 import foatto.core_compose_web.Root
+import foatto.core_compose_web.control.model.TitleData
 import foatto.core_compose_web.link.invokeUploadFormFile
 import foatto.core_compose_web.style.*
 import kotlinx.browser.document
@@ -23,7 +24,6 @@ import org.jetbrains.compose.web.ExperimentalComposeWebApi
 import org.jetbrains.compose.web.attributes.*
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.css.properties.appearance
-import org.jetbrains.compose.web.css.properties.borderBottom
 import org.jetbrains.compose.web.css.properties.borderTop
 import org.jetbrains.compose.web.dom.*
 import org.jetbrains.compose.web.events.SyntheticFocusEvent
@@ -66,8 +66,8 @@ class FormControl(
     private val root: Root,
     private val appControl: AppControl,
     private val formResponse: FormResponse,
-    private val tabId: Int
-) : iControl {
+    tabId: Int,
+) : AbstractControl(tabId) {
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -89,7 +89,6 @@ class FormControl(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    private val alTitleData = mutableListOf<FormTitleData>()
     private val alGridData = mutableStateListOf<FormGridData>()
 
     private val hmFormCellVisible = mutableMapOf<Int, MutableList<FormCellVisibleInfo>>()
@@ -107,77 +106,14 @@ class FormControl(
     @OptIn(ExperimentalComposeWebApi::class)
     @Composable
     override fun getBody() {
-        Div(
-            attrs = {
-                style {
-                    flexGrow(1)
-                    flexShrink(1)
-                    display(DisplayStyle.Flex)
-                    flexDirection(FlexDirection.Column)
-                    height(100.percent)
-                }
-            }
-        ) {
+        getMainDiv {
 
             //--- Form Header
-
-            Div(
-                attrs = {
-                    style {
-                        flexGrow(0)
-                        flexShrink(0)
-                        display(DisplayStyle.Flex)
-                        flexDirection(FlexDirection.Row)
-                        flexWrap(FlexWrap.Wrap)
-                        justifyContent(JustifyContent.Center)
-                        alignItems(AlignItems.Center)   // "baseline" ?
-                        borderTop(
-                            width = if (!styleIsNarrowScreen) 0.px else 1.px,
-                            lineStyle = LineStyle.Solid,
-                            color = colorMainBorder
-                        )
-                        borderBottom(width = 1.px, lineStyle = LineStyle.Solid, color = colorMainBorder)
-                        padding(styleControlPadding)
-                        backgroundColor(getColorFormBack())
-                    }
-                }
-            ) {
-                for (titleData in alTitleData) {
-                    if (titleData.url.isNotEmpty()) {
-                        Button(
-                            attrs = {
-                                style {
-                                    backgroundColor(getColorButtonBack())
-                                    setBorder(color = getColorButtonBorder(), radius = styleButtonBorderRadius)
-                                    fontSize(styleCommonButtonFontSize)
-                                    padding(styleTextButtonPadding)
-                                    setMargins(arrStyleCommonMargin)
-                                    cursor("pointer")
-                                }
-                                onClick {
-                                    call(titleData.url, false, null)
-                                }
-                            }
-                        ) {
-                            Text(titleData.text)
-                        }
-                    } else {
-                        Span(
-                            attrs = {
-                                style {
-                                    fontSize(styleControlTitleTextFontSize)
-                                    setPaddings(arrStyleControlTitlePadding)
-                                }
-                            }
-                        ) {
-                            Text(titleData.text)
-                        }
-                    }
-                }
+            getTableAndFormHeader(true) { url: String ->
+                call(url, false, null)
             }
 
             //--- Form Body
-
             Div(
                 attrs = {
                     style {
@@ -721,7 +657,7 @@ class FormControl(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    fun start() {
+    override fun start() {
         readHeader()
         readForm()
     }
@@ -732,7 +668,7 @@ class FormControl(
         alTitleData.clear()
         for ((url, text) in formResponse.alHeader) {
             tabToolTip += (if (tabToolTip.isEmpty()) "" else " | ") + text
-            alTitleData.add(FormTitleData(url, text))
+            alTitleData.add(TitleData(url, text))
         }
         root.setTabInfo(tabId, formResponse.tab, tabToolTip)
     }
@@ -1593,8 +1529,6 @@ class FormControl(
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private enum class FormCellTypeClient { LABEL, STRING, TEXT, CHECKBOX, SWITCH, DATE, TIME, DATE_TIME, COMBO, RADIO, FILE }
-
-private class FormTitleData(val url: String, val text: String)
 
 private class FormGridData(
     val id: Int,

@@ -1,18 +1,10 @@
 package foatto.core_compose_web.control
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import foatto.core.app.iCoreAppContainer
-import foatto.core.app.xy.XyElement
-import foatto.core.app.xy.XyViewCoord
-import foatto.core.app.xy.geom.XyPoint
-import foatto.core.link.XyElementClientType
-import foatto.core.link.XyElementConfig
-import foatto.core.util.getRandomInt
 import foatto.core_compose_web.control.model.TitleData
-import foatto.core_compose_web.control.model.XyElementData
-import foatto.core_compose_web.control.model.XyElementDataType
 import foatto.core_compose_web.style.*
 import kotlinx.browser.window
 import org.jetbrains.compose.web.css.*
@@ -26,8 +18,7 @@ import org.jetbrains.compose.web.dom.Span
 import org.jetbrains.compose.web.dom.Text
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLSpanElement
-import kotlin.js.json
-import kotlin.math.max
+import kotlin.js.Date
 import kotlin.math.roundToInt
 
 abstract class AbstractControl(
@@ -239,8 +230,8 @@ abstract class AbstractControl(
             attrs = {
                 style {
                     backgroundColor(getColorToolbarButtonBack())
-                    fontSize(styleCommonButtonFontSize)
                     setBorder(getStyleToolbarButtonBorder())
+                    fontSize(styleCommonButtonFontSize)
                     padding(styleIconButtonPadding)
                     setMargins(arrStyleCommonMargin)
                     cursor("pointer")
@@ -251,6 +242,26 @@ abstract class AbstractControl(
                 }
             }
         )
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    protected fun getGraphixAndXyTooltipCoord(x: Int, y: Int): Pair<Int, Int> =
+        Pair(
+            x - (0 * scaleKoef).roundToInt(),
+            y - (32 * scaleKoef).roundToInt(),
+        )
+
+    protected fun setGraphicAndXyTooltipOffTimeout(tooltipOffTime: Double, tooltipVisible: MutableState<Boolean>) {
+        //--- через 3 сек выключить тултип, если не было других активаций тултипов
+        //--- причина: баг (?) в том, что mouseleave вызывается сразу после mouseenter,
+        //--- причём после ухода с графика других mouseleave не вызывается.
+        window.setTimeout({
+            if (Date().getTime() > tooltipOffTime) {
+                tooltipVisible.value = false
+            }
+        }, 3000)
+    }
+
 }
 
 
