@@ -147,10 +147,10 @@ class GraphicControl(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    private val isPanButtonDisabled = mutableStateOf(true)
-    private val isZoomButtonDisabled = mutableStateOf(false)
-    private val isShowGraphicVisibility = mutableStateOf(false)
-    private val isShowGraphicData = mutableStateOf(false)
+    private val isPanButtonVisible = mutableStateOf(false)
+    private val isZoomButtonVisible = mutableStateOf(true)
+    private val isShowGraphicVisible = mutableStateOf(false)
+    private val isShowGraphicDataVisible = mutableStateOf(false)
 
     private val alGraphicVisibleData = mutableStateListOf<GraphicVisibleData>()
     private val alGraphicDataData = mutableStateListOf<String>()
@@ -190,6 +190,8 @@ class GraphicControl(
     //--- использовать для отображения кнопок переключения режимов
     private val grCurMode = mutableStateOf(GraphicWorkMode.PAN)
 
+    private val refreshInterval = mutableStateOf(0)
+
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     private var viewCoord = GraphicViewCoord(0, 0)
@@ -200,6 +202,7 @@ class GraphicControl(
     private var panPointOldY = 0
     private var panDX = 0
     private var grTooltipOffTime = 0.0
+    private var refreshHandlerId = 0
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -212,21 +215,34 @@ class GraphicControl(
             //--- Graphic Toolbar
             getGraphicAndXyToolbar(GRAPHIC_PREFIX) {
                 getToolBarSpan {
-                    getToolBarIconButton("/web/images/ic_open_with_black_48dp.png", "Перемещение по графику") { setMode(GraphicWorkMode.PAN) }
-                    getToolBarIconButton("/web/images/ic_search_black_48dp.png", "Выбор области для показа") { setMode(GraphicWorkMode.ZOOM_BOX) }
+                    getToolBarIconButton(
+                        isVisible = refreshInterval.value == 0 && isPanButtonVisible.value,
+                        src = "/web/images/ic_open_with_black_48dp.png",
+                        title = "Перемещение по графику"
+                    ) {
+                        setMode(GraphicWorkMode.PAN)
+                    }
+                    getToolBarIconButton(
+                        isVisible = refreshInterval.value == 0 && isZoomButtonVisible.value,
+                        src = "/web/images/ic_search_black_48dp.png",
+                        title = "Выбор области для показа"
+                    ) {
+                        setMode(GraphicWorkMode.ZOOM_BOX)
+                    }
                 }
                 getToolBarSpan {
-                    getToolBarIconButton("/web/images/ic_zoom_in_black_48dp.png", "Ближе") { zoomIn() }
-                    getToolBarIconButton("/web/images/ic_zoom_out_black_48dp.png", "Дальше") { zoomOut() }
+                    getToolBarIconButton(refreshInterval.value == 0, "/web/images/ic_zoom_in_black_48dp.png", "Ближе") { zoomIn() }
+                    getToolBarIconButton(refreshInterval.value == 0, "/web/images/ic_zoom_out_black_48dp.png", "Дальше") { zoomOut() }
                 }
                 getToolBarSpan {
                     getToolBarIconButton(
-                        "/web/images/ic_timeline_black_48dp.png",
-                        "Включить/выключить отдельные графики"
+                        isVisible = refreshInterval.value == 0,
+                        src = "/web/images/ic_timeline_black_48dp.png",
+                        title = "Включить/выключить отдельные графики"
                     ) {
-                        isShowGraphicVisibility.value = !isShowGraphicVisibility.value
+                        isShowGraphicVisible.value = !isShowGraphicVisible.value
                     }
-                    if (isShowGraphicVisibility.value) {
+                    if (refreshInterval.value == 0 && isShowGraphicVisible.value) {
                         Div(
                             attrs = {
                                 style {
@@ -295,12 +311,13 @@ class GraphicControl(
                 }
                 getToolBarSpan {
                     getToolBarIconButton(
+                        refreshInterval.value == 0,
                         "/web/images/ic_menu_black_48dp.png",
                         "Включить/выключить отдельный показ данных"
                     ) {
-                        isShowGraphicData.value = !isShowGraphicData.value
+                        isShowGraphicDataVisible.value = !isShowGraphicDataVisible.value
                     }
-                    if (isShowGraphicData.value) {
+                    if (refreshInterval.value == 0 && isShowGraphicDataVisible.value) {
                         Div(
                             attrs = {
                                 style {
@@ -327,23 +344,34 @@ class GraphicControl(
                     }
                 }
                 getToolBarSpan {
-                    Img(
-                        src = "/web/images/ic_sync_black_48dp.png",
-                        attrs = {
-                            style {
-                                backgroundColor(getColorRefreshButtonBack())
-                                setBorder(getStyleToolbarButtonBorder())
-                                fontSize(styleCommonButtonFontSize)
-                                padding(styleIconButtonPadding)
-                                setMargins(arrStyleCommonMargin)
-                                cursor("pointer")
-                            }
-                            title("Обновить")
-                            onClick {
-                                grRefreshView(null)
-                            }
+                    // 1s-interval shortly too
+                    listOf(0, /*1,*/ 5, 10, 30).forEach { interval ->
+                        if (interval == 0 || interval != refreshInterval.value) {
+                            Img(
+                                src = "/web/images/ic_replay_${if (interval == 0) "" else "${interval}_"}black_48dp.png",
+                                attrs = {
+                                    style {
+                                        backgroundColor(getColorRefreshButtonBack())
+                                        setBorder(getStyleToolbarButtonBorder())
+                                        fontSize(styleCommonButtonFontSize)
+                                        padding(styleIconButtonPadding)
+                                        setMargins(arrStyleCommonMargin)
+                                        cursor("pointer")
+                                    }
+                                    title(
+                                        when (interval) {
+                                            0 -> "Обновить сейчас"
+                                            1 -> "Обновлять каждую секунду"
+                                            else -> "Обновлять каждые $interval сек"
+                                        }
+                                    )
+                                    onClick {
+                                        setInterval(interval)
+                                    }
+                                }
+                            )
                         }
-                    )
+                    }
                 }
             }
             getGraphicElementTemplate(true)
@@ -353,15 +381,13 @@ class GraphicControl(
     //--- предположительно, static метод
     @OptIn(ExperimentalComposeWebSvgApi::class)
     @Composable
-    private fun getGraphicElementTemplate(
-        withInteractive: Boolean,
-    ) =
+    private fun getGraphicElementTemplate(withInteractive: Boolean) {
         Div(
             attrs = {
                 style {
                     display(DisplayStyle.Flex)
                 }
-                if (withInteractive) {
+                if (refreshInterval.value == 0 && withInteractive) {
                     onWheel { syntheticWheelEvent ->
                         onGrMouseWheel(syntheticWheelEvent)
                         syntheticWheelEvent.preventDefault()
@@ -420,7 +446,7 @@ class GraphicControl(
                 attrs = {
                     width(grSvgBodyWidth.value)
                     height(grSvgHeight.value)
-                    if (withInteractive) {
+                    if (refreshInterval.value == 0 && withInteractive) {
                         onMouseDown { syntheticMouseEvent ->
                             onGrMousePressed(false, syntheticMouseEvent.offsetX, syntheticMouseEvent.offsetY)
                             syntheticMouseEvent.preventDefault()
@@ -532,13 +558,11 @@ class GraphicControl(
                             r = graphicPoint.radius,
                             attrs = {
                                 fill(graphicPoint.fill)
-                                if (withInteractive) {
-                                    onMouseEnter { syntheticMouseEvent ->
-                                        onGrMouseOver(syntheticMouseEvent, graphicPoint)
-                                    }
-                                    onMouseLeave {
-                                        onGrMouseOut()
-                                    }
+                                onMouseEnter { syntheticMouseEvent ->
+                                    onGrMouseOver(syntheticMouseEvent, graphicPoint)
+                                }
+                                onMouseLeave {
+                                    onGrMouseOut()
                                 }
                             }
                         )
@@ -553,13 +577,11 @@ class GraphicControl(
                                 stroke(graphicLine.stroke)
                                 strokeWidth(graphicLine.width)
                                 strokeDasharray(graphicLine.dash)
-                                if (withInteractive) {
-                                    onMouseEnter { syntheticMouseEvent ->
-                                        onGrMouseOver(syntheticMouseEvent, graphicLine)
-                                    }
-                                    onMouseLeave {
-                                        onGrMouseOut()
-                                    }
+                                onMouseEnter { syntheticMouseEvent ->
+                                    onGrMouseOver(syntheticMouseEvent, graphicLine)
+                                }
+                                onMouseLeave {
+                                    onGrMouseOut()
                                 }
                             }
                         )
@@ -579,7 +601,7 @@ class GraphicControl(
                     )
                 }
 
-                if (withInteractive && mouseRect.isVisible.value) {
+                if (refreshInterval.value == 0 && withInteractive && mouseRect.isVisible.value) {
                     Rect(
                         x = min(mouseRect.x1.value, mouseRect.x2.value),
                         y = min(mouseRect.y1.value, mouseRect.y2.value),
@@ -690,13 +712,11 @@ class GraphicControl(
                                     graphicText.pos(this)
                                     graphicText.style(this)
                                 }
-                                if (withInteractive) {
-                                    onMouseEnter { syntheticMouseEvent ->
-                                        onGrMouseOver(syntheticMouseEvent, graphicText)
-                                    }
-                                    onMouseLeave {
-                                        onGrMouseOut()
-                                    }
+                                onMouseEnter { syntheticMouseEvent ->
+                                    onGrMouseOver(syntheticMouseEvent, graphicText)
+                                }
+                                onMouseLeave {
+                                    onGrMouseOut()
                                 }
                             }
                         ) {
@@ -706,7 +726,7 @@ class GraphicControl(
                 }
             }
 
-            if (withInteractive) {
+            if (refreshInterval.value == 0 && withInteractive) {
                 //--- Time Labels
                 for (element in alTimeLabel) {
                     if (element.isVisible.value) {
@@ -750,6 +770,7 @@ class GraphicControl(
                 }
             }
         }
+    }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -782,6 +803,32 @@ class GraphicControl(
             root.setWait(false)
         }
 
+    }
+
+    private fun setInterval(sec: Int) {
+        window.clearInterval(refreshHandlerId)
+
+        if (sec == 0) {
+            doGraphicRefresh(
+                graphicResponse = graphicResponse,
+                elementPrefix = GRAPHIC_PREFIX,
+                arrAddElements = emptyArray(),
+                aView = null,
+                withWait = true,
+            )
+        } else {
+            refreshHandlerId = window.setInterval({
+                doGraphicRefresh(
+                    graphicResponse = graphicResponse,
+                    elementPrefix = GRAPHIC_PREFIX,
+                    arrAddElements = emptyArray(),
+                    aView = null,
+                    withWait = false,
+                )
+            }, sec * 1000)
+        }
+
+        refreshInterval.value = sec
     }
 
     private fun grRefreshView(aView: GraphicViewCoord?) {
@@ -996,7 +1043,9 @@ class GraphicControl(
 
             pixStartY = localPixStartY
 
-            setGraphicTextOffset(menuBarWidth + grSvgLegendWidth.value, svgBodyTop)
+            //--- правильное значение svgBodyLeft известно только в конце загрузки
+            val svgBodyLeft = calcBodyLeftAndTop(elementPrefix, arrAddElements).first
+            setGraphicTextOffset(svgBodyLeft, svgBodyTop)
 
             if (withWait) {
                 root.setWait(false)
@@ -1607,14 +1656,14 @@ class GraphicControl(
     private fun setMode(newMode: GraphicWorkMode) {
         when (newMode) {
             GraphicWorkMode.PAN -> {
-                isPanButtonDisabled.value = true
-                isZoomButtonDisabled.value = false
+                isPanButtonVisible.value = true
+                isZoomButtonVisible.value = false
 //                stackPane.cursor = Cursor.MOVE
             }
 
             GraphicWorkMode.ZOOM_BOX -> {
-                isPanButtonDisabled.value = false
-                isZoomButtonDisabled.value = true
+                isPanButtonVisible.value = false
+                isZoomButtonVisible.value = true
 //                stackPane.cursor = Cursor.CROSSHAIR
             }
         }
@@ -1648,7 +1697,7 @@ class GraphicControl(
     }
 
     private fun doChangeGraphicVisibility() {
-        isShowGraphicVisibility.value = false
+        isShowGraphicVisible.value = false
         alGraphicVisibleData.forEach { graphicVisibleData ->
             invokeSaveUserProperty(
                 SaveUserPropertyRequest(
@@ -1829,7 +1878,7 @@ class GraphicControl(
 
                         setTimeLabel(svgBodyLeft, grSvgBodyWidth.value, mouseX, alTimeLabel[0])
 
-                        if (isShowGraphicData.value) {
+                        if (isShowGraphicDataVisible.value) {
                             fillGraphicData(mouseX)
                         }
                     } else {
