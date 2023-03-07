@@ -57,8 +57,6 @@ class StateControl(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     @Composable
     override fun getBody() {
         getMainDiv {
@@ -68,7 +66,7 @@ class StateControl(
             //--- State Toolbar
             getGraphicAndXyToolbar(STATE_PREFIX) {
                 getToolBarSpan {
-                    // empty, for refresh buttons to right side align
+                    // empty, for aligning refresh buttons to right side
                 }
                 getToolBarSpan {
                     for (serverButton in alXyServerButton) {
@@ -104,36 +102,10 @@ class StateControl(
                             }
                         }
                     }
-                    getToolBarSpan {
-                        // 1s-interval shortly too
-                        listOf(0, /*1,*/ 5, 10, 30).forEach { interval ->
-                            Img(
-                                src = "/web/images/ic_replay_${if (interval == 0) "" else "${interval}_"}black_48dp.png",
-                                attrs = {
-                                    style {
-                                        backgroundColor(getColorRefreshButtonBack())
-                                        setBorder(getStyleToolbarButtonBorder())
-                                        fontSize(styleCommonButtonFontSize)
-                                        padding(styleIconButtonPadding)
-                                        setMargins(arrStyleCommonMargin)
-                                        cursor("pointer")
-                                    }
-                                    title(
-                                        when (interval) {
-                                            0 -> "Обновить сейчас"
-                                            1 -> "Обновлять каждую секунду"
-                                            else -> "Обновлять каждые $interval сек"
-                                        }
-                                    )
-                                    onClick {
-//                                    setInterval(interval)
-                                    }
-                                }
-                            )
-                        }
-                    }
+                    getRefreshSubToolbar()
                 }
             }
+
             getXyElementTemplate(true)
 
             if (showStateAlert.value) {
@@ -336,26 +308,5 @@ class StateControl(
 
 
 var statePostMountFun: (that: dynamic) -> Unit = { _: dynamic -> }
-
-
-    this.methods = json(
-        "setInterval" to { sec: Int ->
-            val that = that()
-
-            val refreshHandlerId = that.refreshHandlerId.unsafeCast<Int>()
-            if (refreshHandlerId != 0) {
-                window.clearInterval(refreshHandlerId)
-            }
-
-            if (sec == 0) {
-                that.xyRefreshView(that, null, true)
-            } else {
-                that.refreshHandlerId = window.setInterval({
-                    that.xyRefreshView(that, null, false)
-                }, sec * 1000)
-            }
-
-            that.refreshInterval = sec
-        },
 
  */
