@@ -194,7 +194,7 @@ class GraphicControl(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    private var viewCoord = GraphicViewCoord(0, 0)
+    private var grViewCoord = GraphicViewCoord(0, 0)
     private val alYData = mutableListOf<YData>()
     private var pixStartY = 0
     private var isMouseDown = false
@@ -846,15 +846,16 @@ class GraphicControl(
         aView: GraphicViewCoord?,
         withWait: Boolean,
     ) {
-        val newView =
-            if (aView != null) {
-                //--- обновляем, только если изменилось (оптимизируем цепочку реактивных изменений)
-                viewCoord = aView
-                aView
-            } else {
-                viewCoord
+        aView?.let {
+            grViewCoord = aView
+        } ?: run {
+            if (graphicResponse.rangeType != 0 && refreshInterval.value != 0) {
+                grViewCoord = GraphicViewCoord(
+                    t1 = (Date.now() / 1000 - graphicResponse.rangeType).toInt(),
+                    t2 = (Date.now() / 1000).toInt(),
+                )
             }
-
+        }
 
         if (withWait) {
             root.setWait(true)
@@ -864,7 +865,7 @@ class GraphicControl(
                 documentTypeName = graphicResponse.documentTypeName,
                 action = GraphicAction.GET_ELEMENTS,
                 startParamId = graphicResponse.startParamId,
-                graphicCoords = Pair(newView.t1, newView.t2),
+                graphicCoords = Pair(grViewCoord.t1, grViewCoord.t2),
                 //--- передавая полную ширину окна (без учёта margin по бокам/сверху/снизу для отрисовки шкалы/полей/заголовков),
                 //--- мы делаем сглаживание/масштабирование чуть точнее, чем надо, но на момент запроса величины margin неизвестны :/,
                 //--- а от "лишней" точности хуже не будет
@@ -1013,8 +1014,8 @@ class GraphicControl(
                 }
                 outElement(
                     hmIndexColor = hmIndexColor,
-                    t1 = newView.t1,
-                    t2 = newView.t2,
+                    t1 = grViewCoord.t1,
+                    t2 = grViewCoord.t2,
                     element = element,
                     pixRealHeight = pixRealHeight,
                     pixStartY = localPixStartY,
@@ -1669,9 +1670,9 @@ class GraphicControl(
     }
 
     private fun zoomIn() {
-        val t1 = viewCoord.t1
-        val t2 = viewCoord.t2
-        val grWidth = viewCoord.width
+        val t1 = grViewCoord.t1
+        val t2 = grViewCoord.t2
+        val grWidth = grViewCoord.width
 
         val newT1 = t1 + grWidth / 4
         val newT2 = t2 - grWidth / 4
@@ -1683,9 +1684,9 @@ class GraphicControl(
     }
 
     private fun zoomOut() {
-        val t1 = viewCoord.t1
-        val t2 = viewCoord.t2
-        val grWidth = viewCoord.width
+        val t1 = grViewCoord.t1
+        val t2 = grViewCoord.t2
+        val grWidth = grViewCoord.width
 
         val newT1 = t1 - grWidth / 2
         val newT2 = t2 + grWidth / 2
@@ -1903,9 +1904,9 @@ class GraphicControl(
                     //--- именно в этом порядке операндов, чтобы:
                     //--- не было всегда 0 из-за целочисленного деления panDX / svgBodyWidth
                     //--- и не было возможного переполнения из-за умножения viewCoord.width * panDX
-                    val deltaT = getTimeFromX(-panDX, grSvgBodyWidth.value, 0, viewCoord.width)
-                    viewCoord.moveRel(deltaT)
-                    grRefreshView(viewCoord)
+                    val deltaT = getTimeFromX(-panDX, grSvgBodyWidth.value, 0, grViewCoord.width)
+                    grViewCoord.moveRel(deltaT)
+                    grRefreshView(grViewCoord)
                 }
                 panPointOldX = 0
                 panPointOldY = 0
@@ -1927,8 +1928,8 @@ class GraphicControl(
                         //--- именно в этом порядке операндов, чтобы:
                         //--- не было всегда 0 из-за целочисленного деления min( mouseRect.x1, mouseRect.x2 ) / svgBodyWidth
                         //--- и не было возможного переполнения из-за умножения viewCoord.width * min( mouseRect.x1, mouseRect.x2 )
-                        val newT1 = getTimeFromX(min(mouseRect.x1.value, mouseRect.x2.value), grSvgBodyWidth.value, viewCoord.t1, viewCoord.width)
-                        val newT2 = getTimeFromX(max(mouseRect.x1.value, mouseRect.x2.value), grSvgBodyWidth.value, viewCoord.t1, viewCoord.width)
+                        val newT1 = getTimeFromX(min(mouseRect.x1.value, mouseRect.x2.value), grSvgBodyWidth.value, grViewCoord.t1, grViewCoord.width)
+                        val newT2 = getTimeFromX(max(mouseRect.x1.value, mouseRect.x2.value), grSvgBodyWidth.value, grViewCoord.t1, grViewCoord.width)
                         if (newT2 - newT1 >= MIN_SCALE_X) {
                             if (grCurMode.value == GraphicWorkMode.ZOOM_BOX) {
                                 grRefreshView(GraphicViewCoord(newT1, newT2))
@@ -1958,7 +1959,7 @@ class GraphicControl(
     private fun setTimeLabel(svgBodyLeft: Int, svgBodyWidth: Int, x: Int, timeLabelData: TimeLabelData) {
         val timeOffset = root.timeOffset
 
-        val cursorTime = getTimeFromX(x, svgBodyWidth, viewCoord.t1, viewCoord.width)
+        val cursorTime = getTimeFromX(x, svgBodyWidth, grViewCoord.t1, grViewCoord.width)
 
         timeLabelData.isVisible.value = true
         timeLabelData.text.value = DateTime_DMYHMS(timeOffset, cursorTime)    //!!!.replace(" ", "\n") не работают замена на <br> и \n
@@ -1977,7 +1978,7 @@ class GraphicControl(
 
     private fun fillGraphicData(mouseX: Int) {
         val timeOffset = root.timeOffset
-        val cursorTime = getTimeFromX(mouseX, grSvgBodyWidth.value, viewCoord.t1, viewCoord.width)
+        val cursorTime = getTimeFromX(mouseX, grSvgBodyWidth.value, grViewCoord.t1, grViewCoord.width)
 
         alGraphicDataData.clear()
         alGraphicDataData += "Дата/время: " + DateTime_YMDHMS(timeOffset, cursorTime)
@@ -2031,10 +2032,10 @@ class GraphicControl(
             //|| grControl.curMode == GraphicModel.WorkMode.SELECT_FOR_PRINT && grControl.selectorX1 < 0  ) {
             //--- масштабирование
             if (isCtrl) {
-                val t1 = viewCoord.t1
-                val t2 = viewCoord.t2
+                val t1 = grViewCoord.t1
+                val t2 = grViewCoord.t2
                 //--- вычисляем текущую координату курсора в реальных координатах
-                val curT = getTimeFromX(mouseX, grSvgBodyWidth.value, t1, viewCoord.width)
+                val curT = getTimeFromX(mouseX, grSvgBodyWidth.value, t1, grViewCoord.width)
 
                 val newT1 = if (deltaY < 0) {
                     curT - (curT - t1) / 2
