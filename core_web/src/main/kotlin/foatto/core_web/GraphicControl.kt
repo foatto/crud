@@ -284,7 +284,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                 that().grTooltipVisible = true
                 that().grTooltipText = tooltipValue
                 that().style_gr_tooltip_pos = json("left" to "${tooltipX}px", "top" to "${tooltipY}px")
-                that().grTooltipOffTime = Date().getTime() + 3000
+                that().grTooltipOffTime = Date.now() + 3000
             } else if (graphicElement.tooltip.isNotEmpty()) {
                 val tooltipX = mouseEvent.clientX + (8 * scaleKoef).roundToInt()
                 val tooltipY = mouseEvent.clientY + (0 * scaleKoef).roundToInt()
@@ -292,7 +292,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
                 that().grTooltipVisible = true
                 that().grTooltipText = graphicElement.tooltip.replace("\n", "<br>")
                 that().style_gr_tooltip_pos = json("left" to "${tooltipX}px", "top" to "${tooltipY}px")
-                that().grTooltipOffTime = Date().getTime() + 3000
+                that().grTooltipOffTime = Date.now() + 3000
             } else {
                 that().grTooltipVisible = false
             }
@@ -304,7 +304,7 @@ fun graphicControl(graphicResponse: GraphicResponse, tabId: Int) = vueComponentO
             val that = that()
             window.setTimeout({
                 val tooltipOffTime = that.grTooltipOffTime.unsafeCast<Double>()
-                if (Date().getTime() > tooltipOffTime) {
+                if (Date.now() > tooltipOffTime) {
                     that.grTooltipVisible = false
                 }
             }, 3000)
@@ -1106,20 +1106,11 @@ fun doGraphicSpecificComponentMounted(
         "font-size" to "${1.0 * scaleKoef}rem"
     )
 
-    that.`$root`.setWait(true)
-    invokeGraphic(
-        GraphicActionRequest(
-            documentTypeName = graphicResponse.documentTypeName,
-            action = GraphicAction.GET_COORDS,
-            startParamId = graphicResponse.startParamId
-        ),
-        { graphicActionResponse: GraphicActionResponse ->
-
-            val newViewCoord = GraphicViewCoord(graphicActionResponse.begTime!!, graphicActionResponse.endTime!!)
-            that.grRefreshView(that, newViewCoord)
-            that.`$root`.setWait(false) as Unit
-        }
+    val newViewCoord = GraphicViewCoord(
+        t1 = if (graphicResponse.rangeType == 0) graphicResponse.begTime else (Date.now() / 1000 - graphicResponse.rangeType).toInt(),
+        t2 = if (graphicResponse.rangeType == 0) graphicResponse.endTime else (Date.now() / 1000).toInt(),
     )
+    that.grRefreshView(that, newViewCoord)
 }
 
 fun doGraphicRefresh(

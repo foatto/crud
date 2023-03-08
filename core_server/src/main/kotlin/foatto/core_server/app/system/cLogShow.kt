@@ -43,13 +43,6 @@ class cLogShow : cAbstractForm() {
                 zoneId
             ).toEpochSecond().toInt()
         }
-        //--- обработка динамических диапазонов
-        else {
-            val endDT = ZonedDateTime.now(zoneId)
-            val begDT = endDT.minus(sd.rangeType.toLong(), ChronoUnit.SECONDS)
-            sd.begTime = begDT.toEpochSecond().toInt()
-            sd.endTime = endDT.toEpochSecond().toInt()
-        }
 
         //--- заполнение текста заголовка информацией по объекту
         sd.shortTitle = aliasConfig.name

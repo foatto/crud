@@ -65,7 +65,11 @@ class GraphicResponse(
     val documentTypeName: String,
     val startParamId: String,
     val shortTitle: String,
-    val fullTitle: String
+    val fullTitle: String,
+
+    val rangeType: Int,
+    val begTime: Int,
+    val endTime: Int,
 )
 
 @Serializable

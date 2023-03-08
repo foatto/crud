@@ -97,6 +97,9 @@ class TSAppController : CoreAppController(), iTSApplication {
                     startParamId = compositeStartData.graphicStartDataId,
                     shortTitle = shortTitle,
                     fullTitle = fullTitle,
+                    rangeType = compositeStartData.rangeType,
+                    begTime = compositeStartData.begTime,
+                    endTime = compositeStartData.endTime,
                 ),
             )
         )

@@ -788,21 +788,19 @@ class GraphicControl(
         svgHeight?.let {
             grSvgHeight.value = svgHeight
         }
-
-        root.setWait(true)
-        invokeGraphic(
-            GraphicActionRequest(
-                documentTypeName = graphicResponse.documentTypeName,
-                action = GraphicAction.GET_COORDS,
-                startParamId = graphicResponse.startParamId
-            )
-        ) { graphicActionResponse: GraphicActionResponse ->
-
-            val newViewCoord = GraphicViewCoord(graphicActionResponse.begTime!!, graphicActionResponse.endTime!!)
-            grRefreshView(newViewCoord)
-            root.setWait(false)
-        }
-
+        val newViewCoord = GraphicViewCoord(
+            t1 = if (graphicResponse.rangeType == 0) {
+                graphicResponse.begTime
+            } else {
+                (Date.now() / 1000 - graphicResponse.rangeType).toInt()
+            },
+            t2 = if (graphicResponse.rangeType == 0) {
+                graphicResponse.endTime
+            } else {
+                (Date.now() / 1000).toInt()
+            },
+        )
+        grRefreshView(newViewCoord)
     }
 
     private fun setInterval(sec: Int) {
@@ -1732,7 +1730,7 @@ class GraphicControl(
             grTooltipText.value = tooltipValue
             grTooltipLeft.value = tooltipX.px
             grTooltipTop.value = tooltipY.px
-            grTooltipOffTime = Date().getTime() + 3000
+            grTooltipOffTime = Date.now() + 3000
 
         } else if (graphicElement.tooltip.isNotEmpty()) {
             val (tooltipX, tooltipY) = getGraphixAndXyTooltipCoord(mouseClientX, mouseClientY)
@@ -1741,7 +1739,7 @@ class GraphicControl(
             grTooltipText.value = graphicElement.tooltip.replace("\n", "<br>")
             grTooltipLeft.value = tooltipX.px
             grTooltipTop.value = tooltipY.px
-            grTooltipOffTime = Date().getTime() + 3000
+            grTooltipOffTime = Date.now() + 3000
         } else {
             grTooltipVisible.value = false
         }

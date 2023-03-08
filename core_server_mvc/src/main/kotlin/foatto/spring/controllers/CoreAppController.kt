@@ -336,7 +336,10 @@ abstract class CoreAppController : iApplication {
                                 documentTypeName = aliasName,
                                 startParamId = graphicStartDataID,
                                 shortTitle = sd.shortTitle.substring(0, min(32000, sd.shortTitle.length)),
-                                fullTitle = sd.fullTitle.substring(0, min(32000, sd.fullTitle.length))
+                                fullTitle = sd.fullTitle.substring(0, min(32000, sd.fullTitle.length)),
+                                rangeType = sd.rangeType,
+                                begTime = sd.begTime,
+                                endTime = sd.endTime,
                             )
                         )
                     }
@@ -581,7 +584,6 @@ abstract class CoreAppController : iApplication {
 
         val graphicActionResponse =
             when (graphicActionRequest.action) {
-                GraphicAction.GET_COORDS -> doc.doGetCoords(graphicActionRequest.startParamId)
                 GraphicAction.GET_ELEMENTS -> doc.doGetElements(graphicActionRequest)
             }
 

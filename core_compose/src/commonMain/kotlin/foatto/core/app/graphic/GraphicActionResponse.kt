@@ -4,10 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 class GraphicActionResponse(
-    //--- answer on GET_COORDS
-    val begTime: Int? = null,
-    val endTime: Int? = null,
-
     //--- answer on GET_ELEMENTS
     val arrIndexColor: Array<Pair<GraphicColorIndex, Int>> = emptyArray(),
     val arrElement: Array<Pair<String, GraphicElement>> = emptyArray(),

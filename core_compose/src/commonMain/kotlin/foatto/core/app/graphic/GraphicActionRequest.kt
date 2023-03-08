@@ -11,4 +11,4 @@ class GraphicActionRequest(
     var sessionId: Long = 0
 }
 
-enum class GraphicAction { GET_COORDS, GET_ELEMENTS }
+enum class GraphicAction { GET_ELEMENTS }

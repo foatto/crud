@@ -42,26 +42,6 @@ class cCompositeTS : cAbstractForm() {
         csd.objectId = selectObjectId
         csd.rangeType = (hmColumnData[msfd.columnShowRangeType] as DataRadioButton).intValue
 
-//        if (sd.rangeType == 0) {
-//            sd.begTime = ZonedDateTime.of(
-//                (hmColumnData[msfd.columnShowBegDate] as DataDate3Int).localDate,
-//                (hmColumnData[msfd.columnShowBegTime] as DataTime3Int).localTime,
-//                zoneId
-//            ).toEpochSecond().toInt()
-//            sd.endTime = ZonedDateTime.of(
-//                (hmColumnData[msfd.columnShowEndDate] as DataDate3Int).localDate,
-//                (hmColumnData[msfd.columnShowEndTime] as DataTime3Int).localTime,
-//                zoneId
-//            ).toEpochSecond().toInt()
-//        }
-//        //--- обработка динамических диапазонов
-//        else {
-        val endDT = ZonedDateTime.now(zoneId)
-        val begDT = endDT.minus(csd.rangeType.toLong(), ChronoUnit.SECONDS)
-        csd.begTime = begDT.toEpochSecond().toInt()
-        csd.endTime = endDT.toEpochSecond().toInt()
-//        }
-
         //--- заполнение текста заголовка информацией по объекту
         val oc = (application as iTSApplication).getObjectConfig(userConfig, selectObjectId)
 
@@ -131,8 +111,9 @@ class cCompositeTS : cAbstractForm() {
         val grsd = GraphicStartData()
         grsd.objectId = csd.objectId
         grsd.rangeType = csd.rangeType
-        grsd.begTime = csd.begTime
-        grsd.endTime = csd.endTime
+        //--- на композите показываем N времени назад
+        //grsd.begTime = csd.begTime
+        //grsd.endTime = csd.endTime
         grsd.shortTitle = csd.shortTitle
         grsd.fullTitle = csd.fullTitle
 
