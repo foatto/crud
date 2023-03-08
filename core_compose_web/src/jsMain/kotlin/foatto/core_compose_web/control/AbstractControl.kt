@@ -264,7 +264,7 @@ abstract class AbstractControl(
         //--- причина: баг (?) в том, что mouseleave вызывается сразу после mouseenter,
         //--- причём после ухода с графика других mouseleave не вызывается.
         window.setTimeout({
-            if (Date().getTime() > tooltipOffTime) {
+            if (Date.now() > tooltipOffTime) {
                 tooltipVisible.value = false
             }
         }, 3000)

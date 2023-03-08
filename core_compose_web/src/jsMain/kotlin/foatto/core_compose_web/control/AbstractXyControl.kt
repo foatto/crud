@@ -1469,7 +1469,7 @@ abstract class AbstractXyControl(
             xyTooltipText.value = xyElement.tooltip
             xyTooltipLeft.value = tooltipX.px
             xyTooltipTop.value = tooltipY.px
-            xyTooltipOffTime = Date().getTime() + 3000
+            xyTooltipOffTime = Date.now() + 3000
         } else {
             xyTooltipVisible.value = false
         }

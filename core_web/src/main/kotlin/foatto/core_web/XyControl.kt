@@ -500,7 +500,7 @@ fun onXyMouseOver(that: dynamic, mouseEvent: MouseEvent, xyElement: XyElementDat
         that.xyTooltipVisible = true
         that.xyTooltipText = xyElement.tooltip.replace("\n", "<br>")
         that.style_xy_tooltip_pos = json("left" to "${tooltipX}px", "top" to "${tooltipY}px")
-        that.xyTooltipOffTime = Date().getTime() + 3000
+        that.xyTooltipOffTime = Date.now() + 3000
     } else {
         that.xyTooltipVisible = false
     }
@@ -512,7 +512,7 @@ fun onXyMouseOut(that: dynamic) {
     //--- причём после ухода с графика других mouseleave не вызывается.
     window.setTimeout({
         val tooltipOffTime = that.xyTooltipOffTime.unsafeCast<Double>()
-        if (Date().getTime() > tooltipOffTime) {
+        if (Date.now() > tooltipOffTime) {
             that.xyTooltipVisible = false
         }
     }, 3000)
