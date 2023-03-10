@@ -1635,13 +1635,13 @@ class GraphicControl(
     private fun setMode(newMode: GraphicWorkMode) {
         when (newMode) {
             GraphicWorkMode.PAN -> {
-                isPanButtonVisible.value = true
-                isZoomButtonVisible.value = false
+                isPanButtonVisible.value = false
+                isZoomButtonVisible.value = true
             }
 
             GraphicWorkMode.ZOOM_BOX -> {
-                isPanButtonVisible.value = false
-                isZoomButtonVisible.value = true
+                isPanButtonVisible.value = true
+                isZoomButtonVisible.value = false
             }
         }
         grCurMode.value = newMode
@@ -1679,7 +1679,7 @@ class GraphicControl(
             invokeSaveUserProperty(
                 SaveUserPropertyRequest(
                     name = graphicVisibleData.name,
-                    value = graphicVisibleData.check.toString(),
+                    value = graphicVisibleData.check.value.toString(),
                 )
             )
         }
