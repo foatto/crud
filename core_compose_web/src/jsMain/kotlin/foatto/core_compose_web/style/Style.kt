@@ -121,7 +121,7 @@ val styleControlPadding = CONTROL_PADDING
 val arrStyleControlTitlePadding: Array<CSSSize> = arrayOf(0.cssRem, CONTROL_PADDING, 0.cssRem, CONTROL_PADDING)
 val styleIconButtonPadding = 0.cssRem
 val styleTextButtonPadding = 0.2.cssRem
-val getStyleStateServerButtonTextPadding: () -> CSSSize = { styleTextButtonPadding }
+val arrStyleStateServerButtonTextPadding: Array<CSSSize> = arrayOf(0.3.cssRem, 2.0.cssRem, 0.3.cssRem, 2.0.cssRem)
 var styleStateServerButtonTextFontWeight = "normal"
 
 val styleCommonEditorPadding = CONTROL_BIG_PADDING

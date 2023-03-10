@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.web.events.SyntheticMouseEvent
 import foatto.core.link.*
 import foatto.core_compose_web.*
+import foatto.core_compose_web.control.composable.getToolBarSpan
 import foatto.core_compose_web.control.model.TitleData
 import foatto.core_compose_web.style.*
 import foatto.core_compose_web.util.getColorFromInt
