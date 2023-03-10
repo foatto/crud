@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import foatto.core_compose_web.control.composable.getToolBarSpan
 import foatto.core_compose_web.control.model.TitleData
 import foatto.core_compose_web.style.*
 import kotlinx.browser.window
@@ -17,7 +18,6 @@ import org.jetbrains.compose.web.dom.Img
 import org.jetbrains.compose.web.dom.Span
 import org.jetbrains.compose.web.dom.Text
 import org.w3c.dom.HTMLDivElement
-import org.w3c.dom.HTMLSpanElement
 import kotlin.js.Date
 import kotlin.math.roundToInt
 
@@ -200,25 +200,6 @@ abstract class AbstractControl(
                     alignItems(AlignItems.Center)
                     padding(styleControlPadding)
                     backgroundColor(getColorGraphicAndXyToolbarBack())
-                }
-            }
-        ) {
-            content()
-        }
-    }
-
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @Composable
-    protected fun getToolBarSpan(content: ContentBuilder<HTMLSpanElement>) {
-        Span(
-            attrs = {
-                style {
-                    display(DisplayStyle.Flex)
-                    flexDirection(FlexDirection.Row)
-                    flexWrap(FlexWrap.Nowrap)
-                    justifyContent(JustifyContent.Center)
-                    alignItems(AlignItems.Center)
                 }
             }
         ) {

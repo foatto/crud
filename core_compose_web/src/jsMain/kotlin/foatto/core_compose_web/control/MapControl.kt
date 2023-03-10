@@ -19,6 +19,8 @@ import foatto.core.link.XyResponse
 import foatto.core.util.getSplittedDouble
 import foatto.core_compose_web.AppControl
 import foatto.core_compose_web.Root
+import foatto.core_compose_web.control.composable.getRefreshSubToolbar
+import foatto.core_compose_web.control.composable.getToolBarSpan
 import foatto.core_compose_web.control.model.AddPointStatus
 import foatto.core_compose_web.control.model.MouseRectData
 import foatto.core_compose_web.control.model.XyElementData
@@ -62,9 +64,7 @@ private val COLOR_MAP_DISTANCER = hsl(30, 100, 50)
 
 private const val mapBitmapTypeName = XyBitmapType.MS   // на текущий момент MapSurfer - наиболее правильная карта
 
-private const val START_EXPAND_KOEF = 0.05
-
-private const val MAP_PREFIX = "map"
+private const val MAP_START_EXPAND_KOEF = 0.05
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -74,6 +74,12 @@ class MapControl(
     xyResponse: XyResponse,
     tabId: Int
 ) : AbstractXyControl(root, appControl, xyResponse, tabId) {
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    init {
+        containerPrefix = "map"
+    }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -128,10 +134,10 @@ class MapControl(
     override fun getBody() {
         getMainDiv {
             //--- Map Header
-            getGraphicAndXyHeader(MAP_PREFIX)
+            getGraphicAndXyHeader(containerPrefix)
 
             //--- Map Toolbar
-            getGraphicAndXyToolbar(MAP_PREFIX) {
+            getGraphicAndXyToolbar(containerPrefix) {
                 getToolBarSpan {
                     getToolBarIconButton(
                         isVisible = refreshInterval.value == 0 && isPanButtonVisible.value,
@@ -240,7 +246,9 @@ class MapControl(
                     }
                 }
                 if (isRefreshButtonVisible.value) {
-                    getRefreshSubToolbar()
+                    getRefreshSubToolbar(refreshInterval) { interval ->
+                        setInterval(interval)
+                    }
                 }
             }
 
@@ -401,8 +409,7 @@ class MapControl(
         alAddEC.addAll(xyResponse.documentConfig.alElementConfig.filter { it.second.descrForAction.isNotEmpty() }.map { it.second })
 
         doXyMounted(
-            elementPrefix = MAP_PREFIX,
-            startExpandKoef = START_EXPAND_KOEF,
+            startExpandKoef = MAP_START_EXPAND_KOEF,
             isCentered = false,
             curScale = xyResponse.documentConfig.alElementConfig.minBy { it.second.scaleMin }.second.scaleMin
         )

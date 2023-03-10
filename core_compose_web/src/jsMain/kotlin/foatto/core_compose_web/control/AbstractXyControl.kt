@@ -43,7 +43,6 @@ import org.jetbrains.compose.web.css.properties.userSelect
 import org.jetbrains.compose.web.css.properties.verticalAlign
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.ElementScope
-import org.jetbrains.compose.web.dom.Img
 import org.jetbrains.compose.web.dom.Text
 import org.jetbrains.compose.web.events.SyntheticTouchEvent
 import org.jetbrains.compose.web.svg.*
@@ -89,6 +88,10 @@ abstract class AbstractXyControl(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    var containerPrefix: String = ""
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     protected val xySvgWidth: MutableState<Int> = mutableStateOf(0)
     protected val xySvgHeight: MutableState<Int> = mutableStateOf(0)
     private val xyViewBoxBody = mutableStateOf("0 0 1 1")
@@ -115,45 +118,9 @@ abstract class AbstractXyControl(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    @Composable
-    protected fun getRefreshSubToolbar() {
-        getToolBarSpan {
-            // 1s-interval shortly too
-            listOf(0, /*1,*/ 5, 10, 30).forEach { interval ->
-                if (interval == 0 || interval != refreshInterval.value) {
-                    Img(
-                        src = "/web/images/ic_replay_${if (interval == 0) "" else "${interval}_"}black_48dp.png",
-                        attrs = {
-                            style {
-                                backgroundColor(getColorRefreshButtonBack())
-                                setBorder(getStyleToolbarButtonBorder())
-                                fontSize(styleCommonButtonFontSize)
-                                padding(styleIconButtonPadding)
-                                setMargins(arrStyleCommonMargin)
-                                cursor("pointer")
-                            }
-                            title(
-                                when (interval) {
-                                    0 -> "Обновить сейчас"
-                                    1 -> "Обновлять каждую секунду"
-                                    else -> "Обновлять каждые $interval сек"
-                                }
-                            )
-                            onClick {
-                                setInterval(interval)
-                            }
-                        }
-                    )
-                }
-            }
-        }
-    }
-
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     @OptIn(ExperimentalComposeWebSvgApi::class)
     @Composable
-    protected fun getXyElementTemplate(withInteractive: Boolean) {
+    fun getXyElementTemplate(withInteractive: Boolean) {
         Svg(
             viewBox = xyViewBoxBody.value,
             attrs = {
@@ -579,7 +546,6 @@ abstract class AbstractXyControl(
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     protected fun doXyMounted(
-        elementPrefix: String,
         startExpandKoef: Double,
         isCentered: Boolean,
         curScale: Int,
@@ -588,23 +554,21 @@ abstract class AbstractXyControl(
         alTitleData += xyResponse.fullTitle.split('\n').filter { it.isNotBlank() }.map { TitleData("", it) }
 
         doXySpecificComponentMounted(
-            elementPrefix = elementPrefix,
             startExpandKoef = startExpandKoef,
             isCentered = isCentered,
             curScale = curScale,
             svgHeight = null,
-            arrAddElements = emptyArray(),
+            arrAddHeights = emptyArray(),
         )
     }
 
-    //--- предположительно, static метод из-за Composite Control
-    private fun doXySpecificComponentMounted(
-        elementPrefix: String,
+    //--- public for Composite Control
+    fun doXySpecificComponentMounted(
         startExpandKoef: Double,
         isCentered: Boolean,
         curScale: Int,
         svgHeight: Int?,
-        arrAddElements: Array<Element>,
+        arrAddHeights: Array<Int>,
     ) {
         root.setWait(true)
         invokeXy(
@@ -618,7 +582,7 @@ abstract class AbstractXyControl(
             //--- принудительная установка полной высоты svg-элементов
             //--- (BUG: иначе высота либо равна 150px - если не указывать высоту,
             //--- либо равно width, если указать height="100%")
-            calcSvgCoordAndSize(elementPrefix, svgHeight, arrAddElements)
+            calcSvgCoordAndSize(svgHeight, arrAddHeights)
             setXyViewBoxBody(arrayOf(0, 0, xySvgWidth.value, xySvgHeight.value))
 
             val newViewCoord = getXyCoordsDone(
@@ -636,17 +600,16 @@ abstract class AbstractXyControl(
     }
 
     private fun calcSvgCoordAndSize(
-        elementPrefix: String,
         svgHeight: Int?,
-        arrAddElements: Array<Element>,
+        arrAddHeights: Array<Int>,
     ) {
         val menuBarElement = document.getElementById(MENU_BAR_ID)
         val menuCloserElement = document.getElementById(MENU_CLOSER_BUTTON_ID)
 
         val topBar = document.getElementById(TOP_BAR_ID)
         val svgTabPanel = document.getElementById("tab_panel")!!
-        val svgXyTitle = document.getElementById("${elementPrefix}_title_$tabId")!!
-        val svgXyToolbar = document.getElementById("${elementPrefix}_toolbar_$tabId")!!
+        val svgXyTitle = document.getElementById("${containerPrefix}_title_$tabId")!!
+        val svgXyToolbar = document.getElementById("${containerPrefix}_toolbar_$tabId")!!
 
         val menuBarWidth = if (root.isShowMainMenu.value) {
             menuBarElement?.clientWidth ?: 0
@@ -664,7 +627,7 @@ abstract class AbstractXyControl(
             svgTabPanel.clientHeight +
             svgXyTitle.clientHeight +
             svgXyToolbar.clientHeight +
-            arrAddElements.sumOf { it.clientHeight }
+            arrAddHeights.sum()
 
         xySvgHeight.value = svgHeight ?: (window.innerHeight - xySvgTop)
     }
@@ -1492,7 +1455,9 @@ abstract class AbstractXyControl(
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     protected fun setInterval(sec: Int) {
-        window.clearInterval(refreshHandlerId)
+        if (refreshHandlerId != 0) {
+            window.clearInterval(refreshHandlerId)
+        }
 
         if (sec == 0) {
             xyRefreshView(null, true)
