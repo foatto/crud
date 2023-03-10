@@ -6,16 +6,11 @@ import foatto.core.app.UP_TIME_OFFSET
 import foatto.core.link.AppAction
 import foatto.core.link.AppRequest
 import foatto.core.link.AppResponse
+import foatto.core.link.CompositeResponse
 import foatto.core.link.LogonRequest
 import foatto.core.link.ResponseCode
 import foatto.core.link.XyDocumentClientType
-import foatto.core_compose_web.control.AbstractControl
-import foatto.core_compose_web.control.EmptyControl
-import foatto.core_compose_web.control.FormControl
-import foatto.core_compose_web.control.GraphicControl
-import foatto.core_compose_web.control.MapControl
-import foatto.core_compose_web.control.StateControl
-import foatto.core_compose_web.control.TableControl
+import foatto.core_compose_web.control.*
 import foatto.core_compose_web.link.invokeApp
 import foatto.core_compose_web.style.*
 import foatto.core_compose_web.util.encodePassword
@@ -87,7 +82,17 @@ var styleLogonButtonFontWeight: String = "normal"
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-//var compositeResponseCodeControlFun: (compositeResponse: CompositeResponse, tabId: Int) -> VueComponentOptions = { _: CompositeResponse, _: Int -> vueComponentOptions() }
+var getCompositeControl: (
+    root: Root,
+    appControl: AppControl,
+    compositeResponse: CompositeResponse,
+    tabId: Int,
+) -> BaseCompositeControl = { root: Root,
+                              appControl: AppControl,
+                              compositeResponse: CompositeResponse,
+                              tabId: Int ->
+    BaseCompositeControl(root, appControl, compositeResponse, tabId)
+}
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -490,8 +495,11 @@ class AppControl(
 //                videoControl.init( appContainer, appLink, tab, this, vcstartParamId, vcStartTitle )
 //            }
                     ResponseCode.COMPOSITE.toString() -> {
-//                        curControl.value = compositeResponseCodeControlFun(appResponse.composite!!, tabId)
+                        val compositeControl = getCompositeControl(root, this, appResponse.composite!!, tabId)
+                        curControl.value = compositeControl
                         responseCode.value = appResponse.code
+
+                        compositeControl.start()
                     }
 
                     else -> {
