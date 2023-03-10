@@ -19,6 +19,8 @@ import foatto.core.link.GraphicResponse
 import foatto.core.link.SaveUserPropertyRequest
 import foatto.core.util.getSplittedDouble
 import foatto.core_compose_web.*
+import foatto.core_compose_web.control.composable.getRefreshSubToolbar
+import foatto.core_compose_web.control.composable.getToolBarSpan
 import foatto.core_compose_web.control.model.MouseRectData
 import foatto.core_compose_web.control.model.TitleData
 import foatto.core_compose_web.link.invokeGraphic
@@ -35,7 +37,6 @@ import org.jetbrains.compose.web.css.properties.userSelect
 import org.jetbrains.compose.web.css.properties.zIndex
 import org.jetbrains.compose.web.dom.*
 import org.jetbrains.compose.web.svg.*
-import org.w3c.dom.Element
 import kotlin.js.Date
 import kotlin.math.abs
 import kotlin.math.floor
@@ -81,7 +82,7 @@ private const val MARGIN_LEFT = 100     // на каждую ось Y
 private const val MARGIN_TOP = 40
 private const val MARGIN_BOTTOM = 60
 
-private const val GRAPHIC_MIN_HEIGHT = 300
+const val GRAPHIC_MIN_HEIGHT: Int = 300
 
 private const val MIN_GRID_STEP_X = 40  // минимальный шаг между линиями сетки в пикселях
 private const val MIN_GRID_STEP_Y = 40  // минимальный шаг между линиями сетки в пикселях
@@ -134,8 +135,6 @@ private enum class GraphicWorkMode {
     PAN, ZOOM_BOX/*, SELECT_FOR_PRINT*/
 }
 
-private const val GRAPHIC_PREFIX = "graphic"
-
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class GraphicControl(
@@ -144,6 +143,10 @@ class GraphicControl(
     private val graphicResponse: GraphicResponse,
     tabId: Int,
 ) : AbstractControl(tabId) {
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    var containerPrefix: String = "graphic"
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -194,6 +197,7 @@ class GraphicControl(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    private var presetSvgHeight: Int? = null
     private var grViewCoord = GraphicViewCoord(0, 0)
     private val alYData = mutableListOf<YData>()
     private var pixStartY = 0
@@ -210,10 +214,10 @@ class GraphicControl(
     override fun getBody() {
         getMainDiv {
             //--- Graphic Header
-            getGraphicAndXyHeader(GRAPHIC_PREFIX)
+            getGraphicAndXyHeader(containerPrefix)
 
             //--- Graphic Toolbar
-            getGraphicAndXyToolbar(GRAPHIC_PREFIX) {
+            getGraphicAndXyToolbar(containerPrefix) {
                 getToolBarSpan {
                     getToolBarIconButton(
                         isVisible = refreshInterval.value == 0 && isPanButtonVisible.value,
@@ -343,35 +347,8 @@ class GraphicControl(
                         }
                     }
                 }
-                getToolBarSpan {
-                    // 1s-interval shortly too
-                    listOf(0, /*1,*/ 5, 10, 30).forEach { interval ->
-                        if (interval == 0 || interval != refreshInterval.value) {
-                            Img(
-                                src = "/web/images/ic_replay_${if (interval == 0) "" else "${interval}_"}black_48dp.png",
-                                attrs = {
-                                    style {
-                                        backgroundColor(getColorRefreshButtonBack())
-                                        setBorder(getStyleToolbarButtonBorder())
-                                        fontSize(styleCommonButtonFontSize)
-                                        padding(styleIconButtonPadding)
-                                        setMargins(arrStyleCommonMargin)
-                                        cursor("pointer")
-                                    }
-                                    title(
-                                        when (interval) {
-                                            0 -> "Обновить сейчас"
-                                            1 -> "Обновлять каждую секунду"
-                                            else -> "Обновлять каждые $interval сек"
-                                        }
-                                    )
-                                    onClick {
-                                        setInterval(interval)
-                                    }
-                                }
-                            )
-                        }
-                    }
+                getRefreshSubToolbar(refreshInterval) { interval ->
+                    setInterval(interval)
                 }
             }
             getGraphicElementTemplate(true)
@@ -381,7 +358,7 @@ class GraphicControl(
     //--- предположительно, static метод
     @OptIn(ExperimentalComposeWebSvgApi::class)
     @Composable
-    private fun getGraphicElementTemplate(withInteractive: Boolean) {
+    fun getGraphicElementTemplate(withInteractive: Boolean) {
         Div(
             attrs = {
                 style {
@@ -778,16 +755,18 @@ class GraphicControl(
         root.setTabInfo(tabId, graphicResponse.shortTitle, graphicResponse.fullTitle)
         alTitleData += graphicResponse.fullTitle.split('\n').filter { it.isNotBlank() }.map { TitleData("", it) }
 
-        doGraphicSpecificComponentMounted(null)
+        doGraphicSpecificComponentMounted(null, emptyArray())
     }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    //--- предположительно, static метод из-за Composite Control
-    private fun doGraphicSpecificComponentMounted(svgHeight: Int?) {
-        svgHeight?.let {
-            grSvgHeight.value = svgHeight
-        }
+    //--- public for Composite Control
+    fun doGraphicSpecificComponentMounted(
+        svgHeight: Int?,
+        arrAddHeights: Array<Int>,
+    ) {
+        presetSvgHeight = svgHeight
+
         val newViewCoord = GraphicViewCoord(
             t1 = if (graphicResponse.rangeType == 0) {
                 graphicResponse.begTime
@@ -800,28 +779,30 @@ class GraphicControl(
                 (Date.now() / 1000).toInt()
             },
         )
-        grRefreshView(newViewCoord)
+        doGraphicRefresh(
+            aView = newViewCoord,
+            withWait = true,
+            arrAddHeights = arrAddHeights,
+        )
     }
 
     private fun setInterval(sec: Int) {
-        window.clearInterval(refreshHandlerId)
+        if (refreshHandlerId != 0) {
+            window.clearInterval(refreshHandlerId)
+        }
 
         if (sec == 0) {
             doGraphicRefresh(
-                graphicResponse = graphicResponse,
-                elementPrefix = GRAPHIC_PREFIX,
-                arrAddElements = emptyArray(),
                 aView = null,
                 withWait = true,
+                arrAddHeights = emptyArray(),
             )
         } else {
             refreshHandlerId = window.setInterval({
                 doGraphicRefresh(
-                    graphicResponse = graphicResponse,
-                    elementPrefix = GRAPHIC_PREFIX,
-                    arrAddElements = emptyArray(),
                     aView = null,
                     withWait = false,
+                    arrAddHeights = emptyArray(),
                 )
             }, sec * 1000)
         }
@@ -831,20 +812,16 @@ class GraphicControl(
 
     private fun grRefreshView(aView: GraphicViewCoord?) {
         doGraphicRefresh(
-            graphicResponse = graphicResponse,
-            elementPrefix = GRAPHIC_PREFIX,
-            arrAddElements = emptyArray(),
             aView = aView,
             withWait = true,
+            arrAddHeights = emptyArray(),
         )
     }
 
-    private fun doGraphicRefresh(
-        graphicResponse: GraphicResponse,
-        elementPrefix: String,
-        arrAddElements: Array<Element>,
+    fun doGraphicRefresh(
         aView: GraphicViewCoord?,
         withWait: Boolean,
+        arrAddHeights: Array<Int>,
     ) {
         aView?.let {
             grViewCoord = aView
@@ -874,8 +851,12 @@ class GraphicControl(
 
         ) { graphicActionResponse: GraphicActionResponse ->
 
-            val svgBodyTop = calcBodyLeftAndTop(elementPrefix, arrAddElements).second
-            grSvgHeight.value = window.innerHeight - svgBodyTop
+            //--- calcBodyLeftAndTop нельз вызывать слишком рано (в doGraphicSpecificComponentMounted),
+            //--- т.к. асинхронный Body ещё не готов и возвращает null для элементов заголовка
+            val svgBodyTop = calcBodyLeftAndTop(arrAddHeights).second
+            grSvgHeight.value = presetSvgHeight ?: run {
+                window.innerHeight - svgBodyTop
+            }
 
             alElement.clear()
             alElement.addAll(graphicActionResponse.arrElement)
@@ -1043,7 +1024,7 @@ class GraphicControl(
             pixStartY = localPixStartY
 
             //--- правильное значение svgBodyLeft известно только в конце загрузки
-            val svgBodyLeft = calcBodyLeftAndTop(elementPrefix, arrAddElements).first
+            val svgBodyLeft = calcBodyLeftAndTop(arrAddHeights).first
             setGraphicTextOffset(svgBodyLeft, svgBodyTop)
 
             if (withWait) {
@@ -1053,16 +1034,15 @@ class GraphicControl(
     }
 
     private fun calcBodyLeftAndTop(
-        elementPrefix: String,
-        arrAddElements: Array<Element>,
+        arrAddHeights: Array<Int>,
     ): Pair<Int, Int> {
         val menuBarElement = document.getElementById(MENU_BAR_ID)
         val menuCloserElement = document.getElementById(MENU_CLOSER_BUTTON_ID)
 
         val topBar = document.getElementById(TOP_BAR_ID)
         val svgTabPanel = document.getElementById("tab_panel")!!
-        val svgGraphicTitle = document.getElementById("${elementPrefix}_title_$tabId")!!
-        val svgGraphicToolbar = document.getElementById("${elementPrefix}_toolbar_$tabId")!!
+        val svgGraphicTitle = document.getElementById("${containerPrefix}_title_$tabId")!!
+        val svgGraphicToolbar = document.getElementById("${containerPrefix}_toolbar_$tabId")!!
 
         val menuBarWidth = if (root.isShowMainMenu.value) {
             menuBarElement?.clientWidth ?: 0
@@ -1080,7 +1060,7 @@ class GraphicControl(
                 svgTabPanel.clientHeight +
                 svgGraphicTitle.clientHeight +
                 svgGraphicToolbar.clientHeight +
-                arrAddElements.sumOf { it.clientHeight }
+                arrAddHeights.sum()
         )
     }
 
@@ -1758,7 +1738,7 @@ class GraphicControl(
         var mouseY = aMouseY.toInt()
 
         //!!! в случае работы в сложной схеме могут поехать y-координаты
-        val (svgBodyLeft, svgBodyTop) = calcBodyLeftAndTop(GRAPHIC_PREFIX, emptyArray())
+        val (svgBodyLeft, svgBodyTop) = calcBodyLeftAndTop(emptyArray())
 
         if (isNeedOffsetCompensation) {
             mouseX -= svgBodyLeft
@@ -1800,7 +1780,7 @@ class GraphicControl(
         var mouseY = aMouseY.toInt()
 
         //!!! в случае работы в сложной схеме могут поехать y-координаты
-        val (svgBodyLeft, svgBodyTop) = calcBodyLeftAndTop(GRAPHIC_PREFIX, emptyArray())
+        val (svgBodyLeft, svgBodyTop) = calcBodyLeftAndTop(emptyArray())
 
         if (isNeedOffsetCompensation) {
             mouseX -= svgBodyLeft
@@ -2026,7 +2006,7 @@ class GraphicControl(
         val deltaY = syntheticWheelEvent.deltaY.toInt()
 
         //!!! в случае работы в сложной схеме могут поехать y-координаты
-        val (svgBodyLeft, svgBodyTop) = calcBodyLeftAndTop(GRAPHIC_PREFIX, emptyArray())
+        val (svgBodyLeft, svgBodyTop) = calcBodyLeftAndTop(emptyArray())
 
         if (grCurMode.value == GraphicWorkMode.PAN && !isMouseDown || grCurMode.value == GraphicWorkMode.ZOOM_BOX && !isMouseDown) {
             //|| grControl.curMode == GraphicModel.WorkMode.SELECT_FOR_PRINT && grControl.selectorX1 < 0  ) {
