@@ -46,7 +46,6 @@ import org.jetbrains.compose.web.dom.ElementScope
 import org.jetbrains.compose.web.dom.Text
 import org.jetbrains.compose.web.events.SyntheticTouchEvent
 import org.jetbrains.compose.web.svg.*
-import org.w3c.dom.Element
 import org.w3c.dom.svg.SVGElement
 import kotlin.js.Date
 import kotlin.math.max
@@ -1511,8 +1510,6 @@ abstract class AbstractXyControl(
 
 /*
 
-
-
 //--- Возвращает список выбранных элементов
 //fun getXySelectedElementList( that: dynamic ): List<XyElementData> {
 //    val arrXyElement = that.arrXyElement.unsafeCast<Array<Array<XyElementData>>>()
@@ -1539,6 +1536,5 @@ abstract class AbstractXyControl(
 //
 //    return alResult.asReversed()
 //}
-
 
  */

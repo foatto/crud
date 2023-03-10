@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import foatto.core.app.*
 import foatto.core.link.MenuData
 import foatto.core_compose_web.control.TableControl.Companion.hmTableIcon
+import foatto.core_compose_web.control.model.TabInfo
 import foatto.core_compose_web.style.*
 import kotlinx.browser.document
 import kotlinx.browser.localStorage
@@ -228,7 +229,7 @@ open class Root(
                             }
                         }
                     ) {
-                        Br()    //Text("&nbsp;")
+                        Br()
                     }
                 }
             }
@@ -257,7 +258,7 @@ open class Root(
                             }
                         }
                     ) {
-                        Br()    //Text("&nbsp;")
+                        Br()
                     }
                     Div(
                         attrs = {
@@ -448,11 +449,6 @@ open class Root(
     }
 }
 
-//        //----------------------------------------------------------------------------------------------------------------------------------------------------------------
-//
-//
-//            this.data = {
-//                json(
 //                    "style_top_container" to json(
 //                        "display" to "flex",
 //                        "flex-direction" to "row",

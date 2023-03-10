@@ -1637,13 +1637,11 @@ class GraphicControl(
             GraphicWorkMode.PAN -> {
                 isPanButtonVisible.value = true
                 isZoomButtonVisible.value = false
-//                stackPane.cursor = Cursor.MOVE
             }
 
             GraphicWorkMode.ZOOM_BOX -> {
                 isPanButtonVisible.value = false
                 isZoomButtonVisible.value = true
-//                stackPane.cursor = Cursor.CROSSHAIR
             }
         }
         grCurMode.value = newMode
@@ -1779,7 +1777,6 @@ class GraphicControl(
         var mouseX = aMouseX.toInt()
         var mouseY = aMouseY.toInt()
 
-        //!!! в случае работы в сложной схеме могут поехать y-координаты
         val (svgBodyLeft, svgBodyTop) = calcBodyLeftAndTop(emptyArray())
 
         if (isNeedOffsetCompensation) {
@@ -2005,7 +2002,6 @@ class GraphicControl(
         val mouseX = syntheticWheelEvent.offsetX.toInt()
         val deltaY = syntheticWheelEvent.deltaY.toInt()
 
-        //!!! в случае работы в сложной схеме могут поехать y-координаты
         val (svgBodyLeft, svgBodyTop) = calcBodyLeftAndTop(emptyArray())
 
         if (grCurMode.value == GraphicWorkMode.PAN && !isMouseDown || grCurMode.value == GraphicWorkMode.ZOOM_BOX && !isMouseDown) {

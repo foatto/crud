@@ -905,25 +905,21 @@ class MapControl(
         when (newMode.toString()) {
             MapWorkMode.PAN.toString() -> {
                 isPanButtonVisible.value = false
-                //stackPane.cursor = Cursor.MOVE
                 xyDeselectAll()
             }
 
             MapWorkMode.ZOOM_BOX.toString() -> {
                 isZoomButtonVisible.value = false
-                //stackPane.cursor = Cursor.CROSSHAIR
                 xyDeselectAll()
             }
 
             MapWorkMode.DISTANCER.toString() -> {
                 isDistancerButtonVisible.value = false
-                //stackPane.cursor = Cursor.CROSSHAIR
                 xyDeselectAll()
             }
 
             MapWorkMode.SELECT_FOR_ACTION.toString() -> {
                 isSelectButtonVisible.value = false
-                //stackPane.cursor = Cursor.DEFAULT
                 isAddElementButtonVisible.value = true
                 isEditPointButtonVisible.value = false
                 isMoveElementsButtonVisible.value = false

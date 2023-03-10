@@ -22,15 +22,16 @@ import foatto.core_compose_web.control.model.XyServerActionButtonData
 import foatto.core_compose_web.getColorDialogBackCenter
 import foatto.core_compose_web.getColorDialogBorder
 import foatto.core_compose_web.link.invokeXy
-import foatto.core_compose_web.style.*
+import foatto.core_compose_web.style.COLOR_MAIN_BACK_0
+import foatto.core_compose_web.style.Z_INDEX_STATE_ALERT
+import foatto.core_compose_web.style.setBorder
+import foatto.core_compose_web.style.styleFormBorderRadius
 import foatto.core_compose_web.styleDialogCellPadding
 import foatto.core_compose_web.styleDialogTextFontSize
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.css.properties.zIndex
 import org.jetbrains.compose.web.dom.Br
-import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Div
-import org.jetbrains.compose.web.dom.Img
 import org.jetbrains.compose.web.dom.Text
 import org.jetbrains.compose.web.events.SyntheticTouchEvent
 
@@ -257,10 +258,3 @@ class StateControl(
     }
 
 }
-
-/*
-
-
-var statePostMountFun: (that: dynamic) -> Unit = { _: dynamic -> }
-
- */

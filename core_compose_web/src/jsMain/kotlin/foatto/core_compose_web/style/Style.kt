@@ -56,7 +56,6 @@ fun getStyleIsTouchScreen(): Boolean {
     ).unsafeCast<Boolean>()
 }
 
-//--- especially for workaround of bug in SVG textspan dy
 //val isFirefox: Boolean = window.navigator.userAgent.contains("Firefox")
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -341,12 +341,10 @@ class AppControl(
                 }
 
                 ResponseCode.LOGON_SYSTEM_BLOCKED -> {
-//                "Ошибка входа в систему",
                     Text("Слишком много неудачных попыток входа. \nПользователь временно заблокирован. \nПопробуйте войти попозже.")
                 }
 
                 ResponseCode.LOGON_ADMIN_BLOCKED -> {
-//                "Ошибка входа в систему",
                     Text("Пользователь заблокирован администратором.")
                 }
 
@@ -483,7 +481,7 @@ class AppControl(
                             xyControl.start()
                         }
                     }
-//!!!            ResponseCode.VIDEO_ONLINE, ResponseCode.VIDEO_ARCHIVE -> {
+//            ResponseCode.VIDEO_ONLINE, ResponseCode.VIDEO_ARCHIVE -> {
 //                val vcstartParamId = bbIn.getShortString()
 //                val vcStartTitle = bbIn.getShortString()
 //

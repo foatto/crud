@@ -128,7 +128,6 @@ class TSCompositeControl(
 
     override fun start() {
         val xyResponse = compositeResponse.xyResponse
-        //val graphicResponse = compositeResponse.graphicResponse
 
         root.setTabInfo(tabId, xyResponse.shortTitle, xyResponse.fullTitle)
         alTitleData += xyResponse.fullTitle.split('\n').filter { it.isNotBlank() }.map { TitleData("", it) }

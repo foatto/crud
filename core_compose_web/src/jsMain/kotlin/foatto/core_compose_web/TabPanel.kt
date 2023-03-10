@@ -5,6 +5,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import foatto.core_compose_web.control.model.TabInfo
 import foatto.core_compose_web.style.*
 import org.jetbrains.compose.web.attributes.selected
 import org.jetbrains.compose.web.css.*
@@ -16,7 +17,7 @@ import org.jetbrains.compose.web.dom.*
 
 //--- Element Ids ----------------------------------------------------------------------------------------------------------------------------------------------
 
-const val TAB_PANEL_ID = "tab_panel"
+const val TAB_PANEL_ID: String = "tab_panel"
 
 //--- Tab style ---
 
@@ -346,8 +347,3 @@ class TabPanel(
     }
 }
 
-class TabInfo(
-    val id: Int,
-    var alText: List<String>,
-    var tooltip: String,
-)

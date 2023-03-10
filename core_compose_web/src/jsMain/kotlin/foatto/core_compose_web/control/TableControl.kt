@@ -153,7 +153,7 @@ class TableControl(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    //    var tableTemplateAdd: String = ""
+//    var tableTemplateAdd: String = ""
     var tableClientActionFun: (
         action: String,
         alParam: List<Pair<String, String>>,
@@ -174,9 +174,9 @@ class TableControl(
     private val isGotoButtonVisible = mutableStateOf(false)
     private val isPopupButtonVisible = mutableStateOf(false)
 
-    private val alAddButton = mutableStateListOf<AddActionButton_>()
-    private val alServerButton = mutableStateListOf<ServerActionButton_>()
-    private val alClientButton = mutableStateListOf<ClientActionButton_>()
+    private val alAddButton = mutableStateListOf<AddActionButtonClient>()
+    private val alServerButton = mutableStateListOf<ServerActionButtonClient>()
+    private val alClientButton = mutableStateListOf<ClientActionButtonClient>()
     private val alPageButton = mutableStateListOf<PageButton>()
 
     private val gridMaxRow = mutableStateOf(0)
@@ -731,7 +731,7 @@ class TableControl(
                 aab.tooltip
             }
             alAddButton.add(
-                AddActionButton_(
+                AddActionButtonClient(
                     tooltip = tooltip,
                     icon = icon,
                     url = aab.url
@@ -752,7 +752,7 @@ class TableControl(
                 sab.tooltip
             }
             alServerButton.add(
-                ServerActionButton_(
+                ServerActionButtonClient(
                     tooltip = tooltip,
                     icon = icon,
                     url = sab.url,
@@ -774,7 +774,7 @@ class TableControl(
                 cab.tooltip
             }
             alClientButton.add(
-                ClientActionButton_(
+                ClientActionButtonClient(
                     tooltip = tooltip,
                     icon = icon,
                     action = cab.action,
@@ -866,7 +866,7 @@ class TableControl(
                     "Сортировать по этому столбцу"
                 },
                 cellStyleAdd = {},
-                textCellData = TableTextCellData_(text = text), // the parameter name is urgent!
+                textCellData = TableTextCellDataClient(text = text), // the parameter name is urgent!
                 // special row number used as flag for table header row
                 dataRow = -1,
             )
@@ -927,9 +927,9 @@ class TableControl(
                 padding(styleControlPadding)
             }
 
-            var textCellData: TableTextCellData_? = null
-            val alButtonCellData = mutableListOf<TableButtonCellData_>()
-            val alGridCellData = mutableListOf<MutableList<TableGridCellData_>>()
+            var textCellData: TableTextCellDataClient? = null
+            val alButtonCellData = mutableListOf<TableButtonCellDataClient>()
+            val alGridCellData = mutableListOf<MutableList<TableGridCellDataClient>>()
 
             var cellStyleAdd: StyleScope.() -> Unit = {}
             var elementStyle: StyleScope.() -> Unit = {}
@@ -963,7 +963,7 @@ class TableControl(
                     //if (!tc.isWordWrap) {
                     //    text = text.replace(" ", "&nbsp;")
                     //}
-                    textCellData = TableTextCellData_(
+                    textCellData = TableTextCellDataClient(
                         icon = icon,
                         image = tc.textCellData.image,
                         text = text,
@@ -996,7 +996,7 @@ class TableControl(
                             cellData.text   //.replace("\n", "<br>")
                         }
                         alButtonCellData.add(
-                            TableButtonCellData_(
+                            TableButtonCellDataClient(
                                 icon = icon,
                                 image = cellData.image,
                                 text = text,
@@ -1042,7 +1042,7 @@ class TableControl(
                             //    text = text.replace(" ", "&nbsp;")
                             //}
                             alGridCellData.last().add(
-                                TableGridCellData_(
+                                TableGridCellDataClient(
                                     icon = icon,
                                     image = cellData.image,
                                     text = text,
@@ -1316,28 +1316,13 @@ class TableControl(
 
 }
 
-/*
-
-    ).add(
-        tableMethodsAdd
-    )
-
-    this.data = {
-        json(
-        ).add(
-            tableDataAdd
-        )
-    }
-
- */
-
-private class AddActionButton_(
+private class AddActionButtonClient(
     val icon: String,
     val tooltip: String,
     val url: String
 )
 
-private class ServerActionButton_(
+private class ServerActionButtonClient(
     val icon: String,
     val tooltip: String,
     val url: String,
@@ -1345,7 +1330,7 @@ private class ServerActionButton_(
     val isForWideScreenOnly: Boolean,
 )
 
-private class ClientActionButton_(
+private class ClientActionButtonClient(
     val isForWideScreenOnly: Boolean,
     val icon: String,
     val tooltip: String,
@@ -1369,13 +1354,13 @@ private class TableGridData(
     val booleanValue: Boolean? = null,
 
     //--- TEXT
-    val textCellData: TableTextCellData_? = null,
+    val textCellData: TableTextCellDataClient? = null,
 
     //--- BUTTON
-    val alButtonCellData: List<TableButtonCellData_>? = null,
+    val alButtonCellData: List<TableButtonCellDataClient>? = null,
 
     //--- общие данные для BUTTON
-    val alGridCellData: List<List<TableGridCellData_>>? = null,
+    val alGridCellData: List<List<TableGridCellDataClient>>? = null,
 
     //--- для работы с row data popup menu
     val dataRow: Int,
@@ -1386,13 +1371,13 @@ private class TableGridData(
     var cellURL = ""
 }
 
-private class TableTextCellData_(
+private class TableTextCellDataClient(
     val icon: String = "",
     val image: String = "",
     val text: String = "",
 )
 
-private class TableButtonCellData_(
+private class TableButtonCellDataClient(
     val icon: String = "",
     val image: String = "",
     val text: String = "",
@@ -1401,7 +1386,7 @@ private class TableButtonCellData_(
     val style: StyleScope.() -> Unit
 )
 
-private class TableGridCellData_(
+private class TableGridCellDataClient(
     val icon: String = "",
     val image: String = "",
     val text: String = "",

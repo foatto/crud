@@ -920,12 +920,10 @@ class FormControl(
         autoClickUrl?.let { acUrl ->
             call(acUrl, true, null)
         } ?: autoFocusId?.let { afId ->
-//            Vue.nextTick {
             val element = document.getElementById(afId)
             if (element is HTMLElement) {
                 element.focus()
             }
-//            }
         }
     }
 
@@ -1362,12 +1360,10 @@ class FormControl(
                 }
             )
 
-//                Vue.nextTick {
             val element = document.getElementById(nextFocusId)
             if (element is HTMLElement) {
                 element.focus()
             }
-//                }
         }
     }
 
