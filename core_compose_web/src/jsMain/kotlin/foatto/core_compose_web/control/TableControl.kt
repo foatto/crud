@@ -180,9 +180,6 @@ open class TableControl(
     private val gridMaxCol = mutableStateOf(0)
     private val alGridData = mutableStateListOf<TableGridData>()
 
-    private val pageUpUrl = mutableStateOf("")
-    private val pageDownUrl = mutableStateOf("")
-
     private val alRowData = mutableStateListOf<TableRowData>()
 
     private val arrCurPopupData = mutableStateOf<Array<MenuData>?>(null)
@@ -190,6 +187,9 @@ open class TableControl(
     private val currentRow = mutableStateOf(-1)
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    private var pageUpUrl = ""
+    private var pageDownUrl = ""
 
     private var popupMenuPosFun: StyleScope.() -> Unit = {}
 
@@ -361,22 +361,21 @@ open class TableControl(
                         id("table_cursor_$tabId")
                         readOnly()
                         size(1)
-                        onInput { event ->
-                            findText.value = event.value
+                        onInput { syntheticInputEvent ->
+                            findText.value = syntheticInputEvent.value
                         }
-                        onKeyUp { event ->
-                            if (event.key == "Enter") {
-                                doFind(false)
+                        onKeyUp { syntheticKeyboardEvent ->
+                            when (syntheticKeyboardEvent.key) {
+                                "Enter" -> doKeyEnter()
+                                "Escape" -> doKeyEsc()
+                                "ArrowUp" -> doKeyUp()
+                                "ArrowDown" -> doKeyDown()
+                                "Home" -> doKeyHome()
+                                "End" -> doKeyEnd()
+                                "PageUp" -> doKeyPageUp()
+                                "PageDown" -> doKeyPageDown()
+                                "F4" -> closeTabById()
                             }
-//                                       v-on:keyup.up="doKeyUp()"
-//                                       v-on:keyup.down="doKeyDown()"
-//                                       v-on:keyup.home="doKeyHome()"
-//                                       v-on:keyup.end="doKeyEnd()"
-//                                       v-on:keyup.page-up="doKeyPageUp()"
-//                                       v-on:keyup.page-down="doKeyPageDown()"
-//                                       v-on:keyup.enter="doKeyEnter()"
-//                                       v-on:keyup.esc="doKeyEsc()"
-//                                       v-on:keyup.f4="closeTabById()"
                         }
                     }
                     if (!styleIsNarrowScreen || !isFindTextVisible.value) {
@@ -788,8 +787,8 @@ open class TableControl(
     }
 
     private fun readPageButtons() {
-        pageUpUrl.value = ""
-        pageDownUrl.value = ""
+        pageUpUrl = ""
+        pageDownUrl = ""
         alPageButton.clear()
 
         var isEmptyPassed = false
@@ -802,10 +801,10 @@ open class TableControl(
                 isEmptyPassed = true
             } else {
                 if (!isEmptyPassed) {
-                    pageUpUrl.value = url
+                    pageUpUrl = url
                 }
-                if (isEmptyPassed && pageDownUrl.value.isEmpty()) {
-                    pageDownUrl.value = url
+                if (isEmptyPassed && pageDownUrl.isEmpty()) {
+                    pageDownUrl = url
                 }
             }
         }
@@ -1145,61 +1144,56 @@ open class TableControl(
         focusToCursorField(tabId)
     }
 
-//        "doKeyUp" to {
-//            var currentRow = that().currentRow.unsafeCast<Int>()
-//            if (currentRow > 0) {
-//                currentRow--
-//                setCurrentRow(that(), currentRow)
-//            }
-//        },
-//        "doKeyDown" to {
-//            val arrRowData = that().arrRowData.unsafeCast<Array<TableRowData>>()
-//            var currentRow = that().currentRow.unsafeCast<Int>()
-//            if (currentRow < arrRowData.lastIndex) {
-//                currentRow++
-//                setCurrentRow(that(), currentRow)
-//            }
-//        },
-//        "doKeyHome" to {
-//            val arrRowData = that().arrRowData.unsafeCast<Array<TableRowData>>()
-//            if (arrRowData.isNotEmpty()) {
-//                setCurrentRow(that(), 0)
-//            }
-//        },
-//        "doKeyEnd" to {
-//            val arrRowData = that().arrRowData.unsafeCast<Array<TableRowData>>()
-//            if (arrRowData.isNotEmpty()) {
-//                setCurrentRow(that(), arrRowData.lastIndex)
-//            }
-//        },
-//        "doKeyPageUp" to {
-//            val pageUpUrl = that().pageUpUrl.unsafeCast<String>()
-//            if (pageUpUrl.isNotEmpty()) {
-//                that().invoke(pageUpUrl, false)
-//            }
-//        },
-//        "doKeyPageDown" to {
-//            val pageDownUrl = that().pageDownUrl.unsafeCast<String>()
-//            if (pageDownUrl.isNotEmpty()) {
-//                that().invoke(pageDownUrl, false)
-//            }
-//        },
-//        "doKeyEnter" to {
-//            val arrRowData = that().arrRowData.unsafeCast<Array<TableRowData>>()
-//            val currentRow = that().currentRow.unsafeCast<Int>()
-//            if (currentRow >= 0 && currentRow < arrRowData.size) {
-//                val curRowData = arrRowData[currentRow]
-//                if (curRowData.rowURL.isNotEmpty()) {
-//                    that().invoke(curRowData.rowURL, curRowData.itRowURLInNewWindow)
-//                }
-//            }
-//        },
-//        "doKeyEsc" to {
-//            val selectorCancelURL = that().selectorCancelURL.unsafeCast<String>()
-//            if (selectorCancelURL.isNotEmpty()) {
-//                that().invoke(selectorCancelURL, false)
-//            }
-//        },
+    private fun doKeyEnter() {
+        if (currentRow.value >= 0 && currentRow.value < alRowData.size) {
+            val curRowData = alRowData[currentRow.value]
+            if (curRowData.rowURL.isNotEmpty()) {
+                call(curRowData.rowURL, curRowData.itRowURLInNewWindow)
+            }
+        }
+    }
+
+    private fun doKeyEsc() {
+        if (selectorCancelUrl.value.isNotEmpty()) {
+            call(selectorCancelUrl.value, false)
+        }
+    }
+
+    private fun doKeyUp() {
+        if (currentRow.value > 0) {
+            setCurrentRow(currentRow.value - 1)
+        }
+    }
+
+    private fun doKeyDown() {
+        if (currentRow.value < alRowData.lastIndex) {
+            setCurrentRow(currentRow.value + 1)
+        }
+    }
+
+    private fun doKeyHome() {
+        if (alRowData.isNotEmpty()) {
+            setCurrentRow(0)
+        }
+    }
+
+    private fun doKeyEnd() {
+        if (alRowData.isNotEmpty()) {
+            setCurrentRow(alRowData.lastIndex)
+        }
+    }
+
+    private fun doKeyPageUp() {
+        if (pageUpUrl.isNotEmpty()) {
+            call(pageUpUrl, false)
+        }
+    }
+
+    private fun doKeyPageDown() {
+        if (pageDownUrl.isNotEmpty()) {
+            call(pageDownUrl, false)
+        }
+    }
 
     protected fun call(newAppParam: String, inNewWindow: Boolean) {
         if (inNewWindow) {
