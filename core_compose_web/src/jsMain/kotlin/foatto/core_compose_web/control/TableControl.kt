@@ -695,7 +695,9 @@ open class TableControl(
         //--- запоминаем текущий appParam для возможной установки в виде стартовой
         root.curAppParam = appParam
 
-        focusToCursorField(tabId)
+        window.setTimeout({
+            focusToCursorField(tabId)
+        }, 1000)
     }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------

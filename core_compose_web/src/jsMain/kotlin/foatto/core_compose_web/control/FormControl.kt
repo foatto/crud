@@ -20,6 +20,7 @@ import foatto.core_compose_web.control.model.TitleData
 import foatto.core_compose_web.link.invokeUploadFormFile
 import foatto.core_compose_web.style.*
 import kotlinx.browser.document
+import kotlinx.browser.window
 import org.jetbrains.compose.web.ExperimentalComposeWebApi
 import org.jetbrains.compose.web.attributes.*
 import org.jetbrains.compose.web.css.*
@@ -920,10 +921,12 @@ class FormControl(
         autoClickUrl?.let { acUrl ->
             call(acUrl, true, null)
         } ?: autoFocusId?.let { afId ->
-            val element = document.getElementById(afId)
-            if (element is HTMLElement) {
-                element.focus()
-            }
+            window.setTimeout({
+                val element = document.getElementById(afId)
+                if (element is HTMLElement) {
+                    element.focus()
+                }
+            }, 1000)
         }
     }
 
