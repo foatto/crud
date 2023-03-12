@@ -83,13 +83,15 @@ class MapControl(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    private val isPanButtonVisible = mutableStateOf(false)
-    private val isZoomButtonVisible = mutableStateOf(true)
-    private val isDistancerButtonVisible = mutableStateOf(true)
-    private val isSelectButtonVisible = mutableStateOf(true)
+    private val isToolBarsVisible = mutableStateOf(true)
 
-    private val isZoomInButtonVisible = mutableStateOf(true)
-    private val isZoomOutButtonVisible = mutableStateOf(true)
+    private val isPanButtonEnabled = mutableStateOf(false)
+    private val isZoomButtonEnabled = mutableStateOf(true)
+    private val isDistancerButtonEnabled = mutableStateOf(true)
+    private val isSelectButtonEnabled = mutableStateOf(true)
+
+    private val isZoomInButtonEnabled = mutableStateOf(true)
+    private val isZoomOutButtonEnabled = mutableStateOf(true)
 
     private val isAddElementButtonVisible = mutableStateOf(false)
     private val isEditPointButtonVisible = mutableStateOf(false)
@@ -97,8 +99,6 @@ class MapControl(
 
     private val isActionOkButtonVisible = mutableStateOf(false)
     private val isActionCancelButtonVisible = mutableStateOf(false)
-
-    private val isRefreshButtonVisible = mutableStateOf(true)
 
     private val alDistancerLine = mutableStateListOf<DistancerLineData>()   // contains state-fields
     private val alDistancerDist = mutableStateListOf<Double>()
@@ -139,49 +139,53 @@ class MapControl(
             //--- Map Toolbar
             getGraphicAndXyToolbar(containerPrefix) {
                 getToolBarSpan {
-                    getToolBarIconButton(
-                        isVisible = refreshInterval.value == 0 && isPanButtonVisible.value,
-                        src = "/web/images/ic_open_with_black_48dp.png",
-                        title = "Перемещение по карте"
-                    ) {
-                        setMode(MapWorkMode.PAN)
-                    }
-                    getToolBarIconButton(
-                        isVisible = refreshInterval.value == 0 && isZoomButtonVisible.value,
-                        src = "/web/images/ic_search_black_48dp.png",
-                        title = "Выбор области для показа"
-                    ) {
-                        setMode(MapWorkMode.ZOOM_BOX)
-                    }
-                    getToolBarIconButton(
-                        isVisible = !styleIsNarrowScreen && refreshInterval.value == 0 && isDistancerButtonVisible.value,
-                        src = "/web/images/ic_linear_scale_black_48dp.png",
-                        title = "Измерение расстояний"
-                    ) {
-                        setMode(MapWorkMode.DISTANCER)
-                    }
-                    getToolBarIconButton(
-                        isVisible = refreshInterval.value == 0 && isSelectButtonVisible.value,
-                        src = "/web/images/ic_touch_app_black_48dp.png",
-                        title = "Работа с объектами"
-                    ) {
-                        setMode(MapWorkMode.SELECT_FOR_ACTION)
+                    if (isToolBarsVisible.value) {
+                        getToolBarIconButton(
+                            isEnabled = refreshInterval.value == 0 && isPanButtonEnabled.value,
+                            src = "/web/images/ic_open_with_black_48dp.png",
+                            title = "Перемещение по карте"
+                        ) {
+                            setMode(MapWorkMode.PAN)
+                        }
+                        getToolBarIconButton(
+                            isEnabled = refreshInterval.value == 0 && isZoomButtonEnabled.value,
+                            src = "/web/images/ic_search_black_48dp.png",
+                            title = "Выбор области для показа"
+                        ) {
+                            setMode(MapWorkMode.ZOOM_BOX)
+                        }
+                        getToolBarIconButton(
+                            isEnabled = !styleIsNarrowScreen && refreshInterval.value == 0 && isDistancerButtonEnabled.value,
+                            src = "/web/images/ic_linear_scale_black_48dp.png",
+                            title = "Измерение расстояний"
+                        ) {
+                            setMode(MapWorkMode.DISTANCER)
+                        }
+                        getToolBarIconButton(
+                            isEnabled = refreshInterval.value == 0 && isSelectButtonEnabled.value,
+                            src = "/web/images/ic_touch_app_black_48dp.png",
+                            title = "Работа с объектами"
+                        ) {
+                            setMode(MapWorkMode.SELECT_FOR_ACTION)
+                        }
                     }
                 }
                 getToolBarSpan {
-                    getToolBarIconButton(
-                        isVisible = refreshInterval.value == 0 && isZoomInButtonVisible.value,
-                        src = "/web/images/ic_zoom_in_black_48dp.png",
-                        title = "Ближе"
-                    ) {
-                        zoomIn()
-                    }
-                    getToolBarIconButton(
-                        isVisible = refreshInterval.value == 0 && isZoomOutButtonVisible.value,
-                        src = "/web/images/ic_zoom_out_black_48dp.png",
-                        title = "Дальше"
-                    ) {
-                        zoomOut()
+                    if (isToolBarsVisible.value) {
+                        getToolBarIconButton(
+                            isEnabled = refreshInterval.value == 0 && isZoomInButtonEnabled.value,
+                            src = "/web/images/ic_zoom_in_black_48dp.png",
+                            title = "Ближе"
+                        ) {
+                            zoomIn()
+                        }
+                        getToolBarIconButton(
+                            isEnabled = refreshInterval.value == 0 && isZoomOutButtonEnabled.value,
+                            src = "/web/images/ic_zoom_out_black_48dp.png",
+                            title = "Дальше"
+                        ) {
+                            zoomOut()
+                        }
                     }
                 }
                 getToolBarSpan {
@@ -245,7 +249,7 @@ class MapControl(
                         actionCancel()
                     }
                 }
-                if (isRefreshButtonVisible.value) {
+                if (isToolBarsVisible.value) {
                     getRefreshSubToolbar(refreshInterval) { interval ->
                         setInterval(interval)
                     }
@@ -702,8 +706,8 @@ class MapControl(
                             top(newY.px)
                         }
                     }
+                    isToolBarsVisible.value = false
                     distancerSumTextVisible.value = true
-                    disableToolbar()
                     isActionCancelButtonVisible.value = true
                 }
                 alDistancerLine.add(
@@ -870,15 +874,15 @@ class MapControl(
     private fun setMode(newMode: MapWorkMode) {
         when (curMode.toString()) {
             MapWorkMode.PAN.toString() -> {
-                isPanButtonVisible.value = true
+                isPanButtonEnabled.value = true
             }
 
             MapWorkMode.ZOOM_BOX.toString() -> {
-                isZoomButtonVisible.value = true
+                isZoomButtonEnabled.value = true
             }
 
             MapWorkMode.DISTANCER.toString() -> {
-                isDistancerButtonVisible.value = true
+                isDistancerButtonEnabled.value = true
                 isActionCancelButtonVisible.value = false
                 alDistancerLine.clear()
                 alDistancerDist.clear()
@@ -888,7 +892,7 @@ class MapControl(
             }
 
             MapWorkMode.SELECT_FOR_ACTION.toString() -> {
-                isSelectButtonVisible.value = true
+                isSelectButtonEnabled.value = true
 
                 isAddElementButtonVisible.value = false
                 isEditPointButtonVisible.value = false
@@ -898,28 +902,28 @@ class MapControl(
             MapWorkMode.ACTION_ADD.toString(),
             MapWorkMode.ACTION_EDIT_POINT.toString(),
             MapWorkMode.ACTION_MOVE.toString() -> {
-                enableToolbar()
+                isToolBarsVisible.value = true
             }
         }
 
         when (newMode.toString()) {
             MapWorkMode.PAN.toString() -> {
-                isPanButtonVisible.value = false
+                isPanButtonEnabled.value = false
                 xyDeselectAll()
             }
 
             MapWorkMode.ZOOM_BOX.toString() -> {
-                isZoomButtonVisible.value = false
+                isZoomButtonEnabled.value = false
                 xyDeselectAll()
             }
 
             MapWorkMode.DISTANCER.toString() -> {
-                isDistancerButtonVisible.value = false
+                isDistancerButtonEnabled.value = false
                 xyDeselectAll()
             }
 
             MapWorkMode.SELECT_FOR_ACTION.toString() -> {
-                isSelectButtonVisible.value = false
+                isSelectButtonEnabled.value = false
                 isAddElementButtonVisible.value = true
                 isEditPointButtonVisible.value = false
                 isMoveElementsButtonVisible.value = false
@@ -928,19 +932,19 @@ class MapControl(
             }
 
             MapWorkMode.ACTION_ADD.toString() -> {
-                disableToolbar()
+                isToolBarsVisible.value = false
                 isActionOkButtonVisible.value = false
                 isActionCancelButtonVisible.value = true
             }
 
             MapWorkMode.ACTION_EDIT_POINT.toString() -> {
-                disableToolbar()
+                isToolBarsVisible.value = false
                 isActionOkButtonVisible.value = true
                 isActionCancelButtonVisible.value = true
             }
 
             MapWorkMode.ACTION_MOVE.toString() -> {
-                disableToolbar()
+                isToolBarsVisible.value = false
                 isActionOkButtonVisible.value = false
                 isActionCancelButtonVisible.value = true
             }
@@ -983,30 +987,6 @@ class MapControl(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    private fun disableToolbar() {
-        isPanButtonVisible.value = false
-        isZoomButtonVisible.value = false
-        isDistancerButtonVisible.value = false
-        isSelectButtonVisible.value = false
-
-        isZoomInButtonVisible.value = false
-        isZoomOutButtonVisible.value = false
-
-        isRefreshButtonVisible.value = false
-    }
-
-    private fun enableToolbar() {
-        isPanButtonVisible.value = true
-        isZoomButtonVisible.value = true
-        isDistancerButtonVisible.value = true
-        isSelectButtonVisible.value = true
-
-        isZoomInButtonVisible.value = true
-        isZoomOutButtonVisible.value = true
-
-        isRefreshButtonVisible.value = true
-    }
-
     private fun startAdd(elementConfig: XyElementConfig) {
         addElement.value = getXyEmptyElementData(elementConfig)
         setMode(MapWorkMode.ACTION_ADD)
@@ -1043,14 +1023,14 @@ class MapControl(
         when (curMode.toString()) {
             MapWorkMode.DISTANCER.toString() -> {
                 //--- включить кнопки, но кнопку линейки выключить обратно
-                enableToolbar()
-                isDistancerButtonVisible.value = false
+                isDistancerButtonEnabled.value = false
                 alDistancerLine.clear()
                 alDistancerDist.clear()
                 alDistancerText.clear()
                 distancerSumText.text.value = ""
                 distancerSumTextVisible.value = false
                 isActionCancelButtonVisible.value = false
+                isToolBarsVisible.value = true
             }
 
             MapWorkMode.ACTION_ADD.toString() -> {

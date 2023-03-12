@@ -9,7 +9,11 @@ import foatto.core_compose_web.style.setBorder
 import foatto.core_compose_web.style.setMargins
 import foatto.core_compose_web.style.styleCommonButtonFontSize
 import foatto.core_compose_web.style.styleIconButtonPadding
-import org.jetbrains.compose.web.css.*
+import org.jetbrains.compose.web.attributes.disabled
+import org.jetbrains.compose.web.css.backgroundColor
+import org.jetbrains.compose.web.css.cursor
+import org.jetbrains.compose.web.css.fontSize
+import org.jetbrains.compose.web.css.padding
 import org.jetbrains.compose.web.dom.Img
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -22,31 +26,35 @@ fun getRefreshSubToolbar(
     getToolBarSpan {
         // 1s-interval shortly too
         listOf(0, /*1,*/ 5, 10, 30).forEach { interval ->
-            if (interval == 0 || interval != refreshInterval.value) {
-                Img(
-                    src = "/web/images/ic_replay_${if (interval == 0) "" else "${interval}_"}black_48dp.png",
-                    attrs = {
-                        style {
+            val isEnabledButton = (interval == 0 || interval != refreshInterval.value)
+            Img(
+                src = "/web/images/ic_replay_${if (interval == 0) "" else "${interval}_"}black_48dp.png",
+                attrs = {
+                    style {
+                        fontSize(styleCommonButtonFontSize)
+                        padding(styleIconButtonPadding)
+                        setMargins(arrStyleCommonMargin)
+                        if (isEnabledButton) {
                             backgroundColor(getColorRefreshButtonBack())
                             setBorder(getStyleToolbarButtonBorder())
-                            fontSize(styleCommonButtonFontSize)
-                            padding(styleIconButtonPadding)
-                            setMargins(arrStyleCommonMargin)
                             cursor("pointer")
                         }
-                        title(
-                            when (interval) {
-                                0 -> "Обновить сейчас"
-                                1 -> "Обновлять каждую секунду"
-                                else -> "Обновлять каждые $interval сек"
-                            }
-                        )
-                        onClick {
-                            onButtonClick(interval)
-                        }
                     }
-                )
-            }
+                    if (!isEnabledButton) {
+                        disabled()
+                    }
+                    title(
+                        when (interval) {
+                            0 -> "Обновить сейчас"
+                            1 -> "Обновлять каждую секунду"
+                            else -> "Обновлять каждые $interval сек"
+                        }
+                    )
+                    onClick {
+                        onButtonClick(interval)
+                    }
+                }
+            )
         }
     }
 }

@@ -150,8 +150,9 @@ class GraphicControl(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    private val isPanButtonVisible = mutableStateOf(false)
-    private val isZoomButtonVisible = mutableStateOf(true)
+    private val isPanButtonEnabled = mutableStateOf(false)
+    private val isZoomButtonEnabled = mutableStateOf(true)
+
     private val isShowGraphicVisible = mutableStateOf(false)
     private val isShowGraphicDataVisible = mutableStateOf(false)
 
@@ -220,14 +221,14 @@ class GraphicControl(
             getGraphicAndXyToolbar(containerPrefix) {
                 getToolBarSpan {
                     getToolBarIconButton(
-                        isVisible = refreshInterval.value == 0 && isPanButtonVisible.value,
+                        isEnabled = refreshInterval.value == 0 && isPanButtonEnabled.value,
                         src = "/web/images/ic_open_with_black_48dp.png",
                         title = "Перемещение по графику"
                     ) {
                         setMode(GraphicWorkMode.PAN)
                     }
                     getToolBarIconButton(
-                        isVisible = refreshInterval.value == 0 && isZoomButtonVisible.value,
+                        isEnabled = refreshInterval.value == 0 && isZoomButtonEnabled.value,
                         src = "/web/images/ic_search_black_48dp.png",
                         title = "Выбор области для показа"
                     ) {
@@ -235,12 +236,12 @@ class GraphicControl(
                     }
                 }
                 getToolBarSpan {
-                    getToolBarIconButton(refreshInterval.value == 0, "/web/images/ic_zoom_in_black_48dp.png", "Ближе") { zoomIn() }
-                    getToolBarIconButton(refreshInterval.value == 0, "/web/images/ic_zoom_out_black_48dp.png", "Дальше") { zoomOut() }
+                    getToolBarIconButton(refreshInterval.value == 0, src = "/web/images/ic_zoom_in_black_48dp.png", title = "Ближе") { zoomIn() }
+                    getToolBarIconButton(refreshInterval.value == 0, src = "/web/images/ic_zoom_out_black_48dp.png", title = "Дальше") { zoomOut() }
                 }
                 getToolBarSpan {
                     getToolBarIconButton(
-                        isVisible = refreshInterval.value == 0,
+                        isEnabled = refreshInterval.value == 0,
                         src = "/web/images/ic_timeline_black_48dp.png",
                         title = "Включить/выключить отдельные графики"
                     ) {
@@ -316,8 +317,8 @@ class GraphicControl(
                 getToolBarSpan {
                     getToolBarIconButton(
                         refreshInterval.value == 0,
-                        "/web/images/ic_menu_black_48dp.png",
-                        "Включить/выключить отдельный показ данных"
+                        src = "/web/images/ic_menu_black_48dp.png",
+                        title = "Включить/выключить отдельный показ данных"
                     ) {
                         isShowGraphicDataVisible.value = !isShowGraphicDataVisible.value
                     }
@@ -1635,13 +1636,13 @@ class GraphicControl(
     private fun setMode(newMode: GraphicWorkMode) {
         when (newMode) {
             GraphicWorkMode.PAN -> {
-                isPanButtonVisible.value = false
-                isZoomButtonVisible.value = true
+                isPanButtonEnabled.value = false
+                isZoomButtonEnabled.value = true
             }
 
             GraphicWorkMode.ZOOM_BOX -> {
-                isPanButtonVisible.value = true
-                isZoomButtonVisible.value = false
+                isPanButtonEnabled.value = true
+                isZoomButtonEnabled.value = false
             }
         }
         grCurMode.value = newMode

@@ -8,6 +8,7 @@ import foatto.core_compose_web.control.composable.getToolBarSpan
 import foatto.core_compose_web.control.model.TitleData
 import foatto.core_compose_web.style.*
 import kotlinx.browser.window
+import org.jetbrains.compose.web.attributes.disabled
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.css.properties.borderBottom
 import org.jetbrains.compose.web.css.properties.borderTop
@@ -210,18 +211,29 @@ abstract class AbstractControl(
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @Composable
-    protected fun getToolBarIconButton(isVisible: Boolean, src: String, title: String, onClick: () -> Unit) {
+    protected fun getToolBarIconButton(
+        isVisible: Boolean = true,
+        isEnabled: Boolean = true,
+        src: String,
+        title: String,
+        onClick: () -> Unit
+    ) {
         if (isVisible) {
             Img(
                 src = src,
                 attrs = {
                     style {
-                        backgroundColor(getColorToolbarButtonBack())
-                        setBorder(getStyleToolbarButtonBorder())
                         fontSize(styleCommonButtonFontSize)
                         padding(styleIconButtonPadding)
                         setMargins(arrStyleCommonMargin)
-                        cursor("pointer")
+                        if (isEnabled) {
+                            backgroundColor(getColorToolbarButtonBack())
+                            setBorder(getStyleToolbarButtonBorder())
+                            cursor("pointer")
+                        }
+                    }
+                    if (!isEnabled) {
+                        disabled()
                     }
                     title(title)
                     onClick {
