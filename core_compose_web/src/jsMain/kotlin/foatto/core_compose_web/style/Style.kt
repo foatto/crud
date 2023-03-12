@@ -13,7 +13,7 @@ val COLOR_TRANSPARENT: CSSColorValue = hsla(0, 0, 0, 0)
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-const val BR: String = "<br>"   // заменить на Br() ?
+const val BR: String = "<br>"
 
 @Composable
 fun getPseudoNbsp(count: Int) {

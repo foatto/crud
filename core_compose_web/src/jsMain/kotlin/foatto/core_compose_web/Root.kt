@@ -73,8 +73,6 @@ open class Root(
 
     val isShowMainMenu: MutableState<Boolean> = mutableStateOf(!(styleIsNarrowScreen || styleIsHiddenMenuBar))
 
-    ////                    "isChangePassword" to false,
-
     private val alControl = mutableStateListOf<AppControl>()
     private val waitCount = mutableStateOf(0)
 
