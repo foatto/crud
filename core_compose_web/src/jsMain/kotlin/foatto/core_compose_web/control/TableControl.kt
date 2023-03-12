@@ -139,7 +139,7 @@ var getStyleTablePageButtonFontSize: (Int) -> CSSSize = { buttonCount ->
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-class TableControl(
+open class TableControl(
     private val root: Root,
     private val appControl: AppControl,
     private val appParam: String,
@@ -153,15 +153,12 @@ class TableControl(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-//    var tableTemplateAdd: String = ""
-    var tableClientActionFun: (
+    protected var tableClientActionFun: (
         action: String,
         alParam: List<Pair<String, String>>,
         tableControl: TableControl
     ) -> Unit = { _: String, _: List<Pair<String, String>>, _: TableControl ->
     }
-//    var tableMethodsAdd: Json = json()
-//    var tableDataAdd: Json = json()
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -670,8 +667,12 @@ class TableControl(
                 }
             }
 
-//        + tableTemplateAdd
+            getAdditionalBody()
         }
+    }
+
+    @Composable
+    open fun getAdditionalBody() {
     }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1211,7 +1212,7 @@ class TableControl(
 //            }
 //        },
 
-    private fun call(newAppParam: String, inNewWindow: Boolean) {
+    protected fun call(newAppParam: String, inNewWindow: Boolean) {
         if (inNewWindow) {
             root.openTab(newAppParam)
         } else {
@@ -1315,6 +1316,8 @@ class TableControl(
     }
 
 }
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private class AddActionButtonClient(
     val icon: String,

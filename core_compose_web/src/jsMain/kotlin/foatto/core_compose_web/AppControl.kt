@@ -3,13 +3,7 @@ package foatto.core_compose_web
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import foatto.core.app.UP_TIME_OFFSET
-import foatto.core.link.AppAction
-import foatto.core.link.AppRequest
-import foatto.core.link.AppResponse
-import foatto.core.link.CompositeResponse
-import foatto.core.link.LogonRequest
-import foatto.core.link.ResponseCode
-import foatto.core.link.XyDocumentClientType
+import foatto.core.link.*
 import foatto.core_compose_web.control.*
 import foatto.core_compose_web.link.invokeApp
 import foatto.core_compose_web.style.*
@@ -81,6 +75,20 @@ var styleLogonButtonText: String = "Вход"
 var styleLogonButtonFontWeight: String = "normal"
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+var getTableControl: (
+    root: Root,
+    appControl: AppControl,
+    appParam: String,
+    tableResponse: TableResponse,
+    tabId: Int,
+) -> TableControl = { root: Root,
+                      appControl: AppControl,
+                      appParam: String,
+                      tableResponse: TableResponse,
+                      tabId: Int ->
+    TableControl(root, appControl, appParam, tableResponse, tabId)
+}
 
 var getCompositeControl: (
     root: Root,
@@ -445,7 +453,7 @@ class AppControl(
                     }
 
                     ResponseCode.TABLE.toString() -> {
-                        val tableControl = TableControl(root, this, appRequest.action, appResponse.table!!, tabId)
+                        val tableControl = getTableControl(root, this, appRequest.action, appResponse.table!!, tabId)
                         curControl.value = tableControl
                         responseCode.value = appResponse.code
 
