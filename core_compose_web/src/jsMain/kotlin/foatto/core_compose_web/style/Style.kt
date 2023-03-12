@@ -1,12 +1,33 @@
 package foatto.core_compose_web.style
 
+import androidx.compose.runtime.Composable
 import kotlinx.browser.window
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.css.properties.borderColor
+import org.jetbrains.compose.web.dom.Span
+import org.jetbrains.compose.web.dom.Text
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-const val BR: String = "<br>"
+val COLOR_TRANSPARENT: CSSColorValue = hsla(0, 0, 0, 0)
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+const val BR: String = "<br>"   // заменить на Br() ?
+
+@Composable
+fun getPseudoNbsp(count: Int) {
+    Span(
+        attrs = {
+            style {
+                color(COLOR_TRANSPARENT)
+            }
+        }
+    ) {
+        // ' - самый узкий символ для максимально точного "выравнивания"
+        Text("'".repeat(count))
+    }
+}
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -70,8 +91,6 @@ var styleIconSize: Int = 36  // м.б. 48
 fun getStyleIconNameSuffix(): String = (if (styleDarkIcon) "black" else "white") + "_" + styleIconSize
 
 //--- MAIN BACK ------------------------------------------------------------------------------------------------------------------------------------------------
-
-val COLOR_TRANSPARENT: CSSColorValue = hsla(0, 0, 0, 0)
 
 val COLOR_MAIN_BACK_0: CSSColorValue = hsl(0, 0, 100)  // main background - white color for input fields, etc.
 
