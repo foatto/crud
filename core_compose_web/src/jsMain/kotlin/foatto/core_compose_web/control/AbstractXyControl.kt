@@ -526,7 +526,7 @@ abstract class AbstractXyControl(
                         backgroundColor(COLOR_XY_LABEL_BACK)
                         setBorder(color = COLOR_XY_LABEL_BORDER, radius = styleButtonBorderRadius)
                         setPaddings(arrStyleControlTooltipPadding)
-                        userSelect(if (styleIsNarrowScreen) "none" else "auto")
+                        userSelect("none")
                     }
                 }
             ) {

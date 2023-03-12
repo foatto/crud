@@ -716,7 +716,7 @@ class GraphicControl(
                                     backgroundColor(COLOR_GRAPHIC_LABEL_BACK)
                                     setBorder(color = COLOR_GRAPHIC_LABEL_BORDER, radius = styleButtonBorderRadius)
                                     setPaddings(arrStyleGraphicTimeLabelPadding)
-                                    userSelect(if (styleIsNarrowScreen) "none" else "auto")
+                                    userSelect("none")
                                     element.pos.value(this)
                                 }
                             }
@@ -736,7 +736,7 @@ class GraphicControl(
                                 backgroundColor(COLOR_GRAPHIC_LABEL_BACK)
                                 setBorder(color = COLOR_GRAPHIC_LABEL_BORDER, radius = styleButtonBorderRadius)
                                 setPaddings(arrStyleControlTooltipPadding)
-                                userSelect(if (styleIsNarrowScreen) "none" else "auto")
+                                userSelect("none")
                                 left(grTooltipLeft.value)
                                 top(grTooltipTop.value)
                             }
@@ -1316,7 +1316,7 @@ class GraphicControl(
                                     color(hmIndexColor[gtd.textColorIndex.toString()] ?: COLOR_MAIN_TEXT)
                                     backgroundColor(hmIndexColor[gtd.fillColorIndex.toString()] ?: COLOR_MAIN_BACK_0)
                                     fontSize((1.0 * scaleKoef).cssRem)
-                                    userSelect(if (styleIsNarrowScreen) "none" else "auto")
+                                    userSelect("none")
                                 },
                                 text = gtd.text,
                                 tooltip = gtd.text

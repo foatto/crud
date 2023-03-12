@@ -412,8 +412,7 @@ open class TableControl(
                         display(DisplayStyle.Grid)
                         gridTemplateRows("repeat(${gridMaxRow.value},max-content)")
                         gridTemplateColumns("repeat(${gridMaxCol.value},auto)")
-                        //--- полностью запретить выделение текста - простейший способ победить паразитное выделение текста вместо лонг-тача на больших сенсорных экранах
-                        userSelect("none")     // if( styleIsNarrowScreen ) "none" else "auto"
+                        userSelect(if (getStyleIsTouchScreen()) "none" else "auto")
                     }
                 }
             ) {
@@ -977,13 +976,7 @@ open class TableControl(
                     elementStyle = {
                         color(textColor)
                         fontSize(getStyleTableTextFontSize())
-                        userSelect(
-                            if (getStyleIsTouchScreen()) {
-                                "none"
-                            } else {
-                                "auto"
-                            }
-                        )
+                        userSelect(if (getStyleIsTouchScreen()) "none" else "auto")
                     }
                 }
 
@@ -1050,13 +1043,7 @@ open class TableControl(
                                     style = {
                                         color(textColor)
                                         fontSize(getStyleTableTextFontSize())
-                                        userSelect(
-                                            if (getStyleIsTouchScreen()) {
-                                                "none"
-                                            } else {
-                                                "auto"
-                                            }
-                                        )
+                                        userSelect(if (getStyleIsTouchScreen()) "none" else "auto")
                                         gridArea("${rowIndex + 1}", "${colIndex + 1}", "${rowIndex + 2}", "${colIndex + 2}")
                                         justifySelf("stretch")
                                         alignSelf(AlignSelf.Stretch)

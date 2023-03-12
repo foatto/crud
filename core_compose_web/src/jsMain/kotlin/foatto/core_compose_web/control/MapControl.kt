@@ -290,7 +290,7 @@ class MapControl(
         verticalAlign("baseline")
         setBorder(color = COLOR_XY_LABEL_BORDER, width = (1 * scaleKoef).px, radius = (2 * scaleKoef).px)
         setPaddings(arrStyleXyDistancerPadding)
-        userSelect(if (styleIsNarrowScreen) "none" else "auto")
+        userSelect("none")
     }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
