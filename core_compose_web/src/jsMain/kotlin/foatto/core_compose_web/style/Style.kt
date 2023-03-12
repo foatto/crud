@@ -161,7 +161,7 @@ val getStyleCheckBoxBorder: () -> BorderData = { BorderData(colorMainBorder, Lin
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-var colorCurrentAndHover = hsl(60, 100, 90)
+var colorCurrentAndHover = hsl(60, 100, 80)
 
 //--- padding & margin for menu icon & tab panel
 val menuTabPadMar = 0.3.cssRem
