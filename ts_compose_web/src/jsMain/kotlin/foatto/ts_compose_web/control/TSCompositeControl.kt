@@ -4,8 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import foatto.core.app.STATE_ALERT_MESSAGE
-import foatto.core.app.xy.XyActionResponse
 import foatto.core.link.CompositeResponse
 import foatto.core_compose_web.AppControl
 import foatto.core_compose_web.Root
@@ -18,7 +16,6 @@ import foatto.core_compose_web.control.composable.getToolBarSpan
 import foatto.core_compose_web.control.composable.getXyServerActionSubToolbar
 import foatto.core_compose_web.control.model.TitleData
 import foatto.core_compose_web.control.model.XyServerActionButtonData
-import kotlinx.browser.window
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.Div
 
@@ -43,22 +40,19 @@ class TSCompositeControl(
 
     private val alXyServerButton = mutableStateListOf<XyServerActionButtonData>()
 
-    private val showStateAlert = mutableStateOf(false)
-    private val stateAlertMessage = mutableStateOf("")
-
     private val refreshInterval: MutableState<Int> = mutableStateOf(0)
-
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    private var refreshHandlerId = 0
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     private val stateControl = StateControl(root, appControl, compositeResponse.xyResponse, tabId).apply {
         containerPrefix = TS_COMPOSITE_PREFIX
+        presetSvgHeight = TS_XY_SVG_HEIGHT
+        arrAddHeights = emptyArray()
     }
     private val graphicControl = GraphicControl(root, appControl, compositeResponse.graphicResponse, tabId).apply {
         containerPrefix = TS_COMPOSITE_PREFIX
+        presetSvgHeight = GRAPHIC_MIN_HEIGHT * 2
+        arrAddHeights = arrayOf(TS_XY_SVG_HEIGHT)
     }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -138,14 +132,9 @@ class TSCompositeControl(
             startExpandKoef = TS_START_EXPAND_KOEF,
             isCentered = true,
             curScale = 1,
-            svgHeight = TS_XY_SVG_HEIGHT,
-            arrAddHeights = emptyArray(),  // верхний элемент, нет элементов выше его
         )
 
-        graphicControl.doGraphicSpecificComponentMounted(
-            svgHeight = GRAPHIC_MIN_HEIGHT * 2,
-            arrAddHeights = arrayOf(TS_XY_SVG_HEIGHT),
-        )
+        graphicControl.doGraphicSpecificComponentMounted()
 
         setInterval(10)
     }
@@ -157,41 +146,10 @@ class TSCompositeControl(
     }
 
     private fun setInterval(sec: Int) {
-        if (refreshHandlerId != 0) {
-            window.clearInterval(refreshHandlerId)
-        }
-
-        if (sec == 0) {
-            refreshView(true)
-        } else {
-            refreshHandlerId = window.setInterval({
-                refreshView(false)
-            }, sec * 1000)
-        }
+        stateControl.setInterval(sec)
+        graphicControl.setInterval(sec)
 
         refreshInterval.value = sec
-    }
-
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    private fun refreshView(withWait: Boolean) {
-        stateControl.doStateRefreshView(
-            aView = null,
-            withWait = withWait,
-            doAdditionalWork = { xyActionResponse: XyActionResponse ->
-                xyActionResponse.arrParams?.firstOrNull { pair ->
-                    pair.first == STATE_ALERT_MESSAGE
-                }?.let { pair ->
-                    stateAlertMessage.value = pair.second
-                    showStateAlert.value = true
-                }
-            },
-        )
-        graphicControl.doGraphicRefresh(
-            aView = null,
-            withWait = withWait,
-            arrAddHeights = arrayOf(TS_XY_SVG_HEIGHT),
-        )
     }
 
 }

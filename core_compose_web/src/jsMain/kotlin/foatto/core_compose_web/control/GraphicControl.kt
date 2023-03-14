@@ -147,6 +147,8 @@ class GraphicControl(
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     var containerPrefix: String = "graphic"
+    var presetSvgHeight: Int? = null
+    var arrAddHeights: Array<Int> = emptyArray()
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -198,7 +200,6 @@ class GraphicControl(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    private var presetSvgHeight: Int? = null
     private var grViewCoord = GraphicViewCoord(0, 0)
     private val alYData = mutableListOf<YData>()
     private var pixStartY = 0
@@ -756,18 +757,12 @@ class GraphicControl(
         root.setTabInfo(tabId, graphicResponse.shortTitle, graphicResponse.fullTitle)
         alTitleData += graphicResponse.fullTitle.split('\n').filter { it.isNotBlank() }.map { TitleData("", it) }
 
-        doGraphicSpecificComponentMounted(null, emptyArray())
+        doGraphicSpecificComponentMounted()
     }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    //--- public for Composite Control
-    fun doGraphicSpecificComponentMounted(
-        svgHeight: Int?,
-        arrAddHeights: Array<Int>,
-    ) {
-        presetSvgHeight = svgHeight
-
+    fun doGraphicSpecificComponentMounted() {
         val newViewCoord = GraphicViewCoord(
             t1 = if (graphicResponse.rangeType == 0) {
                 graphicResponse.begTime
@@ -783,11 +778,10 @@ class GraphicControl(
         doGraphicRefresh(
             aView = newViewCoord,
             withWait = true,
-            arrAddHeights = arrAddHeights,
         )
     }
 
-    private fun setInterval(sec: Int) {
+    fun setInterval(sec: Int) {
         if (refreshHandlerId != 0) {
             window.clearInterval(refreshHandlerId)
         }
@@ -796,14 +790,12 @@ class GraphicControl(
             doGraphicRefresh(
                 aView = null,
                 withWait = true,
-                arrAddHeights = emptyArray(),
             )
         } else {
             refreshHandlerId = window.setInterval({
                 doGraphicRefresh(
                     aView = null,
                     withWait = false,
-                    arrAddHeights = emptyArray(),
                 )
             }, sec * 1000)
         }
@@ -815,14 +807,12 @@ class GraphicControl(
         doGraphicRefresh(
             aView = aView,
             withWait = true,
-            arrAddHeights = emptyArray(),
         )
     }
 
-    fun doGraphicRefresh(
+    private fun doGraphicRefresh(
         aView: GraphicViewCoord?,
         withWait: Boolean,
-        arrAddHeights: Array<Int>,
     ) {
         aView?.let {
             grViewCoord = aView
@@ -854,7 +844,7 @@ class GraphicControl(
 
             //--- calcBodyLeftAndTop нельз вызывать слишком рано (в doGraphicSpecificComponentMounted),
             //--- т.к. асинхронный Body ещё не готов и возвращает null для элементов заголовка
-            val svgBodyTop = calcBodyLeftAndTop(arrAddHeights).second
+            val svgBodyTop = calcBodyLeftAndTop().second
             grSvgHeight.value = presetSvgHeight ?: run {
                 window.innerHeight - svgBodyTop
             }
@@ -1025,7 +1015,7 @@ class GraphicControl(
             pixStartY = localPixStartY
 
             //--- правильное значение svgBodyLeft известно только в конце загрузки
-            val svgBodyLeft = calcBodyLeftAndTop(arrAddHeights).first
+            val svgBodyLeft = calcBodyLeftAndTop().first
             setGraphicTextOffset(svgBodyLeft, svgBodyTop)
 
             if (withWait) {
@@ -1034,9 +1024,7 @@ class GraphicControl(
         }
     }
 
-    private fun calcBodyLeftAndTop(
-        arrAddHeights: Array<Int>,
-    ): Pair<Int, Int> {
+    private fun calcBodyLeftAndTop(): Pair<Int, Int> {
         val menuBarElement = document.getElementById(MENU_BAR_ID)
         val menuCloserElement = document.getElementById(MENU_CLOSER_BUTTON_ID)
 
@@ -1736,8 +1724,7 @@ class GraphicControl(
         var mouseX = aMouseX.toInt()
         var mouseY = aMouseY.toInt()
 
-        //!!! в случае работы в сложной схеме могут поехать y-координаты
-        val (svgBodyLeft, svgBodyTop) = calcBodyLeftAndTop(emptyArray())
+        val (svgBodyLeft, svgBodyTop) = calcBodyLeftAndTop()
 
         if (isNeedOffsetCompensation) {
             mouseX -= svgBodyLeft
@@ -1778,7 +1765,7 @@ class GraphicControl(
         var mouseX = aMouseX.toInt()
         var mouseY = aMouseY.toInt()
 
-        val (svgBodyLeft, svgBodyTop) = calcBodyLeftAndTop(emptyArray())
+        val (svgBodyLeft, svgBodyTop) = calcBodyLeftAndTop()
 
         if (isNeedOffsetCompensation) {
             mouseX -= svgBodyLeft
@@ -2003,7 +1990,7 @@ class GraphicControl(
         val mouseX = syntheticWheelEvent.offsetX.toInt()
         val deltaY = syntheticWheelEvent.deltaY.toInt()
 
-        val (svgBodyLeft, svgBodyTop) = calcBodyLeftAndTop(emptyArray())
+        val (svgBodyLeft, svgBodyTop) = calcBodyLeftAndTop()
 
         if (grCurMode.value == GraphicWorkMode.PAN && !isMouseDown || grCurMode.value == GraphicWorkMode.ZOOM_BOX && !isMouseDown) {
             //|| grControl.curMode == GraphicModel.WorkMode.SELECT_FOR_PRINT && grControl.selectorX1 < 0  ) {

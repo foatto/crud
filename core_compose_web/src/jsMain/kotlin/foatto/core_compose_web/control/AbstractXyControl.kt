@@ -88,6 +88,8 @@ abstract class AbstractXyControl(
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     var containerPrefix: String = ""
+    var presetSvgHeight: Int? = null
+    var arrAddHeights: Array<Int> = emptyArray()
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -556,8 +558,6 @@ abstract class AbstractXyControl(
             startExpandKoef = startExpandKoef,
             isCentered = isCentered,
             curScale = curScale,
-            svgHeight = null,
-            arrAddHeights = emptyArray(),
         )
     }
 
@@ -566,8 +566,6 @@ abstract class AbstractXyControl(
         startExpandKoef: Double,
         isCentered: Boolean,
         curScale: Int,
-        svgHeight: Int?,
-        arrAddHeights: Array<Int>,
     ) {
         root.setWait(true)
         invokeXy(
@@ -581,7 +579,7 @@ abstract class AbstractXyControl(
             //--- принудительная установка полной высоты svg-элементов
             //--- (BUG: иначе высота либо равна 150px - если не указывать высоту,
             //--- либо равно width, если указать height="100%")
-            calcSvgCoordAndSize(svgHeight, arrAddHeights)
+            calcSvgCoordAndSize()
             setXyViewBoxBody(arrayOf(0, 0, xySvgWidth.value, xySvgHeight.value))
 
             val newViewCoord = getXyCoordsDone(
@@ -598,10 +596,7 @@ abstract class AbstractXyControl(
         }
     }
 
-    private fun calcSvgCoordAndSize(
-        svgHeight: Int?,
-        arrAddHeights: Array<Int>,
-    ) {
+    private fun calcSvgCoordAndSize() {
         val menuBarElement = document.getElementById(MENU_BAR_ID)
         val menuCloserElement = document.getElementById(MENU_CLOSER_BUTTON_ID)
 
@@ -628,7 +623,7 @@ abstract class AbstractXyControl(
             svgXyToolbar.clientHeight +
             arrAddHeights.sum()
 
-        xySvgHeight.value = svgHeight ?: (window.innerHeight - xySvgTop)
+        xySvgHeight.value = presetSvgHeight ?: (window.innerHeight - xySvgTop)
     }
 
     protected fun getXyViewBoxBody(): Array<Int> {
@@ -1453,7 +1448,7 @@ abstract class AbstractXyControl(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    protected fun setInterval(sec: Int) {
+    fun setInterval(sec: Int) {
         if (refreshHandlerId != 0) {
             window.clearInterval(refreshHandlerId)
         }
