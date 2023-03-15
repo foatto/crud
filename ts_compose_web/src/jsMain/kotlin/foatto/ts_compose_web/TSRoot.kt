@@ -48,9 +48,7 @@ fun main() {
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-private class TSRoot : Root(
-    styleIsHiddenMenuBar = true,
-) {
+private class TSRoot : Root() {
     override fun init() {
 
         colorMainBack0 = hsl(TS_FIRM_COLOR_1_H, 50, 95)

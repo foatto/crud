@@ -1,15 +1,17 @@
 package foatto.mms_compose_web
 
+import androidx.compose.runtime.Composable
+import foatto.core.link.MenuData
 import foatto.core_compose_web.*
 import foatto.core_compose_web.control.*
 import foatto.core_compose_web.style.*
-import org.jetbrains.compose.web.css.AlignItems
-import org.jetbrains.compose.web.css.JustifyContent
-import org.jetbrains.compose.web.css.LineStyle
-import org.jetbrains.compose.web.css.cssRem
-import org.jetbrains.compose.web.css.hsl
-import org.jetbrains.compose.web.css.hsla
-import org.jetbrains.compose.web.css.px
+import foatto.mms_compose_web.control.MMSAppControl
+import org.jetbrains.compose.web.css.*
+import org.jetbrains.compose.web.css.Color.white
+import org.jetbrains.compose.web.dom.Div
+import org.jetbrains.compose.web.dom.Img
+import org.jetbrains.compose.web.dom.Span
+import org.jetbrains.compose.web.dom.Text
 import org.jetbrains.compose.web.renderComposable
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -45,9 +47,7 @@ fun main() {
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-private class MMSRoot : Root(
-    styleIsHiddenMenuBar = true,    //false, - для начала сделаем типовой дизайн
-) {
+private class MMSRoot : Root() {
     override fun init() {
 
         colorMainBack0 = hsl(MMS_FIRM_COLOR_1_H, 50, 95)
@@ -82,32 +82,9 @@ private class MMSRoot : Root(
 
         colorDialogBack = hsla(MMS_FIRM_COLOR_1_H, MMS_FIRM_COLOR_1_S, MMS_FIRM_COLOR_1_L, 0.95)
 
-//        styleLogonTopExpanderContent =
-//            """
-//                <br>
-//                <img src="/web/images/logo_pla.png">
-//                <br>
-//                <span v-bind:style="{ 'color' : 'white' , 'font-size' : '${if (styleIsNarrowScreen) "1rem" else "2rem"}' }">
-//                    СИСТЕМА КОНТРОЛЯ
-//                    ТЕХНОЛОГИЧЕСКОГО ОБОРУДОВАНИЯ И ТРАНСПОРТА
-//                    «ПУЛЬСАР»
-//                </span>
-//                <br>
-//            """
-
         styleLogonLogo = "index-icon.png"
-        styleLogonLogoContent = if (styleIsNarrowScreen) {
-            ""
-        } else {
-            """
-                <span v-bind:style="{ 'font-size' : '1.5rem' }">
-                    Вход в систему
-                </span>
-                <br>
-            """
-        }
 
-//        getColorLogonBackAround = { "url('/web/images/index-bg.jpg') 50% 0" }
+        getColorLogonBackAround = { background("url('/web/images/index-bg.jpg') 50% 0") }
         getColorLogonBackCenter = { COLOR_MAIN_BACK_0 }
         getColorLogonBorder = { hsla(0, 0, 0, 0) }
         getColorLogonButtonBack = { hsl(MMS_FIRM_COLOR_3_H, MMS_FIRM_COLOR_3_S, MMS_FIRM_COLOR_3_L) }
@@ -124,58 +101,21 @@ private class MMSRoot : Root(
             )
         }
 
-//        styleMainMenuTop =
-//            """
-//                <br>
-//                &nbsp;&nbsp;&nbsp;&nbsp;
-//                <img src="/web/images/page-logo.png" alt="">
-//                <br><br>
-//            """
-
-//        styleTopBar =
-//            """
-//                <div id="$TOP_BAR_ID"
-//                    v-bind:style="{
-//                        'width' : '100%',
-//                        'min-height' : '4rem',
-//                        'display' : 'flex',
-//                        'flex-direction' : 'row',
-//                        'justify-content' : 'space-between',
-//                        'align-items' : 'center',
-//                        'background': 'linear-gradient(75deg, #0c386d 30%, #209dcb 100%)'
-//                    }"
-//                >
-//                    <span
-//                        v-bind:style="{
-//                            'color' : 'white',
-//                            'font-size' : '1.0rem'
-//                        }"
-//                    >
-//                        &nbsp;
-//                        СИСТЕМА КОНТРОЛЯ ТЕХНОЛОГИЧЕСКОГО ОБОРУДОВАНИЯ И ТРАНСПОРТА "ПУЛЬСАР"
-//                    </span>
-//                    <span>
-//                        &nbsp;
-//                    </span>
-//                    <span>
-//                        <img src="/web/images/page-icon.png" alt="">
-//                        &nbsp;&nbsp;
-//                    </span>
-//                </div>
-//            """
+        styleIsHiddenMenuBar = false
+        getStyleMenuBar = {
+            background("url(/web/images/page-menu-bg.jpg) bottom / cover no-repeat")
+            border {
+                width = 0.px
+            }
+        }
 
         val colorBackGray = hsl(210, 11, 89)
 
-//        styleMenuBar =
-//            """
-//                v-bind:style="{
-//                    'border' : 'none',
-//                    'background' : 'url(/web/images/page-menu-bg.jpg) bottom / cover no-repeat'
-//                }"
-//            """
-//        colorMenuCloserBack = "linear-gradient(180deg, ${getHSL(MMS_FIRM_COLOR_1_H, MMS_FIRM_COLOR_1_S, MMS_FIRM_COLOR_1_L)} 4rem, $colorBackGray 4rem)"
-//        colorMenuCloserButtonBack = getHSL(MMS_FIRM_COLOR_1_H, MMS_FIRM_COLOR_1_S, MMS_FIRM_COLOR_1_L)
-//        colorMenuCloserButtonText = COLOR_MAIN_BACK_0
+        getColorMenuCloserBack = {
+            background("linear-gradient(180deg, ${hsl(MMS_FIRM_COLOR_1_H, MMS_FIRM_COLOR_1_S, MMS_FIRM_COLOR_1_L)} 4rem, $colorBackGray 4rem)")
+        }
+        colorMenuCloserButtonBack = hsl(MMS_FIRM_COLOR_1_H, MMS_FIRM_COLOR_1_S, MMS_FIRM_COLOR_1_L)
+        colorMenuCloserButtonText = COLOR_MAIN_BACK_0
 
         getColorMainMenuBack = {
             if (styleIsNarrowScreen) {
@@ -316,6 +256,56 @@ private class MMSRoot : Root(
 
         getColorGraphicAndXyToolbarBack = { COLOR_MAIN_BACK_0 }
 
+        getMenu = { root: Root,
+                    arrMenuData: Array<MenuData> ->
+            MMSMenu(root, arrMenuData)
+        }
+
+        getAppControl = { root: Root,
+                          startAppParam: String,
+                          tabId: Int ->
+            MMSAppControl(root, startAppParam, tabId)
+        }
+
         super.init()
+    }
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @Composable
+    override fun getTopBar() {
+        Div(
+            attrs = {
+                id(TOP_BAR_ID)
+                style {
+                    display(DisplayStyle.Flex)
+                    flexDirection(FlexDirection.Row)
+                    justifyContent(JustifyContent.SpaceBetween)
+                    alignItems(AlignItems.Center)
+                    width(100.percent)
+                    minHeight(4.cssRem)
+                    background("linear-gradient(75deg, #0c386d 30%, #209dcb 100%)")
+                }
+            }
+        ) {
+            Span(
+                attrs = {
+                    style {
+                        color(white)
+                        fontSize(1.0.cssRem)
+                    }
+                }
+            ) {
+                getPseudoNbsp(1)
+                Text("СИСТЕМА КОНТРОЛЯ ТЕХНОЛОГИЧЕСКОГО ОБОРУДОВАНИЯ И ТРАНСПОРТА \"ПУЛЬСАР\"")
+            }
+            Span {
+                getPseudoNbsp(1)
+            }
+            Span {
+                Img(src = "/web/images/page-icon.png")
+                getPseudoNbsp(2)
+            }
+        }
     }
 }

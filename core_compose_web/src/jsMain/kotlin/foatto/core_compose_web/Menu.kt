@@ -22,7 +22,7 @@ import org.jetbrains.compose.web.dom.Text
 
 //--- Element Ids ----------------------------------------------------------------------------------------------------------------------------------------------
 
-const val MENU_BAR_ID = "menu_bar"
+const val MENU_BAR_ID: String = "menu_bar"
 
 //--- Client Commands ---
 
@@ -35,13 +35,18 @@ private const val CMD_LOGOFF = "logoff"
 
 var styleIsHiddenMenuBar: Boolean = true
 
-//var styleMenuBar = ""
-//var colorMenuCloserBack = colorMainBack1
-//var colorMenuCloserButtonBack = COLOR_MAIN_TEXT
-//var colorMenuCloserButtonText = COLOR_MAIN_BACK_0
-
-//var styleMainMenuTop = ""
-//var styleTopBar = ""
+var getStyleMenuBar: StyleScope.() -> Unit = {
+    backgroundColor(getColorMainMenuBack())
+    setBorder(
+        color = getColorMenuBorder(),
+        radius = styleFormBorderRadius,
+    )
+}
+var getColorMenuCloserBack: StyleScope.() -> Unit = {
+    backgroundColor(colorMainBack1)
+}
+var colorMenuCloserButtonBack: CSSColorValue = COLOR_MAIN_TEXT
+var colorMenuCloserButtonText: CSSColorValue = COLOR_MAIN_BACK_0
 
 var getColorMainMenuBack: () -> CSSColorValue = { colorMainBack1 }      // может быть розрачным из-за фонового рисунка фона главного меню
 var getColorPopupMenuBack: () -> CSSColorValue = { colorMainBack1 }    // обычно всегда имеет сплошной цвет
@@ -96,14 +101,16 @@ fun StyleScope.setMenuWidth() {
         width(85.percent)
         minWidth(85.percent)
     } else if (!styleIsHiddenMenuBar) {
-        width(17.cssRem)
-        minWidth(17.cssRem)
+        width(21.cssRem)
+        minWidth(21.cssRem)
     } else {
         width(auto)
     }
 }
 
-class Menu(
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+open class Menu(
     private val root: Root,
     private var arrMenuData: Array<MenuData>,
 ) : iClickableMenu {
@@ -138,6 +145,8 @@ class Menu(
 
         arrMenuData = alMenuData.toTypedArray()
     }
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @Composable
     fun getBody() {
@@ -194,28 +203,32 @@ class Menu(
             }
         } else {
             Div(
-//                id="$MENU_BAR_ID"
                 attrs = {
+                    id(MENU_BAR_ID)
                     style {
                         setMenuWidth()
-                        backgroundColor(getColorMainMenuBack())
                         color(colorMenuTextDefault)
-                        setBorder(
-                            color = getColorMenuBorder(),
-                            radius = styleFormBorderRadius,
-                        )
                         fontSize(arrStyleMenuFontSize[0])
                         setPaddings(arrStyleMenuStartPadding)
                         overflow("auto")
                         cursor("pointer")
+                        getStyleMenuBar()
                     }
                 }
             ) {
-//                    $styleMainMenuTop
+                getMainMenuTop()
                 generateMenuBody(this@Menu, true, arrMenuData, 0)  // "menuClick", ".url"
             }
         }
     }
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @Composable
+    open fun getMainMenuTop() {
+    }
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     companion object {
 
@@ -236,23 +249,17 @@ class Menu(
                                     setPaddings(getStyleMenuItemPadding(level))
                                     backgroundColor(
                                         if (menuData.isHover.value) {
-//                                            if (level == 0) {         - проверить!!!
-//                                                colorMenuBackHover0
-//                                            } else {
-//                                                colorMenuBackHoverN
-//                                            }
-                                            getColorMenuBackHover0()
+                                            if (level == 0) {
+                                                getColorMenuBackHover0()
+                                            } else {
+                                                getColorMenuBackHoverN()
+                                            }
                                         } else if (isMainMenu) {
                                             getColorMainMenuBack()
                                         } else {
                                             getColorPopupMenuBack()
                                         }
                                     )
-//                                    if (level == 0) {                 - проверить!!!
-//                                        colorMenuTextHover0
-//                                    } else {
-//                                        colorMenuTextHoverN
-                                    /*}*/
                                     getColorMenuTextHover0()?.let { colorMenuTextHover ->
                                         color(
                                             if (menuData.isHover.value) {
@@ -286,11 +293,11 @@ class Menu(
                                 }
                                 backgroundColor(
                                     if (menuData.isHover.value) {
-//                                            if (level == 0) {         - проверить!!!
-//                                                colorMenuBackHover0
-//                                            } else {
-//                                                colorMenuBackHoverN
-//                                            }
+                                        if (level == 0) {
+                                            getColorMenuBackHover0()
+                                        } else {
+                                            getColorMenuBackHoverN()
+                                        }
                                         getColorMenuBackHoverN()
                                     } else if (isMainMenu) {
                                         getColorMainMenuBack()
@@ -339,7 +346,9 @@ class Menu(
     }
 
     override fun menuClick(url: String, inNewWindow: Boolean) {
-        root.isShowMainMenu.value = false
+        if (styleIsNarrowScreen || styleIsHiddenMenuBar) {
+            root.isShowMainMenu.value = false
+        }
 
         when (url) {
             CMD_SET_START_PAGE -> {

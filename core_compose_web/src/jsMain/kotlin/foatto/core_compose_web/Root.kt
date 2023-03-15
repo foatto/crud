@@ -55,7 +55,7 @@ private val arrStyleDialogButtonPadding: Array<CSSSize> = arrayOf(
     1.0.cssRem,
     (if (!styleIsNarrowScreen) 8 else scaledScreenWidth / 48).cssRem,
 )
-//private val arrStyleDialogButtonMargin: Array<CSSSize> = arrayOf(1.0.cssRem, 0.cssRem, 0.cssRem, 0.cssRem)
+private val arrStyleDialogButtonMargin: Array<CSSSize> = arrayOf(1.0.cssRem, 0.cssRem, 0.cssRem, 0.cssRem)
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -63,15 +63,33 @@ const val LOCAL_STORAGE_APP_PARAM: String = "app_param"
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-open class Root(
-    val styleIsHiddenMenuBar: Boolean,
-) {
+var getMenu: (
+    root: Root,
+    arrMenuData: Array<MenuData>,
+) -> Menu = { root: Root,
+              arrMenuData: Array<MenuData> ->
+    Menu(root, arrMenuData)
+}
+
+var getAppControl: (
+    root: Root,
+    startAppParam: String,
+    tabId: Int,
+) -> AppControl = { root: Root,
+                    startAppParam: String,
+                    tabId: Int ->
+    AppControl(root, startAppParam, tabId)
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+open class Root {
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     val menuBar: MutableState<Menu?> = mutableStateOf(null)
 
-    val isShowMainMenu: MutableState<Boolean> = mutableStateOf(!(styleIsNarrowScreen || styleIsHiddenMenuBar))
+    val isShowMainMenu: MutableState<Boolean> = mutableStateOf(false)
 
     private val alControl = mutableStateListOf<AppControl>()
     private val waitCount = mutableStateOf(0)
@@ -94,6 +112,9 @@ open class Root(
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     open fun init() {
+        //--- styleIsHiddenMenuBar may be redefined in derived classes
+        isShowMainMenu.value = !(styleIsNarrowScreen || styleIsHiddenMenuBar)
+
         hmTableIcon[ICON_NAME_SELECT] = "/web/images/ic_reply_${getStyleIconNameSuffix()}dp.png"
 
         hmTableIcon[ICON_NAME_ADD_FOLDER] = "/web/images/ic_create_new_folder_${getStyleIconNameSuffix()}dp.png"
@@ -112,7 +133,7 @@ open class Root(
         //--- печать
         hmTableIcon[ICON_NAME_PRINT] = "/web/images/ic_print_${getStyleIconNameSuffix()}dp.png"
 
-        tabPanel = TabPanel(this, styleIsHiddenMenuBar)
+        tabPanel = TabPanel(this)
     }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -123,34 +144,54 @@ open class Root(
             getMainContainer()
         } else {
             //--- участок дизайна для широкого экрана с постоянным меню слева
-//                """
-//                    <div v-bind:style="style_top_container">
-//                        <component v-if="menuBar && isShowMainMenu"
-//                                   v-bind:is="menuBar"
-//                """ +
-//                    styleMenuBar +
-//                    """
-//                        >
-//                        </component>
-//                        <div id="$MENU_CLOSER_BUTTON_ID"
-//                             v-bind:style="style_menu_closer"
-//                        >
-//                            <button v-bind:style="style_menu_closer_button"
-//                                    v-on:click="isShowMainMenu=!isShowMainMenu"
-//                            >
-//                                {{ isShowMainMenu ? '&lt;' : '&gt;' }}
-//                            </button>
-//                        </div>
-//                """
-            getMainContainer()
-//           + styleTopBar
-//                if (foatto.core_compose_web.getStyleIsNarrowScreen || styleIsHiddenMenuBar) {
-//                    ""
-//                } else {
-//                    """
-//                        </div>
-//                    """
-//                }
+            Div(
+                attrs = {
+                    style {
+                        display(DisplayStyle.Flex)
+                        flexDirection(FlexDirection.Row)
+                        width(100.percent)
+                        height(100.percent)
+                    }
+                }
+            ) {
+                if (menuBar.value != null && isShowMainMenu.value) {
+                    menuBar.value?.getBody()
+                }
+                Div(
+                    attrs = {
+                        id(MENU_CLOSER_BUTTON_ID)
+                        style {
+                            display(DisplayStyle.Flex)
+                            flexDirection(FlexDirection.Column)
+                            justifyContent(JustifyContent.Center)
+                            alignItems(AlignItems.Center)
+                            getColorMenuCloserBack()
+                        }
+                    }
+                ) {
+                    Button(
+                        attrs = {
+                            style {
+                                backgroundColor(colorMenuCloserButtonBack)
+                                color(colorMenuCloserButtonText)
+                                border {
+                                    width(0.px)
+                                }
+                                height(8.cssRem)
+                                setPaddings(arrayOf(0.cssRem, 0.1.cssRem, 0.cssRem, 0.1.cssRem))
+                                fontSize(1.0.cssRem)
+                                fontWeight("bold")
+                            }
+                            onClick {
+                                isShowMainMenu.value = !isShowMainMenu.value
+                            }
+                        }
+                    ) {
+                        Text(if (isShowMainMenu.value) "<" else ">")
+                    }
+                }
+                getMainContainer()
+            }
         }
     }
 
@@ -166,6 +207,11 @@ open class Root(
                 }
             }
         ) {
+            if (styleIsNarrowScreen || styleIsHiddenMenuBar) {
+            } else {
+                getTopBar()
+            }
+
             tabPanel.getBody()
 
             alControl.forEachIndexed { tabIndex, control ->
@@ -198,7 +244,7 @@ open class Root(
                             }
                         }
                     ) {
-                        Br()    //Text("&nbsp;")
+                        Br()
                     }
                     Div(
                         attrs = {
@@ -299,7 +345,7 @@ open class Root(
                                         setBorder(color = getColorDialogButtonBorder(), radius = styleButtonBorderRadius)
                                         fontSize(styleCommonButtonFontSize)
                                         setPaddings(arrStyleDialogButtonPadding)
-                                        //setMargins(arrStyleDialogButtonMargin)
+                                        setMargins(arrStyleDialogButtonMargin)
                                         cursor("pointer")
                                     }
                                     onClick {
@@ -309,7 +355,7 @@ open class Root(
                             ) {
                                 Text(dialogButtonOkText.value)
                             }
-                            //Text("&nbsp;")
+                            getPseudoNbsp(1)
                             if (showDialogCancel.value) {
                                 Button(
                                     attrs = {
@@ -318,7 +364,7 @@ open class Root(
                                             setBorder(color = getColorDialogButtonBorder(), radius = styleButtonBorderRadius)
                                             fontSize(styleCommonButtonFontSize)
                                             setPaddings(arrStyleDialogButtonPadding)
-                                            //setMargins(arrStyleDialogButtonMargin)
+                                            setMargins(arrStyleDialogButtonMargin)
                                             cursor("pointer")
                                         }
                                         onClick {
@@ -338,11 +384,15 @@ open class Root(
                             }
                         }
                     ) {
-                        Br()    //Text("&nbsp;")
+                        Br()
                     }
                 }
             }
         }
+    }
+
+    @Composable
+    open fun getTopBar() {
     }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -374,7 +424,7 @@ open class Root(
     private fun addTabComp(appParam: String) {
         tabPanel.lastTabId++
 
-        val appControl = AppControl(this, appParam, tabPanel.lastTabId)
+        val appControl = getAppControl(this, appParam, tabPanel.lastTabId)
 
         tabPanel.alTabInfo += TabInfo(tabPanel.lastTabId, listOf(), "")
         alControl += appControl
@@ -425,7 +475,7 @@ open class Root(
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     fun setMenuBarData(arrMenuData: Array<MenuData>) {
-        menuBar.value = Menu(this, arrMenuData)
+        menuBar.value = getMenu(this, arrMenuData)
         tabPanel.isTabPanelVisible.value = true
     }
 
@@ -446,27 +496,3 @@ open class Root(
         showDialog.value = false
     }
 }
-
-//                    "style_top_container" to json(
-//                        "display" to "flex",
-//                        "flex-direction" to "row",
-//                        "width" to "100%",
-//                        "height" to "100%",
-//                    ),
-//
-//                    "style_menu_closer" to json(
-//                        "display" to "flex",
-//                        "flex-direction" to "column",
-//                        "justify-content" to "center",
-//                        "align-items" to "center",
-//                        "background" to colorMenuCloserBack,
-//                    ),
-//                    "style_menu_closer_button" to json(
-//                        "border" to "none",
-//                        "height" to "8rem",
-//                        "font-size" to "1.0rem",
-//                        "font-weight" to "bold",
-//                        "padding" to "0 0.1rem",
-//                        "background" to colorMenuCloserButtonBack,
-//                        "color" to colorMenuCloserButtonText,
-//                    ),

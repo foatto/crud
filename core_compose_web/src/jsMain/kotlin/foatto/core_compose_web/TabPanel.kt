@@ -67,7 +67,6 @@ private var styleTabButtonFontSize = COMMON_FONT_SIZE
 
 class TabPanel(
     private val root: Root,
-    private val styleIsHiddenMenuBar: Boolean,
 ) {
 
     //--- Tab state ---
