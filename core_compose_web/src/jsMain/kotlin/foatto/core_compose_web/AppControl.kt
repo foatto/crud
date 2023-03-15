@@ -35,16 +35,14 @@ private val arrStyleAppControlPaddings: Array<CSSSize> = arrayOf(0.cssRem, 0.css
 
 //--- LOGON ----------------------------------------------------------------------------------------------------------------------------------------------------
 
-var getColorLogonBackAround: () -> CSSColorValue = { colorMainBack1 }
+var getColorLogonBackAround: StyleScope.() -> Unit = { backgroundColor(colorMainBack1) }
 var getColorLogonBackCenter: () -> CSSColorValue = { colorMainBack2 }
 var getColorLogonBorder: () -> CSSColorValue = { colorMainBorder }
 var getColorLogonButtonBack: () -> CSSColorValue = { getColorButtonBack() }
 var colorLogonButtonText: CSSColorValue = COLOR_MAIN_TEXT
 var getColorLogonButtonBorder: () -> CSSColorValue = { getColorButtonBorder() }
 
-//var styleLogonTopExpanderContent: String = "&nbsp;"
 var styleLogonLogo: String = "logo.png"
-var styleLogonLogoContent: String = ""
 
 private val arrStyleLogonCellPadding: Array<CSSSize> = arrayOf(
     (if (!styleIsNarrowScreen) 2.0 else 1.0).cssRem,
@@ -104,7 +102,7 @@ var getCompositeControl: (
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-class AppControl(
+open class AppControl(
     private val root: Root,
     private val startAppParam: String,
     private val tabId: Int,
@@ -154,7 +152,7 @@ class AppControl(
                                 display(DisplayStyle.Grid)
                                 gridTemplateRows("1fr auto 1fr")
                                 gridTemplateColumns("1fr auto 1fr")
-                                backgroundColor(getColorLogonBackAround())
+                                getColorLogonBackAround(this)
                                 backgroundSize("cover")             // for background-image
                             }
                         }
@@ -171,7 +169,8 @@ class AppControl(
                                 }
                             }
                         ) {
-//                            Text(styleLogonTopExpanderContent)
+                            getLogonTopExpanderContent()
+                            Br()
                         }
                         Div(
                             attrs = {
@@ -195,7 +194,7 @@ class AppControl(
                             ) {
                                 Img("/web/images/$styleLogonLogo")
                             }
-                            Text(styleLogonLogoContent)
+                            getLogonLogoContent()
                             if (responseCode.value == ResponseCode.LOGON_FAILED) {
                                 Div(
                                     attrs = {
@@ -366,6 +365,17 @@ class AppControl(
 
             }
         }
+    }
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @Composable
+    open fun getLogonTopExpanderContent() {
+        Br()
+    }
+
+    @Composable
+    open fun getLogonLogoContent() {
     }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
