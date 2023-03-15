@@ -1113,21 +1113,18 @@ open class TableControl(
     }
 
     private fun doForm() {
-        //--- проверка лишней не будет
         if (currentRow.value >= 0 && alRowData[currentRow.value].formURL.isNotEmpty()) {
             call(alRowData[currentRow.value].formURL, false)
         }
     }
 
     private fun doGoto() {
-        //--- проверка лишней не будет
         if (currentRow.value >= 0 && alRowData[currentRow.value].gotoURL.isNotEmpty()) {
             call(alRowData[currentRow.value].gotoURL, alRowData[currentRow.value].itGotoURLInNewWindow)
         }
     }
 
     private fun doPopup() {
-        //--- проверка лишней не будет
         if (currentRow.value >= 0 && alRowData[currentRow.value].alPopupData.isNotEmpty()) {
             showPopupMenu(currentRow.value, null)
         }

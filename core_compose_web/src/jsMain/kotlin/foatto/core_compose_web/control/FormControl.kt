@@ -399,9 +399,9 @@ class FormControl(
                                                 value = comboData.value.toString(),
                                             ) {
                                                 style {
-                                                    //                                                transform {
-                                                    //                        "transform" to styleControlRadioTransform(),
-                                                    //                                                }
+                                                    transform {
+                                                        scale((if (styleIsNarrowScreen) COMMON_FONT_SIZE * 1.5 else COMMON_FONT_SIZE).value)
+                                                    }
                                                     margin(styleFormCheckboxAndRadioMargin)
                                                 }
                                                 id(getFocusId(gridData.id, gridData.alSubId?.get(index)))

@@ -133,8 +133,6 @@ val styleControlTextFontSize = COMMON_FONT_SIZE
 
 val styleCommonButtonFontSize = COMMON_FONT_SIZE
 
-//fun styleControlRadioTransform() = "scale(${if (!foatto.core_compose_web.getStyleIsNarrowScreen) foatto.core_compose_web.getCOMMON_FONT_SIZE * 1.5 else foatto.core_compose_web.getCOMMON_FONT_SIZE})"
-
 val styleControlPadding = CONTROL_PADDING
 val arrStyleControlTitlePadding: Array<CSSSize> = arrayOf(0.cssRem, CONTROL_PADDING, 0.cssRem, CONTROL_PADDING)
 val styleIconButtonPadding = 0.cssRem
