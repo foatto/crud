@@ -323,7 +323,7 @@ open class Root {
                                     alignSelf(AlignSelf.Center)
                                     fontSize(styleDialogTextFontSize)
                                     fontWeight("bold")
-                                    color(COLOR_MAIN_BACK_0)
+                                    color(COLOR_MAIN_TEXT)
                                 }
                             }
                         ) {
