@@ -34,6 +34,7 @@ import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.files.FileList
 import kotlin.math.max
+import kotlin.math.min
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -46,11 +47,9 @@ var getColorFormActionButtonOtherBack: () -> CSSColorValue = { getColorButtonBac
 var getStyleFormActionButtonBorder: () -> BorderData = { BorderData(color = getColorButtonBorder(), radius = styleButtonBorderRadius) }
 
 private fun getStyleFormEditBoxColumn(initSize: Int) = if (styleIsNarrowScreen) {
-    initSize
-} else if (initSize <= scaledScreenWidth / 19) {
-    initSize
+    min(initSize, 30)
 } else {
-    scaledScreenWidth / 19
+    min(initSize, scaledScreenWidth / 19)
 }
 
 //--- ! не убирать, так удобнее выравнивать label на форме, чем каждому тексту прописывать уникальный стиль
@@ -316,6 +315,10 @@ class FormControl(
 
                                 FormCellTypeClient.DATE, FormCellTypeClient.TIME, FormCellTypeClient.DATE_TIME -> {
                                     for (index in 0 until gridData.alDateTime.size) {
+                                        //--- time fields on new line on narrow screens
+                                        if (styleIsNarrowScreen && index == 3) {
+                                            Br()
+                                        }
                                         Input(InputType.Text) {
                                             style {
                                                 backgroundColor(COLOR_MAIN_BACK_0)
