@@ -398,16 +398,17 @@ class FormControl(
                                         checkedValue = gridData.combo.value.toString(),
                                     ) {
                                         gridData.alComboData.forEachIndexed { index, comboData ->
+                                            val focusId = getFocusId(gridData.id, gridData.alSubId?.get(index))
                                             RadioInput(
                                                 value = comboData.value.toString(),
                                             ) {
                                                 style {
                                                     transform {
-                                                        scale((if (styleIsNarrowScreen) COMMON_FONT_SIZE * 1.5 else COMMON_FONT_SIZE).value)
+                                                        scale((if (styleIsNarrowScreen) COMMON_FONT_SIZE * 1.5 else COMMON_FONT_SIZE * 1.5).value)
                                                     }
                                                     margin(styleFormCheckboxAndRadioMargin)
                                                 }
-                                                id(getFocusId(gridData.id, gridData.alSubId?.get(index)))
+                                                id(focusId)
                                                 if (gridData.isReadOnly) {
                                                     readOnly()
                                                 }
@@ -421,7 +422,8 @@ class FormControl(
                                                     doKeyUp(gridData, syntheticKeyboardEvent)
                                                 }
                                             }
-                                            Span(
+                                            Label(
+                                                forId = focusId,
                                                 attrs = {
                                                     style {
                                                         fontSize(styleControlTextFontSize)
