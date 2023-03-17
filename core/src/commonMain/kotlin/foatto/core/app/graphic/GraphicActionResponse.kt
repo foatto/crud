@@ -1,5 +1,8 @@
 package foatto.core.app.graphic
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 class GraphicActionResponse(
     //--- answer on GET_ELEMENTS
     val arrIndexColor: Array<Pair<GraphicColorIndex, Int>> = emptyArray(),

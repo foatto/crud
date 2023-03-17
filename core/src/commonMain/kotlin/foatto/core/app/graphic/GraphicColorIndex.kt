@@ -1,5 +1,8 @@
 package foatto.core.app.graphic
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 enum class GraphicColorIndex {
     FILL_NEUTRAL,       // neutral text background
     FILL_NORMAL,        // normal value text background

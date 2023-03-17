@@ -1,5 +1,8 @@
 package foatto.core.app.xy
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 class XyActionRequest(
     val documentTypeName: String,
     val action: XyAction,
@@ -31,6 +34,7 @@ class XyActionRequest(
     val hmParam = mutableMapOf<String, String>()
 }
 
+@Serializable
 enum class XyAction { GET_COORDS, GET_ELEMENTS, GET_ONE_ELEMENT, CLICK_ELEMENT, ADD_ELEMENT, EDIT_ELEMENT_POINT, MOVE_ELEMENTS }
 
 //    String ACTION_ROTATE_ELEMENT = "action_rotate_element";

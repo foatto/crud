@@ -1,5 +1,8 @@
 package foatto.core.link
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 class AppRequest(
     var action: String,
 
@@ -12,10 +15,12 @@ class AppRequest(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+@Serializable
 class LogonRequest(val login: String, val password: String) {
     val hmSystemProperties = mutableMapOf<String, String>()
 }
 
+@Serializable
 class FormData(
     //--- STRING, INT, DOUBLE
     val stringValue: String? = null,

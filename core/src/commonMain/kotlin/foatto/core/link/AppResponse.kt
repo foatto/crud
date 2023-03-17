@@ -1,5 +1,8 @@
 package foatto.core.link
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 class AppResponse(
     val code: ResponseCode,
 
@@ -42,13 +45,14 @@ enum class ResponseCode {
     COMPOSITE,
 }
 
+@Serializable
 class MenuData(
     val url: String,
     val text: String,
     val arrSubMenu: Array<MenuData>? = null,
-    val itHover: Boolean = false
 )
 
+@Serializable
 class GraphicResponse(
     val documentTypeName: String,
     val startParamId: String,
@@ -60,6 +64,7 @@ class GraphicResponse(
     val endTime: Int,
 )
 
+@Serializable
 class CompositeResponse(
     val xyResponse: XyResponse,
     val graphicResponse: GraphicResponse,

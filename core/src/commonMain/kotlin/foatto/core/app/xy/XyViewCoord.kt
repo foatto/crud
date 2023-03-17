@@ -1,7 +1,9 @@
 package foatto.core.app.xy
 
 import foatto.core.app.xy.geom.XyRect
+import kotlinx.serialization.Serializable
 
+@Serializable
 class XyViewCoord(var scale: Int, var x1: Int, var y1: Int, var x2: Int, var y2: Int) {
 
     constructor() : this(1, 0, 0, 1, 1)

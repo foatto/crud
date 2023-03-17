@@ -1,5 +1,8 @@
 package foatto.core.link
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 class FormResponse(
     val tab: String,
     val alHeader: Array<Pair<String, String>>,
@@ -12,6 +15,7 @@ class FormResponse(
     val alFormButton: Array<FormButton>
 )
 
+@Serializable
 class FormCell(val cellType: FormCellType) {
 
     //--- FOR ALL TYPES (values set externally)
@@ -85,6 +89,7 @@ enum class FormCellType { STRING, INT, DOUBLE, TEXT, BOOLEAN, DATE, TIME, DATE_T
 
 enum class FormPinMode { OFF, AUTO, ON }
 
+@Serializable
 class FormButton(
     val url: String,
     val caption: String,

@@ -1,13 +1,16 @@
 package foatto.core.app.graphic
 
 import foatto.core.app.xy.geom.XyPoint
+import kotlinx.serialization.Serializable
 
+@Serializable
 class GraphicDataContainer(
     val type: ElementType,
     val axisYIndex: Int,
     val lineWidth: Int = 0,
     val itReversedY: Boolean,
 ) {
+    @Serializable
     enum class ElementType { BACK, LINE, TEXT }
 
     var alGBD: Array<GraphicBackData> = arrayOf()
@@ -17,12 +20,14 @@ class GraphicDataContainer(
     fun itNotEmpty() = alGBD.isNotEmpty() || alGLD.isNotEmpty() || alGTD.isNotEmpty()
 }
 
+@Serializable
 class GraphicBackData(
     val x1: Int,
     val x2: Int,
     val color: Int,
 )
 
+@Serializable
 class GraphicLineData(
     val x: Int,
     var y: Double,
@@ -30,6 +35,7 @@ class GraphicLineData(
     val coord: XyPoint? = null
 )
 
+@Serializable
 class GraphicTextData(
     val textX1: Int,
     val textX2: Int,

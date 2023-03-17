@@ -1,5 +1,8 @@
 package foatto.core.app.graphic
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 class GraphicActionRequest(
     val documentTypeName: String,
     val action: GraphicAction,
@@ -11,4 +14,5 @@ class GraphicActionRequest(
     var sessionId: Long = 0
 }
 
+@Serializable
 enum class GraphicAction { GET_ELEMENTS }

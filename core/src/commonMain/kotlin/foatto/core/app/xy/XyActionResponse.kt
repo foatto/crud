@@ -1,7 +1,9 @@
 package foatto.core.app.xy
 
 import foatto.core.app.xy.geom.XyPoint
+import kotlinx.serialization.Serializable
 
+@Serializable
 class XyActionResponse(
     //--- response on GET_COORDS
     val minCoord: XyPoint? = null,
