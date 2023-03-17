@@ -8,8 +8,6 @@ val coreComposeWebVersion: String by project
 plugins {
     kotlin("multiplatform")
 
-//    kotlin("plugin.serialization")
-
     id("org.jetbrains.compose")
 
     `maven-publish`
@@ -20,15 +18,6 @@ version = coreComposeWebVersion
 kotlin {
     js(IR) {
         browser()
-//        browser {
-//            testTask {
-//                testLogging.showStandardStreams = true
-//                useKarma {
-//                    useChromeHeadless()
-//                    useFirefox()
-//                }
-//            }
-//        }
     }
     sourceSets {
         val jsMain by getting {
@@ -36,11 +25,6 @@ kotlin {
                 api(project(":core_compose"))
             }
         }
-//        val jsTest by getting {
-//            dependencies {
-//                implementation(kotlin("test-js"))
-//            }
-//        }
     }
 }
 

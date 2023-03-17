@@ -4,7 +4,6 @@ val kotlinLanguageVersion: String by project
 val kotlinApiVersion: String by project
 val kotlinJvmTarget: String by project
 
-//val jacksonModuleKotlinVersion: String by project
 val springBootVersion: String by project
 
 val coreServerMvcVersion: String by project
@@ -32,10 +31,6 @@ dependencies {
 
     //--- в режиме тестирования пока буду прописывать отдельные зависимости
     //api("org.springframework.boot:spring-boot-starter-jooq:$springBootVersion")
-
-//!!! не должно, но работает :)
-//    runtimeOnly("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonModuleKotlinVersion")
-    //implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.11.2")
 
     api(project(":core_server"))
 

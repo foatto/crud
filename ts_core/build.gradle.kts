@@ -39,12 +39,10 @@ kotlin {
         }
         val jsMain by getting {
             dependencies {
-//!!!                api(project(":core"))
             }
         }
         val jvmMain by getting {
             dependencies {
-//!!!                api(project(":core"))
             }
         }
     }
