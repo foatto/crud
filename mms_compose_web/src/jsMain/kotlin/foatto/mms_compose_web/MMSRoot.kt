@@ -1,7 +1,7 @@
 package foatto.mms_compose_web
 
 import androidx.compose.runtime.Composable
-import foatto.core.link.MenuData
+import foatto.core_compose.model.MenuDataClient
 import foatto.core_compose_web.*
 import foatto.core_compose_web.control.*
 import foatto.core_compose_web.style.*
@@ -257,7 +257,7 @@ private class MMSRoot : Root() {
         getColorGraphicAndXyToolbarBack = { COLOR_MAIN_BACK_0 }
 
         getMenu = { root: Root,
-                    arrMenuData: Array<MenuData> ->
+                    arrMenuData: Array<MenuDataClient> ->
             MMSMenu(root, arrMenuData)
         }
 

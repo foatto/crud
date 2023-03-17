@@ -5,9 +5,10 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.web.events.SyntheticMouseEvent
 import foatto.core.link.*
+import foatto.core_compose.model.MenuDataClient
 import foatto.core_compose_web.*
 import foatto.core_compose_web.control.composable.getToolBarSpan
-import foatto.core_compose_web.control.model.TitleData
+import foatto.core_compose.model.TitleData
 import foatto.core_compose_web.style.*
 import foatto.core_compose_web.util.getColorFromInt
 import kotlinx.browser.document
@@ -182,7 +183,7 @@ open class TableControl(
 
     private val alRowData = mutableStateListOf<TableRowData>()
 
-    private val arrCurPopupData = mutableStateOf<Array<MenuData>?>(null)
+    private val arrCurPopupData = mutableStateOf<Array<MenuDataClient>?>(null)
     private val isShowPopupMenu = mutableStateOf(false)
     private val currentRow = mutableStateOf(-1)
 
@@ -1225,7 +1226,7 @@ open class TableControl(
                     right((window.innerWidth - mouseX).px)
                 }
             }
-            convertPopupMenuData(alRowData[row].alPopupData)
+            convertPopupMenuDataClient(alRowData[row].alPopupData)
             isShowPopupMenu.value = true
         } else {
             isShowPopupMenu.value = false
@@ -1237,48 +1238,48 @@ open class TableControl(
         call(url, inNewWindow)
     }
 
-    private fun convertPopupMenuData(arrMenuData: Array<TablePopupData>) {
-        val alCurPopupData = mutableListOf<MenuData>()
+    private fun convertPopupMenuDataClient(arrMenuDataClient: Array<TablePopupData>) {
+        val alCurPopupData = mutableListOf<MenuDataClient>()
 
         var i = 0
-        while (i < arrMenuData.size) {
-            val menuData = arrMenuData[i]
+        while (i < arrMenuDataClient.size) {
+            val MenuDataClient = arrMenuDataClient[i]
 
-            if (menuData.group.isEmpty()) {
+            if (MenuDataClient.group.isEmpty()) {
                 alCurPopupData.add(
-                    MenuData(
-                        url = menuData.url,
-                        text = menuData.text,
+                    MenuDataClient(
+                        url = MenuDataClient.url,
+                        text = MenuDataClient.text,
                         arrSubMenu = null,
-                        inNewWindow = menuData.inNewWindow
+                        inNewWindow = MenuDataClient.inNewWindow
                     )
                 )
                 i++
             } else {
-                val groupName = menuData.group
+                val groupName = MenuDataClient.group
 
-                val alPopupSubMenuData = mutableListOf<MenuData>()
-                while (i < arrMenuData.size) {
-                    val subMenuData = arrMenuData[i]
-                    if (subMenuData.group.isEmpty() || subMenuData.group != groupName) {
+                val alPopupSubMenuDataClient = mutableListOf<MenuDataClient>()
+                while (i < arrMenuDataClient.size) {
+                    val subMenuDataClient = arrMenuDataClient[i]
+                    if (subMenuDataClient.group.isEmpty() || subMenuDataClient.group != groupName) {
                         break
                     }
 
-                    alPopupSubMenuData.add(
-                        MenuData(
-                            url = subMenuData.url,
-                            text = subMenuData.text,
+                    alPopupSubMenuDataClient.add(
+                        MenuDataClient(
+                            url = subMenuDataClient.url,
+                            text = subMenuDataClient.text,
                             arrSubMenu = null,
-                            inNewWindow = subMenuData.inNewWindow
+                            inNewWindow = subMenuDataClient.inNewWindow
                         )
                     )
                     i++
                 }
                 alCurPopupData.add(
-                    MenuData(
+                    MenuDataClient(
                         url = "",
                         text = groupName,
-                        arrSubMenu = alPopupSubMenuData.toTypedArray(),
+                        arrSubMenu = alPopupSubMenuDataClient.toTypedArray(),
                         inNewWindow = false
                     )
                 )

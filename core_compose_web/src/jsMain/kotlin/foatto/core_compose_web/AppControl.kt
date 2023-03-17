@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import foatto.core.app.UP_TIME_OFFSET
 import foatto.core.link.*
+import foatto.core_compose.model.MenuDataClient
 import foatto.core_compose_web.control.*
 import foatto.core_compose_web.link.invokeApp
 import foatto.core_compose_web.style.*
@@ -453,7 +454,11 @@ open class AppControl(
                                 }
                             }
                         }
-                        root.setMenuBarData(appResponse.arrMenuData!!)
+                        root.setMenuBarData(
+                            appResponse.arrMenuData!!.map { menuDataServer ->
+                                mapMenuData(menuDataServer)
+                            }.toTypedArray()
+                        )
                         //--- перевызовем сервер с предыдущей (до-логинной) командой
                         call(prevRequest)
                     }
@@ -554,6 +559,18 @@ open class AppControl(
     }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    private fun mapMenuData(menuDataServer: MenuData): MenuDataClient {
+        return MenuDataClient(
+            url = menuDataServer.url,
+            text = menuDataServer.text,
+            arrSubMenu = menuDataServer.arrSubMenu?.map { subMenuDataServer ->
+                mapMenuData(subMenuDataServer)
+            }?.toTypedArray(),
+            inNewWindow = false,
+            isHover = mutableStateOf(false),
+        )
+    }
 
     private fun fillSystemProperties(hmSystemProperties: MutableMap<String, String>) {
         hmSystemProperties["k.b.w.devicePixelRatio"] = window.devicePixelRatio.toString()

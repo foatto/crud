@@ -5,9 +5,9 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import foatto.core.app.*
-import foatto.core.link.MenuData
+import foatto.core_compose.model.MenuDataClient
 import foatto.core_compose_web.control.TableControl.Companion.hmTableIcon
-import foatto.core_compose_web.control.model.TabInfo
+import foatto.core_compose.model.TabInfo
 import foatto.core_compose_web.style.*
 import kotlinx.browser.document
 import kotlinx.browser.localStorage
@@ -65,9 +65,9 @@ const val LOCAL_STORAGE_APP_PARAM: String = "app_param"
 
 var getMenu: (
     root: Root,
-    arrMenuData: Array<MenuData>,
+    arrMenuData: Array<MenuDataClient>,
 ) -> Menu = { root: Root,
-              arrMenuData: Array<MenuData> ->
+              arrMenuData: Array<MenuDataClient> ->
     Menu(root, arrMenuData)
 }
 
@@ -474,7 +474,7 @@ open class Root {
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    fun setMenuBarData(arrMenuData: Array<MenuData>) {
+    fun setMenuBarData(arrMenuData: Array<MenuDataClient>) {
         menuBar.value = getMenu(this, arrMenuData)
         tabPanel.isTabPanelVisible.value = true
     }

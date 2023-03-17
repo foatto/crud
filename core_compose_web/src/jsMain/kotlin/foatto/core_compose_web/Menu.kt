@@ -3,7 +3,7 @@ package foatto.core_compose_web
 import androidx.compose.runtime.Composable
 import foatto.core.link.ChangePasswordRequest
 import foatto.core.link.LogoffRequest
-import foatto.core.link.MenuData
+import foatto.core_compose.model.MenuDataClient
 import foatto.core_compose_web.link.invokeChangePassword
 import foatto.core_compose_web.link.invokeLogoff
 import foatto.core_compose_web.style.*
@@ -112,38 +112,38 @@ fun StyleScope.setMenuWidth() {
 
 open class Menu(
     private val root: Root,
-    private var arrMenuData: Array<MenuData>,
+    private var arrMenuDataClient: Array<MenuDataClient>,
 ) : iClickableMenu {
 
     init {
-        val alClientSubMenu = mutableListOf<MenuData>()
+        val alClientSubMenu = mutableListOf<MenuDataClient>()
 
         //    miUserDoc = MenuItem( "Руководство пользователя" )
         //    miUserDoc.onAction = this as EventHandler<ActionEvent>
         //    menuClientStaticMenu.items.add( miUserDoc )
 
-        alClientSubMenu.add(MenuData(url = "", text = "Пользователь: " + root.currentUserName, arrSubMenu = null))
-        alClientSubMenu.add(MenuData(url = CMD_CHANGE_PASSWORD, text = "Сменить пароль", arrSubMenu = null))
-        alClientSubMenu.add(MenuData(url = CMD_LOGOFF, text = "Выход из системы", arrSubMenu = null))
+        alClientSubMenu.add(MenuDataClient(url = "", text = "Пользователь: " + root.currentUserName, arrSubMenu = null))
+        alClientSubMenu.add(MenuDataClient(url = CMD_CHANGE_PASSWORD, text = "Сменить пароль", arrSubMenu = null))
+        alClientSubMenu.add(MenuDataClient(url = CMD_LOGOFF, text = "Выход из системы", arrSubMenu = null))
 
-        alClientSubMenu.add(MenuData(url = "", text = ""))
+        alClientSubMenu.add(MenuDataClient(url = "", text = ""))
 
-        alClientSubMenu.add(MenuData(url = CMD_SET_START_PAGE, text = "Установить вкладку как стартовую", arrSubMenu = null))
-        alClientSubMenu.add(MenuData(url = CMD_CLEAR_START_PAGE, text = "Очистить установку стартовой", arrSubMenu = null))
+        alClientSubMenu.add(MenuDataClient(url = CMD_SET_START_PAGE, text = "Установить вкладку как стартовую", arrSubMenu = null))
+        alClientSubMenu.add(MenuDataClient(url = CMD_CLEAR_START_PAGE, text = "Очистить установку стартовой", arrSubMenu = null))
 
-        alClientSubMenu.add(MenuData(url = "", text = ""))
+        alClientSubMenu.add(MenuDataClient(url = "", text = ""))
 
-        alClientSubMenu.add(MenuData(url = "", text = "outer width = ${window.outerWidth}", arrSubMenu = null))
-        alClientSubMenu.add(MenuData(url = "", text = "outer height = ${window.outerHeight}", arrSubMenu = null))
-        alClientSubMenu.add(MenuData(url = "", text = "inner width = ${window.innerWidth}", arrSubMenu = null))
-        alClientSubMenu.add(MenuData(url = "", text = "inner height = ${window.innerHeight}", arrSubMenu = null))
-        alClientSubMenu.add(MenuData(url = "", text = "device pixel ratio = ${window.devicePixelRatio}", arrSubMenu = null))
-        alClientSubMenu.add(MenuData(url = "", text = "touch screen = ${getStyleIsTouchScreen()}", arrSubMenu = null))
+        alClientSubMenu.add(MenuDataClient(url = "", text = "outer width = ${window.outerWidth}", arrSubMenu = null))
+        alClientSubMenu.add(MenuDataClient(url = "", text = "outer height = ${window.outerHeight}", arrSubMenu = null))
+        alClientSubMenu.add(MenuDataClient(url = "", text = "inner width = ${window.innerWidth}", arrSubMenu = null))
+        alClientSubMenu.add(MenuDataClient(url = "", text = "inner height = ${window.innerHeight}", arrSubMenu = null))
+        alClientSubMenu.add(MenuDataClient(url = "", text = "device pixel ratio = ${window.devicePixelRatio}", arrSubMenu = null))
+        alClientSubMenu.add(MenuDataClient(url = "", text = "touch screen = ${getStyleIsTouchScreen()}", arrSubMenu = null))
 
-        val alMenuData = arrMenuData.toMutableList()
-        alMenuData.add(MenuData(url = "", text = "Дополнительно", arrSubMenu = alClientSubMenu.toTypedArray()))
+        val alMenuDataClient = arrMenuDataClient.toMutableList()
+        alMenuDataClient.add(MenuDataClient(url = "", text = "Дополнительно", arrSubMenu = alClientSubMenu.toTypedArray()))
 
-        arrMenuData = alMenuData.toTypedArray()
+        arrMenuDataClient = alMenuDataClient.toTypedArray()
     }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -197,7 +197,7 @@ open class Menu(
                             }
                         }
                     ) {
-                        generateMenuBody(this@Menu, true, arrMenuData, 0)
+                        generateMenuBody(this@Menu, true, arrMenuDataClient, 0)
                     }
                 }
             }
@@ -217,7 +217,7 @@ open class Menu(
                 }
             ) {
                 getMainMenuTop()
-                generateMenuBody(this@Menu, true, arrMenuData, 0)  // "menuClick", ".url"
+                generateMenuBody(this@Menu, true, arrMenuDataClient, 0)  // "menuClick", ".url"
             }
         }
     }
@@ -236,11 +236,11 @@ open class Menu(
         fun generateMenuBody(
             clickableMenu: iClickableMenu,
             isMainMenu: Boolean,
-            arrMenuData: Array<MenuData>,   // arrMenuDataName: String
+            arrMenuDataClient: Array<MenuDataClient>,   // arrMenuDataClientName: String
             level: Int,
         ) {
-            for (menuData in arrMenuData) { // menuData_0 in $arrMenuDataName
-                menuData.arrSubMenu?.let { arrSubMenu ->
+            for (MenuDataClient in arrMenuDataClient) { // MenuDataClient_0 in $arrMenuDataClientName
+                MenuDataClient.arrSubMenu?.let { arrSubMenu ->
                     Details {
                         Summary(
                             attrs = {
@@ -248,7 +248,7 @@ open class Menu(
                                     fontSize(arrStyleMenuFontSize[level])
                                     setPaddings(getStyleMenuItemPadding(level))
                                     backgroundColor(
-                                        if (menuData.isHover.value) {
+                                        if (MenuDataClient.isHover.value) {
                                             if (level == 0) {
                                                 getColorMenuBackHover0()
                                             } else {
@@ -262,7 +262,7 @@ open class Menu(
                                     )
                                     getColorMenuTextHover0()?.let { colorMenuTextHover ->
                                         color(
-                                            if (menuData.isHover.value) {
+                                            if (MenuDataClient.isHover.value) {
                                                 colorMenuTextHover
                                             } else {
                                                 colorMenuTextDefault
@@ -271,14 +271,14 @@ open class Menu(
                                     }
                                 }
                                 onMouseEnter {
-                                    menuData.isHover.value = true
+                                    MenuDataClient.isHover.value = true
                                 }
                                 onMouseLeave {
-                                    menuData.isHover.value = false
+                                    MenuDataClient.isHover.value = false
                                 }
                             }
                         ) {
-                            Text(menuData.text)
+                            Text(MenuDataClient.text)
                         }
                         generateMenuBody(clickableMenu, isMainMenu, arrSubMenu, level + 1)
                     }
@@ -288,11 +288,11 @@ open class Menu(
                             style {
                                 fontSize(arrStyleMenuFontSize[level])
                                 setPaddings(getStyleMenuItemPadding(level))
-                                if (menuData.url.isEmpty() && menuData.text.isEmpty()) {
+                                if (MenuDataClient.url.isEmpty() && MenuDataClient.text.isEmpty()) {
                                     textDecoration("line-through")
                                 }
                                 backgroundColor(
-                                    if (menuData.isHover.value) {
+                                    if (MenuDataClient.isHover.value) {
                                         if (level == 0) {
                                             getColorMenuBackHover0()
                                         } else {
@@ -306,8 +306,8 @@ open class Menu(
                                     }
                                 )
                                 color(
-                                    if (menuData.url.isNotEmpty() || menuData.text.isNotEmpty()) {
-                                        if (menuData.isHover.value) {
+                                    if (MenuDataClient.url.isNotEmpty() || MenuDataClient.text.isNotEmpty()) {
+                                        if (MenuDataClient.isHover.value) {
                                             getColorMenuTextHoverN()?.let {
                                                 getColorMenuTextHoverN()
                                             } ?: colorMenuTextDefault
@@ -320,21 +320,21 @@ open class Menu(
                                 )
                             }
                             onClick {
-                                clickableMenu.menuClick(menuData.url, menuData.inNewWindow)
+                                clickableMenu.menuClick(MenuDataClient.url, MenuDataClient.inNewWindow)
                             }
                             onMouseEnter {
-                                menuData.isHover.value = menuData.text.isNotEmpty()
+                                MenuDataClient.isHover.value = MenuDataClient.text.isNotEmpty()
                             }
                             onMouseLeave {
-                                menuData.isHover.value = false
+                                MenuDataClient.isHover.value = false
                             }
                         }
                     ) {
                         Text(
-                            if (menuData.url.isNotEmpty()) {
-                                menuData.text
-                            } else if (menuData.text.isNotEmpty()) {
-                                menuData.text + " >"
+                            if (MenuDataClient.url.isNotEmpty()) {
+                                MenuDataClient.text
+                            } else if (MenuDataClient.text.isNotEmpty()) {
+                                MenuDataClient.text + " >"
                             } else {
                                 MENU_DELIMITER
                             }
