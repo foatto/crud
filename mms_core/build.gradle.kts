@@ -15,8 +15,7 @@ plugins {
 version = coreVersion
 
 kotlin {
-    js {// LEGACY-backend version
-//    js(IR) {  // IR-backend version
+    js(IR) {  // IR-backend version
         browser {
         }
     }
@@ -40,12 +39,12 @@ kotlin {
         }
         val jsMain by getting {
             dependencies {
-                api(project(":core"))
+//!!!                api(project(":core"))
             }
         }
         val jvmMain by getting {
             dependencies {
-                api(project(":core"))
+//!!!                api(project(":core"))
             }
         }
     }
