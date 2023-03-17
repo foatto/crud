@@ -11,8 +11,6 @@ import foatto.sql.DBConfig
 import foatto.util.MinioProxy
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.autoconfigure.domain.EntityScan
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 import java.io.File
 import java.time.ZoneId
 import java.util.concurrent.ConcurrentHashMap
@@ -172,9 +170,9 @@ class CoreSpringApp {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
-            itRotatable = false,
-            itMoveable = true,
-            itEditablePoint = false
+            isRotatable = false,
+            isMoveable = true,
+            isEditablePoint = false
         )
 
         hmElementConfig[sdcXyAbstract.ICON] = XyElementConfig(
@@ -184,9 +182,9 @@ class CoreSpringApp {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
-            itRotatable = true,
-            itMoveable = true,
-            itEditablePoint = false
+            isRotatable = true,
+            isMoveable = true,
+            isEditablePoint = false
         )
 
         hmElementConfig[sdcXyAbstract.MARKER] = XyElementConfig(
@@ -196,9 +194,9 @@ class CoreSpringApp {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
-            itRotatable = true,
-            itMoveable = true,
-            itEditablePoint = false
+            isRotatable = true,
+            isMoveable = true,
+            isEditablePoint = false
         )
 
         hmElementConfig[sdcXyAbstract.POLY] = XyElementConfig(
@@ -208,9 +206,9 @@ class CoreSpringApp {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
-            itRotatable = false,
-            itMoveable = true,
-            itEditablePoint = true
+            isRotatable = false,
+            isMoveable = true,
+            isEditablePoint = true
         )
 
         hmElementConfig[sdcXyAbstract.TEXT] = XyElementConfig(
@@ -220,9 +218,9 @@ class CoreSpringApp {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
-            itRotatable = true,
-            itMoveable = true,
-            itEditablePoint = false
+            isRotatable = true,
+            isMoveable = true,
+            isEditablePoint = false
         )
 
         hmElementConfig[sdcXyAbstract.TRACE] = XyElementConfig(
@@ -232,9 +230,9 @@ class CoreSpringApp {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
-            itRotatable = false,
-            itMoveable = true,
-            itEditablePoint = true
+            isRotatable = false,
+            isMoveable = true,
+            isEditablePoint = true
         )
 
         return hmElementConfig

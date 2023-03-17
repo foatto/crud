@@ -4,9 +4,9 @@ class WorkCalcData(
     val group: String,
     val alWorkOnOff: List<AbstractPeriodData>,
 ) {
-    var onTime = alWorkOnOff.filter {
-        it.getState() != 0
-    }.sumOf {
-        it.endTime - it.begTime
+    var onTime: Int = alWorkOnOff.filter { apd ->
+        apd.getState() != 0
+    }.sumOf { apd ->
+        apd.endTime - apd.begTime
     }
 }

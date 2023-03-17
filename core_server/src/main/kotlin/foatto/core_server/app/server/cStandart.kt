@@ -1107,10 +1107,10 @@ open class cStandart {
         }
         //--- по умолчанию дабл-клик == открытию формы в том же окне
         var rowURL = formURL
-        var itRowURLInNewWindow = false
+        var isRowURLInNewWindow = false
         //--- отдельная кнопка перехода (goto) для тех, у кого не срабатывает дабл-клик или дабл-тач (iOS)
         var gotoURL = ""
-        var itGotoURLInNewWindow = false
+        var isGotoURLInNewWindow = false
         //--- popup-menu на правую кнопку мыши по данной строке ( меню ссылок перехода на другие таблицы )
         val alPopupData = mutableListOf<TablePopupData>()
         for (i in 0 until model.alChildData.size) {
@@ -1118,10 +1118,10 @@ open class cStandart {
             if (defaultOperationURL != null) {
                 rowURL = defaultOperationURL
                 //--- для иерархических таблиц операция по умолчанию - проход вглубь по иерархии, а она делается внутри одного/текущего окна
-                itRowURLInNewWindow = isOpenFormURLInNewWindow()
+                isRowURLInNewWindow = isOpenFormURLInNewWindow()
                 //--- специально для кнопки перехода
                 gotoURL = rowURL
-                itGotoURLInNewWindow = itRowURLInNewWindow
+                isGotoURLInNewWindow = isRowURLInNewWindow
             }
         }
         //--- в некоторых случаях клик по строке может обрабатываться особенным образом,
@@ -1129,7 +1129,7 @@ open class cStandart {
         val defaultOperationURL = newTableRowDefaultOperation(selectorParam, hmColumnData, hmOut)
         if (defaultOperationURL != null) {
             rowURL = defaultOperationURL
-            itRowURLInNewWindow = false
+            isRowURLInNewWindow = false
         }
         //--- основные строки таблицы
         val tableRowCount = model.getTableColumnRowCount()
@@ -1248,9 +1248,9 @@ open class cStandart {
             TableRowData(
                 formURL = formURL,
                 rowURL = rowURL,
-                itRowURLInNewWindow = itRowURLInNewWindow,
+                isRowURLInNewWindow = isRowURLInNewWindow,
                 gotoURL = gotoURL,
-                itGotoURLInNewWindow = itGotoURLInNewWindow,
+                isGotoURLInNewWindow = isGotoURLInNewWindow,
                 alPopupData = alPopupData.toTypedArray()
             )
         )
@@ -1607,7 +1607,7 @@ open class cStandart {
                     )
                 }
                 //--- определяем автозапуск селектора
-                fci.itAutoStartSelector = column.isAutoStartSelector
+                fci.isAutoStartSelector = column.isAutoStartSelector
                 //--- текст сообщения об ошибке ввода ( если есть )
                 fci.errorMessage = hmColumnData[column]!!.getError() ?: ""
             }
@@ -1729,9 +1729,9 @@ open class cStandart {
             isUseThousandsDivider = userConfig.upIsUseThousandsDivider,
             decimalDivider = userConfig.upDecimalDivider
         )
-        fci.itEditable = isEditable && column.isEditable && column.columnTableName == model.modelTableName
+        fci.isEditable = isEditable && column.isEditable && column.columnTableName == model.modelTableName
         fci.formPinMode = column.formPinMode
-        fci.itAutoFocus = column.isAutoFocus
+        fci.isAutoFocus = column.isAutoFocus
 
         //--- эту чисто серверную часть нежелательно передавать в клиенто-ориентированный FormCellInfo
         fci.alVisible = fci.alVisible.toMutableList().apply {
@@ -1846,8 +1846,8 @@ open class cStandart {
         val hmColumnData = mutableMapOf<iColumn, iData>()
 
         //--- исправление (возможно, неправильно заданных) настроек
-        model.columnVersionNo?.let {
-            it.isRequired = true    // номер версии должен быть заполнен
+        model.columnVersionNo?.apply {
+            isRequired = true    // номер версии должен быть заполнен
         }
 
         var id = getIdFromParam()!!

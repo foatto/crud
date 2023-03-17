@@ -382,11 +382,11 @@ class MapControl(
                             element.transform?.let {
                                 transform(element.transform)
                             }
-                            stroke(if (element.itSelected) COLOR_XY_POLYGON_BORDER else (element.stroke ?: COLOR_TRANSPARENT))
+                            stroke(if (element.isSelected) COLOR_XY_POLYGON_BORDER else (element.stroke ?: COLOR_TRANSPARENT))
                             element.strokeWidth?.let {
                                 strokeWidth(element.strokeWidth)
                             }
-                            if (element.itSelected) {
+                            if (element.isSelected) {
                                 strokeDasharray(element.strokeDash ?: "")
                             } else {
                                 strokeDasharray("")
@@ -432,7 +432,7 @@ class MapControl(
                 aScale = checkXyScale(
                     minScale = xyResponse.documentConfig.alElementConfig.minByOrNull { it.second.scaleMin }!!.second.scaleMin,
                     maxScale = xyResponse.documentConfig.alElementConfig.maxByOrNull { it.second.scaleMax }!!.second.scaleMax,
-                    isScaleAlign = xyResponse.documentConfig.itScaleAlign,
+                    isScaleAlign = xyResponse.documentConfig.isScaleAlign,
                     curScale = xyViewCoord.scale,
                     newScale = aView.scale,
                     isAdaptive = false
@@ -756,26 +756,26 @@ class MapControl(
                     isMoveElementsButtonVisible.value = false
                     alMoveElement.clear()
                     for (element in getXyElementList(mouseXyRect, true)) {
-                        element.itSelected = when (selectOption) {
+                        element.isSelected = when (selectOption) {
                             SelectOption.SET,
                             SelectOption.ADD -> {
                                 true
                             }
 
                             SelectOption.REVERT -> {
-                                !element.itSelected
+                                !element.isSelected
                             }
 
                             SelectOption.DELETE -> {
                                 false
                             }
                         }
-                        if (element.itSelected) {
-                            if (element.itEditablePoint) {
+                        if (element.isSelected) {
+                            if (element.isEditablePoint) {
                                 editableElementCount++
                                 editElement = element
                             }
-                            if (element.itMoveable) {
+                            if (element.isMoveable) {
                                 //--- предварительная краткая проверка на наличие выбранных передвигабельных объектов
                                 isMoveElementsButtonVisible.value = true
                                 alMoveElement.add(element)
@@ -841,7 +841,7 @@ class MapControl(
             val newScale = checkXyScale(
                 minScale = xyResponse.documentConfig.alElementConfig.minByOrNull { it.second.scaleMin }!!.second.scaleMin,
                 maxScale = xyResponse.documentConfig.alElementConfig.maxByOrNull { it.second.scaleMax }!!.second.scaleMax,
-                isScaleAlign = xyResponse.documentConfig.itScaleAlign,
+                isScaleAlign = xyResponse.documentConfig.isScaleAlign,
                 curScale = xyViewCoord.scale,
                 newScale = if (deltaY < 0) {
                     xyViewCoord.scale / 2
@@ -958,7 +958,7 @@ class MapControl(
         val newScale = checkXyScale(
             minScale = xyResponse.documentConfig.alElementConfig.minByOrNull { it.second.scaleMin }!!.second.scaleMin,
             maxScale = xyResponse.documentConfig.alElementConfig.maxByOrNull { it.second.scaleMax }!!.second.scaleMax,
-            isScaleAlign = xyResponse.documentConfig.itScaleAlign,
+            isScaleAlign = xyResponse.documentConfig.isScaleAlign,
             curScale = xyViewCoord.scale,
             newScale = xyViewCoord.scale / 2,
             isAdaptive = false,
@@ -974,7 +974,7 @@ class MapControl(
         val newScale = checkXyScale(
             minScale = xyResponse.documentConfig.alElementConfig.minByOrNull { it.second.scaleMin }!!.second.scaleMin,
             maxScale = xyResponse.documentConfig.alElementConfig.maxByOrNull { it.second.scaleMax }!!.second.scaleMax,
-            isScaleAlign = xyResponse.documentConfig.itScaleAlign,
+            isScaleAlign = xyResponse.documentConfig.isScaleAlign,
             curScale = xyViewCoord.scale,
             newScale = xyViewCoord.scale * 2,
             isAdaptive = false,

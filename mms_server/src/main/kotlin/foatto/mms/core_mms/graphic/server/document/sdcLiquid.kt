@@ -271,7 +271,7 @@ class sdcLiquid : sdcAbstractAnalog() {
                     else {
                         calcLiquidFlowOverLiquidLevel(alAxisYData, sca, scafInGroup, begTime, endTime, xScale, yScale, alGLD)
                     }
-                    alGDC.addAll(listOfNotNull(aText, aLiquidMin, aLiquidMax, aLiquidFlow).filter { it.itNotEmpty() })
+                    alGDC.addAll(listOfNotNull(aText, aLiquidMin, aLiquidMax, aLiquidFlow).filter { it.isNotEmpty() })
                     axisIndex++
                     isLiquidFlow = true
                 }

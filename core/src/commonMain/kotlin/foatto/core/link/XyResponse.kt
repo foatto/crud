@@ -17,7 +17,7 @@ class XyDocumentConfig(
     val descr: String,
     val serverClassName: String,
     val clientType: XyDocumentClientType,
-    val itScaleAlign: Boolean,
+    val isScaleAlign: Boolean,
     val alElementConfig: Array<Pair<String, XyElementConfig>>
 )
 
@@ -29,11 +29,11 @@ class XyElementConfig(
     val scaleMin: Int,
     val scaleMax: Int,
     val descrForAction: String,
-    val itRotatable: Boolean,
-    val itMoveable: Boolean,
-//    val itCopyable: Boolean,
-    val itEditablePoint: Boolean
-//    val itEditableText: Boolean,
+    val isRotatable: Boolean,
+    val isMoveable: Boolean,
+//    val isCopyable: Boolean,
+    val isEditablePoint: Boolean
+//    val isEditableText: Boolean,
 )
 
 @Serializable

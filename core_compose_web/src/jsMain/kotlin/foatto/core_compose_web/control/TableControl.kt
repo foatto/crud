@@ -432,7 +432,7 @@ open class TableControl(
                             }
                             onDoubleClick {
                                 if (gridData.dataRow >= 0 && alRowData[gridData.dataRow].rowURL.isNotEmpty()) {
-                                    call(alRowData[gridData.dataRow].rowURL, alRowData[gridData.dataRow].itRowURLInNewWindow)
+                                    call(alRowData[gridData.dataRow].rowURL, alRowData[gridData.dataRow].isRowURLInNewWindow)
                                 }
                             }
                             onClick {
@@ -1121,7 +1121,7 @@ open class TableControl(
 
     private fun doGoto() {
         if (currentRow.value >= 0 && alRowData[currentRow.value].gotoURL.isNotEmpty()) {
-            call(alRowData[currentRow.value].gotoURL, alRowData[currentRow.value].itGotoURLInNewWindow)
+            call(alRowData[currentRow.value].gotoURL, alRowData[currentRow.value].isGotoURLInNewWindow)
         }
     }
 
@@ -1146,7 +1146,7 @@ open class TableControl(
         if (currentRow.value >= 0 && currentRow.value < alRowData.size) {
             val curRowData = alRowData[currentRow.value]
             if (curRowData.rowURL.isNotEmpty()) {
-                call(curRowData.rowURL, curRowData.itRowURLInNewWindow)
+                call(curRowData.rowURL, curRowData.isRowURLInNewWindow)
             }
         }
     }

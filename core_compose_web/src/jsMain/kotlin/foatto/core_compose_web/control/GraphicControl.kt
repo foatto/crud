@@ -906,7 +906,7 @@ class GraphicControl(
                 val cge = pair.second
                 //--- prerare data for Y-reversed charts
                 cge.alAxisYData.forEach { axisYData ->
-                    if (axisYData.itReversedY) {
+                    if (axisYData.isReversedY) {
                         //--- во избежание перекрёстных изменений
                         val minY = axisYData.min
                         val maxY = axisYData.max
@@ -915,7 +915,7 @@ class GraphicControl(
                     }
                 }
                 cge.alGDC.forEach { gdc ->
-                    if (gdc.itReversedY) {
+                    if (gdc.isReversedY) {
                         when (gdc.type.toString()) {
                             GraphicDataContainer.ElementType.LINE.toString() -> {
                                 gdc.alGLD.forEach { gld ->
@@ -1171,7 +1171,7 @@ class GraphicControl(
                     value1 = ayd.min,
                     value2 = ayd.max,
                     prec = precY,
-                    itReversedY = ayd.itReversedY,
+                    isReversedY = ayd.isReversedY,
                 )
             )
         }
@@ -1520,7 +1520,7 @@ class GraphicControl(
 
             //--- текст метки по оси Y
             if (round(notchY * mult).toLong() % round(labelGraphicStepY * mult).toLong() == 0L) {
-                val value = if (ayd.itReversedY) {
+                val value = if (ayd.isReversedY) {
                     -notchY
                 } else {
                     notchY
@@ -1687,7 +1687,7 @@ class GraphicControl(
             //--- именно в таком порядке, чтобы не нарваться на 0 при целочисленном делении
             //--- (yData.y1 - нижняя/большая координата, yData.y2 - верхняя/меньшая координата)
             var value = (yData.value2 - yData.value1) * (yData.y1 - (mouseOffsetY + arrViewBoxBody[1])) / (yData.y1 - yData.y2) + yData.value1
-            if (yData.itReversedY) {
+            if (yData.isReversedY) {
                 value = -value
             }
             val tooltipValue = getSplittedDouble(value, yData.prec, true, '.')
@@ -1972,7 +1972,7 @@ class GraphicControl(
                 } else {
                     null
                 })?.let { yValue ->
-                    yValue * if (gdc.itReversedY) {
+                    yValue * if (gdc.isReversedY) {
                         -1
                     } else {
                         1
@@ -2118,7 +2118,7 @@ private class YData(
     val value1: Double,
     val value2: Double,
     val prec: Int,
-    val itReversedY: Boolean
+    val isReversedY: Boolean
 )
 
 private class GraphicTextData(

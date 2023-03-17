@@ -104,7 +104,7 @@ class cRolePermission : cStandart() {
                     //--- основные поля - применяются сокращенные/оптимизированные варианты getFormCell
                     val fci = FormCell(fieldName, fieldValue, emptyArray())
 
-                    fci.itEditable = true
+                    fci.isEditable = true
                     fci.caption = rowCaption
                     alFormCell.add(fci)
                 }

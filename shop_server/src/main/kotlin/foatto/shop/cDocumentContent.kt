@@ -233,10 +233,10 @@ class cDocumentContent : cStandart() {
 
         //--- проверяем на возможность печати чека
         //var isFiscable = true - for fiscal testing
-        val isFiscable = docId?.let {
+        val isFiscable = docId?.let { docType_ ->
             docType == DocumentTypeConfig.TYPE_OUT &&
-                it != 0 &&
-                (application as iShopApplication).isDocumentFiscable(it)
+                docType_ != 0 &&
+                (application as iShopApplication).isDocumentFiscable(docType_)
         } ?: false
 
         //--- для накладных на реализацию добавим работу с онлайн-кассой

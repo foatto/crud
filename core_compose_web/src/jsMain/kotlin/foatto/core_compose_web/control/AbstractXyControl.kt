@@ -197,7 +197,7 @@ abstract class AbstractXyControl(
                                     element.strokeWidth?.let {
                                         strokeWidth(element.strokeWidth)
                                     }
-                                    if (element.itSelected) {
+                                    if (element.isSelected) {
                                         strokeDasharray(element.strokeDash ?: "")
                                     } else {
                                         strokeDasharray("")
@@ -231,7 +231,7 @@ abstract class AbstractXyControl(
                                     element.strokeWidth?.let {
                                         strokeWidth(element.strokeWidth)
                                     }
-                                    if (element.itSelected) {
+                                    if (element.isSelected) {
                                         strokeDasharray(element.strokeDash ?: "")
                                     } else {
                                         strokeDasharray("")
@@ -283,7 +283,7 @@ abstract class AbstractXyControl(
                                     element.strokeWidth?.let {
                                         strokeWidth(element.strokeWidth)
                                     }
-                                    if (element.itSelected) {
+                                    if (element.isSelected) {
                                         strokeDasharray(element.strokeDash ?: "")
                                     } else {
                                         strokeDasharray("")
@@ -312,7 +312,7 @@ abstract class AbstractXyControl(
                                     element.strokeWidth?.let {
                                         strokeWidth(element.strokeWidth)
                                     }
-                                    if (element.itSelected) {
+                                    if (element.isSelected) {
                                         strokeDasharray(element.strokeDash ?: "")
                                     } else {
                                         strokeDasharray("")
@@ -343,7 +343,7 @@ abstract class AbstractXyControl(
                                     element.strokeWidth?.let {
                                         strokeWidth(element.strokeWidth)
                                     }
-                                    if (element.itSelected) {
+                                    if (element.isSelected) {
                                         strokeDasharray(element.strokeDash ?: "")
                                     } else {
                                         strokeDasharray("")
@@ -371,11 +371,11 @@ abstract class AbstractXyControl(
                                     element.transform?.let {
                                         transform(element.transform)
                                     }
-                                    stroke(if (element.itSelected) COLOR_XY_POLYGON_BORDER else (element.stroke ?: COLOR_TRANSPARENT))
+                                    stroke(if (element.isSelected) COLOR_XY_POLYGON_BORDER else (element.stroke ?: COLOR_TRANSPARENT))
                                     element.strokeWidth?.let {
                                         strokeWidth(element.strokeWidth)
                                     }
-                                    if (element.itSelected) {
+                                    if (element.isSelected) {
                                         strokeDasharray(element.strokeDash ?: "")
                                     } else {
                                         strokeDasharray("")
@@ -411,7 +411,7 @@ abstract class AbstractXyControl(
                                     element.strokeWidth?.let {
                                         strokeWidth(element.strokeWidth)
                                     }
-                                    if (element.itSelected) {
+                                    if (element.isSelected) {
                                         strokeDasharray(element.strokeDash ?: "")
                                     } else {
                                         strokeDasharray("")
@@ -457,13 +457,13 @@ abstract class AbstractXyControl(
                                     //--- то отрабатываем их независимо от режима обновления экрана и режима включенности интерактива
                                     //if (refreshInterval.value == 0 && withInteractive) {
                                     onMouseDown { syntheticMouseEvent ->
-                                        if (!element.itReadOnly) {
+                                        if (!element.isReadOnly) {
                                             onXyTextPressed(syntheticMouseEvent, element)
                                         }
                                         syntheticMouseEvent.preventDefault()
                                     }
                                     onTouchStart { syntheticTouchEvent ->
-                                        if (!element.itReadOnly) {
+                                        if (!element.isReadOnly) {
                                             onXyTextPressed(syntheticTouchEvent, element)
                                         }
                                         syntheticTouchEvent.preventDefault()
@@ -498,13 +498,13 @@ abstract class AbstractXyControl(
                             //--- то отрабатываем их независимо от режима обновления экрана и режима включенности интерактива
                             //if (refreshInterval.value == 0 && withInteractive) {
                             onMouseDown { syntheticMouseEvent ->
-                                if (!element.itReadOnly) {
+                                if (!element.isReadOnly) {
                                     onXyTextPressed(syntheticMouseEvent, element)
                                 }
                                 syntheticMouseEvent.preventDefault()
                             }
                             onTouchStart { syntheticTouchEvent ->
-                                if (!element.itReadOnly) {
+                                if (!element.isReadOnly) {
                                     onXyTextPressed(syntheticTouchEvent, element)
                                 }
                                 syntheticTouchEvent.preventDefault()
@@ -850,7 +850,7 @@ abstract class AbstractXyControl(
                             strokeWidth = 1, //scaleKoef,
                             strokeDash = "${scaleKoef * 2},${scaleKoef * 2}",
                             tooltip = element.imageName,
-                            itReadOnly = element.itReadOnly
+                            isReadOnly = element.isReadOnly
                         )
                     )
                 } else {
@@ -864,7 +864,7 @@ abstract class AbstractXyControl(
                             width = (element.imageWidth / xyViewCoord.scale * scaleKoef).roundToInt(),
                             height = (element.imageHeight / xyViewCoord.scale * scaleKoef).roundToInt(),
                             url = element.imageName,
-                            itReadOnly = element.itReadOnly
+                            isReadOnly = element.isReadOnly
                         )
                     )
                 }
@@ -885,7 +885,7 @@ abstract class AbstractXyControl(
                         transform = "rotate(${element.rotateDegree} ${((p.x - xyViewCoord.x1) / xyViewCoord.scale * scaleKoef).roundToInt()} ${((p.y - xyViewCoord.y1) / xyViewCoord.scale * scaleKoef).roundToInt()})",
                         url = element.imageName,
                         tooltip = element.toolTipText,
-                        itReadOnly = element.itReadOnly
+                        isReadOnly = element.isReadOnly
                     )
                 )
             }
@@ -918,7 +918,7 @@ abstract class AbstractXyControl(
                                 strokeDash = "${scaleKoef * lineWidth * 2},${scaleKoef * lineWidth * 2}",
                                 transform = "rotate(${element.rotateDegree} $x $y)",
                                 tooltip = element.toolTipText,
-                                itReadOnly = element.itReadOnly
+                                isReadOnly = element.isReadOnly
                             )
                         )
                     }
@@ -939,7 +939,7 @@ abstract class AbstractXyControl(
                                     strokeDash = "${scaleKoef * lineWidth * 2},${scaleKoef * lineWidth * 2}",
                                     transform = "rotate(${element.rotateDegree} $x $y)",
                                     tooltip = element.toolTipText,
-                                    itReadOnly = element.itReadOnly
+                                    isReadOnly = element.isReadOnly
                                 )
                             )
                         } else {
@@ -958,7 +958,7 @@ abstract class AbstractXyControl(
                                     strokeDash = "${scaleKoef * lineWidth * 2},${scaleKoef * lineWidth * 2}",
                                     transform = "rotate(${element.rotateDegree} $x $y)",
                                     tooltip = element.toolTipText,
-                                    itReadOnly = element.itReadOnly
+                                    isReadOnly = element.isReadOnly
                                 )
                             )
                         }
@@ -982,7 +982,7 @@ abstract class AbstractXyControl(
                                 strokeDash = "${scaleKoef * lineWidth * 2},${scaleKoef * lineWidth * 2}",
                                 transform = "rotate(${element.rotateDegree} $x $y)",
                                 tooltip = element.toolTipText,
-                                itReadOnly = element.itReadOnly
+                                isReadOnly = element.isReadOnly
                             )
                         )
                     }
@@ -1006,7 +1006,7 @@ abstract class AbstractXyControl(
                                 strokeDash = "${scaleKoef * lineWidth * 2},${scaleKoef * lineWidth * 2}",
                                 transform = "rotate(${element.rotateDegree} $x $y)",
                                 tooltip = element.toolTipText,
-                                itReadOnly = element.itReadOnly
+                                isReadOnly = element.isReadOnly
                             )
                         )
                     }
@@ -1029,7 +1029,7 @@ abstract class AbstractXyControl(
                                 strokeDash = "${scaleKoef * lineWidth * 2},${scaleKoef * lineWidth * 2}",
                                 transform = "rotate(${element.rotateDegree} $x $y)",
                                 tooltip = element.toolTipText,
-                                itReadOnly = element.itReadOnly
+                                isReadOnly = element.isReadOnly
                             )
                         )
                     }
@@ -1050,7 +1050,7 @@ abstract class AbstractXyControl(
                                 strokeDash = "${scaleKoef * lineWidth * 2},${scaleKoef * lineWidth * 2}",
                                 transform = "rotate(${element.rotateDegree} $x $y)",
                                 tooltip = element.toolTipText,
-                                itReadOnly = element.itReadOnly
+                                isReadOnly = element.isReadOnly
                             )
                         )
                     }
@@ -1073,7 +1073,7 @@ abstract class AbstractXyControl(
                                 strokeDash = "${scaleKoef * lineWidth * 2},${scaleKoef * lineWidth * 2}",
                                 transform = "rotate(${element.rotateDegree} $x $y)",
                                 tooltip = element.toolTipText,
-                                itReadOnly = element.itReadOnly
+                                isReadOnly = element.isReadOnly
                             )
                         )
                     }
@@ -1088,7 +1088,7 @@ abstract class AbstractXyControl(
                     points += x
                     points += y
                 }
-                val style: StyleScope.() -> Unit = if (!element.itReadOnly && element.itClosed) {
+                val style: StyleScope.() -> Unit = if (!element.isReadOnly && element.isClosed) {
                     {
                         cursor("pointer")
                     }
@@ -1097,7 +1097,7 @@ abstract class AbstractXyControl(
                 }
                 alLayer.add(
                     XyElementData(
-                        type = if (element.itClosed) {
+                        type = if (element.isClosed) {
                             XyElementDataType.POLYGON
                         } else {
                             XyElementDataType.POLYLINE
@@ -1110,7 +1110,7 @@ abstract class AbstractXyControl(
                         strokeWidth = max(1.0, lineWidth * scaleKoef).roundToInt(),
                         strokeDash = "${scaleKoef * lineWidth * 2},${scaleKoef * lineWidth * 2}",
                         tooltip = element.toolTipText,
-                        itReadOnly = element.itReadOnly,
+                        isReadOnly = element.isReadOnly,
                         style = style,
                         dialogQuestion = element.dialogQuestion,
                     )
@@ -1143,12 +1143,12 @@ abstract class AbstractXyControl(
 
                 //--- сбор неизменяемых val-переменных для передачи в лямбду
                 val fontSize = COMMON_FONT_SIZE * element.fontSize / iCoreAppContainer.BASE_FONT_SIZE
-                val fontWeight = if (element.itFontBold) {
+                val fontWeight = if (element.isFontBold) {
                     "bold"
                 } else {
                     "normal"
                 }
-                val isPointerCursor = !element.itReadOnly
+                val isPointerCursor = !element.isReadOnly
                 val style: StyleScope.() -> Unit = {
                     fontSize(fontSize)
                     fontWeight(fontWeight)
@@ -1169,7 +1169,7 @@ abstract class AbstractXyControl(
                         text = element.text,
                         stroke = textColor,
                         tooltip = element.toolTipText,
-                        itReadOnly = element.itReadOnly,
+                        isReadOnly = element.isReadOnly,
                         isVisible = true,
                         style = style,
                         dialogQuestion = element.dialogQuestion,
@@ -1234,7 +1234,7 @@ abstract class AbstractXyControl(
                 val textBack = if (element.fillColor != 0) fillColor else null
                 val textOverflow = if (limitWidth > 0 || limitHeight > 0) "hidden" else null
                 val fontSize = COMMON_FONT_SIZE * element.fontSize / iCoreAppContainer.BASE_FONT_SIZE
-                val fontWeight = if (element.itFontBold) {
+                val fontWeight = if (element.isFontBold) {
                     "bold"
                 } else {
                     "normal"
@@ -1249,7 +1249,7 @@ abstract class AbstractXyControl(
                     XyElement.Align.RB.toString() -> "text-bottom"
                     else -> "baseline"
                 }
-                val isPointerCursor = !element.itReadOnly
+                val isPointerCursor = !element.isReadOnly
 
                 val style: StyleScope.() -> Unit = {
                     position(Position.Absolute)
@@ -1290,7 +1290,7 @@ abstract class AbstractXyControl(
                         y = y,
                         text = element.text, //.replace("\n", "<br>"),
                         tooltip = element.toolTipText,
-                        itReadOnly = element.itReadOnly,
+                        isReadOnly = element.isReadOnly,
                         isVisible = true,       //!!! д.б. false и потом отдельно включаться в зависимости от заэкранности положения
                         pos = {
                             left(x.px)
@@ -1319,7 +1319,7 @@ abstract class AbstractXyControl(
                             stroke = getColorFromInt(element.alDrawColor[i]),
                             strokeWidth = max(1.0, lineWidth * scaleKoef).roundToInt(),
                             tooltip = element.alToolTip[i],
-                            itReadOnly = element.itReadOnly
+                            isReadOnly = element.isReadOnly
                         )
                     )
                 }
@@ -1347,10 +1347,10 @@ abstract class AbstractXyControl(
                         strokeWidth = (2 * scaleKoef).roundToInt(),
                         strokeDash = "${scaleKoef * 2 /*lineWidth*/ * 2},${scaleKoef * 2 /*lineWidth*/ * 2}",
                         tooltip = element.toolTipText,
-                        itReadOnly = element.itReadOnly,
+                        isReadOnly = element.isReadOnly,
                         alPoint = alPoint,
-                        itEditablePoint = !element.itReadOnly,
-                        itMoveable = !element.itReadOnly,
+                        isEditablePoint = !element.isReadOnly,
+                        isMoveable = !element.isReadOnly,
                     )
                 )
             }
@@ -1393,12 +1393,12 @@ abstract class AbstractXyControl(
                     strokeWidth = (2 * scaleKoef).roundToInt(),
                     strokeDash = "${scaleKoef * 2 /*lineWidth*/ * 2},${scaleKoef * 2 /*lineWidth*/ * 2}",
                     tooltip = "",
-                    itReadOnly = false,
+                    isReadOnly = false,
                     alPoint = mutableListOf(),
-                    itEditablePoint = true,
-                    itMoveable = true,
+                    isEditablePoint = true,
+                    isMoveable = true,
                     //--- при добавлении сразу выбранный
-                    itSelected = true,
+                    isSelected = true,
                     //--- данные для добавления на сервере
                     typeName = "mms_zone",
                     alAddInfo = listOf(
@@ -1489,7 +1489,7 @@ abstract class AbstractXyControl(
     protected fun xyDeselectAll() {
         alXyElement.forEach { alElement ->
             alElement.forEach { xyElement ->
-                xyElement.itSelected = false
+                xyElement.isSelected = false
             }
         }
     }
@@ -1498,7 +1498,7 @@ abstract class AbstractXyControl(
 
     fun getXyElementList(rect: XyRect, isCollectEditableOnly: Boolean): List<XyElementData> =
         alXyElement.flatten().filter { xyElement ->
-            isCollectEditableOnly.xor(xyElement.itReadOnly) && xyElement.isIntersects(rect)
+            isCollectEditableOnly.xor(xyElement.isReadOnly) && xyElement.isIntersects(rect)
         }.asReversed()
 
 }

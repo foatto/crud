@@ -237,7 +237,7 @@ private fun runCommandInBackground(
     val process = processBuilder.start()
     //--- некоторые процессы останавливаются путём запуска внешних скриптов, нет необходимости отслеживать и потом прибивать эти процессы
     processList?.let {
-        it += process
+        processList += process
     }
     val inputReader = process.inputStream.bufferedReader()
     val errorReader = process.errorStream.bufferedReader()
@@ -273,7 +273,7 @@ private fun runCommandInBackground(
                 lineSequence.forEach { line ->
                     latch?.let {
                         if (line.contains(successString!!)) {
-                            it.countDown()
+                            latch.countDown()
                         }
                     }
                     if (inLogging) {
@@ -311,11 +311,11 @@ fun loadTextFile(file: File, charset: Charset = Charsets.UTF_8, commentString: S
     loadTextFile(file.toPath(), charset, commentString, skipEmptyLines)
 
 fun loadTextFile(path: Path, charset: Charset = Charsets.UTF_8, commentString: String? = null, skipEmptyLines: Boolean = true): List<String> =
-    Files.readAllLines(path, charset).map {
-        it.trim()
-    }.filterNot {
-        skipEmptyLines && it.isEmpty() ||
-            !commentString.isNullOrEmpty() && it.startsWith(commentString)
+    Files.readAllLines(path, charset).map { line ->
+        line.trim()
+    }.filterNot { line ->
+        skipEmptyLines && line.isEmpty() ||
+            !commentString.isNullOrEmpty() && line.startsWith(commentString)
     }
 
 //--- работа с конфиг-файлами ---------------------------------------------------------------------------------------------------------------------------------------------------------

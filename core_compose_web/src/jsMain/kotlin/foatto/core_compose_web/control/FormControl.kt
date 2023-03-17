@@ -700,7 +700,7 @@ class FormControl(
                 val formGridData = getFormDataCell(
                     formCell = formCell,
                     gridCellId = gridCellId,
-                    itHidden = true
+                    isHidden = true
                 )
 
                 alGridData.add(formGridData)
@@ -737,7 +737,7 @@ class FormControl(
             if (formResponse.alFormColumn.isEmpty()) {
                 columnIndex = 0
                 if (formCell.formPinMode.toString() == FormPinMode.ON.toString() ||
-                    formCell.formPinMode.toString() == FormPinMode.AUTO.toString() && !formCell.itEditable && formCell.selectorSetURL.isEmpty()
+                    formCell.formPinMode.toString() == FormPinMode.AUTO.toString() && !formCell.isEditable && formCell.selectorSetURL.isEmpty()
                 ) {
                     rowIndex++
                 } else {
@@ -771,7 +771,7 @@ class FormControl(
             val formGridData = getFormDataCell(
                 formCell = formCell,
                 gridCellId = gridCellId,
-                itHidden = false,
+                isHidden = false,
                 rowIndex = rowIndex,
                 columnIndex = columnIndex,
                 isGridForm = formResponse.alFormColumn.isNotEmpty()
@@ -779,7 +779,7 @@ class FormControl(
             //--- на тачскринах автофокус только бесит автоматическим включением клавиатуры
             if (!getStyleIsTouchScreen()) {
                 //--- set autofocus from server
-                if (formCell.itAutoFocus) {
+                if (formCell.isAutoFocus) {
                     autoFocusId = getFocusId(formGridData.id, formGridData.alSubId?.get(0))
                 }
                 //--- automatic autofocus setting
@@ -857,7 +857,7 @@ class FormControl(
 
             //--- автостарт селектора запускается, только если поле данных пустое,
             //-- иначе зациклимся на старте
-            if (formCell.itAutoStartSelector && isEmptyFieldValue && autoClickUrl == null) {
+            if (formCell.isAutoStartSelector && isEmptyFieldValue && autoClickUrl == null) {
                 autoClickUrl = formGridData.selectorSetURL
             }
 
@@ -1048,7 +1048,7 @@ class FormControl(
     private fun getFormDataCell(
         formCell: FormCell,
         gridCellId: Int,
-        itHidden: Boolean,
+        isHidden: Boolean,
         rowIndex: Int = 0,
         columnIndex: Int = 0,
         isGridForm: Boolean = false
@@ -1107,12 +1107,12 @@ class FormControl(
                     cellType = FormCellTypeClient.STRING,
                     style = style,
                     styleAdd = styleAdd,
-                    isHidden = itHidden,
+                    isHidden = isHidden,
                     error = formCell.errorMessage,
                     aText = formCell.value,
-                    isPassword = formCell.itPassword,
+                    isPassword = formCell.isPassword,
                     colCount = getStyleFormEditBoxColumn(formCell.column),
-                    isReadOnly = !formCell.itEditable,
+                    isReadOnly = !formCell.isEditable,
                 )
             }
 
@@ -1122,12 +1122,12 @@ class FormControl(
                     cellType = FormCellTypeClient.TEXT,
                     style = style,
                     styleAdd = styleAdd,
-                    isHidden = itHidden,
+                    isHidden = isHidden,
                     error = formCell.errorMessage,
                     aText = formCell.textValue,
                     rowCount = formCell.textRow,
                     colCount = getStyleFormEditBoxColumn(formCell.textColumn),
-                    isReadOnly = !formCell.itEditable,
+                    isReadOnly = !formCell.isEditable,
                 )
             }
 
@@ -1141,10 +1141,10 @@ class FormControl(
                     },
                     style = style,
                     styleAdd = styleAdd,
-                    isHidden = itHidden,
+                    isHidden = isHidden,
                     error = formCell.errorMessage,
                     aBool = formCell.booleanValue,
-                    isReadOnly = !formCell.itEditable,
+                    isReadOnly = !formCell.isEditable,
                     alSwitchText = formCell.arrSwitchText.toList(),
                 )
             }
@@ -1167,10 +1167,10 @@ class FormControl(
                     },
                     style = style,
                     styleAdd = styleAdd,
-                    isHidden = itHidden,
+                    isHidden = isHidden,
                     error = formCell.errorMessage,
                     aAlDateTime = formCell.alDateTimeField.map { it.second },
-                    isReadOnly = !formCell.itEditable,
+                    isReadOnly = !formCell.isEditable,
                 ).apply {
                     alSubId = mutableListOf()
                     alDateTime.indices.forEach { i ->
@@ -1185,11 +1185,11 @@ class FormControl(
                     cellType = FormCellTypeClient.COMBO,
                     style = style,
                     styleAdd = styleAdd,
-                    isHidden = itHidden,
+                    isHidden = isHidden,
                     error = formCell.errorMessage,
                     aCombo = formCell.comboValue,
                     alComboData = formCell.alComboData.map { FormComboData(it.first, it.second) },
-                    isReadOnly = !formCell.itEditable,
+                    isReadOnly = !formCell.isEditable,
                 )
             }
 
@@ -1199,11 +1199,11 @@ class FormControl(
                     cellType = FormCellTypeClient.RADIO,
                     style = style,
                     styleAdd = styleAdd,
-                    isHidden = itHidden,
+                    isHidden = isHidden,
                     error = formCell.errorMessage,
                     aCombo = formCell.comboValue,
                     alComboData = formCell.alComboData.map { FormComboData(it.first, it.second) },
-                    isReadOnly = !formCell.itEditable,
+                    isReadOnly = !formCell.isEditable,
                 ).apply {
                     alSubId = mutableListOf()
                     alComboData.indices.forEach { i ->
@@ -1218,7 +1218,7 @@ class FormControl(
                     cellType = FormCellTypeClient.FILE,
                     style = style,
                     styleAdd = styleAdd,
-                    isHidden = itHidden,
+                    isHidden = isHidden,
                     error = formCell.errorMessage,
                     fileId = formCell.fileID,
                     alFileData = formCell.alFile.map { FormFileData(it.first, it.second, it.third) }.toMutableStateList(),
@@ -1405,15 +1405,15 @@ class FormControl(
         files?.let {
             val hmFileAdd = gridData.hmFileAdd
 
-            val formData = org.w3c.xhr.FormData().also {
+            val formData = org.w3c.xhr.FormData().also { formData_ ->
                 for (file in files.asList()) {
                     val id = -getRandomInt()
 
                     gridData.alFileData.add(FormFileData(id, "", file.name))
                     hmFileAdd[id] = file.name
 
-                    it.append("form_file_ids", id.toString())
-                    it.append("form_file_blobs", file)
+                    formData_.append("form_file_ids", id.toString())
+                    formData_.append("form_file_blobs", file)
                 }
             }
 

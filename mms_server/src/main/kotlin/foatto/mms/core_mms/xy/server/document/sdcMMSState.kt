@@ -17,7 +17,6 @@ import foatto.core_server.app.xy.XyStartData
 import foatto.core_server.app.xy.XyStartObjectParsedData
 import foatto.core_server.app.xy.server.document.sdcXyState
 import foatto.core_server.ds.CoreTelematicFunction
-import foatto.core_server.ds.nio.AbstractTelematicNioHandler
 import foatto.mms.core_mms.cObject
 import foatto.mms.core_mms.calc.ObjectState
 import foatto.mms.core_mms.sensor.config.SensorConfig
@@ -311,7 +310,7 @@ class sdcMMSState : sdcXyState() {
         //--- выводим время последних данных
         val label = XyElement(TEXT, -getRandomInt(), objectConfig.objectId).apply {
             //typeName = TYPE_STATE_W_TEXT;
-            itReadOnly = true
+            isReadOnly = true
             alPoint = arrayOf(XyPoint(GRID_STEP * 6, GRID_STEP * 28))
             anchorX = XyElement.Anchor.LT
             anchorY = XyElement.Anchor.LT
@@ -323,7 +322,7 @@ class sdcMMSState : sdcXyState() {
             } ?: "(нет данных)"
             textColor = 0xFF_00_00_00.toInt()
             fontSize = iCoreAppContainer.BASE_FONT_SIZE
-            itFontBold = false
+            isFontBold = false
         }
         alResult.add(label)
 
@@ -342,14 +341,14 @@ class sdcMMSState : sdcXyState() {
         )
 
         val label = XyElement(TYPE_STATE_SUM_GROUP_TEXT_25D, -getRandomInt(), objectId).apply {
-            itReadOnly = true
+            isReadOnly = true
             alPoint = arrayOf(XyPoint(x, y + limitHeight))
 
             this.text = text
             toolTipText = text
             textColor = 0xFF_00_00_00.toInt()
             fontSize = iCoreAppContainer.BASE_FONT_SIZE
-            itFontBold = true
+            isFontBold = true
 
             //--- рисуем рамку текста и одновременно ограничиваем вывод текста по ширине
             this.limitWidth = limitWidth
@@ -373,14 +372,14 @@ class sdcMMSState : sdcXyState() {
         )
 
         val label = XyElement(TYPE_STATE_GROUP_TEXT_25D, -getRandomInt(), objectId).apply {
-            itReadOnly = true
+            isReadOnly = true
             alPoint = arrayOf(XyPoint(x, y + limitHeight))
 
             this.text = text
             toolTipText = text
             textColor = 0xFF_00_00_00.toInt()
             fontSize = iCoreAppContainer.BASE_FONT_SIZE
-            itFontBold = true
+            isFontBold = true
 
             //--- рисуем рамку текста и одновременно ограничиваем вывод текста по ширине
             this.limitWidth = limitWidth
@@ -416,7 +415,7 @@ class sdcMMSState : sdcXyState() {
 
         //--- дно ёмкости
         val bottom = XyElement(TYPE_STATE_LL_BOTTOM_25D, -getRandomInt(), objectId).apply {
-            itReadOnly = true
+            isReadOnly = true
             alPoint = arrayOf(XyPoint(x, y))
             toolTipText = tankName
 
@@ -431,9 +430,9 @@ class sdcMMSState : sdcXyState() {
 
         //--- объём жидкости
         val volume = XyElement(TYPE_STATE_LL_VOLUME_25D, -getRandomInt(), objectId).apply {
-            itReadOnly = true
+            isReadOnly = true
 
-            itClosed = true
+            isClosed = true
             alPoint = arrayOf(
                 XyPoint(x - GRID_STEP * 2, y),
                 XyPoint(x - GRID_STEP * 2, y - levelHeight),
@@ -449,7 +448,7 @@ class sdcMMSState : sdcXyState() {
 
         //--- уровень жидкости
         val level = XyElement(TYPE_STATE_LL_LEVEL_25D, -getRandomInt(), objectId).apply {
-            itReadOnly = true
+            isReadOnly = true
             alPoint = arrayOf(XyPoint(x, y - levelHeight))
             toolTipText = tankName
 
@@ -463,9 +462,9 @@ class sdcMMSState : sdcXyState() {
 
         //--- стенки ёмкости
         val tankWall1 = XyElement(TYPE_STATE_LL_TANK_WALL_25D, -getRandomInt(), objectId).apply {
-            itReadOnly = true
+            isReadOnly = true
 
-            itClosed = false
+            isClosed = false
             alPoint = arrayOf(XyPoint(x - GRID_STEP * 2, y), XyPoint(x - GRID_STEP * 2, y - tankHeight))
 
             drawColor = tankDrawColor
@@ -474,9 +473,9 @@ class sdcMMSState : sdcXyState() {
         alResult.add(tankWall1)
 
         val tankWall2 = XyElement(TYPE_STATE_LL_TANK_WALL_25D, -getRandomInt(), objectId).apply {
-            itReadOnly = true
+            isReadOnly = true
 
-            itClosed = false
+            isClosed = false
             alPoint = arrayOf(XyPoint(x + GRID_STEP * 2, y), XyPoint(x + GRID_STEP * 2, y - tankHeight))
 
             drawColor = tankDrawColor
@@ -486,7 +485,7 @@ class sdcMMSState : sdcXyState() {
 
         //--- верх ёмкости
         val tankTop = XyElement(TYPE_STATE_LL_TANK_TOP_25D, -getRandomInt(), objectId).apply {
-            itReadOnly = true
+            isReadOnly = true
             alPoint = arrayOf(XyPoint(x, y - tankHeight))
             toolTipText = tankName
 
@@ -500,7 +499,7 @@ class sdcMMSState : sdcXyState() {
 
         //--- общая ёмкость
         val topLevelLabel = XyElement(TYPE_STATE_LL_TEXT_25D, -getRandomInt(), objectId).apply {
-            itReadOnly = true
+            isReadOnly = true
             alPoint = arrayOf(XyPoint(x - GRID_STEP * 2, y - tankHeight - GRID_STEP * 4))
             //--- НЕ ограничиваем вывод текста по ширине
             //topLevelLabel.limitWidth = GRID_STEP * 4
@@ -513,13 +512,13 @@ class sdcMMSState : sdcXyState() {
             toolTipText = totalVolumeText
             textColor = 0xFF_00_00_00.toInt()
             fontSize = iCoreAppContainer.BASE_FONT_SIZE
-            itFontBold = true
+            isFontBold = true
         }
         alResult.add(topLevelLabel)
 
         //--- текущий уровень
         val currentLevelLabel = XyElement(TYPE_STATE_LL_TEXT_25D, -getRandomInt(), objectId).apply {
-            itReadOnly = true
+            isReadOnly = true
             alPoint = arrayOf(XyPoint(x + GRID_STEP * 2, y - levelHeight))
             //--- НЕ ограничиваем вывод текста по ширине
             //currentLevelLabel.limitWidth = GRID_STEP * 4
@@ -532,13 +531,13 @@ class sdcMMSState : sdcXyState() {
             toolTipText = currentVolumeText
             textColor = 0xFF_00_00_00.toInt()
             fontSize = iCoreAppContainer.BASE_FONT_SIZE
-            itFontBold = true
+            isFontBold = true
         }
         alResult.add(currentLevelLabel)
 
         //--- наименование ёмкости
         val nameLabel = XyElement(TYPE_STATE_LL_TEXT_25D, -getRandomInt(), objectId).apply {
-            itReadOnly = true
+            isReadOnly = true
             alPoint = arrayOf(XyPoint(x - GRID_STEP * 2, y + GRID_STEP * 2))
             //--- ограничиваем вывод текста по ширине
             limitWidth = GRID_STEP * 4
@@ -551,7 +550,7 @@ class sdcMMSState : sdcXyState() {
             toolTipText = tankName
             textColor = 0xFF_00_00_00.toInt()
             fontSize = iCoreAppContainer.BASE_FONT_SIZE
-            itFontBold = true
+            isFontBold = true
         }
         alResult.add(nameLabel)
     }
@@ -578,7 +577,7 @@ class sdcMMSState : sdcXyState() {
         )
 
         val label = XyElement(TYPE_STATE_W_TEXT_25D, -getRandomInt(), objectId).apply {
-            itReadOnly = true
+            isReadOnly = true
             alPoint = arrayOf(XyPoint(x, y + GRID_STEP * 7))
             //--- ограничиваем вывод текста по ширине
             limitWidth = GRID_STEP * 4
@@ -591,7 +590,7 @@ class sdcMMSState : sdcXyState() {
             toolTipText = text
             textColor = 0xFF_00_00_00.toInt()
             fontSize = iCoreAppContainer.BASE_FONT_SIZE
-            itFontBold = true
+            isFontBold = true
         }
         alResult.add(label)
 
@@ -600,7 +599,7 @@ class sdcMMSState : sdcXyState() {
 
     private fun addS25D(objectId: Int, scale: Int, x: Int, y: Int, state: Int, text: String, alResult: MutableList<XyElement>) {
         val marker = XyElement(TYPE_STATE_S_FIGURE_25D, -getRandomInt(), objectId).apply {
-            itReadOnly = true
+            isReadOnly = true
             alPoint = arrayOf(XyPoint(x + GRID_STEP * 2, y + GRID_STEP * 2))
             toolTipText = text
 
@@ -616,7 +615,7 @@ class sdcMMSState : sdcXyState() {
         val textY = y + GRID_STEP * 4
 
         val label = XyElement(TYPE_STATE_W_TEXT_25D, -getRandomInt(), objectId).apply {
-            itReadOnly = true
+            isReadOnly = true
             alPoint = arrayOf(XyPoint(x, textY))
             //--- ограничиваем вывод текста по ширине
             limitWidth = GRID_STEP * 4
@@ -629,7 +628,7 @@ class sdcMMSState : sdcXyState() {
             toolTipText = text
             textColor = 0xFF_00_00_00.toInt()
             fontSize = iCoreAppContainer.BASE_FONT_SIZE
-            itFontBold = true
+            isFontBold = true
         }
         alResult.add(label)
     }
@@ -656,10 +655,10 @@ class sdcMMSState : sdcXyState() {
     ): Array<Int> {
         //--- top panel
         val top = XyElement(elementType, -getRandomInt(), objectId).apply {
-            itReadOnly = isReadOnly
+            this.isReadOnly = isReadOnly
             toolTipText = toolTip
 
-            itClosed = true
+            isClosed = true
             alPoint = arrayOf(
                 XyPoint(x, y + h),
                 XyPoint(x + dw, y),
@@ -675,10 +674,10 @@ class sdcMMSState : sdcXyState() {
 
         //--- front panel
         val front = XyElement(elementType, -getRandomInt(), objectId).apply {
-            itReadOnly = isReadOnly
+            this.isReadOnly = isReadOnly
             toolTipText = toolTip
 
-            itClosed = true
+            isClosed = true
             alPoint = arrayOf(
                 XyPoint(x, y + h),
                 XyPoint(x + w, y + h),
@@ -694,10 +693,10 @@ class sdcMMSState : sdcXyState() {
 
         //--- side panel
         val side = XyElement(elementType, -getRandomInt(), objectId).apply {
-            itReadOnly = isReadOnly
+            this.isReadOnly = isReadOnly
             toolTipText = toolTip
 
-            itClosed = true
+            isClosed = true
             alPoint = arrayOf(
                 XyPoint(x + w, y + h),
                 XyPoint(x + w + dw, y),

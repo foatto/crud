@@ -229,7 +229,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
 //                }
 
                 axisIndex++
-                alGDC.addAll(listOfNotNull(aText, aMinLimit, aMaxLimit, aLine).filter { it.itNotEmpty() })
+                alGDC.addAll(listOfNotNull(aText, aMinLimit, aMaxLimit, aLine).filter { it.isNotEmpty() })
             }
 
             tmElement[graphicTitle] = GraphicElement(

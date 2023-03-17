@@ -286,7 +286,7 @@
 //        CameraInfo( String aTempDirName, String aDescr, String aLogin, String aPassword, String aUrlImage, String aUrlVideo ) {
 //            descr = aDescr;
 //            login = aLogin;
-//            itPassword = aPassword;
+//            isPassword = aPassword;
 //            urlImage = aUrlImage;
 //            urlVideo = aUrlVideo;
 //

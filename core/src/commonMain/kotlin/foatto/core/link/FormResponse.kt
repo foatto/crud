@@ -20,9 +20,9 @@ class FormCell(val cellType: FormCellType) {
 
     //--- FOR ALL TYPES (values set externally)
     var caption = ""         // empty caption == hidden cell
-    var itEditable = false
+    var isEditable = false
     var formPinMode = FormPinMode.AUTO
-    var itAutoFocus = false
+    var isAutoFocus = false
 
     //--- TYPE_STRING, TYPE_INT, TYPE_DOUBLE
     var name = ""
@@ -31,7 +31,7 @@ class FormCell(val cellType: FormCellType) {
     var alComboString = arrayOf<String>()
 
     //--- TYPE_STRING
-    var itPassword = false
+    var isPassword = false
 
     //--- TYPE_TEXT
     var textName = ""
@@ -62,7 +62,7 @@ class FormCell(val cellType: FormCellType) {
 
     var selectorSetURL = ""
     var selectorClearURL = ""
-    var itAutoStartSelector = false // whether to run the selector immediately after opening the form
+    var isAutoStartSelector = false // whether to run the selector immediately after opening the form
 
     //--- TYPE_STRING, TYPE_TEXT, TYPE_BOOLEAN, TYPE_INT, TYPE_DOUBLE,
     //--- TYPE_DATE, TYPE_TIME, TYPE_DATE_TIME, TYPE_COMBO

@@ -73,7 +73,7 @@ class XyElementData(
 
     val tooltip: String? = null,
 
-    var itReadOnly: Boolean = true,
+    var isReadOnly: Boolean = true,
 
     //--- для HTML-текстов (рисуемых через div)
     var isVisible: Boolean = false,
@@ -86,12 +86,12 @@ class XyElementData(
     //--- поэлементный интерактив
     //--- пока заполняем только для ZONE, т.к. для других элементов пока нет интерактива
 
-    var itSelected: Boolean = false,
+    var isSelected: Boolean = false,
 
     val alPoint: MutableList<XyPoint>? = null,
 
-    val itEditablePoint: Boolean = false,
-    val itMoveable: Boolean = false,
+    val isEditablePoint: Boolean = false,
+    val isMoveable: Boolean = false,
 
     val typeName: String? = null,
     val alAddInfo: List<Pair<String, () -> String>>? = null,
@@ -286,9 +286,9 @@ class XyElementData(
     fun moveRel(dx: Int, dy: Int) {
         when (type) {
             XyElementDataType.POLYGON -> {
-                alPoint!!.forEach {
-                    it.x += dx
-                    it.y += dy
+                alPoint!!.forEach { p ->
+                    p.x += dx
+                    p.y += dy
                 }
                 calcArrPoints()
             }

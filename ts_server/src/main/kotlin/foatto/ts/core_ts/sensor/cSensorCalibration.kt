@@ -88,7 +88,7 @@ class cSensorCalibration : cStandart() {
                 sensorValue.toString()
             }
             fci.column = 10
-            fci.itEditable = true
+            fci.isEditable = true
             fci.caption = " "  // совсем нулевая строка даст невидимое поле
             alFormCell.add(fci)
 
@@ -102,7 +102,7 @@ class cSensorCalibration : cStandart() {
                 getSplittedDouble(dataValue, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
             }
             fci.column = 10
-            fci.itEditable = true
+            fci.isEditable = true
             fci.caption = " "  // совсем нулевая строка даст невидимое поле
             alFormCell.add(fci)
         }

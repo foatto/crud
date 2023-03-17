@@ -78,7 +78,7 @@ class TSSpringApp : CoreSpringApp() {
             descr = "Состояние объекта",
             serverClassName = "foatto.ts.core_ts.xy.server.document.sdcTSState",
             clientType = XyDocumentClientType.STATE,
-            itScaleAlign = false,
+            isScaleAlign = false,
             alElementConfig = initStateElementConfig(1, 1024 * 1024 * 1024).toList().toTypedArray()
         )
     }
@@ -94,9 +94,9 @@ class TSSpringApp : CoreSpringApp() {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
-            itRotatable = false,
-            itMoveable = false,
-            itEditablePoint = false
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
         )
 
         hmElementConfig[sdcTSState.TYPE_STATE_AXIS] = XyElementConfig(
@@ -106,9 +106,9 @@ class TSSpringApp : CoreSpringApp() {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
-            itRotatable = false,
-            itMoveable = false,
-            itEditablePoint = false
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
         )
 
         hmElementConfig[sdcTSState.TYPE_STATE_AXIS_POINTER] = XyElementConfig(
@@ -118,9 +118,9 @@ class TSSpringApp : CoreSpringApp() {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
-            itRotatable = false,
-            itMoveable = false,
-            itEditablePoint = false
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
         )
 
         hmElementConfig[sdcTSState.TYPE_STATE_TEXT_BACK] = XyElementConfig(
@@ -130,9 +130,9 @@ class TSSpringApp : CoreSpringApp() {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
-            itRotatable = false,
-            itMoveable = false,
-            itEditablePoint = false
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
         )
 
         hmElementConfig[sdcTSState.TYPE_STATE_TEXT_TEXT] = XyElementConfig(
@@ -142,9 +142,9 @@ class TSSpringApp : CoreSpringApp() {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
-            itRotatable = false,
-            itMoveable = false,
-            itEditablePoint = false
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
         )
 
         return hmElementConfig

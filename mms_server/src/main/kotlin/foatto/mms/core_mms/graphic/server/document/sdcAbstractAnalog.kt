@@ -12,7 +12,6 @@ import foatto.mms.core_mms.calc.ObjectCalc
 import foatto.mms.core_mms.graphic.server.graphic_handler.AnalogGraphicHandler
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigAnalogue
-import foatto.mms.core_mms.sensor.config.SensorConfigCounter
 import foatto.mms.core_mms.sensor.config.SensorConfigGeo
 import foatto.mms.core_mms.sensor.config.SensorConfigWork
 import foatto.mms.iMMSApplication
@@ -420,7 +419,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                     aLine = aLine,
                     aText = aText,
                 )
-                alGDC.addAll(listOfNotNull(aText, aMinLimit, aMaxLimit, aLine).filter { it.itNotEmpty() })
+                alGDC.addAll(listOfNotNull(aText, aMinLimit, aMaxLimit, aLine).filter { it.isNotEmpty() })
                 axisIndex++
 
                 //!!! расчёт и добавление вычисленной скорости расхода топлива

@@ -8,7 +8,7 @@ class GraphicDataContainer(
     val type: ElementType,
     val axisYIndex: Int,
     val lineWidth: Int = 0,
-    val itReversedY: Boolean,
+    val isReversedY: Boolean,
 ) {
     @Serializable
     enum class ElementType { BACK, LINE, TEXT }
@@ -17,7 +17,7 @@ class GraphicDataContainer(
     var alGLD: Array<GraphicLineData> = arrayOf()
     var alGTD: Array<GraphicTextData> = arrayOf()
 
-    fun itNotEmpty() = alGBD.isNotEmpty() || alGLD.isNotEmpty() || alGTD.isNotEmpty()
+    fun isNotEmpty() = alGBD.isNotEmpty() || alGLD.isNotEmpty() || alGTD.isNotEmpty()
 }
 
 @Serializable

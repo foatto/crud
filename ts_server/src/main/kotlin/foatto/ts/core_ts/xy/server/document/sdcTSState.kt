@@ -8,7 +8,6 @@ import foatto.core.app.xy.XyElement
 import foatto.core.app.xy.geom.XyPoint
 import foatto.core.link.XyDocumentConfig
 import foatto.core.util.DateTime_YMDHMS
-import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.getRandomInt
 import foatto.core.util.getSplittedDouble
 import foatto.core_server.app.AppParameter
@@ -27,7 +26,6 @@ import foatto.ts.core_ts.sensor.config.SensorConfig
 import foatto.ts.core_ts.sensor.config.SensorConfigAnalogue
 import foatto.ts.core_ts.sensor.config.SensorConfigState
 import foatto.ts.iTSApplication
-import foatto.ts_core.app.CommandStatusCode
 import foatto.ts_core.app.DeviceCommand
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
@@ -578,9 +576,9 @@ class sdcTSState : sdcXyState() {
 
     private fun createAxis(objectId: Int, x: Int, y: Int, scaleCount: Int) =
         XyElement(TYPE_STATE_AXIS, -getRandomInt(), objectId).apply {
-            itReadOnly = true
+            isReadOnly = true
 
-            itClosed = false
+            isClosed = false
             alPoint = arrayOf(XyPoint(x, y), XyPoint(x, y + GRID_STEP * scaleCount))
 
             drawColor = 0xFF_00_00_00.toInt()
@@ -589,9 +587,9 @@ class sdcTSState : sdcXyState() {
 
     private fun createNotchLine(objectId: Int, x: Int, y: Int) =
         XyElement(TYPE_STATE_AXIS, -getRandomInt(), objectId).apply {
-            itReadOnly = true
+            isReadOnly = true
 
-            itClosed = false
+            isClosed = false
             alPoint = arrayOf(XyPoint(x, y), XyPoint(x + GRID_STEP / 2, y))
 
             drawColor = 0xFF_00_00_00.toInt()
@@ -608,9 +606,9 @@ class sdcTSState : sdcXyState() {
 
     private fun createValueBar(objectId: Int, x1: Int, y1: Int, x2: Int, y2: Int, color: Int) =
         XyElement(TYPE_STATE_VALUE_BAR, -getRandomInt(), objectId).apply {
-            itReadOnly = true
+            isReadOnly = true
 
-            itClosed = true
+            isClosed = true
             alPoint = arrayOf(XyPoint(x1, y1), XyPoint(x2, y1), XyPoint(x2, y2), XyPoint(x1, y2))
 
             drawColor = color
@@ -621,7 +619,7 @@ class sdcTSState : sdcXyState() {
 
     private fun createArrow(objectId: Int, scale: Int, x: Int, y: Int, angle: Int, color: Int, toolTipText: String) =
         XyElement(TYPE_STATE_AXIS_POINTER, -getRandomInt(), objectId).apply {
-            itReadOnly = true
+            isReadOnly = true
             alPoint = arrayOf(XyPoint(x, y))
             this.toolTipText = toolTipText
 
@@ -655,8 +653,8 @@ class sdcTSState : sdcXyState() {
             limitHeight = (iCoreAppContainer.BASE_FONT_SIZE + 48) * scale,
             anchorX = XyElement.Anchor.CC,
             anchorY = XyElement.Anchor.CC,
-        ).onEach {
-            it.itReadOnly = false
+        ).onEach { element ->
+            element.isReadOnly = false
         }
 
     private fun createFilledText(
@@ -724,7 +722,7 @@ class sdcTSState : sdcXyState() {
         anchorY: XyElement.Anchor = XyElement.Anchor.LT,
     ) =
         XyElement(TYPE_STATE_TEXT_BACK, -getRandomInt(), objectId).apply {
-            this.itReadOnly = true
+            this.isReadOnly = true
 
             this.toolTipText = tooltip ?: ""
 
@@ -740,7 +738,7 @@ class sdcTSState : sdcXyState() {
                 else -> y - limitHeight / 2
             }
 
-            this.itClosed = true
+            this.isClosed = true
             this.alPoint = arrayOf(
                 XyPoint(newX - borderExpand, newY - borderExpand + borderShiftY),
                 XyPoint(newX + limitWidth + borderExpand, newY - borderExpand + borderShiftY),
@@ -770,7 +768,7 @@ class sdcTSState : sdcXyState() {
         anchorY: XyElement.Anchor = XyElement.Anchor.LT,
     ) =
         XyElement(TYPE_STATE_TEXT_TEXT, -getRandomInt(), objectId).apply {
-            this.itReadOnly = true
+            this.isReadOnly = true
             this.alPoint = arrayOf(XyPoint(x, y))
 
             this.text = text
@@ -778,7 +776,7 @@ class sdcTSState : sdcXyState() {
             this.textColor = textColor
 
             this.fontSize = iCoreAppContainer.BASE_FONT_SIZE + (incFontSize ?: 0)
-            this.itFontBold = isBold
+            this.isFontBold = isBold
 
             this.anchorX = anchorX
             this.anchorY = anchorY

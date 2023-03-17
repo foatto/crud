@@ -17,7 +17,7 @@ class AxisYData(
     var min: Double,
     var max: Double,
     val colorIndex: GraphicColorIndex,
-    val itReversedY: Boolean,
+    val isReversedY: Boolean,
 ) {
     //--- set on client-side
     var prec: Int = 0

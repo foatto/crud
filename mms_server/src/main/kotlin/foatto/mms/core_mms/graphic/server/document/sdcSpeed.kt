@@ -130,7 +130,7 @@ class sdcSpeed : sdcAbstractGraphic() {
                     alLegend = emptyArray(),
                     graphicHeight = -1.0,
                     alAxisYData = alAxisYData.toTypedArray(),
-                    alGDC = listOfNotNull(aZone, aDistance, aMaxLimit, aLine).filter { it.itNotEmpty() }.toTypedArray()
+                    alGDC = listOfNotNull(aZone, aDistance, aMaxLimit, aLine).filter { it.isNotEmpty() }.toTypedArray()
                 )
 
                 tmElement[ge.graphicTitle] = ge

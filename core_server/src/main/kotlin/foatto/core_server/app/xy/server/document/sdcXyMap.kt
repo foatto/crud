@@ -251,12 +251,12 @@ abstract class sdcXyMap : sdcXyAbstract() {
             }
 
             //--- отметим элементы "только для чтения/просмотра"
-            xyElement.itReadOnly = hsReadOnlyObject.contains(xyElement.objectId)
+            xyElement.isReadOnly = hsReadOnlyObject.contains(xyElement.objectId)
             //--- отметим актуальные (isStart) объекты
             if (xyElement.objectId != 0)
                 for (sod in sd.alStartObjectData)
                     if (sod.objectId == xyElement.objectId) {
-                        xyElement.itActual = sod.isStart
+                        xyElement.isActual = sod.isStart
                         break
                     }
         }
@@ -273,7 +273,7 @@ abstract class sdcXyMap : sdcXyAbstract() {
 
     private fun loadProperty(xyElement: XyElement, propName: String, propValue: String) {
         when (propName) {
-            XyProperty.IS_CLOSED -> xyElement.itClosed = propValue.toBoolean()
+            XyProperty.IS_CLOSED -> xyElement.isClosed = propValue.toBoolean()
             XyProperty.LINE_WIDTH -> xyElement.lineWidth = propValue.toInt()
             XyProperty.DRAW_COLOR -> xyElement.drawColor = propValue.toInt()
             XyProperty.FILL_COLOR -> xyElement.fillColor = propValue.toInt()
@@ -290,7 +290,7 @@ abstract class sdcXyMap : sdcXyAbstract() {
             XyProperty.TEXT -> xyElement.text = propValue
             XyProperty.TEXT_COLOR -> xyElement.textColor = propValue.toInt()
             XyProperty.FONT_SIZE -> xyElement.fontSize = propValue.toInt()
-            XyProperty.FONT_BOLD -> xyElement.itFontBold = propValue.toBoolean()
+            XyProperty.FONT_BOLD -> xyElement.isFontBold = propValue.toBoolean()
             XyProperty.ARROW_POS -> xyElement.arrowPos = XyElement.ArrowPos.valueOf(propValue)
             XyProperty.ARROW_LEN -> xyElement.arrowLen = propValue.toInt()
             XyProperty.ARROW_HEIGHT -> xyElement.arrowHeight = propValue.toInt()
@@ -339,7 +339,7 @@ abstract class sdcXyMap : sdcXyAbstract() {
                 if (alElement != null) {
                     val imageElement = XyElement(BITMAP, -getRandomInt(), 0)
                     //imageElement.init(timeZone)
-                    imageElement.itReadOnly = true
+                    imageElement.isReadOnly = true
                     imageElement.alPoint = arrayOf(XyPoint(x, y))
                     imageElement.imageWidth = bmRealSize
                     imageElement.imageHeight = bmRealSize

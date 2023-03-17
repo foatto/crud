@@ -42,7 +42,7 @@ class DataBinary(aColumn: iColumn) : DataAbstract(aColumn) {
             name = getFieldCellName(0)
             value = binaryValue.getHex(null, false).toString()
             column = 16
-            itPassword = false
+            isPassword = false
         }
 
     override fun getFieldSQLValue(index: Int): String = ""

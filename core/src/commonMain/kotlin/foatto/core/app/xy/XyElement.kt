@@ -27,7 +27,7 @@ class XyElement(
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     var alPoint = arrayOf<XyPoint>()
-    var itClosed = false
+    var isClosed = false
 
     var lineWidth = 0
 
@@ -43,8 +43,8 @@ class XyElement(
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     var toolTipText: String = ""
-    var itReadOnly: Boolean = false
-    var itActual: Boolean = false
+    var isReadOnly: Boolean = false
+    var isActual: Boolean = false
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -64,7 +64,7 @@ class XyElement(
     var text = ""
     var textColor = 0
     var fontSize = iCoreAppContainer.BASE_FONT_SIZE
-    var itFontBold = false
+    var isFontBold = false
 
     //--- text restrictions
     var limitWidth = 0

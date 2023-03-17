@@ -127,7 +127,7 @@ class MMSSpringApp : CoreSpringApp() {
             descr = "Карта",
             serverClassName = "foatto.mms.core_mms.xy.server.document.sdcMMSMap",
             clientType = XyDocumentClientType.MAP,
-            itScaleAlign = true,
+            isScaleAlign = true,
             alElementConfig = initMapElementConfig(MAP_MIN_SCALE, MAP_MAX_SCALE).toList().toTypedArray()
         )
 
@@ -136,7 +136,7 @@ class MMSSpringApp : CoreSpringApp() {
             descr = "Состояние объекта",
             serverClassName = "foatto.mms.core_mms.xy.server.document.sdcMMSState",
             clientType = XyDocumentClientType.STATE,
-            itScaleAlign = false,
+            isScaleAlign = false,
             alElementConfig = initStateElementConfig(1, 1024 * 1024 * 1024).toList().toTypedArray()
         )
     }
@@ -154,9 +154,9 @@ class MMSSpringApp : CoreSpringApp() {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
-            itRotatable = false,
-            itMoveable = false,
-            itEditablePoint = false
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
         )
 
         hmElementConfig[sdcMMSMap.TYPE_OBJECT_PARKING] = XyElementConfig(
@@ -166,9 +166,9 @@ class MMSSpringApp : CoreSpringApp() {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
-            itRotatable = false,
-            itMoveable = false,
-            itEditablePoint = false
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
         )
 
         hmElementConfig[sdcMMSMap.TYPE_OBJECT_OVER_SPEED] = XyElementConfig(
@@ -178,9 +178,9 @@ class MMSSpringApp : CoreSpringApp() {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
-            itRotatable = false,
-            itMoveable = false,
-            itEditablePoint = false
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
         )
 
         hmElementConfig[sdcMMSMap.TYPE_OBJECT_TRACE_INFO] = XyElementConfig(
@@ -190,9 +190,9 @@ class MMSSpringApp : CoreSpringApp() {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
-            itRotatable = false,
-            itMoveable = false,
-            itEditablePoint = false
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
         )
 
         hmElementConfig[sdcMMSMap.TYPE_OBJECT_INFO] = XyElementConfig(
@@ -202,9 +202,9 @@ class MMSSpringApp : CoreSpringApp() {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
-            itRotatable = false,
-            itMoveable = false,
-            itEditablePoint = false
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
         )
 
         //--- прикладные топо-объекты, добавляемые пользователем вручную на карте
@@ -216,9 +216,9 @@ class MMSSpringApp : CoreSpringApp() {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "Геозона",
-            itRotatable = false,
-            itMoveable = true,
-            itEditablePoint = true
+            isRotatable = false,
+            isMoveable = true,
+            isEditablePoint = true
         )
 
         //        hmElementConfig.put(  sdcMMSMap.TYPE_ZONE_LINEAR, new XyElementConfig(
@@ -240,9 +240,9 @@ class MMSSpringApp : CoreSpringApp() {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
-            itRotatable = false,
-            itMoveable = false,
-            itEditablePoint = false
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
         )
 
         hmElementConfig[sdcMMSState.TYPE_STATE_SUM_GROUP_TEXT_25D] = XyElementConfig(
@@ -252,9 +252,9 @@ class MMSSpringApp : CoreSpringApp() {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
-            itRotatable = false,
-            itMoveable = false,
-            itEditablePoint = false
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
         )
 
         hmElementConfig[sdcMMSState.TYPE_STATE_GROUP_BOX_25D] = XyElementConfig(
@@ -264,9 +264,9 @@ class MMSSpringApp : CoreSpringApp() {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
-            itRotatable = false,
-            itMoveable = false,
-            itEditablePoint = false
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
         )
 
         hmElementConfig[sdcMMSState.TYPE_STATE_GROUP_TEXT_25D] = XyElementConfig(
@@ -276,9 +276,9 @@ class MMSSpringApp : CoreSpringApp() {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
-            itRotatable = false,
-            itMoveable = false,
-            itEditablePoint = false
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
         )
 
         hmElementConfig[sdcMMSState.TYPE_STATE_LL_BOTTOM_25D] = XyElementConfig(
@@ -288,9 +288,9 @@ class MMSSpringApp : CoreSpringApp() {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
-            itRotatable = false,
-            itMoveable = false,
-            itEditablePoint = false
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
         )
 
         hmElementConfig[sdcMMSState.TYPE_STATE_LL_VOLUME_25D] = XyElementConfig(
@@ -300,9 +300,9 @@ class MMSSpringApp : CoreSpringApp() {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
-            itRotatable = false,
-            itMoveable = false,
-            itEditablePoint = false
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
         )
 
         hmElementConfig[sdcMMSState.TYPE_STATE_LL_LEVEL_25D] = XyElementConfig(
@@ -312,9 +312,9 @@ class MMSSpringApp : CoreSpringApp() {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
-            itRotatable = false,
-            itMoveable = false,
-            itEditablePoint = false
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
         )
 
         hmElementConfig[sdcMMSState.TYPE_STATE_LL_TANK_WALL_25D] = XyElementConfig(
@@ -324,9 +324,9 @@ class MMSSpringApp : CoreSpringApp() {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
-            itRotatable = false,
-            itMoveable = false,
-            itEditablePoint = false
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
         )
 
         hmElementConfig[sdcMMSState.TYPE_STATE_LL_TANK_TOP_25D] = XyElementConfig(
@@ -336,9 +336,9 @@ class MMSSpringApp : CoreSpringApp() {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
-            itRotatable = false,
-            itMoveable = false,
-            itEditablePoint = false
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
         )
 
         hmElementConfig[sdcMMSState.TYPE_STATE_LL_TEXT_25D] = XyElementConfig(
@@ -348,9 +348,9 @@ class MMSSpringApp : CoreSpringApp() {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
-            itRotatable = false,
-            itMoveable = false,
-            itEditablePoint = false
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
         )
 
         hmElementConfig[sdcMMSState.TYPE_STATE_W_FIGURE_25D] = XyElementConfig(
@@ -360,9 +360,9 @@ class MMSSpringApp : CoreSpringApp() {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
-            itRotatable = false,
-            itMoveable = false,
-            itEditablePoint = false
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
         )
 
         hmElementConfig[sdcMMSState.TYPE_STATE_W_TEXT_25D] = XyElementConfig(
@@ -372,9 +372,9 @@ class MMSSpringApp : CoreSpringApp() {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
-            itRotatable = false,
-            itMoveable = false,
-            itEditablePoint = false
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
         )
 
         hmElementConfig[sdcMMSState.TYPE_STATE_S_FIGURE_25D] = XyElementConfig(
@@ -384,9 +384,9 @@ class MMSSpringApp : CoreSpringApp() {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
-            itRotatable = false,
-            itMoveable = false,
-            itEditablePoint = false
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
         )
 
         hmElementConfig[sdcMMSState.TYPE_STATE_S_TEXT_25D] = XyElementConfig(
@@ -396,9 +396,9 @@ class MMSSpringApp : CoreSpringApp() {
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
-            itRotatable = false,
-            itMoveable = false,
-            itEditablePoint = false
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
         )
 
         return hmElementConfig

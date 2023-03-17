@@ -269,7 +269,7 @@ class sdcMMSMap : sdcXyMap() {
                     val alToolTip_ = mutableListOf<String>()
 
                     toolTipText = objectNameAndModel
-                    itReadOnly = true
+                    isReadOnly = true
                     lineWidth = 3
                     arrowPos = XyElement.ArrowPos.MIDDLE
                     //--- оптимальная длина стрелки = 3 ширинам стрелки ( допустим диапазон от 2 до 4 ширин стрелки )
@@ -301,7 +301,7 @@ class sdcMMSMap : sdcXyMap() {
 
                 //--- знак начала траектории
                 val objectTraceText1 = XyElement(TYPE_OBJECT_TRACE_INFO, -getRandomInt(), objectParamData.objectId).apply {
-                    itReadOnly = true
+                    isReadOnly = true
                     alPoint = arrayOf(gcd.alPointXY[0])
                     anchorX = XyElement.Anchor.LT
                     anchorY = XyElement.Anchor.LT
@@ -319,13 +319,13 @@ class sdcMMSMap : sdcXyMap() {
                     toolTipText = sbT1.toString()
                     textColor = 0xFF000000.toInt()
                     fontSize = iCoreAppContainer.BASE_FONT_SIZE
-                    itFontBold = true
+                    isFontBold = true
                 }
                 alElement.add(objectTraceText1)
 
                 //--- знак конца траектории
                 val objectTraceText2 = XyElement(TYPE_OBJECT_TRACE_INFO, -getRandomInt(), objectParamData.objectId).apply {
-                    itReadOnly = true
+                    isReadOnly = true
                     alPoint = arrayOf(gcd.alPointXY[gcd.alPointXY.size - 1])
                     anchorX = XyElement.Anchor.LT
                     anchorY = XyElement.Anchor.LT
@@ -344,7 +344,7 @@ class sdcMMSMap : sdcXyMap() {
                     toolTipText = sbT2.toString()
                     textColor = 0xFF000000.toInt()
                     fontSize = iCoreAppContainer.BASE_FONT_SIZE
-                    itFontBold = true
+                    isFontBold = true
                 }
                 alElement.add(objectTraceText2)
             }
@@ -373,7 +373,7 @@ class sdcMMSMap : sdcXyMap() {
                     sbToolTip.append(sLineSeparator).append(descr).append(": ").append(secondIntervalToString(wt))
 
                 val objectParking = XyElement(TYPE_OBJECT_PARKING, -getRandomInt(), objectParamData.objectId).apply {
-                    itReadOnly = true
+                    isReadOnly = true
                     alPoint = arrayOf(mpd.parkingCoord!!)
                     anchorX = XyElement.Anchor.LT
                     anchorY = XyElement.Anchor.LT
@@ -385,7 +385,7 @@ class sdcMMSMap : sdcXyMap() {
                     toolTipText = sbToolTip.toString()
                     textColor = 0xFF0000FF.toInt()
                     fontSize = iCoreAppContainer.BASE_FONT_SIZE
-                    itFontBold = true
+                    isFontBold = true
                 }
                 alElement.add(objectParking)
             }
@@ -399,7 +399,7 @@ class sdcMMSMap : sdcXyMap() {
                     .append(ospd.maxOverSpeedDiff).append(" км/ч")
 
                 val objectOverSpeed = XyElement(TYPE_OBJECT_OVER_SPEED, -getRandomInt(), objectParamData.objectId).apply {
-                    itReadOnly = true
+                    isReadOnly = true
                     alPoint = arrayOf(ospd.maxOverSpeedCoord!!)
                     anchorX = XyElement.Anchor.LT
                     anchorY = XyElement.Anchor.LT
@@ -411,7 +411,7 @@ class sdcMMSMap : sdcXyMap() {
                     toolTipText = sbToolTip.toString()
                     textColor = 0xFFFF0000.toInt()
                     fontSize = iCoreAppContainer.BASE_FONT_SIZE
-                    itFontBold = true
+                    isFontBold = true
                 }
                 alElement.add(objectOverSpeed)
             }
@@ -441,7 +441,7 @@ class sdcMMSMap : sdcXyMap() {
                 })
             }
             val objectInfo = XyElement(TYPE_OBJECT_INFO, -getRandomInt(), objectParamData.objectId)
-            objectInfo.itReadOnly = true
+            objectInfo.isReadOnly = true
             objectInfo.alPoint = arrayOf(objectState.pixPoint!!)
             objectInfo.toolTipText = sToolTip
 

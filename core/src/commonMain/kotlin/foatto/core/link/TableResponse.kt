@@ -306,9 +306,9 @@ class TableGridCellData(
 class TableRowData(
     val formURL: String = "",
     val rowURL: String = "",
-    val itRowURLInNewWindow: Boolean = false,
+    val isRowURLInNewWindow: Boolean = false,
     val gotoURL: String = "",
-    val itGotoURLInNewWindow: Boolean = false,
+    val isGotoURLInNewWindow: Boolean = false,
     val alPopupData: Array<TablePopupData> = arrayOf()
 )
 

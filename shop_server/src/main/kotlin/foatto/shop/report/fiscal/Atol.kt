@@ -30,12 +30,14 @@ class Atol : iFiscal {
                 price = price,
                 quantity = count,
                 amount = itemCost,
-                markingCode = markingCode?.let { AtolFiscalMarkingCode(
-                    mark = Base64.getEncoder().encodeToString(
-                        //--- used first 31 chars only
-                        it.substring(0, min(it.length, mCatalog.MARK_CODE_LEN + 1)).toByteArray()
+                markingCode = markingCode?.let {
+                    AtolFiscalMarkingCode(
+                        mark = Base64.getEncoder().encodeToString(
+                            //--- used first 31 chars only
+                            markingCode.substring(0, min(it.length, mCatalog.MARK_CODE_LEN + 1)).toByteArray()
+                        )
                     )
-                ) }
+                }
             )
         )
         sumCostOut += itemCost
@@ -52,18 +54,22 @@ class Atol : iFiscal {
     ) {
         val fiscalRequest = AtolWebFiscalRequest(
             uuid = UUID.randomUUID().toString(),
-            request = arrayOf(AtolJsonFiscalRequest(
-                type = "sell",
-                taxationType = fiscalTaxMode,
-                paymentsPlace = fiscalPlace,
-                items = alItem.toTypedArray(),
-                payments = arrayOf(AtolFiscalPayment(
-                    type = "cash",
-                    sum = sumCostOut,
-                )),
-                total = sumCostOut,
-            ),
-        ))
+            request = arrayOf(
+                AtolJsonFiscalRequest(
+                    type = "sell",
+                    taxationType = fiscalTaxMode,
+                    paymentsPlace = fiscalPlace,
+                    items = alItem.toTypedArray(),
+                    payments = arrayOf(
+                        AtolFiscalPayment(
+                            type = "cash",
+                            sum = sumCostOut,
+                        )
+                    ),
+                    total = sumCostOut,
+                ),
+            )
+        )
 
         if (AdvancedLogger.isDebugEnabled) {
             AdvancedLogger.debug(objectMapper.writeValueAsString(fiscalRequest))
@@ -168,7 +174,7 @@ private class AtolFiscalMarkingCode(
 )
 
 private class AtolWebFiscalCloseShiftRequest(
-    val uuid: String,                           
+    val uuid: String,
     val request: Array<AtolJsonFiscalCloseShift>  //  must be one item only!
 )
 
