@@ -17,12 +17,12 @@ import foatto.core.app.xy.geom.XyRect
 import foatto.core.link.XyElementConfig
 import foatto.core.link.XyResponse
 import foatto.core.util.getSplittedDouble
+import foatto.core_compose.model.MouseRectData
 import foatto.core_compose_web.AppControl
 import foatto.core_compose_web.Root
 import foatto.core_compose_web.control.composable.getRefreshSubToolbar
 import foatto.core_compose_web.control.composable.getToolBarSpan
 import foatto.core_compose_web.control.model.AddPointStatus
-import foatto.core_compose.model.MouseRectData
 import foatto.core_compose_web.control.model.XyElementData
 import foatto.core_compose_web.control.model.XyElementDataType
 import foatto.core_compose_web.link.invokeXy
@@ -456,12 +456,14 @@ class MapControl(
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     override fun onXyMouseOver(syntheticMouseEvent: SyntheticMouseEvent, xyElement: XyElementData) {
-        when (curMode.toString()) {
-            MapWorkMode.PAN.toString(),
-            MapWorkMode.ZOOM_BOX.toString(),
-            MapWorkMode.SELECT_FOR_ACTION.toString() -> {
+        when (curMode) {
+            MapWorkMode.PAN,
+            MapWorkMode.ZOOM_BOX,
+            MapWorkMode.SELECT_FOR_ACTION -> {
                 super.onXyMouseOver(syntheticMouseEvent, xyElement)
             }
+
+            else -> {}
         }
     }
 
@@ -542,8 +544,8 @@ class MapControl(
 
         //--- mouse dragged
         if (isMouseDown) {
-            when (curMode.toString()) {
-                MapWorkMode.PAN.toString() -> {
+            when (curMode) {
+                MapWorkMode.PAN -> {
                     val dx = mouseX - panPointOldX
                     val dy = mouseY - panPointOldY
 
@@ -562,20 +564,20 @@ class MapControl(
                     setXyTextOffset()
                 }
 
-                MapWorkMode.ZOOM_BOX.toString(), MapWorkMode.SELECT_FOR_ACTION.toString() -> {
+                MapWorkMode.ZOOM_BOX, MapWorkMode.SELECT_FOR_ACTION -> {
                     if (mouseRect.isVisible.value && mouseX >= 0 && mouseX <= xySvgWidth.value && mouseY >= 0 && mouseY <= xySvgHeight.value) {
                         mouseRect.x2.value = mouseX
                         mouseRect.y2.value = mouseY
                     }
                 }
 
-                MapWorkMode.ACTION_EDIT_POINT.toString() -> {
+                MapWorkMode.ACTION_EDIT_POINT -> {
                     if (editPointIndex != -1) {
                         editElement?.setPoint(editPointIndex, mouseX, mouseY)
                     }
                 }
 
-                MapWorkMode.ACTION_MOVE.toString() -> {
+                MapWorkMode.ACTION_MOVE -> {
                     moveEndPoint?.let { moveEndPoint ->
                         for (element in alMoveElement) {
                             element.moveRel(mouseX - moveEndPoint.x, mouseY - moveEndPoint.y)
@@ -589,8 +591,8 @@ class MapControl(
         }
         //--- mouse moved
         else {
-            when (curMode.toString()) {
-                MapWorkMode.DISTANCER.toString() -> {
+            when (curMode) {
+                MapWorkMode.DISTANCER -> {
                     alDistancerLine.lastOrNull()?.let { line ->
                         line.x2.value = mouseX
                         line.y2.value = mouseY
@@ -635,7 +637,7 @@ class MapControl(
                     }
                 }
 
-                MapWorkMode.ACTION_ADD.toString() -> {
+                MapWorkMode.ACTION_ADD -> {
                     addElement.value?.setLastPoint(mouseX, mouseY)
                 }
 
@@ -653,8 +655,8 @@ class MapControl(
             mouseY -= xySvgTop
         }
 
-        when (curMode.toString()) {
-            MapWorkMode.PAN.toString() -> {
+        when (curMode) {
+            MapWorkMode.PAN -> {
                 //--- перезагружаем карту, только если был горизонтальный сдвиг
                 if (abs(panDX) >= 1 || abs(panDY) >= 1) {
                     xyViewCoord.moveRel((-panDX * xyViewCoord.scale / scaleKoef).roundToInt(), (-panDY * xyViewCoord.scale / scaleKoef).roundToInt())
@@ -665,7 +667,7 @@ class MapControl(
                 panDX = 0
             }
 
-            MapWorkMode.ZOOM_BOX.toString() -> {
+            MapWorkMode.ZOOM_BOX -> {
                 if (mouseRect.isVisible.value) {
                     mouseRect.isVisible.value = false
 
@@ -695,7 +697,7 @@ class MapControl(
                 }
             }
 
-            MapWorkMode.DISTANCER.toString() -> {
+            MapWorkMode.DISTANCER -> {
                 //--- при первом клике заводим сумму, отключаем тулбар и включаем кнопку отмены линейки
                 val (newX, newY) = getGraphixAndXyTooltipCoord(xySvgLeft + mouseX, xySvgTop + mouseY)
                 if (alDistancerLine.isEmpty()) {
@@ -732,7 +734,7 @@ class MapControl(
                 )
             }
 
-            MapWorkMode.SELECT_FOR_ACTION.toString() -> {
+            MapWorkMode.SELECT_FOR_ACTION -> {
                 if (mouseRect.isVisible.value) {
                     mouseRect.isVisible.value = false
 
@@ -791,7 +793,7 @@ class MapControl(
                 }
             }
 
-            MapWorkMode.ACTION_ADD.toString() -> {
+            MapWorkMode.ACTION_ADD -> {
                 val actionAddPointStatus = addElement.value?.addPoint(mouseX, mouseY)
 
                 if (actionAddPointStatus == AddPointStatus.COMPLETED) {
@@ -801,14 +803,14 @@ class MapControl(
                 }
             }
 
-            MapWorkMode.ACTION_EDIT_POINT.toString() -> {
+            MapWorkMode.ACTION_EDIT_POINT -> {
                 if (editPointIndex != -1) {
                     editOnePoint()
                     editPointIndex = -1
                 }
             }
 
-            MapWorkMode.ACTION_MOVE.toString() -> {
+            MapWorkMode.ACTION_MOVE -> {
                 doMoveElements()
                 setMode(MapWorkMode.SELECT_FOR_ACTION)
             }
@@ -872,16 +874,16 @@ class MapControl(
     private fun mouseToReal(scaleKoef: Double, scale: Int, screenCoord: Int): Int = (screenCoord * scale / scaleKoef).roundToInt()
 
     private fun setMode(newMode: MapWorkMode) {
-        when (curMode.toString()) {
-            MapWorkMode.PAN.toString() -> {
+        when (curMode) {
+            MapWorkMode.PAN -> {
                 isPanButtonEnabled.value = true
             }
 
-            MapWorkMode.ZOOM_BOX.toString() -> {
+            MapWorkMode.ZOOM_BOX -> {
                 isZoomButtonEnabled.value = true
             }
 
-            MapWorkMode.DISTANCER.toString() -> {
+            MapWorkMode.DISTANCER -> {
                 isDistancerButtonEnabled.value = true
                 isActionCancelButtonVisible.value = false
                 alDistancerLine.clear()
@@ -891,7 +893,7 @@ class MapControl(
                 distancerSumTextVisible.value = false
             }
 
-            MapWorkMode.SELECT_FOR_ACTION.toString() -> {
+            MapWorkMode.SELECT_FOR_ACTION -> {
                 isSelectButtonEnabled.value = true
 
                 isAddElementButtonVisible.value = false
@@ -899,30 +901,30 @@ class MapControl(
                 isMoveElementsButtonVisible.value = false
             }
 
-            MapWorkMode.ACTION_ADD.toString(),
-            MapWorkMode.ACTION_EDIT_POINT.toString(),
-            MapWorkMode.ACTION_MOVE.toString() -> {
+            MapWorkMode.ACTION_ADD,
+            MapWorkMode.ACTION_EDIT_POINT,
+            MapWorkMode.ACTION_MOVE -> {
                 isToolBarsVisible.value = true
             }
         }
 
-        when (newMode.toString()) {
-            MapWorkMode.PAN.toString() -> {
+        when (newMode) {
+            MapWorkMode.PAN -> {
                 isPanButtonEnabled.value = false
                 xyDeselectAll()
             }
 
-            MapWorkMode.ZOOM_BOX.toString() -> {
+            MapWorkMode.ZOOM_BOX -> {
                 isZoomButtonEnabled.value = false
                 xyDeselectAll()
             }
 
-            MapWorkMode.DISTANCER.toString() -> {
+            MapWorkMode.DISTANCER -> {
                 isDistancerButtonEnabled.value = false
                 xyDeselectAll()
             }
 
-            MapWorkMode.SELECT_FOR_ACTION.toString() -> {
+            MapWorkMode.SELECT_FOR_ACTION -> {
                 isSelectButtonEnabled.value = false
                 isAddElementButtonVisible.value = true
                 isEditPointButtonVisible.value = false
@@ -931,26 +933,25 @@ class MapControl(
                 isActionCancelButtonVisible.value = false
             }
 
-            MapWorkMode.ACTION_ADD.toString() -> {
+            MapWorkMode.ACTION_ADD -> {
                 isToolBarsVisible.value = false
                 isActionOkButtonVisible.value = false
                 isActionCancelButtonVisible.value = true
             }
 
-            MapWorkMode.ACTION_EDIT_POINT.toString() -> {
+            MapWorkMode.ACTION_EDIT_POINT -> {
                 isToolBarsVisible.value = false
                 isActionOkButtonVisible.value = true
                 isActionCancelButtonVisible.value = true
             }
 
-            MapWorkMode.ACTION_MOVE.toString() -> {
+            MapWorkMode.ACTION_MOVE -> {
                 isToolBarsVisible.value = false
                 isActionOkButtonVisible.value = false
                 isActionCancelButtonVisible.value = true
             }
         }
-        //--- извращение для правильного сохранения enum в .data (а то в следующий раз в setMode не узнает)
-        curMode = MapWorkMode.valueOf(newMode.toString())
+        curMode = newMode
     }
 
     private fun zoomIn() {
@@ -1005,23 +1006,25 @@ class MapControl(
     }
 
     private fun actionOk() {
-        when (curMode.toString()) {
-            MapWorkMode.ACTION_ADD.toString() -> {
+        when (curMode) {
+            MapWorkMode.ACTION_ADD -> {
                 addElement.value?.doAddElement(root, this, xyResponse.documentConfig.name, xyResponse.startParamId, scaleKoef, xyViewCoord)
                 addElement.value = null
             }
 
-            MapWorkMode.ACTION_EDIT_POINT.toString() -> {
+            MapWorkMode.ACTION_EDIT_POINT -> {
                 editElement?.doEditElementPoint(root, this, xyResponse.documentConfig.name, xyResponse.startParamId, scaleKoef, xyViewCoord)
             }
+
+            else -> {}
         }
         //that().xyRefreshView( null, null, true ) - делается внути методов doAdd/doEdit/doMove по завершении операций
         setMode(MapWorkMode.SELECT_FOR_ACTION)
     }
 
     private fun actionCancel() {
-        when (curMode.toString()) {
-            MapWorkMode.DISTANCER.toString() -> {
+        when (curMode) {
+            MapWorkMode.DISTANCER -> {
                 //--- включить кнопки, но кнопку линейки выключить обратно
                 isDistancerButtonEnabled.value = false
                 alDistancerLine.clear()
@@ -1033,17 +1036,19 @@ class MapControl(
                 isToolBarsVisible.value = true
             }
 
-            MapWorkMode.ACTION_ADD.toString() -> {
+            MapWorkMode.ACTION_ADD -> {
                 addElement.value = null
                 xyRefreshView(null, true)
                 setMode(MapWorkMode.SELECT_FOR_ACTION)
             }
 
-            MapWorkMode.ACTION_EDIT_POINT.toString() -> {
+            MapWorkMode.ACTION_EDIT_POINT -> {
                 editElement = null
                 xyRefreshView(null, true)
                 setMode(MapWorkMode.SELECT_FOR_ACTION)
             }
+
+            else -> {}
         }
     }
 

@@ -181,8 +181,8 @@ abstract class AbstractXyControl(
         ) {
             for (alElement in alXyElement) {
                 for (element in alElement) {
-                    when (element.type.toString()) {
-                        XyElementDataType.CIRCLE.toString() -> {
+                    when (element.type) {
+                        XyElementDataType.CIRCLE -> {
                             Circle(
                                 cx = element.x,
                                 cy = element.y,
@@ -215,7 +215,7 @@ abstract class AbstractXyControl(
                             )
                         }
 
-                        XyElementDataType.ELLIPSE.toString() -> {
+                        XyElementDataType.ELLIPSE -> {
                             Ellipse(
                                 cx = element.x,
                                 cy = element.y,
@@ -249,7 +249,7 @@ abstract class AbstractXyControl(
                             )
                         }
 
-                        XyElementDataType.IMAGE.toString() -> {
+                        XyElementDataType.IMAGE -> {
                             Image(
                                 href = element.url,
                                 attrs = {
@@ -270,7 +270,7 @@ abstract class AbstractXyControl(
                             )
                         }
 
-                        XyElementDataType.LINE.toString() -> {
+                        XyElementDataType.LINE -> {
                             Line(
                                 x1 = element.x1,
                                 y1 = element.y1,
@@ -299,7 +299,7 @@ abstract class AbstractXyControl(
 
                         }
 
-                        XyElementDataType.PATH.toString() -> {
+                        XyElementDataType.PATH -> {
                             Path(
                                 d = element.strPoints!!,
                                 attrs = {
@@ -330,7 +330,7 @@ abstract class AbstractXyControl(
                             )
                         }
 
-                        XyElementDataType.POLYLINE.toString() -> {
+                        XyElementDataType.POLYLINE -> {
                             Polyline(
                                 points = element.arrPoints.value,
                                 attrs = {
@@ -361,7 +361,7 @@ abstract class AbstractXyControl(
                             )
                         }
 
-                        XyElementDataType.POLYGON.toString() -> {
+                        XyElementDataType.POLYGON -> {
                             Polygon(
                                 points = element.arrPoints.value,
                                 attrs = {
@@ -393,7 +393,7 @@ abstract class AbstractXyControl(
                             )
                         }
 
-                        XyElementDataType.RECT.toString() -> {
+                        XyElementDataType.RECT -> {
                             Rect(
                                 x = element.x,
                                 y = element.y,
@@ -429,7 +429,7 @@ abstract class AbstractXyControl(
                             )
                         }
 
-                        XyElementDataType.SVG_TEXT.toString() -> {
+                        XyElementDataType.SVG_TEXT -> {
                             SvgText(
                                 x = element.x,
                                 y = element.y,
@@ -472,6 +472,8 @@ abstract class AbstractXyControl(
                             )
                         }
 
+                        else -> {
+                        }
                     }
                 }
             }
@@ -481,7 +483,7 @@ abstract class AbstractXyControl(
 
         for (alElement in alXyElement) {
             for (element in alElement) {
-                if (element.type.toString() == XyElementDataType.HTML_TEXT.toString() && element.isVisible) {
+                if (element.type == XyElementDataType.HTML_TEXT && element.isVisible) {
                     Div(
                         attrs = {
                             style {
@@ -832,8 +834,8 @@ abstract class AbstractXyControl(
             getColorFromInt(element.fillColor)
         }
 
-        when (elementConfig.clientType.toString()) {
-            XyElementClientType.BITMAP.toString() -> {
+        when (elementConfig.clientType) {
+            XyElementClientType.BITMAP -> {
                 val p = element.alPoint.first()
 
                 if (element.imageName.isBlank()) {
@@ -870,7 +872,7 @@ abstract class AbstractXyControl(
                 }
             }
 
-            XyElementClientType.ICON.toString() -> {
+            XyElementClientType.ICON -> {
                 val p = element.alPoint.first()
 
                 alLayer.add(
@@ -890,16 +892,16 @@ abstract class AbstractXyControl(
                 )
             }
 
-            XyElementClientType.MARKER.toString() -> {
+            XyElementClientType.MARKER -> {
                 val p = element.alPoint.first()
                 val x = ((p.x - xyViewCoord.x1) / xyViewCoord.scale * scaleKoef).roundToInt()
                 val y = ((p.y - xyViewCoord.y1) / xyViewCoord.scale * scaleKoef).roundToInt()
                 val halfX = (element.markerSize * scaleKoef / 2).roundToInt()
                 val halfY = (element.markerSize * scaleKoef / 2).roundToInt()
 
-                when (element.markerType.toString()) {
+                when (element.markerType) {
 
-                    XyElement.MarkerType.ARROW.toString() -> {
+                    XyElement.MarkerType.ARROW -> {
                         val points = arrayOf(
                             x - halfX / 2, y,
                             x - halfX, y - halfY,
@@ -923,7 +925,7 @@ abstract class AbstractXyControl(
                         )
                     }
 
-                    XyElement.MarkerType.CIRCLE.toString() -> {
+                    XyElement.MarkerType.CIRCLE -> {
                         if (element.markerSize2 == 0 || element.markerSize == element.markerSize2) {
                             alLayer.add(
                                 XyElementData(
@@ -964,7 +966,7 @@ abstract class AbstractXyControl(
                         }
                     }
 
-                    XyElement.MarkerType.CROSS.toString() -> {
+                    XyElement.MarkerType.CROSS -> {
                         val path =
                             "M${x - halfX},${y - halfY}" +
                                 "L${x + halfX},${y + halfY}" +
@@ -987,7 +989,7 @@ abstract class AbstractXyControl(
                         )
                     }
 
-                    XyElement.MarkerType.DIAMOND.toString() -> {
+                    XyElement.MarkerType.DIAMOND -> {
                         val points = arrayOf(
                             x, y - halfY,
                             x + halfX, y,
@@ -1011,7 +1013,7 @@ abstract class AbstractXyControl(
                         )
                     }
 
-                    XyElement.MarkerType.PLUS.toString() -> {
+                    XyElement.MarkerType.PLUS -> {
                         val path =
                             "M$x,${y - halfY}" +
                                 "L$x,${y + halfY}" +
@@ -1034,7 +1036,7 @@ abstract class AbstractXyControl(
                         )
                     }
 
-                    XyElement.MarkerType.SQUARE.toString() -> {
+                    XyElement.MarkerType.SQUARE -> {
                         alLayer.add(
                             XyElementData(
                                 type = XyElementDataType.RECT,
@@ -1055,7 +1057,7 @@ abstract class AbstractXyControl(
                         )
                     }
 
-                    XyElement.MarkerType.TRIANGLE.toString() -> {
+                    XyElement.MarkerType.TRIANGLE -> {
                         val points = arrayOf(
                             x, y - halfY,
                             x + halfX, y + halfY,
@@ -1080,7 +1082,7 @@ abstract class AbstractXyControl(
                 }
             }
 
-            XyElementClientType.POLY.toString() -> {
+            XyElementClientType.POLY -> {
                 val points = mutableListOf<Int>()
                 element.alPoint.forEach {
                     val x = ((it.x - xyViewCoord.x1) / xyViewCoord.scale * scaleKoef).roundToInt()
@@ -1117,7 +1119,7 @@ abstract class AbstractXyControl(
                 )
             }
 
-            XyElementClientType.SVG_TEXT.toString() -> {
+            XyElementClientType.SVG_TEXT -> {
                 val p = element.alPoint.first()
 
                 val x = ((p.x - xyViewCoord.x1) / xyViewCoord.scale * scaleKoef).roundToInt()
@@ -1129,15 +1131,15 @@ abstract class AbstractXyControl(
                     getColorFromInt(element.textColor)
                 }
 
-                val hAnchor = when (element.anchorX.toString()) {
-                    XyElement.Anchor.LT.toString() -> "start"
-                    XyElement.Anchor.RB.toString() -> "end"
+                val hAnchor = when (element.anchorX) {
+                    XyElement.Anchor.LT -> "start"
+                    XyElement.Anchor.RB -> "end"
                     else -> "middle"
                 }
 
-                val vAlign = when (element.anchorY.toString()) {
-                    XyElement.Anchor.LT.toString() -> "hanging"
-                    XyElement.Anchor.RB.toString() -> "text-bottom"
+                val vAlign = when (element.anchorY) {
+                    XyElement.Anchor.LT -> "hanging"
+                    XyElement.Anchor.RB -> "text-bottom"
                     else -> "central"
                 }
 
@@ -1177,7 +1179,7 @@ abstract class AbstractXyControl(
                 )
             }
 
-            XyElementClientType.HTML_TEXT.toString() -> {
+            XyElementClientType.HTML_TEXT -> {
                 val p = element.alPoint.first()
 
                 var x = ((p.x - xyViewCoord.x1) / xyViewCoord.scale * scaleKoef).roundToInt()
@@ -1194,9 +1196,9 @@ abstract class AbstractXyControl(
 
                 //--- сбор неизменяемых val-переменных для передачи в лямбду
                 val textWidth = if (limitWidth > 0) {
-                    val dx = if (element.anchorX.toString() == XyElement.Anchor.LT.toString()) {
+                    val dx = if (element.anchorX == XyElement.Anchor.LT) {
                         0
-                    } else if (element.anchorX.toString() == XyElement.Anchor.CC.toString()) {
+                    } else if (element.anchorX == XyElement.Anchor.CC) {
                         limitWidth / 2
                     } else {
                         /*anchorX == ANCHOR_RB ?*/
@@ -1209,9 +1211,9 @@ abstract class AbstractXyControl(
                     null
                 }
                 val textHeight = if (limitHeight > 0) {
-                    val dy = if (element.anchorY.toString() == XyElement.Anchor.LT.toString()) {
+                    val dy = if (element.anchorY == XyElement.Anchor.LT) {
                         0
-                    } else if (element.anchorY.toString() == XyElement.Anchor.CC.toString()) {
+                    } else if (element.anchorY == XyElement.Anchor.CC) {
                         limitHeight / 2
                     } else {
                         /*anchorY == ANCHOR_RB ?*/
@@ -1239,14 +1241,14 @@ abstract class AbstractXyControl(
                 } else {
                     "normal"
                 }
-                val textAlign = when (element.alignX.toString()) {
-                    XyElement.Align.LT.toString() -> "left"
-                    XyElement.Align.RB.toString() -> "right"
+                val textAlign = when (element.alignX) {
+                    XyElement.Align.LT -> "left"
+                    XyElement.Align.RB -> "right"
                     else -> "center"
                 }
-                val verticalAlign = when (element.alignY.toString()) {
-                    XyElement.Align.LT.toString() -> "text-top"
-                    XyElement.Align.RB.toString() -> "text-bottom"
+                val verticalAlign = when (element.alignY) {
+                    XyElement.Align.LT -> "text-top"
+                    XyElement.Align.RB -> "text-bottom"
                     else -> "baseline"
                 }
                 val isPointerCursor = !element.isReadOnly
@@ -1302,7 +1304,7 @@ abstract class AbstractXyControl(
                 )
             }
 
-            XyElementClientType.TRACE.toString() -> {
+            XyElementClientType.TRACE -> {
                 for (i in 0 until element.alPoint.size - 1) {
                     val p1 = element.alPoint[i]
                     val p2 = element.alPoint[i + 1]
@@ -1325,7 +1327,7 @@ abstract class AbstractXyControl(
                 }
             }
 
-            XyElementClientType.ZONE.toString() -> {
+            XyElementClientType.ZONE -> {
                 val points = mutableListOf<Int>()
                 val alPoint = mutableListOf<XyPoint>()
                 element.alPoint.forEach {
@@ -1360,29 +1362,29 @@ abstract class AbstractXyControl(
     protected fun getXyEmptyElementData(elementConfig: XyElementConfig): XyElementData? {
         var result: XyElementData? = null
 
-        when (elementConfig.clientType.toString()) {
-            XyElementClientType.BITMAP.toString() -> {
+        when (elementConfig.clientType) {
+            XyElementClientType.BITMAP -> {
             }
 
-            XyElementClientType.ICON.toString() -> {
+            XyElementClientType.ICON -> {
             }
 
-            XyElementClientType.MARKER.toString() -> {
+            XyElementClientType.MARKER -> {
             }
 
-            XyElementClientType.POLY.toString() -> {
+            XyElementClientType.POLY -> {
             }
 
-            XyElementClientType.SVG_TEXT.toString() -> {
+            XyElementClientType.SVG_TEXT -> {
             }
 
-            XyElementClientType.HTML_TEXT.toString() -> {
+            XyElementClientType.HTML_TEXT -> {
             }
 
-            XyElementClientType.TRACE.toString() -> {
+            XyElementClientType.TRACE -> {
             }
 
-            XyElementClientType.ZONE.toString() -> {
+            XyElementClientType.ZONE -> {
                 result = XyElementData(
                     type = XyElementDataType.POLYGON,
                     elementId = -getRandomInt(),

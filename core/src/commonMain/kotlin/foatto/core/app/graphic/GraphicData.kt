@@ -17,7 +17,7 @@ class GraphicDataContainer(
     var alGLD: Array<GraphicLineData> = arrayOf()
     var alGTD: Array<GraphicTextData> = arrayOf()
 
-    fun isNotEmpty() = alGBD.isNotEmpty() || alGLD.isNotEmpty() || alGTD.isNotEmpty()
+    fun isNotEmpty(): Boolean = alGBD.isNotEmpty() || alGLD.isNotEmpty() || alGTD.isNotEmpty()
 }
 
 @Serializable

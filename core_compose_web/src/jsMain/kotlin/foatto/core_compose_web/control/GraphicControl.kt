@@ -916,12 +916,13 @@ class GraphicControl(
                 }
                 cge.alGDC.forEach { gdc ->
                     if (gdc.isReversedY) {
-                        when (gdc.type.toString()) {
-                            GraphicDataContainer.ElementType.LINE.toString() -> {
+                        when (gdc.type) {
+                            GraphicDataContainer.ElementType.LINE -> {
                                 gdc.alGLD.forEach { gld ->
                                     gld.y = -gld.y
                                 }
                             }
+                            else -> {}
                         }
                     }
                 }
@@ -1201,8 +1202,8 @@ class GraphicControl(
         for (cagdc in element.alGDC) {
             val axisYIndex = cagdc.axisYIndex
 
-            when (cagdc.type.toString()) {
-                GraphicDataContainer.ElementType.BACK.toString() -> {
+            when (cagdc.type) {
+                GraphicDataContainer.ElementType.BACK -> {
                     for (grd in cagdc.alGBD) {
                         val drawX1 = (svgBodyWidthDouble * (grd.x1 - t1) / (t2 - t1)).toInt()
                         val drawX2 = (svgBodyWidthDouble * (grd.x2 - t1) / (t2 - t1)).toInt()
@@ -1219,7 +1220,7 @@ class GraphicControl(
                     }
                 }
 
-                GraphicDataContainer.ElementType.LINE.toString() -> {
+                GraphicDataContainer.ElementType.LINE -> {
                     var prevDrawX = -1
                     var prevDrawY = -1.0
                     var prevDrawColorIndex: GraphicColorIndex? = null
@@ -1248,7 +1249,7 @@ class GraphicControl(
                     }
                 }
 
-                GraphicDataContainer.ElementType.TEXT.toString() -> {
+                GraphicDataContainer.ElementType.TEXT -> {
                     for (gtd in cagdc.alGTD) {
                         val drawX1 = grSvgBodyWidth.value * (gtd.textX1 - t1) / (t2 - t1)
                         val drawX2 = grSvgBodyWidth.value * (gtd.textX2 - t1) / (t2 - t1)
@@ -1953,7 +1954,7 @@ class GraphicControl(
             element.alGDC.map { gdc ->
                 gdc to element.alAxisYData[gdc.axisYIndex]
             }.filter { (gdc, _) ->
-                gdc.type.toString() == GraphicDataContainer.ElementType.LINE.toString()
+                gdc.type == GraphicDataContainer.ElementType.LINE
             }.forEach { (gdc, yData) ->
 
                 val index = gdc.alGLD.indexOfFirst { gld ->

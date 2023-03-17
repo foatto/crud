@@ -413,9 +413,9 @@ open class AppControl(
             invokeApp(appRequest) { appResponse: AppResponse ->
                 //--- из-за особенности (ошибки?) сравнения enum-значений, одно из которых берётся из десериализации json-объекта,
                 //--- используем сравнение .toString() значений
-                when (appResponse.code.toString()) {
+                when (appResponse.code) {
                     //--- если требуется вход - сохраним последний запрос
-                    ResponseCode.LOGON_NEED.toString() -> {
+                    ResponseCode.LOGON_NEED -> {
                         prevRequest = appRequest
 
                         //--- попробуем автологон
@@ -435,7 +435,7 @@ open class AppControl(
                         }
                     }
                     //--- если вход успешен - повторим последний запрос
-                    ResponseCode.LOGON_SUCCESS.toString(), ResponseCode.LOGON_SUCCESS_BUT_OLD.toString() -> {
+                    ResponseCode.LOGON_SUCCESS, ResponseCode.LOGON_SUCCESS_BUT_OLD -> {
 //                            if( appResponse.code == Code.LOGON_SUCCESS_BUT_OLD )
 //                                showWarning( "Система безопасности", "Срок действия пароля истек.\nПожалуйста, смените пароль." )
 //
@@ -463,11 +463,11 @@ open class AppControl(
                         call(prevRequest)
                     }
 
-                    ResponseCode.REDIRECT.toString() -> {
+                    ResponseCode.REDIRECT -> {
                         call(AppRequest(appResponse.redirect!!))
                     }
 
-                    ResponseCode.TABLE.toString() -> {
+                    ResponseCode.TABLE -> {
                         val tableControl = getTableControl(root, this, appRequest.action, appResponse.table!!, tabId)
                         curControl.value = tableControl
                         responseCode.value = appResponse.code
@@ -475,7 +475,7 @@ open class AppControl(
                         tableControl.start()
                     }
 
-                    ResponseCode.FORM.toString() -> {
+                    ResponseCode.FORM -> {
                         val formControl = FormControl(root, this, appResponse.form!!, tabId)
                         curControl.value = formControl
                         responseCode.value = appResponse.code
@@ -483,7 +483,7 @@ open class AppControl(
                         formControl.start()
                     }
 
-                    ResponseCode.GRAPHIC.toString() -> {
+                    ResponseCode.GRAPHIC -> {
                         val graphicControl = GraphicControl(root, this, appResponse.graphic!!, tabId)
                         curControl.value = graphicControl
                         responseCode.value = appResponse.code
@@ -491,11 +491,11 @@ open class AppControl(
                         graphicControl.start()
                     }
 
-                    ResponseCode.XY.toString() -> {
+                    ResponseCode.XY -> {
                         appResponse.xy?.let { xy ->
-                            val xyControl = when (xy.documentConfig.clientType.toString()) {
-                                XyDocumentClientType.MAP.toString() -> MapControl(root, this, xy, tabId)
-                                XyDocumentClientType.STATE.toString() -> StateControl(root, this, xy, tabId)
+                            val xyControl = when (xy.documentConfig.clientType) {
+                                XyDocumentClientType.MAP -> MapControl(root, this, xy, tabId)
+                                XyDocumentClientType.STATE -> StateControl(root, this, xy, tabId)
                                 else -> MapControl(root, this, xy, tabId)
                             }
                             curControl.value = xyControl
@@ -515,7 +515,7 @@ open class AppControl(
 //                //--- init работает совместно с read
 //                videoControl.init( appContainer, appLink, tab, this, vcstartParamId, vcStartTitle )
 //            }
-                    ResponseCode.COMPOSITE.toString() -> {
+                    ResponseCode.COMPOSITE -> {
                         val compositeControl = getCompositeControl(root, this, appResponse.composite!!, tabId)
                         curControl.value = compositeControl
                         responseCode.value = appResponse.code

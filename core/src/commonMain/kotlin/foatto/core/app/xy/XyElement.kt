@@ -88,20 +88,17 @@ class XyElement(
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    //--- use .toString() for Kotlin/JS implementation
-    fun calcAnchorXKoef() =
-        when (anchorX.toString()) {
-            Anchor.LT.toString() -> 0.0f
-            Anchor.CC.toString() -> 0.5f
-            Anchor.RB.toString() -> 1.0f
-            else -> 0.5f
+    fun calcAnchorXKoef(): Float =
+        when (anchorX) {
+            Anchor.LT -> 0.0f
+            Anchor.CC -> 0.5f
+            Anchor.RB -> 1.0f
         }
 
-    fun calcAnchorYKoef() =
-        when (anchorY.toString()) {
-            Anchor.LT.toString() -> 0.0f
-            Anchor.CC.toString() -> 0.5f
-            Anchor.RB.toString() -> 1.0f
-            else -> 0.5f
+    fun calcAnchorYKoef(): Float =
+        when (anchorY) {
+            Anchor.LT -> 0.0f
+            Anchor.CC -> 0.5f
+            Anchor.RB -> 1.0f
         }
 }

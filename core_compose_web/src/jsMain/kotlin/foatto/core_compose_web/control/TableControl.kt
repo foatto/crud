@@ -881,35 +881,35 @@ open class TableControl(
         var maxCol = tableResponse.arrColumnCaption.size
 
         for (tc in tableResponse.arrTableCell) {
-            val backColor = when (tc.backColorType.toString()) {
-                TableCellBackColorType.DEFINED.toString() -> getColorFromInt(tc.backColor)
-                TableCellBackColorType.GROUP_0.toString() -> colorTableGroupBack0
-                TableCellBackColorType.GROUP_1.toString() -> colorTableGroupBack1
+            val backColor = when (tc.backColorType) {
+                TableCellBackColorType.DEFINED -> getColorFromInt(tc.backColor)
+                TableCellBackColorType.GROUP_0 -> colorTableGroupBack0
+                TableCellBackColorType.GROUP_1 -> colorTableGroupBack1
                 else -> if (tc.dataRow % 2 == 0) {
                     colorTableRowBack0
                 } else {
                     colorTableRowBack1
                 }
             }
-            val textColor = when (tc.foreColorType.toString()) {
-                TableCellForeColorType.DEFINED.toString() -> getColorFromInt(tc.foreColor)
+            val textColor = when (tc.foreColorType) {
+                TableCellForeColorType.DEFINED -> getColorFromInt(tc.foreColor)
                 else -> COLOR_MAIN_TEXT
             }
-            val align = when (tc.cellType.toString()) {
-                TableCellType.BUTTON.toString() -> {
+            val align = when (tc.cellType) {
+                TableCellType.BUTTON -> {
                     JustifyContent.Center
                 }
 
-                TableCellType.CHECKBOX.toString() -> {
+                TableCellType.CHECKBOX -> {
                     JustifyContent.Center
                 }
                 //--- на самом деле нет других вариантов
-                //TableCellType.TEXT.toString() -> {
+                //TableCellType.TEXT -> {
                 else -> {
-                    when (tc.align.toString()) {
-                        TableCellAlign.LEFT.toString() -> JustifyContent.FlexStart
-                        TableCellAlign.CENTER.toString() -> JustifyContent.Center
-                        TableCellAlign.RIGHT.toString() -> JustifyContent.FlexEnd
+                    when (tc.align) {
+                        TableCellAlign.LEFT -> JustifyContent.FlexStart
+                        TableCellAlign.CENTER -> JustifyContent.Center
+                        TableCellAlign.RIGHT -> JustifyContent.FlexEnd
                         else -> JustifyContent.Center
                     }
                 }
@@ -936,8 +936,8 @@ open class TableControl(
             var cellStyleAdd: StyleScope.() -> Unit = {}
             var elementStyle: StyleScope.() -> Unit = {}
 
-            when (tc.cellType.toString()) {
-                TableCellType.CHECKBOX.toString() -> {
+            when (tc.cellType) {
+                TableCellType.CHECKBOX -> {
                     cellStyleAdd = {
                         display(DisplayStyle.Flex)
                         justifyContent(align)
@@ -953,7 +953,7 @@ open class TableControl(
                     }
                 }
 
-                TableCellType.TEXT.toString() -> {
+                TableCellType.TEXT -> {
                     val icon = hmTableIcon[tc.textCellData.icon] ?: ""
                     //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
                     val text = if (tc.textCellData.icon.isNotBlank() && icon.isBlank()) {
@@ -982,7 +982,7 @@ open class TableControl(
                     }
                 }
 
-                TableCellType.BUTTON.toString() -> {
+                TableCellType.BUTTON -> {
                     tc.arrButtonCellData.forEachIndexed { index, cellData ->
                         val icon = hmTableIcon[cellData.icon] ?: ""
                         //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
@@ -1021,7 +1021,7 @@ open class TableControl(
                     }
                 }
 
-                TableCellType.GRID.toString() -> {
+                TableCellType.GRID -> {
                     tc.arrGridCellData.forEachIndexed { rowIndex, cellRow ->
                         alGridCellData.add(mutableListOf())
 

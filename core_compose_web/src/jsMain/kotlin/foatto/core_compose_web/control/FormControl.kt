@@ -14,9 +14,9 @@ import foatto.core.link.FormData
 import foatto.core.link.FormPinMode
 import foatto.core.link.FormResponse
 import foatto.core.util.getRandomInt
+import foatto.core_compose.model.TitleData
 import foatto.core_compose_web.AppControl
 import foatto.core_compose_web.Root
-import foatto.core_compose.model.TitleData
 import foatto.core_compose_web.link.invokeUploadFormFile
 import foatto.core_compose_web.style.*
 import kotlinx.browser.document
@@ -704,27 +704,29 @@ class FormControl(
                 )
 
                 alGridData.add(formGridData)
-                when (formCell.cellType.toString()) {
-                    FormCellType.BOOLEAN.toString() -> {
+                when (formCell.cellType) {
+                    FormCellType.BOOLEAN -> {
                         hmFormCellMaster[formCell.booleanName] = gridCellId
                         hmFormCellVisible[gridCellId] = mutableListOf()
                         hmFormCellCaption[gridCellId] = mutableListOf()
                         alFormCellMasterPreAction.add(formGridData)
                     }
 
-                    FormCellType.COMBO.toString() -> {
+                    FormCellType.COMBO -> {
                         hmFormCellMaster[formCell.comboName] = gridCellId
                         hmFormCellVisible[gridCellId] = mutableListOf()
                         hmFormCellCaption[gridCellId] = mutableListOf()
                         alFormCellMasterPreAction.add(formGridData)
                     }
 
-                    FormCellType.RADIO.toString() -> {
+                    FormCellType.RADIO -> {
                         hmFormCellMaster[formCell.comboName] = gridCellId
                         hmFormCellVisible[gridCellId] = mutableListOf()
                         hmFormCellCaption[gridCellId] = mutableListOf()
                         alFormCellMasterPreAction.add(formGridData)
                     }
+
+                    else -> {}
                 }
 
                 gridCellId++
@@ -736,8 +738,8 @@ class FormControl(
             //--- обычная форма: начинаем новую строку
             if (formResponse.alFormColumn.isEmpty()) {
                 columnIndex = 0
-                if (formCell.formPinMode.toString() == FormPinMode.ON.toString() ||
-                    formCell.formPinMode.toString() == FormPinMode.AUTO.toString() && !formCell.isEditable && formCell.selectorSetURL.isEmpty()
+                if (formCell.formPinMode == FormPinMode.ON ||
+                    formCell.formPinMode == FormPinMode.AUTO && !formCell.isEditable && formCell.selectorSetURL.isEmpty()
                 ) {
                     rowIndex++
                 } else {
@@ -792,39 +794,41 @@ class FormControl(
             //--- проверка на изначальную пустоту поля-автоселектора
             //--- (по умолчанию оно заполнено, чтобы не запустить автоселектор на непроверяемых полях)
             var isEmptyFieldValue = false
-            when (formCell.cellType.toString()) {
-                FormCellType.STRING.toString(), FormCellType.INT.toString(), FormCellType.DOUBLE.toString() -> {
+            when (formCell.cellType) {
+                FormCellType.STRING, FormCellType.INT, FormCellType.DOUBLE -> {
                     isEmptyFieldValue = formCell.value.isEmpty()
                 }
 
-                FormCellType.TEXT.toString() -> {
+                FormCellType.TEXT -> {
                     isEmptyFieldValue = formCell.textValue.isEmpty()
                 }
 
-                FormCellType.BOOLEAN.toString() -> {
+                FormCellType.BOOLEAN -> {
                     hmFormCellMaster[formCell.booleanName] = gridCellId
                     hmFormCellVisible[gridCellId] = mutableListOf()
                     hmFormCellCaption[gridCellId] = mutableListOf()
                     alFormCellMasterPreAction.add(formGridData)
                 }
 
-                FormCellType.DATE.toString(), FormCellType.TIME.toString(), FormCellType.DATE_TIME.toString() -> {
+                FormCellType.DATE, FormCellType.TIME, FormCellType.DATE_TIME -> {
                     isEmptyFieldValue = formCell.alDateTimeField[0].second.isEmpty()
                 }
 
-                FormCellType.COMBO.toString() -> {
+                FormCellType.COMBO -> {
                     hmFormCellMaster[formCell.comboName] = gridCellId
                     hmFormCellVisible[gridCellId] = mutableListOf()
                     hmFormCellCaption[gridCellId] = mutableListOf()
                     alFormCellMasterPreAction.add(formGridData)
                 }
 
-                FormCellType.RADIO.toString() -> {
+                FormCellType.RADIO -> {
                     hmFormCellMaster[formCell.comboName] = gridCellId
                     hmFormCellVisible[gridCellId] = mutableListOf()
                     hmFormCellCaption[gridCellId] = mutableListOf()
                     alFormCellMasterPreAction.add(formGridData)
                 }
+
+                else -> {}
             }
             alSlaveId.add(gridCellId++)
 
@@ -1100,8 +1104,8 @@ class FormControl(
             {}
         }
 
-        val gridData = when (formCell.cellType.toString()) {
-            FormCellType.STRING.toString(), FormCellType.INT.toString(), FormCellType.DOUBLE.toString() -> {
+        val gridData = when (formCell.cellType) {
+            FormCellType.STRING, FormCellType.INT, FormCellType.DOUBLE -> {
                 FormGridData(
                     id = gridCellId,
                     cellType = FormCellTypeClient.STRING,
@@ -1116,7 +1120,7 @@ class FormControl(
                 )
             }
 
-            FormCellType.TEXT.toString() -> {
+            FormCellType.TEXT -> {
                 FormGridData(
                     id = gridCellId,
                     cellType = FormCellTypeClient.TEXT,
@@ -1131,7 +1135,7 @@ class FormControl(
                 )
             }
 
-            FormCellType.BOOLEAN.toString() -> {
+            FormCellType.BOOLEAN -> {
                 FormGridData(
                     id = gridCellId,
                     cellType = if (formCell.arrSwitchText.isEmpty()) {
@@ -1149,7 +1153,7 @@ class FormControl(
                 )
             }
 
-            FormCellType.DATE.toString(), FormCellType.TIME.toString(), FormCellType.DATE_TIME.toString() -> {
+            FormCellType.DATE, FormCellType.TIME, FormCellType.DATE_TIME -> {
                 FormGridData(
                     id = gridCellId,
                     cellType = when (formCell.cellType) {
@@ -1179,7 +1183,7 @@ class FormControl(
                 }
             }
 
-            FormCellType.COMBO.toString() -> {
+            FormCellType.COMBO -> {
                 FormGridData(
                     id = gridCellId,
                     cellType = FormCellTypeClient.COMBO,
@@ -1193,7 +1197,7 @@ class FormControl(
                 )
             }
 
-            FormCellType.RADIO.toString() -> {
+            FormCellType.RADIO -> {
                 FormGridData(
                     id = gridCellId,
                     cellType = FormCellTypeClient.RADIO,
@@ -1212,7 +1216,7 @@ class FormControl(
                 }
             }
 
-            FormCellType.FILE.toString() -> {
+            FormCellType.FILE -> {
                 FormGridData(
                     id = gridCellId,
                     cellType = FormCellTypeClient.FILE,
@@ -1224,7 +1228,7 @@ class FormControl(
                     alFileData = formCell.alFile.map { FormFileData(it.first, it.second, it.third) }.toMutableStateList(),
                 )
             }
-            //--- недогадливость (ошибка) парсера/компилятора из-за использования enum.toString() - на самом деле больше нет вариантов
+
             else -> {
                 println("ERROR: Call when-else-block in getFormGridData!")
                 FormGridData(
