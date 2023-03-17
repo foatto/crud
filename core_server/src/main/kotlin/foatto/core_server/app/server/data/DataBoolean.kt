@@ -35,10 +35,9 @@ class DataBoolean(aColumn: iColumn) : DataAbstract(aColumn) {
     }
 
     override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, dataRowNo: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell =
-        if(isShowEmptyTableCell) {
+        if (isShowEmptyTableCell) {
             TableCell(row, col, column.rowSpan, column.colSpan, dataRowNo)
-        }
-        else TableCell(
+        } else TableCell(
             aRow = row,
             aCol = col,
             aRowSpan = column.rowSpan,
@@ -55,10 +54,10 @@ class DataBoolean(aColumn: iColumn) : DataAbstract(aColumn) {
     override fun getFormCell(rootDirName: String, conn: CoreAdvancedConnection, isUseThousandsDivider: Boolean, decimalDivider: Char) = FormCell(
         aBooleanName = getFieldCellName(0),
         aBooleanValue = value,
-        aArrSwitch = cb.arrSwitchText,
+        aAlSwitch = cb.alSwitchText,
     )
 
-    override fun getFieldSQLValue(index: Int): String = if(value) {
+    override fun getFieldSQLValue(index: Int): String = if (value) {
         "1"
     } else {
         "0"
@@ -71,13 +70,12 @@ class DataBoolean(aColumn: iColumn) : DataAbstract(aColumn) {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     private fun validate(obj: Any?): Boolean {
-        if(obj == null) {
+        if (obj == null) {
             return false
         }
-        return if(obj is Number) {
+        return if (obj is Number) {
             obj.toInt() != 0
-        }
-        else {
+        } else {
             obj as? Boolean ?: false
         }
     }

@@ -5,14 +5,14 @@ import kotlinx.serialization.Serializable
 @Serializable
 class FormResponse(
     val tab: String,
-    val alHeader: Array<Pair<String, String>>,
+    val alHeader: List<Pair<String, String>>,
     //--- number of columns for GRID-form (> 0)
     //--- or display mode for normal form (== 0 or -1)
     //--- (in the desktop version, the narrow display mode is ignored - it is displayed as normal, because "reaching" a narrow screen on a computer / laptop is problematic)
     val columnCount: Int,
-    val alFormColumn: Array<String>,
-    val alFormCell: Array<FormCell>,
-    val alFormButton: Array<FormButton>
+    val alFormColumn: List<String>,
+    val alFormCell: List<FormCell>,
+    val alFormButton: List<FormButton>
 )
 
 @Serializable
@@ -28,7 +28,7 @@ class FormCell(val cellType: FormCellType) {
     var name = ""
     var value = ""
     var column = 0
-    var alComboString = arrayOf<String>()
+    var alComboString = listOf<String>()
 
     //--- TYPE_STRING
     var isPassword = false
@@ -42,10 +42,10 @@ class FormCell(val cellType: FormCellType) {
     //--- TYPE_BOOLEAN
     var booleanName = ""
     var booleanValue = false
-    var arrSwitchText = arrayOf<String>()
+    var alSwitchText = listOf<String>()
 
     //--- TYPE_DATE, TYPE_TIME, TYPE_DATE_TIME
-    var alDateTimeField = arrayOf<Pair<String, String>>()    // name, value
+    var alDateTimeField = listOf<Pair<String, String>>()    // name, value
 
     //--- TYPE_TIME, TYPE_DATE_TIME
     var withSecond = false
@@ -53,12 +53,12 @@ class FormCell(val cellType: FormCellType) {
     //--- TYPE_COMBO, TYPE_RADIO
     var comboName = ""
     var comboValue = 0
-    var alComboData = arrayOf<Pair<Int, String>>()         // value, descr
+    var alComboData = listOf<Pair<Int, String>>()         // value, descr
 
     //--- TYPE_FILE
     var fileName = ""
     var fileID = 0
-    var alFile = arrayOf<Triple<Int, String, String>>()             // id, url, text (which is actually just a filename)
+    var alFile = listOf<Triple<Int, String, String>>()             // id, url, text (which is actually just a filename)
 
     var selectorSetURL = ""
     var selectorClearURL = ""
@@ -70,17 +70,17 @@ class FormCell(val cellType: FormCellType) {
     var errorMessage = ""
 
     //--- values are set externally
-    var alVisible = arrayOf<Triple<String, Boolean, Array<Int>>>()  // name, state, set<value>
+    var alVisible = listOf<Triple<String, Boolean, Array<Int>>>()  // name, state, set<value>
 
     //--- values are set externally
-    var alCaption = arrayOf<Triple<String, String, Array<Int>>>()  // name, string, set<value>
+    var alCaption = listOf<Triple<String, String, Array<Int>>>()  // name, string, set<value>
 
 //-----------------------------------------------------------------------------------------------------
 
-    constructor(aBooleanName: String, aBooleanValue: Boolean, aArrSwitch: Array<String>) : this(FormCellType.BOOLEAN) {
+    constructor(aBooleanName: String, aBooleanValue: Boolean, aAlSwitch: List<String>) : this(FormCellType.BOOLEAN) {
         booleanName = aBooleanName
         booleanValue = aBooleanValue
-        arrSwitchText = aArrSwitch
+        alSwitchText = aAlSwitch
     }
 
 }

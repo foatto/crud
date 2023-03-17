@@ -55,12 +55,12 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         )
 
         return GraphicActionResponse(
-            arrIndexColor = hmIndexColor.toList().toTypedArray(),
-            arrElement = tmElement.toList().toTypedArray(),
-            arrVisibleElement = tmElementVisibleConfig.values.toTypedArray(),
-            arrLegend = SensorConfigState.alStateLegend.map { (color, descr) ->
+            hmIndexColor = hmIndexColor,
+            alElement = tmElement.toList(),
+            alVisibleElement = tmElementVisibleConfig.values.toList(),
+            alLegend = SensorConfigState.alStateLegend.map { (color, descr) ->
                 Triple(color, true, descr)
-            }.toTypedArray(),
+            },
         )
     }
 
@@ -112,7 +112,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                         color = SensorConfigState.hmStateInfo[asd.getState()]?.darkColor ?: SensorConfigState.COLOR_UNKNOWN_DARK
                     )
                 }
-                aBack.alGBD = alGBD.toTypedArray()
+                aBack.alGBD = alGBD
 
                 alGDC.add(aBack)
             }
@@ -234,10 +234,10 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
 
             tmElement[graphicTitle] = GraphicElement(
                 graphicTitle = graphicTitle,
-                alLegend = emptyArray(),
+                alLegend = emptyList(),
                 graphicHeight = -1.0,
-                alAxisYData = alAxisYData.toTypedArray(),
-                alGDC = alGDC.toTypedArray()
+                alAxisYData = alAxisYData,
+                alGDC = alGDC,
             )
         }
     }

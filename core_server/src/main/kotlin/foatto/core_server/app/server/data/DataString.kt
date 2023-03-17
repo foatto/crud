@@ -103,7 +103,7 @@ class DataString(aColumn: iColumn) : DataAbstract(aColumn) {
             fci.value = if (errorText == null) text else errorValue!!
             fci.column = cs.cols
             fci.isPassword = cs.isPassword
-            fci.alComboString = cs.alCombo.toTypedArray()
+            fci.alComboString = cs.alCombo
         } else {
             fci = FormCell(FormCellType.TEXT)
             fci.textName = getFieldCellName(0)

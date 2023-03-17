@@ -68,7 +68,7 @@ abstract class DataAbstractSelector(aColumn: iColumn, aFormCellType: FormCellTyp
             } else {
                 errorValue!!.toInt()
             }
-            alComboData = cas.alSelectorData.map { Pair(it.value, it.formDescr) }.toTypedArray()
+            alComboData = cas.alSelectorData.map { Pair(it.value, it.formDescr) }
         }
     }
 

@@ -18,12 +18,12 @@ import foatto.core.link.XyElementClientType
 import foatto.core.link.XyElementConfig
 import foatto.core.link.XyResponse
 import foatto.core.util.getRandomInt
+import foatto.core_compose.model.TitleData
 import foatto.core_compose_web.AppControl
 import foatto.core_compose_web.MENU_BAR_ID
 import foatto.core_compose_web.MENU_CLOSER_BUTTON_ID
 import foatto.core_compose_web.Root
 import foatto.core_compose_web.TOP_BAR_ID
-import foatto.core_compose.model.TitleData
 import foatto.core_compose_web.control.model.XyElementData
 import foatto.core_compose_web.control.model.XyElementDataType
 import foatto.core_compose_web.link.invokeXy
@@ -107,6 +107,9 @@ abstract class AbstractXyControl(
     protected val refreshInterval: MutableState<Int> = mutableStateOf(0)
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    protected val minXyScale: Int = xyResponse.documentConfig.hmElementConfig.minByOrNull { (_, value) -> value.scaleMin }!!.value.scaleMin
+    protected val maxXyScale: Int = xyResponse.documentConfig.hmElementConfig.maxByOrNull { (_, value) -> value.scaleMax }!!.value.scaleMax
 
     protected var xySvgLeft: Int = 0
     protected var xySvgTop: Int = 0
@@ -712,13 +715,13 @@ abstract class AbstractXyControl(
     }
 
     //--- проверка масштаба на минимальный/максимальный и на кратность степени двойки
-    protected fun checkXyScale(minScale: Int, maxScale: Int, isScaleAlign: Boolean, curScale: Int, newScale: Int, isAdaptive: Boolean): Int {
+    protected fun checkXyScale(isScaleAlign: Boolean, curScale: Int, newScale: Int, isAdaptive: Boolean): Int {
 
-        if (newScale < minScale) {
-            return minScale
+        if (newScale < minXyScale) {
+            return minXyScale
         }
-        if (newScale > maxScale) {
-            return maxScale
+        if (newScale > maxXyScale) {
+            return maxXyScale
         }
 
         //--- нужно ли выравнивание масштаба к степени двойки?
@@ -732,8 +735,8 @@ abstract class AbstractXyControl(
                 //--- если идёт процесс увеличения масштаба (удаление от пользователя),
                 //--- то поможем ему - округлим масштаб в бОльшую сторону
                 if (newScale >= curScale) {
-                    var scale = minScale
-                    while (scale <= maxScale) {
+                    var scale = minXyScale
+                    while (scale <= maxXyScale) {
                         if (newScale <= scale) {
                             return scale
                         }
@@ -743,8 +746,8 @@ abstract class AbstractXyControl(
                 //--- иначе (если идёт процесс уменьшения масштаба - приближение к пользователю),
                 //--- то поможем ему - округлим масштаб в меньшую сторону
                 else {
-                    var scale = maxScale
-                    while (scale >= minScale) {
+                    var scale = maxXyScale
+                    while (scale >= minXyScale) {
                         if (newScale >= scale) {
                             return scale
                         }
@@ -754,8 +757,8 @@ abstract class AbstractXyControl(
             }
             //--- обычный алгоритм - просто даёт больший или равный масштаб, чтобы всё гарантированно уместилось
             else {
-                var scale = minScale
-                while (scale <= maxScale) {
+                var scale = minXyScale
+                while (scale <= maxXyScale) {
                     if (newScale <= scale) {
                         return scale
                     }
@@ -791,7 +794,7 @@ abstract class AbstractXyControl(
             val arrViewBoxBody = getXyViewBoxBody()
             setXyViewBoxBody(arrayOf(0, 0, arrViewBoxBody[2], arrViewBoxBody[3]))
 
-            readXyElements(xyActionResponse.arrElement!!)
+            readXyElements(xyActionResponse.alElement)
 
             setXyTextOffset()
 
@@ -803,10 +806,10 @@ abstract class AbstractXyControl(
         }
     }
 
-    private fun readXyElements(arrElement: Array<XyElement>) {
+    private fun readXyElements(alElement: List<XyElement>) {
         val hmLayer = mutableMapOf<Int, MutableList<XyElementData>>()
-        arrElement.forEach { element ->
-            val elementConfig = xyResponse.documentConfig.alElementConfig.find { it.first == element.typeName }!!.second
+        alElement.forEach { element ->
+            val elementConfig = xyResponse.documentConfig.hmElementConfig[element.typeName]!!
             val alLayer = hmLayer.getOrPut(elementConfig.layer) { mutableListOf() }
 
             readXyElementData(elementConfig, element, alLayer)

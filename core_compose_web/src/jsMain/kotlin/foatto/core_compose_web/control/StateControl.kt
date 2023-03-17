@@ -161,7 +161,7 @@ class StateControl(
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     override fun start() {
-        XyServerActionButtonData.readXyServerActionButton(xyResponse.arrServerActionButton, alXyServerButton)
+        XyServerActionButtonData.readXyServerActionButton(xyResponse.alServerActionButton, alXyServerButton)
 
         doXyMounted(
             startExpandKoef = STATE_START_EXPAND_KOEF,
@@ -177,10 +177,8 @@ class StateControl(
             aView = aView,
             withWait = withWait,
             doAdditionalWork = { xyActionResponse: XyActionResponse ->
-                xyActionResponse.arrParams?.firstOrNull { pair ->
-                    pair.first == STATE_ALERT_MESSAGE
-                }?.let { pair ->
-                    stateAlertMessage.value = pair.second
+                xyActionResponse.hmParam[STATE_ALERT_MESSAGE]?.let { value ->
+                    stateAlertMessage.value = value
                     showStateAlert.value = true
                 }
             },

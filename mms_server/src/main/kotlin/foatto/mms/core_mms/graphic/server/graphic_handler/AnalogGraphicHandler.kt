@@ -33,7 +33,7 @@ open class AnalogGraphicHandler : iGraphicHandler {
             alGLD = alGLD.toMutableList().apply {
                 add(GraphicLineData(begTime, sca.minLimit, GraphicColorIndex.LINE_LIMIT))
                 add(GraphicLineData(endTime, sca.minLimit, GraphicColorIndex.LINE_LIMIT))
-            }.toTypedArray()
+            }
         }
     }
 
@@ -42,7 +42,7 @@ open class AnalogGraphicHandler : iGraphicHandler {
             alGLD = alGLD.toMutableList().apply {
                 add(GraphicLineData(begTime, sca.maxLimit, GraphicColorIndex.LINE_LIMIT))
                 add(GraphicLineData(endTime, sca.maxLimit, GraphicColorIndex.LINE_LIMIT))
-            }.toTypedArray()
+            }
         }
     }
 

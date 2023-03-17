@@ -13,9 +13,9 @@ class GraphicDataContainer(
     @Serializable
     enum class ElementType { BACK, LINE, TEXT }
 
-    var alGBD: Array<GraphicBackData> = arrayOf()
-    var alGLD: Array<GraphicLineData> = arrayOf()
-    var alGTD: Array<GraphicTextData> = arrayOf()
+    var alGBD: List<GraphicBackData> = listOf()
+    var alGLD: List<GraphicLineData> = listOf()
+    var alGTD: List<GraphicTextData> = listOf()
 
     fun isNotEmpty(): Boolean = alGBD.isNotEmpty() || alGLD.isNotEmpty() || alGTD.isNotEmpty()
 }

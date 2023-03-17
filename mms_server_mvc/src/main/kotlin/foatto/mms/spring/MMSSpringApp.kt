@@ -128,7 +128,7 @@ class MMSSpringApp : CoreSpringApp() {
             serverClassName = "foatto.mms.core_mms.xy.server.document.sdcMMSMap",
             clientType = XyDocumentClientType.MAP,
             isScaleAlign = true,
-            alElementConfig = initMapElementConfig(MAP_MIN_SCALE, MAP_MAX_SCALE).toList().toTypedArray()
+            hmElementConfig = initMapElementConfig(MAP_MIN_SCALE, MAP_MAX_SCALE)
         )
 
         hmXyDocumentConfig["mms_state"] = XyDocumentConfig(
@@ -137,7 +137,7 @@ class MMSSpringApp : CoreSpringApp() {
             serverClassName = "foatto.mms.core_mms.xy.server.document.sdcMMSState",
             clientType = XyDocumentClientType.STATE,
             isScaleAlign = false,
-            alElementConfig = initStateElementConfig(1, 1024 * 1024 * 1024).toList().toTypedArray()
+            hmElementConfig = initStateElementConfig(1, 1024 * 1024 * 1024)
         )
     }
 

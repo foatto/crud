@@ -613,8 +613,8 @@ open class TableControl(
                                 } else {
                                     border(width = 0.px)
                                 }
-                                width(getStyleTablePageButtonWidth(tableResponse.arrPageButton.size))
-                                fontSize(getStyleTablePageButtonFontSize(tableResponse.arrPageButton.size))
+                                width(getStyleTablePageButtonWidth(tableResponse.alPageButton.size))
+                                fontSize(getStyleTablePageButtonFontSize(tableResponse.alPageButton.size))
                                 padding(styleIconButtonPadding)
                                 setMargins(arrStyleCommonMargin)
                                 cursor("pointer")
@@ -707,7 +707,7 @@ open class TableControl(
 
         //--- загрузка заголовка таблицы/формы
         alTitleData.clear()
-        for ((url, text) in tableResponse.arrHeader) {
+        for ((url, text) in tableResponse.alHeader) {
             tabToolTip += (
                 if (tabToolTip.isEmpty()) {
                     ""
@@ -724,7 +724,7 @@ open class TableControl(
 
     private fun readAddButtons() {
         alAddButton.clear()
-        for (aab in tableResponse.arrAddActionButton) {
+        for (aab in tableResponse.alAddActionButton) {
             val icon = hmTableIcon[aab.icon] ?: ""
             //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
             val tooltip = if (aab.icon.isNotBlank() && icon.isBlank()) {
@@ -745,7 +745,7 @@ open class TableControl(
     private fun readServerButtons() {
         alServerButton.clear()
 
-        for (sab in tableResponse.arrServerActionButton) {
+        for (sab in tableResponse.alServerActionButton) {
             val icon = hmTableIcon[sab.icon] ?: ""
             //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
             val tooltip = if (sab.icon.isNotBlank() && icon.isBlank()) {
@@ -767,7 +767,7 @@ open class TableControl(
 
     private fun readClientButtons() {
         alClientButton.clear()
-        for (cab in tableResponse.arrClientActionButton) {
+        for (cab in tableResponse.alClientActionButton) {
             val icon = hmTableIcon[cab.icon] ?: ""
             //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
             val tooltip = if (cab.icon.isNotBlank() && icon.isBlank()) {
@@ -780,7 +780,7 @@ open class TableControl(
                     tooltip = tooltip,
                     icon = icon,
                     action = cab.action,
-                    params = cab.params.toList(),
+                    params = cab.alParam.toList(),
                     isForWideScreenOnly = cab.isForWideScreenOnly,
                 )
             )
@@ -794,7 +794,7 @@ open class TableControl(
 
         var isEmptyPassed = false
         //--- вывести новую разметку страниц
-        for ((url, text) in tableResponse.arrPageButton) {
+        for ((url, text) in tableResponse.alPageButton) {
 
             alPageButton.add(PageButton(url, text))
 
@@ -814,7 +814,7 @@ open class TableControl(
     private fun readTable() {
         alGridData.clear()
         //--- заголовки столбцов таблицы
-        for ((index, value) in tableResponse.arrColumnCaption.withIndex()) {
+        for ((index, value) in tableResponse.alColumnCaption.withIndex()) {
             val url = value.first
             val text = value.second
             val captionCell = TableGridData(
@@ -878,9 +878,9 @@ open class TableControl(
 
         val startRow = 1
         var maxRow = 0
-        var maxCol = tableResponse.arrColumnCaption.size
+        var maxCol = tableResponse.alColumnCaption.size
 
-        for (tc in tableResponse.arrTableCell) {
+        for (tc in tableResponse.alTableCell) {
             val backColor = when (tc.backColorType) {
                 TableCellBackColorType.DEFINED -> getColorFromInt(tc.backColor)
                 TableCellBackColorType.GROUP_0 -> colorTableGroupBack0
@@ -983,7 +983,7 @@ open class TableControl(
                 }
 
                 TableCellType.BUTTON -> {
-                    tc.arrButtonCellData.forEachIndexed { index, cellData ->
+                    tc.alButtonCellData.forEachIndexed { index, cellData ->
                         val icon = hmTableIcon[cellData.icon] ?: ""
                         //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
                         val text = if (cellData.icon.isNotBlank() && icon.isBlank()) {
@@ -1012,17 +1012,17 @@ open class TableControl(
                             )
                         )
                     }
-                    if (tc.arrButtonCellData.isNotEmpty()) {
+                    if (tc.alButtonCellData.isNotEmpty()) {
                         cellStyleAdd = {
                             display(DisplayStyle.Grid)
-                            gridTemplateRows("repeat(${tc.arrButtonCellData.size},auto)")
+                            gridTemplateRows("repeat(${tc.alButtonCellData.size},auto)")
                             gridTemplateColumns("repeat(1,auto)")
                         }
                     }
                 }
 
                 TableCellType.GRID -> {
-                    tc.arrGridCellData.forEachIndexed { rowIndex, cellRow ->
+                    tc.alGridCellData.forEachIndexed { rowIndex, cellRow ->
                         alGridCellData.add(mutableListOf())
 
                         cellRow.forEachIndexed { colIndex, cellData ->
@@ -1058,11 +1058,11 @@ open class TableControl(
                             )
                         }
                     }
-                    if (tc.arrGridCellData.isNotEmpty()) {
+                    if (tc.alGridCellData.isNotEmpty()) {
                         cellStyleAdd = {
                             display(DisplayStyle.Grid)
-                            gridTemplateRows("repeat(${tc.arrGridCellData.size},auto)")
-                            gridTemplateColumns("repeat(${tc.arrGridCellData.first().size},auto)")
+                            gridTemplateRows("repeat(${tc.alGridCellData.size},auto)")
+                            gridTemplateColumns("repeat(${tc.alGridCellData.first().size},auto)")
                         }
                     }
                 }
@@ -1092,7 +1092,7 @@ open class TableControl(
         gridMaxCol.value = maxCol
 
         alRowData.clear()
-        alRowData.addAll(tableResponse.arrTableRowData)
+        alRowData.addAll(tableResponse.alTableRowData)
     }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1238,12 +1238,12 @@ open class TableControl(
         call(url, inNewWindow)
     }
 
-    private fun convertPopupMenuDataClient(arrMenuDataClient: Array<TablePopupData>) {
+    private fun convertPopupMenuDataClient(alMenuDataClient: List<TablePopupData>) {
         val alCurPopupData = mutableListOf<MenuDataClient>()
 
         var i = 0
-        while (i < arrMenuDataClient.size) {
-            val MenuDataClient = arrMenuDataClient[i]
+        while (i < alMenuDataClient.size) {
+            val MenuDataClient = alMenuDataClient[i]
 
             if (MenuDataClient.group.isEmpty()) {
                 alCurPopupData.add(
@@ -1259,8 +1259,8 @@ open class TableControl(
                 val groupName = MenuDataClient.group
 
                 val alPopupSubMenuDataClient = mutableListOf<MenuDataClient>()
-                while (i < arrMenuDataClient.size) {
-                    val subMenuDataClient = arrMenuDataClient[i]
+                while (i < alMenuDataClient.size) {
+                    val subMenuDataClient = alMenuDataClient[i]
                     if (subMenuDataClient.group.isEmpty() || subMenuDataClient.group != groupName) {
                         break
                     }

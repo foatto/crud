@@ -850,13 +850,13 @@ class GraphicControl(
             }
 
             alElement.clear()
-            alElement.addAll(graphicActionResponse.arrElement)
+            alElement.addAll(graphicActionResponse.alElement)
 
             //--- пары element-descr -> element-key, отсортированные по element-descr для определения ключа,
             //--- по которому будет управляться видимость графиков
             alGraphicVisibleData.clear()
             alGraphicVisibleData.addAll(
-                graphicActionResponse.arrVisibleElement.map { (first, second, third) ->
+                graphicActionResponse.alVisibleElement.map { (first, second, third) ->
                     GraphicVisibleData(
                         descr = first,
                         name = second,
@@ -865,11 +865,11 @@ class GraphicControl(
                 }
             )
 
-            val hmIndexColor = graphicActionResponse.arrIndexColor.associate { (colorIndex, intColor) ->
+            val hmIndexColor = graphicActionResponse.hmIndexColor.map { (colorIndex, intColor) ->
                 colorIndex.toString() to getColorFromInt(intColor)
-            }
+            }.toMap()
             alGrLegend.clear()
-            alGrLegend.addAll(graphicActionResponse.arrLegend.map { (color, isBack, text) ->
+            alGrLegend.addAll(graphicActionResponse.alLegend.map { (color, isBack, text) ->
                 LegendData(
                     text = text,
                     style = {

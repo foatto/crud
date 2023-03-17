@@ -292,17 +292,17 @@ class sdcMMSMap : sdcXyMap() {
                     //--- последняя точка добавляется без траекторной информации
                     alPoint_.add(gcd.alPointXY[gcd.alPointXY.size - 1])
 
-                    alPoint = alPoint_.toTypedArray()
-                    alDrawColor = alDrawColor_.toTypedArray()
-                    alFillColor = alFillColor_.toTypedArray()
-                    alToolTip = alToolTip_.toTypedArray()
+                    alPoint = alPoint_
+                    alDrawColor = alDrawColor_
+                    alFillColor = alFillColor_
+                    alToolTip = alToolTip_
                 }
                 alElement.add(objectTrace)
 
                 //--- знак начала траектории
                 val objectTraceText1 = XyElement(TYPE_OBJECT_TRACE_INFO, -getRandomInt(), objectParamData.objectId).apply {
                     isReadOnly = true
-                    alPoint = arrayOf(gcd.alPointXY[0])
+                    alPoint = listOf(gcd.alPointXY[0])
                     anchorX = XyElement.Anchor.LT
                     anchorY = XyElement.Anchor.LT
                     fillColor = 0xFFFFFFFF.toInt()
@@ -326,7 +326,7 @@ class sdcMMSMap : sdcXyMap() {
                 //--- знак конца траектории
                 val objectTraceText2 = XyElement(TYPE_OBJECT_TRACE_INFO, -getRandomInt(), objectParamData.objectId).apply {
                     isReadOnly = true
-                    alPoint = arrayOf(gcd.alPointXY[gcd.alPointXY.size - 1])
+                    alPoint = listOf(gcd.alPointXY[gcd.alPointXY.size - 1])
                     anchorX = XyElement.Anchor.LT
                     anchorY = XyElement.Anchor.LT
                     fillColor = 0xFFFFFFFF.toInt()
@@ -374,7 +374,7 @@ class sdcMMSMap : sdcXyMap() {
 
                 val objectParking = XyElement(TYPE_OBJECT_PARKING, -getRandomInt(), objectParamData.objectId).apply {
                     isReadOnly = true
-                    alPoint = arrayOf(mpd.parkingCoord!!)
+                    alPoint = listOf(mpd.parkingCoord!!)
                     anchorX = XyElement.Anchor.LT
                     anchorY = XyElement.Anchor.LT
                     fillColor = 0xFFFFFFFF.toInt()
@@ -400,7 +400,7 @@ class sdcMMSMap : sdcXyMap() {
 
                 val objectOverSpeed = XyElement(TYPE_OBJECT_OVER_SPEED, -getRandomInt(), objectParamData.objectId).apply {
                     isReadOnly = true
-                    alPoint = arrayOf(ospd.maxOverSpeedCoord!!)
+                    alPoint = listOf(ospd.maxOverSpeedCoord!!)
                     anchorX = XyElement.Anchor.LT
                     anchorY = XyElement.Anchor.LT
                     fillColor = 0xFFFFFFFF.toInt()
@@ -442,7 +442,7 @@ class sdcMMSMap : sdcXyMap() {
             }
             val objectInfo = XyElement(TYPE_OBJECT_INFO, -getRandomInt(), objectParamData.objectId)
             objectInfo.isReadOnly = true
-            objectInfo.alPoint = arrayOf(objectState.pixPoint!!)
+            objectInfo.alPoint = listOf(objectState.pixPoint!!)
             objectInfo.toolTipText = sToolTip
 
             objectInfo.markerType =

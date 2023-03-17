@@ -141,7 +141,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
 //                }
 //            }
 
-            aText.alGTD = alGTD.toTypedArray()
+            aText.alGTD = alGTD
         }
 
         fun checkSensorError(
@@ -256,10 +256,10 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         )
 
         return GraphicActionResponse(
-            arrIndexColor = hmIndexColor.toList().toTypedArray(),
-            arrElement = tmElement.toList().toTypedArray(),
-            arrVisibleElement = tmElementVisibleConfig.values.toTypedArray(),
-            arrLegend = emptyArray(),
+            hmIndexColor = hmIndexColor,
+            alElement = tmElement.toList(),
+            alVisibleElement = tmElementVisibleConfig.values.toList(),
+            alLegend = emptyList(),
         )
     }
 
@@ -290,7 +290,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         alGraphicHandler: List<AnalogGraphicHandler>,
         tmElement: SortedMap<String, GraphicElement>,
         tmElementVisibleConfig: SortedMap<String, Triple<String, String, Boolean>>,
-        alLegend: Array<Triple<Int, Boolean, String>> = emptyArray(),
+        alLegend: List<Triple<Int, Boolean, String>> = emptyList(),
     ) {
         val graphicVisibilityKey = "$UP_GRAPHIC_VISIBLE${objectConfig.objectId}_${alSca.first().portNum}"
         val isGraphicVisible = userConfig.getUserProperty(graphicVisibilityKey)?.toBooleanStrictOrNull() ?: true
@@ -397,7 +397,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                             }
                         }
                     }
-                    aText.alGTD = alGTD.toTypedArray()
+                    aText.alGTD = alGTD
                 }
 
                 //--- общие нештатные ситуации показываем после работы оборудования,
@@ -444,8 +444,8 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                 graphicTitle = graphicTitle,
                 alLegend = alLegend,
                 graphicHeight = -1.0,
-                alAxisYData = alAxisYData.toTypedArray(),
-                alGDC = alGDC.toTypedArray()
+                alAxisYData = alAxisYData,
+                alGDC = alGDC,
             )
         }
     }
@@ -571,7 +571,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                 }] ?: 0
             )
         }
-        aBack.alGBD = alGBD.toTypedArray()
+        aBack.alGBD = alGBD
     }
 
 }

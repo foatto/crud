@@ -148,7 +148,7 @@ class ShopAppController : CoreAppController(), iShopApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDocument, "shop_doc_all", true)
 
         if (alMenuDocument.size > 4) {
-            alMenu.add(MenuData("", "Накладные", alMenuDocument.toTypedArray()))
+            alMenu.add(MenuData("", "Накладные", alMenuDocument))
         }
 
         //--- Журналы --------------------------------------------------------------------------------------------------------
@@ -160,7 +160,7 @@ class ShopAppController : CoreAppController(), iShopApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuJournal, "shop_work_hour", true)
 
         if (alMenuJournal.size > 0) {
-            alMenu.add(MenuData("", "Журналы", alMenuJournal.toTypedArray()))
+            alMenu.add(MenuData("", "Журналы", alMenuJournal))
         }
 
         //--- Отчёты --------------------------------------------------------------------------------------------------------
@@ -191,7 +191,7 @@ class ShopAppController : CoreAppController(), iShopApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuReport, "shop_report_work_hour", false)
 
         if (alMenuReport.size > 4) {
-            alMenu.add(MenuData("", "Отчёты", alMenuReport.toTypedArray()))
+            alMenu.add(MenuData("", "Отчёты", alMenuReport))
         }
 
         //--- Справочники --------------------------------------------------------------------------------------------------------
@@ -210,7 +210,7 @@ class ShopAppController : CoreAppController(), iShopApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDir, "shop_price_out", true)
 
         if (alMenuDir.size > 1) {
-            alMenu.add(MenuData("", "Справочники", alMenuDir.toTypedArray()))
+            alMenu.add(MenuData("", "Справочники", alMenuDir))
         }
 
         //--- Касса --------------------------------------------------------------------------------------------------------
@@ -220,7 +220,7 @@ class ShopAppController : CoreAppController(), iShopApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuFiscal, "shop_fiscal_shift_close", false)
 
         if (alMenuFiscal.size > 0) {
-            alMenu.add(MenuData("", "Касса", alMenuFiscal.toTypedArray()))
+            alMenu.add(MenuData("", "Касса", alMenuFiscal))
         }
 
         //--- Система --------------------------------------------------------------------------------------------------------
@@ -242,7 +242,7 @@ class ShopAppController : CoreAppController(), iShopApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuSystem, "system_log_user", true)
 
         if (alMenuSystem.size > 2) {
-            alMenu.add(MenuData("", "Система", alMenuSystem.toTypedArray()))
+            alMenu.add(MenuData("", "Система", alMenuSystem))
         }
 
         //----------------------------------------------------------------------------------------------------------------------

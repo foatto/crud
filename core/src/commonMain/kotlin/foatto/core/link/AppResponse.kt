@@ -16,11 +16,9 @@ class AppResponse(
 
     var currentUserName = ""
 
-    //--- temporarily use Array of Pair instead of Map, because there is no way to deserialize Map in Kotlin / JS (and List is deserialized to Array)
-    var hmUserProperty: Array<Pair<String, String>>? = null
-//    var hmUserProperty: Map<String,String>? = null
+    var hmUserProperty: Map<String, String>? = null
 
-    var arrMenuData: Array<MenuData>? = null
+    var alMenuData: List<MenuData>? = null
 }
 
 enum class ResponseCode {
@@ -49,7 +47,7 @@ enum class ResponseCode {
 class MenuData(
     val url: String,
     val text: String,
-    val arrSubMenu: Array<MenuData>? = null,
+    val alSubMenu: List<MenuData>? = null,
 )
 
 @Serializable

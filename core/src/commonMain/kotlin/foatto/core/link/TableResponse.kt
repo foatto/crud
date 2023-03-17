@@ -5,18 +5,18 @@ import kotlinx.serialization.Serializable
 @Serializable
 class TableResponse(
     val tab: String,
-    val arrHeader: Array<Pair<String, String>>,
+    val alHeader: List<Pair<String, String>>,
     val selectorCancelURL: String,
     val findURL: String,
     val findText: String,
-    val arrAddActionButton: Array<AddActionButton>,
-    val arrServerActionButton: Array<ServerActionButton>,
-    val arrClientActionButton: Array<ClientActionButton>,
-    val arrColumnCaption: Array<Pair<String, String>>,
-    val arrTableCell: Array<TableCell>,
-    val arrTableRowData: Array<TableRowData>,
+    val alAddActionButton: List<AddActionButton>,
+    val alServerActionButton: List<ServerActionButton>,
+    val alClientActionButton: List<ClientActionButton>,
+    val alColumnCaption: List<Pair<String, String>>,
+    val alTableCell: List<TableCell>,
+    val alTableRowData: List<TableRowData>,
     val selectedRow: Int,
-    val arrPageButton: Array<Pair<String, String>>
+    val alPageButton: List<Pair<String, String>>
 )
 
 @Serializable
@@ -43,7 +43,7 @@ class ClientActionButton(
     val tooltip: String,
     val icon: String,
     val action: String,
-    val params: Array<Pair<String, String>>,
+    val alParam: List<Pair<String, String>>,
     val isForWideScreenOnly: Boolean,
 )
 
@@ -83,10 +83,10 @@ class TableCell(val row: Int, val col: Int) {
     var textCellData = TableTextCellData()
 
     //--- data for BUTTON
-    var arrButtonCellData = arrayOf<TableButtonCellData>()
+    var alButtonCellData = listOf<TableButtonCellData>()
 
     //--- data for GRID
-    var arrGridCellData: Array<Array<TableGridCellData>> = arrayOf()
+    var alGridCellData: MutableList<List<TableGridCellData>> = mutableListOf()
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -214,7 +214,7 @@ class TableCell(val row: Int, val col: Int) {
         aUrl: String = "",
         aInNewWindow: Boolean = false
     ) {
-        arrButtonCellData = arrButtonCellData.toMutableList().apply {
+        alButtonCellData = alButtonCellData.toMutableList().apply {
             add(
                 TableButtonCellData(
                     icon = aIcon,
@@ -224,7 +224,7 @@ class TableCell(val row: Int, val col: Int) {
                     inNewWindow = aInNewWindow
                 )
             )
-        }.toTypedArray()
+        }
     }
 
     //--- add a cell of GRID
@@ -235,11 +235,11 @@ class TableCell(val row: Int, val col: Int) {
         aNewRow: Boolean = false,
     ) {
         if (aNewRow) {
-            arrGridCellData = arrGridCellData.toMutableList().apply {
-                add(arrayOf())
-            }.toTypedArray()
+            alGridCellData = alGridCellData.toMutableList().apply {
+                add(listOf())
+            }
         }
-        arrGridCellData[arrGridCellData.lastIndex] = arrGridCellData[arrGridCellData.lastIndex].toMutableList().apply {
+        alGridCellData[alGridCellData.lastIndex] = alGridCellData[alGridCellData.lastIndex].toMutableList().apply {
             add(
                 TableGridCellData(
                     icon = aIcon,
@@ -247,7 +247,7 @@ class TableCell(val row: Int, val col: Int) {
                     text = aText,
                 )
             )
-        }.toTypedArray()
+        }
     }
 
 }
@@ -309,7 +309,7 @@ class TableRowData(
     val isRowURLInNewWindow: Boolean = false,
     val gotoURL: String = "",
     val isGotoURLInNewWindow: Boolean = false,
-    val alPopupData: Array<TablePopupData> = arrayOf()
+    val alPopupData: List<TablePopupData> = listOf()
 )
 
 @Serializable

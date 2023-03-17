@@ -90,7 +90,7 @@ class TSAppController : CoreAppController(), iTSApplication {
                     startParamId = compositeStartData.xyStartDataId,
                     shortTitle = shortTitle,
                     fullTitle = fullTitle,
-                    arrServerActionButton = compositeStartData.alServerActionButton.toTypedArray(),
+                    alServerActionButton = compositeStartData.alServerActionButton,
                 ),
                 graphicResponse = GraphicResponse(
                     documentTypeName = "ts_graphic_dsltt",
@@ -121,7 +121,7 @@ class TSAppController : CoreAppController(), iTSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGeneral, "ts_object", true)
 
         if (alMenuGeneral.size > 0) {
-            alMenu.add(MenuData("", "Учёт", alMenuGeneral.toTypedArray()))
+            alMenu.add(MenuData("", "Учёт", alMenuGeneral))
         }
 
         //--- Контроль --------------------------------------------------------------------------------------------------------
@@ -132,7 +132,7 @@ class TSAppController : CoreAppController(), iTSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuControl, "ts_show_state", false)
 
         if (alMenuControl.size > 0) {
-            alMenu.add(MenuData("", "Контроль", alMenuControl.toTypedArray()))
+            alMenu.add(MenuData("", "Контроль", alMenuControl))
         }
 
         //--- Графики --------------------------------------------------------------------------------------------------------
@@ -147,7 +147,7 @@ class TSAppController : CoreAppController(), iTSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "ts_graphic_temperature_out", false)
 
         if (alMenuGraphic.size > 0) {
-            alMenu.add(MenuData("", "Графики", alMenuGraphic.toTypedArray()))
+            alMenu.add(MenuData("", "Графики", alMenuGraphic))
         }
 
         //--- Устройства ------------------------------------------------------------------------------------------------------
@@ -163,7 +163,7 @@ class TSAppController : CoreAppController(), iTSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDevice, "ts_log_ds_uds", true)
 
         if (alMenuDevice.size > 1) {
-            alMenu.add(MenuData("", "Приборы", alMenuDevice.toTypedArray()))
+            alMenu.add(MenuData("", "Приборы", alMenuDevice))
         }
 
         //--- Справочники --------------------------------------------------------------------------------------------------------
@@ -174,7 +174,7 @@ class TSAppController : CoreAppController(), iTSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDir, "ts_user", true)
 
         if (alMenuDir.size > 0) {
-            alMenu.add(MenuData("", "Справочники", alMenuDir.toTypedArray()))
+            alMenu.add(MenuData("", "Справочники", alMenuDir))
         }
 
         //--- Система --------------------------------------------------------------------------------------------------------
@@ -200,7 +200,7 @@ class TSAppController : CoreAppController(), iTSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuSystem, "system_log_user", true)
 
         if (alMenuSystem.size > 3) {
-            alMenu.add(MenuData("", "Система", alMenuSystem.toTypedArray()))
+            alMenu.add(MenuData("", "Система", alMenuSystem))
         }
 
         //----------------------------------------------------------------------------------------------------------------------

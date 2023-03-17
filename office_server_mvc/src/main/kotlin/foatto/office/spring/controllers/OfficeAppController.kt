@@ -57,7 +57,7 @@ class OfficeAppController : CoreAppController() {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuTask, "office_task_in_archive", true)
 
         if (alMenuTask.size > 1) {
-            alMenu.add(MenuData("", "Поручения", alMenuTask.toTypedArray()))
+            alMenu.add(MenuData("", "Поручения", alMenuTask))
         }
 
         //--- напоминания -------------------------------------------------------------------------------------------------------
@@ -89,7 +89,7 @@ class OfficeAppController : CoreAppController() {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuReminder, "office_reminder_archive", true)
 
         if (alMenuReminder.size > 3) {
-            alMenu.add(MenuData("", "Напоминания", alMenuReminder.toTypedArray()))
+            alMenu.add(MenuData("", "Напоминания", alMenuReminder))
         }
 
 ////--- Сопровождение клиентов -------------------------------------------------------------------------------------------
@@ -149,7 +149,7 @@ class OfficeAppController : CoreAppController() {
 //        addMenu( hmAliasConfig, hmAliasPerm, alMenuReport, "office_report_client_work_state", false )
 
         if (alMenuReport.size > 0) {
-            alMenu.add(MenuData("", "Отчёты", alMenuReport.toTypedArray()))
+            alMenu.add(MenuData("", "Отчёты", alMenuReport))
         }
 
         //--- Справочники --------------------------------------------------------------------------------------------------------
@@ -161,7 +161,7 @@ class OfficeAppController : CoreAppController() {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDir, "office_city", true)
 
         if (alMenuDir.size > 0) {
-            alMenu.add(MenuData("", "Справочники", alMenuDir.toTypedArray()))
+            alMenu.add(MenuData("", "Справочники", alMenuDir))
         }
 
         //--- Система --------------------------------------------------------------------------------------------------------
@@ -187,7 +187,7 @@ class OfficeAppController : CoreAppController() {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuSystem, "system_log_user", true)
 
         if (alMenuSystem.size > 3) {
-            alMenu.add(MenuData("", "Система", alMenuSystem.toTypedArray()))
+            alMenu.add(MenuData("", "Система", alMenuSystem))
         }
 
         //----------------------------------------------------------------------------------------------------------------------

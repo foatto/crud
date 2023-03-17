@@ -213,8 +213,7 @@ class sdcTSState : sdcXyState() {
         if (curState == SensorConfigState.STATE_STOPPED_BY_SERVER) {
             //!!! предусмотреть кастомизацию сообщение в зависимости от типа объекта/устройства
             hmParams[STATE_ALERT_MESSAGE] = "Работа УДС-Техно остановлена.\nТребуется выезд на скважину для перезагрузки станции."
-        }
-        else if (curState == SensorConfigState.STATE_BLOCKED_BY_SERVER) {
+        } else if (curState == SensorConfigState.STATE_BLOCKED_BY_SERVER) {
             //!!! предусмотреть кастомизацию сообщение в зависимости от типа объекта/устройства
             hmParams[STATE_ALERT_MESSAGE] = "Работа УДС-Техно заблокирована."
         }
@@ -579,7 +578,7 @@ class sdcTSState : sdcXyState() {
             isReadOnly = true
 
             isClosed = false
-            alPoint = arrayOf(XyPoint(x, y), XyPoint(x, y + GRID_STEP * scaleCount))
+            alPoint = listOf(XyPoint(x, y), XyPoint(x, y + GRID_STEP * scaleCount))
 
             drawColor = 0xFF_00_00_00.toInt()
             lineWidth = 1
@@ -590,7 +589,7 @@ class sdcTSState : sdcXyState() {
             isReadOnly = true
 
             isClosed = false
-            alPoint = arrayOf(XyPoint(x, y), XyPoint(x + GRID_STEP / 2, y))
+            alPoint = listOf(XyPoint(x, y), XyPoint(x + GRID_STEP / 2, y))
 
             drawColor = 0xFF_00_00_00.toInt()
             lineWidth = 1
@@ -609,7 +608,7 @@ class sdcTSState : sdcXyState() {
             isReadOnly = true
 
             isClosed = true
-            alPoint = arrayOf(XyPoint(x1, y1), XyPoint(x2, y1), XyPoint(x2, y2), XyPoint(x1, y2))
+            alPoint = listOf(XyPoint(x1, y1), XyPoint(x2, y1), XyPoint(x2, y2), XyPoint(x1, y2))
 
             drawColor = color
             fillColor = color
@@ -620,7 +619,7 @@ class sdcTSState : sdcXyState() {
     private fun createArrow(objectId: Int, scale: Int, x: Int, y: Int, angle: Int, color: Int, toolTipText: String) =
         XyElement(TYPE_STATE_AXIS_POINTER, -getRandomInt(), objectId).apply {
             isReadOnly = true
-            alPoint = arrayOf(XyPoint(x, y))
+            alPoint = listOf(XyPoint(x, y))
             this.toolTipText = toolTipText
 
             markerType = XyElement.MarkerType.ARROW
@@ -739,7 +738,7 @@ class sdcTSState : sdcXyState() {
             }
 
             this.isClosed = true
-            this.alPoint = arrayOf(
+            this.alPoint = listOf(
                 XyPoint(newX - borderExpand, newY - borderExpand + borderShiftY),
                 XyPoint(newX + limitWidth + borderExpand, newY - borderExpand + borderShiftY),
                 XyPoint(newX + limitWidth + borderExpand, newY + limitHeight + borderExpand + borderShiftY),
@@ -769,7 +768,7 @@ class sdcTSState : sdcXyState() {
     ) =
         XyElement(TYPE_STATE_TEXT_TEXT, -getRandomInt(), objectId).apply {
             this.isReadOnly = true
-            this.alPoint = arrayOf(XyPoint(x, y))
+            this.alPoint = listOf(XyPoint(x, y))
 
             this.text = text
             this.toolTipText = tooltip ?: ""

@@ -939,7 +939,7 @@ class FormControl(
         }
     }
 
-    private fun getGridFormTopBottomCaptions(alFormColumn: Array<String>, aRowIndex: Int, aGridCellId: Int, alGridData: MutableList<FormGridData>): Int {
+    private fun getGridFormTopBottomCaptions(alFormColumn: List<String>, aRowIndex: Int, aGridCellId: Int, alGridData: MutableList<FormGridData>): Int {
         var rowIndex = aRowIndex
         var gridCellId = aGridCellId
         //--- верхние/нижние заголовки столбцов GRID-формы
@@ -1138,7 +1138,7 @@ class FormControl(
             FormCellType.BOOLEAN -> {
                 FormGridData(
                     id = gridCellId,
-                    cellType = if (formCell.arrSwitchText.isEmpty()) {
+                    cellType = if (formCell.alSwitchText.isEmpty()) {
                         FormCellTypeClient.CHECKBOX
                     } else {
                         FormCellTypeClient.SWITCH
@@ -1149,7 +1149,7 @@ class FormControl(
                     error = formCell.errorMessage,
                     aBool = formCell.booleanValue,
                     isReadOnly = !formCell.isEditable,
-                    alSwitchText = formCell.arrSwitchText.toList(),
+                    alSwitchText = formCell.alSwitchText.toList(),
                 )
             }
 

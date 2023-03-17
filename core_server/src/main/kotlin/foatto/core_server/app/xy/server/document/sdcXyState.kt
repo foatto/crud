@@ -18,20 +18,20 @@ abstract class sdcXyState : sdcXyAbstract() {
         val alObjectParamData = parseObjectParam(false, sd, hsReadOnlyObject)
 
         val alElement = mutableListOf<XyElement>()
-        val alParams = mutableMapOf<String, String>()
+        val hmParam = mutableMapOf<String, String>()
         //--- загрузка динамических объектов
         for (objectParamData in alObjectParamData) {
             loadDynamicElements(
                 scale = xyActionRequest.viewCoord!!.scale,
                 objectParamData = objectParamData,
                 alElement = alElement,
-                hmParams = alParams,
+                hmParams = hmParam,
             )
         }
 
         return XyActionResponse(
-            arrElement = alElement.toTypedArray(),
-            arrParams = alParams.toList().toTypedArray(),
+            alElement = alElement,
+            hmParam = hmParam,
         )
     }
 

@@ -82,9 +82,9 @@ class DataFile(
         fci.fileID = fileId
 
         val alFileStoreData = application.getFileList(conn, fileId)
-        fci.alFile = alFileStoreData.map { fsd ->
-            Triple(fsd.first, fsd.second, fsd.second.substringAfterLast('/'))
-        }.toTypedArray()
+        fci.alFile = alFileStoreData.map { (first, second) ->
+            Triple(first, second, second.substringAfterLast('/'))
+        }
         return fci
     }
 

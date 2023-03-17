@@ -14,7 +14,7 @@ class DataDouble(aColumn: iColumn) : DataAbstract(aColumn) {
 
     private val cd = column as ColumnDouble
 
-    var doubleValue = 0.0
+    var doubleValue: Double = 0.0
 
     private var errorValue: String? = null
 
@@ -76,8 +76,7 @@ class DataDouble(aColumn: iColumn) : DataAbstract(aColumn) {
     override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, dataRowNo: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell =
         if (isShowEmptyTableCell) {
             TableCell(row, col, column.rowSpan, column.colSpan, dataRowNo)
-        }
-        else TableCell(
+        } else TableCell(
             aRow = row,
             aCol = col,
             aRowSpan = column.rowSpan,
@@ -105,7 +104,7 @@ class DataDouble(aColumn: iColumn) : DataAbstract(aColumn) {
                 errorValue!!
             }
             column = cd.cols
-            alComboString = cd.alCombo.toTypedArray()
+            alComboString = cd.alCombo
         }
 
     override fun getFieldSQLValue(index: Int): String = "$doubleValue"

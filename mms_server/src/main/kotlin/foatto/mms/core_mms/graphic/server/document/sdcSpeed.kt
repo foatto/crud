@@ -127,10 +127,10 @@ class sdcSpeed : sdcAbstractGraphic() {
 
                 val ge = GraphicElement(
                     graphicTitle = oc.scg!!.descr,
-                    alLegend = emptyArray(),
+                    alLegend = emptyList(),
                     graphicHeight = -1.0,
-                    alAxisYData = alAxisYData.toTypedArray(),
-                    alGDC = listOfNotNull(aZone, aDistance, aMaxLimit, aLine).filter { it.isNotEmpty() }.toTypedArray()
+                    alAxisYData = alAxisYData,
+                    alGDC = listOfNotNull(aZone, aDistance, aMaxLimit, aLine).filter { it.isNotEmpty() }
                 )
 
                 tmElement[ge.graphicTitle] = ge
@@ -140,10 +140,10 @@ class sdcSpeed : sdcAbstractGraphic() {
         //AdvancedLogger.debug(  "------------------------------------------------------------"  );
 
         return GraphicActionResponse(
-            arrIndexColor = hmIndexColor.toList().toTypedArray(),
-            arrElement = tmElement.toList().toTypedArray(),
-            arrVisibleElement = tmElementVisibleConfig.values.toTypedArray(),
-            arrLegend = emptyArray(),
+            hmIndexColor = hmIndexColor,
+            alElement = tmElement.toList(),
+            alVisibleElement = tmElementVisibleConfig.values.toList(),
+            alLegend = emptyList(),
         )
 
     }
@@ -264,13 +264,13 @@ class sdcSpeed : sdcAbstractGraphic() {
                     toolTip = zoneName
                 )
             }
-            aZone.alGTD = alZoneGTD.toTypedArray()
+            aZone.alGTD = alZoneGTD
         }
 
-        aMaxLimit.alGLD = aMaxLimitGLD.toTypedArray()
-        aSpeed.alGLD = aSpeedGLD.toTypedArray()
+        aMaxLimit.alGLD = aMaxLimitGLD
+        aSpeed.alGLD = aSpeedGLD
         aDistance?.apply {
-            alGLD = aDistanceGLD.toTypedArray()
+            alGLD = aDistanceGLD
         }
     }
 }

@@ -132,11 +132,11 @@ class cSensorCalibration : cStandart() {
 
         return FormResponse(
             tab = aliasConfig.descr,
-            alHeader = alHeader.toTypedArray(),
+            alHeader = alHeader,
             columnCount = 2,
-            alFormColumn = listOf("Значение датчика", "Значение измеряемой величины").toTypedArray(),
-            alFormCell = alFormCell.toTypedArray(),
-            alFormButton = alFormButton.toTypedArray()
+            alFormColumn = listOf("Значение датчика", "Значение измеряемой величины"),
+            alFormCell = alFormCell,
+            alFormButton = alFormButton,
         )
 
     }

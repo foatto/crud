@@ -49,8 +49,7 @@ abstract class DataAbstractDate(aColumn: iColumn) : DataAbstract(aColumn) {
     ): TableCell =
         if (isShowEmptyTableCell) {
             TableCell(row, col, column.rowSpan, column.colSpan, dataRowNo)
-        }
-        else {
+        } else {
             TableCell(
                 aRow = row,
                 aCol = col,
@@ -75,7 +74,7 @@ abstract class DataAbstractDate(aColumn: iColumn) : DataAbstract(aColumn) {
             add(Pair(getFieldCellName(2), if (errorText == null) localDate.dayOfMonth.toString() else arrErrorValue!![2]))
             add(Pair(getFieldCellName(1), if (errorText == null) localDate.monthValue.toString() else arrErrorValue!![1]))
             add(Pair(getFieldCellName(0), if (errorText == null) localDate.year.toString() else arrErrorValue!![0]))
-        }.toTypedArray()
+        }
         return fci
     }
 

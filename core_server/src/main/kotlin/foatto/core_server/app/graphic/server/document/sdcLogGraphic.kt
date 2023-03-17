@@ -77,6 +77,7 @@ class sdcLogGraphic : sdcAbstractGraphic() {
                             tmHandlers[logStrTime] = logValue
                             maxHandlers = max(maxHandlers, logValue)
                         }
+
                         "Used" -> tmMemoryUsed[logStrTime] = logValue
                         "Total" -> tmMemoryTotal[logStrTime] = logValue
                         "Max" -> maxMemory = max(maxMemory, logValue)
@@ -102,10 +103,10 @@ class sdcLogGraphic : sdcAbstractGraphic() {
 
         val gewh = GraphicElement(
             graphicTitle = "Workers & Handlers",
-            alLegend = emptyArray(),
+            alLegend = emptyList(),
             graphicHeight = -1.0,
-            alAxisYData = alAxisYData.toTypedArray(),
-            alGDC = arrayOf(aHandlers, aWorkers)
+            alAxisYData = alAxisYData,
+            alGDC = listOf(aHandlers, aWorkers)
         )
 
         tmElement[gewh.graphicTitle] = gewh
@@ -124,10 +125,10 @@ class sdcLogGraphic : sdcAbstractGraphic() {
 
         val gem = GraphicElement(
             graphicTitle = "Memory Used & Total",
-            alLegend = emptyArray(),
+            alLegend = emptyList(),
             graphicHeight = -1.0,
-            alAxisYData = alAxisYData.toTypedArray(),
-            alGDC = arrayOf(aMemoryTotal, aMemoryUsed)
+            alAxisYData = alAxisYData,
+            alGDC = listOf(aMemoryTotal, aMemoryUsed)
         )
 
         tmElement[gem.graphicTitle] = gem
@@ -139,10 +140,10 @@ class sdcLogGraphic : sdcAbstractGraphic() {
         tmVisibleElement[gem.graphicTitle] = Triple(gem.graphicTitle, "$UP_GRAPHIC_VISIBLE${gem.graphicTitle}", true)
 
         return GraphicActionResponse(
-            arrIndexColor = hmIndexColor.toList().toTypedArray(),
-            arrElement = tmElement.toList().toTypedArray(),
-            arrVisibleElement = tmVisibleElement.values.toTypedArray(),
-            arrLegend = emptyArray(),
+            hmIndexColor = hmIndexColor,
+            alElement = tmElement.toList(),
+            alVisibleElement = tmVisibleElement.values.toList(),
+            alLegend = emptyList(),
         )
     }
 
@@ -155,7 +156,7 @@ class sdcLogGraphic : sdcAbstractGraphic() {
         for (rawTime in tmLogData.keys) {
             alGLD.add(GraphicLineData(rawTime, tmLogData[rawTime]!!.toDouble(), colorIndex))
         }
-        aLogLine.alGLD = alGLD.toTypedArray()
+        aLogLine.alGLD = alGLD
     }
 
 }

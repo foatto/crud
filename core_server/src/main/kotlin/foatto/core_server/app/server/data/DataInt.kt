@@ -92,7 +92,7 @@ class DataInt(aColumn: iColumn) : DataAbstractIntValue(aColumn) {
                 errorValue!!
             }
             column = ci.cols
-            alComboString = ci.alCombo.toTypedArray()
+            alComboString = ci.alCombo
         }
 
     override fun setData(data: iData) {

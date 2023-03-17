@@ -5,10 +5,10 @@ import kotlinx.serialization.Serializable
 @Serializable
 class GraphicElement(
     val graphicTitle: String,
-    val alLegend: Array<Triple<Int, Boolean, String>>,   // color-index, is-back, descr
+    val alLegend: List<Triple<Int, Boolean, String>>,   // color-index, is-back, descr
     val graphicHeight: Double,
-    val alAxisYData: Array<AxisYData>,
-    var alGDC: Array<GraphicDataContainer>,
+    val alAxisYData: List<AxisYData>,
+    var alGDC: List<GraphicDataContainer>,
 )
 
 @Serializable

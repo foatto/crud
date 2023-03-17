@@ -54,7 +54,7 @@ class sdcLiquid : sdcAbstractAnalog() {
                     alGTD = alGTD
                 )
             }
-            aText.alGTD = alGTD.toTypedArray()
+            aText.alGTD = alGTD
         }
     }
 
@@ -125,7 +125,7 @@ class sdcLiquid : sdcAbstractAnalog() {
                     alGraphicHandler = listOf(graphicHandler) + flowSensorsGraphicHandlers,
                     tmElement = tmElement,
                     tmElementVisibleConfig = tmElementVisibleConfig,
-                    alLegend = arrayOf(
+                    alLegend = listOf(
                         Triple(hmIndexColor[GraphicColorIndex.LINE_ABOVE_0]!!, false, "Заправка"),
                         Triple(hmIndexColor[GraphicColorIndex.LINE_NORMAL_0]!!, false, "Расход"),
                         Triple(hmIndexColor[GraphicColorIndex.LINE_BELOW_0]!!, false, "Слив"),
@@ -133,43 +133,43 @@ class sdcLiquid : sdcAbstractAnalog() {
                 )
             }
         }
-                //            //--- вывод датчика мощности
-                //
-                //            //--- есть ли вообще прописанные датчики мощности
-                //            val hmSCEP = oc.hmSensorConfig[SensorConfig.SENSOR_POWER]
-                //            var axisIndex = 2
-                //            if(!hmSCEP.isNullOrEmpty()) {
-                //                val pgh = PowerGraphicHandler()
-                //                //--- есть ли датчик мощности на том же порту, что и текущий уровнемер
-                //                val scaep = hmSCEP[sca.portNum] as? SensorConfigA
-                //                if(scaep != null) {
-                //                    alAxisYData.add(
-                //                        AxisYData(
-                //                            SensorConfig.hmSensorDescr[scaep.sensorType] + ", ${scaep.dim}",
-                //                            scaep.minView, scaep.maxView, GraphicColorIndex.AXIS_2
-                //                        )
-                //                    )
-                //
-                //                    val aEnergoPowerMin = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 1)
-                //                    val aEnergoPowerMax = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 1)
-                //                    val aEnergoPowerPoint: GraphicDataContainer? = null/*isShowPoint && (  ! isShowLine || scaep.smoothTime > 0  ) ?
-                //                                new CoreGraphicDataContainerPoint(  axisIndex, MAX_GPD_SIZE  ) :*/
-                //                    val aEnergoPowerLine = if(isShowLine) GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 2) else null
-                //
-                //                    ObjectCalc.getSmoothAnalogGraphicData(
-                //                        alRawTime, alRawData, oc, scaep, begTime, endTime, xScale, yScale,
-                //                        aEnergoPowerMin, aEnergoPowerMax, aEnergoPowerPoint, aEnergoPowerLine, pgh
-                //                    )
-                //
-                //                    alScaep.add(scaep)
-                //                    alEnergoPowerMin.add(aEnergoPowerMin)
-                //                    alEnergoPowerMax.add(aEnergoPowerMax)
-                //                    //alEnergoPowerPoint.add(  aEnergoPowerPoint  );
-                //                    alEnergoPowerLine.add(aEnergoPowerLine)
-                //
-                //                    axisIndex++
-                //                }
-                //            }
+        //            //--- вывод датчика мощности
+        //
+        //            //--- есть ли вообще прописанные датчики мощности
+        //            val hmSCEP = oc.hmSensorConfig[SensorConfig.SENSOR_POWER]
+        //            var axisIndex = 2
+        //            if(!hmSCEP.isNullOrEmpty()) {
+        //                val pgh = PowerGraphicHandler()
+        //                //--- есть ли датчик мощности на том же порту, что и текущий уровнемер
+        //                val scaep = hmSCEP[sca.portNum] as? SensorConfigA
+        //                if(scaep != null) {
+        //                    alAxisYData.add(
+        //                        AxisYData(
+        //                            SensorConfig.hmSensorDescr[scaep.sensorType] + ", ${scaep.dim}",
+        //                            scaep.minView, scaep.maxView, GraphicColorIndex.AXIS_2
+        //                        )
+        //                    )
+        //
+        //                    val aEnergoPowerMin = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 1)
+        //                    val aEnergoPowerMax = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 1)
+        //                    val aEnergoPowerPoint: GraphicDataContainer? = null/*isShowPoint && (  ! isShowLine || scaep.smoothTime > 0  ) ?
+        //                                new CoreGraphicDataContainerPoint(  axisIndex, MAX_GPD_SIZE  ) :*/
+        //                    val aEnergoPowerLine = if(isShowLine) GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 2) else null
+        //
+        //                    ObjectCalc.getSmoothAnalogGraphicData(
+        //                        alRawTime, alRawData, oc, scaep, begTime, endTime, xScale, yScale,
+        //                        aEnergoPowerMin, aEnergoPowerMax, aEnergoPowerPoint, aEnergoPowerLine, pgh
+        //                    )
+        //
+        //                    alScaep.add(scaep)
+        //                    alEnergoPowerMin.add(aEnergoPowerMin)
+        //                    alEnergoPowerMax.add(aEnergoPowerMax)
+        //                    //alEnergoPowerPoint.add(  aEnergoPowerPoint  );
+        //                    alEnergoPowerLine.add(aEnergoPowerLine)
+        //
+        //                    axisIndex++
+        //                }
+        //            }
 //        for(i in alScaep.indices) {
 //            //        //--- различные текстовые обозначения
 //            //        if(  aText != null && ! aText.alGTD.isEmpty()  ) aText.write(  bbOut, x1  );
@@ -194,7 +194,7 @@ class sdcLiquid : sdcAbstractAnalog() {
         aText: GraphicDataContainer?,
     ) {
         //--- только для основого графика
-        if(sca is SensorConfigLiquidLevel) {
+        if (sca is SensorConfigLiquidLevel) {
             //--- постобработка/фильтрация заправок/сливов/расходов
             aLine?.let {
                 ObjectCalc.getLiquidStatePeriodData(sca, axisIndex, aLine, mutableListOf(), graphicHandler as LiquidGraphicHandler)
@@ -231,7 +231,7 @@ class sdcLiquid : sdcAbstractAnalog() {
         var axisIndex = aAxisIndex
 
         //--- только для основого графика
-        if(sca is SensorConfigLiquidLevel) {
+        if (sca is SensorConfigLiquidLevel) {
             aLine?.alGLD?.let { alGLD ->
                 //--- есть ли вообще прописанный датчик расчётной скорости расхода жидкости в этой группе
                 objectConfig.hmSensorConfig[SensorConfig.SENSOR_LIQUID_FLOW_CALC]?.values?.firstOrNull { sc ->
@@ -296,11 +296,11 @@ class sdcLiquid : sdcAbstractAnalog() {
 
         val isLimit = scaf.maxLimit > scaf.minLimit
         if (isLimit) {
-            aLiquidMin!!.alGLD = arrayOf(
+            aLiquidMin!!.alGLD = listOf(
                 GraphicLineData(begTime, scaf.minLimit, GraphicColorIndex.LINE_LIMIT),
                 GraphicLineData(endTime, scaf.minLimit, GraphicColorIndex.LINE_LIMIT)
             )
-            aLiquidMax!!.alGLD = arrayOf(
+            aLiquidMax!!.alGLD = listOf(
                 GraphicLineData(begTime, scaf.maxLimit, GraphicColorIndex.LINE_LIMIT),
                 GraphicLineData(endTime, scaf.maxLimit, GraphicColorIndex.LINE_LIMIT)
             )
@@ -349,9 +349,11 @@ class sdcLiquid : sdcAbstractAnalog() {
                     is Int -> {
                         rawSensorData.toDouble()
                     }
+
                     is Double -> {
                         rawSensorData
                     }
+
                     else -> {
                         0.0
                     }
@@ -382,7 +384,7 @@ class sdcLiquid : sdcAbstractAnalog() {
             if (avgTime - lastAvgTime > xScale || abs(liquidUsingPerHour - lastLiquidUsingPerHour) > yScale) {
                 aLiquidFlow!!.alGLD = aLiquidFlow!!.alGLD.toMutableList().apply {
                     add(GraphicLineData(avgTime, liquidUsingPerHour, GraphicColorIndex.LINE_NORMAL_1))
-                }.toTypedArray()
+                }
 
                 lastAvgTime = avgTime
                 lastLiquidUsingPerHour = liquidUsingPerHour
@@ -398,17 +400,17 @@ class sdcLiquid : sdcAbstractAnalog() {
         endTime: Int,
         xScale: Int,
         yScale: Double,
-        alGLD: Array<GraphicLineData>
+        alGLD: List<GraphicLineData>
     ) {
         alAxisYData.add(AxisYData("${SensorConfig.hmSensorDescr[scaf.sensorType]}", scaf.minView, scaf.maxView, GraphicColorIndex.AXIS_1, false))
 
         val isLimit = scaf.maxLimit != scaf.minLimit
         if (isLimit) {
-            aLiquidMin!!.alGLD = arrayOf(
+            aLiquidMin!!.alGLD = listOf(
                 GraphicLineData(begTime, scaf.minLimit, GraphicColorIndex.LINE_LIMIT),
                 GraphicLineData(endTime, scaf.minLimit, GraphicColorIndex.LINE_LIMIT)
             )
-            aLiquidMax!!.alGLD = arrayOf(
+            aLiquidMax!!.alGLD = listOf(
                 GraphicLineData(begTime, scaf.maxLimit, GraphicColorIndex.LINE_LIMIT),
                 GraphicLineData(endTime, scaf.maxLimit, GraphicColorIndex.LINE_LIMIT)
             )
@@ -476,7 +478,7 @@ class sdcLiquid : sdcAbstractAnalog() {
             if (avgTime - lastAvgTime > xScale || abs(liquidUsingPerHour - lastLiquidUsingPerHour) > yScale) {
                 aLiquidFlow!!.alGLD = aLiquidFlow!!.alGLD.toMutableList().apply {
                     add(GraphicLineData(avgTime, liquidUsingPerHour, GraphicColorIndex.LINE_NORMAL_1))
-                }.toTypedArray()
+                }
                 lastAvgTime = avgTime
                 lastLiquidUsingPerHour = liquidUsingPerHour
             }

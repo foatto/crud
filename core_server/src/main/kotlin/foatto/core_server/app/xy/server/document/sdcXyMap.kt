@@ -105,7 +105,7 @@ abstract class sdcXyMap : sdcXyAbstract() {
         //AdvancedLogger.info( "Doc Size = " + arrByte.length );
         //AdvancedLogger.info( "------------------------------------------------------------" );
 
-        return XyActionResponse(arrElement = alElement.toTypedArray())
+        return XyActionResponse(alElement = alElement)
     }
 
     override fun getOneElement(xyActionRequest: XyActionRequest): XyActionResponse {
@@ -219,7 +219,7 @@ abstract class sdcXyMap : sdcXyAbstract() {
         while (bbPoint.hasRemaining()) {
             lastPoint = loadPoint(lastPoint, viewCoord.scale, prjXY.x + bbPoint.getInt(), prjXY.y + bbPoint.getInt(), alPoint)
         }
-        xyElement.alPoint = alPoint.toTypedArray()
+        xyElement.alPoint = alPoint
         return Pair(xyElement, prjXY)
     }
 
@@ -241,7 +241,7 @@ abstract class sdcXyMap : sdcXyAbstract() {
                 lastPoint = loadPoint(lastPoint, scale, prjXY.x + rsPoint.getInt(2), prjXY.y + rsPoint.getInt(3), alPoint)
                 rsPoint.next()
             }
-            xyElement.alPoint = alPoint.toTypedArray()
+            xyElement.alPoint = alPoint
 
             while (!rsProperty.isAfterLast) {
                 val propertyelementId = rsProperty.getInt(1)
@@ -340,7 +340,7 @@ abstract class sdcXyMap : sdcXyAbstract() {
                     val imageElement = XyElement(BITMAP, -getRandomInt(), 0)
                     //imageElement.init(timeZone)
                     imageElement.isReadOnly = true
-                    imageElement.alPoint = arrayOf(XyPoint(x, y))
+                    imageElement.alPoint = listOf(XyPoint(x, y))
                     imageElement.imageWidth = bmRealSize
                     imageElement.imageHeight = bmRealSize
                     imageElement.imageName = serverURL

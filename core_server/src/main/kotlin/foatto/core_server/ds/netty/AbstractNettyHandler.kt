@@ -21,6 +21,7 @@ abstract class AbstractNettyHandler : ChannelInboundHandlerAdapter() {
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
     }
 
+    @Deprecated("Deprecated in Java")
     override fun exceptionCaught(ctx: ChannelHandlerContext?, cause: Throwable?) {
         AdvancedLogger.error(cause ?: Throwable("${this.javaClass.name}: cause is null."))
         ctx?.close()

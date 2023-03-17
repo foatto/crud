@@ -26,7 +26,7 @@ class XyElement(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    var alPoint = arrayOf<XyPoint>()
+    var alPoint = listOf<XyPoint>()
     var isClosed = false
 
     var lineWidth = 0
@@ -80,9 +80,9 @@ class XyElement(
     var arrowHeight = 0
     var arrowLineWidth = 0
 
-    var alDrawColor = arrayOf<Int>()
-    var alFillColor = arrayOf<Int>()
-    var alToolTip = arrayOf<String>()
+    var alDrawColor = listOf<Int>()
+    var alFillColor = listOf<Int>()
+    var alToolTip = listOf<String>()
 
     var dialogQuestion: String = ""
 

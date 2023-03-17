@@ -6,6 +6,7 @@ import foatto.sql.CoreAdvancedConnection
 abstract class DataAbstract(aColumn: iColumn) : iData, Cloneable {
 
     override val column: iColumn = aColumn
+
     //--- показывать пустышку вместо ячейки таблицы
     override var isShowEmptyTableCell = false
 

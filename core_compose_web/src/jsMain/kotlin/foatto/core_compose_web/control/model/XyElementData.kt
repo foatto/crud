@@ -47,6 +47,7 @@ class XyElementData(
 
     //--- точки для SVG могут быть затребованы или строкой или одномерным массивом чисел (бардак в SVG, да)
     var strPoints: String? = null,
+    //--- требуется именно Array (а не List)
     var arrPoints: MutableState<Array<out Number>> = mutableStateOf(emptyArray()),
 
     val width: Int = 0,
@@ -320,7 +321,7 @@ class XyElementData(
                         viewCoord.x1 + (it.x * viewCoord.scale / scaleKoef).roundToInt(),
                         viewCoord.y1 + (it.y * viewCoord.scale / scaleKoef).roundToInt()
                     )
-                }.dropLast(1).toTypedArray()  // убираем последнюю служебную точку
+                }.dropLast(1)  // убираем последнюю служебную точку
 
                 xyActionRequest = XyActionRequest(
                     documentTypeName = documentTypeName,
@@ -370,7 +371,7 @@ class XyElementData(
                         viewCoord.x1 + (it.x * viewCoord.scale / scaleKoef).roundToInt(),
                         viewCoord.y1 + (it.y * viewCoord.scale / scaleKoef).roundToInt()
                     )
-                }.toTypedArray()
+                }
 
                 xyActionRequest = XyActionRequest(
                     documentTypeName = documentTypeName,

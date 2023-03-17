@@ -165,7 +165,7 @@ class cOverSpeed : cMMSReport() {
                 scg = oc.scg!!,
                 begTime = begTime,
                 endTime = endTime,
-                scale = hmXyDocumentConfig["mms_map"]!!.alElementConfig.minOf { it.second.scaleMin },
+                scale = hmXyDocumentConfig["mms_map"]!!.hmElementConfig.minByOrNull { (_, value) -> value.scaleMin }!!.value.scaleMin,
                 maxEnabledOverSpeed = maxEnabledOverSpeed,
                 alZoneSpeedLimit = hmZoneLimit[ZoneLimitData.TYPE_LIMIT_SPEED]
             )

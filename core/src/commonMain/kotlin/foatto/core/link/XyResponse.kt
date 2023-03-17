@@ -8,7 +8,7 @@ class XyResponse(
     val startParamId: String,
     val shortTitle: String,
     val fullTitle: String,
-    val arrServerActionButton: Array<XyServerActionButton>,
+    val alServerActionButton: List<XyServerActionButton>,
 )
 
 @Serializable
@@ -18,7 +18,7 @@ class XyDocumentConfig(
     val serverClassName: String,
     val clientType: XyDocumentClientType,
     val isScaleAlign: Boolean,
-    val alElementConfig: Array<Pair<String, XyElementConfig>>
+    val hmElementConfig: Map<String, XyElementConfig>,
 )
 
 @Serializable

@@ -79,7 +79,7 @@ class TSSpringApp : CoreSpringApp() {
             serverClassName = "foatto.ts.core_ts.xy.server.document.sdcTSState",
             clientType = XyDocumentClientType.STATE,
             isScaleAlign = false,
-            alElementConfig = initStateElementConfig(1, 1024 * 1024 * 1024).toList().toTypedArray()
+            hmElementConfig = initStateElementConfig(1, 1024 * 1024 * 1024)
         )
     }
 

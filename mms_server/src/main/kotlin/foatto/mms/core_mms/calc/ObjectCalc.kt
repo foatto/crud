@@ -764,7 +764,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 }
             }
 
-            aLine?.alGLD = alGLD.toTypedArray()
+            aLine?.alGLD = alGLD
         }
 
         //--- we collect periods of liquid level states (refueling, draining, consumption) and apply filters for refueling / draining / consumption

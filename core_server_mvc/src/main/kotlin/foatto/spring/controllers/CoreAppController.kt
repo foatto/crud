@@ -310,8 +310,8 @@ abstract class CoreAppController : iApplication {
 
                     appResponse.currentUserName = hmUserFullNames[userConfig.userId] ?: "(неизвестный пользователь)"
                     //--- временно используем List вместо Map, т.к. в Kotlin/JS нет возможности десериализовать Map (а List десериализуется в Array)
-                    appResponse.hmUserProperty = loadUserProperies(conn, userConfig.userId).toList().toTypedArray()
-                    appResponse.arrMenuData = menuInit(conn, hmAliasConfigs, userConfig).toTypedArray()
+                    appResponse.hmUserProperty = loadUserProperies(conn, userConfig.userId)
+                    appResponse.alMenuData = menuInit(conn, hmAliasConfigs, userConfig)
 
                     for ((upKey, upValue) in appRequest.logon!!.hmSystemProperties) {
                         saveUserProperty(conn = conn, userId = null, userConfig = userConfig, upName = upKey, upValue = upValue)
@@ -357,7 +357,7 @@ abstract class CoreAppController : iApplication {
                                 startParamId = xyStartDataID,
                                 shortTitle = sd.shortTitle.substring(0, min(32000, sd.shortTitle.length)),
                                 fullTitle = sd.fullTitle.substring(0, min(32000, sd.fullTitle.length)),
-                                arrServerActionButton = sd.alServerActionButton.toTypedArray(),
+                                alServerActionButton = sd.alServerActionButton,
                             )
                         )
                     }

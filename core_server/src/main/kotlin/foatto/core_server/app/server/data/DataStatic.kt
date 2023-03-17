@@ -22,8 +22,7 @@ class DataStatic(aColumn: iColumn) : DataAbstract(aColumn) {
     override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, dataRowNo: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell =
         if (isShowEmptyTableCell) {
             TableCell(row, col, column.rowSpan, column.colSpan, dataRowNo)
-        }
-        else {
+        } else {
             TableCell(
                 aRow = row,
                 aCol = col,

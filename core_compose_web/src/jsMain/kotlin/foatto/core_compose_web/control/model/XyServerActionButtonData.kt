@@ -16,12 +16,12 @@ class XyServerActionButtonData(
     companion object {
 
         fun readXyServerActionButton(
-            arrServerActionButton: Array<XyServerActionButton>,
+            alServerActionButton: List<XyServerActionButton>,
             alXyServerButton: SnapshotStateList<XyServerActionButtonData>,
         ) {
             var serverButtonId = 0
             alXyServerButton.clear()
-            for (sab in arrServerActionButton) {
+            for (sab in alServerActionButton) {
                 val icon = TableControl.hmTableIcon[sab.icon] ?: ""
                 //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
                 val caption = if (sab.icon.isNotBlank() && icon.isBlank()) {

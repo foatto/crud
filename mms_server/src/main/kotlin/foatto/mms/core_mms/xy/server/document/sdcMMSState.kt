@@ -311,7 +311,7 @@ class sdcMMSState : sdcXyState() {
         val label = XyElement(TEXT, -getRandomInt(), objectConfig.objectId).apply {
             //typeName = TYPE_STATE_W_TEXT;
             isReadOnly = true
-            alPoint = arrayOf(XyPoint(GRID_STEP * 6, GRID_STEP * 28))
+            alPoint = listOf(XyPoint(GRID_STEP * 6, GRID_STEP * 28))
             anchorX = XyElement.Anchor.LT
             anchorY = XyElement.Anchor.LT
             alignX = XyElement.Align.LT
@@ -342,7 +342,7 @@ class sdcMMSState : sdcXyState() {
 
         val label = XyElement(TYPE_STATE_SUM_GROUP_TEXT_25D, -getRandomInt(), objectId).apply {
             isReadOnly = true
-            alPoint = arrayOf(XyPoint(x, y + limitHeight))
+            alPoint = listOf(XyPoint(x, y + limitHeight))
 
             this.text = text
             toolTipText = text
@@ -373,7 +373,7 @@ class sdcMMSState : sdcXyState() {
 
         val label = XyElement(TYPE_STATE_GROUP_TEXT_25D, -getRandomInt(), objectId).apply {
             isReadOnly = true
-            alPoint = arrayOf(XyPoint(x, y + limitHeight))
+            alPoint = listOf(XyPoint(x, y + limitHeight))
 
             this.text = text
             toolTipText = text
@@ -416,7 +416,7 @@ class sdcMMSState : sdcXyState() {
         //--- дно ёмкости
         val bottom = XyElement(TYPE_STATE_LL_BOTTOM_25D, -getRandomInt(), objectId).apply {
             isReadOnly = true
-            alPoint = arrayOf(XyPoint(x, y))
+            alPoint = listOf(XyPoint(x, y))
             toolTipText = tankName
 
             markerType = XyElement.MarkerType.CIRCLE
@@ -433,7 +433,7 @@ class sdcMMSState : sdcXyState() {
             isReadOnly = true
 
             isClosed = true
-            alPoint = arrayOf(
+            alPoint = listOf(
                 XyPoint(x - GRID_STEP * 2, y),
                 XyPoint(x - GRID_STEP * 2, y - levelHeight),
                 XyPoint(x + GRID_STEP * 2, y - levelHeight),
@@ -449,7 +449,7 @@ class sdcMMSState : sdcXyState() {
         //--- уровень жидкости
         val level = XyElement(TYPE_STATE_LL_LEVEL_25D, -getRandomInt(), objectId).apply {
             isReadOnly = true
-            alPoint = arrayOf(XyPoint(x, y - levelHeight))
+            alPoint = listOf(XyPoint(x, y - levelHeight))
             toolTipText = tankName
 
             markerType = XyElement.MarkerType.CIRCLE
@@ -465,7 +465,7 @@ class sdcMMSState : sdcXyState() {
             isReadOnly = true
 
             isClosed = false
-            alPoint = arrayOf(XyPoint(x - GRID_STEP * 2, y), XyPoint(x - GRID_STEP * 2, y - tankHeight))
+            alPoint = listOf(XyPoint(x - GRID_STEP * 2, y), XyPoint(x - GRID_STEP * 2, y - tankHeight))
 
             drawColor = tankDrawColor
             lineWidth = 2
@@ -476,7 +476,7 @@ class sdcMMSState : sdcXyState() {
             isReadOnly = true
 
             isClosed = false
-            alPoint = arrayOf(XyPoint(x + GRID_STEP * 2, y), XyPoint(x + GRID_STEP * 2, y - tankHeight))
+            alPoint = listOf(XyPoint(x + GRID_STEP * 2, y), XyPoint(x + GRID_STEP * 2, y - tankHeight))
 
             drawColor = tankDrawColor
             lineWidth = 2
@@ -486,7 +486,7 @@ class sdcMMSState : sdcXyState() {
         //--- верх ёмкости
         val tankTop = XyElement(TYPE_STATE_LL_TANK_TOP_25D, -getRandomInt(), objectId).apply {
             isReadOnly = true
-            alPoint = arrayOf(XyPoint(x, y - tankHeight))
+            alPoint = listOf(XyPoint(x, y - tankHeight))
             toolTipText = tankName
 
             markerType = XyElement.MarkerType.CIRCLE
@@ -500,7 +500,7 @@ class sdcMMSState : sdcXyState() {
         //--- общая ёмкость
         val topLevelLabel = XyElement(TYPE_STATE_LL_TEXT_25D, -getRandomInt(), objectId).apply {
             isReadOnly = true
-            alPoint = arrayOf(XyPoint(x - GRID_STEP * 2, y - tankHeight - GRID_STEP * 4))
+            alPoint = listOf(XyPoint(x - GRID_STEP * 2, y - tankHeight - GRID_STEP * 4))
             //--- НЕ ограничиваем вывод текста по ширине
             //topLevelLabel.limitWidth = GRID_STEP * 4
             anchorX = XyElement.Anchor.LT
@@ -519,7 +519,7 @@ class sdcMMSState : sdcXyState() {
         //--- текущий уровень
         val currentLevelLabel = XyElement(TYPE_STATE_LL_TEXT_25D, -getRandomInt(), objectId).apply {
             isReadOnly = true
-            alPoint = arrayOf(XyPoint(x + GRID_STEP * 2, y - levelHeight))
+            alPoint = listOf(XyPoint(x + GRID_STEP * 2, y - levelHeight))
             //--- НЕ ограничиваем вывод текста по ширине
             //currentLevelLabel.limitWidth = GRID_STEP * 4
             anchorX = XyElement.Anchor.LT
@@ -538,7 +538,7 @@ class sdcMMSState : sdcXyState() {
         //--- наименование ёмкости
         val nameLabel = XyElement(TYPE_STATE_LL_TEXT_25D, -getRandomInt(), objectId).apply {
             isReadOnly = true
-            alPoint = arrayOf(XyPoint(x - GRID_STEP * 2, y + GRID_STEP * 2))
+            alPoint = listOf(XyPoint(x - GRID_STEP * 2, y + GRID_STEP * 2))
             //--- ограничиваем вывод текста по ширине
             limitWidth = GRID_STEP * 4
             anchorX = XyElement.Anchor.LT
@@ -578,7 +578,7 @@ class sdcMMSState : sdcXyState() {
 
         val label = XyElement(TYPE_STATE_W_TEXT_25D, -getRandomInt(), objectId).apply {
             isReadOnly = true
-            alPoint = arrayOf(XyPoint(x, y + GRID_STEP * 7))
+            alPoint = listOf(XyPoint(x, y + GRID_STEP * 7))
             //--- ограничиваем вывод текста по ширине
             limitWidth = GRID_STEP * 4
             anchorX = XyElement.Anchor.LT
@@ -600,7 +600,7 @@ class sdcMMSState : sdcXyState() {
     private fun addS25D(objectId: Int, scale: Int, x: Int, y: Int, state: Int, text: String, alResult: MutableList<XyElement>) {
         val marker = XyElement(TYPE_STATE_S_FIGURE_25D, -getRandomInt(), objectId).apply {
             isReadOnly = true
-            alPoint = arrayOf(XyPoint(x + GRID_STEP * 2, y + GRID_STEP * 2))
+            alPoint = listOf(XyPoint(x + GRID_STEP * 2, y + GRID_STEP * 2))
             toolTipText = text
 
             markerType = XyElement.MarkerType.CIRCLE
@@ -616,7 +616,7 @@ class sdcMMSState : sdcXyState() {
 
         val label = XyElement(TYPE_STATE_W_TEXT_25D, -getRandomInt(), objectId).apply {
             isReadOnly = true
-            alPoint = arrayOf(XyPoint(x, textY))
+            alPoint = listOf(XyPoint(x, textY))
             //--- ограничиваем вывод текста по ширине
             limitWidth = GRID_STEP * 4
             anchorX = XyElement.Anchor.LT
@@ -659,7 +659,7 @@ class sdcMMSState : sdcXyState() {
             toolTipText = toolTip
 
             isClosed = true
-            alPoint = arrayOf(
+            alPoint = listOf(
                 XyPoint(x, y + h),
                 XyPoint(x + dw, y),
                 XyPoint(x + w + dw, y),
@@ -678,7 +678,7 @@ class sdcMMSState : sdcXyState() {
             toolTipText = toolTip
 
             isClosed = true
-            alPoint = arrayOf(
+            alPoint = listOf(
                 XyPoint(x, y + h),
                 XyPoint(x + w, y + h),
                 XyPoint(x + w, y + h + dh),
@@ -697,7 +697,7 @@ class sdcMMSState : sdcXyState() {
             toolTipText = toolTip
 
             isClosed = true
-            alPoint = arrayOf(
+            alPoint = listOf(
                 XyPoint(x + w, y + h),
                 XyPoint(x + w + dw, y),
                 XyPoint(x + w + dw, y + dh),

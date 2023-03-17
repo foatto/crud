@@ -297,7 +297,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 }
             }
 
-            aLine?.alGLD = alGLD.toTypedArray()
+            aLine?.alGLD = alGLD
         }
 
         private fun mergePeriods(alPD: MutableList<AbstractPeriodData>, minOnTime: Int, minOffTime: Int) {

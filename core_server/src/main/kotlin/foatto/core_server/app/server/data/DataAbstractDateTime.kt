@@ -64,8 +64,7 @@ abstract class DataAbstractDateTime(aColumn: iColumn) : DataAbstract(aColumn) {
 
         return if (isShowEmptyTableCell) {
             TableCell(row, col, column.rowSpan, column.colSpan, dataRowNo)
-        }
-        else {
+        } else {
             TableCell(
                 aRow = row,
                 aCol = col,
@@ -97,18 +96,26 @@ abstract class DataAbstractDateTime(aColumn: iColumn) : DataAbstract(aColumn) {
             add(Pair(getFieldCellName(3), if (errorText == null) zonedDateTime.hour.toString() else arrErrorValue!![3]))
             add(
                 Pair(
-                    getFieldCellName(4), if (errorText == null) (if (zonedDateTime.minute < 10) "0" else "") + zonedDateTime.minute.toString()
-                    else arrErrorValue!![4]
+                    getFieldCellName(4),
+                    if (errorText == null) {
+                        (if (zonedDateTime.minute < 10) "0" else "") + zonedDateTime.minute.toString()
+                    } else {
+                        arrErrorValue!![4]
+                    }
                 )
             )
             if (cdt.withSecond)
                 add(
                     Pair(
-                        getFieldCellName(5), if (errorText == null) (if (zonedDateTime.second < 10) "0" else "") + zonedDateTime.second.toString()
-                        else arrErrorValue!![5]
+                        getFieldCellName(5),
+                        if (errorText == null) {
+                            (if (zonedDateTime.second < 10) "0" else "") + zonedDateTime.second.toString()
+                        } else {
+                            arrErrorValue!![5]
+                        }
                     )
                 )
-        }.toTypedArray()
+        }
         return fci
     }
 

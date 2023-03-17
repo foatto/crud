@@ -10,11 +10,11 @@ class XyActionResponse(
     val maxCoord: XyPoint? = null,
 
     //--- response on GET_ELEMENTS
-    val arrElement: Array<XyElement>? = null,
+    val alElement: List<XyElement> = emptyList(),
 
     //--- response on GET_ONE_ELEMENT
     val element: XyElement? = null,
 
     //--- additional custom parameters for any commands
-    val arrParams: Array<Pair<String, String>>? = null,
+    val hmParam: Map<String, String> = emptyMap(),
 )

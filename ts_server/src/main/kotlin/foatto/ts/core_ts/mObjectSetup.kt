@@ -61,11 +61,13 @@ class mObjectSetup : mAbstract() {
                     SensorConfigSetup.VALUE_TYPE_NUMBER -> {
                         ColumnString(modelTableName, "_${scs.id}", scs.descr, STRING_COLUMN_WIDTH)
                     }
+
                     SensorConfigSetup.VALUE_TYPE_BOOLEAN -> {
                         ColumnBoolean(modelTableName, "_${scs.id}", scs.descr).apply {
-                            arrSwitchText = arrayOf("Нет", "Да")
+                            alSwitchText = listOf("Нет", "Да")
                         }
                     }
+
                     else -> {
                         ColumnString(modelTableName, "_${scs.id}", scs.descr, STRING_COLUMN_WIDTH)
                     }
@@ -76,7 +78,7 @@ class mObjectSetup : mAbstract() {
                 tmColumnSetup[scs.showPos] = column
             }
         }
-        
+
         //----------------------------------------------------------------------------------------------------------------------
 
         alFormHiddenColumn.add(columnId)

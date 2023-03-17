@@ -440,10 +440,10 @@ open class AppControl(
 //                                showWarning( "Система безопасности", "Срок действия пароля истек.\nПожалуйста, смените пароль." )
 //
                         root.currentUserName = appResponse.currentUserName
-                        appResponse.hmUserProperty!!.forEach {
-                            if (it.first == UP_TIME_OFFSET) {
+                        appResponse.hmUserProperty!!.forEach { (key, value) ->
+                            if (key == UP_TIME_OFFSET) {
                                 //--- на сервере может лежать как в секундах, так и в миллисекундах (старый вариант)
-                                val timeOffset = it.second.toInt()
+                                val timeOffset = value.toInt()
                                 //--- если смещение <= максимально возможного смещения в секундах (43 200 сек), значит оно задано в секундах (логично)
                                 //--- в противном случае смещение задано в старом варианте - в миллисекундах
                                 //--- (минимальное значение будет начинаться с 1 час * 60 * 60 * 1000 = 3 600 000 мс, что всяко не совпадает с верхней границей в 43 200 от предущего варианта)
@@ -455,7 +455,7 @@ open class AppControl(
                             }
                         }
                         root.setMenuBarData(
-                            appResponse.arrMenuData!!.map { menuDataServer ->
+                            appResponse.alMenuData!!.map { menuDataServer ->
                                 mapMenuData(menuDataServer)
                             }.toTypedArray()
                         )
@@ -564,7 +564,7 @@ open class AppControl(
         return MenuDataClient(
             url = menuDataServer.url,
             text = menuDataServer.text,
-            arrSubMenu = menuDataServer.arrSubMenu?.map { subMenuDataServer ->
+            arrSubMenu = menuDataServer.alSubMenu?.map { subMenuDataServer ->
                 mapMenuData(subMenuDataServer)
             }?.toTypedArray(),
             inNewWindow = false,

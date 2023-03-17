@@ -89,7 +89,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGeneral, "mms_shift_work", true)
 
         if (alMenuGeneral.size > 0) {
-            alMenu.add(MenuData("", "Учёт", alMenuGeneral.toTypedArray()))
+            alMenu.add(MenuData("", "Учёт", alMenuGeneral))
         }
 
         //--- Общие отчёты --------------------------------------------------------------------------------------------------------
@@ -103,7 +103,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuCommonReport, "mms_report_work_shift", false)
 
         if (alMenuCommonReport.size > 0) {
-            alMenu.add(MenuData("", "Общие отчёты", alMenuCommonReport.toTypedArray()))
+            alMenu.add(MenuData("", "Общие отчёты", alMenuCommonReport))
         }
 
         //--- Отчёты по передвижной технике --------------------------------------------------------------------------------------------------------
@@ -121,7 +121,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuMobileReport, "mms_report_downtime", false)
 
         if (alMenuMobileReport.size > 0) {
-            alMenu.add(MenuData("", "Отчёты по передвижной технике", alMenuMobileReport.toTypedArray()))
+            alMenu.add(MenuData("", "Отчёты по передвижной технике", alMenuMobileReport))
         }
 
         //--- Отчёты по оборудованию --------------------------------------------------------------------------------------------------------
@@ -132,7 +132,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuWorkReport, "mms_report_work_detail", false)
 
         if (alMenuWorkReport.size > 0) {
-            alMenu.add(MenuData("", "Отчёты по оборудованию", alMenuWorkReport.toTypedArray()))
+            alMenu.add(MenuData("", "Отчёты по оборудованию", alMenuWorkReport))
         }
 
         //--- Отчёты по топливу --------------------------------------------------------------------------------------------------------
@@ -144,7 +144,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuLiquidReport, "mms_report_liquid_dec", false)
 
         if (alMenuLiquidReport.size > 0) {
-            alMenu.add(MenuData("", "Отчёты по топливу", alMenuLiquidReport.toTypedArray()))
+            alMenu.add(MenuData("", "Отчёты по топливу", alMenuLiquidReport))
         }
 
         //--- Отчёты по превышениям в энергетике --------------------------------------------------------------------------------------------------------
@@ -159,7 +159,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuEnergoOverReport, "mms_report_over_energo_power_full", false)
 
         if (alMenuEnergoOverReport.size > 0) {
-            alMenu.add(MenuData("", "Отчёты по превышениям в энергетике", alMenuEnergoOverReport.toTypedArray()))
+            alMenu.add(MenuData("", "Отчёты по превышениям в энергетике", alMenuEnergoOverReport))
         }
 
         //--- Отчёты по прочим превышениям --------------------------------------------------------------------------------------------------------
@@ -177,7 +177,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherOverReport, "mms_report_over_voltage", false)
 
         if (alMenuOtherOverReport.size > 0) {
-            alMenu.add(MenuData("", "Отчёты по прочим превышениям", alMenuOtherOverReport.toTypedArray()))
+            alMenu.add(MenuData("", "Отчёты по прочим превышениям", alMenuOtherOverReport))
         }
 
         //--- Прочие отчёты --------------------------------------------------------------------------------------------------------
@@ -189,7 +189,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuOtherReport, "mms_report_data_out", false)
 
         if (alMenuOtherReport.size > 0) {
-            alMenu.add(MenuData("", "Отчёты прочие", alMenuOtherReport.toTypedArray()))
+            alMenu.add(MenuData("", "Отчёты прочие", alMenuOtherReport))
         }
 
         //--- Графики --------------------------------------------------------------------------------------------------------
@@ -223,7 +223,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "mms_graphic_speed", false)
 
         if (alMenuGraphic.size > 2) {
-            alMenu.add(MenuData("", "Графики", alMenuGraphic.toTypedArray()))
+            alMenu.add(MenuData("", "Графики", alMenuGraphic))
         }
 
         //--- Карта --------------------------------------------------------------------------------------------------------
@@ -237,7 +237,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
         //            addMenu(  hmAliasConfig, hmAliasPerm, alMenuMap, "mms_graphic_weight", false  );
 
         if (alMenuMap.size > 0) {
-            alMenu.add(MenuData("", "Карта", alMenuMap.toTypedArray()))
+            alMenu.add(MenuData("", "Карта", alMenuMap))
         }
 
         //--- Контроль --------------------------------------------------------------------------------------------------------
@@ -250,7 +250,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
         //            addMenu(  hmAliasConfig, hmAliasPerm, alMenuMap, "mms_graphic_weight", false  );
 
         if (alMenuControl.size > 0) {
-            alMenu.add(MenuData("", "Контроль", alMenuControl.toTypedArray()))
+            alMenu.add(MenuData("", "Контроль", alMenuControl))
         }
 
         //--- Справочники --------------------------------------------------------------------------------------------------------
@@ -264,7 +264,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDir, "mms_user_zone", true)
 
         if (alMenuDir.size > 0) {
-            alMenu.add(MenuData("", "Справочники", alMenuDir.toTypedArray()))
+            alMenu.add(MenuData("", "Справочники", alMenuDir))
         }
 
         //--- Устройства ------------------------------------------------------------------------------------------------------
@@ -279,7 +279,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDevice, "mms_log_journal", true)
 
         if (alMenuDevice.size > 0) {
-            alMenu.add(MenuData("", "Контроллеры", alMenuDevice.toTypedArray()))
+            alMenu.add(MenuData("", "Контроллеры", alMenuDevice))
         }
 
         //--- Система --------------------------------------------------------------------------------------------------------
@@ -305,7 +305,7 @@ class MMSAppController : CoreAppController(), iMMSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuSystem, "system_log_user", true)
 
         if (alMenuSystem.size > 3) {
-            alMenu.add(MenuData("", "Система", alMenuSystem.toTypedArray()))
+            alMenu.add(MenuData("", "Система", alMenuSystem))
         }
 
         //----------------------------------------------------------------------------------------------------------------------

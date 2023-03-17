@@ -61,8 +61,7 @@ class DataTime3Int(aColumn: iColumn) : DataAbstractTime(aColumn) {
 
         return if (isShowEmptyTableCell) {
             TableCell(row, col, column.rowSpan, column.colSpan, dataRowNo)
-        }
-        else {
+        } else {
             TableCell(
                 aRow = row,
                 aCol = col,

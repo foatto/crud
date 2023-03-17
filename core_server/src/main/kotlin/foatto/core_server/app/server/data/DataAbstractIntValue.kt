@@ -7,7 +7,7 @@ import foatto.sql.CoreAdvancedResultSet
 //--- для общего способа получения целочисленного значения value
 abstract class DataAbstractIntValue(aColumn: iColumn) : DataAbstract(aColumn) {
 
-    var intValue = 0
+    var intValue: Int = 0
 
     protected var errorValue: String? = null
 

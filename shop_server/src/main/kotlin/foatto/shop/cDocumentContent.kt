@@ -277,7 +277,7 @@ class cDocumentContent : cStandart() {
                     tooltip = "Рассчитать сдачу",
                     icon = ICON_NAME_CALC,
                     action = ACTION_CASH_CALCULATOR,
-                    params = arrayOf(
+                    alParam = listOf(
                         PARAM_DOC_ID to docId.toString(),
                         PARAM_DOC_COST to docCost.toString(),
                         PARAM_FISCAL_URL to getParamURL("shop_fiscal_doc_content", AppAction.FORM, null, 0, hmParentData, null, ""),

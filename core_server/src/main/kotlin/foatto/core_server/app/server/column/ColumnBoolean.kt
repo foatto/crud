@@ -18,7 +18,7 @@ class ColumnBoolean(aTableName: String, aFieldName: String, aCaption: String = "
     }
 
     var defaultValue: Boolean? = aDefaultValue
-    var arrSwitchText: Array<String> = emptyArray()
+    var alSwitchText: List<String> = emptyList()
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

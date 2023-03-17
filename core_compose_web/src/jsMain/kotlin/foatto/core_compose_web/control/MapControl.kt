@@ -410,12 +410,16 @@ class MapControl(
 //        mapBitmapTypeName = if( bitmapMapMode.isNullOrEmpty() ) XyBitmapType.MS else bitmapMapMode
 
         //--- подготовка данных для меню добавления
-        alAddEC.addAll(xyResponse.documentConfig.alElementConfig.filter { it.second.descrForAction.isNotEmpty() }.map { it.second })
+        alAddEC.addAll(
+            xyResponse.documentConfig.hmElementConfig.filterValues { value ->
+                value.descrForAction.isNotEmpty()
+            }.values
+        )
 
         doXyMounted(
             startExpandKoef = MAP_START_EXPAND_KOEF,
             isCentered = false,
-            curScale = xyResponse.documentConfig.alElementConfig.minBy { it.second.scaleMin }.second.scaleMin
+            curScale = xyResponse.documentConfig.hmElementConfig.minBy { (_, value) -> value.scaleMin }.value.scaleMin
         )
 
         setMode(MapWorkMode.PAN)
@@ -430,8 +434,6 @@ class MapControl(
             //--- и сохраненяем новое состояние в view
             val checkedView = getXyViewCoord(
                 aScale = checkXyScale(
-                    minScale = xyResponse.documentConfig.alElementConfig.minByOrNull { it.second.scaleMin }!!.second.scaleMin,
-                    maxScale = xyResponse.documentConfig.alElementConfig.maxByOrNull { it.second.scaleMax }!!.second.scaleMax,
                     isScaleAlign = xyResponse.documentConfig.isScaleAlign,
                     curScale = xyViewCoord.scale,
                     newScale = aView.scale,
@@ -841,8 +843,6 @@ class MapControl(
 
             //--- новый сдвиг относительно центра для нового масштаба
             val newScale = checkXyScale(
-                minScale = xyResponse.documentConfig.alElementConfig.minByOrNull { it.second.scaleMin }!!.second.scaleMin,
-                maxScale = xyResponse.documentConfig.alElementConfig.maxByOrNull { it.second.scaleMax }!!.second.scaleMax,
                 isScaleAlign = xyResponse.documentConfig.isScaleAlign,
                 curScale = xyViewCoord.scale,
                 newScale = if (deltaY < 0) {
@@ -957,8 +957,6 @@ class MapControl(
     private fun zoomIn() {
         //--- проверить масштаб
         val newScale = checkXyScale(
-            minScale = xyResponse.documentConfig.alElementConfig.minByOrNull { it.second.scaleMin }!!.second.scaleMin,
-            maxScale = xyResponse.documentConfig.alElementConfig.maxByOrNull { it.second.scaleMax }!!.second.scaleMax,
             isScaleAlign = xyResponse.documentConfig.isScaleAlign,
             curScale = xyViewCoord.scale,
             newScale = xyViewCoord.scale / 2,
@@ -973,8 +971,6 @@ class MapControl(
     private fun zoomOut() {
         //--- проверить масштаб
         val newScale = checkXyScale(
-            minScale = xyResponse.documentConfig.alElementConfig.minByOrNull { it.second.scaleMin }!!.second.scaleMin,
-            maxScale = xyResponse.documentConfig.alElementConfig.maxByOrNull { it.second.scaleMax }!!.second.scaleMax,
             isScaleAlign = xyResponse.documentConfig.isScaleAlign,
             curScale = xyViewCoord.scale,
             newScale = xyViewCoord.scale * 2,

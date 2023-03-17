@@ -827,18 +827,18 @@ open class cStandart {
 
         return TableResponse(
             tab = aliasConfig.descr,
-            arrHeader = alHeader.toTypedArray(),
+            alHeader = alHeader,
             selectorCancelURL = selectorCancelURL,
             findURL = findData.first,
             findText = findData.second,
-            arrAddActionButton = (if (isAddEnabled()) getAddButtonURL(refererID, hmOut) else emptyList()).toTypedArray(),
-            arrServerActionButton = getServerAction().toTypedArray(),
-            arrClientActionButton = getClientAction().toTypedArray(),
-            arrColumnCaption = alCaption.toTypedArray(),
-            arrTableCell = alTableCell.toTypedArray(),
-            arrTableRowData = alTableRowData.toTypedArray(),
+            alAddActionButton = (if (isAddEnabled()) getAddButtonURL(refererID, hmOut) else emptyList()),
+            alServerActionButton = getServerAction(),
+            alClientActionButton = getClientAction(),
+            alColumnCaption = alCaption,
+            alTableCell = alTableCell,
+            alTableRowData = alTableRowData,
             selectedRow = currentRowNo,
-            arrPageButton = alPageButton.toTypedArray()
+            alPageButton = alPageButton
         )
     }
 
@@ -974,13 +974,13 @@ open class cStandart {
             }
 
             TableCellType.BUTTON -> {
-                tc.arrButtonCellData.forEach { tbcd ->
+                tc.alButtonCellData.forEach { tbcd ->
                     cellText += tbcd.text + ' '
                 }
             }
 
             TableCellType.GRID -> {
-                tc.arrGridCellData.forEach { gridRow ->
+                tc.alGridCellData.forEach { gridRow ->
                     gridRow.forEach { tgcd ->
                         cellText += tgcd.text + ' '
                     }
@@ -1251,7 +1251,7 @@ open class cStandart {
                 isRowURLInNewWindow = isRowURLInNewWindow,
                 gotoURL = gotoURL,
                 isGotoURLInNewWindow = isGotoURLInNewWindow,
-                alPopupData = alPopupData.toTypedArray()
+                alPopupData = alPopupData
             )
         )
 
@@ -1428,7 +1428,7 @@ open class cStandart {
     protected open fun newTableRowDefaultOperation(selectorParam: SelectorParameter?, hmColumnData: Map<iColumn, iData>, hmOut: MutableMap<String, Any>): String? =
         //--- в режиме селектора double-click делает возврат строки аналогично нажатию соответствующей кнопки
         selectorParam?.let {
-            getTableRowSelectButton(-1, -1, -1, selectorParam, hmColumnData, hmOut).arrButtonCellData.first().url
+            getTableRowSelectButton(-1, -1, -1, selectorParam, hmColumnData, hmOut).alButtonCellData.first().url
         }
 
     protected open fun isOpenFormURLInNewWindow(): Boolean = true
@@ -1684,11 +1684,11 @@ open class cStandart {
 
         return FormResponse(
             tab = aliasConfig.descr,
-            alHeader = alHeader.toTypedArray(),
+            alHeader = alHeader,
             columnCount = 0,    // 0 = это обычная ( т.е. не GRID ) форма
-            alFormColumn = arrayOf(),
-            alFormCell = alFormCell.toTypedArray(),
-            alFormButton = alFormButton.toTypedArray()
+            alFormColumn = listOf(),
+            alFormCell = alFormCell,
+            alFormButton = alFormButton
         )
     }
 
@@ -1740,14 +1740,14 @@ open class cStandart {
                 //--- выжимка из getFieldCellName
                 add(Triple("${fcvd.columnMaster.columnTableName}___${fcvd.columnMaster.getFieldName(0)}", fcvd.state, fcvd.values.toTypedArray()))
             }
-        }.toTypedArray()
+        }
         fci.alCaption = fci.alCaption.toMutableList().apply {
             for (i in 0 until column.getFormCaptionCount()) {
                 val fccd = column.getFormCaption(i)
                 //--- выжимка из getFieldCellName
                 add(Triple("${fccd.columnMaster.columnTableName}___${fccd.columnMaster.getFieldName(0)}", fccd.caption, fccd.values.toTypedArray()))
             }
-        }.toTypedArray()
+        }
         return fci
     }
 

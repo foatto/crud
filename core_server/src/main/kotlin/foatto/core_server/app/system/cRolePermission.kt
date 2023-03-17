@@ -102,7 +102,7 @@ class cRolePermission : cStandart() {
                     sIDList += (if (sIDList.isEmpty()) "" else ",") + "$pid"
 
                     //--- основные поля - применяются сокращенные/оптимизированные варианты getFormCell
-                    val fci = FormCell(fieldName, fieldValue, emptyArray())
+                    val fci = FormCell(fieldName, fieldValue, emptyList())
 
                     fci.isEditable = true
                     fci.caption = rowCaption
@@ -141,11 +141,11 @@ class cRolePermission : cStandart() {
 
         return FormResponse(
             tab = aliasConfig.descr,
-            alHeader = alHeader.toTypedArray(),
+            alHeader = alHeader,
             columnCount = tmRoleData.size,    // это GRID-форма - укажем кол-во столбцов грид-формы
-            alFormColumn = tmRoleData.keys.map { it.replace(' ', '\n') }.toTypedArray(),
-            alFormCell = alFormCell.toTypedArray(),
-            alFormButton = alFormButton.toTypedArray()
+            alFormColumn = tmRoleData.keys.map { it.replace(' ', '\n') },
+            alFormCell = alFormCell,
+            alFormButton = alFormButton,
         )
     }
 
