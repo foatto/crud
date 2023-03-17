@@ -1,3 +1,3 @@
-package foatto.core_compose_web.control.model
+package foatto.core_compose.model
 
 class TitleData(val url: String, val text: String)

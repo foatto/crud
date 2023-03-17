@@ -21,8 +21,8 @@ import foatto.core.util.getSplittedDouble
 import foatto.core_compose_web.*
 import foatto.core_compose_web.control.composable.getRefreshSubToolbar
 import foatto.core_compose_web.control.composable.getToolBarSpan
-import foatto.core_compose_web.control.model.MouseRectData
-import foatto.core_compose_web.control.model.TitleData
+import foatto.core_compose.model.MouseRectData
+import foatto.core_compose.model.TitleData
 import foatto.core_compose_web.link.invokeGraphic
 import foatto.core_compose_web.link.invokeSaveUserProperty
 import foatto.core_compose_web.style.*

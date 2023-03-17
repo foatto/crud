@@ -22,7 +22,7 @@ import foatto.core_compose_web.Root
 import foatto.core_compose_web.control.composable.getRefreshSubToolbar
 import foatto.core_compose_web.control.composable.getToolBarSpan
 import foatto.core_compose_web.control.model.AddPointStatus
-import foatto.core_compose_web.control.model.MouseRectData
+import foatto.core_compose.model.MouseRectData
 import foatto.core_compose_web.control.model.XyElementData
 import foatto.core_compose_web.control.model.XyElementDataType
 import foatto.core_compose_web.link.invokeXy

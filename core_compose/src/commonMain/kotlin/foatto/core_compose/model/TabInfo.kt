@@ -1,4 +1,4 @@
-package foatto.core_compose_web.control.model
+package foatto.core_compose.model
 
 class TabInfo(
     val id: Int,

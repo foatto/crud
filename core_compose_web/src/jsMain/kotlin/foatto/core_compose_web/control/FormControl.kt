@@ -16,7 +16,7 @@ import foatto.core.link.FormResponse
 import foatto.core.util.getRandomInt
 import foatto.core_compose_web.AppControl
 import foatto.core_compose_web.Root
-import foatto.core_compose_web.control.model.TitleData
+import foatto.core_compose.model.TitleData
 import foatto.core_compose_web.link.invokeUploadFormFile
 import foatto.core_compose_web.style.*
 import kotlinx.browser.document

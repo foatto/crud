@@ -23,7 +23,7 @@ import foatto.core_compose_web.MENU_BAR_ID
 import foatto.core_compose_web.MENU_CLOSER_BUTTON_ID
 import foatto.core_compose_web.Root
 import foatto.core_compose_web.TOP_BAR_ID
-import foatto.core_compose_web.control.model.TitleData
+import foatto.core_compose.model.TitleData
 import foatto.core_compose_web.control.model.XyElementData
 import foatto.core_compose_web.control.model.XyElementDataType
 import foatto.core_compose_web.link.invokeXy

@@ -5,7 +5,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import foatto.core_compose_web.control.composable.getToolBarSpan
-import foatto.core_compose_web.control.model.TitleData
+import foatto.core_compose.model.TitleData
 import foatto.core_compose_web.style.*
 import kotlinx.browser.window
 import org.jetbrains.compose.web.attributes.disabled

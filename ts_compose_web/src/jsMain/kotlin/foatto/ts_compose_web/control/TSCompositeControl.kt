@@ -14,7 +14,7 @@ import foatto.core_compose_web.control.StateControl
 import foatto.core_compose_web.control.composable.getRefreshSubToolbar
 import foatto.core_compose_web.control.composable.getToolBarSpan
 import foatto.core_compose_web.control.composable.getXyServerActionSubToolbar
-import foatto.core_compose_web.control.model.TitleData
+import foatto.core_compose.model.TitleData
 import foatto.core_compose_web.control.model.XyServerActionButtonData
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.Div
