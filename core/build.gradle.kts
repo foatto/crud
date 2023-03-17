@@ -4,10 +4,14 @@ val kotlinLanguageVersion: String by project
 val kotlinApiVersion: String by project
 val kotlinJvmTarget: String by project
 
+val kotlinxSerializationVersion: String by project
+
 val coreVersion: String by project
 
 plugins {
     kotlin("multiplatform")
+
+    kotlin("plugin.serialization")
 
     `maven-publish`
 }
@@ -15,8 +19,7 @@ plugins {
 version = coreVersion
 
 kotlin {
-    js {// LEGACY-backend version
-//    js(IR) {  // IR-backend version
+    js(IR) {  // IR-backend version
         browser {
         }
     }
@@ -34,6 +37,9 @@ kotlin {
 
     sourceSets {
         val commonMain by getting {
+            dependencies {
+                api("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion")
+            }
         }
         val jsMain by getting {
         }

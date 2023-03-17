@@ -8,6 +8,7 @@ import foatto.core.link.*
 import foatto.core.util.getRandomLong
 import kotlinx.browser.window
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.w3c.xhr.XMLHttpRequest
 
@@ -37,7 +38,7 @@ fun invokeApp(
 
         appRequest.sessionId = sessionId
 //println("requestData.toJson = ${appRequest.toJson()}")
-        send(appRequest.toJson())
+        send(Json.encodeToString(appRequest))
     }
 }
 
@@ -63,7 +64,7 @@ fun invokeGraphic(
 
         graphicActionRequest.sessionId = sessionId
 
-        send(graphicActionRequest.toJson())
+        send(Json.encodeToString(graphicActionRequest))
     }
 }
 
@@ -89,7 +90,7 @@ fun invokeXy(
 
         xyActionRequest.sessionId = sessionId
 
-        send(xyActionRequest.toJson())
+        send(Json.encodeToString(xyActionRequest))
     }
 }
 
@@ -115,7 +116,7 @@ fun invokeSaveUserProperty(
 
         saveUserPropertyRequest.sessionId = sessionId
 
-        send(saveUserPropertyRequest.toJson())
+        send(Json.encodeToString(saveUserPropertyRequest))
     }
 }
 
@@ -141,7 +142,7 @@ fun invokeChangePassword(
 
         changePasswordRequest.sessionId = sessionId
 
-        send(changePasswordRequest.toJson())
+        send(Json.encodeToString(changePasswordRequest))
     }
 }
 
@@ -166,7 +167,7 @@ fun invokeLogoff(
         setRequestHeader("Content-Type", "application/json")
 
         logoffRequest.sessionId = sessionId
-        send(logoffRequest.toJson())
+        send(Json.encodeToString(logoffRequest))
     }
 }
 
@@ -213,7 +214,7 @@ fun invokeCustom(
         }
         setRequestHeader("Content-Type", "application/json")
 
-        send(customRequest.toJson())
+        send(Json.encodeToString(customRequest))
     }
 }
 

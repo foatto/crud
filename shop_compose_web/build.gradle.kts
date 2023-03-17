@@ -29,6 +29,7 @@ kotlin {
         val jsMain by getting {
             dependencies {
                 api(project(":core_compose_web"))
+//    api(project(":shop_core"))
             }
         }
 //        val jsTest by getting {
