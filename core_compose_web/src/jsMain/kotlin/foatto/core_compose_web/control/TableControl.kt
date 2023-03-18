@@ -961,10 +961,6 @@ open class TableControl(
                     } else {
                         tc.textCellData.text    //.replace("\n", "<br>")
                     }
-                    //--- restore or finally remove word wrap?
-                    //if (!tc.isWordWrap) {
-                    //    text = text.replace(" ", "&nbsp;")
-                    //}
                     textCellData = TableTextCellDataClient(
                         icon = icon,
                         image = tc.textCellData.image,
@@ -978,6 +974,9 @@ open class TableControl(
                     elementStyle = {
                         color(textColor)
                         fontSize(getStyleTableTextFontSize())
+                        if (!tc.isWordWrap) {
+                            whiteSpace("nowrap")
+                        }
                         userSelect(if (getStyleIsTouchScreen()) "none" else "auto")
                     }
                 }
@@ -1033,10 +1032,6 @@ open class TableControl(
                             } else {
                                 cellData.text   //.replace("\n", "<br>")
                             }
-                            //--- restore or finally remove word wrap?
-                            //if (!tc.isWordWrap) {
-                            //    text = text.replace(" ", "&nbsp;")
-                            //}
                             alGridCellData.last().add(
                                 TableGridCellDataClient(
                                     icon = icon,
@@ -1046,6 +1041,9 @@ open class TableControl(
                                         color(textColor)
                                         fontSize(getStyleTableTextFontSize())
                                         userSelect(if (getStyleIsTouchScreen()) "none" else "auto")
+                                        if (!tc.isWordWrap) {
+                                            whiteSpace("nowrap")
+                                        }
                                         gridArea("${rowIndex + 1}", "${colIndex + 1}", "${rowIndex + 2}", "${colIndex + 2}")
                                         justifySelf("stretch")
                                         alignSelf(AlignSelf.Stretch)
