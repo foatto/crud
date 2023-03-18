@@ -382,7 +382,7 @@ class FormControl(
                                             Option(
                                                 value = comboData.value.toString(),
                                                 attrs = {
-                                                    if (gridData.combo.value == comboData.value) {
+                                                    if (comboData.value == gridData.combo.value) {
                                                         selected()
                                                     }
                                                 }

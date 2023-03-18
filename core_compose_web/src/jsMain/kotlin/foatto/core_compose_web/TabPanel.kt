@@ -129,6 +129,12 @@ class TabPanel(
                             padding(styleTabComboPadding)
                             setMargins(getStyleTabComboMargins())
                         }
+                        //onInput { syntheticInputEvent -> - тоже можно
+                        onChange { syntheticChangeEvent ->
+                            syntheticChangeEvent.value?.let { value ->
+                                currentTabIndex.value = value.toInt()
+                            }
+                        }
                     }
                 ) {
                     alTabInfo.forEachIndexed { tabIndex, tabInfo ->
