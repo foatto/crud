@@ -13,7 +13,6 @@ import org.jetbrains.compose.web.css.fontWeight
 import org.jetbrains.compose.web.css.padding
 import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Img
-import org.jetbrains.compose.web.dom.Text
 
 @Composable
 fun getXyServerActionSubToolbar(
@@ -47,7 +46,7 @@ fun getXyServerActionSubToolbar(
                     if (serverButton.icon.isNotEmpty()) {
                         Img(src = serverButton.icon)
                     } else {
-                        Text(serverButton.caption)
+                        getMultilineText(serverButton.caption)
                     }
                 }
             }

@@ -27,7 +27,7 @@ class XyServerActionButtonData(
                 val caption = if (sab.icon.isNotBlank() && icon.isBlank()) {
                     sab.icon
                 } else {
-                    sab.caption //!!!.replace("\n", "<br>")
+                    sab.caption
                 }
                 alXyServerButton.add(
                     XyServerActionButtonData(

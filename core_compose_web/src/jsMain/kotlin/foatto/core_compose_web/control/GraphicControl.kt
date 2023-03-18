@@ -23,6 +23,7 @@ import foatto.core_compose_web.control.composable.getRefreshSubToolbar
 import foatto.core_compose_web.control.composable.getToolBarSpan
 import foatto.core_compose.model.MouseRectData
 import foatto.core_compose.model.TitleData
+import foatto.core_compose_web.control.composable.getMultilineText
 import foatto.core_compose_web.link.invokeGraphic
 import foatto.core_compose_web.link.invokeSaveUserProperty
 import foatto.core_compose_web.style.*
@@ -723,7 +724,7 @@ class GraphicControl(
                                 }
                             }
                         ) {
-                            Text(element.text.value)
+                            getMultilineText(element.text.value)
                         }
                     }
                 }
@@ -744,7 +745,7 @@ class GraphicControl(
                             }
                         }
                     ) {
-                        Text(grTooltipText.value)
+                        getMultilineText(grTooltipText.value)
                     }
                 }
             }
@@ -1705,7 +1706,7 @@ class GraphicControl(
             val (tooltipX, tooltipY) = getGraphixAndXyTooltipCoord(mouseClientX, mouseClientY)
 
             grTooltipVisible.value = true
-            grTooltipText.value = graphicElement.tooltip.replace("\n", "<br>")
+            grTooltipText.value = graphicElement.tooltip
             grTooltipLeft.value = tooltipX.px
             grTooltipTop.value = tooltipY.px
             grTooltipOffTime = Date.now() + 3000
@@ -1928,7 +1929,7 @@ class GraphicControl(
         val cursorTime = getTimeFromX(x, svgBodyWidth, grViewCoord.t1, grViewCoord.width)
 
         timeLabelData.isVisible.value = true
-        timeLabelData.text.value = DateTime_DMYHMS(timeOffset, cursorTime)    //!!!.replace(" ", "\n") не работают замена на <br> и \n
+        timeLabelData.text.value = DateTime_DMYHMS(timeOffset, cursorTime).replace(" ", "\n")
         timeLabelData.pos.value = {
             bottom(0.px)
             if (x > svgBodyWidth * 7 / 8) {

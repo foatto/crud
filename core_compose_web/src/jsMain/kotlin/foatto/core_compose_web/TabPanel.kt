@@ -263,8 +263,10 @@ class TabPanel(
                                     }
                                 }
                             ) {
+                                if (textIndex > 0) {
+                                    Br()
+                                }
                                 Text(text)
-                                Br()
                             }
                         }
                     }

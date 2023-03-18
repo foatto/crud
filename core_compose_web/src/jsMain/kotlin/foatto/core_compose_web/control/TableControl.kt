@@ -9,6 +9,7 @@ import foatto.core_compose.model.MenuDataClient
 import foatto.core_compose_web.*
 import foatto.core_compose_web.control.composable.getToolBarSpan
 import foatto.core_compose.model.TitleData
+import foatto.core_compose_web.control.composable.getMultilineText
 import foatto.core_compose_web.style.*
 import foatto.core_compose_web.util.getColorFromInt
 import kotlinx.browser.document
@@ -496,7 +497,7 @@ open class TableControl(
                                             }
                                         }
                                     ) {
-                                        Text(gridData.textCellData!!.text)
+                                        getMultilineText(gridData.textCellData!!.text)
                                     }
                                 }
                             }
@@ -543,7 +544,7 @@ open class TableControl(
                                                 }
                                             }
                                         ) {
-                                            Text(cellData.text)
+                                            getMultilineText(cellData.text)
                                         }
                                     }
                                 }
@@ -565,7 +566,7 @@ open class TableControl(
                                             } else if (cellData.image.isNotEmpty()) {
                                                 Img(src = cellData.image)
                                             } else {
-                                                Text(cellData.text)
+                                                getMultilineText(cellData.text)
                                             }
                                         }
                                     }
@@ -959,7 +960,7 @@ open class TableControl(
                     val text = if (tc.textCellData.icon.isNotBlank() && icon.isBlank()) {
                         tc.textCellData.icon
                     } else {
-                        tc.textCellData.text    //.replace("\n", "<br>")
+                        tc.textCellData.text
                     }
                     textCellData = TableTextCellDataClient(
                         icon = icon,
@@ -988,7 +989,7 @@ open class TableControl(
                         val text = if (cellData.icon.isNotBlank() && icon.isBlank()) {
                             cellData.icon
                         } else {
-                            cellData.text   //.replace("\n", "<br>")
+                            cellData.text
                         }
                         alButtonCellData.add(
                             TableButtonCellDataClient(
@@ -1030,7 +1031,7 @@ open class TableControl(
                             var text = if (cellData.icon.isNotBlank() && icon.isBlank()) {
                                 cellData.icon
                             } else {
-                                cellData.text   //.replace("\n", "<br>")
+                                cellData.text
                             }
                             alGridCellData.last().add(
                                 TableGridCellDataClient(

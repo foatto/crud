@@ -24,6 +24,7 @@ import foatto.core_compose_web.MENU_BAR_ID
 import foatto.core_compose_web.MENU_CLOSER_BUTTON_ID
 import foatto.core_compose_web.Root
 import foatto.core_compose_web.TOP_BAR_ID
+import foatto.core_compose_web.control.composable.getMultilineText
 import foatto.core_compose_web.control.model.XyElementData
 import foatto.core_compose_web.control.model.XyElementDataType
 import foatto.core_compose_web.link.invokeXy
@@ -516,7 +517,7 @@ abstract class AbstractXyControl(
                             }
                         }
                     ) {
-                        Text(element.text)
+                        getMultilineText(element.text)
                     }
                 }
             }
@@ -537,7 +538,7 @@ abstract class AbstractXyControl(
                     }
                 }
             ) {
-                Text(xyTooltipText.value)
+                getMultilineText(xyTooltipText.value)
             }
 
         }
@@ -1293,7 +1294,7 @@ abstract class AbstractXyControl(
                         objectId = element.objectId,
                         x = x,
                         y = y,
-                        text = element.text, //.replace("\n", "<br>"),
+                        text = element.text,
                         tooltip = element.toolTipText,
                         isReadOnly = element.isReadOnly,
                         isVisible = true,       //!!! д.б. false и потом отдельно включаться в зависимости от заэкранности положения
