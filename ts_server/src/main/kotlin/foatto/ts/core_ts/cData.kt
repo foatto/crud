@@ -38,7 +38,7 @@ class cData : cTSOneObjectParent() {
         //--- список полей прописанных датчиков
         val tmSensorColumn = md.tmSensorColumn
         //--- строка-сборник данных по прочим/непрописанным датчикам
-        val sbOtherData = StringBuilder("-\n")
+        val sbOtherData = StringBuilder()
 
         val hmSensorPortType = md.hmSensorPortType
 
@@ -51,10 +51,9 @@ class cData : cTSOneObjectParent() {
             if (isPresentedPort) {
                 (hmColumnData[tmSensorColumn[portNum]!!] as DataString).text = sensorValue
             } else {
-                sbOtherData.append(if (sbOtherData.isEmpty()) "" else "  ").append(portNum).append('=').append(sensorValue)
+                sbOtherData.append(if (sbOtherData.isEmpty()) "" else " ").append(portNum).append('=').append(sensorValue)
             }
         }
-        sbOtherData.append("\n-")
 
         (hmColumnData[md.columnDataSensorOther] as DataString).text = sbOtherData.toString()
     }
