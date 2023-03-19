@@ -8,7 +8,7 @@ The client part of the platform supports the following types of displayed inform
    - table views;
    - forms of data viewing and editing;
    - graphs of measurements;
-   - cartography with additional user elements and the possibility of their interactive modification;
+   - cartography with vector custom elements and the possibility of their interactive modification;
    - SCADA-like display of the state of objects;
 
 The server part of the platform offers the following features:
@@ -20,13 +20,13 @@ The server part of the platform offers the following features:
 
 Planned features:
    - support for displaying video information (with reference to measurement graphs and cartography elements);
-   - refactoring of the current web client from Kotlin/JS + Vue.js technologies to JetBrains Compose Multiplatform;
    - adding new client platforms (android and desktop versions) based on JetBrains Compose Multiplatform technologies;
 
 Deprecated and already removed platform features:
    - desktop-client on Swing;
    - desktop-client on JavaFX;
    - ancient android-client in Java for "Android 4.x";
+   - web client based on Kotlin/JS technology (legacy backend) + Vue.js wrapper;
 
 Currently, four applied projects that are in a production have been implemented on this platform:
   - ["Pulsar" - transport and technological facilities control system](https://pulsar.report):
@@ -62,28 +62,21 @@ The core module contains code common to the client and server parts:
 
 The JVM part of the core module contains classes that may be useful for the Desktop/Android version.
 
-### core_web
+### core_compose
 
-A web client module common to all applied projects using a combination of Kotlin/JS + Vue.js technologies, working on top of the DOM model and using HTML5 and CSS3:
-  - Vue.js templates for creating interactive pages;
-  - Kotlin/JS for implementing reactions on events;
+A core compose module containing common classes, functions, and constants for platform-specific compose modules (Android, Desktop, Web).
+
+### core_compose_web
+
+A web client module common to all applied projects using a combination of Kotlin/JS and JetBrains Compose for Web technologies:
+  - Composable functions for displaying interactive pages;
+  - Kotlin/JS for implementing reactions to events;
   - CSS Grid & Flex to display tabular and edit forms;
   - SVG for displaying measurement graphs, cartography and SCADA-like display of the state of objects;
   - automatic switching between two layout options (for narrow screens of mobile devices and wide screens of desktop systems);
   - support for touch screens;
   - support for different point densities (relevant for measurement graphs and cartography);
-  - the ability to change design parameters for an application branding;
-
-### core_compose
-
-A core compose module containing common classes, functions, and constants for platform-specific compose modules (Android, Desktop, Web).
-Development is on hold pending the WASM version of JetBrains Compose for Web.
-
-### core_compose_web
-
-A web client module common to all applied projects using JetBrains Compose for Web technology.
-Development is on hold pending a WASM version with generic/compatible rendering.
-The current JetBrains Compose for Web is based on the DOM model, has no fundamental differences from the Kotlin/JS + Vue.js version, and therefore is not particularly interesting.
+  - the ability to change design parameters for branding applied projects;
 
 ### core_server
 
@@ -119,7 +112,7 @@ A core web container that uses Spring Boot MVC technology and contains the follo
 A core web container that uses the Spring Boot WebFlux technology to work.
 Currently under development.
 
-### mms: core, web, compose_web, server, server_mvc
+### mms: core, compose_web, server, server_mvc
 
 A group of application modules implementing the project ["Pulsar" - transport and technological facilities control system](https://pulsar.report):
   - core: contains mms-specific common modules, similar to the core common module;
@@ -171,19 +164,19 @@ A group of application modules implementing the project ["Pulsar" - transport an
     - Spring MVC controller;
     - a set of mms-specific JPA entities and repositories;
 
-### office: core, web, server, server_mvc
+### office: core, compose_web, server, server_mvc
 
 Group of application modules implementing the project [Instruction Execution Control System](http://crm.magnol.ru)
 
 (in the process of being documented...)
 
-### shop: core, web, server, server_mvc
+### shop: core, compose_web, server, server_mvc
 
 A group of application modules implementing the project "System of retail trade and warehouse accounting"
 
 (in the process of being documented...)
 
-### ts: core, web, server, server_mvc
+### ts: core, compose_web, server, server_mvc
 
 A group of application modules implementing the project "Control system for well dewaxing units "UDS-Techno"
 
