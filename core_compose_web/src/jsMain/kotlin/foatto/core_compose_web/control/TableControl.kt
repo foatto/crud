@@ -6,10 +6,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.web.events.SyntheticMouseEvent
 import foatto.core.link.*
 import foatto.core_compose.model.MenuDataClient
-import foatto.core_compose_web.*
-import foatto.core_compose_web.control.composable.getToolBarSpan
 import foatto.core_compose.model.TitleData
+import foatto.core_compose_web.*
 import foatto.core_compose_web.control.composable.getMultilineText
+import foatto.core_compose_web.control.composable.getToolBarSpan
 import foatto.core_compose_web.style.*
 import foatto.core_compose_web.util.getColorFromInt
 import kotlinx.browser.document
@@ -696,9 +696,14 @@ open class TableControl(
         //--- запоминаем текущий appParam для возможной установки в виде стартовой
         root.curAppParam = appParam
 
+        //--- две попытки установить фокус, с минимальными задержками
         window.setTimeout({
-            focusToCursorField(tabId)
-        }, 1000)
+            if (!focusToCursorField(tabId)) {
+                window.setTimeout({
+                    focusToCursorField(tabId)
+                }, 100)
+            }
+        }, 100)
     }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1288,11 +1293,14 @@ open class TableControl(
         arrCurPopupData.value = alCurPopupData.toTypedArray()
     }
 
-    private fun focusToCursorField(tabId: Int) {
-        val element = document.getElementById("table_cursor_$tabId")
-        if (element is HTMLElement) {
-            element.focus()
+    private fun focusToCursorField(tabId: Int): Boolean {
+        document.getElementById("table_cursor_$tabId")?.let { element ->
+            if (element is HTMLElement) {
+                element.focus()
+                return true
+            }
         }
+        return false
     }
 
 }

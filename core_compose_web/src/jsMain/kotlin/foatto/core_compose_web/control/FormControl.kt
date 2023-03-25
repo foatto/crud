@@ -930,12 +930,14 @@ class FormControl(
         autoClickUrl?.let { acUrl ->
             call(acUrl, true, null)
         } ?: autoFocusId?.let { afId ->
+            //--- две попытки установить фокус, с минимальными задержками
             window.setTimeout({
-                val element = document.getElementById(afId)
-                if (element is HTMLElement) {
-                    element.focus()
+                if (!setFocus(afId)) {
+                    window.setTimeout({
+                        setFocus(afId)
+                    }, 100)
                 }
-            }, 1000)
+            }, 100)
         }
     }
 
@@ -1532,6 +1534,15 @@ class FormControl(
             "i_${tabId}_${gridId}"
         }
 
+    private fun setFocus(focusElementId: String): Boolean {
+        document.getElementById(focusElementId)?.let { element ->
+            if (element is HTMLElement) {
+                element.focus()
+                return true
+            }
+        }
+        return false
+    }
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------

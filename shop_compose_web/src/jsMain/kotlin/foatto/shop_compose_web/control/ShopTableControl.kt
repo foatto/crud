@@ -349,12 +349,14 @@ class ShopTableControl(
 
                     isCalcShow.value = true
 
+                    //--- две попытки установить фокус, с минимальными задержками
                     window.setTimeout({
-                        val element = document.getElementById("cash_input")
-                        if (element is HTMLElement) {
-                            element.focus()
+                        if (!setCashInputFocus()) {
+                            window.setTimeout({
+                                setCashInputFocus()
+                            }, 100)
                         }
-                    }, 1000)
+                    }, 100)
                 }
             }
         }
@@ -410,6 +412,16 @@ class ShopTableControl(
     }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    private fun setCashInputFocus(): Boolean {
+        document.getElementById("cash_input")?.let { element ->
+            if (element is HTMLElement) {
+                element.focus()
+                return true
+            }
+        }
+        return false
+    }
 
     private fun doSaveDocPaymentRequest() {
         val docIdStr = docId
