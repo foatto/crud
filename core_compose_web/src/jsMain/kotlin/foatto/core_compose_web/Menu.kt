@@ -239,8 +239,8 @@ open class Menu(
             arrMenuDataClient: Array<MenuDataClient>,   // arrMenuDataClientName: String
             level: Int,
         ) {
-            for (MenuDataClient in arrMenuDataClient) { // MenuDataClient_0 in $arrMenuDataClientName
-                MenuDataClient.arrSubMenu?.let { arrSubMenu ->
+            for (menuDataClient in arrMenuDataClient) { // MenuDataClient_0 in $arrMenuDataClientName
+                menuDataClient.arrSubMenu?.let { arrSubMenu ->
                     Details {
                         Summary(
                             attrs = {
@@ -248,7 +248,7 @@ open class Menu(
                                     fontSize(arrStyleMenuFontSize[level])
                                     setPaddings(getStyleMenuItemPadding(level))
                                     backgroundColor(
-                                        if (MenuDataClient.isHover.value) {
+                                        if (menuDataClient.isHover.value) {
                                             if (level == 0) {
                                                 getColorMenuBackHover0()
                                             } else {
@@ -262,7 +262,7 @@ open class Menu(
                                     )
                                     getColorMenuTextHover0()?.let { colorMenuTextHover ->
                                         color(
-                                            if (MenuDataClient.isHover.value) {
+                                            if (menuDataClient.isHover.value) {
                                                 colorMenuTextHover
                                             } else {
                                                 colorMenuTextDefault
@@ -271,14 +271,14 @@ open class Menu(
                                     }
                                 }
                                 onMouseEnter {
-                                    MenuDataClient.isHover.value = true
+                                    menuDataClient.isHover.value = true
                                 }
                                 onMouseLeave {
-                                    MenuDataClient.isHover.value = false
+                                    menuDataClient.isHover.value = false
                                 }
                             }
                         ) {
-                            Text(MenuDataClient.text)
+                            Text(menuDataClient.text)
                         }
                         generateMenuBody(clickableMenu, isMainMenu, arrSubMenu, level + 1)
                     }
@@ -288,11 +288,11 @@ open class Menu(
                             style {
                                 fontSize(arrStyleMenuFontSize[level])
                                 setPaddings(getStyleMenuItemPadding(level))
-                                if (MenuDataClient.url.isEmpty() && MenuDataClient.text.isEmpty()) {
+                                if (menuDataClient.url.isEmpty() && menuDataClient.text.isEmpty()) {
                                     textDecoration("line-through")
                                 }
                                 backgroundColor(
-                                    if (MenuDataClient.isHover.value) {
+                                    if (menuDataClient.isHover.value) {
                                         if (level == 0) {
                                             getColorMenuBackHover0()
                                         } else {
@@ -306,8 +306,8 @@ open class Menu(
                                     }
                                 )
                                 color(
-                                    if (MenuDataClient.url.isNotEmpty() || MenuDataClient.text.isNotEmpty()) {
-                                        if (MenuDataClient.isHover.value) {
+                                    if (menuDataClient.url.isNotEmpty() || menuDataClient.text.isNotEmpty()) {
+                                        if (menuDataClient.isHover.value) {
                                             getColorMenuTextHoverN()?.let {
                                                 getColorMenuTextHoverN()
                                             } ?: colorMenuTextDefault
@@ -320,21 +320,22 @@ open class Menu(
                                 )
                             }
                             onClick {
-                                clickableMenu.menuClick(MenuDataClient.url, MenuDataClient.inNewWindow)
+                                menuDataClient.isHover.value = false
+                                clickableMenu.menuClick(menuDataClient.url, menuDataClient.inNewWindow)
                             }
                             onMouseEnter {
-                                MenuDataClient.isHover.value = MenuDataClient.text.isNotEmpty()
+                                menuDataClient.isHover.value = menuDataClient.text.isNotEmpty()
                             }
                             onMouseLeave {
-                                MenuDataClient.isHover.value = false
+                                menuDataClient.isHover.value = false
                             }
                         }
                     ) {
                         Text(
-                            if (MenuDataClient.url.isNotEmpty()) {
-                                MenuDataClient.text
-                            } else if (MenuDataClient.text.isNotEmpty()) {
-                                MenuDataClient.text + " >"
+                            if (menuDataClient.url.isNotEmpty()) {
+                                menuDataClient.text
+                            } else if (menuDataClient.text.isNotEmpty()) {
+                                menuDataClient.text + " >"
                             } else {
                                 MENU_DELIMITER
                             }
