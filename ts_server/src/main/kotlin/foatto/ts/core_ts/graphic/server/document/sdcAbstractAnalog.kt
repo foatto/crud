@@ -249,6 +249,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
             SensorConfig.SENSOR_LOAD -> 10
             SensorConfig.SENSOR_TEMPERATURE_IN -> 10
             SensorConfig.SENSOR_TEMPERATURE_OUT -> 10
+            SensorConfig.SENSOR_SIGNAL_LEVEL -> 10
             else -> 0
         }
 

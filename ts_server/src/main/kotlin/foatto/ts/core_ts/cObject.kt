@@ -217,6 +217,7 @@ class cObject : cStandart() {
         (hmColumnData[m.columnDepth] as DataDouble).doubleValue = objectState.tmDepthValue.values.firstOrNull() ?: 0.0
         (hmColumnData[m.columnSpeed] as DataDouble).doubleValue = objectState.tmSpeedValue.values.firstOrNull() ?: 0.0
         (hmColumnData[m.columnLoad] as DataDouble).doubleValue = objectState.tmLoadValue.values.firstOrNull() ?: 0.0
+        (hmColumnData[m.columnSignalLevel] as DataDouble).doubleValue = objectState.tmSignalLevel.values.firstOrNull() ?: 0.0
     }
 
 }

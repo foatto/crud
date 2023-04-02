@@ -36,6 +36,7 @@ class mObject : mAbstract() {
     lateinit var columnDepth: ColumnDouble
     lateinit var columnSpeed: ColumnDouble
     lateinit var columnLoad: ColumnDouble
+    lateinit var columnSignalLevel: ColumnDouble
     lateinit var columnLastDateTime: ColumnDateTimeInt
 
     override fun init(application: iApplication, aConn: CoreAdvancedConnection, aliasConfig: AliasConfig, userConfig: UserConfig, aHmParam: Map<String, String>, hmParentData: MutableMap<String, Int>, id: Int?) {
@@ -99,6 +100,11 @@ class mObject : mAbstract() {
             isEditable = false
             tableAlign = TableCellAlign.CENTER
         }
+        columnSignalLevel= ColumnDouble(modelTableName, "_signal_level", SensorConfig.hmSensorDescr[SensorConfig.SENSOR_SIGNAL_LEVEL] ?: "-", 10, 2).apply {
+            isVirtual = true
+            isEditable = false
+            tableAlign = TableCellAlign.CENTER
+        }
         columnLastDateTime = ColumnDateTimeInt(modelTableName, "_last_time", "Время последних данных", true, zoneId).apply {
             isVirtual = true
             isEditable = false
@@ -120,6 +126,7 @@ class mObject : mAbstract() {
         addTableColumn(columnDepth)
         addTableColumn(columnSpeed)
         addTableColumn(columnLoad)
+        addTableColumn(columnSignalLevel)
         addTableColumn(columnLastDateTime)
 
         alFormHiddenColumn += columnId
@@ -135,6 +142,7 @@ class mObject : mAbstract() {
         alFormColumn += columnDepth
         alFormColumn += columnSpeed
         alFormColumn += columnLoad
+        alFormColumn += columnSignalLevel
         alFormColumn += columnLastDateTime
 
         //----------------------------------------------------------------------------------------------------------------------
@@ -171,6 +179,7 @@ class mObject : mAbstract() {
         alChildData.add(ChildData("Графики", "ts_graphic_load", columnId, AppAction.FORM))
         alChildData.add(ChildData("Графики", "ts_graphic_temperature_in", columnId, AppAction.FORM))
         alChildData.add(ChildData("Графики", "ts_graphic_temperature_out", columnId, AppAction.FORM))
+        alChildData.add(ChildData("Графики", "ts_graphic_signal_level", columnId, AppAction.FORM))
 
         alChildData.add(ChildData("ts_sensor", columnId, AppAction.TABLE, true))
 //        alChildData.add(ChildData("ts_log_session", columnID, AppAction.TABLE))

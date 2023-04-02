@@ -40,6 +40,8 @@ class TSSpringApp : CoreSpringApp() {
                 "ts_graphic_temperature_in" to SensorConfig.SENSOR_TEMPERATURE_IN,
                 "ts_graphic_temperature_out" to SensorConfig.SENSOR_TEMPERATURE_OUT,
 
+                "ts_graphic_signal_level" to SensorConfig.SENSOR_SIGNAL_LEVEL,
+
             ).forEach { (name, sensorType) ->
                 GraphicDocumentConfig.hmConfig[name] = TSGraphicDocumentConfig(
                     aServerControlClassName = "foatto.ts.core_ts.graphic.server.document.sdcAnalog",

@@ -145,6 +145,7 @@ class TSAppController : CoreAppController(), iTSApplication {
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "ts_graphic_load", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "ts_graphic_temperature_in", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "ts_graphic_temperature_out", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "ts_graphic_signal_level", false)
 
         if (alMenuGraphic.size > 0) {
             alMenu.add(MenuData("", "Графики", alMenuGraphic))
@@ -246,6 +247,16 @@ class TSAppController : CoreAppController(), iTSApplication {
 
             val hmSC = objectConfig.hmSensorConfig.getOrPut(sensorType) { mutableMapOf() }
             when (sensorType) {
+                SensorConfig.SENSOR_NEXT_CLEAN_DATETIME -> {
+                    hmSC[portNum] = SensorConfig(
+                        id = sensorEntity.id,
+                        name = sensorEntity.name,
+                        group = sensorEntity.group,
+                        descr = sensorEntity.descr,
+                        portNum = portNum,
+                        sensorType = sensorType,
+                    )
+                }
                 SensorConfig.SENSOR_STATE -> {
                     hmSC[portNum] = SensorConfigState(
                         aId = sensorEntity.id,
@@ -258,7 +269,7 @@ class TSAppController : CoreAppController(), iTSApplication {
                 }
                 SensorConfig.SENSOR_DEPTH, SensorConfig.SENSOR_SPEED, SensorConfig.SENSOR_LOAD,
                 SensorConfig.SENSOR_TEMPERATURE_IN, SensorConfig.SENSOR_TEMPERATURE_OUT,
-                SensorConfig.SENSOR_SIGNAL_LEVEL, SensorConfig.SENSOR_NEXT_CLEAN_DATETIME -> {
+                SensorConfig.SENSOR_SIGNAL_LEVEL -> {
                     hmSC[portNum] = SensorConfigAnalogue(
                         aId = sensorEntity.id,
                         aName = sensorEntity.name,

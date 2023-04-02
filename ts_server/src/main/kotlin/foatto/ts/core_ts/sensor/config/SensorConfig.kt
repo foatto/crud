@@ -22,6 +22,7 @@ open class SensorConfig(
 
         const val SENSOR_SETUP = 7
         const val SENSOR_SIGNAL_LEVEL = 8
+
         const val SENSOR_NEXT_CLEAN_DATETIME = 9
 
         //--- алгоритмы усреднения:
