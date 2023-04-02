@@ -174,17 +174,14 @@ class cDevice : cStandart() {
                 )
             """
         )
+        //--- other sensor
         conn.executeUpdate(
             """
                 INSERT INTO TS_sensor( 
-                    id , object_id , name , group_name , descr , port_num , sensor_type ,
-                    ignore_min_sensor , ignore_max_sensor , smooth_method , smooth_time ,
-                    analog_min_view , analog_max_view , analog_min_limit , analog_max_limit , state_min_view , state_max_view                                          
+                    id , object_id , name , group_name , descr , port_num , sensor_type                                          
                 ) VALUES ( 
                     ${conn.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Дата/время следующей чистки' , 
-                    ${deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + 4} , ${SensorConfig.SENSOR_NEXT_CLEAN_DATETIME} ,
-                    -1 , ${Int.MAX_VALUE} , ${SensorConfig.SMOOTH_METOD_MEDIAN} , 0 ,
-                    0 , ${Int.MAX_VALUE} , 0 , 0 , 0 , ${Int.MAX_VALUE}
+                    ${deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + 4} , ${SensorConfig.SENSOR_NEXT_CLEAN_DATETIME}
                 )
             """
         )

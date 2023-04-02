@@ -26,7 +26,6 @@ class ObjectState {
 
     val tmSetupValue = sortedMapOf<Int, String>()
 
-
     companion object {
 
         //--- no more than a one month ater last date-time
@@ -164,13 +163,10 @@ class ObjectState {
         ) {
             alDateTimeSensors?.forEach { sc ->
                 if (hsSensorIds.contains(sc.id)) {
-                    val sca = sc as SensorConfigAnalogue
-                    val sensorData = AbstractObjectStateCalc.getSensorData(sca.portNum, bbIn)
+                    val sensorData = AbstractObjectStateCalc.getSensorData(sc.portNum, bbIn)
                     if (sensorData != null) {
-                        if (!ObjectCalc.isIgnoreSensorData(sca, sensorData.toDouble())) {
-                            tmValue[sca.descr] = sensorData.toInt()
-                            hsSensorIds.remove(sc.id)
-                        }
+                        tmValue[sc.descr] = sensorData.toInt()
+                        hsSensorIds.remove(sc.id)
                     }
                 }
             }
@@ -191,9 +187,11 @@ class ObjectState {
                             SensorConfigSetup.VALUE_TYPE_NUMBER -> {
                                 getSplittedDouble(sensorData.toDouble(), scs.prec, true, '.')
                             }
+
                             SensorConfigSetup.VALUE_TYPE_BOOLEAN -> {
                                 (sensorData.toInt() != 0).toString()
                             }
+
                             else -> {
                                 getSplittedDouble(sensorData.toDouble(), scs.prec, true, '.')
                             }
