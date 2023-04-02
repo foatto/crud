@@ -49,7 +49,8 @@ const val Z_INDEX_STATE_ALERT: Int = 50
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-private const val NARROW_SCREEN_WIDTH = 400
+//--- новый рекорд: Samsung A52, inner width = 509, outer width = 412
+private const val NARROW_SCREEN_WIDTH = 600
 
 val screenDPR: Double = window.devicePixelRatio
 val scaleKoef: Double = if (screenDPR <= 1) {
@@ -88,7 +89,7 @@ var styleDarkIcon: Boolean = true
 var styleIconSize: Int = 36  // м.б. 48
 
 //--- суффикс наименовани типовой иконки material design
-fun getStyleIconNameSuffix(): String = (if (styleDarkIcon) "black" else "white") + "_" + styleIconSize
+fun getStyleIconNameSuffix(): String = (if (styleDarkIcon) "black" else "white") + "_" + styleIconSize + "dp"
 
 //--- MAIN BACK ------------------------------------------------------------------------------------------------------------------------------------------------
 
