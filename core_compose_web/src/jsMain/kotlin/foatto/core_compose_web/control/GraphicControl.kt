@@ -224,27 +224,27 @@ class GraphicControl(
                 getToolBarSpan {
                     getToolBarIconButton(
                         isEnabled = refreshInterval.value == 0 && isPanButtonEnabled.value,
-                        src = "/web/images/ic_open_with_black_48dp.png",
+                        src = "/web/images/ic_open_with_${getStyleIconNameSuffix()}.png",
                         title = "Перемещение по графику"
                     ) {
                         setMode(GraphicWorkMode.PAN)
                     }
                     getToolBarIconButton(
                         isEnabled = refreshInterval.value == 0 && isZoomButtonEnabled.value,
-                        src = "/web/images/ic_search_black_48dp.png",
+                        src = "/web/images/ic_search_${getStyleIconNameSuffix()}.png",
                         title = "Выбор области для показа"
                     ) {
                         setMode(GraphicWorkMode.ZOOM_BOX)
                     }
                 }
                 getToolBarSpan {
-                    getToolBarIconButton(refreshInterval.value == 0, src = "/web/images/ic_zoom_in_black_48dp.png", title = "Ближе") { zoomIn() }
-                    getToolBarIconButton(refreshInterval.value == 0, src = "/web/images/ic_zoom_out_black_48dp.png", title = "Дальше") { zoomOut() }
+                    getToolBarIconButton(refreshInterval.value == 0, src = "/web/images/ic_zoom_in_${getStyleIconNameSuffix()}.png", title = "Ближе") { zoomIn() }
+                    getToolBarIconButton(refreshInterval.value == 0, src = "/web/images/ic_zoom_out_${getStyleIconNameSuffix()}.png", title = "Дальше") { zoomOut() }
                 }
                 getToolBarSpan {
                     getToolBarIconButton(
                         isEnabled = refreshInterval.value == 0,
-                        src = "/web/images/ic_timeline_black_48dp.png",
+                        src = "/web/images/ic_timeline_${getStyleIconNameSuffix()}.png",
                         title = "Включить/выключить отдельные графики"
                     ) {
                         isShowGraphicVisible.value = !isShowGraphicVisible.value
@@ -317,35 +317,37 @@ class GraphicControl(
                     }
                 }
                 getToolBarSpan {
-                    getToolBarIconButton(
-                        refreshInterval.value == 0,
-                        src = "/web/images/ic_menu_black_48dp.png",
-                        title = "Включить/выключить отдельный показ данных"
-                    ) {
-                        isShowGraphicDataVisible.value = !isShowGraphicDataVisible.value
-                    }
-                    if (refreshInterval.value == 0 && isShowGraphicDataVisible.value) {
-                        Div(
-                            attrs = {
-                                style {
-                                    zIndex(Z_INDEX_GRAPHIC_DATA_LIST)   // popup menu must be above than table headers
-                                    position(Position.Absolute)
-                                    top(styleGraphicDataTop)
-                                    right(0.px)
-                                    width(auto)
-                                    setGraphicDataMaxWidth()
-                                    backgroundColor(COLOR_GRAPHIC_DATA_BACK)
-                                    setBorder(color = getColorMenuBorder(), radius = styleFormBorderRadius)
-                                    fontSize(arrStyleMenuFontSize[0])
-                                    setPaddings(arrStyleMenuStartPadding)
-                                    overflow("auto")
-                                    cursor("pointer")
-                                }
-                            }
+                    if (!styleIsNarrowScreen) {
+                        getToolBarIconButton(
+                            refreshInterval.value == 0,
+                            src = "/web/images/ic_menu_${getStyleIconNameSuffix()}.png",
+                            title = "Включить/выключить отдельный показ данных"
                         ) {
-                            for (data in alGraphicDataData) {
-                                Text(data)
-                                Br()
+                            isShowGraphicDataVisible.value = !isShowGraphicDataVisible.value
+                        }
+                        if (refreshInterval.value == 0 && isShowGraphicDataVisible.value) {
+                            Div(
+                                attrs = {
+                                    style {
+                                        zIndex(Z_INDEX_GRAPHIC_DATA_LIST)   // popup menu must be above than table headers
+                                        position(Position.Absolute)
+                                        top(styleGraphicDataTop)
+                                        right(0.px)
+                                        width(auto)
+                                        setGraphicDataMaxWidth()
+                                        backgroundColor(COLOR_GRAPHIC_DATA_BACK)
+                                        setBorder(color = getColorMenuBorder(), radius = styleFormBorderRadius)
+                                        fontSize(arrStyleMenuFontSize[0])
+                                        setPaddings(arrStyleMenuStartPadding)
+                                        overflow("auto")
+                                        cursor("pointer")
+                                    }
+                                }
+                            ) {
+                                for (data in alGraphicDataData) {
+                                    Text(data)
+                                    Br()
+                                }
                             }
                         }
                     }

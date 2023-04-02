@@ -115,23 +115,23 @@ open class Root {
         //--- styleIsHiddenMenuBar may be redefined in derived classes
         isShowMainMenu.value = !(styleIsNarrowScreen || styleIsHiddenMenuBar)
 
-        hmTableIcon[ICON_NAME_SELECT] = "/web/images/ic_reply_${getStyleIconNameSuffix()}dp.png"
+        hmTableIcon[ICON_NAME_SELECT] = "/web/images/ic_reply_${getStyleIconNameSuffix()}.png"
 
-        hmTableIcon[ICON_NAME_ADD_FOLDER] = "/web/images/ic_create_new_folder_${getStyleIconNameSuffix()}dp.png"
-        hmTableIcon[ICON_NAME_ADD_ITEM] = "/web/images/ic_add_${getStyleIconNameSuffix()}dp.png"
+        hmTableIcon[ICON_NAME_ADD_FOLDER] = "/web/images/ic_create_new_folder_${getStyleIconNameSuffix()}.png"
+        hmTableIcon[ICON_NAME_ADD_ITEM] = "/web/images/ic_add_${getStyleIconNameSuffix()}.png"
 
         //--- подразделение
-        hmTableIcon[ICON_NAME_DIVISION] = "/web/images/ic_folder_shared_${getStyleIconNameSuffix()}dp.png"
+        hmTableIcon[ICON_NAME_DIVISION] = "/web/images/ic_folder_shared_${getStyleIconNameSuffix()}.png"
         //--- руководитель
-        hmTableIcon[ICON_NAME_BOSS] = "/web/images/ic_account_box_${getStyleIconNameSuffix()}dp.png"
+        hmTableIcon[ICON_NAME_BOSS] = "/web/images/ic_account_box_${getStyleIconNameSuffix()}.png"
         //--- работник
-        hmTableIcon[ICON_NAME_WORKER] = "/web/images/ic_account_circle_${getStyleIconNameSuffix()}dp.png"
+        hmTableIcon[ICON_NAME_WORKER] = "/web/images/ic_account_circle_${getStyleIconNameSuffix()}.png"
 
         //--- подраздел
-        hmTableIcon[ICON_NAME_FOLDER] = "/web/images/ic_folder_open_${getStyleIconNameSuffix()}dp.png"
+        hmTableIcon[ICON_NAME_FOLDER] = "/web/images/ic_folder_open_${getStyleIconNameSuffix()}.png"
 
         //--- печать
-        hmTableIcon[ICON_NAME_PRINT] = "/web/images/ic_print_${getStyleIconNameSuffix()}dp.png"
+        hmTableIcon[ICON_NAME_PRINT] = "/web/images/ic_print_${getStyleIconNameSuffix()}.png"
 
         tabPanel = TabPanel(this)
     }

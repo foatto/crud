@@ -74,9 +74,9 @@ private class ShopRoot : Root(
         //styleIconSize = 36
 
         //--- marked item adding
-        hmTableIcon[ICON_NAME_ADD_MARKED_ITEM] = "/web/images/ic_line_weight_${getStyleIconNameSuffix()}dp.png"
-        hmTableIcon[ICON_NAME_FISCAL] = "/web/images/ic_theaters_${getStyleIconNameSuffix()}dp.png"
-        hmTableIcon[ICON_NAME_CALC] = "/web/images/ic_shopping_cart_${getStyleIconNameSuffix()}dp.png"
+        hmTableIcon[ICON_NAME_ADD_MARKED_ITEM] = "/web/images/ic_line_weight_${getStyleIconNameSuffix()}.png"
+        hmTableIcon[ICON_NAME_FISCAL] = "/web/images/ic_theaters_${getStyleIconNameSuffix()}.png"
+        hmTableIcon[ICON_NAME_CALC] = "/web/images/ic_shopping_cart_${getStyleIconNameSuffix()}.png"
 
         colorTableGroupBack0 = hsl(SHOP_FIRM_COLOR_2_H, 60, 90)
         colorTableGroupBack1 = hsl(SHOP_FIRM_COLOR_2_H, 60, 95)

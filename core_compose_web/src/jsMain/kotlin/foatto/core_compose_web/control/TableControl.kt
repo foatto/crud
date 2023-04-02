@@ -235,7 +235,7 @@ open class TableControl(
                 getToolBarSpan {
                     getToolBarIconButton(
                         isVisible = selectorCancelUrl.value.isNotEmpty(),
-                        src = "/web/images/ic_reply_all_${getStyleIconNameSuffix()}dp.png",
+                        src = "/web/images/ic_reply_all_${getStyleIconNameSuffix()}.png",
                         title = "Отменить выбор",
                     ) {
                         call(selectorCancelUrl.value, false)
@@ -262,7 +262,7 @@ open class TableControl(
                         }
                     }
                     Img(
-                        src = "/web/images/ic_search_${getStyleIconNameSuffix()}dp.png",
+                        src = "/web/images/ic_search_${getStyleIconNameSuffix()}.png",
                         attrs = {
                             style {
                                 backgroundColor(getColorTableFindButtonBack())
@@ -280,7 +280,7 @@ open class TableControl(
                     )
                     if (findText.value.isNotEmpty()) {
                         Img(
-                            src = "/web/images/ic_youtube_searched_for_${getStyleIconNameSuffix()}dp.png",
+                            src = "/web/images/ic_youtube_searched_for_${getStyleIconNameSuffix()}.png",
                             attrs = {
                                 style {
                                     backgroundColor(getColorTableFindButtonBack())
@@ -310,21 +310,21 @@ open class TableControl(
                     }
                     getToolBarIconButton(
                         isVisible = (!styleIsNarrowScreen || !isFindTextVisible.value) && isFormButtonVisible.value,
-                        src = "/web/images/ic_mode_edit_${getStyleIconNameSuffix()}dp.png",
+                        src = "/web/images/ic_mode_edit_${getStyleIconNameSuffix()}.png",
                         title = "Открыть форму"
                     ) {
                         doForm()
                     }
                     getToolBarIconButton(
                         isVisible = (!styleIsNarrowScreen || !isFindTextVisible.value) && isGotoButtonVisible.value,
-                        src = "/web/images/ic_exit_to_app_${getStyleIconNameSuffix()}dp.png",
+                        src = "/web/images/ic_exit_to_app_${getStyleIconNameSuffix()}.png",
                         title = "Перейти"
                     ) {
                         doGoto()
                     }
                     getToolBarIconButton(
                         isVisible = (!styleIsNarrowScreen || !isFindTextVisible.value) && isPopupButtonVisible.value,
-                        src = "/web/images/ic_menu_${getStyleIconNameSuffix()}dp.png",
+                        src = "/web/images/ic_menu_${getStyleIconNameSuffix()}.png",
                         title = "Показать операции по строке"
                     ) {
                         doPopup()
@@ -382,7 +382,7 @@ open class TableControl(
                     }
                     if (!styleIsNarrowScreen || !isFindTextVisible.value) {
                         Img(
-                            src = "/web/images/ic_sync_${getStyleIconNameSuffix()}dp.png",
+                            src = "/web/images/ic_sync_${getStyleIconNameSuffix()}.png",
                             attrs = {
                                 style {
                                     backgroundColor(getColorRefreshButtonBack())
