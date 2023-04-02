@@ -19,16 +19,6 @@ class CoreStaticFileDownloadController {
         CoreAppController.download(response, "${rootDirName}/web/index.html")
     }
 
-    @GetMapping(value = ["/compose"])
-    fun downloadComposeRoot(response: HttpServletResponse) {
-        CoreAppController.download(response, "${rootDirName}/web/index_compose.html")
-    }
-
-    @GetMapping(value = ["/old"])
-    fun downloadOldRoot(response: HttpServletResponse) {
-        CoreAppController.download(response, "${rootDirName}/web/index_old.html")
-    }
-
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @GetMapping(value = ["/web/{fileName}"])
