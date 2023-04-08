@@ -24,6 +24,7 @@ import org.jetbrains.compose.web.dom.Img
 import org.jetbrains.compose.web.dom.Input
 import org.jetbrains.compose.web.dom.Text
 import org.w3c.dom.HTMLElement
+import kotlin.js.Date
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -411,8 +412,6 @@ open class AppControl(
         } else {
             root.setWait(true)
             invokeApp(appRequest) { appResponse: AppResponse ->
-                //--- из-за особенности (ошибки?) сравнения enum-значений, одно из которых берётся из десериализации json-объекта,
-                //--- используем сравнение .toString() значений
                 when (appResponse.code) {
                     //--- если требуется вход - сохраним последний запрос
                     ResponseCode.LOGON_NEED -> {

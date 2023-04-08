@@ -419,19 +419,24 @@ abstract class CoreAppController : iApplication {
                             page.init(this, conn, chmSession, hmParam, hmAliasConfigs, aliasConfig, CoreSpringApp.hmXyDocumentConfig, userConfig)
                             when (appRequest.action) {
                                 AppAction.TABLE -> {
-                                    if (CoreSpringApp.userLogMode == CoreSpringApp.SYSTEM_LOG_ALL) logQuery(hmParam)
-
+                                    if (CoreSpringApp.userLogMode == CoreSpringApp.SYSTEM_LOG_ALL) {
+                                        logQuery(hmParam)
+                                    }
                                     appResponse = AppResponse(code = ResponseCode.TABLE, table = page.getTable(hmOut))
                                 }
 
                                 AppAction.FORM -> {
-                                    if (CoreSpringApp.userLogMode == CoreSpringApp.SYSTEM_LOG_ALL) logQuery(hmParam)
+                                    if (CoreSpringApp.userLogMode == CoreSpringApp.SYSTEM_LOG_ALL) {
+                                        logQuery(hmParam)
+                                    }
 
                                     appResponse = AppResponse(code = ResponseCode.FORM, form = page.getForm(hmOut))
                                 }
 
                                 AppAction.FIND -> {
-                                    if (CoreSpringApp.userLogMode == CoreSpringApp.SYSTEM_LOG_ALL) logQuery(hmParam)
+                                    if (CoreSpringApp.userLogMode == CoreSpringApp.SYSTEM_LOG_ALL) {
+                                        logQuery(hmParam)
+                                    }
 
                                     //--- если сервер вдруг перезагрузили между отдельными командами поиска
                                     //--- (такое бывает редко, только при обновлениях, тем не менее, пользователю обидно),

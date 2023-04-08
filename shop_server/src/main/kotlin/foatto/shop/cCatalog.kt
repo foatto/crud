@@ -173,7 +173,9 @@ class cCatalog : cAbstractHierarchy() {
 //                " WHERE catalog_id = $destID AND price_type = ${mPrice.PRICE_TYPE_OUT} AND ye = 2000 AND mo = 1 AND da = 1 " )
 
         //--- если цена нулевая - то это ошибка или цену менять не надо - пропускаем
-        if (priceValue == 0.0) return
+        if (priceValue == 0.0) {
+            return
+        }
 
         val arrPriceDate = getDateTimeArray(priceDate)
 
@@ -181,7 +183,11 @@ class cCatalog : cAbstractHierarchy() {
         val rs = conn.executeQuery(
             " SELECT price_value FROM SHOP_price WHERE catalog_id = $catalogID AND price_type = $priceType ORDER BY ye DESC , mo DESC , da DESC "
         )
-        val lastPrice = if (rs.next()) rs.getDouble(1) else 0.0
+        val lastPrice = if (rs.next()) {
+            rs.getDouble(1)
+        } else {
+            0.0
+        }
         rs.close()
 
         if (lastPrice == priceValue) {
@@ -220,7 +226,11 @@ class cCatalog : cAbstractHierarchy() {
             hmDest: MutableMap<Int, MutableMap<Int, Double>>,
             hmSour: MutableMap<Int, MutableMap<Int, Double>>
         ) {
-            val whereClient = if (aClientID == null) "" else " AND SHOP_doc.client_id = $aClientID"
+            val whereClient = if (aClientID == null) {
+                ""
+            } else {
+                " AND SHOP_doc.client_id = $aClientID"
+            }
 
             val whereDocType = ""
             //        if( aDocType != DocumentTypeConfig.TYPE_ALL )
@@ -237,9 +247,10 @@ class cCatalog : cAbstractHierarchy() {
             //                    .append( " AND SHOP_doc.doc_da >= " ).append( arrBegDT[ 2 ] )
             //            .append( " ) " );
             //        }
-            if (arrEndDT != null)
+            if (arrEndDT != null) {
                 whereDT += " AND ( SHOP_doc.doc_ye < ${arrEndDT[0]} OR SHOP_doc.doc_ye = ${arrEndDT[0]} AND SHOP_doc.doc_mo < ${arrEndDT[1]} OR " +
                     " SHOP_doc.doc_ye = ${arrEndDT[0]} AND SHOP_doc.doc_mo = ${arrEndDT[1]} AND SHOP_doc.doc_da <= ${arrEndDT[2]} ) "
+            }
 
             //--- суммирование всяческих приходов
             var rs = conn.executeQuery(
@@ -255,11 +266,14 @@ class cCatalog : cAbstractHierarchy() {
                 val cID = rs.getInt(1)
                 val wID = rs.getInt(2)
                 val num = rs.getDouble(3)
-                var hmDestCatalog: MutableMap<Int, Double>? = hmDest[cID]
-                if (hmDestCatalog == null) {
-                    hmDestCatalog = mutableMapOf()
-                    hmDest[cID] = hmDestCatalog
+                val hmDestCatalog = hmDest.getOrPut(cID) {
+                    mutableMapOf()
                 }
+//                var hmDestCatalog: MutableMap<Int, Double>? = hmDest[cID]
+//                if (hmDestCatalog == null) {
+//                    hmDestCatalog = mutableMapOf()
+//                    hmDest[cID] = hmDestCatalog
+//                }
                 hmDestCatalog[wID] = num
             }
             rs.close()
@@ -278,11 +292,14 @@ class cCatalog : cAbstractHierarchy() {
                 val cID = rs.getInt(1)
                 val wID = rs.getInt(2)
                 val num = rs.getDouble(3)
-                var hmSourCatalog: MutableMap<Int, Double>? = hmSour[cID]
-                if (hmSourCatalog == null) {
-                    hmSourCatalog = mutableMapOf()
-                    hmSour[cID] = hmSourCatalog
+                val hmSourCatalog = hmSour.getOrPut(cID) {
+                    mutableMapOf()
                 }
+//                var hmSourCatalog: MutableMap<Int, Double>? = hmSour[cID]
+//                if (hmSourCatalog == null) {
+//                    hmSourCatalog = mutableMapOf()
+//                    hmSour[cID] = hmSourCatalog
+//                }
                 hmSourCatalog[wID] = num
             }
             rs.close()

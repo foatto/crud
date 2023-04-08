@@ -33,6 +33,7 @@ import org.jetbrains.compose.web.dom.Input
 import org.jetbrains.compose.web.dom.Span
 import org.jetbrains.compose.web.dom.Text
 import org.w3c.dom.HTMLElement
+import kotlin.js.Date
 import kotlin.math.max
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
