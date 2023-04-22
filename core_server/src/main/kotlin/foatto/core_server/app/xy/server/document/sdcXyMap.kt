@@ -154,7 +154,7 @@ abstract class sdcXyMap : sdcXyAbstract() {
     }
 
     override fun moveElements(xyActionRequest: XyActionRequest): XyActionResponse {
-        val selementId = getStringFromIterable(xyActionRequest.alActionElementIds!!, " , ")
+        val sElementId = getStringFromIterable(xyActionRequest.alActionElementIds!!, " , ")
         val dx = xyActionRequest.dx!!
         val dy = xyActionRequest.dy!!
 
@@ -164,7 +164,7 @@ abstract class sdcXyMap : sdcXyAbstract() {
                 " prj_y1 = prj_y1 + ( $dy ) , " +
                 " prj_x2 = prj_x2 + ( $dx ) , " +
                 " prj_y2 = prj_y2 + ( $dy ) " +
-                " WHERE id IN ( $selementId ) "
+                " WHERE id IN ( $sElementId ) "
         )
 
         return XyActionResponse()
@@ -301,7 +301,9 @@ abstract class sdcXyMap : sdcXyAbstract() {
     private fun outBitmapElements(bmTypeName: String, viewCoord: XyViewCoord, alElement: MutableList<XyElement>?) {
 
         val zoomLevel = XyBitmapType.hmTypeScaleZ[bmTypeName]?.get(viewCoord.scale) ?: return
-        if (zoomLevel == -1) return
+        if (zoomLevel == -1) {
+            return
+        }
 
         //--- опытным путём - 3840х2160 даёт максимум 16x9=144 заданий х 12 байт = 1728 байт
         val bbTask = AdvancedByteBuffer(2048)
@@ -365,9 +367,10 @@ abstract class sdcXyMap : sdcXyAbstract() {
 
         bbTask.flip()
 
-        if (bbTask.hasRemaining())
         //--- приоритет запишем в начале файла
+        if (bbTask.hasRemaining()) {
             AsyncFileSaver.put("$BITMAP_LOADER_JOB_DIR/${if (alElement == null) '1' else '0'}_${bmTypeName}_${getRandomInt()}", bbTask)
+        }
     }
 
     protected fun putElement(xyElement: XyElement, isAddElement: Boolean) {

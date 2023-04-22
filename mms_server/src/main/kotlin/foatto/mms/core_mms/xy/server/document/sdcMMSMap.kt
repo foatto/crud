@@ -157,8 +157,16 @@ class sdcMMSMap : sdcXyMap() {
 
         //--- если элементы, соответствующие стартовым объектам, не нашлись, то возвращаем координаты России
         return XyActionResponse(
-            minCoord = if (isFound) minXY else XyProjection.wgs_pix(20, 70),
-            maxCoord = if (isFound) maxXY else XyProjection.wgs_pix(180, 40)
+            minCoord = if (isFound) {
+                minXY
+            } else {
+                XyProjection.wgs_pix(20, 70)
+            },
+            maxCoord = if (isFound) {
+                maxXY
+            } else {
+                XyProjection.wgs_pix(180, 40)
+            }
         )
     }
 
@@ -210,7 +218,9 @@ class sdcMMSMap : sdcXyMap() {
         hmParams: MutableMap<String, String>,
     ) {
         val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, objectParamData.objectId)
-        if (objectConfig.scg == null) return
+        if (objectConfig.scg == null) {
+            return
+        }
 
         val hmZoneLimit = ZoneLimitData.getZoneLimit(
             conn = conn,

@@ -44,7 +44,6 @@ import org.jetbrains.compose.web.css.properties.userSelect
 import org.jetbrains.compose.web.css.properties.verticalAlign
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.ElementScope
-import org.jetbrains.compose.web.dom.Text
 import org.jetbrains.compose.web.events.SyntheticTouchEvent
 import org.jetbrains.compose.web.svg.*
 import org.w3c.dom.svg.SVGElement
@@ -109,8 +108,8 @@ abstract class AbstractXyControl(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    protected val minXyScale: Int = xyResponse.documentConfig.hmElementConfig.minByOrNull { (_, value) -> value.scaleMin }!!.value.scaleMin
-    protected val maxXyScale: Int = xyResponse.documentConfig.hmElementConfig.maxByOrNull { (_, value) -> value.scaleMax }!!.value.scaleMax
+    private val minXyScale: Int = xyResponse.documentConfig.hmElementConfig.minByOrNull { (_, value) -> value.scaleMin }!!.value.scaleMin
+    private val maxXyScale: Int = xyResponse.documentConfig.hmElementConfig.maxByOrNull { (_, value) -> value.scaleMax }!!.value.scaleMax
 
     protected var xySvgLeft: Int = 0
     protected var xySvgTop: Int = 0
@@ -1325,7 +1324,7 @@ abstract class AbstractXyControl(
                             stroke = getColorFromInt(element.alDrawColor[i]),
                             strokeWidth = max(1.0, lineWidth * scaleKoef).roundToInt(),
                             tooltip = element.alToolTip[i],
-                            isReadOnly = element.isReadOnly
+                            isReadOnly = element.isReadOnly,
                         )
                     )
                 }

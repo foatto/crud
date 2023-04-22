@@ -82,10 +82,14 @@ abstract class sdcXyAbstract {
 
         for (sod in sd.alStartObjectData) {
             //--- обрабатываем только параметры с заданным префиксом
-            if (isStartObjectOnly && !sod.isStart) continue
+            if (isStartObjectOnly && !sod.isStart) {
+                continue
+            }
 
             //--- собираем список объектов "только для чтения/просмотра"
-            if (sod.isReadOnly) hsReadOnlyObject.add(sod.objectId)
+            if (sod.isReadOnly) {
+                hsReadOnlyObject.add(sod.objectId)
+            }
 
             //--- разбор параметров
             val objectParamData = XyStartObjectParsedData(sod.objectId)
