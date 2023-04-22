@@ -33,6 +33,8 @@ class SensorConfigLiquidLevel(
     val detectDecMinLen: Int,
     val decAddTimeBefore: Int,
     val decAddTimeAfter: Int,
+    val schemeX: Int,
+    val schemeY: Int,
 ) : SensorConfigAnalogue(
     aId = aId,
     aName = aName,

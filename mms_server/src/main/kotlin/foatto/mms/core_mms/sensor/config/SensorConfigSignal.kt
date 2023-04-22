@@ -14,7 +14,9 @@ class SensorConfigSignal(
     val boundValue: Int,
     val activeValue: Int,
     val minIgnore: Double,
-    val maxIgnore: Double
+    val maxIgnore: Double,
+    val schemeX: Int,
+    val schemeY: Int,
 ) : SensorConfig(
     id = aId,
     name = aName,

@@ -375,6 +375,8 @@ class MMSAppController : CoreAppController(), iMMSApplication {
                         activeValue = sensorEntity.activeValue ?: 0,
                         minIgnore = sensorEntity.minIgnore ?: 0.0,
                         maxIgnore = sensorEntity.maxIgnore ?: 0.0,
+                        schemeX = sensorEntity.schemeX ?: 0,
+                        schemeY = sensorEntity.schemeY ?: 0,
                     )
                 }
 
@@ -430,6 +432,8 @@ class MMSAppController : CoreAppController(), iMMSApplication {
                         maxIgnore = sensorEntity.maxIgnore ?: 0.0,
                         liquidName = sensorEntity.liquidName ?: "",
                         liquidNorm = sensorEntity.liquidNorm ?: 0.0,
+                        schemeX = sensorEntity.schemeX ?: 0,
+                        schemeY = sensorEntity.schemeY ?: 0,
                     )
                 }
 
@@ -579,6 +583,8 @@ class MMSAppController : CoreAppController(), iMMSApplication {
                         detectDecMinLen = sensorEntity.detectDecMinLen ?: 0,
                         decAddTimeBefore = sensorEntity.decAddTimeBefore ?: 0,
                         decAddTimeAfter = sensorEntity.decAddTimeAfter ?: 0,
+                        schemeX = sensorEntity.schemeX ?: 0,
+                        schemeY = sensorEntity.schemeY ?: 0,
                     )
                 }
 

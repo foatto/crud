@@ -32,4 +32,9 @@ const val PARAM_ZONE_NAME = "zone_name"
 const val PARAM_ZONE_DESCR = "zone_descr"
 
 const val STATE_ALERT_MESSAGE = "state_alert_message"
+const val STATE_ELEMENT_MOVE_ENABLED: String = "state_element_move_enabled"
+const val STATE_ELEMENT_MOVE_ID: String = "state_element_move_id"
+const val STATE_ELEMENT_MOVE_DESCR: String = "state_element_move_descr"
+const val STATE_ELEMENT_MOVE_X: String = "state_element_move_x"
+const val STATE_ELEMENT_MOVE_Y: String = "state_element_move_y"
 

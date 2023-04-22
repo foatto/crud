@@ -39,6 +39,7 @@ const val Z_INDEX_TABLE_CAPTION: Int = 1
 const val Z_INDEX_TABLE_POPUP: Int = 2
 const val Z_INDEX_GRAPHIC_VISIBILITY_LIST: Int = 10
 const val Z_INDEX_GRAPHIC_DATA_LIST: Int = 10
+const val Z_INDEX_STATE_ELEMENT_LIST: Int = 10
 const val Z_INDEX_MENU: Int = 20
 const val Z_INDEX_ACTION_CONTAINER: Int = 30
 const val Z_INDEX_ACTION_BODY: Int = 31

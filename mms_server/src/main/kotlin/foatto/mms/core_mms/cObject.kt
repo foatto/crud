@@ -13,13 +13,16 @@ import foatto.core_server.app.server.data.iData
 class cObject : cStandart() {
 
     companion object {
-        const val PERM_REMOTE_CONTROL = "remote_control"
+        const val PERM_REMOTE_CONTROL: String = "remote_control"
+        const val PERM_SCHEME_SENSOR_MOVE: String = "sensor_move"
     }
 
     override fun definePermission() {
         super.definePermission()
-        //--- права доступа на ( дистанционное ) управление объектом
+        //--- права доступа на (дистанционное) управление объектом
         alPermission.add(Pair(PERM_REMOTE_CONTROL, "20 Remote Control"))
+        //--- права доступа на перемещение датчиков по схеме объекта
+        alPermission.add(Pair(PERM_SCHEME_SENSOR_MOVE, "21 Scheme Sensor Move"))
     }
 
     override fun getTableColumnStyle(isNewRow: Boolean, hmColumnData: Map<iColumn, iData>, column: iColumn, tci: TableCell) {

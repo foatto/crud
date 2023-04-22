@@ -23,7 +23,9 @@ class SensorConfigWork(
     val minIgnore: Double,
     val maxIgnore: Double,
     val liquidName: String,
-    val liquidNorm: Double
+    val liquidNorm: Double,
+    val schemeX: Int,
+    val schemeY: Int,
 ) : SensorConfig(
     id = aId,
     name = aName,

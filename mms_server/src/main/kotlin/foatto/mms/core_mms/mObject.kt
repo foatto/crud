@@ -7,6 +7,7 @@ import foatto.core_server.app.server.ChildData
 import foatto.core_server.app.server.DependData
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.column.ColumnBoolean
+import foatto.core_server.app.server.column.ColumnFile
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.mAbstractUserSelector
@@ -73,16 +74,18 @@ class mObject : mAbstractUserSelector() {
 
         val columnEmail = ColumnString(modelTableName, "e_mail", "E-mail для оповещения", STRING_COLUMN_WIDTH)
 
+        val columnFile = ColumnFile(application, modelTableName, "scheme_file_id", "Схема объекта")
+
         val columnIsAutoWorkShift = ColumnInt(modelTableName, "is_auto_work_shift", 0)
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn.add(columnId)
-        alTableHiddenColumn.add(columnUser!!)
-        alTableHiddenColumn.add(columnDisabled)   // нужен для раскраски
-        alTableHiddenColumn.add(columnGroup)
-        alTableHiddenColumn.add(columnDepartment)
-        alTableHiddenColumn.add(columnIsAutoWorkShift)
+        alTableHiddenColumn += columnId
+        alTableHiddenColumn += columnUser!!
+        alTableHiddenColumn += columnDisabled   // нужен для раскраски
+        alTableHiddenColumn += columnGroup
+        alTableHiddenColumn += columnDepartment
+        alTableHiddenColumn += columnIsAutoWorkShift
 
         addTableColumn(columnObjectName)
         addTableColumn(columnObjectModel)
@@ -90,22 +93,24 @@ class mObject : mAbstractUserSelector() {
         addTableColumn(columnDepartmentName)
         addTableColumn(columnObjectInfo)
         addTableColumn(columnEmail)
+        addTableColumn(columnFile)
 
-        alFormHiddenColumn.add(columnId)
-        alFormHiddenColumn.add(columnUser!!)
-        alFormHiddenColumn.add(columnGroup)
-        alFormHiddenColumn.add(columnDepartment)
-        alFormHiddenColumn.add(columnIsAutoWorkShift)
+        alFormHiddenColumn += columnId
+        alFormHiddenColumn += columnUser!!
+        alFormHiddenColumn += columnGroup
+        alFormHiddenColumn += columnDepartment
+        alFormHiddenColumn += columnIsAutoWorkShift
 
-        alFormColumn.add(columnUserName)
-        alFormColumn.add(columnDisabled)
-        alFormColumn.add(columnDisableReason)
-        alFormColumn.add(columnObjectName)
-        alFormColumn.add(columnObjectModel)
-        alFormColumn.add(columnGroupName)
-        alFormColumn.add(columnDepartmentName)
-        alFormColumn.add(columnObjectInfo)
-        alFormColumn.add(columnEmail)
+        alFormColumn += columnUserName
+        alFormColumn += columnDisabled
+        alFormColumn += columnDisableReason
+        alFormColumn += columnObjectName
+        alFormColumn += columnObjectModel
+        alFormColumn += columnGroupName
+        alFormColumn += columnDepartmentName
+        alFormColumn += columnObjectInfo
+        alFormColumn += columnEmail
+        alFormColumn += columnFile
 
         //----------------------------------------------------------------------------------------------------------------------
 

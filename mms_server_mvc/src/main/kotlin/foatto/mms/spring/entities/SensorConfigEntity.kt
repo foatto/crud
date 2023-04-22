@@ -186,6 +186,12 @@ class SensorConfigEntity(
     @Column(name = "analog_dec_add_time_after")
     val decAddTimeAfter: Int?,
 
+    @Column(name = "scheme_x")
+    val schemeX: Int?,
+
+    @Column(name = "scheme_y")
+    val schemeY: Int?,
+
     @OneToMany(mappedBy = "sensor", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     var calibration: MutableSet<SensorConfigCalibrationEntity> = mutableSetOf(),
 
