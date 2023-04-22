@@ -259,6 +259,7 @@ class GraphicControl(
                                     width(auto)
                                     setGraphicVisibilityMaxWidth()
                                     backgroundColor(getColorPopupMenuBack())
+                                    color(colorMenuTextDefault)
                                     setBorder(color = getColorMenuBorder(), radius = styleFormBorderRadius)
                                     fontSize(arrStyleMenuFontSize[0])
                                     setPaddings(arrStyleMenuStartPadding)
@@ -271,6 +272,7 @@ class GraphicControl(
                                 Input(InputType.Checkbox) {
                                     style {
                                         setPaddings(getStyleMenuItemPadding(0))
+                                        backgroundColor(COLOR_MAIN_BACK_0)
                                     }
                                     checked(data.check.value)
                                     onChange { syntheticChangeEvent ->

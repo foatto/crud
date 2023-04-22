@@ -222,6 +222,7 @@ class FormControl(
                                             appearance("none")
                                             width(styleCheckBoxWidth)
                                             height(styleCheckBoxHeight)
+                                            backgroundColor(COLOR_MAIN_BACK_0)
                                             setBorder(getStyleCheckBoxBorder())
                                             margin(styleFormCheckboxAndRadioMargin)
                                         }
