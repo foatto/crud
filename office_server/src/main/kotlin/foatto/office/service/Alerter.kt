@@ -563,6 +563,10 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
             action = ACTION_DELETE
             actionDescr = "# Поручение перемещено в архив #"
         } else {
+            //--- превращаем русский ОК в английский OK, чтобы не было случайных вхождений в фамилии
+            if (cmd == "ОК") {
+                cmd = "OK"
+            }
             //--- если есть однозначное совпадение (содержание в полном имени) пользователя, то переназначить
             hmUserFullNames.keys.forEach { uID ->
                 val userName = hmUserFullNames[uID]?.uppercase(Locale.getDefault())
