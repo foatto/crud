@@ -52,8 +52,8 @@ kotlin {
         }
         val jsMain by getting {
             dependencies {
-                api(compose.web.core)
-                api(compose.web.svg)
+                api(compose.html.core)
+                api(compose.html.svg)
             }
         }
 //        val androidMain by getting {
