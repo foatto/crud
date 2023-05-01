@@ -19,6 +19,10 @@ kotlin {
         browser {
         }
     }
+//    wasm {
+//        browser {
+//        }
+//    }
     jvm {
         val main by compilations.getting {
             kotlinOptions {
@@ -45,6 +49,8 @@ kotlin {
             dependencies {
             }
         }
+//        val wasmMain by getting {
+//        }
     }
 }
 

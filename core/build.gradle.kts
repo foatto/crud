@@ -19,10 +19,14 @@ plugins {
 version = coreVersion
 
 kotlin {
-    js(IR) {  // IR-backend version
+    js(IR) {
         browser {
         }
     }
+//    wasm {
+//        browser {
+//        }
+//    }
     jvm {
         val main by compilations.getting {
             kotlinOptions {
@@ -37,17 +41,24 @@ kotlin {
 
     sourceSets {
         val commonMain by getting {
+            //--- note: wasm-platform not support kotlinx-serialization yet
             dependencies {
                 api("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion")
             }
         }
         val jsMain by getting {
+//            dependencies {
+//                api("org.jetbrains.kotlinx:kotlinx-serialization-json-js:$kotlinxSerializationVersion")
+//            }
         }
         val jvmMain by getting {
             dependencies {
                 api(kotlin("reflect"))
+//                api("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:$kotlinxSerializationVersion")
             }
         }
+//        val wasmMain by getting {
+//        }
     }
 }
 

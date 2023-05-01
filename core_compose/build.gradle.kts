@@ -21,6 +21,10 @@ kotlin {
     js(IR) {
         browser()
     }
+//    wasm {
+//        browser {
+//        }
+//    }
 //    android()
 //    jvm {
 //        val jvmMain by compilations.getting {
@@ -66,6 +70,8 @@ kotlin {
 //            dependencies {
 //                api(compose.preview)
 //            }
+//        }
+//        val wasmMain by getting {
 //        }
     }
 }
