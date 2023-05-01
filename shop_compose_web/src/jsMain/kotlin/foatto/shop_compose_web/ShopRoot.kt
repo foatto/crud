@@ -6,6 +6,7 @@ import foatto.core_compose_web.control.TableControl.Companion.hmTableIcon
 import foatto.core_compose_web.control.colorTableGroupBack0
 import foatto.core_compose_web.control.colorTableGroupBack1
 import foatto.core_compose_web.control.colorTableRowBack1
+import foatto.core_compose_web.style.COLOR_MAIN_TEXT
 import foatto.core_compose_web.style.colorMainBack0
 import foatto.core_compose_web.style.colorMainBack1
 import foatto.core_compose_web.style.colorMainBack2
@@ -67,7 +68,7 @@ private class ShopRoot : Root(
         colorWaitLoader2 = hsl(SHOP_FIRM_COLOR_1_H, SHOP_FIRM_COLOR_1_S, 90)
         colorWaitLoader3 = hsl(SHOP_FIRM_COLOR_1_H, SHOP_FIRM_COLOR_1_S, 95)
 
-        colorDialogBack = hsla(SHOP_FIRM_COLOR_1_H, SHOP_FIRM_COLOR_1_S, SHOP_FIRM_COLOR_1_L, 0.95)
+        colorDialogBackColor = hsla(SHOP_FIRM_COLOR_1_H, SHOP_FIRM_COLOR_1_S, SHOP_FIRM_COLOR_1_L, 0.95)
 
         //--- менять здесь
         //styleDarkIcon = true

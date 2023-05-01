@@ -17,6 +17,7 @@ import foatto.core.app.xy.XyActionResponse
 import foatto.core.app.xy.XyViewCoord
 import foatto.core.link.XyResponse
 import foatto.core_compose_web.*
+import foatto.core_compose_web.control.composable.getMultilineText
 import foatto.core_compose_web.control.composable.getRefreshSubToolbar
 import foatto.core_compose_web.control.composable.getToolBarSpan
 import foatto.core_compose_web.control.composable.getXyServerActionSubToolbar
@@ -236,12 +237,12 @@ class StateControl(
                 attrs = {
                     style {
                         position(Position.Fixed)
-                        top(20.percent)
+                        top(4.cssRem)
                         left(0.px)
                         width(100.percent)
                         bottom(0.px)
                         zIndex(Z_INDEX_STATE_ALERT)
-                        backgroundColor(colorDialogBack)
+                        backgroundColor(colorDialogBackColor)
                         display(DisplayStyle.Grid)
                         gridTemplateRows("1fr auto 1fr")
                         gridTemplateColumns("1fr auto 1fr")
@@ -263,7 +264,7 @@ class StateControl(
                             gridArea("2", "2", "3", "3")
                             padding(styleDialogCellPadding)
                             setBorder(color = getColorDialogBorder(), radius = styleFormBorderRadius)
-                            backgroundColor(getColorDialogBackCenter())
+                            backgroundColor(getColorDialogCenterBack())
                             display(DisplayStyle.Flex)
                             flexDirection(FlexDirection.Column)
                             alignItems(AlignItems.Center)
@@ -276,11 +277,12 @@ class StateControl(
                                 alignSelf(AlignSelf.Center)
                                 fontSize(styleDialogTextFontSize)
                                 fontWeight("bold")
-                                color(COLOR_MAIN_BACK_0)
+                                textAlign("center")
+                                color(getColorDialogCenterText())
                             }
                         }
                     ) {
-                        Text(stateAlertMessage.value)
+                        getMultilineText(stateAlertMessage.value)
                     }
                 }
                 Div(

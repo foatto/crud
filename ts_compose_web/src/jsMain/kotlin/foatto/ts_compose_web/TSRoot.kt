@@ -64,7 +64,7 @@ private class TSRoot : Root() {
         colorWaitLoader2 = hsl(TS_FIRM_COLOR_2_H, TS_FIRM_COLOR_2_S, 90)
         colorWaitLoader3 = hsl(TS_FIRM_COLOR_2_H, TS_FIRM_COLOR_2_S, 95)
 
-        colorDialogBack = hsla(TS_FIRM_COLOR_1_H, TS_FIRM_COLOR_1_S, TS_FIRM_COLOR_1_L, 0.95)
+        colorDialogBackColor = hsla(TS_FIRM_COLOR_1_H, TS_FIRM_COLOR_1_S, TS_FIRM_COLOR_1_L, 0.95)
 
         styleStateServerButtonTextFontWeight = "bold"
 

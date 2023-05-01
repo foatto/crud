@@ -8,6 +8,7 @@ import foatto.core.app.*
 import foatto.core_compose.model.MenuDataClient
 import foatto.core_compose_web.control.TableControl.Companion.hmTableIcon
 import foatto.core_compose.model.TabInfo
+import foatto.core_compose_web.control.composable.getMultilineText
 import foatto.core_compose_web.style.*
 import kotlinx.browser.document
 import kotlinx.browser.localStorage
@@ -39,9 +40,10 @@ var colorWaitLoader3: CSSColorValue = hsl(60, 100, 95)
 
 //--- DIALOG ---------------------------------------------------------------------------------------------------------------------------------------------------
 
-var colorDialogBack: CSSColorValue = hsla(0, 0, 0, 0.95)
+var colorDialogBackColor: CSSColorValue = hsla(0, 0, 0, 0.95)
 val getColorDialogBorder: () -> CSSColorValue = { colorMainBorder }
-val getColorDialogBackCenter: () -> CSSColorValue = { colorMainBack1 }
+val getColorDialogCenterBack: () -> CSSColorValue = { colorMainBack1 }
+val getColorDialogCenterText: () -> CSSColorValue = { COLOR_MAIN_TEXT }
 private val getColorDialogButtonBack: () -> CSSColorValue = { getColorButtonBack() }
 private val getColorDialogButtonBorder: () -> CSSColorValue = { colorMainBorder }
 
@@ -288,7 +290,7 @@ open class Root {
                             width(100.percent)
                             height(100.percent)
                             zIndex(Z_INDEX_DIALOG)
-                            backgroundColor(colorDialogBack)
+                            backgroundColor(colorDialogBackColor)
                             display(DisplayStyle.Grid)
                             gridTemplateRows("1fr auto 1fr")
                             gridTemplateColumns("1fr auto 1fr")
@@ -310,7 +312,7 @@ open class Root {
                                 gridArea("2", "2", "3", "3")
                                 padding(styleDialogCellPadding)
                                 setBorder(color = getColorDialogBorder(), radius = styleFormBorderRadius)
-                                backgroundColor(getColorDialogBackCenter())
+                                backgroundColor(getColorDialogCenterBack())
                                 display(DisplayStyle.Flex)
                                 flexDirection(FlexDirection.Column)
                                 alignItems(AlignItems.Center)
@@ -323,11 +325,12 @@ open class Root {
                                     alignSelf(AlignSelf.Center)
                                     fontSize(styleDialogTextFontSize)
                                     fontWeight("bold")
-                                    color(COLOR_MAIN_TEXT)
+                                    textAlign("center")
+                                    color(getColorDialogCenterText())
                                 }
                             }
                         ) {
-                            Text(dialogQuestion.value)
+                            getMultilineText(dialogQuestion.value)
                         }
                         Br()
                         Div(
