@@ -42,41 +42,41 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
     val tmTemperature = sortedMapOf<String, GraphicDataContainer>()
     val tmDensity = sortedMapOf<String, GraphicDataContainer>()
 
-    var sGeoName = ""
-    var sGeoRun = ""
-    var sGeoOutTime = ""
-    var sGeoInTime = ""
-    var sGeoWayTime = ""
-    var sGeoMovingTime = ""
-    var sGeoParkingTime = ""
-    var sGeoParkingCount = ""
+    var sGeoName: String = ""
+    var sGeoRun: String = ""
+    var sGeoOutTime: String = ""
+    var sGeoInTime: String = ""
+    var sGeoWayTime: String = ""
+    var sGeoMovingTime: String = ""
+    var sGeoParkingTime: String = ""
+    var sGeoParkingCount: String = ""
 
-    var sWorkName = ""
-    var sWorkValue = ""
+    var sWorkName: String = ""
+    var sWorkValue: String = ""
 
-    var sEnergoName = ""
-    var sEnergoValue = ""
+    var sEnergoName: String = ""
+    var sEnergoValue: String = ""
 
-    var sAllSumEnergoName = ""
-    var sAllSumEnergoValue = ""
+    var sAllSumEnergoName: String = ""
+    var sAllSumEnergoValue: String = ""
 
-    var sLiquidUsingName = ""
-    var sLiquidUsingValue = ""
+    var sLiquidUsingName: String = ""
+    var sLiquidUsingValue: String = ""
 
-    var sAllSumLiquidName = ""
-    var sAllSumLiquidValue = ""
+    var sAllSumLiquidName: String = ""
+    var sAllSumLiquidValue: String = ""
 
-    var sLiquidLevelName = ""
-    var sLiquidLevelBeg = ""
-    var sLiquidLevelEnd = ""
-    var sLiquidLevelIncTotal = ""
-    var sLiquidLevelDecTotal = ""
-    var sLiquidLevelUsingTotal = ""
-    var sLiquidLevelUsingCalc = ""
+    var sLiquidLevelName: String = ""
+    var sLiquidLevelBeg: String = ""
+    var sLiquidLevelEnd: String = ""
+    var sLiquidLevelIncTotal: String = ""
+    var sLiquidLevelDecTotal: String = ""
+    var sLiquidLevelUsingTotal: String = ""
+    var sLiquidLevelUsingCalc: String = ""
 
-    var sLiquidLevelLiquidName = ""
-    var sLiquidLevelLiquidInc = ""
-    var sLiquidLevelLiquidDec = ""
+    var sLiquidLevelLiquidName: String = ""
+    var sLiquidLevelLiquidInc: String = ""
+    var sLiquidLevelLiquidDec: String = ""
 
     companion object {
 
@@ -87,7 +87,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
         //--- 1.for geo-sensors - the mileage is not counted for this period
         //--- 2. for sensors of equipment operation - this period is considered inoperative, regardless of the current state of the point
         //--- 3. for fuel level sensors - this period is considered inoperative (not consumption, not refueling, not draining) and the level change is not included in any amount
-        const val MAX_WORK_TIME_INTERVAL = 30 * 60
+        const val MAX_WORK_TIME_INTERVAL: Int = 30 * 60
 
         //--- maximum duration of the previous "normal" period,
         //--- used to calculate the average fuel consumption during refueling / draining
@@ -1231,7 +1231,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
         }
 
         //--- universal function for determining the REAL sum of counter values
-        private fun calcCounterOrAccumulatedSensor(
+        fun calcCounterOrAccumulatedSensor(
             alRawTime: List<Int>,
             alRawData: List<AdvancedByteBuffer>,
             scc: SensorConfigCounter,
@@ -1241,9 +1241,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             //--- counters that give absolute values in their readings can reset it on command or overflow.
             //--- you will have to catch each such reset (the algorithm is somewhat similar to the search for refueling / draining)
             //--- also skip sudden dots with a zero counter
-//            var begSensorData = 0.0
             var begValue = 0.0
-//            var lastSensorData = 0.0
             var lastValue = 0.0
             var sumValue = 0.0
             val alPeriod = mutableListOf<AbstractPeriodData>()
@@ -1275,10 +1273,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
 
                 if (scc.isAbsoluteCount) {
                     if (begValue <= 0) {
-//                    if (begSensorData <= 0) {
-//                        begSensorData = sensorData
                         begValue = sensorValue
-//                    } else if (sensorData < lastSensorData) {
                     } else if (sensorValue < lastValue) {
                         sumValue += lastValue - begValue
                         begValue = sensorValue
@@ -1305,7 +1300,6 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                             delayBeginTime = curTime
                         }
                     }
-//                    lastSensorData = sensorData
                     lastValue = sensorValue
                 } else {
                     sumValue += sensorValue

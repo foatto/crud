@@ -65,7 +65,9 @@ object AbstractObjectStateCalc {
     fun getSensorValue(alValueSensor: List<Double>?, alValueData: List<Double>?, sensorValue: Double): Double {
         var pos = -1
 
-        if (alValueSensor.isNullOrEmpty() || alValueData.isNullOrEmpty()) return sensorValue
+        if (alValueSensor.isNullOrEmpty() || alValueData.isNullOrEmpty()) {
+            return sensorValue
+        }
         //--- if only one value is specified, use it as a usual "transforming" multiplier
         //--- (that is, it is a special case of two values, one of which is "0-> 0")
         if (alValueSensor.size == 1 || alValueData.size == 1) {
