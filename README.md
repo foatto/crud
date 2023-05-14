@@ -94,7 +94,7 @@ Contains common server components for all application projects that do not depen
   - generated jOOQ-classes of system tables and fields;
   - extensions of standard JDBC classes to provide transactional replication;
   - a module for exchanging transactional replicas with other cluster servers;
-  - a set of basic modules for creating servers for receiving telematic data with IoT in two implementation variants (NIO.2 and Netty);
+  - a set of basic modules for creating servers for receiving telematic data with IoT (in NIO.2 implementation);
   - component for working with S3-like storages (MinIO);
 
 ### core_server_mvc
@@ -127,7 +127,7 @@ A group of application modules implementing the project ["Pulsar" - transport an
       - fuel level sensors (with additional setting of parameters for refueling and drain detectors);
       - various analog values;
       - signal sensors;
-    - protocol handler classes for devices/controllers of various types (in versions for NIO.2 and Netty telematics servers):
+    - protocol handler classes for devices/controllers of various types (in versions for NIO.2 telematics servers):
       - [Galileo](https://7gis.ru)
       - obsolete and no longer supported: ADM, Arnavi, Galileo Iridium, Mielta, Wialon IPS;
     - data preparation modules for displaying and changing applied geo-information on a cartographic substrate (point and text objects, vector geofences);

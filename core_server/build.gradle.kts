@@ -9,7 +9,7 @@ val jExcelApiVersion: String by project
 val jooqVersion: String by project
 val ktorVersion: String by project
 val minioVersion: String by project
-val nettyVersion: String by project
+//val nettyVersion: String by project
 val postgresJdbcVersion: String by project
 
 val coreServerVersion: String by project
@@ -40,7 +40,7 @@ dependencies {
 
     api("io.minio:minio:$minioVersion")
 
-    api("io.netty:netty-all:$nettyVersion")
+//    api("io.netty:netty-all:$nettyVersion") - disabled, rest NIO-version only
 
     api(project(":core"))
 
