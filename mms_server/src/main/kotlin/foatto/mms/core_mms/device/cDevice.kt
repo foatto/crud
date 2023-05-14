@@ -11,10 +11,7 @@ import foatto.core_server.app.server.data.DataInt
 import foatto.core_server.app.server.data.DataString
 import foatto.core_server.app.server.data.iData
 import foatto.core_server.ds.CoreTelematicFunction
-import foatto.core_server.ds.nio.AbstractTelematicNioHandler
 import foatto.mms.core_mms.ds.GalileoFunction
-import foatto.mms.core_mms.ds.GalileoHandler
-import foatto.mms.core_mms.ds.MMSTelematicFunction
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigCounter
 
@@ -46,27 +43,7 @@ class cDevice : cStandart() {
     override fun postAdd(id: Int, hmColumnData: Map<iColumn, iData>, hmOut: MutableMap<String, Any>): String? {
         val postURL = super.postAdd(id, hmColumnData, hmOut)
 
-        val m = model as mDevice
-
-        val objectId = (hmColumnData[m.columnObject] as DataInt).intValue
-        if (objectId != 0) {
-            val deviceIndex = (hmColumnData[m.columnDeviceIndex] as DataInt).intValue
-
-            val isESDCreate = (hmColumnData[m.columnESDCreatingEnabled] as DataBoolean).value
-            if (isESDCreate) {
-                val alESCGroupName = m.alColumnESDGroupName.map { column ->
-                    (hmColumnData[column] as DataString).text
-                }
-                val alESCDescrPrefix = m.alColumnESDDescrPrefix.map { column ->
-                    (hmColumnData[column] as DataString).text
-                }
-                val alESCDescrPostfix = m.alColumnESDDescrPostfix.map { column ->
-                    (hmColumnData[column] as DataString).text
-                }
-                createESDSensors(objectId, deviceIndex, alESCGroupName, alESCDescrPrefix, alESCDescrPostfix)
-            }
-        }
-
+        createSensors(hmColumnData)
 //        clearOldCameraInfo(hmColumnData)
 
         return postURL
@@ -75,55 +52,7 @@ class cDevice : cStandart() {
     override fun postEdit(action: String, id: Int, hmColumnData: Map<iColumn, iData>, hmOut: MutableMap<String, Any>): String? {
         val postURL = super.postEdit(action, id, hmColumnData, hmOut)
 
-        val m = model as mDevice
-
-        val objectId = (hmColumnData[m.columnObject] as DataInt).intValue
-        if (objectId != 0) {
-            val deviceIndex = (hmColumnData[m.columnDeviceIndex] as DataInt).intValue
-
-            val isESDCreate = (hmColumnData[m.columnESDCreatingEnabled] as DataBoolean).value
-            if (isESDCreate) {
-                val alESCGroupName = m.alColumnESDGroupName.map { column ->
-                    (hmColumnData[column] as DataString).text
-                }
-                val alESCDescrPrefix = m.alColumnESDDescrPrefix.map { column ->
-                    (hmColumnData[column] as DataString).text
-                }
-                val alESCDescrPostfix = m.alColumnESDDescrPostfix.map { column ->
-                    (hmColumnData[column] as DataString).text
-                }
-                createESDSensors(objectId, deviceIndex, alESCGroupName, alESCDescrPrefix, alESCDescrPostfix)
-            }
-
-            val isEmisCreate = (hmColumnData[m.columnEmisCreatingEnabled] as DataBoolean).value
-            if (isEmisCreate) {
-                val alESCGroupName = m.alColumnEmisGroupName.map { column ->
-                    (hmColumnData[column] as DataString).text
-                }
-                val alESCDescrPrefix = m.alColumnEmisDescrPrefix.map { column ->
-                    (hmColumnData[column] as DataString).text
-                }
-                val alESCDescrPostfix = m.alColumnEmisDescrPostfix.map { column ->
-                    (hmColumnData[column] as DataString).text
-                }
-                createEmisSensors(objectId, deviceIndex, alESCGroupName, alESCDescrPrefix, alESCDescrPostfix)
-            }
-
-            val isMercuryCreate = (hmColumnData[m.columnMercuryCreatingEnabled] as DataBoolean).value
-            if (isMercuryCreate) {
-                val alESCGroupName = m.alColumnMercuryGroupName.map { column ->
-                    (hmColumnData[column] as DataString).text
-                }
-                val alESCDescrPrefix = m.alColumnMercuryDescrPrefix.map { column ->
-                    (hmColumnData[column] as DataString).text
-                }
-                val alESCDescrPostfix = m.alColumnMercuryDescrPostfix.map { column ->
-                    (hmColumnData[column] as DataString).text
-                }
-                createMercurySensors(objectId, deviceIndex, alESCGroupName, alESCDescrPrefix, alESCDescrPostfix)
-            }
-        }
-
+        createSensors(hmColumnData)
 //        clearOldCameraInfo(hmColumnData)
 
         return postURL
@@ -145,6 +74,71 @@ class cDevice : cStandart() {
 //
 //        conn.executeUpdate(" DELETE FROM VC_camera WHERE name = '$deviceID' AND object_id <> $objectId ")
 //    }
+
+    private fun createSensors(hmColumnData: Map<iColumn, iData>) {
+        val m = model as mDevice
+
+        val objectId = (hmColumnData[m.columnObject] as DataInt).intValue
+        if (objectId != 0) {
+            val deviceIndex = (hmColumnData[m.columnDeviceIndex] as DataInt).intValue
+
+            val isESDCreate = (hmColumnData[m.columnESDCreatingEnabled] as DataBoolean).value
+            if (isESDCreate) {
+                val alGroupName = m.alColumnESDGroupName.map { column ->
+                    (hmColumnData[column] as DataString).text
+                }
+                val alDescrPrefix = m.alColumnESDDescrPrefix.map { column ->
+                    (hmColumnData[column] as DataString).text
+                }
+                val alDescrPostfix = m.alColumnESDDescrPostfix.map { column ->
+                    (hmColumnData[column] as DataString).text
+                }
+                createESDSensors(objectId, deviceIndex, alGroupName, alDescrPrefix, alDescrPostfix)
+            }
+
+            val isEmisCreate = (hmColumnData[m.columnEmisCreatingEnabled] as DataBoolean).value
+            if (isEmisCreate) {
+                val alGroupName = m.alColumnEmisGroupName.map { column ->
+                    (hmColumnData[column] as DataString).text
+                }
+                val alDescrPrefix = m.alColumnEmisDescrPrefix.map { column ->
+                    (hmColumnData[column] as DataString).text
+                }
+                val alDescrPostfix = m.alColumnEmisDescrPostfix.map { column ->
+                    (hmColumnData[column] as DataString).text
+                }
+                createEmisSensors(objectId, deviceIndex, alGroupName, alDescrPrefix, alDescrPostfix)
+            }
+
+            val isUSSCreate = (hmColumnData[m.columnUSSCreatingEnabled] as DataBoolean).value
+            if (isUSSCreate) {
+                val alGroupName = m.alColumnUSSGroupName.map { column ->
+                    (hmColumnData[column] as DataString).text
+                }
+                val alDescrPrefix = m.alColumnUSSDescrPrefix.map { column ->
+                    (hmColumnData[column] as DataString).text
+                }
+                val alDescrPostfix = m.alColumnUSSDescrPostfix.map { column ->
+                    (hmColumnData[column] as DataString).text
+                }
+                createUSSSensors(objectId, deviceIndex, alGroupName, alDescrPrefix, alDescrPostfix)
+            }
+
+            val isMercuryCreate = (hmColumnData[m.columnMercuryCreatingEnabled] as DataBoolean).value
+            if (isMercuryCreate) {
+                val alGroupName = m.alColumnMercuryGroupName.map { column ->
+                    (hmColumnData[column] as DataString).text
+                }
+                val alDescrPrefix = m.alColumnMercuryDescrPrefix.map { column ->
+                    (hmColumnData[column] as DataString).text
+                }
+                val alDescrPostfix = m.alColumnMercuryDescrPostfix.map { column ->
+                    (hmColumnData[column] as DataString).text
+                }
+                createMercurySensors(objectId, deviceIndex, alGroupName, alDescrPrefix, alDescrPostfix)
+            }
+        }
+    }
 
     private fun createESDSensors(
         objectId: Int,
@@ -326,7 +320,7 @@ class cDevice : cStandart() {
                     groupName = groupName,
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
-                    sensorType = SensorConfig.SENSOR_LIQUID_USING,
+                    sensorType = SensorConfig.SENSOR_MASS_ACCUMULATED,
                     portNum = GalileoFunction.PORT_NUM_EMIS_ACCUMULATED_MASS,
                     descrBody = "Накопленная масса",
                 )
@@ -337,8 +331,36 @@ class cDevice : cStandart() {
                     groupName = groupName,
                     descrPrefix = descrPrefix,
                     descrPostfix = descrPostfix,
-                    sensorType = SensorConfig.SENSOR_LIQUID_USING,
+                    sensorType = SensorConfig.SENSOR_VOLUME_ACCUMULATED,
                     portNum = GalileoFunction.PORT_NUM_EMIS_ACCUMULATED_VOLUME,
+                    descrBody = "Накопленный объём",
+                )
+            }
+        }
+    }
+
+    private fun createUSSSensors(
+        objectId: Int,
+        deviceIndex: Int,
+        alGroupName: List<String>,
+        alDescrPrefix: List<String>,
+        alDescrPostfix: List<String>,
+    ) {
+        for (si in 0 until mDevice.MAX_PORT_PER_SENSOR) {
+            val groupName = alGroupName[si].trim()
+            val descrPrefix = alDescrPrefix[si].trim()
+            val descrPostfix = alDescrPostfix[si].trim()
+
+            if (descrPrefix.isNotEmpty() || descrPostfix.isNotEmpty()) {
+                addCounterSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_VOLUME_ACCUMULATED,
+                    portNum = GalileoFunction.PORT_NUM_USS_ACCUMULATED_VOLUME,
                     descrBody = "Накопленный объём",
                 )
             }
