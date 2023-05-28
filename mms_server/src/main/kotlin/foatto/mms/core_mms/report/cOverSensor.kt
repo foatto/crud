@@ -54,23 +54,23 @@ class cOverSensor : cMMSReport() {
     //----------------------------------------------------------------------------------------------------------------------------------------
 
     override fun postReport(sheet: WritableSheet) {
-        var sensorType = 0
-        when (aliasConfig.name) {
-            "mms_report_over_weight" -> sensorType = SensorConfig.SENSOR_WEIGHT
-            "mms_report_over_turn" -> sensorType = SensorConfig.SENSOR_TURN
-            "mms_report_over_pressure" -> sensorType = SensorConfig.SENSOR_PRESSURE
-            "mms_report_over_temperature" -> sensorType = SensorConfig.SENSOR_TEMPERATURE
-            "mms_report_over_voltage" -> sensorType = SensorConfig.SENSOR_VOLTAGE
-            "mms_report_over_power" -> sensorType = SensorConfig.SENSOR_POWER
-            "mms_report_over_density" -> sensorType = SensorConfig.SENSOR_DENSITY
-            "mms_report_over_mass_flow" -> sensorType = SensorConfig.SENSOR_MASS_FLOW
-            "mms_report_over_volume_flow" -> sensorType = SensorConfig.SENSOR_VOLUME_FLOW
-            "mms_report_over_energo_voltage" -> sensorType = SensorConfig.SENSOR_ENERGO_VOLTAGE
-            "mms_report_over_energo_current" -> sensorType = SensorConfig.SENSOR_ENERGO_CURRENT
-            "mms_report_over_energo_power_koef" -> sensorType = SensorConfig.SENSOR_ENERGO_POWER_KOEF
-            "mms_report_over_energo_power_active" -> sensorType = SensorConfig.SENSOR_ENERGO_POWER_ACTIVE
-            "mms_report_over_energo_power_reactive" -> sensorType = SensorConfig.SENSOR_ENERGO_POWER_REACTIVE
-            "mms_report_over_energo_power_full" -> sensorType = SensorConfig.SENSOR_ENERGO_POWER_FULL
+        val sensorType = when (aliasConfig.name) {
+            "mms_report_over_weight" -> SensorConfig.SENSOR_WEIGHT
+            "mms_report_over_turn" -> SensorConfig.SENSOR_TURN
+            "mms_report_over_pressure" -> SensorConfig.SENSOR_PRESSURE
+            "mms_report_over_temperature" -> SensorConfig.SENSOR_TEMPERATURE
+            "mms_report_over_voltage" -> SensorConfig.SENSOR_VOLTAGE
+            "mms_report_over_power" -> SensorConfig.SENSOR_POWER
+            "mms_report_over_density" -> SensorConfig.SENSOR_DENSITY
+            "mms_report_over_mass_flow" -> SensorConfig.SENSOR_MASS_FLOW
+            "mms_report_over_volume_flow" -> SensorConfig.SENSOR_VOLUME_FLOW
+            "mms_report_over_energo_voltage" -> SensorConfig.SENSOR_ENERGO_VOLTAGE
+            "mms_report_over_energo_current" -> SensorConfig.SENSOR_ENERGO_CURRENT
+            "mms_report_over_energo_power_koef" -> SensorConfig.SENSOR_ENERGO_POWER_KOEF
+            "mms_report_over_energo_power_active" -> SensorConfig.SENSOR_ENERGO_POWER_ACTIVE
+            "mms_report_over_energo_power_reactive" -> SensorConfig.SENSOR_ENERGO_POWER_REACTIVE
+            "mms_report_over_energo_power_full" -> SensorConfig.SENSOR_ENERGO_POWER_FULL
+            else -> 0
         }
 
         //--- загрузить данные по ВСЕМ зонам (reportZone используется только для последующей фильтрации)

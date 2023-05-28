@@ -41,11 +41,11 @@ enum class GraphicColorIndex {
     LINE_NONE_1,        // line of no values
     LINE_NORMAL_1,      // normal line
 
-    //--- для дополнительного графика
+    //--- for the additional plot
     LINE_NONE_2,        // line of no values
     LINE_NORMAL_2,      // normal line
 
-    //--- для дополнительного графика
+    //--- for the additional plot
     LINE_NONE_3,        // line of no values
     LINE_NORMAL_3,      // normal line
 }

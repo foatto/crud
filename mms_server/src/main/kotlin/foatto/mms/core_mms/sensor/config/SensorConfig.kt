@@ -95,7 +95,7 @@ open class SensorConfig(
             SENSOR_SIGNAL to "Сигнал",
             SENSOR_GEO to "Гео-данные",
             SENSOR_WORK to "Работа оборудования",
-            SENSOR_LIQUID_FLOW_CALC to "Скорость расхода топлива (расчётная)",
+            SENSOR_LIQUID_FLOW_CALC to "Скорость потока топлива (расчётная)",
             SENSOR_LIQUID_LEVEL to "Уровень топлива",
             SENSOR_WEIGHT to "Вес",
             SENSOR_TURN to "Обороты",

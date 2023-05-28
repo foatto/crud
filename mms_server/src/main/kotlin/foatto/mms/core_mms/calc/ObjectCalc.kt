@@ -121,16 +121,16 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 }
             }
 
-            //--- liquid calc sensor
-            oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_USING]?.values?.forEach { sc ->
+            //--- mass accumulated values sensor
+            oc.hmSensorConfig[SensorConfig.SENSOR_MASS_ACCUMULATED]?.values?.forEach { sc ->
                 calcCounterOrAccumulatedSensor(alRawTime, alRawData, sc as SensorConfigCounter, begTime, endTime, result)
             }
             //--- volume accumulated values sensor
             oc.hmSensorConfig[SensorConfig.SENSOR_VOLUME_ACCUMULATED]?.values?.forEach { sc ->
                 calcCounterOrAccumulatedSensor(alRawTime, alRawData, sc as SensorConfigCounter, begTime, endTime, result)
             }
-            //--- mass accumulated values sensor
-            oc.hmSensorConfig[SensorConfig.SENSOR_MASS_ACCUMULATED]?.values?.forEach { sc ->
+            //--- liquid calc sensor
+            oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_USING]?.values?.forEach { sc ->
                 calcCounterOrAccumulatedSensor(alRawTime, alRawData, sc as SensorConfigCounter, begTime, endTime, result)
             }
 
@@ -609,7 +609,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             axisIndex: Int,
             aMinLimit: GraphicDataContainer?,
             aMaxLimit: GraphicDataContainer?,
-            aLine: GraphicDataContainer?,
+            aLine: GraphicDataContainer,
             graphicHandler: iGraphicHandler
         ) {
             val isStaticMinLimit = graphicHandler.isStaticMinLimit(sca)
@@ -632,7 +632,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 alSensorData.add(graphicHandler.getRawData(sca, bb))
             }
 
-            val alGLD = aLine?.alGLD?.toMutableList() ?: mutableListOf()
+            val alGLD = aLine.alGLD.toMutableList()
 
             //--- raw data processing -----------------------------------------------------------------------------------------
 
@@ -666,7 +666,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 }
 
                 //--- if lines are shown
-                aLine?.let {
+                aLine.let {
                     //--- finding the left border of the smoothing range
                     var pos1 = pos - 1
                     while (pos1 >= 0) {
@@ -764,7 +764,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 }
             }
 
-            aLine?.alGLD = alGLD
+            aLine.alGLD = alGLD
         }
 
         //--- we collect periods of liquid level states (refueling, draining, consumption) and apply filters for refueling / draining / consumption
