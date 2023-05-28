@@ -2,32 +2,29 @@ rootProject.name = "crud"
 
 pluginManagement {
     val kotlinVersion: String by settings
+    val agpVersion: String by settings
     val composePluginVersion: String by settings
     val springDependencyManagementPluginVersion: String by settings
     val springBootVersion: String by settings
 
-//    repositories {
-//        gradlePluginPortal()
-//        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
-//--- по документации вроде как не нужны
-//        mavenCentral()
-//        google()
-//    }
+    repositories {
+        gradlePluginPortal()
+        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+        google()
+    }
 
     plugins {
         kotlin("multiplatform").version(kotlinVersion)
         kotlin("js").version(kotlinVersion)
-//        kotlin("android").version(kotlinVersion)
+        kotlin("android").version(kotlinVersion)
         kotlin("jvm").version(kotlinVersion)
 
         kotlin("plugin.serialization").version(kotlinVersion)
 
+        id("com.android.application").version(agpVersion)
+        id("com.android.library").version(agpVersion)
+
         id("org.jetbrains.compose").version(composePluginVersion)
-
-//--- in mpp part
-//        id("com.android.library").version(extra["agp.version"] as String)
-
-//        id("com.android.application").version(extra["agp.version"] as String)
 
         kotlin("plugin.spring").version(kotlinVersion)
         kotlin("plugin.jpa").version(kotlinVersion)
@@ -36,6 +33,15 @@ pluginManagement {
         id("org.springframework.boot").version(springBootVersion)
     }
 }
+
+//--- возможно, это лишнее, т.к. есть блок subprojects.repositories в корневом build.gradle.kts
+//dependencyResolutionManagement {
+//    repositories {
+//        google()
+//        mavenCentral()
+//        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+//    }
+//}
 
 include(
     ":core",
