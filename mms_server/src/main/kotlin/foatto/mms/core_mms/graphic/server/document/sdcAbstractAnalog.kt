@@ -10,6 +10,7 @@ import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.calc.AbstractObjectStateCalc
 import foatto.mms.core_mms.calc.ObjectCalc
 import foatto.mms.core_mms.graphic.server.graphic_handler.AnalogGraphicHandler
+import foatto.mms.core_mms.graphic.server.graphic_handler.iGraphicHandler
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigAnalogue
 import foatto.mms.core_mms.sensor.config.SensorConfigGeo
@@ -339,23 +340,26 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
 
                 alAxisYData.add(AxisYData(sca.descr, sca.minView, sca.maxView, graphicAxisColorIndexes[axisIndex], isReversedY))
 
-                ObjectCalc.getSmoothAnalogGraphicData(
+                val xScale = if (viewWidth == 0) {
+                    0
+                } else {
+                    (endTime - begTime) / (viewWidth / DOT_PER_MM)
+                }
+                val yScale = if (viewHeight == 0) {
+                    0.0
+                } else {
+                    (sca.maxView - sca.minView) / (viewHeight / DOT_PER_MM)
+                }
+
+                calcGraphicData(
                     alRawTime = alRawTime,
                     alRawData = alRawData,
                     scg = objectConfig.scg,
                     sca = sca,
                     begTime = begTime,
                     endTime = endTime,
-                    xScale = if (viewWidth == 0) {
-                        0
-                    } else {
-                        (endTime - begTime) / (viewWidth / DOT_PER_MM)
-                    },
-                    yScale = if (viewHeight == 0) {
-                        0.0
-                    } else {
-                        (sca.maxView - sca.minView) / (viewHeight / DOT_PER_MM)
-                    },
+                    xScale = xScale,
+                    yScale = yScale,
                     axisIndex = axisIndex,
                     aMinLimit = aMinLimit,
                     aMaxLimit = aMaxLimit,
@@ -422,7 +426,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                 alGDC.addAll(listOfNotNull(aText, aMinLimit, aMaxLimit, aLine).filter { it.isNotEmpty() })
                 axisIndex++
 
-                //!!! расчёт и добавление вычисленной скорости расхода топлива
+                //--- добавление дополнительных графиков на то же поле
                 axisIndex = addGraphicItem(
                     begTime = begTime,
                     endTime = endTime,
@@ -448,6 +452,39 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                 alGDC = alGDC,
             )
         }
+    }
+
+    //--- основная/типовая обработка графика
+    protected open fun calcGraphicData(
+        alRawTime: List<Int>,
+        alRawData: List<AdvancedByteBuffer>,
+        scg: SensorConfigGeo?,
+        sca: SensorConfigAnalogue,
+        begTime: Int,
+        endTime: Int,
+        xScale: Int,
+        yScale: Double,
+        axisIndex: Int,
+        aMinLimit: GraphicDataContainer?,
+        aMaxLimit: GraphicDataContainer?,
+        aLine: GraphicDataContainer,
+        graphicHandler: iGraphicHandler
+    ) {
+        ObjectCalc.getSmoothAnalogGraphicData(
+            alRawTime = alRawTime,
+            alRawData = alRawData,
+            scg = scg,
+            sca = sca,
+            begTime = begTime,
+            endTime = endTime,
+            xScale = xScale,
+            yScale = yScale,
+            axisIndex = axisIndex,
+            aMinLimit = aMinLimit,
+            aMaxLimit = aMaxLimit,
+            aLine = aLine,
+            graphicHandler = graphicHandler
+        )
     }
 
     //--- пост-обработка графика
