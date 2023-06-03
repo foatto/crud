@@ -14,6 +14,8 @@ import foatto.core_server.ds.CoreTelematicFunction
 import foatto.mms.core_mms.ds.GalileoFunction
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigCounter
+import foatto.mms.iMMSApplication
+import java.io.File
 
 class cDevice : cStandart() {
 
@@ -53,6 +55,11 @@ class cDevice : cStandart() {
         val postURL = super.postEdit(action, id, hmColumnData, hmOut)
 
         createSensors(hmColumnData)
+
+        //--- (re)create DataServer restart flag file
+        val dataServerIniFileName = (application as iMMSApplication).dataServerIniFileName
+        File(dataServerIniFileName).copyTo(File(dataServerIniFileName + "_"), true)
+
 //        clearOldCameraInfo(hmColumnData)
 
         return postURL

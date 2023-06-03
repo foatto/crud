@@ -32,6 +32,9 @@ class MMSAppController : CoreAppController(), iMMSApplication {
     @Value("\${expire_period}")
     override val expirePeriod: Int = 0
 
+    @Value("\${data_server_ini_file:}")
+    override val dataServerIniFileName: String = ""
+
 //-------------------------------------------------------------------------------------------------
 
     @PostMapping("/api/app")

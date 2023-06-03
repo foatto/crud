@@ -8,6 +8,7 @@ interface iMMSApplication : iApplication {
 
     val maxEnabledOverSpeed: Int
     val expirePeriod: Int
+    val dataServerIniFileName: String
 
     fun getObjectConfig(userConfig: UserConfig, objectId: Int): ObjectConfig
 }
