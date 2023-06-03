@@ -34,22 +34,31 @@ class DeviceConfig {
             )
 
             if (rs.next()) {
-                dc = DeviceConfig()
-                dc.deviceId = rs.getInt(1)
-                dc.objectId = rs.getInt(2)
-                dc.userId = rs.getInt(3)
-                dc.isAutoWorkShift = rs.getInt(4) != 0
-                dc.index = rs.getInt(5)
+                dc = DeviceConfig().apply {
+                    deviceId = rs.getInt(1)
+                    objectId = rs.getInt(2)
+                    userId = rs.getInt(3)
+                    isAutoWorkShift = rs.getInt(4) != 0
+                    index = rs.getInt(5)
+                }
             }
             rs.close()
 
             if (dc != null) {
                 rs = conn.executeQuery(" SELECT speed_round_rule FROM MMS_sensor WHERE object_id = ${dc.objectId} AND sensor_type = ${SensorConfig.SENSOR_GEO}")
-                dc.speedRoundRule = if (rs.next()) rs.getInt(1) else SensorConfigGeo.SPEED_ROUND_RULE_STANDART
+                dc.speedRoundRule = if (rs.next()) {
+                    rs.getInt(1)
+                } else {
+                    SensorConfigGeo.SPEED_ROUND_RULE_STANDART
+                }
                 rs.close()
 
                 rs = conn.executeQuery(" SELECT property_value FROM SYSTEM_user_property WHERE user_id = ${dc.userId} AND property_name = '$UP_TIME_OFFSET' ")
-                dc.zoneId = if (rs.next()) getZoneId(rs.getString(1).toInt()) else ZoneId.systemDefault()
+                dc.zoneId = if (rs.next()) {
+                    getZoneId(rs.getString(1).toInt())
+                } else {
+                    ZoneId.systemDefault()
+                }
                 rs.close()
             }
 
