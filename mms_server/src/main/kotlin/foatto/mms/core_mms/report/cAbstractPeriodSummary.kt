@@ -22,7 +22,17 @@ import java.util.*
 
 abstract class cAbstractPeriodSummary : cMMSReport() {
 
+    companion object {
+        const val PERM_SHOW_DIFF_INC_DEC: String = "show_diff_inc_dec"
+    }
+
     protected var isGlobalUseSpeed = false
+
+    override fun definePermission() {
+        super.definePermission()
+
+        alPermission.add(Pair(PERM_SHOW_DIFF_INC_DEC, "05 Show Diff Inc-Dec"))
+    }
 
     override fun setPrintOptions() {
         printPaperSize = PaperSize.A4
@@ -84,6 +94,11 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
         troubles: GraphicDataContainer?,
         isOutGroupSum: Boolean,
     ): Int {
+        //--- получить данные по правам доступа
+        val hsPermission = userConfig.userPermission[aliasConfig.name]
+        //--- при добавлении модуля в систему прав доступа к нему ещё нет
+        val isShowDiffIncDec = hsPermission?.contains(PERM_SHOW_DIFF_INC_DEC) ?: false
+
         var offsY = aOffsY
 
         //--- geo-sensor report
@@ -221,7 +236,7 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
 
             var allBegLevelSum = 0.0
             var allEndLevelSum = 0.0
-            var mainDecMinusWorkInc = 0.0
+            var diffIncDec = 0.0
 
             listOf(SensorConfigLiquidLevel.CONTAINER_TYPE_MAIN, SensorConfigLiquidLevel.CONTAINER_TYPE_WORK).forEach { containerType ->
                 if (objectCalc.tmLiquidLevel.any { (_, llcd) ->
@@ -294,9 +309,9 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
                         }
 
                     if (containerType == SensorConfigLiquidLevel.CONTAINER_TYPE_MAIN) {
-                        mainDecMinusWorkInc += decTotalSum
+                        diffIncDec += decTotalSum
                     } else {
-                        mainDecMinusWorkInc -= incTotalSum
+                        diffIncDec -= incTotalSum
                     }
 
                     sheet.addCell(Label(1, offsY, "ИТОГО по $containerTypeDescr ёмкости:", wcfCaptionHC))
@@ -317,12 +332,16 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
             sheet.addCell(Label(1, offsY, "ИТОГО суммарно по всем ёмкостям:", wcfCaptionHC))
             sheet.addCell(Label(2, offsY, "Остаток на начало периода", wcfCaptionHC))
             sheet.addCell(Label(3, offsY, "Остаток на конец периода", wcfCaptionHC))
-            sheet.addCell(Label(4, offsY, "Разница показаний сливов и заправок", wcfCaptionHC))
+            if (isShowDiffIncDec) {
+                sheet.addCell(Label(4, offsY, "Разница показаний сливов и заправок", wcfCaptionHC))
+            }
             offsY++
 
             sheet.addCell(Label(2, offsY, getSplittedDouble(allBegLevelSum, ObjectCalc.getPrecision(allBegLevelSum), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
             sheet.addCell(Label(3, offsY, getSplittedDouble(allEndLevelSum, ObjectCalc.getPrecision(allEndLevelSum), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
-            sheet.addCell(Label(4, offsY, getSplittedDouble(mainDecMinusWorkInc, ObjectCalc.getPrecision(mainDecMinusWorkInc), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
+            if (isShowDiffIncDec) {
+                sheet.addCell(Label(4, offsY, getSplittedDouble(diffIncDec, ObjectCalc.getPrecision(diffIncDec), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
+            }
             offsY++
 
             offsY++
