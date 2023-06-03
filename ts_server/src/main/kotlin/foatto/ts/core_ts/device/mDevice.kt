@@ -153,7 +153,8 @@ class mDevice : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        addUniqueColumn(columnSerialNo, "")
+        //--- возможны совпадающие серийные номера разных поколений приборов
+        //addUniqueColumn(columnSerialNo, "")
 //        addUniqueColumn(
 //            listOf(
 //                UniqueColumnData(os.columnObject),

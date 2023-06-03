@@ -19,40 +19,17 @@ abstract class TSHandler : AbstractTelematicNioHandler() {
     companion object {
 
         const val DEVICE_TYPE_UDS = 1
+        const val DEVICE_TYPE_UDS_OLD = 2
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         fun fillDeviceTypeColumn(columnDeviceType: ColumnRadioButton) {
             columnDeviceType.defaultValue = DEVICE_TYPE_UDS
 
-            columnDeviceType.addChoice(DEVICE_TYPE_UDS, "УДС-Техно")
+            columnDeviceType.addChoice(DEVICE_TYPE_UDS, "УДС-Техно 2.0")
+            columnDeviceType.addChoice(DEVICE_TYPE_UDS_OLD, "УДС-Техно 1.0")
         }
 
-//        //--- пришлось делать в виде static, т.к. VideoServer не является потомком TSHandler,
-//        //--- а в AbstractHandler не знает про прикладные TS-таблицы
-//        fun getCommand(conn: CoreAdvancedConnection, aDeviceID: Int): Pair<Int, String?> {
-//            var cmdID = 0
-//            var cmdStr: String? = null
-//            val rs = conn.executeQuery(
-//                " SELECT TS_device_command_history.id , TS_device_command.cmd " +
-//                    " FROM TS_device_command_history , TS_device_command " +
-//                    " WHERE TS_device_command_history.command_id = TS_device_command.id " +
-//                    " AND TS_device_command_history.device_id = $aDeviceID AND TS_device_command_history.for_send <> 0 " +
-//                    " ORDER BY TS_device_command_history.send_time "
-//            )
-//            if (rs.next()) {
-//                cmdID = rs.getInt(1)
-//                cmdStr = rs.getString(2).trim()
-//            }
-//            rs.close()
-//
-//            return Pair(cmdID, cmdStr)
-//        }
-//
-//        fun setCommandSended(conn: CoreAdvancedConnection, cmdID: Int) {
-//            //--- отметим успешную отправку команды
-//            conn.executeUpdate(" UPDATE TS_device_command_history SET for_send = 0 , send_time = ${getCurrentTimeInt()} WHERE id = $cmdID")
-//        }
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -80,8 +57,8 @@ abstract class TSHandler : AbstractTelematicNioHandler() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    protected fun loadDeviceConfig(dataWorker: CoreNioWorker): Boolean {
-        deviceConfig = DeviceConfig.getDeviceConfig(dataWorker.conn, serialNo)
+    protected fun loadDeviceConfig(dataWorker: CoreNioWorker, deviceType: Int): Boolean {
+        deviceConfig = DeviceConfig.getDeviceConfig(dataWorker.conn, serialNo, deviceType)
         //--- неизвестный контроллер
         if (deviceConfig == null) {
             writeError(dataWorker.conn, "Unknown serial No = $serialNo")
@@ -162,10 +139,6 @@ abstract class TSHandler : AbstractTelematicNioHandler() {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     protected fun addPoint(conn: CoreAdvancedConnection, time: Int, bbData: AdvancedByteBuffer, sqlBatchData: SQLBatch) {
-        //--- если возможен режим оффлайн-загрузки данных по этому контроллеру (например, через android-посредника),
-        //--- то возможно и повторение точек. В этом случае надо удалить предыдущую(ие) точку(и) с таким же временем.
-        //--- Поскольку это очень затратная операция, то по умолчанию режим оффлайн-загрузки данных не включен
-        //if (deviceConfig!!.isOfflineMode) sqlBatchData.add(" DELETE FROM TS_data_${deviceConfig!!.objectId} WHERE ontime = $time ; ")
         bbData.flip()
         sqlBatchData.add(" INSERT INTO TS_data_${deviceConfig!!.objectId} ( ontime , sensor_data ) VALUES ( $time , ${conn.getHexValue(bbData)} ); ")
     }

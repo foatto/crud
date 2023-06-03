@@ -2,19 +2,15 @@ package foatto.ts.core_ts.ds
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import foatto.core.util.AdvancedLogger
+import foatto.core.util.YMDHMS_DateTime
 import foatto.core.util.getCurrentTimeInt
+import foatto.core.util.getDateTimeInt
 import foatto.core_server.ds.CoreTelematicFunction
 import foatto.core_server.ds.nio.CoreNioWorker
 import foatto.sql.SQLBatch
 import java.nio.ByteOrder
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
 
-class UDSHandler : CommonUDSHandler() {
-
-    companion object {
-        val UDS_RAW_PACKET_TIME_BASE = OffsetDateTime.of(2000, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC).toEpochSecond().toInt()
-    }
+class OldUDSTechnoHandler : CommonUDSHandler() {
 
     private val sbData = StringBuilder()
 
@@ -29,10 +25,10 @@ class UDSHandler : CommonUDSHandler() {
         val arrByte = ByteArray(bbIn.remaining())
         bbIn.get(arrByte)
         sbData.append(String(arrByte))
-//AdvancedLogger.debug("sbData = $sbData")
+//AdvancedLogger.debug("sbData = '$sbData'")
 
         //--- хотя бы один пакет собрался в общей строке данных?
-        var packetEndPos = sbData.indexOf("\r\n")
+        var packetEndPos = sbData.indexOf('}')
         if (packetEndPos < 0) {
             bbIn.compact()
             return true
@@ -40,28 +36,30 @@ class UDSHandler : CommonUDSHandler() {
 
         val sqlBatchData = SQLBatch()
         while (true) {
+            //--- последняя рабочая '}' тоже входит в рабочую строку
+            packetEndPos++
+
             val strPacket = sbData.substring(0, packetEndPos)
             AdvancedLogger.debug("data = $strPacket")
 
             //--- убираем разобранный пакет из начала общей строки данных
-            sbData.delete(0, packetEndPos + 2)
+            sbData.delete(0, packetEndPos)
 
-            val udsRawPacket: UDSRawPacket = objectMapper.readValue(strPacket)
+            val udsRawPacket: OldUDSTechnoRawPacket = objectMapper.readValue(strPacket)
             status += " DataRead;"
 
-            serialNo = udsRawPacket.id.toString()
-            loadDeviceConfig(dataWorker, DEVICE_TYPE_UDS)
+            serialNo = udsRawPacket.udsId
+            loadDeviceConfig(dataWorker, DEVICE_TYPE_UDS_OLD)
 
-            val pointTime = UDS_RAW_PACKET_TIME_BASE + udsRawPacket.timeSys
+            val pointTime = getDateTimeInt(YMDHMS_DateTime(zoneId, udsRawPacket.datetime))
 
             //--- если объект прописан, то записываем точки, иначе просто пропускаем
             //--- также пропускаем точки из будущего и далёкого прошлого
             val curTime = getCurrentTimeInt()
             if (deviceConfig?.objectId != 0 && pointTime > curTime - CoreTelematicFunction.MAX_PAST_TIME && pointTime < curTime + CoreTelematicFunction.MAX_FUTURE_TIME) {
-                fwVersion = udsRawPacket.vers ?: ""
-                imei = udsRawPacket.imei ?: ""
+                fwVersion = udsRawPacket.version ?: ""
 
-                val udsDataPacket = udsRawPacket.normalize()
+                val udsDataPacket = udsRawPacket.normalize(zoneId)
                 val bbData = dataToByteBuffer(dataWorker, udsDataPacket)
 
                 addPoint(dataWorker.conn, pointTime, bbData, sqlBatchData)
@@ -75,7 +73,7 @@ class UDSHandler : CommonUDSHandler() {
             dataCountAll++
 
             //--- есть ли ещё данные в пакете
-            packetEndPos = sbData.indexOf("\r\n")
+            packetEndPos = sbData.indexOf('}')
             if (packetEndPos < 0) {
                 break
             }
@@ -105,15 +103,20 @@ class UDSHandler : CommonUDSHandler() {
     }
 
     override fun getUDSCommandDataString(command: String): String {
-        val commandData = UDSCommandData(
+        val commandData = OldUDSTechnoCommandData(
             id = serialNo.toInt(),
             state = command,
         )
         return objectMapper.writeValueAsString(commandData)
     }
+
 }
 
-private class UDSCommandData(
+private class OldUDSTechnoCommandData(
     val id: Int,
+    val pass: String = "bb9ec852de3e8f7609d3676ede4444fa",  //--- for compatibility, removed later
     val state: String,
+    //--- for compatibility, not used, removed later
+    val crc16L: Int = 0,
+    val crc16H: Int = 0,
 )
