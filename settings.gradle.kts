@@ -8,9 +8,10 @@ pluginManagement {
     val springBootVersion: String by settings
 
     repositories {
-        gradlePluginPortal()
-        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
         google()
+        gradlePluginPortal()
+        mavenCentral()
+        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }
 
     plugins {
@@ -45,8 +46,11 @@ pluginManagement {
 
 include(
     ":core",
+
     ":core_compose",
     ":core_compose_web",
+    ":core_compose_android",
+
     ":core_server",
     ":core_server_mvc",
 //    ":core_server_flux",

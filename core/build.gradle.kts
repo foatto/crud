@@ -23,10 +23,7 @@ kotlin {
         browser {
         }
     }
-//    wasm {
-//        browser {
-//        }
-//    }
+
     jvm {
         val main by compilations.getting {
             kotlinOptions {
@@ -48,17 +45,13 @@ kotlin {
         }
         val jsMain by getting {
 //            dependencies {
-//                api("org.jetbrains.kotlinx:kotlinx-serialization-json-js:$kotlinxSerializationVersion")
 //            }
         }
         val jvmMain by getting {
             dependencies {
                 api(kotlin("reflect"))
-//                api("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:$kotlinxSerializationVersion")
             }
         }
-//        val wasmMain by getting {
-//        }
     }
 }
 
