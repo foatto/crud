@@ -52,9 +52,10 @@ class cSensor : cTSOneObjectParent() {
 
                 if (sensorValue != null && dataValue != null) {
                     conn.executeUpdate(
-                        " INSERT INTO TS_sensor_calibration ( id , sensor_id , value_sensor , value_data ) VALUES ( +" +
-                            conn.getNextIntId("TS_sensor_calibration", "id") +
-                            " , $id , $sensorValue , $dataValue ) "
+                        """
+                            INSERT INTO TS_sensor_calibration ( id , sensor_id , value_sensor , value_data ) VALUES ( 
+                            ${conn.getNextIntId("TS_sensor_calibration", "id")} , $id , $sensorValue , $dataValue )
+                        """
                     )
                 }
             }

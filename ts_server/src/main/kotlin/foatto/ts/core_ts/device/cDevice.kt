@@ -11,6 +11,7 @@ import foatto.core_server.app.server.data.DataRadioButton
 import foatto.core_server.app.server.data.DataString
 import foatto.core_server.app.server.data.iData
 import foatto.core_server.ds.CoreTelematicFunction
+import foatto.ts.core_ts.ds.TSHandler
 import foatto.ts.core_ts.sensor.config.SensorConfig
 import foatto.ts.core_ts.sensor.config.SensorConfigSetup
 import foatto.ts_core.app.DeviceCommand
@@ -89,10 +90,11 @@ class cDevice : cStandart() {
 
         val objectId = (hmColumnData[m.columnObject] as DataInt).intValue
         val deviceIndex = (hmColumnData[m.columnDeviceIndex] as DataInt).intValue
+        val deviceType = (hmColumnData[m.columnDeviceType] as DataRadioButton).intValue
         val isSensorCreate = (hmColumnData[m.columnSensorCreatingEnabled] as DataBoolean).value
 
         if (objectId != 0 && isSensorCreate) {
-            createSensors(objectId, deviceIndex)
+            createSensors(objectId, deviceIndex, deviceType)
         }
 
         fillObjectModel(hmColumnData)
@@ -107,10 +109,11 @@ class cDevice : cStandart() {
 
         val objectId = (hmColumnData[m.columnObject] as DataInt).intValue
         val deviceIndex = (hmColumnData[m.columnDeviceIndex] as DataInt).intValue
+        val deviceType = (hmColumnData[m.columnDeviceType] as DataRadioButton).intValue
         val isSensorCreate = (hmColumnData[m.columnSensorCreatingEnabled] as DataBoolean).value
 
         if (objectId != 0 && isSensorCreate) {
-            createSensors(objectId, deviceIndex)
+            createSensors(objectId, deviceIndex, deviceType)
         }
 
         fillObjectModel(hmColumnData)
@@ -119,7 +122,7 @@ class cDevice : cStandart() {
     }
 
     //--- temporary for MVP
-    private fun createSensors(objectId: Int, deviceIndex: Int) {
+    private fun createSensors(objectId: Int, deviceIndex: Int, deviceType: Int) {
         //--- state sensor
         conn.executeUpdate(
             """
@@ -222,6 +225,7 @@ class cDevice : cStandart() {
                 )
             """
         )
+        val signalLevelSensorId = conn.getNextIntId("TS_sensor", "id")
         conn.executeUpdate(
             """
                 INSERT INTO TS_sensor( 
@@ -229,13 +233,27 @@ class cDevice : cStandart() {
                     ignore_min_sensor , ignore_max_sensor , smooth_method , smooth_time ,
                     analog_min_view , analog_max_view , analog_min_limit , analog_max_limit , state_min_view , state_max_view                                          
                 ) VALUES ( 
-                    ${conn.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Уровень сигнала [%]' , 
+                    $signalLevelSensorId , $objectId ,  '' , '' , 'Уровень сигнала [%]' , 
                     ${deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + 8} , ${SensorConfig.SENSOR_SIGNAL_LEVEL} ,
                     -1 , 101 , ${SensorConfig.SMOOTH_METOD_MEDIAN} , 0 ,
                     0 , 100 , 0 , 0 , 0 , 100
                 )
             """
         )
+        if (deviceType == TSHandler.DEVICE_TYPE_UDS_OLD) {
+            conn.executeUpdate(
+                """
+                    INSERT INTO TS_sensor_calibration ( id , sensor_id , value_sensor , value_data ) VALUES ( 
+                    ${conn.getNextIntId("TS_sensor_calibration", "id")} , $signalLevelSensorId , 0.0 , 0.0 )
+                """
+            )
+            conn.executeUpdate(
+                """
+                    INSERT INTO TS_sensor_calibration ( id , sensor_id , value_sensor , value_data ) VALUES ( 
+                    ${conn.getNextIntId("TS_sensor_calibration", "id")} , $signalLevelSensorId , 31.0 , 100.0 )
+                """
+            )
+        }
         conn.executeUpdate(
             """
                 INSERT INTO TS_sensor( 
