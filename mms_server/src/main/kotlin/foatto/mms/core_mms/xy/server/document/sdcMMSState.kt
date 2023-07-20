@@ -6,7 +6,6 @@ import foatto.core.app.STATE_ELEMENT_MOVE_ID
 import foatto.core.app.STATE_ELEMENT_MOVE_X
 import foatto.core.app.STATE_ELEMENT_MOVE_Y
 import foatto.core.app.iCoreAppContainer
-import foatto.core.app.xy.XyAction
 import foatto.core.app.xy.XyActionRequest
 import foatto.core.app.xy.XyActionResponse
 import foatto.core.app.xy.XyElement
@@ -16,7 +15,6 @@ import foatto.core.util.DateTime_YMDHMS
 import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.getRandomInt
 import foatto.core.util.getSplittedDouble
-import foatto.core.util.getStringFromIterable
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.UserConfig
@@ -34,7 +32,6 @@ import foatto.mms.core_mms.sensor.config.SignalConfig
 import foatto.mms.iMMSApplication
 import foatto.sql.CoreAdvancedConnection
 import java.io.File
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import javax.imageio.ImageIO
 import kotlin.math.log10
@@ -46,23 +43,16 @@ class sdcMMSState : sdcXyState() {
 
     companion object {
         //--- arrange in ascending order of the level of location
-        const val TYPE_STATE_SUM_GROUP_BOX_25D = "mms_state_sum_group_box_25d"
-        const val TYPE_STATE_SUM_GROUP_TEXT_25D = "mms_state_sum_group_text_25d"
-        const val TYPE_STATE_GROUP_BOX_25D = "mms_state_group_box_25d"
-        const val TYPE_STATE_GROUP_TEXT_25D = "mms_state_group_text_25d"
-        const val TYPE_STATE_LL_BOTTOM_25D = "mms_state_ll_bottom_25d"
-        const val TYPE_STATE_LL_VOLUME_25D = "mms_state_ll_volume_25d"
-        const val TYPE_STATE_LL_LEVEL_25D = "mms_state_ll_level_25d"
-        const val TYPE_STATE_LL_TANK_WALL_25D = "mms_state_ll_tank_wall_25d"
-        const val TYPE_STATE_LL_TANK_TOP_25D = "mms_state_ll_tank_top_25d"
-        const val TYPE_STATE_LL_TEXT_25D = "mms_state_ll_text_25d"
-        const val TYPE_STATE_W_FIGURE_25D = "mms_state_w_figure_25d"
-        const val TYPE_STATE_W_TEXT_25D = "mms_state_w_text_25d"
+        const val TYPE_STATE_GROUP_BOX = "mms_state_group_box"
+        const val TYPE_STATE_GROUP_TEXT = "mms_state_group_text"
+        const val TYPE_STATE_LL_TANK_WALL = "mms_state_ll_tank_wall"
+        const val TYPE_STATE_LL_VOLUME = "mms_state_ll_volume"
+        const val TYPE_STATE_LL_TEXT = "mms_state_ll_text"
+        const val TYPE_STATE_W_FIGURE = "mms_state_w_figure"
+        const val TYPE_STATE_W_TEXT = "mms_state_w_text"
 
         const val TYPE_STATE_S_FIGURE_25D = "mms_state_s_figure_25d"
         const val TYPE_STATE_S_TEXT_25D = "mms_state_s_text_25d"
-
-        private const val CRITICAL_LL_PERCENT = 0.1
 
         //--- it was empirically found that if the step size is too small, side effects from integer division begin
         //--- and the edges of the outline can flush against the edges of the window / screen.
@@ -98,26 +88,22 @@ class sdcMMSState : sdcXyState() {
         //--- schemes
 
         hmInAliasElementType["mms_object"] = arrayOf(
-            TYPE_STATE_SUM_GROUP_BOX_25D, TYPE_STATE_SUM_GROUP_TEXT_25D, TYPE_STATE_GROUP_BOX_25D, TYPE_STATE_GROUP_TEXT_25D,
-            TYPE_STATE_LL_BOTTOM_25D, TYPE_STATE_LL_VOLUME_25D, TYPE_STATE_LL_LEVEL_25D, TYPE_STATE_LL_TANK_WALL_25D, TYPE_STATE_LL_TANK_TOP_25D, TYPE_STATE_LL_TEXT_25D,
-            TYPE_STATE_W_FIGURE_25D, TYPE_STATE_W_TEXT_25D,
-            TYPE_STATE_S_FIGURE_25D, TYPE_STATE_S_TEXT_25D
+            TYPE_STATE_GROUP_BOX, TYPE_STATE_GROUP_TEXT,
+            TYPE_STATE_LL_TANK_WALL, TYPE_STATE_LL_VOLUME, TYPE_STATE_LL_TEXT,
+            TYPE_STATE_W_FIGURE, TYPE_STATE_W_TEXT,
+            TYPE_STATE_S_FIGURE_25D, TYPE_STATE_S_TEXT_25D,
         )
 
-        hmOutElementTypeAlias[TYPE_STATE_SUM_GROUP_BOX_25D] = "mms_object"
-        hmOutElementTypeAlias[TYPE_STATE_SUM_GROUP_TEXT_25D] = "mms_object"
-        hmOutElementTypeAlias[TYPE_STATE_GROUP_BOX_25D] = "mms_object"
-        hmOutElementTypeAlias[TYPE_STATE_GROUP_TEXT_25D] = "mms_object"
-        hmOutElementTypeAlias[TYPE_STATE_LL_BOTTOM_25D] = "mms_object"
-        hmOutElementTypeAlias[TYPE_STATE_LL_VOLUME_25D] = "mms_object"
-        hmOutElementTypeAlias[TYPE_STATE_LL_LEVEL_25D] = "mms_object"
-        hmOutElementTypeAlias[TYPE_STATE_LL_TANK_WALL_25D] = "mms_object"
-        hmOutElementTypeAlias[TYPE_STATE_LL_TANK_TOP_25D] = "mms_object"
-        hmOutElementTypeAlias[TYPE_STATE_LL_TEXT_25D] = "mms_object"
-        hmOutElementTypeAlias[TYPE_STATE_W_FIGURE_25D] = "mms_object"
-        hmOutElementTypeAlias[TYPE_STATE_W_TEXT_25D] = "mms_object"
+        hmOutElementTypeAlias[TYPE_STATE_GROUP_BOX] = "mms_object"
+        hmOutElementTypeAlias[TYPE_STATE_GROUP_TEXT] = "mms_object"
+        hmOutElementTypeAlias[TYPE_STATE_LL_TANK_WALL] = "mms_object"
+        hmOutElementTypeAlias[TYPE_STATE_LL_VOLUME] = "mms_object"
+        hmOutElementTypeAlias[TYPE_STATE_LL_TEXT] = "mms_object"
+        hmOutElementTypeAlias[TYPE_STATE_W_FIGURE] = "mms_object"
+        hmOutElementTypeAlias[TYPE_STATE_W_TEXT] = "mms_object"
         hmOutElementTypeAlias[TYPE_STATE_S_FIGURE_25D] = "mms_object"
         hmOutElementTypeAlias[TYPE_STATE_S_TEXT_25D] = "mms_object"
+
 
         super.init(aApplication, aConn, aChmSession, aUserConfig, aDocumentConfig)
     }
@@ -405,13 +391,11 @@ class sdcMMSState : sdcXyState() {
             hmParams[STATE_ELEMENT_MOVE_Y] = alElementMoveY.joinToString("\n")
         } else {
             //--- составляем иерархию ёмкостей и оборудования
-
-            val tmSumGroup = sortedMapOf<String, SortedMap<String, MutableList<SensorConfig>>>()
+            val tmGroup = sortedMapOf<String, MutableList<SensorConfig>>()
 
             objectConfig.hmSensorConfig[SensorConfig.SENSOR_LIQUID_LEVEL]?.let { hmSCLL ->
                 for (portNum in hmSCLL.keys) {
                     val sca = hmSCLL[portNum] as SensorConfigLiquidLevel
-                    val tmGroup = tmSumGroup.getOrPut("") { TreeMap() }
                     val alLL = tmGroup.getOrPut(sca.group) { mutableListOf() }
                     alLL.add(sca)
                 }
@@ -420,7 +404,6 @@ class sdcMMSState : sdcXyState() {
             objectConfig.hmSensorConfig[SensorConfig.SENSOR_WORK]?.let { hmSCW ->
                 for (portNum in hmSCW.keys) {
                     val scw = hmSCW[portNum] as SensorConfigWork
-                    val tmGroup = tmSumGroup.getOrPut("") { TreeMap() }
                     val alW = tmGroup.getOrPut(scw.group) { mutableListOf() }
                     alW.add(scw)
                 }
@@ -430,96 +413,80 @@ class sdcMMSState : sdcXyState() {
             if (hmSCS != null) {
                 for (portNum in hmSCS.keys) {
                     val scs = hmSCS[portNum] as SensorConfigSignal
-                    val tmGroup = tmSumGroup.getOrPut("") { TreeMap() }
                     val alS = tmGroup.getOrPut(scs.group) { mutableListOf() }
                     alS.add(scs)
                 }
             }
 
-            var x = GRID_STEP * 8
-            for ((sumGroup, tmGroup) in tmSumGroup) {
-                val sumGroupX = x
-                for ((group, alSC) in tmGroup) {
-                    val groupX = x
-                    var xLL = x + GRID_STEP * 6     // центр дна ёмкости-цилиндра
-                    var xW = x + GRID_STEP * 2
-                    var xS = x + GRID_STEP
-                    for (sc in alSC) {
-                        when (sc) {
-                            is SensorConfigLiquidLevel -> {
-                                addLL(
-                                    objectId = objectParamData.objectId,
-                                    objectState = objectState,
-                                    sc = sc,
-                                    scale = scale,
-                                    x = xLL,
-                                    y = GRID_STEP * 3,
-                                    sizeBase = GRID_STEP,
-                                    //isElementMoveable = false,
-                                    alResult = alResult,
-                                )
-                                xLL += GRID_STEP * 8
-                            }
+            var x = GRID_STEP * 7
+            for ((group, alSC) in tmGroup) {
+                val groupX = x
+                var xLL = x + GRID_STEP * 4
+                var xW = x + GRID_STEP * 0
+                var xS = x + GRID_STEP
+                for (sc in alSC) {
+                    when (sc) {
+                        is SensorConfigLiquidLevel -> {
+                            addLL(
+                                objectId = objectParamData.objectId,
+                                objectState = objectState,
+                                sc = sc,
+                                scale = scale,
+                                x = xLL,
+                                y = GRID_STEP * 9,
+                                sizeBase = GRID_STEP,
+                                //isElementMoveable = false,
+                                alResult = alResult,
+                            )
+                            xLL += GRID_STEP * 8
+                        }
 
-                            is SensorConfigWork -> {
-                                addW(
-                                    objectId = objectParamData.objectId,
-                                    objectState = objectState,
-                                    sc = sc,
-                                    isRemoteControlPermission = isRemoteControlPermission,
-                                    hmSCS = hmSCS,
-                                    x = xW,
-                                    y = GRID_STEP * 8,
-                                    sizeBase = GRID_STEP,
-                                    //isElementMoveable = false,
-                                    alResult = alResult,
-                                )
-                                xW += GRID_STEP * 8
-                            }
+                        is SensorConfigWork -> {
+                            addW(
+                                objectId = objectParamData.objectId,
+                                objectState = objectState,
+                                sc = sc,
+                                isRemoteControlPermission = isRemoteControlPermission,
+                                hmSCS = hmSCS,
+                                x = xW,
+                                y = GRID_STEP * 15,
+                                sizeBase = GRID_STEP,
+                                alResult = alResult,
+                            )
+                            xW += GRID_STEP * 7
+                        }
 
-                            is SensorConfigSignal -> {
-                                addS(
-                                    objectId = objectParamData.objectId,
-                                    objectState = objectState,
-                                    sc = sc,
-                                    scale = scale,
-                                    x = xS,
-                                    y = GRID_STEP * 16,
-                                    alResult = alResult,
-                                )
-                                xS += GRID_STEP * 8
-                            }
+                        is SensorConfigSignal -> {
+                            addS(
+                                objectId = objectParamData.objectId,
+                                objectState = objectState,
+                                sc = sc,
+                                scale = scale,
+                                x = xS,
+                                y = GRID_STEP * 23,
+                                alResult = alResult,
+                            )
+                            xS += GRID_STEP * 8
                         }
                     }
-                    x = max(max(xLL, xW), xS)
-
-                    addGroupLabel25D(
-                        objectId = objectParamData.objectId,
-                        x = groupX - GRID_STEP,
-                        y = GRID_STEP * 1,
-                        limitWidth = x - groupX - GRID_STEP * 2,
-                        limitHeight = GRID_STEP * 21,
-                        text = group,
-                        alResult = alResult
-                    )
                 }
-                addSumGroupLabel25D(
+                x = max(max(xLL, xW), xS)
+
+                addGroup(
                     objectId = objectParamData.objectId,
-                    x = sumGroupX - GRID_STEP * 2,
+                    x = groupX - GRID_STEP,
                     y = 0,
-                    limitWidth = x - sumGroupX,
-                    limitHeight = GRID_STEP * 25,
-                    text = sumGroup,
+                    limitWidth = x - groupX - GRID_STEP * 2,
+                    limitHeight = GRID_STEP * 24,
+                    text = group,
                     alResult = alResult
                 )
-                //--- дополнительный промежуток между суммовыми/большими группами
-                x += GRID_STEP
             }
             //--- выводим время последних данных
             val label = XyElement(TEXT, -getRandomInt(), objectConfig.objectId).apply {
                 //typeName = TYPE_STATE_W_TEXT;
                 isReadOnly = true
-                alPoint = listOf(XyPoint(GRID_STEP * 6, GRID_STEP * 28))
+                alPoint = listOf(XyPoint(GRID_STEP * 6, GRID_STEP * 26))
                 anchorX = XyElement.Anchor.LT
                 anchorY = XyElement.Anchor.LT
                 alignX = XyElement.Align.LT
@@ -548,7 +515,6 @@ class sdcMMSState : sdcXyState() {
         x: Int,
         y: Int,
         sizeBase: Int,
-//        isElementMoveable: Boolean,
         alResult: MutableList<XyElement>,
     ) {
         val liquidError = objectState.tmLiquidError[sc.descr]
@@ -558,7 +524,7 @@ class sdcMMSState : sdcXyState() {
         } else {
             0.0
         }
-        addLL25D(
+        addLL(
             objectId = objectId,
             sc = sc,
             scale = scale,
@@ -566,8 +532,8 @@ class sdcMMSState : sdcXyState() {
             y = y,
             sizeBase = sizeBase,
             curLevel = curLevel,
-            tankName = sc.descr + (if (liquidError == null) "" else '\n') + (liquidError ?: ""),
-//            isElementMoveable = isElementMoveable,
+            tankName = sc.descr,
+            liquidError = liquidError,
             alResult = alResult
         )
     }
@@ -581,7 +547,6 @@ class sdcMMSState : sdcXyState() {
         x: Int,
         y: Int,
         sizeBase: Int,
-//        isElementMoveable: Boolean,
         alResult: MutableList<XyElement>,
     ) {
         val workState = objectState.tmWorkState[sc.descr]
@@ -598,28 +563,24 @@ class sdcMMSState : sdcXyState() {
                 toolTip = "Включить $toolTip"
             }
         }
-        val alElementId = addW25D(
+        val alElementId = addW(
             objectId = objectId,
             x = x,
             y = y,
             sizeBase = sizeBase,
-            state = if (workState == null) -1 else if (workState) 1 else 0,
+            workState = workState,
             isControlEnabled = commandId != 0,
             text = sc.descr,
             toolTip = toolTip,
-//            isElementMoveable = isElementMoveable,
             alResult = alResult
         )
+
         for (elementId in alElementId) {
             //--- пропишем/обнулим команду на этот элемент
             chmElementCommand[elementId] = commandId
             //--- пропишем/обнулим номер порта датчика на этот элемент
             //--- (для последующего определения device_id для отправки команды)
             chmElementPort[elementId] = sc.portNum
-
-//            if (isElementMoveable) {
-//                chmElementSensor[elementId] = sc.id
-//            }
         }
     }
 
@@ -647,74 +608,26 @@ class sdcMMSState : sdcXyState() {
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     //--- метка/текст группы
-    private fun addSumGroupLabel25D(objectId: Int, x: Int, y: Int, limitWidth: Int, limitHeight: Int, text: String, alResult: MutableList<XyElement>) {
-
-        drawCube(
-            objectId = objectId,
-            elementType = TYPE_STATE_SUM_GROUP_BOX_25D,
-            isReadOnly = true,
-            //isElementMoveable = false,
-            toolTip = "",
-            x = x,
-            y = y,
-            w = limitWidth,
-            h = limitHeight,
-            dw = GRID_STEP * 4,
-            dh = GRID_STEP * 2,
-            lineWidth = 0,
-            drawColor = 0,
-            topFillColor = 0xFF_F0_F0_F0.toInt(),
-            frontFillColor = 0xFF_E0_E0_E0.toInt(),
-            sideFillColor = 0xFF_D0_D0_D0.toInt(),
-            alResult = alResult
-        )
-
-        val label = XyElement(TYPE_STATE_SUM_GROUP_TEXT_25D, -getRandomInt(), objectId).apply {
+    private fun addGroup(objectId: Int, x: Int, y: Int, limitWidth: Int, limitHeight: Int, text: String, alResult: MutableList<XyElement>) {
+        val panel = XyElement(TYPE_STATE_GROUP_BOX, -getRandomInt(), objectId).apply {
             isReadOnly = true
-            alPoint = listOf(XyPoint(x, y + limitHeight))
+            toolTipText = ""
 
-            this.text = text
-            toolTipText = text
-            textColor = 0xFF_00_00_00.toInt()
-            fontSize = iCoreAppContainer.BASE_FONT_SIZE
-            isFontBold = true
+            isClosed = true
+            alPoint = listOf(
+                XyPoint(x, y),
+                XyPoint(x + limitWidth, y),
+                XyPoint(x + limitWidth, y + limitHeight),
+                XyPoint(x, y + limitHeight)
+            )
 
-            //--- рисуем рамку текста и одновременно ограничиваем вывод текста по ширине
-            this.limitWidth = limitWidth
-            this.limitHeight = GRID_STEP * 2   // компромиссное решение: текст иногда выходит за нижние границы блока, зато он не обрезается по высоте на небольших дисплеях
-
-            anchorX = XyElement.Anchor.LT
-            anchorY = XyElement.Anchor.LT
-            alignX = XyElement.Align.CC
-            alignY = XyElement.Align.LT
+            lineWidth = 3
+            drawColor = 0xFF_D0_D0_D0.toInt()
+            fillColor = 0xFF_E0_E0_E0.toInt()
         }
-        alResult.add(label)
-    }
+        alResult.add(panel)
 
-    //--- метка/текст группы
-    private fun addGroupLabel25D(objectId: Int, x: Int, y: Int, limitWidth: Int, limitHeight: Int, text: String, alResult: MutableList<XyElement>) {
-
-        drawCube(
-            objectId = objectId,
-            elementType = TYPE_STATE_GROUP_BOX_25D,
-            isReadOnly = true,
-            //isElementMoveable = false,
-            toolTip = "",
-            x = x,
-            y = y,
-            w = limitWidth,
-            h = limitHeight,
-            dw = GRID_STEP * 7 / 2,
-            dh = GRID_STEP * 2,
-            lineWidth = 0,
-            drawColor = 0,
-            topFillColor = 0xFF_E0_E0_E0.toInt(),
-            frontFillColor = 0xFF_D0_D0_D0.toInt(),
-            sideFillColor = 0xFF_C0_C0_C0.toInt(),
-            alResult = alResult
-        )
-
-        val label = XyElement(TYPE_STATE_GROUP_TEXT_25D, -getRandomInt(), objectId).apply {
+        val label = XyElement(TYPE_STATE_GROUP_TEXT, -getRandomInt(), objectId).apply {
             isReadOnly = true
             alPoint = listOf(XyPoint(x, y + limitHeight))
 
@@ -737,7 +650,7 @@ class sdcMMSState : sdcXyState() {
     }
 
     //--- объём в литрах ---
-    private fun addLL25D(
+    private fun addLL(
         objectId: Int,
         sc: SensorConfigLiquidLevel,
         scale: Int,
@@ -746,10 +659,9 @@ class sdcMMSState : sdcXyState() {
         sizeBase: Int,
         curLevel: Double,
         tankName: String,
-//        isElementMoveable: Boolean,
+        liquidError: String?,
         alResult: MutableList<XyElement>
     ) {
-
         val percent = curLevel / if (sc.maxView == 0.0) {
             curLevel
         } else {
@@ -766,34 +678,31 @@ class sdcMMSState : sdcXyState() {
         //--- собственно уровень жидкости/топлива
         val levelHeight = (tankHeight * percent).roundToInt()
         //--- цвет жидкости и поверхности жидкости зависит от общего объёма
-        val tankFillColor = (if (sc.maxView < 1000) 0xFF_00_FF_FF else if (sc.maxView < 10000) 0xFF_00_C0_FF else 0xFF_00_80_FF).toInt()
-        val tankFillColor2 = (if (sc.maxView < 1000) 0xFF_00_E0_E0 else if (sc.maxView < 10000) 0xFF_00_A0_E0 else 0xFF_00_60_E0).toInt()
-        //--- цвет рамки ёмкости зависит от заполненности
-        val tankDrawColor = (if (percent < CRITICAL_LL_PERCENT) 0xFF_FF_00_00 else 0xFF_00_00_00).toInt()
+        val tankFillColor = (if (sc.maxView < 1_000) 0xFF_00_FF_FF else if (sc.maxView < 1_0000) 0xFF_00_C0_FF else 0xFF_00_80_FF).toInt()
+        val tankDrawColor = if (liquidError == null) 0xFF_60_60_60.toInt() else 0xFF_FF_00_00.toInt()
 
-        //--- дно ёмкости
-        XyElement(TYPE_STATE_LL_BOTTOM_25D, -getRandomInt(), objectId).apply {
+        //--- стенки ёмкости
+        val wallShift = sizeBase / 3
+        XyElement(TYPE_STATE_LL_TANK_WALL, -getRandomInt(), objectId).apply {
             isReadOnly = true
-            alPoint = listOf(XyPoint(x, y))
-            toolTipText = tankName
 
-            markerType = XyElement.MarkerType.CIRCLE
-            markerSize = sizeBase * 4 / scale
-            markerSize2 = sizeBase * 2 / scale
+            isClosed = true
+            alPoint = listOf(
+                XyPoint(x - sizeBase * 2 - wallShift, y + wallShift),
+                XyPoint(x - sizeBase * 2 - wallShift, y - tankHeight - wallShift),
+                XyPoint(x + sizeBase * 2 + wallShift, y - tankHeight - wallShift),
+                XyPoint(x + sizeBase * 2 + wallShift, y + wallShift),
+            )
+
             drawColor = tankDrawColor
-            fillColor = tankFillColor
-            lineWidth = 2
-
-//            isMoveable = isElementMoveable
+            fillColor = 0xFF_FF_FF_FF.toInt()
+            lineWidth = 3
         }.let { xyElement ->
             alResult.add(xyElement)
-//            if (isElementMoveable) {
-//                chmElementSensor[xyElement.elementId] = sc.id
-//            }
         }
 
         //--- объём жидкости
-        XyElement(TYPE_STATE_LL_VOLUME_25D, -getRandomInt(), objectId).apply {
+        XyElement(TYPE_STATE_LL_VOLUME, -getRandomInt(), objectId).apply {
             isReadOnly = true
 
             isClosed = true
@@ -801,100 +710,19 @@ class sdcMMSState : sdcXyState() {
                 XyPoint(x - sizeBase * 2, y),
                 XyPoint(x - sizeBase * 2, y - levelHeight),
                 XyPoint(x + sizeBase * 2, y - levelHeight),
-                XyPoint(x + sizeBase * 2, y)
+                XyPoint(x + sizeBase * 2, y),
             )
 
-            //drawColor = 0xFF_00_00_00 ); - без рамки
             fillColor = tankFillColor
             lineWidth = 0
-
-            //isMoveable = isElementMoveable
         }.let { xyElement ->
             alResult.add(xyElement)
-//            if (isElementMoveable) {
-//                chmElementSensor[xyElement.elementId] = sc.id
-//            }
-        }
-
-        //--- уровень жидкости
-        XyElement(TYPE_STATE_LL_LEVEL_25D, -getRandomInt(), objectId).apply {
-            isReadOnly = true
-            alPoint = listOf(XyPoint(x, y - levelHeight))
-            toolTipText = tankName
-
-            markerType = XyElement.MarkerType.CIRCLE
-            markerSize = sizeBase * 4 / scale
-            markerSize2 = sizeBase * 2 / scale
-            fillColor = tankFillColor2
-            lineWidth = 0
-
-//            isMoveable = isElementMoveable
-        }.let { xyElement ->
-            alResult.add(xyElement)
-//            if (isElementMoveable) {
-//                chmElementSensor[xyElement.elementId] = sc.id
-//            }
-        }
-
-        //--- стенки ёмкости
-        XyElement(TYPE_STATE_LL_TANK_WALL_25D, -getRandomInt(), objectId).apply {
-            isReadOnly = true
-
-            isClosed = false
-            alPoint = listOf(XyPoint(x - sizeBase * 2, y), XyPoint(x - sizeBase * 2, y - tankHeight))
-
-            drawColor = tankDrawColor
-            lineWidth = 2
-
-//            isMoveable = isElementMoveable
-        }.let { xyElement ->
-            alResult.add(xyElement)
-//            if (isElementMoveable) {
-//                chmElementSensor[xyElement.elementId] = sc.id
-//            }
-        }
-
-        XyElement(TYPE_STATE_LL_TANK_WALL_25D, -getRandomInt(), objectId).apply {
-            isReadOnly = true
-
-            isClosed = false
-            alPoint = listOf(XyPoint(x + sizeBase * 2, y), XyPoint(x + sizeBase * 2, y - tankHeight))
-
-            drawColor = tankDrawColor
-            lineWidth = 2
-
-//            isMoveable = isElementMoveable
-        }.let { xyElement ->
-            alResult.add(xyElement)
-//            if (isElementMoveable) {
-//                chmElementSensor[xyElement.elementId] = sc.id
-//            }
-        }
-
-        //--- верх ёмкости
-        XyElement(TYPE_STATE_LL_TANK_TOP_25D, -getRandomInt(), objectId).apply {
-            isReadOnly = true
-            alPoint = listOf(XyPoint(x, y - tankHeight))
-            toolTipText = tankName
-
-            markerType = XyElement.MarkerType.CIRCLE
-            markerSize = sizeBase * 4 / scale
-            markerSize2 = sizeBase * 2 / scale
-            drawColor = tankDrawColor
-            lineWidth = 2
-
-//            isMoveable = isElementMoveable
-        }.let { xyElement ->
-            alResult.add(xyElement)
-//            if (isElementMoveable) {
-//                chmElementSensor[xyElement.elementId] = sc.id
-//            }
         }
 
         //--- общая ёмкость
-        XyElement(TYPE_STATE_LL_TEXT_25D, -getRandomInt(), objectId).apply {
+        XyElement(TYPE_STATE_LL_TEXT, -getRandomInt(), objectId).apply {
             isReadOnly = true
-            alPoint = listOf(XyPoint(x - sizeBase * 2, y - tankHeight - sizeBase * 4))
+            alPoint = listOf(XyPoint(x - sizeBase * 3, y - tankHeight - sizeBase * 3))
             //--- НЕ ограничиваем вывод текста по ширине
             //topLevelLabel.limitWidth = sizeBase * 4
             anchorX = XyElement.Anchor.LT
@@ -905,21 +733,17 @@ class sdcMMSState : sdcXyState() {
             text = totalVolumeText
             toolTipText = totalVolumeText
             textColor = 0xFF_00_00_00.toInt()
+            fillColor = 0xFF_FF_FF_D0.toInt()
             fontSize = iCoreAppContainer.BASE_FONT_SIZE
-            isFontBold = true
-
-//            isMoveable = isElementMoveable
+            isFontBold = false
         }.let { xyElement ->
             alResult.add(xyElement)
-//            if (isElementMoveable) {
-//                chmElementSensor[xyElement.elementId] = sc.id
-//            }
         }
 
         //--- текущий уровень
-        XyElement(TYPE_STATE_LL_TEXT_25D, -getRandomInt(), objectId).apply {
+        XyElement(TYPE_STATE_LL_TEXT, -getRandomInt(), objectId).apply {
             isReadOnly = true
-            alPoint = listOf(XyPoint(x + sizeBase * 2, y - levelHeight))
+            alPoint = listOf(XyPoint(x + sizeBase * 3, y - levelHeight - sizeBase))
             //--- НЕ ограничиваем вывод текста по ширине
             //currentLevelLabel.limitWidth = sizeBase * 4
             anchorX = XyElement.Anchor.LT
@@ -930,23 +754,19 @@ class sdcMMSState : sdcXyState() {
             text = currentVolumeText
             toolTipText = currentVolumeText
             textColor = 0xFF_00_00_00.toInt()
+            fillColor = 0xFF_FF_FF_D0.toInt()
             fontSize = iCoreAppContainer.BASE_FONT_SIZE
             isFontBold = true
-
-//            isMoveable = isElementMoveable
         }.let { xyElement ->
             alResult.add(xyElement)
-//            if (isElementMoveable) {
-//                chmElementSensor[xyElement.elementId] = sc.id
-//            }
         }
 
         //--- наименование ёмкости
-        XyElement(TYPE_STATE_LL_TEXT_25D, -getRandomInt(), objectId).apply {
+        XyElement(TYPE_STATE_LL_TEXT, -getRandomInt(), objectId).apply {
             isReadOnly = true
-            alPoint = listOf(XyPoint(x - sizeBase * 2, y + sizeBase * 2))
+            alPoint = listOf(XyPoint(x - sizeBase * 3, y + sizeBase))
             //--- ограничиваем вывод текста по ширине
-            limitWidth = sizeBase * 4
+            limitWidth = sizeBase * 8
             anchorX = XyElement.Anchor.LT
             anchorY = XyElement.Anchor.LT
             alignX = XyElement.Align.LT
@@ -955,56 +775,79 @@ class sdcMMSState : sdcXyState() {
             text = tankName
             toolTipText = tankName
             textColor = 0xFF_00_00_00.toInt()
+            fillColor = 0xFF_FF_FF_D0.toInt()
             fontSize = iCoreAppContainer.BASE_FONT_SIZE
-            isFontBold = true
-
-//            isMoveable = isElementMoveable
+            isFontBold = false
         }.let { xyElement ->
             alResult.add(xyElement)
-//            if (isElementMoveable) {
-//                chmElementSensor[xyElement.elementId] = sc.id
-//            }
+        }
+
+        //--- вывод ошибки, если есть
+        liquidError?.let { le ->
+            XyElement(TYPE_STATE_LL_TEXT, -getRandomInt(), objectId).apply {
+                isReadOnly = true
+                alPoint = listOf(XyPoint(x - sizeBase * 3, y + sizeBase * 3))
+                //--- ограничиваем вывод текста по ширине
+                limitWidth = sizeBase * 8
+                anchorX = XyElement.Anchor.LT
+                anchorY = XyElement.Anchor.LT
+                alignX = XyElement.Align.LT
+                alignY = XyElement.Align.LT
+
+                text = le
+                toolTipText = le
+                textColor = 0xFF_FF_00_00.toInt()
+                fillColor = 0xFF_FF_FF_D0.toInt()
+                fontSize = iCoreAppContainer.BASE_FONT_SIZE
+                isFontBold = false
+            }.let { xyElement ->
+                alResult.add(xyElement)
+            }
         }
     }
 
-    private fun addW25D(
+    private fun addW(
         objectId: Int,
         x: Int,
         y: Int,
         sizeBase: Int,
-        state: Int,
+        workState: Boolean?,
         isControlEnabled: Boolean,
         text: String,
         toolTip: String,
-//        isElementMoveable: Boolean,
         alResult: MutableList<XyElement>
     ): List<Int> {
 
-        val alElementId = drawCube(
-            objectId = objectId,
-            elementType = TYPE_STATE_W_FIGURE_25D,
-            isReadOnly = !isControlEnabled,
-            //isElementMoveable = isElementMoveable,
-            toolTip = toolTip,
-            x = x,
-            y = y,
-            w = sizeBase * 4,
-            h = sizeBase * 2,
-            dw = sizeBase,
-            dh = sizeBase * 4,
-            lineWidth = if (state < 0) 2 else 0,
-            drawColor = if (state < 0) 0xFF_FF_00_00.toInt() else 0,
-            topFillColor = if (state > 0) 0xFF_00_FF_00.toInt() else 0xFF_D0_D0_D0.toInt(),
-            frontFillColor = if (state > 0) 0xFF_00_E0_00.toInt() else 0xFF_C0_C0_C0.toInt(),
-            sideFillColor = if (state > 0) 0xFF_00_C0_00.toInt() else 0xFF_B0_B0_B0.toInt(),
-            alResult = alResult
-        )
+        val alElementId = mutableListOf<Int>()
 
-        XyElement(TYPE_STATE_W_TEXT_25D, -getRandomInt(), objectId).apply {
+        XyElement(TYPE_STATE_W_FIGURE, -getRandomInt(), objectId).apply {
+            isReadOnly = !isControlEnabled
+            alPoint = listOf(XyPoint(x, y))
+
+            imageName = "/web/images/preferences-system-power_" + when (workState) {
+                true -> "green"
+                false -> "gray"
+                null -> "red"
+            } + ".png"
+            imageWidth = 64
+            imageHeight = 64
+
+            anchorX = XyElement.Anchor.LT
+            anchorY = XyElement.Anchor.LT
+            alignX = XyElement.Align.LT
+            alignY = XyElement.Align.LT
+
+            toolTipText = toolTip
+        }.let { xyElement ->
+            alResult.add(xyElement)
+            alElementId.add(xyElement.elementId)
+        }
+
+        XyElement(TYPE_STATE_W_TEXT, -getRandomInt(), objectId).apply {
             isReadOnly = true
-            alPoint = listOf(XyPoint(x, y + sizeBase * 7))
+            alPoint = listOf(XyPoint(x, y + sizeBase * 6))
             //--- ограничиваем вывод текста по ширине
-            limitWidth = sizeBase * 4
+            limitWidth = sizeBase * 6
             anchorX = XyElement.Anchor.LT
             anchorY = XyElement.Anchor.LT
             alignX = XyElement.Align.LT
@@ -1013,10 +856,9 @@ class sdcMMSState : sdcXyState() {
             this.text = text
             toolTipText = text
             textColor = 0xFF_00_00_00.toInt()
+            fillColor = 0xFF_FF_FF_D0.toInt()
             fontSize = iCoreAppContainer.BASE_FONT_SIZE
-            isFontBold = true
-
-//            isMoveable = isElementMoveable
+            isFontBold = false
         }.let { xyElement ->
             alResult.add(xyElement)
             alElementId.add(xyElement.elementId)
@@ -1042,7 +884,7 @@ class sdcMMSState : sdcXyState() {
         //--- метка/текст оборудования
         val textY = y + GRID_STEP * 4
 
-        val label = XyElement(TYPE_STATE_W_TEXT_25D, -getRandomInt(), objectId).apply {
+        val label = XyElement(TYPE_STATE_W_TEXT, -getRandomInt(), objectId).apply {
             isReadOnly = true
             alPoint = listOf(XyPoint(x, textY))
             //--- ограничиваем вывод текста по ширине

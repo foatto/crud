@@ -35,8 +35,10 @@ class ObjectState {
 
     companion object {
 
-        //--- the beginning of the time interval - no more than a month
-        private const val DEFAULT_VIEW_PERIOD = 30 * 24 * 60 * 60
+        //--- the beginning of the time interval - no more than a one month
+//        private const val DEFAULT_VIEW_PERIOD = 30 * 24 * 60 * 60
+        //--- the beginning of the time interval - no more than a one hour
+        private const val DEFAULT_VIEW_PERIOD = 60 * 60
 
         fun getState(
             conn: CoreAdvancedConnection,

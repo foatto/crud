@@ -233,8 +233,8 @@ class MMSSpringApp : CoreSpringApp() {
 
         val hmElementConfig = initXyElementConfig(level = 10, minScale = minScale, maxScale = maxScale)
 
-        hmElementConfig[sdcMMSState.TYPE_STATE_SUM_GROUP_BOX_25D] = XyElementConfig(
-            name = sdcMMSState.TYPE_STATE_SUM_GROUP_BOX_25D,
+        hmElementConfig[sdcMMSState.TYPE_STATE_GROUP_BOX] = XyElementConfig(
+            name = sdcMMSState.TYPE_STATE_GROUP_BOX,
             clientType = XyElementClientType.POLY,
             layer = 11,
             scaleMin = minScale,
@@ -245,8 +245,8 @@ class MMSSpringApp : CoreSpringApp() {
             isEditablePoint = false
         )
 
-        hmElementConfig[sdcMMSState.TYPE_STATE_SUM_GROUP_TEXT_25D] = XyElementConfig(
-            name = sdcMMSState.TYPE_STATE_SUM_GROUP_TEXT_25D,
+        hmElementConfig[sdcMMSState.TYPE_STATE_GROUP_TEXT] = XyElementConfig(
+            name = sdcMMSState.TYPE_STATE_GROUP_TEXT,
             clientType = XyElementClientType.HTML_TEXT,
             layer = 12,
             scaleMin = minScale,
@@ -257,21 +257,9 @@ class MMSSpringApp : CoreSpringApp() {
             isEditablePoint = false
         )
 
-        hmElementConfig[sdcMMSState.TYPE_STATE_GROUP_BOX_25D] = XyElementConfig(
-            name = sdcMMSState.TYPE_STATE_GROUP_BOX_25D,
+        hmElementConfig[sdcMMSState.TYPE_STATE_LL_TANK_WALL] = XyElementConfig(
+            name = sdcMMSState.TYPE_STATE_LL_TANK_WALL,
             clientType = XyElementClientType.POLY,
-            layer = 12,
-            scaleMin = minScale,
-            scaleMax = maxScale,
-            descrForAction = "",
-            isRotatable = false,
-            isMoveable = false,
-            isEditablePoint = false
-        )
-
-        hmElementConfig[sdcMMSState.TYPE_STATE_GROUP_TEXT_25D] = XyElementConfig(
-            name = sdcMMSState.TYPE_STATE_GROUP_TEXT_25D,
-            clientType = XyElementClientType.HTML_TEXT,
             layer = 13,
             scaleMin = minScale,
             scaleMax = maxScale,
@@ -281,9 +269,9 @@ class MMSSpringApp : CoreSpringApp() {
             isEditablePoint = false
         )
 
-        hmElementConfig[sdcMMSState.TYPE_STATE_LL_BOTTOM_25D] = XyElementConfig(
-            name = sdcMMSState.TYPE_STATE_LL_BOTTOM_25D,
-            clientType = XyElementClientType.MARKER,
+        hmElementConfig[sdcMMSState.TYPE_STATE_LL_VOLUME] = XyElementConfig(
+            name = sdcMMSState.TYPE_STATE_LL_VOLUME,
+            clientType = XyElementClientType.POLY,
             layer = 14,
             scaleMin = minScale,
             scaleMax = maxScale,
@@ -293,58 +281,10 @@ class MMSSpringApp : CoreSpringApp() {
             isEditablePoint = false
         )
 
-        hmElementConfig[sdcMMSState.TYPE_STATE_LL_VOLUME_25D] = XyElementConfig(
-            name = sdcMMSState.TYPE_STATE_LL_VOLUME_25D,
-            clientType = XyElementClientType.POLY,
-            layer = 15,
-            scaleMin = minScale,
-            scaleMax = maxScale,
-            descrForAction = "",
-            isRotatable = false,
-            isMoveable = false,
-            isEditablePoint = false
-        )
-
-        hmElementConfig[sdcMMSState.TYPE_STATE_LL_LEVEL_25D] = XyElementConfig(
-            name = sdcMMSState.TYPE_STATE_LL_LEVEL_25D,
-            clientType = XyElementClientType.MARKER,
-            layer = 16,
-            scaleMin = minScale,
-            scaleMax = maxScale,
-            descrForAction = "",
-            isRotatable = false,
-            isMoveable = false,
-            isEditablePoint = false
-        )
-
-        hmElementConfig[sdcMMSState.TYPE_STATE_LL_TANK_WALL_25D] = XyElementConfig(
-            name = sdcMMSState.TYPE_STATE_LL_TANK_WALL_25D,
-            clientType = XyElementClientType.POLY,
-            layer = 17,
-            scaleMin = minScale,
-            scaleMax = maxScale,
-            descrForAction = "",
-            isRotatable = false,
-            isMoveable = false,
-            isEditablePoint = false
-        )
-
-        hmElementConfig[sdcMMSState.TYPE_STATE_LL_TANK_TOP_25D] = XyElementConfig(
-            name = sdcMMSState.TYPE_STATE_LL_TANK_TOP_25D,
-            clientType = XyElementClientType.MARKER,
-            layer = 17,
-            scaleMin = minScale,
-            scaleMax = maxScale,
-            descrForAction = "",
-            isRotatable = false,
-            isMoveable = false,
-            isEditablePoint = false
-        )
-
-        hmElementConfig[sdcMMSState.TYPE_STATE_LL_TEXT_25D] = XyElementConfig(
-            name = sdcMMSState.TYPE_STATE_LL_TEXT_25D,
+        hmElementConfig[sdcMMSState.TYPE_STATE_LL_TEXT] = XyElementConfig(
+            name = sdcMMSState.TYPE_STATE_LL_TEXT,
             clientType = XyElementClientType.HTML_TEXT,
-            layer = 17,
+            layer = 14,
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
@@ -353,10 +293,10 @@ class MMSSpringApp : CoreSpringApp() {
             isEditablePoint = false
         )
 
-        hmElementConfig[sdcMMSState.TYPE_STATE_W_FIGURE_25D] = XyElementConfig(
-            name = sdcMMSState.TYPE_STATE_W_FIGURE_25D,
-            clientType = XyElementClientType.POLY,
-            layer = 18,
+        hmElementConfig[sdcMMSState.TYPE_STATE_W_FIGURE] = XyElementConfig(
+            name = sdcMMSState.TYPE_STATE_W_FIGURE,
+            clientType = XyElementClientType.ICON,
+            layer = 13,
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
@@ -365,10 +305,10 @@ class MMSSpringApp : CoreSpringApp() {
             isEditablePoint = false
         )
 
-        hmElementConfig[sdcMMSState.TYPE_STATE_W_TEXT_25D] = XyElementConfig(
-            name = sdcMMSState.TYPE_STATE_W_TEXT_25D,
+        hmElementConfig[sdcMMSState.TYPE_STATE_W_TEXT] = XyElementConfig(
+            name = sdcMMSState.TYPE_STATE_W_TEXT,
             clientType = XyElementClientType.HTML_TEXT,
-            layer = 18,
+            layer = 14,
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
