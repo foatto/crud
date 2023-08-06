@@ -23,6 +23,12 @@ class mDevice : mAbstractUserSelector() {
         const val CELL_OWNER_UNKNOWN = 0
         const val CELL_OWNER_PLA = 1
         const val CELL_OWNER_CLIENT = 2
+
+        val hmCellOwnerNames = mapOf(
+            CELL_OWNER_UNKNOWN to "(неизвестно)",
+            CELL_OWNER_PLA to "Петролайн",
+            CELL_OWNER_CLIENT to "Клиент",
+        )
     }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -127,9 +133,9 @@ class mDevice : mAbstractUserSelector() {
         }
 
         val columnDeviceCellOwner = ColumnRadioButton(modelTableName, "cell_owner", "Владелец симки", CELL_OWNER_UNKNOWN).apply {
-            addChoice(CELL_OWNER_UNKNOWN, "(неизвестно)")
-            addChoice(CELL_OWNER_PLA, "Петролайн")
-            addChoice(CELL_OWNER_CLIENT, "Клиент")
+            addChoice(CELL_OWNER_UNKNOWN, hmCellOwnerNames.getOrDefault(CELL_OWNER_UNKNOWN, "-"))
+            addChoice(CELL_OWNER_PLA, hmCellOwnerNames.getOrDefault(CELL_OWNER_PLA, "-"))
+            addChoice(CELL_OWNER_CLIENT, hmCellOwnerNames.getOrDefault(CELL_OWNER_CLIENT, "-"))
         }
         val columnDeviceCellNum = ColumnString(modelTableName, "cell_num", "Номер телефона", STRING_COLUMN_WIDTH)
         val columnDeviceCellICC = ColumnString(modelTableName, "cell_icc", "ICC сим-карты", STRING_COLUMN_WIDTH)
@@ -140,9 +146,9 @@ class mDevice : mAbstractUserSelector() {
         }
 
         val columnDeviceCellOwner2 = ColumnRadioButton(modelTableName, "cell_owner_2", "Владелец симки 2", CELL_OWNER_UNKNOWN).apply {
-            addChoice(CELL_OWNER_UNKNOWN, "(неизвестно)")
-            addChoice(CELL_OWNER_PLA, "Петролайн")
-            addChoice(CELL_OWNER_CLIENT, "Клиент")
+            addChoice(CELL_OWNER_UNKNOWN, hmCellOwnerNames.getOrDefault(CELL_OWNER_UNKNOWN, "-"))
+            addChoice(CELL_OWNER_PLA, hmCellOwnerNames.getOrDefault(CELL_OWNER_PLA, "-"))
+            addChoice(CELL_OWNER_CLIENT, hmCellOwnerNames.getOrDefault(CELL_OWNER_CLIENT, "-"))
         }
         val columnDeviceCellNum2 = ColumnString(modelTableName, "cell_num_2", "Номер телефона 2", STRING_COLUMN_WIDTH)
         val columnDeviceCellICC2 = ColumnString(modelTableName, "cell_icc_2", "ICC сим-карты 2", STRING_COLUMN_WIDTH)

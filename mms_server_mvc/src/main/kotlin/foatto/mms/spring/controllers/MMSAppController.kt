@@ -281,6 +281,8 @@ class MMSAppController : CoreAppController(), iMMSApplication {
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuDevice, "mms_log_journal", true)
 
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuDevice, "mms_report_device_cell_info", false)
+
         if (alMenuDevice.size > 0) {
             alMenu.add(MenuData("", "Контроллеры", alMenuDevice))
         }

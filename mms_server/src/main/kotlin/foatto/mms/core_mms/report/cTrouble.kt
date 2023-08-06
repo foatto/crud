@@ -141,15 +141,15 @@ class cTrouble : cMMSReport() {
 
         val reportPeriod = (hmReportParam["report_period"] as Int) * 24 * 60 * 60
 
-        val alobjectId = mutableListOf<Int>()
+        val alObjectId = mutableListOf<Int>()
         //--- если объект не указан, то загрузим полный список доступных объектов
         if (reportObject == 0) {
-            loadObjectList(conn, userConfig, reportObjectUser, reportDepartment, reportGroup, alobjectId)
+            loadObjectList(conn, userConfig, reportObjectUser, reportDepartment, reportGroup, alObjectId)
         } else {
-            alobjectId.add(reportObject)
+            alObjectId.add(reportObject)
         }
 
-        for (objectId in alobjectId) {
+        for (objectId in alObjectId) {
             val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectId)
 
             //--- отключенные объекты в отчёт попасть не должны
