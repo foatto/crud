@@ -6,13 +6,7 @@ import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.ChildData
 import foatto.core_server.app.server.DependData
 import foatto.core_server.app.server.UserConfig
-import foatto.core_server.app.server.column.ColumnBoolean
-import foatto.core_server.app.server.column.ColumnComboBox
-import foatto.core_server.app.server.column.ColumnDate3Int
-import foatto.core_server.app.server.column.ColumnDateTimeInt
-import foatto.core_server.app.server.column.ColumnInt
-import foatto.core_server.app.server.column.ColumnRadioButton
-import foatto.core_server.app.server.column.ColumnString
+import foatto.core_server.app.server.column.*
 import foatto.core_server.app.server.mAbstractUserSelector
 import foatto.mms.core_mms.ObjectSelector
 import foatto.mms.core_mms.ds.MMSTelematicFunction
@@ -25,6 +19,10 @@ class mDevice : mAbstractUserSelector() {
 
         //--- 65 устройств по 1000 портов = 65000 портов, что уместится при нумерации от 0 до 65535
         private val MAX_DEVICE_COUNT_PER_OBJECT = 65
+
+        const val CELL_OWNER_UNKNOWN = 0
+        const val CELL_OWNER_PLA = 1
+        const val CELL_OWNER_CLIENT = 2
     }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -89,45 +87,93 @@ class mDevice : mAbstractUserSelector() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
+        val cellOperators = mutableSetOf("")
+        val rs = conn.executeQuery(
+            " SELECT cell_operator , cell_operator_2 FROM $modelTableName"
+        )
+        while (rs.next()) {
+            cellOperators += rs.getString(1).trim()
+            cellOperators += rs.getString(2).trim()
+        }
+        rs.close()
+        val sortedCellOperators = cellOperators.toSortedSet()
+
+        //----------------------------------------------------------------------------------------------------------------------
+
         columnId = ColumnInt(modelTableName, "id")
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnUserName = addUserSelector(userConfig)
+        val columnUserName = addUserSelector(userConfig).apply {
+            rowSpan = 3
+        }
 
         //----------------------------------------------------------------------------------------------------------------------
 
         columnDeviceIndex = ColumnInt(modelTableName, "device_index", "Порядковый номер устройства на объекте", 10, 0).apply {
             minValue = 0
             maxValue = MAX_DEVICE_COUNT_PER_OBJECT - 1
+            rowSpan = 3
         }
 
-        val columnDeviceType = ColumnRadioButton(modelTableName, "type", "Тип устройства")
+        val columnDeviceType = ColumnRadioButton(modelTableName, "type", "Тип устройства").apply {
+            rowSpan = 3
+        }
         MMSTelematicFunction.fillDeviceTypeColumn(columnDeviceType)
 
         columnSerialNo = ColumnString(modelTableName, "serial_no", "Серийный номер устройства", STRING_COLUMN_WIDTH).apply {
             isRequired = true
+            rowSpan = 3
         }
 
-        val columnDeviceCell = ColumnString(modelTableName, "cell_num", "Номер телефона", STRING_COLUMN_WIDTH)
-        val columnDeviceCell2 = ColumnString(modelTableName, "cell_num_2", "Номер телефона 2", STRING_COLUMN_WIDTH)
+        val columnDeviceCellOwner = ColumnRadioButton(modelTableName, "cell_owner", "Владелец симки", CELL_OWNER_UNKNOWN).apply {
+            addChoice(CELL_OWNER_UNKNOWN, "(неизвестно)")
+            addChoice(CELL_OWNER_PLA, "Петролайн")
+            addChoice(CELL_OWNER_CLIENT, "Клиент")
+        }
+        val columnDeviceCellNum = ColumnString(modelTableName, "cell_num", "Номер телефона", STRING_COLUMN_WIDTH)
+        val columnDeviceCellICC = ColumnString(modelTableName, "cell_icc", "ICC сим-карты", STRING_COLUMN_WIDTH)
+        val columnDeviceCellOperator = ColumnString(modelTableName, "cell_operator", "Оператор связи", STRING_COLUMN_WIDTH).apply {
+            sortedCellOperators.forEach { cellOperatorName ->
+                addCombo(cellOperatorName)
+            }
+        }
+
+        val columnDeviceCellOwner2 = ColumnRadioButton(modelTableName, "cell_owner_2", "Владелец симки 2", CELL_OWNER_UNKNOWN).apply {
+            addChoice(CELL_OWNER_UNKNOWN, "(неизвестно)")
+            addChoice(CELL_OWNER_PLA, "Петролайн")
+            addChoice(CELL_OWNER_CLIENT, "Клиент")
+        }
+        val columnDeviceCellNum2 = ColumnString(modelTableName, "cell_num_2", "Номер телефона 2", STRING_COLUMN_WIDTH)
+        val columnDeviceCellICC2 = ColumnString(modelTableName, "cell_icc_2", "ICC сим-карты 2", STRING_COLUMN_WIDTH)
+        val columnDeviceCellOperator2 = ColumnString(modelTableName, "cell_operator_2", "Оператор связи 2", STRING_COLUMN_WIDTH).apply {
+            sortedCellOperators.forEach { cellOperatorName ->
+                addCombo(cellOperatorName)
+            }
+        }
 
         val columnDeviceFwVer = ColumnString(modelTableName, "fw_version", "Версия прошивки", 10).apply {
             isEditable = false
             formPinMode = FormPinMode.OFF
+            rowSpan = 3
         }
 
         columnDeviceLastSessionTime = ColumnDateTimeInt(modelTableName, "last_session_time", "Время последней сессии", true, zoneId).apply {
+            tableCaption = "Время"
             isEditable = false
         }
         val columnDeviceLastSessionStatusText = ColumnString(modelTableName, "last_session_status", "Статус последней сессии", STRING_COLUMN_WIDTH).apply {
+            tableCaption = "Статус"
             isEditable = false
         }
         val columnDeviceLastSessionErrorText = ColumnString(modelTableName, "last_session_error", "Ошибка последней сессии", STRING_COLUMN_WIDTH).apply {
+            tableCaption = "Ошибка последней сессии"
             isEditable = false
         }
 
-        val columnDeviceWorkBegin = ColumnDate3Int(modelTableName, "beg_ye", "beg_mo", "beg_da", "Дата начала эксплуатации")  // есть ещё очень старые приборы
+        val columnDeviceWorkBegin = ColumnDate3Int(modelTableName, "beg_ye", "beg_mo", "beg_da", "Дата начала эксплуатации").apply {
+            rowSpan = 3
+        }
 
         //--- вручную добавленное поле для обозначения владельца объекта ---
 
@@ -143,6 +189,7 @@ class mDevice : mAbstractUserSelector() {
                     }
                 )
             }
+            rowSpan = 3
         }
 
         //----------------------------------------------------------------------------------------------------------------------
@@ -230,12 +277,18 @@ class mDevice : mAbstractUserSelector() {
         alTableHiddenColumn += columnId
         alTableHiddenColumn += columnUser!!
 
-        addTableColumn(columnDeviceType)
-        addTableColumn(columnSerialNo)
-        addTableColumn(columnDeviceCell)
-        addTableColumn(columnDeviceCell2)
-        addTableColumn(columnObjectUserName)
-        addTableColumn(columnDeviceIndex)
+        addTableColumnVertNew(columnDeviceType)
+        addTableColumnVertNew(columnSerialNo)
+        addTableColumnVertNew(columnDeviceIndex)
+
+        addTableColumnVertNew(columnDeviceCellOwner, columnDeviceCellOwner2, ColumnStatic(modelTableName, ""))
+        addTableColumnVertNew(columnDeviceCellNum, columnDeviceCellNum2, ColumnStatic(modelTableName, ""))
+        addTableColumnVertNew(columnDeviceCellICC, columnDeviceCellICC2, ColumnStatic(modelTableName, ""))
+        addTableColumnVertNew(columnDeviceCellOperator, columnDeviceCellOperator2, ColumnStatic(modelTableName, ""))
+
+        addTableColumnVertNew(columnObjectUserName)
+
+        //----------------------------------------------------------------------------------------------------------------------
 
         alFormHiddenColumn += columnId
         alFormHiddenColumn += columnUser!!
@@ -243,9 +296,6 @@ class mDevice : mAbstractUserSelector() {
         alFormColumn += columnUserName
         alFormColumn += columnDeviceType
         alFormColumn += columnSerialNo
-        alFormColumn += columnDeviceCell
-        alFormColumn += columnDeviceCell2
-        alFormColumn += columnDeviceIndex
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -259,27 +309,26 @@ class mDevice : mAbstractUserSelector() {
             alFormColumn = alFormColumn,
             hmParentColumn = hmParentColumn,
             aSingleObjectMode = false,
-            addedStaticColumnCount = -1
+            addedStaticColumnCount = 0,
         )
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        addUniqueColumn(columnSerialNo, "")
-//--- need to add use empty/zero values of columnObject
-//        addUniqueColumn(
-//            listOf(
-//                UniqueColumnData(os.columnObject),
-//                UniqueColumnData(columnDeviceIndex),
-//            )
-//        )
+        addTableColumnVertNew(columnDeviceFwVer)
+        addTableColumnVertNew(columnDeviceLastSessionTime, columnDeviceLastSessionStatusText, columnDeviceLastSessionErrorText)
+        addTableColumnVertNew(columnDeviceWorkBegin)
 
-        //----------------------------------------------------------------------------------------------------------------------
+        alFormColumn += columnDeviceIndex
 
-        addTableColumn(columnDeviceFwVer)
-        addTableColumn(columnDeviceLastSessionTime)
-        addTableColumn(columnDeviceLastSessionStatusText)
-        addTableColumn(columnDeviceLastSessionErrorText)
-        addTableColumn(columnDeviceWorkBegin)
+        alFormColumn += columnDeviceCellOwner
+        alFormColumn += columnDeviceCellNum
+        alFormColumn += columnDeviceCellICC
+        alFormColumn += columnDeviceCellOperator
+
+        alFormColumn += columnDeviceCellOwner2
+        alFormColumn += columnDeviceCellNum2
+        alFormColumn += columnDeviceCellICC2
+        alFormColumn += columnDeviceCellOperator2
 
         alFormColumn += columnDeviceFwVer
         alFormColumn += columnDeviceLastSessionTime
@@ -314,6 +363,17 @@ class mDevice : mAbstractUserSelector() {
             alFormColumn += alColumnMercuryDescrPrefix[si]
             alFormColumn += alColumnMercuryDescrPostfix[si]
         }
+
+        //----------------------------------------------------------------------------------------------------------------------
+
+        addUniqueColumn(columnSerialNo, "")
+//--- need to add use empty/zero values of columnObject
+//        addUniqueColumn(
+//            listOf(
+//                UniqueColumnData(os.columnObject),
+//                UniqueColumnData(columnDeviceIndex),
+//            )
+//        )
 
         //----------------------------------------------------------------------------------------------------------------------
 
