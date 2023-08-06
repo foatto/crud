@@ -4,16 +4,21 @@ import foatto.core.link.TableCellAlign
 import foatto.core.util.getRandomInt
 import foatto.core_server.app.server.data.DataStatic
 
-class ColumnStatic( aStaticValue: String, aTableAlign: TableCellAlign = TableCellAlign.LEFT ) : ColumnAbstract() {
+class ColumnStatic(
+    aTableName: String,
+    aStaticValue: String,
+    aTableAlign: TableCellAlign = TableCellAlign.LEFT
+) : ColumnAbstract() {
 
     var staticValue = ""
 
     //--- без этого одинаковые/пустые статические столбцы начинают глючить
     private val salt = getRandomInt()
 
-//    constructor( otherColumn: iColumn ) : this( otherColumn.caption )
-
     init {
+        columnTableName = aTableName
+//        addFieldName(aFieldName) - add random field name if you need
+
         staticValue = aStaticValue
         tableAlign = aTableAlign
 
@@ -24,22 +29,22 @@ class ColumnStatic( aStaticValue: String, aTableAlign: TableCellAlign = TableCel
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     override fun isSortable() = false
-    override fun getSortFieldName( index: Int ) = ""
+    override fun getSortFieldName(index: Int) = ""
 
-    override fun getData() = DataStatic( this )
+    override fun getData() = DataStatic(this)
 
 //--- перекрыто для нормальной работы HashMap.get при передаче описаний полей/столбцов между модулями ---------------------------------------------------------------------------------
 
     //--- без этого одинаковые/пустые статические столбцы начинают глючить
     override fun hashCode(): Int = staticValue.hashCode() + salt
 
-    override fun equals( other: Any? ): Boolean {
-        if( super.equals( other ) ) return true  // if( this == other ) return true;
-        if( other == null ) return false
-        if( other !is ColumnStatic ) return false
+    override fun equals(other: Any?): Boolean {
+        if (super.equals(other)) return true  // if( this == other ) return true;
+        if (other == null) return false
+        if (other !is ColumnStatic) return false
 
-        if( staticValue != other.staticValue ) return false
-        if( salt != other.salt ) return false
+        if (staticValue != other.staticValue) return false
+        if (salt != other.salt) return false
 
         return true
     }

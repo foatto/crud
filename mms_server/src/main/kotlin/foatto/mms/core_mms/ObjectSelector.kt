@@ -30,9 +30,15 @@ class ObjectSelector {
         private set
 
     fun fillColumns(
-        model: mAbstract, isRequired: Boolean, isSelector: Boolean,
-        alTableHiddenColumn: MutableList<iColumn>?, alFormHiddenColumn: MutableList<iColumn>?, alFormColumn: MutableList<iColumn>?,
-        hmParentColumn: MutableMap<String, iColumn>, aSingleObjectMode: Boolean, addedStaticColumnCount: Int
+        model: mAbstract,
+        isRequired: Boolean,
+        isSelector: Boolean,
+        alTableHiddenColumn: MutableList<iColumn>?,
+        alFormHiddenColumn: MutableList<iColumn>?,
+        alFormColumn: MutableList<iColumn>?,
+        hmParentColumn: MutableMap<String, iColumn>,
+        aSingleObjectMode: Boolean,
+        addedStaticColumnCount: Int,
     ) {
 
         val columnobjectId = ColumnInt("MMS_object", "id")
@@ -88,7 +94,7 @@ class ObjectSelector {
 
             model.addTableColumnVertNew(columnObjectModel, columnGroupName, columnDepartmentName)
 
-            val arr = Array(addedStaticColumnCount) { ColumnStatic("") }
+            val arr = Array(addedStaticColumnCount) { ColumnStatic(model.modelTableName, "") }
             model.addTableColumnVertAdd(*arr)
         } else {
             model.addTableColumn(columnObjectName)

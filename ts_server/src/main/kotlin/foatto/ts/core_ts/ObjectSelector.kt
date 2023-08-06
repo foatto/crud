@@ -64,7 +64,7 @@ class ObjectSelector {
 
             model.addTableColumnVertNew(columnObjectModel)
 
-            val arr = Array(addedStaticColumnCount) { ColumnStatic("") }
+            val arr = Array(addedStaticColumnCount) { ColumnStatic(model.modelTableName, "") }
             model.addTableColumnVertAdd(*arr)
         } else {
             model.addTableColumn(columnObjectName)

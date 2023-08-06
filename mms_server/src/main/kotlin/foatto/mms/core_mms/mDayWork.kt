@@ -157,8 +157,8 @@ class mDayWork : mAbstract() {
 
         addTableColumnVertNew(columnRun)
         addTableColumnVertNew(columnWork)
-        addTableColumnVertNew(columnEnergo,  /*columnGroupSumEnergoName, */ ColumnStatic(""), columnAllSumEnergo)
-        addTableColumnVertNew(columnLiquid,  /*columnGroupSumLiquidName, */ ColumnStatic(""), columnAllSumLiquid)
+        addTableColumnVertNew(columnEnergo,  /*columnGroupSumEnergoName, */ ColumnStatic(modelTableName, ""), columnAllSumEnergo)
+        addTableColumnVertNew(columnLiquid,  /*columnGroupSumLiquidName, */ ColumnStatic(modelTableName, ""), columnAllSumLiquid)
         addTableColumnVertNew(columnLevel)
         addTableColumnVertNew(columnLevelLiquid)
 

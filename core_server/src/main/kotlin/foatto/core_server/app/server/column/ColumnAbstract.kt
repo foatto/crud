@@ -64,6 +64,12 @@ abstract class ColumnAbstract : iColumn {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    protected fun addFieldName(vararg fieldNames: String) {
+        alFieldName.addAll(fieldNames)
+    }
+
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     override fun addSelectorColumn(columnToAndFrom: iColumn) {
         addSelectorColumn(columnToAndFrom, columnToAndFrom)
     }

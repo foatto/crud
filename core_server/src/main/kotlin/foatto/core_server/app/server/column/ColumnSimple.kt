@@ -16,14 +16,6 @@ abstract class ColumnSimple : ColumnAbstract() {
     protected val savedDefaultPropertyName: String
         get() = "${columnTableName}_${alFieldName[0]}"
 
-    protected fun addFieldName(vararg fieldNames: String) {
-        alFieldName.addAll(fieldNames)
-    }
-
-//    protected fun setFieldName(aArrFieldName: Array<String>) {
-//        arrFieldName = aArrFieldName
-//    }
-
     fun fillCombo(conn: CoreAdvancedConnection, tableName: String, fieldName: String) {
         val rs = conn.executeQuery(
             """
