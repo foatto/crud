@@ -91,7 +91,6 @@ Contains common server components for all application projects that do not depen
     - user accounts;
     - user roles;
   - interfaces for accessing the functions of an external web container (Spring Boot MVC/WebFlux, Ktor, etc.);
-  - generated jOOQ-classes of system tables and fields;
   - extensions of standard JDBC classes to provide transactional replication;
   - a module for exchanging transactional replicas with other cluster servers;
   - a set of basic modules for creating servers for receiving telematic data with IoT (in NIO.2 implementation);

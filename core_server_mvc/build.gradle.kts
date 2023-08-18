@@ -29,9 +29,6 @@ dependencies {
     api("org.springframework.boot:spring-boot-starter-data-jpa:$springBootVersion")
 // compile group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.10.0'
 
-    //--- в режиме тестирования пока буду прописывать отдельные зависимости
-    //api("org.springframework.boot:spring-boot-starter-jooq:$springBootVersion")
-
     api(project(":core_server"))
 
 //    testImplementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion")

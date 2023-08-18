@@ -26,20 +26,10 @@ import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.data.DataString
 import foatto.core_server.app.xy.XyStartData
 import foatto.core_server.app.xy.server.document.sdcXyAbstract
-import foatto.jooq.core.tables.references.SYSTEM_ALIAS
-import foatto.jooq.core.tables.references.SYSTEM_PERMISSION
-import foatto.jooq.core.tables.references.SYSTEM_ROLE
-import foatto.jooq.core.tables.references.SYSTEM_ROLE_PERMISSION
-import foatto.jooq.core.tables.references.SYSTEM_USERS
-import foatto.jooq.core.tables.references.SYSTEM_USER_PROPERTY
-import foatto.jooq.core.tables.references.SYSTEM_USER_ROLE
 import foatto.spring.CoreSpringApp
 import foatto.spring.jpa.repositories.UserRepository
 import foatto.sql.AdvancedConnection
 import foatto.sql.CoreAdvancedConnection
-import org.jooq.SQLDialect
-import org.jooq.impl.DSL
-import org.jooq.impl.DSL.select
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.GetMapping
@@ -84,11 +74,10 @@ abstract class CoreAppController : iApplication {
 
     private enum class DataAccessMethodEnum {
         JDBC,
-        JOOQ,
         JPA,
     }
 
-    private val currentDataAccessMethod = DataAccessMethodEnum.JOOQ
+    private val currentDataAccessMethod = DataAccessMethodEnum.JPA
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -884,25 +873,6 @@ abstract class CoreAppController : iApplication {
                 }
                 rs.close()
             }
-
-            DataAccessMethodEnum.JOOQ -> {
-                //!!! temporarily two bad ideas at once:
-                //--- 1. conn is AdvancedConnection
-                //--- 2. used SQLDialect.POSTGRES only
-                val dslContext = DSL.using((conn as AdvancedConnection).conn, SQLDialect.POSTGRES)
-                val result = dslContext.select(
-                    SYSTEM_USERS.ID,
-                ).from(SYSTEM_USERS)
-                    .where(SYSTEM_USERS.ID.notEqual(0))
-                    .and(SYSTEM_USERS.PARENT_ID.equal(parentId))
-                    .and(SYSTEM_USERS.ORG_TYPE.equal(orgType))
-                    .fetch()
-                result.forEach { record1 ->
-                    record1.getValue(SYSTEM_USERS.ID)?.let { userId ->
-                        hsUserId += userId
-                    }
-                }
-            }
         }
 
         return hsUserId
@@ -926,28 +896,6 @@ abstract class CoreAppController : iApplication {
                 )
                 rs.close()
             }
-
-            DataAccessMethodEnum.JOOQ -> {
-                //!!! temporarily two bad ideas at once:
-                //--- 1. conn is AdvancedConnection
-                //--- 2. used SQLDialect.POSTGRES only
-                val dslContext = DSL.using((conn as AdvancedConnection).conn, SQLDialect.POSTGRES)
-                dslContext.select(
-                    SYSTEM_USERS.PARENT_ID,
-                    SYSTEM_USERS.ORG_TYPE,
-                ).from(SYSTEM_USERS)
-                    .where(SYSTEM_USERS.ID.equal(userId))
-                    .fetchOne()?.let { record2 ->
-                        userConfig = UserConfig(
-                            userId = userId,
-                            parentId = record2.getValue(SYSTEM_USERS.PARENT_ID) ?: 0,
-                            orgType = record2.getValue(SYSTEM_USERS.ORG_TYPE) ?: OrgType.ORG_TYPE_WORKER,
-                            isAdmin = isAdmin,
-                            isCleanAdmin = isCleanAdmin,
-                            hmUserProperty = loadUserProperies(conn, userId),
-                        )
-                    }
-            }
         }
 
         //--- вторичная загрузка данных
@@ -965,25 +913,6 @@ abstract class CoreAppController : iApplication {
             DataAccessMethodEnum.JDBC, DataAccessMethodEnum.JPA /* not implemented yet */ -> {
                 if (conn.executeUpdate(" UPDATE SYSTEM_user_property SET property_value = '$upValue' WHERE user_id = $uId AND property_name = '$upName' ") == 0) {
                     conn.executeUpdate(" INSERT INTO SYSTEM_user_property ( user_id , property_name , property_value ) VALUES ( $uId , '$upName' , '$upValue' ) ")
-                }
-            }
-
-            DataAccessMethodEnum.JOOQ -> {
-                //!!! temporarily two bad ideas at once:
-                //--- 1. conn is AdvancedConnection
-                //--- 2. used SQLDialect.POSTGRES only
-                val dslContext = DSL.using((conn as AdvancedConnection).conn, SQLDialect.POSTGRES)
-
-                if (dslContext.update(SYSTEM_USER_PROPERTY)
-                        .set(SYSTEM_USER_PROPERTY.PROPERTY_VALUE, upValue)
-                        .where(SYSTEM_USER_PROPERTY.USER_ID.equal(uId))
-                        .and(SYSTEM_USER_PROPERTY.PROPERTY_NAME.equal(upName))
-                        .execute() == 0
-                ) {
-
-                    dslContext.insertInto(SYSTEM_USER_PROPERTY, SYSTEM_USER_PROPERTY.USER_ID, SYSTEM_USER_PROPERTY.PROPERTY_NAME, SYSTEM_USER_PROPERTY.PROPERTY_VALUE)
-                        .values(uId, upName, upValue)
-                        .execute()
                 }
             }
         }
@@ -1038,26 +967,6 @@ abstract class CoreAppController : iApplication {
                     hmShortName[id] = rs.getString(3).trim()
                 }
                 rs.close()
-            }
-
-            DataAccessMethodEnum.JOOQ -> {
-                //!!! temporarily two bad ideas at once:
-                //--- 1. conn is AdvancedConnection
-                //--- 2. used SQLDialect.POSTGRES only
-                val dslContext = DSL.using((conn as AdvancedConnection).conn, SQLDialect.POSTGRES)
-                val result = dslContext.select(
-                    SYSTEM_USERS.ID,
-                    SYSTEM_USERS.FULL_NAME,
-                    SYSTEM_USERS.SHORT_NAME,
-                ).from(SYSTEM_USERS)
-                    .where(SYSTEM_USERS.ID.notEqual(0))
-                    .fetch()
-                result.forEach { record3 ->
-                    record3.getValue(SYSTEM_USERS.ID)?.let { id ->
-                        hmFullName[id] = record3.getValue(SYSTEM_USERS.FULL_NAME)?.trim() ?: ""
-                        hmShortName[id] = record3.getValue(SYSTEM_USERS.SHORT_NAME)?.trim() ?: ""
-                    }
-                }
             }
 
             DataAccessMethodEnum.JPA -> {
@@ -1115,44 +1024,6 @@ abstract class CoreAppController : iApplication {
                     hsPerm += permName
                 }
                 rs.close()
-            }
-
-            DataAccessMethodEnum.JOOQ -> {
-                //!!! temporarily two bad ideas at once:
-                //--- 1. conn is AdvancedConnection
-                //--- 2. used SQLDialect.POSTGRES only
-                //--- работает независимо от этой настройки
-                //val settings = Settings().withTransformTableListsToAnsiJoin(true)
-                val dslContext = DSL.using((conn as AdvancedConnection).conn, SQLDialect.POSTGRES/*, settings*/)
-                val result = dslContext.select(
-                    SYSTEM_ALIAS.NAME, SYSTEM_PERMISSION.NAME, SYSTEM_ROLE.NAME
-                ).from(
-                    SYSTEM_ALIAS, SYSTEM_PERMISSION, SYSTEM_ROLE_PERMISSION, SYSTEM_USER_ROLE, SYSTEM_ROLE
-                ).where(SYSTEM_USER_ROLE.USER_ID.equal(userConfig.userId))
-                    .and(SYSTEM_ROLE_PERMISSION.PERMISSION_VALUE.equal(1))
-                    .and(SYSTEM_ROLE_PERMISSION.ROLE_ID.eq(SYSTEM_USER_ROLE.ROLE_ID))
-                    .and(SYSTEM_PERMISSION.ID.equal(SYSTEM_ROLE_PERMISSION.PERMISSION_ID))
-                    .and(SYSTEM_ALIAS.ID.equal(SYSTEM_PERMISSION.CLASS_ID))
-                    .and(SYSTEM_ROLE.ID.equal(SYSTEM_USER_ROLE.ROLE_ID))
-                    .fetch()
-                //--- чтобы отрицательные роли (с символом "!" в начале названия роли) были последними в списке - для удобства удаления.
-                //--- СЮРПРИЗ: PostgreSQL под Ubuntu с кодировкой ru_ru.UTF8 игнорирует знаки препинания при сортировке,
-                //--- т.е. образом строки с "!" в начале могут быть где угодно и данный метод отменяется
-                //" ORDER BY SYSTEM_role.name DESC ")
-                result.forEach { record3 ->
-                    val alias = record3.getValue(SYSTEM_ALIAS.NAME)?.trim() ?: ""
-                    val permName = record3.getValue(SYSTEM_PERMISSION.NAME)?.trim() ?: ""
-                    val roleName = record3.getValue(SYSTEM_ROLE.NAME)?.trim() ?: ""
-
-                    if (roleName.isNotEmpty()) {
-                        val hsPerm = if (roleName[0] == '!') {
-                            userPermissionDisable.getOrPut(alias) { mutableSetOf() }
-                        } else {
-                            userPermissionEnable.getOrPut(alias) { mutableSetOf() }
-                        }
-                        hsPerm += permName
-                    }
-                }
             }
         }
 
@@ -1260,21 +1131,6 @@ abstract class CoreAppController : iApplication {
                 }
                 rs.close()
             }
-
-            DataAccessMethodEnum.JOOQ -> {
-                //!!! temporarily two bad ideas at once:
-                //--- 1. conn is AdvancedConnection
-                //--- 2. used SQLDialect.POSTGRES only
-                val dslContext = DSL.using((conn as AdvancedConnection).conn, SQLDialect.POSTGRES)
-                val record1 = dslContext.select(
-                    SYSTEM_USERS.PARENT_ID,
-                ).from(SYSTEM_USERS)
-                    .where(SYSTEM_USERS.ID.equal(userId))
-                    .fetchOne()
-                record1?.getValue(SYSTEM_USERS.PARENT_ID)?.let { pid ->
-                    parentId = pid
-                }
-            }
         }
 
         return parentId
@@ -1300,28 +1156,6 @@ abstract class CoreAppController : iApplication {
                 }
                 rs.close()
             }
-
-            DataAccessMethodEnum.JOOQ -> {
-                //!!! temporarily two bad ideas at once:
-                //--- 1. conn is AdvancedConnection
-                //--- 2. used SQLDialect.POSTGRES only
-                val dslContext = DSL.using((conn as AdvancedConnection).conn, SQLDialect.POSTGRES)
-                val result = dslContext.select(
-                    SYSTEM_USER_ROLE.ROLE_ID,
-                ).from(SYSTEM_USER_ROLE)
-                    .where(SYSTEM_USER_ROLE.USER_ID.equal(userId))
-                    .fetch()
-                result.forEach { record1 ->
-                    val roleId = record1.getValue(SYSTEM_USER_ROLE.ROLE_ID)
-//                    if (roleId == ROLE_GUEST) {
-//                        isGuest = true
-//                    }
-                    if (roleId == ROLE_ADMIN) {
-                        isAdmin = true
-                    }
-                    roleCount++
-                }
-            }
         }
 
         return Pair(isAdmin, isAdmin && roleCount == 1)
@@ -1337,26 +1171,6 @@ abstract class CoreAppController : iApplication {
                     hmUserProperty[rs.getString(1).trim()] = rs.getString(2).trim()
                 }
                 rs.close()
-            }
-
-            DataAccessMethodEnum.JOOQ -> {
-                //!!! temporarily two bad ideas at once:
-                //--- 1. conn is AdvancedConnection
-                //--- 2. used SQLDialect.POSTGRES only
-                val dslContext = DSL.using((conn as AdvancedConnection).conn, SQLDialect.POSTGRES)
-                val result = dslContext.select(
-                    SYSTEM_USER_PROPERTY.PROPERTY_NAME,
-                    SYSTEM_USER_PROPERTY.PROPERTY_VALUE,
-                ).from(SYSTEM_USER_PROPERTY)
-                    .where(SYSTEM_USER_PROPERTY.USER_ID.equal(userId))
-                    .fetch()
-                result.forEach { record2 ->
-                    val name = record2.getValue(SYSTEM_USER_PROPERTY.PROPERTY_NAME)
-                    val value = record2.getValue(SYSTEM_USER_PROPERTY.PROPERTY_VALUE)
-                    if (name != null && value != null) {
-                        hmUserProperty[name] = value
-                    }
-                }
             }
         }
 
@@ -1446,55 +1260,6 @@ abstract class CoreAppController : iApplication {
                 }
                 rs.close()
             }
-
-            DataAccessMethodEnum.JOOQ -> {
-                //!!! temporarily two bad ideas at once:
-                //--- 1. conn is AdvancedConnection
-                //--- 2. used SQLDialect.POSTGRES only
-                val dslContext = DSL.using((conn as AdvancedConnection).conn, SQLDialect.POSTGRES)
-                val result = dslContext.select(
-                    SYSTEM_ALIAS.ID,
-                    SYSTEM_ALIAS.NAME,
-                    SYSTEM_ALIAS.CONTROL_NAME,
-                    SYSTEM_ALIAS.MODEL_NAME,
-                    SYSTEM_ALIAS.DESCR,
-                    SYSTEM_ALIAS.AUTHORIZATION_NEED,
-                    SYSTEM_ALIAS.SHOW_ROW_NO,
-                    SYSTEM_ALIAS.SHOW_USER_COLUMN,
-                    SYSTEM_ALIAS.TABLE_PAGE_SIZE,
-                    SYSTEM_ALIAS.NEWABLE,
-                    SYSTEM_ALIAS.NEW_AUTO_READ,
-                    SYSTEM_ALIAS.DEFAULT_PARENT_USER,
-                ).from(SYSTEM_ALIAS)
-                    .where(
-                        if (aliasId != null) {
-                            SYSTEM_ALIAS.ID.equal(aliasId)
-                        } else if (aliasName != null) {
-                            SYSTEM_ALIAS.NAME.equal(aliasName)
-                        } else {
-                            SYSTEM_ALIAS.ID.notEqual(0)
-                        }
-                    )
-                    .fetch()
-
-                result.forEach { record12 ->
-                    val aliasConfig = AliasConfig(
-                        id = record12.getValue(SYSTEM_ALIAS.ID) ?: 0,
-                        name = record12.getValue(SYSTEM_ALIAS.NAME) ?: "",
-                        controlClassName = record12.getValue(SYSTEM_ALIAS.CONTROL_NAME) ?: "",
-                        modelClassName = record12.getValue(SYSTEM_ALIAS.MODEL_NAME) ?: "",
-                        descr = record12.getValue(SYSTEM_ALIAS.DESCR) ?: "",
-                        isAuthorization = record12.getValue(SYSTEM_ALIAS.AUTHORIZATION_NEED) == 1,
-                        isShowRowNo = record12.getValue(SYSTEM_ALIAS.SHOW_ROW_NO) == 1,
-                        isShowUserColumn = record12.getValue(SYSTEM_ALIAS.SHOW_USER_COLUMN) == 1,
-                        pageSize = record12.getValue(SYSTEM_ALIAS.TABLE_PAGE_SIZE) ?: 0,
-                        isNewable = record12.getValue(SYSTEM_ALIAS.NEWABLE) == 1,
-                        isNewAutoRead = record12.getValue(SYSTEM_ALIAS.NEW_AUTO_READ) == 1,
-                        isDefaultParentUser = record12.getValue(SYSTEM_ALIAS.DEFAULT_PARENT_USER) == 1,
-                    )
-                    hmAliasConfigs[aliasConfig.name] = aliasConfig
-                }
-            }
         }
 
         return hmAliasConfigs
@@ -1507,24 +1272,6 @@ abstract class CoreAppController : iApplication {
                 conn.executeUpdate(" DELETE FROM SYSTEM_role_permission WHERE permission_id IN ( SELECT id FROM SYSTEM_permission WHERE class_id = $aliasId ) ")
                 //--- удаляем все cPermission от класса
                 conn.executeUpdate(" DELETE FROM SYSTEM_permission WHERE class_id = $aliasId ")
-            }
-
-            DataAccessMethodEnum.JOOQ -> {
-                //!!! temporarily two bad ideas at once:
-                //--- 1. conn is AdvancedConnection
-                //--- 2. used SQLDialect.POSTGRES only
-                val dslContext = DSL.using((conn as AdvancedConnection).conn, SQLDialect.POSTGRES)
-
-                dslContext.deleteFrom(SYSTEM_ROLE_PERMISSION)
-                    .where(
-                        SYSTEM_ROLE_PERMISSION.PERMISSION_ID.`in`(
-                            select(SYSTEM_PERMISSION.ID)
-                                .from(SYSTEM_PERMISSION)
-                                .where(SYSTEM_PERMISSION.CLASS_ID.equal(aliasId))
-                        )
-                    )
-                dslContext.deleteFrom(SYSTEM_PERMISSION)
-                    .where(SYSTEM_PERMISSION.CLASS_ID.equal(aliasId))
             }
         }
     }
@@ -1539,20 +1286,6 @@ abstract class CoreAppController : iApplication {
                     alRoleIds + rs.getInt(1)
                 }
                 rs.close()
-            }
-
-            DataAccessMethodEnum.JOOQ -> {
-                //!!! temporarily two bad ideas at once:
-                //--- 1. conn is AdvancedConnection
-                //--- 2. used SQLDialect.POSTGRES only
-                val dslContext = DSL.using((conn as AdvancedConnection).conn, SQLDialect.POSTGRES)
-
-                val result = dslContext.select(SYSTEM_ROLE.ID).from(SYSTEM_ROLE).where(SYSTEM_ROLE.ID.notEqual(0)).fetch()
-                result.forEach { record1 ->
-                    record1.getValue(SYSTEM_ROLE.ID)?.let { roleId ->
-                        alRoleIds += roleId
-                    }
-                }
             }
         }
 
