@@ -60,7 +60,7 @@ class UserEntity(
     val contactInfo: String,
 
     @Column(name = "file_id")
-    val fileId: Int,
+    val fileId: Int?,
 
     @Column(name = "last_ip")
     val lastIP: String,
@@ -104,7 +104,7 @@ class UserEntity(
         result = 31 * result + passwordLastChangeDate.hashCode()
         result = 31 * result + eMail.hashCode()
         result = 31 * result + contactInfo.hashCode()
-        result = 31 * result + fileId
+        result = 31 * result + (fileId ?: 0)
         result = 31 * result + lastIP.hashCode()
         return result
     }

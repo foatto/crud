@@ -72,13 +72,6 @@ abstract class CoreAppController : iApplication {
         private val ROLE_ADMIN = -2
     }
 
-    private enum class DataAccessMethodEnum {
-        JDBC,
-        JPA,
-    }
-
-    private val currentDataAccessMethod = DataAccessMethodEnum.JPA
-
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @Value("\${root_dir}")
@@ -865,15 +858,11 @@ abstract class CoreAppController : iApplication {
     override fun loadUserIdList(conn: CoreAdvancedConnection, parentId: Int, orgType: Int): Set<Int> {
         val hsUserId = mutableSetOf<Int>()
 
-        when (currentDataAccessMethod) {
-            DataAccessMethodEnum.JDBC, DataAccessMethodEnum.JPA /* not implemented yet */ -> {
-                val rs = conn.executeQuery(" SELECT id FROM SYSTEM_users WHERE id <> 0 AND parent_id = $parentId AND org_type = $orgType ")
-                while (rs.next()) {
-                    hsUserId += rs.getInt(1)
-                }
-                rs.close()
-            }
+        val rs = conn.executeQuery(" SELECT id FROM SYSTEM_users WHERE id <> 0 AND parent_id = $parentId AND org_type = $orgType ")
+        while (rs.next()) {
+            hsUserId += rs.getInt(1)
         }
+        rs.close()
 
         return hsUserId
     }
@@ -882,21 +871,17 @@ abstract class CoreAppController : iApplication {
         val (isAdmin, isCleanAdmin) = loadAdminRoles(conn, userId)
         lateinit var userConfig: UserConfig
 
-        when (currentDataAccessMethod) {
-            DataAccessMethodEnum.JDBC, DataAccessMethodEnum.JPA /* not implemented yet */ -> {
-                val rs = conn.executeQuery(" SELECT parent_id , org_type FROM SYSTEM_users WHERE id = $userId ")
-                rs.next()
-                userConfig = UserConfig(
-                    userId = userId,
-                    parentId = rs.getInt(1),
-                    orgType = rs.getInt(2),
-                    isAdmin = isAdmin,
-                    isCleanAdmin = isCleanAdmin,
-                    hmUserProperty = loadUserProperies(conn, userId),
-                )
-                rs.close()
-            }
-        }
+        val rs = conn.executeQuery(" SELECT parent_id , org_type FROM SYSTEM_users WHERE id = $userId ")
+        rs.next()
+        userConfig = UserConfig(
+            userId = userId,
+            parentId = rs.getInt(1),
+            orgType = rs.getInt(2),
+            isAdmin = isAdmin,
+            isCleanAdmin = isCleanAdmin,
+            hmUserProperty = loadUserProperies(conn, userId),
+        )
+        rs.close()
 
         //--- вторичная загрузка данных
         reloadUserNames(conn)
@@ -909,13 +894,10 @@ abstract class CoreAppController : iApplication {
     override fun saveUserProperty(conn: CoreAdvancedConnection, userId: Int?, userConfig: UserConfig?, upName: String, upValue: String) {
         val uId = userId ?: userConfig?.userId ?: return
 
-        when (currentDataAccessMethod) {
-            DataAccessMethodEnum.JDBC, DataAccessMethodEnum.JPA /* not implemented yet */ -> {
-                if (conn.executeUpdate(" UPDATE SYSTEM_user_property SET property_value = '$upValue' WHERE user_id = $uId AND property_name = '$upName' ") == 0) {
-                    conn.executeUpdate(" INSERT INTO SYSTEM_user_property ( user_id , property_name , property_value ) VALUES ( $uId , '$upName' , '$upValue' ) ")
-                }
-            }
+        if (conn.executeUpdate(" UPDATE SYSTEM_user_property SET property_value = '$upValue' WHERE user_id = $uId AND property_name = '$upName' ") == 0) {
+            conn.executeUpdate(" INSERT INTO SYSTEM_user_property ( user_id , property_name , property_value ) VALUES ( $uId , '$upName' , '$upValue' ) ")
         }
+
         userConfig?.hmUserProperty?.put(upName, upValue)
     }
 
@@ -958,25 +940,19 @@ abstract class CoreAppController : iApplication {
         val hmFullName = mutableMapOf<Int, String>()
         val hmShortName = mutableMapOf<Int, String>()
 
-        when (currentDataAccessMethod) {
-            DataAccessMethodEnum.JDBC -> {
-                val rs = conn.executeQuery(" SELECT id , full_name , short_name FROM SYSTEM_users WHERE id <> 0 ")
-                while (rs.next()) {
-                    val id = rs.getInt(1)
-                    hmFullName[id] = rs.getString(2).trim()
-                    hmShortName[id] = rs.getString(3).trim()
-                }
-                rs.close()
-            }
+//                val rs = conn.executeQuery(" SELECT id , full_name , short_name FROM SYSTEM_users WHERE id <> 0 ")
+//                while (rs.next()) {
+//                    val id = rs.getInt(1)
+//                    hmFullName[id] = rs.getString(2).trim()
+//                    hmShortName[id] = rs.getString(3).trim()
+//                }
+//                rs.close()
 
-            DataAccessMethodEnum.JPA -> {
-                val userEntities = userRepository.findAll()
-                userEntities.forEach { userEntity ->
-                    if (userEntity.id != 0) {
-                        hmFullName[userEntity.id] = userEntity.fullName
-                        hmShortName[userEntity.id] = userEntity.shortName
-                    }
-                }
+        val userEntities = userRepository.findAll()
+        userEntities.forEach { userEntity ->
+            if (userEntity.id != 0) {
+                hmFullName[userEntity.id] = userEntity.fullName
+                hmShortName[userEntity.id] = userEntity.shortName
             }
         }
 
@@ -989,10 +965,8 @@ abstract class CoreAppController : iApplication {
         val userPermissionDisable = mutableMapOf<String, MutableSet<String>>()
 
         //--- загрузить права доступа для этого пользователя
-        when (currentDataAccessMethod) {
-            DataAccessMethodEnum.JDBC, DataAccessMethodEnum.JPA /* not implemented yet */ -> {
-                val rs = conn.executeQuery(
-                    """
+        val rs = conn.executeQuery(
+            """
                         SELECT SYSTEM_alias.name , SYSTEM_permission.name , SYSTEM_role.name 
                         FROM SYSTEM_alias , SYSTEM_permission , SYSTEM_role_permission , SYSTEM_user_role , SYSTEM_role 
                         WHERE SYSTEM_user_role.user_id = ${userConfig.userId} 
@@ -1002,30 +976,28 @@ abstract class CoreAppController : iApplication {
                             AND SYSTEM_alias.id = SYSTEM_permission.class_id 
                             AND SYSTEM_role.id = SYSTEM_user_role.role_id
                     """
-                )
-                //--- чтобы отрицательные роли (с символом "!" в начале названия роли) были последними в списке - для удобства удаления.
-                //--- СЮРПРИЗ: PostgreSQL под Ubuntu с кодировкой ru_ru.UTF8 игнорирует знаки препинания при сортировке,
-                //--- т.е. образом строки с "!" в начале могут быть где угодно и данный метод отменяется
-                //" ORDER BY SYSTEM_role.name DESC ")
-                while (rs.next()) {
-                    val alias = rs.getString(1).trim()
-                    val permName = rs.getString(2).trim()
-                    val roleName = rs.getString(3).trim()
+        )
+        //--- чтобы отрицательные роли (с символом "!" в начале названия роли) были последними в списке - для удобства удаления.
+        //--- СЮРПРИЗ: PostgreSQL под Ubuntu с кодировкой ru_ru.UTF8 игнорирует знаки препинания при сортировке,
+        //--- т.е. образом строки с "!" в начале могут быть где угодно и данный метод отменяется
+        //" ORDER BY SYSTEM_role.name DESC ")
+        while (rs.next()) {
+            val alias = rs.getString(1).trim()
+            val permName = rs.getString(2).trim()
+            val roleName = rs.getString(3).trim()
 
-                    if (roleName.isEmpty()) {
-                        continue
-                    }
-
-                    val hsPerm = if (roleName[0] == '!') {
-                        userPermissionDisable.getOrPut(alias) { mutableSetOf() }
-                    } else {
-                        userPermissionEnable.getOrPut(alias) { mutableSetOf() }
-                    }
-                    hsPerm += permName
-                }
-                rs.close()
+            if (roleName.isEmpty()) {
+                continue
             }
+
+            val hsPerm = if (roleName[0] == '!') {
+                userPermissionDisable.getOrPut(alias) { mutableSetOf() }
+            } else {
+                userPermissionEnable.getOrPut(alias) { mutableSetOf() }
+            }
+            hsPerm += permName
         }
+        rs.close()
 
         userConfig.userPermission.clear()
         //--- добавляем разрешительные права
@@ -1123,15 +1095,11 @@ abstract class CoreAppController : iApplication {
     private fun getUserParentId(conn: CoreAdvancedConnection, userId: Int): Int {
         var parentId = 0
 
-        when (currentDataAccessMethod) {
-            DataAccessMethodEnum.JDBC, DataAccessMethodEnum.JPA /* not implemented yet */ -> {
-                val rs = conn.executeQuery(" SELECT parent_id FROM SYSTEM_users WHERE id = $userId ")
-                if (rs.next()) {
-                    parentId = rs.getInt(1)
-                }
-                rs.close()
-            }
+        val rs = conn.executeQuery(" SELECT parent_id FROM SYSTEM_users WHERE id = $userId ")
+        if (rs.next()) {
+            parentId = rs.getInt(1)
         }
+        rs.close()
 
         return parentId
     }
@@ -1140,23 +1108,19 @@ abstract class CoreAppController : iApplication {
         var isAdmin = false
         var roleCount = 0
 
-        when (currentDataAccessMethod) {
-            DataAccessMethodEnum.JDBC, DataAccessMethodEnum.JPA /* not implemented yet */ -> {
-                //--- загрузить список ролей пользователя
-                val rs = conn.executeQuery(" SELECT role_id FROM SYSTEM_user_role WHERE user_id = $userId ")
-                while (rs.next()) {
-                    val roleId = rs.getInt(1)
+        //--- загрузить список ролей пользователя
+        val rs = conn.executeQuery(" SELECT role_id FROM SYSTEM_user_role WHERE user_id = $userId ")
+        while (rs.next()) {
+            val roleId = rs.getInt(1)
 //                    if (roleId == ROLE_GUEST) {
 //                        isGuest = true
 //                    }
-                    if (roleId == ROLE_ADMIN) {
-                        isAdmin = true
-                    }
-                    roleCount++
-                }
-                rs.close()
+            if (roleId == ROLE_ADMIN) {
+                isAdmin = true
             }
+            roleCount++
         }
+        rs.close()
 
         return Pair(isAdmin, isAdmin && roleCount == 1)
     }
@@ -1164,15 +1128,11 @@ abstract class CoreAppController : iApplication {
     private fun loadUserProperies(conn: CoreAdvancedConnection, userId: Int): MutableMap<String, String> {
         val hmUserProperty = mutableMapOf<String, String>()
 
-        when (currentDataAccessMethod) {
-            DataAccessMethodEnum.JDBC, DataAccessMethodEnum.JPA /* not implemented yet */ -> {
-                val rs = conn.executeQuery(" SELECT property_name , property_value FROM SYSTEM_user_property WHERE user_id = $userId ")
-                while (rs.next()) {
-                    hmUserProperty[rs.getString(1).trim()] = rs.getString(2).trim()
-                }
-                rs.close()
-            }
+        val rs = conn.executeQuery(" SELECT property_name , property_value FROM SYSTEM_user_property WHERE user_id = $userId ")
+        while (rs.next()) {
+            hmUserProperty[rs.getString(1).trim()] = rs.getString(2).trim()
         }
+        rs.close()
 
         return hmUserProperty
     }
@@ -1223,71 +1183,59 @@ abstract class CoreAppController : iApplication {
     override fun getAliasConfig(conn: CoreAdvancedConnection, aliasId: Int?, aliasName: String?): Map<String, AliasConfig> {
         val hmAliasConfigs = mutableMapOf<String, AliasConfig>()
 
-        when (currentDataAccessMethod) {
-            DataAccessMethodEnum.JDBC, DataAccessMethodEnum.JPA /* not implemented yet */ -> {
-                val sSQL =
-                    """
-                        SELECT id, name, control_name, model_name, descr, authorization_need, 
-                        show_row_no, show_user_column, table_page_size, newable, new_auto_read, default_parent_user 
-                        FROM SYSTEM_alias "
-                        WHERE 
-                    """ +
-                        if (aliasId != null) {
-                            " id = $aliasId "
-                        } else if (aliasName != null) {
-                            " name = '$aliasName' "
-                        } else {
-                            " id <> 0 "
-                        }
-
-                val rs = conn.executeQuery(sSQL)
-                while (rs.next()) {
-                    val aliasConfig = AliasConfig(
-                        id = rs.getInt(1),
-                        name = rs.getString(2),
-                        controlClassName = rs.getString(3),
-                        modelClassName = rs.getString(4),
-                        descr = rs.getString(5),
-                        isAuthorization = rs.getInt(6) == 1,
-                        isShowRowNo = rs.getInt(7) == 1,
-                        isShowUserColumn = rs.getInt(8) == 1,
-                        pageSize = rs.getInt(9),
-                        isNewable = rs.getInt(10) == 1,
-                        isNewAutoRead = rs.getInt(11) == 1,
-                        isDefaultParentUser = rs.getInt(12) == 1,
-                    )
-                    hmAliasConfigs[aliasConfig.name] = aliasConfig
+        val sSQL =
+            """
+                SELECT id, name, control_name, model_name, descr, authorization_need, 
+                show_row_no, show_user_column, table_page_size, newable, new_auto_read, default_parent_user 
+                FROM SYSTEM_alias 
+                WHERE 
+            """ +
+                if (aliasId != null) {
+                    " id = $aliasId "
+                } else if (aliasName != null) {
+                    " name = '$aliasName' "
+                } else {
+                    " id <> 0 "
                 }
-                rs.close()
-            }
+
+        val rs = conn.executeQuery(sSQL)
+        while (rs.next()) {
+            val aliasConfig = AliasConfig(
+                id = rs.getInt(1),
+                name = rs.getString(2),
+                controlClassName = rs.getString(3),
+                modelClassName = rs.getString(4),
+                descr = rs.getString(5),
+                isAuthorization = rs.getInt(6) == 1,
+                isShowRowNo = rs.getInt(7) == 1,
+                isShowUserColumn = rs.getInt(8) == 1,
+                pageSize = rs.getInt(9),
+                isNewable = rs.getInt(10) == 1,
+                isNewAutoRead = rs.getInt(11) == 1,
+                isDefaultParentUser = rs.getInt(12) == 1,
+            )
+            hmAliasConfigs[aliasConfig.name] = aliasConfig
         }
+        rs.close()
 
         return hmAliasConfigs
     }
 
     override fun deletePermissions(conn: CoreAdvancedConnection, aliasId: Int) {
-        when (currentDataAccessMethod) {
-            DataAccessMethodEnum.JDBC, DataAccessMethodEnum.JPA /* not implemented yet */ -> {
-                //--- удаляем все cRolePermission
-                conn.executeUpdate(" DELETE FROM SYSTEM_role_permission WHERE permission_id IN ( SELECT id FROM SYSTEM_permission WHERE class_id = $aliasId ) ")
-                //--- удаляем все cPermission от класса
-                conn.executeUpdate(" DELETE FROM SYSTEM_permission WHERE class_id = $aliasId ")
-            }
-        }
+        //--- удаляем все cRolePermission
+        conn.executeUpdate(" DELETE FROM SYSTEM_role_permission WHERE permission_id IN ( SELECT id FROM SYSTEM_permission WHERE class_id = $aliasId ) ")
+        //--- удаляем все cPermission от класса
+        conn.executeUpdate(" DELETE FROM SYSTEM_permission WHERE class_id = $aliasId ")
     }
 
     override fun loadRoleIdList(conn: CoreAdvancedConnection): List<Int> {
         val alRoleIds = mutableListOf<Int>()
 
-        when (currentDataAccessMethod) {
-            DataAccessMethodEnum.JDBC, DataAccessMethodEnum.JPA /* not implemented yet */ -> {
-                val rs = conn.executeQuery(" SELECT id FROM SYSTEM_role WHERE id <> 0 ")
-                while (rs.next()) {
-                    alRoleIds + rs.getInt(1)
-                }
-                rs.close()
-            }
+        val rs = conn.executeQuery(" SELECT id FROM SYSTEM_role WHERE id <> 0 ")
+        while (rs.next()) {
+            alRoleIds + rs.getInt(1)
         }
+        rs.close()
 
         return alRoleIds
     }
