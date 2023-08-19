@@ -1,6 +1,6 @@
 package foatto.ts.spring.repositories
 
 import foatto.ts.spring.entities.ObjectEntity
-import org.springframework.data.repository.CrudRepository
+import org.springframework.data.jpa.repository.JpaRepository
 
-interface ObjectRepository : CrudRepository<ObjectEntity, Int>
+interface ObjectRepository : JpaRepository<ObjectEntity, Int>

@@ -1,6 +1,6 @@
 package foatto.spring.jpa.repositories
 
 import foatto.spring.jpa.entities.UserEntity
-import org.springframework.data.repository.CrudRepository
+import org.springframework.data.jpa.repository.JpaRepository
 
-interface UserRepository : CrudRepository<UserEntity, Int>
+interface UserRepository : JpaRepository<UserEntity, Int>

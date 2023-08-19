@@ -1,6 +1,6 @@
 package foatto.shop.spring.repositories
 
 import foatto.shop.spring.entities.CatalogEntity
-import org.springframework.data.repository.CrudRepository
+import org.springframework.data.jpa.repository.JpaRepository
 
-interface CatalogRepository : CrudRepository<CatalogEntity, Int>
+interface CatalogRepository : JpaRepository<CatalogEntity, Int>
