@@ -2,7 +2,6 @@ package foatto.mms.core_mms.report
 
 import foatto.core.link.FormData
 import foatto.mms.core_mms.device.mDevice.Companion.hmCellOwnerNames
-import foatto.mms.iMMSApplication
 import jxl.CellView
 import jxl.format.PageOrientation
 import jxl.format.PaperSize
@@ -18,8 +17,6 @@ class cDeviceCellInfo : cMMSReport() {
         if (returnURL != null) {
             return returnURL
         }
-
-//        fillReportParam(model as mDeviceCellInfo)
 
         return getReport()
     }
@@ -43,16 +40,22 @@ class cDeviceCellInfo : cMMSReport() {
     override fun postReport(sheet: WritableSheet) {
         defineFormats(8, 2, 0)
 
-        //--- установка размеров заголовков (общая ширина = 140 для А4-ландшафт поля по 10 мм)
+        //--- установка размеров заголовков (отчёт неограниченной ширины)
         val alDim = mutableListOf<Int>()
         alDim.add(5)        // "N п/п"
         alDim.add(8)        // Номер контроллера
         alDim.add(33)       // Владелец объекта
-        alDim.add(45)       // Наименование объекта
-        alDim.add(11)       // Принадлежность сим-карты
-        alDim.add(14)       // Номер сим-карты
-        alDim.add(16)       // ICC сим-карты
-        alDim.add(8)        // Оператор связи
+        alDim.add(40)       // Наименование объекта
+
+        alDim.add(12)       // Принадлежность сим-карты - 1
+        alDim.add(15)       // Номер сим-карты - 1
+        alDim.add(16)       // ICC сим-карты - 1
+        alDim.add(8)        // Оператор связи - 1
+
+        alDim.add(12)       // Принадлежность сим-карты - 2
+        alDim.add(15)       // Номер сим-карты - 2
+        alDim.add(16)       // ICC сим-карты - 2
+        alDim.add(8)        // Оператор связи - 2
 
         for (i in alDim.indices) {
             val cvNN = CellView()
@@ -70,10 +73,14 @@ class cDeviceCellInfo : cMMSReport() {
         sheet.addCell(Label(1, offsY, "Номер контроллера", wcfCaptionHC))
         sheet.addCell(Label(2, offsY, "Владелец объекта", wcfCaptionHC))
         sheet.addCell(Label(3, offsY, "Наименование объекта", wcfCaptionHC))
-        sheet.addCell(Label(4, offsY, "Принадлежность сим-карты", wcfCaptionHC))
-        sheet.addCell(Label(5, offsY, "Номер сим-карты", wcfCaptionHC))
-        sheet.addCell(Label(6, offsY, "ICC сим-карты", wcfCaptionHC))
-        sheet.addCell(Label(7, offsY, "Оператор связи", wcfCaptionHC))
+        sheet.addCell(Label(4, offsY, "Принадлежность сим-карты 1", wcfCaptionHC))
+        sheet.addCell(Label(5, offsY, "Номер сим-карты 1", wcfCaptionHC))
+        sheet.addCell(Label(6, offsY, "ICC сим-карты 1", wcfCaptionHC))
+        sheet.addCell(Label(7, offsY, "Оператор связи 1", wcfCaptionHC))
+        sheet.addCell(Label(8, offsY, "Принадлежность сим-карты 2", wcfCaptionHC))
+        sheet.addCell(Label(9, offsY, "Номер сим-карты 2", wcfCaptionHC))
+        sheet.addCell(Label(10, offsY, "ICC сим-карты 2", wcfCaptionHC))
+        sheet.addCell(Label(11, offsY, "Оператор связи 2", wcfCaptionHC))
         offsY++
 
         var countNN = 1
@@ -93,10 +100,12 @@ class cDeviceCellInfo : cMMSReport() {
             val serialNo = rs.getString(fieldIndex++)
             val objectUserId = rs.getInt(fieldIndex++)
             val objectName = rs.getString(fieldIndex++)
+
             val cellOwner = rs.getInt(fieldIndex++)
             val cellNum = rs.getString(fieldIndex++)
             val cellICC = rs.getString(fieldIndex++)
             val cellOperator = rs.getString(fieldIndex++)
+
             val cellOwner2 = rs.getInt(fieldIndex++)
             val cellNum2 = rs.getString(fieldIndex++)
             val cellICC2 = rs.getString(fieldIndex++)
@@ -106,15 +115,16 @@ class cDeviceCellInfo : cMMSReport() {
             sheet.addCell(Label(1, offsY, serialNo, wcfCellC))
             sheet.addCell(Label(2, offsY, getRecordUserName(objectUserId), wcfCellC))
             sheet.addCell(Label(3, offsY, objectName, wcfCellC))
-            sheet.addCell(Label(4, offsY,
-                    hmCellOwnerNames.getOrDefault(cellOwner, "-") + "\n" +
-                    hmCellOwnerNames.getOrDefault(cellOwner2, "-"),
-                    wcfCellC
-                )
-            )
-            sheet.addCell(Label(5, offsY, cellNum + "\n" + cellNum2, wcfCellC))
-            sheet.addCell(Label(6, offsY, cellICC + "\n" + cellICC2, wcfCellC))
-            sheet.addCell(Label(7, offsY, cellOperator + "\n" + cellOperator2, wcfCellC))
+
+            sheet.addCell(Label(4, offsY, hmCellOwnerNames.getOrDefault(cellOwner, "-"), wcfCellC))
+            sheet.addCell(Label(5, offsY, cellNum, wcfCellC))
+            sheet.addCell(Label(6, offsY, cellICC, wcfCellC))
+            sheet.addCell(Label(7, offsY, cellOperator, wcfCellC))
+
+            sheet.addCell(Label(8, offsY, hmCellOwnerNames.getOrDefault(cellOwner2, "-"), wcfCellC))
+            sheet.addCell(Label(9, offsY, cellNum2, wcfCellC))
+            sheet.addCell(Label(10, offsY, cellICC2, wcfCellC))
+            sheet.addCell(Label(11, offsY, cellOperator2, wcfCellC))
 
             offsY++
         }
@@ -124,7 +134,7 @@ class cDeviceCellInfo : cMMSReport() {
         sheet.addCell(
             Label(0, offsY, getPreparedAt(), wcfCellL)
         )
-        sheet.mergeCells(0, offsY, 3, offsY)
+        sheet.mergeCells(0, offsY, 2, offsY)
 
     }
 }
