@@ -92,11 +92,12 @@ class mUser : mAbstractHierarchy() {
 
         val recordType = getRecordType(id, "org_type", OrgType.ORG_TYPE_WORKER)
 
-        columnRecordType = ColumnComboBox(modelTableName, "org_type", "", recordType).apply {
+        columnRecordType = ColumnComboBox(modelTableName, "org_type", "Организационный тип", recordType).apply {
             addChoice(OrgType.ORG_TYPE_DIVISION, "Подразделение", "Подразделение", ICON_NAME_DIVISION)
             addChoice(OrgType.ORG_TYPE_BOSS, "Руководитель", "Руководитель", ICON_NAME_BOSS)
             addChoice(OrgType.ORG_TYPE_WORKER, "Работник", "Работник", ICON_NAME_WORKER)
             tableAlign = TableCellAlign.CENTER
+            tableCaption = "-"
         }
 
         columnParentFullName = ColumnString(selfLinkParentTableName, "full_name", "Вышестоящее подразделение", STRING_COLUMN_WIDTH).apply {
@@ -191,8 +192,8 @@ class mUser : mAbstractHierarchy() {
         //        addTableColumn( columnFile );
 
         alFormHiddenColumn += columnUser!!
-        alFormHiddenColumn += columnRecordType
 
+        alFormColumn += columnRecordType
         alFormColumn += columnUserName
         alFormColumn += columnParentFullName
         alFormColumn += columnDisabled

@@ -881,9 +881,7 @@ open class cStandart {
                         val captions = mutableListOf<String>()
                         for (row in 0 until model.getTableColumnColCount(col)) {
                             model.getTableColumn(row, col)?.let { c ->
-                                val caption = if (c.tableCaption.isNotBlank()) {
-                                    c.tableCaption
-                                } else {
+                                val caption = c.tableCaption.ifBlank {
                                     c.caption
                                 }
                                 if (caption.isNotBlank() && !captions.contains(caption)) {
