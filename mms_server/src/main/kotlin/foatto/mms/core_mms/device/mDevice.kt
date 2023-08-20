@@ -42,6 +42,11 @@ class mDevice : mAbstractUserSelector() {
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    lateinit var columnCopySensors: ColumnBoolean
+        private set
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     lateinit var columnESDCreatingEnabled: ColumnBoolean
         private set
     val alColumnESDGroupName: MutableList<ColumnString> = mutableListOf()
@@ -198,10 +203,15 @@ class mDevice : mAbstractUserSelector() {
             rowSpan = 3
         }
 
+        columnCopySensors = ColumnBoolean(modelTableName, "_copy_sensors", "Копировать датчики при смене объекта", false).apply {
+            isVirtual = true
+        }
+
         //----------------------------------------------------------------------------------------------------------------------
 
         columnESDCreatingEnabled = ColumnBoolean(modelTableName, "_esd_create_enabled", "Автосоздание датчиков Euro Sens", false).apply {
             isVirtual = true
+            addFormVisible(columnCopySensors, false, setOf(1))
         }
         (1..MAX_PORT_PER_SENSOR).forEach { si ->
             alColumnESDGroupName += ColumnString(modelTableName, "_esd_group_name_$si", "Наименование группы датчиков $si", STRING_COLUMN_WIDTH).apply {
@@ -222,6 +232,7 @@ class mDevice : mAbstractUserSelector() {
 
         columnEmisCreatingEnabled = ColumnBoolean(modelTableName, "_emis_create_enabled", "Автосоздание датчиков Эмис", false).apply {
             isVirtual = true
+            addFormVisible(columnCopySensors, false, setOf(1))
         }
         (1..MAX_PORT_PER_SENSOR).forEach { si ->
             alColumnEmisGroupName += ColumnString(modelTableName, "_emis_group_name_$si", "Наименование группы датчиков $si", STRING_COLUMN_WIDTH).apply {
@@ -242,6 +253,7 @@ class mDevice : mAbstractUserSelector() {
 
         columnUSSCreatingEnabled = ColumnBoolean(modelTableName, "_uss_create_enabled", "Автосоздание датчиков УСС", false).apply {
             isVirtual = true
+            addFormVisible(columnCopySensors, false, setOf(1))
         }
         (1..MAX_PORT_PER_SENSOR).forEach { si ->
             alColumnUSSGroupName += ColumnString(modelTableName, "_uss_group_name_$si", "Наименование группы датчиков $si", STRING_COLUMN_WIDTH).apply {
@@ -262,6 +274,7 @@ class mDevice : mAbstractUserSelector() {
 
         columnMercuryCreatingEnabled = ColumnBoolean(modelTableName, "_mercury_create_enabled", "Автосоздание датчиков Меркурий", false).apply {
             isVirtual = true
+            addFormVisible(columnCopySensors, false, setOf(1))
         }
         (1..MAX_PORT_PER_SENSOR).forEach { si ->
             alColumnMercuryGroupName += ColumnString(modelTableName, "_mercury_group_name_$si", "Наименование группы датчиков $si", STRING_COLUMN_WIDTH).apply {
@@ -341,6 +354,8 @@ class mDevice : mAbstractUserSelector() {
         alFormColumn += columnDeviceLastSessionStatusText
         alFormColumn += columnDeviceLastSessionErrorText
         alFormColumn += columnDeviceWorkBegin
+
+        (if (id == 0) alFormHiddenColumn else alFormColumn) += columnCopySensors
 
         alFormColumn += columnESDCreatingEnabled
         for (si in 0 until MAX_PORT_PER_SENSOR) {

@@ -28,7 +28,7 @@ class ObjectEntity(
     val department: DepartmentEntity,
 
     @OneToMany(mappedBy = "obj", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
-    var sensors: MutableSet<SensorConfigEntity> = mutableSetOf(),
+    var sensors: MutableSet<SensorEntity> = mutableSetOf(),
 
     /*
             if (rs.next()) {

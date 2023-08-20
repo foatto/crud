@@ -320,8 +320,17 @@ class MMSAppController : CoreAppController(), iMMSApplication {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+//    @Autowired
+//    private lateinit var entityManager: EntityManager
+
     @Autowired
     private lateinit var objectRepository: ObjectRepository
+
+//    @Autowired
+//    private lateinit var sensorRepository: SensorRepository
+
+//    @Autowired
+//    private lateinit var sensorCalibrationRepository: SensorCalibrationRepository
 
     override fun getObjectConfig(userConfig: UserConfig, objectId: Int): ObjectConfig {
         val objectEntity = objectRepository.findByIdOrNull(objectId) ?: "ObjectConfig not exist for object_id = $objectId".let {
@@ -614,88 +623,5 @@ class MMSAppController : CoreAppController(), iMMSApplication {
 
         return objectConfig
     }
-
-//    //--- 1000 секунд = примерно 16-17 мин
-//    private val DEVICE_CONFIG_OUT_PERIOD = 1_000
-//
-//    private val chmDeviceConfigData = ConcurrentHashMap<String, DeviceConfig>()
-//    private val chmDeviceConfigTime = ConcurrentHashMap<String, Int>()
-//
-//    private fun loadDeviceConfig(conn: CoreAdvancedConnection, serialNo: String): DeviceConfig? {
-//        //--- во избежание многократной перезагрузки конфигурации прибора в случае,
-//        //--- когда в каждом пакете данных идёт IMEI-код.
-//        //--- и раз в 16-17 мин перезагружаем конфигурацию контроллера на случай его перепривязки к другому объекту
-//        if (chmDeviceConfigTime[serialNo] == null || getCurrentTimeInt() - chmDeviceConfigTime[serialNo]!! > DEVICE_CONFIG_OUT_PERIOD) {
-//            val deviceConfig = DeviceConfig.getDeviceConfig(stm, serialNo)
-//            //--- неизвестный контроллер
-//            if (deviceConfig == null) {
-//                writeError(dataWorker.conn, dataWorker.stm, "Unknown serial No = $serialNo")
-//                writeJournal()
-//                return null
-//            }
-//            chmDeviceConfigData[serialNo] = deviceConfig
-//        }
-//        chmDeviceConfigTime[serialNo] = getCurrentTimeInt()
-////            sbStatus.append("ID;")
-//        return chmDeviceConfigData[serialNo]!!
-//    }
-//
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-//
-//    @PostMapping("/tm/XXX")
-//    fun tmUds(
-//        @RequestBody
-//        udsRawPacket: UDSRawPacket
-//    ): TMResponse {
-//        var status = "DataRead;"
-//
-//        val serialNo = udsRawPacket.udsId
-//        loadDeviceConfig(dataWorker)
-////
-////            val pointTime = getDateTimeInt(YMDHMS_DateTime(zoneId, udsRawPacket.datetime))
-////
-////            //--- если объект прописан, то записываем точки, иначе просто пропускаем
-////            //--- также пропускаем точки из будущего и далёкого прошлого
-////            val curTime = getCurrentTimeInt()
-////            if(deviceConfig?.objectId != 0 && pointTime > curTime - MAX_PAST_TIME && pointTime < curTime + MAX_FUTURE_TIME) {
-////                fwVersion = udsRawPacket.version ?: ""
-////                val udsDataPacket = udsRawPacket.normalize(zoneId)
-////                val bbData = dataToByteBuffer(dataWorker, udsDataPacket)
-////
-////                addPoint(dataWorker.stm, pointTime, bbData, sqlBatchData)
-////                dataCount++
-////
-////                if (firstPointTime == 0) {
-////                    firstPointTime = pointTime
-////                }
-////                lastPointTime = pointTime
-////            }
-////            dataCountAll++
-////
-////            //--- есть ли ещё данные в пакете
-////            packetEndPos = sbData.indexOf("\r\n")
-////            if (packetEndPos < 0) {
-////                break
-////            }
-////        }
-////        sqlBatchData.execute(dataWorker.stm)
-////
-////        //--- данные успешно переданы - теперь можно завершить транзакцию
-////        sbStatus.append("Ok;")
-////        errorText = null
-////        writeSession(dataWorker.conn, dataWorker.stm, true)
-////
-////        //--- для возможного режима постоянного/длительного соединения
-////        bbIn.compact()     // нельзя .clear(), т.к. копятся данные следующего пакета
-////
-////        begTime = 0
-////        sbStatus.setLength(0)
-////        dataCount = 0
-////        dataCountAll = 0
-////        firstPointTime = 0
-////        lastPointTime = 0
-//
-//        return TMResponse()
-//    }
 
 }

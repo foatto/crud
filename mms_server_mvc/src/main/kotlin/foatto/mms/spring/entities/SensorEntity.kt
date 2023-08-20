@@ -4,14 +4,14 @@ import javax.persistence.*
 
 @Entity
 @Table(name = "MMS_sensor")
-class SensorConfigEntity(
+class SensorEntity(
 
     @Id
-    val id: Int,
+    var id: Int,
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "object_id")
-    val obj: ObjectEntity,
+    var obj: ObjectEntity,
 
     val name: String,       // inner/system sensor name for programmatically sensors adding
 
@@ -21,7 +21,7 @@ class SensorConfigEntity(
     val descr: String,      // sensor visible description
 
     @Column(name = "port_num")
-    val portNum: Int,
+    var portNum: Int,
 
     @Column(name = "sensor_type")
     val sensorType: Int,
@@ -193,13 +193,13 @@ class SensorConfigEntity(
     val schemeY: Int?,
 
     @OneToMany(mappedBy = "sensor", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
-    var calibration: MutableSet<SensorConfigCalibrationEntity> = mutableSetOf(),
+    var calibration: MutableSet<SensorCalibrationEntity> = mutableSetOf(),
 
     ) {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is SensorConfigEntity) return false
+        if (other !is SensorEntity) return false
 
         if (obj != other.obj) return false
         if (name != other.name) return false

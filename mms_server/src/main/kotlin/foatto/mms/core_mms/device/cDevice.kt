@@ -11,6 +11,7 @@ import foatto.core_server.app.server.data.DataInt
 import foatto.core_server.app.server.data.DataString
 import foatto.core_server.app.server.data.iData
 import foatto.core_server.ds.CoreTelematicFunction
+import foatto.core_server.ds.CoreTelematicFunction.MAX_PORT_PER_DEVICE
 import foatto.mms.core_mms.ds.GalileoFunction
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigCounter
@@ -18,6 +19,9 @@ import foatto.mms.iMMSApplication
 import java.io.File
 
 class cDevice : cStandart() {
+
+    private var oldObjectId: Int? = null
+    private var oldDeviceIndex: Int? = null
 
     override fun getTableColumnStyle(isNewRow: Boolean, hmColumnData: Map<iColumn, iData>, column: iColumn, tci: TableCell) {
         super.getTableColumnStyle(isNewRow, hmColumnData, column, tci)
@@ -42,6 +46,17 @@ class cDevice : cStandart() {
         }
     }
 
+    override fun preSave(id: Int, hmColumnData: Map<iColumn, iData>) {
+        val rs = conn.executeQuery(" SELECT object_id , device_index FROM MMS_device WHERE id = $id ")
+        if (rs.next()) {
+            oldObjectId = rs.getInt(1)
+            oldDeviceIndex = rs.getInt(2)
+        }
+        rs.close()
+
+        super.preSave(id, hmColumnData)
+    }
+
     override fun postAdd(id: Int, hmColumnData: Map<iColumn, iData>, hmOut: MutableMap<String, Any>): String? {
         val postURL = super.postAdd(id, hmColumnData, hmOut)
 
@@ -54,13 +69,24 @@ class cDevice : cStandart() {
     override fun postEdit(action: String, id: Int, hmColumnData: Map<iColumn, iData>, hmOut: MutableMap<String, Any>): String? {
         val postURL = super.postEdit(action, id, hmColumnData, hmOut)
 
-        createSensors(hmColumnData)
+        val m = model as mDevice
+        if ((hmColumnData[m.columnCopySensors] as DataBoolean).value) {
+            oldObjectId?.let {
+                val newObjectId = (hmColumnData[m.columnObject] as DataInt).intValue
+                val newDeviceIndex = (hmColumnData[m.columnDeviceIndex] as DataInt).intValue
+                if (newObjectId != 0 && newObjectId != oldObjectId) {
+                    copySensors(oldObjectId!!, oldDeviceIndex!!, newObjectId, newDeviceIndex)
+                }
+            }
+        } else {
+            createSensors(hmColumnData)
+        }
+
+//        clearOldCameraInfo(hmColumnData)
 
         //--- (re)create DataServer restart flag file
         val dataServerIniFileName = (application as iMMSApplication).dataServerIniFileName
         File(dataServerIniFileName).copyTo(File(dataServerIniFileName + "_"), true)
-
-//        clearOldCameraInfo(hmColumnData)
 
         return postURL
     }
@@ -81,6 +107,73 @@ class cDevice : cStandart() {
 //
 //        conn.executeUpdate(" DELETE FROM VC_camera WHERE name = '$deviceID' AND object_id <> $objectId ")
 //    }
+
+    private fun copySensors(oldObjectId: Int, oldDeviceIndex: Int, newObjectId: Int, newDeviceIndex: Int) {
+        val oldSensorIds = mutableListOf<Int>()
+        val rsS = conn.executeQuery(
+            """
+                SELECT id FROM MMS_sensor 
+                WHERE object_id = $oldObjectId
+                AND port_num BETWEEN ${oldDeviceIndex * MAX_PORT_PER_DEVICE} AND ${(oldDeviceIndex + 1) * MAX_PORT_PER_DEVICE - 1} 
+            """
+        )
+        while (rsS.next()) {
+            oldSensorIds += rsS.getInt(1)
+        }
+        rsS.close()
+
+        oldSensorIds.forEach { oldSensorId ->
+            val oldSensorCalibrationIds = mutableListOf<Int>()
+            val rsSC = conn.executeQuery(
+                """
+                    SELECT id FROM MMS_sensor_calibration 
+                    WHERE sensor_id = $oldSensorId
+                """
+            )
+            while (rsSC.next()) {
+                oldSensorCalibrationIds += rsSC.getInt(1)
+            }
+            rsSC.close()
+
+            val newSensorId = conn.getNextIntId("MMS_sensor", "id")
+            conn.executeUpdate(
+                """
+                    INSERT INTO MMS_sensor (
+                        id , object_id , name , group_name , descr , port_num , sensor_type , serial_no , beg_ye , beg_mo , beg_da ,
+                        min_moving_time , min_parking_time , min_over_speed_time , is_absolute_run , speed_round_rule , run_koef ,
+                        is_use_pos , is_use_speed , is_use_run , bound_value , active_value , beg_work_value , cmd_on_id , cmd_off_id ,
+                        signal_on , signal_off , min_on_time , min_off_time , analog_min_view , analog_max_view , analog_min_limit , analog_max_limit ,
+                        is_absolute_count , in_out_type , energo_phase , container_type , analog_using_min_len , analog_is_using_calc ,
+                        analog_detect_inc , analog_detect_inc_min_diff , analog_detect_inc_min_len , analog_inc_add_time_before , analog_inc_add_time_after ,
+                        analog_detect_dec , analog_detect_dec_min_diff , analog_detect_dec_min_len , analog_dec_add_time_before , analog_dec_add_time_after ,
+                        smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , liquid_name , liquid_norm , scheme_x , scheme_y
+                    ) SELECT
+                        $newSensorId , $newObjectId , name , group_name , descr , port_num + (${(newDeviceIndex - oldDeviceIndex) * MAX_PORT_PER_DEVICE}) , 
+                        sensor_type , serial_no , beg_ye , beg_mo , beg_da ,
+                        min_moving_time , min_parking_time , min_over_speed_time , is_absolute_run , speed_round_rule , run_koef ,
+                        is_use_pos , is_use_speed , is_use_run , bound_value , active_value , beg_work_value , cmd_on_id , cmd_off_id ,
+                        signal_on , signal_off , min_on_time , min_off_time , analog_min_view , analog_max_view , analog_min_limit , analog_max_limit ,
+                        is_absolute_count , in_out_type , energo_phase , container_type , analog_using_min_len , analog_is_using_calc ,
+                        analog_detect_inc , analog_detect_inc_min_diff , analog_detect_inc_min_len , analog_inc_add_time_before , analog_inc_add_time_after ,
+                        analog_detect_dec , analog_detect_dec_min_diff , analog_detect_dec_min_len , analog_dec_add_time_before , analog_dec_add_time_after ,
+                        smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , liquid_name , liquid_norm , scheme_x , scheme_y
+                    FROM MMS_sensor WHERE id = $oldSensorId
+                """
+            )
+            oldSensorCalibrationIds.forEach { oldSensorCalibrationId ->
+                val newSensorCalibrationId = conn.getNextIntId("MMS_sensor_calibration", "id")
+                conn.executeUpdate(
+                    """
+                        INSERT INTO MMS_sensor_calibration (
+                            id , sensor_id , value_sensor , value_data
+                        ) SELECT
+                            $newSensorCalibrationId , $newSensorId , value_sensor , value_data 
+                        FROM MMS_sensor_calibration WHERE id = $oldSensorCalibrationId
+                    """
+                )
+            }
+        }
+    }
 
     private fun createSensors(hmColumnData: Map<iColumn, iData>) {
         val m = model as mDevice
