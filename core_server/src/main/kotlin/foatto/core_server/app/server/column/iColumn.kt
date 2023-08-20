@@ -40,6 +40,7 @@ interface iColumn {
     val isEditable: Boolean
 
     val isSavedDefault: Boolean
+    val isSkipForSave: Boolean
 
     var tableCaption: String
     var tableAlign: TableCellAlign

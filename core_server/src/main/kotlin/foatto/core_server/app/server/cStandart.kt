@@ -1883,8 +1883,12 @@ open class cStandart {
             if (column == model.columnId) {
                 continue
             }
-            //--- виртуальным полям нельзя делать предзапись
+            //--- do not save virtual fields
             if (column.isVirtual) {
+                continue
+            }
+            //--- do not save special marked fields
+            if (column.isSkipForSave) {
                 continue
             }
             if (column.columnTableName == model.modelTableName) {
@@ -2078,13 +2082,17 @@ open class cStandart {
             if (column == model.columnId) {
                 continue
             }
-            //--- сохраняем значение запоминаемого поля
-            if (column.isSavedDefault) {
-                column.saveDefault(application, conn, userConfig, hmColumnData)
-            }
-            //--- виртуальные поля не записываем
+            //--- do not save virtual fields
             if (column.isVirtual) {
                 continue
+            }
+            //--- do not save special marked fields
+            if (column.isSkipForSave) {
+                continue
+            }
+            //--- save this value as default
+            if (column.isSavedDefault) {
+                column.saveDefault(application, conn, userConfig, hmColumnData)
             }
 
             //--- записываем поля только из "своей" таблицы
@@ -2107,13 +2115,17 @@ open class cStandart {
             if (column == model.columnId) {
                 continue
             }
-            //--- сохраняем значение запоминаемого поля
-            if (column.isSavedDefault) {
-                column.saveDefault(application, conn, userConfig, hmColumnData)
-            }
-            //--- виртуальные поля не записываем
+            //--- do not save virtual fields
             if (column.isVirtual) {
                 continue
+            }
+            //--- do not save special marked fields
+            if (column.isSkipForSave) {
+                continue
+            }
+            //--- save this value as default
+            if (column.isSavedDefault) {
+                column.saveDefault(application, conn, userConfig, hmColumnData)
             }
 
             //--- записываем поля только из "своей" таблицы

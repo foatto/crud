@@ -52,6 +52,9 @@ abstract class ColumnAbstract : iColumn {
     //--- поле с сохраняемым default-значением
     override var isSavedDefault: Boolean = false
 
+    //--- значение поля пропускается из процесса сохранения (например, изменяется из других/внешних сервисов)
+    override var isSkipForSave: Boolean = false
+
     //--- отдельный caption для табличного режима
     override var tableCaption = ""
     override var tableAlign = TableCellAlign.LEFT
