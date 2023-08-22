@@ -137,6 +137,9 @@ class mDevice : mAbstractUserSelector() {
             rowSpan = 3
         }
 
+        val columnDeviceCellImei = ColumnString(modelTableName, "cell_imei", "IMEI модема", STRING_COLUMN_WIDTH).apply {
+            formPinMode = FormPinMode.OFF
+        }
         val columnDeviceCellOwner = ColumnRadioButton(modelTableName, "cell_owner", "Владелец симки", CELL_OWNER_UNKNOWN).apply {
             addChoice(CELL_OWNER_UNKNOWN, hmCellOwnerNames.getOrDefault(CELL_OWNER_UNKNOWN, "-"))
             addChoice(CELL_OWNER_PLA, hmCellOwnerNames.getOrDefault(CELL_OWNER_PLA, "-"))
@@ -150,6 +153,9 @@ class mDevice : mAbstractUserSelector() {
             }
         }
 
+        val columnDeviceCellImei2 = ColumnString(modelTableName, "cell_imei_2", "IMEI модема 2", STRING_COLUMN_WIDTH).apply {
+            formPinMode = FormPinMode.OFF
+        }
         val columnDeviceCellOwner2 = ColumnRadioButton(modelTableName, "cell_owner_2", "Владелец симки 2", CELL_OWNER_UNKNOWN).apply {
             addChoice(CELL_OWNER_UNKNOWN, hmCellOwnerNames.getOrDefault(CELL_OWNER_UNKNOWN, "-"))
             addChoice(CELL_OWNER_PLA, hmCellOwnerNames.getOrDefault(CELL_OWNER_PLA, "-"))
@@ -300,6 +306,7 @@ class mDevice : mAbstractUserSelector() {
         addTableColumnVertNew(columnSerialNo)
         addTableColumnVertNew(columnDeviceIndex)
 
+        addTableColumnVertNew(columnDeviceCellImei, columnDeviceCellImei2, ColumnStatic(modelTableName, ""))
         addTableColumnVertNew(columnDeviceCellOwner, columnDeviceCellOwner2, ColumnStatic(modelTableName, ""))
         addTableColumnVertNew(columnDeviceCellNum, columnDeviceCellNum2, ColumnStatic(modelTableName, ""))
         addTableColumnVertNew(columnDeviceCellICC, columnDeviceCellICC2, ColumnStatic(modelTableName, ""))
@@ -339,11 +346,13 @@ class mDevice : mAbstractUserSelector() {
 
         alFormColumn += columnDeviceIndex
 
+        alFormColumn += columnDeviceCellImei
         alFormColumn += columnDeviceCellOwner
         alFormColumn += columnDeviceCellNum
         alFormColumn += columnDeviceCellICC
         alFormColumn += columnDeviceCellOperator
 
+        alFormColumn += columnDeviceCellImei2
         alFormColumn += columnDeviceCellOwner2
         alFormColumn += columnDeviceCellNum2
         alFormColumn += columnDeviceCellICC2

@@ -47,11 +47,13 @@ class cDeviceCellInfo : cMMSReport() {
         alDim.add(33)       // Владелец объекта
         alDim.add(40)       // Наименование объекта
 
+        alDim.add(16)       // IMEI модема - 1
         alDim.add(12)       // Принадлежность сим-карты - 1
         alDim.add(15)       // Номер сим-карты - 1
         alDim.add(16)       // ICC сим-карты - 1
         alDim.add(8)        // Оператор связи - 1
 
+        alDim.add(16)       // IMEI модема - 2
         alDim.add(12)       // Принадлежность сим-карты - 2
         alDim.add(15)       // Номер сим-карты - 2
         alDim.add(16)       // ICC сим-карты - 2
@@ -69,26 +71,29 @@ class cDeviceCellInfo : cMMSReport() {
         offsY++
 
         //--- вывод заголовка
-        sheet.addCell(Label(0, offsY, "№ п/п", wcfCaptionHC))
-        sheet.addCell(Label(1, offsY, "Номер контроллера", wcfCaptionHC))
-        sheet.addCell(Label(2, offsY, "Владелец объекта", wcfCaptionHC))
-        sheet.addCell(Label(3, offsY, "Наименование объекта", wcfCaptionHC))
-        sheet.addCell(Label(4, offsY, "Принадлежность сим-карты 1", wcfCaptionHC))
-        sheet.addCell(Label(5, offsY, "Номер сим-карты 1", wcfCaptionHC))
-        sheet.addCell(Label(6, offsY, "ICC сим-карты 1", wcfCaptionHC))
-        sheet.addCell(Label(7, offsY, "Оператор связи 1", wcfCaptionHC))
-        sheet.addCell(Label(8, offsY, "Принадлежность сим-карты 2", wcfCaptionHC))
-        sheet.addCell(Label(9, offsY, "Номер сим-карты 2", wcfCaptionHC))
-        sheet.addCell(Label(10, offsY, "ICC сим-карты 2", wcfCaptionHC))
-        sheet.addCell(Label(11, offsY, "Оператор связи 2", wcfCaptionHC))
+        var offsX = 0
+        sheet.addCell(Label(offsX++, offsY, "№ п/п", wcfCaptionHC))
+        sheet.addCell(Label(offsX++, offsY, "Номер контроллера", wcfCaptionHC))
+        sheet.addCell(Label(offsX++, offsY, "Владелец объекта", wcfCaptionHC))
+        sheet.addCell(Label(offsX++, offsY, "Наименование объекта", wcfCaptionHC))
+        sheet.addCell(Label(offsX++, offsY, "IMEI модема 1", wcfCaptionHC))
+        sheet.addCell(Label(offsX++, offsY, "Принадлежность сим-карты 1", wcfCaptionHC))
+        sheet.addCell(Label(offsX++, offsY, "Номер сим-карты 1", wcfCaptionHC))
+        sheet.addCell(Label(offsX++, offsY, "ICC сим-карты 1", wcfCaptionHC))
+        sheet.addCell(Label(offsX++, offsY, "Оператор связи 1", wcfCaptionHC))
+        sheet.addCell(Label(offsX++, offsY, "IMEI модема 2", wcfCaptionHC))
+        sheet.addCell(Label(offsX++, offsY, "Принадлежность сим-карты 2", wcfCaptionHC))
+        sheet.addCell(Label(offsX++, offsY, "Номер сим-карты 2", wcfCaptionHC))
+        sheet.addCell(Label(offsX++, offsY, "ICC сим-карты 2", wcfCaptionHC))
+        sheet.addCell(Label(offsX++, offsY, "Оператор связи 2", wcfCaptionHC))
         offsY++
 
         var countNN = 1
         val rs = conn.executeQuery(
             """
                 SELECT MMS_device.serial_no , MMS_object.user_id , MMS_object.name , 
-                MMS_device.cell_owner , MMS_device.cell_num , MMS_device.cell_icc , MMS_device.cell_operator ,
-                MMS_device.cell_owner_2 , MMS_device.cell_num_2 , MMS_device.cell_icc_2 , MMS_device.cell_operator_2
+                MMS_device.cell_imei ,   MMS_device.cell_owner ,   MMS_device.cell_num ,   MMS_device.cell_icc ,   MMS_device.cell_operator ,
+                MMS_device.cell_imei_2 , MMS_device.cell_owner_2 , MMS_device.cell_num_2 , MMS_device.cell_icc_2 , MMS_device.cell_operator_2
                 FROM MMS_device , MMS_object
                 WHERE MMS_device.id <> 0 
                 AND MMS_device.object_id = MMS_object.id  
@@ -101,30 +106,36 @@ class cDeviceCellInfo : cMMSReport() {
             val objectUserId = rs.getInt(fieldIndex++)
             val objectName = rs.getString(fieldIndex++)
 
+            val cellImei = rs.getString(fieldIndex++)
             val cellOwner = rs.getInt(fieldIndex++)
             val cellNum = rs.getString(fieldIndex++)
             val cellICC = rs.getString(fieldIndex++)
             val cellOperator = rs.getString(fieldIndex++)
 
+            val cellImei2 = rs.getString(fieldIndex++)
             val cellOwner2 = rs.getInt(fieldIndex++)
             val cellNum2 = rs.getString(fieldIndex++)
             val cellICC2 = rs.getString(fieldIndex++)
             val cellOperator2 = rs.getString(fieldIndex++)
 
-            sheet.addCell(Label(0, offsY, (countNN++).toString(), wcfNN))
-            sheet.addCell(Label(1, offsY, serialNo, wcfCellC))
-            sheet.addCell(Label(2, offsY, getRecordUserName(objectUserId), wcfCellC))
-            sheet.addCell(Label(3, offsY, objectName, wcfCellC))
+            offsX = 0
 
-            sheet.addCell(Label(4, offsY, hmCellOwnerNames.getOrDefault(cellOwner, "-"), wcfCellC))
-            sheet.addCell(Label(5, offsY, cellNum, wcfCellC))
-            sheet.addCell(Label(6, offsY, cellICC, wcfCellC))
-            sheet.addCell(Label(7, offsY, cellOperator, wcfCellC))
+            sheet.addCell(Label(offsX++, offsY, (countNN++).toString(), wcfNN))
+            sheet.addCell(Label(offsX++, offsY, serialNo, wcfCellC))
+            sheet.addCell(Label(offsX++, offsY, getRecordUserName(objectUserId), wcfCellC))
+            sheet.addCell(Label(offsX++, offsY, objectName, wcfCellC))
 
-            sheet.addCell(Label(8, offsY, hmCellOwnerNames.getOrDefault(cellOwner2, "-"), wcfCellC))
-            sheet.addCell(Label(9, offsY, cellNum2, wcfCellC))
-            sheet.addCell(Label(10, offsY, cellICC2, wcfCellC))
-            sheet.addCell(Label(11, offsY, cellOperator2, wcfCellC))
+            sheet.addCell(Label(offsX++, offsY, cellImei, wcfCellC))
+            sheet.addCell(Label(offsX++, offsY, hmCellOwnerNames.getOrDefault(cellOwner, "-"), wcfCellC))
+            sheet.addCell(Label(offsX++, offsY, cellNum, wcfCellC))
+            sheet.addCell(Label(offsX++, offsY, cellICC, wcfCellC))
+            sheet.addCell(Label(offsX++, offsY, cellOperator, wcfCellC))
+
+            sheet.addCell(Label(offsX++, offsY, cellImei2, wcfCellC))
+            sheet.addCell(Label(offsX++, offsY, hmCellOwnerNames.getOrDefault(cellOwner2, "-"), wcfCellC))
+            sheet.addCell(Label(offsX++, offsY, cellNum2, wcfCellC))
+            sheet.addCell(Label(offsX++, offsY, cellICC2, wcfCellC))
+            sheet.addCell(Label(offsX++, offsY, cellOperator2, wcfCellC))
 
             offsY++
         }
