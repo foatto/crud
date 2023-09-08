@@ -29,7 +29,7 @@ kotlin {
         browser()
     }
 
-    android()
+    androidTarget()
 
 //    jvm {
 //        val jvmMain by compilations.getting {
@@ -109,7 +109,7 @@ android {
     compileSdk = androidCompileSdk.toInt()
     defaultConfig {
         minSdk = androidMinSdk.toInt()
-        targetSdk = androidTargetSdk.toInt()
+//        targetSdk = androidTargetSdk.toInt()
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

@@ -24,7 +24,7 @@ version = coreComposeAndroidVersion
 kotlin {
 //    targetHierarchy.default() - ?
 
-    android()
+    androidTarget()
 
     sourceSets {
         val androidMain by getting {
