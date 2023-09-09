@@ -151,9 +151,12 @@ class mObject : mAbstractUserSelector() {
 
         alChildData.add(ChildData("mms_sensor", columnId, AppAction.TABLE, true))
         alChildData.add(ChildData("mms_equip", columnId, AppAction.TABLE))
-        alChildData.add(ChildData("mms_log_session", columnId, AppAction.TABLE))
+
+        alChildData.add(ChildData("mms_data_p", columnId, AppAction.FORM, true))
         alChildData.add(ChildData("mms_data", columnId, AppAction.TABLE))
-        alChildData.add(ChildData("mms_device", columnId, AppAction.TABLE))
+
+        alChildData.add(ChildData("mms_device", columnId, AppAction.TABLE, true))
+        alChildData.add(ChildData("mms_log_session", columnId, AppAction.TABLE))
 
         alChildData.add(ChildData("Служебные", "mms_device_command_history", columnId, AppAction.TABLE))
 

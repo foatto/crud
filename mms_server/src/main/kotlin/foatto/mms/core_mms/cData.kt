@@ -1,5 +1,6 @@
 package foatto.mms.core_mms
 
+import foatto.core.util.DateTime_YMDHMS
 import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.data.DataBinary
 import foatto.core_server.app.server.data.DataDateTimeInt
@@ -9,6 +10,39 @@ import foatto.core_server.app.server.data.iData
 import foatto.mms.core_mms.calc.AbstractObjectStateCalc
 
 class cData : cMMSOneObjectParent() {
+
+    override fun addSQLWhere(hsTableRenameList: Set<String>): String {
+        val tableName = renameTableName(hsTableRenameList, model.modelTableName)
+
+        val begTime = getParentId("mms_data_beg")
+        val endTime = getParentId("mms_data_end")
+
+        val sSQL = if (begTime != null && endTime != null) {
+            """
+                AND $tableName.ontime BETWEEN $begTime AND $endTime
+            """
+        } else {
+            ""
+        }
+
+        return super.addSQLWhere(hsTableRenameList) + sSQL
+    }
+
+    override fun fillHeader(selectorID: String?, withAnchors: Boolean, alPath: MutableList<Pair<String, String>>, hmOut: MutableMap<String, Any>) {
+        super.fillHeader(selectorID, withAnchors, alPath, hmOut)
+
+        val begTime = getParentId("mms_data_beg")
+        val endTime = getParentId("mms_data_end")
+
+        if (begTime != null && endTime != null) {
+            alPath.removeLastOrNull()?.let { (headerUrl, headerText) ->
+                alPath += Pair(
+                    headerUrl,
+                    headerText + " за период с ${DateTime_YMDHMS(zoneId, begTime)} по ${DateTime_YMDHMS(zoneId, endTime)}"
+                )
+            }
+        }
+    }
 
     //--- перекрывается наследниками для генерации данных в момент загрузки записей ДО фильтров поиска и страничной разбивки
     override fun generateColumnDataBeforeFilter(hmColumnData: MutableMap<iColumn, iData>) {

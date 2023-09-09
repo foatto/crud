@@ -27,14 +27,22 @@ open class cMMSOneObjectParent : cStandart() {
         var s = aliasConfig.descr
         oc?.let { oc ->
             var sGD = ""
-            if (oc.groupName.isNotEmpty()) sGD += oc.groupName
-            if (oc.departmentName.isNotEmpty()) sGD += (if (sGD.isEmpty()) "" else ", ") + oc.departmentName
+            if (oc.groupName.isNotEmpty()) {
+                sGD += oc.groupName
+            }
+            if (oc.departmentName.isNotEmpty()) {
+                sGD += (if (sGD.isEmpty()) "" else ", ") + oc.departmentName
+            }
 
             s += ": ${oc.name}"
-            if (oc.model.isNotEmpty()) s += ", ${oc.model}"
-            if (sGD.isNotEmpty()) s += " ($sGD)"
+            if (oc.model.isNotEmpty()) {
+                s += ", ${oc.model}"
+            }
+            if (sGD.isNotEmpty()) {
+                s += " ($sGD)"
+            }
         }
 
-        alPath.add(Pair("", s))
+        alPath += Pair("", s)
     }
 }
