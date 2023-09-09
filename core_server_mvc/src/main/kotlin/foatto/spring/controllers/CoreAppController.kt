@@ -1233,7 +1233,7 @@ abstract class CoreAppController : iApplication {
 
         val rs = conn.executeQuery(" SELECT id FROM SYSTEM_role WHERE id <> 0 ")
         while (rs.next()) {
-            alRoleIds + rs.getInt(1)
+            alRoleIds += rs.getInt(1)
         }
         rs.close()
 
