@@ -31,7 +31,7 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
     override fun definePermission() {
         super.definePermission()
 
-        alPermission.add(Pair(PERM_SHOW_DIFF_INC_DEC, "05 Show Diff Inc-Dec"))
+        alPermission.add(Pair(PERM_SHOW_DIFF_INC_DEC, "06 Show Diff Inc-Dec"))
     }
 
     override fun setPrintOptions() {

@@ -17,7 +17,9 @@ import java.time.temporal.ChronoUnit
 abstract class cAbstractReport : cAbstractForm() {
 
     companion object {
-        val REPORT_FILES_BASE = "reports"
+        const val PERM_REPORT_UNLOCK: String = "report_unlock"
+
+        const val REPORT_FILES_BASE: String = "reports"
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -112,7 +114,14 @@ abstract class cAbstractReport : cAbstractForm() {
 
     //    protected WritableCellFormat wcfCellCRedBack = null;
 
-//-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    override fun definePermission() {
+        super.definePermission()
+
+        alPermission.add(Pair(PERM_REPORT_UNLOCK, "05 Report Unlock"))
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     protected fun getBegEndTimeFromParam(): Pair<Int, Int> {
         val reportBegYear = hmReportParam["report_beg_year"] as Int
@@ -204,11 +213,16 @@ abstract class cAbstractReport : cAbstractForm() {
         postReport(sheet)
 
         //--- если есть картинка-водяной знак, тогда имеет смысл защищать отчет
-        val printKeyImage = File("${application.rootDirName}/logo.png")
-        if (printKeyW > 0 && printKeyH > 0 && printKeyImage.exists()) {
-            ss.password = getRandomInt().toString()
-            ss.isProtected = true
-            sheet.addImage(WritableImage(printKeyX, printKeyY, printKeyW, printKeyH, printKeyImage))
+        val hsPermission = userConfig.userPermission[aliasConfig.name]
+        val isReportUnlock = hsPermission?.contains(PERM_REPORT_UNLOCK) ?: false
+
+        if (!isReportUnlock) {
+            val printKeyImage = File("${application.rootDirName}/logo.png")
+            if (printKeyW > 0 && printKeyH > 0 && printKeyImage.exists()) {
+                ss.password = getRandomInt().toString()
+                ss.isProtected = true
+                sheet.addImage(WritableImage(printKeyX, printKeyY, printKeyW, printKeyH, printKeyImage))
+            }
         }
 
         workbook.write()
@@ -379,8 +393,7 @@ abstract class cAbstractReport : cAbstractForm() {
         for (w in alDim) {
             if (w > 0) {
                 captionConstWidthSum += w
-            }
-            else {
+            } else {
                 captionRelWidthSum += w
             }
         }
