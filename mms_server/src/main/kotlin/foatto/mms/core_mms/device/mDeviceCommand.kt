@@ -10,7 +10,6 @@ import foatto.core_server.app.server.column.ColumnRadioButton
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.mAbstract
 import foatto.mms.core_mms.ds.MMSTelematicFunction
-import foatto.mms.core_mms.ds.nio.MMSNioHandler
 import foatto.sql.CoreAdvancedConnection
 
 class mDeviceCommand : mAbstract() {

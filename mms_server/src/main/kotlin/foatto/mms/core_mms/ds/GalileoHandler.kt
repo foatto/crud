@@ -8,7 +8,6 @@ import foatto.core.util.getCurrentTimeInt
 import foatto.core_server.ds.CoreTelematicFunction
 import foatto.core_server.ds.nio.CoreNioServer
 import foatto.core_server.ds.nio.CoreNioWorker
-import foatto.mms.core_mms.ds.nio.MMSNioHandler
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigCounter
 import foatto.sql.CoreAdvancedConnection

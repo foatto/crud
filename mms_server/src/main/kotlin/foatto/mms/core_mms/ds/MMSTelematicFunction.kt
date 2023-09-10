@@ -25,6 +25,7 @@ object MMSTelematicFunction {
 //        const val DEVICE_TYPE_DEL_PULSAR = 7
 //        const val DEVICE_TYPE_MIELTA = 8
 //        const val DEVICE_TYPE_ADM = 9
+//    const val DEVICE_TYPE_NAVTELECOM = 10
 
     private val chmLastDayWork = ConcurrentHashMap<Int, Array<Int>>()
     private val chmLastWorkShift = ConcurrentHashMap<Int, Int>()
@@ -43,6 +44,7 @@ object MMSTelematicFunction {
 //            columnDeviceType.addChoice(DEVICE_TYPE_DEL_PULSAR, "ДЭЛ-Пульсар")
 //            columnDeviceType.addChoice(DEVICE_TYPE_MIELTA, "Mielta")
 //            columnDeviceType.addChoice(DEVICE_TYPE_ADM, "ADM")
+//        columnDeviceType.addChoice(DEVICE_TYPE_NAVTELECOM, "NavTelecom")
     }
 
     //--- пришлось делать в виде static, т.к. VideoServer не является потомком MMSHandler,

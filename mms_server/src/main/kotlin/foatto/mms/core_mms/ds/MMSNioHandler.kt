@@ -1,10 +1,8 @@
-package foatto.mms.core_mms.ds.nio
+package foatto.mms.core_mms.ds
 
 import foatto.core_server.ds.CoreTelematicFunction
 import foatto.core_server.ds.nio.AbstractTelematicNioHandler
 import foatto.core_server.ds.nio.CoreNioWorker
-import foatto.mms.core_mms.ds.DeviceConfig
-import foatto.mms.core_mms.ds.MMSTelematicFunction
 import foatto.mms.core_mms.sensor.config.SensorConfigGeo
 import foatto.sql.CoreAdvancedConnection
 import java.nio.channels.SocketChannel
