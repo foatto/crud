@@ -1244,22 +1244,14 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             var begValue = 0.0
             var lastValue = 0.0
             var sumValue = 0.0
-            val alPeriod = mutableListOf<AbstractPeriodData>()
-
-            var workBeginTime = 0
-            var delayBeginTime = 0
-            var curTime = 0
 
             for (pos in alRawTime.indices) {
-                curTime = alRawTime[pos]
+                val curTime = alRawTime[pos]
 
                 if (curTime < begTime) {
                     continue
                 }
                 if (curTime > endTime) {
-                    if (pos > 0) {
-                        curTime = alRawTime[pos - 1]
-                    }
                     break
                 }
 
@@ -1278,73 +1270,18 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                         sumValue += lastValue - begValue
                         begValue = sensorValue
                     }
-                    //--- work on time
-                    if (sensorValue > lastValue) {
-                        //--- record of previous downtime
-                        if (delayBeginTime != 0) {
-                            alPeriod.add(CounterPeriodData(delayBeginTime, curTime, 0))
-                            delayBeginTime = 0
-                        }
-                        //--- Beginning of work
-                        if (workBeginTime == 0) {
-                            workBeginTime = curTime
-                        }
-                    } else {    //--- wofk off time
-                        //--- record of previous work
-                        if (workBeginTime != 0) {
-                            alPeriod.add(CounterPeriodData(workBeginTime, curTime, 1))
-                            workBeginTime = 0
-                        }
-                        //--- start of downtime
-                        if (delayBeginTime == 0) {
-                            delayBeginTime = curTime
-                        }
-                    }
                     lastValue = sensorValue
                 } else {
                     sumValue += sensorValue
-                    //--- still in work?
-                    if (sensorValue > 0) {
-                        //--- record of previous downtime
-                        if (delayBeginTime != 0) {
-                            alPeriod.add(CounterPeriodData(delayBeginTime, curTime, 0))
-                            delayBeginTime = 0
-                        }
-                        //--- Beginning of work
-                        if (workBeginTime == 0) {
-                            workBeginTime = curTime
-                        }
-                    } else {
-                        //--- record of previous work
-                        if (workBeginTime != 0) {
-                            alPeriod.add(CounterPeriodData(workBeginTime, curTime, 1))
-                            workBeginTime = 0
-                        }
-                        //--- start of downtime
-                        if (delayBeginTime == 0) {
-                            delayBeginTime = curTime
-                        }
-                    }
                 }
             }
             if (scc.isAbsoluteCount) {
                 sumValue += lastValue - begValue
             }
-            //--- record of the last unclosed event
-            if (workBeginTime != 0) {
-                alPeriod.add(CounterPeriodData(workBeginTime, curTime, 1))
-            }
-            if (delayBeginTime != 0) {
-                alPeriod.add(CounterPeriodData(delayBeginTime, curTime, 0))
-            }
-
-            //--- merging of work / downtime periods according to minimum durations
-            mergePeriods(alPeriod, scc.minOnTime, scc.minOffTime)
 
             return CounterCalcData(
                 scc = scc,
                 value = sumValue,
-                alWorkOnOff = alPeriod,
             )
         }
 

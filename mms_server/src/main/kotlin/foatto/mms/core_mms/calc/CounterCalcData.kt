@@ -7,7 +7,6 @@ class CounterCalcData(
     val scc: SensorConfigCounter,
 
     val value: Double,
-    val alWorkOnOff: List<AbstractPeriodData>,
 ) {
     var density: GraphicDataContainer? = null
 }
