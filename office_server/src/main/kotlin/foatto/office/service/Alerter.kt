@@ -563,21 +563,22 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
             action = ACTION_DELETE
             actionDescr = "# Поручение перемещено в архив #"
         } else {
-            //--- превращаем русский ОК в английский OK, чтобы не было случайных вхождений в фамилии
-            if (cmd == "ОК") {
+            //--- превращаем русский ОК или ДА в английский OK, чтобы не было случайных вхождений в фамилии
+            if (cmd == "ОК" || cmd == "ДА") {
                 cmd = "OK"
-            }
-            //--- если есть однозначное совпадение (содержание в полном имени) пользователя, то переназначить
-            hmUserFullNames.keys.forEach { uID ->
-                val userName = hmUserFullNames[uID]?.uppercase(Locale.getDefault())
-                //--- есть такой пользователь
-                if (userName != null && userName.contains(cmd)) {
-                    //--- если это в первый (единственный) раз, то запомним этого пользователя
-                    if (newUserID == 0) {
-                        newUserID = uID
-                    } else {
-                        newUserID = 0
-                        return@forEach
+            } else {
+                //--- если есть однозначное совпадение (содержание в полном имени) пользователя, то переназначить
+                hmUserFullNames.keys.forEach { uID ->
+                    val userName = hmUserFullNames[uID]?.uppercase(Locale.getDefault())
+                    //--- есть такой пользователь
+                    if (userName != null && userName.contains(cmd)) {
+                        //--- если это в первый (единственный) раз, то запомним этого пользователя
+                        if (newUserID == 0) {
+                            newUserID = uID
+                        } else {
+                            newUserID = 0
+                            return@forEach
+                        }
                     }
                 }
             }
