@@ -4,6 +4,7 @@ import foatto.core.util.AdvancedByteBuffer
 import foatto.core.util.DateTime_YMDHMS
 import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.getFileWriter
+import foatto.sql.CoreAdvancedConnection
 import java.io.File
 import java.time.ZoneId
 import java.util.*
@@ -20,21 +21,67 @@ object CoreTelematicFunction {
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    fun putBitSensor(deviceIndex: Int, bitValue: Int, startPortNum: Int, sensorCount: Int, bbData: AdvancedByteBuffer) {
+    fun putBitSensor(
+        deviceIndex: Int,
+        bitValue: Int,
+        startPortNum: Int,
+        sensorCount: Int,
+        bbData: AdvancedByteBuffer,
+        pointTime: Int,
+        hmPortTime: MutableMap<Int, Int>,
+    ) {
         for (i in 0 until sensorCount) {
-            putSensorData(deviceIndex, startPortNum + i, 1, bitValue.ushr(i) and 0x1, bbData)
+            putSensorData(
+                deviceIndex = deviceIndex,
+                portNum = startPortNum + i,
+                dataSize = 1,
+                dataValue = bitValue.ushr(i) and 0x1,
+                bbData = bbData,
+                pointTime = pointTime,
+                hmPortTime = hmPortTime,
+            )
         }
     }
 
-    fun putDigitalSensor(deviceIndex: Int, tmDigitalSensor: SortedMap<Int, Int>, startPortNum: Int, sensorDataSize: Int, bbData: AdvancedByteBuffer) {
+    fun putDigitalSensor(
+        deviceIndex: Int,
+        tmDigitalSensor: SortedMap<Int, Int>,
+        startPortNum: Int,
+        sensorDataSize: Int,
+        bbData: AdvancedByteBuffer,
+        pointTime: Int,
+        hmPortTime: MutableMap<Int, Int>,
+    ) {
         tmDigitalSensor.forEach { (index, value) ->
-            putSensorData(deviceIndex, startPortNum + index, sensorDataSize, value, bbData)
+            putSensorData(
+                deviceIndex = deviceIndex,
+                portNum = startPortNum + index,
+                dataSize = sensorDataSize,
+                dataValue = value,
+                bbData = bbData,
+                pointTime = pointTime,
+                hmPortTime = hmPortTime,
+            )
         }
     }
 
-    fun putDigitalSensor(deviceIndex: Int, tmDigitalSensor: SortedMap<Int, Double>, startPortNum: Int, bbData: AdvancedByteBuffer) {
+    fun putDigitalSensor(
+        deviceIndex: Int,
+        tmDigitalSensor: SortedMap<Int, Double>,
+        startPortNum: Int,
+        bbData: AdvancedByteBuffer,
+        pointTime: Int,
+        hmPortTime: MutableMap<Int, Int>,
+    ) {
         tmDigitalSensor.forEach { (index, value) ->
-            putSensorData(deviceIndex, startPortNum + index, value, bbData)
+            putSensorData(
+                deviceIndex = deviceIndex,
+                portNum = startPortNum + index,
+                dataValue = value,
+                bbData = bbData,
+                pointTime = pointTime,
+                hmPortTime = hmPortTime,
+            )
         }
     }
 
@@ -44,8 +91,23 @@ object CoreTelematicFunction {
     //            putSensorData( startPortNum + i, sensorDataSize, arrDigitalSensor[ i ], bbData );
     //    }
 
-    fun putSensorData(deviceIndex: Int, portNum: Int, dataSize: Int, dataValue: Int, bbData: AdvancedByteBuffer) {
-        putSensorPortNumAndDataSize(deviceIndex, portNum, dataSize, bbData)
+    fun putSensorData(
+        deviceIndex: Int,
+        portNum: Int,
+        dataSize: Int,
+        dataValue: Int,
+        bbData: AdvancedByteBuffer,
+        pointTime: Int,
+        hmPortTime: MutableMap<Int, Int>,
+    ) {
+        putSensorPortNumAndDataSize(
+            deviceIndex = deviceIndex,
+            portNum = portNum,
+            dataSize = dataSize,
+            bbData = bbData,
+            pointTime = pointTime,
+            hmPortTime = hmPortTime,
+        )
 
         when (dataSize) {
             1 -> bbData.putByte(dataValue)
@@ -56,9 +118,23 @@ object CoreTelematicFunction {
         }
     }
 
-    fun putSensorData(deviceIndex: Int, portNum: Int, dataValue: Double, bbData: AdvancedByteBuffer) {
+    fun putSensorData(
+        deviceIndex: Int,
+        portNum: Int,
+        dataValue: Double,
+        bbData: AdvancedByteBuffer,
+        pointTime: Int,
+        hmPortTime: MutableMap<Int, Int>,
+    ) {
         //--- не будем хранить float в 4-х байтах, т.к. это будет путаться с 4-байтовым int'ом
-        putSensorPortNumAndDataSize(deviceIndex, portNum, 8, bbData)
+        putSensorPortNumAndDataSize(
+            deviceIndex = deviceIndex,
+            portNum = portNum,
+            dataSize = 8,
+            bbData = bbData,
+            pointTime = pointTime,
+            hmPortTime = hmPortTime,
+        )
 
         bbData.putDouble(dataValue)
     }
@@ -74,8 +150,41 @@ object CoreTelematicFunction {
     //            else if( dataSize == 4 ) bbData.putInt( arrDataValue[ i ] );
     //    }
 
-    fun putSensorPortNumAndDataSize(deviceIndex: Int, portNum: Int, dataSize: Int, bbData: AdvancedByteBuffer) {
-        bbData.putShort(deviceIndex * MAX_PORT_PER_DEVICE + portNum).putShort(dataSize - 1)
+    fun putSensorPortNumAndDataSize(
+        deviceIndex: Int,
+        portNum: Int,
+        dataSize: Int,
+        bbData: AdvancedByteBuffer,
+        pointTime: Int,
+        hmPortTime: MutableMap<Int, Int>,
+    ) {
+        val pn = deviceIndex * MAX_PORT_PER_DEVICE + portNum
+        bbData.putShort(pn).putShort(dataSize - 1)
+        hmPortTime[pn] = pointTime
+    }
+
+    fun updatePortTime(
+        conn: CoreAdvancedConnection,
+        objectId: Int,
+        hmPortTime: MutableMap<Int, Int>,
+    ) {
+        val hmTimePorts = mutableMapOf<Int, MutableList<Int>>()
+        hmPortTime.forEach { (portNum, time) ->
+            val alPorts = hmTimePorts.getOrPut(time) {
+                mutableListOf()
+            }
+            alPorts += portNum
+        }
+        hmTimePorts.forEach { (time, alPorts) ->
+            conn.executeUpdate(
+                """
+                    UPDATE MMS_sensor 
+                    SET raw_time = $time
+                    WHERE object_id = $objectId
+                    AND port_num IN ( ${alPorts.joinToString(" , ")} )
+                """
+            )
+        }
     }
 
     fun writeJournal(

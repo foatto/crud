@@ -6,13 +6,7 @@ import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.ChildData
 import foatto.core_server.app.server.DependData
 import foatto.core_server.app.server.UserConfig
-import foatto.core_server.app.server.column.ColumnBoolean
-import foatto.core_server.app.server.column.ColumnComboBox
-import foatto.core_server.app.server.column.ColumnDate3Int
-import foatto.core_server.app.server.column.ColumnDouble
-import foatto.core_server.app.server.column.ColumnInt
-import foatto.core_server.app.server.column.ColumnRadioButton
-import foatto.core_server.app.server.column.ColumnString
+import foatto.core_server.app.server.column.*
 import foatto.core_server.app.server.mAbstract
 import foatto.mms.core_mms.ObjectSelector
 import foatto.mms.core_mms.sensor.config.SensorConfig
@@ -445,6 +439,9 @@ class mSensor : mAbstract() {
             isVirtual = true
         }
 
+        val rawDataTime = ColumnDateTimeInt(modelTableName, "raw_time", "Raw Data Time", true, zoneId)
+        val calcDataTime = ColumnDateTimeInt(modelTableName, "calc_time", "Calc Data Time", true, zoneId)
+
         //----------------------------------------------------------------------------------------------------------------------------------------
 
         alTableHiddenColumn.add(columnId)
@@ -467,6 +464,8 @@ class mSensor : mAbstract() {
         if (isEquip) {
             addTableColumn(columnBegWorkValue)
         }
+        addTableColumn(rawDataTime)
+        addTableColumn(calcDataTime)
 
         alFormHiddenColumn.add(columnId)
         alFormHiddenColumn.add(columnSensorName)

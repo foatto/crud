@@ -49,9 +49,12 @@ abstract class MMSNioHandler : AbstractTelematicNioHandler() {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     protected fun loadDeviceConfig(conn: CoreAdvancedConnection): Boolean {
-        deviceConfig = DeviceConfig.getDeviceConfig(conn, serialNo)
-        //--- неизвестный контроллер
-        if (deviceConfig == null) {
+        DeviceConfig.getDeviceConfig(conn, serialNo)?.let { dc ->
+            deviceConfig = dc
+            status += " ID;"
+            return true
+        } ?: run {
+            //--- неизвестный контроллер
             MMSTelematicFunction.writeError(
                 conn = conn,
                 dirSessionLog = dirSessionLog,
@@ -77,8 +80,6 @@ abstract class MMSNioHandler : AbstractTelematicNioHandler() {
             )
             return false
         }
-        status += " ID;"
-        return true
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

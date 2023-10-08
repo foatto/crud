@@ -126,6 +126,7 @@ class MMSPulsarDataController {
     ) {
         val dirSessionLog = File(configSessionLogPath)
         val dirJournalLog = File(configJournalLogPath)
+        val hmPortTime = mutableMapOf<Int, Int>()
 
         val conn = AdvancedConnection(CoreSpringApp.dbConfig)
 
@@ -145,8 +146,8 @@ class MMSPulsarDataController {
             //--- first initial row in data packet array
             if (pulsarData.deviceID != null) {
                 if (pulsarData.blockID == BLOCK_ID) {
-                    if (pulsarData.deviceID == null) {
-                        outDeviceParseError(dirJournalLog, request.remoteAddr, "Empty deviceId")
+                    if (pulsarData.deviceID.isNullOrBlank()) {
+                        outDeviceParseError(dirJournalLog, request.remoteAddr, "Empty deviceID")
                         break
                     }
                     serialNo = pulsarData.deviceID!!
@@ -225,7 +226,7 @@ class MMSPulsarDataController {
                     } ?: run {
                         outDataParseError(serialNo, "vals is null")
                     }
-                    savePoint(conn, deviceConfig!!, pointTime, sqlBatchData)
+                    savePoint(conn, deviceConfig!!, pointTime, hmPortTime, sqlBatchData)
                 } ?: run {
                     outDataParseError(serialNo, "dateTime is null")
                 }
@@ -236,6 +237,8 @@ class MMSPulsarDataController {
             status += " DataRead;"
 
             sqlBatchData.execute(conn)
+
+            CoreTelematicFunction.updatePortTime(conn, deviceConfig.objectId, hmPortTime)
 
             //--- данные успешно переданы - теперь можно завершить транзакцию
             status += " Ok;"
@@ -274,6 +277,7 @@ class MMSPulsarDataController {
         conn: CoreAdvancedConnection,
         deviceConfig: DeviceConfig,
         pointTime: Int,
+        hmPortTime: MutableMap<Int, Int>,
         sqlBatchData: SQLBatch,
     ) {
         val curTime = getCurrentTimeInt()
@@ -311,59 +315,59 @@ class MMSPulsarDataController {
 //            putDigitalSensor(tmRS485Temp, 40, 4, bbData)
 //
 //            putDigitalSensor(tmUserData, 100, 4, bbData)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmCountSensor, 110, bbData)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmLevelSensor, 120, bbData)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmVoltageSensor, 140, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmCountSensor, 110, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmLevelSensor, 120, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmVoltageSensor, 140, bbData, pointTime, hmPortTime)
 
             //--- данные по электросчётчику ---
 
             //--- значения счётчиков от последнего сброса (активная/реактивная прямая/обратная)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCountActiveDirect, 160, bbData)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCountActiveReverse, 164, bbData)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCountReactiveDirect, 168, bbData)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCountReactiveReverse, 172, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCountActiveDirect, 160, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCountActiveReverse, 164, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCountReactiveDirect, 168, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCountReactiveReverse, 172, bbData, pointTime, hmPortTime)
 
             //--- напряжение по фазам A1..4, B1..4, C1..4
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoVoltageA, 180, bbData)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoVoltageB, 184, bbData)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoVoltageC, 188, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoVoltageA, 180, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoVoltageB, 184, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoVoltageC, 188, bbData, pointTime, hmPortTime)
 
             //--- ток по фазам A1..4, B1..4, C1..4
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCurrentA, 200, bbData)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCurrentB, 204, bbData)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCurrentC, 208, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCurrentA, 200, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCurrentB, 204, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCurrentC, 208, bbData, pointTime, hmPortTime)
 
             //--- коэффициент мощности по фазам A1..4, B1..4, C1..4
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerKoefA, 220, bbData)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerKoefB, 224, bbData)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerKoefC, 228, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerKoefA, 220, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerKoefB, 224, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerKoefC, 228, bbData, pointTime, hmPortTime)
 
             //--- активная мощность по фазам A1..4, B1..4, C1..4
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerActiveA, 232, bbData)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerActiveB, 236, bbData)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerActiveC, 240, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerActiveA, 232, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerActiveB, 236, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerActiveC, 240, bbData, pointTime, hmPortTime)
 
             //--- реактивная мощность по фазам A1..4, B1..4, C1..4
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerReactiveA, 244, bbData)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerReactiveB, 248, bbData)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerReactiveC, 252, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerReactiveA, 244, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerReactiveB, 248, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerReactiveC, 252, bbData, pointTime, hmPortTime)
 
             //--- полная мощность по фазам A1..4, B1..4, C1..4
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerFullA, 256, bbData)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerFullB, 260, bbData)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerFullC, 264, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerFullA, 256, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerFullB, 260, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerFullC, 264, bbData, pointTime, hmPortTime)
 
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmMassFlow, 270, bbData)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmDensity, 280, bbData)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmTemperature, 290, bbData)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmVolumeFlow, 300, bbData)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmAccumulatedMass, 310, bbData)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmAccumulatedVolume, 320, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmMassFlow, 270, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmDensity, 280, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmTemperature, 290, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmVolumeFlow, 300, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmAccumulatedMass, 310, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmAccumulatedVolume, 320, bbData, pointTime, hmPortTime)
 
             //--- мощность по трём фазам: активная, реактивная, суммарная
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerActiveABC, 330, bbData)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerReactiveABC, 340, bbData)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerFullABC, 350, bbData)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerActiveABC, 330, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerReactiveABC, 340, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerFullABC, 350, bbData, pointTime, hmPortTime)
 
 //            //--- EuroSens Delta
 //            putDigitalSensor(tmESDStatus, 500, bbData)
