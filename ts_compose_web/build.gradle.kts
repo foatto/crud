@@ -29,7 +29,7 @@ tasks {
         doLast {
             delete("/home/foatto/TSServerSpring/web/compose")
             copy {
-                from("/home/foatto/crud/ts_compose_web/build/dist/js/productionExecutable")
+                from("build/dist/js/productionExecutable")
                 into("/home/foatto/TSServerSpring/web/compose")
             }
         }

@@ -29,7 +29,7 @@ tasks {
         doLast {
             delete("/home/foatto/MMSServerSpring/web/compose")
             copy {
-                from("/home/foatto/crud/mms_compose_web/build/dist/js/productionExecutable")
+                from("build/dist/js/productionExecutable")
                 into("/home/foatto/MMSServerSpring/web/compose")
             }
         }

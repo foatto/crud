@@ -29,7 +29,7 @@ tasks {
         doLast {
             delete("/home/foatto/OfficeServerSpring/web/compose")
             copy {
-                from("/home/foatto/crud/office_compose_web/build/dist/js/productionExecutable")
+                from("build/dist/js/productionExecutable")
                 into("/home/foatto/OfficeServerSpring/web/compose")
             }
         }

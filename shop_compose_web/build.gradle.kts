@@ -29,7 +29,7 @@ tasks {
         doLast {
             delete("/home/foatto/ShopServerSpring/web/compose")
             copy {
-                from("/home/foatto/crud/shop_compose_web/build/dist/js/productionExecutable")
+                from("build/dist/js/productionExecutable")
                 into("/home/foatto/ShopServerSpring/web/compose")
             }
         }

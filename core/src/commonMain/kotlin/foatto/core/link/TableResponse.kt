@@ -298,8 +298,6 @@ class TableGridCellData(
     val icon: String = "",
     val image: String = "",
     val text: String = "",
-//    val url: String = "",
-//    val inNewWindow: Boolean = false
 )
 
 @Serializable

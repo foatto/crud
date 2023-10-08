@@ -44,7 +44,7 @@ class DeviceConfig {
             }
             rs.close()
 
-            if (dc != null) {
+            dc?.let {
                 rs = conn.executeQuery(" SELECT speed_round_rule FROM MMS_sensor WHERE object_id = ${dc.objectId} AND sensor_type = ${SensorConfig.SENSOR_GEO}")
                 dc.speedRoundRule = if (rs.next()) {
                     rs.getInt(1)
