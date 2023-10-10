@@ -4,6 +4,8 @@ enum class CoreSQLDialectEnum(
     val dialect: String,
     //--- наименование целочисленного типа
     val integerFieldTypeName: String,
+    //--- наименование дробного типа
+    val doubleFieldTypeName: String,
     //--- поддержка полей с бинарными данными
     val isBinaryDataSupported: Boolean,
     //--- наименование типа поля для хранения hex-данных (чисто бинарное или эмулирующее его текстовое)
@@ -23,6 +25,7 @@ enum class CoreSQLDialectEnum(
     H2(
         dialect = "H2",
         integerFieldTypeName = " INT ",                // INTEGER, INT4, MEDIUMNINT
+        doubleFieldTypeName = " FLOAT8 ",   //!!! уточнить
         isBinaryDataSupported = true,                   // binary data supported
         hexFieldTypeName = " BYTEA ",              // можно ((LONG)VAR)BINARY,RAW,BYTEA
         binaryFieldMaxSize = 64000,                  // до 2 GB ); от греха подальше сделаем 64К//
@@ -35,6 +38,7 @@ enum class CoreSQLDialectEnum(
     MSSQL(
         dialect = "MSSQL",
         integerFieldTypeName = " INT ",
+        doubleFieldTypeName = " FLOAT8 ",   //!!! уточнить
         isBinaryDataSupported = true,
         hexFieldTypeName = " VARBINARY( 8000 ) ",
         binaryFieldMaxSize = 8000,
@@ -46,6 +50,7 @@ enum class CoreSQLDialectEnum(
     ORACLE(
         dialect = "Oracle",
         integerFieldTypeName = " NUMBER( 10 ) ",
+        doubleFieldTypeName = " FLOAT8 ",   //!!! уточнить
         isBinaryDataSupported = false,
         hexFieldTypeName = " VARCHAR2( 4000 ) ",
         binaryFieldMaxSize = 4000,
@@ -57,6 +62,7 @@ enum class CoreSQLDialectEnum(
     POSTGRESQL(
         dialect = "PostgreSQL",
         integerFieldTypeName = " INT ",
+        doubleFieldTypeName = " FLOAT8 ",
         isBinaryDataSupported = true,
         hexFieldTypeName = " BYTEA ",           // Integer.MAX_VALUE ); от греха подальше сделаем 64К
         binaryFieldMaxSize = 64000,            // Integer.MAX_VALUE ); от греха подальше сделаем 64К
@@ -73,6 +79,7 @@ enum class CoreSQLDialectEnum(
     SQLITE(
         dialect = "SQLite",
         integerFieldTypeName = " INTEGER ",
+        doubleFieldTypeName = " FLOAT8 ",   //!!! уточнить
         isBinaryDataSupported = false,
         hexFieldTypeName = " TEXT ",         // 1_000_000_000 ); от греха подальше сделаем 64К
         binaryFieldMaxSize = 64000,            // 1_000_000_000 ); от греха подальше сделаем 64К
