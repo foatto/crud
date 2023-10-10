@@ -39,6 +39,7 @@ class cSensor : cMMSOneObjectParent() {
         val postURL = super.postAdd(id, hmColumnData, hmOut)
 
         saveCalibration(id, hmColumnData)
+        createAggTable(id)
 
         return postURL
     }
@@ -49,6 +50,11 @@ class cSensor : cMMSOneObjectParent() {
         saveCalibration(id, hmColumnData)
 
         return postURL
+    }
+
+    override fun postDelete(id: Int, hmColumnData: Map<iColumn, iData>) {
+        super.postDelete(id, hmColumnData)
+        deleteAggTable(id)
     }
 
     private fun saveCalibration(id: Int, hmColumnData: Map<iColumn, iData>) {
@@ -74,4 +80,20 @@ class cSensor : cMMSOneObjectParent() {
         }
     }
 
+    private fun createAggTable(id: Int) {
+        conn.executeUpdate(
+            """ 
+                CREATE TABLE MMS_agg_$id ( 
+                    ontime ${conn.dialect.integerFieldTypeName} NOT NULL, 
+                    value_1 ${conn.dialect.doubleFieldTypeName} NOT NULL DEFAULT(0.0),
+                    value_2 ${conn.dialect.doubleFieldTypeName} NOT NULL DEFAULT(0.0)
+                ) 
+            """.trimMargin()
+        )
+        conn.executeUpdate(conn.dialect.createClusteredIndex + " MMS_agg_${id}_ontime ON MMS_agg_$id ( ontime ) ")
+    }
+
+    private fun deleteAggTable(id: Int) {
+        conn.executeUpdate(" DROP TABLE MMS_agg_$id ")
+    }
 }
