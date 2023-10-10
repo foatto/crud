@@ -11,6 +11,8 @@ abstract class SensorConfigBase(
     aBegYe: Int,
     aBegMo: Int,
     aBegDa: Int,
+    rawTime: Int,
+    calcTime: Int,
     val minIgnore: Double,
     val maxIgnore: Double,
 ) : SensorConfig(
@@ -24,6 +26,8 @@ abstract class SensorConfigBase(
     begYe = aBegYe,
     begMo = aBegMo,
     begDa = aBegDa,
+    rawTime = rawTime,
+    calcTime = calcTime,
 ) {
 
     //--- must be double, so as not to run into errors with integer division later

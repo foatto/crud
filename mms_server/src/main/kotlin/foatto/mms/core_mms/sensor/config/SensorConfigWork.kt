@@ -11,6 +11,8 @@ class SensorConfigWork(
     aBegYe: Int,
     aBegMo: Int,
     aBegDa: Int,
+    aRawTime: Int,
+    aCalcTime: Int,
     val boundValue: Int,
     val activeValue: Int,
     val minOnTime: Int,
@@ -37,4 +39,6 @@ class SensorConfigWork(
     begYe = aBegYe,
     begMo = aBegMo,
     begDa = aBegDa,
+    rawTime = aRawTime,
+    calcTime = aCalcTime,
 )

@@ -36,6 +36,13 @@ class SensorEntity(
     @Column(name = "beg_da")
     val begDa: Int,
 
+    //--- aggregator data
+
+    @Column(name = "raw_time")
+    val rawTime: Int,
+    @Column(name = "calc_time")
+    val calcTime: Int,
+
     //--- geo-sensor data
 
     @Column(name = "min_moving_time")

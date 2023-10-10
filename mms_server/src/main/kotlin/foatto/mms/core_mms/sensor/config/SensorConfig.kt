@@ -11,6 +11,8 @@ open class SensorConfig(
     val begYe: Int,
     val begMo: Int,
     val begDa: Int,
+    val rawTime: Int,
+    val calcTime: Int,
 ) {
 
     companion object {

@@ -11,6 +11,8 @@ class SensorConfigSignal(
     aBegYe: Int,
     aBegMo: Int,
     aBegDa: Int,
+    aRawTime: Int,
+    aCalcTime: Int,
     val boundValue: Int,
     val activeValue: Int,
     val minIgnore: Double,
@@ -28,4 +30,6 @@ class SensorConfigSignal(
     begYe = aBegYe,
     begMo = aBegMo,
     begDa = aBegDa,
+    rawTime = aRawTime,
+    calcTime = aCalcTime,
 )
