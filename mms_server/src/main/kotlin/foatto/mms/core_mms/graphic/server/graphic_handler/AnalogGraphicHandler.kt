@@ -62,7 +62,7 @@ open class AnalogGraphicHandler : iGraphicHandler {
     override fun getRawData(sca: SensorConfigAnalogue, bb: AdvancedByteBuffer): Double? {
         val sensorData = AbstractObjectStateCalc.getSensorData(sca.portNum, bb)?.toDouble() ?: return null
         //--- вручную игнорируем заграничные значения
-        return if (ObjectCalc.isIgnoreSensorData(sca, sensorData)) {
+        return if (ObjectCalc.isIgnoreSensorData(sca.minIgnore, sca.maxIgnore, sensorData)) {
             null
         } else {
             AbstractObjectStateCalc.getSensorValue(sca.alValueSensor, sca.alValueData, sensorData)

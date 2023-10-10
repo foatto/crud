@@ -137,7 +137,7 @@ class ObjectState {
                             //--- значение не важно, ибо ошибка, лишь бы что-то было
                             result.tmLiquidLevel[sca.descr] = 0.0
                             break
-                        } else if (!ObjectCalc.isIgnoreSensorData(sca, sensorData.toDouble())) {
+                        } else if (!ObjectCalc.isIgnoreSensorData(sca.minIgnore, sca.maxIgnore, sensorData.toDouble())) {
                             result.tmLiquidTime[sca.descr] = time
                             result.tmLiquidLevel[sca.descr] = AbstractObjectStateCalc.getSensorValue(sca.alValueSensor, sca.alValueData, sensorData.toDouble())
                             break

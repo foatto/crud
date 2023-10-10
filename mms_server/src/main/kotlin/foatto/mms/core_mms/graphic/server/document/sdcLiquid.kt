@@ -472,7 +472,7 @@ class sdcLiquid : sdcAbstractAnalog() {
                 sumTime += alRawTime[p]
             }
             val avgTime = (sumTime / (pos2 - pos1)).toInt()
-            val sumData = ObjectCalc.calcCounterOrAccumulatedSensor(alRawTime, alRawData, scc, alRawTime[pos1], alRawTime[pos2]).value
+            val sumData = ObjectCalc.calcCounterOrAccumulatedSensor(conn, alRawTime, alRawData, scc, alRawTime[pos1], alRawTime[pos2]).value
 
             val timeDelta = alRawTime[pos2 - 1] - alRawTime[pos1]
             var liquidUsingPerHour = if (timeDelta == 0) {

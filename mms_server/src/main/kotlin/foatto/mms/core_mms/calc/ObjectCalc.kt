@@ -93,6 +93,9 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
         //--- used to calculate the average fuel consumption during refueling / draining
         private const val MAX_CALC_PREV_NORMAL_PERIOD = 3 * 60 * 60
 
+        //--- maximum allowable duration of (raw_time - calc_time)
+        private const val MAX_AGGREGATOR_TIME_DIFF = 5 * 60
+
         fun calcObject(conn: CoreAdvancedConnection, userConfig: UserConfig, oc: ObjectConfig, begTime: Int, endTime: Int): ObjectCalc {
 
             val result = ObjectCalc(oc)
@@ -114,24 +117,24 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 SensorConfig.SENSOR_ENERGO_COUNT_AD,
                 SensorConfig.SENSOR_ENERGO_COUNT_AR,
                 SensorConfig.SENSOR_ENERGO_COUNT_RD,
-                SensorConfig.SENSOR_ENERGO_COUNT_RR
+                SensorConfig.SENSOR_ENERGO_COUNT_RR,
             ).forEach { sensorType ->
                 oc.hmSensorConfig[sensorType]?.values?.forEach { sc ->
-                    calcEnergo(alRawTime, alRawData, sc as SensorConfigEnergoSummary, begTime, endTime, result)
+                    calcEnergo(conn, alRawTime, alRawData, sc as SensorConfigEnergoSummary, begTime, endTime, result)
                 }
             }
 
             //--- mass accumulated values sensor
             oc.hmSensorConfig[SensorConfig.SENSOR_MASS_ACCUMULATED]?.values?.forEach { sc ->
-                calcCounterOrAccumulatedSensor(alRawTime, alRawData, sc as SensorConfigCounter, begTime, endTime, result)
+                calcCounterOrAccumulatedSensor(conn, alRawTime, alRawData, sc as SensorConfigCounter, begTime, endTime, result)
             }
             //--- volume accumulated values sensor
             oc.hmSensorConfig[SensorConfig.SENSOR_VOLUME_ACCUMULATED]?.values?.forEach { sc ->
-                calcCounterOrAccumulatedSensor(alRawTime, alRawData, sc as SensorConfigCounter, begTime, endTime, result)
+                calcCounterOrAccumulatedSensor(conn, alRawTime, alRawData, sc as SensorConfigCounter, begTime, endTime, result)
             }
             //--- liquid calc sensor
             oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_USING]?.values?.forEach { sc ->
-                calcCounterOrAccumulatedSensor(alRawTime, alRawData, sc as SensorConfigCounter, begTime, endTime, result)
+                calcCounterOrAccumulatedSensor(conn, alRawTime, alRawData, sc as SensorConfigCounter, begTime, endTime, result)
             }
 
             //--- liquid level sensors
@@ -514,40 +517,62 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
         }
 
         fun calcEnergoSensor(
+            conn: CoreAdvancedConnection,
             alRawTime: List<Int>,
             alRawData: List<AdvancedByteBuffer>,
             sces: SensorConfigEnergoSummary,
             begTime: Int,
             endTime: Int
         ): Double {
-            //--- counters that give absolute values in their readings can reset it on command or overflow.
-            //--- you will have to catch each such reset (the algorithm is somewhat similar to the search for refueling / draining)
-            //--- also skip sudden dots with a zero counter
-            var begE = 0.0
-            var lastE = 0.0
             var energo = 0.0
-
-            for (i in alRawTime.indices) {
-                val curTime = alRawTime[i]
-                if (curTime < begTime) continue
-                if (curTime > endTime) break
-
-                val sensorData = AbstractObjectStateCalc.getSensorData(sces.portNum, alRawData[i])?.toDouble() ?: continue
-                if (isIgnoreSensorData(sces, sensorData)) continue
-
-                val sensorValue = AbstractObjectStateCalc.getSensorValue(sces.alValueSensor, sces.alValueData, sensorData)
-
-                if (begE == 0.0) {
-                    begE = sensorValue
-                } else if (sensorValue < lastE) {
-                    energo += lastE - begE
-                    begE = sensorValue
+            if (endTime <= sces.calcTime || (sces.rawTime - sces.calcTime) <= MAX_AGGREGATOR_TIME_DIFF) {
+                val rs = conn.executeQuery(
+                    """
+                        SELECT SUM( value_1 ) 
+                        FROM MMS_agg_${sces.id}
+                        WHERE ontime BETWEEN $begTime AND $endTime
+                    """
+                )
+                energo = if (rs.next()) {
+                    rs.getDouble(1)
+                } else {
+                    0.0
                 }
-                lastE = sensorValue
+                rs.close()
+            } else {
+                //--- counters that give absolute values in their readings can reset it on command or overflow.
+                //--- you will have to catch each such reset (the algorithm is somewhat similar to the search for refueling / draining)
+                //--- also skip sudden dots with a zero counter
+                var begE = 0.0
+                var lastE = 0.0
 
+                for (i in alRawTime.indices) {
+                    val curTime = alRawTime[i]
+                    if (curTime < begTime) {
+                        continue
+                    }
+                    if (curTime > endTime) {
+                        break
+                    }
+
+                    val sensorData = AbstractObjectStateCalc.getSensorData(sces.portNum, alRawData[i])?.toDouble() ?: continue
+                    if (isIgnoreSensorData(sces.minIgnore, sces.maxIgnore, sensorData)) {
+                        continue
+                    }
+
+                    val sensorValue = AbstractObjectStateCalc.getSensorValue(sces.alValueSensor, sces.alValueData, sensorData)
+
+                    if (begE == 0.0) {
+                        begE = sensorValue
+                    } else if (sensorValue < lastE) {
+                        energo += lastE - begE
+                        begE = sensorValue
+                    }
+                    lastE = sensorValue
+
+                }
+                energo += lastE - begE
             }
-            energo += lastE - begE
-
             return energo
         }
 
@@ -1066,17 +1091,17 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
         }
 
         //--- define sensor data ignoring
-        fun isIgnoreSensorData(scb: SensorConfigBase, sensorData: Double?): Boolean =
+        fun isIgnoreSensorData(minIgnore: Double, maxIgnore: Double, sensorData: Double?): Boolean =
             if (sensorData == null) {
                 true
             }
             //--- classic variant: if minIgnore < maxIgnore, then ignore below minIgnore or above maxIgnore
-            else if (scb.minIgnore < scb.maxIgnore) {
-                sensorData < scb.minIgnore || sensorData > scb.maxIgnore
+            else if (minIgnore < maxIgnore) {
+                sensorData < minIgnore || sensorData > maxIgnore
             } else {
                 //--- alternative: if minIgnore >= maxIgnore, then ignore between minIgnore and maxIgnore,
                 //--- given the case, if minIgnore == maxIgnore, then ignore nothing
-                sensorData < scb.minIgnore && sensorData > scb.maxIgnore
+                sensorData < minIgnore && sensorData > maxIgnore
             }
 
         // --- (new condition - not academically / uselessly Ignore, but consider that equipment outside the specified limits DOES NOT WORK)
@@ -1151,6 +1176,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
         }
 
         private fun calcEnergo(
+            conn: CoreAdvancedConnection,
             alRawTime: List<Int>,
             alRawData: List<AdvancedByteBuffer>,
             sces: SensorConfigEnergoSummary,
@@ -1158,7 +1184,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             endTime: Int,
             result: ObjectCalc
         ) {
-            val e = calcEnergoSensor(alRawTime, alRawData, sces, begTime, endTime)
+            val e = calcEnergoSensor(conn, alRawTime, alRawData, sces, begTime, endTime)
 
             result.tmEnergo[sces.descr] = e
 
@@ -1174,6 +1200,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
         }
 
         private fun calcCounterOrAccumulatedSensor(
+            conn: CoreAdvancedConnection,
             alRawTime: List<Int>,
             alRawData: List<AdvancedByteBuffer>,
             scc: SensorConfigCounter,
@@ -1183,7 +1210,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
         ) {
             //--- if the name of the liquid (fuel) is given, then add its consumption to the general list
             if (scc.liquidName.isNotBlank()) {
-                val counterCalcData = calcCounterOrAccumulatedSensor(alRawTime, alRawData, scc, begTime, endTime)
+                val counterCalcData = calcCounterOrAccumulatedSensor(conn, alRawTime, alRawData, scc, begTime, endTime)
 
                 result.tmCounterData[scc.descr] = counterCalcData
 
@@ -1232,51 +1259,68 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
 
         //--- universal function for determining the REAL sum of counter values
         fun calcCounterOrAccumulatedSensor(
+            conn: CoreAdvancedConnection,
             alRawTime: List<Int>,
             alRawData: List<AdvancedByteBuffer>,
             scc: SensorConfigCounter,
             begTime: Int,
             endTime: Int
         ): CounterCalcData {
-            //--- counters that give absolute values in their readings can reset it on command or overflow.
-            //--- you will have to catch each such reset (the algorithm is somewhat similar to the search for refueling / draining)
-            //--- also skip sudden dots with a zero counter
-            var begValue = 0.0
-            var lastValue = 0.0
             var sumValue = 0.0
-
-            for (pos in alRawTime.indices) {
-                val curTime = alRawTime[pos]
-
-                if (curTime < begTime) {
-                    continue
-                }
-                if (curTime > endTime) {
-                    break
-                }
-
-                val sensorData = AbstractObjectStateCalc.getSensorData(scc.portNum, alRawData[pos])?.toDouble() ?: continue
-                //--- ignore outbound values
-                if (isIgnoreSensorData(scc, sensorData)) {
-                    continue
-                }
-
-                val sensorValue = AbstractObjectStateCalc.getSensorValue(scc.alValueSensor, scc.alValueData, sensorData)
-
-                if (scc.isAbsoluteCount) {
-                    if (begValue <= 0) {
-                        begValue = sensorValue
-                    } else if (sensorValue < lastValue) {
-                        sumValue += lastValue - begValue
-                        begValue = sensorValue
-                    }
-                    lastValue = sensorValue
+            if (endTime <= scc.calcTime || (scc.rawTime - scc.calcTime) <= MAX_AGGREGATOR_TIME_DIFF) {
+                val rs = conn.executeQuery(
+                    """
+                        SELECT SUM( value_1 ) 
+                        FROM MMS_agg_${scc.id}
+                        WHERE ontime BETWEEN $begTime AND $endTime
+                    """
+                )
+                sumValue = if (rs.next()) {
+                    rs.getDouble(1)
                 } else {
-                    sumValue += sensorValue
+                    0.0
                 }
-            }
-            if (scc.isAbsoluteCount) {
-                sumValue += lastValue - begValue
+                rs.close()
+            } else {
+                //--- counters that give absolute values in their readings can reset it on command or overflow.
+                //--- you will have to catch each such reset (the algorithm is somewhat similar to the search for refueling / draining)
+                //--- also skip sudden dots with a zero counter
+                var begValue = 0.0
+                var lastValue = 0.0
+
+                for (pos in alRawTime.indices) {
+                    val curTime = alRawTime[pos]
+
+                    if (curTime < begTime) {
+                        continue
+                    }
+                    if (curTime > endTime) {
+                        break
+                    }
+
+                    val sensorData = AbstractObjectStateCalc.getSensorData(scc.portNum, alRawData[pos])?.toDouble() ?: continue
+                    //--- ignore outbound values
+                    if (isIgnoreSensorData(scc.minIgnore, scc.maxIgnore, sensorData)) {
+                        continue
+                    }
+
+                    val sensorValue = AbstractObjectStateCalc.getSensorValue(scc.alValueSensor, scc.alValueData, sensorData)
+
+                    if (scc.isAbsoluteCount) {
+                        if (begValue <= 0) {
+                            begValue = sensorValue
+                        } else if (sensorValue < lastValue) {
+                            sumValue += lastValue - begValue
+                            begValue = sensorValue
+                        }
+                        lastValue = sensorValue
+                    } else {
+                        sumValue += sensorValue
+                    }
+                }
+                if (scc.isAbsoluteCount) {
+                    sumValue += lastValue - begValue
+                }
             }
 
             return CounterCalcData(
