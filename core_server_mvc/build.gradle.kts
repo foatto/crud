@@ -6,8 +6,6 @@ val kotlinJvmTarget: String by project
 
 val springBootVersion: String by project
 
-val coreServerMvcVersion: String by project
-
 plugins {
     kotlin("jvm")
 
@@ -16,11 +14,7 @@ plugins {
 
     id("io.spring.dependency-management")
     id("org.springframework.boot")
-
-    `maven-publish`
 }
-
-version = coreServerMvcVersion
 
 dependencies {
     //api("org.springframework.boot:spring-boot-starter:$springBootVersion") - redundantly, come with starter-jdbc or starter-web
@@ -38,20 +32,6 @@ allOpen {
     annotation("javax.persistence.Entity")
     annotation("javax.persistence.MappedSuperclass")
     annotation("javax.persistence.Embeddable")
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            from(components["java"])    // можно написать "kotlin", но тогда будут не совсем точные описатели в module и pom
-        }
-    }
-    repositories {
-        mavenLocal()
-//        maven {
-//            url = uri("http://.../")
-//        }
-    }
 }
 
 tasks {

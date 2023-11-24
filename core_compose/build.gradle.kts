@@ -11,18 +11,12 @@ val androidMinSdk: String by project
 val androidxActivityComposeVersion: String by project
 val androidxAppcompatVersion: String by project
 
-val coreComposeVersion: String by project
-
 plugins {
     kotlin("multiplatform")
 
     id("com.android.library")
     id("org.jetbrains.compose")
-
-    `maven-publish`
 }
-
-version = coreComposeVersion
 
 kotlin {
     js(IR) {
@@ -117,19 +111,5 @@ android {
     }
     kotlin {
         jvmToolchain(17)
-    }
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            from(components["kotlin"])  // здесь нет java-кода, прокатывает только с kotlin
-        }
-    }
-    repositories {
-        mavenLocal()
-//        maven {
-//            url = uri("http://.../")
-//        }
     }
 }

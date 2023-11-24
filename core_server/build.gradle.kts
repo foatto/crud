@@ -10,15 +10,9 @@ val ktorVersion: String by project
 val minioVersion: String by project
 val postgresJdbcVersion: String by project
 
-val coreServerVersion: String by project
-
 plugins {
     kotlin("jvm")
-
-    `maven-publish`
 }
-
-version = coreServerVersion
 
 dependencies {
     runtimeOnly("org.postgresql:postgresql:$postgresJdbcVersion")
@@ -39,20 +33,6 @@ dependencies {
 //    testImplementation("org.testcontainers:testcontainers:$testContainersVer")
 //    testImplementation("org.testcontainers:postgresql:$testContainersVer")
 //    testImplementation("org.testcontainers:junit-jupiter:$testcontainersVersion")
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            from(components["java"])    // можно написать "kotlin", но тогда будут не совсем точные описатели в module и pom
-        }
-    }
-    repositories {
-        mavenLocal()
-//        maven {
-//            url = uri("http://.../")
-//        }
-    }
 }
 
 tasks {

@@ -8,18 +8,12 @@ val androidCompileSdk: String by project
 val androidTargetSdk: String by project
 val androidMinSdk: String by project
 
-val coreComposeAndroidVersion: String by project
-
 plugins {
     kotlin("multiplatform")
 
     id("com.android.application")
     id("org.jetbrains.compose")
-
-    `maven-publish`
 }
-
-version = coreComposeAndroidVersion
 
 kotlin {
 //    targetHierarchy.default() - ?
@@ -50,7 +44,7 @@ android {
         minSdk = androidMinSdk.toInt()
         targetSdk = androidTargetSdk.toInt()
         versionCode = 1
-        versionName = coreComposeAndroidVersion
+        versionName = "1"
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -62,18 +56,4 @@ android {
 //    packagingOptions {
 //        resources.excludes.add("META-INF/**")
 //    }
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            from(components["kotlin"])  // здесь нет java-кода, прокатывает только с kotlin
-        }
-    }
-    repositories {
-        mavenLocal()
-//        maven {
-//            url = uri("http://.../")
-//        }
-    }
 }

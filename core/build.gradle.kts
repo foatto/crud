@@ -6,17 +6,11 @@ val kotlinJvmTarget: String by project
 
 val kotlinxSerializationVersion: String by project
 
-val coreVersion: String by project
-
 plugins {
     kotlin("multiplatform")
 
     kotlin("plugin.serialization")
-
-    `maven-publish`
 }
-
-version = coreVersion
 
 kotlin {
     js(IR) {
@@ -54,18 +48,3 @@ kotlin {
         }
     }
 }
-
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            from(components["kotlin"])  // здесь нет java-кода, прокатывает только с kotlin
-        }
-    }
-    repositories {
-        mavenLocal()
-//        maven {
-//            url = uri("http://.../")
-//        }
-    }
-}
-
