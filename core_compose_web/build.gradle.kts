@@ -14,10 +14,11 @@ kotlin {
         browser()
     }
     sourceSets {
-        val jsMain by getting {
-            dependencies {
-                api(project(":core_compose"))
-            }
+        jsMain.dependencies {
+            api(compose.html.core)
+            api(compose.html.svg)
+            api(project(":core"))
         }
     }
 }
+

@@ -14,7 +14,7 @@ import foatto.core.link.FormData
 import foatto.core.link.FormPinMode
 import foatto.core.link.FormResponse
 import foatto.core.util.getRandomInt
-import foatto.core_compose.model.TitleData
+import foatto.core_compose_web.model.TitleData
 import foatto.core_compose_web.AppControl
 import foatto.core_compose_web.Root
 import foatto.core_compose_web.link.invokeUploadFormFile
@@ -1227,7 +1227,7 @@ class FormControl(
                     styleAdd = styleAdd,
                     isHidden = isHidden,
                     error = formCell.errorMessage,
-                    fileId = formCell.fileID,
+                    fileId = formCell.fileId,
                     alFileData = formCell.alFile.map { FormFileData(it.first, it.second, it.third) }.toMutableStateList(),
                 )
             }
@@ -1396,7 +1396,7 @@ class FormControl(
         }
         //--- сохраним ID удаляемого файла для передачи на сервер
         if (fileData.id > 0) {
-            gridData.alFileRemovedID.add(fileData.id)
+            gridData.alFileRemovedId.add(fileData.id)
         }
         //--- или просто удалим ранее добавленный файл из списка
         else {
@@ -1515,7 +1515,7 @@ class FormControl(
                             mapOf()
                         },
                         alFileRemovedId = if (withNewValues) {
-                            gridData.alFileRemovedID
+                            gridData.alFileRemovedId
                         } else {
                             listOf()
                         }
@@ -1597,7 +1597,7 @@ private class FormGridData(
     var selectorClearURL: String = ""
 
     val hmFileAdd = mutableMapOf<Int, String>()
-    val alFileRemovedID = mutableListOf<Int>()
+    val alFileRemovedId = mutableListOf<Int>()
 }
 
 private class FormComboData(val value: Int, val text: String)

@@ -5,8 +5,8 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.web.events.SyntheticMouseEvent
 import foatto.core.link.*
-import foatto.core_compose.model.MenuDataClient
-import foatto.core_compose.model.TitleData
+import foatto.core_compose_web.model.MenuDataClient
+import foatto.core_compose_web.model.TitleData
 import foatto.core_compose_web.*
 import foatto.core_compose_web.control.composable.getMultilineText
 import foatto.core_compose_web.control.composable.getToolBarSpan

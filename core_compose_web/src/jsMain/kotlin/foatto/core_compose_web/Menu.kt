@@ -3,7 +3,7 @@ package foatto.core_compose_web
 import androidx.compose.runtime.Composable
 import foatto.core.link.ChangePasswordRequest
 import foatto.core.link.LogoffRequest
-import foatto.core_compose.model.MenuDataClient
+import foatto.core_compose_web.model.MenuDataClient
 import foatto.core_compose_web.link.invokeChangePassword
 import foatto.core_compose_web.link.invokeLogoff
 import foatto.core_compose_web.style.*

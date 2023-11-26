@@ -1,98 +1,73 @@
+import org.jetbrains.compose.ExperimentalComposeLibrary
+
 val isBuildSupressWarning: String by project
 
 val kotlinLanguageVersion: String by project
 val kotlinApiVersion: String by project
 val kotlinJvmTarget: String by project
 
+val composePluginVersion: String by project
+val composeVersion: String by project
+
 val androidCompileSdk: String by project
 val androidTargetSdk: String by project
 val androidMinSdk: String by project
 
 val androidxActivityComposeVersion: String by project
-val androidxAppcompatVersion: String by project
 
 plugins {
     kotlin("multiplatform")
 
     id("com.android.library")
+//    id("com.android.application")
     id("org.jetbrains.compose")
 }
 
 kotlin {
-    js(IR) {
-        browser()
+//    js(IR) {
+//        browser()
+//    }
+
+    androidTarget {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = kotlinJvmTarget
+            }
+        }
     }
 
-    androidTarget()
-
-//    jvm {
-//        val jvmMain by compilations.getting {
-//            kotlinOptions {
-//                languageVersion = kotlinLanguageVersion
-//                apiVersion = kotlinApiVersion
-//                jvmTarget = kotlinJvmTarget
-//                freeCompilerArgs = listOf("-Xjsr305=strict")
-//                suppressWarnings = isBuildSupressWarning.toBoolean()
-//            }
-//        }
-//    }
-//    jvm("desktop") {
-//        compilations.all {
-//            kotlinOptions.jvmTarget = "17"
-//        }
-//    }
+//    jvm("desktop")
 
     sourceSets {
-        val commonMain by getting {
-            dependencies {
-                api(compose.runtime)
-//                //--- пока несовместимо с jsMain-compose.html, перенесём в androidMain
-//                api(compose.foundation)
-//                api(compose.material)
-//                @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
-//                api(compose.components.resources)
+        commonMain.dependencies {
+            api(compose.runtime)
+            api(compose.foundation)
+            api(compose.material)
+//            api(compose.material3)
+            @OptIn(ExperimentalComposeLibrary::class)
+            api(compose.components.resources)
 
-                api(project(":core"))
-            }
+            api(project(":core"))
         }
-        val jsMain by getting {
-            dependencies {
-                api(compose.html.core)
-                api(compose.html.svg)
-            }
-        }
-        val androidMain by getting {
-            dependencies {
-                api(compose.foundation)
-                api(compose.material)
-                api(compose.material3)
-                @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
-                api(compose.components.resources)
+        androidMain.dependencies {
+            api("androidx.compose.ui:ui:$composeVersion")
+            api("androidx.compose.ui:ui-tooling-preview:$composeVersion")
+            api("androidx.activity:activity-compose:$androidxActivityComposeVersion")
 
-                api("androidx.activity:activity-compose:$androidxActivityComposeVersion")
-                api("androidx.appcompat:appcompat:$androidxAppcompatVersion")
-//                api("androidx.core:core-ktx:1.3.1") - ?
-
-//                ktor-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
-//                ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
-//                ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
-//kotlinx-coroutines = "1.6.4"
-//kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
-//kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
-//compose-uitooling = "1.4.1"
-//compose-uitooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose-uitooling" }
-            }
+//            api("androidx.appcompat:appcompat:1.6.1")
         }
-//        val jvmMain by getting {
-//            dependencies {
-//                api(compose.preview)
-//            }
+//        desktopMain.dependencies {
+//            implementation(compose.desktop.currentOs)
 //        }
     }
 }
 
 android {
     namespace = "foatto.core_compose"
+
+    dependencies {
+        debugApi("androidx.compose.ui:ui-tooling:$composeVersion")
+    }
 
     sourceSets["main"].apply {
         manifest.srcFile("src/androidMain/AndroidManifest.xml")
@@ -102,8 +77,11 @@ android {
 
     compileSdk = androidCompileSdk.toInt()
     defaultConfig {
+//        applicationId = "foatto.core_compose"
         minSdk = androidMinSdk.toInt()
 //        targetSdk = androidTargetSdk.toInt()
+//        versionCode = 1
+//        versionName = "1.0"
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -112,4 +90,35 @@ android {
     kotlin {
         jvmToolchain(17)
     }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = composeVersion
+    }
+
+    buildFeatures {
+        compose = true
+    }
+    buildTypes {
+        getByName("release") {
+            isMinifyEnabled = false
+        }
+    }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
 }
+
+//compose.desktop {
+//    application {
+//        mainClass = "MainKt"
+//
+//        nativeDistributions {
+//            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+//            packageName = "org.example.project"
+//            packageVersion = "1.0.0"
+//        }
+//    }
+//}

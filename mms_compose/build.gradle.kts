@@ -1,0 +1,101 @@
+val isBuildSupressWarning: String by project
+
+val kotlinLanguageVersion: String by project
+val kotlinApiVersion: String by project
+val kotlinJvmTarget: String by project
+
+val composeVersion: String by project
+
+val androidCompileSdk: String by project
+val androidTargetSdk: String by project
+val androidMinSdk: String by project
+
+plugins {
+    kotlin("multiplatform")
+
+    id("com.android.application")
+    id("org.jetbrains.compose")
+}
+
+kotlin {
+//    js(IR) {
+//        browser()
+//    }
+
+    androidTarget {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = kotlinJvmTarget
+            }
+        }
+    }
+
+//    jvm("desktop")
+
+    sourceSets {
+        commonMain.dependencies {
+            api(project(":core_compose"))
+        }
+    }
+}
+
+android {
+    namespace = "foatto.mms_compose"
+
+    dependencies {
+        debugApi("androidx.compose.ui:ui-tooling:$composeVersion")
+    }
+
+    sourceSets["main"].apply {
+        manifest.srcFile("src/androidMain/AndroidManifest.xml")
+        res.srcDirs("src/androidMain/res")
+        resources.srcDirs("src/commonMain/resources")
+    }
+
+    compileSdk = androidCompileSdk.toInt()
+    defaultConfig {
+        applicationId = "foatto.mms_compose"
+        minSdk = androidMinSdk.toInt()
+        targetSdk = androidTargetSdk.toInt()
+        versionCode = 1
+        versionName = "1.0"
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlin {
+        jvmToolchain(17)
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = composeVersion
+    }
+
+    buildFeatures {
+        compose = true
+    }
+    buildTypes {
+        getByName("release") {
+            isMinifyEnabled = false
+        }
+    }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+}
+
+//compose.desktop {
+//    application {
+//        mainClass = "MainKt"
+//
+//        nativeDistributions {
+//            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+//            packageName = "org.example.project"
+//            packageVersion = "1.0.0"
+//        }
+//    }
+//}

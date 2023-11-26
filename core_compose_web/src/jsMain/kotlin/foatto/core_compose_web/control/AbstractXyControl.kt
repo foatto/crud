@@ -18,7 +18,7 @@ import foatto.core.link.XyElementClientType
 import foatto.core.link.XyElementConfig
 import foatto.core.link.XyResponse
 import foatto.core.util.getRandomInt
-import foatto.core_compose.model.TitleData
+import foatto.core_compose_web.model.TitleData
 import foatto.core_compose_web.AppControl
 import foatto.core_compose_web.MENU_BAR_ID
 import foatto.core_compose_web.MENU_CLOSER_BUTTON_ID

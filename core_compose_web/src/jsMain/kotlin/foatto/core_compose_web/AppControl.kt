@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import foatto.core.app.UP_TIME_OFFSET
 import foatto.core.link.*
-import foatto.core_compose.model.MenuDataClient
+import foatto.core_compose_web.model.MenuDataClient
 import foatto.core_compose_web.control.*
 import foatto.core_compose_web.link.invokeApp
 import foatto.core_compose_web.style.*

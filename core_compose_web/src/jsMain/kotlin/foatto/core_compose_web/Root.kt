@@ -5,9 +5,9 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import foatto.core.app.*
-import foatto.core_compose.model.MenuDataClient
+import foatto.core_compose_web.model.MenuDataClient
 import foatto.core_compose_web.control.TableControl.Companion.hmTableIcon
-import foatto.core_compose.model.TabInfo
+import foatto.core_compose_web.model.TabInfo
 import foatto.core_compose_web.control.composable.getMultilineText
 import foatto.core_compose_web.style.*
 import kotlinx.browser.document
@@ -485,7 +485,7 @@ open class Root {
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     fun setWait(isWait: Boolean) {
-        waitCount.value = waitCount.value + (if (isWait) 1 else -1)
+        waitCount.value += (if (isWait) 1 else -1)
     }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------

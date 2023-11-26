@@ -1,7 +1,7 @@
 package foatto.mms_compose_web
 
 import androidx.compose.runtime.Composable
-import foatto.core_compose.model.MenuDataClient
+import foatto.core_compose_web.model.MenuDataClient
 import foatto.core_compose_web.Menu
 import foatto.core_compose_web.Root
 import foatto.core_compose_web.style.getPseudoNbsp

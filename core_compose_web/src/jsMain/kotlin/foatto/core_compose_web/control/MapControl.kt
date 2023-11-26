@@ -17,7 +17,7 @@ import foatto.core.app.xy.geom.XyRect
 import foatto.core.link.XyElementConfig
 import foatto.core.link.XyResponse
 import foatto.core.util.getSplittedDouble
-import foatto.core_compose.model.MouseRectData
+import foatto.core_compose_web.model.MouseRectData
 import foatto.core_compose_web.AppControl
 import foatto.core_compose_web.Root
 import foatto.core_compose_web.control.composable.getRefreshSubToolbar
