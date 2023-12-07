@@ -33,7 +33,7 @@ class UserEntity(
     val shortName: String,
 
     @Column(name = "at_count")
-    val atCount: Int,
+    val atCount: Int?,
 
     @AttributeOverrides(
         AttributeOverride(name = "ye", column = Column(name = "at_ye")),
@@ -99,7 +99,7 @@ class UserEntity(
         result = 31 * result + password.hashCode()
         result = 31 * result + fullName.hashCode()
         result = 31 * result + shortName.hashCode()
-        result = 31 * result + atCount
+        result = 31 * result + (atCount ?: 0)
         result = 31 * result + lastLoginDateTime.hashCode()
         result = 31 * result + passwordLastChangeDate.hashCode()
         result = 31 * result + eMail.hashCode()

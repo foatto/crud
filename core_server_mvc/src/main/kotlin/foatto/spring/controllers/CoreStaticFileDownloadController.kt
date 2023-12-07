@@ -48,15 +48,6 @@ class CoreStaticFileDownloadController {
         CoreAppController.download(response, "${rootDirName}/web/js/$fileName")
     }
 
-    @GetMapping(value = ["/web/lib/{fileName}"])
-    fun downloadWebLib(
-        response: HttpServletResponse,
-        @PathVariable("fileName")
-        fileName: String
-    ) {
-        CoreAppController.download(response, "${rootDirName}/web/lib/$fileName")
-    }
-
     @GetMapping(value = ["/web/compose/{fileName}"])
     fun downloadWebCompose(
         response: HttpServletResponse,

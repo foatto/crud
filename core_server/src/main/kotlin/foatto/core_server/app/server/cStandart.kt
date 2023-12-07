@@ -132,7 +132,7 @@ open class cStandart {
 
     protected lateinit var hsPermission: Set<String>
 
-    protected var optimizedTableUserID = 0
+    protected var optimizedTableUserId = 0
 
     //--- временные возможно переименованные имена полей, используемые для создания запроса с самосвязанными таблицами
     protected lateinit var alRenamedSelectedFields: MutableList<String>
@@ -346,9 +346,9 @@ open class cStandart {
             //--- пропускаем служебные записи ( если id-поле вообще задано )
             wherePart += " $idFieldName <> 0 "
 
-            if (optimizedTableUserID != 0) {
+            if (optimizedTableUserId != 0) {
                 val userIDFieldName = "${renameTableName(hsTableRenameList, model.columnUser!!.columnTableName)}.${model.columnUser!!.getFieldName()}"
-                wherePart += (if (wherePart.isEmpty()) "" else " AND ") + " $userIDFieldName = $optimizedTableUserID "
+                wherePart += (if (wherePart.isEmpty()) "" else " AND ") + " $userIDFieldName = $optimizedTableUserId "
             }
 
             //--- игнорируем self-parent в иерархических таблицах, если заданы опция глубокого поиска и поисковые слова
@@ -629,17 +629,17 @@ open class cStandart {
         alColumnList.addAll(model.alTableGroupColumn)
         model.fillTableColumn(alColumnList)
 
-        optimizedTableUserID = 0
+        optimizedTableUserId = 0
         //--- для модулей, использующих parentUserID, оптимизация userID недопустима, т.к. userID у них не существует
         if (model.columnUser != null) {
-            val hsTableUserID = mutableSetOf<Int>()
+            val hsTableUserIds = mutableSetOf<Int>()
             for ((relName, _) in UserRelation.arrNameDescr) {
                 if (hsPermission.contains("${PERM_TABLE}_$relName")) {
-                    hsTableUserID.addAll(userConfig.getUserIDList(relName))
+                    hsTableUserIds.addAll(userConfig.getUserIDList(relName))
                 }
             }
-            if (hsTableUserID.size == 1) {
-                optimizedTableUserID = userConfig.userId
+            if (hsTableUserIds.size == 1) {
+                optimizedTableUserId = userConfig.userId
             }
         }
 
@@ -674,14 +674,14 @@ open class cStandart {
 
         //--- appParam придётся генерировать заново/обратно, поскольку в явном виде он отсутствует
         val urlReferer = AppParameter.collectParam(hmParam)
-        val refererID = getRandomInt().toString()
-        hmOut[AppParameter.REFERER + refererID] = urlReferer
+        val refererId = getRandomInt().toString()
+        hmOut[AppParameter.REFERER + refererId] = urlReferer
 
-        val finderID = hmParam[AppParameter.FINDER]
-        val alFindWord = if (finderID == null) {
+        val finderId = hmParam[AppParameter.FINDER]
+        val alFindWord = if (finderId == null) {
             null
         } else {
-            chmSession[AppParameter.FINDER + finderID] as? List<String>?
+            chmSession[AppParameter.FINDER + finderId] as? List<String>?
         }
 
         val pageNo = if (aliasConfig.pageSize > 0) {
@@ -695,15 +695,15 @@ open class cStandart {
         }
 
         //--- if this table called for select from edit form
-        val selectorID = hmParam[AppParameter.SELECTOR]
-        val selectorParam = chmSession[AppParameter.SELECTOR + selectorID] as? SelectorParameter
+        val selectorId = hmParam[AppParameter.SELECTOR]
+        val selectorParam = chmSession[AppParameter.SELECTOR + selectorId] as? SelectorParameter
         if (selectorParam != null) {
             setSelectorParent(selectorParam)
         }
 
         //--- заголовок таблицы
         val alHeader = mutableListOf<Pair<String, String>>()
-        fillHeader(selectorID, true, alHeader, hmOut)
+        fillHeader(selectorId, true, alHeader, hmOut)
 
         //--- заголовки столбцов
         val alCaption = mutableListOf<Pair<String, String>>()
@@ -732,7 +732,7 @@ open class cStandart {
         val alTableCell = mutableListOf<TableCell>()
         val alTableRowData = mutableListOf<TableRowData>()
 
-        val currentRowID = getIdFromParam()    // id текущей строки ( если вообще задан )
+        val currentRowId = getIdFromParam()    // id текущей строки ( если вообще задан )
         var currentRowNo = -1                  // номер текущей строки
         while (isNextDataInTable(rsTable)) {
             val hmColumnData = getColumnData(rsTable, true, alColumnList) ?: continue
@@ -756,9 +756,9 @@ open class cStandart {
                     dataRowNo = dataRowCount,
                     globalRowNo = globalRowCount,
                     tableRowStart = tableRowCount,
-                    selectorID = selectorID,
+                    selectorID = selectorId,
                     selectorParam = selectorParam,
-                    refererID = refererID,
+                    refererID = refererId,
                     alTableCell = alTableCell,
                     alTableRowData = alTableRowData,
                     hmOut = hmOut
@@ -768,7 +768,7 @@ open class cStandart {
             //--- вынесено сюда, чтобы нумерация строк работала независимо от наличия постраничной разбивки
             globalRowCount++
             tableRowCount += rowCount
-            if ((hmColumnData[model.columnId] as DataInt).intValue == currentRowID) {
+            if ((hmColumnData[model.columnId] as DataInt).intValue == currentRowId) {
                 currentRowNo = dataRowCount - 1
             }
             if (aliasConfig.pageSize > 0 && globalRowCount >= (pageNo + 1) * aliasConfig.pageSize) {
@@ -796,7 +796,7 @@ open class cStandart {
         }
 
         //--- панель поиска
-        val findData = getFindForm(refererID, finderID)
+        val findData = getFindForm(refererId, finderId)
 
         //--- панель перехода по страницам (делается ПОСЛЕ вывода таблицы, т.к. только тогда становится известно наличие след./пред. страниц)
         val alPageButton = mutableListOf<Pair<String, String>>()
@@ -831,7 +831,7 @@ open class cStandart {
             selectorCancelURL = selectorCancelURL,
             findURL = findData.first,
             findText = findData.second,
-            alAddActionButton = (if (isAddEnabled()) getAddButtonURL(refererID, hmOut) else emptyList()),
+            alAddActionButton = (if (isAddEnabled()) getAddButtonURL(refererId, hmOut) else emptyList()),
             alServerActionButton = getServerAction(),
             alClientActionButton = getClientAction(),
             alColumnCaption = alCaption,
@@ -1009,16 +1009,16 @@ open class cStandart {
         //--- вычислим и запомним кол-во один раз
         val tableColCount = model.getTableColumnColCount()
 
-        val recordUserID = getRecordUserId(hmColumnData)
-        val recordUserName = getRecordUserName(recordUserID)
+        val recordUserId = getRecordUserId(hmColumnData)
+        val recordUserName = getRecordUserName(recordUserId)
 
         //--- для внешнего суммирования реального кол-ва выведенных строк
         var rowCount = 0
 
-        val valueID = (hmColumnData[model.columnId] as DataInt).intValue
+        val valueId = (hmColumnData[model.columnId] as DataInt).intValue
 
         //--- обработка для выделения isNew строки, если есть
-        val isNewRow = aliasConfig.isNewable && userConfig.userId != UserConfig.USER_GUEST && !getTableRowIsReaded(valueID)
+        val isNewRow = aliasConfig.isNewable && userConfig.userId != UserConfig.USER_GUEST && !getTableRowIsReaded(valueId)
 
         //--- обработка группировочных полей
         //--- (подразумевается, что группировочными могут быть только ячейки типа TEXT (CHECKBOX, BUTTON и GRID в данной роли бессмысленны))
@@ -1090,12 +1090,12 @@ open class cStandart {
             }
         }
         //--- разрешено ли открытие формы для данной строки таблицы?
-        val formURL = if (checkPerm(PERM_FORM, recordUserID)) {
+        val formURL = if (checkPerm(PERM_FORM, recordUserId)) {
             getParamURL(
                 aAlias = aliasConfig.name,
                 aAction = AppAction.FORM,
                 aRefererId = refererID,
-                aId = valueID,
+                aId = valueId,
                 aParentData = hmParentData,
                 aParentUserId = parentUserId,
                 aAltParams = null
@@ -1242,20 +1242,18 @@ open class cStandart {
             }
             rowCount++
         }
-        alTableRowData.add(
-            TableRowData(
-                formURL = formURL,
-                rowURL = rowURL,
-                isRowURLInNewWindow = isRowURLInNewWindow,
-                gotoURL = gotoURL,
-                isGotoURLInNewWindow = isGotoURLInNewWindow,
-                alPopupData = alPopupData
-            )
+        alTableRowData += TableRowData(
+            formURL = formURL,
+            rowURL = rowURL,
+            isRowURLInNewWindow = isRowURLInNewWindow,
+            gotoURL = gotoURL,
+            isGotoURLInNewWindow = isGotoURLInNewWindow,
+            alPopupData = alPopupData
         )
 
         //--- необходимо "прочитывать" строки уже сразу после их вывода в таблице, без обязательного входа в форму
         if (aliasConfig.isNewAutoRead && isNewRow) {
-            addIsReaded(valueID)
+            addIsReaded(valueId)
         }
 
         return rowCount
@@ -1493,9 +1491,9 @@ open class cStandart {
 
         var hmColumnData: MutableMap<iColumn, iData>? = null
         //--- возврат с ошибками ввода в форме или после выбора из справочника
-        val formDataID = hmParam[AppParameter.FORM_DATA]
-        if (formDataID != null) {
-            hmColumnData = chmSession[AppParameter.FORM_DATA + formDataID] as? MutableMap<iColumn, iData>?
+        val formDataId = hmParam[AppParameter.FORM_DATA]
+        if (formDataId != null) {
+            hmColumnData = chmSession[AppParameter.FORM_DATA + formDataId] as? MutableMap<iColumn, iData>?
             if (hmColumnData != null) {
                 postProcessFormColumnDataFromFormData(id, hmColumnData)
             }

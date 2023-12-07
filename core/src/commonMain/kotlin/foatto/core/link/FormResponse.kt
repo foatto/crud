@@ -57,7 +57,7 @@ class FormCell(val cellType: FormCellType) {
 
     //--- TYPE_FILE
     var fileName = ""
-    var fileID = 0
+    var fileId = 0
     var alFile = listOf<Triple<Int, String, String>>()             // id, url, text (which is actually just a filename)
 
     var selectorSetURL = ""
