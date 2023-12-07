@@ -3,12 +3,10 @@ package foatto.core_compose
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
 
 open class CoreMainActivity : ComponentActivity() {
 
-    var app: App = App("Hi!")
+    var mainApp: MainApp = MainApp()
 
     open fun init() {
     }
@@ -19,13 +17,7 @@ open class CoreMainActivity : ComponentActivity() {
         init()
 
         setContent {
-            app.Content()
+            mainApp.Content()
         }
     }
-}
-
-@Preview
-@Composable
-private fun AppAndroidPreview() {
-    App("Hi!")
 }

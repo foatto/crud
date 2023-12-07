@@ -7,7 +7,7 @@ class MainActivity : CoreMainActivity() {
     override fun init() {
         super.init()
 
-        app = MMSApp()
+        mainApp = MMSMainApp()
     }
 }
 

@@ -20,6 +20,7 @@ plugins {
 kotlin {
 //    js(IR) {
 //        browser()
+//        binaries.executable()
 //    }
 
     androidTarget {
@@ -35,6 +36,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(project(":core_compose"))
+//            api(project(":mms_core"))
         }
     }
 }
@@ -87,6 +89,18 @@ android {
         }
     }
 }
+
+//tasks {
+//    build {
+//        doLast {
+//            delete("/home/foatto/MMSServerSpring/web/compose")
+//            copy {
+//                from("build/dist/js/productionExecutable")
+//                into("/home/foatto/MMSServerSpring/web/compose")
+//            }
+//        }
+//    }
+//}
 
 //compose.desktop {
 //    application {
