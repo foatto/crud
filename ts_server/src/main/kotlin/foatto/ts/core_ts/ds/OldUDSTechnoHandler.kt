@@ -105,7 +105,12 @@ class OldUDSTechnoHandler : CommonUDSHandler() {
     override fun getUDSCommandDataString(command: String): String {
         val commandData = OldUDSTechnoCommandData(
             id = serialNo.toInt(),
-            state = command,
+            state = when (command) {
+                "boot" -> "reset"
+                "down" -> "cldesc"
+                "rise" -> "clstart"
+                else -> command
+            },
         )
         return objectMapper.writeValueAsString(commandData)
     }
