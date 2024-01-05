@@ -10,10 +10,10 @@ import foatto.core.util.readFileToBuffer
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreSQLDialectEnum
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.engine.apache.*
-import io.ktor.client.features.*
-import io.ktor.client.features.json.*
-import io.ktor.client.features.logging.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
@@ -83,11 +83,6 @@ abstract class CoreReplicator(aConfigFileName: String) : CoreServiceWorker(aConf
                             init(null, arrayOf(TrustAllX509TrustManager()), SecureRandom())
                         }
                 }
-
-                install(JsonFeature) {
-                    serializer = JacksonSerializer()
-                }
-
                 install(Logging) {
                     logger = Logger.DEFAULT
                     level = LogLevel.NONE
@@ -98,11 +93,13 @@ abstract class CoreReplicator(aConfigFileName: String) : CoreServiceWorker(aConf
 //                        else -> LogLevel.NONE
 //                    }
                 }
-
                 install(HttpTimeout)
-
                 defaultRequest {
-                    url.protocol = if (alDestProtocol.last().uppercase(Locale.getDefault()) == "HTTPS") URLProtocol.HTTPS else URLProtocol.HTTP
+                    url.protocol = if (alDestProtocol.last().uppercase(Locale.getDefault()) == "HTTPS") {
+                        URLProtocol.HTTPS
+                    } else {
+                        URLProtocol.HTTP
+                    }
                     host = alDestIP.last()
                     port = alDestPort.last()
                 }
@@ -159,15 +156,14 @@ abstract class CoreReplicator(aConfigFileName: String) : CoreServiceWorker(aConf
                         )
 
                         runBlocking {
-                            val putReplicationResponse: PutReplicationResponse = alHttpClient[destIndex].post("/api/put_replication") {
+                            val putReplicationResponse: PutReplicationResponse = alHttpClient[destIndex].post {
+                                url("/api/put_replication")
                                 contentType(ContentType.Application.Json)
-
-                                body = putReplicationRequest
-
+                                setBody(putReplicationRequest)
                                 timeout {
                                     socketTimeoutMillis = 600_000
                                 }
-                            }
+                            }.body()
 
                             //--- окончательно удаляем файл из очереди и его самого
                             if (timeKey == putReplicationResponse.timeKey) {
@@ -195,15 +191,14 @@ abstract class CoreReplicator(aConfigFileName: String) : CoreServiceWorker(aConf
                     val getReplicationRequest = GetReplicationRequest(alDBConfig[0].name, prevTimeKey)
 
                     val getReplicationResponse: GetReplicationResponse = runBlocking {
-                        alHttpClient[destIndex].post("/api/get_replication") {
+                        alHttpClient[destIndex].post {
+                            url("/api/get_replication")
                             contentType(ContentType.Application.Json)
-
-                            body = getReplicationRequest
-
+                            setBody(getReplicationRequest)
                             timeout {
                                 socketTimeoutMillis = 600_000   // сервер может долго подбирать самые старые/первые реплики для передачи
                             }
-                        }
+                        }.body()
                     }
                     val sourDialect = CoreSQLDialectEnum.hmDialect[getReplicationResponse.dialect]!!
                     val timeKey = getReplicationResponse.timeKey

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import foatto.core.util.AdvancedLogger
 import foatto.shop.mCatalog
 import io.ktor.client.*
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -75,19 +75,18 @@ class Atol : iFiscal {
             AdvancedLogger.debug(objectMapper.writeValueAsString(fiscalRequest))
         }
         runBlocking {
-            val fiscalResponse = httpClient.post<HttpResponse>(fiscalUrl) {
+            val fiscalResponse: HttpResponse = httpClient.post {
+                url(fiscalUrl)
                 contentType(ContentType.Application.Json)
-
-                body = fiscalRequest
-
+                setBody(fiscalRequest)
                 timeout {
                     socketTimeoutMillis = 60_000
                 }
             }
             AdvancedLogger.debug("Fiscal reponse = ${fiscalResponse.status.value}, '${fiscalResponse.status.description}'")
             if (fiscalResponse.status != HttpStatusCode.Created) {
-                AdvancedLogger.error("Fiscal error = '${fiscalResponse.readText()}'")
-                throw Exception("Fiscal error = '${fiscalResponse.readText()}'")
+                AdvancedLogger.error("Fiscal error = '${fiscalResponse.bodyAsText()}'")
+                throw Exception("Fiscal error = '${fiscalResponse.bodyAsText()}'")
             }
         }
     }
@@ -108,19 +107,18 @@ class Atol : iFiscal {
             AdvancedLogger.debug(objectMapper.writeValueAsString(fiscalRequest))
         }
         runBlocking {
-            val fiscalResponse = httpClient.post<HttpResponse>(fiscalUrl) {
+            val fiscalResponse: HttpResponse = httpClient.post {
+                url(fiscalUrl)
                 contentType(ContentType.Application.Json)
-
-                body = fiscalRequest
-
+                setBody(fiscalRequest)
                 timeout {
                     socketTimeoutMillis = 60_000
                 }
             }
             AdvancedLogger.debug("Fiscal reponse = ${fiscalResponse.status.value}, '${fiscalResponse.status.description}'")
             if (fiscalResponse.status != HttpStatusCode.Created) {
-                AdvancedLogger.error("Fiscal error = '${fiscalResponse.readText()}'")
-                throw Exception("Fiscal error = '${fiscalResponse.readText()}'")
+                AdvancedLogger.error("Fiscal error = '${fiscalResponse.bodyAsText()}'")
+                throw Exception("Fiscal error = '${fiscalResponse.bodyAsText()}'")
             }
         }
     }

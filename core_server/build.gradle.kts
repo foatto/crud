@@ -21,8 +21,11 @@ dependencies {
     api("javax.mail:javax.mail-api:$javaxMailApiVersion")
     api("net.sourceforge.jexcelapi:jxl:$jExcelApiVersion")
 
+    api("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+//    api("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion") - later instead jackson
+    api("io.ktor:ktor-serialization-jackson:$ktorVersion")
+
     api("io.ktor:ktor-client-apache:$ktorVersion")
-    api("io.ktor:ktor-client-jackson:$ktorVersion")
     api("io.ktor:ktor-client-logging-jvm:$ktorVersion")
 //    api("io.ktor:ktor-client-auth-jvm:$ktorVersion")
 

@@ -23,9 +23,8 @@ import foatto.shop.report.fiscal.iFiscal
 import foatto.sql.CoreAdvancedConnection
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
-import io.ktor.client.features.*
-import io.ktor.client.features.json.*
-import io.ktor.client.features.logging.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.logging.*
 import io.ktor.http.*
 import jxl.CellView
 import jxl.format.PageOrientation
@@ -45,9 +44,6 @@ class cDocContent : cAbstractReport() {
     private val objectMapper = jacksonObjectMapper()
 
     private val httpClient = HttpClient(Apache).config {
-        install(JsonFeature) {
-            serializer = JacksonSerializer()
-        }
         install(Logging) {
             logger = Logger.DEFAULT
             level = LogLevel.ALL
