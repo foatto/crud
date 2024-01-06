@@ -4,18 +4,20 @@ import foatto.core.link.GetReplicationRequest
 import foatto.core.link.GetReplicationResponse
 import foatto.core.link.PutReplicationRequest
 import foatto.core.link.PutReplicationResponse
-import foatto.core.util.AdvancedByteBuffer
-import foatto.core.util.AdvancedLogger
-import foatto.core.util.readFileToBuffer
+import foatto.util.AdvancedByteBuffer
+import foatto.util.AdvancedLogger
+import foatto.util.readFileToBuffer
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreSQLDialectEnum
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.apache.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.serialization.jackson.*
 import kotlinx.coroutines.runBlocking
 import java.io.IOException
 import java.security.SecureRandom
@@ -94,6 +96,9 @@ abstract class CoreReplicator(aConfigFileName: String) : CoreServiceWorker(aConf
 //                    }
                 }
                 install(HttpTimeout)
+                install(ContentNegotiation) {
+                    jackson()
+                }
                 defaultRequest {
                     url.protocol = if (alDestProtocol.last().uppercase(Locale.getDefault()) == "HTTPS") {
                         URLProtocol.HTTPS

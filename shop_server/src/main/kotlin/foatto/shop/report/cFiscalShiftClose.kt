@@ -9,8 +9,10 @@ import foatto.shop.report.fiscal.iFiscal
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.http.*
+import io.ktor.serialization.jackson.*
 import jxl.write.WritableSheet
 
 class cFiscalShiftClose : cAbstractReport() {
@@ -30,6 +32,9 @@ class cFiscalShiftClose : cAbstractReport() {
 //                }
         }
         install(HttpTimeout)
+        install(ContentNegotiation) {
+            jackson()
+        }
         defaultRequest {
             url.protocol = URLProtocol.HTTP //URLProtocol.HTTPS
         }

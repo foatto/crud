@@ -1,8 +1,8 @@
 package foatto.core_server.service
 
-import foatto.core.util.AdvancedLogger
-import foatto.core.util.getCurrentTimeInt
-import foatto.core.util.loadConfig
+import foatto.util.AdvancedLogger
+import foatto.util.getCurrentTimeInt
+import foatto.util.loadConfig
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.DBConfig
 import java.io.File
@@ -86,7 +86,9 @@ abstract class CoreServiceWorker(private val configFileName: String) {
             initDB()
 
             //--- разовый запуск
-            if (isRunOnce) cycle()
+            if (isRunOnce) {
+                cycle()
+            }
             else {
                 while (true) {
                     //--- рестарт по обнаружению рестарт-файла

@@ -3,10 +3,10 @@ package foatto.shop.report
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import foatto.core.link.FormData
 import foatto.core.link.XyDocumentConfig
-import foatto.core.util.DateTime_DMY
+import foatto.util.DateTime_DMY
 import foatto.core.util.getSplittedDouble
-import foatto.core.util.getWordOfCount
-import foatto.core.util.getWordOfMoney
+import foatto.util.getWordOfCount
+import foatto.util.getWordOfMoney
 import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
@@ -24,8 +24,10 @@ import foatto.sql.CoreAdvancedConnection
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.http.*
+import io.ktor.serialization.jackson.*
 import jxl.CellView
 import jxl.format.PageOrientation
 import jxl.format.PaperSize
@@ -55,6 +57,9 @@ class cDocContent : cAbstractReport() {
 //                }
         }
         install(HttpTimeout)
+        install(ContentNegotiation) {
+            jackson()
+        }
         defaultRequest {
             url.protocol = URLProtocol.HTTP //URLProtocol.HTTPS
         }
