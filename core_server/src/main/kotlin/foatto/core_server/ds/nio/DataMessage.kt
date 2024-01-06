@@ -1,6 +1,6 @@
 package foatto.core_server.ds.nio
 
-import foatto.core.util.AdvancedByteBuffer
+import foatto.util.AdvancedByteBuffer
 
 class DataMessage(val cmd: Int = CMD_DATA, val byteBuffer: AdvancedByteBuffer? = null) {
 

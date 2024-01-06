@@ -1,6 +1,6 @@
 package foatto.mms.core_mms
 
-import foatto.core.util.getCurrentTimeInt
+import foatto.util.getCurrentTimeInt
 import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.data.DataAbstractIntValue
 import foatto.core_server.app.server.data.DataBoolean

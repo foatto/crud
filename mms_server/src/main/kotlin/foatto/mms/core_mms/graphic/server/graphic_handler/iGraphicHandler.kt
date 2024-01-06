@@ -2,7 +2,7 @@ package foatto.mms.core_mms.graphic.server.graphic_handler
 
 import foatto.core.app.graphic.GraphicColorIndex
 import foatto.core.app.graphic.GraphicDataContainer
-import foatto.core.util.AdvancedByteBuffer
+import foatto.util.AdvancedByteBuffer
 import foatto.mms.core_mms.sensor.config.SensorConfigAnalogue
 
 interface iGraphicHandler {

@@ -2,7 +2,7 @@ package foatto.ts.core_ts.device
 
 import foatto.core.link.TableCell
 import foatto.core.link.TableCellForeColorType
-import foatto.core.util.getCurrentTimeInt
+import foatto.util.getCurrentTimeInt
 import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.data.DataComboBox

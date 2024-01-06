@@ -1,6 +1,6 @@
 package foatto.spring.sql
 
-import foatto.core.util.AdvancedByteBuffer
+import foatto.util.AdvancedByteBuffer
 import foatto.sql.CoreAdvancedResultSet
 import foatto.sql.CoreSQLDialectEnum
 import org.springframework.jdbc.support.rowset.SqlRowSet

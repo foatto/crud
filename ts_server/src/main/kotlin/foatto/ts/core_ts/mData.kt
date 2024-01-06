@@ -1,6 +1,6 @@
 package foatto.ts.core_ts
 
-import foatto.core.util.getZoneId
+import foatto.util.getZoneId
 import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig

@@ -1,4 +1,4 @@
-package foatto.core.util
+package foatto.util
 
 import java.io.BufferedWriter
 import java.io.File

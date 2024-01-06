@@ -1,7 +1,7 @@
 package foatto.ts.core_ts.calc
 
-import foatto.core.util.AdvancedByteBuffer
-import foatto.core.util.byteToHex
+import foatto.util.AdvancedByteBuffer
+import foatto.util.byteToHex
 
 object AbstractObjectStateCalc {
 

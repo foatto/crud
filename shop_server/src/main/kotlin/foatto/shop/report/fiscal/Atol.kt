@@ -1,7 +1,7 @@
 package foatto.shop.report.fiscal
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import foatto.core.util.AdvancedLogger
+import foatto.util.AdvancedLogger
 import foatto.shop.mCatalog
 import io.ktor.client.*
 import io.ktor.client.plugins.*

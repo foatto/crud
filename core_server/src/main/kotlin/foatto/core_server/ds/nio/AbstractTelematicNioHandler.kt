@@ -1,6 +1,6 @@
 package foatto.core_server.ds.nio
 
-import foatto.core.util.getCurrentTimeInt
+import foatto.util.getCurrentTimeInt
 import java.io.File
 import java.nio.channels.SelectionKey
 import java.time.ZoneId

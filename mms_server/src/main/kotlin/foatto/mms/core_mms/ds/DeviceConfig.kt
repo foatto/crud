@@ -1,7 +1,7 @@
 package foatto.mms.core_mms.ds
 
 import foatto.core.app.UP_TIME_OFFSET
-import foatto.core.util.getZoneId
+import foatto.util.getZoneId
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigGeo
 import foatto.sql.CoreAdvancedConnection

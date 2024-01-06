@@ -3,9 +3,9 @@ package foatto.shop
 import foatto.core.app.ICON_NAME_ADD_ITEM
 import foatto.core.app.ICON_NAME_PRINT
 import foatto.core.link.*
-import foatto.core.util.AdvancedLogger
-import foatto.core.util.DateTime_DMY
-import foatto.core.util.getCurrentTimeInt
+import foatto.util.AdvancedLogger
+import foatto.util.DateTime_DMY
+import foatto.util.getCurrentTimeInt
 import foatto.core.util.getSplittedDouble
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.iApplication

@@ -2,7 +2,7 @@ package foatto.shop.report
 
 import foatto.core.link.FormData
 import foatto.core.link.XyDocumentConfig
-import foatto.core.util.getCurrentTimeInt
+import foatto.util.getCurrentTimeInt
 import foatto.core.util.getSplittedDouble
 import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig

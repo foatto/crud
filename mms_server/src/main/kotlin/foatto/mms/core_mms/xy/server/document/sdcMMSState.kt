@@ -11,8 +11,8 @@ import foatto.core.app.xy.XyActionResponse
 import foatto.core.app.xy.XyElement
 import foatto.core.app.xy.geom.XyPoint
 import foatto.core.link.XyDocumentConfig
-import foatto.core.util.DateTime_YMDHMS
-import foatto.core.util.getCurrentTimeInt
+import foatto.util.DateTime_YMDHMS
+import foatto.util.getCurrentTimeInt
 import foatto.core.util.getRandomInt
 import foatto.core.util.getSplittedDouble
 import foatto.core_server.app.AppParameter

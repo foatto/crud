@@ -5,7 +5,7 @@ import foatto.core.app.graphic.GraphicColorIndex
 import foatto.core.app.graphic.GraphicDataContainer
 import foatto.core.app.graphic.GraphicElement
 import foatto.core.app.graphic.GraphicLineData
-import foatto.core.util.AdvancedByteBuffer
+import foatto.util.AdvancedByteBuffer
 import foatto.core_server.app.graphic.server.GraphicDocumentConfig
 import foatto.core_server.app.graphic.server.GraphicStartData
 import foatto.mms.core_mms.ObjectConfig

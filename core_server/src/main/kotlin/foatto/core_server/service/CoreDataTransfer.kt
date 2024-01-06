@@ -1,7 +1,7 @@
 package foatto.core_server.service
 
-import foatto.core.util.AdvancedLogger
-import foatto.core.util.loadTextFile
+import foatto.util.AdvancedLogger
+import foatto.util.loadTextFile
 import java.nio.charset.Charset
 
 abstract class CoreDataTransfer(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {

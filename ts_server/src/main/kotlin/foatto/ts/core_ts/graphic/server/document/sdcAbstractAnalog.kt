@@ -7,7 +7,7 @@ import foatto.core.app.graphic.GraphicBackData
 import foatto.core.app.graphic.GraphicDataContainer
 import foatto.core.app.graphic.GraphicElement
 import foatto.core.app.graphic.graphicAxisColorIndexes
-import foatto.core.util.AdvancedByteBuffer
+import foatto.util.AdvancedByteBuffer
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.graphic.server.GraphicStartData
 import foatto.core_server.app.graphic.server.document.sdcAbstractGraphic

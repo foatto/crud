@@ -2,7 +2,7 @@ package foatto.ts.core_ts.graphic.server.graphic_handler
 
 import foatto.core.app.graphic.GraphicColorIndex
 import foatto.core.app.graphic.GraphicDataContainer
-import foatto.core.util.AdvancedByteBuffer
+import foatto.util.AdvancedByteBuffer
 import foatto.ts.core_ts.sensor.config.SensorConfigAnalogue
 
 interface iGraphicHandler {

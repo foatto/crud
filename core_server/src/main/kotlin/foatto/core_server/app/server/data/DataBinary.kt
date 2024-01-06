@@ -4,7 +4,7 @@ import foatto.core.link.FormCell
 import foatto.core.link.FormCellType
 import foatto.core.link.FormData
 import foatto.core.link.TableCell
-import foatto.core.util.AdvancedByteBuffer
+import foatto.util.AdvancedByteBuffer
 import foatto.core_server.app.server.column.iColumn
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedResultSet

@@ -2,7 +2,7 @@ package foatto.ts.core_ts
 
 import foatto.core.link.TableCell
 import foatto.core.link.TableCellForeColorType
-import foatto.core.util.getCurrentTimeInt
+import foatto.util.getCurrentTimeInt
 import foatto.core.util.getRandomInt
 import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.OrgType
@@ -11,7 +11,6 @@ import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.data.DataBoolean
 import foatto.core_server.app.server.data.DataString
 import foatto.core_server.app.server.data.iData
-import foatto.core_server.app.system.cUser
 import foatto.ts.iTSApplication
 
 class cCompany : cStandart() {

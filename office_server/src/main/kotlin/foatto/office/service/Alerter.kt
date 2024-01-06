@@ -1,10 +1,10 @@
 package foatto.office.service
 
-import foatto.core.util.AdvancedLogger
-import foatto.core.util.DateTime_DMYHMS
-import foatto.core.util.getCurrentTimeInt
-import foatto.core.util.getDateTimeArray
-import foatto.core.util.prepareForSQL
+import foatto.util.AdvancedLogger
+import foatto.util.DateTime_DMYHMS
+import foatto.util.getCurrentTimeInt
+import foatto.util.getDateTimeArray
+import foatto.util.prepareForSQL
 import foatto.core_server.service.CoreServiceWorker
 import foatto.office.mTask
 import foatto.office.mTaskThread

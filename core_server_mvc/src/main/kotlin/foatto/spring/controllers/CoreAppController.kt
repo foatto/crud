@@ -7,10 +7,10 @@ import foatto.core.app.xy.XyAction
 import foatto.core.app.xy.XyActionRequest
 import foatto.core.app.xy.XyActionResponse
 import foatto.core.link.*
-import foatto.core.util.AdvancedLogger
+import foatto.util.AdvancedLogger
 import foatto.core.util.BusinessException
-import foatto.core.util.encodePassword
-import foatto.core.util.getCurrentTimeInt
+import foatto.util.encodePassword
+import foatto.util.getCurrentTimeInt
 import foatto.core.util.getFilledNumberString
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.composite.server.CompositeStartData

@@ -1,7 +1,7 @@
 package foatto.mms.core_mms.report
 
-import foatto.core.util.DateTime_DMY
-import foatto.core.util.DateTime_DMYHMS
+import foatto.util.DateTime_DMY
+import foatto.util.DateTime_DMYHMS
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.cAbstractReport
 import foatto.core_server.app.server.data.DataBoolean

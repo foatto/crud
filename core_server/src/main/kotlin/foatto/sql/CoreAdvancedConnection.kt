@@ -1,6 +1,6 @@
 package foatto.sql
 
-import foatto.core.util.AdvancedByteBuffer
+import foatto.util.AdvancedByteBuffer
 import foatto.core.util.getRandomInt
 import foatto.core.util.getRandomLong
 import java.io.File

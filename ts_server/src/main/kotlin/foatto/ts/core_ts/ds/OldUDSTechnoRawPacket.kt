@@ -1,8 +1,8 @@
 package foatto.ts.core_ts.ds
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import foatto.core.util.YMDHMS_DateTime
-import foatto.core.util.getDateTimeInt
+import foatto.util.YMDHMS_DateTime
+import foatto.util.getDateTimeInt
 import java.time.ZoneId
 
 class OldUDSTechnoRawPacket(

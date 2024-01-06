@@ -1,8 +1,8 @@
 package foatto.mms.core_mms.report
 
 import foatto.core.link.FormData
-import foatto.core.util.DateTime_DMYHMS
-import foatto.core.util.getCurrentTimeInt
+import foatto.util.DateTime_DMYHMS
+import foatto.util.getCurrentTimeInt
 import foatto.core_server.app.server.data.DataInt
 import foatto.mms.core_mms.calc.AbstractObjectStateCalc
 import foatto.mms.core_mms.calc.ObjectCalc

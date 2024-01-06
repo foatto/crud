@@ -1,6 +1,6 @@
 package foatto.sql
 
-import foatto.core.util.AdvancedByteBuffer
+import foatto.util.AdvancedByteBuffer
 import java.nio.ByteOrder
 import java.time.LocalDate
 import java.time.LocalDateTime

@@ -3,8 +3,8 @@ package foatto.spring
 import foatto.core.link.XyDocumentConfig
 import foatto.core.link.XyElementClientType
 import foatto.core.link.XyElementConfig
-import foatto.core.util.AdvancedLogger
-import foatto.core.util.AsyncFileSaver
+import foatto.util.AdvancedLogger
+import foatto.util.AsyncFileSaver
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.xy.server.document.sdcXyAbstract
 import foatto.sql.DBConfig

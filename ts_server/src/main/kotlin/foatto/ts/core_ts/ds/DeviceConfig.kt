@@ -1,7 +1,7 @@
 package foatto.ts.core_ts.ds
 
 import foatto.core.app.UP_TIME_OFFSET
-import foatto.core.util.getZoneId
+import foatto.util.getZoneId
 import foatto.sql.CoreAdvancedConnection
 import java.time.ZoneId
 

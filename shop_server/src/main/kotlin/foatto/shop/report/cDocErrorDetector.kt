@@ -1,7 +1,7 @@
 package foatto.shop.report
 
 import foatto.core.link.FormData
-import foatto.core.util.DateTime_DMY
+import foatto.util.DateTime_DMY
 import foatto.core_server.app.server.cAbstractReport
 import foatto.shop.DocumentTypeConfig
 import jxl.CellView

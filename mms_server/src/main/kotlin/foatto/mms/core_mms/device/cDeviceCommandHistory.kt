@@ -1,6 +1,6 @@
 package foatto.mms.core_mms.device
 
-import foatto.core.util.getCurrentTimeInt
+import foatto.util.getCurrentTimeInt
 import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.data.DataDateTimeInt

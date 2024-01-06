@@ -1,6 +1,6 @@
 package foatto.shop.report
 
-import foatto.core.util.getCurrentTimeInt
+import foatto.util.getCurrentTimeInt
 import foatto.core.util.getSplittedDouble
 import foatto.core_server.app.server.cAbstractHierarchy
 import foatto.shop.DocumentTypeConfig

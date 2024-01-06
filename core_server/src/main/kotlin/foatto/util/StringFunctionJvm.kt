@@ -1,4 +1,4 @@
-package foatto.core.util
+package foatto.util
 
 import java.security.MessageDigest
 import java.util.*

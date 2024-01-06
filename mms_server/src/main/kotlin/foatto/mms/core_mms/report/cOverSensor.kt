@@ -4,10 +4,10 @@ import foatto.core.app.graphic.GraphicColorIndex
 import foatto.core.app.graphic.GraphicDataContainer
 import foatto.core.app.xy.geom.XyPoint
 import foatto.core.link.FormData
-import foatto.core.util.DateTime_DMYHMS
-import foatto.core.util.getSBFromIterable
+import foatto.util.DateTime_DMYHMS
+import foatto.util.getSBFromIterable
 import foatto.core.util.getSplittedDouble
-import foatto.core.util.secondIntervalToString
+import foatto.util.secondIntervalToString
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.ZoneData
 import foatto.mms.core_mms.calc.ObjectCalc

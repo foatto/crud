@@ -7,7 +7,7 @@ import foatto.core.app.graphic.GraphicColorIndex
 import foatto.core.app.graphic.GraphicDataContainer
 import foatto.core.app.graphic.GraphicElement
 import foatto.core.app.graphic.GraphicLineData
-import foatto.core.util.loadTextFile
+import foatto.util.loadTextFile
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.graphic.server.GraphicStartData
 import java.io.File

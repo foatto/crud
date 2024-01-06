@@ -2,7 +2,7 @@ package foatto.mms.core_mms.graphic.server.document
 
 import foatto.core.app.graphic.*
 import foatto.core.app.xy.XyProjection
-import foatto.core.util.AdvancedByteBuffer
+import foatto.util.AdvancedByteBuffer
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.graphic.server.GraphicStartData
 import foatto.core_server.app.graphic.server.document.sdcAbstractGraphic

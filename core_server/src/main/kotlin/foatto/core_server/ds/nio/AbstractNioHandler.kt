@@ -1,7 +1,7 @@
 package foatto.core_server.ds.nio
 
-import foatto.core.util.AdvancedByteBuffer
-import foatto.core.util.AdvancedLogger
+import foatto.util.AdvancedByteBuffer
+import foatto.util.AdvancedLogger
 import java.nio.ByteOrder
 import java.nio.channels.SelectionKey
 import java.nio.channels.SocketChannel

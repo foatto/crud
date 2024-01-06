@@ -4,7 +4,7 @@ import foatto.core.link.FormCell
 import foatto.core.link.FormCellType
 import foatto.core.link.FormData
 import foatto.core.link.TableCell
-import foatto.core.util.prepareForSQL
+import foatto.util.prepareForSQL
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.column.iColumn
 import foatto.sql.CoreAdvancedConnection

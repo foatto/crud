@@ -1,8 +1,8 @@
 package foatto.mms.core_mms.report
 
 import foatto.core.link.FormData
-import foatto.core.util.DateTime_DMY
-import foatto.core.util.getDateTime
+import foatto.util.DateTime_DMY
+import foatto.util.getDateTime
 import foatto.core.util.getSplittedDouble
 import foatto.core_server.app.server.data.DataDouble
 import foatto.mms.core_mms.calc.ObjectCalc

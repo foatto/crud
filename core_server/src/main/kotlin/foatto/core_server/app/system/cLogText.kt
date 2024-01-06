@@ -1,8 +1,8 @@
 package foatto.core_server.app.system
 
 import foatto.core.link.TableResponse
-import foatto.core.util.DescendingFileTimeComparator
-import foatto.core.util.loadTextFile
+import foatto.util.DescendingFileTimeComparator
+import foatto.util.loadTextFile
 import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.data.DataString

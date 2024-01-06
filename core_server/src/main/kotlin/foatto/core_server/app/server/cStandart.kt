@@ -3,7 +3,7 @@ package foatto.core_server.app.server
 import foatto.core.app.*
 import foatto.core.link.*
 import foatto.core.util.BusinessException
-import foatto.core.util.getCurrentTimeInt
+import foatto.util.getCurrentTimeInt
 import foatto.core.util.getRandomInt
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.iApplication

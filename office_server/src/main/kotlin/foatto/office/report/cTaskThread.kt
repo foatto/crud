@@ -1,9 +1,8 @@
 package foatto.office.report
 
 import foatto.core.link.FormData
-import foatto.core.util.DateTime_DMY
-import foatto.core.util.DateTime_DMYHM
-import foatto.core_server.app.server.UserConfig
+import foatto.util.DateTime_DMY
+import foatto.util.DateTime_DMYHM
 import foatto.core_server.app.server.data.DataInt
 import jxl.CellView
 import jxl.format.PageOrientation

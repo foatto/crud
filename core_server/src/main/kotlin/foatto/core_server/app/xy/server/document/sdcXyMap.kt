@@ -6,11 +6,11 @@ import foatto.core.app.xy.XyElement
 import foatto.core.app.xy.XyViewCoord
 import foatto.core.app.xy.config.XyBitmapType
 import foatto.core.app.xy.geom.XyPoint
-import foatto.core.util.AdvancedByteBuffer
-import foatto.core.util.AsyncFileSaver
-import foatto.core.util.getCurrentTimeInt
+import foatto.util.AdvancedByteBuffer
+import foatto.util.AsyncFileSaver
+import foatto.util.getCurrentTimeInt
 import foatto.core.util.getRandomInt
-import foatto.core.util.getStringFromIterable
+import foatto.util.getStringFromIterable
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.xy.XyStartData
 import foatto.core_server.app.xy.XyStartObjectParsedData

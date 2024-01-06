@@ -1,10 +1,10 @@
 package foatto.mms.core_mms.report
 
 import foatto.core.link.FormData
-import foatto.core.util.DateTime_DMYHMS
+import foatto.util.DateTime_DMYHMS
 import foatto.core.util.getSplittedDouble
 import foatto.core.util.getSplittedLong
-import foatto.core.util.secondIntervalToString
+import foatto.util.secondIntervalToString
 import foatto.mms.core_mms.calc.GeoPeriodData
 import foatto.mms.core_mms.calc.ObjectCalc
 import foatto.mms.iMMSApplication

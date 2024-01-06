@@ -4,8 +4,8 @@ import foatto.core.link.FormCell
 import foatto.core.link.FormCellType
 import foatto.core.link.FormData
 import foatto.core.link.TableCell
-import foatto.core.util.Time_HM
-import foatto.core.util.Time_HMS
+import foatto.util.Time_HM
+import foatto.util.Time_HMS
 import foatto.core_server.app.server.column.ColumnTimeDT
 import foatto.core_server.app.server.column.iColumn
 import foatto.sql.CoreAdvancedConnection

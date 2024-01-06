@@ -1,6 +1,6 @@
 package foatto.core_server.app.server.data
 
-import foatto.core.util.getDateTime
+import foatto.util.getDateTime
 import foatto.core_server.app.server.column.iColumn
 import foatto.sql.CoreAdvancedResultSet
 

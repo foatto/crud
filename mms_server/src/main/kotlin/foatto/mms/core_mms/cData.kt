@@ -1,6 +1,6 @@
 package foatto.mms.core_mms
 
-import foatto.core.util.DateTime_YMDHMS
+import foatto.util.DateTime_YMDHMS
 import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.data.DataBinary
 import foatto.core_server.app.server.data.DataDateTimeInt

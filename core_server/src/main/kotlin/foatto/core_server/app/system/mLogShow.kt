@@ -1,9 +1,9 @@
 package foatto.core_server.app.system
 
 import foatto.core.link.FormPinMode
-import foatto.core.util.getCurrentDayStart
-import foatto.core.util.getDateTimeArray
-import foatto.core.util.getNextDayStart
+import foatto.util.getCurrentDayStart
+import foatto.util.getDateTimeArray
+import foatto.util.getNextDayStart
 import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig

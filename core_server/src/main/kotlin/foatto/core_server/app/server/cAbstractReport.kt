@@ -1,8 +1,8 @@
 package foatto.core_server.app.server
 
 import foatto.core.app.ICON_NAME_PRINT
-import foatto.core.util.DateTime_DMYHMS
-import foatto.core.util.getFreeFile
+import foatto.util.DateTime_DMYHMS
+import foatto.util.getFreeFile
 import foatto.core.util.getRandomInt
 import jxl.Workbook
 import jxl.format.*

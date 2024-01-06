@@ -4,10 +4,10 @@ import foatto.core.link.GetReplicationRequest
 import foatto.core.link.GetReplicationResponse
 import foatto.core.link.PutReplicationRequest
 import foatto.core.link.PutReplicationResponse
-import foatto.core.util.AdvancedByteBuffer
-import foatto.core.util.AdvancedLogger
-import foatto.core.util.getCurrentTimeInt
-import foatto.core.util.readFileToBuffer
+import foatto.util.AdvancedByteBuffer
+import foatto.util.AdvancedLogger
+import foatto.util.getCurrentTimeInt
+import foatto.util.readFileToBuffer
 import foatto.spring.CoreSpringApp
 import foatto.sql.AdvancedConnection
 import foatto.sql.CoreAdvancedConnection

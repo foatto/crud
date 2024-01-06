@@ -1,7 +1,7 @@
 package foatto.shop.report
 
 import foatto.core.link.FormData
-import foatto.core.util.DateTime_DMY
+import foatto.util.DateTime_DMY
 import foatto.core.util.getSplittedDouble
 import foatto.core_server.app.server.data.DataComboBox
 import foatto.core_server.app.server.data.DataDate3Int

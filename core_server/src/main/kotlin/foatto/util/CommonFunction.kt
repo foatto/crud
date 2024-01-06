@@ -1,5 +1,6 @@
-package foatto.core.util
+package foatto.util
 
+import foatto.core.util.getRandomInt
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileInputStream
@@ -15,7 +16,6 @@ import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
-import kotlin.math.abs
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

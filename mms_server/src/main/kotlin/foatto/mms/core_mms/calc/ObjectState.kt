@@ -2,8 +2,8 @@ package foatto.mms.core_mms.calc
 
 import foatto.core.app.xy.XyProjection
 import foatto.core.app.xy.geom.XyPoint
-import foatto.core.util.getAngle
-import foatto.core.util.getCurrentTimeInt
+import foatto.util.getAngle
+import foatto.util.getCurrentTimeInt
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigLiquidLevel

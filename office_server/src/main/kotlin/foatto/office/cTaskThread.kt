@@ -3,7 +3,7 @@ package foatto.office
 import foatto.core.app.ICON_NAME_PRINT
 import foatto.core.link.AppAction
 import foatto.core.link.ServerActionButton
-import foatto.core.util.getCurrentTimeInt
+import foatto.util.getCurrentTimeInt
 import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.data.DataInt

@@ -7,7 +7,7 @@ import foatto.core.app.xy.XyActionResponse
 import foatto.core.link.AppRequest
 import foatto.core.link.AppResponse
 import foatto.core.link.MenuData
-import foatto.core.util.AdvancedLogger
+import foatto.util.AdvancedLogger
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.mms.core_mms.ObjectConfig

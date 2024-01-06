@@ -2,7 +2,7 @@ package foatto.ts.core_ts.calc
 
 import foatto.core.app.graphic.GraphicDataContainer
 import foatto.core.app.graphic.GraphicLineData
-import foatto.core.util.AdvancedByteBuffer
+import foatto.util.AdvancedByteBuffer
 import foatto.core_server.app.server.UserConfig
 import foatto.sql.CoreAdvancedConnection
 import foatto.ts.core_ts.ObjectConfig

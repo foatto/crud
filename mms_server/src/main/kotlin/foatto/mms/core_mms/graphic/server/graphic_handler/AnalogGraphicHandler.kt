@@ -7,7 +7,7 @@ import foatto.core.app.graphic.graphicLineAboveColorIndexes
 import foatto.core.app.graphic.graphicLineBelowColorIndexes
 import foatto.core.app.graphic.graphicLineNoneColorIndexes
 import foatto.core.app.graphic.graphicLineNormalColorIndexes
-import foatto.core.util.AdvancedByteBuffer
+import foatto.util.AdvancedByteBuffer
 import foatto.mms.core_mms.calc.AbstractObjectStateCalc
 import foatto.mms.core_mms.calc.ObjectCalc
 import foatto.mms.core_mms.sensor.config.SensorConfigAnalogue

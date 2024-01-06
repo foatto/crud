@@ -1,6 +1,6 @@
 package foatto.office.service
 
-import foatto.core.util.getDateTimeArray
+import foatto.util.getDateTimeArray
 import foatto.core_server.service.CoreServiceWorker
 import foatto.sql.AdvancedConnection
 import java.time.ZoneId

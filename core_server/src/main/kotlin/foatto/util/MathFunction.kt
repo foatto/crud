@@ -1,4 +1,4 @@
-package foatto.core.util
+package foatto.util
 
 import foatto.core.app.xy.geom.XyPoint
 import kotlin.math.E

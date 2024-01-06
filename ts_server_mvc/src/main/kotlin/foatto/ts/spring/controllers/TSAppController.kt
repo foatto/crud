@@ -11,7 +11,7 @@ import foatto.core.link.GraphicResponse
 import foatto.core.link.MenuData
 import foatto.core.link.ResponseCode
 import foatto.core.link.XyResponse
-import foatto.core.util.AdvancedLogger
+import foatto.util.AdvancedLogger
 import foatto.core_server.app.composite.server.CompositeStartData
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig

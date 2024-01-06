@@ -1,6 +1,6 @@
 package foatto.mms
 
-import foatto.core.util.AdvancedLogger
+import foatto.util.AdvancedLogger
 import foatto.core_server.service.CoreServiceWorker
 import foatto.sql.AdvancedConnection
 import kotlin.system.exitProcess

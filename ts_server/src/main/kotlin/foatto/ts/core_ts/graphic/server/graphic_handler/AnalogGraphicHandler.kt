@@ -7,7 +7,7 @@ import foatto.core.app.graphic.graphicLineAboveColorIndexes
 import foatto.core.app.graphic.graphicLineBelowColorIndexes
 import foatto.core.app.graphic.graphicLineNoneColorIndexes
 import foatto.core.app.graphic.graphicLineNormalColorIndexes
-import foatto.core.util.AdvancedByteBuffer
+import foatto.util.AdvancedByteBuffer
 import foatto.ts.core_ts.calc.AbstractObjectStateCalc
 import foatto.ts.core_ts.calc.ObjectCalc
 import foatto.ts.core_ts.sensor.config.SensorConfigAnalogue

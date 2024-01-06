@@ -1,6 +1,6 @@
 package foatto.mms.core_mms
 
-import foatto.core.util.AdvancedLogger
+import foatto.util.AdvancedLogger
 import foatto.core.util.getSplittedDouble
 import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.column.iColumn

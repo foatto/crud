@@ -1,8 +1,8 @@
 package foatto.service
 
-import foatto.core.util.AdvancedLogger
-import foatto.core.util.DateTime_YMDHMS
-import foatto.core.util.getCurrentTimeInt
+import foatto.util.AdvancedLogger
+import foatto.util.DateTime_YMDHMS
+import foatto.util.getCurrentTimeInt
 import foatto.core_server.service.CoreServiceWorker
 import foatto.sql.AdvancedConnection
 import java.io.File

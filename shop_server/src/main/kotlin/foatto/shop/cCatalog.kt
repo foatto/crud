@@ -5,8 +5,8 @@ import foatto.core.link.TableCellBackColorType
 import foatto.core.link.TableCellForeColorType
 import foatto.core.link.TableResponse
 import foatto.core.link.XyDocumentConfig
-import foatto.core.util.getCurrentTimeInt
-import foatto.core.util.getDateTimeArray
+import foatto.util.getCurrentTimeInt
+import foatto.util.getDateTimeArray
 import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig

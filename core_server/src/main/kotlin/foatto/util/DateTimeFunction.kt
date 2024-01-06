@@ -1,4 +1,4 @@
-package foatto.core.util
+package foatto.util
 
 import java.time.Instant
 import java.time.LocalDate

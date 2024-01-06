@@ -1,9 +1,9 @@
 package foatto.mms.core_mms.report
 
 import foatto.core.link.FormData
-import foatto.core.util.DateTime_DMYHM
-import foatto.core.util.getDateTime
-import foatto.core.util.getSBFromIterable
+import foatto.util.DateTime_DMYHM
+import foatto.util.getDateTime
+import foatto.util.getSBFromIterable
 import foatto.core.util.getSplittedDouble
 import foatto.core_server.app.server.data.DataBoolean
 import foatto.core_server.app.server.data.DataComboBox

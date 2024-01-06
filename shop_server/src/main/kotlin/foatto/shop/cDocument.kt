@@ -4,7 +4,7 @@ import foatto.core.link.AppAction
 import foatto.core.link.TableCell
 import foatto.core.link.TableCellForeColorType
 import foatto.core.link.XyDocumentConfig
-import foatto.core.util.getCurrentTimeInt
+import foatto.util.getCurrentTimeInt
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig

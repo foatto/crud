@@ -1,7 +1,7 @@
 package foatto.core_server.ds.nio
 
-import foatto.core.util.AdvancedLogger
-import foatto.core.util.getCurrentTimeInt
+import foatto.util.AdvancedLogger
+import foatto.util.getCurrentTimeInt
 import foatto.sql.CoreAdvancedConnection
 
 abstract class CoreNioWorker protected constructor(val dataServer: CoreNioServer) : Thread() {

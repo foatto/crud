@@ -4,8 +4,8 @@ import foatto.core.link.ChangePasswordRequest
 import foatto.core.link.ChangePasswordResponse
 import foatto.core.link.LogoffRequest
 import foatto.core.link.LogoffResponse
-import foatto.core.util.AdvancedLogger
-import foatto.core.util.getCurrentTimeInt
+import foatto.util.AdvancedLogger
+import foatto.util.getCurrentTimeInt
 import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.UserConfig
 import foatto.spring.CoreSpringApp

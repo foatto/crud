@@ -1,7 +1,7 @@
 package foatto.mms.core_mms.calc
 
-import foatto.core.util.AdvancedByteBuffer
-import foatto.core.util.byteToHex
+import foatto.util.AdvancedByteBuffer
+import foatto.util.byteToHex
 import foatto.mms.core_mms.GeoData
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigGeo

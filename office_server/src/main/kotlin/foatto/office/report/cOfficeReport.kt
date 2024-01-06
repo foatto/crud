@@ -1,7 +1,6 @@
 package foatto.office.report
 
-import foatto.core.util.DateTime_DMY
-import foatto.core.util.DateTime_DMYHMS
+import foatto.util.DateTime_DMY
 import foatto.core_server.app.server.cAbstractReport
 import jxl.write.Label
 import jxl.write.WritableCellFormat

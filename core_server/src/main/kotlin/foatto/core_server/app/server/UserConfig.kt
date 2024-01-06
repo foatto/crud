@@ -3,7 +3,7 @@ package foatto.core_server.app.server
 import foatto.core.app.UP_DECIMAL_DIVIDER
 import foatto.core.app.UP_IS_USE_THOUSANDS_DIVIDER
 import foatto.core.app.UP_TIME_OFFSET
-import foatto.core.util.getZoneId
+import foatto.util.getZoneId
 import java.time.ZoneId
 
 class UserConfig(
