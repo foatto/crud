@@ -6,7 +6,7 @@ import androidx.activity.compose.setContent
 
 open class CoreMainActivity : ComponentActivity() {
 
-    var mainApp: MainApp = MainApp()
+    protected lateinit var root: Root
 
     open fun init() {
     }
@@ -17,7 +17,9 @@ open class CoreMainActivity : ComponentActivity() {
         init()
 
         setContent {
-            mainApp.Content()
+            root.Content()
         }
+
+        root.start()
     }
 }
