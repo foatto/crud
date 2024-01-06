@@ -21,6 +21,7 @@ class AppResponse(
     var alMenuData: List<MenuData>? = null
 }
 
+@Serializable
 enum class ResponseCode {
     LOGON_NEED,
 

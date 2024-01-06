@@ -7,7 +7,6 @@ import foatto.core.app.xy.XyActionResponse
 import foatto.core.link.*
 import foatto.core.util.getRandomLong
 import kotlinx.browser.window
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.w3c.xhr.XMLHttpRequest

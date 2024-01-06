@@ -13,6 +13,8 @@ val androidCompileSdk: String by project
 val androidTargetSdk: String by project
 val androidMinSdk: String by project
 
+val kotlinxCoroutinesVersion: String by project
+val ktorVersion: String by project
 val androidxActivityComposeVersion: String by project
 
 plugins {
@@ -23,9 +25,6 @@ plugins {
 }
 
 kotlin {
-//    js(IR) {
-//        browser()
-//    }
 
     androidTarget {
         compilations.all {
@@ -35,10 +34,13 @@ kotlin {
         }
     }
 
-//    jvm("desktop")
-
     sourceSets {
         commonMain.dependencies {
+            api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
+            api("io.ktor:ktor-client-core:$ktorVersion")
+            api("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+            api("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+
             api(compose.runtime)
             api(compose.foundation)
             api(compose.material)
@@ -49,15 +51,14 @@ kotlin {
             api(project(":core"))
         }
         androidMain.dependencies {
+            api("org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesVersion")
+            api("io.ktor:ktor-client-android:$ktorVersion")
+//            api("io.ktor:ktor-client-okhttp:$ktorVersion") - alternate engine for http/2 & WebSockets support
+
             api("androidx.compose.ui:ui:$composeVersion")
             api("androidx.compose.ui:ui-tooling-preview:$composeVersion")
             api("androidx.activity:activity-compose:$androidxActivityComposeVersion")
-
-//            api("androidx.appcompat:appcompat:1.6.1")
         }
-//        desktopMain.dependencies {
-//            implementation(compose.desktop.currentOs)
-//        }
     }
 }
 
@@ -109,15 +110,3 @@ android {
         }
     }
 }
-
-//compose.desktop {
-//    application {
-//        mainClass = "MainKt"
-//
-//        nativeDistributions {
-//            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-//            packageName = "org.example.project"
-//            packageVersion = "1.0.0"
-//        }
-//    }
-//}

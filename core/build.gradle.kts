@@ -46,8 +46,6 @@ kotlin {
         commonMain.dependencies {
             api("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion")
         }
-        jsMain.dependencies {
-        }
         jvmMain.dependencies {
             api(kotlin("reflect"))
         }
