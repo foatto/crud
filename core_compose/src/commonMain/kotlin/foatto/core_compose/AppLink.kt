@@ -3,6 +3,7 @@ package foatto.core_compose
 import foatto.core.link.AppRequest
 import foatto.core.link.AppResponse
 import foatto.core.util.getRandomLong
+import foatto.core_compose.di.settings
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
@@ -15,6 +16,10 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
+const val SETTINGS_SERVER_PROTOCOL: String = "server_protocol"
+const val SETTINGS_SERVER_ADDRESS: String = "server_address"
+const val SETTINGS_SERVER_PORT: String = "server_port"
+
 internal expect val applicationDispatcher: CoroutineDispatcher
 // internal actual val ApplicationDispatcher: CoroutineDispatcher = Dispatchers.Default - for JS-module
 
@@ -26,10 +31,12 @@ private val httpClient = HttpClient {
         json()
     }
     defaultRequest {
-        url.protocol = URLProtocol.HTTP //URLProtocol.HTTPS
-        host = "192.168.0.44"
-        port = 19999
-    }                          
+        url.protocol = settings.getStringOrNull(SETTINGS_SERVER_PROTOCOL)?.let { protocolName ->
+            URLProtocol.byName[protocolName]
+        } ?: URLProtocol.HTTP
+        host = settings.getString(SETTINGS_SERVER_ADDRESS, "")
+        port = settings.getInt(SETTINGS_SERVER_PORT, 80)
+    }
 }
 
 @OptIn(DelicateCoroutinesApi::class)

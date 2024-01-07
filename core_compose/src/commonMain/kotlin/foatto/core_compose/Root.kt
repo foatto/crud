@@ -13,7 +13,6 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -21,10 +20,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import foatto.core_compose.di.settings
 import foatto.core_compose.models.MenuDataClient
 import foatto.core_compose.models.TabInfo
 
 open class Root {
+
+    companion object {
+        const val SETTINGS_APP_PARAM: String = "app_param"
+    }
 
     private var isWideScreen by mutableStateOf(false)
 
@@ -38,7 +42,7 @@ open class Root {
 
     var currentUserName: String = ""
     var timeOffset: Int = 0
-//    var curAppParam: String = ""
+    var curAppParam: String = ""
 
     private var lastTabId: Int = 0
 
@@ -106,16 +110,9 @@ open class Root {
     }
 
     fun start() {
-        //!!! use local storage
-//        val localStartAppParam = localStorage.getItem(LOCAL_STORAGE_APP_PARAM)
-//        addTabComp(
-//            if (localStartAppParam.isNullOrBlank()) {
-//                (document.getElementById("startAppParam") as HTMLSpanElement).innerText
-//            } else {
-//                localStartAppParam
-//            }
-//        )
-        addTabComp("alias=mms_day_work&action=table")
+        settings.getStringOrNull(SETTINGS_APP_PARAM)?.let { localStartAppParam ->
+            addTabComp(localStartAppParam)
+        }
     }
 
     fun openTab(newAppParam: String) {

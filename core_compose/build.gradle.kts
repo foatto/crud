@@ -15,6 +15,9 @@ val androidMinSdk: String by project
 
 val kotlinxCoroutinesVersion: String by project
 val ktorVersion: String by project
+
+val multiplatformSettingsVersion: String by project
+
 val androidxActivityComposeVersion: String by project
 
 plugins {
@@ -47,6 +50,9 @@ kotlin {
 //            api(compose.material3)
             @OptIn(ExperimentalComposeLibrary::class)
             api(compose.components.resources)
+
+            api("com.russhwolf:multiplatform-settings:$multiplatformSettingsVersion")
+            api("com.russhwolf:multiplatform-settings-no-arg:$multiplatformSettingsVersion")
 
             api(project(":core"))
         }

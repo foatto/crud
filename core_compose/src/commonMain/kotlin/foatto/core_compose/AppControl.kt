@@ -18,6 +18,7 @@ import foatto.core.link.ResponseCode
 import foatto.core_compose.composables.LogonForm
 import foatto.core_compose.controls.AbstractControl
 import foatto.core_compose.controls.EmptyControl
+import foatto.core_compose.di.settings
 import foatto.core_compose.models.MenuDataClient
 import foatto.core_compose.utils.encodePassword
 
@@ -26,6 +27,11 @@ class AppControl(
     private val startAppParam: String,
     private val tabId: Int,
 ) {
+
+    companion object {
+        private const val SETTINGS_LOGIN: String = "login"
+        private const val SETTINGS_PASSWORD: String = "password"
+    }
 
     private var responseCode by mutableStateOf(ResponseCode.LOGON_NEED)
     private val curControl by mutableStateOf<AbstractControl>(EmptyControl())
@@ -76,7 +82,7 @@ class AppControl(
                 }
 
                 ResponseCode.TABLE, ResponseCode.FORM -> {
-                    curControl.getBody()
+                    curControl.Body()
                 }
 
                 else -> {
@@ -131,21 +137,20 @@ class AppControl(
                         prevRequest = appRequest
 
                         //--- попробуем автологон
-//!!! local storage
-//                        val savedLogin = localStorage.getItem(LOCAL_STORAGE_LOGIN)
-//                        val savedPassword = localStorage.getItem(LOCAL_STORAGE_PASSWORD)
-//                        if (!savedLogin.isNullOrBlank() && !savedPassword.isNullOrEmpty()) {
-//                            val logonRequest = LogonRequest(savedLogin, savedPassword)
+                        val savedLogin = settings.getStringOrNull(SETTINGS_LOGIN)
+                        val savedPassword = settings.getStringOrNull(SETTINGS_PASSWORD)
+                        if (!savedLogin.isNullOrBlank() && !savedPassword.isNullOrEmpty()) {
+                            val logonRequest = LogonRequest(savedLogin, savedPassword)
 //                            fillSystemProperties(logonRequest.hmSystemProperties)
-//
-//                            call(AppRequest(action = AppAction.LOGON, logon = logonRequest))
-//                        } else {
-                        responseCode = appResponse.code
+
+                            call(AppRequest(action = AppAction.LOGON, logon = logonRequest))
+                        } else {
+                            responseCode = appResponse.code
 //                            val element = document.getElementById("logon_0")
 //                            if (element is HTMLElement) {
 //                                element.focus()
 //                            }
-//                        }
+                        }
                     }
                     //--- если вход успешен - повторим последний запрос
                     ResponseCode.LOGON_SUCCESS, ResponseCode.LOGON_SUCCESS_BUT_OLD -> {
@@ -248,13 +253,13 @@ class AppControl(
     private fun logon() {
         val encodedPassword = encodePassword(password)
 
-//        if (isRememberMe) {
-//            localStorage.setItem(LOCAL_STORAGE_LOGIN, login.value)
-//            localStorage.setItem(LOCAL_STORAGE_PASSWORD, encodedPassword)
-//        } else {
-//            localStorage.setItem(LOCAL_STORAGE_LOGIN, "")
-//            localStorage.setItem(LOCAL_STORAGE_PASSWORD, "")
-//        }
+        if (isRememberMe) {
+            settings.putString(SETTINGS_LOGIN, login)
+            settings.putString(SETTINGS_PASSWORD, encodedPassword)
+        } else {
+            settings.remove(SETTINGS_LOGIN)
+            settings.remove(SETTINGS_PASSWORD)
+        }
 
         val logonRequest = LogonRequest(login, encodedPassword)
 //        fillSystemProperties(logonRequest.hmSystemProperties)

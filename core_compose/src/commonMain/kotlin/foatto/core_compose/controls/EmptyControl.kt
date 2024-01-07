@@ -7,7 +7,7 @@ class EmptyControl : AbstractControl(
 ) {
 
     @Composable
-    override fun getBody() {
+    override fun Body() {
     }
 
     override fun start() {}

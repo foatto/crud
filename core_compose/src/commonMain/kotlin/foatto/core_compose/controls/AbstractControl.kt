@@ -12,7 +12,7 @@ abstract class AbstractControl(
     protected val alTitleData: SnapshotStateList<TitleData> = mutableStateListOf()
 
     @Composable
-    abstract fun getBody()
+    abstract fun Body()
 
     abstract fun start()
 
