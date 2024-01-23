@@ -5,11 +5,11 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.web.events.SyntheticMouseEvent
 import foatto.core.link.*
-import foatto.core_compose_web.model.MenuDataClient
-import foatto.core_compose_web.model.TitleData
 import foatto.core_compose_web.*
 import foatto.core_compose_web.control.composable.getMultilineText
 import foatto.core_compose_web.control.composable.getToolBarSpan
+import foatto.core_compose_web.model.MenuDataClient
+import foatto.core_compose_web.model.TitleData
 import foatto.core_compose_web.style.*
 import foatto.core_compose_web.util.getColorFromInt
 import kotlinx.browser.document
@@ -33,7 +33,6 @@ import org.jetbrains.compose.web.dom.Input
 import org.jetbrains.compose.web.dom.Span
 import org.jetbrains.compose.web.dom.Text
 import org.w3c.dom.HTMLElement
-import kotlin.js.Date
 import kotlin.math.max
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -236,8 +235,8 @@ open class TableControl(
                 getToolBarSpan {
                     getToolBarIconButton(
                         isVisible = selectorCancelUrl.value.isNotEmpty(),
-                        src = "/web/images/ic_reply_all_${getStyleIconNameSuffix()}.png",
-                        title = "Отменить выбор",
+                        url = "/web/images/ic_reply_all_${getStyleIconNameSuffix()}.png",
+                        tooltip = "Отменить выбор",
                     ) {
                         call(selectorCancelUrl.value, false)
                     }
@@ -303,30 +302,31 @@ open class TableControl(
                     for (addButton in alAddButton) {
                         getToolBarIconButton(
                             isVisible = !styleIsNarrowScreen || !isFindTextVisible.value,
-                            src = addButton.icon,
-                            title = addButton.tooltip
+                            url = addButton.url,
+                            text = addButton.text,
+                            tooltip = addButton.tooltip,
                         ) {
-                            call(addButton.url, false)
+                            call(addButton.action, false)
                         }
                     }
                     getToolBarIconButton(
                         isVisible = (!styleIsNarrowScreen || !isFindTextVisible.value) && isFormButtonVisible.value,
-                        src = "/web/images/ic_mode_edit_${getStyleIconNameSuffix()}.png",
-                        title = "Открыть форму"
+                        url = "/web/images/ic_mode_edit_${getStyleIconNameSuffix()}.png",
+                        tooltip = "Открыть форму"
                     ) {
                         doForm()
                     }
                     getToolBarIconButton(
                         isVisible = (!styleIsNarrowScreen || !isFindTextVisible.value) && isGotoButtonVisible.value,
-                        src = "/web/images/ic_exit_to_app_${getStyleIconNameSuffix()}.png",
-                        title = "Перейти"
+                        url = "/web/images/ic_exit_to_app_${getStyleIconNameSuffix()}.png",
+                        tooltip = "Перейти"
                     ) {
                         doGoto()
                     }
                     getToolBarIconButton(
                         isVisible = (!styleIsNarrowScreen || !isFindTextVisible.value) && isPopupButtonVisible.value,
-                        src = "/web/images/ic_menu_${getStyleIconNameSuffix()}.png",
-                        title = "Показать операции по строке"
+                        url = "/web/images/ic_menu_${getStyleIconNameSuffix()}.png",
+                        tooltip = "Показать операции по строке"
                     ) {
                         doPopup()
                     }
@@ -335,10 +335,11 @@ open class TableControl(
                     for (serverButton in alServerButton) {
                         getToolBarIconButton(
                             isVisible = !styleIsNarrowScreen || (!isFindTextVisible.value && !serverButton.isForWideScreenOnly),
-                            src = serverButton.icon,
-                            title = serverButton.tooltip
+                            url = serverButton.url,
+                            text = serverButton.text,
+                            tooltip = serverButton.tooltip
                         ) {
-                            call(serverButton.url, serverButton.inNewWindow)
+                            call(serverButton.action, serverButton.inNewWindow)
                         }
                     }
                 }
@@ -346,8 +347,9 @@ open class TableControl(
                     for (clientButton in alClientButton) {
                         getToolBarIconButton(
                             isVisible = !styleIsNarrowScreen || (!isFindTextVisible.value && !clientButton.isForWideScreenOnly),
-                            src = clientButton.icon,
-                            title = clientButton.tooltip
+                            url = clientButton.url,
+                            text = clientButton.text,
+                            tooltip = clientButton.tooltip
                         ) {
                             clientAction(clientButton.action, clientButton.params)
                         }
@@ -732,18 +734,19 @@ open class TableControl(
     private fun readAddButtons() {
         alAddButton.clear()
         for (aab in tableResponse.alAddActionButton) {
-            val icon = hmTableIcon[aab.icon] ?: ""
-            //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
-            val tooltip = if (aab.icon.isNotBlank() && icon.isBlank()) {
-                aab.icon
-            } else {
-                aab.tooltip
-            }
+            val icon = hmTableIcon[aab.icon]
+
             alAddButton.add(
                 AddActionButtonClient(
-                    tooltip = tooltip,
-                    icon = icon,
-                    url = aab.url
+                    url = icon,
+                    //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
+                    text = if (aab.icon != null && icon == null) {
+                        aab.icon
+                    } else {
+                        aab.text
+                    },
+                    tooltip = aab.tooltip,
+                    action = aab.action
                 )
             )
         }
@@ -753,18 +756,19 @@ open class TableControl(
         alServerButton.clear()
 
         for (sab in tableResponse.alServerActionButton) {
-            val icon = hmTableIcon[sab.icon] ?: ""
-            //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
-            val tooltip = if (sab.icon.isNotBlank() && icon.isBlank()) {
-                sab.icon
-            } else {
-                sab.tooltip
-            }
+            val icon = hmTableIcon[sab.icon]
+
             alServerButton.add(
                 ServerActionButtonClient(
-                    tooltip = tooltip,
-                    icon = icon,
-                    url = sab.url,
+                    url = icon,
+                    //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
+                    text = if (sab.icon != null && icon == null) {
+                        sab.icon
+                    } else {
+                        sab.text
+                    },
+                    tooltip = sab.tooltip,
+                    action = sab.action,
                     inNewWindow = sab.inNewWindow,
                     isForWideScreenOnly = sab.isForWideScreenOnly,
                 )
@@ -775,17 +779,18 @@ open class TableControl(
     private fun readClientButtons() {
         alClientButton.clear()
         for (cab in tableResponse.alClientActionButton) {
-            val icon = hmTableIcon[cab.icon] ?: ""
-            //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
-            val tooltip = if (cab.icon.isNotBlank() && icon.isBlank()) {
-                cab.icon
-            } else {
-                cab.tooltip
-            }
+            val icon = hmTableIcon[cab.icon]
+
             alClientButton.add(
                 ClientActionButtonClient(
-                    tooltip = tooltip,
-                    icon = icon,
+                    url = icon,
+                    //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
+                    text = if (cab.icon != null && icon == null) {
+                        cab.icon
+                    } else {
+                        cab.text
+                    },
+                    tooltip = cab.tooltip,
                     action = cab.action,
                     params = cab.alParam.toList(),
                     isForWideScreenOnly = cab.isForWideScreenOnly,
@@ -1309,25 +1314,28 @@ open class TableControl(
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private class AddActionButtonClient(
-    val icon: String,
-    val tooltip: String,
-    val url: String
+    val url: String? = null,
+    val text: String? = null,
+    val tooltip: String? = null,
+    val action: String
 )
 
 private class ServerActionButtonClient(
-    val icon: String,
-    val tooltip: String,
-    val url: String,
+    val url: String? = null,
+    val text: String? = null,
+    val tooltip: String? = null,
+    val action: String,
     val inNewWindow: Boolean,
     val isForWideScreenOnly: Boolean,
 )
 
 private class ClientActionButtonClient(
-    val isForWideScreenOnly: Boolean,
-    val icon: String,
-    val tooltip: String,
+    val url: String? = null,
+    val text: String? = null,
+    val tooltip: String? = null,
     val action: String,
     val params: List<Pair<String, String>>,
+    val isForWideScreenOnly: Boolean,
 )
 
 private class PageButton(val url: String, val text: String)

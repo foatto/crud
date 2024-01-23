@@ -38,10 +38,10 @@ class cZone : cStandart() {
         //--- для команды XY alias обозначает xy_document_type_name
         alAddButtonList.add(
             AddActionButton(
-                caption = "Добавить",
+                text = "Добавить",
                 tooltip = "Добавить",
                 icon = ICON_NAME_ADD_ITEM,
-                url = getParamURL("mms_map", AppAction.XY, null, null, null, null, StringBuilder().append('&').append(AppParameter.XY_START_DATA).append('=').append(paramID).toString())
+                action = getParamURL("mms_map", AppAction.XY, null, null, null, null, StringBuilder().append('&').append(AppParameter.XY_START_DATA).append('=').append(paramID).toString())
             )
         )
 

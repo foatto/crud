@@ -214,33 +214,56 @@ abstract class AbstractControl(
     protected fun getToolBarIconButton(
         isVisible: Boolean = true,
         isEnabled: Boolean = true,
-        src: String,
-        title: String,
+        url: String? = null,
+        text: String? = null,
+        tooltip: String? = null,
         onClick: () -> Unit
     ) {
         if (isVisible) {
-            Img(
-                src = src,
-                attrs = {
-                    style {
-                        fontSize(styleCommonButtonFontSize)
-                        padding(styleIconButtonPadding)
-                        setMargins(arrStyleCommonMargin)
-                        if (isEnabled) {
-                            backgroundColor(getColorToolbarButtonBack())
-                            setBorder(getStyleToolbarButtonBorder())
-                            cursor("pointer")
+            url?.let {
+                Img(
+                    src = url,
+                    attrs = {
+                        style {
+                            fontSize(styleCommonButtonFontSize)
+                            padding(styleIconButtonPadding)
+                            setMargins(arrStyleCommonMargin)
+                            if (isEnabled) {
+                                backgroundColor(getColorToolbarButtonBack())
+                                setBorder(getStyleToolbarButtonBorder())
+                                cursor("pointer")
+                            }
+                        }
+                        if (!isEnabled) {
+                            disabled()
+                        }
+                        tooltip?.let {
+                            title(tooltip)
+                        }
+                        onClick {
+                            onClick()
                         }
                     }
-                    if (!isEnabled) {
-                        disabled()
+                )
+            } ?: text?.let {
+                Button(
+                    attrs = {
+                        style {
+                            backgroundColor(getColorButtonBack())
+                            setBorder(color = getColorButtonBorder(), radius = styleButtonBorderRadius)
+                            fontSize(styleCommonButtonFontSize)
+                            padding(styleTextButtonPadding)
+                            setMargins(arrStyleCommonMargin)
+                            cursor("pointer")
+                        }
+                        onClick {
+                            onClick()
+                        }
                     }
-                    title(title)
-                    onClick {
-                        onClick()
-                    }
+                ) {
+                    Text(text)
                 }
-            )
+            }
         }
     }
 

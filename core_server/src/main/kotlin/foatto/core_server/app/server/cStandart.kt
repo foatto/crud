@@ -1454,10 +1454,10 @@ open class cStandart {
 
         alAddButtonList.add(
             AddActionButton(
-                caption = "Добавить",
+                text = "Добавить",
                 tooltip = "Добавить",
                 icon = ICON_NAME_ADD_ITEM,
-                url = getParamURL(aliasConfig.name, AppAction.FORM, refererID, 0, hmParentData, parentUserId, null)
+                action = getParamURL(aliasConfig.name, AppAction.FORM, refererID, 0, hmParentData, parentUserId, null)
             )
         )
 

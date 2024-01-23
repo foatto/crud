@@ -69,17 +69,17 @@ open class cAbstractHierarchy : cStandart() {
 
         (model as mAbstractHierarchy).alAddButtomParam.forEach {
             alAddButtonList += AddActionButton(
-                caption = it.caption,
+                text = it.text,
                 tooltip = it.tooltip,
                 icon = it.icon,
-                url = getParamURL(
+                action = getParamURL(
                     aAlias = aliasConfig.name,
                     aAction = AppAction.FORM,
                     aRefererId = refererID,
                     aId = 0,
                     aParentData = hmParentData,
                     aParentUserId = parentUserId,
-                    aAltParams = "&${it.url}"
+                    aAltParams = "&${it.action}"
                 )
             )
         }

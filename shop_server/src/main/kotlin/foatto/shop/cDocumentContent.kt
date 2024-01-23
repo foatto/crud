@@ -202,10 +202,10 @@ class cDocumentContent : cStandart() {
 
         alAddButtonList.add(
             AddActionButton(
-                caption = "Добавить",
+                text = "Добавить",
                 tooltip = "Добавить",
                 icon = ICON_NAME_ADD_ITEM,
-                url = getParamURL(aliasConfig.name, AppAction.FORM, refererID, 0, hmParentData, parentUserId, null)
+                action = getParamURL(aliasConfig.name, AppAction.FORM, refererID, 0, hmParentData, parentUserId, null)
             )
         )
 
@@ -218,10 +218,10 @@ class cDocumentContent : cStandart() {
         ) {
             alAddButtonList.add(
                 AddActionButton(
-                    caption = "Добавить маркированный товар",
+                    text = "Добавить маркированный товар",
                     tooltip = "Добавить маркированный товар",
                     icon = ICON_NAME_ADD_MARKED_ITEM,
-                    url = getParamURL(aliasConfig.name, AppAction.FORM, refererID, 0, hmParentData, parentUserId, "&$ADD_OVER_MARK_CODE=1")
+                    action = getParamURL(aliasConfig.name, AppAction.FORM, refererID, 0, hmParentData, parentUserId, "&$ADD_OVER_MARK_CODE=1")
                 )
             )
         }
@@ -243,10 +243,10 @@ class cDocumentContent : cStandart() {
         if (isFiscable) {
             alSAB.add(
                 ServerActionButton(
-                    caption = "Кассовый чек",
+                    text = "Кассовый чек",
                     tooltip = "Кассовый чек",
                     icon = ICON_NAME_FISCAL,
-                    url = getParamURL("shop_fiscal_doc_content", AppAction.FORM, null, 0, hmParentData, null, ""),
+                    action = getParamURL("shop_fiscal_doc_content", AppAction.FORM, null, 0, hmParentData, null, ""),
                     inNewWindow = true,
                     isForWideScreenOnly = true,
                 )
@@ -254,10 +254,10 @@ class cDocumentContent : cStandart() {
         }
         alSAB.add(
             ServerActionButton(
-                caption = "Товарный чек",
+                text = "Товарный чек",
                 tooltip = "Товарный чек",
                 icon = ICON_NAME_PRINT,
-                url = getParamURL("shop_report_doc_content", AppAction.FORM, null, 0, hmParentData, null, ""),
+                action = getParamURL("shop_report_doc_content", AppAction.FORM, null, 0, hmParentData, null, ""),
                 inNewWindow = true,
                 isForWideScreenOnly = true,
             )
@@ -273,7 +273,7 @@ class cDocumentContent : cStandart() {
         if (docType == DocumentTypeConfig.TYPE_OUT) {
             alCAB.add(
                 ClientActionButton(
-                    caption = "Рассчитать",
+                    text = "Рассчитать",
                     tooltip = "Рассчитать сдачу",
                     icon = ICON_NAME_CALC,
                     action = ACTION_CASH_CALCULATOR,

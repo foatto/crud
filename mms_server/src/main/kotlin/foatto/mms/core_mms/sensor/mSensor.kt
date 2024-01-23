@@ -464,8 +464,10 @@ class mSensor : mAbstract() {
         if (isEquip) {
             addTableColumn(columnBegWorkValue)
         }
-        addTableColumn(rawDataTime)
-        addTableColumn(calcDataTime)
+        if (userConfig.isAdmin) {
+            addTableColumn(rawDataTime)
+            addTableColumn(calcDataTime)
+        }
 
         alFormHiddenColumn.add(columnId)
         alFormHiddenColumn.add(columnSensorName)

@@ -224,28 +224,36 @@ class GraphicControl(
                 getToolBarSpan {
                     getToolBarIconButton(
                         isEnabled = refreshInterval.value == 0 && isPanButtonEnabled.value,
-                        src = "/web/images/ic_open_with_${getStyleIconNameSuffix()}.png",
-                        title = "Перемещение по графику"
+                        url = "/web/images/ic_open_with_${getStyleIconNameSuffix()}.png",
+                        text = "Перемещение по графику"
                     ) {
                         setMode(GraphicWorkMode.PAN)
                     }
                     getToolBarIconButton(
                         isEnabled = refreshInterval.value == 0 && isZoomButtonEnabled.value,
-                        src = "/web/images/ic_search_${getStyleIconNameSuffix()}.png",
-                        title = "Выбор области для показа"
+                        url = "/web/images/ic_search_${getStyleIconNameSuffix()}.png",
+                        text = "Выбор области для показа"
                     ) {
                         setMode(GraphicWorkMode.ZOOM_BOX)
                     }
                 }
                 getToolBarSpan {
-                    getToolBarIconButton(refreshInterval.value == 0, src = "/web/images/ic_zoom_in_${getStyleIconNameSuffix()}.png", title = "Ближе") { zoomIn() }
-                    getToolBarIconButton(refreshInterval.value == 0, src = "/web/images/ic_zoom_out_${getStyleIconNameSuffix()}.png", title = "Дальше") { zoomOut() }
+                    getToolBarIconButton(
+                        refreshInterval.value == 0,
+                        url = "/web/images/ic_zoom_in_${getStyleIconNameSuffix()}.png",
+                        text = "Ближе"
+                    ) { zoomIn() }
+                    getToolBarIconButton(
+                        refreshInterval.value == 0,
+                        url = "/web/images/ic_zoom_out_${getStyleIconNameSuffix()}.png",
+                        text = "Дальше"
+                    ) { zoomOut() }
                 }
                 getToolBarSpan {
                     getToolBarIconButton(
                         isEnabled = refreshInterval.value == 0,
-                        src = "/web/images/ic_timeline_${getStyleIconNameSuffix()}.png",
-                        title = "Включить/выключить отдельные графики"
+                        url = "/web/images/ic_timeline_${getStyleIconNameSuffix()}.png",
+                        text = "Включить/выключить отдельные графики"
                     ) {
                         isShowGraphicVisible.value = !isShowGraphicVisible.value
                     }
@@ -322,8 +330,8 @@ class GraphicControl(
                     if (!styleIsNarrowScreen) {
                         getToolBarIconButton(
                             refreshInterval.value == 0,
-                            src = "/web/images/ic_menu_${getStyleIconNameSuffix()}.png",
-                            title = "Включить/выключить отдельный показ данных"
+                            url = "/web/images/ic_menu_${getStyleIconNameSuffix()}.png",
+                            text = "Включить/выключить отдельный показ данных"
                         ) {
                             isShowGraphicDataVisible.value = !isShowGraphicDataVisible.value
                         }

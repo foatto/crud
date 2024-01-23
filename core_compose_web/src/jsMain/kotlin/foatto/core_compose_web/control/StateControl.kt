@@ -120,8 +120,8 @@ class StateControl(
                     if (isElementMoveEnabled.value) {
                         getToolBarIconButton(
                             isEnabled = refreshInterval.value == 0,
-                            src = "/web/images/ic_touch_app_${getStyleIconNameSuffix()}.png",
-                            title = "Перемещение датчиков по объекту"
+                            url = "/web/images/ic_touch_app_${getStyleIconNameSuffix()}.png",
+                            text = "Перемещение датчиков по объекту"
                         ) {
                             isShowElementList.value = !isShowElementList.value
                         }

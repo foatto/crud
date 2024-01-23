@@ -142,30 +142,30 @@ class MapControl(
                     if (isToolBarsVisible.value) {
                         getToolBarIconButton(
                             isEnabled = refreshInterval.value == 0 && isPanButtonEnabled.value,
-                            src = "/web/images/ic_open_with_${getStyleIconNameSuffix()}.png",
-                            title = "Перемещение по карте"
+                            url = "/web/images/ic_open_with_${getStyleIconNameSuffix()}.png",
+                            text = "Перемещение по карте"
                         ) {
                             setMode(MapWorkMode.PAN)
                         }
                         getToolBarIconButton(
                             isEnabled = refreshInterval.value == 0 && isZoomButtonEnabled.value,
-                            src = "/web/images/ic_search_${getStyleIconNameSuffix()}.png",
-                            title = "Выбор области для показа"
+                            url = "/web/images/ic_search_${getStyleIconNameSuffix()}.png",
+                            text = "Выбор области для показа"
                         ) {
                             setMode(MapWorkMode.ZOOM_BOX)
                         }
                         if (!styleIsNarrowScreen) {
                             getToolBarIconButton(
                                 isEnabled = !styleIsNarrowScreen && refreshInterval.value == 0 && isDistancerButtonEnabled.value,
-                                src = "/web/images/ic_linear_scale_${getStyleIconNameSuffix()}.png",
-                                title = "Измерение расстояний"
+                                url = "/web/images/ic_linear_scale_${getStyleIconNameSuffix()}.png",
+                                text = "Измерение расстояний"
                             ) {
                                 setMode(MapWorkMode.DISTANCER)
                             }
                             getToolBarIconButton(
                                 isEnabled = refreshInterval.value == 0 && isSelectButtonEnabled.value,
-                                src = "/web/images/ic_touch_app_${getStyleIconNameSuffix()}.png",
-                                title = "Работа с объектами"
+                                url = "/web/images/ic_touch_app_${getStyleIconNameSuffix()}.png",
+                                text = "Работа с объектами"
                             ) {
                                 setMode(MapWorkMode.SELECT_FOR_ACTION)
                             }
@@ -176,15 +176,15 @@ class MapControl(
                     if (isToolBarsVisible.value) {
                         getToolBarIconButton(
                             isEnabled = refreshInterval.value == 0 && isZoomInButtonEnabled.value,
-                            src = "/web/images/ic_zoom_in_${getStyleIconNameSuffix()}.png",
-                            title = "Ближе"
+                            url = "/web/images/ic_zoom_in_${getStyleIconNameSuffix()}.png",
+                            text = "Ближе"
                         ) {
                             zoomIn()
                         }
                         getToolBarIconButton(
                             isEnabled = refreshInterval.value == 0 && isZoomOutButtonEnabled.value,
-                            src = "/web/images/ic_zoom_out_${getStyleIconNameSuffix()}.png",
-                            title = "Дальше"
+                            url = "/web/images/ic_zoom_out_${getStyleIconNameSuffix()}.png",
+                            text = "Дальше"
                         ) {
                             zoomOut()
                         }
@@ -222,15 +222,15 @@ class MapControl(
                 getToolBarSpan {
                     getToolBarIconButton(
                         isVisible = refreshInterval.value == 0 && isEditPointButtonVisible.value,
-                        src = "/web/images/ic_format_shapes_${getStyleIconNameSuffix()}.png",
-                        title = "Редактирование точек"
+                        url = "/web/images/ic_format_shapes_${getStyleIconNameSuffix()}.png",
+                        text = "Редактирование точек"
                     ) {
                         startEditPoint()
                     }
                     getToolBarIconButton(
                         isVisible = refreshInterval.value == 0 && isMoveElementsButtonVisible.value,
-                        src = "/web/images/ic_zoom_out_map_${getStyleIconNameSuffix()}.png",
-                        title = "Перемещение объектов"
+                        url = "/web/images/ic_zoom_out_map_${getStyleIconNameSuffix()}.png",
+                        text = "Перемещение объектов"
                     ) {
                         startMoveElements()
                     }
@@ -238,15 +238,15 @@ class MapControl(
                 getToolBarSpan {
                     getToolBarIconButton(
                         isVisible = refreshInterval.value == 0 && isActionOkButtonVisible.value,
-                        src = "/web/images/ic_save_${getStyleIconNameSuffix()}.png",
-                        title = "Сохранить"
+                        url = "/web/images/ic_save_${getStyleIconNameSuffix()}.png",
+                        text = "Сохранить"
                     ) {
                         actionOk()
                     }
                     getToolBarIconButton(
                         isVisible = refreshInterval.value == 0 && isActionCancelButtonVisible.value,
-                        src = "/web/images/ic_exit_to_app_${getStyleIconNameSuffix()}.png",
-                        title = "Отменить"
+                        url = "/web/images/ic_exit_to_app_${getStyleIconNameSuffix()}.png",
+                        text = "Отменить"
                     ) {
                         actionCancel()
                     }

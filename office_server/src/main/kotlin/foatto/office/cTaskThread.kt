@@ -60,10 +60,10 @@ class cTaskThread : cStandart() {
 
         alSAB.add(
             ServerActionButton(
-                caption = "Распечатать",
+                text = "Распечатать",
                 tooltip = "Распечатать",
                 icon = ICON_NAME_PRINT,
-                url = getParamURL("office_report_task_thread", AppAction.FORM, null, 0, hmParentData, null, ""),
+                action = getParamURL("office_report_task_thread", AppAction.FORM, null, 0, hmParentData, null, ""),
                 inNewWindow = true,
                 isForWideScreenOnly = false,
             )

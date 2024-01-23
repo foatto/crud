@@ -21,27 +21,27 @@ class TableResponse(
 
 @Serializable
 class AddActionButton(
-    val caption: String,
-    val tooltip: String,
-    val icon: String,
-    val url: String
+    val icon: String?,
+    val text: String?,
+    val tooltip: String?,
+    val action: String,
 )
 
 @Serializable
 class ServerActionButton(
-    val caption: String,
-    val tooltip: String,
-    val icon: String,
-    val url: String,
+    val icon: String?,
+    val text: String?,
+    val tooltip: String?,
+    val action: String,
     val inNewWindow: Boolean,
     val isForWideScreenOnly: Boolean,
 )
 
 @Serializable
 class ClientActionButton(
-    val caption: String,
-    val tooltip: String,
-    val icon: String,
+    val icon: String?,
+    val text: String?,
+    val tooltip: String?,
     val action: String,
     val alParam: List<Pair<String, String>>,
     val isForWideScreenOnly: Boolean,
