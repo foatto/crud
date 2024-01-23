@@ -11,7 +11,6 @@ import foatto.core.link.GraphicResponse
 import foatto.core.link.MenuData
 import foatto.core.link.ResponseCode
 import foatto.core.link.XyResponse
-import foatto.util.AdvancedLogger
 import foatto.core_server.app.composite.server.CompositeStartData
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
@@ -26,6 +25,7 @@ import foatto.ts.core_ts.sensor.config.SensorConfigSetup
 import foatto.ts.core_ts.sensor.config.SensorConfigState
 import foatto.ts.iTSApplication
 import foatto.ts.spring.repositories.ObjectRepository
+import foatto.util.AdvancedLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
@@ -257,6 +257,7 @@ class TSAppController : CoreAppController(), iTSApplication {
                         sensorType = sensorType,
                     )
                 }
+
                 SensorConfig.SENSOR_STATE -> {
                     hmSC[portNum] = SensorConfigState(
                         aId = sensorEntity.id,
@@ -267,6 +268,7 @@ class TSAppController : CoreAppController(), iTSApplication {
                         aSensorType = sensorType,
                     )
                 }
+
                 SensorConfig.SENSOR_DEPTH, SensorConfig.SENSOR_SPEED, SensorConfig.SENSOR_LOAD,
                 SensorConfig.SENSOR_TEMPERATURE_IN, SensorConfig.SENSOR_TEMPERATURE_OUT,
                 SensorConfig.SENSOR_SIGNAL_LEVEL -> {
@@ -289,6 +291,7 @@ class TSAppController : CoreAppController(), iTSApplication {
                         maxStateView = sensorEntity.maxStateView ?: 0.0,
                     )
                 }
+
                 SensorConfig.SENSOR_SETUP -> {
                     hmSC[portNum] = SensorConfigSetup(
                         aId = sensorEntity.id,
@@ -302,6 +305,7 @@ class TSAppController : CoreAppController(), iTSApplication {
                         prec = sensorEntity.prec ?: 0,
                     )
                 }
+
                 else -> {
                     AdvancedLogger.error("Unknown sensorType = $sensorType for sensorId = ${sensorEntity.id}")
                 }

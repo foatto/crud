@@ -46,38 +46,26 @@ pluginManagement {
 
 include(
     ":core",
-
     ":core_compose",
     ":core_compose_web",
-
     ":core_server",
-    ":core_server_mvc",
-//    ":core_server_flux",
 
     ":mms_core",
     ":mms_compose_web",
     ":mms_compose",
     ":mms_server",
-    ":mms_server_mvc",
-//    ":mms_server_flux",
 
     ":office_core",
     ":office_compose_web",
     ":office_server",
-    ":office_server_mvc",
-//    ":office_server_flux",
 
     ":shop_core",
     ":shop_compose_web",
     ":shop_server",
-    ":shop_server_mvc",
-//    ":shop_server_flux",
 
     ":ts_core",
     ":ts_compose_web",
     ":ts_server",
-    ":ts_server_mvc",
-//    ":ts_server_flux",
 )
 
 

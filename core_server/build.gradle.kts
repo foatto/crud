@@ -10,12 +10,23 @@ val ktorVersion: String by project
 val minioVersion: String by project
 val postgresJdbcVersion: String by project
 
+val springBootVersion: String by project
+
 plugins {
     kotlin("jvm")
+
+    kotlin("plugin.spring")
+    kotlin("plugin.jpa")
+
+    id("io.spring.dependency-management")
+    id("org.springframework.boot")
 }
 
 dependencies {
     runtimeOnly("org.postgresql:postgresql:$postgresJdbcVersion")
+
+    api("org.springframework.boot:spring-boot-starter-web:$springBootVersion")
+    api("org.springframework.boot:spring-boot-starter-data-jpa:$springBootVersion")
 
     api("com.sun.mail:javax.mail:$javaxMailApiVersion")
     api("javax.mail:javax.mail-api:$javaxMailApiVersion")
@@ -37,6 +48,12 @@ dependencies {
 //    testImplementation("org.testcontainers:junit-jupiter:$testcontainersVersion")
 }
 
+allOpen {
+    annotation("javax.persistence.Entity")
+    annotation("javax.persistence.MappedSuperclass")
+    annotation("javax.persistence.Embeddable")
+}
+
 tasks {
     compileKotlin {
         kotlinOptions {
@@ -46,6 +63,10 @@ tasks {
             freeCompilerArgs = listOf("-Xjsr305=strict")
             suppressWarnings = isBuildSupressWarning.toBoolean()
         }
+    }
+    bootJar {
+        enabled = false
+        mainClass.set("foatto.ds.DataServer")  // implicit select one main class from others
     }
     jar {
         enabled = true
