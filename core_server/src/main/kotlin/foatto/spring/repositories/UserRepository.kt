@@ -1,6 +1,6 @@
-package foatto.spring.jpa.repositories
+package foatto.spring.repositories
 
-import foatto.spring.jpa.entities.UserEntity
+import foatto.spring.entities.UserEntity
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface UserRepository : JpaRepository<UserEntity, Int>

@@ -1,4 +1,4 @@
-package foatto.spring.jpa.entities
+package foatto.spring.entities
 
 import javax.persistence.Embeddable
 

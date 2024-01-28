@@ -1,4 +1,4 @@
-package foatto.spring.jpa.entities
+package foatto.spring.entities
 
 import javax.persistence.*
 
@@ -54,7 +54,7 @@ class UserEntity(
     val passwordLastChangeDate: DateEntity,
 
     @Column(name = "e_mail")
-    val eMail: String,
+    val eMail: String?,
 
     @Column(name = "contact_info")
     val contactInfo: String,
