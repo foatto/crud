@@ -156,19 +156,18 @@ class cDayWorkBNGRE : cAbstractPeriodSummary() {
             } ?: "-"
             sheet.addCell(Label(2, offsY, density, wcfCellC))
 
-            val sValue = getSplittedDouble(counterData.value, ObjectCalc.getPrecision(counterData.value), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
             if (counterData.scc.inOutType == SensorConfigCounter.CALC_TYPE_IN) {
-                sheet.addCell(Label(3, offsY, sValue, wcfCellC))
+                sheet.addCell(getNumberCell(3, offsY, counterData.value, ObjectCalc.getPrecision(counterData.value), wcfCellC))
                 sumIn += counterData.value
             } else {
-                sheet.addCell(Label(4, offsY, sValue, wcfCellC))
+                sheet.addCell(getNumberCell(4, offsY, counterData.value, ObjectCalc.getPrecision(counterData.value), wcfCellC))
                 sumOut += counterData.value
             }
             offsY++
         }
         sheet.addCell(Label(2, offsY, "ИТОГО:", wcfCaptionHC))
-        sheet.addCell(Label(3, offsY, getSplittedDouble(sumIn, ObjectCalc.getPrecision(sumIn), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCaptionHC))
-        sheet.addCell(Label(4, offsY, getSplittedDouble(sumOut, ObjectCalc.getPrecision(sumOut), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCaptionHC))
+        sheet.addCell(getNumberCell(3, offsY, sumIn, ObjectCalc.getPrecision(sumIn), wcfCaptionHC))
+        sheet.addCell(getNumberCell(4, offsY, sumOut, ObjectCalc.getPrecision(sumOut), wcfCaptionHC))
         offsY++
 
         val restValue = periodBeginValue + sumIn - sumOut

@@ -147,16 +147,7 @@ class cLiquidIncDec : cMMSReport() {
                 sheet.addCell(Label(offsX++, offsY, DateTime_DMYHMS(zoneId, lidd.endTime), wcfCellC))
                 sheet.addCell(Label(offsX++, offsY, secondIntervalToString(lidd.begTime, lidd.endTime), wcfCellC))
                 sheet.addCell(Label(offsX++, offsY, lidd.sca!!.descr, wcfCellC))
-                sheet.addCell(
-                    Label(
-                        offsX++,
-                        offsY,
-                        getSplittedDouble(
-                            levelDiff, ObjectCalc.getPrecision(levelDiff), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider
-                        ),
-                        wcfCellR
-                    )
-                )
+                sheet.addCell(getNumberCell(offsX++, offsY, levelDiff, ObjectCalc.getPrecision(levelDiff), wcfCellR))
                 sheet.addCell(Label(offsX++, offsY, lidd.sbZoneName!!.toString(), wcfCellL))
 
                 offsY++

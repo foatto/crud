@@ -94,7 +94,7 @@ class cSummaryBNGRE : cAbstractPeriodSummary() {
             sheet.addCell(Label(0, offsY, (countNN++).toString(), wcfNN))
             sheet.addCell(Label(1, offsY, DateTime_DMY(zdtCurBeg), wcfCellC))
             sheet.addCell(Label(2, offsY, "кг", wcfCellC))
-            sheet.addCell(Label(3, offsY, getSplittedDouble(curPeriodBeginValue, ObjectCalc.getPrecision(curPeriodBeginValue), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
+            sheet.addCell(getNumberCell(3, offsY, curPeriodBeginValue, ObjectCalc.getPrecision(curPeriodBeginValue), wcfCellC))
 
             var sumIn = 0.0
             var sumOut = 0.0
@@ -107,11 +107,11 @@ class cSummaryBNGRE : cAbstractPeriodSummary() {
                     sumOut += counterData.value
                 }
             }
-            sheet.addCell(Label(4, offsY, getSplittedDouble(sumIn, ObjectCalc.getPrecision(sumIn), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
-            sheet.addCell(Label(5, offsY, getSplittedDouble(sumOut, ObjectCalc.getPrecision(sumOut), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
+            sheet.addCell(getNumberCell(4, offsY, sumIn, ObjectCalc.getPrecision(sumIn), wcfCellC))
+            sheet.addCell(getNumberCell(5, offsY, sumOut, ObjectCalc.getPrecision(sumOut), wcfCellC))
 
             val newPeriodBeginValue = curPeriodBeginValue + sumIn - sumOut
-            sheet.addCell(Label(6, offsY, getSplittedDouble(newPeriodBeginValue, ObjectCalc.getPrecision(newPeriodBeginValue), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
+            sheet.addCell(getNumberCell(6, offsY, newPeriodBeginValue, ObjectCalc.getPrecision(newPeriodBeginValue), wcfCellC))
 
             curPeriodBeginValue = newPeriodBeginValue
             zdtCurBeg = zdtCurBeg.plus(1, ChronoUnit.DAYS)

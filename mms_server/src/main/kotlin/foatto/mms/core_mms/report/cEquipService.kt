@@ -145,8 +145,8 @@ class cEquipService : cMMSReport() {
                     val curWork = scw.begWorkValue + wcd.onTime.toDouble() / 60.0 / 60.0
                     sheet.addCell(Label(1, offsY, scw.descr, wcfCellL))
                     sheet.addCell(Label(2, offsY, esd.name, wcfCellL))
-                    sheet.addCell(Label(3, offsY, getSplittedDouble(esd.period, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
-                    sheet.addCell(Label(4, offsY, getSplittedDouble(curWork, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcfCellC))
+                    sheet.addCell(getNumberCell(3, offsY, esd.period, 1, wcfCellC))
+                    sheet.addCell(getNumberCell(4, offsY, curWork, 1, wcfCellC))
                     sheet.addCell(
                         Label(
                             5, offsY, if (esd.lastWorkTime == null) "-" else DateTime_DMY(esd.lastWorkTime!!), wcfCellC

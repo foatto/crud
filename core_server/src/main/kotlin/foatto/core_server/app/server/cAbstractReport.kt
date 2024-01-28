@@ -1,11 +1,15 @@
 package foatto.core_server.app.server
 
 import foatto.core.app.ICON_NAME_PRINT
+import foatto.core.util.getRandomInt
+import foatto.core.util.getSplittedDouble
 import foatto.util.DateTime_DMYHMS
 import foatto.util.getFreeFile
-import foatto.core.util.getRandomInt
 import jxl.Workbook
 import jxl.format.*
+import jxl.write.Label
+import jxl.write.NumberFormat
+import jxl.write.WritableCell
 import jxl.write.WritableCellFormat
 import jxl.write.WritableFont
 import jxl.write.WritableImage
@@ -404,6 +408,44 @@ abstract class cAbstractReport : cAbstractForm() {
             if (alDim[i] < 0) {
                 alDim[i] = alDim[i] * captionRelWidth
             }
+        }
+    }
+
+    //--- число в различном формате: в виде нередактируемой строки или в виде редактируемого числа
+    protected fun getNumberCell(col: Int, row: Int, value: Number, precision: Int, wcf: WritableCellFormat): WritableCell {
+        val hsPermission = userConfig.userPermission[aliasConfig.name]
+        val isReportUnlock = hsPermission?.contains(PERM_REPORT_UNLOCK) ?: false
+
+        return if (isReportUnlock) {
+            val wcfNum = WritableCellFormat(
+                WritableFont(
+                    WritableFont.ARIAL,
+                    wcf.font.pointSize,
+                    if (wcf.font.boldWeight == 0x2bc) {
+                        WritableFont.BOLD
+                    } else {
+                        WritableFont.NO_BOLD
+                    },
+                    wcf.font.isItalic,
+                    UnderlineStyle.NO_UNDERLINE,
+                    wcf.font.colour,
+                ),
+                NumberFormat(
+                    if (precision > 0) {
+                        "0." + "#".repeat(precision)
+                    } else {
+                        "0"
+                    }
+                ),
+            )
+            wcfNum.alignment = wcf.alignment
+            wcfNum.verticalAlignment = wcf.verticalAlignment
+            wcfNum.setBorder(if (wcf.hasBorders()) Border.ALL else Border.NONE, if (wcf.hasBorders()) BorderLineStyle.THIN else BorderLineStyle.NONE)
+            wcfNum.wrap = wcf.wrap
+
+            jxl.write.Number(col, row, value.toDouble(), wcfNum)
+        } else {
+            Label(col, row, getSplittedDouble(value.toDouble(), precision, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider), wcf)
         }
     }
 
