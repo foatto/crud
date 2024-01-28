@@ -442,6 +442,8 @@ abstract class cAbstractReport : cAbstractForm() {
             wcfNum.verticalAlignment = wcf.verticalAlignment
             wcfNum.setBorder(if (wcf.hasBorders()) Border.ALL else Border.NONE, if (wcf.hasBorders()) BorderLineStyle.THIN else BorderLineStyle.NONE)
             wcfNum.wrap = wcf.wrap
+            wcfNum.setBackground(wcf.backgroundColour)
+            wcfNum.orientation = wcf.orientation
 
             jxl.write.Number(col, row, value.toDouble(), wcfNum)
         } else {
