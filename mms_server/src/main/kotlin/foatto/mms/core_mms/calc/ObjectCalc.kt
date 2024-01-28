@@ -5,13 +5,14 @@ import foatto.core.app.graphic.GraphicDataContainer
 import foatto.core.app.graphic.GraphicLineData
 import foatto.core.app.xy.XyProjection
 import foatto.core.app.xy.geom.XyPoint
-import foatto.core.util.AdvancedByteBuffer
-import foatto.core.util.DateTime_DMYHMS
-import foatto.core.util.getSBFromIterable
+import foatto.util.AdvancedByteBuffer
+import foatto.util.DateTime_DMYHMS
+import foatto.util.getSBFromIterable
 import foatto.core.util.getSplittedDouble
 import foatto.core.util.getSplittedLong
-import foatto.core.util.secondIntervalToString
+import foatto.util.secondIntervalToString
 import foatto.core_server.app.server.UserConfig
+import foatto.mms.core_mms.MMSFunction
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.ZoneData
 import foatto.mms.core_mms.ZoneLimitData
@@ -525,7 +526,9 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             endTime: Int
         ): Double {
             var energo = 0.0
-            if (endTime <= sces.calcTime || (sces.rawTime - sces.calcTime) <= MAX_AGGREGATOR_TIME_DIFF) {
+            if (MMSFunction.checkAggregationTableIsExists(conn, sces.id) &&
+                (endTime <= sces.calcTime || (sces.rawTime - sces.calcTime) <= MAX_AGGREGATOR_TIME_DIFF)
+            ) {
                 val rs = conn.executeQuery(
                     """
                         SELECT SUM( value_1 ) 
@@ -1267,7 +1270,9 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             endTime: Int
         ): CounterCalcData {
             var sumValue = 0.0
-            if (endTime <= scc.calcTime || (scc.rawTime - scc.calcTime) <= MAX_AGGREGATOR_TIME_DIFF) {
+            if (MMSFunction.checkAggregationTableIsExists(conn, scc.id) &&
+                (endTime <= scc.calcTime || (scc.rawTime - scc.calcTime) <= MAX_AGGREGATOR_TIME_DIFF)
+            ) {
                 val rs = conn.executeQuery(
                     """
                         SELECT SUM( value_1 ) 

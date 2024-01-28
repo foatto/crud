@@ -3,6 +3,7 @@ package foatto.mms.core_mms.sensor
 import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.data.DataString
 import foatto.core_server.app.server.data.iData
+import foatto.mms.core_mms.MMSFunction
 import foatto.mms.core_mms.cMMSOneObjectParent
 import foatto.mms.core_mms.sensor.config.SensorConfig
 
@@ -39,7 +40,7 @@ class cSensor : cMMSOneObjectParent() {
         val postURL = super.postAdd(id, hmColumnData, hmOut)
 
         saveCalibration(id, hmColumnData)
-        createAggTable(id)
+        MMSFunction.createAggTable(conn, id)
 
         return postURL
     }
@@ -48,13 +49,20 @@ class cSensor : cMMSOneObjectParent() {
         val postURL = super.postEdit(action, id, hmColumnData, hmOut)
 
         saveCalibration(id, hmColumnData)
+        //--- проверка и автосоздание таблицы при её отсутствии
+        if (!MMSFunction.checkAggregationTableIsExists(conn, id)) {
+            MMSFunction.createAggTable(conn, id)
+        }
 
         return postURL
     }
 
     override fun postDelete(id: Int, hmColumnData: Map<iColumn, iData>) {
         super.postDelete(id, hmColumnData)
-        deleteAggTable(id)
+
+        if (MMSFunction.checkAggregationTableIsExists(conn, id)) {
+            deleteAggTable(id)
+        }
     }
 
     private fun saveCalibration(id: Int, hmColumnData: Map<iColumn, iData>) {
@@ -78,19 +86,6 @@ class cSensor : cMMSOneObjectParent() {
                 }
             }
         }
-    }
-
-    private fun createAggTable(id: Int) {
-        conn.executeUpdate(
-            """ 
-                CREATE TABLE MMS_agg_$id ( 
-                    ontime ${conn.dialect.integerFieldTypeName} NOT NULL, 
-                    value_1 ${conn.dialect.doubleFieldTypeName} NOT NULL DEFAULT(0.0),
-                    value_2 ${conn.dialect.doubleFieldTypeName} NOT NULL DEFAULT(0.0)
-                ) 
-            """.trimMargin()
-        )
-        conn.executeUpdate(conn.dialect.createClusteredIndex + " MMS_agg_${id}_ontime ON MMS_agg_$id ( ontime ) ")
     }
 
     private fun deleteAggTable(id: Int) {

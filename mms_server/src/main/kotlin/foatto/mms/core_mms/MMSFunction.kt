@@ -1,7 +1,7 @@
 package foatto.mms.core_mms
 
 import foatto.core.link.AppAction
-import foatto.core.util.getDateTime
+import foatto.util.getDateTime
 import foatto.core_server.app.server.ChildData
 import foatto.core_server.app.server.column.ColumnInt
 import foatto.sql.CoreAdvancedConnection
@@ -228,4 +228,33 @@ object MMSFunction {
             )
         }
     }
+
+    fun checkAggregationTableIsExists(conn: CoreAdvancedConnection, sensorId: Int): Boolean {
+        //--- именно mms_agg, с маленькой буквы, так на самом деле создаются таблицы
+        val rs = conn.executeQuery(
+            """
+                SELECT tablename FROM pg_tables
+                WHERE schemaname = 'public' 
+                AND tablename = 'mms_agg_$sensorId'
+            """
+        )
+        val result = rs.next()
+        rs.close()
+
+        return result
+    }
+
+    fun createAggTable(conn: CoreAdvancedConnection, sensorId: Int) {
+        conn.executeUpdate(
+            """ 
+                CREATE TABLE MMS_agg_$sensorId ( 
+                    ontime ${conn.dialect.integerFieldTypeName} NOT NULL, 
+                    value_1 ${conn.dialect.doubleFieldTypeName} NOT NULL DEFAULT(0.0),
+                    value_2 ${conn.dialect.doubleFieldTypeName} NOT NULL DEFAULT(0.0)
+                ) 
+            """.trimMargin()
+        )
+        conn.executeUpdate(conn.dialect.createClusteredIndex + " MMS_agg_${sensorId}_ontime ON MMS_agg_$sensorId ( ontime ) ")
+    }
+
 }
