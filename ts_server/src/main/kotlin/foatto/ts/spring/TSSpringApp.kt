@@ -17,12 +17,14 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.boot.runApplication
 import org.springframework.context.event.EventListener
+import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.web.servlet.config.annotation.EnableWebMvc
 
 @SpringBootApplication(
     scanBasePackages = ["foatto.spring", "foatto.ts.spring"],
 )
 @EnableWebMvc
+@EnableScheduling
 class TSSpringApp : CoreSpringApp() {
 
     companion object {

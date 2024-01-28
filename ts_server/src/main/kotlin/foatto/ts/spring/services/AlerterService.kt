@@ -1,0 +1,201 @@
+package foatto.ts.spring.services
+
+import foatto.spring.CoreSpringApp
+import foatto.spring.services.UserService
+import foatto.sql.AdvancedConnection
+import foatto.sql.DBConfig
+import foatto.ts.core_ts.calc.ObjectState
+import foatto.ts.core_ts.sensor.config.SensorConfig
+import foatto.ts.core_ts.sensor.config.SensorConfigState
+import foatto.util.AdvancedLogger
+import foatto.util.DateTime_DMYHMS
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.scheduling.annotation.Scheduled
+import org.springframework.stereotype.Service
+import java.util.*
+import javax.mail.Message
+import javax.mail.Session
+import javax.mail.internet.InternetAddress
+import javax.mail.internet.MimeMessage
+
+@Service
+class AlerterService(
+    private val userService: UserService,
+    private val objectService: ObjectService,
+) {
+
+    private val hsErrorStatusCodes = setOf(
+        SensorConfigState.STATE_UNPASS_DOWN,
+        SensorConfigState.STATE_UNPASS_UP,
+        SensorConfigState.STATE_WIRE_RUNOUT,
+        SensorConfigState.STATE_DRIVE_PROTECT,
+        SensorConfigState.STATE_STOPPED_BY_SERVER,
+        SensorConfigState.STATE_BLOCKED_BY_SERVER,
+    )
+
+    @Value("\${db_name}")
+    val dbName: String = ""
+
+    @Value("\${db_url}")
+    val dataSourceURL: String = ""
+
+    @Value("\${db_login}")
+    val dataSourceUser: String = ""
+
+    @Value("\${db_password}")
+    val dataSourcePassword: String = ""
+
+    @Value("\${db_replication_name}")
+    val dbReplicationName: String = ""
+
+    @Value("\${db_replication_filter}")
+    val dbReplicationFilter: String = ""
+
+    @Value("\${db_replication_path}")
+    val dbReplicationPath: String = ""
+
+    @Value("\${smtp_server}")
+    val smtpServer: String = ""
+
+    @Value("\${smtp_port}")
+    val smtpPort: String = ""
+
+    @Value("\${smtp_login}")
+    val smtpLogin: String = ""
+
+    @Value("\${smtp_password}")
+    val smtpPassword: String = ""
+
+    @Value("\${smtp_option_names}")
+    private val smtpOptionNames: Array<String> = emptyArray()
+
+    @Value("\${smtp_option_values}")
+    private val smtpOptionValues: Array<String> = emptyArray()
+
+    @Scheduled(
+        initialDelay = 1_000,
+        fixedDelay = 60_000,
+    )
+    fun alerter() {
+        val dbConfig = DBConfig(dbName, dataSourceURL, dataSourceUser, dataSourcePassword, dbReplicationName, dbReplicationFilter, dbReplicationPath)
+
+        val conn = AdvancedConnection(dbConfig)
+
+        val hmUserEmail: Map<Int, String> = userService.getAllUsers().filter { userEntity ->
+            !userEntity.eMail.isNullOrBlank()
+        }.associate { userEntity ->
+            userEntity.id to userEntity.eMail!!
+        }
+
+        if (hmUserEmail.isEmpty()) {
+            AdvancedLogger.info("E-mailed users list is empty")
+            return
+        }
+
+        val objectEntities = objectService.getAllObjects()
+
+        for (objectEntity in objectEntities) {
+            val objectEmail = hmUserEmail[objectEntity.userId] ?: continue
+
+            val (userConfig, hmFullNames, hmShortNames) = userService.getUserConfig(conn, objectEntity.userId)
+
+            val objectConfig = objectService.getObjectConfig(
+                hmUserFullNames = hmFullNames,
+                hmUserShortNames = hmShortNames,
+                userConfig = userConfig,
+                objectId = objectEntity.id,
+            )
+            val stateSensorId = objectConfig.hmSensorConfig[SensorConfig.SENSOR_STATE]?.values?.firstOrNull()?.id ?: continue
+
+            var rs = conn.executeQuery(
+                """
+                    SELECT serial_no 
+                    FROM TS_device 
+                    WHERE object_id = ${objectEntity.id}
+                    AND device_index = 0
+                """
+            )
+            val deviceSerialNo = if (rs.next()) {
+                rs.getString(1)
+            } else {
+                ""
+            }
+            rs.close()
+
+            rs = conn.executeQuery(
+                """
+                    SELECT last_state FROM TS_sensor WHERE id = $stateSensorId 
+                """
+            )
+            val lastState = if (rs.next()) {
+                rs.getInt(1)
+            } else {
+                0
+            }
+            rs.close()
+
+            val objectState = ObjectState.getState(conn, objectConfig)
+            val curStateTime = objectState.lastDateTime ?: continue
+            val curStateValue = objectState.tmStateValue.values.firstOrNull() ?: continue
+            val curDepth = objectState.tmDepthValue.values.firstOrNull() ?: continue
+
+            if (curStateValue != lastState) {
+                if (curStateValue in hsErrorStatusCodes) {
+                    val fullObjectName = "УДС-Техно $deviceSerialNo : ${objectEntity.name} [${hmFullNames[objectEntity.userId]}]"
+                    val statusDescr = SensorConfigState.hmStateInfo[curStateValue]?.descr
+                    sendErrorStatus(
+                        email = objectEmail,
+                        subj = "ТЕСТОВЫЙ ЗАПУСК: $fullObjectName - $statusDescr",
+                        body =
+                        """
+                            Добрый день!
+                            ${DateTime_DMYHMS(userConfig.upZoneId, curStateTime)} (по вашему местному времени)
+                            на установке депарафинизации $fullObjectName,
+                            возникла проблема, требующая внимания - $statusDescr (глубина: $curDepth м).
+                            Рекомендуем отправить операторов для осмотра скважины на месте.
+                            ---
+                            Техническая поддержка: 
+                            +7-927-034-00-70, (8552) 78-20-60
+                            support@tehsmart.online                              
+                            
+                        """.trimIndent(),
+                    )
+                }
+                conn.executeUpdate(
+                    """
+                        UPDATE TS_sensor SET last_state = $curStateValue WHERE id = $stateSensorId   
+                    """
+                )
+                conn.commit()
+            }
+        }
+
+        conn.close()
+    }
+
+    private fun sendErrorStatus(
+        email: String,
+        subj: String,
+        body: String,
+    ) {
+        val props = System.getProperties()
+        smtpOptionNames.forEachIndexed { index, s ->
+            props[s] = smtpOptionValues[index]
+        }
+
+        val session = Session.getDefaultInstance(props, null)
+        val transport = session.getTransport("smtp")
+        transport.connect(smtpServer, smtpPort.toInt(), smtpLogin, smtpPassword)
+
+        val msg: Message = MimeMessage(session)
+        msg.sentDate = Date()
+        msg.setFrom(InternetAddress(smtpLogin))
+        msg.setRecipient(Message.RecipientType.TO, InternetAddress(email))
+        msg.subject = subj
+        msg.setText(body)
+        msg.saveChanges()
+
+        transport.sendMessage(msg, arrayOf(InternetAddress(email)))
+        transport.close()
+    }
+}
