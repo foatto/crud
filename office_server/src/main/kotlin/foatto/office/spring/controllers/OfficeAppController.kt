@@ -6,13 +6,16 @@ import foatto.core.link.MenuData
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.spring.controllers.CoreAppController
+import foatto.spring.services.UserService
 import foatto.sql.CoreAdvancedConnection
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class OfficeAppController : CoreAppController() {
+class OfficeAppController(
+    userService: UserService,
+) : CoreAppController(userService) {
 
     @PostMapping("/api/app")
     override fun app(

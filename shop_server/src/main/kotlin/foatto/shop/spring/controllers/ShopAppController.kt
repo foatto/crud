@@ -14,6 +14,7 @@ import foatto.shop.spring.repositories.CatalogRepository
 import foatto.shop.spring.repositories.DocumentContentRepository
 import foatto.shop.spring.repositories.DocumentRepository
 import foatto.spring.controllers.CoreAppController
+import foatto.spring.services.UserService
 import foatto.sql.CoreAdvancedConnection
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -23,7 +24,9 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class ShopAppController : CoreAppController(), iShopApplication {
+class ShopAppController(
+    userService: UserService,
+) : CoreAppController(userService), iShopApplication {
 
     @Value("\${shop_id}")
     override val shopId: String? = null

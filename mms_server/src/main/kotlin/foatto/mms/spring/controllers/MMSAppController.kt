@@ -7,7 +7,6 @@ import foatto.core.app.xy.XyActionResponse
 import foatto.core.link.AppRequest
 import foatto.core.link.AppResponse
 import foatto.core.link.MenuData
-import foatto.util.AdvancedLogger
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
 import foatto.mms.core_mms.ObjectConfig
@@ -15,7 +14,9 @@ import foatto.mms.core_mms.sensor.config.*
 import foatto.mms.iMMSApplication
 import foatto.mms.spring.repositories.ObjectRepository
 import foatto.spring.controllers.CoreAppController
+import foatto.spring.services.UserService
 import foatto.sql.CoreAdvancedConnection
+import foatto.util.AdvancedLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
@@ -24,7 +25,9 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class MMSAppController : CoreAppController(), iMMSApplication {
+class MMSAppController(
+    userService: UserService,
+) : CoreAppController(userService), iMMSApplication {
 
     @Value("\${max_enabled_over_speed}")
     override val maxEnabledOverSpeed: Int = 0
