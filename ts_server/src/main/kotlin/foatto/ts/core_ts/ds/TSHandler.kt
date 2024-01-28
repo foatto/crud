@@ -26,8 +26,8 @@ abstract class TSHandler : AbstractTelematicNioHandler() {
         fun fillDeviceTypeColumn(columnDeviceType: ColumnRadioButton) {
             columnDeviceType.defaultValue = DEVICE_TYPE_UDS
 
-            columnDeviceType.addChoice(DEVICE_TYPE_UDS, "УДС-Техно 2.0")
-            columnDeviceType.addChoice(DEVICE_TYPE_UDS_OLD, "УДС-Техно 1.0")
+            columnDeviceType.addChoice(DEVICE_TYPE_UDS, "УДС-Техно 110")
+            columnDeviceType.addChoice(DEVICE_TYPE_UDS_OLD, "УДС-Техно 101")
         }
 
     }

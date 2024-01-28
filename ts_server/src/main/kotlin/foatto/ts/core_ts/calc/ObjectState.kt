@@ -67,6 +67,7 @@ class ObjectState {
                     FROM TS_data_${oc.objectId} 
                     WHERE ontime = ( SELECT MAX(ontime) FROM TS_data_${oc.objectId} ) 
                 """
+//--- для случая, когда последняя точка может содежать не все данные
 //            val sql =
 //                """
 //                    SELECT ontime , sensor_data
@@ -103,14 +104,15 @@ class ObjectState {
                 getDateTimeState(alNextCleaningDateTime, bbIn, result.tmNextCleaningDateTime, hsSensorIds)
                 getSetupValues(alSetupSensors, bbIn, result.tmSetupValue, hsSensorIds)
 
-                //--- values of all sensors readed
-                if (hsSensorIds.isEmpty()) {
-                    break
-                }
-                //--- not all sensor data readed, but time is over
-                if (result.lastDateTime!! - curTime > MAX_VIEW_PERIOD) {
-                    break
-                }
+//--- для случая, когда последняя точка может содежать не все данные
+//                //--- values of all sensors readed
+//                if (hsSensorIds.isEmpty()) {
+//                    break
+//                }
+//                //--- not all sensor data readed, but time is over
+//                if (result.lastDateTime!! - curTime > MAX_VIEW_PERIOD) {
+//                    break
+//                }
             }
             inRs.close()
 
