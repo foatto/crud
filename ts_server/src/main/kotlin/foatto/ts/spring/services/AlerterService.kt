@@ -1,6 +1,5 @@
 package foatto.ts.spring.services
 
-import foatto.spring.CoreSpringApp
 import foatto.spring.services.UserService
 import foatto.sql.AdvancedConnection
 import foatto.sql.DBConfig
@@ -73,18 +72,22 @@ class AlerterService(
     private val smtpOptionValues: Array<String> = emptyArray()
 
     @Scheduled(
-        initialDelay = 1_000,
-        fixedDelay = 60_000,
+        initialDelay = 5_000,
+        fixedDelay = 300_000,
     )
     fun alerter() {
         val dbConfig = DBConfig(dbName, dataSourceURL, dataSourceUser, dataSourcePassword, dbReplicationName, dbReplicationFilter, dbReplicationPath)
-
         val conn = AdvancedConnection(dbConfig)
 
-        val hmUserEmail: Map<Int, String> = userService.getAllUsers().filter { userEntity ->
+        val hmUserEmail: Map<Int, List<String>> = userService.getAllUsers().filter { userEntity ->
             !userEntity.eMail.isNullOrBlank()
         }.associate { userEntity ->
-            userEntity.id to userEntity.eMail!!
+            val eMailList = userEntity.eMail?.split(' ')?.map { email ->
+                email.trim()
+            }?.filter { email ->
+                email.isNotEmpty()
+            }
+            userEntity.id to (eMailList ?: emptyList())
         }
 
         if (hmUserEmail.isEmpty()) {
@@ -95,7 +98,10 @@ class AlerterService(
         val objectEntities = objectService.getAllObjects()
 
         for (objectEntity in objectEntities) {
-            val objectEmail = hmUserEmail[objectEntity.userId] ?: continue
+            val objectEmails = hmUserEmail[objectEntity.userId] ?: continue
+            if (objectEmails.isEmpty()) {
+                continue
+            }
 
             val (userConfig, hmFullNames, hmShortNames) = userService.getUserConfig(conn, objectEntity.userId)
 
@@ -143,11 +149,12 @@ class AlerterService(
                 if (curStateValue in hsErrorStatusCodes) {
                     val fullObjectName = "УДС-Техно $deviceSerialNo : ${objectEntity.name} [${hmFullNames[objectEntity.userId]}]"
                     val statusDescr = SensorConfigState.hmStateInfo[curStateValue]?.descr
-                    sendErrorStatus(
-                        email = objectEmail,
-                        subj = "ТЕСТОВЫЙ ЗАПУСК: $fullObjectName - $statusDescr",
-                        body =
-                        """
+                    for (objectEmail in objectEmails) {
+                        sendErrorStatus(
+                            email = objectEmail,
+                            subj = "$fullObjectName - $statusDescr",
+                            body =
+                            """
                             Добрый день!
                             ${DateTime_DMYHMS(userConfig.upZoneId, curStateTime)} (по вашему местному времени)
                             на установке депарафинизации $fullObjectName,
@@ -159,7 +166,8 @@ class AlerterService(
                             support@tehsmart.online                              
                             
                         """.trimIndent(),
-                    )
+                        )
+                    }
                 }
                 conn.executeUpdate(
                     """
