@@ -17,7 +17,8 @@ class UserService(
     private val userRepository: UserRepository,
 ) {
 
-    fun getAllUsers() = userRepository.findAll()
+    fun getAllWorkers() = userRepository.findByOrgType(OrgType.ORG_TYPE_WORKER)
+    fun getBossesByParent(parentId: Int) = userRepository.findByOrgTypeAndParentId(OrgType.ORG_TYPE_BOSS, parentId)
 
     fun loadUserIdList(conn: CoreAdvancedConnection, parentId: Int, orgType: Int): Set<Int> {
         val hsUserId = mutableSetOf<Int>()

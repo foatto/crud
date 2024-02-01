@@ -6,7 +6,6 @@ import foatto.sql.DBConfig
 import foatto.ts.core_ts.calc.ObjectState
 import foatto.ts.core_ts.sensor.config.SensorConfig
 import foatto.ts.core_ts.sensor.config.SensorConfigState
-import foatto.util.AdvancedLogger
 import foatto.util.DateTime_DMYHMS
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
@@ -71,6 +70,9 @@ class AlerterService(
     @Value("\${smtp_option_values}")
     private val smtpOptionValues: Array<String> = emptyArray()
 
+    @Value("\${admin_emails}")
+    private val adminEmails: Array<String> = emptyArray()
+
     @Scheduled(
         initialDelay = 5_000,
         fixedDelay = 300_000,
@@ -79,20 +81,22 @@ class AlerterService(
         val dbConfig = DBConfig(dbName, dataSourceURL, dataSourceUser, dataSourcePassword, dbReplicationName, dbReplicationFilter, dbReplicationPath)
         val conn = AdvancedConnection(dbConfig)
 
-        val hmUserEmail: Map<Int, List<String>> = userService.getAllUsers().filter { userEntity ->
-            !userEntity.eMail.isNullOrBlank()
-        }.associate { userEntity ->
-            val eMailList = userEntity.eMail?.split(' ')?.map { email ->
-                email.trim()
-            }?.filter { email ->
-                email.isNotEmpty()
-            }
-            userEntity.id to (eMailList ?: emptyList())
-        }
+        val hmUserEmail = mutableMapOf<Int, Set<String>>()
 
-        if (hmUserEmail.isEmpty()) {
-            AdvancedLogger.info("E-mailed users list is empty")
-            return
+        userService.getAllWorkers().forEach { workerEntity ->
+            val workerEmails = mutableSetOf<String>()
+
+            workerEmails += adminEmails
+            workerEmails += getEmailsFromString(workerEntity.eMail)
+
+            userService.getBossesByParent(workerEntity.parentId).forEach { bossEntity ->
+                val bossEmail = getEmailsFromString(bossEntity.eMail)
+                hmUserEmail[bossEntity.id] = bossEmail.toSet()
+
+                workerEmails += bossEmail
+            }
+
+            hmUserEmail[workerEntity.id] = workerEmails
         }
 
         val objectEntities = objectService.getAllObjects()
@@ -180,6 +184,13 @@ class AlerterService(
 
         conn.close()
     }
+
+    private fun getEmailsFromString(emails: String?) =
+        emails?.split(' ')?.map { email ->
+            email.trim()
+        }?.filter { email ->
+            email.isNotEmpty()
+        } ?: emptyList()
 
     private fun sendErrorStatus(
         email: String,
