@@ -517,7 +517,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             return WorkCalcData(scw.group, alResult)
         }
 
-        fun calcEnergoSensor(
+        private fun calcEnergoSensor(
             conn: CoreAdvancedConnection,
             alRawTime: List<Int>,
             alRawData: List<AdvancedByteBuffer>,

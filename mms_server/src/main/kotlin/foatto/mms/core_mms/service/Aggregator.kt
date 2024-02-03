@@ -1,14 +1,14 @@
 package foatto.mms.core_mms.service
 
-import foatto.util.AdvancedByteBuffer
-import foatto.util.AdvancedLogger
-import foatto.util.DateTime_YMDHMS
 import foatto.core_server.service.CoreServiceWorker
 import foatto.mms.core_mms.MMSFunction
 import foatto.mms.core_mms.calc.AbstractObjectStateCalc
 import foatto.mms.core_mms.calc.ObjectCalc
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.sql.AdvancedConnection
+import foatto.util.AdvancedByteBuffer
+import foatto.util.AdvancedLogger
+import foatto.util.DateTime_YMDHMS
 import java.io.IOException
 import java.nio.ByteOrder
 import java.time.ZoneId
@@ -46,7 +46,7 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
             SensorConfig.SENSOR_ENERGO_COUNT_RR,
         )
 
-        private val BATCH_SIZE = "batch_size"
+        private const val BATCH_SIZE = "batch_size"
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -119,11 +119,11 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                 }
                 alConn[0].commit()
                 AdvancedLogger.debug("Calc finished for sensorId = ${sensorCalcInfo.sensorId} for old calc_time = ${DateTime_YMDHMS(zoneId, sensorCalcInfo.calcTime)}")
+            }
 
-                if (alSensorCalcInfo.isEmpty()) {
-                    AdvancedLogger.debug("SLEEP")
-                    Thread.sleep(60_000)
-                }
+            if (alSensorCalcInfo.isEmpty()) {
+                AdvancedLogger.debug("SLEEP")
+                Thread.sleep(60_000)
             }
         } catch (ioe: IOException) {
             alConn[0].rollback()
@@ -251,7 +251,8 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         val inRs = alConn[0].executeQuery(
             """
                 SELECT ${alConn[0].getPreLimit(batchSize)} 
-                    ontime , sensor_data FROM MMS_data_${objectId}
+                    ontime , sensor_data 
+                FROM MMS_data_${objectId}
                 WHERE ontime > $begTime
                 ${alConn[0].getMidLimit(batchSize)}
                 ORDER BY ontime
@@ -346,10 +347,12 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
     private fun getLastAggregatedCounterValue(sensorId: Int): Double? {
         val agRs = alConn[0].executeQuery(
             """
-                SELECT value_2 
+                SELECT ${alConn[0].getPreLimit(batchSize)}
+                    value_2 
                 FROM MMS_agg_${sensorId}
+                ${alConn[0].getMidLimit(batchSize)}
                 ORDER BY ontime DESC
-                LIMIT 1
+                ${alConn[0].getPostLimit(batchSize)}
             """
         )
         val result = if (agRs.next()) {

@@ -652,6 +652,7 @@ open class GalileoHandler : MMSNioHandler() {
         //--- обновить временные метки для агрегатора данных
         deviceConfig?.let { dc ->
             CoreTelematicFunction.updatePortTime(dataWorker.conn, dc.objectId, hmPortTime)
+            hmPortTime.clear()
         }
 
         sendAccept(crc)
@@ -865,8 +866,6 @@ open class GalileoHandler : MMSNioHandler() {
     }
 
     private fun clearSensorArrays() {
-        hmPortTime.clear()
-
         isCoordOk = false
         wgsX = 0
         wgsY = 0
