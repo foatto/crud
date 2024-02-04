@@ -684,7 +684,8 @@ open class cStandart {
             chmSession[AppParameter.FINDER + finderId] as? List<String>?
         }
 
-        val pageNo = if (aliasConfig.pageSize > 0) {
+        val userPageSize = userConfig.getUserProperty(aliasConfig.name + "_page_size")?.toIntOrNull() ?: aliasConfig.pageSize
+        val pageNo = if (userPageSize > 0) {
             try {
                 hmParam[AppParameter.PAGE]!!.toInt()
             } catch (t: Throwable) {
@@ -746,7 +747,7 @@ open class cStandart {
             //--- если строчка по поиску проходит ( т.е. засчитывается в состав искомых строк ),
             //--- но пропускается как "строка из предыдущих страниц", то возвращаем пустую строку
             val rowCount: Int
-            if (aliasConfig.pageSize > 0 && globalRowCount < pageNo * aliasConfig.pageSize) {
+            if (userPageSize > 0 && globalRowCount < pageNo * userPageSize) {
                 rowCount = 0
             } else {
                 //--- возможная догенерация данных после фильтров поиска и страничной разбивки
@@ -771,7 +772,7 @@ open class cStandart {
             if ((hmColumnData[model.columnId] as DataInt).intValue == currentRowId) {
                 currentRowNo = dataRowCount - 1
             }
-            if (aliasConfig.pageSize > 0 && globalRowCount >= (pageNo + 1) * aliasConfig.pageSize) {
+            if (userPageSize > 0 && globalRowCount >= (pageNo + 1) * userPageSize) {
                 nextPageExist = true
                 break
             }
@@ -800,7 +801,7 @@ open class cStandart {
 
         //--- панель перехода по страницам (делается ПОСЛЕ вывода таблицы, т.к. только тогда становится известно наличие след./пред. страниц)
         val alPageButton = mutableListOf<Pair<String, String>>()
-        if (aliasConfig.pageSize > 0) {
+        if (userPageSize > 0) {
             //--- предыдущие страницы
             if (pageNo > 0) {
                 alPageButton.add(Pair(AppParameter.setParam(urlReferer, AppParameter.PAGE, "0"), "1"))  // для людей нумерация с "1"
