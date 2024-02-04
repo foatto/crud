@@ -899,7 +899,7 @@ class cDevice : cStandart() {
                     ignore_min_sensor , ignore_max_sensor , is_absolute_count             
                 ) VALUES ( 
                     ${conn.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix $descrBody $descrPostfix' , 
-                    ${deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
+                    ${deviceIndex * MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
                     $sensorType , 0, 0 , 2000 , 1 , 1 ,
                     0 , 0 , 1                            
                 )

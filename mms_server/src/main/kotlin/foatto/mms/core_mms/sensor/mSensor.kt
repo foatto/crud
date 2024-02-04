@@ -322,7 +322,7 @@ class mSensor : mAbstract() {
         //--- applies only to (fuel) counter sensors
 
         val columnIsAbsoluteCount = ColumnBoolean(modelTableName, "is_absolute_count", "Накопительный счётчик", true).apply {
-            addFormVisible(columnSensorType, true, counterAndSummarySensorTypes)
+            addFormVisible(columnSensorType, true, counterAndSummarySensorTypes + energoSummarySensorTypes)
         }
 
         //--- applies for counter and summary volume/mass sensors
