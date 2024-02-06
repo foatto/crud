@@ -1,6 +1,8 @@
 package foatto.mms.core_mms.sensor
 
 import foatto.core_server.app.server.column.iColumn
+import foatto.core_server.app.server.data.DataBoolean
+import foatto.core_server.app.server.data.DataDateTimeInt
 import foatto.core_server.app.server.data.DataString
 import foatto.core_server.app.server.data.iData
 import foatto.mms.core_mms.MMSFunction
@@ -52,6 +54,21 @@ class cSensor : cMMSOneObjectParent() {
         //--- проверка и автосоздание таблицы при её отсутствии
         if (!MMSFunction.checkAggregationTableIsExists(conn, id)) {
             MMSFunction.createAggTable(conn, id)
+        }
+
+        val ms = model as mSensor
+        val isRecalcAggregator = (hmColumnData[ms.columnIsRecalcAggregator] as? DataBoolean)?.value
+        if (isRecalcAggregator == true) {
+            (hmColumnData[ms.columnRecalcDataTime] as? DataDateTimeInt)?.zonedDateTime?.toEpochSecond()?.toInt()?.let { recalcStartDateTime ->
+                conn.executeUpdate(" DELETE FROM MMS_agg_$id WHERE ontime >= $recalcStartDateTime ")
+                conn.executeUpdate(
+                    """ 
+                        UPDATE MMS_sensor 
+                        SET calc_time = ( SELECT MAX(ontime) FROM MMS_agg_$id ) 
+                        WHERE id = $id 
+                    """
+                )
+            }
         }
 
         return postURL

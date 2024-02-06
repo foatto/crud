@@ -21,6 +21,10 @@ class mSensor : mAbstract() {
         private set
     lateinit var columnCalibrationText: ColumnString
         private set
+    lateinit var columnIsRecalcAggregator: ColumnBoolean
+        private set
+    lateinit var columnRecalcDataTime: ColumnDateTimeInt
+        private set
 
     override fun init(
         application: iApplication,
@@ -432,15 +436,22 @@ class mSensor : mAbstract() {
             addFormVisible(columnSensorType, true, liquidLevelSensorType)
         }
 
+        val columnIsUseAggregator = ColumnBoolean(modelTableName, "is_use_aggregator", "Использовать агрегатор данных", true)
+        columnIsRecalcAggregator = ColumnBoolean(modelTableName, "_is_recalc_aggregator", "Пересчитать в агрегаторе", false).apply {
+            isVirtual = true
+        }
+        columnRecalcDataTime = ColumnDateTimeInt(modelTableName, "_recalc_time", "Пересчитать, начиная с", true, zoneId).apply {
+            isVirtual = true
+        }
+        val rawDataTime = ColumnDateTimeInt(modelTableName, "raw_time", "Последние сырые данные", true, zoneId)
+        val calcDataTime = ColumnDateTimeInt(modelTableName, "calc_time", "Последние пересчитанные данные", true, zoneId)
+
         //--- any calibrable sensors ---
 
         columnCalibrationText = ColumnString(modelTableName, "_calibration_text", "Тарировка датчика", 20, STRING_COLUMN_WIDTH, 64000).apply {
             addFormVisible(columnSensorType, false, signalSensorType + geoSensorType + workSensorType + counterStateSensorType)
             isVirtual = true
         }
-
-        val rawDataTime = ColumnDateTimeInt(modelTableName, "raw_time", "Raw Data Time", true, zoneId)
-        val calcDataTime = ColumnDateTimeInt(modelTableName, "calc_time", "Calc Data Time", true, zoneId)
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -464,7 +475,8 @@ class mSensor : mAbstract() {
         if (isEquip) {
             addTableColumn(columnBegWorkValue)
         }
-        if (userConfig.isAdmin) {
+        if (userConfig.isCleanAdmin) {
+            addTableColumn(columnIsUseAggregator)
             addTableColumn(rawDataTime)
             addTableColumn(calcDataTime)
         }
@@ -576,6 +588,12 @@ class mSensor : mAbstract() {
         alFormColumn.add(columnAnalogDetectDecMinLen)
         alFormColumn.add(columnAnalogDecAddTimeBefore)
         alFormColumn.add(columnAnalogDecAddTimeAfter)
+
+        if (userConfig.isCleanAdmin) {
+            alFormColumn.add(columnIsUseAggregator)
+            alFormColumn.add(columnIsRecalcAggregator)
+            alFormColumn.add(columnRecalcDataTime)
+        }
 
         if (isEquip) {
             alFormHiddenColumn.add(columnCalibrationText)
