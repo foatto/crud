@@ -127,14 +127,14 @@ fun replaceFileRoot(sourPath: String, newRoot: File): Pair<File, File> {
 
 //--- очистка папок от старых файлов --------------------------------------------------------------------------------------------------------------------------------------------------
 
-fun clearOldFiles(path: File, expirePeriod: Int) {
+fun clearOldFiles(path: File, expireTime: Int) {
     val arrFile = path.listFiles()
     if (arrFile != null) {
         for (file in arrFile) {
             if (file.isDirectory) {
-                clearOldFiles(file, expirePeriod)
+                clearOldFiles(file, expireTime)
             }
-            else if (file.lastModified() < getCurrentTimeInt() - expirePeriod) {
+            else if (file.lastModified() < expireTime) {
                 file.delete()
             }
         }

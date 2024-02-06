@@ -1,14 +1,13 @@
 package foatto.mms.core_mms
 
+import foatto.core_server.service.CoreServiceWorker
+import foatto.sql.CoreSQLDialectEnum
 import foatto.util.AdvancedLogger
 import foatto.util.clearOldFiles
 import foatto.util.getCurrentTimeInt
 import foatto.util.getDateTimeArray
-import foatto.core_server.service.CoreServiceWorker
-import foatto.sql.CoreSQLDialectEnum
 import java.io.File
 import java.time.ZoneId
-import kotlin.math.max
 
 abstract class CoreDataClean(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
 
@@ -92,22 +91,37 @@ abstract class CoreDataClean(aConfigFileName: String) : CoreServiceWorker(aConfi
         rsObject.close()
 
         //--- полный срок хранения: expire_period считается в неделях
-        val alExpireTime = mutableListOf<Int>()
-        var maxExpirePeriod = 0
-        for (i in alDBConfig.indices) {
-            alExpireTime.add(getCurrentTimeInt() - alExpirePeriod[i])
-            maxExpirePeriod = max(maxExpirePeriod, alExpirePeriod[i])
-        }
+        val expireTime = getCurrentTimeInt() - alExpirePeriod[0]
+//        val expirePeriod = alExpirePeriod[0]
 
         //--- теперь по каждому объекту
-        var rowSum = 0
+        var aggSum = 0
+        var rawSum = 0
         for (objectId in hmObject.keys) {
-            //--- стираем старые данные
-            var row = 0
-            for (i in alDBConfig.indices) {
-                row += alConn[i].executeUpdate(" DELETE FROM MMS_data_$objectId WHERE ontime < ${alExpireTime[i]} ")
-                alConn[i].commit()
+            //--- стираем старые агрегированные данные
+            val sensorIds = mutableListOf<Int>()
+            val rs = alConn[0].executeQuery(" SELECT id FROM MMS_sensor WHERE object_id = $objectId ")
+            while (rs.next()) {
+                sensorIds += rs.getInt(1)
             }
+            rs.close()
+
+            sensorIds.forEach { sensorId ->
+                if (MMSFunction.checkAggregationTableIsExists(alConn[0], sensorId)) {
+                    val aggRows = alConn[0].executeUpdate(" DELETE FROM MMS_agg_$sensorId WHERE ontime < $expireTime ")
+                    alConn[0].commit()
+
+                    AdvancedLogger.debug("MMS_agg_$sensorId: ${hmObject[objectId]} = $aggRows rows")
+                    aggSum += aggRows
+                }
+            }
+
+            //--- стираем старые сырые данные
+            val rawRows = alConn[0].executeUpdate(" DELETE FROM MMS_data_$objectId WHERE ontime < $expireTime ")
+            alConn[0].commit()
+
+            AdvancedLogger.debug("MMS_data_$objectId: ${hmObject[objectId]} = $rawRows rows")
+            rawSum += rawRows
 
             //--- для H2 базы команды ALTER INDEX не реализовано
             if (alConn[0].dialect == CoreSQLDialectEnum.H2) {
@@ -117,30 +131,24 @@ abstract class CoreDataClean(aConfigFileName: String) : CoreServiceWorker(aConfi
             }
             //--- для MMS_data_NNN в PostgreSQL периодически делаем специфическую "кластерную" переиндексацию,
             else if (alConn[0].dialect == CoreSQLDialectEnum.POSTGRESQL) {
-                for (i in alDBConfig.indices) {
-                    alConn[i].executeUpdate(" CLUSTER MMS_data_$objectId USING MMS_data_${objectId}_ontime ")
-                    alConn[i].commit()
-                }
+                alConn[0].executeUpdate(" CLUSTER MMS_data_$objectId USING MMS_data_${objectId}_ontime ")
+                alConn[0].commit()
             }
             //--- у прочих диалектов просто перестраиваем индексы (где была кластерность - там она сохраняется)
             //--- т.к. она не сохраняется по времени
             else {
-                for (i in alDBConfig.indices) {
-                    alConn[i].executeUpdate(" ALTER INDEX ALL ON MMS_data_$objectId REBUILD ")
-                    alConn[i].commit()
-                }
+                alConn[0].executeUpdate(" ALTER INDEX ALL ON MMS_data_$objectId REBUILD ")
+                alConn[0].commit()
             }
-
-            AdvancedLogger.debug("MMS_data_$objectId: ${hmObject[objectId]} = $row rows")
-            rowSum += row
         }
-        AdvancedLogger.debug("MMS_data_ALL = $rowSum rows")
+        AdvancedLogger.debug("MMS_agg_ALL = $aggSum rows")
+        AdvancedLogger.debug("MMS_data_ALL = $rawSum rows")
 
         //--- стираем старые суточные работы, журнал простоев и путевые листы/смены
 
-        val arrDT = getDateTimeArray(zoneId, getCurrentTimeInt() - maxExpirePeriod)
+        val arrDT = getDateTimeArray(zoneId, expireTime)
 
-        var rowCountDW = alConn[0].executeUpdate(
+        val rowCountDW = alConn[0].executeUpdate(
             " DELETE FROM MMS_day_work WHERE ye < ${arrDT[0]} OR ye = ${arrDT[0]} AND mo < ${arrDT[1]} OR ye = ${arrDT[0]} AND mo = ${arrDT[1]} AND da < ${arrDT[2]} "
         )
         alConn[0].commit()
@@ -162,7 +170,7 @@ abstract class CoreDataClean(aConfigFileName: String) : CoreServiceWorker(aConfi
         alConn[0].commit()
         AdvancedLogger.debug("MMS_day_work = $rowCountDW rows")
 
-        val rowCountWS = alConn[0].executeUpdate(" DELETE FROM MMS_work_shift WHERE end_dt < ${getCurrentTimeInt() - maxExpirePeriod}")
+        val rowCountWS = alConn[0].executeUpdate(" DELETE FROM MMS_work_shift WHERE end_dt < $expireTime")
         if (rowCountWS > 0) {
             alConn[0].executeUpdate(" DELETE FROM MMS_work_shift_data WHERE shift_id NOT IN ( SELECT id FROM MMS_work_shift ) ")
         }
@@ -187,7 +195,7 @@ abstract class CoreDataClean(aConfigFileName: String) : CoreServiceWorker(aConfi
 
         //--- стираем устаревшие файлы
         for (path in alPath) {
-            clearOldFiles(path, maxExpirePeriod)
+            clearOldFiles(path, expireTime)
         }
 
 //        //--- чистим место в файловых хранилищах под требуемое свободное место
