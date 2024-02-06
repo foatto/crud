@@ -7,10 +7,10 @@ import foatto.core.app.graphic.graphicLineAboveColorIndexes
 import foatto.core.app.graphic.graphicLineBelowColorIndexes
 import foatto.core.app.graphic.graphicLineNoneColorIndexes
 import foatto.core.app.graphic.graphicLineNormalColorIndexes
-import foatto.util.AdvancedByteBuffer
 import foatto.mms.core_mms.calc.AbstractObjectStateCalc
 import foatto.mms.core_mms.calc.ObjectCalc
 import foatto.mms.core_mms.sensor.config.SensorConfigAnalogue
+import foatto.util.AdvancedByteBuffer
 
 open class AnalogGraphicHandler : iGraphicHandler {
 
@@ -48,17 +48,6 @@ open class AnalogGraphicHandler : iGraphicHandler {
 
     //----------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun isDynamicMinLimit(sca: SensorConfigAnalogue) = false
-    override fun isDynamicMaxLimit(sca: SensorConfigAnalogue) = false
-
-    override fun getDynamicMinLimit(sca: SensorConfigAnalogue, rawTime: Int, rawData: Double) = sca.minLimit
-    override fun getDynamicMaxLimit(sca: SensorConfigAnalogue, rawTime: Int, rawData: Double) = sca.maxLimit
-
-    override fun addDynamicMinLimit(rawTime: Int, dynamicMinLimit: Double, aMinLimit: GraphicDataContainer) {}
-    override fun addDynamicMaxLimit(rawTime: Int, dynamicMaxLimit: Double, aMaxLimit: GraphicDataContainer) {}
-
-    //----------------------------------------------------------------------------------------------------------------------------------------
-
     override fun getRawData(sca: SensorConfigAnalogue, bb: AdvancedByteBuffer): Double? {
         val sensorData = AbstractObjectStateCalc.getSensorData(sca.portNum, bb)?.toDouble() ?: return null
         //--- вручную игнорируем заграничные значения
@@ -69,20 +58,6 @@ open class AnalogGraphicHandler : iGraphicHandler {
         }
     }
 
-    override fun getLineColorIndex(axisIndex: Int, sca: SensorConfigAnalogue, rawTime: Int, rawData: Double, prevTime: Int, prevData: Double): GraphicColorIndex {
-        val avgDynamicMinLimit = getDynamicMinLimit(sca, rawTime, rawData)
-        val avgDynamicMaxLimit = getDynamicMaxLimit(sca, rawTime, rawData)
-
-        var colorIndex = getLineNormalColorIndex(axisIndex)
-        if (isStaticMinLimit(sca)) {
-            colorIndex = if (rawData > avgDynamicMaxLimit) {
-                getLineAboveColorIndex(axisIndex)
-            } else if (rawData < avgDynamicMinLimit) {
-                getLineBelowColorIndex(axisIndex)
-            } else {
-                getLineNormalColorIndex(axisIndex)
-            }
-        }
-        return colorIndex
-    }
+    override fun getLineColorIndex(axisIndex: Int, sca: SensorConfigAnalogue, rawTime: Int, rawData: Double, prevTime: Int, prevData: Double): GraphicColorIndex =
+        getLineNormalColorIndex(axisIndex)
 }

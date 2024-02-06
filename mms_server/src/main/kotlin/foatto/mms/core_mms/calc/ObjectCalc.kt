@@ -25,8 +25,6 @@ import java.nio.ByteOrder
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.pow
-import kotlin.math.sqrt
 
 class ObjectCalc(val objectConfig: ObjectConfig) {
 
@@ -641,11 +639,6 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             aLine: GraphicDataContainer,
             graphicHandler: iGraphicHandler
         ) {
-            val isStaticMinLimit = graphicHandler.isStaticMinLimit(sca)
-            val isStaticMaxLimit = graphicHandler.isStaticMaxLimit(sca)
-            val isDynamicMinLimit = graphicHandler.isDynamicMinLimit(sca)
-            val isDynamicMaxLimit = graphicHandler.isDynamicMaxLimit(sca)
-
             //--- immediately add / set static (permanent) constraints if required / supported
             if (graphicHandler.isStaticMinLimit(sca)) {
                 graphicHandler.setStaticMinLimit(sca, begTime, endTime, aMinLimit)
@@ -680,20 +673,6 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 //--- sensor value mb. == null, for example, ignored below / above the specified value boundaries (noise filtering)
                 val rawData = alSensorData[pos] ?: continue
 
-                //--- adding dynamic boundaries / value limits
-                if (isDynamicMinLimit) {
-                    //--- if the line point is far enough from the previous one (or just the first one :)
-                    if (aMinLimit!!.alGLD.isEmpty() || rawTime - aMinLimit.alGLD[aMinLimit.alGLD.size - 1].x > xScale) {
-                        graphicHandler.addDynamicMinLimit(rawTime, graphicHandler.getDynamicMinLimit(sca, rawTime, rawData), aMinLimit)
-                    }
-                }
-                if (isDynamicMaxLimit) {
-                    //--- if the line point is far enough from the previous one (or just the first one :)
-                    if (aMaxLimit!!.alGLD.isEmpty() || rawTime - aMaxLimit.alGLD[aMaxLimit.alGLD.size - 1].x > xScale) {
-                        graphicHandler.addDynamicMaxLimit(rawTime, graphicHandler.getDynamicMaxLimit(sca, rawTime, rawData), aMaxLimit)
-                    }
-                }
-
                 //--- if lines are shown
                 aLine.let {
                     //--- finding the left border of the smoothing range
@@ -714,66 +693,23 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                     }
 
                     //--- smoothing
-                    var sumValue: Double
-                    var countValue: Int
                     val avgValue: Double
-                    when (sca.smoothMethod) {
-                        //--- since pos1 and pos2 are OUTSIDE the smoothing range,
-                        //--- then we skip them, starting from pos1 + 1 and ending BEFORE pos2
+                    val alSubList = mutableListOf<Double>()
 
-                        SensorConfig.SMOOTH_METOD_MEDIAN -> {
-                            val alSubList = mutableListOf<Double>()
-                            for (p in pos1 + 1 until pos2) {
-                                val v = alSensorData[p] ?: continue
-                                alSubList.add(v)
-                            }
-                            alSubList.sort()
-                            //--- if the number of values is odd, take exactly the middle
-                            avgValue = if (alSubList.size % 2 != 0) {
-                                alSubList[alSubList.size / 2]
-                            }
-                            //--- otherwise the arithmetic mean between two values closest to the middle
-                            else {
-                                val val1 = alSubList[alSubList.size / 2 - 1]
-                                val val2 = alSubList[alSubList.size / 2]
-                                val1 + (val2 - val1) / 2
-                            }
-                        }
-
-                        SensorConfig.SMOOTH_METOD_AVERAGE -> {
-                            sumValue = 0.0
-                            countValue = 0
-                            for (p in pos1 + 1 until pos2) {
-                                val v = alSensorData[p] ?: continue
-                                sumValue += v
-                                countValue++
-                            }
-                            avgValue = sumValue / countValue
-                        }
-
-                        SensorConfig.SMOOTH_METOD_AVERAGE_SQUARE -> {
-                            sumValue = 0.0
-                            countValue = 0
-                            for (p in pos1 + 1 until pos2) {
-                                val v = alSensorData[p] ?: continue
-                                sumValue += v * v
-                                countValue++
-                            }
-                            avgValue = sqrt(sumValue / countValue)
-                        }
-
-                        SensorConfig.SMOOTH_METOD_AVERAGE_GEOMETRIC -> {
-                            sumValue = 1.0   // there will be a multiplication, so the initial value = 1
-                            countValue = 0
-                            for (p in pos1 + 1 until pos2) {
-                                val v = alSensorData[p] ?: continue
-                                sumValue *= v
-                                countValue++
-                            }
-                            avgValue = sumValue.pow(1.0 / countValue)
-                        }
-
-                        else -> avgValue = 0.0
+                    for (p in pos1 + 1 until pos2) {
+                        val v = alSensorData[p] ?: continue
+                        alSubList.add(v)
+                    }
+                    alSubList.sort()
+                    //--- if the number of values is odd, take exactly the middle
+                    avgValue = if (alSubList.size % 2 != 0) {
+                        alSubList[alSubList.size / 2]
+                    }
+                    //--- otherwise the arithmetic mean between two values closest to the middle
+                    else {
+                        val val1 = alSubList[alSubList.size / 2 - 1]
+                        val val2 = alSubList[alSubList.size / 2]
+                        val1 + (val2 - val1) / 2
                     }
 
                     val gldLast = alGLD.lastOrNull()

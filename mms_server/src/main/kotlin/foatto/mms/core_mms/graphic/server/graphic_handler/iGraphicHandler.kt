@@ -26,18 +26,6 @@ interface iGraphicHandler {
 
     //----------------------------------------------------------------------------------------------------------------------------------------
 
-    //--- whether dynamic limit lines will be used / displayed
-    fun isDynamicMinLimit(sca: SensorConfigAnalogue): Boolean
-    fun isDynamicMaxLimit(sca: SensorConfigAnalogue): Boolean
-
-    fun getDynamicMinLimit(sca: SensorConfigAnalogue, rawTime: Int, rawData: Double): Double
-    fun getDynamicMaxLimit(sca: SensorConfigAnalogue, rawTime: Int, rawData: Double): Double
-
-    fun addDynamicMinLimit(rawTime: Int, dynamicMinLimit: Double, aMinLimit: GraphicDataContainer)
-    fun addDynamicMaxLimit(rawTime: Int, dynamicMaxLimit: Double, aMaxLimit: GraphicDataContainer)
-
-    //----------------------------------------------------------------------------------------------------------------------------------------
-
     fun getRawData(sca: SensorConfigAnalogue, bb: AdvancedByteBuffer): Double?
 
     fun getLineColorIndex(axisIndex: Int, sca: SensorConfigAnalogue, rawTime: Int, rawData: Double, prevTime: Int, prevData: Double): GraphicColorIndex

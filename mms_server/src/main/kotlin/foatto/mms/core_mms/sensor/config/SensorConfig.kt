@@ -80,19 +80,6 @@ open class SensorConfig(
         const val SENSOR_ENERGO_POWER_REACTIVE = 34 // reactive power by phase
         const val SENSOR_ENERGO_POWER_FULL = 35     // full/summary power by phase
 
-        //--- алгоритмы усреднения:
-        //--- медиана
-        const val SMOOTH_METOD_MEDIAN = 0
-
-        //--- среднее арифметическое
-        const val SMOOTH_METOD_AVERAGE = 1
-
-        //--- среднее квадратическое
-        const val SMOOTH_METOD_AVERAGE_SQUARE = 2
-
-        //--- среднее геометрическое
-        const val SMOOTH_METOD_AVERAGE_GEOMETRIC = 3
-
         //--- названия датчиков
         val hmSensorDescr = mutableMapOf(
             SENSOR_SIGNAL to "Сигнал",

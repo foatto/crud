@@ -14,7 +14,6 @@ open class SensorConfigAnalogue(
     aRawTime: Int,
     aCalcTime: Int,
     aIsUseAggregator: Boolean,
-    val smoothMethod: Int,
     val smoothTime: Int,
     aMinIgnore: Double,
     aMaxIgnore: Double,

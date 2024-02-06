@@ -1,8 +1,6 @@
 package foatto.mms.core_mms.graphic.server.document
 
 import foatto.core.app.graphic.*
-import foatto.util.AdvancedByteBuffer
-import foatto.util.getCurrentTimeInt
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.graphic.server.GraphicStartData
 import foatto.core_server.app.graphic.server.document.sdcAbstractGraphic
@@ -16,6 +14,8 @@ import foatto.mms.core_mms.sensor.config.SensorConfigAnalogue
 import foatto.mms.core_mms.sensor.config.SensorConfigGeo
 import foatto.mms.core_mms.sensor.config.SensorConfigWork
 import foatto.mms.iMMSApplication
+import foatto.util.AdvancedByteBuffer
+import foatto.util.getCurrentTimeInt
 import java.util.*
 import kotlin.math.min
 
@@ -321,15 +321,11 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                 //--- Максимальный размер массива = кол-во точек по горизонтали = 3840 (максимальная ширина 4K-экрана), окгруляем до 4000
                 val aMinLimit = if (graphicHandler.isStaticMinLimit(sca)) {
                     GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 1, isReversedY)
-                } else if (graphicHandler.isDynamicMinLimit(sca)) {
-                    GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 1, isReversedY)
                 } else {
                     null
                 }
 
                 val aMaxLimit = if (graphicHandler.isStaticMaxLimit(sca)) {
-                    GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 1, isReversedY)
-                } else if (graphicHandler.isDynamicMaxLimit(sca)) {
                     GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 1, isReversedY)
                 } else {
                     null

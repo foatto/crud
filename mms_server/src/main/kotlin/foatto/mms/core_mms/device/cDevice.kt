@@ -2,7 +2,6 @@ package foatto.mms.core_mms.device
 
 import foatto.core.link.TableCell
 import foatto.core.link.TableCellForeColorType
-import foatto.util.getCurrentTimeInt
 import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.data.DataBoolean
@@ -10,12 +9,12 @@ import foatto.core_server.app.server.data.DataDateTimeInt
 import foatto.core_server.app.server.data.DataInt
 import foatto.core_server.app.server.data.DataString
 import foatto.core_server.app.server.data.iData
-import foatto.core_server.ds.CoreTelematicFunction
 import foatto.core_server.ds.CoreTelematicFunction.MAX_PORT_PER_DEVICE
 import foatto.mms.core_mms.ds.GalileoFunction
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigCounter
 import foatto.mms.iMMSApplication
+import foatto.util.getCurrentTimeInt
 import java.io.File
 
 class cDevice : cStandart() {
@@ -146,7 +145,7 @@ class cDevice : cStandart() {
                         is_absolute_count , in_out_type , energo_phase , container_type , analog_using_min_len , analog_is_using_calc ,
                         analog_detect_inc , analog_detect_inc_min_diff , analog_detect_inc_min_len , analog_inc_add_time_before , analog_inc_add_time_after ,
                         analog_detect_dec , analog_detect_dec_min_diff , analog_detect_dec_min_len , analog_dec_add_time_before , analog_dec_add_time_after ,
-                        smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , liquid_name , liquid_norm , scheme_x , scheme_y ,
+                        smooth_time , ignore_min_sensor , ignore_max_sensor , liquid_name , liquid_norm , scheme_x , scheme_y ,
                         raw_time , calc_time , is_use_aggregator  
                     ) SELECT
                         $newSensorId , $newObjectId , name , group_name , descr , port_num + (${(newDeviceIndex - oldDeviceIndex) * MAX_PORT_PER_DEVICE}) , 
@@ -157,7 +156,7 @@ class cDevice : cStandart() {
                         is_absolute_count , in_out_type , energo_phase , container_type , analog_using_min_len , analog_is_using_calc ,
                         analog_detect_inc , analog_detect_inc_min_diff , analog_detect_inc_min_len , analog_inc_add_time_before , analog_inc_add_time_after ,
                         analog_detect_dec , analog_detect_dec_min_diff , analog_detect_dec_min_len , analog_dec_add_time_before , analog_dec_add_time_after ,
-                        smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , liquid_name , liquid_norm , scheme_x , scheme_y ,
+                        smooth_time , ignore_min_sensor , ignore_max_sensor , liquid_name , liquid_norm , scheme_x , scheme_y ,
                         raw_time , calc_time , is_use_aggregator  
                     FROM MMS_sensor WHERE id = $oldSensorId
                 """
@@ -926,13 +925,13 @@ class cDevice : cStandart() {
                     id , object_id , name , group_name , descr , 
                     port_num , 
                     sensor_type , cmd_on_id , cmd_off_id , beg_ye , beg_mo , beg_da ,
-                    smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , 
+                    smooth_time , ignore_min_sensor , ignore_max_sensor , 
                     analog_min_view , analog_max_view , analog_min_limit , analog_max_limit                
                 ) VALUES ( 
                     ${conn.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix $descrBody $descrPostfix' , 
                     ${deviceIndex * MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
                     $sensorType , 0, 0 , 2000 , 1 , 1 ,
-                    0 , 0 , 0 , 0 ,                             
+                    0 , 0 , 0 ,                             
                     0 , 0 , 0 , 0                              
                 )
             """
@@ -957,13 +956,13 @@ class cDevice : cStandart() {
                     id , object_id , name , group_name , descr , 
                     port_num , 
                     sensor_type , cmd_on_id , cmd_off_id , beg_ye , beg_mo , beg_da ,
-                    smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , 
+                    smooth_time , ignore_min_sensor , ignore_max_sensor , 
                     analog_min_view , analog_max_view , analog_min_limit , analog_max_limit , energo_phase                 
                 ) VALUES ( 
                     ${conn.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix $descrBody $descrPostfix' , 
                     ${deviceIndex * MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
                     $sensorType , 0, 0 , 2000 , 1 , 1 ,
-                    0 , 0 , 0 , 0 ,                             
+                    0 , 0 , 0 ,                             
                     0 , 0 , 0 , 0 , $phase                              
                 )
             """

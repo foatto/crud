@@ -266,14 +266,6 @@ class mSensor : mAbstract() {
 
         //--- for smoothable sensors (analog sensors only)
 
-        val columnSmoothMethod = ColumnComboBox(modelTableName, "smooth_method", "Метод сглаживания", SensorConfig.SMOOTH_METOD_MEDIAN).apply {
-            addChoice(SensorConfig.SMOOTH_METOD_MEDIAN, "Медиана")
-            addChoice(SensorConfig.SMOOTH_METOD_AVERAGE, "Среднее арифметическое")
-            addChoice(SensorConfig.SMOOTH_METOD_AVERAGE_SQUARE, "Среднее квадратическое")
-            addChoice(SensorConfig.SMOOTH_METOD_AVERAGE_GEOMETRIC, "Среднее геометрическое")
-            addFormVisible(columnSensorType, true, analogSensorTypes)
-        }
-
         val columnSmoothTime = ColumnInt(modelTableName, "smooth_time", "Период сглаживания [мин]", 10, 0).apply {
             addFormVisible(columnSensorType, true, analogSensorTypes)
         }
@@ -550,7 +542,6 @@ class mSensor : mAbstract() {
 
         alFormColumn.add(columnInOutType)
 
-        alFormColumn.add(columnSmoothMethod)
         alFormColumn.add(columnSmoothTime)
 
         if (isEquip) {

@@ -105,9 +105,6 @@ class SensorEntity(
 
     //--- base sensor attributes
 
-    @Column(name = "smooth_method")
-    val smoothMethod: Int?,
-
     @Column(name = "smooth_time")
     val smoothTime: Int?,
 
