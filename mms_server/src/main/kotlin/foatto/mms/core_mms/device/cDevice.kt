@@ -146,7 +146,8 @@ class cDevice : cStandart() {
                         is_absolute_count , in_out_type , energo_phase , container_type , analog_using_min_len , analog_is_using_calc ,
                         analog_detect_inc , analog_detect_inc_min_diff , analog_detect_inc_min_len , analog_inc_add_time_before , analog_inc_add_time_after ,
                         analog_detect_dec , analog_detect_dec_min_diff , analog_detect_dec_min_len , analog_dec_add_time_before , analog_dec_add_time_after ,
-                        smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , liquid_name , liquid_norm , scheme_x , scheme_y
+                        smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , liquid_name , liquid_norm , scheme_x , scheme_y ,
+                        raw_time , calc_time , is_use_aggregator  
                     ) SELECT
                         $newSensorId , $newObjectId , name , group_name , descr , port_num + (${(newDeviceIndex - oldDeviceIndex) * MAX_PORT_PER_DEVICE}) , 
                         sensor_type , serial_no , beg_ye , beg_mo , beg_da ,
@@ -156,7 +157,8 @@ class cDevice : cStandart() {
                         is_absolute_count , in_out_type , energo_phase , container_type , analog_using_min_len , analog_is_using_calc ,
                         analog_detect_inc , analog_detect_inc_min_diff , analog_detect_inc_min_len , analog_inc_add_time_before , analog_inc_add_time_after ,
                         analog_detect_dec , analog_detect_dec_min_diff , analog_detect_dec_min_len , analog_dec_add_time_before , analog_dec_add_time_after ,
-                        smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , liquid_name , liquid_norm , scheme_x , scheme_y
+                        smooth_method , smooth_time , ignore_min_sensor , ignore_max_sensor , liquid_name , liquid_norm , scheme_x , scheme_y ,
+                        raw_time , calc_time , is_use_aggregator  
                     FROM MMS_sensor WHERE id = $oldSensorId
                 """
             )
@@ -844,7 +846,7 @@ class cDevice : cStandart() {
                     sensor_type , cmd_on_id , cmd_off_id , beg_ye , beg_mo , beg_da 
                 ) VALUES ( 
                     ${conn.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix $descrBody $descrPostfix' , 
-                    ${deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
+                    ${deviceIndex * MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
                     $sensorType , 0 , 0 , 2000 , 1 , 1 
                 )
             """
@@ -871,7 +873,7 @@ class cDevice : cStandart() {
                     min_on_time, min_off_time, ignore_min_sensor , ignore_max_sensor , is_absolute_count , in_out_type , liquid_name            
                 ) VALUES ( 
                     ${conn.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix $descrBody $descrPostfix' , 
-                    ${deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
+                    ${deviceIndex * MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
                     $sensorType , 0, 0 , 2000 , 1 , 1 ,
                     1 , 1 , 0 , 0 , 1 , ${SensorConfigCounter.CALC_TYPE_OUT} , ''                            
                 )
@@ -928,7 +930,7 @@ class cDevice : cStandart() {
                     analog_min_view , analog_max_view , analog_min_limit , analog_max_limit                
                 ) VALUES ( 
                     ${conn.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix $descrBody $descrPostfix' , 
-                    ${deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
+                    ${deviceIndex * MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
                     $sensorType , 0, 0 , 2000 , 1 , 1 ,
                     0 , 0 , 0 , 0 ,                             
                     0 , 0 , 0 , 0                              
@@ -959,7 +961,7 @@ class cDevice : cStandart() {
                     analog_min_view , analog_max_view , analog_min_limit , analog_max_limit , energo_phase                 
                 ) VALUES ( 
                     ${conn.getNextIntId("MMS_sensor", "id")} , $objectId ,  '' , '$groupName' , '$descrPrefix $descrBody $descrPostfix' , 
-                    ${deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
+                    ${deviceIndex * MAX_PORT_PER_DEVICE + portNum + sensorIndex} , 
                     $sensorType , 0, 0 , 2000 , 1 , 1 ,
                     0 , 0 , 0 , 0 ,                             
                     0 , 0 , 0 , 0 , $phase                              

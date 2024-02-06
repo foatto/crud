@@ -13,6 +13,7 @@ class SensorConfigCounter(
     aBegDa: Int,
     aRawTime: Int,
     aCalcTime: Int,
+    aIsUseAggregator: Boolean,
     aMinIgnore: Double,
     aMaxIgnore: Double,
     val minOnTime: Int,
@@ -33,6 +34,7 @@ class SensorConfigCounter(
     aBegDa = aBegDa,
     rawTime = aRawTime,
     calcTime = aCalcTime,
+    aIsUseAggregator = aIsUseAggregator,
     minIgnore = aMinIgnore,
     maxIgnore = aMaxIgnore,
 ) {
