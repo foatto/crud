@@ -103,33 +103,6 @@ abstract class CoreAdvancedConnection(dbConfig: DBConfig) {
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    //--- различные вариации организации ограничения кол-ва возвращаемых строк
-    fun getPreLimit(limit: Int): StringBuilder {
-        val sb = StringBuilder()
-        if (dialect == CoreSQLDialectEnum.MSSQL) {
-            sb.append(" TOP( ").append(limit).append(" ) ")
-        }
-        return sb
-    }
-
-    fun getMidLimit(limit: Int): StringBuilder {
-        val sb = StringBuilder()
-        if (dialect == CoreSQLDialectEnum.ORACLE) {
-            sb.append(" AND ROWNUM <= ").append(limit)
-        }
-        return sb
-    }
-
-    fun getPostLimit(limit: Int): StringBuilder {
-        val sb = StringBuilder()
-        if (dialect == CoreSQLDialectEnum.H2 || dialect == CoreSQLDialectEnum.POSTGRESQL || dialect == CoreSQLDialectEnum.SQLITE) {
-            sb.append(" LIMIT ").append(limit)
-        }
-        return sb
-    }
-
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     fun addReplicationSQL(sql: String) {
         //--- для черного списка результат по умолчанию положительный, для белого - отрицательный
         var checkResult = alReplicationFilter.isEmpty() || replicationFilterIsBlackList

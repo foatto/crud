@@ -1264,9 +1264,14 @@ open class cStandart {
         if (valueID == null) return true
 
         val rs = conn.executeQuery(
-            " SELECT ${conn.getPreLimit(1)} row_id FROM SYSTEM_new " +
-                " WHERE table_name = '${model.modelTableName}' AND row_id = $valueID AND user_id = ${userConfig.userId} " +
-                " ${conn.getMidLimit(1)} ${conn.getPostLimit(1)} "
+            """ 
+                SELECT row_id 
+                FROM SYSTEM_new
+                WHERE table_name = '${model.modelTableName}' 
+                    AND row_id = $valueID 
+                    AND user_id = ${userConfig.userId} 
+                LIMIT 1
+            """
         )
         val isReaded = rs.next()
         rs.close()

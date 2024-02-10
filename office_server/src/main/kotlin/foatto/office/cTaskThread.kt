@@ -19,10 +19,12 @@ class cTaskThread : cStandart() {
             if (withAnchors) {
                 " SELECT subj FROM OFFICE_task WHERE id = $parentTaskID "
             } else {
-                " SELECT ${conn.getPreLimit(1)} message FROM OFFICE_task_thread " +
-                    " WHERE task_id = $parentTaskID ${conn.getMidLimit(1)} " +
-                    " ORDER BY ye DESC, mo DESC, da DESC, ho DESC, mi DESC " +
-                    " ${conn.getPostLimit(1)} "
+                """
+                    SELECT message FROM OFFICE_task_thread 
+                    WHERE task_id = $parentTaskID 
+                    ORDER BY ye DESC, mo DESC, da DESC, ho DESC, mi DESC
+                    LIMIT 1
+                """
             }
         )
 
