@@ -467,6 +467,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         graphicHandler: iGraphicHandler
     ) {
         ObjectCalc.getSmoothAnalogGraphicData(
+            conn = conn,
             alRawTime = alRawTime,
             alRawData = alRawData,
             scg = scg,

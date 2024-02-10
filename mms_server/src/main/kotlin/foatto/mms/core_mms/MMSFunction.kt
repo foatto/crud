@@ -248,9 +248,10 @@ object MMSFunction {
         conn.executeUpdate(
             """ 
                 CREATE TABLE MMS_agg_$sensorId ( 
-                    ontime ${conn.dialect.integerFieldTypeName} NOT NULL, 
-                    value_1 ${conn.dialect.doubleFieldTypeName} NOT NULL DEFAULT(0.0),
-                    value_2 ${conn.dialect.doubleFieldTypeName} NOT NULL DEFAULT(0.0)
+                    ontime ${conn.dialect.integerFieldTypeName} NOT NULL , 
+                    type_1 ${conn.dialect.integerFieldTypeName} ,
+                    value_1 ${conn.dialect.doubleFieldTypeName} ,
+                    value_2 ${conn.dialect.doubleFieldTypeName} 
                 ) 
             """.trimMargin()
         )

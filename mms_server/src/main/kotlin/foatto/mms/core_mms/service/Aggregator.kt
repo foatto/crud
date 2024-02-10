@@ -1,5 +1,6 @@
 package foatto.mms.core_mms.service
 
+import foatto.core.app.graphic.AnalogueValueType
 import foatto.core_server.service.CoreServiceWorker
 import foatto.mms.core_mms.MMSFunction
 import foatto.mms.core_mms.calc.AbstractObjectStateCalc
@@ -37,6 +38,7 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         private val alPreparedSensorTypes = listOf(
+            //--- counter sensors
             SensorConfig.SENSOR_MASS_ACCUMULATED,
             SensorConfig.SENSOR_VOLUME_ACCUMULATED,
             SensorConfig.SENSOR_LIQUID_USING,
@@ -44,8 +46,32 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
             SensorConfig.SENSOR_ENERGO_COUNT_AR,
             SensorConfig.SENSOR_ENERGO_COUNT_RD,
             SensorConfig.SENSOR_ENERGO_COUNT_RR,
+            //--- analogue sensors
+            SensorConfig.SENSOR_LIQUID_LEVEL,
+            SensorConfig.SENSOR_WEIGHT,
+            SensorConfig.SENSOR_TURN,
+            SensorConfig.SENSOR_PRESSURE,
+            SensorConfig.SENSOR_TEMPERATURE,
+            SensorConfig.SENSOR_VOLTAGE,
+            SensorConfig.SENSOR_POWER,
+            SensorConfig.SENSOR_DENSITY,
+            SensorConfig.SENSOR_MASS_FLOW,
+            SensorConfig.SENSOR_VOLUME_FLOW,
+            SensorConfig.SENSOR_ENERGO_VOLTAGE,
+            SensorConfig.SENSOR_ENERGO_CURRENT,
+            SensorConfig.SENSOR_ENERGO_POWER_KOEF,
+            SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
+            SensorConfig.SENSOR_ENERGO_POWER_REACTIVE,
+            SensorConfig.SENSOR_ENERGO_POWER_FULL,
         )
-
+/*
+Оставшиеся типы датчиков:
+SENSOR_SIGNAL = -2   // Есть/нет
+SENSOR_GEO = -1           // координаты, км/ч, м или км
+SENSOR_WORK = 1           // мото * час
+SENSOR_LIQUID_FLOW_CALC,
+SENSOR_LIQUID_USING_COUNTER_STATE = 17
+ */
         private const val BATCH_SIZE = "batch_size"
     }
 
@@ -88,16 +114,16 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                 firstCycle = false
             }
 
-            val alSensorCalcInfo = getSensorCalcInfos()
-            AdvancedLogger.debug("--- Sensors count = ${alSensorCalcInfo.size}")
-            alSensorCalcInfo.firstOrNull()?.let { sensorCalcInfo ->
+            val alSensorInfo = loadSensorInfo()
+            AdvancedLogger.debug("--- Sensors count = ${alSensorInfo.size}")
+            alSensorInfo.firstOrNull()?.let { sensorCalcInfo ->
                 AdvancedLogger.debug("- First calc_time = ${DateTime_YMDHMS(zoneId, sensorCalcInfo.calcTime)}")
             }
 
-            for (sensorCalcInfo in alSensorCalcInfo) {
-                val (alValueSensor, alValueData) = getSensorCalibration(sensorCalcInfo.sensorId)
+            for (sensorInfo in alSensorInfo) {
+                val (alValueSensor, alValueData) = getSensorCalibration(sensorInfo.sensorId)
 
-                when (sensorCalcInfo.sensorType) {
+                when (sensorInfo.sensorType) {
                     SensorConfig.SENSOR_MASS_ACCUMULATED,
                     SensorConfig.SENSOR_VOLUME_ACCUMULATED,
                     SensorConfig.SENSOR_LIQUID_USING,
@@ -107,21 +133,45 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                     SensorConfig.SENSOR_ENERGO_COUNT_RR,
                     -> {
                         calcCounter(
-                            sensorCalcInfo = sensorCalcInfo,
+                            sensorInfo = sensorInfo,
+                            alValueSensor = alValueSensor,
+                            alValueData = alValueData,
+                        )
+                    }
+
+                    SensorConfig.SENSOR_LIQUID_LEVEL,
+                    SensorConfig.SENSOR_WEIGHT,
+                    SensorConfig.SENSOR_TURN,
+                    SensorConfig.SENSOR_PRESSURE,
+                    SensorConfig.SENSOR_TEMPERATURE,
+                    SensorConfig.SENSOR_VOLTAGE,
+                    SensorConfig.SENSOR_POWER,
+                    SensorConfig.SENSOR_DENSITY,
+                    SensorConfig.SENSOR_MASS_FLOW,
+                    SensorConfig.SENSOR_VOLUME_FLOW,
+                    SensorConfig.SENSOR_ENERGO_VOLTAGE,
+                    SensorConfig.SENSOR_ENERGO_CURRENT,
+                    SensorConfig.SENSOR_ENERGO_POWER_KOEF,
+                    SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
+                    SensorConfig.SENSOR_ENERGO_POWER_REACTIVE,
+                    SensorConfig.SENSOR_ENERGO_POWER_FULL,
+                    -> {
+                        calcAnalogue(
+                            sensorInfo = sensorInfo,
                             alValueSensor = alValueSensor,
                             alValueData = alValueData,
                         )
                     }
 
                     else -> {
-                        AdvancedLogger.error("Unknown sensor type = ${sensorCalcInfo.sensorType}")
+                        AdvancedLogger.error("Unknown sensor type = ${sensorInfo.sensorType}")
                     }
                 }
                 alConn[0].commit()
-                AdvancedLogger.debug("Calc finished for sensorId = ${sensorCalcInfo.sensorId} for old calc_time = ${DateTime_YMDHMS(zoneId, sensorCalcInfo.calcTime)}")
+                AdvancedLogger.debug("Calc finished for sensorId = ${sensorInfo.sensorId} for old calc_time = ${DateTime_YMDHMS(zoneId, sensorInfo.calcTime)}")
             }
 
-            if (alSensorCalcInfo.isEmpty()) {
+            if (alSensorInfo.isEmpty()) {
                 AdvancedLogger.debug("SLEEP")
                 Thread.sleep(60_000)
             }
@@ -143,7 +193,9 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
             """
                 SELECT object_id , id  
                 FROM MMS_sensor
-                WHERE raw_time = 0 AND calc_time <> 0 AND object_id <> 0 
+                WHERE raw_time = 0 
+                    AND calc_time <> 0 
+                    AND object_id <> 0 
             """
         )
         while (rs.next()) {
@@ -182,11 +234,15 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         alConn[0].commit()
     }
 
-    private fun getSensorCalcInfos(): List<SensorCalcInfo> {
-        val alSensorCalcInfo = mutableListOf<SensorCalcInfo>()
+    private fun loadSensorInfo(): List<SensorInfo> {
+        val alSensorInfo = mutableListOf<SensorInfo>()
         val rsSensors = alConn[0].executeQuery(
             """
-                SELECT id , object_id , sensor_type , port_num , calc_time , ignore_min_sensor , ignore_max_sensor , is_absolute_count, 
+                SELECT 
+                    id , object_id , sensor_type , port_num , calc_time , ignore_min_sensor , ignore_max_sensor , 
+                    is_absolute_count , 
+                    analog_min_limit , analog_max_limit , smooth_time ,
+                    analog_detect_inc , analog_detect_dec ,
                     CAST(raw_time AS BIGINT) - CAST(calc_time AS BIGINT) AS diff_time
                 FROM MMS_sensor
                 WHERE sensor_type IN ( ${alPreparedSensorTypes.joinToString(" , ")} )
@@ -196,7 +252,7 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         )
         while (rsSensors.next()) {
             var pos = 1
-            alSensorCalcInfo += SensorCalcInfo(
+            alSensorInfo += SensorInfo(
                 sensorId = rsSensors.getInt(pos++),
                 objectId = rsSensors.getInt(pos++),
                 sensorType = rsSensors.getInt(pos++),
@@ -204,14 +260,17 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                 calcTime = rsSensors.getInt(pos++),
                 minIgnore = rsSensors.getDouble(pos++),
                 maxIgnore = rsSensors.getDouble(pos++),
-                //--- SENSOR_MASS_ACCUMULATED, SENSOR_VOLUME_ACCUMULATED, SENSOR_LIQUID_USING,
-                //--- SENSOR_ENERGO_COUNT_AD, SENSOR_ENERGO_COUNT_AR, SENSOR_ENERGO_COUNT_RD, SENSOR_ENERGO_COUNT_RR,
                 isAbsoluteCount = rsSensors.getInt(pos++) != 0,
+                analogMinLimit = rsSensors.getDouble(pos++),
+                analogMaxLimit = rsSensors.getDouble(pos++),
+                smoothTime = rsSensors.getInt(pos++) * 60,
+                detectIncKoef = rsSensors.getDouble(pos++),
+                detectDecKoef = rsSensors.getDouble(pos++),
             )
         }
         rsSensors.close()
 
-        return alSensorCalcInfo
+        return alSensorInfo
     }
 
     private fun getSensorCalibration(sensorId: Int): Pair<List<Double>, List<Double>> {
@@ -234,31 +293,26 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         return alValueSensor to alValueData
     }
 
-    private fun loadAllSensorData(objectId: Int, begTime: Int): Pair<List<Int>, List<AdvancedByteBuffer>> {
-//        var maxSmoothTime = 0
-//        oc.hmSensorConfig.values.forEach { hmSC ->
-//            hmSC.values.forEach { sensorConfig ->
-//                if (sensorConfig is SensorConfigAnalogue) {
-//                    maxSmoothTime = max(maxSmoothTime, sensorConfig.smoothTime)
-//                }
-//            }
-//        }
+    private fun checkAndCreateAggTable(sensorId: Int) {
+        if (!MMSFunction.checkAggregationTableIsExists(alConn[0], sensorId)) {
+            AdvancedLogger.info("Agg-table created for sensorId = $sensorId")
+            MMSFunction.createAggTable(alConn[0], sensorId)
+        }
+    }
 
+    private fun loadAllSensorData(objectId: Int, begTime: Int): Pair<List<Int>, List<AdvancedByteBuffer>> {
         //--- collect raw data
         val alRawTime = mutableListOf<Int>()
         val alRawData = mutableListOf<AdvancedByteBuffer>()
 
         val inRs = alConn[0].executeQuery(
             """
-                SELECT ${alConn[0].getPreLimit(batchSize)} 
-                    ontime , sensor_data 
+                SELECT ontime , sensor_data 
                 FROM MMS_data_${objectId}
                 WHERE ontime > $begTime
-                ${alConn[0].getMidLimit(batchSize)}
                 ORDER BY ontime
-                ${alConn[0].getPostLimit(batchSize)}
+                LIMIT $batchSize
             """
-//                " WHERE ontime >= ${begTime - maxSmoothTime} AND ontime <= ${endTime + maxSmoothTime} " +
         )
         while (inRs.next()) {
             alRawTime.add(inRs.getInt(1))
@@ -268,18 +322,6 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
 
         AdvancedLogger.debug("Loaded data rows = ${alRawTime.size}")
         return alRawTime to alRawData
-    }
-
-    private fun storeCounterData(sensorId: Int, storeValue: Triple<Int, Double, Double>) {
-        alConn[0].executeUpdate(
-            """
-                INSERT INTO MMS_agg_${sensorId} (
-                    ontime, value_1, value_2
-                ) VALUES (
-                    ${storeValue.first} , ${storeValue.second} , ${storeValue.third}
-                )
-            """
-        )
     }
 
     private fun refreshCalcTime(sensorId: Int, calcTime: Int) {
@@ -292,39 +334,36 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         )
     }
 
-//--- COUNTER PART ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//--- COUNTER SENSORS PART
 
     private fun calcCounter(
-        sensorCalcInfo: SensorCalcInfo,
+        sensorInfo: SensorInfo,
         alValueSensor: List<Double>,
         alValueData: List<Double>,
     ) {
-        if (!MMSFunction.checkAggregationTableIsExists(alConn[0], sensorCalcInfo.sensorId)) {
-            AdvancedLogger.info("Agg-table created for sensorId = ${sensorCalcInfo.sensorId}")
-            MMSFunction.createAggTable(alConn[0], sensorCalcInfo.sensorId)
-        }
+        checkAndCreateAggTable(sensorInfo.sensorId)
 
-        val (alRawTime, alRawData) = loadAllSensorData(sensorCalcInfo.objectId, sensorCalcInfo.calcTime)
+        val (alRawTime, alRawData) = loadAllSensorData(sensorInfo.objectId, sensorInfo.calcTime)
         //--- такого быть не должно (кроме стартового запуска), но предусмотреть не мешает
         if (alRawTime.isEmpty()) {
-            AdvancedLogger.error("Empty raw data for sensorId = ${sensorCalcInfo.sensorId}")
+            AdvancedLogger.error("Empty raw data for sensorId = ${sensorInfo.sensorId}")
         }
-        var prevSumValue = getLastAggregatedCounterValue(sensorCalcInfo.sensorId)
+        var prevSumValue = getLastAggregatedCounterValue(sensorInfo.sensorId)
 
         var curTime: Int? = null
         for (pos in alRawTime.indices) {
             curTime = alRawTime[pos]
 
-            val sensorData = AbstractObjectStateCalc.getSensorData(sensorCalcInfo.portNum, alRawData[pos])?.toDouble() ?: continue
+            val sensorData = AbstractObjectStateCalc.getSensorData(sensorInfo.portNum, alRawData[pos])?.toDouble() ?: continue
 
             //--- ignore outbound values
-            if (ObjectCalc.isIgnoreSensorData(sensorCalcInfo.minIgnore, sensorCalcInfo.maxIgnore, sensorData)) {
+            if (ObjectCalc.isIgnoreSensorData(sensorInfo.minIgnore, sensorInfo.maxIgnore, sensorData)) {
                 continue
             }
 
             val sensorValue = AbstractObjectStateCalc.getSensorValue(alValueSensor, alValueData, sensorData)
 
-            val storeValue = if (sensorCalcInfo.isAbsoluteCount) {
+            val storeValue = if (sensorInfo.isAbsoluteCount) {
                 if (prevSumValue == null || sensorValue < prevSumValue) {
                     Triple(curTime, 0.0, sensorValue)
                 } else {
@@ -335,24 +374,22 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
             }
             prevSumValue = sensorValue
 
-            storeCounterData(sensorCalcInfo.sensorId, storeValue)
+            storeCounterData(sensorInfo.sensorId, storeValue)
         }
 
         curTime?.let {
-            refreshCalcTime(sensorCalcInfo.sensorId, curTime)
-            AdvancedLogger.debug("Calc finished for sensorId = ${sensorCalcInfo.sensorId} and new calc_time = ${DateTime_YMDHMS(zoneId, curTime)}")
+            refreshCalcTime(sensorInfo.sensorId, curTime)
+            AdvancedLogger.debug("Calc finished for sensorId = ${sensorInfo.sensorId} and new calc_time = ${DateTime_YMDHMS(zoneId, curTime)}")
         }
     }
 
     private fun getLastAggregatedCounterValue(sensorId: Int): Double? {
         val agRs = alConn[0].executeQuery(
             """
-                SELECT ${alConn[0].getPreLimit(batchSize)}
-                    value_2 
+                SELECT value_2 
                 FROM MMS_agg_${sensorId}
-                ${alConn[0].getMidLimit(batchSize)}
                 ORDER BY ontime DESC
-                ${alConn[0].getPostLimit(batchSize)}
+                LIMIT 1
             """
         )
         val result = if (agRs.next()) {
@@ -365,9 +402,275 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         return result
     }
 
+    private fun storeCounterData(sensorId: Int, storeValue: Triple<Int, Double, Double>) {
+        alConn[0].executeUpdate(
+            """
+                INSERT INTO MMS_agg_${sensorId} (
+                    ontime , value_1 , value_2
+                ) VALUES (
+                    ${storeValue.first} , ${storeValue.second} , ${storeValue.third}
+                )
+            """
+        )
+    }
+
+//--- ANALOGUE SENSORS PART
+
+    private fun calcAnalogue(
+        sensorInfo: SensorInfo,
+        alValueSensor: List<Double>,
+        alValueData: List<Double>,
+    ) {
+        checkAndCreateAggTable(sensorInfo.sensorId)
+
+        val (alRawTime, alRawData) = loadAllSensorData(sensorInfo.objectId, sensorInfo.calcTime)
+        //--- такого быть не должно (кроме стартового запуска), но предусмотреть не мешает
+        if (alRawTime.isEmpty()) {
+            AdvancedLogger.error("Empty raw data for sensorId = ${sensorInfo.sensorId}")
+        }
+
+        var curTime: Int? = null
+        for (pos in alRawTime.indices) {
+            curTime = alRawTime[pos]
+
+            val sensorData = AbstractObjectStateCalc.getSensorData(sensorInfo.portNum, alRawData[pos])?.toDouble() ?: continue
+
+            //--- ignore outbound values
+            if (ObjectCalc.isIgnoreSensorData(sensorInfo.minIgnore, sensorInfo.maxIgnore, sensorData)) {
+                continue
+            }
+
+            val sensorValue = AbstractObjectStateCalc.getSensorValue(alValueSensor, alValueData, sensorData)
+
+            if (sensorInfo.smoothTime == 0) {
+                //--- get previous non-averaged data
+                val (prevTime, prevValue) = getPrevData(sensorInfo, curTime, sensorValue)
+
+                val valueType = if (sensorInfo.sensorType == SensorConfig.SENSOR_LIQUID_LEVEL) {
+                    getValueTypeForLiquidLevelSensors(sensorInfo, curTime, sensorValue, prevTime, prevValue)
+                } else {
+                    getValueTypeForAnalogueSensors(sensorInfo, curTime, sensorValue, prevTime)
+                }
+
+                storeNonAveragedAnalogueData(sensorInfo, curTime, sensorValue, valueType)
+            } else {
+                storeRawAnalogueData(sensorInfo, curTime, sensorValue)
+
+                //--- may be collected many non-averaged rows early
+                while (true) {
+                    //--- search first non-averaged value
+                    val avgOntime = getFirstNonAveragedTime(sensorInfo, curTime) ?: break
+
+                    //--- collect values for median averaging
+                    val alRawValues = getRawValuesForAveraging(sensorInfo, avgOntime)
+                    alRawValues.sort()
+
+                    val avgValue = getMedianAvgValue(alRawValues)
+
+                    //--- get previous averaged data
+                    val (prevTime, prevValue) = getPrevData(sensorInfo, avgOntime, avgValue)
+
+                    val valueType = if (sensorInfo.sensorType == SensorConfig.SENSOR_LIQUID_LEVEL) {
+                        getValueTypeForLiquidLevelSensors(sensorInfo, avgOntime, avgValue, prevTime, prevValue)
+                    } else {
+                        getValueTypeForAnalogueSensors(sensorInfo, avgOntime, avgValue, prevTime)
+                    }
+
+                    storeAverageValueAndType(sensorInfo, avgOntime, avgValue, valueType)
+                }
+            }
+        }
+
+        curTime?.let {
+            refreshCalcTime(sensorInfo.sensorId, curTime)
+            AdvancedLogger.debug("Calc finished for sensorId = ${sensorInfo.sensorId} and new calc_time = ${DateTime_YMDHMS(zoneId, curTime)}")
+        }
+    }
+    /*
+        if (gldLast == null || rawTime - gldLast.x > xScale || abs(rawData - gldLast.y) > yScale || curColorIndex != gldLast.colorIndex) {
+            val gd = scg?.let {
+                AbstractObjectStateCalc.getGeoData(scg, alRawData[pos])
+            }
+            alGLD.add(GraphicLineData(rawTime, avgValue, curColorIndex, gd?.let { XyProjection.wgs_pix(gd.wgs) }))
+        }
+     */
+
+    private fun getFirstNonAveragedTime(
+        sensorInfo: SensorInfo,
+        curTime: Int,
+    ): Int? {
+        val rs = alConn[0].executeQuery(
+            """
+                SELECT ontime
+                FROM MMS_agg_${sensorInfo.sensorId}
+                WHERE ontime <= ${curTime - sensorInfo.smoothTime} 
+                AND value_2 IS NULL
+                ORDER BY ontime ASC
+                LIMIT 1
+            """
+        )
+        val nonAvgOntime = if (rs.next()) {
+            rs.getInt(1)
+        } else {
+            null
+        }
+        rs.close()
+
+        return nonAvgOntime
+    }
+
+    private fun getRawValuesForAveraging(
+        sensorInfo: SensorInfo,
+        avgOntime: Int,
+    ): MutableList<Double> {
+        val alRawValues = mutableListOf<Double>()
+
+        val rs = alConn[0].executeQuery(
+            """
+                SELECT value_1
+                FROM MMS_agg_${sensorInfo.sensorId}
+                WHERE ontime >= ${avgOntime - sensorInfo.smoothTime}
+                AND ontime <= ${avgOntime + sensorInfo.smoothTime}  
+            """
+        )
+        while (rs.next()) {
+            alRawValues += rs.getDouble(1)
+        }
+        rs.close()
+
+        return alRawValues
+    }
+
+    private fun getMedianAvgValue(alRawValues: MutableList<Double>) =
+        //--- if the number of values is odd, take exactly the middle
+        if (alRawValues.size % 2 != 0) {
+            alRawValues[alRawValues.size / 2]
+        }
+        //--- otherwise the arithmetic mean between two values closest to the middle
+        else {
+            val val1 = alRawValues[alRawValues.size / 2 - 1]
+            val val2 = alRawValues[alRawValues.size / 2]
+            val1 + (val2 - val1) / 2
+        }
+
+    private fun getPrevData(
+        sensorInfo: SensorInfo,
+        avgOntime: Int,
+        avgValue: Double,
+    ): Pair<Int, Double> {
+        val rs = alConn[0].executeQuery(
+            """
+                SELECT ontime , value_2
+                FROM MMS_agg_${sensorInfo.sensorId}
+                WHERE ontime < $avgOntime
+                ORDER BY ontime DESC
+                LIMIT 1
+            """
+        )
+        val prevData = if (rs.next()) {
+            rs.getInt(1) to rs.getDouble(2)
+        } else {
+            avgOntime to avgValue
+        }
+        rs.close()
+
+        return prevData
+    }
+
+    private fun getValueTypeForLiquidLevelSensors(
+        sensorInfo: SensorInfo,
+        avgOntime: Int,
+        avgValue: Double,
+        prevTime: Int,
+        prevValue: Double,
+    ): AnalogueValueType =
+        if (avgOntime - prevTime > ObjectCalc.MAX_WORK_TIME_INTERVAL) {
+            AnalogueValueType.NONE
+        } else if (avgOntime == prevTime) {
+            AnalogueValueType.NORMAL
+        } else {
+            val liquidKoef = (avgValue - prevValue) * 3600 / (avgOntime - prevTime)
+            if (liquidKoef > 0 && liquidKoef > sensorInfo.detectIncKoef) {
+                AnalogueValueType.ABOVE
+            } else if (liquidKoef < 0 && -liquidKoef > sensorInfo.detectDecKoef) {
+                AnalogueValueType.BELOW
+            } else {
+                AnalogueValueType.NORMAL
+            }
+        }
+
+    private fun getValueTypeForAnalogueSensors(
+        sensorInfo: SensorInfo,
+        avgOntime: Int,
+        avgValue: Double,
+        prevTime: Int,
+    ) =
+        if (avgOntime - prevTime > ObjectCalc.MAX_WORK_TIME_INTERVAL) {
+            AnalogueValueType.NONE
+        } else if (sensorInfo.analogMinLimit != sensorInfo.analogMaxLimit) {
+            if (avgValue < sensorInfo.analogMinLimit) {
+                AnalogueValueType.BELOW
+            } else if (avgValue > sensorInfo.analogMaxLimit) {
+                AnalogueValueType.ABOVE
+            } else {
+                AnalogueValueType.NORMAL
+            }
+        } else {
+            AnalogueValueType.NORMAL
+        }
+
+    private fun storeNonAveragedAnalogueData(
+        sensorInfo: SensorInfo,
+        ontime: Int,
+        value: Double,
+        valueType: AnalogueValueType,
+    ) {
+        alConn[0].executeUpdate(
+            """
+                INSERT INTO MMS_agg_${sensorInfo.sensorId} (
+                    ontime , value_1 , value_2 , type_1 
+                ) VALUES (
+                    $ontime , $value , $value , ${valueType.value}
+                )
+            """
+        )
+    }
+
+    private fun storeRawAnalogueData(
+        sensorInfo: SensorInfo,
+        ontime: Int,
+        value: Double
+    ) {
+        alConn[0].executeUpdate(
+            """
+                INSERT INTO MMS_agg_${sensorInfo.sensorId} (
+                    ontime , value_1
+                ) VALUES (
+                    $ontime , $value
+                )
+            """
+        )
+    }
+
+    private fun storeAverageValueAndType(
+        sensorInfo: SensorInfo,
+        avgOntime: Int,
+        avgValue: Double,
+        valueType: AnalogueValueType,
+    ) {
+        alConn[0].executeUpdate(
+            """
+                UPDATE MMS_agg_${sensorInfo.sensorId}
+                SET value_2 = $avgValue ,
+                    type_1 = ${valueType.value} 
+                WHERE ontime = $avgOntime
+            """
+        )
+    }
+
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    private class SensorCalcInfo(
+    class SensorInfo(
         val sensorId: Int,
         val objectId: Int,
         val sensorType: Int,
@@ -375,8 +678,26 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         val calcTime: Int,
         val minIgnore: Double,
         val maxIgnore: Double,
-        //--- SENSOR_MASS_ACCUMULATED, SENSOR_VOLUME_ACCUMULATED, SENSOR_LIQUID_USING
+
+        // SensorConfig.SENSOR_MASS_ACCUMULATED, SensorConfig.SENSOR_VOLUME_ACCUMULATED, SensorConfig.SENSOR_LIQUID_USING,
+        // SensorConfig.SENSOR_ENERGO_COUNT_AD, SensorConfig.SENSOR_ENERGO_COUNT_AR,
+        // SensorConfig.SENSOR_ENERGO_COUNT_RD, SensorConfig.SENSOR_ENERGO_COUNT_RR,
         val isAbsoluteCount: Boolean,
+
+        //SensorConfig.SENSOR_LIQUID_LEVEL, SensorConfig.SENSOR_WEIGHT,
+        //SensorConfig.SENSOR_TURN, SensorConfig.SENSOR_PRESSURE,
+        //SensorConfig.SENSOR_TEMPERATURE, SensorConfig.SENSOR_VOLTAGE,
+        //SensorConfig.SENSOR_POWER, SensorConfig.SENSOR_DENSITY,
+        //SensorConfig.SENSOR_MASS_FLOW, SensorConfig.SENSOR_VOLUME_FLOW
+        //SensorConfig.SENSOR_ENERGO_VOLTAGE, SensorConfig.SENSOR_ENERGO_CURRENT,
+        //SensorConfig.SENSOR_ENERGO_POWER_KOEF, SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
+        //SensorConfig.SENSOR_ENERGO_POWER_REACTIVE, SensorConfig.SENSOR_ENERGO_POWER_FULL
+        val analogMinLimit: Double, // except SensorConfig.SENSOR_LIQUID_LEVEL
+        val analogMaxLimit: Double, // except SensorConfig.SENSOR_LIQUID_LEVEL
+        val smoothTime: Int,
+        //SensorConfig.SENSOR_LIQUID_LEVEL
+        val detectIncKoef: Double,
+        val detectDecKoef: Double,
     )
 }
 

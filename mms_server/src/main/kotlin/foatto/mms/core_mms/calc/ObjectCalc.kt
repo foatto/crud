@@ -1,8 +1,6 @@
 package foatto.mms.core_mms.calc
 
-import foatto.core.app.graphic.GraphicColorIndex
-import foatto.core.app.graphic.GraphicDataContainer
-import foatto.core.app.graphic.GraphicLineData
+import foatto.core.app.graphic.*
 import foatto.core.app.xy.XyProjection
 import foatto.core.app.xy.geom.XyPoint
 import foatto.core.util.getSplittedDouble
@@ -146,6 +144,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 val sca = sc as SensorConfigAnalogue
                 val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2, false)
                 getSmoothAnalogGraphicData(
+                    conn = conn,
                     alRawTime = alRawTime,
                     alRawData = alRawData,
                     scg = oc.scg,
@@ -167,6 +166,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 val sca = sc as SensorConfigAnalogue
                 val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2, false)
                 getSmoothAnalogGraphicData(
+                    conn = conn,
                     alRawTime = alRawTime,
                     alRawData = alRawData,
                     scg = oc.scg,
@@ -219,9 +219,12 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             //--- and so that the final levels of one period and the initial levels of the next one coincide -
             //--- take ranges with a margin for smoothing
             val sql =
-                " SELECT ontime , sensor_data FROM MMS_data_${oc.objectId} " +
-                    " WHERE ontime >= ${begTime - maxSmoothTime} AND ontime <= ${endTime + maxSmoothTime} " +
-                    " ORDER BY ontime "
+                """
+                    SELECT ontime , sensor_data 
+                    FROM MMS_data_${oc.objectId} 
+                    WHERE ontime >= ${begTime - maxSmoothTime} AND ontime <= ${endTime + maxSmoothTime} 
+                    ORDER BY ontime
+                """
 
             val inRs = conn.executeQuery(sql)
             while (inRs.next()) {
@@ -579,11 +582,11 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
         }
 
         fun calcLiquidLevelSensor(
-            alRawTime: List<Int>,
-            alRawData: List<AdvancedByteBuffer>,
             conn: CoreAdvancedConnection,
             oc: ObjectConfig,
             sca: SensorConfigLiquidLevel,
+            alRawTime: List<Int>,
+            alRawData: List<AdvancedByteBuffer>,
             begTime: Int,
             endTime: Int,
             axisIndex: Int,
@@ -591,7 +594,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
 
             val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2, false)
             val alLSPD = mutableListOf<LiquidStatePeriodData>()
-            getSmoothLiquidGraphicData(alRawTime, alRawData, oc.scg, sca, begTime, endTime, axisIndex, aLine, alLSPD)
+            getSmoothLiquidGraphicData(conn, alRawTime, alRawData, oc.scg, sca, begTime, endTime, axisIndex, aLine, alLSPD)
 
             val llcd = LiquidLevelCalcData(sca.containerType, aLine, alLSPD)
             calcLiquidUsingByLevel(sca, llcd, conn, oc, begTime, endTime, axisIndex)
@@ -615,7 +618,9 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                     //--- and if we do not enter the interval (s) of the zone, then we go to the next zone
                     //if(  ! checkZoneInTime(  zd, pointTime  )  ) continue; - пока не применяется
                     //--- check the geometric entry into the zone
-                    if (!zd.zoneData!!.polygon!!.isContains(prjPoint)) continue
+                    if (!zd.zoneData!!.polygon!!.isContains(prjPoint)) {
+                        continue
+                    }
                     //--- check for excess
                     maxOverSpeed = max(maxOverSpeed, speed - zd.maxSpeed)
                 }
@@ -625,6 +630,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
 
         //--- smoothing analog value graph
         fun getSmoothAnalogGraphicData(
+            conn: CoreAdvancedConnection,
             alRawTime: List<Int>,
             alRawData: List<AdvancedByteBuffer>,
             scg: SensorConfigGeo?,
@@ -639,92 +645,143 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             aLine: GraphicDataContainer,
             graphicHandler: iGraphicHandler
         ) {
-            //--- immediately add / set static (permanent) constraints if required / supported
-            if (graphicHandler.isStaticMinLimit(sca)) {
-                graphicHandler.setStaticMinLimit(sca, begTime, endTime, aMinLimit)
-            }
-            if (graphicHandler.isStaticMaxLimit(sca)) {
-                graphicHandler.setStaticMaxLimit(sca, begTime, endTime, aMaxLimit)
-            }
-
-            //--- for smoothing, you may need data before and after the time of the current point,
-            //--- therefore, we overload / translate data in advance
-            val alSensorData = mutableListOf<Double?>()
-            for (bb in alRawData) {
-                alSensorData.add(graphicHandler.getRawData(sca, bb))
-            }
-
             val alGLD = aLine.alGLD.toMutableList()
 
-            //--- raw data processing -----------------------------------------------------------------------------------------
+            if (sca.isUseAggregator &&
+                MMSFunction.checkAggregationTableIsExists(conn, sca.id) &&
+                (endTime <= sca.calcTime || (sca.rawTime - sca.calcTime) <= MAX_AGGREGATOR_TIME_DIFF)
+            ) {
+                val rs = conn.executeQuery(
+                    """
+                        SELECT ontime, value_2 , type_1 
+                        FROM MMS_agg_${sca.id}
+                        WHERE ontime BETWEEN $begTime AND $endTime
+                        ORDER BY ontime
+                    """
+                )
+                while (rs.next()) {
+                    val time = rs.getInt(1)
+                    val value = rs.getDouble(2)
+                    val type = rs.getInt(3)
 
-            for (pos in alRawTime.indices) {
-                val rawTime = alRawTime[pos]
-                //--- immediately skip outrageous points loaded for seamless smoothing between adjacent ranges
-                if (rawTime < begTime) {
-                    continue
-                }
-                if (rawTime > endTime) {
-                    break
-                }
-
-                //--- insert the first and last pseudo-points for seamless connection between periods
-
-                //--- sensor value mb. == null, for example, ignored below / above the specified value boundaries (noise filtering)
-                val rawData = alSensorData[pos] ?: continue
-
-                //--- if lines are shown
-                aLine.let {
-                    //--- finding the left border of the smoothing range
-                    var pos1 = pos - 1
-                    while (pos1 >= 0) {
-                        if (rawTime - alRawTime[pos1] > sca.smoothTime) {
-                            break
+                    val curColorIndex = when (type) {
+                        AnalogueValueType.NONE.value -> {
+                            graphicLineNoneColorIndexes[axisIndex]
                         }
-                        pos1--
-                    }
-                    //--- finding the right border of the smoothing range
-                    var pos2 = pos + 1
-                    while (pos2 < alRawTime.size) {
-                        if (alRawTime[pos2] - rawTime > sca.smoothTime) {
-                            break
+
+                        AnalogueValueType.NORMAL.value -> {
+                            graphicLineNormalColorIndexes[axisIndex]
                         }
-                        pos2++
-                    }
 
-                    //--- smoothing
-                    val avgValue: Double
-                    val alSubList = mutableListOf<Double>()
+                        AnalogueValueType.BELOW.value -> {
+                            graphicLineBelowColorIndexes[axisIndex]
+                        }
 
-                    for (p in pos1 + 1 until pos2) {
-                        val v = alSensorData[p] ?: continue
-                        alSubList.add(v)
-                    }
-                    alSubList.sort()
-                    //--- if the number of values is odd, take exactly the middle
-                    avgValue = if (alSubList.size % 2 != 0) {
-                        alSubList[alSubList.size / 2]
-                    }
-                    //--- otherwise the arithmetic mean between two values closest to the middle
-                    else {
-                        val val1 = alSubList[alSubList.size / 2 - 1]
-                        val val2 = alSubList[alSubList.size / 2]
-                        val1 + (val2 - val1) / 2
+                        AnalogueValueType.ABOVE.value -> {
+                            graphicLineAboveColorIndexes[axisIndex]
+                        }
+
+                        else -> {
+                            graphicLineNoneColorIndexes[axisIndex]
+                        }
                     }
 
                     val gldLast = alGLD.lastOrNull()
+                    if (gldLast == null || time - gldLast.x > xScale || abs(time - gldLast.y) > yScale || curColorIndex != gldLast.colorIndex) {
+//!!! add GEO info ?
+//                        val gd = scg?.let {
+//                            AbstractObjectStateCalc.getGeoData(scg, alRawData[pos])
+//                        }
+                        alGLD.add(GraphicLineData(time, value, curColorIndex, null /*gd?.let { XyProjection.wgs_pix(gd.wgs) }*/))
+                    }
+                }
+                rs.close()
+            } else {
+                //--- immediately add / set static (permanent) constraints if required / supported
+                if (graphicHandler.isStaticMinLimit(sca)) {
+                    graphicHandler.setStaticMinLimit(sca, begTime, endTime, aMinLimit)
+                }
+                if (graphicHandler.isStaticMaxLimit(sca)) {
+                    graphicHandler.setStaticMaxLimit(sca, begTime, endTime, aMaxLimit)
+                }
 
-                    //--- if boundary values are set, we look at the averaged avgValue,
-                    //--- so the typical getDynamicXXX from the beginning of the cycle does not suit us
-                    val prevTime = (gldLast?.x ?: rawTime)
-                    val prevData = gldLast?.y ?: avgValue
-                    val curColorIndex = graphicHandler.getLineColorIndex(axisIndex, sca, rawTime, avgValue, prevTime, prevData)
+                //--- for smoothing, you may need data before and after the time of the current point,
+                //--- therefore, we overload / translate data in advance
+                val alSensorData = mutableListOf<Double?>()
+                for (bb in alRawData) {
+                    alSensorData.add(graphicHandler.getRawData(sca, bb))
+                }
 
-                    if (gldLast == null || rawTime - gldLast.x > xScale || abs(rawData - gldLast.y) > yScale || curColorIndex != gldLast.colorIndex) {
-                        val gd = scg?.let {
-                            AbstractObjectStateCalc.getGeoData(scg, alRawData[pos])
+                //--- raw data processing -----------------------------------------------------------------------------------------
+
+                for (pos in alRawTime.indices) {
+                    val rawTime = alRawTime[pos]
+                    //--- immediately skip outrageous points loaded for seamless smoothing between adjacent ranges
+                    if (rawTime < begTime) {
+                        continue
+                    }
+                    if (rawTime > endTime) {
+                        break
+                    }
+
+                    //--- insert the first and last pseudo-points for seamless connection between periods
+
+                    //--- sensor value mb. == null, for example, ignored below / above the specified value boundaries (noise filtering)
+                    val rawData = alSensorData[pos] ?: continue
+
+                    //--- if lines are shown
+                    aLine.let {
+                        //--- finding the left border of the smoothing range
+                        var pos1 = pos - 1
+                        while (pos1 >= 0) {
+                            if (rawTime - alRawTime[pos1] > sca.smoothTime) {
+                                break
+                            }
+                            pos1--
                         }
-                        alGLD.add(GraphicLineData(rawTime, avgValue, curColorIndex, gd?.let { XyProjection.wgs_pix(gd.wgs) }))
+                        //--- finding the right border of the smoothing range
+                        var pos2 = pos + 1
+                        while (pos2 < alRawTime.size) {
+                            if (alRawTime[pos2] - rawTime > sca.smoothTime) {
+                                break
+                            }
+                            pos2++
+                        }
+
+                        //--- smoothing
+                        val avgValue: Double
+                        val alSubList = mutableListOf<Double>()
+
+                        for (p in pos1 + 1 until pos2) {
+                            val v = alSensorData[p] ?: continue
+                            alSubList.add(v)
+                        }
+                        alSubList.sort()
+                        //--- if the number of values is odd, take exactly the middle
+                        avgValue = if (alSubList.size % 2 != 0) {
+                            alSubList[alSubList.size / 2]
+                        }
+                        //--- otherwise the arithmetic mean between two values closest to the middle
+                        else {
+                            val val1 = alSubList[alSubList.size / 2 - 1]
+                            val val2 = alSubList[alSubList.size / 2]
+                            val1 + (val2 - val1) / 2
+                        }
+
+                        val gldLast = alGLD.lastOrNull()
+
+                        //--- if boundary values are set, we look at the averaged avgValue,
+                        //--- so the typical getDynamicXXX from the beginning of the cycle does not suit us
+                        val prevTime = (gldLast?.x ?: rawTime)
+                        val prevData = gldLast?.y ?: avgValue
+                        val curColorIndex = graphicHandler.getLineColorIndex(axisIndex, sca, rawTime, avgValue, prevTime, prevData)
+
+                        if (gldLast == null || rawTime - gldLast.x > xScale || abs(rawData - gldLast.y) > yScale || curColorIndex != gldLast.colorIndex) {
+                            val gd = scg?.let {
+                                AbstractObjectStateCalc.getGeoData(scg, alRawData[pos])
+                            }
+                            alGLD.add(GraphicLineData(rawTime, avgValue, curColorIndex, gd?.let { XyProjection.wgs_pix(gd.wgs) }))
+                        }
                     }
                 }
             }
@@ -978,7 +1035,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
 
             val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2, false)
             val alLSPD = mutableListOf<LiquidStatePeriodData>()
-            getSmoothLiquidGraphicData(alRawTime, alRawData, oc.scg, sca, begTime, endTime, axisIndex, aLine, alLSPD)
+            getSmoothLiquidGraphicData(conn, alRawTime, alRawData, oc.scg, sca, begTime, endTime, axisIndex, aLine, alLSPD)
 
             val llcd = LiquidLevelCalcData(sca.containerType, aLine, alLSPD)
             calcLiquidUsingByLevel(sca, llcd, conn, oc, begTime, endTime, axisIndex)
@@ -1170,7 +1227,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             axisIndex: Int,
             result: ObjectCalc
         ) {
-            val llcd = calcLiquidLevelSensor(alRawTime, alRawData, conn, oc, scll, begTime, endTime, axisIndex)
+            val llcd = calcLiquidLevelSensor(conn, oc, scll, alRawTime, alRawData, begTime, endTime, axisIndex)
 
             result.tmLiquidLevel[scll.descr] = llcd
 
@@ -1455,6 +1512,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
 
         //--- smoothing the graph of the analog value of the liquid / fuel level (abbreviated call for generating reports)
         private fun getSmoothLiquidGraphicData(
+            conn: CoreAdvancedConnection,
             alRawTime: List<Int>,
             alRawData: List<AdvancedByteBuffer>,
             scg: SensorConfigGeo?,
@@ -1467,6 +1525,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
         ) {
             val gh = LiquidGraphicHandler()
             getSmoothAnalogGraphicData(
+                conn = conn,
                 alRawTime = alRawTime,
                 alRawData = alRawData,
                 scg = scg,
@@ -1517,7 +1576,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                             llcd.incTotal += endGDL.y - begGDL.y
                             if (sca.isUsingCalc) {
                                 //--- looking for the previous normal period
-                                val avgUsing = getPrevNormalPeriodAverageUsing(llcd, i, conn, oc, sca, begTime, endTime, axisIndex)
+                                val avgUsing = getPrevNormalPeriodAverageUsing(conn, oc, sca, llcd, begTime, endTime, i, axisIndex)
                                 val calcUsing = avgUsing * (endGDL.x - begGDL.x)
                                 llcd.usingCalc += calcUsing
                                 llcd.usingTotal += calcUsing
@@ -1528,7 +1587,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                             llcd.decTotal += begGDL.y - endGDL.y
                             if (sca.isUsingCalc) {
                                 //--- looking for the previous normal period
-                                val avgUsing = getPrevNormalPeriodAverageUsing(llcd, i, conn, oc, sca, begTime, endTime, axisIndex)
+                                val avgUsing = getPrevNormalPeriodAverageUsing(conn, oc, sca, llcd, begTime, endTime, i, axisIndex)
                                 val calcUsing = avgUsing * (endGDL.x - begGDL.x)
                                 llcd.usingCalc += calcUsing
                                 llcd.usingTotal += calcUsing
@@ -1543,13 +1602,13 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
 
         //--- looking for the previous normal period to calculate the average consumption during refueling / draining
         private fun getPrevNormalPeriodAverageUsing(
-            llcd: LiquidLevelCalcData,
-            curPos: Int,
             conn: CoreAdvancedConnection,
             oc: ObjectConfig,
             sca: SensorConfigLiquidLevel,
+            llcd: LiquidLevelCalcData,
             begTime: Int,
             endTime: Int,
+            curPos: Int,
             axisIndex: Int,
         ): Double {
 
@@ -1579,7 +1638,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
 
                 val aLineExt = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2, false)
                 val alLSPDExt = mutableListOf<LiquidStatePeriodData>()
-                getSmoothLiquidGraphicData(alRawTimeExt, alRawDataExt, oc.scg, sca, begTime - MAX_CALC_PREV_NORMAL_PERIOD * 2, endTime, axisIndex, aLineExt, alLSPDExt)
+                getSmoothLiquidGraphicData(conn, alRawTimeExt, alRawDataExt, oc.scg, sca, begTime - MAX_CALC_PREV_NORMAL_PERIOD * 2, endTime, axisIndex, aLineExt, alLSPDExt)
 
                 //--- the current period in the current range
                 val lspdCur = alLSPD!![curPos]

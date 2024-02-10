@@ -203,6 +203,7 @@ class cOverSensor : cMMSReport() {
 
                 val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1, false)
                 ObjectCalc.getSmoothAnalogGraphicData(
+                    conn = conn,
                     alRawTime = alRawTime,
                     alRawData = alRawData,
                     scg = objectConfig.scg!!,
