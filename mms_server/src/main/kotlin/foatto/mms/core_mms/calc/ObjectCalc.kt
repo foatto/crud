@@ -687,7 +687,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                     }
 
                     val gldLast = alGLD.lastOrNull()
-                    if (gldLast == null || time - gldLast.x > xScale || abs(time - gldLast.y) > yScale || curColorIndex != gldLast.colorIndex) {
+                    if (gldLast == null || time - gldLast.x > xScale || abs(value - gldLast.y) > yScale || curColorIndex != gldLast.colorIndex) {
 //!!! add GEO info ?
 //                        val gd = scg?.let {
 //                            AbstractObjectStateCalc.getGeoData(scg, alRawData[pos])

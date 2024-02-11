@@ -256,6 +256,11 @@ object MMSFunction {
             """.trimMargin()
         )
         conn.executeUpdate(conn.dialect.createClusteredIndex + " MMS_agg_${sensorId}_ontime ON MMS_agg_$sensorId ( ontime ) ")
+        conn.executeUpdate(conn.dialect.createClusteredIndex + " MMS_agg_${sensorId}_value_2 ON MMS_agg_$sensorId ( value_2 ) ")
+    }
+
+    fun deleteAggTable(conn: CoreAdvancedConnection, id: Int) {
+        conn.executeUpdate(" DROP TABLE MMS_agg_$id ")
     }
 
 }

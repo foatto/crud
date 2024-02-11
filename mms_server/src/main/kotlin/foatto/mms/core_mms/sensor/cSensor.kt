@@ -64,7 +64,7 @@ class cSensor : cMMSOneObjectParent() {
                 conn.executeUpdate(
                     """ 
                         UPDATE MMS_sensor 
-                        SET calc_time = ( SELECT MAX(ontime) FROM MMS_agg_$id ) 
+                        SET calc_time = ( SELECT COALESCE(MAX(ontime), -2147483648) FROM MMS_agg_$id ) 
                         WHERE id = $id 
                     """
                 )
@@ -78,7 +78,7 @@ class cSensor : cMMSOneObjectParent() {
         super.postDelete(id, hmColumnData)
 
         if (MMSFunction.checkAggregationTableIsExists(conn, id)) {
-            deleteAggTable(id)
+            MMSFunction.deleteAggTable(conn, id)
         }
     }
 
@@ -103,9 +103,5 @@ class cSensor : cMMSOneObjectParent() {
                 }
             }
         }
-    }
-
-    private fun deleteAggTable(id: Int) {
-        conn.executeUpdate(" DROP TABLE MMS_agg_$id ")
     }
 }

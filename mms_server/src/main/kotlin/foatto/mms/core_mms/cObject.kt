@@ -2,13 +2,13 @@ package foatto.mms.core_mms
 
 import foatto.core.link.TableCell
 import foatto.core.link.TableCellForeColorType
-import foatto.util.getCurrentTimeInt
 import foatto.core_server.app.server.cStandart
 import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.data.DataAbstractIntValue
 import foatto.core_server.app.server.data.DataBoolean
 import foatto.core_server.app.server.data.DataInt
 import foatto.core_server.app.server.data.iData
+import foatto.util.getCurrentTimeInt
 
 class cObject : cStandart() {
 
@@ -85,7 +85,21 @@ class cObject : cStandart() {
 
     override fun postDelete(id: Int, hmColumnData: Map<iColumn, iData>) {
         super.postDelete(id, hmColumnData)
+
         deleteDataTable(id)
+
+        val sensorIds = mutableListOf<Int>()
+        val rs = conn.executeQuery(" SELECT id FROM MMS_sensor WHERE object_id = $id ")
+        while (rs.next()) {
+            sensorIds += rs.getInt(1)
+        }
+        rs.close()
+
+        for (sensorId in sensorIds) {
+            if (MMSFunction.checkAggregationTableIsExists(conn, sensorId)) {
+                MMSFunction.deleteAggTable(conn, sensorId)
+            }
+        }
 
         conn.executeUpdate(" DELETE FROM MMS_work_shift_data WHERE shift_id IN ( SELECT id FROM MMS_work_shift WHERE object_id = $id ) ")
         conn.executeUpdate(" DELETE FROM MMS_work_shift WHERE object_id = $id ")
