@@ -6,7 +6,7 @@ import foatto.sql.DBConfig
 import foatto.ts.core_ts.calc.ObjectState
 import foatto.ts.core_ts.sensor.config.SensorConfig
 import foatto.ts.core_ts.sensor.config.SensorConfigState
-import foatto.util.DateTime_DMYHMS
+import foatto.util.getDateTimeArray
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
@@ -70,8 +70,8 @@ class AlerterService(
     @Value("\${smtp_option_values}")
     private val smtpOptionValues: Array<String> = emptyArray()
 
-    @Value("\${admin_emails}")
-    private val adminEmails: Array<String> = emptyArray()
+    @Value("\${admins_folder_id}")
+    private val adminsFolderId: String = ""
 
     @Scheduled(
         initialDelay = 5_000,
@@ -80,6 +80,22 @@ class AlerterService(
     fun alerter() {
         val dbConfig = DBConfig(dbName, dataSourceURL, dataSourceUser, dataSourcePassword, dbReplicationName, dbReplicationFilter, dbReplicationPath)
         val conn = AdvancedConnection(dbConfig)
+
+        val adminEmails = mutableListOf<String>()
+        val rs = conn.executeQuery(
+            """
+                SELECT e_mail
+                FROM SYSTEM_users
+                WHERE parent_id = $adminsFolderId
+                AND is_disabled = 0 
+            """
+        )
+        while (rs.next()) {
+            val email = rs.getString(1)
+            val emails = getEmailsFromString(email)
+            adminEmails.addAll(emails)
+        }
+        rs.close()
 
         val hmUserEmail = mutableMapOf<Int, Set<String>>()
 
@@ -117,22 +133,23 @@ class AlerterService(
             )
             val stateSensorId = objectConfig.hmSensorConfig[SensorConfig.SENSOR_STATE]?.values?.firstOrNull()?.id ?: continue
 
-            var rs = conn.executeQuery(
-                """
-                    SELECT serial_no 
-                    FROM TS_device 
-                    WHERE object_id = ${objectEntity.id}
-                    AND device_index = 0
-                """
-            )
-            val deviceSerialNo = if (rs.next()) {
-                rs.getString(1)
-            } else {
-                ""
-            }
-            rs.close()
+//--- вроде как не надо, номер контроллера уже есть в наименовании объекта
+//            var rs = conn.executeQuery(
+//                """
+//                    SELECT serial_no
+//                    FROM TS_device
+//                    WHERE object_id = ${objectEntity.id}
+//                    AND device_index = 0
+//                """
+//            )
+//            val deviceSerialNo = if (rs.next()) {
+//                rs.getString(1)
+//            } else {
+//                ""
+//            }
+//            rs.close()
 
-            rs = conn.executeQuery(
+            var rs = conn.executeQuery(
                 """
                     SELECT last_state FROM TS_sensor WHERE id = $stateSensorId 
                 """
@@ -151,7 +168,27 @@ class AlerterService(
 
             if (curStateValue != lastState) {
                 if (curStateValue in hsErrorStatusCodes) {
-                    val fullObjectName = "УДС-Техно $deviceSerialNo : ${objectEntity.name} [${hmFullNames[objectEntity.userId]}]"
+                    val dt = getDateTimeArray(userConfig.upZoneId, curStateTime)
+                    val monthName = when (dt[1]) {
+                        1 -> "января"
+                        2 -> "февраля"
+                        3 -> "марта"
+                        4 -> "апреля"
+                        5 -> "мая"
+                        6 -> "июня"
+                        7 -> "июля"
+                        8 -> "августа"
+                        9 -> "сентября"
+                        10 -> "октября"
+                        11 -> "ноября"
+                        12 -> "декабря"
+                        else -> "${dt[1]}"
+                    }
+                    val hourStr = "${if (dt[3] < 10) "0" else ""}${dt[3]}"
+                    val minuteStr = "${if (dt[4] < 10) "0" else ""}${dt[4]}"
+                    val dtStr = "${dt[2]} $monthName ${dt[0]} $hourStr:$minuteStr"
+//                    val fullObjectName = "$deviceSerialNo : ${objectEntity.name} [${hmFullNames[objectEntity.userId]}]"
+                    val fullObjectName = "${objectEntity.name} [${hmFullNames[objectEntity.userId]}]"
                     val statusDescr = SensorConfigState.hmStateInfo[curStateValue]?.descr
                     for (objectEmail in objectEmails) {
                         sendErrorStatus(
@@ -159,23 +196,25 @@ class AlerterService(
                             subj = "$fullObjectName - $statusDescr",
                             body =
                             """
-                            Добрый день!
-                            ${DateTime_DMYHMS(userConfig.upZoneId, curStateTime)} (по вашему местному времени)
-                            на установке депарафинизации $fullObjectName,
-                            возникла проблема, требующая внимания - $statusDescr (глубина: $curDepth м).
-                            Рекомендуем отправить операторов для осмотра скважины на месте.
-                            ---
-                            Техническая поддержка: 
-                            +7-927-034-00-70, (8552) 78-20-60
-                            support@tehsmart.online                              
-                            
-                        """.trimIndent(),
+                                Добрый день!<br>
+                                <br>
+                                <b>$dtStr</b> (по вашему местному времени)<br>
+                                на установке депарафинизации УДС-Техно 110:<br>
+                                <b>$fullObjectName</b>,<br>
+                                возникла проблема, требующая внимания - <b>$statusDescr (глубина: $curDepth м)</b>.<br>
+                                <br>
+                                Рекомендуем отправить операторов для осмотра скважины на месте.<br>
+                                ---<br>
+                                Техническая поддержка:<br> 
+                                +7-927-034-00-70, (8552) 78-20-60<br>
+                                support@tehsmart.online<br>                              
+                            """.trimIndent(),
                         )
                     }
                 }
                 conn.executeUpdate(
                     """
-                        UPDATE TS_sensor SET last_state = $curStateValue WHERE id = $stateSensorId   
+                        UPDATE TS_sensor SET last_state = $curStateValue WHERE id = $stateSensorId
                     """
                 )
                 conn.commit()
@@ -211,7 +250,7 @@ class AlerterService(
         msg.setFrom(InternetAddress(smtpLogin))
         msg.setRecipient(Message.RecipientType.TO, InternetAddress(email))
         msg.subject = subj
-        msg.setText(body)
+        msg.setContent(body, "text/html; charset=utf-8")
         msg.saveChanges()
 
         transport.sendMessage(msg, arrayOf(InternetAddress(email)))
