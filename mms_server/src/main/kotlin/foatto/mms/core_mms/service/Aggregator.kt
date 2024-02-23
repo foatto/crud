@@ -10,9 +10,11 @@ import foatto.sql.AdvancedConnection
 import foatto.util.AdvancedByteBuffer
 import foatto.util.AdvancedLogger
 import foatto.util.DateTime_YMDHMS
+import foatto.util.getCurrentTimeInt
 import java.io.IOException
 import java.nio.ByteOrder
 import java.time.ZoneId
+import java.util.*
 import kotlin.system.exitProcess
 
 class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
@@ -39,15 +41,15 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
 
         private val alPreparedSensorTypes = listOf(
             //--- counter sensors
-            SensorConfig.SENSOR_MASS_ACCUMULATED,
-            SensorConfig.SENSOR_VOLUME_ACCUMULATED,
-            SensorConfig.SENSOR_LIQUID_USING,
-            SensorConfig.SENSOR_ENERGO_COUNT_AD,
-            SensorConfig.SENSOR_ENERGO_COUNT_AR,
-            SensorConfig.SENSOR_ENERGO_COUNT_RD,
-            SensorConfig.SENSOR_ENERGO_COUNT_RR,
+//            SensorConfig.SENSOR_MASS_ACCUMULATED,
+//            SensorConfig.SENSOR_VOLUME_ACCUMULATED,
+//            SensorConfig.SENSOR_LIQUID_USING,
+//            SensorConfig.SENSOR_ENERGO_COUNT_AD,
+//            SensorConfig.SENSOR_ENERGO_COUNT_AR,
+//            SensorConfig.SENSOR_ENERGO_COUNT_RD,
+//            SensorConfig.SENSOR_ENERGO_COUNT_RR,
             //--- analogue sensors
-            SensorConfig.SENSOR_LIQUID_LEVEL,
+//            SensorConfig.SENSOR_LIQUID_LEVEL,
             SensorConfig.SENSOR_WEIGHT,
             SensorConfig.SENSOR_TURN,
             SensorConfig.SENSOR_PRESSURE,
@@ -64,14 +66,15 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
             SensorConfig.SENSOR_ENERGO_POWER_REACTIVE,
             SensorConfig.SENSOR_ENERGO_POWER_FULL,
         )
-/*
-Оставшиеся типы датчиков:
-SENSOR_SIGNAL = -2   // Есть/нет
-SENSOR_GEO = -1           // координаты, км/ч, м или км
-SENSOR_WORK = 1           // мото * час
-SENSOR_LIQUID_FLOW_CALC,
-SENSOR_LIQUID_USING_COUNTER_STATE = 17
- */
+
+        /*
+        Оставшиеся типы датчиков:
+        SENSOR_SIGNAL = -2   // Есть/нет
+        SENSOR_GEO = -1           // координаты, км/ч, м или км
+        SENSOR_WORK = 1           // мото * час
+        SENSOR_LIQUID_FLOW_CALC,
+        SENSOR_LIQUID_USING_COUNTER_STATE = 17
+         */
         private const val BATCH_SIZE = "batch_size"
     }
 
@@ -115,12 +118,16 @@ SENSOR_LIQUID_USING_COUNTER_STATE = 17
             }
 
             val alSensorInfo = loadSensorInfo()
-            AdvancedLogger.debug("--- Sensors count = ${alSensorInfo.size}")
+            AdvancedLogger.debug("--- Sensors count = ${alSensorInfo.size} ---")
             alSensorInfo.firstOrNull()?.let { sensorCalcInfo ->
                 AdvancedLogger.debug("- First calc_time = ${DateTime_YMDHMS(zoneId, sensorCalcInfo.calcTime)}")
             }
 
+            val tmTypeTime = TreeMap<Int, Int>()
+
             for (sensorInfo in alSensorInfo) {
+                val sensorBegTime = getCurrentTimeInt()
+
                 val (alValueSensor, alValueData) = getSensorCalibration(sensorInfo.sensorId)
 
                 when (sensorInfo.sensorType) {
@@ -168,11 +175,19 @@ SENSOR_LIQUID_USING_COUNTER_STATE = 17
                     }
                 }
                 alConn[0].commit()
-                AdvancedLogger.debug("Calc finished for sensorId = ${sensorInfo.sensorId} for old calc_time = ${DateTime_YMDHMS(zoneId, sensorInfo.calcTime)}")
+                AdvancedLogger.debug("Calc finished: old calc_time = ${DateTime_YMDHMS(zoneId, sensorInfo.calcTime)}")
+
+                val timeCount = tmTypeTime.getOrPut(sensorInfo.sensorType) { 0 }
+                tmTypeTime[sensorInfo.sensorType] = timeCount + (getCurrentTimeInt() - sensorBegTime)
+            }
+
+            AdvancedLogger.debug("--- sensor types statistics ---")
+            tmTypeTime.forEach { (sensorType, time) ->
+                AdvancedLogger.debug("$sensorType = $time")
             }
 
             if (alSensorInfo.isEmpty()) {
-                AdvancedLogger.debug("SLEEP")
+                AdvancedLogger.debug("--- SLEEP ---")
                 Thread.sleep(60_000)
             }
         } catch (ioe: IOException) {
@@ -343,6 +358,7 @@ SENSOR_LIQUID_USING_COUNTER_STATE = 17
     ) {
         checkAndCreateAggTable(sensorInfo.sensorId)
 
+        AdvancedLogger.debug("Start work for sensorId = ${sensorInfo.sensorId}")
         val (alRawTime, alRawData) = loadAllSensorData(sensorInfo.objectId, sensorInfo.calcTime)
         //--- такого быть не должно (кроме стартового запуска), но предусмотреть не мешает
         if (alRawTime.isEmpty()) {
@@ -379,7 +395,7 @@ SENSOR_LIQUID_USING_COUNTER_STATE = 17
 
         curTime?.let {
             refreshCalcTime(sensorInfo.sensorId, curTime)
-            AdvancedLogger.debug("Calc finished for sensorId = ${sensorInfo.sensorId} and new calc_time = ${DateTime_YMDHMS(zoneId, curTime)}")
+            AdvancedLogger.debug("Calc finished: new calc_time = ${DateTime_YMDHMS(zoneId, curTime)}")
         }
     }
 
@@ -423,6 +439,7 @@ SENSOR_LIQUID_USING_COUNTER_STATE = 17
     ) {
         checkAndCreateAggTable(sensorInfo.sensorId)
 
+        AdvancedLogger.debug("Start work for sensorId = ${sensorInfo.sensorId}")
         val (alRawTime, alRawData) = loadAllSensorData(sensorInfo.objectId, sensorInfo.calcTime)
         //--- такого быть не должно (кроме стартового запуска), но предусмотреть не мешает
         if (alRawTime.isEmpty()) {
@@ -483,7 +500,7 @@ SENSOR_LIQUID_USING_COUNTER_STATE = 17
 
         curTime?.let {
             refreshCalcTime(sensorInfo.sensorId, curTime)
-            AdvancedLogger.debug("Calc finished for sensorId = ${sensorInfo.sensorId} and new calc_time = ${DateTime_YMDHMS(zoneId, curTime)}")
+            AdvancedLogger.debug("Calc finished: new calc_time = ${DateTime_YMDHMS(zoneId, curTime)}")
         }
     }
     /*
