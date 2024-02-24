@@ -83,7 +83,7 @@ class mSensor : mAbstract() {
             //--- arrange the types of sensors depending on their "popularity" (ie frequency of use)
             val hmSensorDescr = mutableMapOf<Int, String>()
             hmSensorDescr.putAll(SensorConfig.hmSensorDescr)
-            val rs = conn.executeQuery(" SELECT sensor_type, COUNT( * ) AS aaa FROM MMS_sensor GROUP BY sensor_type ORDER BY aaa DESC ")
+            val rs = conn.executeQuery(" SELECT sensor_type, COUNT( sensor_type ) AS aaa FROM MMS_sensor GROUP BY sensor_type ORDER BY aaa DESC ")
             while (rs.next()) {
                 val sensorType = rs.getInt(1)
                 //--- theoretically, incorrect / non-existent / obsolete (including zero) types of sensors are possible

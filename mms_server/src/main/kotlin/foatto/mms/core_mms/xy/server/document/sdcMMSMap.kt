@@ -114,7 +114,7 @@ class sdcMMSMap : sdcXyMap() {
             //--- именно MIN/MAX, т.к. одному статическому объекту может соответствовать несколько элементов
             //--- (нельзя убирать проверку на COUNT, т.к. при отсутствии выборки все равно вернется строка с null-значениями)
             val inRs = conn.executeQuery(
-                " SELECT COUNT( * ) , MIN( prj_x1 ) , MIN( prj_y1 ) , MAX( prj_x2 ) , MAX( prj_y2 ) FROM XY_element WHERE object_id IN ( $sbStaticobjectId ) "
+                " SELECT COUNT( object_id ) , MIN( prj_x1 ) , MIN( prj_y1 ) , MAX( prj_x2 ) , MAX( prj_y2 ) FROM XY_element WHERE object_id IN ( $sbStaticobjectId ) "
             )
             if (inRs.next() && inRs.getInt(1) > 0) {
                 getMinMaxCoords(XyPoint(inRs.getInt(2), inRs.getInt(3)), minXY, maxXY)

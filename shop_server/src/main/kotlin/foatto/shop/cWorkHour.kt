@@ -24,7 +24,7 @@ class cWorkHour : cStandart() {
 
         val rs = conn.executeQuery(
             """ 
-                SELECT COUNT(*) 
+                SELECT COUNT(id) 
                 FROM SHOP_work_hour 
                 WHERE ye = $curYear
                 AND mo = $curMonth

@@ -76,7 +76,7 @@ class mSensor : mAbstract() {
             hmSensorDescr.putAll(SensorConfig.hmSensorDescr)
             val rs = conn.executeQuery(
                 """
-                     SELECT sensor_type, COUNT( * ) AS aaa 
+                     SELECT sensor_type, COUNT( sensor_type ) AS aaa 
                      FROM TS_sensor 
                      GROUP BY sensor_type 
                      ORDER BY aaa DESC 

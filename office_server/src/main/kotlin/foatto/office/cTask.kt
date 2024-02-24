@@ -27,7 +27,7 @@ class cTask : cStandart() {
             //--- сколько всего сообщений в этой ветке обсуждения
             var rs = conn.executeQuery(
                 """
-                    SELECT COUNT(*) FROM OFFICE_task_thread WHERE task_id = $valueID
+                    SELECT COUNT(id) FROM OFFICE_task_thread WHERE task_id = $valueID
                 """
             )
             val countAll = if (rs.next()) {
@@ -40,7 +40,7 @@ class cTask : cStandart() {
             //--- сколько прочитанных сообщений в этой ветке обсуждения
             rs = conn.executeQuery(
                 """
-                    SELECT COUNT(*) FROM SYSTEM_new
+                    SELECT COUNT(row_id) FROM SYSTEM_new
                     WHERE table_name = 'OFFICE_task_thread'  
                     AND user_id = ${userConfig.userId}  
                     AND row_id IN ( SELECT id FROM OFFICE_task_thread WHERE task_id = $valueID )
