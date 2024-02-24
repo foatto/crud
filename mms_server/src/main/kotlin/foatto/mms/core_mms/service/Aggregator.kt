@@ -49,22 +49,24 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
 //            SensorConfig.SENSOR_ENERGO_COUNT_RD,
 //            SensorConfig.SENSOR_ENERGO_COUNT_RR,
             //--- analogue sensors
-//            SensorConfig.SENSOR_LIQUID_LEVEL,
-            SensorConfig.SENSOR_WEIGHT,
-            SensorConfig.SENSOR_TURN,
-            SensorConfig.SENSOR_PRESSURE,
-            SensorConfig.SENSOR_TEMPERATURE,
-            SensorConfig.SENSOR_VOLTAGE,
-            SensorConfig.SENSOR_POWER,
-            SensorConfig.SENSOR_DENSITY,
-            SensorConfig.SENSOR_MASS_FLOW,
-            SensorConfig.SENSOR_VOLUME_FLOW,
-            SensorConfig.SENSOR_ENERGO_VOLTAGE,
-            SensorConfig.SENSOR_ENERGO_CURRENT,
-            SensorConfig.SENSOR_ENERGO_POWER_KOEF,
-            SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
-            SensorConfig.SENSOR_ENERGO_POWER_REACTIVE,
-            SensorConfig.SENSOR_ENERGO_POWER_FULL,
+            SensorConfig.SENSOR_LIQUID_LEVEL,
+//            SensorConfig.SENSOR_WEIGHT,
+//            SensorConfig.SENSOR_TURN,
+//            SensorConfig.SENSOR_PRESSURE,
+//            SensorConfig.SENSOR_TEMPERATURE,
+//            SensorConfig.SENSOR_VOLTAGE,
+//            SensorConfig.SENSOR_POWER,
+//            SensorConfig.SENSOR_DENSITY,
+//            SensorConfig.SENSOR_MASS_FLOW,
+//            SensorConfig.SENSOR_VOLUME_FLOW,
+//            SensorConfig.SENSOR_ENERGO_VOLTAGE,
+//            SensorConfig.SENSOR_ENERGO_CURRENT,
+//            SensorConfig.SENSOR_ENERGO_POWER_KOEF,
+//            SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
+//            SensorConfig.SENSOR_ENERGO_POWER_REACTIVE,
+//            SensorConfig.SENSOR_ENERGO_POWER_FULL,
+            //--- equipment work sensor
+//            SensorConfig.SENSOR_WORK,
         )
 
         /*
@@ -170,6 +172,14 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                         )
                     }
 
+//                    SensorConfig.SENSOR_WORK -> {
+//                        calcWork(
+//                            sensorInfo = sensorInfo,
+//                            alValueSensor = alValueSensor,
+//                            alValueData = alValueData,
+//                        )
+//                    }
+
                     else -> {
                         AdvancedLogger.error("Unknown sensor type = ${sensorInfo.sensorType}")
                     }
@@ -222,7 +232,7 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         hmIds.forEach { (objectId, sensorIds) ->
             rs = alConn[0].executeQuery(
                 """
-                    SELECT COUNT(*), MAX(ontime)  
+                    SELECT COUNT(ontime), MAX(ontime)  
                     FROM MMS_data_$objectId
                 """
             )
@@ -258,6 +268,7 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                     is_absolute_count , 
                     analog_min_limit , analog_max_limit , smooth_time ,
                     analog_detect_inc , analog_detect_dec ,
+                    bound_value , active_value ,
                     CAST(raw_time AS BIGINT) - CAST(calc_time AS BIGINT) AS diff_time
                 FROM MMS_sensor
                 WHERE sensor_type IN ( ${alPreparedSensorTypes.joinToString(" , ")} )
@@ -281,6 +292,8 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                 smoothTime = rsSensors.getInt(pos++) * 60,
                 detectIncKoef = rsSensors.getDouble(pos++),
                 detectDecKoef = rsSensors.getDouble(pos++),
+                boundValue = rsSensors.getDouble(pos++),
+                activeValue = rsSensors.getInt(pos++),
             )
         }
         rsSensors.close()
@@ -306,6 +319,18 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         rsCalib.close()
 
         return alValueSensor to alValueData
+    }
+
+    private fun startUpSensorDatas(sensorInfo: SensorInfo): Pair<List<Int>, List<AdvancedByteBuffer>> {
+        checkAndCreateAggTable(sensorInfo.sensorId)
+
+        AdvancedLogger.debug("Start work for sensorId = ${sensorInfo.sensorId}")
+        val (alRawTime, alRawData) = loadAllSensorData(sensorInfo.objectId, sensorInfo.calcTime)
+        //--- такого быть не должно (кроме стартового запуска), но предусмотреть не мешает
+        if (alRawTime.isEmpty()) {
+            AdvancedLogger.error("Empty raw data for sensorId = ${sensorInfo.sensorId}")
+        }
+        return alRawTime to alRawData
     }
 
     private fun checkAndCreateAggTable(sensorId: Int) {
@@ -356,14 +381,8 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         alValueSensor: List<Double>,
         alValueData: List<Double>,
     ) {
-        checkAndCreateAggTable(sensorInfo.sensorId)
+        val (alRawTime, alRawData) = startUpSensorDatas(sensorInfo)
 
-        AdvancedLogger.debug("Start work for sensorId = ${sensorInfo.sensorId}")
-        val (alRawTime, alRawData) = loadAllSensorData(sensorInfo.objectId, sensorInfo.calcTime)
-        //--- такого быть не должно (кроме стартового запуска), но предусмотреть не мешает
-        if (alRawTime.isEmpty()) {
-            AdvancedLogger.error("Empty raw data for sensorId = ${sensorInfo.sensorId}")
-        }
         var prevSumValue = getLastAggregatedCounterValue(sensorInfo.sensorId)
 
         var curTime: Int? = null
@@ -437,14 +456,7 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         alValueSensor: List<Double>,
         alValueData: List<Double>,
     ) {
-        checkAndCreateAggTable(sensorInfo.sensorId)
-
-        AdvancedLogger.debug("Start work for sensorId = ${sensorInfo.sensorId}")
-        val (alRawTime, alRawData) = loadAllSensorData(sensorInfo.objectId, sensorInfo.calcTime)
-        //--- такого быть не должно (кроме стартового запуска), но предусмотреть не мешает
-        if (alRawTime.isEmpty()) {
-            AdvancedLogger.error("Empty raw data for sensorId = ${sensorInfo.sensorId}")
-        }
+        val (alRawTime, alRawData) = startUpSensorDatas(sensorInfo)
 
         var curTime: Int? = null
         for (pos in alRawTime.indices) {
@@ -685,6 +697,98 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         )
     }
 
+//--- EQUIPMENT WORK SENSOR PART
+
+//    private fun calcWork(
+//        sensorInfo: SensorInfo,
+//        alValueSensor: List<Double>,
+//        alValueData: List<Double>,
+//    ) {
+//        val (alRawTime, alRawData) = startUpSensorDatas(sensorInfo)
+//
+//        val (oldTime, oldValue) = getLastWorkState(sensorInfo.sensorId)
+//
+//        var workBeginTime = if (oldValue == 1) oldTime else 0
+//        var delayBeginTime = if (oldValue == 0) oldTime else 0
+//
+//        var curTime: Int? = null
+//        for (pos in alRawTime.indices) {
+//            curTime = alRawTime[pos]
+//
+//            val sensorData = AbstractObjectStateCalc.getSensorData(sensorInfo.portNum, alRawData[pos])?.toDouble() ?: continue
+//
+//            //--- ignore outbound values
+//            if (ObjectCalc.isIgnoreSensorData(sensorInfo.minIgnore, sensorInfo.maxIgnore, sensorData)) {
+//                continue
+//            }
+//
+//            val sensorValue = ((sensorInfo.activeValue == 0) xor (sensorData > sensorInfo.boundValue))
+//
+//
+//
+//
+//
+//        }
+//
+//        curTime?.let {
+//            refreshCalcTime(sensorInfo.sensorId, curTime)
+//            AdvancedLogger.debug("Calc finished: new calc_time = ${DateTime_YMDHMS(zoneId, curTime)}")
+//        }
+//    }
+//
+//    private fun getLastWorkState(sensorId: Int): Pair<Int?, Int?> {
+//        val rs = alConn[0].executeQuery(
+//            """
+//                SELECT ontime , type_1
+//                FROM MMS_agg_${sensorId}
+//                ORDER BY ontime DESC
+//                LIMIT 1
+//            """
+//        )
+//        val result = if (rs.next()) {
+//            rs.getInt(1) to rs.getInt(2)
+//        } else {
+//            null to null
+//        }
+//        rs.close()
+//
+//        return result
+//    }
+
+    /*
+            var prevSumValue = getLastAggregatedCounterValue(sensorInfo.sensorId)
+
+--
+
+                val storeValue = if (sensorInfo.isAbsoluteCount) {
+                    if (prevSumValue == null || sensorValue < prevSumValue) {
+                        Triple(curTime, 0.0, sensorValue)
+                    } else {
+                        Triple(curTime, sensorValue - prevSumValue, sensorValue)
+                    }
+                } else {
+                    Triple(curTime, sensorValue, 0.0)
+                }
+                prevSumValue = sensorValue
+
+                storeCounterData(sensorInfo.sensorId, storeValue)
+
+--------
+
+                if (sensorInfo.smoothTime == 0) {
+                    //--- get previous non-averaged data
+                    val (prevTime, prevValue) = getPrevData(sensorInfo, curTime, sensorValue)
+
+                    val valueType = if (sensorInfo.sensorType == SensorConfig.SENSOR_LIQUID_LEVEL) {
+                        getValueTypeForLiquidLevelSensors(sensorInfo, curTime, sensorValue, prevTime, prevValue)
+                    } else {
+                        getValueTypeForAnalogueSensors(sensorInfo, curTime, sensorValue, prevTime)
+                    }
+
+                    storeNonAveragedAnalogueData(sensorInfo, curTime, sensorValue, valueType)
+                }
+     */
+
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     class SensorInfo(
@@ -715,6 +819,9 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
         //SensorConfig.SENSOR_LIQUID_LEVEL
         val detectIncKoef: Double,
         val detectDecKoef: Double,
+        //SensorConfig.SENSOR_WORK
+        val boundValue: Double,
+        val activeValue: Int,
     )
 }
 

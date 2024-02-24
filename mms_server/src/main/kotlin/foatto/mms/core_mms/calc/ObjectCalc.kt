@@ -1103,13 +1103,12 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
 
         // --- (new condition - not academically / uselessly Ignore, but consider that equipment outside the specified limits DOES NOT WORK)
         //if(  sensorData < scw.minIgnore || sensorData > scw.maxIgnore  ) continue;
-        fun getWorkSensorValue(scw: SensorConfigWork, sensorData: Double?): Boolean =
-            sensorData != null &&
-                if (scw.minIgnore < scw.maxIgnore) {
-                    sensorData > scw.minIgnore && sensorData < scw.maxIgnore
-                } else {
-                    sensorData > scw.minIgnore || sensorData < scw.maxIgnore
-                } &&
+        fun getWorkSensorValue(scw: SensorConfigWork, sensorData: Double): Boolean =
+            if (scw.minIgnore < scw.maxIgnore) {
+                sensorData > scw.minIgnore && sensorData < scw.maxIgnore
+            } else {
+                sensorData > scw.minIgnore || sensorData < scw.maxIgnore
+            } &&
                 ((scw.activeValue == 0) xor (sensorData > scw.boundValue))
 
         fun getSignalSensorValue(scs: SensorConfigSignal, sensorData: Double?): Boolean =
