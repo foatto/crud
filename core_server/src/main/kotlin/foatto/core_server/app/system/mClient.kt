@@ -83,7 +83,7 @@ open class mClient : mAbstract() {
 
         val columnUserLastPasswordChangeDate = ColumnDate3Int(modelTableName, "pwd_ye", "pwd_mo", "pwd_da", "Дата последнего изменения пароля").apply {
             val toDay = ZonedDateTime.now(zoneId)
-            default = LocalDate.of(toDay.year + 1, toDay.monthValue, toDay.dayOfMonth) // через год
+            default = LocalDate.of(toDay.year + 1, toDay.monthValue, 1) // через год, но в начале месяца (чтобы избежать всяких 29 февраля в следующем невисокосном году и т.п.)
         }
 
         val columnUserEmail = ColumnString(modelTableName, "e_mail", "E-mail", STRING_COLUMN_WIDTH)
