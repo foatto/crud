@@ -15,6 +15,7 @@ kotlin {
     }
     sourceSets {
         jsMain.dependencies {
+            api(compose.runtime)
             api(compose.html.core)
             api(compose.html.svg)
             api(project(":core"))

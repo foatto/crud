@@ -1,5 +1,7 @@
 rootProject.name = "crud"
 
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
 pluginManagement {
     val kotlinVersion: String by settings
     val agpVersion: String by settings

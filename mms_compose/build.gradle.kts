@@ -1,3 +1,6 @@
+import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
+
 val isBuildSupressWarning: String by project
 
 val kotlinLanguageVersion: String by project
@@ -5,6 +8,7 @@ val kotlinApiVersion: String by project
 val kotlinJvmTarget: String by project
 
 val composeVersion: String by project
+val composeCompilerVersion: String by project
 
 val androidCompileSdk: String by project
 val androidTargetSdk: String by project
@@ -18,10 +22,23 @@ plugins {
 }
 
 kotlin {
-//    js(IR) {
-//        browser()
-//        binaries.executable()
-//    }
+
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        moduleName = "mms_compose"
+        browser {
+//            commonWebpackConfig {
+//                outputFileName = "mms_compose.js"
+//                devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
+//                    static = (static ?: mutableListOf()).apply {
+//                        // Serve sources to debug inside browser
+//                        add(project.projectDir.path)
+//                    }
+//                }
+//            }
+        }
+        binaries.executable()
+    }
 
     androidTarget {
         compilations.all {
@@ -30,8 +47,6 @@ kotlin {
             }
         }
     }
-
-//    jvm("desktop")
 
     sourceSets {
         commonMain.dependencies {
@@ -71,7 +86,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = composeVersion
+        kotlinCompilerExtensionVersion = composeCompilerVersion
     }
 
     buildFeatures {
@@ -90,6 +105,10 @@ android {
     }
 }
 
+compose.experimental {
+    web.application {}
+}
+
 //tasks {
 //    build {
 //        doLast {
@@ -98,18 +117,6 @@ android {
 //                from("build/dist/js/productionExecutable")
 //                into("/home/foatto/MMSServerSpring/web/compose")
 //            }
-//        }
-//    }
-//}
-
-//compose.desktop {
-//    application {
-//        mainClass = "MainKt"
-//
-//        nativeDistributions {
-//            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-//            packageName = "org.example.project"
-//            packageVersion = "1.0.0"
 //        }
 //    }
 //}

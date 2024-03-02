@@ -1,4 +1,5 @@
 import org.jetbrains.compose.ExperimentalComposeLibrary
+import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 val isBuildSupressWarning: String by project
 
@@ -8,6 +9,7 @@ val kotlinJvmTarget: String by project
 
 val composePluginVersion: String by project
 val composeVersion: String by project
+val composeCompilerVersion: String by project
 
 val androidCompileSdk: String by project
 val androidTargetSdk: String by project
@@ -17,6 +19,7 @@ val kotlinxCoroutinesVersion: String by project
 val ktorVersion: String by project
 
 val multiplatformSettingsVersion: String by project
+val kamelImageVersion: String by project
 
 val androidxActivityComposeVersion: String by project
 
@@ -29,6 +32,22 @@ plugins {
 
 kotlin {
 
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+//        moduleName = "core_compose"
+        browser {
+//            commonWebpackConfig {
+//                outputFileName = "core_compose.js"
+//                devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
+//                    static = (static ?: mutableListOf()).apply {
+//                        // Serve sources to debug inside browser
+//                        add(project.projectDir.path)
+//                    }
+//                }
+//            }
+        }
+    }
+
     androidTarget {
         compilations.all {
             kotlinOptions {
@@ -40,19 +59,22 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
-            api("io.ktor:ktor-client-core:$ktorVersion")
-            api("io.ktor:ktor-client-content-negotiation:$ktorVersion")
-            api("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+//!!!            api("io.ktor:ktor-client-core:$ktorVersion")
+//            api("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+//            api("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
 
             api(compose.runtime)
             api(compose.foundation)
             api(compose.material)
 //            api(compose.material3)
-            @OptIn(ExperimentalComposeLibrary::class)
-            api(compose.components.resources)
+            implementation(compose.ui)
+
+//            api(compose.components.resources) - пока не надо
+//            api(compose.components.uiToolingPreview)
 
             api("com.russhwolf:multiplatform-settings:$multiplatformSettingsVersion")
             api("com.russhwolf:multiplatform-settings-no-arg:$multiplatformSettingsVersion")
+//            api("media.kamel:kamel-image-default:$kamelImageVersion") - пока не готова wasm-версия
 
             api(project(":core"))
         }
@@ -61,7 +83,7 @@ kotlin {
             api("io.ktor:ktor-client-android:$ktorVersion")
 //            api("io.ktor:ktor-client-okhttp:$ktorVersion") - alternate engine for http/2 & WebSockets support
 
-            api("androidx.compose.ui:ui:$composeVersion")
+//!!!            api("androidx.compose.ui:ui:$composeVersion") - исключили?
             api("androidx.compose.ui:ui-tooling-preview:$composeVersion")
             api("androidx.activity:activity-compose:$androidxActivityComposeVersion")
         }
@@ -98,7 +120,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = composeVersion
+        kotlinCompilerExtensionVersion = composeCompilerVersion
     }
 
     buildFeatures {
@@ -115,4 +137,8 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+}
+
+compose.experimental {
+    web.application {}
 }
