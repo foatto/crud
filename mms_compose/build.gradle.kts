@@ -27,12 +27,15 @@ kotlin {
     wasmJs {
         moduleName = "mms_compose"
         browser {
+//--- только для локального тест-запуска
 //            commonWebpackConfig {
 //                outputFileName = "mms_compose.js"
 //                devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
 //                    static = (static ?: mutableListOf()).apply {
 //                        // Serve sources to debug inside browser
-//                        add(project.projectDir.path)
+//                        //add(project.projectDir.path)
+//                        clear()
+//                        add("/home/foatto/crud/mms_compose/build/dist/wasmJs/productionExecutable")
 //                    }
 //                }
 //            }

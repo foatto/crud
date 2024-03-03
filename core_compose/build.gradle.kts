@@ -34,17 +34,7 @@ kotlin {
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-//        moduleName = "core_compose"
         browser {
-//            commonWebpackConfig {
-//                outputFileName = "core_compose.js"
-//                devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
-//                    static = (static ?: mutableListOf()).apply {
-//                        // Serve sources to debug inside browser
-//                        add(project.projectDir.path)
-//                    }
-//                }
-//            }
         }
     }
 
@@ -74,7 +64,7 @@ kotlin {
 
             api("com.russhwolf:multiplatform-settings:$multiplatformSettingsVersion")
             api("com.russhwolf:multiplatform-settings-no-arg:$multiplatformSettingsVersion")
-//            api("media.kamel:kamel-image-default:$kamelImageVersion") - пока не готова wasm-версия
+//            api("media.kamel:kamel-image-default:$kamelImageVersion") //- пока не готова wasm-версия
 
             api(project(":core"))
         }
@@ -105,11 +95,7 @@ android {
 
     compileSdk = androidCompileSdk.toInt()
     defaultConfig {
-//        applicationId = "foatto.core_compose"
         minSdk = androidMinSdk.toInt()
-//        targetSdk = androidTargetSdk.toInt()
-//        versionCode = 1
-//        versionName = "1.0"
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
