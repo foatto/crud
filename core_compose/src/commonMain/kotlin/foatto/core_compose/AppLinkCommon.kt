@@ -3,62 +3,14 @@ package foatto.core_compose
 import foatto.core.link.AppRequest
 import foatto.core.link.AppResponse
 import foatto.core.util.getRandomLong
-import foatto.core_compose.di.settings
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.plugins.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.request.*
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 
-const val SETTINGS_SERVER_PROTOCOL: String = "server_protocol"
-const val SETTINGS_SERVER_ADDRESS: String = "server_address"
-const val SETTINGS_SERVER_PORT: String = "server_port"
+//WASM!!! временно, до появления всеобщего ktor-client (в т.ч. для wasm)
+/*private*/ internal val sessionId = getRandomLong()
 
-internal expect val applicationDispatcher: CoroutineDispatcher
-// internal actual val ApplicationDispatcher: CoroutineDispatcher = Dispatchers.Default - for JS-module
-
-private val sessionId = getRandomLong()
-
-private val httpClient = HttpClient {
-    install(HttpTimeout)
-    install(ContentNegotiation) {
-        json()
-    }
-    defaultRequest {
-        url.protocol = settings.getStringOrNull(SETTINGS_SERVER_PROTOCOL)?.let { protocolName ->
-            URLProtocol.byName[protocolName]
-        } ?: URLProtocol.HTTP
-        host = settings.getString(SETTINGS_SERVER_ADDRESS, "")
-        port = settings.getInt(SETTINGS_SERVER_PORT, 80)
-    }
-}
-
-@OptIn(DelicateCoroutinesApi::class)
-fun invokeApp(
+internal expect fun invokeApp(
     request: AppRequest,
     onSuccess: (response: AppResponse) -> Unit,
-) {
-    GlobalScope.launch(applicationDispatcher) {
-        request.sessionId = sessionId
-
-        val response: AppResponse = httpClient.post {
-            url("/api/app")
-            contentType(ContentType.Application.Json)
-            setBody(request)
-            timeout {
-                socketTimeoutMillis = 60_000
-            }
-        }.body()
-
-        onSuccess(response)
-    }
-}
+)
 
 /*
 
@@ -140,56 +92,52 @@ fun invokeSaveUserProperty(
     }
 }
 
-fun invokeChangePassword(
-    changePasswordRequest: ChangePasswordRequest,
-    success: (responseData: ChangePasswordResponse) -> Unit = {},
-) {
-    XMLHttpRequest().apply {
-        open("POST", "/api/change_password", true)
-        onreadystatechange = {
-            if (this.readyState == XMLHttpRequest.DONE) {
-                if (this.status == 200.toShort()) {
-                    if (responseText.isNotBlank()) {
-                        val response = Json.decodeFromString<ChangePasswordResponse>(responseText)
-                        success(response)
-                    }
-                } else {
-                    httpDefaultErrorHandler(this)
-                }
-            }
-        }
-        setRequestHeader("Content-Type", "application/json")
+*/
 
-        changePasswordRequest.sessionId = sessionId
+//!!!
+//@OptIn(DelicateCoroutinesApi::class)
+//fun invokeChangePassword(
+//    request: ChangePasswordRequest,
+//    onSuccess: (response: ChangePasswordResponse) -> Unit = {},
+//) {
+//    GlobalScope.launch(applicationDispatcher) {
+//        request.sessionId = sessionId
+//
+//        val response: ChangePasswordResponse = httpClient.post {
+//            url("/api/change_password")
+//            contentType(ContentType.Application.Json)
+//            setBody(request)
+//            timeout {
+//                socketTimeoutMillis = 60_000
+//            }
+//        }.body()
+//
+//        onSuccess(response)
+//    }
+//}
+//
+//@OptIn(DelicateCoroutinesApi::class)
+//fun invokeLogoff(
+//    request: LogoffRequest,
+//    onSuccess: (response: LogoffResponse) -> Unit = {},
+//) {
+//    GlobalScope.launch(applicationDispatcher) {
+//        request.sessionId = sessionId
+//
+//        val response: LogoffResponse = httpClient.post {
+//            url("/api/logoff")
+//            contentType(ContentType.Application.Json)
+//            setBody(request)
+//            timeout {
+//                socketTimeoutMillis = 60_000
+//            }
+//        }.body()
+//
+//        onSuccess(response)
+//    }
+//}
 
-        send(Json.encodeToString(changePasswordRequest))
-    }
-}
-
-fun invokeLogoff(
-    logoffRequest: LogoffRequest,
-    success: (responseData: LogoffResponse) -> Unit = {},
-) {
-    XMLHttpRequest().apply {
-        open("POST", "/api/logoff", true)
-        onreadystatechange = {
-            if (this.readyState == XMLHttpRequest.DONE) {
-                if (this.status == 200.toShort()) {
-                    if (responseText.isNotBlank()) {
-                        val response = Json.decodeFromString<LogoffResponse>(responseText)
-                        success(response)
-                    }
-                } else {
-                    httpDefaultErrorHandler(this)
-                }
-            }
-        }
-        setRequestHeader("Content-Type", "application/json")
-
-        logoffRequest.sessionId = sessionId
-        send(Json.encodeToString(logoffRequest))
-    }
-}
+/*
 
 fun invokeUploadFormFile(
     formData: org.w3c.xhr.FormData,
@@ -235,17 +183,6 @@ fun invokeCustom(
         setRequestHeader("Content-Type", "application/json")
 
         send(Json.encodeToString(customRequest))
-    }
-}
-
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-fun httpDefaultErrorHandler(xmlHttpRequest: XMLHttpRequest) {
-    val status = xmlHttpRequest.status.toInt()
-    when {
-        status == 400 -> window.location.reload()
-        status >= 500 -> println("Ошибка сервера: $status \r\n Сообщение для разработчиков: ${xmlHttpRequest.responseText} ")
-        else -> println("Неизвестная ошибка: $status")
     }
 }
 

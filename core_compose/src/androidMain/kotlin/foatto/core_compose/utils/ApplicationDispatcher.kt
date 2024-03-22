@@ -1,4 +1,4 @@
-package foatto.core_compose
+package foatto.core_compose.utils
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers

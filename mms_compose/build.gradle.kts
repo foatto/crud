@@ -112,14 +112,14 @@ compose.experimental {
     web.application {}
 }
 
-//tasks {
-//    build {
-//        doLast {
+tasks {
+    build {
+        doLast {
 //            delete("/home/foatto/MMSServerSpring/web/compose")
-//            copy {
-//                from("build/dist/js/productionExecutable")
-//                into("/home/foatto/MMSServerSpring/web/compose")
-//            }
-//        }
-//    }
-//}
+            copy {
+                from("build/dist/wasmJs/productionExecutable")
+                into("/home/foatto/MMSServerSpring/web")
+            }
+        }
+    }
+}

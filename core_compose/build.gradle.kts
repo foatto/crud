@@ -49,15 +49,19 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
-//!!!            api("io.ktor:ktor-client-core:$ktorVersion")
+
+//WASM!!! пока не готов релиз wasm-версии ktor-client - сделаем отдельные зависимости в android-части,
+// а у wasm будем использовать "родной" XMLHttpRequest
+//
+//            api("io.ktor:ktor-client-core:$ktorVersion")
 //            api("io.ktor:ktor-client-content-negotiation:$ktorVersion")
 //            api("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
 
             api(compose.runtime)
             api(compose.foundation)
+            api(compose.ui)
             api(compose.material)
 //            api(compose.material3)
-            implementation(compose.ui)
 
 //            api(compose.components.resources) - пока не надо
 //            api(compose.components.uiToolingPreview)
@@ -73,9 +77,14 @@ kotlin {
             api("io.ktor:ktor-client-android:$ktorVersion")
 //            api("io.ktor:ktor-client-okhttp:$ktorVersion") - alternate engine for http/2 & WebSockets support
 
-//!!!            api("androidx.compose.ui:ui:$composeVersion") - исключили?
             api("androidx.compose.ui:ui-tooling-preview:$composeVersion")
             api("androidx.activity:activity-compose:$androidxActivityComposeVersion")
+
+//WASM!!! пока не готов релиз wasm-версии ktor-client - сделаем отдельные зависимости в android-части,
+// а у wasm будем использовать "родной" XMLHttpRequest
+            api("io.ktor:ktor-client-core-jvm:$ktorVersion")
+            api("io.ktor:ktor-client-content-negotiation-jvm:$ktorVersion")
+            api("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion")
         }
     }
 }
