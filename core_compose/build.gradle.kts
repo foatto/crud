@@ -60,8 +60,8 @@ kotlin {
             api(compose.runtime)
             api(compose.foundation)
             api(compose.ui)
-            api(compose.material)
-//            api(compose.material3)
+//            api(compose.material)
+            api(compose.material3)
 
 //            api(compose.components.resources) - пока не надо
 //            api(compose.components.uiToolingPreview)
