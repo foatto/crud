@@ -13,15 +13,14 @@ import foatto.core_server.app.server.data.DataRadioButton
 import foatto.core_server.app.server.data.DataTime3Int
 import foatto.ts.iTSApplication
 import java.time.ZonedDateTime
-import java.time.temporal.ChronoUnit
 
 class cGraphicTS : cAbstractForm() {
 
     override fun getOkButtonIconName(): String = ICON_NAME_GRAPHIC
 
-    override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
+    override fun doSave(action: String, hmFormData: Map<String, FormData>, hmOut: MutableMap<String, Any>): String? {
 
-        val returnURL = super.doSave(action, alFormData, hmOut)
+        val returnURL = super.doSave(action, hmFormData, hmOut)
         if (returnURL != null) {
             return returnURL
         }

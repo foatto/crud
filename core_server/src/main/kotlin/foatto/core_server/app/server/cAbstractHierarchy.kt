@@ -148,8 +148,8 @@ open class cAbstractHierarchy : cStandart() {
     }
 
     //--- перекрыто для проверки и недопущения совпадения (с последующим зацикливанием) id == parent_id
-    override fun getFormValues(id: Int, alFormData: List<FormData>, alColumnList: List<iColumn>, hmColumnData: MutableMap<iColumn, iData>): Boolean {
-        val isValid = super.getFormValues(id, alFormData, alColumnList, hmColumnData)
+    override fun getFormValues(id: Int, hmFormData: Map<String, FormData>, alColumnList: List<iColumn>, hmColumnData: MutableMap<iColumn, iData>): Boolean {
+        val isValid = super.getFormValues(id, hmFormData, alColumnList, hmColumnData)
         //--- совпасть может только при редактировании (при добавлении записи ещё нет)
         if (id != 0) {
             val mah = model as mAbstractHierarchy

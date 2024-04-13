@@ -102,10 +102,11 @@ class cRolePermission : cStandart() {
                     sIDList += (if (sIDList.isEmpty()) "" else ",") + "$pid"
 
                     //--- основные поля - применяются сокращенные/оптимизированные варианты getFormCell
-                    val fci = FormCell(fieldName, fieldValue, emptyList())
+                    val fci = FormCell(fieldName, fieldValue, emptyList()).apply {
+                        isEditable = true
+                        caption = rowCaption
+                    }
 
-                    fci.isEditable = true
-                    fci.caption = rowCaption
                     alFormCell.add(fci)
                 }
                 rs.close()
@@ -149,11 +150,13 @@ class cRolePermission : cStandart() {
         )
     }
 
-    override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
+    override fun doSave(action: String, hmFormData: Map<String, FormData>, hmOut: MutableMap<String, Any>): String? {
         val id = getIdFromParam()
         //--- мегаформа установки прав доступа сохраняет только при попытке их создания,
         //--- иначе запускаем обычный процесс сохранения
-        if (id != 0) return super.doSave(action, alFormData, hmOut)
+        if (id != 0) {
+            return super.doSave(action, hmFormData, hmOut)
+        }
 
         val idListID = hmParam[ID_LIST_ID]
         val sIDList = chmSession[ID_LIST_ID + idListID] as String
@@ -168,9 +171,9 @@ class cRolePermission : cStandart() {
 
          */
         val arrID = sIDList.split(",")
-        for (i in arrID.indices) {
+        for (pid in arrID) {
             conn.executeUpdate(
-                " UPDATE SYSTEM_role_permission SET permission_value = ${(if (alFormData[i].booleanValue!!) 1 else 0)} WHERE id = ${arrID[i]} "
+                " UPDATE SYSTEM_role_permission SET permission_value = ${(if (hmFormData["$CHECKBOX_FIELD_PREFIX$pid"]?.booleanValue == true) 1 else 0)} WHERE id = $pid "
             )
         }
         return AppParameter.setParam(chmSession[AppParameter.REFERER + hmParam[AppParameter.REFERER]] as String, AppParameter.ID, id.toString())

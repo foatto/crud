@@ -2,7 +2,6 @@ package foatto.mms.core_mms.report
 
 import foatto.core.link.FormData
 import foatto.util.DateTime_DMYHMS
-import foatto.core.util.getSplittedDouble
 import foatto.util.secondIntervalToString
 import foatto.core_server.app.server.data.DataComboBox
 import foatto.core_server.app.server.data.DataDate3Int
@@ -27,8 +26,8 @@ class cLiquidIncDec : cMMSReport() {
     //--- это отчёт по заправкам вне путевых листов?
     private var isWaybill = false
 
-    override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
-        val returnURL = super.doSave(action, alFormData, hmOut)
+    override fun doSave(action: String, hmFormData: Map<String, FormData>, hmOut: MutableMap<String, Any>): String? {
+        val returnURL = super.doSave(action, hmFormData, hmOut)
         if (returnURL != null) return returnURL
 
         //--- это отчёт по заправкам вне путевых листов?

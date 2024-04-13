@@ -133,7 +133,7 @@ open class Root {
         hmTableIcon[ICON_NAME_FOLDER] = "/web/images/ic_folder_open_${getStyleIconNameSuffix()}.png"
 
         //--- печать
-        hmTableIcon[ICON_NAME_PRINT] = "/web/images/ic_print_${getStyleIconNameSuffix()}.png"
+        hmTableIcon[ICON_NAME_PRINT_TABLE] = "/web/images/ic_print_${getStyleIconNameSuffix()}.png"
 
         tabPanel = TabPanel(this)
     }

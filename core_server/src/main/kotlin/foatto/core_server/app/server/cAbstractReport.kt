@@ -1,6 +1,6 @@
 package foatto.core_server.app.server
 
-import foatto.core.app.ICON_NAME_PRINT
+import foatto.core.app.ICON_NAME_PRINT_FORM
 import foatto.core.util.getRandomInt
 import foatto.core.util.getSplittedDouble
 import foatto.util.DateTime_DMYHMS
@@ -245,7 +245,7 @@ abstract class cAbstractReport : cAbstractForm() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun getOkButtonIconName(): String = ICON_NAME_PRINT
+    override fun getOkButtonIconName(): String = ICON_NAME_PRINT_FORM
 
     //--- обязательный метод установки параметров печати/бумаги
     protected abstract fun setPrintOptions()

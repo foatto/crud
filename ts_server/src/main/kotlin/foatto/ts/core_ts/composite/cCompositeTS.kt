@@ -14,8 +14,6 @@ import foatto.core_server.app.server.data.DataRadioButton
 import foatto.core_server.app.xy.XyStartData
 import foatto.core_server.app.xy.XyStartObjectData
 import foatto.ts.iTSApplication
-import java.time.ZonedDateTime
-import java.time.temporal.ChronoUnit
 
 class cCompositeTS : cAbstractForm() {
 
@@ -27,9 +25,9 @@ class cCompositeTS : cAbstractForm() {
         super.isFormAutoClick()
     }
 
-    override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
+    override fun doSave(action: String, hmFormData: Map<String, FormData>, hmOut: MutableMap<String, Any>): String? {
 
-        val returnURL = super.doSave(action, alFormData, hmOut)
+        val returnURL = super.doSave(action, hmFormData, hmOut)
         if (returnURL != null) {
             return returnURL
         }

@@ -14,10 +14,10 @@ import foatto.core.link.FormData
 import foatto.core.link.FormPinMode
 import foatto.core.link.FormResponse
 import foatto.core.util.getRandomInt
-import foatto.core_compose_web.model.TitleData
 import foatto.core_compose_web.AppControl
 import foatto.core_compose_web.Root
 import foatto.core_compose_web.link.invokeUploadFormFile
+import foatto.core_compose_web.model.TitleData
 import foatto.core_compose_web.style.*
 import kotlinx.browser.document
 import kotlinx.browser.window
@@ -79,7 +79,7 @@ class FormControl(
             ICON_NAME_FILE to "/web/images/ic_attachment_black_48dp.png",
             ICON_NAME_GRAPHIC to "/web/images/ic_timeline_black_48dp.png",
             ICON_NAME_MAP to "/web/images/ic_language_black_48dp.png",
-            ICON_NAME_PRINT to "/web/images/ic_print_black_48dp.png",
+            ICON_NAME_PRINT_FORM to "/web/images/ic_print_black_48dp.png",
             ICON_NAME_SAVE to "/web/images/ic_save_black_48dp.png",
             ICON_NAME_STATE to "/web/images/ic_router_black_48dp.png",
             ICON_NAME_UNARCHIVE to "/web/images/ic_unarchive_black_48dp.png",
@@ -797,7 +797,7 @@ class FormControl(
             var isEmptyFieldValue = false
             when (formCell.cellType) {
                 FormCellType.STRING, FormCellType.INT, FormCellType.DOUBLE -> {
-                    isEmptyFieldValue = formCell.value.isEmpty()
+                    isEmptyFieldValue = formCell.strValue.isEmpty()
                 }
 
                 FormCellType.TEXT -> {
@@ -812,7 +812,7 @@ class FormControl(
                 }
 
                 FormCellType.DATE, FormCellType.TIME, FormCellType.DATE_TIME -> {
-                    isEmptyFieldValue = formCell.alDateTimeField[0].second.isEmpty()
+                    isEmptyFieldValue = formCell.alDateTimeField[0].isEmpty()
                 }
 
                 FormCellType.COMBO -> {
@@ -890,7 +890,7 @@ class FormControl(
         formResponse.alFormButton.forEach { formButton ->
             val icon = hmFormIcon[formButton.iconName] ?: ""
             //--- если иконка задана, но её нет в локальном справочнике, то выводим её имя (для диагностики)
-            val caption = if (formButton.iconName.isNotBlank() && icon.isBlank()) {
+            val caption = if (!formButton.iconName.isNullOrBlank() && icon.isBlank()) {
                 formButton.iconName
             } else {
                 formButton.caption
@@ -901,8 +901,8 @@ class FormControl(
                     url = formButton.url,
                     withNewData = formButton.withNewData,
                     icon = icon,
-                    text = caption,
-                    tooltip = formButton.caption,
+                    text = caption ?: "(нет текста)",
+                    tooltip = formButton.caption ?: "(нет текста)",
                     question = formButton.question,
                 )
             )
@@ -955,8 +955,9 @@ class FormControl(
                 val ci = columnIndex
                 alGridData.add(
                     FormGridData(
-                        id = gridCellId++,
                         cellType = FormCellTypeClient.LABEL,
+                        id = gridCellId++,
+                        cellName = "",
                         style = {
                             gridArea("${ri + 1}", "${ci + 1}", "${ri + 2}", "${ci + 2}")
                             justifySelf("center")
@@ -980,8 +981,9 @@ class FormControl(
         rowIndex: Int,
         columnIndex: Int,
     ) = FormGridData(
-        id = gridCellId,
         cellType = FormCellTypeClient.LABEL,
+        id = gridCellId,
+        cellName = "",
         style = {
             gridArea("${rowIndex + 1}", "${columnIndex + 1}", "${rowIndex + 2}", "${columnIndex + 2}")
             justifySelf("flex-start")
@@ -995,8 +997,9 @@ class FormControl(
         gridCellId: Int,
         rowIndex: Int,
     ) = FormGridData(
-        id = gridCellId,
         cellType = FormCellTypeClient.LABEL,
+        id = gridCellId,
+        cellName = "",
         style = {
             gridArea("${rowIndex + 1}", "1", "${rowIndex + 2}", "2")
         },
@@ -1012,8 +1015,9 @@ class FormControl(
     ): FormGridData {
         val isWideOrGrid = !styleIsNarrowScreen || formResponse.alFormColumn.isNotEmpty()
         return FormGridData(
-            id = gridCellId,
             cellType = FormCellTypeClient.LABEL,
+            id = gridCellId,
+            cellName = "",
             style = {
                 gridArea("${rowIndex + 1}", "${columnIndex + 1}", "${rowIndex + 2}", "${columnIndex + 2}")
                 justifySelf(
@@ -1110,42 +1114,45 @@ class FormControl(
         val gridData = when (formCell.cellType) {
             FormCellType.STRING, FormCellType.INT, FormCellType.DOUBLE -> {
                 FormGridData(
-                    id = gridCellId,
                     cellType = FormCellTypeClient.STRING,
+                    id = gridCellId,
+                    cellName = formCell.strName,
                     style = style,
                     styleAdd = styleAdd,
                     isHidden = isHidden,
                     error = formCell.errorMessage,
-                    aText = formCell.value,
+                    aText = formCell.strValue,
                     isPassword = formCell.isPassword,
-                    colCount = getStyleFormEditBoxColumn(formCell.column),
+                    colCount = getStyleFormEditBoxColumn(formCell.strColumn),
                     isReadOnly = !formCell.isEditable,
                 )
             }
 
             FormCellType.TEXT -> {
                 FormGridData(
-                    id = gridCellId,
                     cellType = FormCellTypeClient.TEXT,
+                    id = gridCellId,
+                    cellName = formCell.textName,
                     style = style,
                     styleAdd = styleAdd,
                     isHidden = isHidden,
                     error = formCell.errorMessage,
                     aText = formCell.textValue,
-                    rowCount = formCell.textRow,
                     colCount = getStyleFormEditBoxColumn(formCell.textColumn),
+                    rowCount = formCell.textRow,
                     isReadOnly = !formCell.isEditable,
                 )
             }
 
             FormCellType.BOOLEAN -> {
                 FormGridData(
-                    id = gridCellId,
                     cellType = if (formCell.alSwitchText.isEmpty()) {
                         FormCellTypeClient.CHECKBOX
                     } else {
                         FormCellTypeClient.SWITCH
                     },
+                    id = gridCellId,
+                    cellName = formCell.booleanName,
                     style = style,
                     styleAdd = styleAdd,
                     isHidden = isHidden,
@@ -1158,7 +1165,6 @@ class FormControl(
 
             FormCellType.DATE, FormCellType.TIME, FormCellType.DATE_TIME -> {
                 FormGridData(
-                    id = gridCellId,
                     cellType = when (formCell.cellType) {
                         FormCellType.DATE -> {
                             FormCellTypeClient.DATE
@@ -1172,11 +1178,13 @@ class FormControl(
                             FormCellTypeClient.DATE_TIME
                         }
                     },
+                    id = gridCellId,
+                    cellName = formCell.dtName,
                     style = style,
                     styleAdd = styleAdd,
                     isHidden = isHidden,
                     error = formCell.errorMessage,
-                    aAlDateTime = formCell.alDateTimeField.map { it.second },
+                    aAlDateTime = formCell.alDateTimeField,
                     isReadOnly = !formCell.isEditable,
                 ).apply {
                     alSubId = mutableListOf()
@@ -1188,29 +1196,31 @@ class FormControl(
 
             FormCellType.COMBO -> {
                 FormGridData(
-                    id = gridCellId,
                     cellType = FormCellTypeClient.COMBO,
+                    id = gridCellId,
+                    cellName = formCell.comboName,
                     style = style,
                     styleAdd = styleAdd,
                     isHidden = isHidden,
                     error = formCell.errorMessage,
                     aCombo = formCell.comboValue,
-                    alComboData = formCell.alComboData.map { FormComboData(it.first, it.second) },
                     isReadOnly = !formCell.isEditable,
+                    alComboData = formCell.alComboData.map { FormComboData(it.first, it.second) },
                 )
             }
 
             FormCellType.RADIO -> {
                 FormGridData(
-                    id = gridCellId,
                     cellType = FormCellTypeClient.RADIO,
+                    id = gridCellId,
+                    cellName = formCell.comboName,
                     style = style,
                     styleAdd = styleAdd,
                     isHidden = isHidden,
                     error = formCell.errorMessage,
                     aCombo = formCell.comboValue,
-                    alComboData = formCell.alComboData.map { FormComboData(it.first, it.second) },
                     isReadOnly = !formCell.isEditable,
+                    alComboData = formCell.alComboData.map { FormComboData(it.first, it.second) },
                 ).apply {
                     alSubId = mutableListOf()
                     alComboData.indices.forEach { i ->
@@ -1221,8 +1231,9 @@ class FormControl(
 
             FormCellType.FILE -> {
                 FormGridData(
-                    id = gridCellId,
                     cellType = FormCellTypeClient.FILE,
+                    id = gridCellId,
+                    cellName = formCell.fileName,
                     style = style,
                     styleAdd = styleAdd,
                     isHidden = isHidden,
@@ -1235,8 +1246,9 @@ class FormControl(
             else -> {
                 println("ERROR: Call when-else-block in getFormGridData!")
                 FormGridData(
-                    id = 0,
                     cellType = FormCellTypeClient.LABEL,
+                    id = 0,
+                    cellName = "",
                     style = style,
                     styleAdd = styleAdd,
                     isHidden = true, // от греха подальше :)
@@ -1442,14 +1454,14 @@ class FormControl(
     }
 
     private fun doInvoke(formAppParam: String, withNewData: Boolean) {
-        val alFormData = mutableListOf<FormData>()
+        val hmFormData = mutableMapOf<String, FormData>()
 
         alGridData.forEach { gridData ->
             val withNewValues = withNewData && !gridData.isHidden
 
             when (gridData.cellType) {
                 FormCellTypeClient.STRING -> {
-                    alFormData += FormData(
+                    hmFormData[gridData.cellName] = FormData(
                         stringValue = if (withNewValues) {
                             gridData.text.value
                         } else {
@@ -1459,7 +1471,7 @@ class FormControl(
                 }
 
                 FormCellTypeClient.TEXT -> {
-                    alFormData += FormData(
+                    hmFormData[gridData.cellName] = FormData(
                         textValue = if (withNewValues) {
                             gridData.text.value
                         } else {
@@ -1469,7 +1481,7 @@ class FormControl(
                 }
 
                 FormCellTypeClient.CHECKBOX, FormCellTypeClient.SWITCH -> {
-                    alFormData += FormData(
+                    hmFormData[gridData.cellName] = FormData(
                         booleanValue = if (withNewValues) {
                             gridData.bool.value
                         } else {
@@ -1479,15 +1491,19 @@ class FormControl(
                 }
 
                 FormCellTypeClient.DATE, FormCellTypeClient.TIME, FormCellTypeClient.DATE_TIME -> {
-                    alFormData += FormData(alDateTimeValue = (if (withNewValues) {
-                        gridData.alDateTime.map { it.value }
-                    } else {
-                        gridData.oldAlDateTime
-                    }).toList())
+                    hmFormData[gridData.cellName] = FormData(
+                        alDateTimeValue = (
+                            if (withNewValues) {
+                                gridData.alDateTime.map { it.value }
+                            } else {
+                                gridData.oldAlDateTime
+                            }
+                        ).toList()
+                    )
                 }
 
                 FormCellTypeClient.COMBO -> {
-                    alFormData += FormData(
+                    hmFormData[gridData.cellName] = FormData(
                         comboValue = if (withNewValues) {
                             gridData.combo.value
                         } else {
@@ -1497,7 +1513,7 @@ class FormControl(
                 }
 
                 FormCellTypeClient.RADIO -> {
-                    alFormData += FormData(
+                    hmFormData[gridData.cellName] = FormData(
                         comboValue = if (withNewValues) {
                             gridData.combo.value
                         } else {
@@ -1507,7 +1523,7 @@ class FormControl(
                 }
 
                 FormCellTypeClient.FILE -> {
-                    alFormData += FormData(
+                    hmFormData[gridData.cellName] = FormData(
                         fileId = gridData.fileId,
                         hmFileAdd = if (withNewValues) {
                             gridData.hmFileAdd.mapKeys { it.key.toString() }
@@ -1525,7 +1541,7 @@ class FormControl(
                 else -> {}
             }
         }
-        appControl.call(AppRequest(action = formAppParam, alFormData = alFormData))
+        appControl.call(AppRequest(action = formAppParam, hmFormData = hmFormData))
     }
 
     private fun getFocusId(gridId: Int, subGridId: Int? = null): String =
@@ -1551,9 +1567,10 @@ class FormControl(
 private enum class FormCellTypeClient { LABEL, STRING, TEXT, CHECKBOX, SWITCH, DATE, TIME, DATE_TIME, COMBO, RADIO, FILE }
 
 private class FormGridData(
-    val id: Int,
-
     val cellType: FormCellTypeClient,
+
+    val id: Int,
+    val cellName: String,
 
     val style: StyleScope.() -> Unit,
     val styleAdd: StyleScope.() -> Unit,

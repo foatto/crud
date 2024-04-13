@@ -2,7 +2,6 @@ package foatto.shop.report
 
 import foatto.core.link.FormData
 import foatto.core.util.getSplittedDouble
-import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.server.data.DataInt
 import foatto.shop.iShopApplication
 import jxl.CellView
@@ -17,9 +16,9 @@ class cWorkHour : cAbstractShopReport() {
 
     private val MAX_DAY_IN_ROW = 16
 
-    override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
+    override fun doSave(action: String, hmFormData: Map<String, FormData>, hmOut: MutableMap<String, Any>): String? {
 
-        val returnURL = super.doSave(action, alFormData, hmOut)
+        val returnURL = super.doSave(action, hmFormData, hmOut)
         if (returnURL != null) {
             return returnURL
         }

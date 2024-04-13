@@ -11,15 +11,14 @@ import foatto.core_server.app.server.data.DataDate3Int
 import foatto.core_server.app.server.data.DataRadioButton
 import foatto.core_server.app.server.data.DataTime3Int
 import java.time.ZonedDateTime
-import java.time.temporal.ChronoUnit
 
 class cLogShow : cAbstractForm() {
 
     override fun getOkButtonIconName() = ICON_NAME_GRAPHIC
 
-    override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
+    override fun doSave(action: String, hmFormData: Map<String, FormData>, hmOut: MutableMap<String, Any>): String? {
 
-        val returnURL = super.doSave(action, alFormData, hmOut)
+        val returnURL = super.doSave(action, hmFormData, hmOut)
         if (returnURL != null) {
             return returnURL
         }

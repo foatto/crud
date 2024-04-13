@@ -33,7 +33,7 @@ class cUserProperty : cStandart() {
         }
     }
 
-    override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
+    override fun doSave(action: String, hmFormData: Map<String, FormData>, hmOut: MutableMap<String, Any>): String? {
         val alColumnList = mutableListOf<iColumn>()
         alColumnList.addAll(model.alFormHiddenColumn)
         alColumnList.addAll(model.alFormColumn)
@@ -43,7 +43,7 @@ class cUserProperty : cStandart() {
         val id = getIdFromParam()!!
 
         //--- ошибки ввода в форме
-        val returnURL = checkInput(id, alFormData, alColumnList, hmColumnData, hmOut)
+        val returnURL = checkInput(id, hmFormData, alColumnList, hmColumnData, hmOut)
         //--- урло на возврат с ошибкой
         if (returnURL != null) {
             return returnURL

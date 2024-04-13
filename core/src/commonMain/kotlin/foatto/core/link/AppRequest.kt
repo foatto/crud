@@ -8,7 +8,7 @@ class AppRequest(
 
     val logon: LogonRequest? = null,
     val find: String? = null,
-    val alFormData: List<FormData>? = null
+    val hmFormData: Map<String, FormData>? = null
 ) {
     var sessionId: Long = 0
 }

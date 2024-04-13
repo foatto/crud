@@ -25,9 +25,9 @@ class cWorkShiftCompare : cMMSReport() {
 
     //----------------------------------------------------------------------------------------------
 
-    override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
+    override fun doSave(action: String, hmFormData: Map<String, FormData>, hmOut: MutableMap<String, Any>): String? {
 
-        val returnURL = super.doSave(action, alFormData, hmOut)
+        val returnURL = super.doSave(action, hmFormData, hmOut)
         if (returnURL != null) return returnURL
 
         val m = model as mWorkShiftCompare

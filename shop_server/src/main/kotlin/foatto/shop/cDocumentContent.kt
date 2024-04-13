@@ -1,7 +1,7 @@
 package foatto.shop
 
 import foatto.core.app.ICON_NAME_ADD_ITEM
-import foatto.core.app.ICON_NAME_PRINT
+import foatto.core.app.ICON_NAME_PRINT_FORM
 import foatto.core.link.*
 import foatto.util.AdvancedLogger
 import foatto.util.DateTime_DMY
@@ -256,7 +256,7 @@ class cDocumentContent : cStandart() {
             ServerActionButton(
                 text = "Товарный чек",
                 tooltip = "Товарный чек",
-                icon = ICON_NAME_PRINT,
+                icon = ICON_NAME_PRINT_FORM,
                 action = getParamURL("shop_report_doc_content", AppAction.FORM, null, 0, hmParentData, null, ""),
                 inNewWindow = true,
                 isForWideScreenOnly = true,
@@ -336,8 +336,8 @@ class cDocumentContent : cStandart() {
         return saveParams
     }
 
-    override fun getFormValues(id: Int, alFormData: List<FormData>, alColumnList: List<iColumn>, hmColumnData: MutableMap<iColumn, iData>): Boolean {
-        if (super.getFormValues(id, alFormData, alColumnList, hmColumnData)) {
+    override fun getFormValues(id: Int, hmFormData: Map<String, FormData>, alColumnList: List<iColumn>, hmColumnData: MutableMap<iColumn, iData>): Boolean {
+        if (super.getFormValues(id, hmFormData, alColumnList, hmColumnData)) {
             //--- additive checking for markable products
             val mdc = model as mDocumentContent
 

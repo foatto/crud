@@ -3,7 +3,6 @@ package foatto.mms.core_mms.report
 import foatto.core.link.FormData
 import foatto.util.DateTime_DMY
 import foatto.util.getDateTime
-import foatto.core.util.getSplittedDouble
 import foatto.core_server.app.server.data.DataDouble
 import foatto.mms.core_mms.calc.ObjectCalc
 import foatto.mms.core_mms.sensor.config.SensorConfig
@@ -19,8 +18,8 @@ import java.time.temporal.ChronoUnit
 
 class cSummaryBNGRE : cAbstractPeriodSummary() {
 
-    override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
-        val returnURL = super.doSave(action, alFormData, hmOut)
+    override fun doSave(action: String, hmFormData: Map<String, FormData>, hmOut: MutableMap<String, Any>): String? {
+        val returnURL = super.doSave(action, hmFormData, hmOut)
         if (returnURL != null) {
             return returnURL
         }

@@ -1,6 +1,6 @@
 package foatto.office
 
-import foatto.core.app.ICON_NAME_PRINT
+import foatto.core.app.ICON_NAME_PRINT_FORM
 import foatto.core.link.AppAction
 import foatto.core.link.ServerActionButton
 import foatto.util.getCurrentTimeInt
@@ -64,7 +64,7 @@ class cTaskThread : cStandart() {
             ServerActionButton(
                 text = "Распечатать",
                 tooltip = "Распечатать",
-                icon = ICON_NAME_PRINT,
+                icon = ICON_NAME_PRINT_FORM,
                 action = getParamURL("office_report_task_thread", AppAction.FORM, null, 0, hmParentData, null, ""),
                 inNewWindow = true,
                 isForWideScreenOnly = false,

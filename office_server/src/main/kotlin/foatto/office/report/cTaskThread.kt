@@ -18,8 +18,8 @@ class cTaskThread : cOfficeReport() {
         super.isFormAutoClick()
     }
 
-    override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
-        val returnURL = super.doSave(action, alFormData, hmOut)
+    override fun doSave(action: String, hmFormData: Map<String, FormData>, hmOut: MutableMap<String, Any>): String? {
+        val returnURL = super.doSave(action, hmFormData, hmOut)
         if (returnURL != null) {
             return returnURL
         }
