@@ -12,6 +12,10 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import foatto.core.link.AppRequest
 import foatto.core.link.AppResponse
+import foatto.core.link.ChangePasswordRequest
+import foatto.core.link.ChangePasswordResponse
+import foatto.core.link.LogoffRequest
+import foatto.core.link.LogoffResponse
 import foatto.core_compose.di.SETTINGS_SERVER_ADDRESS
 import foatto.core_compose.di.SETTINGS_SERVER_PORT
 import foatto.core_compose.di.SETTINGS_SERVER_PROTOCOL
@@ -43,6 +47,48 @@ internal actual fun invokeApp(
 
         val response: AppResponse = httpClient.post {
             url("/api/app")
+            contentType(ContentType.Application.Json)
+            setBody(request)
+            timeout {
+                socketTimeoutMillis = 60_000
+            }
+        }.body()
+
+        onSuccess(response)
+    }
+}
+
+@OptIn(DelicateCoroutinesApi::class)
+internal actual fun invokeChangePassword(
+    request: ChangePasswordRequest,
+    onSuccess: (response: ChangePasswordResponse) -> Unit,
+) {
+    GlobalScope.launch(applicationDispatcher) {
+        request.sessionId = sessionId
+
+        val response: ChangePasswordResponse = httpClient.post {
+            url("/api/change_password")
+            contentType(ContentType.Application.Json)
+            setBody(request)
+            timeout {
+                socketTimeoutMillis = 60_000
+            }
+        }.body()
+
+        onSuccess(response)
+    }
+}
+
+@OptIn(DelicateCoroutinesApi::class)
+internal actual fun invokeLogoff(
+    request: LogoffRequest,
+    onSuccess: (response: LogoffResponse) -> Unit,
+) {
+    GlobalScope.launch(applicationDispatcher) {
+        request.sessionId = sessionId
+
+        val response: LogoffResponse = httpClient.post {
+            url("/api/logoff")
             contentType(ContentType.Application.Json)
             setBody(request)
             timeout {

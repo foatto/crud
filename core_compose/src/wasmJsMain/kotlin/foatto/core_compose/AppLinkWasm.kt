@@ -2,6 +2,10 @@ package foatto.core_compose
 
 import foatto.core.link.AppRequest
 import foatto.core.link.AppResponse
+import foatto.core.link.ChangePasswordRequest
+import foatto.core.link.ChangePasswordResponse
+import foatto.core.link.LogoffRequest
+import foatto.core.link.LogoffResponse
 import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -36,6 +40,57 @@ internal actual fun invokeApp(
         send(Json.encodeToString(request))
     }
 
+}
+
+internal actual fun invokeChangePassword(
+    request: ChangePasswordRequest,
+    onSuccess: (response: ChangePasswordResponse) -> Unit,
+) {
+    XMLHttpRequest().apply {
+        open("POST", "/api/change_password", true)
+        onreadystatechange = {
+            if (this.readyState == XMLHttpRequest.DONE) {
+                if (this.status == 200.toShort()) {
+                    if (responseText.isNotBlank()) {
+                        val response = Json.decodeFromString<ChangePasswordResponse>(responseText)
+                        onSuccess(response)
+                    }
+                } else {
+                    httpDefaultErrorHandler(this)
+                }
+            }
+        }
+        setRequestHeader("Content-Type", "application/json")
+
+        request.sessionId = sessionId
+
+        send(Json.encodeToString(request))
+    }
+}
+
+internal actual fun invokeLogoff(
+    request: LogoffRequest,
+    onSuccess: (response: LogoffResponse) -> Unit,
+) {
+    XMLHttpRequest().apply {
+        open("POST", "/api/logoff", true)
+        onreadystatechange = {
+            if (this.readyState == XMLHttpRequest.DONE) {
+                if (this.status == 200.toShort()) {
+                    if (responseText.isNotBlank()) {
+                        val response = Json.decodeFromString<LogoffResponse>(responseText)
+                        onSuccess(response)
+                    }
+                } else {
+                    httpDefaultErrorHandler(this)
+                }
+            }
+        }
+        setRequestHeader("Content-Type", "application/json")
+
+        request.sessionId = sessionId
+        send(Json.encodeToString(request))
+    }
 }
 
 private fun httpDefaultErrorHandler(xmlHttpRequest: XMLHttpRequest) {

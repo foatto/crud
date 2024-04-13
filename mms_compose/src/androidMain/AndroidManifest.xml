@@ -11,11 +11,13 @@
             android:supportsRtl="true"
             android:theme="@android:style/Theme.Material.Light.NoActionBar"
             android:usesCleartextTraffic="true"
+            android:name="foatto.core_compose.CoreMainApplication"
     >
         <activity
                 android:exported="true"
                 android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|mnc|colorMode|density|fontScale|fontWeightAdjustment|keyboard|layoutDirection|locale|mcc|navigation|smallestScreenSize|touchscreen|uiMode"
-                android:name=".MainActivity">
+                android:name="foatto.mms_compose.MainActivity"
+        >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
