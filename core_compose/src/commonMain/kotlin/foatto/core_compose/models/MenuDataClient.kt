@@ -8,5 +8,5 @@ class MenuDataClient(
     val text: String,
     val alSubMenu: List<MenuDataClient>? = null,
     val inNewWindow: Boolean = false,
-    val isHover: MutableState<Boolean> = mutableStateOf(false),
+    var isExpanded: MutableState<Boolean> = mutableStateOf(false),
 )
