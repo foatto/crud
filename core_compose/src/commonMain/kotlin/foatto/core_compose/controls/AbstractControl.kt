@@ -1,9 +1,18 @@
 package foatto.core_compose.controls
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import foatto.core_compose.controls.models.TitleData
+import foatto.core_compose.controls.models.table.TableGridData
+import kotlin.math.max
 
 abstract class AbstractControl(
     protected val tabId: Int,
@@ -16,4 +25,178 @@ abstract class AbstractControl(
 
     abstract fun start()
 
+    @Composable
+    protected fun getTableAndFormHeader(
+        withBottomBorder: Boolean,
+        call: (url: String) -> Unit,
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+//                    borderTop(
+//                        width = if (!styleIsNarrowScreen) 0.px else 1.px,
+//                        lineStyle = LineStyle.Solid,
+//                        color = colorMainBorder,
+//                    )
+//                    if (withBottomBorder) {
+//                        borderBottom(width = 1.px, lineStyle = LineStyle.Solid, color = colorMainBorder)
+//                    }
+//                    padding(styleControlPadding)
+//                    backgroundColor(getColorTableHeaderBack())
+
+        ) {
+            for (titleData in alTitleData) {
+                if (titleData.url.isNotEmpty()) {
+                    Button(
+                        onClick = {
+                            call(titleData.url)
+                        },
+//                                backgroundColor(getColorButtonBack())
+//                                setBorder(color = getColorButtonBorder(), radius = styleButtonBorderRadius)
+//                                fontSize(styleCommonButtonFontSize)
+//                                padding(styleTextButtonPadding)
+//                                setMargins(arrStyleCommonMargin)
+//                                cursor("pointer")
+                    ) {
+                        Text(titleData.text)
+                    }
+                } else {
+                    Text(titleData.text)
+//                                fontSize(styleControlTitleTextFontSize)
+//                                setPaddings(arrStyleControlTitlePadding)
+                }
+            }
+        }
+
+    }
+
+    protected fun <T> addCellToGrid(
+        alGridRows: SnapshotStateList<MutableList<T?>>,
+        maxColCount: Int,
+        row: Int,
+        col: Int,
+        cell: T,
+    ) {
+        val alGridRow = if (row < alGridRows.size) {
+            alGridRows[row]
+        } else {
+            repeat(row - alGridRows.lastIndex) {
+                alGridRows.add(mutableListOf())
+            }
+            alGridRows.last()
+        }
+        val maxCol = max(maxColCount, col)
+        repeat(maxCol - alGridRow.lastIndex) {
+            alGridRow.add(null)
+        }
+        alGridRow[col] = cell
+    }
 }
+
+/*
+    @Composable
+    protected fun getGraphicAndXyHeader(prefix: String) {
+        Div(
+            attrs = {
+                id("${prefix}_title_$tabId")
+                style {
+                    display(DisplayStyle.Flex)
+                    flexDirection(FlexDirection.Row)
+                    flexWrap(FlexWrap.Wrap)
+                    justifyContent(JustifyContent.SpaceBetween)
+                    alignItems(AlignItems.Center)
+                    padding(styleControlPadding)
+                    backgroundColor(getColorGraphicAndXyToolbarBack())
+                    borderTop(
+                        width = (if (!styleIsNarrowScreen) {
+                            0
+                        } else {
+                            1
+                        }).px,
+                        lineStyle = LineStyle.Solid,
+                        color = colorMainBorder,
+                    )
+                }
+            }
+        ) {
+            getToolBarSpan {}
+            Span(
+                attrs = {
+                    style {
+                        display(DisplayStyle.Flex)
+                        flexDirection(FlexDirection.Row)
+                        flexWrap(FlexWrap.Nowrap)
+                        justifyContent(JustifyContent.Center)
+                        alignItems(AlignItems.Center)
+                        fontSize(styleControlTitleTextFontSize)
+                        setPaddings(arrStyleControlTitlePadding)
+                        display(DisplayStyle.Flex)
+                        flexDirection(FlexDirection.Column)
+                    }
+                }
+            ) {
+                alTitleData.forEachIndexed { index, titleData ->
+                    Span(
+                        attrs = {
+                            style {
+                                fontWeight(
+                                    if (alTitleData.size > 1 && index == 0) {
+                                        "bold"
+                                    } else {
+                                        "normal"
+                                    }
+                                )
+                            }
+                        }
+                    ) {
+                        Text(titleData.text)
+                    }
+                }
+            }
+            getToolBarSpan {}
+        }
+    }
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @Composable
+    protected fun getGraphicAndXyToolbar(prefix: String, content: ContentBuilder<HTMLDivElement>) {
+        Div(
+            attrs = {
+                id("${prefix}_toolbar_$tabId")
+                style {
+                    display(DisplayStyle.Flex)
+                    flexDirection(FlexDirection.Row)
+                    flexWrap(FlexWrap.Wrap)
+                    justifyContent(JustifyContent.SpaceBetween)
+                    alignItems(AlignItems.Center)
+                    padding(styleControlPadding)
+                    backgroundColor(getColorGraphicAndXyToolbarBack())
+                }
+            }
+        ) {
+            content()
+        }
+    }
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    protected fun getGraphixAndXyTooltipCoord(x: Int, y: Int): Pair<Int, Int> =
+        Pair(
+            x - (0 * scaleKoef).roundToInt(),
+            y - (32 * scaleKoef).roundToInt(),
+        )
+
+    protected fun setGraphicAndXyTooltipOffTimeout(tooltipOffTime: Double, tooltipVisible: MutableState<Boolean>) {
+        //--- через 3 сек выключить тултип, если не было других активаций тултипов
+        //--- причина: баг (?) в том, что mouseleave вызывается сразу после mouseenter,
+        //--- причём после ухода с графика других mouseleave не вызывается.
+        window.setTimeout({
+            if (Date.now() > tooltipOffTime) {
+                tooltipVisible.value = false
+            }
+        }, 3000)
+    }
+
+ */
