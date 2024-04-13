@@ -3,7 +3,6 @@ package foatto.core_server.app.server
 import foatto.core.app.*
 import foatto.core.link.*
 import foatto.core.util.BusinessException
-import foatto.util.getCurrentTimeInt
 import foatto.core.util.getRandomInt
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.iApplication
@@ -14,6 +13,7 @@ import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.data.*
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.CoreAdvancedResultSet
+import foatto.util.getCurrentTimeInt
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.*
@@ -1573,7 +1573,10 @@ open class cStandart {
 
         //--- невидимые поля
         for (column in model.alFormHiddenColumn) {
-            if (column == model.columnId) continue // свое id-поле пропускаем, т.к. оно задается особым образом
+            //--- свое id-поле пропускаем, т.к. оно задается особым образом
+            if (column == model.columnId) {
+                continue
+            }
             alFormCell.add(getFormCell(column, hmColumnData, false))
         }
         //--- основные поля
@@ -1739,15 +1742,13 @@ open class cStandart {
         fci.alVisible = fci.alVisible.toMutableList().apply {
             for (i in 0 until column.getFormVisibleCount()) {
                 val fcvd = column.getFormVisible(i)
-                //--- выжимка из getFieldCellName
-                add(Triple("${fcvd.columnMaster.columnTableName}___${fcvd.columnMaster.getFieldName(0)}", fcvd.state, fcvd.values.toTypedArray()))
+                add(Triple(fcvd.columnMaster.getFieldCellName(), fcvd.state, fcvd.values.toTypedArray()))
             }
         }
         fci.alCaption = fci.alCaption.toMutableList().apply {
             for (i in 0 until column.getFormCaptionCount()) {
                 val fccd = column.getFormCaption(i)
-                //--- выжимка из getFieldCellName
-                add(Triple("${fccd.columnMaster.columnTableName}___${fccd.columnMaster.getFieldName(0)}", fccd.caption, fccd.values.toTypedArray()))
+                add(Triple(fccd.columnMaster.getFieldCellName(), fccd.caption, fccd.values.toTypedArray()))
             }
         }
         return fci
@@ -1839,7 +1840,7 @@ open class cStandart {
 
 //--- save part -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    open fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
+    open fun doSave(action: String, hmFormData: Map<String, FormData>, hmOut: MutableMap<String, Any>): String? {
 
         val alColumnList = mutableListOf<iColumn>()
         alColumnList.addAll(model.alFormHiddenColumn)
@@ -1855,7 +1856,7 @@ open class cStandart {
         var id = getIdFromParam()!!
 
         //--- ошибки ввода в форме
-        val returnURL = checkInput(id, alFormData, alColumnList, hmColumnData, hmOut)
+        val returnURL = checkInput(id, hmFormData, alColumnList, hmColumnData, hmOut)
         //--- урло на возврат с ошибкой
         if (returnURL != null) {
             return returnURL
@@ -1937,8 +1938,8 @@ open class cStandart {
         return postUrl ?: AppParameter.setParam(chmSession[AppParameter.REFERER + hmParam[AppParameter.REFERER]] as String, AppParameter.ID, id.toString())
     }
 
-    protected fun checkInput(id: Int, alFormData: List<FormData>, alColumnList: List<iColumn>, hmColumnData: MutableMap<iColumn, iData>, hmOut: MutableMap<String, Any>): String? {
-        var isValidFormData = getFormValues(id, alFormData, alColumnList, hmColumnData)
+    protected fun checkInput(id: Int, hmFormData: Map<String, FormData>, alColumnList: List<iColumn>, hmColumnData: MutableMap<iColumn, iData>, hmOut: MutableMap<String, Any>): String? {
+        var isValidFormData = getFormValues(id, hmFormData, alColumnList, hmColumnData)
 
         //--- после успешных основных проверок дополнительно проверим на парную уникальность версионных полей (для режима редактирования записи)
         if (isValidFormData && model.columnVersionId != null && model.columnVersionNo != null && id != 0) {
@@ -2006,18 +2007,19 @@ open class cStandart {
         } else return null
     }
 
-    protected open fun getFormValues(id: Int, alFormData: List<FormData>, alColumnList: List<iColumn>, hmColumnData: MutableMap<iColumn, iData>): Boolean {
+    protected open fun getFormValues(id: Int, hmFormData: Map<String, FormData>, alColumnList: List<iColumn>, hmColumnData: MutableMap<iColumn, iData>): Boolean {
         var isValid = true
         //--- перегон объектов из AdvancedByteBuffer в типизированное Data Object Storage
-        var formDataIndex = 0
         for (column in alColumnList) {
-            // свое id-поле пропускаем, т.к. оно задается особым образом
+            //--- своё id-поле пропускаем, т.к. оно задается особым образом
             if (column == model.columnId) {
                 continue
             }
-            val data = column.getData()
-            isValid = isValid and data.loadFromForm(conn, alFormData[formDataIndex++], model.columnId.getFieldName(), id)
-            hmColumnData[column] = data
+            hmFormData[column.getFieldCellName()]?.let { formData ->
+                val data = column.getData()
+                isValid = isValid and data.loadFromForm(conn, formData, model.columnId.getFieldName(), id)
+                hmColumnData[column] = data
+            }
         }
         //--- проверка на уникальность
         if (isValid) {
@@ -2191,7 +2193,7 @@ open class cStandart {
 
 //--- delete part ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    fun doDelete(alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String {
+    fun doDelete(hmFormData: Map<String, FormData>, hmOut: MutableMap<String, Any>): String {
         val id = getIdFromParam()!!
 
         val alColumnList = mutableListOf<iColumn>()
@@ -2202,7 +2204,7 @@ open class cStandart {
 
         //--- при удалении проверять правильность ввода нет необходимости -
         //--- все равно удаляться будет по ранее загруженным данным
-        checkInput(id, alFormData, alColumnList, hmColumnData, hmOut)
+        checkInput(id, hmFormData, alColumnList, hmColumnData, hmOut)
 
         //--- пред-обработка ( удаление файлов/картинок/проч. в серверных папках )
         preDelete(id)

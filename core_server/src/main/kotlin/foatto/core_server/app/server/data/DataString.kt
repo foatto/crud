@@ -99,14 +99,14 @@ class DataString(aColumn: iColumn) : DataAbstract(aColumn) {
         val fci: FormCell
         if (cs.rows == 0) {
             fci = FormCell(FormCellType.STRING)
-            fci.name = getFieldCellName(0)
-            fci.value = if (errorText == null) text else errorValue!!
-            fci.column = cs.cols
+            fci.strName = column.getFieldCellName()
+            fci.strValue = if (errorText == null) text else errorValue!!
+            fci.strColumn = cs.cols
             fci.isPassword = cs.isPassword
             fci.alComboString = cs.alCombo
         } else {
             fci = FormCell(FormCellType.TEXT)
-            fci.textName = getFieldCellName(0)
+            fci.textName = column.getFieldCellName()
             fci.textValue = text
             fci.textRow = cs.rows
             fci.textColumn = cs.cols

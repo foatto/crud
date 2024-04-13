@@ -62,7 +62,7 @@ abstract class DataAbstractSelector(aColumn: iColumn, aFormCellType: FormCellTyp
         val cas = column as ColumnAbstractSelector
 
         return FormCell(formCellType).apply {
-            comboName = getFieldCellName(0)
+            comboName = cas.getFieldCellName()
             comboValue = if (errorText == null) {
                 intValue
             } else {

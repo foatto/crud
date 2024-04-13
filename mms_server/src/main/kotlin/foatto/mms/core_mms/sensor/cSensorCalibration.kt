@@ -76,32 +76,34 @@ class cSensorCalibration : cStandart() {
         for (rowIndex in alSensorValue.indices) {
             //--- Значение датчика
             val sensorValue = alSensorValue[rowIndex]
-            var fci = FormCell(FormCellType.STRING)
-            fci.name = StringBuilder(SENSOR_FIELD_PREFIX).append(rowIndex).toString()
-            fci.value = if (sensorValue == null) {
-                ""
-            } else if (userConfig.upIsUseThousandsDivider) {
-                getSplittedLong(sensorValue.toLong())
-            } else {
-                sensorValue.toString()
+            var fci = FormCell(FormCellType.STRING).apply {
+                strName = "$SENSOR_FIELD_PREFIX$rowIndex"
+                strValue = if (sensorValue == null) {
+                    ""
+                } else if (userConfig.upIsUseThousandsDivider) {
+                    getSplittedLong(sensorValue.toLong())
+                } else {
+                    sensorValue.toString()
+                }
+                strColumn = 10
+                isEditable = true
+                caption = " "  // совсем нулевая строка даст невидимое поле
             }
-            fci.column = 10
-            fci.isEditable = true
-            fci.caption = " "  // совсем нулевая строка даст невидимое поле
             alFormCell.add(fci)
 
             //--- Значение измеряемой величины
             val dataValue = alDataValue[rowIndex]
-            fci = FormCell(FormCellType.STRING)
-            fci.name = StringBuilder(DATA_FIELD_PREFIX).append(rowIndex).toString()
-            fci.value = if (dataValue == null) {
-                ""
-            } else {
-                getSplittedDouble(dataValue, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
+            fci = FormCell(FormCellType.STRING).apply {
+                strName = "$DATA_FIELD_PREFIX$rowIndex"
+                strValue = if (dataValue == null) {
+                    ""
+                } else {
+                    getSplittedDouble(dataValue, 1, userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
+                }
+                strColumn = 10
+                isEditable = true
+                caption = " "  // совсем нулевая строка даст невидимое поле
             }
-            fci.column = 10
-            fci.isEditable = true
-            fci.caption = " "  // совсем нулевая строка даст невидимое поле
             alFormCell.add(fci)
         }
 
@@ -141,26 +143,31 @@ class cSensorCalibration : cStandart() {
 
     }
 
-    override fun doSave(action: String, alFormData: List<FormData>, hmOut: MutableMap<String, Any>): String? {
+    override fun doSave(action: String, hmFormData: Map<String, FormData>, hmOut: MutableMap<String, Any>): String? {
 
         val id = getIdFromParam()
         //--- мегаформа ввода калибровок сохраняет только при попытке их создания,
         //--- иначе запускаем обычный процесс сохранения
         if (id != 0) {
-            return super.doSave(action, alFormData, hmOut)
+            return super.doSave(action, hmFormData, hmOut)
         }
 
         val sensorID = hmParam[SENSOR_ID]!!.toInt()
         //--- удалить старые записи
         conn.executeUpdate(" DELETE FROM MMS_sensor_calibration WHERE sensor_id = $sensorID ")
         //--- добавить новые
-        var i = 0
-        while (i < alFormData.size) {
+        var rowIndex = 0
+        while (rowIndex < hmFormData.size / 2) {
             //--- сокращенный/оптимизированный вариант чтения из соответствующих DataInt/DataDouble
-            val strSensor = alFormData[i++].stringValue!!
-            val strData = alFormData[i++].stringValue!!
+            val strSensor = hmFormData["$SENSOR_FIELD_PREFIX$rowIndex"]?.stringValue
+            val strData = hmFormData["$DATA_FIELD_PREFIX$rowIndex"]?.stringValue
+            rowIndex++
+
             //--- строки с пустыми значениями просто пропускаем
-            if (strSensor.isEmpty() || strData.isEmpty()) continue
+            if (strSensor.isNullOrEmpty() || strData.isNullOrEmpty()) {
+                continue
+            }
+
             val sensorValue: Double
             val dataValue: Double
             try {
@@ -171,8 +178,10 @@ class cSensorCalibration : cStandart() {
             }
             //--- неправильно введенные числа тоже игнорируем
             conn.executeUpdate(
-                " INSERT INTO MMS_sensor_calibration ( id, sensor_id , value_sensor , value_data ) VALUES ( " +
-                    conn.getNextIntId("MMS_sensor_calibration", "id") + " , $sensorID , $sensorValue , $dataValue ) "
+                """
+                    INSERT INTO MMS_sensor_calibration ( id, sensor_id , value_sensor , value_data ) VALUES ( 
+                    ${conn.getNextIntId("MMS_sensor_calibration", "id")} , $sensorID , $sensorValue , $dataValue )
+                """
             )
         }
 

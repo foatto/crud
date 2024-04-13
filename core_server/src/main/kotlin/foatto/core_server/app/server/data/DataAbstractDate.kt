@@ -67,13 +67,15 @@ abstract class DataAbstractDate(aColumn: iColumn) : DataAbstract(aColumn) {
         }
 
     override fun getFormCell(rootDirName: String, conn: CoreAdvancedConnection, isUseThousandsDivider: Boolean, decimalDivider: Char): FormCell {
-        val fci = FormCell(FormCellType.DATE)
+        val fci = FormCell(FormCellType.DATE).apply {
+            dtName = column.getFieldCellName()
+        }
 
         //--- данные ye/mo/da для пользователя выводим как da/mo/ye
         fci.alDateTimeField = fci.alDateTimeField.toMutableList().apply {
-            add(Pair(getFieldCellName(2), if (errorText == null) localDate.dayOfMonth.toString() else arrErrorValue!![2]))
-            add(Pair(getFieldCellName(1), if (errorText == null) localDate.monthValue.toString() else arrErrorValue!![1]))
-            add(Pair(getFieldCellName(0), if (errorText == null) localDate.year.toString() else arrErrorValue!![0]))
+            add(if (errorText == null) localDate.dayOfMonth.toString() else arrErrorValue!![2])
+            add(if (errorText == null) localDate.monthValue.toString() else arrErrorValue!![1])
+            add(if (errorText == null) localDate.year.toString() else arrErrorValue!![0])
         }
         return fci
     }

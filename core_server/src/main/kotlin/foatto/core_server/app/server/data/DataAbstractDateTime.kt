@@ -4,13 +4,13 @@ import foatto.core.link.FormCell
 import foatto.core.link.FormCellType
 import foatto.core.link.FormData
 import foatto.core.link.TableCell
-import foatto.util.DateTime_DMYHM
-import foatto.util.DateTime_DMYHMS
-import foatto.util.getDateTime
 import foatto.core_server.app.server.column.ColumnAbstractDateTime
 import foatto.core_server.app.server.column.ColumnDateTimeInt
 import foatto.core_server.app.server.column.iColumn
 import foatto.sql.CoreAdvancedConnection
+import foatto.util.DateTime_DMYHM
+import foatto.util.DateTime_DMYHMS
+import foatto.util.getDateTime
 import java.time.ZonedDateTime
 
 abstract class DataAbstractDateTime(aColumn: iColumn) : DataAbstract(aColumn) {
@@ -85,35 +85,30 @@ abstract class DataAbstractDateTime(aColumn: iColumn) : DataAbstract(aColumn) {
     override fun getFormCell(rootDirName: String, conn: CoreAdvancedConnection, isUseThousandsDivider: Boolean, decimalDivider: Char): FormCell {
         val cdt = column as ColumnDateTimeInt
 
-        val fci = FormCell(FormCellType.DATE_TIME)
-
-        fci.withSecond = cdt.withSecond
+        val fci = FormCell(FormCellType.DATE_TIME).apply {
+            dtName = column.getFieldCellName()
+            withSecond = cdt.withSecond
+        }
 
         fci.alDateTimeField = fci.alDateTimeField.toMutableList().apply {
-            add(Pair(getFieldCellName(2), if (errorText == null) zonedDateTime.dayOfMonth.toString() else arrErrorValue!![2]))
-            add(Pair(getFieldCellName(1), if (errorText == null) zonedDateTime.monthValue.toString() else arrErrorValue!![1]))
-            add(Pair(getFieldCellName(0), if (errorText == null) zonedDateTime.year.toString() else arrErrorValue!![0]))
-            add(Pair(getFieldCellName(3), if (errorText == null) zonedDateTime.hour.toString() else arrErrorValue!![3]))
+            add(if (errorText == null) zonedDateTime.dayOfMonth.toString() else arrErrorValue!![2])
+            add(if (errorText == null) zonedDateTime.monthValue.toString() else arrErrorValue!![1])
+            add(if (errorText == null) zonedDateTime.year.toString() else arrErrorValue!![0])
+            add(if (errorText == null) zonedDateTime.hour.toString() else arrErrorValue!![3])
             add(
-                Pair(
-                    getFieldCellName(4),
-                    if (errorText == null) {
-                        (if (zonedDateTime.minute < 10) "0" else "") + zonedDateTime.minute.toString()
-                    } else {
-                        arrErrorValue!![4]
-                    }
-                )
+                if (errorText == null) {
+                    (if (zonedDateTime.minute < 10) "0" else "") + zonedDateTime.minute.toString()
+                } else {
+                    arrErrorValue!![4]
+                }
             )
             if (cdt.withSecond)
                 add(
-                    Pair(
-                        getFieldCellName(5),
-                        if (errorText == null) {
-                            (if (zonedDateTime.second < 10) "0" else "") + zonedDateTime.second.toString()
-                        } else {
-                            arrErrorValue!![5]
-                        }
-                    )
+                    if (errorText == null) {
+                        (if (zonedDateTime.second < 10) "0" else "") + zonedDateTime.second.toString()
+                    } else {
+                        arrErrorValue!![5]
+                    }
                 )
         }
         return fci
@@ -125,7 +120,5 @@ abstract class DataAbstractDateTime(aColumn: iColumn) : DataAbstract(aColumn) {
         arrErrorValue = null
         errorText = null
     }
-
-    override fun getFieldCellName(index: Int): String = "${getFieldName(0)}_$index".replace(".", "___")
 
 }

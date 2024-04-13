@@ -52,7 +52,7 @@ class DataBoolean(aColumn: iColumn) : DataAbstract(aColumn) {
         )
 
     override fun getFormCell(rootDirName: String, conn: CoreAdvancedConnection, isUseThousandsDivider: Boolean, decimalDivider: Char) = FormCell(
-        aBooleanName = getFieldCellName(0),
+        aBooleanName = column.getFieldCellName(),
         aBooleanValue = value,
         aAlSwitch = cb.alSwitchText,
     )

@@ -18,11 +18,7 @@ abstract class DataAbstract(aColumn: iColumn) : iData, Cloneable {
     override fun preDelete(rootDirName: String, conn: CoreAdvancedConnection) {}
     override fun getError(): String? = errorText
 
-    //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    protected open fun getFieldCellName(index: Int): String = getFieldName(index).replace(".", "___")
-
-    protected fun getFieldName(index: Int): String = "${column.columnTableName}.${column.alFieldName[index]}"
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     override fun clone(): Any = super.clone()
 }

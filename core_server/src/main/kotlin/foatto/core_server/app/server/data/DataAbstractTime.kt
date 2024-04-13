@@ -23,12 +23,12 @@ abstract class DataAbstractTime(aColumn: iColumn) : DataAbstract(aColumn) {
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    protected fun getDateTimeField(alDateTimeField: List<Pair<String, String>>, withSecond: Boolean): List<Pair<String, String>> =
+    protected fun getDateTimeField(alDateTimeField: List<String>, withSecond: Boolean): List<String> =
         alDateTimeField.toMutableList().apply {
-            add(Pair(getFieldCellName(0), if (errorText == null) localTime.hour.toString() else arrErrorValue!![0]))
-            add(Pair(getFieldCellName(1), if (errorText == null) (if (localTime.minute < 10) "0" else "") + localTime.minute else arrErrorValue!![1]))
+            add(if (errorText == null) localTime.hour.toString() else arrErrorValue!![0])
+            add(if (errorText == null) (if (localTime.minute < 10) "0" else "") + localTime.minute else arrErrorValue!![1])
             if (withSecond) {
-                add(Pair(getFieldCellName(2), if (errorText == null) (if (localTime.second < 10) "0" else "") + localTime.second else arrErrorValue!![2]))
+                add(if (errorText == null) (if (localTime.second < 10) "0" else "") + localTime.second else arrErrorValue!![2])
             }
         }
 }

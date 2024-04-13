@@ -81,8 +81,8 @@ class DataInt(aColumn: iColumn) : DataAbstractIntValue(aColumn) {
 
     override fun getFormCell(rootDirName: String, conn: CoreAdvancedConnection, isUseThousandsDivider: Boolean, decimalDivider: Char) =
         FormCell(FormCellType.INT).apply {
-            name = getFieldCellName(0)
-            value = if (errorText == null) {
+            strName = column.getFieldCellName()
+            strValue = if (errorText == null) {
                 if (isUseThousandsDivider) {
                     getSplittedLong(intValue.toLong(), ci.radix)
                 } else {
@@ -91,7 +91,7 @@ class DataInt(aColumn: iColumn) : DataAbstractIntValue(aColumn) {
             } else {
                 errorValue!!
             }
-            column = ci.cols
+            strColumn = ci.cols
             alComboString = ci.alCombo
         }
 

@@ -78,7 +78,7 @@ class DataFile(
 
     override fun getFormCell(rootDirName: String, conn: CoreAdvancedConnection, isUseThousandsDivider: Boolean, decimalDivider: Char): FormCell {
         val fci = FormCell(FormCellType.FILE)
-        fci.fileName = getFieldCellName(0)
+        fci.fileName = column.getFieldCellName()
         fci.fileId = fileId
 
         val alFileStoreData = application.getFileList(conn, fileId)

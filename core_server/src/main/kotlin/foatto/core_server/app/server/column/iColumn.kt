@@ -72,6 +72,9 @@ interface iColumn {
     fun getFieldName(): String
     fun getFieldName(index: Int): String
 
+    fun getFieldFullName(index: Int): String = "$columnTableName.${alFieldName[index]}"
+    fun getFieldCellName(): String = getFieldFullName(0).replace(".", "___")
+
     fun getSelectTo(): List<iColumn>
     fun getSelectFrom(): List<iColumn>
 

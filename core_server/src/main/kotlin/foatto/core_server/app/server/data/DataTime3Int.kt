@@ -86,10 +86,12 @@ class DataTime3Int(aColumn: iColumn) : DataAbstractTime(aColumn) {
     override fun getFormCell(rootDirName: String, conn: CoreAdvancedConnection, isUseThousandsDivider: Boolean, decimalDivider: Char): FormCell {
         val ct = column as ColumnTime3Int
 
-        val fci = FormCell(FormCellType.TIME)
+        val fci = FormCell(FormCellType.TIME).apply {
+            dtName = column.getFieldCellName()
+            withSecond = ct.withSecond
+            alDateTimeField = getDateTimeField(alDateTimeField, ct.withSecond)
+        }
 
-        fci.withSecond = ct.withSecond
-        fci.alDateTimeField = getDateTimeField(fci.alDateTimeField, ct.withSecond)
 
         return fci
     }

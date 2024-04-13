@@ -81,12 +81,11 @@ class DataTimeDT(aColumn: iColumn) : DataAbstractTime(aColumn) {
         val ct = column as ColumnTimeDT
 
         return FormCell(FormCellType.TIME).apply {
-            withSecond = ct.withSecond
+            dtName = column.getFieldCellName()
+            withSecond = column.withSecond
             alDateTimeField = getDateTimeField(alDateTimeField, ct.withSecond)
         }
     }
-
-    override fun getFieldCellName(index: Int): String = "${getFieldName(0)}_$index".replace(".", "___")
 
     override fun getFieldSQLValue(index: Int): String {
         return "'${localTime.hour}:${localTime.minute}:${localTime.second}'"

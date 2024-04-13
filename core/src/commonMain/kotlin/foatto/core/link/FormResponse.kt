@@ -25,9 +25,9 @@ class FormCell(val cellType: FormCellType) {
     var isAutoFocus = false
 
     //--- TYPE_STRING, TYPE_INT, TYPE_DOUBLE
-    var name = ""
-    var value = ""
-    var column = 0
+    var strName = ""
+    var strValue = ""
+    var strColumn = 0
     var alComboString = listOf<String>()
 
     //--- TYPE_STRING
@@ -45,7 +45,8 @@ class FormCell(val cellType: FormCellType) {
     var alSwitchText = listOf<String>()
 
     //--- TYPE_DATE, TYPE_TIME, TYPE_DATE_TIME
-    var alDateTimeField = listOf<Pair<String, String>>()    // name, value
+    var dtName = ""
+    var alDateTimeField = listOf<String>()    // name, value
 
     //--- TYPE_TIME, TYPE_DATE_TIME
     var withSecond = false
@@ -92,8 +93,8 @@ enum class FormPinMode { OFF, AUTO, ON }
 @Serializable
 class FormButton(
     val url: String,
-    val caption: String,
-    val iconName: String,
+    val caption: String?,
+    val iconName: String?,
     val withNewData: Boolean,
     val key: Int,
     val question: String? = null,

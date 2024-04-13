@@ -37,11 +37,11 @@ class DataBinary(aColumn: iColumn) : DataAbstract(aColumn) {
         return tc
     }
 
-    override fun getFormCell(rootDirName: String, conn: CoreAdvancedConnection, isUseThousandsDivider: Boolean, decimalDivider: Char) =
+    override fun getFormCell(rootDirName: String, conn: CoreAdvancedConnection, isUseThousandsDivider: Boolean, decimalDivider: Char): FormCell =
         FormCell(FormCellType.STRING).apply {
-            name = getFieldCellName(0)
-            value = binaryValue.getHex(null, false).toString()
-            column = 16
+            strName = column.getFieldCellName()
+            strValue = binaryValue.getHex(null, false).toString()
+            strColumn = 16
             isPassword = false
         }
 

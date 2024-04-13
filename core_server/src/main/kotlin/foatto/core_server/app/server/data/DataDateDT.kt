@@ -27,8 +27,6 @@ class DataDateDT(aColumn: iColumn) : DataAbstractDate(aColumn) {
         errorText = null
     }
 
-    override fun getFieldCellName(index: Int): String = "${getFieldName(0)}_$index".replace(".", "___")
-
     override fun getFieldSQLValue(index: Int): String {
         return "'${localDate.year}-${localDate.monthValue}-${localDate.dayOfMonth}'"
     }

@@ -97,13 +97,13 @@ class DataDouble(aColumn: iColumn) : DataAbstract(aColumn) {
 
     override fun getFormCell(rootDirName: String, conn: CoreAdvancedConnection, isUseThousandsDivider: Boolean, decimalDivider: Char): FormCell =
         FormCell(FormCellType.DOUBLE).apply {
-            name = getFieldCellName(0)
-            value = if (errorText == null) {
+            strName = column.getFieldCellName()
+            strValue = if (errorText == null) {
                 getSplittedDouble(doubleValue, cd.precision, isUseThousandsDivider, decimalDivider)
             } else {
                 errorValue!!
             }
-            column = cd.cols
+            strColumn = cd.cols
             alComboString = cd.alCombo
         }
 
