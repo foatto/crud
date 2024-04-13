@@ -2,6 +2,10 @@ package foatto.core_compose
 
 import foatto.core.link.AppRequest
 import foatto.core.link.AppResponse
+import foatto.core.link.ChangePasswordRequest
+import foatto.core.link.ChangePasswordResponse
+import foatto.core.link.LogoffRequest
+import foatto.core.link.LogoffResponse
 import foatto.core.util.getRandomLong
 
 //WASM!!! временно, до появления всеобщего ktor-client (в т.ч. для wasm)
@@ -94,48 +98,15 @@ fun invokeSaveUserProperty(
 
 */
 
-//!!!
-//@OptIn(DelicateCoroutinesApi::class)
-//fun invokeChangePassword(
-//    request: ChangePasswordRequest,
-//    onSuccess: (response: ChangePasswordResponse) -> Unit = {},
-//) {
-//    GlobalScope.launch(applicationDispatcher) {
-//        request.sessionId = sessionId
-//
-//        val response: ChangePasswordResponse = httpClient.post {
-//            url("/api/change_password")
-//            contentType(ContentType.Application.Json)
-//            setBody(request)
-//            timeout {
-//                socketTimeoutMillis = 60_000
-//            }
-//        }.body()
-//
-//        onSuccess(response)
-//    }
-//}
-//
-//@OptIn(DelicateCoroutinesApi::class)
-//fun invokeLogoff(
-//    request: LogoffRequest,
-//    onSuccess: (response: LogoffResponse) -> Unit = {},
-//) {
-//    GlobalScope.launch(applicationDispatcher) {
-//        request.sessionId = sessionId
-//
-//        val response: LogoffResponse = httpClient.post {
-//            url("/api/logoff")
-//            contentType(ContentType.Application.Json)
-//            setBody(request)
-//            timeout {
-//                socketTimeoutMillis = 60_000
-//            }
-//        }.body()
-//
-//        onSuccess(response)
-//    }
-//}
+internal expect fun invokeChangePassword(
+    request: ChangePasswordRequest,
+    onSuccess: (response: ChangePasswordResponse) -> Unit,
+)
+
+internal expect fun invokeLogoff(
+    request: LogoffRequest,
+    onSuccess: (response: LogoffResponse) -> Unit,
+)
 
 /*
 
