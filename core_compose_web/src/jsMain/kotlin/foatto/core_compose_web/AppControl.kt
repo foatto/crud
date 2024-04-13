@@ -4,9 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import foatto.core.app.UP_TIME_OFFSET
 import foatto.core.link.*
-import foatto.core_compose_web.model.MenuDataClient
 import foatto.core_compose_web.control.*
 import foatto.core_compose_web.link.invokeApp
+import foatto.core_compose_web.model.MenuDataClient
 import foatto.core_compose_web.style.*
 import foatto.core_compose_web.util.encodePassword
 import kotlinx.browser.document
@@ -24,7 +24,6 @@ import org.jetbrains.compose.web.dom.Img
 import org.jetbrains.compose.web.dom.Input
 import org.jetbrains.compose.web.dom.Text
 import org.w3c.dom.HTMLElement
-import kotlin.js.Date
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -10,7 +10,7 @@ pluginManagement {
     val springBootVersion: String by settings
 
     repositories {
-//        maven("https://maven.pkg.jetbrains.space/kotlin/p/wasm/experimental")
+        maven("https://maven.pkg.jetbrains.space/kotlin/p/wasm/experimental")
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
         google()
         gradlePluginPortal()
@@ -37,15 +37,6 @@ pluginManagement {
         id("org.springframework.boot").version(springBootVersion)
     }
 }
-
-//--- возможно, это лишнее, т.к. есть блок subprojects.repositories в корневом build.gradle.kts
-//dependencyResolutionManagement {
-//    repositories {
-//        google()
-//        mavenCentral()
-//        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
-//    }
-//}
 
 include(
     ":core",

@@ -519,11 +519,11 @@ class sdcLiquid : sdcAbstractAnalog() {
 
         val isLimit = sclfc.maxLimit != sclfc.minLimit
         if (isLimit) {
-            aLiquidMin!!.alGLD = listOf(
+            aLiquidMin.alGLD = listOf(
                 GraphicLineData(begTime, sclfc.minLimit, GraphicColorIndex.LINE_LIMIT),
                 GraphicLineData(endTime, sclfc.minLimit, GraphicColorIndex.LINE_LIMIT)
             )
-            aLiquidMax!!.alGLD = listOf(
+            aLiquidMax.alGLD = listOf(
                 GraphicLineData(begTime, sclfc.maxLimit, GraphicColorIndex.LINE_LIMIT),
                 GraphicLineData(endTime, sclfc.maxLimit, GraphicColorIndex.LINE_LIMIT)
             )

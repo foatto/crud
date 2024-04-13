@@ -514,6 +514,10 @@ class Alerter(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                 cmd = stMailBody.nextToken().prepareHtmlString()
                 AdvancedLogger.debug("First row = '$cmd'")
             }
+            
+//TODO: разобрать новый формат сообщений от bk.ru
+//!!!<META HTTP-EQUIV=`CONTENT-TYPE` CONTENT=`TEXT/HTML; CHARSET=UTF-8`><PRE>ПОЛУЧЕНО СПАСИБО</PRE>
+
             //--- пошла новая неотключаемая мода у Apple - письма исключительно в html-формате
             if (cmd.contains("<HTML>")) {
                 sbHtmlMessage = ""

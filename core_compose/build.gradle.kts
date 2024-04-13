@@ -53,7 +53,7 @@ kotlin {
 //WASM!!! пока не готов релиз wasm-версии ktor-client - сделаем отдельные зависимости в android-части,
 // а у wasm будем использовать "родной" XMLHttpRequest
 //
-//            api("io.ktor:ktor-client-core:$ktorVersion")
+//            //api("io.ktor:ktor-client-core:$ktorVersion") - уже есть в ktor-client-content-negotiation
 //            api("io.ktor:ktor-client-content-negotiation:$ktorVersion")
 //            api("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
 
@@ -68,7 +68,7 @@ kotlin {
 
             api("com.russhwolf:multiplatform-settings:$multiplatformSettingsVersion")
             api("com.russhwolf:multiplatform-settings-no-arg:$multiplatformSettingsVersion")
-//            api("media.kamel:kamel-image-default:$kamelImageVersion") //- пока не готова wasm-версия
+            api("media.kamel:kamel-image-default:$kamelImageVersion") //- пока не готова wasm-версия
 
             api(project(":core"))
         }
@@ -82,12 +82,13 @@ kotlin {
 
 //WASM!!! пока не готов релиз wasm-версии ktor-client - сделаем отдельные зависимости в android-части,
 // а у wasm будем использовать "родной" XMLHttpRequest
-            api("io.ktor:ktor-client-core-jvm:$ktorVersion")
+            //api("io.ktor:ktor-client-core-jvm:$ktorVersion") - уже есть в ktor-client-content-negotiation
             api("io.ktor:ktor-client-content-negotiation-jvm:$ktorVersion")
             api("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion")
         }
     }
 }
+// ktor-client-js:3.0.0-wasm2
 
 android {
     namespace = "foatto.core_compose"
