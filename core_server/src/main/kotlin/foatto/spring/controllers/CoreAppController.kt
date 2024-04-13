@@ -58,8 +58,12 @@ abstract class CoreAppController(
         private val chmFileTime = ConcurrentHashMap<String, Int>()
 
         fun download(response: HttpServletResponse, path: String) {
-            val file = File(path)
-            val mimeType = URLConnection.guessContentTypeFromName(file.name)
+            val file = File(path.replace("..", "").replace("//", ""))
+            val mimeType = if (path.endsWith(".wasm", true)) {
+                "application/wasm"
+            } else {
+                URLConnection.guessContentTypeFromName(file.name)
+            }
 
             response.contentType = mimeType
             response.setContentLength(file.length().toInt())
@@ -441,8 +445,8 @@ abstract class CoreAppController(
                                     }
 
                                     val redirectURL = when (appRequest.action) {
-                                        AppAction.SAVE, AppAction.ARCHIVE, AppAction.UNARCHIVE -> page.doSave(appRequest.action, appRequest.alFormData!!, hmOut)
-                                        AppAction.DELETE -> page.doDelete(appRequest.alFormData!!, hmOut)
+                                        AppAction.SAVE, AppAction.ARCHIVE, AppAction.UNARCHIVE -> page.doSave(appRequest.action, appRequest.hmFormData!!, hmOut)
+                                        AppAction.DELETE -> page.doDelete(appRequest.hmFormData!!, hmOut)
                                         else -> throw Throwable("Unknown action = ${appRequest.action}")
                                     }
 

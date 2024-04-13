@@ -19,6 +19,15 @@ class CoreStaticFileDownloadController {
         CoreAppController.download(response, "${rootDirName}/web/index.html")
     }
 
+    @GetMapping(value = ["/{fileName}"])
+    fun downloadWebFromRootUrl(
+        response: HttpServletResponse,
+        @PathVariable("fileName")
+        fileName: String
+    ) {
+        CoreAppController.download(response, "${rootDirName}/web/$fileName")
+    }
+
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @GetMapping(value = ["/web/{fileName}"])
