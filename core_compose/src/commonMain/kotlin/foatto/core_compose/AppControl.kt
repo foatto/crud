@@ -2,12 +2,15 @@ package foatto.core_compose
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.Text
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import foatto.core.app.UP_TIME_OFFSET
 import foatto.core.link.AppAction
 import foatto.core.link.AppRequest
@@ -18,9 +21,33 @@ import foatto.core.link.ResponseCode
 import foatto.core_compose.composables.LogonForm
 import foatto.core_compose.controls.AbstractControl
 import foatto.core_compose.controls.EmptyControl
+import foatto.core_compose.controls.FormControl
+import foatto.core_compose.controls.getTableControl
+import foatto.core_compose.di.SETTINGS_LOGIN
+import foatto.core_compose.di.SETTINGS_PASSWORD
 import foatto.core_compose.di.settings
 import foatto.core_compose.models.MenuDataClient
 import foatto.core_compose.utils.encodePassword
+
+/*
+
+для перекрытия в shop-client
+
+var getTableControl: (
+    root: Root,
+    appControl: AppControl,
+    appParam: String,
+    tableResponse: TableResponse,
+    tabId: Int,
+) -> TableControl = { root: Root,
+                      appControl: AppControl,
+                      appParam: String,
+                      tableResponse: TableResponse,
+                      tabId: Int ->
+    TableControl(root, appControl, appParam, tableResponse, tabId)
+}
+
+ */
 
 class AppControl(
     private val root: Root,
@@ -28,13 +55,8 @@ class AppControl(
     private val tabId: Int,
 ) {
 
-    companion object {
-        private const val SETTINGS_LOGIN: String = "login"
-        private const val SETTINGS_PASSWORD: String = "password"
-    }
-
     private var responseCode by mutableStateOf(ResponseCode.LOGON_NEED)
-    private val curControl by mutableStateOf<AbstractControl>(EmptyControl())
+    private var curControl by mutableStateOf<AbstractControl>(EmptyControl())
 
     private var login by mutableStateOf("")
     private var password by mutableStateOf("")
@@ -50,6 +72,7 @@ class AppControl(
             when (responseCode) {
                 ResponseCode.LOGON_NEED, ResponseCode.LOGON_FAILED -> {
                     LogonForm(
+                        modifier = Modifier.align(Alignment.Center),
                         responseCode = responseCode,
                         login = login,
                         password = password,
@@ -71,13 +94,19 @@ class AppControl(
 
                 ResponseCode.LOGON_SYSTEM_BLOCKED -> {
                     Text(
+                        modifier = Modifier.align(Alignment.Center),
                         text = "Пользователь заблокирован системой.",
+                        color = Color.Red,
+                        fontWeight = FontWeight.Bold,
                     )
                 }
 
                 ResponseCode.LOGON_ADMIN_BLOCKED -> {
                     Text(
+                        modifier = Modifier.align(Alignment.Center),
                         text = "Пользователь заблокирован администратором.",
+                        color = Color.Red,
+                        fontWeight = FontWeight.Bold,
                     )
                 }
 
@@ -86,13 +115,15 @@ class AppControl(
                 }
 
                 else -> {
-                    Text("Unknown response code: $responseCode")
+                    Text(
+                        modifier = Modifier.align(Alignment.Center),
+                        text = "Unknown response code: $responseCode",
+                        color = Color.Red,
+                        fontWeight = FontWeight.Bold,
+                    )
                 }
 
                 /*
-                    LOGON_SUCCESS,
-                    LOGON_SUCCESS_BUT_OLD,
-
                     REDIRECT,
 
                     GRAPHIC,
@@ -130,6 +161,7 @@ class AppControl(
             }
         } else {
             root.setWait(true)
+
             invokeApp(appRequest) { appResponse: AppResponse ->
                 when (appResponse.code) {
                     //--- если требуется вход - сохраним последний запрос
@@ -173,9 +205,10 @@ class AppControl(
                             }
                         }
                         root.setMenuBarData(
-                            appResponse.alMenuData!!.map { menuDataServer ->
+                            alMenuData = appResponse.alMenuData!!.map { menuDataServer ->
                                 mapMenuData(menuDataServer)
-                            }
+                            },
+                            scaledScreenWidth = root.scaledScreenWidth
                         )
                         //--- перевызовем сервер с предыдущей (до-логинной) командой
                         call(prevRequest)
@@ -185,22 +218,22 @@ class AppControl(
                         call(AppRequest(appResponse.redirect!!))
                     }
 
-//                    ResponseCode.TABLE -> {
-//                        val tableControl = getTableControl(root, this, appRequest.action, appResponse.table!!, tabId)
-//                        curControl.value = tableControl
-//                        responseCode.value = appResponse.code
-//
-//                        tableControl.start()
-//                    }
-//
-//                    ResponseCode.FORM -> {
-//                        val formControl = FormControl(root, this, appResponse.form!!, tabId)
-//                        curControl.value = formControl
-//                        responseCode.value = appResponse.code
-//
-//                        formControl.start()
-//                    }
-//
+                    ResponseCode.TABLE -> {
+                        val tableControl = getTableControl(root, this, appRequest.action, appResponse.table!!, tabId)
+                        curControl = tableControl
+                        responseCode = appResponse.code
+
+                        tableControl.start()
+                    }
+
+                    ResponseCode.FORM -> {
+                        val formControl = FormControl(root, this, appResponse.form!!, tabId)
+                        curControl = formControl
+                        responseCode = appResponse.code
+
+                        formControl.start()
+                    }
+
 //                    ResponseCode.GRAPHIC -> {
 //                        val graphicControl = GraphicControl(root, this, appResponse.graphic!!, tabId)
 //                        curControl.value = graphicControl
@@ -273,8 +306,33 @@ class AppControl(
         alSubMenu = menuDataServer.alSubMenu?.map { subMenuDataServer ->
             mapMenuData(subMenuDataServer)
         },
-        inNewWindow = false,
-        isHover = mutableStateOf(false),
+        inNewWindow = true,
     )
 
 }
+/*
+    private fun doNextFocus(curIndex: Int) {
+        val element = document.getElementById("logon_${curIndex + 1}")
+        if (element is HTMLElement) {
+            element.focus()
+        }
+    }
+
+    private fun fillSystemProperties(hmSystemProperties: MutableMap<String, String>) {
+        hmSystemProperties["k.b.w.devicePixelRatio"] = window.devicePixelRatio.toString()
+        hmSystemProperties["k.b.w.appCodeName"] = window.navigator.appCodeName
+        hmSystemProperties["k.b.w.appName"] = window.navigator.appName
+        hmSystemProperties["k.b.w.appVersion"] = window.navigator.appVersion
+        hmSystemProperties["k.b.w.language"] = window.navigator.language
+        hmSystemProperties["k.b.w.platform"] = window.navigator.platform
+        hmSystemProperties["k.b.w.product"] = window.navigator.product
+        hmSystemProperties["k.b.w.productSub"] = window.navigator.productSub
+        hmSystemProperties["k.b.w.userAgent"] = window.navigator.userAgent
+        hmSystemProperties["k.b.w.vendor"] = window.navigator.vendor
+        hmSystemProperties["k.b.w.width"] = window.screen.width.toString()
+        hmSystemProperties["k.b.w.height"] = window.screen.height.toString()
+        hmSystemProperties["k.b.w.availWidth"] = window.screen.availWidth.toString()
+        hmSystemProperties["k.b.w.availHeight"] = window.screen.availHeight.toString()
+    }
+
+ */
