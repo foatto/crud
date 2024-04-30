@@ -60,7 +60,7 @@ class AppControl(
 
     private var login by mutableStateOf("")
     private var password by mutableStateOf("")
-    private var isRememberMe by mutableStateOf(false)
+    private var isRememberMe by mutableStateOf(true)
 
     private lateinit var prevRequest: AppRequest
 

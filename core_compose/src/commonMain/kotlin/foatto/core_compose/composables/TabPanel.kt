@@ -37,7 +37,7 @@ fun TabPanel(
                     onClick = { onTabClick(index) },
                 ) {
                     Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        //horizontalArrangement = Arrangement.SpaceBetween, - don't work properly, use Spacer
                     ) {
                         Spacer(modifier = Modifier.weight(1.0f))
                         Text(
