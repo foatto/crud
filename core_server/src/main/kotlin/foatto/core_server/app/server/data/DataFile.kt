@@ -43,7 +43,7 @@ class DataFile(
 
     override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, dataRowNo: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell {
         if (isShowEmptyTableCell) {
-            return TableCell(row, col, column.rowSpan, column.colSpan, dataRowNo)
+            return TableCell(row, col, /*column.rowSpan,*/ column.colSpan, dataRowNo)
         }
 
         val alFileStoreData = application.getFileList(conn, fileId)
@@ -55,7 +55,7 @@ class DataFile(
         val tc = TableCell(
             aRow = row,
             aCol = col,
-            aRowSpan = column.rowSpan,
+//            aRowSpan = column.rowSpan,
             aColSpan = column.colSpan,
             aDataRow = dataRowNo,
 

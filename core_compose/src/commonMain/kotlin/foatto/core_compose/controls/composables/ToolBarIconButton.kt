@@ -3,6 +3,7 @@ package foatto.core_compose.controls.composables
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import foatto.core_compose.composables.ImageOrTextFromName
+import foatto.core_compose.styleToolbarIconSize
 
 @Composable
 fun ToolBarIconButton(
@@ -19,7 +20,7 @@ fun ToolBarIconButton(
                 onClick()
             }
         ) {
-            ImageOrTextFromName(name, tooltip)
+            ImageOrTextFromName(name, tooltip, styleToolbarIconSize)
 //                        fontSize(styleCommonButtonFontSize)
 //                        padding(styleIconButtonPadding)
 //                        setMargins(arrStyleCommonMargin)

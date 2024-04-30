@@ -1,7 +1,9 @@
 package foatto.core_compose.controls.models.table
 
-class TableTextCellDataClient(
+class TableCellDataClient(
     val icon: String = "",
     val image: String = "",
     val text: String = "",
+    val url: String = "",
+    val inNewWindow: Boolean = false,
 )

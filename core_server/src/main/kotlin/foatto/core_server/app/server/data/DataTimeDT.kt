@@ -58,12 +58,12 @@ class DataTimeDT(aColumn: iColumn) : DataAbstractTime(aColumn) {
         val ct = column as ColumnTimeDT
 
         return if (isShowEmptyTableCell) {
-            TableCell(row, col, column.rowSpan, column.colSpan, dataRowNo)
+            TableCell(row, col, /*column.rowSpan,*/ column.colSpan, dataRowNo)
         } else {
             TableCell(
                 aRow = row,
                 aCol = col,
-                aRowSpan = column.rowSpan,
+//                aRowSpan = column.rowSpan,
                 aColSpan = column.colSpan,
                 aDataRow = dataRowNo,
 

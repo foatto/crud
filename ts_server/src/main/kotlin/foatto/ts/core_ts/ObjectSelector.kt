@@ -1,7 +1,6 @@
 package foatto.ts.core_ts
 
 import foatto.core_server.app.server.column.ColumnInt
-import foatto.core_server.app.server.column.ColumnStatic
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.mAbstract
@@ -16,15 +15,18 @@ class ObjectSelector {
 
     lateinit var columnObject: ColumnInt
         private set
-    lateinit var columnObjectName: ColumnString
-        private set
-    lateinit var columnObjectModel: ColumnString
-        private set
+    private lateinit var columnObjectName: ColumnString
+    private lateinit var columnObjectModel: ColumnString
 
     fun fillColumns(
-        model: mAbstract, isRequired: Boolean, isSelector: Boolean,
-        alTableHiddenColumn: MutableList<iColumn>?, alFormHiddenColumn: MutableList<iColumn>?, alFormColumn: MutableList<iColumn>?,
-        hmParentColumn: MutableMap<String, iColumn>, aSingleObjectMode: Boolean, addedStaticColumnCount: Int
+        model: mAbstract,
+        isRequired: Boolean,
+        isSelector: Boolean,
+        alTableHiddenColumn: MutableList<iColumn>,
+        alFormHiddenColumn: MutableList<iColumn>,
+        alFormColumn: MutableList<iColumn>,
+        hmParentColumn: MutableMap<String, iColumn>,
+        aSingleObjectMode: Boolean,
     ) {
 
         val columnObjectId = ColumnInt("TS_object", "id")
@@ -43,8 +45,7 @@ class ObjectSelector {
             //--- только для "родного" алиаса
             if (selectorAlias == null) {
                 columnObjectName.addSelectorColumn(columnObject, columnObjectId)
-            }
-            else {
+            } else {
                 columnObjectName.addSelectorColumn(selectorColumnTo!!, selectorColumnFrom!!)
             }
             columnObjectName.addSelectorColumn(columnObjectName)
@@ -53,36 +54,24 @@ class ObjectSelector {
 
         //--------------------------------------------------------------------------------------------------------------
 
-        alTableHiddenColumn?.add(columnObject)
+        alTableHiddenColumn.add(columnObject)
 
         if (aSingleObjectMode) {
-            alTableHiddenColumn!!.add(columnObjectName)
+            alTableHiddenColumn.add(columnObjectName)
             alTableHiddenColumn.add(columnObjectModel)
-        } else if (addedStaticColumnCount >= 0) {
-            model.addTableColumnVertNew(columnObjectName)
-            columnObjectName.rowSpan = 1 + addedStaticColumnCount
-
-            model.addTableColumnVertNew(columnObjectModel)
-
-            val arr = Array(addedStaticColumnCount) { ColumnStatic(model.modelTableName, "") }
-            model.addTableColumnVertAdd(*arr)
         } else {
             model.addTableColumn(columnObjectName)
             model.addTableColumn(columnObjectModel)
         }
 
-        if (alFormHiddenColumn != null) {
-            alFormHiddenColumn.add(columnObject)
-        }
+        alFormHiddenColumn.add(columnObject)
 
-        if (alFormColumn != null) {
-            if (aSingleObjectMode) {
-                alFormHiddenColumn!!.add(columnObjectName)
-                alFormHiddenColumn.add(columnObjectModel)
-            } else {
-                alFormColumn.add(columnObjectName)
-                alFormColumn.add(columnObjectModel)
-            }
+        if (aSingleObjectMode) {
+            alFormHiddenColumn.add(columnObjectName)
+            alFormHiddenColumn.add(columnObjectModel)
+        } else {
+            alFormColumn.add(columnObjectName)
+            alFormColumn.add(columnObjectModel)
         }
 
         hmParentColumn["ts_object"] = columnObject

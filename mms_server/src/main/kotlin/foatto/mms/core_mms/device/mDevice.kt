@@ -115,26 +115,20 @@ class mDevice : mAbstractUserSelector() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        val columnUserName = addUserSelector(userConfig).apply {
-            rowSpan = 3
-        }
+        val columnUserName = addUserSelector(userConfig)
 
         //----------------------------------------------------------------------------------------------------------------------
 
         columnDeviceIndex = ColumnInt(modelTableName, "device_index", "Порядковый номер устройства на объекте", 10, 0).apply {
             minValue = 0
             maxValue = MAX_DEVICE_COUNT_PER_OBJECT - 1
-            rowSpan = 3
         }
 
-        val columnDeviceType = ColumnRadioButton(modelTableName, "type", "Тип устройства").apply {
-            rowSpan = 3
-        }
+        val columnDeviceType = ColumnRadioButton(modelTableName, "type", "Тип устройства")
         MMSTelematicFunction.fillDeviceTypeColumn(columnDeviceType)
 
         columnSerialNo = ColumnString(modelTableName, "serial_no", "Серийный номер устройства", STRING_COLUMN_WIDTH).apply {
             isRequired = true
-            rowSpan = 3
         }
 
         val columnDeviceCellImei = ColumnString(modelTableName, "cell_imei", "IMEI модема", STRING_COLUMN_WIDTH).apply {
@@ -172,7 +166,6 @@ class mDevice : mAbstractUserSelector() {
         val columnDeviceFwVer = ColumnString(modelTableName, "fw_version", "Версия прошивки", 10).apply {
             isEditable = false
             formPinMode = FormPinMode.OFF
-            rowSpan = 3
         }
 
         columnDeviceLastSessionTime = ColumnDateTimeInt(modelTableName, "last_session_time", "Время последней сессии", true, zoneId).apply {
@@ -188,9 +181,7 @@ class mDevice : mAbstractUserSelector() {
             isEditable = false
         }
 
-        val columnDeviceWorkBegin = ColumnDate3Int(modelTableName, "beg_ye", "beg_mo", "beg_da", "Дата начала эксплуатации").apply {
-            rowSpan = 3
-        }
+        val columnDeviceWorkBegin = ColumnDate3Int(modelTableName, "beg_ye", "beg_mo", "beg_da", "Дата начала эксплуатации")
 
         //--- вручную добавленное поле для обозначения владельца объекта ---
 
@@ -206,7 +197,6 @@ class mDevice : mAbstractUserSelector() {
                     }
                 )
             }
-            rowSpan = 3
         }
 
         columnCopySensors = ColumnBoolean(modelTableName, "_copy_sensors", "Копировать датчики при смене объекта", false).apply {
@@ -302,17 +292,22 @@ class mDevice : mAbstractUserSelector() {
         alTableHiddenColumn += columnId
         alTableHiddenColumn += columnUser!!
 
-        addTableColumnVertNew(columnDeviceType)
-        addTableColumnVertNew(columnSerialNo)
-        addTableColumnVertNew(columnDeviceIndex)
+        addTableColumn(columnDeviceType)
+        addTableColumn(columnSerialNo)
+        addTableColumn(columnDeviceIndex)
 
-        addTableColumnVertNew(columnDeviceCellImei, columnDeviceCellImei2, ColumnStatic(modelTableName, ""))
-        addTableColumnVertNew(columnDeviceCellOwner, columnDeviceCellOwner2, ColumnStatic(modelTableName, ""))
-        addTableColumnVertNew(columnDeviceCellNum, columnDeviceCellNum2, ColumnStatic(modelTableName, ""))
-        addTableColumnVertNew(columnDeviceCellICC, columnDeviceCellICC2, ColumnStatic(modelTableName, ""))
-        addTableColumnVertNew(columnDeviceCellOperator, columnDeviceCellOperator2, ColumnStatic(modelTableName, ""))
+        addTableColumn(columnDeviceCellImei)
+        addTableColumn(columnDeviceCellImei2)
+        addTableColumn(columnDeviceCellOwner)
+        addTableColumn(columnDeviceCellOwner2)
+        addTableColumn(columnDeviceCellNum)
+        addTableColumn(columnDeviceCellNum2)
+        addTableColumn(columnDeviceCellICC)
+        addTableColumn(columnDeviceCellICC2)
+        addTableColumn(columnDeviceCellOperator)
+        addTableColumn(columnDeviceCellOperator2)
 
-        addTableColumnVertNew(columnObjectUserName)
+        addTableColumn(columnObjectUserName)
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -340,9 +335,11 @@ class mDevice : mAbstractUserSelector() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        addTableColumnVertNew(columnDeviceFwVer)
-        addTableColumnVertNew(columnDeviceLastSessionTime, columnDeviceLastSessionStatusText, columnDeviceLastSessionErrorText)
-        addTableColumnVertNew(columnDeviceWorkBegin)
+        addTableColumn(columnDeviceFwVer)
+        addTableColumn(columnDeviceLastSessionTime)
+        addTableColumn(columnDeviceLastSessionStatusText)
+        addTableColumn(columnDeviceLastSessionErrorText)
+        addTableColumn(columnDeviceWorkBegin)
 
         alFormColumn += columnDeviceIndex
 

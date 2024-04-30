@@ -18,7 +18,7 @@ interface iColumn {
 
     val caption: String
 
-    val rowSpan: Int
+//    val rowSpan: Int - пока нереализуемо в multiplaftorm compose
     val colSpan: Int
 
     val minWidth: Int

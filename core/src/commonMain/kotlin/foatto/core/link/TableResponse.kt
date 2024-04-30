@@ -52,7 +52,7 @@ class TableCell(val row: Int, val col: Int) {
 
     //--- common data for all cell types
 
-    var rowSpan = 1
+//    var rowSpan = 1 - пока нереализуемо в текущем multiplatform compose
     var colSpan = 1
 
     //--- number of logic/data row
@@ -90,8 +90,16 @@ class TableCell(val row: Int, val col: Int) {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    private constructor(aRow: Int, aCol: Int, aRowSpan: Int, aColSpan: Int, aDataRow: Int, aMinWidth: Int, aCellType: TableCellType) : this(aRow, aCol) {
-        rowSpan = aRowSpan
+    private constructor(
+        aRow: Int,
+        aCol: Int,
+//        aRowSpan: Int,
+        aColSpan: Int,
+        aDataRow: Int,
+        aMinWidth: Int,
+        aCellType: TableCellType
+    ) : this(aRow, aCol) {
+//        rowSpan = aRowSpan
         colSpan = aColSpan
         dataRow = aDataRow
         minWidth = aMinWidth
@@ -99,13 +107,27 @@ class TableCell(val row: Int, val col: Int) {
     }
 
     //--- empty colorless cell with a stretch
-    constructor(aRow: Int, aCol: Int, aRowSpan: Int, aColSpan: Int, aDataRow: Int) : this(aRow, aCol, aRowSpan, aColSpan, aDataRow, 0, TableCellType.TEXT)
+    constructor(
+        aRow: Int,
+        aCol: Int,
+//        aRowSpan: Int,
+        aColSpan: Int,
+        aDataRow: Int
+    ) : this(
+        aRow,
+        aCol,
+//        aRowSpan,
+        aColSpan,
+        aDataRow,
+        0,
+        TableCellType.TEXT
+    )
 
     //--- checkbox cell
     constructor(
         aRow: Int,
         aCol: Int,
-        aRowSpan: Int,
+//        aRowSpan: Int,
         aColSpan: Int,
         aDataRow: Int,
 
@@ -115,7 +137,15 @@ class TableCell(val row: Int, val col: Int) {
 
         aBooleanValue: Boolean
 
-    ) : this(aRow, aCol, aRowSpan, aColSpan, aDataRow, aMinWidth, TableCellType.CHECKBOX) {
+    ) : this(
+        aRow,
+        aCol,
+//        aRowSpan,
+        aColSpan,
+        aDataRow,
+        aMinWidth,
+        TableCellType.CHECKBOX
+    ) {
 
         align = aAlign
         tooltip = aTooltip
@@ -127,7 +157,7 @@ class TableCell(val row: Int, val col: Int) {
     constructor(
         aRow: Int,
         aCol: Int,
-        aRowSpan: Int,
+//        aRowSpan: Int,
         aColSpan: Int,
         aDataRow: Int,
 
@@ -140,7 +170,15 @@ class TableCell(val row: Int, val col: Int) {
         aImage: String = "",
         aText: String = ""
 
-    ) : this(aRow, aCol, aRowSpan, aColSpan, aDataRow, aMinWidth, TableCellType.TEXT) {
+    ) : this(
+        aRow,
+        aCol,
+//        aRowSpan,
+        aColSpan,
+        aDataRow,
+        aMinWidth,
+        TableCellType.TEXT
+    ) {
 
         align = aAlign
         isWordWrap = aIsWordWrap
@@ -157,7 +195,7 @@ class TableCell(val row: Int, val col: Int) {
     constructor(
         aRow: Int,
         aCol: Int,
-        aRowSpan: Int,
+//        aRowSpan: Int,
         aColSpan: Int,
         aDataRow: Int,
 
@@ -172,7 +210,15 @@ class TableCell(val row: Int, val col: Int) {
         aUrl: String,
         aInNewWindow: Boolean = false
 
-    ) : this(aRow, aCol, aRowSpan, aColSpan, aDataRow, aMinWidth, TableCellType.BUTTON) {
+    ) : this(
+        aRow,
+        aCol,
+//        aRowSpan,
+        aColSpan,
+        aDataRow,
+        aMinWidth,
+        TableCellType.BUTTON
+    ) {
 
         align = aAlign
         tooltip = aTooltip
@@ -190,7 +236,7 @@ class TableCell(val row: Int, val col: Int) {
     constructor(
         aRow: Int,
         aCol: Int,
-        aRowSpan: Int,
+//        aRowSpan: Int,
         aColSpan: Int,
         aDataRow: Int,
 
@@ -200,7 +246,15 @@ class TableCell(val row: Int, val col: Int) {
 
         aCellType: TableCellType,
 
-    ) : this(aRow, aCol, aRowSpan, aColSpan, aDataRow, aMinWidth, aCellType) {
+    ) : this(
+        aRow,
+        aCol,
+//        aRowSpan,
+        aColSpan,
+        aDataRow,
+        aMinWidth,
+        aCellType
+    ) {
 
         align = aAlign
         tooltip = aTooltip

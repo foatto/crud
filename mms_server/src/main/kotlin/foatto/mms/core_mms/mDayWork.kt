@@ -16,7 +16,8 @@ import foatto.sql.CoreAdvancedConnection
 
 class mDayWork : mAbstract() {
 
-    private lateinit var os: ObjectSelector
+    lateinit var os: ObjectSelector
+        private set
 
     lateinit var columnDate: ColumnDate3Int
         private set
@@ -30,13 +31,7 @@ class mDayWork : mAbstract() {
     lateinit var columnEnergo: ColumnGrid
         private set
 
-    lateinit var columnAllSumEnergo: ColumnGrid
-        private set
-
     lateinit var columnLiquid: ColumnGrid
-        private set
-
-    lateinit var columnAllSumLiquid: ColumnGrid
         private set
 
     lateinit var columnLevel: ColumnGrid
@@ -70,19 +65,15 @@ class mDayWork : mAbstract() {
         columnRun = ColumnString(modelTableName, "_run", "Пробег [км]", STRING_COLUMN_WIDTH).apply {
             isVirtual = true
             isSearchable = false
-            rowSpan = 3
         }
         columnWork = ColumnGrid(modelTableName, "_work", "Работа оборудования [час]").apply {
             isVirtual = true
             isSearchable = false
-            rowSpan = 3
         }
-
         columnEnergo = ColumnGrid(modelTableName, "_energo", "Расход/генерация э/энергии").apply {
             isVirtual = true
             isSearchable = false
         }
-
 //        columnGroupSumEnergoName = ColumnString(tableName, "_group_energo_name", "Э/энергия", STRING_COLUMN_WIDTH).apply {
 //            isVirtual = true
 //            isSearchable = false
@@ -91,17 +82,10 @@ class mDayWork : mAbstract() {
 //            isVirtual = true
 //            isSearchable = false
 //        }
-
-        columnAllSumEnergo = ColumnGrid(modelTableName, "_all_energo", "Расход/генерация э/энергии").apply {
-            isVirtual = true
-            isSearchable = false
-        }
-
         columnLiquid = ColumnGrid(modelTableName, "_liquid_name", "Расход топлива").apply {
             isVirtual = true
             isSearchable = false
         }
-
 //        columnGroupSumLiquidName = ColumnString(tableName, "_group_liquid_name", "Топливо", STRING_COLUMN_WIDTH).apply {
 //            isVirtual = true
 //            isSearchable = false
@@ -110,22 +94,13 @@ class mDayWork : mAbstract() {
 //            isVirtual = true
 //            isSearchable = false
 //        }
-
-        columnAllSumLiquid = ColumnGrid(modelTableName, "_all_liquid", "Расход топлива").apply {
-            isVirtual = true
-            isSearchable = false
-        }
-
         columnLevel = ColumnGrid(modelTableName, "_level", "Ёмкость, Нач.остаток, Кон.остаток").apply {
             isVirtual = true
             isSearchable = false
-            rowSpan = 3
         }
-
         columnLevelLiquid = ColumnGrid(modelTableName, "_level_liquid_name", "Топливо, Заправка, Слив").apply {
             isVirtual = true
             isSearchable = false
-            rowSpan = 3
         }
 
         //----------------------------------------------------------------------------------------------------------------------------------------
@@ -155,12 +130,12 @@ class mDayWork : mAbstract() {
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
-        addTableColumnVertNew(columnRun)
-        addTableColumnVertNew(columnWork)
-        addTableColumnVertNew(columnEnergo,  /*columnGroupSumEnergoName, */ ColumnStatic(modelTableName, ""), columnAllSumEnergo)
-        addTableColumnVertNew(columnLiquid,  /*columnGroupSumLiquidName, */ ColumnStatic(modelTableName, ""), columnAllSumLiquid)
-        addTableColumnVertNew(columnLevel)
-        addTableColumnVertNew(columnLevelLiquid)
+        addTableColumn(columnRun)
+        addTableColumn(columnWork)
+        addTableColumn(columnEnergo)
+        addTableColumn(columnLiquid)
+        addTableColumn(columnLevel)
+        addTableColumn(columnLevelLiquid)
 
         alFormColumn.add(columnDate)
         alFormColumn.add(columnRun)

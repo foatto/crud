@@ -36,7 +36,7 @@ abstract class DataAbstractSelector(aColumn: iColumn, aFormCellType: FormCellTyp
 
     override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, dataRowNo: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell =
         if (isShowEmptyTableCell) {
-            TableCell(row, col, column.rowSpan, column.colSpan, dataRowNo)
+            TableCell(row, col, /*column.rowSpan,*/ column.colSpan, dataRowNo)
         } else {
             val cas = column as ColumnAbstractSelector
             val icon = cas.findChoiceIcon(intValue)
@@ -44,7 +44,7 @@ abstract class DataAbstractSelector(aColumn: iColumn, aFormCellType: FormCellTyp
             TableCell(
                 aRow = row,
                 aCol = col,
-                aRowSpan = column.rowSpan,
+//                aRowSpan = column.rowSpan,
                 aColSpan = column.colSpan,
                 aDataRow = dataRowNo,
 

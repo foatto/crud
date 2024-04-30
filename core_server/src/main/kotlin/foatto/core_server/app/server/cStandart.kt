@@ -1066,7 +1066,7 @@ open class cStandart {
                         tci = TableCell(
                             aRow = row,
                             aCol = col,
-                            aRowSpan = 1,
+//                            aRowSpan = 1,
                             aColSpan = spanCellCount,
                             aDataRow = -1,
                             aAlign = TableCellAlign.LEFT,
@@ -1142,7 +1142,7 @@ open class cStandart {
                         TableCell(
                             aRow = row,
                             aCol = col,
-                            aRowSpan = tableRowCount,
+//                            aRowSpan = tableRowCount,
                             aColSpan = 1,
                             aDataRow = dataRowNo,
                             aAlign = TableCellAlign.CENTER,
@@ -1161,7 +1161,7 @@ open class cStandart {
                     val tci = getTableRowSelectButton(row, col, dataRowNo, selectorParam, hmColumnData, hmOut)
                     //--- сигнатуру метода getTableRowSelectButton не меняем,
                     //--- т.к. он и сложно перекрывается наследниками и применяется и в старых методах, а просто вручную правим rowSpan
-                    tci.rowSpan = tableRowCount
+//                    tci.rowSpan = tableRowCount
                     alTableCell.add(tci)
                 }
                 col++
@@ -1172,7 +1172,7 @@ open class cStandart {
                     val tci = setTableGroupColumnStyle(hmColumnData, column, TableCell(row, col))
                     //--- сигнатуру метода setTableGroupColumnStyle не меняем,
                     //--- т.к. он и сложно перекрывается наследниками и применяется и в старых методах, а просто вручную правим rowSpan
-                    tci.rowSpan = tableRowCount
+//                    tci.rowSpan = tableRowCount
                     alTableCell.add(tci)
                 }
                 col++
@@ -1184,7 +1184,7 @@ open class cStandart {
                         TableCell(
                             aRow = row,
                             aCol = col,
-                            aRowSpan = tableRowCount,
+//                            aRowSpan = tableRowCount,
                             aColSpan = 1,
                             aDataRow = dataRowNo,
                             aAlign = TableCellAlign.LEFT,
@@ -1339,7 +1339,7 @@ open class cStandart {
         return TableCell(
             aRow = row,
             aCol = col,
-            aRowSpan = 1,
+//            aRowSpan = 1,
             aColSpan = 1,
             aDataRow = dataRowNo,
 

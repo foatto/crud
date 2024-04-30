@@ -212,7 +212,6 @@ class mSensor : mAbstract() {
             alFormColumn = alFormColumn,
             hmParentColumn = hmParentColumn,
             aSingleObjectMode = true,
-            addedStaticColumnCount = -1
         )
 
         //----------------------------------------------------------------------------------------------------------------------------------------

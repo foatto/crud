@@ -1,7 +1,7 @@
 package foatto.mms.core_mms
 
+import foatto.core_server.app.server.column.ColumnGrid
 import foatto.core_server.app.server.column.ColumnInt
-import foatto.core_server.app.server.column.ColumnStatic
 import foatto.core_server.app.server.column.ColumnString
 import foatto.core_server.app.server.column.iColumn
 import foatto.core_server.app.server.mAbstract
@@ -20,22 +20,22 @@ class ObjectSelector {
         private set
     lateinit var columnObjectModel: ColumnString
         private set
-    lateinit var columnGroup: ColumnInt
-        private set
+    private lateinit var columnGroup: ColumnInt
     lateinit var columnGroupName: ColumnString
         private set
-    lateinit var columnDepartment: ColumnInt
-        private set
+    private lateinit var columnDepartment: ColumnInt
     lateinit var columnDepartmentName: ColumnString
+        private set
+    var columnObjectInfo: ColumnGrid? = null
         private set
 
     fun fillColumns(
         model: mAbstract,
         isRequired: Boolean,
         isSelector: Boolean,
-        alTableHiddenColumn: MutableList<iColumn>?,
-        alFormHiddenColumn: MutableList<iColumn>?,
-        alFormColumn: MutableList<iColumn>?,
+        alTableHiddenColumn: MutableList<iColumn>,
+        alFormHiddenColumn: MutableList<iColumn>,
+        alFormColumn: MutableList<iColumn>,
         hmParentColumn: MutableMap<String, iColumn>,
         aSingleObjectMode: Boolean,
         addedStaticColumnCount: Int,
@@ -65,8 +65,7 @@ class ObjectSelector {
             //--- только для "родного" алиаса
             if (selectorAlias == null) {
                 columnObjectName.addSelectorColumn(columnObject, columnobjectId)
-            }
-            else {
+            } else {
                 columnObjectName.addSelectorColumn(selectorColumnTo!!, selectorColumnFrom!!)
             }
             columnObjectName.addSelectorColumn(columnObjectName)
@@ -77,25 +76,36 @@ class ObjectSelector {
 
         //--------------------------------------------------------------------------------------------------------------
 
-        if (alTableHiddenColumn != null) {
-            alTableHiddenColumn.add(columnObject)
-            alTableHiddenColumn.add(columnGroup)
-            alTableHiddenColumn.add(columnDepartment)
-        }
+        alTableHiddenColumn.add(columnObject)
+        alTableHiddenColumn.add(columnGroup)
+        alTableHiddenColumn.add(columnDepartment)
 
         if (aSingleObjectMode) {
-            alTableHiddenColumn!!.add(columnObjectName)
+            alTableHiddenColumn.add(columnObjectName)
             alTableHiddenColumn.add(columnObjectModel)
             alTableHiddenColumn.add(columnGroupName)
             alTableHiddenColumn.add(columnDepartmentName)
         } else if (addedStaticColumnCount >= 0) {
-            model.addTableColumnVertNew(columnObjectName)
-            columnObjectName.rowSpan = 3 + addedStaticColumnCount
+            alTableHiddenColumn.add(columnObjectModel)
+            alTableHiddenColumn.add(columnGroupName)
+            alTableHiddenColumn.add(columnDepartmentName)
 
-            model.addTableColumnVertNew(columnObjectModel, columnGroupName, columnDepartmentName)
+            model.addTableColumn(columnObjectName)
 
-            val arr = Array(addedStaticColumnCount) { ColumnStatic(model.modelTableName, "") }
-            model.addTableColumnVertAdd(*arr)
+//            columnObjectName.rowSpan = 3 + addedStaticColumnCount
+//
+//            model.addTableColumnVertNew(columnObjectModel, columnGroupName, columnDepartmentName)
+//
+//            val arr = Array(addedStaticColumnCount) { ColumnStatic(model.modelTableName, "") }
+//            model.addTableColumnVertAdd(*arr)
+
+            columnObjectInfo = ColumnGrid("MMS_object", "_object_info", "Модель/Группа/Подразделение").apply {
+                isVirtual = true
+                isSearchable = false
+            }
+            columnObjectInfo?.let {
+                model.addTableColumn(it)
+            }
         } else {
             model.addTableColumn(columnObjectName)
             model.addTableColumn(columnObjectModel)
@@ -103,24 +113,20 @@ class ObjectSelector {
             model.addTableColumn(columnDepartmentName)
         }
 
-        if (alFormHiddenColumn != null) {
-            alFormHiddenColumn.add(columnObject)
-            alFormHiddenColumn.add(columnGroup)
-            alFormHiddenColumn.add(columnDepartment)
-        }
+        alFormHiddenColumn.add(columnObject)
+        alFormHiddenColumn.add(columnGroup)
+        alFormHiddenColumn.add(columnDepartment)
 
-        if (alFormColumn != null) {
-            if (aSingleObjectMode) {
-                alFormHiddenColumn!!.add(columnObjectName)
-                alFormHiddenColumn.add(columnObjectModel)
-                alFormHiddenColumn.add(columnGroupName)
-                alFormHiddenColumn.add(columnDepartmentName)
-            } else {
-                alFormColumn.add(columnObjectName)
-                alFormColumn.add(columnObjectModel)
-                alFormColumn.add(columnGroupName)
-                alFormColumn.add(columnDepartmentName)
-            }
+        if (aSingleObjectMode) {
+            alFormHiddenColumn.add(columnObjectName)
+            alFormHiddenColumn.add(columnObjectModel)
+            alFormHiddenColumn.add(columnGroupName)
+            alFormHiddenColumn.add(columnDepartmentName)
+        } else {
+            alFormColumn.add(columnObjectName)
+            alFormColumn.add(columnObjectModel)
+            alFormColumn.add(columnGroupName)
+            alFormColumn.add(columnDepartmentName)
         }
 
         hmParentColumn["mms_object"] = columnObject

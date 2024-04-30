@@ -25,6 +25,13 @@ class cDayWork : cStandart() {
         val begTime = gc.toEpochSecond().toInt()
         val endTime = gc.plus(1, ChronoUnit.DAYS).toEpochSecond().toInt()
 
+        mODW.os.columnObjectInfo?.let { columnObjectInfo ->
+            val dataObjectInfo = hmColumnData[columnObjectInfo] as DataGrid
+            dataObjectInfo.addRowData((hmColumnData[mODW.os.columnObjectModel] as DataString).text)
+            dataObjectInfo.addRowData((hmColumnData[mODW.os.columnGroupName] as DataString).text)
+            dataObjectInfo.addRowData((hmColumnData[mODW.os.columnDepartmentName] as DataString).text)
+        }
+
         val oc = (application as iMMSApplication).getObjectConfig(userConfig, objectId)
         try {
             val calc = ObjectCalc.calcObject(conn, userConfig, oc, begTime, endTime)
@@ -49,9 +56,10 @@ class cDayWork : cStandart() {
 //        (hmColumnData[mODW.columnGroupSumEnergoName] as DataString).text = if(calc.tmGroupSum.size > 1 ) calc.sGroupSumEnergoName else ""
 //        (hmColumnData[mODW.columnGroupSumEnergoValue] as DataString).text = if(calc.tmGroupSum.size > 1 ) calc.sGroupSumEnergoValue else ""
 
+            (hmColumnData[mODW.columnEnergo] as DataGrid).addRowData("", "")
             calc.allSumData.tmEnergo.forEach { (sensorType, dataByPhase) ->
                 dataByPhase.forEach { (phase, value) ->
-                    (hmColumnData[mODW.columnAllSumEnergo] as DataGrid).addRowData(
+                    (hmColumnData[mODW.columnEnergo] as DataGrid).addRowData(
                         (SensorConfig.hmSensorDescr[sensorType] ?: "(неизв. тип датчика)") + ObjectCalc.getPhaseDescr(phase),
                         getSplittedDouble(value, ObjectCalc.getPrecision(value), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider),
                     )
@@ -69,8 +77,9 @@ class cDayWork : cStandart() {
 //        (hmColumnData[mODW.columnGroupSumLiquidName] as DataString).text = if(calc.tmGroupSum.size > 1 ) calc.sGroupSumLiquidName else ""
 //        (hmColumnData[mODW.columnGroupSumLiquidValue] as DataString).text = if(calc.tmGroupSum.size > 1 ) calc.sGroupSumLiquidValue else ""
 
+            (hmColumnData[mODW.columnLiquid] as DataGrid).addRowData("", "")
             calc.allSumData.tmLiquidUsing.forEach { (name, value) ->
-                (hmColumnData[mODW.columnAllSumLiquid] as DataGrid).addRowData(
+                (hmColumnData[mODW.columnLiquid] as DataGrid).addRowData(
                     name,
                     getSplittedDouble(value, ObjectCalc.getPrecision(value), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider),
                 )

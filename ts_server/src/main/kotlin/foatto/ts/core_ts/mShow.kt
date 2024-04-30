@@ -127,7 +127,6 @@ open class mShow : mAbstract() {
             alFormColumn = alFormColumn,
             hmParentColumn = hmParentColumn,
             aSingleObjectMode = false,
-            addedStaticColumnCount = -1
         )
 
         //----------------------------------------------------------------------------------------------------------------------

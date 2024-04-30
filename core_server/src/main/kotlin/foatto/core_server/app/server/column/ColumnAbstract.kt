@@ -17,7 +17,7 @@ abstract class ColumnAbstract : iColumn {
 
     override lateinit var caption: String
 
-    override var rowSpan: Int = 1
+//    override var rowSpan: Int = 1
     override var colSpan: Int = 1
 
     override var minWidth: Int = 0

@@ -360,7 +360,8 @@ class mDocumentContent : mAbstract() {
 
         addTableColumn(columnCostOut)
 
-        addTableColumnHorizNew(columnMarkCode)
+//        addTableColumnHorizNew(columnMarkCode)
+        addTableColumn(columnMarkCode)
 
         //----------------------------------------------------------------------------------------------------------------------
 

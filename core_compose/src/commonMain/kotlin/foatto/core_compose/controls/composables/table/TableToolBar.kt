@@ -3,23 +3,25 @@ package foatto.core_compose.controls.composables.table
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import foatto.core_compose.composables.GenerateMenuBody
 import foatto.core_compose.controls.composables.ToolBarBlock
 import foatto.core_compose.controls.composables.ToolBarIconButton
 import foatto.core_compose.controls.models.table.AddActionButtonClient
 import foatto.core_compose.controls.models.table.ClientActionButtonClient
 import foatto.core_compose.controls.models.table.ServerActionButtonClient
+import foatto.core_compose.getStyleToolbarIconNameSuffix
 
 @Composable
 fun TableToolBar(
     isWideScreen: Boolean,
-    styleIconNameSuffix: String,    // getStyleIconNameSuffix()
     selectorCancelUrl: String,
     isFindTextVisible: Boolean,
     findText: String,
@@ -39,7 +41,7 @@ fun TableToolBar(
     call: (appParam: String, inNewWindow: Boolean) -> Unit,    // call(appParam, false)
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(start = 4.dp, end = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
 //                        borderTop(
@@ -58,7 +60,7 @@ fun TableToolBar(
         ToolBarBlock {
             ToolBarIconButton(
                 isVisible = selectorCancelUrl.isNotEmpty(),
-                name = "/web/images/ic_reply_all_$styleIconNameSuffix.png",
+                name = "/web/images/ic_reply_all_${getStyleToolbarIconNameSuffix()}.png",
                 tooltip = "Отменить выбор",
             ) {
                 call(selectorCancelUrl, false)
@@ -86,7 +88,7 @@ fun TableToolBar(
             }
             ToolBarIconButton(
                 isVisible = selectorCancelUrl.isNotEmpty(),
-                name = "/web/images/ic_search_$styleIconNameSuffix.png",
+                name = "/web/images/ic_search_${getStyleToolbarIconNameSuffix()}.png",
                 tooltip = "Искать",
 //                                backgroundColor(getColorTableFindButtonBack())
 //                                setBorder(color = getColorButtonBorder(), arrRadius = getStyleTableFindButtonBorderRadius())
@@ -99,7 +101,7 @@ fun TableToolBar(
             }
             if (findText.isNotEmpty()) {
                 ToolBarIconButton(
-                    name = "/web/images/ic_youtube_searched_for_$styleIconNameSuffix.png",
+                    name = "/web/images/ic_youtube_searched_for_${getStyleToolbarIconNameSuffix()}.png",
                     tooltip = "Отключить поиск",
 //                            backgroundColor(getColorTableFindButtonBack())
 //                            setBorder(color = getColorButtonBorder(), arrRadius = getStyleTableFindButtonBorderRadius())
@@ -125,22 +127,22 @@ fun TableToolBar(
             }
             ToolBarIconButton(
                 isVisible = (isWideScreen || !isFindTextVisible) && isFormButtonVisible,
-                name = "/web/images/ic_mode_edit_$styleIconNameSuffix.png",
+                name = "/web/images/ic_mode_edit_${getStyleToolbarIconNameSuffix()}.png",
                 tooltip = "Открыть форму"
             ) {
                 doForm()
             }
             ToolBarIconButton(
                 isVisible = (isWideScreen || !isFindTextVisible) && isGotoButtonVisible,
-                name = "/web/images/ic_exit_to_app_$styleIconNameSuffix.png",
+                name = "/web/images/ic_exit_to_app_${getStyleToolbarIconNameSuffix()}.png",
                 tooltip = "Перейти"
             ) {
                 doGoto()
             }
             ToolBarIconButton(
                 isVisible = (isWideScreen || !isFindTextVisible) && isPopupButtonVisible,
-                name = "/web/images/ic_menu_$styleIconNameSuffix.png",
-                tooltip = "Показать операции по строке"
+                name = "/web/images/ic_menu_${getStyleToolbarIconNameSuffix()}.png",
+                tooltip = "Показать действия по строке"
             ) {
                 doPopup()
             }
@@ -173,7 +175,7 @@ fun TableToolBar(
         ToolBarBlock {
             if (isWideScreen || !isFindTextVisible) {
                 ToolBarIconButton(
-                    name = "/web/images/ic_sync_$styleIconNameSuffix.png",
+                    name = "/web/images/ic_sync_${getStyleToolbarIconNameSuffix()}.png",
                     tooltip = "Обновить",
 //                            backgroundColor(getColorRefreshButtonBack())
 //                            fontSize(styleCommonButtonFontSize)

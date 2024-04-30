@@ -48,12 +48,12 @@ abstract class DataAbstractDate(aColumn: iColumn) : DataAbstract(aColumn) {
         decimalDivider: Char
     ): TableCell =
         if (isShowEmptyTableCell) {
-            TableCell(row, col, column.rowSpan, column.colSpan, dataRowNo)
+            TableCell(row, col, /*column.rowSpan,*/ column.colSpan, dataRowNo)
         } else {
             TableCell(
                 aRow = row,
                 aCol = col,
-                aRowSpan = column.rowSpan,
+//                aRowSpan = column.rowSpan,
                 aColSpan = column.colSpan,
                 aDataRow = dataRowNo,
 

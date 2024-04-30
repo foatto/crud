@@ -928,7 +928,7 @@ open class TableControl(
             }
 
             val cellStyleCommon: StyleScope.() -> Unit = {
-                gridArea("${startRow + tc.row + 1}", "${tc.col + 1}", "${startRow + tc.row + 1 + tc.rowSpan}", "${tc.col + 1 + tc.colSpan}")
+                gridArea("${startRow + tc.row + 1}", "${tc.col + 1}", "${startRow + tc.row + 1 + 1/*tc.rowSpan*/}", "${tc.col + 1 + tc.colSpan}")
                 justifySelf("stretch")
                 alignSelf(AlignSelf.Stretch)
                 fontWeight(
@@ -1093,7 +1093,7 @@ open class TableControl(
                     dataRow = tc.dataRow,
                 )
             )
-            maxRow = max(maxRow, startRow + tc.row + tc.rowSpan)
+            maxRow = max(maxRow, startRow + tc.row + 1/*tc.rowSpan*/)
             maxCol = max(maxCol, tc.col + tc.colSpan)
         }
         maxRow++

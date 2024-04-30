@@ -32,7 +32,7 @@ class DataBinary(aColumn: iColumn) : DataAbstract(aColumn) {
     override fun loadFromForm(conn: CoreAdvancedConnection, formData: FormData, fieldNameId: String?, id: Int): Boolean = true
 
     override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, dataRowNo: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell {
-        val tc = TableCell(row, col, column.rowSpan, column.colSpan, dataRowNo)
+        val tc = TableCell(row, col, /*column.rowSpan,*/ column.colSpan, dataRowNo)
         tc.minWidth = column.minWidth
         return tc
     }

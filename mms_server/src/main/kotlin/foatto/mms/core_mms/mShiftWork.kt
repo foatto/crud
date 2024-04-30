@@ -96,38 +96,38 @@ class mShiftWork : mAbstract() {
         //        ColumnDouble columnRun = new ColumnDouble( tableName, "run",
         //                                                              isWaybill ? "Пробег [км]" : "", 10, 1, 0.0 );
 
-        columnObjectShiftWorkRun = ColumnString(modelTableName, "_run", "Пробег [км]", STRING_COLUMN_WIDTH)
-        columnObjectShiftWorkRun.isVirtual = true
-        columnObjectShiftWorkRun.isSearchable = false
-        columnObjectShiftWorkRun.rowSpan = if(parentObjectId == null) 3 else 4
-        columnObjectShiftWorkHourName = ColumnString(modelTableName, "_work_name", "Оборудование", STRING_COLUMN_WIDTH)
-        columnObjectShiftWorkHourName.isVirtual = true
-        columnObjectShiftWorkHourName.isSearchable = false
-        columnObjectShiftWorkHourName.rowSpan = if(parentObjectId == null) 3 else 4
-        columnObjectShiftWorkHourValue = ColumnString(modelTableName, "_work_hour", "Работа [час]", STRING_COLUMN_WIDTH)
-        columnObjectShiftWorkHourValue.isVirtual = true
-        columnObjectShiftWorkHourValue.isSearchable = false
-        columnObjectShiftWorkHourValue.rowSpan = if(parentObjectId == null) 3 else 4
-        columnObjectShiftWorkLiquidName = ColumnString(modelTableName, "_liquid_name", "Топливо", STRING_COLUMN_WIDTH)
-        columnObjectShiftWorkLiquidName.isVirtual = true
-        columnObjectShiftWorkLiquidName.isSearchable = false
-        columnObjectShiftWorkLiquidName.rowSpan = if (parentObjectId == null) 3 else 4
-        columnObjectShiftWorkLiquidValue = ColumnString(modelTableName, "_liquid_value", "Расход", STRING_COLUMN_WIDTH)
-        columnObjectShiftWorkLiquidValue.isVirtual = true
-        columnObjectShiftWorkLiquidValue.isSearchable = false
-        columnObjectShiftWorkLiquidValue.rowSpan = if(parentObjectId == null) 3 else 4
-        columnObjectShiftWorkLevelName = ColumnString(modelTableName, "_level_name", "Ёмкость", STRING_COLUMN_WIDTH)
-        columnObjectShiftWorkLevelName.isVirtual = true
-        columnObjectShiftWorkLevelName.isSearchable = false
-        columnObjectShiftWorkLevelName.rowSpan = if(parentObjectId == null) 3 else 4
-        columnObjectShiftWorkLevelBeg = ColumnString(modelTableName, "_level_beg", "Нач.остаток", STRING_COLUMN_WIDTH)
-        columnObjectShiftWorkLevelBeg.isVirtual = true
-        columnObjectShiftWorkLevelBeg.isSearchable = false
-        columnObjectShiftWorkLevelBeg.rowSpan = if(parentObjectId == null) 3 else 4
-        columnObjectShiftWorkLevelEnd = ColumnString(modelTableName, "_level_end", "Кон.остаток", STRING_COLUMN_WIDTH)
-        columnObjectShiftWorkLevelEnd.isVirtual = true
-        columnObjectShiftWorkLevelEnd.isSearchable = false
-        columnObjectShiftWorkLevelEnd.rowSpan = if(parentObjectId == null) 3 else 4
+        columnObjectShiftWorkRun = ColumnString(modelTableName, "_run", "Пробег [км]", STRING_COLUMN_WIDTH).apply {
+            isVirtual = true
+            isSearchable = false
+        }
+        columnObjectShiftWorkHourName = ColumnString(modelTableName, "_work_name", "Оборудование", STRING_COLUMN_WIDTH).apply {
+            isVirtual = true
+            isSearchable = false
+        }
+        columnObjectShiftWorkHourValue = ColumnString(modelTableName, "_work_hour", "Работа [час]", STRING_COLUMN_WIDTH).apply {
+            isVirtual = true
+            isSearchable = false
+        }
+        columnObjectShiftWorkLiquidName = ColumnString(modelTableName, "_liquid_name", "Топливо", STRING_COLUMN_WIDTH).apply {
+            isVirtual = true
+            isSearchable = false
+        }
+        columnObjectShiftWorkLiquidValue = ColumnString(modelTableName, "_liquid_value", "Расход", STRING_COLUMN_WIDTH).apply {
+            isVirtual = true
+            isSearchable = false
+        }
+        columnObjectShiftWorkLevelName = ColumnString(modelTableName, "_level_name", "Ёмкость", STRING_COLUMN_WIDTH).apply {
+            isVirtual = true
+            isSearchable = false
+        }
+        columnObjectShiftWorkLevelBeg = ColumnString(modelTableName, "_level_beg", "Нач.остаток", STRING_COLUMN_WIDTH).apply {
+            isVirtual = true
+            isSearchable = false
+        }
+        columnObjectShiftWorkLevelEnd = ColumnString(modelTableName, "_level_end", "Кон.остаток", STRING_COLUMN_WIDTH).apply {
+            isVirtual = true
+            isSearchable = false
+        }
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -143,17 +143,27 @@ class mShiftWork : mAbstract() {
 
         os = ObjectSelector()
         os.fillColumns(
-            this, true, true, alTableHiddenColumn, alFormHiddenColumn, alFormColumn, hmParentColumn, false, if(parentObjectId == null) 0 else 1
+            model = this,
+            isRequired = true,
+            isSelector = true,
+            alTableHiddenColumn = alTableHiddenColumn,
+            alFormHiddenColumn = alFormHiddenColumn,
+            alFormColumn = alFormColumn,
+            hmParentColumn = hmParentColumn,
+            aSingleObjectMode = false,
+            addedStaticColumnCount = if (parentObjectId == null) 0 else 1
         )
 
         //----------------------------------------------------------------------------------------------------------------------
 
         //        if( isWaybill ) addTableColumn( columnShiftNo );
         //        else alTableHiddenColumn.add( columnShiftNo );
-        if(parentObjectId == null) {
+        if (parentObjectId == null) {
             alTableGroupColumn.add(columnShiftBegDoc)
-            addTableColumnVertNew(columnShiftEndDoc, columnShiftBegFact, columnShiftEndFact)
-        } else addTableColumnVertNew(columnShiftBegDoc, columnShiftEndDoc, columnShiftBegFact, columnShiftEndFact)
+            addTableColumn(columnShiftEndDoc, columnShiftBegFact, columnShiftEndFact)
+        } else {
+            addTableColumn(columnShiftBegDoc, columnShiftEndDoc, columnShiftBegFact, columnShiftEndFact)
+        }
         //            addTableColumnVertNew( columnShiftEndDoc );
         //            addTableColumnVertNew( columnShiftBegFact );
         //            addTableColumnVertNew( columnShiftEndFact );
@@ -169,14 +179,14 @@ class mShiftWork : mAbstract() {
         //            alTableHiddenColumn.add( columnWorkerName );
         //            alTableHiddenColumn.add( columnRun );
         //        }
-        addTableColumnVertNew(columnObjectShiftWorkRun)
-        addTableColumnVertNew(columnObjectShiftWorkHourName)
-        addTableColumnVertNew(columnObjectShiftWorkHourValue)
-        addTableColumnVertNew(columnObjectShiftWorkLiquidName)
-        addTableColumnVertNew(columnObjectShiftWorkLiquidValue)
-        addTableColumnVertNew(columnObjectShiftWorkLevelName)
-        addTableColumnVertNew(columnObjectShiftWorkLevelBeg)
-        addTableColumnVertNew(columnObjectShiftWorkLevelEnd)
+        addTableColumn(columnObjectShiftWorkRun)
+        addTableColumn(columnObjectShiftWorkHourName)
+        addTableColumn(columnObjectShiftWorkHourValue)
+        addTableColumn(columnObjectShiftWorkLiquidName)
+        addTableColumn(columnObjectShiftWorkLiquidValue)
+        addTableColumn(columnObjectShiftWorkLevelName)
+        addTableColumn(columnObjectShiftWorkLevelBeg)
+        addTableColumn(columnObjectShiftWorkLevelEnd)
 
         //        ( isWaybill ? alFormColumn : alFormHiddenColumn ).add( columnShiftNo );
         alFormColumn.add(columnShiftBegDoc)

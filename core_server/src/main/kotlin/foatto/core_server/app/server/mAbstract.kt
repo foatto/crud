@@ -116,7 +116,7 @@ abstract class mAbstract {
         var lastRow = 0
         for ((row, tmRow) in tmTableColumn) {
             for (column in tmRow.values) {
-                lastRow = max(lastRow, row + column.rowSpan - 1)
+                lastRow = max(lastRow, row /*+ column.rowSpan - 1*/)
             }
         }
         return lastRow + 1
@@ -191,81 +191,82 @@ abstract class mAbstract {
     }
 
     //--- добавление столбцов с новой строки
-    fun addTableColumnHorizNew(vararg arrColumn: iColumn): Int {
-        val row = getTableColumnRowCount()
-        addTableColumnHoriz(row, 0, *arrColumn)
-        return row
-    }
+//    fun addTableColumnHorizNew(vararg arrColumn: iColumn): Int {
+//        val row = getTableColumnRowCount()
+//        addTableColumnHoriz(row, 0, *arrColumn)
+//        return row
+//    }
 
     //--- добавление столбцов с нового столбца
-    fun addTableColumnVertNew(vararg arrColumn: iColumn): Int {
-        val col = getTableColumnColCount()
-        addTableColumnVert(0, col, *arrColumn)
-        return col
-    }
+//    fun addTableColumnVertNew(vararg arrColumn: iColumn): Int {
+//        val col = getTableColumnColCount()
+//        addTableColumnVert(0, col, *arrColumn)
+//        return col
+//    }
 
     //--- добавление столбцов в последнюю существующую строку или в новую, если строк ещё нет
     //--- (с учётом rowSpan - т.е. ячейки начнут добавляться после этого поля)
-    fun addTableColumnHorizAdd(vararg arrColumn: iColumn): Int {
-        var lastRow = 0
-        var lastCol = 0
-        for ((row, tmRow) in tmTableColumn) {
-            for ((col, column) in tmRow) {
-                val lr = row + column.rowSpan - 1
-                //--- нам нужен _последний/обновлённый_ максимум, поэтому используем >=
-                if (lr >= lastRow) {
-                    lastRow = lr
-                    lastCol = col
-                }
-            }
-        }
-        addTableColumnVert(lastRow, lastCol + 1, *arrColumn)
-        return lastCol + 1
-    }
+//    fun addTableColumnHorizAdd(vararg arrColumn: iColumn): Int {
+//        var lastRow = 0
+//        var lastCol = 0
+//        for ((row, tmRow) in tmTableColumn) {
+//            for ((col, column) in tmRow) {
+//                val lr = row /*+ column.rowSpan - 1*/
+//                //--- нам нужен _последний/обновлённый_ максимум, поэтому используем >=
+//                if (lr >= lastRow) {
+//                    lastRow = lr
+//                    lastCol = col
+//                }
+//            }
+//        }
+//        addTableColumnVert(lastRow, lastCol + 1, *arrColumn)
+//        return lastCol + 1
+//    }
 
     //--- добавление столбцов в последний существующий столбец или в новый, если столбцов ещё нет
     //--- (с учётом colSpan - т.е. ячейки начнут добавляться после этого поля)
-    fun addTableColumnVertAdd(vararg arrColumn: iColumn): Int {
-        var lastRow = 0
-        var lastCol = 0
-        for ((row, tmRow) in tmTableColumn) {
-            for ((col, column) in tmRow) {
-                val lc = col + column.colSpan - 1
-                //--- нам нужен _последний/обновлённый_ максимум, поэтому используем >=
-                if (lc >= lastCol) {
-                    lastRow = row
-                    lastCol = lc
-                }
-            }
-        }
-        addTableColumnVert(lastRow + 1, lastCol, *arrColumn)
-        return lastRow + 1
-    }
+//--- пока выключено из-за неприменимости rowSpan в multiplatform compose
+//    fun addTableColumnVertAdd(vararg arrColumn: iColumn): Int {
+//        var lastRow = 0
+//        var lastCol = 0
+//        for ((row, tmRow) in tmTableColumn) {
+//            for ((col, column) in tmRow) {
+//                val lc = col + column.colSpan - 1
+//                //--- нам нужен _последний/обновлённый_ максимум, поэтому используем >=
+//                if (lc >= lastCol) {
+//                    lastRow = row
+//                    lastCol = lc
+//                }
+//            }
+//        }
+//        addTableColumnVert(lastRow + 1, lastCol, *arrColumn)
+//        return lastRow + 1
+//    }
 
     //--- добавление столбцов с указанными стартовыми координатами в указанном направлении
-    private fun addTableColumnHoriz(row: Int, col: Int, vararg arrColumn: iColumn) {
-        var tmRow: TreeMap<Int, iColumn>? = tmTableColumn[row]
-        //--- возможное добавление/вставка новой строки
-        if (tmRow == null) {
-            tmRow = TreeMap()
-            tmTableColumn[row] = tmRow
-        }
-        for (i in arrColumn.indices) {
-            tmRow[col + i] = arrColumn[i]
-        }
-    }
+//    private fun addTableColumnHoriz(row: Int, col: Int, vararg arrColumn: iColumn) {
+//        var tmRow: TreeMap<Int, iColumn>? = tmTableColumn[row]
+//        //--- возможное добавление/вставка новой строки
+//        if (tmRow == null) {
+//            tmRow = TreeMap()
+//            tmTableColumn[row] = tmRow
+//        }
+//        for (i in arrColumn.indices) {
+//            tmRow[col + i] = arrColumn[i]
+//        }
+//    }
 
-    private fun addTableColumnVert(row: Int, col: Int, vararg arrColumn: iColumn) {
-        for (i in arrColumn.indices) {
-            var tmRow: TreeMap<Int, iColumn>? = tmTableColumn[row + i]
-            //--- возможное добавление/вставка новой строки
-            if (tmRow == null) {
-                tmRow = TreeMap()
-                tmTableColumn[row + i] = tmRow
-            }
-            tmRow[col] = arrColumn[i]
-        }
-    }
+//    private fun addTableColumnVert(row: Int, col: Int, vararg arrColumn: iColumn) {
+//        for (i in arrColumn.indices) {
+//            var tmRow: TreeMap<Int, iColumn>? = tmTableColumn[row + i]
+//            //--- возможное добавление/вставка новой строки
+//            if (tmRow == null) {
+//                tmRow = TreeMap()
+//                tmTableColumn[row + i] = tmRow
+//            }
+//            tmRow[col] = arrColumn[i]
+//        }
+//    }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

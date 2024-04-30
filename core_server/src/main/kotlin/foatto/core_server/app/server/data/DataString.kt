@@ -70,13 +70,13 @@ class DataString(aColumn: iColumn) : DataAbstract(aColumn) {
 
     override fun getTableCell(rootDirName: String, conn: CoreAdvancedConnection, row: Int, col: Int, dataRowNo: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): TableCell {
         if (isShowEmptyTableCell) {
-            return TableCell(row, col, column.rowSpan, column.colSpan, dataRowNo)
+            return TableCell(row, col, /*column.rowSpan,*/ column.colSpan, dataRowNo)
         }
 
         return TableCell(
             aRow = row,
             aCol = col,
-            aRowSpan = column.rowSpan,
+//            aRowSpan = column.rowSpan,
             aColSpan = column.colSpan,
             aDataRow = dataRowNo,
 
