@@ -1,8 +1,6 @@
 package foatto.core_compose.controls
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
@@ -151,79 +149,78 @@ class FormControl(
 //?                        horizontalArrangement = Arrangement.aligned(Alignment.CenterHorizontally),
                     ) {
                         alGridRow.forEachIndexed { col, gridData ->
-//!!!                                if (!gridData.isVisible.value) {
-//                                    hidden()
-//                                }
-                            Row(
-                                horizontalArrangement = gridData?.align ?: Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier
-                                    .fillMaxHeight()    // работает только совместно с .height(intrinsicSize = IntrinsicSize.Max)
-                                    //!!! только на время отладки
-                                    .border(BorderStroke(width = 1.dp, color = Color.LightGray))
-                                    //.wrapContentSize(align = Alignment.Center, unbounded = true)  //- ничем не помогает
-                                    .onSizeChanged { size ->
-                                        gridData?.let {
-                                            val componentWidth = with(density) {
-                                                maxDp(size.width.toDp(), FORM_CELL_PADDING * 2)    //!!! minWidth
-                                            }
-                                            gridData.componentWidth = maxDp(gridData.componentWidth, componentWidth)
-                                            hmColumnMaxWidth[col] = maxDp(hmColumnMaxWidth[col] ?: 0.dp, componentWidth)
-                                        }
-                                    }
-                                    .then(
-                                        gridData?.let {
-                                            hmColumnMaxWidth[col]?.let { maxColWidth ->
-                                                if (gridData.componentWidth < maxColWidth) {
-                                                    Modifier.width(maxColWidth)
-                                                } else {
-                                                    Modifier.width(gridData.componentWidth)
+                            //--- специальное хитрое условие: показывать если gridData == null или isVisible == true
+                            if (gridData?.isVisible?.value != false) {
+                                Row(
+                                    horizontalArrangement = gridData?.align ?: Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .fillMaxHeight()    // работает только совместно с .height(intrinsicSize = IntrinsicSize.Max)
+                                        //!!! только на время отладки
+                                        //.border(BorderStroke(width = 1.dp, color = Color.LightGray))
+                                        //.wrapContentSize(align = Alignment.Center, unbounded = true)  //- ничем не помогает
+                                        .onSizeChanged { size ->
+                                            gridData?.let {
+                                                val componentWidth = with(density) {
+                                                    maxDp(size.width.toDp(), FORM_CELL_PADDING * 2)    //!!! minWidth
                                                 }
+                                                gridData.componentWidth = maxDp(gridData.componentWidth, componentWidth)
+                                                hmColumnMaxWidth[col] = maxDp(hmColumnMaxWidth[col] ?: 0.dp, componentWidth)
                                             }
-                                        } ?: Modifier
-                                    )
-
-                            ) {
-                                when (gridData?.cellType) {
-                                    FormCellTypeClient.LABEL -> {
-                                        Text(
-                                            modifier = Modifier.padding(FORM_CELL_PADDING),
-                                            text = gridData.text,
+                                        }
+                                        .then(
+                                            gridData?.let {
+                                                hmColumnMaxWidth[col]?.let { maxColWidth ->
+                                                    if (gridData.componentWidth < maxColWidth) {
+                                                        Modifier.width(maxColWidth)
+                                                    } else {
+                                                        Modifier.width(gridData.componentWidth)
+                                                    }
+                                                }
+                                            } ?: Modifier
                                         )
+
+                                ) {
+                                    when (gridData?.cellType) {
+                                        FormCellTypeClient.LABEL -> {
+                                            Text(
+                                                modifier = Modifier.padding(FORM_CELL_PADDING),
+                                                text = gridData.text,
+                                            )
 //                                            if (gridData.text.value == BR) {
 //                                                Br()
 //                                            } else {
 //                                                Text(gridData.text.value)
 //                                            }
-                                    }
+                                        }
 
-                                    FormCellTypeClient.STRING -> {
-                                        OutlinedTextField(
-                                            modifier = Modifier.padding(FORM_CELL_PADDING),
-                                            value = gridData.text,
-                                            onValueChange = { newText ->
-                                                gridData.text = newText
-                                            },
-                                            readOnly = gridData.isReadOnly,
-                                            //!!! label = { Text("Имя") }, - использовать для мобильной версии без FormCellTypeClient.LABEL
-                                            isError = gridData.error.isNotEmpty(),
-                                            supportingText = if (gridData.error.isNotEmpty()) {
-                                                {
-                                                    Text(
-                                                        text = gridData.error,
-                                                        color = Color.Red,
-                                                    )
-                                                }
-                                            } else {
-                                                null
-                                            },
-                                            singleLine = true,
-                                            visualTransformation = if (gridData.isPassword) {
-                                                PasswordVisualTransformation()
-                                            } else {
-                                                VisualTransformation.None
-                                            },
-                                        )
+                                        FormCellTypeClient.STRING -> {
+                                            OutlinedTextField(
+                                                modifier = Modifier.padding(FORM_CELL_PADDING),
+                                                value = gridData.text,
+                                                onValueChange = { newText ->
+                                                    gridData.text = newText
+                                                },
+                                                readOnly = gridData.isReadOnly,
+                                                //!!! label = { Text("Имя") }, - использовать для мобильной версии без FormCellTypeClient.LABEL
+                                                isError = gridData.error.isNotEmpty(),
+                                                supportingText = if (gridData.error.isNotEmpty()) {
+                                                    {
+                                                        Text(
+                                                            text = gridData.error,
+                                                            color = Color.Red,
+                                                        )
+                                                    }
+                                                } else {
+                                                    null
+                                                },
+                                                singleLine = true,
+                                                visualTransformation = if (gridData.isPassword) {
+                                                    PasswordVisualTransformation()
+                                                } else {
+                                                    VisualTransformation.None
+                                                },
+                                            )
 //                                            id(getFocusId(gridData.id))
 //                                            size(gridData.colCount)
 //                                            onFocusIn { syntheticFocusEvent ->
@@ -232,69 +229,69 @@ class FormControl(
 //                                            onKeyUp { syntheticKeyboardEvent ->
 //                                                doKeyUp(gridData, syntheticKeyboardEvent)
 //                                            }
-                                    }
+                                        }
 
-                                    FormCellTypeClient.TEXT -> {
-                                        OutlinedTextField(
-                                            modifier = Modifier.padding(FORM_CELL_PADDING),
-                                            value = gridData.text,
-                                            onValueChange = { newText ->
-                                                gridData.text = newText
-                                            },
-                                            readOnly = gridData.isReadOnly,
-                                            //!!! label = { Text("Имя") }, - использовать для мобильной версии без FormCellTypeClient.LABEL
-                                            isError = gridData.error.isNotEmpty(),
-                                            supportingText = if (gridData.error.isNotEmpty()) {
-                                                {
-                                                    Text(
-                                                        text = gridData.error,
-                                                        color = Color.Red,
-                                                    )
-                                                }
-                                            } else {
-                                                null
-                                            },
-                                            singleLine = false,
-                                            minLines = gridData.rowCount,
-                                            maxLines = gridData.rowCount,
-                                        )
+                                        FormCellTypeClient.TEXT -> {
+                                            OutlinedTextField(
+                                                modifier = Modifier.padding(FORM_CELL_PADDING),
+                                                value = gridData.text,
+                                                onValueChange = { newText ->
+                                                    gridData.text = newText
+                                                },
+                                                readOnly = gridData.isReadOnly,
+                                                //!!! label = { Text("Имя") }, - использовать для мобильной версии без FormCellTypeClient.LABEL
+                                                isError = gridData.error.isNotEmpty(),
+                                                supportingText = if (gridData.error.isNotEmpty()) {
+                                                    {
+                                                        Text(
+                                                            text = gridData.error,
+                                                            color = Color.Red,
+                                                        )
+                                                    }
+                                                } else {
+                                                    null
+                                                },
+                                                singleLine = false,
+                                                minLines = gridData.rowCount,
+                                                maxLines = gridData.rowCount,
+                                            )
 //                                            id(getFocusId(gridData.id))
 //                                            cols(gridData.colCount)
 //                                            onKeyUp { syntheticKeyboardEvent ->
 //                                                doKeyUp(gridData, syntheticKeyboardEvent)
 //                                            }
-                                    }
+                                        }
 
-                                    FormCellTypeClient.CHECKBOX -> {
-                                        Checkbox(
-                                            modifier = Modifier.padding(FORM_CELL_PADDING),
-                                            checked = gridData.bool,
-                                            onCheckedChange = { newState ->
-                                                if (!gridData.isReadOnly) {
-                                                    gridData.bool = newState
-                                                    doVisibleAndCaptionChange(gridData)
-                                                }
-                                            },
-                                        )
+                                        FormCellTypeClient.CHECKBOX -> {
+                                            Checkbox(
+                                                modifier = Modifier.padding(FORM_CELL_PADDING),
+                                                checked = gridData.bool,
+                                                onCheckedChange = { newState ->
+                                                    if (!gridData.isReadOnly) {
+                                                        gridData.bool = newState
+                                                        doVisibleAndCaptionChange(gridData)
+                                                    }
+                                                },
+                                            )
 //                                            id(getFocusId(gridData.id))
-                                        //onInput { syntheticInputEvent -> - тоже можно
+                                            //onInput { syntheticInputEvent -> - тоже можно
 //                                            onKeyUp { syntheticKeyboardEvent ->
 //                                                doKeyUp(gridData, syntheticKeyboardEvent)
 //                                            }
-                                    }
+                                        }
 
-                                    FormCellTypeClient.SWITCH -> {
-                                        //!!! заменить на настоящий switch
-                                        Checkbox(
-                                            modifier = Modifier.padding(FORM_CELL_PADDING),
-                                            checked = gridData.bool,
-                                            onCheckedChange = { newState ->
-                                                if (!gridData.isReadOnly) {
-                                                    gridData.bool = newState
-                                                    doVisibleAndCaptionChange(gridData)
-                                                }
-                                            },
-                                        )
+                                        FormCellTypeClient.SWITCH -> {
+                                            //!!! заменить на настоящий switch
+                                            Checkbox(
+                                                modifier = Modifier.padding(FORM_CELL_PADDING),
+                                                checked = gridData.bool,
+                                                onCheckedChange = { newState ->
+                                                    if (!gridData.isReadOnly) {
+                                                        gridData.bool = newState
+                                                        doVisibleAndCaptionChange(gridData)
+                                                    }
+                                                },
+                                            )
 //                                                id(getFocusId(gridData.id, 0))
 //                                                onClick {
 //                                                    if (!(gridData.isReadOnly || !gridData.bool.value)) {
@@ -319,33 +316,84 @@ class FormControl(
 //                                                    doKeyUp(gridData, syntheticKeyboardEvent)
 //                                                }
 //                                            Text(gridData.alSwitchText[1])
-                                    }
+                                        }
 
-                                    FormCellTypeClient.DATE, FormCellTypeClient.TIME, FormCellTypeClient.DATE_TIME -> {
-                                        for (index in 0 until gridData.alDateTime.size) {
-                                            //--- time fields on new line on narrow screens
+                                        FormCellTypeClient.DATE, FormCellTypeClient.TIME, FormCellTypeClient.DATE_TIME -> {
+                                            for (index in 0 until gridData.alDateTime.size) {
+                                                //--- time fields on new line on narrow screens
 //                                            if (styleIsNarrowScreen && index == 3) {
 //                                                Br()
 //                                            }
-                                            val isYearField = index == 2 && gridData.cellType != FormCellTypeClient.TIME
+                                                if (gridData.cellType != FormCellTypeClient.TIME && index in (1..2)) {
+                                                    Text(text = ".")
+                                                } else if (gridData.cellType == FormCellTypeClient.TIME && index in (1..2)) {
+                                                    Text(text = ":")
+                                                } else if (gridData.cellType == FormCellTypeClient.DATE_TIME && index in (4..5)) {
+                                                    Text(text = ":")
+                                                }
+
+                                                val isYearField = gridData.cellType != FormCellTypeClient.TIME && index == 2
+                                                OutlinedTextField(
+                                                    modifier = Modifier
+                                                        .padding(FORM_CELL_PADDING)
+                                                        .width(
+                                                            if (isYearField) {
+                                                                76.dp   // после ввода пятой (лишней) цифры первая наполовину уходит
+                                                            } else {
+                                                                58.dp   // после ввода третьей (лишней) цифры первая наполовину уходит
+                                                            }
+                                                        ),
+                                                    value = gridData.alDateTime[index].value,
+                                                    onValueChange = { newText ->
+                                                        gridData.alDateTime[index].value = newText
+                                                    },
+                                                    readOnly = gridData.isReadOnly,
+                                                    //!!! label = { Text("Имя") }, - использовать для мобильной версии без FormCellTypeClient.LABEL
+                                                    isError = gridData.error.isNotEmpty(),
+                                                    supportingText = if (isYearField && gridData.error.isNotEmpty()) {
+                                                        {
+                                                            Text(
+                                                                text = gridData.error,
+                                                                color = Color.Red,
+                                                            )
+                                                        }
+                                                    } else {
+                                                        null
+                                                    },
+                                                    singleLine = true,
+                                                )
+//                                                id(getFocusId(gridData.id, gridData.alSubId?.get(index)))
+//                                                onFocusIn { syntheticFocusEvent ->
+//                                                    selectAllText(syntheticFocusEvent)
+//                                                }
+//                                                onKeyUp { syntheticKeyboardEvent ->
+//                                                    doKeyUp(gridData, syntheticKeyboardEvent)
+//                                                }
+                                            }
+                                        }
+
+                                        FormCellTypeClient.COMBO -> {
+//                                                id(getFocusId(gridData.id))
+//                                                onKeyUp { syntheticKeyboardEvent ->
+//                                                    doKeyUp(gridData, syntheticKeyboardEvent)
+//                                                }
+                                            var isExpanded by remember { mutableStateOf(false) }
+                                            var textFieldSize by remember { mutableStateOf(Size.Zero) }
+
                                             OutlinedTextField(
                                                 modifier = Modifier
                                                     .padding(FORM_CELL_PADDING)
-                                                    .width(
-                                                        if (isYearField) {
-                                                            76.dp   // после ввода пятой (лишней) цифры первая наполовину уходит
-                                                        } else {
-                                                            58.dp   // после ввода третьей (лишней) цифры первая наполовину уходит
-                                                        }
-                                                    ),
-                                                value = gridData.alDateTime[index].value,
-                                                onValueChange = { newText ->
-                                                    gridData.alDateTime[index].value = newText
-                                                },
+                                                    .onGloballyPositioned { coordinates ->
+                                                        textFieldSize = coordinates.size.toSize()
+                                                    },
+                                                value = gridData.alComboData.find { fcb ->
+                                                    fcb.value == gridData.combo
+                                                }?.text ?: "(неизвестное значение)",
+                                                onValueChange = {},
                                                 readOnly = gridData.isReadOnly,
                                                 //!!! label = { Text("Имя") }, - использовать для мобильной версии без FormCellTypeClient.LABEL
                                                 isError = gridData.error.isNotEmpty(),
-                                                supportingText = if (isYearField && gridData.error.isNotEmpty()) {
+                                                supportingText = if (gridData.error.isNotEmpty()) {
                                                     {
                                                         Text(
                                                             text = gridData.error,
@@ -356,123 +404,80 @@ class FormControl(
                                                     null
                                                 },
                                                 singleLine = true,
-                                            )
-//                                                id(getFocusId(gridData.id, gridData.alSubId?.get(index)))
-//                                                onFocusIn { syntheticFocusEvent ->
-//                                                    selectAllText(syntheticFocusEvent)
-//                                                }
-//                                                onKeyUp { syntheticKeyboardEvent ->
-//                                                    doKeyUp(gridData, syntheticKeyboardEvent)
-//                                                }
-                                        }
-                                    }
-
-                                    FormCellTypeClient.COMBO -> {
-//                                                id(getFocusId(gridData.id))
-//                                                onKeyUp { syntheticKeyboardEvent ->
-//                                                    doKeyUp(gridData, syntheticKeyboardEvent)
-//                                                }
-                                        var isExpanded by remember { mutableStateOf(false) }
-                                        var textFieldSize by remember { mutableStateOf(Size.Zero) }
-
-                                        OutlinedTextField(
-                                            modifier = Modifier
-                                                .padding(FORM_CELL_PADDING)
-                                                .onGloballyPositioned { coordinates ->
-                                                    textFieldSize = coordinates.size.toSize()
-                                                },
-                                            value = gridData.alComboData.find { fcb ->
-                                                fcb.value == gridData.combo
-                                            }?.text ?: "(неизвестное значение)",
-                                            onValueChange = {},
-                                            readOnly = gridData.isReadOnly,
-                                            //!!! label = { Text("Имя") }, - использовать для мобильной версии без FormCellTypeClient.LABEL
-                                            isError = gridData.error.isNotEmpty(),
-                                            supportingText = if (gridData.error.isNotEmpty()) {
-                                                {
-                                                    Text(
-                                                        text = gridData.error,
-                                                        color = Color.Red,
+                                                trailingIcon = {
+                                                    Icon(
+                                                        imageVector = if (isExpanded) {
+                                                            Icons.Filled.KeyboardArrowUp
+                                                        } else {
+                                                            Icons.Filled.KeyboardArrowDown
+                                                        },
+                                                        contentDescription = null,
+                                                        modifier = Modifier.clickable { isExpanded = !isExpanded }
                                                     )
-                                                }
-                                            } else {
-                                                null
-                                            },
-                                            singleLine = true,
-                                            trailingIcon = {
-                                                Icon(
-                                                    imageVector = if (isExpanded) {
-                                                        Icons.Filled.KeyboardArrowUp
-                                                    } else {
-                                                        Icons.Filled.KeyboardArrowDown
-                                                    },
-                                                    contentDescription = null,
-                                                    modifier = Modifier.clickable { isExpanded = !isExpanded }
-                                                )
-                                            },
-                                        )
-                                        DropdownMenu(
-                                            modifier = Modifier
-                                                .offset(
-                                                    //!!! x = FORM_CELL_PADDING, - почему-то не срабатывает, даже если включить внутри Box или Column
-                                                    //y = +- FORM_CELL_PADDING, - бесполезно, т.к. меню может вылезти как снизу, так и сверху
-                                                )
-                                                .width(
-                                                    with(density) {
-                                                        textFieldSize.width.toDp()
-                                                    }
-                                                ),
-                                            expanded = isExpanded,
-                                            onDismissRequest = { isExpanded = false },
-                                        ) {
-                                            for (comboData in gridData.alComboData) {
-                                                DropdownMenuItem(
-                                                    text = {
-                                                        Text(text = comboData.text)
-                                                    },
-                                                    onClick = {
-                                                        gridData.combo = comboData.value
-                                                        isExpanded = false
-//                                                            doVisibleAndCaptionChange(gridData)
-                                                    },
-                                                    //contentPadding = PaddingValues(start = getMenuPadding(level), end = 16.dp),
-                                                )
-                                            }
-                                        }
-                                    }
-
-                                    FormCellTypeClient.RADIO -> {
-                                        Column(
-                                            modifier = Modifier.selectableGroup(),
-                                        ) {
-                                            for (comboData in gridData.alComboData) {
-                                                Row(
-                                                    modifier = Modifier.selectable(
-                                                        selected = comboData.value == gridData.combo,
-                                                        onClick = {
-                                                            if (!gridData.isReadOnly) {
-                                                                gridData.combo = comboData.value
-//                                                            doVisibleAndCaptionChange(gridData)
-                                                            }
+                                                },
+                                            )
+                                            DropdownMenu(
+                                                modifier = Modifier
+                                                    .offset(
+                                                        //!!! x = FORM_CELL_PADDING, - почему-то не срабатывает, даже если включить внутри Box или Column
+                                                        //y = +- FORM_CELL_PADDING, - бесполезно, т.к. меню может вылезти как снизу, так и сверху
+                                                    )
+                                                    .width(
+                                                        with(density) {
+                                                            textFieldSize.width.toDp()
                                                         }
                                                     ),
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                ) {
-                                                    RadioButton(
-                                                        selected = comboData.value == gridData.combo,
+                                                expanded = isExpanded,
+                                                onDismissRequest = { isExpanded = false },
+                                            ) {
+                                                for (comboData in gridData.alComboData) {
+                                                    DropdownMenuItem(
+                                                        text = {
+                                                            Text(text = comboData.text)
+                                                        },
                                                         onClick = {
-                                                            if (!gridData.isReadOnly) {
-                                                                gridData.combo = comboData.value
-//                                                            doVisibleAndCaptionChange(gridData)
-                                                            }
-                                                        }
-                                                    )
-                                                    Text(
-                                                        text = comboData.text,
+                                                            gridData.combo = comboData.value
+                                                            isExpanded = false
+                                                            doVisibleAndCaptionChange(gridData)
+                                                        },
+                                                        //contentPadding = PaddingValues(start = getMenuPadding(level), end = 16.dp),
                                                     )
                                                 }
                                             }
                                         }
+
+                                        FormCellTypeClient.RADIO -> {
+                                            Column(
+                                                modifier = Modifier.selectableGroup(),
+                                            ) {
+                                                for (comboData in gridData.alComboData) {
+                                                    Row(
+                                                        modifier = Modifier.selectable(
+                                                            selected = comboData.value == gridData.combo,
+                                                            onClick = {
+                                                                if (!gridData.isReadOnly) {
+                                                                    gridData.combo = comboData.value
+                                                                    doVisibleAndCaptionChange(gridData)
+                                                                }
+                                                            }
+                                                        ),
+                                                        verticalAlignment = Alignment.CenterVertically,
+                                                    ) {
+                                                        RadioButton(
+                                                            selected = comboData.value == gridData.combo,
+                                                            onClick = {
+                                                                if (!gridData.isReadOnly) {
+                                                                    gridData.combo = comboData.value
+                                                                    doVisibleAndCaptionChange(gridData)
+                                                                }
+                                                            }
+                                                        )
+                                                        Text(
+                                                            text = comboData.text,
+                                                        )
+                                                    }
+                                                }
+                                            }
 //                                            gridData.alComboData.forEachIndexed { index, comboData ->
 //                                                val focusId = getFocusId(gridData.id, gridData.alSubId?.get(index))
 //                                                    id(focusId)
@@ -480,97 +485,98 @@ class FormControl(
 //                                                        doKeyUp(gridData, syntheticKeyboardEvent)
 //                                                    }
 //                                                }
-                                    }
+                                        }
 
-                                    FormCellTypeClient.FILE -> {
-                                        Column {
-                                            for (fileData in gridData.alFileData) {
-                                                Row(
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                ) {
-                                                    Button(
-                                                        enabled = fileData.id >= 0,
-                                                        shape = RoundedCornerShape(0.dp),
-                                                        onClick = {
-                                                            if (fileData.id >= 0) {
-                                                                showFile(fileData.url)
-                                                            }
-                                                        },
+                                        FormCellTypeClient.FILE -> {
+                                            Column {
+                                                for (fileData in gridData.alFileData) {
+                                                    Row(
+                                                        verticalAlignment = Alignment.CenterVertically,
                                                     ) {
-                                                        Text(text = fileData.text)
-                                                    }
+                                                        Button(
+                                                            enabled = fileData.id >= 0,
+                                                            shape = RoundedCornerShape(0.dp),
+                                                            onClick = {
+                                                                if (fileData.id >= 0) {
+                                                                    showFile(fileData.url)
+                                                                }
+                                                            },
+                                                        ) {
+                                                            Text(text = fileData.text)
+                                                        }
 //                                                            backgroundColor(getColorButtonBack())
 //                                                            setBorder(color = getColorButtonBorder(), radius = styleButtonBorderRadius)
 //                                                            fontSize(styleCommonButtonFontSize)
 //                                                            doKeyUp(gridData, syntheticKeyboardEvent)
-                                                    if (!gridData.isReadOnly) {
-                                                        IconButton(
-                                                            onClick = {
-                                                                if (!isFileAddInProgress) {
-                                                                    deleteFile(gridData, fileData)
+                                                        if (!gridData.isReadOnly) {
+                                                            IconButton(
+                                                                onClick = {
+                                                                    if (!isFileAddInProgress) {
+                                                                        deleteFile(gridData, fileData)
+                                                                    }
                                                                 }
+                                                            ) {
+                                                                ImageOrTextFromName("/web/images/ic_delete_forever_${getStyleOtherIconNameSuffix()}.png", "Удалить файл", styleOtherIconSize)
                                                             }
-                                                        ) {
-                                                            ImageOrTextFromName("/web/images/ic_delete_forever_${getStyleOtherIconNameSuffix()}.png", "Удалить файл", styleOtherIconSize)
-                                                        }
 //                                                                backgroundColor(getColorFormButtonBack())
 //                                                                setBorder(getStyleFormButtonBorder())
 //                                                                doKeyUp(gridData, syntheticKeyboardEvent)
+                                                        }
                                                     }
                                                 }
                                             }
-                                        }
-                                        if (!gridData.isReadOnly) {
-                                            IconButton(
-                                                enabled = !isFileAddInProgress,
+                                            if (!gridData.isReadOnly) {
+                                                IconButton(
+                                                    enabled = !isFileAddInProgress,
 //                                                        backgroundColor(getColorButtonBack())
 //                                                        setBorder(color = getColorButtonBorder(), radius = styleButtonBorderRadius)
-                                                onClick = {
-                                                    fileGridData = gridData
-                                                    isFilePickerVisible = true
-                                                }
+                                                    onClick = {
+                                                        fileGridData = gridData
+                                                        isFilePickerVisible = true
+                                                    }
 //                                                    onKeyUp { syntheticKeyboardEvent ->
 //                                                        doKeyUp(gridData, syntheticKeyboardEvent)
 //                                                    }
-                                            ) {
-                                                ImageOrTextFromName("/web/images/ic_add_${getStyleOtherIconNameSuffix()}.png", "Добавить файл", styleOtherIconSize)
+                                                ) {
+                                                    ImageOrTextFromName("/web/images/ic_add_${getStyleOtherIconNameSuffix()}.png", "Добавить файл", styleOtherIconSize)
+                                                }
                                             }
-                                        }
 //                                            id(getFocusId(gridData.id))
+                                        }
+
+                                        else -> {}
                                     }
 
-                                    else -> {}
-                                }
-
-                                gridData?.let {
-                                    if (gridData.selectorSetURL.isNotEmpty()) {
-                                        IconButton(
-                                            onClick = {
-                                                if (!isFileAddInProgress) {
-                                                    call(gridData.selectorSetURL, true, null)
+                                    gridData?.let {
+                                        if (gridData.selectorSetURL.isNotEmpty()) {
+                                            IconButton(
+                                                onClick = {
+                                                    if (!isFileAddInProgress) {
+                                                        call(gridData.selectorSetURL, true, null)
+                                                    }
                                                 }
+                                            ) {
+                                                ImageOrTextFromName("/web/images/ic_reply_${getStyleOtherIconNameSuffix()}.png", "Выбрать из справочника", styleOtherIconSize)
                                             }
-                                        ) {
-                                            ImageOrTextFromName("/web/images/ic_reply_${getStyleOtherIconNameSuffix()}.png", "Выбрать из справочника", styleOtherIconSize)
-                                        }
 //                                                backgroundColor(getColorFormButtonBack())
 //                                                setBorder(getStyleFormButtonBorder())
 //                                                doKeyUp(gridData, syntheticKeyboardEvent)
-                                    }
-
-                                    if (gridData.selectorClearURL.isNotEmpty()) {
-                                        IconButton(
-                                            onClick = {
-                                                if (!isFileAddInProgress) {
-                                                    call(gridData.selectorClearURL, true, null)
-                                                }
-                                            }
-                                        ) {
-                                            ImageOrTextFromName("/web/images/ic_delete_forever_${getStyleOtherIconNameSuffix()}.png", "Очистить выбор", styleOtherIconSize)
                                         }
+
+                                        if (gridData.selectorClearURL.isNotEmpty()) {
+                                            IconButton(
+                                                onClick = {
+                                                    if (!isFileAddInProgress) {
+                                                        call(gridData.selectorClearURL, true, null)
+                                                    }
+                                                }
+                                            ) {
+                                                ImageOrTextFromName("/web/images/ic_delete_forever_${getStyleOtherIconNameSuffix()}.png", "Очистить выбор", styleOtherIconSize)
+                                            }
 //                                                backgroundColor(getColorFormButtonBack())
 //                                                setBorder(getStyleFormButtonBorder())
 //                                                doKeyUp(gridData, syntheticKeyboardEvent)
+                                        }
                                     }
                                 }
                             }
@@ -1123,6 +1129,7 @@ class FormControl(
 
                 else -> 0
             }
+
         hmFormCellVisible[gdMaster.id]?.let { alFCVI ->
             alFCVI.forEach { fcvi ->
                 alGridRows.forEach { alGridRow ->
@@ -1231,9 +1238,9 @@ class FormControl(
 //        }
 //    }
 
-//    private fun closeTabById() {
-//        root.closeTabById(tabId)
-//    }
+    private fun closeTabById() {
+        root.closeTabById(tabId)
+    }
 
     private fun showFile(url: String) {
         root.openTab(url)
@@ -1254,16 +1261,17 @@ class FormControl(
     }
 
     private fun call(formAppParam: String, withNewData: Boolean, dialogQuestion: String?) {
-        dialogQuestion?.let {
+        doInvoke(formAppParam, withNewData)
+//        dialogQuestion?.let {
 //            root.dialogActionFun = {
-            doInvoke(formAppParam, withNewData)
+//            doInvoke(formAppParam, withNewData)
 //            }
 //            root.dialogQuestion.value = dialogQuestion
 //            root.showDialogCancel.value = true
 //            root.showDialog.value = true
-        } ?: run {
-            doInvoke(formAppParam, withNewData)
-        }
+//        } ?: run {
+//            doInvoke(formAppParam, withNewData)
+//        }
     }
 
     private fun doInvoke(formAppParam: String, withNewValues: Boolean) {
