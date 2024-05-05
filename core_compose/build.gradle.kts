@@ -1,4 +1,3 @@
-import org.jetbrains.compose.ExperimentalComposeLibrary
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 val isBuildSupressWarning: String by project
@@ -60,7 +59,6 @@ kotlin {
             api(compose.runtime)
             api(compose.foundation)
             api(compose.ui)
-//            api(compose.material)
             api(compose.material3)
 
 //            api(compose.components.resources) - пока не надо
@@ -68,7 +66,7 @@ kotlin {
 
             api("com.russhwolf:multiplatform-settings:$multiplatformSettingsVersion")
             api("com.russhwolf:multiplatform-settings-no-arg:$multiplatformSettingsVersion")
-            api("media.kamel:kamel-image-default:$kamelImageVersion") //- пока не готова wasm-версия
+            api("media.kamel:kamel-image-default:$kamelImageVersion")
 
             api(project(":core"))
         }

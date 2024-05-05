@@ -65,8 +65,6 @@ fun LogonForm(
             label = { Text("Пароль") },
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
-            //!!! обязательно ли использование?
-            //keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
         )
         Row {
             Checkbox(

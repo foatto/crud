@@ -73,12 +73,7 @@ fun TableToolBar(
                     },
                     label = { Text("Поиск...") },
                     singleLine = true,
-//                        setBorder(color = colorMainBorder, arrRadius = getStyleTableFindEditorBorderRadius())
-//                        fontSize(styleTableFindEditorFontSize)
-//                        padding(getStyleTableFindEditorPadding())
-//                        setMargins(getStyleTableFindControlMargin())
                 )
-//                    size(getStyleTableFindEditLength())
 //                    onKeyUp { event ->
 //                        if (event.key == "Enter") {
 //                            doFind(false)
@@ -90,12 +85,6 @@ fun TableToolBar(
                 isVisible = selectorCancelUrl.isNotEmpty(),
                 name = "/web/images/ic_search_${getStyleToolbarIconNameSuffix()}.png",
                 tooltip = "Искать",
-//                                backgroundColor(getColorTableFindButtonBack())
-//                                setBorder(color = getColorButtonBorder(), arrRadius = getStyleTableFindButtonBorderRadius())
-//                                fontSize(styleCommonButtonFontSize)
-//                                padding(styleIconButtonPadding)
-//                                setMargins(getStyleTableFindControlMargin())
-//                                cursor("pointer")
             ) {
                 doFind(false)
             }
@@ -103,12 +92,6 @@ fun TableToolBar(
                 ToolBarIconButton(
                     name = "/web/images/ic_youtube_searched_for_${getStyleToolbarIconNameSuffix()}.png",
                     tooltip = "Отключить поиск",
-//                            backgroundColor(getColorTableFindButtonBack())
-//                            setBorder(color = getColorButtonBorder(), arrRadius = getStyleTableFindButtonBorderRadius())
-//                            fontSize(styleCommonButtonFontSize)
-//                            padding(styleIconButtonPadding)
-//                            setMargins(getStyleTableFindControlMargin())
-//                            cursor("pointer")
                 ) {
                     doFind(true)
                 }
@@ -177,12 +160,6 @@ fun TableToolBar(
                 ToolBarIconButton(
                     name = "/web/images/ic_sync_${getStyleToolbarIconNameSuffix()}.png",
                     tooltip = "Обновить",
-//                            backgroundColor(getColorRefreshButtonBack())
-//                            fontSize(styleCommonButtonFontSize)
-//                            setBorder(getStyleToolbarButtonBorder())
-//                            padding(styleIconButtonPadding)
-//                            setMargins(arrStyleCommonMargin)
-//                            cursor("pointer")
                 ) {
                     call(appParam, false)
                 }

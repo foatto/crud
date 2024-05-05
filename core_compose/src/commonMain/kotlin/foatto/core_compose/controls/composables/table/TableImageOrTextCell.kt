@@ -10,7 +10,7 @@ import foatto.core_compose.controls.models.table.TableGridData
 import foatto.core_compose.styleOtherIconSize
 
 @Composable
-fun TableTextCell(
+fun TableImageOrTextCell(
     gridData: TableGridData,
     cellData: TableCellDataClient,
     modifier: Modifier = Modifier,

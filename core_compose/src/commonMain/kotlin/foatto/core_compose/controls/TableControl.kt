@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -24,7 +26,8 @@ import foatto.core.link.*
 import foatto.core_compose.AppControl
 import foatto.core_compose.Root
 import foatto.core_compose.composables.GenerateMenuBody
-import foatto.core_compose.controls.composables.table.TableTextCell
+import foatto.core_compose.composables.ImageOrTextFromName
+import foatto.core_compose.controls.composables.table.TableImageOrTextCell
 import foatto.core_compose.controls.composables.table.TableToolBar
 import foatto.core_compose.controls.models.TitleData
 import foatto.core_compose.controls.models.table.AddActionButtonClient
@@ -35,6 +38,7 @@ import foatto.core_compose.controls.models.table.TableCaptionData
 import foatto.core_compose.controls.models.table.TableCellDataClient
 import foatto.core_compose.controls.models.table.TableGridData
 import foatto.core_compose.models.MenuDataClient
+import foatto.core_compose.styleOtherIconSize
 import foatto.core_compose.utils.maxDp
 import kotlinx.coroutines.launch
 import kotlin.math.max
@@ -285,7 +289,7 @@ open class TableControl(
                                     }
 
                                     TableCellType.TEXT -> {
-                                        TableTextCell(
+                                        TableImageOrTextCell(
                                             gridData = gridData,
                                             cellData = gridData.textCellData!!,
                                             modifier = Modifier.padding(TABLE_CELL_PADDING),
@@ -298,15 +302,39 @@ open class TableControl(
                                         ) {
                                             gridData.alButtonCellData?.let { alButtonCellData ->
                                                 for (cellData in alButtonCellData) {
-                                                    Button(
-                                                        onClick = {
-                                                            call(cellData.url, cellData.inNewWindow)
+                                                    if (cellData.icon.isNotEmpty()) {
+                                                        IconButton(
+                                                            onClick = {
+                                                                call(cellData.url, cellData.inNewWindow)
+                                                            }
+                                                        ) {
+                                                            ImageOrTextFromName(cellData.icon, gridData.tooltip, styleOtherIconSize)
                                                         }
-                                                    ) {
-                                                        TableTextCell(
-                                                            gridData = gridData,
-                                                            cellData = cellData,
-                                                        )
+                                                    } else if (cellData.image.isNotEmpty()) {
+                                                        IconButton(
+                                                            onClick = {
+                                                                call(cellData.url, cellData.inNewWindow)
+                                                            }
+                                                        ) {
+                                                            ImageOrTextFromName(cellData.image, gridData.tooltip, styleOtherIconSize)
+                                                        }
+                                                    } else {
+                                                        Button(
+                                                            shape = RoundedCornerShape(0.dp),
+                                                            onClick = {
+                                                                call(cellData.url, cellData.inNewWindow)
+                                                            }
+                                                        ) {
+                                                            Text(
+                                                                text = cellData.text,
+//                                                                color = gridData.textColor,
+                                                                fontWeight = if (gridData.isBoldText) {
+                                                                    FontWeight.Bold
+                                                                } else {
+                                                                    null
+                                                                },
+                                                            )
+                                                        }
                                                     }
                                                 }
                                             }
@@ -320,7 +348,7 @@ open class TableControl(
                                             gridData.alGridCellData?.let { alGridCellData ->
                                                 for (alRow in alGridCellData) {
                                                     Row(
-                                                        //horizontalArrangement = Arrangement.SpaceBetween, - don't work properly, use Spacer
+                                                        //horizontalArrangement = Arrangement.SpaceBetween, - don't work properly (?), use Spacer
                                                     ) {
                                                         alRow.forEachIndexed { index, cellData ->
                                                             if (index > 0) {
@@ -331,7 +359,7 @@ open class TableControl(
                                                             } else {
                                                                 Modifier
                                                             }
-                                                            TableTextCell(
+                                                            TableImageOrTextCell(
                                                                 gridData = gridData,
                                                                 cellData = cellData,
                                                                 modifier = modifier,

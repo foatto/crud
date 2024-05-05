@@ -1,5 +1,6 @@
 package foatto.core_compose.controls.models.form
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -14,10 +15,8 @@ internal class FormGridData(
     val id: Int,
     val cellName: String,
 
-//    val style: StyleScope.() -> Unit,
-//    val styleAdd: StyleScope.() -> Unit,
+    val align: Arrangement.Horizontal,
 
-//    val isHidden: Boolean = false, - теперь hidden-cells в отдельном списке
     val isVisible: MutableState<Boolean> = mutableStateOf(true),
     val error: String = "",
 
@@ -40,16 +39,16 @@ internal class FormGridData(
 ) {
     var alSubId: MutableList<Int>? = null
 
-    var text: MutableState<String> = mutableStateOf(aText)
+    var text by mutableStateOf(aText)
     val oldText: String = aText
 
-    var bool: MutableState<Boolean> = mutableStateOf(aBool)
+    var bool by mutableStateOf(aBool)
     val oldBool: Boolean = aBool
 
     val alDateTime: List<MutableState<String>> = aAlDateTime.map { mutableStateOf(it) }
     val oldAlDateTime: List<String> = aAlDateTime.map { it }
 
-    val combo: MutableState<Int> = mutableStateOf(aCombo)
+    var combo by mutableStateOf(aCombo)
     val oldCombo: Int = aCombo
 
     var selectorSetURL: String = ""
