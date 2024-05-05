@@ -1,11 +1,16 @@
 package foatto.core_compose
 
+import com.darkrockstudios.libraries.mpfilepicker.PlatformFile
 import foatto.core.link.AppRequest
 import foatto.core.link.AppResponse
 import foatto.core.link.ChangePasswordRequest
 import foatto.core.link.ChangePasswordResponse
+import foatto.core.link.FormFileUploadResponse
 import foatto.core.link.LogoffRequest
 import foatto.core.link.LogoffResponse
+import foatto.core.util.getRandomInt
+import foatto.core_compose.controls.models.form.FormFileData
+import foatto.core_compose.controls.models.form.FormGridData
 import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -90,6 +95,42 @@ internal actual fun invokeLogoff(
 
         request.sessionId = sessionId
         send(Json.encodeToString(request))
+    }
+}
+
+internal actual fun invokeUploadFormFile(
+    gridData: FormGridData,
+    platformFiles: List<PlatformFile>,
+    success: (responseData: FormFileUploadResponse) -> Unit,
+) {
+    val formData = org.w3c.xhr.FormData().also { formData_ ->
+        for (platformFile in platformFiles) {
+            val id = -getRandomInt()
+
+            gridData.alFileData.add(FormFileData(id, "", platformFile.file.name))
+            gridData.hmFileAdd[id] = platformFile.file.name
+
+            formData_.append("form_file_ids", id.toString())
+            formData_.append("form_file_blobs", platformFile.file)
+        }
+    }
+
+    XMLHttpRequest().apply {
+        open("POST", "/api/upload_form_file", true)
+        onreadystatechange = {
+            if (this.readyState == XMLHttpRequest.DONE) {
+                if (this.status == 200.toShort()) {
+                    if (responseText.isNotBlank()) {
+                        val response = Json.decodeFromString<FormFileUploadResponse>(responseText)
+                        success(response)
+                    }
+                } else {
+                    httpDefaultErrorHandler(this)
+                }
+            }
+        }
+        setRequestHeader("contentType", "application/octet-stream")
+        send(formData)
     }
 }
 

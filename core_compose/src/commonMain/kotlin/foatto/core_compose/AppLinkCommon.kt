@@ -1,12 +1,15 @@
 package foatto.core_compose
 
+import com.darkrockstudios.libraries.mpfilepicker.PlatformFile
 import foatto.core.link.AppRequest
 import foatto.core.link.AppResponse
 import foatto.core.link.ChangePasswordRequest
 import foatto.core.link.ChangePasswordResponse
+import foatto.core.link.FormFileUploadResponse
 import foatto.core.link.LogoffRequest
 import foatto.core.link.LogoffResponse
 import foatto.core.util.getRandomLong
+import foatto.core_compose.controls.models.form.FormGridData
 
 //WASM!!! временно, до появления всеобщего ktor-client (в т.ч. для wasm)
 /*private*/ internal val sessionId = getRandomLong()
@@ -108,30 +111,13 @@ internal expect fun invokeLogoff(
     onSuccess: (response: LogoffResponse) -> Unit,
 )
 
-/*
-
-fun invokeUploadFormFile(
-    formData: org.w3c.xhr.FormData,
+internal expect fun invokeUploadFormFile(
+    gridData: FormGridData,
+    platformFiles: List<PlatformFile>,
     success: (responseData: FormFileUploadResponse) -> Unit = {},
-) {
-    XMLHttpRequest().apply {
-        open("POST", "/api/upload_form_file", true)
-        onreadystatechange = {
-            if (this.readyState == XMLHttpRequest.DONE) {
-                if (this.status == 200.toShort()) {
-                    if (responseText.isNotBlank()) {
-                        val response = Json.decodeFromString<FormFileUploadResponse>(responseText)
-                        success(response)
-                    }
-                } else {
-                    httpDefaultErrorHandler(this)
-                }
-            }
-        }
-        setRequestHeader("contentType", "application/octet-stream")
-        send(formData)
-    }
-}
+)
+
+/*
 
 fun invokeCustom(
     customRequest: CustomRequest,

@@ -1,5 +1,6 @@
 package foatto.core_compose
 
+import com.darkrockstudios.libraries.mpfilepicker.PlatformFile
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
@@ -14,8 +15,10 @@ import foatto.core.link.AppRequest
 import foatto.core.link.AppResponse
 import foatto.core.link.ChangePasswordRequest
 import foatto.core.link.ChangePasswordResponse
+import foatto.core.link.FormFileUploadResponse
 import foatto.core.link.LogoffRequest
 import foatto.core.link.LogoffResponse
+import foatto.core_compose.controls.models.form.FormGridData
 import foatto.core_compose.di.SETTINGS_SERVER_ADDRESS
 import foatto.core_compose.di.SETTINGS_SERVER_PORT
 import foatto.core_compose.di.SETTINGS_SERVER_PROTOCOL
@@ -98,4 +101,12 @@ internal actual fun invokeLogoff(
 
         onSuccess(response)
     }
+}
+
+internal actual fun invokeUploadFormFile(
+    gridData: FormGridData,
+    platformFiles: List<PlatformFile>,
+    success: (responseData: FormFileUploadResponse) -> Unit,
+) {
+    //!!! реализовать на ktor-client
 }
