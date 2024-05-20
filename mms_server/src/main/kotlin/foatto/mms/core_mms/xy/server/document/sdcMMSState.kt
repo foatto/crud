@@ -62,6 +62,10 @@ class sdcMMSState : sdcXyState() {
         private const val OBJECT_SCHEME_SIZE = 1024 * 1024 * 1024
         private const val OBJECT_SCHEME_ELEMENT_SIZE_BASE = OBJECT_SCHEME_SIZE / 128 // 64 - крупновато
 
+        private const val TEXT_COLOR = 0xFF_00_00_00.toInt()
+        private const val TEXT_BACK_COLOR = 0xFF_FF_FF_D0.toInt()   // hsl(60,100%,90.8%)
+        private const val TEXT_BORDER_COLOR = 0xFF_CC_CC_00.toInt()   // hsl(60,100%,40%)
+
         //--- binding an object and scheme file URL
         private val chmObjectSchemeUrl = ConcurrentHashMap<Int, String>()
 
@@ -370,17 +374,16 @@ class sdcMMSState : sdcXyState() {
             val label = XyElement(TEXT, -getRandomInt(), objectConfig.objectId).apply {
                 //typeName = TYPE_STATE_W_TEXT;
                 isReadOnly = true
-                //--- именно сначала деление, потом умножение, т.к. значение schemeHeight близко к пределу переполнения Int-числа (2^30)
-                alPoint = listOf(XyPoint(schemeWidth / 4, schemeHeight / 11 * 10))
-                anchorX = XyElement.Anchor.LT
+                alPoint = listOf(XyPoint(schemeWidth / 2, 0))
+                anchorX = XyElement.Anchor.CC
                 anchorY = XyElement.Anchor.LT
-                alignX = XyElement.Align.LT
-                alignY = XyElement.Align.LT
+//                alignX = XyElement.Align.LT
+//                alignY = XyElement.Align.LT
                 fillColor = 0xFF_F0_F0_F0.toInt()
                 text = objectState.lastDataTime?.let { lastDataTime ->
                     "По состоянию на ${DateTime_YMDHMS(zoneId, lastDataTime)}"
                 } ?: "(нет данных)"
-                textColor = 0xFF_00_00_00.toInt()
+                textColor = TEXT_COLOR
                 fontSize = iCoreAppContainer.BASE_FONT_SIZE
                 isFontBold = false
             }
@@ -448,8 +451,8 @@ class sdcMMSState : sdcXyState() {
                                 sc = sc,
                                 isRemoteControlPermission = isRemoteControlPermission,
                                 hmSCS = hmSCS,
-                                x = xW,
-                                y = GRID_STEP * 15,
+                                x = xW + GRID_STEP * 3 / 2,
+                                y = GRID_STEP * 18,
                                 sizeBase = GRID_STEP,
                                 alResult = alResult,
                             )
@@ -495,7 +498,7 @@ class sdcMMSState : sdcXyState() {
                 text = objectState.lastDataTime?.let { lastDataTime ->
                     "По состоянию на ${DateTime_YMDHMS(zoneId, lastDataTime)}"
                 } ?: "(нет данных)"
-                textColor = 0xFF_00_00_00.toInt()
+                textColor = TEXT_COLOR
                 fontSize = iCoreAppContainer.BASE_FONT_SIZE
                 isFontBold = false
             }
@@ -623,33 +626,37 @@ class sdcMMSState : sdcXyState() {
 
             lineWidth = 3
             drawColor = 0xFF_D0_D0_D0.toInt()
-            fillColor = 0xFF_E0_E0_E0.toInt()
+            //fillColor = 0xFF_E0_E0_E0.toInt()
         }
         alResult.add(panel)
 
         val label = XyElement(TYPE_STATE_GROUP_TEXT, -getRandomInt(), objectId).apply {
             isReadOnly = true
-            alPoint = listOf(XyPoint(x, y + limitHeight))
+//            alPoint = listOf(XyPoint(x, y + limitHeight))
+            alPoint = listOf(XyPoint(x + limitWidth / 2, y + limitHeight))
 
             this.text = text
             toolTipText = text
-            textColor = 0xFF_00_00_00.toInt()
+            textColor = TEXT_COLOR
             fontSize = iCoreAppContainer.BASE_FONT_SIZE
             isFontBold = true
 
             //--- рисуем рамку текста и одновременно ограничиваем вывод текста по ширине
-            this.limitWidth = limitWidth
-            this.limitHeight = GRID_STEP * 2
+            //this.limitWidth = limitWidth
+            //this.limitHeight = GRID_STEP * 2
 
-            anchorX = XyElement.Anchor.LT
+//            anchorX = XyElement.Anchor.LT
+//            anchorY = XyElement.Anchor.LT
+            anchorX = XyElement.Anchor.CC
             anchorY = XyElement.Anchor.LT
-            alignX = XyElement.Align.CC
-            alignY = XyElement.Align.LT
+//            alignX = XyElement.Align.CC
+//            alignY = XyElement.Align.LT
         }
         alResult.add(label)
     }
 
-    //--- объём в литрах ---
+    //--- (x, y) - середина нижней стороны "объёма жидкости"
+    //--- (объём в литрах)
     private fun addLL(
         objectId: Int,
         sc: SensorConfigLiquidLevel,
@@ -678,7 +685,7 @@ class sdcMMSState : sdcXyState() {
         //--- собственно уровень жидкости/топлива
         val levelHeight = (tankHeight * percent).roundToInt()
         //--- цвет жидкости и поверхности жидкости зависит от общего объёма
-        val tankFillColor = (if (sc.maxView < 1_000) 0xFF_00_FF_FF else if (sc.maxView < 1_0000) 0xFF_00_C0_FF else 0xFF_00_80_FF).toInt()
+        val tankFillColor = (if (sc.maxView < 1_000) 0xFF_00_FF_FF else if (sc.maxView < 10_000) 0xFF_00_C0_FF else 0xFF_00_80_FF).toInt()
         val tankDrawColor = if (liquidError == null) 0xFF_60_60_60.toInt() else 0xFF_FF_00_00.toInt()
 
         //--- стенки ёмкости
@@ -722,18 +729,18 @@ class sdcMMSState : sdcXyState() {
         //--- общая ёмкость
         XyElement(TYPE_STATE_LL_TEXT, -getRandomInt(), objectId).apply {
             isReadOnly = true
-            alPoint = listOf(XyPoint(x - sizeBase * 3, y - tankHeight - sizeBase * 3))
-            //--- НЕ ограничиваем вывод текста по ширине
-            //topLevelLabel.limitWidth = sizeBase * 4
-            anchorX = XyElement.Anchor.LT
-            anchorY = XyElement.Anchor.LT
-            alignX = XyElement.Align.LT
-            alignY = XyElement.Align.LT
+            alPoint = listOf(XyPoint(x, y - tankHeight - wallShift * 2))
+            anchorX = XyElement.Anchor.CC
+            anchorY = XyElement.Anchor.RB
+//            alignX = XyElement.Align.LT
+//            alignY = XyElement.Align.LT
 
             text = totalVolumeText
             toolTipText = totalVolumeText
-            textColor = 0xFF_00_00_00.toInt()
-            fillColor = 0xFF_FF_FF_D0.toInt()
+            textColor = TEXT_COLOR
+            fillColor = TEXT_BACK_COLOR
+            drawColor = TEXT_BORDER_COLOR
+            lineWidth = 1
             fontSize = iCoreAppContainer.BASE_FONT_SIZE
             isFontBold = false
         }.let { xyElement ->
@@ -743,18 +750,18 @@ class sdcMMSState : sdcXyState() {
         //--- текущий уровень
         XyElement(TYPE_STATE_LL_TEXT, -getRandomInt(), objectId).apply {
             isReadOnly = true
-            alPoint = listOf(XyPoint(x + sizeBase * 3, y - levelHeight - sizeBase))
-            //--- НЕ ограничиваем вывод текста по ширине
-            //currentLevelLabel.limitWidth = sizeBase * 4
+            alPoint = listOf(XyPoint(x + sizeBase * 2 + wallShift * 2, y - levelHeight))
             anchorX = XyElement.Anchor.LT
-            anchorY = XyElement.Anchor.LT
-            alignX = XyElement.Align.LT
-            alignY = XyElement.Align.LT
+            anchorY = XyElement.Anchor.CC
+//            alignX = XyElement.Align.LT
+//            alignY = XyElement.Align.LT
 
             text = currentVolumeText
             toolTipText = currentVolumeText
-            textColor = 0xFF_00_00_00.toInt()
-            fillColor = 0xFF_FF_FF_D0.toInt()
+            textColor = TEXT_COLOR
+            fillColor = TEXT_BACK_COLOR
+            drawColor = TEXT_BORDER_COLOR
+            lineWidth = 1
             fontSize = iCoreAppContainer.BASE_FONT_SIZE
             isFontBold = true
         }.let { xyElement ->
@@ -764,18 +771,20 @@ class sdcMMSState : sdcXyState() {
         //--- наименование ёмкости
         XyElement(TYPE_STATE_LL_TEXT, -getRandomInt(), objectId).apply {
             isReadOnly = true
-            alPoint = listOf(XyPoint(x - sizeBase * 3, y + sizeBase))
+            alPoint = listOf(XyPoint(x, y + wallShift * 2))
             //--- ограничиваем вывод текста по ширине
-            limitWidth = sizeBase * 8
-            anchorX = XyElement.Anchor.LT
+            //limitWidth = sizeBase * 8
+            anchorX = XyElement.Anchor.CC
             anchorY = XyElement.Anchor.LT
-            alignX = XyElement.Align.LT
-            alignY = XyElement.Align.LT
+//            alignX = XyElement.Align.LT
+//            alignY = XyElement.Align.LT
 
             text = tankName
             toolTipText = tankName
-            textColor = 0xFF_00_00_00.toInt()
-            fillColor = 0xFF_FF_FF_D0.toInt()
+            textColor = TEXT_COLOR
+            fillColor = TEXT_BACK_COLOR
+            drawColor = TEXT_BORDER_COLOR
+            lineWidth = 1
             fontSize = iCoreAppContainer.BASE_FONT_SIZE
             isFontBold = false
         }.let { xyElement ->
@@ -786,18 +795,20 @@ class sdcMMSState : sdcXyState() {
         liquidError?.let { le ->
             XyElement(TYPE_STATE_LL_TEXT, -getRandomInt(), objectId).apply {
                 isReadOnly = true
-                alPoint = listOf(XyPoint(x - sizeBase * 3, y + sizeBase * 3))
+                alPoint = listOf(XyPoint(x, y + sizeBase * 2 + wallShift * 2))
                 //--- ограничиваем вывод текста по ширине
-                limitWidth = sizeBase * 8
-                anchorX = XyElement.Anchor.LT
+                //limitWidth = sizeBase * 8
+                anchorX = XyElement.Anchor.CC
                 anchorY = XyElement.Anchor.LT
-                alignX = XyElement.Align.LT
-                alignY = XyElement.Align.LT
+//                alignX = XyElement.Align.LT
+//                alignY = XyElement.Align.LT
 
                 text = le
                 toolTipText = le
                 textColor = 0xFF_FF_00_00.toInt()
-                fillColor = 0xFF_FF_FF_D0.toInt()
+                fillColor = TEXT_BACK_COLOR
+                drawColor = 0xFF_FF_00_00.toInt()
+                lineWidth = 1
                 fontSize = iCoreAppContainer.BASE_FONT_SIZE
                 isFontBold = false
             }.let { xyElement ->
@@ -832,10 +843,8 @@ class sdcMMSState : sdcXyState() {
             imageWidth = 64
             imageHeight = 64
 
-            anchorX = XyElement.Anchor.LT
-            anchorY = XyElement.Anchor.LT
-            alignX = XyElement.Align.LT
-            alignY = XyElement.Align.LT
+            anchorX = XyElement.Anchor.CC
+            anchorY = XyElement.Anchor.RB
 
             toolTipText = toolTip
         }.let { xyElement ->
@@ -845,18 +854,22 @@ class sdcMMSState : sdcXyState() {
 
         XyElement(TYPE_STATE_W_TEXT, -getRandomInt(), objectId).apply {
             isReadOnly = true
-            alPoint = listOf(XyPoint(x, y + sizeBase * 6))
+            alPoint = listOf(XyPoint(x, y + sizeBase / 9))
             //--- ограничиваем вывод текста по ширине
-            limitWidth = sizeBase * 6
-            anchorX = XyElement.Anchor.LT
+            //limitWidth = sizeBase * 6
+//            anchorX = XyElement.Anchor.LT
+//            anchorY = XyElement.Anchor.LT
+            anchorX = XyElement.Anchor.CC
             anchorY = XyElement.Anchor.LT
-            alignX = XyElement.Align.LT
-            alignY = XyElement.Align.LT
+//            alignX = XyElement.Align.LT
+//            alignY = XyElement.Align.LT
 
             this.text = text
             toolTipText = text
-            textColor = 0xFF_00_00_00.toInt()
-            fillColor = 0xFF_FF_FF_D0.toInt()
+            textColor = TEXT_COLOR
+            fillColor = TEXT_BACK_COLOR
+            drawColor = TEXT_BORDER_COLOR
+            lineWidth = 1
             fontSize = iCoreAppContainer.BASE_FONT_SIZE
             isFontBold = false
         }.let { xyElement ->
@@ -896,7 +909,7 @@ class sdcMMSState : sdcXyState() {
 
             this.text = text
             toolTipText = text
-            textColor = 0xFF_00_00_00.toInt()
+            textColor = TEXT_COLOR
             fontSize = iCoreAppContainer.BASE_FONT_SIZE
             isFontBold = true
         }
@@ -905,6 +918,7 @@ class sdcMMSState : sdcXyState() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+/*
     private fun drawCube(
         objectId: Int,
         elementType: String,
@@ -989,7 +1003,7 @@ class sdcMMSState : sdcXyState() {
 
         return mutableListOf(top.elementId, front.elementId, side.elementId)
     }
-
+*/
     private fun getSignalEnabled(objectState: ObjectState, hmSCS: Map<Int, SensorConfig>?, signalConfig: SignalConfig): Boolean {
         //--- если разрешителей не прописано - то можно по умолчанию
         if (signalConfig.alPort.isEmpty()) {
