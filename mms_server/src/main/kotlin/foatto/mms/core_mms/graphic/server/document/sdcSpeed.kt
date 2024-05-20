@@ -18,7 +18,7 @@ import kotlin.math.max
 
 class sdcSpeed : sdcAbstractGraphic() {
 
-    override fun doGetElements(graphicActionRequest: GraphicActionRequest): GraphicActionResponse {
+    override fun doGetElements(chartActionRequest: ChartActionRequest): ChartActionResponse {
         //long begTime = System.currentTimeMillis();
 
         //--- придёт null, ибо нет необходимости
@@ -26,13 +26,13 @@ class sdcSpeed : sdcAbstractGraphic() {
         //int sensorType = mmsgdc.sensorType;
         //AnalogGraphicHandler agh = ( AnalogGraphicHandler ) mmsgdc.graphicHandler;
 
-        val graphicStartDataID = graphicActionRequest.startParamId
+        val graphicStartDataID = chartActionRequest.startParamId
         val sd = chmSession[AppParameter.GRAPHIC_START_DATA + graphicStartDataID] as GraphicStartData
 
-        val x1 = graphicActionRequest.graphicCoords!!.first
-        val x2 = graphicActionRequest.graphicCoords!!.second
-        val viewWidth = graphicActionRequest.viewSize!!.first
-        val viewHeight = graphicActionRequest.viewSize!!.second
+        val x1 = chartActionRequest.graphicCoords!!.first
+        val x2 = chartActionRequest.graphicCoords!!.second
+        val viewWidth = chartActionRequest.viewSize!!.first
+        val viewHeight = chartActionRequest.viewSize!!.second
 
         val maxEnabledOverSpeed = (application as iMMSApplication).maxEnabledOverSpeed
 
@@ -139,7 +139,7 @@ class sdcSpeed : sdcAbstractGraphic() {
         //AdvancedLogger.debug(  "Graphic time [ ms ] = " + (  System.currentTimeMillis() - begTime  )  );
         //AdvancedLogger.debug(  "------------------------------------------------------------"  );
 
-        return GraphicActionResponse(
+        return ChartActionResponse(
             hmIndexColor = hmIndexColor,
             alElement = tmElement.toList(),
             alVisibleElement = tmElementVisibleConfig.values.toList(),

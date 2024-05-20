@@ -68,7 +68,7 @@ var colorTableRowBack1: Color = Color.hsl(0f, 0f, 0.95f)
 
 //--- base/standart table/grid control
 
-open class TableControl(
+class TableControl(
     private val root: Root,
     private val appControl: AppControl,
     private val appParam: String,

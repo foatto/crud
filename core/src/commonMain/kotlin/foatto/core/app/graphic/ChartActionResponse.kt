@@ -3,7 +3,7 @@ package foatto.core.app.graphic
 import kotlinx.serialization.Serializable
 
 @Serializable
-class GraphicActionResponse(
+class ChartActionResponse(
     //--- answer on GET_ELEMENTS
     val hmIndexColor: Map<GraphicColorIndex, Int> = emptyMap(),
     //--- именно List - важен порядок элементов

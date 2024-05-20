@@ -9,7 +9,7 @@ class AppResponse(
     val redirect: String? = null,
     val table: TableResponse? = null,
     val form: FormResponse? = null,
-    val graphic: GraphicResponse? = null,
+    val graphic: ChartResponse? = null,
     val xy: XyResponse? = null,
     val composite: CompositeResponse? = null,
 ) {
@@ -52,7 +52,7 @@ class MenuData(
 )
 
 @Serializable
-class GraphicResponse(
+class ChartResponse(
     val documentTypeName: String,
     val startParamId: String,
     val shortTitle: String,
@@ -66,5 +66,5 @@ class GraphicResponse(
 @Serializable
 class CompositeResponse(
     val xyResponse: XyResponse,
-    val graphicResponse: GraphicResponse,
+    val graphicResponse: ChartResponse,
 )

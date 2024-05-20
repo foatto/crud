@@ -1,8 +1,8 @@
 package foatto.core_server.app.graphic.server.document
 
 import foatto.core.app.graphic.AxisYData
-import foatto.core.app.graphic.GraphicActionRequest
-import foatto.core.app.graphic.GraphicActionResponse
+import foatto.core.app.graphic.ChartActionRequest
+import foatto.core.app.graphic.ChartActionResponse
 import foatto.core.app.graphic.GraphicColorIndex
 import foatto.core.app.graphic.GraphicDataContainer
 import foatto.core.app.graphic.GraphicElement
@@ -17,14 +17,14 @@ import kotlin.math.max
 
 class sdcLogGraphic : sdcAbstractGraphic() {
 
-    override fun doGetElements(graphicActionRequest: GraphicActionRequest): GraphicActionResponse {
+    override fun doGetElements(chartActionRequest: ChartActionRequest): ChartActionResponse {
 
-        val sd = chmSession[AppParameter.GRAPHIC_START_DATA + graphicActionRequest.startParamId] as GraphicStartData
+        val sd = chmSession[AppParameter.GRAPHIC_START_DATA + chartActionRequest.startParamId] as GraphicStartData
 
-        val x1 = graphicActionRequest.graphicCoords!!.first
-        val x2 = graphicActionRequest.graphicCoords!!.second
-        val viewWidth = graphicActionRequest.viewSize!!.first
-        val viewHeight = graphicActionRequest.viewSize!!.second
+        val x1 = chartActionRequest.graphicCoords!!.first
+        val x2 = chartActionRequest.graphicCoords!!.second
+        val viewWidth = chartActionRequest.viewSize!!.first
+        val viewHeight = chartActionRequest.viewSize!!.second
 
         //--- подготовка сырых данных для графиков
 
@@ -139,7 +139,7 @@ class sdcLogGraphic : sdcAbstractGraphic() {
         tmVisibleElement[gewh.graphicTitle] = Triple(gewh.graphicTitle, "$UP_GRAPHIC_VISIBLE${gewh.graphicTitle}", true)
         tmVisibleElement[gem.graphicTitle] = Triple(gem.graphicTitle, "$UP_GRAPHIC_VISIBLE${gem.graphicTitle}", true)
 
-        return GraphicActionResponse(
+        return ChartActionResponse(
             hmIndexColor = hmIndexColor,
             alElement = tmElement.toList(),
             alVisibleElement = tmVisibleElement.values.toList(),

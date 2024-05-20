@@ -19,7 +19,7 @@ class XyElement(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    enum class MarkerType { ARROW, CIRCLE, CROSS, DIAMOND, PLUS, SQUARE, TRIANGLE }
+    enum class MarkerType { ARROW, CIRCLE, /*CROSS,*/ DIAMOND, /*PLUS,*/ SQUARE, TRIANGLE }
     enum class Anchor { LT, CC, RB }
     enum class Align { LT, CC, RB }
     enum class ArrowPos { NONE, BEGIN, MIDDLE, END }

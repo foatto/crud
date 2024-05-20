@@ -3,7 +3,7 @@ package foatto.core.app.graphic
 import kotlinx.serialization.Serializable
 
 @Serializable
-class GraphicActionRequest(
+class ChartActionRequest(
     val documentTypeName: String,
     val action: GraphicAction,
     val startParamId: String,

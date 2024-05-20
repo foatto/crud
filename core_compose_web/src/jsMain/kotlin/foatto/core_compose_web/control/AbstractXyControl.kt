@@ -969,28 +969,28 @@ abstract class AbstractXyControl(
                         }
                     }
 
-                    XyElement.MarkerType.CROSS -> {
-                        val path =
-                            "M${x - halfX},${y - halfY}" +
-                                "L${x + halfX},${y + halfY}" +
-                                "M${x + halfX},${y - halfY}" +
-                                "L${x - halfX},${y + halfY}"
-                        alLayer.add(
-                            XyElementData(
-                                type = XyElementDataType.PATH,
-                                elementId = element.elementId,
-                                objectId = element.objectId,
-                                strPoints = path,
-                                stroke = drawColor,
-                                fill = fillColor,
-                                strokeWidth = max(1.0, lineWidth * scaleKoef).roundToInt(),
-                                strokeDash = "${scaleKoef * lineWidth * 2},${scaleKoef * lineWidth * 2}",
-                                transform = "rotate(${element.rotateDegree} $x $y)",
-                                tooltip = element.toolTipText,
-                                isReadOnly = element.isReadOnly
-                            )
-                        )
-                    }
+//                    XyElement.MarkerType.CROSS -> {
+//                        val path =
+//                            "M${x - halfX},${y - halfY}" +
+//                                "L${x + halfX},${y + halfY}" +
+//                                "M${x + halfX},${y - halfY}" +
+//                                "L${x - halfX},${y + halfY}"
+//                        alLayer.add(
+//                            XyElementData(
+//                                type = XyElementDataType.PATH,
+//                                elementId = element.elementId,
+//                                objectId = element.objectId,
+//                                strPoints = path,
+//                                stroke = drawColor,
+//                                fill = fillColor,
+//                                strokeWidth = max(1.0, lineWidth * scaleKoef).roundToInt(),
+//                                strokeDash = "${scaleKoef * lineWidth * 2},${scaleKoef * lineWidth * 2}",
+//                                transform = "rotate(${element.rotateDegree} $x $y)",
+//                                tooltip = element.toolTipText,
+//                                isReadOnly = element.isReadOnly
+//                            )
+//                        )
+//                    }
 
                     XyElement.MarkerType.DIAMOND -> {
                         val points = arrayOf(
@@ -1016,28 +1016,28 @@ abstract class AbstractXyControl(
                         )
                     }
 
-                    XyElement.MarkerType.PLUS -> {
-                        val path =
-                            "M$x,${y - halfY}" +
-                                "L$x,${y + halfY}" +
-                                "M${x - halfX},$y" +
-                                "L${x + halfX},$y"
-                        alLayer.add(
-                            XyElementData(
-                                type = XyElementDataType.PATH,
-                                elementId = element.elementId,
-                                objectId = element.objectId,
-                                strPoints = path,
-                                stroke = drawColor,
-                                fill = fillColor,
-                                strokeWidth = max(1.0, lineWidth * scaleKoef).roundToInt(),
-                                strokeDash = "${scaleKoef * lineWidth * 2},${scaleKoef * lineWidth * 2}",
-                                transform = "rotate(${element.rotateDegree} $x $y)",
-                                tooltip = element.toolTipText,
-                                isReadOnly = element.isReadOnly
-                            )
-                        )
-                    }
+//                    XyElement.MarkerType.PLUS -> {
+//                        val path =
+//                            "M$x,${y - halfY}" +
+//                                "L$x,${y + halfY}" +
+//                                "M${x - halfX},$y" +
+//                                "L${x + halfX},$y"
+//                        alLayer.add(
+//                            XyElementData(
+//                                type = XyElementDataType.PATH,
+//                                elementId = element.elementId,
+//                                objectId = element.objectId,
+//                                strPoints = path,
+//                                stroke = drawColor,
+//                                fill = fillColor,
+//                                strokeWidth = max(1.0, lineWidth * scaleKoef).roundToInt(),
+//                                strokeDash = "${scaleKoef * lineWidth * 2},${scaleKoef * lineWidth * 2}",
+//                                transform = "rotate(${element.rotateDegree} $x $y)",
+//                                tooltip = element.toolTipText,
+//                                isReadOnly = element.isReadOnly
+//                            )
+//                        )
+//                    }
 
                     XyElement.MarkerType.SQUARE -> {
                         alLayer.add(

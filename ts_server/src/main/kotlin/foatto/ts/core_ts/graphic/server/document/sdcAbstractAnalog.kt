@@ -1,8 +1,8 @@
 package foatto.ts.core_ts.graphic.server.document
 
 import foatto.core.app.graphic.AxisYData
-import foatto.core.app.graphic.GraphicActionRequest
-import foatto.core.app.graphic.GraphicActionResponse
+import foatto.core.app.graphic.ChartActionRequest
+import foatto.core.app.graphic.ChartActionResponse
 import foatto.core.app.graphic.GraphicBackData
 import foatto.core.app.graphic.GraphicDataContainer
 import foatto.core.app.graphic.GraphicElement
@@ -23,12 +23,12 @@ import kotlin.math.ceil
 
 abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
 
-    override fun doGetElements(graphicActionRequest: GraphicActionRequest): GraphicActionResponse {
-        val graphicStartDataID = graphicActionRequest.startParamId
+    override fun doGetElements(chartActionRequest: ChartActionRequest): ChartActionResponse {
+        val graphicStartDataID = chartActionRequest.startParamId
         val sd = chmSession[AppParameter.GRAPHIC_START_DATA + graphicStartDataID] as GraphicStartData
 
-        val (begTime, endTime) = graphicActionRequest.graphicCoords!!
-        val (viewWidth, viewHeight) = graphicActionRequest.viewSize!!
+        val (begTime, endTime) = chartActionRequest.graphicCoords!!
+        val (viewWidth, viewHeight) = chartActionRequest.viewSize!!
 
         val objectConfig = (application as iTSApplication).getObjectConfig(userConfig, sd.objectId)
 
@@ -54,7 +54,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
             tmElementVisibleConfig = tmElementVisibleConfig
         )
 
-        return GraphicActionResponse(
+        return ChartActionResponse(
             hmIndexColor = hmIndexColor,
             alElement = tmElement.toList(),
             alVisibleElement = tmElementVisibleConfig.values.toList(),

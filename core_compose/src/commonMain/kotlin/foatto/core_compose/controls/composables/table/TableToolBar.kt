@@ -11,7 +11,6 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import foatto.core_compose.composables.GenerateMenuBody
 import foatto.core_compose.controls.composables.ToolBarBlock
 import foatto.core_compose.controls.composables.ToolBarIconButton
 import foatto.core_compose.controls.models.table.AddActionButtonClient
@@ -54,7 +53,6 @@ fun TableToolBar(
 //                            lineStyle = getStyleTableCaptionBorderTop().style,
 //                            color = getStyleTableCaptionBorderTop().color,
 //                        )
-//                        padding(styleControlPadding)
 //                        backgroundColor(getColorTableToolbarBack())
     ) {
         ToolBarBlock {

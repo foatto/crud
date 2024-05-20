@@ -1,8 +1,8 @@
 package foatto.spring.controllers
 
 import foatto.core.app.graphic.GraphicAction
-import foatto.core.app.graphic.GraphicActionRequest
-import foatto.core.app.graphic.GraphicActionResponse
+import foatto.core.app.graphic.ChartActionRequest
+import foatto.core.app.graphic.ChartActionResponse
 import foatto.core.app.xy.XyAction
 import foatto.core.app.xy.XyActionRequest
 import foatto.core.app.xy.XyActionResponse
@@ -317,7 +317,7 @@ abstract class CoreAppController(
 
                         appResponse = AppResponse(
                             code = ResponseCode.GRAPHIC,
-                            graphic = GraphicResponse(
+                            graphic = ChartResponse(
                                 documentTypeName = aliasName,
                                 startParamId = graphicStartDataID,
                                 shortTitle = sd.shortTitle.substring(0, min(32000, sd.shortTitle.length)),
@@ -549,14 +549,14 @@ abstract class CoreAppController(
 //    @PostMapping("/api/graphic")
     open fun graphic(
         //@RequestBody
-        graphicActionRequest: GraphicActionRequest
-    ): GraphicActionResponse {
+        chartActionRequest: ChartActionRequest
+    ): ChartActionResponse {
         val graphicBegTime = getCurrentTimeInt()
 
         val conn = AdvancedConnection(CoreSpringApp.dbConfig)
 
         //--- загрузка/создании сессии
-        val chmSession = CoreSpringApp.chmSessionStore.getOrPut(graphicActionRequest.sessionId) { ConcurrentHashMap() }
+        val chmSession = CoreSpringApp.chmSessionStore.getOrPut(chartActionRequest.sessionId) { ConcurrentHashMap() }
 
         //--- набор для накопления выходных параметров.
         //--- выходные параметры будут записаны в сессию, только если транзакция пройдет успешно.
@@ -568,13 +568,13 @@ abstract class CoreAppController(
 
 //                        if( userLogMode == SYSTEM_LOG_ALL ) logQuery( hmParam )
         val userConfig: UserConfig = chmSession[iApplication.USER_CONFIG] as? UserConfig ?: throw BusinessException("Не найден пользователь в сессии!")
-        val serverDocumentControlClassName = GraphicDocumentConfig.hmConfig[graphicActionRequest.documentTypeName]!!.serverControlClassName
+        val serverDocumentControlClassName = GraphicDocumentConfig.hmConfig[chartActionRequest.documentTypeName]!!.serverControlClassName
         val doc = Class.forName(serverDocumentControlClassName).getConstructor().newInstance() as sdcAbstractGraphic
-        doc.init(this, conn, chmSession, userConfig, graphicActionRequest.documentTypeName)
+        doc.init(this, conn, chmSession, userConfig, chartActionRequest.documentTypeName)
 
         val graphicActionResponse =
-            when (graphicActionRequest.action) {
-                GraphicAction.GET_ELEMENTS -> doc.doGetElements(graphicActionRequest)
+            when (chartActionRequest.action) {
+                GraphicAction.GET_ELEMENTS -> doc.doGetElements(chartActionRequest)
             }
 
         //--- зафиксировать любые изменения в базе/
@@ -591,7 +591,7 @@ abstract class CoreAppController(
         //--- если запрос длился/обрабатывался дольше MAX_TIME_PER_REQUEST, покажем его
         if (getCurrentTimeInt() - graphicBegTime > CoreSpringApp.MAX_TIME_PER_REQUEST) {
             AdvancedLogger.error("--- Long Graphic Query = " + (getCurrentTimeInt() - graphicBegTime))
-            AdvancedLogger.error(graphicActionRequest.toString())
+            AdvancedLogger.error(chartActionRequest.toString())
         }
         //AdvancedLogger.error( "Query time = " + ( System.currentTimeMillis() - appBegTime ) / 1000 );
 

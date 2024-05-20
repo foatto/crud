@@ -7,15 +7,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.web.events.SyntheticMouseEvent
 import androidx.compose.web.events.SyntheticWheelEvent
 import foatto.core.app.graphic.GraphicAction
-import foatto.core.app.graphic.GraphicActionRequest
-import foatto.core.app.graphic.GraphicActionResponse
+import foatto.core.app.graphic.ChartActionRequest
+import foatto.core.app.graphic.ChartActionResponse
 import foatto.core.app.graphic.GraphicColorIndex
 import foatto.core.app.graphic.GraphicDataContainer
 import foatto.core.app.graphic.GraphicElement
 import foatto.core.app.graphic.GraphicViewCoord
 import foatto.core.app.iCoreAppContainer
 import foatto.core.app.xy.geom.XyRect
-import foatto.core.link.GraphicResponse
+import foatto.core.link.ChartResponse
 import foatto.core.link.SaveUserPropertyRequest
 import foatto.core.util.getSplittedDouble
 import foatto.core_compose_web.*
@@ -141,7 +141,7 @@ private enum class GraphicWorkMode {
 class GraphicControl(
     private val root: Root,
     private val appControl: AppControl,
-    private val graphicResponse: GraphicResponse,
+    private val graphicResponse: ChartResponse,
     tabId: Int,
 ) : AbstractControl(tabId) {
 
@@ -842,7 +842,7 @@ class GraphicControl(
             root.setWait(true)
         }
         invokeGraphic(
-            GraphicActionRequest(
+            ChartActionRequest(
                 documentTypeName = graphicResponse.documentTypeName,
                 action = GraphicAction.GET_ELEMENTS,
                 startParamId = graphicResponse.startParamId,
@@ -853,7 +853,7 @@ class GraphicControl(
                 viewSize = Pair((window.innerWidth / scaleKoef).roundToInt(), (window.innerHeight / scaleKoef).roundToInt())
             )
 
-        ) { graphicActionResponse: GraphicActionResponse ->
+        ) { chartActionResponse: ChartActionResponse ->
 
             //--- calcBodyLeftAndTop нельз вызывать слишком рано (в doGraphicSpecificComponentMounted),
             //--- т.к. асинхронный Body ещё не готов и возвращает null для элементов заголовка
@@ -863,13 +863,13 @@ class GraphicControl(
             }
 
             alElement.clear()
-            alElement.addAll(graphicActionResponse.alElement)
+            alElement.addAll(chartActionResponse.alElement)
 
             //--- пары element-descr -> element-key, отсортированные по element-descr для определения ключа,
             //--- по которому будет управляться видимость графиков
             alGraphicVisibleData.clear()
             alGraphicVisibleData.addAll(
-                graphicActionResponse.alVisibleElement.map { (first, second, third) ->
+                chartActionResponse.alVisibleElement.map { (first, second, third) ->
                     GraphicVisibleData(
                         descr = first,
                         name = second,
@@ -878,11 +878,11 @@ class GraphicControl(
                 }
             )
 
-            val hmIndexColor = graphicActionResponse.hmIndexColor.map { (colorIndex, intColor) ->
+            val hmIndexColor = chartActionResponse.hmIndexColor.map { (colorIndex, intColor) ->
                 colorIndex.toString() to getColorFromInt(intColor)
             }.toMap()
             alGrLegend.clear()
-            alGrLegend.addAll(graphicActionResponse.alLegend.map { (color, isBack, text) ->
+            alGrLegend.addAll(chartActionResponse.alLegend.map { (color, isBack, text) ->
                 LegendData(
                     text = text,
                     style = {

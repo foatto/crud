@@ -60,8 +60,7 @@ kotlin {
             api(compose.foundation)
             api(compose.ui)
             api(compose.material3)
-
-//            api(compose.components.resources) - пока не надо
+//            api(compose.components.resources) - пока не может грузить картинки со внешних ресурсов
 //            api(compose.components.uiToolingPreview)
 
             api("com.russhwolf:multiplatform-settings:$multiplatformSettingsVersion")

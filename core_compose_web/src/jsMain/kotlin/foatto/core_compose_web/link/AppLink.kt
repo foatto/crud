@@ -1,7 +1,7 @@
 package foatto.core_compose_web.link
 
-import foatto.core.app.graphic.GraphicActionRequest
-import foatto.core.app.graphic.GraphicActionResponse
+import foatto.core.app.graphic.ChartActionRequest
+import foatto.core.app.graphic.ChartActionResponse
 import foatto.core.app.xy.XyActionRequest
 import foatto.core.app.xy.XyActionResponse
 import foatto.core.link.*
@@ -42,8 +42,8 @@ fun invokeApp(
 }
 
 fun invokeGraphic(
-    graphicActionRequest: GraphicActionRequest,
-    success: (responseData: GraphicActionResponse) -> Unit,
+    chartActionRequest: ChartActionRequest,
+    success: (responseData: ChartActionResponse) -> Unit,
 ) {
     XMLHttpRequest().apply {
         open("POST", "/api/graphic", true)
@@ -51,7 +51,7 @@ fun invokeGraphic(
             if (this.readyState == XMLHttpRequest.DONE) {
                 if (this.status == 200.toShort()) {
                     if (responseText.isNotBlank()) {
-                        val response = Json.decodeFromString<GraphicActionResponse>(responseText)
+                        val response = Json.decodeFromString<ChartActionResponse>(responseText)
                         success(response)
                     }
                 } else {
@@ -61,9 +61,9 @@ fun invokeGraphic(
         }
         setRequestHeader("Content-Type", "application/json")
 
-        graphicActionRequest.sessionId = sessionId
+        chartActionRequest.sessionId = sessionId
 
-        send(Json.encodeToString(graphicActionRequest))
+        send(Json.encodeToString(chartActionRequest))
     }
 }
 

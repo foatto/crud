@@ -91,6 +91,7 @@ private fun getMenuPadding(level: Int) = ((1 + level) * 16).dp
 fun getClientSubMenu(
     currentUserName: String,
     scaledScreenWidth: Int,
+    scaleKoef: Float,
 ): MenuDataClient {
     val alClientSubMenu = mutableListOf<MenuDataClient>()
 
@@ -106,7 +107,7 @@ fun getClientSubMenu(
     alClientSubMenu.add(MenuDataClient(url = "", text = ""))
 
     alClientSubMenu.add(MenuDataClient(url = "", text = "scaled screen width = $scaledScreenWidth"))
-//    alClientSubMenu.add(MenuDataClient(url = "", text = "device pixel ratio = ${window.devicePixelRatio}"))
+    alClientSubMenu.add(MenuDataClient(url = "", text = "device pixel ratio = $scaleKoef"))
 //    alClientSubMenu.add(MenuDataClient(url = "", text = "touch screen = ${getStyleIsTouchScreen()}"))
 
     return MenuDataClient(url = "", text = "Дополнительно", alSubMenu = alClientSubMenu)

@@ -1,15 +1,12 @@
 package foatto.core_server.app.graphic.server.document
 
-import foatto.core.app.graphic.GraphicActionRequest
-import foatto.core.app.graphic.GraphicActionResponse
+import foatto.core.app.graphic.ChartActionRequest
+import foatto.core.app.graphic.ChartActionResponse
 import foatto.core.app.graphic.GraphicColorIndex
-import foatto.core_server.app.AppParameter
-import foatto.core_server.app.graphic.server.GraphicStartData
 import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.UserConfig
 import foatto.sql.CoreAdvancedConnection
 import java.time.ZoneId
-import java.time.ZonedDateTime
 import java.util.concurrent.ConcurrentHashMap
 
 abstract class sdcAbstractGraphic {
@@ -88,7 +85,7 @@ abstract class sdcAbstractGraphic {
         zoneId = userConfig.upZoneId
     }
 
-    abstract fun doGetElements(graphicActionRequest: GraphicActionRequest): GraphicActionResponse
+    abstract fun doGetElements(chartActionRequest: ChartActionRequest): ChartActionResponse
 
 }
 

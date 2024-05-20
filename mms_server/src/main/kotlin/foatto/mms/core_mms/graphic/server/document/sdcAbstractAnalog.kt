@@ -213,15 +213,15 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
     //--- общие нештатные ситуации показываем только на первом/верхнем графике
     private var isCommonTroubleShowed = false
 
-    override fun doGetElements(graphicActionRequest: GraphicActionRequest): GraphicActionResponse {
+    override fun doGetElements(chartActionRequest: ChartActionRequest): ChartActionResponse {
         isGeoSensorShowed = false
         isCommonTroubleShowed = false
 
-        val graphicStartDataID = graphicActionRequest.startParamId
+        val graphicStartDataID = chartActionRequest.startParamId
         val sd = chmSession[AppParameter.GRAPHIC_START_DATA + graphicStartDataID] as GraphicStartData
 
-        val (begTime, endTime) = graphicActionRequest.graphicCoords!!
-        val (viewWidth, viewHeight) = graphicActionRequest.viewSize!!
+        val (begTime, endTime) = chartActionRequest.graphicCoords!!
+        val (viewWidth, viewHeight) = chartActionRequest.viewSize!!
 
         val objectConfig = (application as iMMSApplication).getObjectConfig(userConfig, sd.objectId)
         //--- загрузка заголовочной информации по объекту
@@ -256,7 +256,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
             tmElementVisibleConfig = tmElementVisibleConfig
         )
 
-        return GraphicActionResponse(
+        return ChartActionResponse(
             hmIndexColor = hmIndexColor,
             alElement = tmElement.toList(),
             alVisibleElement = tmElementVisibleConfig.values.toList(),

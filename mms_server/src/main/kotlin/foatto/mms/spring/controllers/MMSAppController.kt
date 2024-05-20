@@ -1,7 +1,7 @@
 package foatto.mms.spring.controllers
 
-import foatto.core.app.graphic.GraphicActionRequest
-import foatto.core.app.graphic.GraphicActionResponse
+import foatto.core.app.graphic.ChartActionRequest
+import foatto.core.app.graphic.ChartActionResponse
 import foatto.core.app.xy.XyActionRequest
 import foatto.core.app.xy.XyActionResponse
 import foatto.core.link.AppRequest
@@ -63,9 +63,9 @@ class MMSAppController(
     @PostMapping("/api/graphic")
     override fun graphic(
         @RequestBody
-        graphicActionRequest: GraphicActionRequest
-    ): GraphicActionResponse {
-        return super.graphic(graphicActionRequest)
+        chartActionRequest: ChartActionRequest
+    ): ChartActionResponse {
+        return super.graphic(chartActionRequest)
     }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------

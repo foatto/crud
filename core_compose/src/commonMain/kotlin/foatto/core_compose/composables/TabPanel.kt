@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import foatto.core_compose.models.TabInfo
 
 @Composable
@@ -41,7 +42,12 @@ fun TabPanel(
                     ) {
                         Spacer(modifier = Modifier.weight(1.0f))
                         Text(
-                            modifier = Modifier.align(Alignment.CenterVertically).weight(1.0f).wrapContentWidth(),
+                            modifier = Modifier
+                                .align(Alignment.CenterVertically)
+                                .weight(1.0f)
+                                .wrapContentWidth(),
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis,
                             text = tabInfo.alText.joinToString("\n"),
                         )
                         Spacer(modifier = Modifier.weight(1.0f))
