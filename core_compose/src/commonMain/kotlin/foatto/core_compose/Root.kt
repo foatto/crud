@@ -24,6 +24,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalViewConfiguration
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.dp
 import foatto.core.link.ChangePasswordRequest
 import foatto.core.link.LogoffRequest
@@ -72,7 +75,11 @@ open class Root {
     }
 
     var scaledScreenWidth: Int = 0
+        private set
     var isWideScreen: Boolean by mutableStateOf(false)
+        private set
+    var scaleKoef: Float = 1.0f
+        private set
 
     private val alMenuDataClient = mutableStateListOf<MenuDataClient>()
     private var isShowMainMenu by mutableStateOf(false)
@@ -99,9 +106,13 @@ open class Root {
 
     @Composable
     fun Content() {
-        //--- новый рекорд: Samsung A52, inner width = 509, outer width = 412
+        val density = LocalDensity.current
+
         scaledScreenWidth = getScaledScreenWidth()
+        //--- новый рекорд: Samsung A52, inner width = 509, outer width = 412
         isWideScreen = scaledScreenWidth >= 600
+        //--- инициализируем ДО того, как будет использоваться в Map/Scheme/Chart/Dashboard
+        scaleKoef = density.density
 
         MaterialTheme {
             Box(
@@ -281,7 +292,7 @@ open class Root {
     fun setMenuBarData(alMenuData: List<MenuDataClient>, scaledScreenWidth: Int) {
         alMenuDataClient.clear()
         alMenuDataClient.addAll(alMenuData)
-        alMenuDataClient.add(getClientSubMenu(currentUserName, scaledScreenWidth))
+        alMenuDataClient.add(getClientSubMenu(currentUserName, scaledScreenWidth, scaleKoef))
         isTabPanelVisible = true
     }
 

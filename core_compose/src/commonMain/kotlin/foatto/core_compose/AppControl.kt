@@ -18,10 +18,13 @@ import foatto.core.link.AppResponse
 import foatto.core.link.LogonRequest
 import foatto.core.link.MenuData
 import foatto.core.link.ResponseCode
+import foatto.core.link.XyDocumentClientType
 import foatto.core_compose.composables.LogonForm
 import foatto.core_compose.controls.AbstractControl
 import foatto.core_compose.controls.EmptyControl
 import foatto.core_compose.controls.FormControl
+import foatto.core_compose.controls.MapControl
+import foatto.core_compose.controls.SchemeControl
 import foatto.core_compose.controls.getTableControl
 import foatto.core_compose.di.SETTINGS_LOGIN
 import foatto.core_compose.di.SETTINGS_PASSWORD
@@ -110,7 +113,7 @@ class AppControl(
                     )
                 }
 
-                ResponseCode.TABLE, ResponseCode.FORM -> {
+                ResponseCode.TABLE, ResponseCode.FORM, ResponseCode.XY -> {
                     curControl.Body()
                 }
 
@@ -124,11 +127,10 @@ class AppControl(
                 }
 
                 /*
-                    REDIRECT,
+                    REDIRECT - ?, используется ли
 
-                    GRAPHIC,
-                    XY,
-                    COMPOSITE,
+                    GRAPHIC -> CHART,
+                    COMPOSITE -> DASHBOARD (?),
                  */
             }
         }
@@ -234,6 +236,19 @@ class AppControl(
                         formControl.start()
                     }
 
+                    ResponseCode.XY -> {
+                        appResponse.xy?.let { xy ->
+                            val xyControl = when (xy.documentConfig.clientType) {
+                                XyDocumentClientType.MAP -> MapControl(root, this, xy, tabId)
+                                XyDocumentClientType.STATE -> SchemeControl(root, this, xy, tabId)
+                            }
+                            curControl = xyControl
+                            responseCode = appResponse.code
+
+                            xyControl.start()
+                        }
+                    }
+
 //                    ResponseCode.GRAPHIC -> {
 //                        val graphicControl = GraphicControl(root, this, appResponse.graphic!!, tabId)
 //                        curControl.value = graphicControl
@@ -242,19 +257,6 @@ class AppControl(
 //                        graphicControl.start()
 //                    }
 //
-//                    ResponseCode.XY -> {
-//                        appResponse.xy?.let { xy ->
-//                            val xyControl = when (xy.documentConfig.clientType) {
-//                                XyDocumentClientType.MAP -> MapControl(root, this, xy, tabId)
-//                                XyDocumentClientType.STATE -> StateControl(root, this, xy, tabId)
-//                                else -> MapControl(root, this, xy, tabId)
-//                            }
-//                            curControl.value = xyControl
-//                            responseCode.value = appResponse.code
-//
-//                            xyControl.start()
-//                        }
-//                    }
 ////            ResponseCode.VIDEO_ONLINE, ResponseCode.VIDEO_ARCHIVE -> {
 ////                val vcstartParamId = bbIn.getShortString()
 ////                val vcStartTitle = bbIn.getShortString()

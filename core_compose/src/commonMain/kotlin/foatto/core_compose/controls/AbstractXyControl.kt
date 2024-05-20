@@ -1,0 +1,1282 @@
+package foatto.core_compose.controls
+
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.BiasAlignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.hsl
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.DrawStyle
+import androidx.compose.ui.graphics.drawscope.Fill
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.PointerInputChange
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.toSize
+import foatto.core.app.xy.XyAction
+import foatto.core.app.xy.XyActionRequest
+import foatto.core.app.xy.XyActionResponse
+import foatto.core.app.xy.XyElement
+import foatto.core.app.xy.XyViewCoord
+import foatto.core.app.xy.geom.XyPoint
+import foatto.core.app.xy.geom.XyRect
+import foatto.core.link.XyElementClientType
+import foatto.core.link.XyElementConfig
+import foatto.core.link.XyResponse
+import foatto.core_compose.AppControl
+import foatto.core_compose.Root
+import foatto.core_compose.controls.models.TitleData
+import foatto.core_compose.controls.models.xy.XyElementData
+import foatto.core_compose.controls.models.xy.XyElementDataType
+import foatto.core_compose.invokeXy
+import io.kamel.image.KamelImage
+import io.kamel.image.asyncPainterResource
+import kotlin.math.max
+import kotlin.math.roundToInt
+
+abstract class AbstractXyControl(
+    protected val root: Root,
+    private val appControl: AppControl,
+    protected val xyResponse: XyResponse,
+    tabId: Int,
+) : AbstractControl(tabId) {
+
+    companion object {
+        val COLOR_XY_LABEL_BACK = hsl(60.0f, 1.0f, 0.5f)
+        val COLOR_XY_LABEL_BORDER = hsl(60.0f, 1.0f, 0.25f)
+
+        private val COLOR_XY_POLYGON_CASUAL = hsl(60.0f, 1.0f, 0.5f)  // полупрозрачный жёлтый
+        private val COLOR_XY_POLYGON_ACTUAL = hsl(30.0f, 1.0f, 0.5f)  // полупрозрачный оранжевый
+        val COLOR_XY_POLYGON_BORDER: Color = hsl(0.0f, 1.0f, 0.5f)    // красный
+    }
+
+    protected var xyCanvasWidth: Int by mutableIntStateOf(0)
+    protected var xyCanvasHeight: Int by mutableIntStateOf(0)
+
+    private val alXyElement = mutableStateListOf<List<XyElementData>>()
+
+//    private val xyTooltipVisible = mutableStateOf(false)
+//    private val xyTooltipText = mutableStateOf("")
+//    private val xyTooltipLeft = mutableStateOf(0.px)
+//    private val xyTooltipTop = mutableStateOf(0.px)
+
+    protected var refreshInterval: Int by mutableIntStateOf(0)
+
+    private val minXyScale: Int = xyResponse.documentConfig.hmElementConfig.minByOrNull { (_, value) -> value.scaleMin }!!.value.scaleMin
+    private val maxXyScale: Int = xyResponse.documentConfig.hmElementConfig.maxByOrNull { (_, value) -> value.scaleMax }!!.value.scaleMax
+
+    protected var xyViewCoord: XyViewCoord = XyViewCoord(1, 0, 0, 1, 1)
+
+    protected var screenOffsetX: Float by mutableFloatStateOf(0.0f)
+    protected var screenOffsetY: Float by mutableFloatStateOf(0.0f)
+
+//    private var xyTooltipOffTime = 0.0
+
+//    private var refreshHandlerId = 0
+
+    @Composable
+    fun getXyElementTemplate(withInteractive: Boolean) {
+        val density = LocalDensity.current
+        //val coroutineScope = rememberCoroutineScope()
+        val textMeasurer = rememberTextMeasurer()
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clipToBounds()
+                .onSizeChanged { size ->
+                    xyCanvasWidth = size.width
+                    xyCanvasHeight = size.height
+                }
+                .offset(
+                    x = with(density) { screenOffsetX.toDp() },
+                    y = with(density) { screenOffsetY.toDp() },
+                )
+                .pointerInput(Unit) {
+                    if (withInteractive) {
+                        awaitEachGesture {
+                            awaitFirstDown().also { pointerInputChange: PointerInputChange ->
+                                pointerInputChange.consume()
+                                onPointerDown(pointerInputChange)
+                            }
+                            while (true) {
+                                val pointerInputChange = waitForUpOrCancellation()
+                                if (pointerInputChange != null) {
+                                    pointerInputChange.consume()
+                                    onPointerUp(pointerInputChange)
+                                    break
+                                }
+                            }
+                        }
+                    }
+                }
+                .pointerInput(Unit) {
+                    if (withInteractive) {
+                        detectDragGestures(
+                            onDragStart = { offset: Offset -> onDragStart(offset) },
+                            onDragEnd = { onDragEnd() },
+                            onDragCancel = { onDragCancel() },
+                            onDrag = { change, dragAmount ->
+                                change.consume()
+                                onDrag(change, dragAmount)
+                            },
+                        )
+                    }
+                }
+        ) {
+            for (alElement in alXyElement) {
+                for (element in alElement) {
+                    if (element.type == XyElementDataType.IMAGE) {
+                        KamelImage(
+                            modifier = Modifier
+                                .size(
+                                    width = with(density) { element.width.toDp() },
+                                    height = with(density) { element.height.toDp() },
+                                )
+                                .offset(
+                                    x = with(density) { element.x.toDp() },
+                                    y = with(density) { element.y.toDp() },
+                                ),
+                            resource = asyncPainterResource(data = element.url),
+                            contentDescription = null,
+                        )
+//                                    onMouseEnter { syntheticMouseEvent ->
+//                                        onXyMouseOver(syntheticMouseEvent, element)
+//                                    }
+//                                    onMouseLeave {
+//                                        onXyMouseOut()
+//                                    }
+                    }
+                }
+            }
+
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                for (alElement in alXyElement) {
+                    for (element in alElement) {
+                        when (element.type) {
+                            XyElementDataType.CIRCLE -> {
+                                element.fillColor?.let {
+                                    drawCircle(
+                                        center = Offset(element.x, element.y),
+                                        radius = element.radius,
+                                        color = element.fillColor,
+                                        alpha = element.alpha,
+                                        style = Fill,
+                                    )
+                                }
+                                element.strokeColor?.let {
+                                    drawCircle(
+                                        center = Offset(element.x, element.y),
+                                        radius = element.radius,
+                                        color = element.strokeColor,
+                                        alpha = element.alpha,
+                                        style = getElementStrokeStyle(element),
+                                    )
+                                }
+//                                    onMouseEnter { syntheticMouseEvent ->
+//                                        onXyMouseOver(syntheticMouseEvent, element)
+//                                    }
+//                                    onMouseLeave {
+//                                        onXyMouseOut()
+//                                    }
+                            }
+
+                            XyElementDataType.ELLIPSE -> {
+                                element.fillColor?.let {
+                                    drawOval(
+                                        topLeft = Offset(element.x - element.rx, element.y - element.ry),
+                                        size = Size(element.rx * 2, element.ry * 2),
+                                        color = element.fillColor,
+                                        alpha = element.alpha,
+                                        style = Fill
+                                    )
+                                }
+                                element.strokeColor?.let {
+                                    drawOval(
+                                        topLeft = Offset(element.x - element.rx, element.y - element.ry),
+                                        size = Size(element.rx * 2, element.ry * 2),
+                                        color = element.strokeColor,
+                                        alpha = element.alpha,
+                                        style = getElementStrokeStyle(element),
+                                    )
+                                }
+                            }
+//                                    onMouseEnter { syntheticMouseEvent ->
+//                                        onXyMouseOver(syntheticMouseEvent, element)
+//                                    }
+//                                    onMouseLeave {
+//                                        onXyMouseOut()
+//                                    }
+
+                            XyElementDataType.IMAGE -> {
+                                //--- Сделано через KamelImage в нижележащем слое.
+                                //--- Compose-resource пока не готов нормально грузить карты со внешнего урла.
+                                //element.imageBitmap.value?.let { imageBitmap ->
+                                //    drawImage(
+                                //        srcOffset = IntOffset(element.x.toInt(), element.y.toInt()),
+                                //        srcSize = IntSize(element.width.toInt(), element.height.toInt()),
+                                //        image = imageBitmap,
+                                //    )
+                                //}
+                            }
+
+                            XyElementDataType.LINE -> {
+                                drawLine(
+                                    start = Offset(element.x1, element.y1),
+                                    end = Offset(element.x2, element.y2),
+                                    color = element.strokeColor ?: Color.Black,
+                                    alpha = element.alpha,
+                                    strokeWidth = element.strokeWidth ?: 1.0f,    // 2.dp.toPx()
+                                    pathEffect = if (element.isSelected) {
+                                        element.strokeDash?.let {
+                                            PathEffect.dashPathEffect(element.strokeDash)
+                                        }
+                                    } else {
+                                        null
+                                    },
+                                )
+//                                    onMouseEnter { syntheticMouseEvent ->
+//                                        onXyMouseOver(syntheticMouseEvent, element)
+//                                    }
+//                                    onMouseLeave {
+//                                        onXyMouseOut()
+//                                    }
+                            }
+
+                            XyElementDataType.POLY -> {
+                                element.fillColor?.let {
+                                    drawPath(
+                                        path = element.getPath(),
+                                        color = element.fillColor,
+                                        alpha = element.alpha,
+                                        style = Fill,
+                                    )
+                                }
+                                element.strokeColor?.let {
+                                    drawPath(
+                                        path = element.getPath(),
+                                        color = if (element.isSelected) {
+                                            COLOR_XY_POLYGON_BORDER
+                                        } else {
+                                            element.strokeColor
+                                        },
+                                        alpha = element.alpha,
+                                        style = getElementStrokeStyle(element),
+                                    )
+                                }
+//                                    onMouseEnter { syntheticMouseEvent ->
+//                                        onXyMouseOver(syntheticMouseEvent, element)
+//                                    }
+//                                    onMouseLeave {
+//                                        onXyMouseOut()
+//                                    }
+                            }
+
+                            XyElementDataType.RECT -> {
+                                element.fillColor?.let {
+                                    drawRect(
+                                        topLeft = Offset(element.x, element.y),
+                                        size = Size(element.width, element.height),
+                                        color = element.fillColor,
+                                        alpha = element.alpha,
+                                        style = Fill,
+                                    )
+                                }
+                                element.strokeColor?.let {
+                                    drawRect(
+                                        topLeft = Offset(element.x, element.y),
+                                        size = Size(element.width, element.height),
+                                        color = element.strokeColor,
+                                        alpha = element.alpha,
+                                        style = getElementStrokeStyle(element),
+                                    )
+                                }
+//                                    rx(element.rx)
+//                                    ry(element.ry)
+//                                    onMouseEnter { syntheticMouseEvent ->
+//                                        onXyMouseOver(syntheticMouseEvent, element)
+//                                    }
+//                                    onMouseLeave {
+//                                        onXyMouseOut()
+//                                    }
+                            }
+
+                            XyElementDataType.TEXT -> {
+                                if (element.isVisible) {
+                                    val isTextSizeLimited = element.textLimitWidth != null && element.textLimitHeight != null
+                                    val isBordered = element.strokeColor != null && (element.strokeWidth ?: 0.0f) > 0
+                                    val borderWidth = element.strokeWidth ?: (1.0f * root.scaleKoef)
+                                    val anchor = (element.textAnchor as? BiasAlignment) ?: Alignment.TopStart as BiasAlignment
+
+                                    //--- constant offset from text anchor point
+                                    val (constOffsetX, constOffsetY) = if (isTextSizeLimited) {
+                                        0.0f to 0.0f
+                                    } else {
+                                        1.0f * root.scaleKoef to 1.0f * root.scaleKoef
+                                    }
+                                    val (paddingX, paddingY) = if (isBordered || element.fillColor != null) {
+                                        borderWidth + 2.0f * root.scaleKoef to borderWidth + 1.0f * root.scaleKoef
+                                    } else {
+                                        0.0f to 0.0f
+                                    }
+
+                                    val textSize = if (isTextSizeLimited) {
+                                        Size(element.textLimitWidth!! - paddingX * 2, element.textLimitHeight!! - paddingY * 2)
+                                    } else {
+                                        textMeasurer.measure(
+                                            text = element.text,
+                                            softWrap = false,
+                                        ).size.toSize()
+                                    }
+
+                                    val startX = element.x - (anchor.horizontalBias + 1) * (textSize.width / 2 + paddingX) - anchor.horizontalBias * constOffsetX
+                                    val topY = element.y - (anchor.verticalBias + 1) * (textSize.height / 2 + paddingY) - anchor.verticalBias * constOffsetY
+
+                                    //--- Canvas падает и подвешивает всю клиентскую часть при попытке вывода текста за предалами канваса
+                                    if (startX >= 0 && startX <= xyCanvasWidth && topY >= 0 && topY <= xyCanvasHeight) {
+                                        element.fillColor?.let {
+                                            drawRect(
+                                                topLeft = Offset(startX, topY),
+                                                size = Size(textSize.width + 2 * paddingX, textSize.height + 2 * paddingY),
+                                                color = element.fillColor,
+                                                alpha = element.alpha,
+                                                style = Fill,
+                                            )
+                                        }
+                                        if (isBordered) {
+                                            drawRect(
+                                                topLeft = Offset(startX, topY),
+                                                size = Size(textSize.width + 2 * paddingX, textSize.height + 2 * paddingY),
+                                                color = element.strokeColor ?: Color.Black,
+                                                alpha = element.alpha,
+                                                style = Stroke(width = borderWidth),
+                                            )
+                                        }
+                                        drawText(
+                                            textMeasurer = textMeasurer,
+                                            topLeft = Offset(startX + paddingX, topY + paddingY),
+                                            text = element.text,
+                                            style = TextStyle(
+                                                color = element.textColor ?: Color.Black,
+                                                fontWeight = if (element.textIsBold) {
+                                                    FontWeight.Bold
+                                                } else {
+                                                    FontWeight.Normal
+                                                }
+                                            ),
+                                            softWrap = false,
+                                            overflow = TextOverflow.Ellipsis,
+                                            size = if (isTextSizeLimited) {
+                                                textSize
+                                            } else {
+                                                Size.Unspecified
+                                            },
+                                        )
+                                    }
+                                }
+//                                    onMouseEnter { syntheticMouseEvent ->
+//                                        onXyMouseOver(syntheticMouseEvent, element)
+//                                    }
+//                                    onMouseLeave {
+//                                        onXyMouseOut()
+//                                    }
+//                                    //--- поскольку нажатия на тексты могут быть срочными/неотложными действиями операторов/диспетчеров,
+//                                    //--- то отрабатываем их независимо от режима обновления экрана и режима включенности интерактива
+//                                    //if (refreshInterval.value == 0 && withInteractive) {
+//                                    onMouseDown { syntheticMouseEvent ->
+//                                        if (!element.isReadOnly) {
+//                                            onXyTextPressed(syntheticMouseEvent, element)
+//                                        }
+//                                        syntheticMouseEvent.preventDefault()
+//                                    }
+//                                    onTouchStart { syntheticTouchEvent ->
+//                                        if (!element.isReadOnly) {
+//                                            onXyTextPressed(syntheticTouchEvent, element)
+//                                        }
+//                                        syntheticTouchEvent.preventDefault()
+//                                    }
+                            }
+                        }
+                    }
+                }
+
+                //--- for adding specific XY-elements
+                addSpecificXy(this)
+            }
+        }
+
+//        if (xyTooltipVisible.value) {
+//            Div(
+//                attrs = {
+//                    style {
+//                        position(Position.Absolute)
+//                        left(xyTooltipLeft.value)
+//                        top(xyTooltipTop.value)
+//                        color(COLOR_MAIN_TEXT)
+//                        backgroundColor(COLOR_XY_LABEL_BACK)
+//                        setBorder(color = COLOR_XY_LABEL_BORDER, radius = styleButtonBorderRadius)
+//                        setPaddings(arrStyleControlTooltipPadding)
+//                        userSelect("none")
+//                    }
+//                }
+//            ) {
+//                getMultilineText(xyTooltipText.value)
+//            }
+//
+//        }
+    }
+
+    protected open fun addSpecificXy(drawScope: DrawScope) {
+    }
+
+    protected fun getElementStrokeStyle(element: XyElementData): DrawStyle =
+        Stroke(
+            width = element.strokeWidth ?: 1.0f,    // 2.dp.toPx()
+            pathEffect = if (element.isSelected) {
+                element.strokeDash?.let {
+                    PathEffect.dashPathEffect(element.strokeDash)
+                }
+            } else {
+                null
+            },
+        )
+
+    protected fun startXy(
+        startExpandKoef: Float,
+        isCentered: Boolean,
+        curScale: Int,
+    ) {
+        root.setTabInfo(tabId, xyResponse.shortTitle, xyResponse.fullTitle)
+        alTitleData += xyResponse.fullTitle.split('\n').filter { it.isNotBlank() }.map { TitleData("", it) }
+
+        // doXySpecificComponentMounted
+        startXySpecific(
+            startExpandKoef = startExpandKoef,
+            isCentered = isCentered,
+            curScale = curScale,
+        )
+    }
+
+    //!!! separated public for Composite Control
+    fun startXySpecific(
+        startExpandKoef: Float,
+        isCentered: Boolean,
+        curScale: Int,
+    ) {
+        root.setWait(true)
+        invokeXy(
+            XyActionRequest(
+                documentTypeName = xyResponse.documentConfig.name,
+                action = XyAction.GET_COORDS,
+                startParamId = xyResponse.startParamId
+            )
+        ) { xyActionResponse: XyActionResponse ->
+
+            val newViewCoord = getXyCoordsDone(
+                startExpandKoef = startExpandKoef,
+                isCentered = isCentered,
+                curScale = curScale,
+                minCoord = xyActionResponse.minCoord!!,
+                maxCoord = xyActionResponse.maxCoord!!,
+            )
+
+            //--- именно до xyRefreshView, чтобы не сбросить сразу после включения
+            root.setWait(false)
+            xyRefreshView(newViewCoord, true)
+        }
+    }
+
+    private fun getXyCoordsDone(
+        startExpandKoef: Float,
+        isCentered: Boolean,
+        curScale: Int,
+        minCoord: XyPoint,
+        maxCoord: XyPoint,
+    ): XyViewCoord {
+
+        var x1 = minCoord.x
+        var y1 = minCoord.y
+        var x2 = maxCoord.x
+        var y2 = maxCoord.y
+
+        val tmpW = x2 - x1
+        val tmpH = y2 - y1
+        //--- если пришли граничные координаты только одной точки,
+        //--- то оставим текущий масштаб
+        val scale = if (tmpW == 0 && tmpH == 0) {
+            curScale
+        } else {
+            //--- прибавим по краям startExpandKoef, чтобы искомые элементы не тёрлись об края экрана
+            x1 -= (tmpW * startExpandKoef).toInt()
+            y1 -= (tmpH * startExpandKoef).toInt()
+            x2 += (tmpW * startExpandKoef).toInt()
+            y2 += (tmpH * startExpandKoef).toInt()
+            //--- масштаб вычисляется исходя из размеров docView (аналогично zoomBox)
+            calcXyScale(x1, y1, x2, y2)
+        }
+
+        if (isCentered) {
+            val fullXyWidth = (xyCanvasWidth * scale / root.scaleKoef).toInt()
+            val restXyWidth = fullXyWidth - (x2 - x1)
+            x1 -= restXyWidth / 2
+            x2 -= restXyWidth / 2
+
+            val fullXyHeight = (xyCanvasHeight * scale / root.scaleKoef).toInt()
+            val restXyHeight = fullXyHeight - (y2 - y1)
+            y1 -= restXyHeight / 2
+            y2 -= restXyHeight / 2
+        }
+
+        return XyViewCoord(scale, x1, y1, x2, y2)
+    }
+
+    protected fun calcXyScale(
+        x1: Int,
+        y1: Int,
+        x2: Int,
+        y2: Int
+    ): Int = max((x2 - x1) * root.scaleKoef / xyCanvasWidth, (y2 - y1) * root.scaleKoef / xyCanvasHeight).roundToInt()
+
+    abstract fun xyRefreshView(aView: XyViewCoord?, withWait: Boolean)
+
+    protected fun getXyViewCoord(aScale: Int, aCenterX: Int, aCenterY: Int): XyViewCoord {
+        val vc = XyViewCoord()
+
+        vc.scale = aScale
+
+        val rw = (xyCanvasWidth * aScale / root.scaleKoef).roundToInt()
+        val rh = (xyCanvasHeight * aScale / root.scaleKoef).roundToInt()
+
+        vc.x1 = aCenterX - rw / 2
+        vc.y1 = aCenterY - rh / 2
+        //--- чтобы избежать неточностей из-за целочисленного деления нечетных чисел пополам,
+        //--- правую/нижнюю границу получим в виде ( t1 + rw ), а не в виде ( newCenterX + rw / 2 )
+        vc.x2 = vc.x1 + rw
+        vc.y2 = vc.y1 + rh
+
+        return vc
+    }
+
+    //--- проверка масштаба на минимальный/максимальный и на кратность степени двойки
+    protected fun checkXyScale(isScaleAlign: Boolean, curScale: Int, newScale: Int, isAdaptive: Boolean): Int {
+
+        if (newScale < minXyScale) {
+            return minXyScale
+        }
+        if (newScale > maxXyScale) {
+            return maxXyScale
+        }
+
+        //--- нужно ли выравнивание масштаба к степени двойки?
+        if (isScaleAlign) {
+            //--- ПРОТЕСТИРОВАНО: нельзя допускать наличие масштабов, не являющихся степенью двойки,
+            //--- иначе при приведении (растягивании/сжимании) произвольного масштаба к выровненному (степени 2)
+            //--- получается битмап-карта отвратного качества
+
+            //--- адаптивный алгоритм - "докручивает" масштаб до ожидаемого пользователем
+            if (isAdaptive) {
+                //--- если идёт процесс увеличения масштаба (удаление от пользователя),
+                //--- то поможем ему - округлим масштаб в бОльшую сторону
+                if (newScale >= curScale) {
+                    var scale = minXyScale
+                    while (scale <= maxXyScale) {
+                        if (newScale <= scale) {
+                            return scale
+                        }
+                        scale *= 2
+                    }
+                }
+                //--- иначе (если идёт процесс уменьшения масштаба - приближение к пользователю),
+                //--- то поможем ему - округлим масштаб в меньшую сторону
+                else {
+                    var scale = maxXyScale
+                    while (scale >= minXyScale) {
+                        if (newScale >= scale) {
+                            return scale
+                        }
+                        scale /= 2
+                    }
+                }
+            }
+            //--- обычный алгоритм - просто даёт больший или равный масштаб, чтобы всё гарантированно уместилось
+            else {
+                var scale = minXyScale
+                while (scale <= maxXyScale) {
+                    if (newScale <= scale) {
+                        return scale
+                    }
+                    scale *= 2
+                }
+            }
+        } else {
+            return newScale
+        }
+        //--- такого быть не должно, но всё-таки для проверки вернём 0, чтобы получить деление на 0
+        return 0   //XyConfig.MAX_SCALE;
+    }
+
+    protected fun getXyElements(
+        mapBitmapTypeName: String,
+        withWait: Boolean,
+        doAdditionalWork: (xyActionResponse: XyActionResponse) -> Unit = { _: XyActionResponse -> },
+    ) {
+        if (withWait) {
+            root.setWait(true)
+        }
+        invokeXy(
+            XyActionRequest(
+                documentTypeName = xyResponse.documentConfig.name,
+                action = XyAction.GET_ELEMENTS,
+                startParamId = xyResponse.startParamId,
+                viewCoord = xyViewCoord,
+                bitmapTypeName = mapBitmapTypeName
+            )
+        ) { xyActionResponse: XyActionResponse ->
+
+            //--- сбрасываем горизонтальный и вертикальный скроллинг/смещение
+            screenOffsetX = 0.0f
+            screenOffsetY = 0.0f
+
+            readXyElements(xyActionResponse.alElement)
+
+            if (withWait) {
+                root.setWait(false)
+            }
+
+            doAdditionalWork(xyActionResponse)
+        }
+    }
+
+    private fun readXyElements(alElement: List<XyElement>) {
+        val hmLayer = mutableMapOf<Int, MutableList<XyElementData>>()
+        alElement.forEach { element ->
+            val elementConfig = xyResponse.documentConfig.hmElementConfig[element.typeName]!!
+            val alLayer = hmLayer.getOrPut(elementConfig.layer) { mutableListOf() }
+
+            readXyElementData(elementConfig, element, alLayer)
+        }
+
+        alXyElement.clear()
+        alXyElement.addAll(hmLayer.toList().sortedBy { it.first }.map { it.second })
+    }
+
+    private fun readXyElementData(
+        elementConfig: XyElementConfig,
+        element: XyElement,
+        alLayer: MutableList<XyElementData>,
+    ) {
+
+        val lineWidth = element.lineWidth
+        val drawColor = if (element.drawColor == 0) {
+            null
+        } else {
+            Color(element.drawColor)
+        }
+        val fillColor = if (element.fillColor == 0) {
+            null
+        } else {
+            Color(element.fillColor)
+        }
+
+        when (elementConfig.clientType) {
+            XyElementClientType.BITMAP -> {
+                val p = element.alPoint.first()
+
+                if (element.imageName.isBlank()) {
+                    alLayer.add(
+                        XyElementData(
+                            type = XyElementDataType.RECT,
+                            elementId = element.elementId,
+                            objectId = element.objectId,
+                            x = ((p.x - xyViewCoord.x1) / xyViewCoord.scale * root.scaleKoef),
+                            y = ((p.y - xyViewCoord.y1) / xyViewCoord.scale * root.scaleKoef),
+                            width = (element.imageWidth / xyViewCoord.scale * root.scaleKoef),
+                            height = (element.imageHeight / xyViewCoord.scale * root.scaleKoef),
+                            strokeColor = hsl(0.0f, 0.0f, 0.5f), // gray
+                            strokeWidth = 1.0f, //!!! root.scaleKoef,
+                            strokeDash = floatArrayOf(root.scaleKoef * 2, root.scaleKoef * 2),
+                            tooltip = element.imageName,
+                            isReadOnly = element.isReadOnly,
+                        )
+                    )
+                } else {
+                    alLayer.add(
+                        XyElementData(
+                            type = XyElementDataType.IMAGE,
+                            elementId = element.elementId,
+                            objectId = element.objectId,
+                            x = ((p.x - xyViewCoord.x1) / xyViewCoord.scale * root.scaleKoef),
+                            y = ((p.y - xyViewCoord.y1) / xyViewCoord.scale * root.scaleKoef),
+                            width = (element.imageWidth / xyViewCoord.scale * root.scaleKoef),
+                            height = (element.imageHeight / xyViewCoord.scale * root.scaleKoef),
+                            url = element.imageName,
+                            isReadOnly = element.isReadOnly,
+                        )
+                    )
+                }
+            }
+
+            XyElementClientType.ICON -> {
+                val p = element.alPoint.first()
+
+                alLayer.add(
+                    XyElementData(
+                        type = XyElementDataType.IMAGE,
+                        elementId = element.elementId,
+                        objectId = element.objectId,
+                        x = ((p.x - xyViewCoord.x1) / xyViewCoord.scale - element.calcAnchorXKoef() * element.imageWidth).toInt() * root.scaleKoef,
+                        y = ((p.y - xyViewCoord.y1) / xyViewCoord.scale - element.calcAnchorYKoef() * element.imageHeight).toInt() * root.scaleKoef,
+                        width = element.imageWidth * root.scaleKoef,
+                        height = element.imageHeight * root.scaleKoef,
+                        rotateAngle = element.rotateDegree.toFloat(),
+                        //transform = "rotate(${} ${((p.x - xyViewCoord.x1) / xyViewCoord.scale * root.scaleKoef).roundToInt()} ${((p.y - xyViewCoord.y1) / xyViewCoord.scale * root.scaleKoef).roundToInt()})",
+                        url = element.imageName,
+                        tooltip = element.toolTipText,
+                        isReadOnly = element.isReadOnly
+                    )
+                )
+            }
+
+            XyElementClientType.MARKER -> {
+                val p = element.alPoint.first()
+                val x = (p.x - xyViewCoord.x1) / xyViewCoord.scale * root.scaleKoef
+                val y = (p.y - xyViewCoord.y1) / xyViewCoord.scale * root.scaleKoef
+                val halfX = element.markerSize * root.scaleKoef / 2
+                val halfY = element.markerSize * root.scaleKoef / 2
+
+                when (element.markerType) {
+
+                    XyElement.MarkerType.ARROW -> {
+                        alLayer.add(
+                            XyElementData(
+                                type = XyElementDataType.POLY,
+                                elementId = element.elementId,
+                                objectId = element.objectId,
+                                alPoints = mutableListOf(
+                                    XyPoint(x - halfX / 2, y),
+                                    XyPoint(x - halfX, y - halfY),
+                                    XyPoint(x + halfX * 2, y),
+                                    XyPoint(x - halfX, y + halfY),
+                                ),
+                                isClosed = true,
+                                strokeColor = drawColor,
+                                fillColor = fillColor,
+                                strokeWidth = max(1.0f, lineWidth * root.scaleKoef),
+                                strokeDash = floatArrayOf(root.scaleKoef * lineWidth * 2, root.scaleKoef * lineWidth * 2),
+                                rotateAngle = element.rotateDegree.toFloat(),
+                                //transform = "rotate(${element.rotateDegree} $x $y)",
+                                tooltip = element.toolTipText,
+                                isReadOnly = element.isReadOnly
+                            )
+                        )
+                    }
+
+                    XyElement.MarkerType.CIRCLE -> {
+                        if (element.markerSize2 == 0 || element.markerSize == element.markerSize2) {
+                            alLayer.add(
+                                XyElementData(
+                                    type = XyElementDataType.CIRCLE,
+                                    elementId = element.elementId,
+                                    objectId = element.objectId,
+                                    x = x,
+                                    y = y,
+                                    radius = halfX,
+                                    fillColor = fillColor,
+                                    strokeColor = drawColor,
+                                    strokeWidth = max(1.0f, lineWidth * root.scaleKoef),
+                                    strokeDash = floatArrayOf(root.scaleKoef * lineWidth * 2, root.scaleKoef * lineWidth * 2),
+                                    rotateAngle = element.rotateDegree.toFloat(),
+                                    //transform = "rotate(${element.rotateDegree} $x $y)",
+                                    tooltip = element.toolTipText,
+                                    isReadOnly = element.isReadOnly
+                                )
+                            )
+                        } else {
+                            alLayer.add(
+                                XyElementData(
+                                    type = XyElementDataType.ELLIPSE,
+                                    elementId = element.elementId,
+                                    objectId = element.objectId,
+                                    x = x,
+                                    y = y,
+                                    rx = element.markerSize * root.scaleKoef / 2,
+                                    ry = element.markerSize2 * root.scaleKoef / 2,
+                                    strokeColor = drawColor,
+                                    fillColor = fillColor,
+                                    strokeWidth = max(1.0f, lineWidth * root.scaleKoef),
+                                    strokeDash = floatArrayOf(root.scaleKoef * lineWidth * 2, root.scaleKoef * lineWidth * 2),
+                                    rotateAngle = element.rotateDegree.toFloat(),
+                                    //transform = "rotate(${element.rotateDegree} $x $y)",
+                                    tooltip = element.toolTipText,
+                                    isReadOnly = element.isReadOnly
+                                )
+                            )
+                        }
+                    }
+
+                    /* временно отключим как неиспользуемое и нереализуемое только одним path-ом
+                    XyElement.MarkerType.CROSS -> {
+                        alLayer.add(
+                            XyElementData(
+                                type = XyElementDataType.POLY,
+                                elementId = element.elementId,
+                                objectId = element.objectId,
+                                alPoints = mutableListOf(
+                                    XyPoint(x - halfX, y - halfY),
+                                    XyPoint(x + halfX, y + halfY),
+                                    XyPoint(x + halfX, y - halfY),
+                                    XyPoint(x - halfX, y + halfY),
+                                ),
+                                strokeColor = drawColor,
+                                fillColor = null,
+                                strokeWidth = max(1.0f, lineWidth * root.scaleKoef),
+                                strokeDash = floatArrayOf(root.scaleKoef * lineWidth * 2, root.scaleKoef * lineWidth * 2),
+                                rotateAngle = element.rotateDegree.toFloat(),
+                                //transform = "rotate(${element.rotateDegree} $x $y)",
+                                tooltip = element.toolTipText,
+                                isReadOnly = element.isReadOnly
+                            )
+                        )
+                    }
+                    */
+                    XyElement.MarkerType.DIAMOND -> {
+                        alLayer.add(
+                            XyElementData(
+                                type = XyElementDataType.POLY,
+                                elementId = element.elementId,
+                                objectId = element.objectId,
+                                alPoints = mutableListOf(
+                                    XyPoint(x, y - halfY),
+                                    XyPoint(x + halfX, y),
+                                    XyPoint(x, y + halfY),
+                                    XyPoint(x - halfX, y),
+                                ),
+                                isClosed = true,
+                                strokeColor = drawColor,
+                                fillColor = fillColor,
+                                strokeWidth = max(1.0f, lineWidth * root.scaleKoef),
+                                strokeDash = floatArrayOf(root.scaleKoef * lineWidth * 2, root.scaleKoef * lineWidth * 2),
+                                rotateAngle = element.rotateDegree.toFloat(),
+                                //transform = "rotate(${element.rotateDegree} $x $y)",
+                                tooltip = element.toolTipText,
+                                isReadOnly = element.isReadOnly
+                            )
+                        )
+                    }
+
+                    /* временно отключим как неиспользуемое и нереализуемое только одним path-ом
+                    XyElement.MarkerType.PLUS -> {
+                        alLayer.add(
+                            XyElementData(
+                                type = XyElementDataType.POLY,
+                                elementId = element.elementId,
+                                objectId = element.objectId,
+                                alPoints = mutableListOf(
+                                    XyPoint(x, y - halfY),
+                                    XyPoint(x, y + halfY),
+                                    XyPoint(x - halfX, y),
+                                    XyPoint(x + halfX, y),
+                                ),
+                                strokeColor = drawColor,
+                                fillColor = null,
+                                strokeWidth = max(1.0f, lineWidth * root.scaleKoef),
+                                strokeDash = floatArrayOf(root.scaleKoef * lineWidth * 2, root.scaleKoef * lineWidth * 2),
+                                rotateAngle = element.rotateDegree.toFloat(),
+                                //transform = "rotate(${element.rotateDegree} $x $y)",
+                                tooltip = element.toolTipText,
+                                isReadOnly = element.isReadOnly
+                            )
+                        )
+                    }
+                    */
+
+                    XyElement.MarkerType.SQUARE -> {
+                        alLayer.add(
+                            XyElementData(
+                                type = XyElementDataType.RECT,
+                                elementId = element.elementId,
+                                objectId = element.objectId,
+                                x = x - halfX,
+                                y = y - halfY,
+                                width = 2 * halfX,
+                                height = 2 * halfY,
+                                strokeColor = drawColor,
+                                fillColor = fillColor,
+                                strokeWidth = max(1.0f, lineWidth * root.scaleKoef),
+                                strokeDash = floatArrayOf(root.scaleKoef * lineWidth * 2, root.scaleKoef * lineWidth * 2),
+                                rotateAngle = element.rotateDegree.toFloat(),
+                                //transform = "rotate(${element.rotateDegree} $x $y)",
+                                tooltip = element.toolTipText,
+                                isReadOnly = element.isReadOnly
+                            )
+                        )
+                    }
+
+                    XyElement.MarkerType.TRIANGLE -> {
+                        alLayer.add(
+                            XyElementData(
+                                type = XyElementDataType.POLY,
+                                elementId = element.elementId,
+                                objectId = element.objectId,
+                                alPoints = mutableListOf(
+                                    XyPoint(x, y - halfY),
+                                    XyPoint(x + halfX, y + halfY),
+                                    XyPoint(x - halfX, y + halfY),
+                                ),
+                                isClosed = true,
+                                strokeColor = drawColor,
+                                fillColor = fillColor,
+                                strokeWidth = max(1.0f, lineWidth * root.scaleKoef),
+                                strokeDash = floatArrayOf(root.scaleKoef * lineWidth * 2, root.scaleKoef * lineWidth * 2),
+                                rotateAngle = element.rotateDegree.toFloat(),
+                                //transform = "rotate(${element.rotateDegree} $x $y)",
+                                tooltip = element.toolTipText,
+                                isReadOnly = element.isReadOnly
+                            )
+                        )
+                    }
+                }
+            }
+
+            XyElementClientType.POLY -> {
+//!!!                val style: StyleScope.() -> Unit = if (!element.isReadOnly && element.isClosed) {
+//                    {
+//                        cursor("pointer")
+//                    }
+//                } else {
+//                    {}
+//                }
+                alLayer.add(
+                    XyElementData(
+                        type = XyElementDataType.POLY,
+                        elementId = element.elementId,
+                        objectId = element.objectId,
+                        alPoints = element.alPoint.map {
+                            XyPoint(
+                                ((it.x - xyViewCoord.x1) / xyViewCoord.scale * root.scaleKoef).roundToInt(),
+                                ((it.y - xyViewCoord.y1) / xyViewCoord.scale * root.scaleKoef).roundToInt(),
+                            )
+                        }.toMutableList(),
+                        isClosed = element.isClosed,
+                        strokeColor = drawColor,
+                        fillColor = fillColor,
+                        strokeWidth = max(1.0f, lineWidth * root.scaleKoef),
+                        strokeDash = floatArrayOf(root.scaleKoef * lineWidth * 2, root.scaleKoef * lineWidth * 2),
+                        tooltip = element.toolTipText,
+                        isReadOnly = element.isReadOnly,
+                        dialogQuestion = element.dialogQuestion,
+                    )
+                )
+            }
+
+            XyElementClientType.SVG_TEXT, XyElementClientType.HTML_TEXT -> {
+                val p = element.alPoint.first()
+
+                val x = (p.x - xyViewCoord.x1) / xyViewCoord.scale * root.scaleKoef
+                val y = (p.y - xyViewCoord.y1) / xyViewCoord.scale * root.scaleKoef
+
+                val limitWidth = if (element.limitWidth == 0) {
+                    null
+                } else {
+                    element.limitWidth / xyViewCoord.scale * root.scaleKoef
+                }
+                val limitHeight = if (element.limitHeight == 0) {
+                    null
+                } else {
+                    element.limitHeight / xyViewCoord.scale * root.scaleKoef
+                }
+
+                val textAnchor = when (element.anchorY) {
+                    XyElement.Anchor.LT -> {
+                        when (element.anchorX) {
+                            XyElement.Anchor.LT -> Alignment.TopStart
+                            XyElement.Anchor.CC -> Alignment.TopCenter
+                            XyElement.Anchor.RB -> Alignment.TopEnd
+                        }
+                    }
+
+                    XyElement.Anchor.CC -> {
+                        when (element.anchorX) {
+                            XyElement.Anchor.LT -> Alignment.CenterStart
+                            XyElement.Anchor.CC -> Alignment.Center
+                            XyElement.Anchor.RB -> Alignment.CenterEnd
+                        }
+                    }
+
+                    XyElement.Anchor.RB -> {
+                        when (element.anchorX) {
+                            XyElement.Anchor.LT -> Alignment.BottomStart
+                            XyElement.Anchor.CC -> Alignment.BottomCenter
+                            XyElement.Anchor.RB -> Alignment.BottomEnd
+                        }
+                    }
+                }
+
+                //--- сбор неизменяемых val-переменных для передачи в лямбду
+//!!!                val fontSize = COMMON_FONT_SIZE * element.fontSize / iCoreAppContainer.BASE_FONT_SIZE
+//                val isPointerCursor = !element.isReadOnly
+
+                alLayer.add(
+                    XyElementData(
+                        type = XyElementDataType.TEXT,
+                        elementId = element.elementId,
+                        objectId = element.objectId,
+                        x = x,
+                        y = y,
+                        strokeColor = Color(element.drawColor),
+                        strokeWidth = element.lineWidth * root.scaleKoef,
+                        fillColor = Color(element.fillColor),
+                        text = element.text,
+                        textLimitWidth = limitWidth,
+                        textLimitHeight = limitHeight,
+                        textAnchor = textAnchor,
+                        textColor = Color(element.textColor),
+                        textIsBold = element.isFontBold,
+                        tooltip = element.toolTipText,
+                        isReadOnly = element.isReadOnly,
+                        isVisible = true,
+                        dialogQuestion = element.dialogQuestion,
+                    )
+                )
+            }
+
+            XyElementClientType.TRACE -> {
+                for (i in 0 until element.alPoint.size - 1) {
+                    val p1 = element.alPoint[i]
+                    val p2 = element.alPoint[i + 1]
+
+                    alLayer.add(
+                        XyElementData(
+                            type = XyElementDataType.LINE,
+                            elementId = element.elementId,
+                            objectId = element.objectId,
+                            x1 = (p1.x - xyViewCoord.x1) / xyViewCoord.scale * root.scaleKoef,
+                            y1 = (p1.y - xyViewCoord.y1) / xyViewCoord.scale * root.scaleKoef,
+                            x2 = (p2.x - xyViewCoord.x1) / xyViewCoord.scale * root.scaleKoef,
+                            y2 = (p2.y - xyViewCoord.y1) / xyViewCoord.scale * root.scaleKoef,
+                            strokeColor = Color(element.alDrawColor[i]),
+                            strokeWidth = max(1.0f, lineWidth * root.scaleKoef),
+                            tooltip = element.alToolTip[i],
+                            isReadOnly = element.isReadOnly,
+                        )
+                    )
+                }
+            }
+
+            XyElementClientType.ZONE -> {
+                alLayer.add(
+                    XyElementData(
+                        type = XyElementDataType.POLY,
+                        elementId = element.elementId,
+                        objectId = element.objectId,
+                        alPoints = element.alPoint.map {
+                            XyPoint(
+                                ((it.x - xyViewCoord.x1) / xyViewCoord.scale * root.scaleKoef).roundToInt(),
+                                ((it.y - xyViewCoord.y1) / xyViewCoord.scale * root.scaleKoef).roundToInt(),
+                            )
+                        }.toMutableList(),
+                        isClosed = true,
+                        strokeColor = COLOR_XY_POLYGON_ACTUAL,
+                        fillColor = COLOR_XY_POLYGON_ACTUAL,
+                        alpha = 0.25f,
+                        strokeWidth = 2 * root.scaleKoef,
+                        strokeDash = floatArrayOf(root.scaleKoef * 2 /*lineWidth*/ * 2, root.scaleKoef * 2 /*lineWidth*/ * 2),
+                        tooltip = element.toolTipText,
+                        isReadOnly = element.isReadOnly,
+                        isEditablePoint = !element.isReadOnly,
+                        isMoveable = !element.isReadOnly,
+                    )
+                )
+            }
+        }
+    }
+
+    fun setInterval(sec: Int) {
+//!!!
+//        if (refreshHandlerId != 0) {
+//            window.clearInterval(refreshHandlerId)
+//        }
+//
+//        if (sec == 0) {
+//            xyRefreshView(null, true)
+//        } else {
+//            refreshHandlerId = window.setInterval({
+//                xyRefreshView(null, false)
+//            }, sec * 1000)
+//        }
+//
+//        refreshInterval.value = sec
+    }
+
+    protected fun xyDeselectAll() {
+        alXyElement.forEach { alElement ->
+            alElement.forEach { xyElement ->
+                xyElement.isSelected = false
+            }
+        }
+    }
+
+    protected abstract fun onPointerDown(pointerInputChange: PointerInputChange)
+    protected abstract fun onPointerUp(pointerInputChange: PointerInputChange)
+    protected abstract fun onDragStart(offset: Offset)
+    protected abstract fun onDrag(change: PointerInputChange, dragAmount: Offset)
+    protected abstract fun onDragEnd()
+    protected abstract fun onDragCancel()
+
+    protected fun getXyClickRect(mouseX: Int, mouseY: Int): XyRect = XyRect(
+        aX = mouseX - MIN_USER_RECT_SIZE / 2,
+        aY = mouseY - MIN_USER_RECT_SIZE / 2,
+        aWidth = MIN_USER_RECT_SIZE,
+        aHeight = MIN_USER_RECT_SIZE
+    )
+
+    protected fun getXyElementList(rect: XyRect, isCollectEditableOnly: Boolean): List<XyElementData> =
+        alXyElement.flatten().filter { xyElement ->
+            isCollectEditableOnly.xor(xyElement.isReadOnly) && xyElement.isIntersects(rect)
+        }.asReversed()
+
+}
+
+/*
+
+    protected fun getXyEmptyElementData(elementConfig: XyElementConfig): XyElementData? {
+        var result: XyElementData? = null
+
+        when (elementConfig.clientType) {
+            XyElementClientType.BITMAP -> {
+            }
+
+            XyElementClientType.ICON -> {
+            }
+
+            XyElementClientType.MARKER -> {
+            }
+
+            XyElementClientType.POLY -> {
+            }
+
+            XyElementClientType.SVG_TEXT -> {
+            }
+
+            XyElementClientType.HTML_TEXT -> {
+            }
+
+            XyElementClientType.TRACE -> {
+            }
+
+            XyElementClientType.ZONE -> {
+                result = XyElementData(
+                    type = XyElementDataType.POLYGON,
+                    elementId = -getRandomInt(),
+                    objectId = 0,
+                    arrPoints = mutableStateOf(emptyArray()),
+                    stroke = COLOR_XY_POLYGON_ACTUAL,
+                    fill = COLOR_XY_POLYGON_ACTUAL,
+                    strokeWidth = (2 * root.scaleKoef).roundToInt(),
+                    strokeDash = "${root.scaleKoef * 2 /*lineWidth*/ * 2},${root.scaleKoef * 2 /*lineWidth*/ * 2}",
+                    tooltip = "",
+                    isReadOnly = false,
+                    alPoint = mutableListOf(),
+                    isEditablePoint = true,
+                    isMoveable = true,
+                    //--- при добавлении сразу выбранный
+                    isSelected = true,
+                    //--- данные для добавления на сервере
+                    typeName = "mms_zone",
+                    alAddInfo = listOf(
+                        Pair("zone_name") {
+                            (window.prompt("Введите наименование геозоны")?.trim() ?: "").ifEmpty { "-" }
+                        },
+                        Pair("zone_descr") {
+                            (window.prompt("Введите описание геозоны")?.trim() ?: "").ifEmpty { "-" }
+                        }
+                    )
+                )
+            }
+        }
+
+        return result
+    }
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    protected open fun onXyMouseOver(syntheticMouseEvent: SyntheticMouseEvent, xyElement: XyElementData) {
+        if (!xyElement.tooltip.isNullOrBlank()) {
+            val (tooltipX, tooltipY) = getGraphixAndXyTooltipCoord(syntheticMouseEvent.clientX, syntheticMouseEvent.clientY)
+
+            xyTooltipVisible.value = true
+            xyTooltipText.value = xyElement.tooltip
+            xyTooltipLeft.value = tooltipX.px
+            xyTooltipTop.value = tooltipY.px
+            xyTooltipOffTime = Date.now() + 3000
+        } else {
+            xyTooltipVisible.value = false
+        }
+    }
+
+    private fun onXyMouseOut() {
+        //--- через 3 сек выключить тултип, если не было других активаций тултипов
+        //--- причина: баг (?) в том, что mouseleave вызывается сразу после mouseenter,
+        //--- причём после ухода с графика других mouseleave не вызывается.
+        setGraphicAndXyTooltipOffTimeout(xyTooltipOffTime, xyTooltipVisible)
+    }
+
+    protected abstract fun onXyMouseWheel(syntheticWheelEvent: SyntheticWheelEvent)
+    protected abstract fun onXyTextPressed(syntheticMouseEvent: SyntheticMouseEvent, xyElement: XyElementData)
+    protected abstract fun onXyTextPressed(syntheticTouchEvent: SyntheticTouchEvent, xyElement: XyElementData)
+
+}
+
+//--- Возвращает список выбранных элементов
+//fun getXySelectedElementList( that: dynamic ): List<XyElementData> {
+//    val arrXyElement = that.arrXyElement.unsafeCast<Array<Array<XyElementData>>>()
+//    val alResult = mutableListOf<XyElementData>()
+//    arrXyElement.forEach { arrXyElementIn ->
+//        arrXyElementIn.forEach { xyElement ->
+//            if( xyElement.itSelected )
+//                alResult.add( xyElement )
+//        }
+//    }
+//    return alResult.asReversed()
+//}
+
+//fun getXyElementList( that: dynamic, x: Int, y: Int ): List<XyElementData> {
+//    val arrXyElement = that.arrXyElement.unsafeCast<Array<Array<XyElementData>>>()
+//    val alResult = mutableListOf<XyElementData>()
+//    arrXyElement.forEach { arrXyElementIn ->
+//        arrXyElementIn.forEach { xyElement ->
+//            //--- небольшой хак: список элементов нужен только для интерактива, поэтмоу прежде чем тратить время на проверки геометрии - проверяем, а надо ли вообще проверять
+//            if( !xyElement.itReadOnly && xyElement.isContains( x, y ))
+//                alResult.add( xyElement )
+//        }
+//    }
+//
+//    return alResult.asReversed()
+//}
+
+ */

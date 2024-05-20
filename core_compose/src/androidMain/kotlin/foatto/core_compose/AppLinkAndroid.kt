@@ -1,16 +1,10 @@
 package foatto.core_compose
 
 import com.darkrockstudios.libraries.mpfilepicker.PlatformFile
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.plugins.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.request.*
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import foatto.core.app.graphic.ChartActionRequest
+import foatto.core.app.graphic.ChartActionResponse
+import foatto.core.app.xy.XyActionRequest
+import foatto.core.app.xy.XyActionResponse
 import foatto.core.link.AppRequest
 import foatto.core.link.AppResponse
 import foatto.core.link.ChangePasswordRequest
@@ -24,6 +18,16 @@ import foatto.core_compose.di.SETTINGS_SERVER_PORT
 import foatto.core_compose.di.SETTINGS_SERVER_PROTOCOL
 import foatto.core_compose.di.settings
 import foatto.core_compose.utils.applicationDispatcher
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 //WASM!!! временно, до появления всеобщего ktor-client (в т.ч. для wasm)
 private val httpClient = HttpClient {
@@ -42,71 +46,113 @@ private val httpClient = HttpClient {
 
 @OptIn(DelicateCoroutinesApi::class)
 internal actual fun invokeApp(
-    request: AppRequest,
+    appRequest: AppRequest,
     onSuccess: (response: AppResponse) -> Unit,
 ) {
     GlobalScope.launch(applicationDispatcher) {
-        request.sessionId = sessionId
+        appRequest.sessionId = sessionId
 
-        val response: AppResponse = httpClient.post {
+        val appResponse: AppResponse = httpClient.post {
             url("/api/app")
             contentType(ContentType.Application.Json)
-            setBody(request)
+            setBody(appRequest)
             timeout {
                 socketTimeoutMillis = 60_000
             }
         }.body()
 
-        onSuccess(response)
+        onSuccess(appResponse)
+    }
+}
+
+@OptIn(DelicateCoroutinesApi::class)
+internal actual fun invokeXy(
+    xyActionRequest: XyActionRequest,
+    onSuccess: (responseData: XyActionResponse) -> Unit,
+) {
+    GlobalScope.launch(applicationDispatcher) {
+        xyActionRequest.sessionId = sessionId
+
+        val xyActionResponseresponse: XyActionResponse = httpClient.post {
+            url("/api/xy")
+            contentType(ContentType.Application.Json)
+            setBody(xyActionRequest)
+            timeout {
+                socketTimeoutMillis = 60_000
+            }
+        }.body()
+
+        onSuccess(xyActionResponseresponse)
+    }
+}
+
+@OptIn(DelicateCoroutinesApi::class)
+internal actual fun invokeChart(
+    chartActionRequest: ChartActionRequest,
+    onSuccess: (responseData: ChartActionResponse) -> Unit,
+) {
+    GlobalScope.launch(applicationDispatcher) {
+        chartActionRequest.sessionId = sessionId
+
+        val chartActionResponse: ChartActionResponse = httpClient.post {
+            url("/api/graphic")
+            contentType(ContentType.Application.Json)
+            setBody(chartActionRequest)
+            timeout {
+                socketTimeoutMillis = 60_000
+            }
+        }.body()
+
+        onSuccess(chartActionResponse)
     }
 }
 
 @OptIn(DelicateCoroutinesApi::class)
 internal actual fun invokeChangePassword(
-    request: ChangePasswordRequest,
+    changePasswordRequest: ChangePasswordRequest,
     onSuccess: (response: ChangePasswordResponse) -> Unit,
 ) {
     GlobalScope.launch(applicationDispatcher) {
-        request.sessionId = sessionId
+        changePasswordRequest.sessionId = sessionId
 
-        val response: ChangePasswordResponse = httpClient.post {
+        val changePasswordResponse: ChangePasswordResponse = httpClient.post {
             url("/api/change_password")
             contentType(ContentType.Application.Json)
-            setBody(request)
+            setBody(changePasswordRequest)
             timeout {
                 socketTimeoutMillis = 60_000
             }
         }.body()
 
-        onSuccess(response)
+        onSuccess(changePasswordResponse)
     }
 }
 
 @OptIn(DelicateCoroutinesApi::class)
 internal actual fun invokeLogoff(
-    request: LogoffRequest,
+    logoffRequest: LogoffRequest,
     onSuccess: (response: LogoffResponse) -> Unit,
 ) {
     GlobalScope.launch(applicationDispatcher) {
-        request.sessionId = sessionId
+        logoffRequest.sessionId = sessionId
 
-        val response: LogoffResponse = httpClient.post {
+        val logoffResponse: LogoffResponse = httpClient.post {
             url("/api/logoff")
             contentType(ContentType.Application.Json)
-            setBody(request)
+            setBody(logoffRequest)
             timeout {
                 socketTimeoutMillis = 60_000
             }
         }.body()
 
-        onSuccess(response)
+        onSuccess(logoffResponse)
     }
 }
 
 internal actual fun invokeUploadFormFile(
     gridData: FormGridData,
     platformFiles: List<PlatformFile>,
-    success: (responseData: FormFileUploadResponse) -> Unit,
+    onSuccess: (responseData: FormFileUploadResponse) -> Unit,
 ) {
     //!!! реализовать на ktor-client
 }

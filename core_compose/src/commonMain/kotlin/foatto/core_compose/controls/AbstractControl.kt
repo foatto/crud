@@ -10,12 +10,17 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import foatto.core_compose.controls.models.TitleData
 import kotlin.math.max
 
 abstract class AbstractControl(
     protected val tabId: Int,
 ) {
+
+    companion object {
+        val MIN_USER_RECT_SIZE: Float = 8.0f
+    }
 
     protected val alTitleData: SnapshotStateList<TitleData> = mutableStateListOf()
 
@@ -41,9 +46,7 @@ abstract class AbstractControl(
 //                    if (withBottomBorder) {
 //                        borderBottom(width = 1.px, lineStyle = LineStyle.Solid, color = colorMainBorder)
 //                    }
-//                    padding(styleControlPadding)
 //                    backgroundColor(getColorTableHeaderBack())
-
         ) {
             for (titleData in alTitleData) {
                 if (titleData.url.isNotEmpty()) {
@@ -53,21 +56,14 @@ abstract class AbstractControl(
                         },
 //                                backgroundColor(getColorButtonBack())
 //                                setBorder(color = getColorButtonBorder(), radius = styleButtonBorderRadius)
-//                                fontSize(styleCommonButtonFontSize)
-//                                padding(styleTextButtonPadding)
-//                                setMargins(arrStyleCommonMargin)
-//                                cursor("pointer")
                     ) {
                         Text(titleData.text)
                     }
                 } else {
                     Text(titleData.text)
-//                                fontSize(styleControlTitleTextFontSize)
-//                                setPaddings(arrStyleControlTitlePadding)
                 }
             }
         }
-
     }
 
     protected fun <T> addCellToGrid(
@@ -91,95 +87,40 @@ abstract class AbstractControl(
         }
         alGridRow[col] = cell
     }
+
+    @Composable
+    protected fun getChartAndXyHeader() {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+//                    borderTop(
+//                        width = (if (!styleIsNarrowScreen) {
+//                            0
+//                        } else {
+//                            1
+//                        }).px,
+//                        lineStyle = LineStyle.Solid,
+//                        color = colorMainBorder,
+//                    )
+//                    backgroundColor(getColorGraphicAndXyToolbarBack())
+        ) {
+            alTitleData.forEachIndexed { index, titleData ->
+                Text(
+                    text = titleData.text,
+                    fontWeight = if (alTitleData.size > 1 && index == 0) {
+                        FontWeight.Bold
+                    } else {
+                        FontWeight.Normal
+                    }
+                )
+            }
+        }
+    }
+
 }
 
 /*
-    @Composable
-    protected fun getGraphicAndXyHeader(prefix: String) {
-        Div(
-            attrs = {
-                id("${prefix}_title_$tabId")
-                style {
-                    display(DisplayStyle.Flex)
-                    flexDirection(FlexDirection.Row)
-                    flexWrap(FlexWrap.Wrap)
-                    justifyContent(JustifyContent.SpaceBetween)
-                    alignItems(AlignItems.Center)
-                    padding(styleControlPadding)
-                    backgroundColor(getColorGraphicAndXyToolbarBack())
-                    borderTop(
-                        width = (if (!styleIsNarrowScreen) {
-                            0
-                        } else {
-                            1
-                        }).px,
-                        lineStyle = LineStyle.Solid,
-                        color = colorMainBorder,
-                    )
-                }
-            }
-        ) {
-            getToolBarSpan {}
-            Span(
-                attrs = {
-                    style {
-                        display(DisplayStyle.Flex)
-                        flexDirection(FlexDirection.Row)
-                        flexWrap(FlexWrap.Nowrap)
-                        justifyContent(JustifyContent.Center)
-                        alignItems(AlignItems.Center)
-                        fontSize(styleControlTitleTextFontSize)
-                        setPaddings(arrStyleControlTitlePadding)
-                        display(DisplayStyle.Flex)
-                        flexDirection(FlexDirection.Column)
-                    }
-                }
-            ) {
-                alTitleData.forEachIndexed { index, titleData ->
-                    Span(
-                        attrs = {
-                            style {
-                                fontWeight(
-                                    if (alTitleData.size > 1 && index == 0) {
-                                        "bold"
-                                    } else {
-                                        "normal"
-                                    }
-                                )
-                            }
-                        }
-                    ) {
-                        Text(titleData.text)
-                    }
-                }
-            }
-            getToolBarSpan {}
-        }
-    }
-
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @Composable
-    protected fun getGraphicAndXyToolbar(prefix: String, content: ContentBuilder<HTMLDivElement>) {
-        Div(
-            attrs = {
-                id("${prefix}_toolbar_$tabId")
-                style {
-                    display(DisplayStyle.Flex)
-                    flexDirection(FlexDirection.Row)
-                    flexWrap(FlexWrap.Wrap)
-                    justifyContent(JustifyContent.SpaceBetween)
-                    alignItems(AlignItems.Center)
-                    padding(styleControlPadding)
-                    backgroundColor(getColorGraphicAndXyToolbarBack())
-                }
-            }
-        ) {
-            content()
-        }
-    }
-
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     protected fun getGraphixAndXyTooltipCoord(x: Int, y: Int): Pair<Int, Int> =
         Pair(

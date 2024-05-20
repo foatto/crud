@@ -1,6 +1,10 @@
 package foatto.core_compose
 
 import com.darkrockstudios.libraries.mpfilepicker.PlatformFile
+import foatto.core.app.graphic.ChartActionRequest
+import foatto.core.app.graphic.ChartActionResponse
+import foatto.core.app.xy.XyActionRequest
+import foatto.core.app.xy.XyActionResponse
 import foatto.core.link.AppRequest
 import foatto.core.link.AppResponse
 import foatto.core.link.ChangePasswordRequest
@@ -19,7 +23,7 @@ import org.w3c.xhr.XMLHttpRequest
 //WASM!!! временно, до появления всеобщего ktor-client (в т.ч. для wasm)
 
 internal actual fun invokeApp(
-    request: AppRequest,
+    appRequest: AppRequest,
     onSuccess: (response: AppResponse) -> Unit,
 ) {
     XMLHttpRequest().apply {
@@ -29,9 +33,9 @@ internal actual fun invokeApp(
                 if (this.status == 200.toShort()) {
                     if (responseText.isNotBlank()) {
 //println("responseText = ${responseText}")
-                        val response = Json.decodeFromString<AppResponse>(responseText)
+                        val appResponse = Json.decodeFromString<AppResponse>(responseText)
 //println("response = ${response}")
-                        onSuccess(response)
+                        onSuccess(appResponse)
                     }
                 } else {
                     httpDefaultErrorHandler(this)
@@ -40,15 +44,15 @@ internal actual fun invokeApp(
         }
         setRequestHeader("Content-Type", "application/json")
 
-        request.sessionId = sessionId
+        appRequest.sessionId = sessionId
 //println("requestData.toJson = ${appRequest.toJson()}")
-        send(Json.encodeToString(request))
+        send(Json.encodeToString(appRequest))
     }
 
 }
 
 internal actual fun invokeChangePassword(
-    request: ChangePasswordRequest,
+    changePasswordRequest: ChangePasswordRequest,
     onSuccess: (response: ChangePasswordResponse) -> Unit,
 ) {
     XMLHttpRequest().apply {
@@ -57,8 +61,8 @@ internal actual fun invokeChangePassword(
             if (this.readyState == XMLHttpRequest.DONE) {
                 if (this.status == 200.toShort()) {
                     if (responseText.isNotBlank()) {
-                        val response = Json.decodeFromString<ChangePasswordResponse>(responseText)
-                        onSuccess(response)
+                        val changePasswordResponse = Json.decodeFromString<ChangePasswordResponse>(responseText)
+                        onSuccess(changePasswordResponse)
                     }
                 } else {
                     httpDefaultErrorHandler(this)
@@ -67,14 +71,14 @@ internal actual fun invokeChangePassword(
         }
         setRequestHeader("Content-Type", "application/json")
 
-        request.sessionId = sessionId
+        changePasswordRequest.sessionId = sessionId
 
-        send(Json.encodeToString(request))
+        send(Json.encodeToString(changePasswordRequest))
     }
 }
 
 internal actual fun invokeLogoff(
-    request: LogoffRequest,
+    logoffRequest: LogoffRequest,
     onSuccess: (response: LogoffResponse) -> Unit,
 ) {
     XMLHttpRequest().apply {
@@ -83,8 +87,8 @@ internal actual fun invokeLogoff(
             if (this.readyState == XMLHttpRequest.DONE) {
                 if (this.status == 200.toShort()) {
                     if (responseText.isNotBlank()) {
-                        val response = Json.decodeFromString<LogoffResponse>(responseText)
-                        onSuccess(response)
+                        val logoffResponse = Json.decodeFromString<LogoffResponse>(responseText)
+                        onSuccess(logoffResponse)
                     }
                 } else {
                     httpDefaultErrorHandler(this)
@@ -93,15 +97,16 @@ internal actual fun invokeLogoff(
         }
         setRequestHeader("Content-Type", "application/json")
 
-        request.sessionId = sessionId
-        send(Json.encodeToString(request))
+        logoffRequest.sessionId = sessionId
+
+        send(Json.encodeToString(logoffRequest))
     }
 }
 
 internal actual fun invokeUploadFormFile(
     gridData: FormGridData,
     platformFiles: List<PlatformFile>,
-    success: (responseData: FormFileUploadResponse) -> Unit,
+    onSuccess: (responseData: FormFileUploadResponse) -> Unit,
 ) {
     val formData = org.w3c.xhr.FormData().also { formData_ ->
         for (platformFile in platformFiles) {
@@ -121,8 +126,8 @@ internal actual fun invokeUploadFormFile(
             if (this.readyState == XMLHttpRequest.DONE) {
                 if (this.status == 200.toShort()) {
                     if (responseText.isNotBlank()) {
-                        val response = Json.decodeFromString<FormFileUploadResponse>(responseText)
-                        success(response)
+                        val formFileUploadResponse = Json.decodeFromString<FormFileUploadResponse>(responseText)
+                        onSuccess(formFileUploadResponse)
                     }
                 } else {
                     httpDefaultErrorHandler(this)
@@ -131,6 +136,58 @@ internal actual fun invokeUploadFormFile(
         }
         setRequestHeader("contentType", "application/octet-stream")
         send(formData)
+    }
+}
+
+internal actual fun invokeXy(
+    xyActionRequest: XyActionRequest,
+    onSuccess: (responseData: XyActionResponse) -> Unit,
+) {
+    XMLHttpRequest().apply {
+        open("POST", "/api/xy", true)
+        onreadystatechange = {
+            if (this.readyState == XMLHttpRequest.DONE) {
+                if (this.status == 200.toShort()) {
+                    if (responseText.isNotBlank()) {
+                        val xyActionResponse = Json.decodeFromString<XyActionResponse>(responseText)
+                        onSuccess(xyActionResponse)
+                    }
+                } else {
+                    httpDefaultErrorHandler(this)
+                }
+            }
+        }
+        setRequestHeader("Content-Type", "application/json")
+
+        xyActionRequest.sessionId = sessionId
+
+        send(Json.encodeToString(xyActionRequest))
+    }
+}
+
+internal actual fun invokeChart(
+    chartActionRequest: ChartActionRequest,
+    onSuccess: (responseData: ChartActionResponse) -> Unit,
+) {
+    XMLHttpRequest().apply {
+        open("POST", "/api/graphic", true)
+        onreadystatechange = {
+            if (this.readyState == XMLHttpRequest.DONE) {
+                if (this.status == 200.toShort()) {
+                    if (responseText.isNotBlank()) {
+                        val chartActionResponse = Json.decodeFromString<ChartActionResponse>(responseText)
+                        onSuccess(chartActionResponse)
+                    }
+                } else {
+                    httpDefaultErrorHandler(this)
+                }
+            }
+        }
+        setRequestHeader("Content-Type", "application/json")
+
+        chartActionRequest.sessionId = sessionId
+
+        send(Json.encodeToString(chartActionRequest))
     }
 }
 
