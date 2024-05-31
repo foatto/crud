@@ -1,10 +1,11 @@
 package foatto.mms.core_mms.graphic.server.document
 
-import foatto.core.app.graphic.AxisYData
-import foatto.core.app.graphic.GraphicColorIndex
-import foatto.core.app.graphic.GraphicDataContainer
-import foatto.core.app.graphic.GraphicElement
-import foatto.core.app.graphic.GraphicLineData
+import foatto.core.app.chart.ChartAxisYDTO
+import foatto.core.app.chart.ChartColorIndex
+import foatto.core.app.chart.ChartElementDTO
+import foatto.core.app.chart.ChartGroupDTO
+import foatto.core.app.chart.ChartElementLineDTO
+import foatto.core.app.chart.ChartElementTypeDTO
 import foatto.util.AdvancedByteBuffer
 import foatto.core_server.app.graphic.server.GraphicDocumentConfig
 import foatto.core_server.app.graphic.server.GraphicStartData
@@ -34,7 +35,7 @@ class sdcLiquid : sdcAbstractAnalog() {
             sca: SensorConfigAnalogue,
             begTime: Int,
             endTime: Int,
-            aText: GraphicDataContainer
+            aText: ChartElementDTO
         ) {
             //--- ловим ошибки с датчиков уровня топлива
             val alGTD = aText.alGTD.toMutableList()
@@ -46,9 +47,9 @@ class sdcLiquid : sdcAbstractAnalog() {
                     sensorDescr = sca.descr,
                     begTime = begTime,
                     endTime = endTime,
-                    aFillColorIndex = GraphicColorIndex.FILL_CRITICAL,
-                    aBorderColorIndex = GraphicColorIndex.BORDER_CRITICAL,
-                    aTextColorIndex = GraphicColorIndex.TEXT_CRITICAL,
+                    aFillColorIndex = ChartColorIndex.FILL_CRITICAL,
+                    aBorderColorIndex = ChartColorIndex.BORDER_CRITICAL,
+                    aTextColorIndex = ChartColorIndex.TEXT_CRITICAL,
                     troubleCode = errorCode,
                     troubleDescr = SensorConfigLiquidLevel.hmLLErrorCodeDescr[errorCode]!!,
                     minTime = SensorConfigLiquidLevel.hmLLMinSensorErrorTime[errorCode]!!,
@@ -80,7 +81,7 @@ class sdcLiquid : sdcAbstractAnalog() {
         alRawTime: List<Int>,
         alRawData: List<AdvancedByteBuffer>,
         objectConfig: ObjectConfig,
-        tmElement: SortedMap<String, GraphicElement>,
+        tmElement: SortedMap<String, ChartGroupDTO>,
         tmElementVisibleConfig: SortedMap<String, Triple<String, String, Boolean>>,
     ) {
         val mmsgdc = GraphicDocumentConfig.hmConfig[documentTypeName] as MMSGraphicDocumentConfig
@@ -140,9 +141,9 @@ class sdcLiquid : sdcAbstractAnalog() {
                     tmElement = tmElement,
                     tmElementVisibleConfig = tmElementVisibleConfig,
                     alLegend = listOf(
-                        Triple(hmIndexColor[GraphicColorIndex.LINE_ABOVE_0]!!, false, "Заправка"),
-                        Triple(hmIndexColor[GraphicColorIndex.LINE_NORMAL_0]!!, false, "Расход"),
-                        Triple(hmIndexColor[GraphicColorIndex.LINE_BELOW_0]!!, false, "Слив"),
+                        Triple(hmIndexColor[ChartColorIndex.LINE_ABOVE_0]!!, false, "Заправка"),
+                        Triple(hmIndexColor[ChartColorIndex.LINE_NORMAL_0]!!, false, "Расход"),
+                        Triple(hmIndexColor[ChartColorIndex.LINE_BELOW_0]!!, false, "Слив"),
                     ),
                 )
 
@@ -265,9 +266,9 @@ class sdcLiquid : sdcAbstractAnalog() {
         xScale: Int,
         yScale: Double,
         axisIndex: Int,
-        aMinLimit: GraphicDataContainer?,
-        aMaxLimit: GraphicDataContainer?,
-        aLine: GraphicDataContainer,
+        aMinLimit: ChartElementDTO?,
+        aMaxLimit: ChartElementDTO?,
+        aLine: ChartElementDTO,
         graphicHandler: iGraphicHandler
     ) {
         if (sca.sensorType == SensorConfig.SENSOR_LIQUID_FLOW_CALC) {
@@ -314,8 +315,8 @@ class sdcLiquid : sdcAbstractAnalog() {
         alRawTime: List<Int>,
         alRawData: List<AdvancedByteBuffer>,
         axisIndex: Int,
-        aLine: GraphicDataContainer?,
-        aText: GraphicDataContainer?,
+        aLine: ChartElementDTO?,
+        aText: ChartElementDTO?,
     ) {
         //--- только для основого графика
         if (sca is SensorConfigLiquidLevel) {
@@ -347,10 +348,10 @@ class sdcLiquid : sdcAbstractAnalog() {
         objectConfig: ObjectConfig,
         sca: SensorConfigAnalogue,
         aAxisIndex: Int,
-        alAxisYData: MutableList<AxisYData>,
-        aLine: GraphicDataContainer?,
-        aText: GraphicDataContainer?,
-        alGDC: MutableList<GraphicDataContainer>,
+        alAxisYData: MutableList<ChartAxisYDTO>,
+        aLine: ChartElementDTO?,
+        aText: ChartElementDTO?,
+        alGDC: MutableList<ChartElementDTO>,
     ): Int {
         var axisIndex = aAxisIndex
 
@@ -375,9 +376,9 @@ class sdcLiquid : sdcAbstractAnalog() {
                     }
 
                     //--- расчет скорости расхода жидкости по уровнемеру
-                    val aLiquidMin = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 1, false)
-                    val aLiquidMax = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 1, false)
-                    val aLiquidFlow = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 2, false)
+                    val aLiquidMin = ChartElementDTO(ChartElementTypeDTO.LINE, axisIndex, 1, false)
+                    val aLiquidMax = ChartElementDTO(ChartElementTypeDTO.LINE, axisIndex, 1, false)
+                    val aLiquidFlow = ChartElementDTO(ChartElementTypeDTO.LINE, axisIndex, 2, false)
 
                     calcLiquidFlowOverLiquidLevel(
                         alAxisYData = alAxisYData,
@@ -411,21 +412,21 @@ class sdcLiquid : sdcAbstractAnalog() {
         endTime: Int,
         xScale: Int,
         yScale: Double,
-        aLiquidMin: GraphicDataContainer?,
-        aLiquidMax: GraphicDataContainer?,
-        aLiquidFlow: GraphicDataContainer,
+        aLiquidMin: ChartElementDTO?,
+        aLiquidMax: ChartElementDTO?,
+        aLiquidFlow: ChartElementDTO,
     ) {
         //--- альтернативное (более угрублённое) масштабирования для повышения скорости расчётов
         val altXScale = xScale * 8
         val isLimit = sclfc.maxLimit != sclfc.minLimit
         if (isLimit) {
             aLiquidMin!!.alGLD = listOf(
-                GraphicLineData(begTime, sclfc.minLimit, GraphicColorIndex.LINE_LIMIT),
-                GraphicLineData(endTime, sclfc.minLimit, GraphicColorIndex.LINE_LIMIT)
+                ChartElementLineDTO(begTime, sclfc.minLimit.toFloat(), ChartColorIndex.LINE_LIMIT),
+                ChartElementLineDTO(endTime, sclfc.minLimit.toFloat(), ChartColorIndex.LINE_LIMIT)
             )
             aLiquidMax!!.alGLD = listOf(
-                GraphicLineData(begTime, sclfc.maxLimit, GraphicColorIndex.LINE_LIMIT),
-                GraphicLineData(endTime, sclfc.maxLimit, GraphicColorIndex.LINE_LIMIT)
+                ChartElementLineDTO(begTime, sclfc.maxLimit.toFloat(), ChartColorIndex.LINE_LIMIT),
+                ChartElementLineDTO(endTime, sclfc.maxLimit.toFloat(), ChartColorIndex.LINE_LIMIT)
             )
         }
         //--- х-координата последней усреднённой точки
@@ -493,7 +494,7 @@ class sdcLiquid : sdcAbstractAnalog() {
             //--- новая средняя точка достаточно далека от предыдущей или отличается от неё цветом
             if (avgTime - lastAvgTime > altXScale || abs(liquidUsingPerHour - lastLiquidUsingPerHour) > yScale) {
                 aLiquidFlow.alGLD = aLiquidFlow.alGLD.toMutableList().apply {
-                    add(GraphicLineData(avgTime, liquidUsingPerHour, GraphicColorIndex.LINE_NORMAL_1))
+                    add(ChartElementLineDTO(avgTime, liquidUsingPerHour.toFloat(), ChartColorIndex.LINE_NORMAL_1))
                 }
 
                 lastAvgTime = avgTime
@@ -503,29 +504,29 @@ class sdcLiquid : sdcAbstractAnalog() {
     }
 
     private fun calcLiquidFlowOverLiquidLevel(
-        alAxisYData: MutableList<AxisYData>,
+        alAxisYData: MutableList<ChartAxisYDTO>,
         sca: SensorConfigLiquidLevel,
         sclfc: SensorConfigAnalogue,
         begTime: Int,
         endTime: Int,
         xScale: Int,
         yScale: Double,
-        alGLD: List<GraphicLineData>,
-        aLiquidMin: GraphicDataContainer,
-        aLiquidMax: GraphicDataContainer,
-        aLiquidFlow: GraphicDataContainer,
+        alGLD: List<ChartElementLineDTO>,
+        aLiquidMin: ChartElementDTO,
+        aLiquidMax: ChartElementDTO,
+        aLiquidFlow: ChartElementDTO,
     ) {
-        alAxisYData.add(AxisYData("${SensorConfig.hmSensorDescr[sclfc.sensorType]}", sclfc.minView, sclfc.maxView, GraphicColorIndex.AXIS_1, false))
+        alAxisYData.add(ChartAxisYDTO("${SensorConfig.hmSensorDescr[sclfc.sensorType]}", sclfc.minView.toFloat(), sclfc.maxView.toFloat(), ChartColorIndex.AXIS_1, false))
 
         val isLimit = sclfc.maxLimit != sclfc.minLimit
         if (isLimit) {
             aLiquidMin.alGLD = listOf(
-                GraphicLineData(begTime, sclfc.minLimit, GraphicColorIndex.LINE_LIMIT),
-                GraphicLineData(endTime, sclfc.minLimit, GraphicColorIndex.LINE_LIMIT)
+                ChartElementLineDTO(begTime, sclfc.minLimit.toFloat(), ChartColorIndex.LINE_LIMIT),
+                ChartElementLineDTO(endTime, sclfc.minLimit.toFloat(), ChartColorIndex.LINE_LIMIT)
             )
             aLiquidMax.alGLD = listOf(
-                GraphicLineData(begTime, sclfc.maxLimit, GraphicColorIndex.LINE_LIMIT),
-                GraphicLineData(endTime, sclfc.maxLimit, GraphicColorIndex.LINE_LIMIT)
+                ChartElementLineDTO(begTime, sclfc.maxLimit.toFloat(), ChartColorIndex.LINE_LIMIT),
+                ChartElementLineDTO(endTime, sclfc.maxLimit.toFloat(), ChartColorIndex.LINE_LIMIT)
             )
         }
         //--- х-координата последней усреднённой точки
@@ -535,7 +536,7 @@ class sdcLiquid : sdcAbstractAnalog() {
         NEXT_POINT@ for (pos1 in alGLD.indices) {
             val gpd = alGLD[pos1]
             //--- период сглаживания нельзя начинать с "ненормальной точки"
-            if (gpd.colorIndex != GraphicColorIndex.LINE_NORMAL_0) {
+            if (gpd.colorIndex != ChartColorIndex.LINE_NORMAL_0) {
                 continue
             }
             //--- поиск правой границы диапазона сглаживания
@@ -544,7 +545,7 @@ class sdcLiquid : sdcAbstractAnalog() {
                 val gpd2 = alGLD[pos2]
                 //--- если в период сглаживания начали попадать "ненормальные" точки,
                 //--- прекращаем расширение периода и сразу переходим на поиск следующего периода
-                if (gpd2.colorIndex != GraphicColorIndex.LINE_NORMAL_0) {
+                if (gpd2.colorIndex != ChartColorIndex.LINE_NORMAL_0) {
                     continue@NEXT_POINT
                 }
                 //--- умножаем период сглаживания на 2,
@@ -575,7 +576,7 @@ class sdcLiquid : sdcAbstractAnalog() {
             var liquidUsingPerHour = if (timeDelta == 0) {
                 0.0
             } else {
-                -(alGLD[pos2 - 1].y - alGLD[pos1].y) * 3600 / timeDelta
+                (-(alGLD[pos2 - 1].y - alGLD[pos1].y) * 3600 / timeDelta).toDouble()
             }
 
             //--- отрицательный расход ( т.е. заправка ) нас не интересуют
@@ -590,7 +591,7 @@ class sdcLiquid : sdcAbstractAnalog() {
             //--- новая средняя точка достаточно далека от предыдущей или отличается от неё цветом
             if (avgTime - lastAvgTime > xScale || abs(liquidUsingPerHour - lastLiquidUsingPerHour) > yScale) {
                 aLiquidFlow!!.alGLD = aLiquidFlow!!.alGLD.toMutableList().apply {
-                    add(GraphicLineData(avgTime, liquidUsingPerHour, GraphicColorIndex.LINE_NORMAL_1))
+                    add(ChartElementLineDTO(avgTime, liquidUsingPerHour.toFloat(), ChartColorIndex.LINE_NORMAL_1))
                 }
                 lastAvgTime = avgTime
                 lastLiquidUsingPerHour = liquidUsingPerHour

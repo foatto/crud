@@ -1,7 +1,8 @@
 package foatto.mms.core_mms.report
 
-import foatto.core.app.graphic.GraphicColorIndex
-import foatto.core.app.graphic.GraphicDataContainer
+import foatto.core.app.chart.ChartColorIndex
+import foatto.core.app.chart.ChartElementDTO
+import foatto.core.app.chart.ChartElementTypeDTO
 import foatto.core.app.xy.geom.XyPoint
 import foatto.core.link.FormData
 import foatto.util.DateTime_DMYHMS
@@ -201,7 +202,7 @@ class cOverSensor : cMMSReport() {
             for (portNum in hmSensorConfig.keys) {
                 val scsc = hmSensorConfig[portNum] as SensorConfigAnalogue
 
-                val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1, false)
+                val aLine = ChartElementDTO(ChartElementTypeDTO.LINE, 0, 1, false)
                 ObjectCalc.getSmoothAnalogGraphicData(
                     conn = conn,
                     alRawTime = alRawTime,
@@ -259,10 +260,10 @@ class cOverSensor : cMMSReport() {
         graphicHandler: AnalogGraphicHandler,
         objectConfig: ObjectConfig,
         scsc: SensorConfigAnalogue,
-        aLine: GraphicDataContainer,
+        aLine: ChartElementDTO,
         begPos: Int,
         endPos: Int,
-        curColorIndex: GraphicColorIndex,
+        curColorIndex: ChartColorIndex,
         alObjectResult: MutableList<OverSensorPeriodData>
     ) {
         //--- finding the point with maximum violation
@@ -280,7 +281,7 @@ class cOverSensor : cMMSReport() {
             if (over > maxOverSensorDiff) {
                 maxOverSensorTime = aLine.alGLD.get(pos).x
                 maxOverSensorCoord = aLine.alGLD.get(pos).coord
-                maxOverSensorMax = y
+                maxOverSensorMax = y.toDouble()
                 maxOverSensorDiff = over
             }
         }

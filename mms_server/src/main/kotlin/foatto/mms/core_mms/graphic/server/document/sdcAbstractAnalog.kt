@@ -1,6 +1,6 @@
 package foatto.mms.core_mms.graphic.server.document
 
-import foatto.core.app.graphic.*
+import foatto.core.app.chart.*
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.graphic.server.GraphicStartData
 import foatto.core_server.app.graphic.server.document.sdcAbstractGraphic
@@ -35,7 +35,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
             oc: ObjectConfig,
             begTime: Int,
             endTime: Int,
-            aText: GraphicDataContainer
+            aText: ChartElementDTO
         ) {
             val alGTD = aText.alGTD.toMutableList()
 
@@ -48,12 +48,12 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                 if (rawTime > endTime) break
 
                 if (rawTime - lastDataTime > MIN_NO_DATA_TIME) {
-                    alGTD += GraphicTextData(
+                    alGTD += ChartElementTextDTO(
                         textX1 = lastDataTime,
                         textX2 = rawTime,
-                        fillColorIndex = GraphicColorIndex.FILL_CRITICAL,
-                        borderColorIndex = GraphicColorIndex.BORDER_CRITICAL,
-                        textColorIndex = GraphicColorIndex.TEXT_CRITICAL,
+                        fillColorIndex = ChartColorIndex.FILL_CRITICAL,
+                        borderColorIndex = ChartColorIndex.BORDER_CRITICAL,
+                        textColorIndex = ChartColorIndex.TEXT_CRITICAL,
                         text = "Нет данных от контроллера",
                         toolTip = "Нет данных от контроллера"
                     )
@@ -61,12 +61,12 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                 lastDataTime = rawTime
             }
             if (min(lastDataTime, endTime) - lastDataTime > MIN_NO_DATA_TIME) {
-                alGTD += GraphicTextData(
+                alGTD += ChartElementTextDTO(
                     textX1 = lastDataTime,
                     textX2 = min(lastDataTime, endTime),
-                    fillColorIndex = GraphicColorIndex.FILL_CRITICAL,
-                    borderColorIndex = GraphicColorIndex.BORDER_CRITICAL,
-                    textColorIndex = GraphicColorIndex.TEXT_CRITICAL,
+                    fillColorIndex = ChartColorIndex.FILL_CRITICAL,
+                    borderColorIndex = ChartColorIndex.BORDER_CRITICAL,
+                    textColorIndex = ChartColorIndex.TEXT_CRITICAL,
                     text = "Нет данных от контроллера",
                     toolTip = "Нет данных от контроллера"
                 )
@@ -84,9 +84,9 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                     sensorDescr = sca.descr,
                     begTime = begTime,
                     endTime = endTime,
-                    aFillColorIndex = GraphicColorIndex.FILL_WARNING,
-                    aBorderColorIndex = GraphicColorIndex.BORDER_WARNING,
-                    aTextColorIndex = GraphicColorIndex.TEXT_WARNING,
+                    aFillColorIndex = ChartColorIndex.FILL_WARNING,
+                    aBorderColorIndex = ChartColorIndex.BORDER_WARNING,
+                    aTextColorIndex = ChartColorIndex.TEXT_WARNING,
                     troubleCode = 0,
                     troubleDescr = "Нет питания",
                     minTime = MIN_POWER_OFF_TIME,
@@ -152,13 +152,13 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
             sensorDescr: String,
             begTime: Int,
             endTime: Int,
-            aFillColorIndex: GraphicColorIndex,
-            aBorderColorIndex: GraphicColorIndex,
-            aTextColorIndex: GraphicColorIndex,
+            aFillColorIndex: ChartColorIndex,
+            aBorderColorIndex: ChartColorIndex,
+            aTextColorIndex: ChartColorIndex,
             troubleCode: Int,
             troubleDescr: String,
             minTime: Int,
-            alGTD: MutableList<GraphicTextData>
+            alGTD: MutableList<ChartElementTextDTO>
         ) {
 
             //--- в основном тексте пишем только текст ошибки, а в tooltips'e напишем вместе с описанием датчика
@@ -179,7 +179,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                     }
                 } else if (troubleBegTime != 0) {
                     if (rawTime - troubleBegTime > minTime) {
-                        alGTD += GraphicTextData(
+                        alGTD += ChartElementTextDTO(
                             textX1 = troubleBegTime,
                             textX2 = rawTime,
                             fillColorIndex = aFillColorIndex,
@@ -194,7 +194,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
             }
             //--- запись последней незакрытой проблемы
             if (troubleBegTime != 0 && min(getCurrentTimeInt(), endTime) - troubleBegTime > minTime) {
-                alGTD += GraphicTextData(
+                alGTD += ChartElementTextDTO(
                     textX1 = troubleBegTime,
                     textX2 = min(getCurrentTimeInt(), endTime),
                     fillColorIndex = aFillColorIndex,
@@ -240,7 +240,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         //--- единоразово загрузим данные по объекту
         val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(conn, objectConfig, begTime, endTime)
 
-        val tmElement = sortedMapOf<String, GraphicElement>()
+        val tmElement = sortedMapOf<String, ChartGroupDTO>()
         val tmElementVisibleConfig = sortedMapOf<String, Triple<String, String, Boolean>>()
 
         getGraphicElements(
@@ -258,7 +258,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
 
         return ChartActionResponse(
             hmIndexColor = hmIndexColor,
-            alElement = tmElement.toList(),
+            alCharts = tmElement.toList(),
             alVisibleElement = tmElementVisibleConfig.values.toList(),
             alLegend = emptyList(),
         )
@@ -274,7 +274,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         alRawTime: List<Int>,
         alRawData: List<AdvancedByteBuffer>,
         objectConfig: ObjectConfig,
-        tmElement: SortedMap<String, GraphicElement>,
+        tmElement: SortedMap<String, ChartGroupDTO>,
         tmElementVisibleConfig: SortedMap<String, Triple<String, String, Boolean>>,
     )
 
@@ -289,7 +289,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         objectConfig: ObjectConfig,
         alSca: List<SensorConfigAnalogue>,
         alGraphicHandler: List<AnalogGraphicHandler>,
-        tmElement: SortedMap<String, GraphicElement>,
+        tmElement: SortedMap<String, ChartGroupDTO>,
         tmElementVisibleConfig: SortedMap<String, Triple<String, String, Boolean>>,
         alLegend: List<Triple<Int, Boolean, String>> = emptyList(),
     ) {
@@ -298,11 +298,11 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         tmElementVisibleConfig[graphicTitle] = Triple(graphicTitle, graphicVisibilityKey, isGraphicVisible)
 
         if (isGraphicVisible) {
-            val alGDC = mutableListOf<GraphicDataContainer>()
+            val alGDC = mutableListOf<ChartElementDTO>()
 
             objectConfig.scg?.let { scg ->
                 if (!isGeoSensorShowed && scg.isUseSpeed) {
-                    val aBack = GraphicDataContainer(GraphicDataContainer.ElementType.BACK, 0, 0, false)
+                    val aBack = ChartElementDTO(ChartElementTypeDTO.BACK, 0, 0, false)
                     calcGeoSensor(alRawTime, alRawData, scg, begTime, endTime, aBack)
                     alGDC.add(aBack)
 
@@ -310,7 +310,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                 }
             }
 
-            val alAxisYData = mutableListOf<AxisYData>()
+            val alAxisYData = mutableListOf<ChartAxisYDTO>()
 
             var axisIndex = 0
             alSca.forEachIndexed { sensorIndex, sca ->
@@ -320,21 +320,21 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
 
                 //--- Максимальный размер массива = кол-во точек по горизонтали = 3840 (максимальная ширина 4K-экрана), окгруляем до 4000
                 val aMinLimit = if (graphicHandler.isStaticMinLimit(sca)) {
-                    GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 1, isReversedY)
+                    ChartElementDTO(ChartElementTypeDTO.LINE, axisIndex, 1, isReversedY)
                 } else {
                     null
                 }
 
                 val aMaxLimit = if (graphicHandler.isStaticMaxLimit(sca)) {
-                    GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 1, isReversedY)
+                    ChartElementDTO(ChartElementTypeDTO.LINE, axisIndex, 1, isReversedY)
                 } else {
                     null
                 }
 
-                val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 3, isReversedY)
-                val aText = GraphicDataContainer(GraphicDataContainer.ElementType.TEXT, axisIndex, 0, isReversedY)
+                val aLine = ChartElementDTO(ChartElementTypeDTO.LINE, axisIndex, 3, isReversedY)
+                val aText = ChartElementDTO(ChartElementTypeDTO.TEXT, axisIndex, 0, isReversedY)
 
-                alAxisYData.add(AxisYData(sca.descr, sca.minView, sca.maxView, graphicAxisColorIndexes[axisIndex], isReversedY))
+                alAxisYData.add(ChartAxisYDTO(sca.descr, sca.minView.toFloat(), sca.maxView.toFloat(), chartAxisColorIndexes[axisIndex], isReversedY))
 
                 val xScale = if (viewWidth == 0) {
                     0
@@ -373,23 +373,23 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                             val alWork = ObjectCalc.calcWorkSensor(alRawTime, alRawData, scw, begTime, endTime).alWorkOnOff
                             for (apd in alWork) {
                                 val workDescr = StringBuilder(scw.descr).append(" : ").append(if (apd.getState() != 0) "ВКЛ" else "выкл").toString()
-                                alGTD += GraphicTextData(
+                                alGTD += ChartElementTextDTO(
                                     textX1 = apd.begTime,
                                     textX2 = apd.endTime,
                                     fillColorIndex = if (apd.getState() != 0) {
-                                        GraphicColorIndex.FILL_NORMAL
+                                        ChartColorIndex.FILL_NORMAL
                                     } else {
-                                        GraphicColorIndex.FILL_WARNING
+                                        ChartColorIndex.FILL_WARNING
                                     },
                                     borderColorIndex = if (apd.getState() != 0) {
-                                        GraphicColorIndex.BORDER_NORMAL
+                                        ChartColorIndex.BORDER_NORMAL
                                     } else {
-                                        GraphicColorIndex.BORDER_WARNING
+                                        ChartColorIndex.BORDER_WARNING
                                     },
                                     textColorIndex = if (apd.getState() != 0) {
-                                        GraphicColorIndex.TEXT_NORMAL
+                                        ChartColorIndex.TEXT_NORMAL
                                     } else {
-                                        GraphicColorIndex.TEXT_WARNING
+                                        ChartColorIndex.TEXT_WARNING
                                     },
                                     text = workDescr,
                                     toolTip = workDescr
@@ -440,10 +440,10 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                 )
             }
 
-            tmElement[graphicTitle] = GraphicElement(
-                graphicTitle = graphicTitle,
+            tmElement[graphicTitle] = ChartGroupDTO(
+                chartTitle = graphicTitle,
                 alLegend = alLegend,
-                graphicHeight = -1.0,
+                chartHeight = -1.0f,
                 alAxisYData = alAxisYData,
                 alGDC = alGDC,
             )
@@ -461,9 +461,9 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         xScale: Int,
         yScale: Double,
         axisIndex: Int,
-        aMinLimit: GraphicDataContainer?,
-        aMaxLimit: GraphicDataContainer?,
-        aLine: GraphicDataContainer,
+        aMinLimit: ChartElementDTO?,
+        aMaxLimit: ChartElementDTO?,
+        aLine: ChartElementDTO,
         graphicHandler: iGraphicHandler
     ) {
         ObjectCalc.getSmoothAnalogGraphicData(
@@ -492,8 +492,8 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         alRawTime: List<Int>,
         alRawData: List<AdvancedByteBuffer>,
         axisIndex: Int,
-        aLine: GraphicDataContainer?,
-        aText: GraphicDataContainer?,
+        aLine: ChartElementDTO?,
+        aText: ChartElementDTO?,
     ) {
     }
 
@@ -507,15 +507,15 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         objectConfig: ObjectConfig,
         sca: SensorConfigAnalogue,
         aAxisIndex: Int,
-        alAxisYData: MutableList<AxisYData>,
-        aLine: GraphicDataContainer?,
-        aText: GraphicDataContainer?,
-        alGDC: MutableList<GraphicDataContainer>,
+        alAxisYData: MutableList<ChartAxisYDTO>,
+        aLine: ChartElementDTO?,
+        aText: ChartElementDTO?,
+        alGDC: MutableList<ChartElementDTO>,
     ): Int = aAxisIndex
 
     //--- упрощённый вывод данных по гео-датчику (движение/стоянка/нет данных АКА ошибка)
     //--- (без учёта минимального времени стоянки)
-    private fun calcGeoSensor(alRawTime: List<Int>, alRawData: List<AdvancedByteBuffer>, scg: SensorConfigGeo, begTime: Int, endTime: Int, aBack: GraphicDataContainer) {
+    private fun calcGeoSensor(alRawTime: List<Int>, alRawData: List<AdvancedByteBuffer>, scg: SensorConfigGeo, begTime: Int, endTime: Int, aBack: ChartElementDTO) {
         var lastStatus = -2 // -1 = нет гео-данных, 0 = стоянка, 1 - движение
         var lastTime = 0
         val alGBD = aBack.alGBD.toMutableList()
@@ -539,13 +539,13 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                 if (lastStatus != -1) {
                     //--- если это не первое состояние
                     if (lastTime != 0) {
-                        alGBD += GraphicBackData(
+                        alGBD += ChartElementBackDTO(
                             x1 = lastTime,
                             x2 = rawTime,
                             color = hmIndexColor[if (lastStatus == 0) {
-                                GraphicColorIndex.FILL_WARNING
+                                ChartColorIndex.FILL_WARNING
                             } else {
-                                GraphicColorIndex.FILL_NORMAL
+                                ChartColorIndex.FILL_NORMAL
                             }] ?: 0
                         )
                     }
@@ -557,13 +557,13 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                 if (lastStatus != 0) {
                     //--- если это не первое состояние
                     if (lastTime != 0) {
-                        alGBD += GraphicBackData(
+                        alGBD += ChartElementBackDTO(
                             x1 = lastTime,
                             x2 = rawTime,
                             color = hmIndexColor[if (lastStatus == -1) {
-                                GraphicColorIndex.FILL_CRITICAL
+                                ChartColorIndex.FILL_CRITICAL
                             } else {
-                                GraphicColorIndex.FILL_NORMAL
+                                ChartColorIndex.FILL_NORMAL
                             }] ?: 0
                         )
                     }
@@ -575,13 +575,13 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                 if (lastStatus != 1) {
                     //--- если это не первое состояние
                     if (lastTime != 0) {
-                        alGBD += GraphicBackData(
+                        alGBD += ChartElementBackDTO(
                             x1 = lastTime,
                             x2 = rawTime,
                             color = hmIndexColor[if (lastStatus == -1) {
-                                GraphicColorIndex.FILL_CRITICAL
+                                ChartColorIndex.FILL_CRITICAL
                             } else {
-                                GraphicColorIndex.FILL_WARNING
+                                ChartColorIndex.FILL_WARNING
                             }] ?: 0
                         )
                     }
@@ -593,15 +593,15 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         }
         //--- если это не первое состояние
         if (lastTime != 0) {
-            alGBD += GraphicBackData(
+            alGBD += ChartElementBackDTO(
                 x1 = lastTime,
                 x2 = min(getCurrentTimeInt(), endTime),
                 color = hmIndexColor[if (lastStatus == -1) {
-                    GraphicColorIndex.FILL_CRITICAL
+                    ChartColorIndex.FILL_CRITICAL
                 } else if (lastStatus == 0) {
-                    GraphicColorIndex.FILL_WARNING
+                    ChartColorIndex.FILL_WARNING
                 } else {
-                    GraphicColorIndex.FILL_NORMAL
+                    ChartColorIndex.FILL_NORMAL
                 }] ?: 0
             )
         }

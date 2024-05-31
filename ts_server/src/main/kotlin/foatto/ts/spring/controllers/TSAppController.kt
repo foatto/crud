@@ -1,7 +1,7 @@
 package foatto.ts.spring.controllers
 
-import foatto.core.app.graphic.ChartActionRequest
-import foatto.core.app.graphic.ChartActionResponse
+import foatto.core.app.chart.ChartActionRequest
+import foatto.core.app.chart.ChartActionResponse
 import foatto.core.app.xy.XyActionRequest
 import foatto.core.app.xy.XyActionResponse
 import foatto.core.link.AppRequest
@@ -88,7 +88,7 @@ class TSAppController(
                     fullTitle = fullTitle,
                     alServerActionButton = compositeStartData.alServerActionButton,
                 ),
-                graphicResponse = ChartResponse(
+                chartResponse = ChartResponse(
                     documentTypeName = "ts_graphic_dsltt",
                     startParamId = compositeStartData.graphicStartDataId,
                     shortTitle = shortTitle,

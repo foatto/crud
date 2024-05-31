@@ -1,12 +1,12 @@
 package foatto.ts.core_ts.graphic.server.graphic_handler
 
-import foatto.core.app.graphic.GraphicColorIndex
-import foatto.core.app.graphic.GraphicDataContainer
-import foatto.core.app.graphic.GraphicLineData
-import foatto.core.app.graphic.graphicLineAboveColorIndexes
-import foatto.core.app.graphic.graphicLineBelowColorIndexes
-import foatto.core.app.graphic.graphicLineNoneColorIndexes
-import foatto.core.app.graphic.graphicLineNormalColorIndexes
+import foatto.core.app.chart.ChartColorIndex
+import foatto.core.app.chart.ChartElementDTO
+import foatto.core.app.chart.ChartElementLineDTO
+import foatto.core.app.chart.chartLineAboveColorIndexes
+import foatto.core.app.chart.chartLineBelowColorIndexes
+import foatto.core.app.chart.chartLineNoneColorIndexes
+import foatto.core.app.chart.chartLineNormalColorIndexes
 import foatto.util.AdvancedByteBuffer
 import foatto.ts.core_ts.calc.AbstractObjectStateCalc
 import foatto.ts.core_ts.calc.ObjectCalc
@@ -14,10 +14,10 @@ import foatto.ts.core_ts.sensor.config.SensorConfigAnalogue
 
 class AnalogGraphicHandler : iGraphicHandler {
 
-    override fun getLineNoneColorIndex(axisIndex: Int): GraphicColorIndex = graphicLineNoneColorIndexes[axisIndex]
-    override fun getLineNormalColorIndex(axisIndex: Int): GraphicColorIndex = graphicLineNormalColorIndexes[axisIndex]
-    override fun getLineBelowColorIndex(axisIndex: Int): GraphicColorIndex = graphicLineBelowColorIndexes[axisIndex]
-    override fun getLineAboveColorIndex(axisIndex: Int): GraphicColorIndex = graphicLineAboveColorIndexes[axisIndex]
+    override fun getLineNoneColorIndex(axisIndex: Int): ChartColorIndex = chartLineNoneColorIndexes[axisIndex]
+    override fun getLineNormalColorIndex(axisIndex: Int): ChartColorIndex = chartLineNormalColorIndexes[axisIndex]
+    override fun getLineBelowColorIndex(axisIndex: Int): ChartColorIndex = chartLineBelowColorIndexes[axisIndex]
+    override fun getLineAboveColorIndex(axisIndex: Int): ChartColorIndex = chartLineAboveColorIndexes[axisIndex]
 
 //----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -28,20 +28,20 @@ class AnalogGraphicHandler : iGraphicHandler {
     override fun getStaticMinLimit(sca: SensorConfigAnalogue) = sca.minGraphicLimit
     override fun getStaticMaxLimit(sca: SensorConfigAnalogue) = sca.maxGraphicLimit
 
-    override fun setStaticMinLimit(sca: SensorConfigAnalogue, begTime: Int, endTime: Int, aMinLimit: GraphicDataContainer?) {
+    override fun setStaticMinLimit(sca: SensorConfigAnalogue, begTime: Int, endTime: Int, aMinLimit: ChartElementDTO?) {
         aMinLimit?.apply {
             alGLD = alGLD.toMutableList().apply {
-                add(GraphicLineData(begTime, sca.minGraphicLimit, GraphicColorIndex.LINE_LIMIT))
-                add(GraphicLineData(endTime, sca.minGraphicLimit, GraphicColorIndex.LINE_LIMIT))
+                add(ChartElementLineDTO(begTime, sca.minGraphicLimit.toFloat(), ChartColorIndex.LINE_LIMIT))
+                add(ChartElementLineDTO(endTime, sca.minGraphicLimit.toFloat(), ChartColorIndex.LINE_LIMIT))
             }
         }
     }
 
-    override fun setStaticMaxLimit(sca: SensorConfigAnalogue, begTime: Int, endTime: Int, aMaxLimit: GraphicDataContainer?) {
+    override fun setStaticMaxLimit(sca: SensorConfigAnalogue, begTime: Int, endTime: Int, aMaxLimit: ChartElementDTO?) {
         aMaxLimit?.apply {
             alGLD = alGLD.toMutableList().apply {
-                add(GraphicLineData(begTime, sca.maxGraphicLimit, GraphicColorIndex.LINE_LIMIT))
-                add(GraphicLineData(endTime, sca.maxGraphicLimit, GraphicColorIndex.LINE_LIMIT))
+                add(ChartElementLineDTO(begTime, sca.maxGraphicLimit.toFloat(), ChartColorIndex.LINE_LIMIT))
+                add(ChartElementLineDTO(endTime, sca.maxGraphicLimit.toFloat(), ChartColorIndex.LINE_LIMIT))
             }
         }
     }
@@ -54,8 +54,8 @@ class AnalogGraphicHandler : iGraphicHandler {
     override fun getDynamicMinLimit(sca: SensorConfigAnalogue, rawTime: Int, rawData: Double) = sca.minGraphicLimit
     override fun getDynamicMaxLimit(sca: SensorConfigAnalogue, rawTime: Int, rawData: Double) = sca.maxGraphicLimit
 
-    override fun addDynamicMinLimit(rawTime: Int, dynamicMinLimit: Double, aMinLimit: GraphicDataContainer) {}
-    override fun addDynamicMaxLimit(rawTime: Int, dynamicMaxLimit: Double, aMaxLimit: GraphicDataContainer) {}
+    override fun addDynamicMinLimit(rawTime: Int, dynamicMinLimit: Double, aMinLimit: ChartElementDTO) {}
+    override fun addDynamicMaxLimit(rawTime: Int, dynamicMaxLimit: Double, aMaxLimit: ChartElementDTO) {}
 
     //----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -68,7 +68,7 @@ class AnalogGraphicHandler : iGraphicHandler {
         }
     }
 
-    override fun getLineColorIndex(axisIndex: Int, sca: SensorConfigAnalogue, rawTime: Int, rawData: Double, prevTime: Int, prevData: Double): GraphicColorIndex {
+    override fun getLineColorIndex(axisIndex: Int, sca: SensorConfigAnalogue, rawTime: Int, rawData: Double, prevTime: Int, prevData: Double): ChartColorIndex {
         val avgDynamicMinLimit = getDynamicMinLimit(sca, rawTime, rawData)
         val avgDynamicMaxLimit = getDynamicMaxLimit(sca, rawTime, rawData)
 

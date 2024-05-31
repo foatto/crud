@@ -1,6 +1,6 @@
 package foatto.mms.core_mms.calc
 
-import foatto.core.app.graphic.GraphicColorIndex
+import foatto.core.app.chart.ChartColorIndex
 import foatto.core.app.xy.geom.XyPoint
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigAnalogue
@@ -89,7 +89,7 @@ class WorkPeriodData(aBegTime: Int, aEndTime: Int, private var workState: Int) :
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-class LiquidStatePeriodData(var begPos: Int, var endPos: Int, var colorIndex: GraphicColorIndex)
+class LiquidStatePeriodData(var begPos: Int, var endPos: Int, var colorIndex: ChartColorIndex)
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

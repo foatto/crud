@@ -146,9 +146,9 @@ class cDayWorkBNGRE : cAbstractPeriodSummary() {
 
             val density = counterData.density?.alGLD?.let { alGLD ->
                 if (alGLD.isNotEmpty()) {
-                    getSplittedDouble(alGLD.first().y, ObjectCalc.getPrecision(alGLD.first().y), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider) +
+                    getSplittedDouble(alGLD.first().y.toDouble(), ObjectCalc.getPrecision(alGLD.first().y), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider) +
                         " - " +
-                        getSplittedDouble(alGLD.last().y, ObjectCalc.getPrecision(alGLD.last().y), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
+                        getSplittedDouble(alGLD.last().y.toDouble(), ObjectCalc.getPrecision(alGLD.last().y), userConfig.upIsUseThousandsDivider, userConfig.upDecimalDivider)
 
                 } else {
                     "-"

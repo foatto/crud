@@ -1,7 +1,7 @@
 package foatto.ts.core_ts.calc
 
-import foatto.core.app.graphic.GraphicDataContainer
-import foatto.core.app.graphic.GraphicLineData
+import foatto.core.app.chart.ChartElementDTO
+import foatto.core.app.chart.ChartElementLineDTO
 import foatto.util.AdvancedByteBuffer
 import foatto.core_server.app.server.UserConfig
 import foatto.sql.CoreAdvancedConnection
@@ -169,9 +169,9 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             xScale: Int,
             yScale: Double,
             axisIndex: Int,
-            aMinLimit: GraphicDataContainer?,
-            aMaxLimit: GraphicDataContainer?,
-            aLine: GraphicDataContainer?,
+            aMinLimit: ChartElementDTO?,
+            aMaxLimit: ChartElementDTO?,
+            aLine: ChartElementDTO?,
             graphicHandler: iGraphicHandler,
         ) {
             val isStaticMinLimit = graphicHandler.isStaticMinLimit(sca)
@@ -288,11 +288,11 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                     //--- if boundary values are set, we look at the averaged avgValue,
                     //--- so the typical getDynamicXXX from the beginning of the cycle does not suit us
                     val prevTime = (gldLast?.x ?: rawTime)
-                    val prevData = gldLast?.y ?: avgValue
+                    val prevData = (gldLast?.y ?: avgValue).toDouble()
                     val curColorIndex = graphicHandler.getLineColorIndex(axisIndex, sca, rawTime, avgValue, prevTime, prevData)
 
                     if (gldLast == null || rawTime - gldLast.x > xScale || abs(rawData - gldLast.y) > yScale || curColorIndex != gldLast.colorIndex) {
-                        alGLD.add(GraphicLineData(rawTime, avgValue, curColorIndex))
+                        alGLD.add(ChartElementLineDTO(rawTime, avgValue.toFloat(), curColorIndex))
                     }
                 }
             }

@@ -1,6 +1,6 @@
 package foatto.mms.core_mms.calc
 
-import foatto.core.app.graphic.*
+import foatto.core.app.chart.*
 import foatto.core.app.xy.XyProjection
 import foatto.core.app.xy.geom.XyPoint
 import foatto.core.util.getSplittedDouble
@@ -16,7 +16,6 @@ import foatto.mms.core_mms.graphic.server.graphic_handler.iGraphicHandler
 import foatto.mms.core_mms.sensor.config.*
 import foatto.sql.CoreAdvancedConnection
 import foatto.util.AdvancedByteBuffer
-import foatto.util.AdvancedLogger
 import foatto.util.DateTime_DMYHMS
 import foatto.util.getSBFromIterable
 import foatto.util.secondIntervalToString
@@ -37,8 +36,8 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
     val tmGroupSum = sortedMapOf<String, CalcSumData>() // sums by group
     val allSumData = CalcSumData()                  // overall sum
 
-    val tmTemperature = sortedMapOf<String, GraphicDataContainer>()
-    val tmDensity = sortedMapOf<String, GraphicDataContainer>()
+    val tmTemperature = sortedMapOf<String, ChartElementDTO>()
+    val tmDensity = sortedMapOf<String, ChartElementDTO>()
 
     var sGeoName: String = ""
     var sGeoRun: String = ""
@@ -143,7 +142,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             //--- some analogue sensors
             oc.hmSensorConfig[SensorConfig.SENSOR_TEMPERATURE]?.values?.forEach { sc ->
                 val sca = sc as SensorConfigAnalogue
-                val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2, false)
+                val aLine = ChartElementDTO(ChartElementTypeDTO.LINE, 0, 2, false)
                 getSmoothAnalogGraphicData(
                     conn = conn,
                     alRawTime = alRawTime,
@@ -165,7 +164,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
 
             oc.hmSensorConfig[SensorConfig.SENSOR_DENSITY]?.values?.forEach { sc ->
                 val sca = sc as SensorConfigAnalogue
-                val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2, false)
+                val aLine = ChartElementDTO(ChartElementTypeDTO.LINE, 0, 2, false)
                 getSmoothAnalogGraphicData(
                     conn = conn,
                     alRawTime = alRawTime,
@@ -593,7 +592,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             axisIndex: Int,
         ): LiquidLevelCalcData {
 
-            val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2, false)
+            val aLine = ChartElementDTO(ChartElementTypeDTO.LINE, 0, 2, false)
             val alLSPD = mutableListOf<LiquidStatePeriodData>()
             getSmoothLiquidGraphicData(conn, alRawTime, alRawData, oc.scg, sca, begTime, endTime, axisIndex, aLine, alLSPD)
 
@@ -641,9 +640,9 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             xScale: Int,
             yScale: Double,
             axisIndex: Int,
-            aMinLimit: GraphicDataContainer?,
-            aMaxLimit: GraphicDataContainer?,
-            aLine: GraphicDataContainer,
+            aMinLimit: ChartElementDTO?,
+            aMaxLimit: ChartElementDTO?,
+            aLine: ChartElementDTO,
             graphicHandler: iGraphicHandler
         ) {
             val alGLD = aLine.alGLD.toMutableList()
@@ -667,23 +666,23 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
 
                     val curColorIndex = when (type) {
                         AnalogueValueType.NONE.value -> {
-                            graphicLineNoneColorIndexes[axisIndex]
+                            chartLineNoneColorIndexes[axisIndex]
                         }
 
                         AnalogueValueType.NORMAL.value -> {
-                            graphicLineNormalColorIndexes[axisIndex]
+                            chartLineNormalColorIndexes[axisIndex]
                         }
 
                         AnalogueValueType.BELOW.value -> {
-                            graphicLineBelowColorIndexes[axisIndex]
+                            chartLineBelowColorIndexes[axisIndex]
                         }
 
                         AnalogueValueType.ABOVE.value -> {
-                            graphicLineAboveColorIndexes[axisIndex]
+                            chartLineAboveColorIndexes[axisIndex]
                         }
 
                         else -> {
-                            graphicLineNoneColorIndexes[axisIndex]
+                            chartLineNoneColorIndexes[axisIndex]
                         }
                     }
 
@@ -693,7 +692,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
 //                        val gd = scg?.let {
 //                            AbstractObjectStateCalc.getGeoData(scg, alRawData[pos])
 //                        }
-                        alGLD.add(GraphicLineData(time, value, curColorIndex, null /*gd?.let { XyProjection.wgs_pix(gd.wgs) }*/))
+                        alGLD.add(ChartElementLineDTO(time, value.toFloat(), curColorIndex, null /*gd?.let { XyProjection.wgs_pix(gd.wgs) }*/))
                     }
                 }
                 rs.close()
@@ -774,14 +773,14 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                         //--- if boundary values are set, we look at the averaged avgValue,
                         //--- so the typical getDynamicXXX from the beginning of the cycle does not suit us
                         val prevTime = (gldLast?.x ?: rawTime)
-                        val prevData = gldLast?.y ?: avgValue
+                        val prevData = (gldLast?.y ?: avgValue).toDouble()
                         val curColorIndex = graphicHandler.getLineColorIndex(axisIndex, sca, rawTime, avgValue, prevTime, prevData)
 
                         if (gldLast == null || rawTime - gldLast.x > xScale || abs(rawData - gldLast.y) > yScale || curColorIndex != gldLast.colorIndex) {
                             val gd = scg?.let {
                                 AbstractObjectStateCalc.getGeoData(scg, alRawData[pos])
                             }
-                            alGLD.add(GraphicLineData(rawTime, avgValue, curColorIndex, gd?.let { XyProjection.wgs_pix(gd.wgs) }))
+                            alGLD.add(ChartElementLineDTO(rawTime, avgValue.toFloat(), curColorIndex, gd?.let { XyProjection.wgs_pix(gd.wgs) }))
                         }
                     }
                 }
@@ -794,7 +793,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
         fun getLiquidStatePeriodData(
             sca: SensorConfigLiquidLevel,
             axisIndex: Int,
-            aLine: GraphicDataContainer,
+            aLine: ChartElementDTO,
             alLSPD: MutableList<LiquidStatePeriodData>,
             gh: LiquidGraphicHandler
         ) {
@@ -1034,7 +1033,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
         ): List<LiquidIncDecData> {
             val alLIDD = mutableListOf<LiquidIncDecData>()
 
-            val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2, false)
+            val aLine = ChartElementDTO(ChartElementTypeDTO.LINE, 0, 2, false)
             val alLSPD = mutableListOf<LiquidStatePeriodData>()
             getSmoothLiquidGraphicData(conn, alRawTime, alRawData, oc.scg, sca, begTime, endTime, axisIndex, aLine, alLSPD)
 
@@ -1045,10 +1044,10 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 val begGLD = llcd.aLine!!.alGLD[lspd.begPos]
                 val endGLD = llcd.aLine!!.alGLD[lspd.endPos]
                 var lidd: LiquidIncDecData? = null
-                if (lspd.colorIndex == GraphicColorIndex.LINE_ABOVE_0 && calcMode >= 0) {
-                    lidd = LiquidIncDecData(begGLD.x, endGLD.x, begGLD.y, endGLD.y)
-                } else if (lspd.colorIndex == GraphicColorIndex.LINE_BELOW_0 && calcMode <= 0) {
-                    lidd = LiquidIncDecData(begGLD.x, endGLD.x, begGLD.y, endGLD.y)
+                if (lspd.colorIndex == ChartColorIndex.LINE_ABOVE_0 && calcMode >= 0) {
+                    lidd = LiquidIncDecData(begGLD.x, endGLD.x, begGLD.y.toDouble(), endGLD.y.toDouble())
+                } else if (lspd.colorIndex == ChartColorIndex.LINE_BELOW_0 && calcMode <= 0) {
+                    lidd = LiquidIncDecData(begGLD.x, endGLD.x, begGLD.y.toDouble(), endGLD.y.toDouble())
                 }
 
                 if (lidd != null) {
@@ -1520,7 +1519,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             begTime: Int,
             endTime: Int,
             axisIndex: Int,
-            aLine: GraphicDataContainer,
+            aLine: ChartElementDTO,
             alLSPD: MutableList<LiquidStatePeriodData>
         ) {
             val gh = LiquidGraphicHandler()
@@ -1568,11 +1567,11 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                     val begGDL = aLine!!.alGLD[lspd.begPos]
                     val endGDL = aLine.alGLD[lspd.endPos]
                     when (lspd.colorIndex) {
-                        GraphicColorIndex.LINE_NORMAL_0 -> {
+                        ChartColorIndex.LINE_NORMAL_0 -> {
                             llcd.usingTotal += begGDL.y - endGDL.y
                         }
 
-                        GraphicColorIndex.LINE_ABOVE_0 -> {
+                        ChartColorIndex.LINE_ABOVE_0 -> {
                             llcd.incTotal += endGDL.y - begGDL.y
                             if (sca.isUsingCalc) {
                                 //--- looking for the previous normal period
@@ -1583,7 +1582,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                             }
                         }
 
-                        GraphicColorIndex.LINE_BELOW_0 -> {
+                        ChartColorIndex.LINE_BELOW_0 -> {
                             llcd.decTotal += begGDL.y - endGDL.y
                             if (sca.isUsingCalc) {
                                 //--- looking for the previous normal period
@@ -1613,7 +1612,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
         ): Double {
 
             var lspdPrevNorm: LiquidStatePeriodData? = null
-            var aLinePrevNorm: GraphicDataContainer? = null
+            var aLinePrevNorm: ChartElementDTO? = null
 
             val aLine = llcd.aLine
             val alLSPD = llcd.alLSPD
@@ -1624,7 +1623,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 val endGDLPrev = aLine.alGLD[lspdPrev.endPos]
 
                 //--- the found normal period is not the first (no matter how long) or the first, but with a sufficient duration for calculations
-                if (lspdPrev.colorIndex == GraphicColorIndex.LINE_NORMAL_0 && (i > 0 || endGDLPrev.x - begGDLPrev.x >= MAX_CALC_PREV_NORMAL_PERIOD)) {
+                if (lspdPrev.colorIndex == ChartColorIndex.LINE_NORMAL_0 && (i > 0 || endGDLPrev.x - begGDLPrev.x >= MAX_CALC_PREV_NORMAL_PERIOD)) {
 
                     lspdPrevNorm = lspdPrev
                     aLinePrevNorm = aLine
@@ -1636,7 +1635,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 //--- let's extend the period into the past with a two-fold margin - this will not greatly affect the processing speed
                 val (alRawTimeExt, alRawDataExt) = loadAllSensorData(conn, oc, begTime - MAX_CALC_PREV_NORMAL_PERIOD * 2, endTime)
 
-                val aLineExt = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2, false)
+                val aLineExt = ChartElementDTO(ChartElementTypeDTO.LINE, 0, 2, false)
                 val alLSPDExt = mutableListOf<LiquidStatePeriodData>()
                 getSmoothLiquidGraphicData(conn, alRawTimeExt, alRawDataExt, oc.scg, sca, begTime - MAX_CALC_PREV_NORMAL_PERIOD * 2, endTime, axisIndex, aLineExt, alLSPDExt)
 
@@ -1655,7 +1654,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 }
                 for (i in curPosExt - 1 downTo 0) {
                     val lspdPrevExt = alLSPDExt[i]
-                    if (lspdPrevExt.colorIndex == GraphicColorIndex.LINE_NORMAL_0) {
+                    if (lspdPrevExt.colorIndex == ChartColorIndex.LINE_NORMAL_0) {
                         lspdPrevNorm = lspdPrevExt
                         aLinePrevNorm = aLineExt
                         break
@@ -1677,7 +1676,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 return if (endGDLPrevNorm.x == begGDLPrevNorm.x) {
                     0.0
                 } else {
-                    (begGDLPrevNorm.y - endGDLPrevNorm.y) / (endGDLPrevNorm.x - begGDLPrevNorm.x)
+                    (begGDLPrevNorm.y.toDouble() - endGDLPrevNorm.y) / (endGDLPrevNorm.x - begGDLPrevNorm.x)
                 }
             } else {
                 return 0.0
@@ -1860,6 +1859,15 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             }
 
         fun getPrecision(aValue: Double): Int {
+            val value = abs(aValue)
+            //--- updated / simplified version of the output accuracy - more cubic meters - in whole liters, less - in hundreds of milliliters / gram
+            return if (value >= 1000) 0
+            else if (value >= 100) 1
+            else if (value >= 10) 2
+            else 3
+        }
+
+        fun getPrecision(aValue: Float): Int {
             val value = abs(aValue)
             //--- updated / simplified version of the output accuracy - more cubic meters - in whole liters, less - in hundreds of milliliters / gram
             return if (value >= 1000) 0

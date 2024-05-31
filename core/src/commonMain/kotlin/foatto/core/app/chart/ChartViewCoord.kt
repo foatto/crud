@@ -1,6 +1,9 @@
-package foatto.core.app.graphic
+package foatto.core.app.chart
 
-class GraphicViewCoord(var t1: Int, var t2: Int) {
+class ChartViewCoord(
+    var t1: Int,
+    var t2: Int,
+) {
 
     val width: Int
         get() = t2 - t1

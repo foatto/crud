@@ -1,6 +1,6 @@
 package foatto.ts.core_ts.graphic.server.document
 
-import foatto.core.app.graphic.GraphicElement
+import foatto.core.app.chart.ChartGroupDTO
 import foatto.util.AdvancedByteBuffer
 import foatto.core_server.app.graphic.server.GraphicDocumentConfig
 import foatto.core_server.app.graphic.server.GraphicStartData
@@ -22,7 +22,7 @@ class sdcAnalogDSLTT : sdcAbstractAnalog() {
         alRawTime: List<Int>,
         alRawData: List<AdvancedByteBuffer>,
         objectConfig: ObjectConfig,
-        tmElement: SortedMap<String, GraphicElement>,
+        tmElement: SortedMap<String, ChartGroupDTO>,
         tmElementVisibleConfig: SortedMap<String, Triple<String, String, Boolean>>,
     ) {
         val tsgdc = GraphicDocumentConfig.hmConfig[documentTypeName] as TSGraphicDocumentConfig

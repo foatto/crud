@@ -1,6 +1,7 @@
 package foatto.mms.core_mms.report
 
-import foatto.core.app.graphic.GraphicDataContainer
+import foatto.core.app.chart.ChartElementDTO
+import foatto.core.app.chart.ChartElementTypeDTO
 import foatto.core.link.FormData
 import foatto.util.DateTime_DMY
 import foatto.core_server.app.server.data.DataComboBox
@@ -176,7 +177,7 @@ class cDayWork : cStandartPeriodSummary() {
                 val dwcr = DayWorkCalcResult(DateTime_DMY(zdtCurBeg), ObjectCalc.calcObject(conn, userConfig, objectConfig, t1, t2))
                 if (reportOutTroubles) {
                     val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(conn, objectConfig, t1, t2)
-                    val troubles = GraphicDataContainer(GraphicDataContainer.ElementType.TEXT, 0, 0, false)
+                    val troubles = ChartElementDTO(ChartElementTypeDTO.TEXT, 0, 0, false)
                     sdcAbstractAnalog.checkCommonTrouble(alRawTime, alRawData, objectConfig, t1, t2, troubles)
                     //--- ловим ошибки с датчиков уровня топлива
                     objectConfig.hmSensorConfig[SensorConfig.SENSOR_LIQUID_LEVEL]?.values?.forEach { sc ->
@@ -199,6 +200,6 @@ class cDayWork : cStandartPeriodSummary() {
     }
 
     private class DayWorkCalcResult(val date: String, val objectCalc: ObjectCalc) {
-        var troubles: GraphicDataContainer? = null
+        var troubles: ChartElementDTO? = null
     }
 }

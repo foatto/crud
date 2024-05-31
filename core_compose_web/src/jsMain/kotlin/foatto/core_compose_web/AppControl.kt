@@ -357,7 +357,7 @@ open class AppControl(
                     Text("Пользователь заблокирован администратором.")
                 }
 
-                ResponseCode.TABLE, ResponseCode.FORM, ResponseCode.GRAPHIC, ResponseCode.XY, ResponseCode.COMPOSITE -> {
+                ResponseCode.TABLE, ResponseCode.FORM, ResponseCode.CHART, ResponseCode.XY, ResponseCode.COMPOSITE -> {
                     curControl.value.getBody()
                 }
 
@@ -482,8 +482,8 @@ open class AppControl(
                         formControl.start()
                     }
 
-                    ResponseCode.GRAPHIC -> {
-                        val graphicControl = GraphicControl(root, this, appResponse.graphic!!, tabId)
+                    ResponseCode.CHART -> {
+                        val graphicControl = GraphicControl(root, this, appResponse.chart!!, tabId)
                         curControl.value = graphicControl
                         responseCode.value = appResponse.code
 

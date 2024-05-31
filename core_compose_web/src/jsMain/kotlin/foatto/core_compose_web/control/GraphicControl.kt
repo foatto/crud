@@ -6,13 +6,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.web.events.SyntheticMouseEvent
 import androidx.compose.web.events.SyntheticWheelEvent
-import foatto.core.app.graphic.GraphicAction
-import foatto.core.app.graphic.ChartActionRequest
-import foatto.core.app.graphic.ChartActionResponse
-import foatto.core.app.graphic.GraphicColorIndex
-import foatto.core.app.graphic.GraphicDataContainer
-import foatto.core.app.graphic.GraphicElement
-import foatto.core.app.graphic.GraphicViewCoord
+import foatto.core.app.chart.*
 import foatto.core.app.iCoreAppContainer
 import foatto.core.app.xy.geom.XyRect
 import foatto.core.link.ChartResponse
@@ -167,7 +161,7 @@ class GraphicControl(
     private val alTimeLabel = mutableStateListOf(TimeLabelData(), TimeLabelData(), TimeLabelData())
 
     private val alGrLegend = mutableStateListOf<LegendData>()
-    private val alElement = mutableStateListOf<Pair<String, GraphicElement>>()
+    private val alElement = mutableStateListOf<Pair<String, ChartGroupDTO>>()
 
     private val grSvgAxisWidth = mutableStateOf(0)
     private val grSvgBodyWidth = mutableStateOf(0)
@@ -201,7 +195,7 @@ class GraphicControl(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    private var grViewCoord = GraphicViewCoord(0, 0)
+    private var grViewCoord = ChartViewCoord(0, 0)
     private val alYData = mutableListOf<YData>()
     private var pixStartY = 0
     private var isMouseDown = false
@@ -776,7 +770,7 @@ class GraphicControl(
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     fun doGraphicSpecificComponentMounted() {
-        val newViewCoord = GraphicViewCoord(
+        val newViewCoord = ChartViewCoord(
             t1 = if (graphicResponse.rangeType == 0) {
                 graphicResponse.begTime
             } else {
@@ -816,7 +810,7 @@ class GraphicControl(
         refreshInterval.value = sec
     }
 
-    private fun grRefreshView(aView: GraphicViewCoord?) {
+    private fun grRefreshView(aView: ChartViewCoord?) {
         doGraphicRefresh(
             aView = aView,
             withWait = true,
@@ -824,14 +818,14 @@ class GraphicControl(
     }
 
     private fun doGraphicRefresh(
-        aView: GraphicViewCoord?,
+        aView: ChartViewCoord?,
         withWait: Boolean,
     ) {
         aView?.let {
             grViewCoord = aView
         } ?: run {
             if (graphicResponse.rangeType != 0 && refreshInterval.value != 0) {
-                grViewCoord = GraphicViewCoord(
+                grViewCoord = ChartViewCoord(
                     t1 = (Date.now() / 1000 - graphicResponse.rangeType).toInt(),
                     t2 = (Date.now() / 1000).toInt(),
                 )
@@ -844,7 +838,7 @@ class GraphicControl(
         invokeGraphic(
             ChartActionRequest(
                 documentTypeName = graphicResponse.documentTypeName,
-                action = GraphicAction.GET_ELEMENTS,
+                action = ChartAction.GET_ELEMENTS,
                 startParamId = graphicResponse.startParamId,
                 graphicCoords = Pair(grViewCoord.t1, grViewCoord.t2),
                 //--- передавая полную ширину окна (без учёта margin по бокам/сверху/снизу для отрисовки шкалы/полей/заголовков),
@@ -863,7 +857,7 @@ class GraphicControl(
             }
 
             alElement.clear()
-            alElement.addAll(chartActionResponse.alElement)
+            alElement.addAll(chartActionResponse.alCharts)
 
             //--- пары element-descr -> element-key, отсортированные по element-descr для определения ключа,
             //--- по которому будет управляться видимость графиков
@@ -930,7 +924,7 @@ class GraphicControl(
                 cge.alGDC.forEach { gdc ->
                     if (gdc.isReversedY) {
                         when (gdc.type) {
-                            GraphicDataContainer.ElementType.LINE -> {
+                            ChartElementTypeDTO.LINE -> {
                                 gdc.alGLD.forEach { gld ->
                                     gld.y = -gld.y
                                 }
@@ -944,7 +938,7 @@ class GraphicControl(
                 maxMarginLeft = max(maxMarginLeft, (cge.alAxisYData.size * MARGIN_LEFT * scaleKoef).roundToInt())
                 maxMarginRight = max(maxMarginRight, cge.alLegend.size * getLegendWidth(scaleKoef))
 
-                val grHeight = cge.graphicHeight.toInt()
+                val grHeight = cge.chartHeight.toInt()
                 if (grHeight > 0) {
                     //--- "положительная" высота - жестко заданная
                     sumHard += (grHeight * scaleKoef).roundToInt()
@@ -992,7 +986,7 @@ class GraphicControl(
             alElement.forEach { pair ->
                 val element = pair.second
 
-                val grHeight = element.graphicHeight.toInt()
+                val grHeight = element.chartHeight.toInt()
                 val pixRealHeight = if (grHeight > 0) {
                     (grHeight * scaleKoef).roundToInt()
                 } else {
@@ -1109,7 +1103,7 @@ class GraphicControl(
         hmIndexColor: Map<String, CSSColorValue>,
         t1: Int,
         t2: Int,
-        element: GraphicElement,
+        element: ChartGroupDTO,
         pixRealHeight: Int,
         pixStartY: Int,
     ) {
@@ -1134,7 +1128,7 @@ class GraphicControl(
         val titleData = SvgTextData(
             x = (MIN_GRID_STEP_X * scaleKoef).roundToInt(),
             y = (pixDrawTopY - 4 * scaleKoef).roundToInt(),
-            text = element.graphicTitle,
+            text = element.chartTitle,
             stroke = COLOR_MAIN_TEXT,
             hAnchor = "start",
             vAnchor = "text-bottom"
@@ -1182,8 +1176,8 @@ class GraphicControl(
                 YData(
                     y1 = pixDrawY0,
                     y2 = pixDrawTopY,
-                    value1 = ayd.min,
-                    value2 = ayd.max,
+                    value1 = ayd.min.toDouble(),
+                    value2 = ayd.max.toDouble(),
                     prec = precY,
                     isReversedY = ayd.isReversedY,
                 )
@@ -1216,7 +1210,7 @@ class GraphicControl(
             val axisYIndex = cagdc.axisYIndex
 
             when (cagdc.type) {
-                GraphicDataContainer.ElementType.BACK -> {
+                ChartElementTypeDTO.BACK -> {
                     for (grd in cagdc.alGBD) {
                         val drawX1 = (svgBodyWidthDouble * (grd.x1 - t1) / (t2 - t1)).toInt()
                         val drawX2 = (svgBodyWidthDouble * (grd.x2 - t1) / (t2 - t1)).toInt()
@@ -1233,10 +1227,10 @@ class GraphicControl(
                     }
                 }
 
-                GraphicDataContainer.ElementType.LINE -> {
+                ChartElementTypeDTO.LINE -> {
                     var prevDrawX = -1
                     var prevDrawY = -1.0
-                    var prevDrawColorIndex: GraphicColorIndex? = null
+                    var prevDrawColorIndex: ChartColorIndex? = null
                     val ayd = element.alAxisYData[axisYIndex]
                     val graphicHeight = ayd.max - ayd.min
 
@@ -1257,12 +1251,12 @@ class GraphicControl(
                             )
                         }
                         prevDrawX = drawX
-                        prevDrawY = drawY
+                        prevDrawY = drawY.toDouble()
                         prevDrawColorIndex = gld.colorIndex
                     }
                 }
 
-                GraphicDataContainer.ElementType.TEXT -> {
+                ChartElementTypeDTO.TEXT -> {
                     for (gtd in cagdc.alGTD) {
                         val drawX1 = grSvgBodyWidth.value * (gtd.textX1 - t1) / (t2 - t1)
                         val drawX2 = grSvgBodyWidth.value * (gtd.textX2 - t1) / (t2 - t1)
@@ -1452,7 +1446,7 @@ class GraphicControl(
     private fun drawAxisY(
         scaleKoef: Double,
         hmIndexColor: Map<String, CSSColorValue>,
-        element: GraphicElement,
+        element: ChartGroupDTO,
         axisIndex: Int,
         pixDrawWidth: Int,
         pixDrawHeight: Int,
@@ -1582,7 +1576,7 @@ class GraphicControl(
 
     private fun drawLegend(
         scaleKoef: Double,
-        element: GraphicElement,
+        element: ChartGroupDTO,
         legendIndex: Int,
         pixDrawHeight: Int,
         pixDrawY0: Int,
@@ -1659,7 +1653,7 @@ class GraphicControl(
         val newT2 = t2 - grWidth / 4
 
         if (newT2 - newT1 >= MIN_SCALE_X) {
-            grRefreshView(GraphicViewCoord(newT1, newT2))
+            grRefreshView(ChartViewCoord(newT1, newT2))
         }
 
     }
@@ -1672,7 +1666,7 @@ class GraphicControl(
         val newT1 = t1 - grWidth / 2
         val newT2 = t2 + grWidth / 2
         if (newT2 - newT1 <= MAX_SCALE_X) {
-            grRefreshView(GraphicViewCoord(newT1, newT2))
+            grRefreshView(ChartViewCoord(newT1, newT2))
         }
     }
 
@@ -1911,7 +1905,7 @@ class GraphicControl(
                         val newT2 = getTimeFromX(max(mouseRect.x1.value, mouseRect.x2.value), grSvgBodyWidth.value, grViewCoord.t1, grViewCoord.width)
                         if (newT2 - newT1 >= MIN_SCALE_X) {
                             if (grCurMode.value == GraphicWorkMode.ZOOM_BOX) {
-                                grRefreshView(GraphicViewCoord(newT1, newT2))
+                                grRefreshView(ChartViewCoord(newT1, newT2))
                             } else {
                                 //!!! пока пусть будет сразу печать с текущими границами, без возможности их отдельного определения перед печатью (а оно надо ли ?)
                                 //outRect = mouseRectangle.getBoundsReal(  null  );
@@ -1967,7 +1961,7 @@ class GraphicControl(
             element.alGDC.map { gdc ->
                 gdc to element.alAxisYData[gdc.axisYIndex]
             }.filter { (gdc, _) ->
-                gdc.type == GraphicDataContainer.ElementType.LINE
+                gdc.type == ChartElementTypeDTO.LINE
             }.forEach { (gdc, yData) ->
 
                 val index = gdc.alGLD.indexOfFirst { gld ->
@@ -1976,7 +1970,7 @@ class GraphicControl(
                 val s = (if (index != -1) {
                     val gld = gdc.alGLD[index]
                     if (gld.x == cursorTime) {
-                        gld.y
+                        gld.y.toDouble()
                     } else if (index > 0) {
                         val gldPrev = gdc.alGLD[index - 1]
                         1.0 * (cursorTime - gldPrev.x) / (gld.x - gldPrev.x) * (gld.y - gldPrev.y) + gldPrev.y
@@ -2027,7 +2021,7 @@ class GraphicControl(
                 }
 
                 if (newT2 - newT1 in MIN_SCALE_X..MAX_SCALE_X) {
-                    grRefreshView(GraphicViewCoord(newT1, newT2))
+                    grRefreshView(ChartViewCoord(newT1, newT2))
                 }
             }
             //--- вертикальная прокрутка

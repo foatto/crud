@@ -1,9 +1,9 @@
-package foatto.core.app.graphic
+package foatto.core.app.chart
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-enum class GraphicColorIndex {
+enum class ChartColorIndex {
     FILL_NEUTRAL,       // neutral text background
     FILL_NORMAL,        // normal value text background
     FILL_WARNING,       // warning text background
@@ -50,37 +50,37 @@ enum class GraphicColorIndex {
     LINE_NORMAL_3,      // normal line
 }
 
-val graphicAxisColorIndexes = listOf(
-    GraphicColorIndex.AXIS_0,
-    GraphicColorIndex.AXIS_1,
-    GraphicColorIndex.AXIS_2,
-    GraphicColorIndex.AXIS_3,
+val chartAxisColorIndexes: List<ChartColorIndex> = listOf(
+    ChartColorIndex.AXIS_0,
+    ChartColorIndex.AXIS_1,
+    ChartColorIndex.AXIS_2,
+    ChartColorIndex.AXIS_3,
 )
 
-val graphicLineNoneColorIndexes = listOf(
-    GraphicColorIndex.LINE_NONE_0,
-    GraphicColorIndex.LINE_NONE_1,
-    GraphicColorIndex.LINE_NONE_2,
-    GraphicColorIndex.LINE_NONE_3,
+val chartLineNoneColorIndexes: List<ChartColorIndex> = listOf(
+    ChartColorIndex.LINE_NONE_0,
+    ChartColorIndex.LINE_NONE_1,
+    ChartColorIndex.LINE_NONE_2,
+    ChartColorIndex.LINE_NONE_3,
 )
 
-val graphicLineNormalColorIndexes = listOf(
-    GraphicColorIndex.LINE_NORMAL_0,
-    GraphicColorIndex.LINE_NORMAL_1,
-    GraphicColorIndex.LINE_NORMAL_2,
-    GraphicColorIndex.LINE_NORMAL_3,
+val chartLineNormalColorIndexes: List<ChartColorIndex> = listOf(
+    ChartColorIndex.LINE_NORMAL_0,
+    ChartColorIndex.LINE_NORMAL_1,
+    ChartColorIndex.LINE_NORMAL_2,
+    ChartColorIndex.LINE_NORMAL_3,
 )
 
-val graphicLineBelowColorIndexes = listOf(
-    GraphicColorIndex.LINE_BELOW_0,
-    GraphicColorIndex.LINE_BELOW_0,
-    GraphicColorIndex.LINE_BELOW_0,
-    GraphicColorIndex.LINE_BELOW_0,
+val chartLineBelowColorIndexes: List<ChartColorIndex> = listOf(
+    ChartColorIndex.LINE_BELOW_0,
+    ChartColorIndex.LINE_BELOW_0,
+    ChartColorIndex.LINE_BELOW_0,
+    ChartColorIndex.LINE_BELOW_0,
 )
 
-val graphicLineAboveColorIndexes = listOf(
-    GraphicColorIndex.LINE_ABOVE_0,
-    GraphicColorIndex.LINE_ABOVE_0,
-    GraphicColorIndex.LINE_ABOVE_0,
-    GraphicColorIndex.LINE_ABOVE_0,
+val chartLineAboveColorIndexes: List<ChartColorIndex> = listOf(
+    ChartColorIndex.LINE_ABOVE_0,
+    ChartColorIndex.LINE_ABOVE_0,
+    ChartColorIndex.LINE_ABOVE_0,
+    ChartColorIndex.LINE_ABOVE_0,
 )

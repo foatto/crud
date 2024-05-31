@@ -1,11 +1,11 @@
-package foatto.core.app.graphic
+package foatto.core.app.chart
 
 import kotlinx.serialization.Serializable
 
 @Serializable
 class ChartActionRequest(
     val documentTypeName: String,
-    val action: GraphicAction,
+    val action: ChartAction,
     val startParamId: String,
 
     val graphicCoords: Pair<Int, Int>? = null,
@@ -15,4 +15,4 @@ class ChartActionRequest(
 }
 
 @Serializable
-enum class GraphicAction { GET_ELEMENTS }
+enum class ChartAction { GET_ELEMENTS }

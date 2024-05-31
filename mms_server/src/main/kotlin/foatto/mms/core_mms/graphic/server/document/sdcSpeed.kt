@@ -1,6 +1,6 @@
 package foatto.mms.core_mms.graphic.server.document
 
-import foatto.core.app.graphic.*
+import foatto.core.app.chart.*
 import foatto.core.app.xy.XyProjection
 import foatto.util.AdvancedByteBuffer
 import foatto.core_server.app.AppParameter
@@ -53,7 +53,7 @@ class sdcSpeed : sdcAbstractGraphic() {
             sbObjectInfo.append(", ").append(oc.departmentName)
         }
 
-        val tmElement = sortedMapOf<String, GraphicElement>()
+        val tmElement = sortedMapOf<String, ChartGroupDTO>()
         val tmElementVisibleConfig = sortedMapOf<String, Triple<String, String, Boolean>>()
         if (oc.scg?.isUseSpeed == true) {
             //--- заранее заполняем список опеределений видимости графиков
@@ -78,16 +78,16 @@ class sdcSpeed : sdcAbstractGraphic() {
                 //--- Типовой размер массива = кол-во точек по горизонтали = 3840 ( максимальная ширина экрана ), пусть будет 4000
                 //--- Если включён показ линий и выключено сглаживание, то точки можно не показывать,
                 //--- их всё равно не будет видно за покрывающей их линией
-                val aMaxLimit = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 1, false)
-                val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 3, false)
+                val aMaxLimit = ChartElementDTO(ChartElementTypeDTO.LINE, 0, 1, false)
+                val aLine = ChartElementDTO(ChartElementTypeDTO.LINE, 0, 3, false)
                 //--- показывать график пробега только чистому админу -
                 //--- в отладочных целях для быстрого поиска точек с неправильными пробегами
                 val aDistance = if (userConfig.isCleanAdmin) {
-                    GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 1, 1, false)
+                    ChartElementDTO(ChartElementTypeDTO.LINE, 1, 1, false)
                 } else {
                     null
                 }
-                val aZone = GraphicDataContainer(GraphicDataContainer.ElementType.TEXT, 0, 0, false)
+                val aZone = ChartElementDTO(ChartElementTypeDTO.TEXT, 0, 0, false)
 
                 getSmoothSpeedGraphicData(
                     alRawTime = alRawTime,
@@ -114,26 +114,26 @@ class sdcSpeed : sdcAbstractGraphic() {
                     aZone = aZone
                 )
 
-                val alAxisYData = mutableListOf<AxisYData>()
-                alAxisYData.add(AxisYData("${SensorConfig.hmSensorDescr[SensorConfig.SENSOR_GEO]}, [ км/ч ]", 0.0, 200.0, GraphicColorIndex.AXIS_0, false))
+                val alAxisYData = mutableListOf<ChartAxisYDTO>()
+                alAxisYData.add(ChartAxisYDTO("${SensorConfig.hmSensorDescr[SensorConfig.SENSOR_GEO]}, [ км/ч ]", 0.0f, 200.0f, ChartColorIndex.AXIS_0, false))
                 //--- динамическая верхняя граница
                 if (aDistance != null) {
                     var maxDistance = 0.0
                     for (gld in aDistance.alGLD) {
-                        maxDistance = max(maxDistance, gld.y)
+                        maxDistance = max(maxDistance, gld.y.toDouble())
                     }
-                    alAxisYData.add(AxisYData("Пробег в точке, [ м ]", 0.0, maxDistance, GraphicColorIndex.AXIS_1, false))
+                    alAxisYData.add(ChartAxisYDTO("Пробег в точке, [ м ]", 0.0f, maxDistance.toFloat(), ChartColorIndex.AXIS_1, false))
                 }
 
-                val ge = GraphicElement(
-                    graphicTitle = oc.scg!!.descr,
+                val ge = ChartGroupDTO(
+                    chartTitle = oc.scg!!.descr,
                     alLegend = emptyList(),
-                    graphicHeight = -1.0,
+                    chartHeight = -1.0f,
                     alAxisYData = alAxisYData,
                     alGDC = listOfNotNull(aZone, aDistance, aMaxLimit, aLine).filter { it.isNotEmpty() }
                 )
 
-                tmElement[ge.graphicTitle] = ge
+                tmElement[ge.chartTitle] = ge
             }
         }
         //AdvancedLogger.debug(  "Graphic time [ ms ] = " + (  System.currentTimeMillis() - begTime  )  );
@@ -141,7 +141,7 @@ class sdcSpeed : sdcAbstractGraphic() {
 
         return ChartActionResponse(
             hmIndexColor = hmIndexColor,
-            alElement = tmElement.toList(),
+            alCharts = tmElement.toList(),
             alVisibleElement = tmElementVisibleConfig.values.toList(),
             alLegend = emptyList(),
         )
@@ -160,10 +160,10 @@ class sdcSpeed : sdcAbstractGraphic() {
         maxEnabledOverSpeed: Int,
         alZoneSpeedLimit: List<ZoneLimitData>?,
         hmZoneData: Map<Int, ZoneData>,
-        aMaxLimit: GraphicDataContainer,
-        aSpeed: GraphicDataContainer,
-        aDistance: GraphicDataContainer?,
-        aZone: GraphicDataContainer?
+        aMaxLimit: ChartElementDTO,
+        aSpeed: ChartElementDTO,
+        aDistance: ChartElementDTO?,
+        aZone: ChartElementDTO?
     ) {
 
         val hmCurZone = mutableMapOf<String, Int>()
@@ -195,8 +195,8 @@ class sdcSpeed : sdcAbstractGraphic() {
             val gldLast = if (aSpeed.alGLD.isEmpty()) null else aSpeed.alGLD[aSpeed.alGLD.size - 1]
 
             val overSpeed = ObjectCalc.calcOverSpeed(oc.scg!!.maxSpeedLimit, alZoneSpeedLimit, pixPoint, gd.speed)
-            val curColorIndex = if (overSpeed > maxEnabledOverSpeed) GraphicColorIndex.LINE_ABOVE_0
-            else GraphicColorIndex.LINE_NORMAL_0
+            val curColorIndex = if (overSpeed > maxEnabledOverSpeed) ChartColorIndex.LINE_ABOVE_0
+            else ChartColorIndex.LINE_NORMAL_0
             //--- нереализуемо - т.к. предыдущая точка всегда будет нормальной, т.к. предыдущая к ней точка тоже была нормальной
             //--- и т.д. по рекурсии
             //byte newColorIndex = gldLast == null || gldLast.colorIndex == GraphicColorIndex.LINE_NORMAL_0
@@ -204,15 +204,15 @@ class sdcSpeed : sdcAbstractGraphic() {
 
             if (gldLast == null || rawTime - gldLast.x > xScale || abs(gd.speed - gldLast.y) > yScale || curColorIndex != gldLast.colorIndex) {
 
-                aMaxLimitGLD.add(GraphicLineData(rawTime, (gd.speed - overSpeed).toDouble(), GraphicColorIndex.LINE_LIMIT))
-                aSpeedGLD.add(GraphicLineData(rawTime, gd.speed.toDouble(), curColorIndex))
+                aMaxLimitGLD.add(ChartElementLineDTO(rawTime, (gd.speed - overSpeed).toFloat(), ChartColorIndex.LINE_LIMIT))
+                aSpeedGLD.add(ChartElementLineDTO(rawTime, gd.speed.toFloat(), curColorIndex))
             }
 
             //--- отдельно пишем "график" пробега для вылавливания глючных пробегов:
             //--- - точки с нулевым пробегом пропускаем
             //--- - "лишние" с точки зрения x/y-масштабирования точки не пропускаем
             if (aDistance != null && gd.distance > 0) {
-                aDistanceGLD.add(GraphicLineData(rawTime, gd.distance.toDouble(), GraphicColorIndex.LINE_NORMAL_1))
+                aDistanceGLD.add(ChartElementLineDTO(rawTime, gd.distance.toFloat(), ChartColorIndex.LINE_NORMAL_1))
             }
 
             aZone?.let {
@@ -228,12 +228,12 @@ class sdcSpeed : sdcAbstractGraphic() {
                     //--- мы всё ещё находимся в этой зоне - убрать обработанную зону из списка
                     if (!hsZoneName.remove(zoneName)) {
                         //--- этой зоны уже нет в списка - мы вышли из  неё
-                        alZoneGTD += GraphicTextData(
+                        alZoneGTD += ChartElementTextDTO(
                             textX1 = hmCurZone[zoneName]!!,
                             textX2 = rawTime / 1000,
-                            fillColorIndex = GraphicColorIndex.FILL_NEUTRAL,
-                            borderColorIndex = GraphicColorIndex.BORDER_NEUTRAL,
-                            textColorIndex = GraphicColorIndex.TEXT_NEUTRAL,
+                            fillColorIndex = ChartColorIndex.FILL_NEUTRAL,
+                            borderColorIndex = ChartColorIndex.BORDER_NEUTRAL,
+                            textColorIndex = ChartColorIndex.TEXT_NEUTRAL,
                             text = zoneName,
                             toolTip = zoneName
                         )
@@ -254,12 +254,12 @@ class sdcSpeed : sdcAbstractGraphic() {
         //--- в конце периода закроем/сохранием незакрытые зоны
         aZone?.let {
             for (zoneName in hmCurZone.keys) {
-                alZoneGTD += GraphicTextData(
+                alZoneGTD += ChartElementTextDTO(
                     textX1 = hmCurZone[zoneName]!!,
                     textX2 = rawTime,
-                    fillColorIndex = GraphicColorIndex.FILL_NEUTRAL,
-                    borderColorIndex = GraphicColorIndex.BORDER_NEUTRAL,
-                    textColorIndex = GraphicColorIndex.TEXT_NEUTRAL,
+                    fillColorIndex = ChartColorIndex.FILL_NEUTRAL,
+                    borderColorIndex = ChartColorIndex.BORDER_NEUTRAL,
+                    textColorIndex = ChartColorIndex.TEXT_NEUTRAL,
                     text = zoneName,
                     toolTip = zoneName
                 )

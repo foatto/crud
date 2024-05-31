@@ -1,6 +1,6 @@
 package foatto.mms.core_mms.calc
 
-import foatto.core.app.graphic.GraphicDataContainer
+import foatto.core.app.chart.ChartElementDTO
 import foatto.mms.core_mms.sensor.config.SensorConfigCounter
 
 class CounterCalcData(
@@ -8,5 +8,5 @@ class CounterCalcData(
 
     val value: Double,
 ) {
-    var density: GraphicDataContainer? = null
+    var density: ChartElementDTO? = null
 }

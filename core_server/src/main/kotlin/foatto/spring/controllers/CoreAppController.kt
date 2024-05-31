@@ -1,8 +1,8 @@
 package foatto.spring.controllers
 
-import foatto.core.app.graphic.GraphicAction
-import foatto.core.app.graphic.ChartActionRequest
-import foatto.core.app.graphic.ChartActionResponse
+import foatto.core.app.chart.ChartAction
+import foatto.core.app.chart.ChartActionRequest
+import foatto.core.app.chart.ChartActionResponse
 import foatto.core.app.xy.XyAction
 import foatto.core.app.xy.XyActionRequest
 import foatto.core.app.xy.XyActionResponse
@@ -316,8 +316,8 @@ abstract class CoreAppController(
                         val sd = chmSession[AppParameter.GRAPHIC_START_DATA + graphicStartDataID] as GraphicStartData
 
                         appResponse = AppResponse(
-                            code = ResponseCode.GRAPHIC,
-                            graphic = ChartResponse(
+                            code = ResponseCode.CHART,
+                            chart = ChartResponse(
                                 documentTypeName = aliasName,
                                 startParamId = graphicStartDataID,
                                 shortTitle = sd.shortTitle.substring(0, min(32000, sd.shortTitle.length)),
@@ -572,9 +572,9 @@ abstract class CoreAppController(
         val doc = Class.forName(serverDocumentControlClassName).getConstructor().newInstance() as sdcAbstractGraphic
         doc.init(this, conn, chmSession, userConfig, chartActionRequest.documentTypeName)
 
-        val graphicActionResponse =
+        val chartActionResponse =
             when (chartActionRequest.action) {
-                GraphicAction.GET_ELEMENTS -> doc.doGetElements(chartActionRequest)
+                ChartAction.GET_ELEMENTS -> doc.doGetElements(chartActionRequest)
             }
 
         //--- зафиксировать любые изменения в базе/
@@ -595,7 +595,7 @@ abstract class CoreAppController(
         }
         //AdvancedLogger.error( "Query time = " + ( System.currentTimeMillis() - appBegTime ) / 1000 );
 
-        return graphicActionResponse
+        return chartActionResponse
     }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------

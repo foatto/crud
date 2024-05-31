@@ -49,7 +49,7 @@ class TSCompositeControl(
         presetSvgHeight = TS_XY_SVG_HEIGHT
         arrAddHeights = emptyArray()
     }
-    private val graphicControl = GraphicControl(root, appControl, compositeResponse.graphicResponse, tabId).apply {
+    private val graphicControl = GraphicControl(root, appControl, compositeResponse.chartResponse, tabId).apply {
         containerPrefix = TS_COMPOSITE_PREFIX
         presetSvgHeight = GRAPHIC_MIN_HEIGHT * 2
         arrAddHeights = arrayOf(TS_XY_SVG_HEIGHT)

@@ -1,4 +1,4 @@
-package foatto.core.app.graphic
+package foatto.core.app.chart
 
 import kotlinx.serialization.Serializable
 

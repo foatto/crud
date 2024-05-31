@@ -1,7 +1,7 @@
 package foatto.mms.core_mms.report
 
-import foatto.core.app.graphic.GraphicColorIndex
-import foatto.core.app.graphic.GraphicDataContainer
+import foatto.core.app.chart.ChartColorIndex
+import foatto.core.app.chart.ChartElementDTO
 import foatto.core.util.getSplittedDouble
 import foatto.core.util.getSplittedLong
 import foatto.mms.core_mms.ObjectConfig
@@ -91,7 +91,7 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
         isOutTemperature: Boolean,
         isOutDensity: Boolean,
         isKeepPlaceForComment: Boolean,
-        troubles: GraphicDataContainer?,
+        troubles: ChartElementDTO?,
         isOutGroupSum: Boolean,
     ): Int {
         //--- получить данные по правам доступа
@@ -392,9 +392,9 @@ abstract class cAbstractPeriodSummary : cMMSReport() {
                 sheet.addCell(Label(3, offsY, "Время окончания", wcfCaptionHC))
                 offsY++
                 alGTD.forEach { gtd ->
-                    if (gtd.fillColorIndex == GraphicColorIndex.FILL_CRITICAL ||
-                        gtd.borderColorIndex == GraphicColorIndex.BORDER_CRITICAL ||
-                        gtd.textColorIndex == GraphicColorIndex.TEXT_CRITICAL
+                    if (gtd.fillColorIndex == ChartColorIndex.FILL_CRITICAL ||
+                        gtd.borderColorIndex == ChartColorIndex.BORDER_CRITICAL ||
+                        gtd.textColorIndex == ChartColorIndex.TEXT_CRITICAL
                     ) {
                         sheet.addCell(Label(1, offsY, gtd.text, wcfCellR))
                         sheet.addCell(Label(2, offsY, DateTime_DMYHMS(zoneId, gtd.textX1), wcfCellC))

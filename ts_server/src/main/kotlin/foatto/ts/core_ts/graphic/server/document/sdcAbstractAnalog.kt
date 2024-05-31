@@ -1,12 +1,6 @@
 package foatto.ts.core_ts.graphic.server.document
 
-import foatto.core.app.graphic.AxisYData
-import foatto.core.app.graphic.ChartActionRequest
-import foatto.core.app.graphic.ChartActionResponse
-import foatto.core.app.graphic.GraphicBackData
-import foatto.core.app.graphic.GraphicDataContainer
-import foatto.core.app.graphic.GraphicElement
-import foatto.core.app.graphic.graphicAxisColorIndexes
+import foatto.core.app.chart.*
 import foatto.util.AdvancedByteBuffer
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.graphic.server.GraphicStartData
@@ -35,7 +29,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         //--- единоразово загрузим данные по объекту
         val (alRawTime, alRawData) = ObjectCalc.loadAllSensorData(conn, objectConfig, begTime, endTime)
 
-        val tmElement = sortedMapOf<String, GraphicElement>()
+        val tmElement = sortedMapOf<String, ChartGroupDTO>()
         val tmElementVisibleConfig = sortedMapOf<String, Triple<String, String, Boolean>>()
 
 //        //--- общие нештатные ситуации показываем только на первом/верхнем графике
@@ -56,7 +50,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
 
         return ChartActionResponse(
             hmIndexColor = hmIndexColor,
-            alElement = tmElement.toList(),
+            alCharts = tmElement.toList(),
             alVisibleElement = tmElementVisibleConfig.values.toList(),
             alLegend = SensorConfigState.alStateLegend.map { (color, descr) ->
                 Triple(color, true, descr)
@@ -74,7 +68,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         alRawTime: List<Int>,
         alRawData: List<AdvancedByteBuffer>,
         objectConfig: ObjectConfig,
-        tmElement: SortedMap<String, GraphicElement>,
+        tmElement: SortedMap<String, ChartGroupDTO>,
         tmElementVisibleConfig: SortedMap<String, Triple<String, String, Boolean>>,
     )
 
@@ -89,7 +83,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         objectConfig: ObjectConfig,
         graphicHandler: AnalogGraphicHandler,
         alSca: List<SensorConfigAnalogue>,
-        tmElement: SortedMap<String, GraphicElement>,
+        tmElement: SortedMap<String, ChartGroupDTO>,
         tmElementVisibleConfig: SortedMap<String, Triple<String, String, Boolean>>,
     ) {
         val graphicVisibilityKey = "$UP_GRAPHIC_VISIBLE${objectConfig.objectId}_${alSca.firstOrNull()?.portNum}"
@@ -97,16 +91,16 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         tmElementVisibleConfig[graphicTitle] = Triple(graphicTitle, graphicVisibilityKey, isGraphicVisible)
 
         if (isGraphicVisible) {
-            val alGDC = mutableListOf<GraphicDataContainer>()
+            val alGDC = mutableListOf<ChartElementDTO>()
 
-            val aBack = GraphicDataContainer(GraphicDataContainer.ElementType.BACK, 0, 0, false)
+            val aBack = ChartElementDTO(ChartElementTypeDTO.BACK, 0, 0, false)
             objectConfig.hmSensorConfig[SensorConfig.SENSOR_STATE]?.values?.firstOrNull()?.let { sc ->
                 val scs = sc as SensorConfigState
 
                 val alGBD = aBack.alGBD.toMutableList()
                 val alStatePeriods = ObjectCalc.calcStateSensor(alRawTime, alRawData, scs, begTime, endTime)
                 for (asd in alStatePeriods) {
-                    alGBD += GraphicBackData(
+                    alGBD += ChartElementBackDTO(
                         x1 = asd.begTime,
                         x2 = asd.endTime,
                         color = SensorConfigState.hmStateInfo[asd.getState()]?.darkColor ?: SensorConfigState.COLOR_UNKNOWN_DARK
@@ -117,7 +111,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                 alGDC.add(aBack)
             }
 
-            val alAxisYData = mutableListOf<AxisYData>()
+            val alAxisYData = mutableListOf<ChartAxisYDTO>()
 
             var axisIndex = 0
             alSca.forEach { sca ->
@@ -125,23 +119,23 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
 
                 //--- Максимальный размер массива = кол-во точек по горизонтали = 3840 (максимальная ширина 4K-экрана), окгруляем до 4000
                 val aMinLimit = if (graphicHandler.isStaticMinLimit(sca)) {
-                    GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 1, isReversedY)
+                    ChartElementDTO(ChartElementTypeDTO.LINE, axisIndex, 1, isReversedY)
                 } else if (graphicHandler.isDynamicMinLimit(sca)) {
-                    GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 1, isReversedY)
+                    ChartElementDTO(ChartElementTypeDTO.LINE, axisIndex, 1, isReversedY)
                 } else {
                     null
                 }
 
                 val aMaxLimit = if (graphicHandler.isStaticMaxLimit(sca)) {
-                    GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 1, isReversedY)
+                    ChartElementDTO(ChartElementTypeDTO.LINE, axisIndex, 1, isReversedY)
                 } else if (graphicHandler.isDynamicMaxLimit(sca)) {
-                    GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 1, isReversedY)
+                    ChartElementDTO(ChartElementTypeDTO.LINE, axisIndex, 1, isReversedY)
                 } else {
                     null
                 }
 
-                val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, axisIndex, 3, isReversedY)
-                val aText = GraphicDataContainer(GraphicDataContainer.ElementType.TEXT, axisIndex, 0, isReversedY)
+                val aLine = ChartElementDTO(ChartElementTypeDTO.LINE, axisIndex, 3, isReversedY)
+                val aText = ChartElementDTO(ChartElementTypeDTO.TEXT, axisIndex, 0, isReversedY)
 
                 ObjectCalc.getSmoothAnalogGraphicData(
                     alRawTime = alRawTime,
@@ -191,7 +185,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                         }
                     } ?: sca.maxGraphicView
 
-                alAxisYData += AxisYData(sca.descr, correctedMinGraphicView, correctedMaxGraphicView, graphicAxisColorIndexes[axisIndex], isReversedY)
+                alAxisYData += ChartAxisYDTO(sca.descr, correctedMinGraphicView.toFloat(), correctedMaxGraphicView.toFloat(), chartAxisColorIndexes[axisIndex], isReversedY)
 
 //        if (aText != null) {
 //            val hmSC = oc.hmSensorConfig[SensorConfig.SENSOR_WORK]
@@ -232,10 +226,10 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
                 alGDC.addAll(listOfNotNull(aText, aMinLimit, aMaxLimit, aLine).filter { it.isNotEmpty() })
             }
 
-            tmElement[graphicTitle] = GraphicElement(
-                graphicTitle = graphicTitle,
+            tmElement[graphicTitle] = ChartGroupDTO(
+                chartTitle = graphicTitle,
                 alLegend = emptyList(),
-                graphicHeight = -1.0,
+                chartHeight = -1.0f,
                 alAxisYData = alAxisYData,
                 alGDC = alGDC,
             )

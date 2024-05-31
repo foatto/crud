@@ -1,12 +1,6 @@
 package foatto.core_server.app.graphic.server.document
 
-import foatto.core.app.graphic.AxisYData
-import foatto.core.app.graphic.ChartActionRequest
-import foatto.core.app.graphic.ChartActionResponse
-import foatto.core.app.graphic.GraphicColorIndex
-import foatto.core.app.graphic.GraphicDataContainer
-import foatto.core.app.graphic.GraphicElement
-import foatto.core.app.graphic.GraphicLineData
+import foatto.core.app.chart.*
 import foatto.util.loadTextFile
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.graphic.server.GraphicStartData
@@ -89,59 +83,59 @@ class sdcLogGraphic : sdcAbstractGraphic() {
 
         //--- график Workers/Handlers
 
-        val tmElement = TreeMap<String, GraphicElement>()
+        val tmElement = TreeMap<String, ChartGroupDTO>()
 
-        val aWorkers = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 3, false)
-        getGraphicData(tmWorkers, GraphicColorIndex.LINE_NORMAL_0, aWorkers)
+        val aWorkers = ChartElementDTO(ChartElementTypeDTO.LINE, 0, 3, false)
+        getGraphicData(tmWorkers, ChartColorIndex.LINE_NORMAL_0, aWorkers)
 
-        val aHandlers = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 1, 1, false)
-        getGraphicData(tmHandlers, GraphicColorIndex.LINE_NORMAL_1, aHandlers)
+        val aHandlers = ChartElementDTO(ChartElementTypeDTO.LINE, 1, 1, false)
+        getGraphicData(tmHandlers, ChartColorIndex.LINE_NORMAL_1, aHandlers)
 
-        var alAxisYData = mutableListOf<AxisYData>()
-        alAxisYData.add(AxisYData("Workers", 0.0, max(4, maxWorkers).toDouble(), GraphicColorIndex.AXIS_0, false))
-        alAxisYData.add(AxisYData("Handlers", 0.0, max(4, maxHandlers).toDouble(), GraphicColorIndex.AXIS_1, false))
+        var alAxisYData = mutableListOf<ChartAxisYDTO>()
+        alAxisYData.add(ChartAxisYDTO("Workers", 0.0f, max(4, maxWorkers).toFloat(), ChartColorIndex.AXIS_0, false))
+        alAxisYData.add(ChartAxisYDTO("Handlers", 0.0f, max(4, maxHandlers).toFloat(), ChartColorIndex.AXIS_1, false))
 
-        val gewh = GraphicElement(
-            graphicTitle = "Workers & Handlers",
+        val gewh = ChartGroupDTO(
+            chartTitle = "Workers & Handlers",
             alLegend = emptyList(),
-            graphicHeight = -1.0,
+            chartHeight = -1.0f,
             alAxisYData = alAxisYData,
             alGDC = listOf(aHandlers, aWorkers)
         )
 
-        tmElement[gewh.graphicTitle] = gewh
+        tmElement[gewh.chartTitle] = gewh
 
         //--- график Memory
 
-        val aMemoryUsed = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 3, false)
-        getGraphicData(tmMemoryUsed, GraphicColorIndex.LINE_NORMAL_0, aMemoryUsed)
+        val aMemoryUsed = ChartElementDTO(ChartElementTypeDTO.LINE, 0, 3, false)
+        getGraphicData(tmMemoryUsed, ChartColorIndex.LINE_NORMAL_0, aMemoryUsed)
 
-        val aMemoryTotal = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 1, 1, false)
-        getGraphicData(tmMemoryTotal, GraphicColorIndex.LINE_NORMAL_1, aMemoryTotal)
+        val aMemoryTotal = ChartElementDTO(ChartElementTypeDTO.LINE, 1, 1, false)
+        getGraphicData(tmMemoryTotal, ChartColorIndex.LINE_NORMAL_1, aMemoryTotal)
 
         alAxisYData = mutableListOf()
-        alAxisYData.add(AxisYData("Memory Used", 0.0, max(1, maxMemory).toDouble(), GraphicColorIndex.AXIS_0, false))
-        alAxisYData.add(AxisYData("Memory Total", 0.0, max(1, maxMemory).toDouble(), GraphicColorIndex.AXIS_1, false))
+        alAxisYData.add(ChartAxisYDTO("Memory Used", 0.0f, max(1, maxMemory).toFloat(), ChartColorIndex.AXIS_0, false))
+        alAxisYData.add(ChartAxisYDTO("Memory Total", 0.0f, max(1, maxMemory).toFloat(), ChartColorIndex.AXIS_1, false))
 
-        val gem = GraphicElement(
-            graphicTitle = "Memory Used & Total",
+        val gem = ChartGroupDTO(
+            chartTitle = "Memory Used & Total",
             alLegend = emptyList(),
-            graphicHeight = -1.0,
+            chartHeight = -1.0f,
             alAxisYData = alAxisYData,
             alGDC = listOf(aMemoryTotal, aMemoryUsed)
         )
 
-        tmElement[gem.graphicTitle] = gem
+        tmElement[gem.chartTitle] = gem
 
         //--- конец графиков ---
 
         val tmVisibleElement = TreeMap<String, Triple<String, String, Boolean>>()
-        tmVisibleElement[gewh.graphicTitle] = Triple(gewh.graphicTitle, "$UP_GRAPHIC_VISIBLE${gewh.graphicTitle}", true)
-        tmVisibleElement[gem.graphicTitle] = Triple(gem.graphicTitle, "$UP_GRAPHIC_VISIBLE${gem.graphicTitle}", true)
+        tmVisibleElement[gewh.chartTitle] = Triple(gewh.chartTitle, "$UP_GRAPHIC_VISIBLE${gewh.chartTitle}", true)
+        tmVisibleElement[gem.chartTitle] = Triple(gem.chartTitle, "$UP_GRAPHIC_VISIBLE${gem.chartTitle}", true)
 
         return ChartActionResponse(
             hmIndexColor = hmIndexColor,
-            alElement = tmElement.toList(),
+            alCharts = tmElement.toList(),
             alVisibleElement = tmVisibleElement.values.toList(),
             alLegend = emptyList(),
         )
@@ -149,12 +143,12 @@ class sdcLogGraphic : sdcAbstractGraphic() {
 
     private fun getGraphicData(
         tmLogData: TreeMap<Int, Int>,
-        colorIndex: GraphicColorIndex,
-        aLogLine: GraphicDataContainer
+        colorIndex: ChartColorIndex,
+        aLogLine: ChartElementDTO
     ) {
         val alGLD = aLogLine.alGLD.toMutableList()
         for (rawTime in tmLogData.keys) {
-            alGLD.add(GraphicLineData(rawTime, tmLogData[rawTime]!!.toDouble(), colorIndex))
+            alGLD.add(ChartElementLineDTO(rawTime, tmLogData[rawTime]!!.toFloat(), colorIndex))
         }
         aLogLine.alGLD = alGLD
     }

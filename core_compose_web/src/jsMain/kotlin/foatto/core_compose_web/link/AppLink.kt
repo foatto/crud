@@ -1,7 +1,7 @@
 package foatto.core_compose_web.link
 
-import foatto.core.app.graphic.ChartActionRequest
-import foatto.core.app.graphic.ChartActionResponse
+import foatto.core.app.chart.ChartActionRequest
+import foatto.core.app.chart.ChartActionResponse
 import foatto.core.app.xy.XyActionRequest
 import foatto.core.app.xy.XyActionResponse
 import foatto.core.link.*
