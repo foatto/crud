@@ -151,7 +151,9 @@ class TableControl(
                 call = { appParam: String, inNewWindow: Boolean -> call(appParam, inNewWindow) },
             )
             Row(
-                modifier = Modifier.horizontalScroll(state = horizontalScrollState)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(state = horizontalScrollState)
             ) {
                 alCaptionData.forEachIndexed { col, captionData ->
                     Button(
@@ -179,6 +181,7 @@ class TableControl(
 
             Column(
                 modifier = Modifier
+                    .fillMaxWidth()
                     .verticalScroll(state = verticalScrollState)
                     .horizontalScroll(state = horizontalScrollState)
                     .draggable(
@@ -401,13 +404,13 @@ class TableControl(
                 //coroutineScope.launch {
                 //    gridState.scrollToItem(...)
                 //}
-
-                //--- Page Bar
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
+            }
+            //--- Page Bar
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
 //                            borderTop(
 //                                width = getStyleTableCaptionBorderTop().width,
 //                                lineStyle = getStyleTableCaptionBorderTop().style,
@@ -415,18 +418,17 @@ class TableControl(
 //                            )
 //                            backgroundColor(getColorTablePagebarBack())
 
-                    for (pageButton in alPageButton) {
-                        Button(
-                            modifier = Modifier.padding(1.dp),
-                            shape = RoundedCornerShape(0.dp),
-                            enabled = pageButton.url.isNotEmpty(),
+                for (pageButton in alPageButton) {
+                    Button(
+                        modifier = Modifier.padding(1.dp),
+                        shape = RoundedCornerShape(0.dp),
+                        enabled = pageButton.url.isNotEmpty(),
 //                                cursor("pointer")
-                            onClick = {
-                                call(pageButton.url, false)
-                            }
-                        ) {
-                            Text(pageButton.text)
+                        onClick = {
+                            call(pageButton.url, false)
                         }
+                    ) {
+                        Text(pageButton.text)
                     }
                 }
             }
