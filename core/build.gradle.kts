@@ -1,5 +1,4 @@
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
-import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 val isBuildSupressWarning: String by project
 
@@ -8,6 +7,7 @@ val kotlinApiVersion: String by project
 val kotlinJvmTarget: String by project
 
 val kotlinxSerializationVersion: String by project
+val kotlinxDatetimeVersion: String by project
 
 val androidCompileSdk: String by project
 val androidMinSdk: String by project
@@ -55,6 +55,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion")
+            api("org.jetbrains.kotlinx:kotlinx-datetime:$kotlinxDatetimeVersion")
         }
         jvmMain.dependencies {
             api(kotlin("reflect"))
