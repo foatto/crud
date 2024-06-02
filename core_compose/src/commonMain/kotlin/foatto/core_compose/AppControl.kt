@@ -21,6 +21,7 @@ import foatto.core.link.ResponseCode
 import foatto.core.link.XyDocumentClientType
 import foatto.core_compose.composables.LogonForm
 import foatto.core_compose.controls.AbstractControl
+import foatto.core_compose.controls.ChartControl
 import foatto.core_compose.controls.EmptyControl
 import foatto.core_compose.controls.FormControl
 import foatto.core_compose.controls.MapControl
@@ -113,7 +114,7 @@ class AppControl(
                     )
                 }
 
-                ResponseCode.TABLE, ResponseCode.FORM, ResponseCode.XY -> {
+                ResponseCode.TABLE, ResponseCode.FORM, ResponseCode.XY, ResponseCode.CHART -> {
                     curControl.Body()
                 }
 
@@ -127,9 +128,6 @@ class AppControl(
                 }
 
                 /*
-                    REDIRECT - ?, используется ли
-
-                    GRAPHIC -> CHART,
                     COMPOSITE -> DASHBOARD (?),
                  */
             }
@@ -249,14 +247,14 @@ class AppControl(
                         }
                     }
 
-//                    ResponseCode.GRAPHIC -> {
-//                        val graphicControl = GraphicControl(root, this, appResponse.graphic!!, tabId)
-//                        curControl.value = graphicControl
-//                        responseCode.value = appResponse.code
-//
-//                        graphicControl.start()
-//                    }
-//
+                    ResponseCode.CHART -> {
+                        val chartControl = ChartControl(root, this, appResponse.chart!!, tabId)
+                        curControl = chartControl
+                        responseCode = appResponse.code
+
+                        chartControl.start()
+                    }
+
 ////            ResponseCode.VIDEO_ONLINE, ResponseCode.VIDEO_ARCHIVE -> {
 ////                val vcstartParamId = bbIn.getShortString()
 ////                val vcStartTitle = bbIn.getShortString()

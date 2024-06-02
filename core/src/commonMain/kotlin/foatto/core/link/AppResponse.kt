@@ -9,7 +9,7 @@ class AppResponse(
     val redirect: String? = null,
     val table: TableResponse? = null,
     val form: FormResponse? = null,
-    val graphic: ChartResponse? = null,
+    val chart: ChartResponse? = null,
     val xy: XyResponse? = null,
     val composite: CompositeResponse? = null,
 ) {
@@ -36,7 +36,7 @@ enum class ResponseCode {
     TABLE,
     FORM,
 
-    GRAPHIC,
+    CHART,
     XY,
 //    VIDEO_ONLINE         ,
 //    VIDEO_ARCHIVE
@@ -66,5 +66,5 @@ class ChartResponse(
 @Serializable
 class CompositeResponse(
     val xyResponse: XyResponse,
-    val graphicResponse: ChartResponse,
+    val chartResponse: ChartResponse,
 )
