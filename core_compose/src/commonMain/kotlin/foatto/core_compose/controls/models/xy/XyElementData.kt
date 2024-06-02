@@ -42,7 +42,7 @@ class XyElementData(
     val rx: Float = 0.0f,
     val ry: Float = 0.0f,
 
-    val rotateAngle: Float? = null,
+    val rotateDegree: Float? = null,
 
 //---------------------------------
 

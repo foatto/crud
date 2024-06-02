@@ -16,7 +16,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
@@ -32,12 +31,7 @@ import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.drawText
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.toSize
 import foatto.core.app.xy.XyAction
 import foatto.core.app.xy.XyActionRequest
 import foatto.core.app.xy.XyActionResponse
@@ -102,7 +96,7 @@ abstract class AbstractXyControl(
     @Composable
     fun getXyElementTemplate(withInteractive: Boolean) {
         val density = LocalDensity.current
-        //val coroutineScope = rememberCoroutineScope()
+//        val coroutineScope = rememberCoroutineScope()
         val textMeasurer = rememberTextMeasurer()
 
         Box(
@@ -180,24 +174,17 @@ abstract class AbstractXyControl(
                     for (element in alElement) {
                         when (element.type) {
                             XyElementDataType.CIRCLE -> {
-                                element.fillColor?.let {
-                                    drawCircle(
-                                        center = Offset(element.x, element.y),
-                                        radius = element.radius,
-                                        color = element.fillColor,
-                                        alpha = element.alpha,
-                                        style = Fill,
-                                    )
-                                }
-                                element.strokeColor?.let {
-                                    drawCircle(
-                                        center = Offset(element.x, element.y),
-                                        radius = element.radius,
-                                        color = element.strokeColor,
-                                        alpha = element.alpha,
-                                        style = getElementStrokeStyle(element),
-                                    )
-                                }
+                                drawCircleOnCanvas(
+                                    drawScope = this,
+                                    x = element.x,
+                                    y = element.y,
+                                    radius = element.radius,
+                                    fillAlpha = element.alpha,
+                                    fillColor = element.fillColor,
+                                    strokeColor = element.strokeColor,
+                                    strokeAlpha = 1.0f,
+                                    strokeStyle = getElementStrokeStyle(element),
+                                )
 //                                    onMouseEnter { syntheticMouseEvent ->
 //                                        onXyMouseOver(syntheticMouseEvent, element)
 //                                    }
@@ -269,26 +256,19 @@ abstract class AbstractXyControl(
                             }
 
                             XyElementDataType.POLY -> {
-                                element.fillColor?.let {
-                                    drawPath(
-                                        path = element.getPath(),
-                                        color = element.fillColor,
-                                        alpha = element.alpha,
-                                        style = Fill,
-                                    )
-                                }
-                                element.strokeColor?.let {
-                                    drawPath(
-                                        path = element.getPath(),
-                                        color = if (element.isSelected) {
-                                            COLOR_XY_POLYGON_BORDER
-                                        } else {
-                                            element.strokeColor
-                                        },
-                                        alpha = element.alpha,
-                                        style = getElementStrokeStyle(element),
-                                    )
-                                }
+                                drawPathOnCanvas(
+                                    drawScope = this,
+                                    path = element.getPath(),
+                                    fillColor = element.fillColor,
+                                    fillAlpha = element.alpha,
+                                    strokeColor = if (element.isSelected) {
+                                        COLOR_XY_POLYGON_BORDER
+                                    } else {
+                                        element.strokeColor
+                                    },
+                                    strokeAlpha = 1.0f,
+                                    strokeStyle = getElementStrokeStyle(element),
+                                )
 //                                    onMouseEnter { syntheticMouseEvent ->
 //                                        onXyMouseOver(syntheticMouseEvent, element)
 //                                    }
@@ -298,26 +278,18 @@ abstract class AbstractXyControl(
                             }
 
                             XyElementDataType.RECT -> {
-                                element.fillColor?.let {
-                                    drawRect(
-                                        topLeft = Offset(element.x, element.y),
-                                        size = Size(element.width, element.height),
-                                        color = element.fillColor,
-                                        alpha = element.alpha,
-                                        style = Fill,
-                                    )
-                                }
-                                element.strokeColor?.let {
-                                    drawRect(
-                                        topLeft = Offset(element.x, element.y),
-                                        size = Size(element.width, element.height),
-                                        color = element.strokeColor,
-                                        alpha = element.alpha,
-                                        style = getElementStrokeStyle(element),
-                                    )
-                                }
-//                                    rx(element.rx)
-//                                    ry(element.ry)
+                                drawRectOnCanvas(
+                                    drawScope = this,
+                                    x = element.x,
+                                    y = element.y,
+                                    width = element.width,
+                                    height = element.height,
+                                    fillColor = element.fillColor,
+                                    fillAlpha = element.alpha,
+                                    strokeColor = element.strokeColor,
+                                    strokeAlpha = 1.0f,
+                                    strokeStyle = getElementStrokeStyle(element),
+                                )
 //                                    onMouseEnter { syntheticMouseEvent ->
 //                                        onXyMouseOver(syntheticMouseEvent, element)
 //                                    }
@@ -328,76 +300,26 @@ abstract class AbstractXyControl(
 
                             XyElementDataType.TEXT -> {
                                 if (element.isVisible) {
-                                    val isTextSizeLimited = element.textLimitWidth != null && element.textLimitHeight != null
-                                    val isBordered = element.strokeColor != null && (element.strokeWidth ?: 0.0f) > 0
-                                    val borderWidth = element.strokeWidth ?: (1.0f * root.scaleKoef)
-                                    val anchor = (element.textAnchor as? BiasAlignment) ?: Alignment.TopStart as BiasAlignment
-
-                                    //--- constant offset from text anchor point
-                                    val (constOffsetX, constOffsetY) = if (isTextSizeLimited) {
-                                        0.0f to 0.0f
-                                    } else {
-                                        1.0f * root.scaleKoef to 1.0f * root.scaleKoef
-                                    }
-                                    val (paddingX, paddingY) = if (isBordered || element.fillColor != null) {
-                                        borderWidth + 2.0f * root.scaleKoef to borderWidth + 1.0f * root.scaleKoef
-                                    } else {
-                                        0.0f to 0.0f
-                                    }
-
-                                    val textSize = if (isTextSizeLimited) {
-                                        Size(element.textLimitWidth!! - paddingX * 2, element.textLimitHeight!! - paddingY * 2)
-                                    } else {
-                                        textMeasurer.measure(
-                                            text = element.text,
-                                            softWrap = false,
-                                        ).size.toSize()
-                                    }
-
-                                    val startX = element.x - (anchor.horizontalBias + 1) * (textSize.width / 2 + paddingX) - anchor.horizontalBias * constOffsetX
-                                    val topY = element.y - (anchor.verticalBias + 1) * (textSize.height / 2 + paddingY) - anchor.verticalBias * constOffsetY
-
-                                    //--- Canvas падает и подвешивает всю клиентскую часть при попытке вывода текста за предалами канваса
-                                    if (startX >= 0 && startX <= xyCanvasWidth && topY >= 0 && topY <= xyCanvasHeight) {
-                                        element.fillColor?.let {
-                                            drawRect(
-                                                topLeft = Offset(startX, topY),
-                                                size = Size(textSize.width + 2 * paddingX, textSize.height + 2 * paddingY),
-                                                color = element.fillColor,
-                                                alpha = element.alpha,
-                                                style = Fill,
-                                            )
-                                        }
-                                        if (isBordered) {
-                                            drawRect(
-                                                topLeft = Offset(startX, topY),
-                                                size = Size(textSize.width + 2 * paddingX, textSize.height + 2 * paddingY),
-                                                color = element.strokeColor ?: Color.Black,
-                                                alpha = element.alpha,
-                                                style = Stroke(width = borderWidth),
-                                            )
-                                        }
-                                        drawText(
-                                            textMeasurer = textMeasurer,
-                                            topLeft = Offset(startX + paddingX, topY + paddingY),
-                                            text = element.text,
-                                            style = TextStyle(
-                                                color = element.textColor ?: Color.Black,
-                                                fontWeight = if (element.textIsBold) {
-                                                    FontWeight.Bold
-                                                } else {
-                                                    FontWeight.Normal
-                                                }
-                                            ),
-                                            softWrap = false,
-                                            overflow = TextOverflow.Ellipsis,
-                                            size = if (isTextSizeLimited) {
-                                                textSize
-                                            } else {
-                                                Size.Unspecified
-                                            },
-                                        )
-                                    }
+                                    drawTextOnCanvas(
+                                        drawScope = this,
+                                        scaleKoef = root.scaleKoef,
+                                        canvasWidth = xyCanvasWidth.toFloat(),
+                                        canvasHeight = xyCanvasHeight.toFloat(),
+                                        textMeasurer = textMeasurer,
+                                        text = element.text,
+                                        x = element.x,
+                                        y = element.y,
+                                        textLimitWidth = element.textLimitWidth,
+                                        textLimitHeight = element.textLimitHeight,
+                                        rotateDegree = null,
+                                        fillAlpha = element.alpha,
+                                        fillColor = element.fillColor,
+                                        strokeColor = element.strokeColor,
+                                        strokeWidth = element.strokeWidth,
+                                        textAnchor = element.textAnchor,
+                                        textColor = element.textColor ?: Color.Black,
+                                        textIsBold = element.textIsBold,
+                                    )
                                 }
 //                                    onMouseEnter { syntheticMouseEvent ->
 //                                        onXyMouseOver(syntheticMouseEvent, element)
@@ -451,8 +373,7 @@ abstract class AbstractXyControl(
 //        }
     }
 
-    protected open fun addSpecificXy(drawScope: DrawScope) {
-    }
+    protected open fun addSpecificXy(drawScope: DrawScope) {}
 
     protected fun getElementStrokeStyle(element: XyElementData): DrawStyle =
         Stroke(
@@ -753,8 +674,7 @@ abstract class AbstractXyControl(
                         y = ((p.y - xyViewCoord.y1) / xyViewCoord.scale - element.calcAnchorYKoef() * element.imageHeight).toInt() * root.scaleKoef,
                         width = element.imageWidth * root.scaleKoef,
                         height = element.imageHeight * root.scaleKoef,
-                        rotateAngle = element.rotateDegree.toFloat(),
-                        //transform = "rotate(${} ${((p.x - xyViewCoord.x1) / xyViewCoord.scale * root.scaleKoef).roundToInt()} ${((p.y - xyViewCoord.y1) / xyViewCoord.scale * root.scaleKoef).roundToInt()})",
+                        rotateDegree = element.rotateDegree.toFloat(),
                         url = element.imageName,
                         tooltip = element.toolTipText,
                         isReadOnly = element.isReadOnly
@@ -788,8 +708,7 @@ abstract class AbstractXyControl(
                                 fillColor = fillColor,
                                 strokeWidth = max(1.0f, lineWidth * root.scaleKoef),
                                 strokeDash = floatArrayOf(root.scaleKoef * lineWidth * 2, root.scaleKoef * lineWidth * 2),
-                                rotateAngle = element.rotateDegree.toFloat(),
-                                //transform = "rotate(${element.rotateDegree} $x $y)",
+                                rotateDegree = element.rotateDegree.toFloat(),
                                 tooltip = element.toolTipText,
                                 isReadOnly = element.isReadOnly
                             )
@@ -810,8 +729,7 @@ abstract class AbstractXyControl(
                                     strokeColor = drawColor,
                                     strokeWidth = max(1.0f, lineWidth * root.scaleKoef),
                                     strokeDash = floatArrayOf(root.scaleKoef * lineWidth * 2, root.scaleKoef * lineWidth * 2),
-                                    rotateAngle = element.rotateDegree.toFloat(),
-                                    //transform = "rotate(${element.rotateDegree} $x $y)",
+                                    rotateDegree = element.rotateDegree.toFloat(),
                                     tooltip = element.toolTipText,
                                     isReadOnly = element.isReadOnly
                                 )
@@ -830,8 +748,7 @@ abstract class AbstractXyControl(
                                     fillColor = fillColor,
                                     strokeWidth = max(1.0f, lineWidth * root.scaleKoef),
                                     strokeDash = floatArrayOf(root.scaleKoef * lineWidth * 2, root.scaleKoef * lineWidth * 2),
-                                    rotateAngle = element.rotateDegree.toFloat(),
-                                    //transform = "rotate(${element.rotateDegree} $x $y)",
+                                    rotateDegree = element.rotateDegree.toFloat(),
                                     tooltip = element.toolTipText,
                                     isReadOnly = element.isReadOnly
                                 )
@@ -857,7 +774,6 @@ abstract class AbstractXyControl(
                                 strokeWidth = max(1.0f, lineWidth * root.scaleKoef),
                                 strokeDash = floatArrayOf(root.scaleKoef * lineWidth * 2, root.scaleKoef * lineWidth * 2),
                                 rotateAngle = element.rotateDegree.toFloat(),
-                                //transform = "rotate(${element.rotateDegree} $x $y)",
                                 tooltip = element.toolTipText,
                                 isReadOnly = element.isReadOnly
                             )
@@ -881,8 +797,7 @@ abstract class AbstractXyControl(
                                 fillColor = fillColor,
                                 strokeWidth = max(1.0f, lineWidth * root.scaleKoef),
                                 strokeDash = floatArrayOf(root.scaleKoef * lineWidth * 2, root.scaleKoef * lineWidth * 2),
-                                rotateAngle = element.rotateDegree.toFloat(),
-                                //transform = "rotate(${element.rotateDegree} $x $y)",
+                                rotateDegree = element.rotateDegree.toFloat(),
                                 tooltip = element.toolTipText,
                                 isReadOnly = element.isReadOnly
                             )
@@ -907,7 +822,6 @@ abstract class AbstractXyControl(
                                 strokeWidth = max(1.0f, lineWidth * root.scaleKoef),
                                 strokeDash = floatArrayOf(root.scaleKoef * lineWidth * 2, root.scaleKoef * lineWidth * 2),
                                 rotateAngle = element.rotateDegree.toFloat(),
-                                //transform = "rotate(${element.rotateDegree} $x $y)",
                                 tooltip = element.toolTipText,
                                 isReadOnly = element.isReadOnly
                             )
@@ -929,8 +843,7 @@ abstract class AbstractXyControl(
                                 fillColor = fillColor,
                                 strokeWidth = max(1.0f, lineWidth * root.scaleKoef),
                                 strokeDash = floatArrayOf(root.scaleKoef * lineWidth * 2, root.scaleKoef * lineWidth * 2),
-                                rotateAngle = element.rotateDegree.toFloat(),
-                                //transform = "rotate(${element.rotateDegree} $x $y)",
+                                rotateDegree = element.rotateDegree.toFloat(),
                                 tooltip = element.toolTipText,
                                 isReadOnly = element.isReadOnly
                             )
@@ -953,8 +866,7 @@ abstract class AbstractXyControl(
                                 fillColor = fillColor,
                                 strokeWidth = max(1.0f, lineWidth * root.scaleKoef),
                                 strokeDash = floatArrayOf(root.scaleKoef * lineWidth * 2, root.scaleKoef * lineWidth * 2),
-                                rotateAngle = element.rotateDegree.toFloat(),
-                                //transform = "rotate(${element.rotateDegree} $x $y)",
+                                rotateDegree = element.rotateDegree.toFloat(),
                                 tooltip = element.toolTipText,
                                 isReadOnly = element.isReadOnly
                             )

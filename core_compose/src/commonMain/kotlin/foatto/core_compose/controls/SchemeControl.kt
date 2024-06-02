@@ -7,18 +7,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.hsl
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.PointerInputChange
-import androidx.compose.ui.platform.LocalDensity
 import foatto.core.app.STATE_ALERT_MESSAGE
 import foatto.core.app.STATE_ELEMENT_MOVE_DESCR
 import foatto.core.app.STATE_ELEMENT_MOVE_ENABLED
@@ -41,11 +37,11 @@ class SchemeControl(
 ) : AbstractXyControl(root, appControl, xyResponse, tabId) {
 
     companion object {
-        private val COLOR_STATE_LINE: Color = hsl(180.0f, 1.0f, 1.0f)
-        private const val COLOR_STATE_LINE_WIDTH = 1.0f   //!!! max(1.0, scaleKoef).roundToInt()
-        private val COLOR_STATE_FILL: Color = hsl(180.0f, 1.0f, 0.5f)
+        private val COLOR_SCHEME_LINE: Color = hsl(180.0f, 1.0f, 1.0f)
+        private const val COLOR_SCHEME_LINE_WIDTH = 1.0f   //!!! max(1.0, scaleKoef).roundToInt()
+        private val COLOR_SCHEME_FILL: Color = hsl(180.0f, 1.0f, 0.5f)
 
-        private const val STATE_START_EXPAND_KOEF = 0.0f
+        private const val SCHEME_START_EXPAND_KOEF = 0.0f
     }
 
     private var isElementMoveEnabled by mutableStateOf(false)
@@ -65,9 +61,9 @@ class SchemeControl(
 
     @Composable
     override fun Body() {
-        val density = LocalDensity.current
-        val coroutineScope = rememberCoroutineScope()
-        
+//        val density = LocalDensity.current
+//        val coroutineScope = rememberCoroutineScope()
+
         Column(
             modifier = Modifier.fillMaxSize(),
         ) {
@@ -103,20 +99,17 @@ class SchemeControl(
 
         drawScope.apply {
             if (isMoveRectVisible) {
-                drawRect(
-                    topLeft = Offset(moveRectX, moveRectY),
-                    size = Size(64.0f, 64.0f),
-                    color = COLOR_STATE_FILL,
-                    alpha = 0.5f,
-                    style = Fill,
-                )
-                drawRect(
-                    topLeft = Offset(moveRectX, moveRectY),
-                    size = Size(64.0f, 64.0f),
-                    color = COLOR_STATE_LINE,
-                    style = Stroke(
-                        width = COLOR_STATE_LINE_WIDTH
-                    ),
+                drawRectOnCanvas(
+                    drawScope = this,
+                    x = moveRectX,
+                    y = moveRectY,
+                    width = 64.0f,
+                    height = 64.0f,
+                    fillColor = COLOR_SCHEME_FILL,
+                    fillAlpha = 0.5f,
+                    strokeColor = COLOR_SCHEME_LINE,
+                    strokeAlpha = 1.0f,
+                    strokeStyle = Stroke(width = COLOR_SCHEME_LINE_WIDTH),
                 )
             }
         }
@@ -126,7 +119,7 @@ class SchemeControl(
         XyServerActionButtonData.readXyServerActionButton(xyResponse.alServerActionButton, alXyServerButton)
 
         startXy(
-            startExpandKoef = STATE_START_EXPAND_KOEF,
+            startExpandKoef = SCHEME_START_EXPAND_KOEF,
             isCentered = true,
             curScale = 1,
         )
@@ -218,168 +211,168 @@ class SchemeControl(
         println("Drag Cancel!")
     }
 
-/*
-    @Composable
-    fun getStateAlertBody() {
-        if (isShowStateAlert.value) {
-            Div(
-                attrs = {
-                    style {
-                        position(Position.Fixed)
-                        top(4.cssRem)
-                        left(0.px)
-                        width(100.percent)
-                        bottom(0.px)
-                        zIndex(Z_INDEX_STATE_ALERT)
-                        backgroundColor(colorDialogBackColor)
-                        display(DisplayStyle.Grid)
-                        gridTemplateRows("1fr auto 1fr")
-                        gridTemplateColumns("1fr auto 1fr")
-                    }
-                }
-            ) {
+    /*
+        @Composable
+        fun getStateAlertBody() {
+            if (isShowStateAlert.value) {
                 Div(
                     attrs = {
                         style {
-                            gridArea("1", "2", "2", "3")
-                        }
-                    }
-                ) {
-                    Br()
-                }
-                Div(
-                    attrs = {
-                        style {
-                            gridArea("2", "2", "3", "3")
-                            padding(styleDialogCellPadding)
-                            setBorder(color = getColorDialogBorder(), radius = styleFormBorderRadius)
-                            backgroundColor(getColorDialogCenterBack())
-                            display(DisplayStyle.Flex)
-                            flexDirection(FlexDirection.Column)
-                            alignItems(AlignItems.Center)
+                            position(Position.Fixed)
+                            top(4.cssRem)
+                            left(0.px)
+                            width(100.percent)
+                            bottom(0.px)
+                            zIndex(Z_INDEX_STATE_ALERT)
+                            backgroundColor(colorDialogBackColor)
+                            display(DisplayStyle.Grid)
+                            gridTemplateRows("1fr auto 1fr")
+                            gridTemplateColumns("1fr auto 1fr")
                         }
                     }
                 ) {
                     Div(
                         attrs = {
                             style {
-                                alignSelf(AlignSelf.Center)
-                                fontSize(styleDialogTextFontSize)
-                                fontWeight("bold")
-                                textAlign("center")
-                                color(getColorDialogCenterText())
+                                gridArea("1", "2", "2", "3")
                             }
                         }
                     ) {
-                        getMultilineText(stateAlertMessage.value)
+                        Br()
                     }
-                }
-                Div(
-                    attrs = {
-                        style {
-                            gridArea("3", "2", "4", "3")
+                    Div(
+                        attrs = {
+                            style {
+                                gridArea("2", "2", "3", "3")
+                                padding(styleDialogCellPadding)
+                                setBorder(color = getColorDialogBorder(), radius = styleFormBorderRadius)
+                                backgroundColor(getColorDialogCenterBack())
+                                display(DisplayStyle.Flex)
+                                flexDirection(FlexDirection.Column)
+                                alignItems(AlignItems.Center)
+                            }
+                        }
+                    ) {
+                        Div(
+                            attrs = {
+                                style {
+                                    alignSelf(AlignSelf.Center)
+                                    fontSize(styleDialogTextFontSize)
+                                    fontWeight("bold")
+                                    textAlign("center")
+                                    color(getColorDialogCenterText())
+                                }
+                            }
+                        ) {
+                            getMultilineText(stateAlertMessage.value)
                         }
                     }
-                ) {
-                    Br()
+                    Div(
+                        attrs = {
+                            style {
+                                gridArea("3", "2", "4", "3")
+                            }
+                        }
+                    ) {
+                        Br()
+                    }
                 }
             }
         }
-    }
 
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun onXyMousePressed(isNeedOffsetCompensation: Boolean, aMouseX: Double, aMouseY: Double) {}
+        override fun onXyMousePressed(isNeedOffsetCompensation: Boolean, aMouseX: Double, aMouseY: Double) {}
 
-    override fun onXyMouseMove(isNeedOffsetCompensation: Boolean, aMouseX: Double, aMouseY: Double) {
-        var mouseX = aMouseX.toInt()
-        var mouseY = aMouseY.toInt()
+        override fun onXyMouseMove(isNeedOffsetCompensation: Boolean, aMouseX: Double, aMouseY: Double) {
+            var mouseX = aMouseX.toInt()
+            var mouseY = aMouseY.toInt()
 
-        if (isNeedOffsetCompensation) {
-            mouseX -= xySvgLeft
-            mouseY -= xySvgTop
-        }
-
-        if (isMoveRectVisible.value) {
-            moveRectX.value = mouseX
-            moveRectY.value = mouseY
-        }
-    }
-
-    override fun onXyMouseReleased(isNeedOffsetCompensation: Boolean, aMouseX: Double, aMouseY: Double, shiftKey: Boolean, ctrlKey: Boolean, altKey: Boolean) {
-        var mouseX = aMouseX.toInt()
-        var mouseY = aMouseY.toInt()
-
-        if (isNeedOffsetCompensation) {
-            mouseX -= xySvgLeft
-            mouseY -= xySvgTop
-        }
-
-        if (isMoveRectVisible.value) {
-            val xyActionRequest = XyActionRequest(
-                documentTypeName = xyResponse.documentConfig.name,
-                action = XyAction.MOVE_ELEMENTS,
-                startParamId = xyResponse.startParamId,
-                elementId = moveElementId,
-                dx = xyViewCoord.x1 + (mouseX * xyViewCoord.scale / scaleKoef).roundToInt(),
-                dy = xyViewCoord.y1 + (mouseY * xyViewCoord.scale / scaleKoef).roundToInt(),
-            )
-
-            root.setWait(true)
-            invokeXy(xyActionRequest) {
-                root.setWait(false)
-                xyRefreshView(null, true)
+            if (isNeedOffsetCompensation) {
+                mouseX -= xySvgLeft
+                mouseY -= xySvgTop
             }
 
-            isMoveRectVisible.value = false
+            if (isMoveRectVisible.value) {
+                moveRectX.value = mouseX
+                moveRectY.value = mouseY
+            }
         }
-    }
 
-    override fun onXyMouseWheel(syntheticWheelEvent: SyntheticWheelEvent) {}
+        override fun onXyMouseReleased(isNeedOffsetCompensation: Boolean, aMouseX: Double, aMouseY: Double, shiftKey: Boolean, ctrlKey: Boolean, altKey: Boolean) {
+            var mouseX = aMouseX.toInt()
+            var mouseY = aMouseY.toInt()
 
-    override fun onXyTextPressed(syntheticMouseEvent: SyntheticMouseEvent, xyElement: XyElementData) {
-        doStateTextPressed(xyElement)
-    }
+            if (isNeedOffsetCompensation) {
+                mouseX -= xySvgLeft
+                mouseY -= xySvgTop
+            }
 
-    override fun onXyTextPressed(syntheticTouchEvent: SyntheticTouchEvent, xyElement: XyElementData) {
-        doStateTextPressed(xyElement)
-    }
+            if (isMoveRectVisible.value) {
+                val xyActionRequest = XyActionRequest(
+                    documentTypeName = xyResponse.documentConfig.name,
+                    action = XyAction.MOVE_ELEMENTS,
+                    startParamId = xyResponse.startParamId,
+                    elementId = moveElementId,
+                    dx = xyViewCoord.x1 + (mouseX * xyViewCoord.scale / scaleKoef).roundToInt(),
+                    dy = xyViewCoord.y1 + (mouseY * xyViewCoord.scale / scaleKoef).roundToInt(),
+                )
 
-*/
+                root.setWait(true)
+                invokeXy(xyActionRequest) {
+                    root.setWait(false)
+                    xyRefreshView(null, true)
+                }
+
+                isMoveRectVisible.value = false
+            }
+        }
+
+        override fun onXyMouseWheel(syntheticWheelEvent: SyntheticWheelEvent) {}
+
+        override fun onXyTextPressed(syntheticMouseEvent: SyntheticMouseEvent, xyElement: XyElementData) {
+            doStateTextPressed(xyElement)
+        }
+
+        override fun onXyTextPressed(syntheticTouchEvent: SyntheticTouchEvent, xyElement: XyElementData) {
+            doStateTextPressed(xyElement)
+        }
+
+    */
     private fun invokeServerButton(url: String) {
         root.openTab(url)
     }
 
-/*
-    private fun doStateTextPressed(xyElement: XyElementData) {
-        root.dialogActionFun = {
-            val xyActionRequest = XyActionRequest(
-                documentTypeName = xyResponse.documentConfig.name,
-                action = XyAction.CLICK_ELEMENT,
-                startParamId = xyResponse.startParamId,
-                elementId = xyElement.elementId,
-                objectId = xyElement.objectId
-            )
+    /*
+        private fun doStateTextPressed(xyElement: XyElementData) {
+            root.dialogActionFun = {
+                val xyActionRequest = XyActionRequest(
+                    documentTypeName = xyResponse.documentConfig.name,
+                    action = XyAction.CLICK_ELEMENT,
+                    startParamId = xyResponse.startParamId,
+                    elementId = xyElement.elementId,
+                    objectId = xyElement.objectId
+                )
 
-            root.setWait(true)
-            invokeXy(
-                xyActionRequest
-            ) {
-                root.setWait(false)
+                root.setWait(true)
+                invokeXy(
+                    xyActionRequest
+                ) {
+                    root.setWait(false)
 
-                root.dialogActionFun = {}
-                root.dialogQuestion.value = "Действие выполнено!"
-                root.showDialogCancel.value = false
-                root.showDialog.value = true
+                    root.dialogActionFun = {}
+                    root.dialogQuestion.value = "Действие выполнено!"
+                    root.showDialogCancel.value = false
+                    root.showDialog.value = true
+                }
             }
+            root.dialogQuestion.value = xyElement.dialogQuestion!!
+            root.showDialogCancel.value = true
+            root.showDialog.value = true
         }
-        root.dialogQuestion.value = xyElement.dialogQuestion!!
-        root.showDialogCancel.value = true
-        root.showDialog.value = true
-    }
 
-}
- */
+    }
+     */
 }
 
 internal class ElementMoveData(

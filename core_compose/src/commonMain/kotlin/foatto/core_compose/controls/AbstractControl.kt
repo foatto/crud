@@ -9,8 +9,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.DrawStyle
+import androidx.compose.ui.graphics.drawscope.Fill
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.toSize
 import foatto.core_compose.controls.models.TitleData
 import kotlin.math.max
 
@@ -114,6 +129,248 @@ abstract class AbstractControl(
                         FontWeight.Normal
                     }
                 )
+            }
+        }
+    }
+
+    protected fun drawCircleOnCanvas(
+        drawScope: DrawScope,
+        x: Float,
+        y: Float,
+        radius: Float,
+        fillColor: Color?,
+        fillAlpha: Float,
+        strokeColor: Color?,
+        strokeAlpha: Float,
+        strokeStyle: DrawStyle?,
+    ) {
+        drawScope.apply {
+            fillColor?.let {
+                drawCircle(
+                    center = Offset(x, y),
+                    radius = radius,
+                    color = fillColor,
+                    alpha = fillAlpha,
+                    style = Fill,
+                )
+            }
+            if (strokeColor != null && strokeStyle != null) {
+                drawCircle(
+                    center = Offset(x, y),
+                    radius = radius,
+                    color = strokeColor,
+                    alpha = strokeAlpha,
+                    style = strokeStyle
+                )
+            }
+        }
+    }
+
+    protected fun drawPathOnCanvas(
+        drawScope: DrawScope,
+        path: Path,
+        fillColor: Color?,
+        fillAlpha: Float,
+        strokeColor: Color?,
+        strokeAlpha: Float,
+        strokeStyle: DrawStyle?,
+    ) {
+        drawScope.apply {
+            fillColor?.let {
+                drawPath(
+                    path = path,
+                    color = fillColor,
+                    alpha = fillAlpha,
+                    style = Fill,
+                )
+            }
+            if (strokeColor != null && strokeStyle != null) {
+                drawPath(
+                    path = path,
+                    color = strokeColor,
+                    alpha = strokeAlpha,
+                    style = strokeStyle,
+                )
+            }
+        }
+    }
+
+    protected fun drawRectOnCanvas(
+        drawScope: DrawScope,
+        x: Float,
+        y: Float,
+        width: Float,
+        height: Float,
+        fillColor: Color?,
+        fillAlpha: Float,
+        strokeColor: Color?,
+        strokeAlpha: Float,
+        strokeStyle: DrawStyle?,
+    ) {
+        drawScope.apply {
+            fillColor?.let {
+                drawRect(
+                    topLeft = Offset(x, y),
+                    size = Size(width, height),
+                    color = fillColor,
+                    alpha = fillAlpha,
+                    style = Fill,
+                )
+            }
+            if (strokeColor != null && strokeStyle != null) {
+                drawRect(
+                    topLeft = Offset(x, y),
+                    size = Size(width, height),
+                    color = strokeColor,
+                    alpha = strokeAlpha,
+                    style = strokeStyle,
+                )
+            }
+        }
+//        rx(element.rx)
+//        ry(element.ry)
+    }
+
+    protected fun drawTextOnCanvas(
+        drawScope: DrawScope,
+        scaleKoef: Float,
+        canvasWidth: Float,
+        canvasHeight: Float,
+        textMeasurer: TextMeasurer,
+        text: String,
+        x: Float,
+        y: Float,
+        textLimitWidth: Float?,
+        textLimitHeight: Float?,
+        rotateDegree: Float?,
+        fillColor: Color?,
+        fillAlpha: Float,
+        strokeColor: Color?,
+        strokeWidth: Float?,
+        textAnchor: Alignment,
+        textColor: Color,
+        textIsBold: Boolean,
+    ) {
+        val isTextSizeLimited = textLimitWidth != null && textLimitHeight != null
+        val isBordered = strokeColor != null && (strokeWidth ?: 0.0f) > 0
+        val borderWidth = strokeWidth ?: (1.0f * scaleKoef)
+        val anchor = (textAnchor as? BiasAlignment) ?: Alignment.TopStart as BiasAlignment
+
+        //--- constant offset from text anchor point
+        val (constOffsetX, constOffsetY) = if (isTextSizeLimited) {
+            0.0f to 0.0f
+        } else {
+            1.0f * scaleKoef to 1.0f * scaleKoef
+        }
+        val (paddingX, paddingY) = if (isBordered || fillColor != null) {
+            borderWidth + 2.0f * scaleKoef to borderWidth + 1.0f * scaleKoef
+        } else {
+            0.0f to 0.0f
+        }
+
+        val textSize = if (isTextSizeLimited) {
+            Size(textLimitWidth!! - paddingX * 2, textLimitHeight!! - paddingY * 2)
+        } else {
+            textMeasurer.measure(
+                text = text,
+                softWrap = false,
+            ).size.toSize()
+        }
+
+        val startX = x - (anchor.horizontalBias + 1) * (textSize.width / 2 + paddingX) - anchor.horizontalBias * constOffsetX
+        val topY = y - (anchor.verticalBias + 1) * (textSize.height / 2 + paddingY) - anchor.verticalBias * constOffsetY
+
+        drawScope.apply {
+            drawRectOnCanvas(
+                drawScope = this,
+                x = startX,
+                y = topY,
+                width = textSize.width + 2 * paddingX,
+                height = textSize.height + 2 * paddingY,
+                fillColor = fillColor,
+                fillAlpha = fillAlpha,
+                strokeColor = strokeColor,
+                strokeAlpha = 1.0f,
+                strokeStyle = Stroke(width = borderWidth),
+            )
+            rotate(
+                degrees = rotateDegree ?: 0.0f,
+                pivot = Offset(x, y),
+            ) {
+                text.split('\n').forEachIndexed { index, textLine ->
+                    try {
+                        drawText(
+                            textMeasurer = textMeasurer,
+                            topLeft = Offset(startX + paddingX, topY + paddingY + index * 16 * scaleKoef),
+                            text = textLine,
+//!!! BUG: выводится только первая строка многострочного текста
+//                        text = text,
+//!!! BUG: buildAnnotatedString через SpanStyle не выводит вторую и последующие строки друг под другом,
+// но если убрать appendLine() - выводит строки друг за другом в одну линию
+//                        text = buildAnnotatedString {
+//                            withStyle(
+//                                style = SpanStyle(
+//                                    color = textColor,
+//                                ),
+//                            ) {
+//                                append(text)
+//                                text.split('\n').forEachIndexed { index, textLine ->
+//                                    if (index > 0) {
+//                                        appendLine()
+//                                    }
+//                                    append(textLine)
+//                                }
+//                            }
+//                        },
+//!!! BUG: вариант через ParagraphStyle тоже не работает
+//                        text = buildAnnotatedString {
+//                            text.split('\n').forEach { textLine ->
+//                                withStyle(
+//                                    style = ParagraphStyle(),
+//                                ) {
+//                                    append(textLine)
+//                                }
+//                            }
+//                        },
+                            style = TextStyle(
+                                color = textColor,
+                                fontWeight = if (textIsBold) {
+                                    FontWeight.Bold
+                                } else {
+                                    FontWeight.Normal
+                                }
+                            ),
+                            softWrap = false,
+                            overflow = if (isTextSizeLimited) {
+                                TextOverflow.Ellipsis
+                            } else {
+                                TextOverflow.Visible
+                            },
+                            size = if (isTextSizeLimited) {
+                                textSize
+                            } else {
+                                Size.Unspecified
+                            },
+                        )
+                    } catch (t: Throwable) {
+//                        println("--- TEXT = $text")
+//                        println("--- canvasWidth = $canvasWidth")
+//                        println("--- canvasHeight = $canvasHeight")
+//                        println("--- x = ${startX + paddingX}")
+//                        println("--- y = ${topY + paddingY}")
+//                        println(
+//                            "--- size = ${
+//                                if (isTextSizeLimited) {
+//                                    textSize
+//                                } else {
+//                                    Size.Unspecified
+//                                }
+//                            }"
+//                        )
+//                        t.printStackTrace()
+                    }
+
+                }
             }
         }
     }

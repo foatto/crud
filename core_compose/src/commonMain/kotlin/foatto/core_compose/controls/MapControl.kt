@@ -6,7 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -18,7 +17,6 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.PointerInputChange
-import androidx.compose.ui.platform.LocalDensity
 import foatto.core.app.xy.XyViewCoord
 import foatto.core.app.xy.config.XyBitmapType
 import foatto.core.link.XyElementConfig
@@ -96,8 +94,8 @@ class MapControl(
 
     @Composable
     override fun Body() {
-        val density = LocalDensity.current
-        val coroutineScope = rememberCoroutineScope()
+//        val density = LocalDensity.current
+//        val coroutineScope = rememberCoroutineScope()
 
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -146,20 +144,17 @@ class MapControl(
                 val width = abs(mouseRect.x2.value - mouseRect.x1.value)
                 val height = abs(mouseRect.y2.value - mouseRect.y1.value)
 
-                drawRect(
-                    topLeft = Offset(x, y),
-                    size = Size(width, height),
-                    color = COLOR_MAP_LINE,
-                    alpha = 0.25f,
-                    style = Fill,
-                )
-                drawRect(
-                    topLeft = Offset(x, y),
-                    size = Size(width, height),
-                    color = COLOR_MAP_LINE,
-                    style = Stroke(
-                        width = COLOR_MAP_LINE_WIDTH
-                    ),
+                drawRectOnCanvas(
+                    drawScope = this,
+                    x = x,
+                    y = y,
+                    width = width ,
+                    height = height,
+                    fillColor = COLOR_MAP_LINE,
+                    fillAlpha = 0.25f,
+                    strokeColor = COLOR_MAP_LINE,
+                    strokeAlpha = 1.0f,
+                    strokeStyle = Stroke(width = COLOR_MAP_LINE_WIDTH),
                 )
             }
 
@@ -199,26 +194,19 @@ class MapControl(
 //            }
             addElement.value?.let { element ->
                 if (element.type == XyElementDataType.POLY) {
-                    element.fillColor?.let {
-                        drawPath(
-                            path = element.getPath(),
-                            color = element.fillColor,
-                            alpha = element.alpha,
-                            style = Fill,
-                        )
-                    }
-                    element.strokeColor?.let {
-                        drawPath(
-                            path = element.getPath(),
-                            color = if (element.isSelected) {
-                                COLOR_XY_POLYGON_BORDER
-                            } else {
-                                element.strokeColor
-                            },
-                            alpha = element.alpha,
-                            style = getElementStrokeStyle(element),
-                        )
-                    }
+                    drawPathOnCanvas(
+                        drawScope = this,
+                        path = element.getPath(),
+                        fillColor = element.fillColor,
+                        fillAlpha = element.alpha,
+                        strokeColor = if (element.isSelected) {
+                            COLOR_XY_POLYGON_BORDER
+                        } else {
+                            element.strokeColor
+                        },
+                        strokeAlpha = 1.0f,
+                        strokeStyle = getElementStrokeStyle(element),
+                    )
                 }
             }
         }
@@ -497,7 +485,7 @@ class MapControl(
         when (curMode) {
             MapWorkMode.PAN -> {
                 //--- перезагружаем карту, только если был сдвиг
-                if (abs(screenOffsetX) >= 1 || abs(screenOffsetX) >= 1) {
+                if (abs(screenOffsetX) >= 1 || abs(screenOffsetY) >= 1) {
                     xyViewCoord.moveRel((-screenOffsetX * xyViewCoord.scale / root.scaleKoef).roundToInt(), (-screenOffsetY * xyViewCoord.scale / root.scaleKoef).roundToInt())
                     xyRefreshView(xyViewCoord, true)
                 }
@@ -510,13 +498,13 @@ class MapControl(
                     val mouseWidth = abs(mouseRect.x2.value - mouseRect.x1.value)
                     val mouseHeight = abs(mouseRect.y2.value - mouseRect.y1.value)
 
-                    //--- если размер прямоугольника меньше 8 pix, то это видимо ошибка - игнорируем
+                    //--- если размер прямоугольника меньше MIN_USER_RECT_SIZE pix, то это видимо ошибка - игнорируем
                     if (mouseWidth >= MIN_USER_RECT_SIZE * root.scaleKoef && mouseHeight >= MIN_USER_RECT_SIZE * root.scaleKoef) {
 
                         //--- установить показ этой области ( с наиболее близким и разрешенным масштабом )
                         //--- специально установлена работа с double-числами и округление в большую сторону
                         //--- из-за ошибок округления при масштабах, близких к 1
-                        //--- (и scaleKoef здесь не нужен!!!)
+                        //--- (и scaleKoef здесь не нужен!)
                         val newScale = ceil(xyViewCoord.scale * max(1.0 * mouseWidth / xyCanvasWidth, 1.0 * mouseHeight / xyCanvasHeight)).toInt()
                         //--- переводим в мировые координаты
                         xyRefreshView(

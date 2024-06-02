@@ -2,9 +2,12 @@ package foatto.core_compose.controls
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.gestures.scrollBy
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -16,6 +19,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerInputChange
+import androidx.compose.ui.input.pointer.isSecondaryPressed
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -225,6 +231,19 @@ class TableControl(
                                     )
                                     .border(BorderStroke(width = 0.1.dp, color = colorTableCellBorder))
                                     //.wrapContentSize(align = Alignment.Center, unbounded = true)  //- ничем не помогает
+//!!! ждём, когда завезут onPointerEvent (кнопки мыши) на мультиплатформу
+//                                    .onPointerEvent(
+//                                      eventType = PointerEventType.Press,
+//                                      pass = PointerEventPass.Initial,
+//                                      onEvent = { event ->
+//                                        t = event.button?.index?.toString() ?: "null"
+//                                      }
+//                                    )
+//                                    .pointerInput(Unit) {
+//                                        awaitPointerEventScope {
+//                                            println("Mouse Right 1 = ${currentEvent.buttons.isSecondaryPressed}")
+//                                        }
+//                                    }
                                     .combinedClickable(
                                         onDoubleClick = {
                                             gridData?.let {

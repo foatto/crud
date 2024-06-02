@@ -120,7 +120,7 @@ open class Root {
             ) {
                 Column(
                     modifier = Modifier
-                        .fillMaxWidth(1f)
+                        .fillMaxWidth()
                         .fillMaxHeight(),
                 ) {
                     Row {
