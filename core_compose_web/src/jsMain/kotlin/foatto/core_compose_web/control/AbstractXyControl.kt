@@ -1405,6 +1405,7 @@ abstract class AbstractXyControl(
                     //--- при добавлении сразу выбранный
                     isSelected = true,
                     //--- данные для добавления на сервере
+                    //!!! убрать application-зависимое определение
                     typeName = "mms_zone",
                     alAddInfo = listOf(
                         Pair("zone_name") {

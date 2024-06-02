@@ -45,8 +45,8 @@ include(
     ":core_server",
 
     ":mms_core",
-    ":mms_compose_web",
     ":mms_compose",
+    ":mms_compose_web",
     ":mms_server",
 
     ":office_core",
@@ -58,6 +58,7 @@ include(
     ":shop_server",
 
     ":ts_core",
+    ":ts_compose",
     ":ts_compose_web",
     ":ts_server",
 )

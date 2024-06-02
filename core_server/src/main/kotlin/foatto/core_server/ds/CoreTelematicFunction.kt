@@ -178,7 +178,7 @@ object CoreTelematicFunction {
         hmTimePorts.forEach { (time, alPorts) ->
             conn.executeUpdate(
                 """
-                    UPDATE MMS_sensor 
+                    UPDATE TS_sensor 
                     SET raw_time = $time
                     WHERE object_id = $objectId
                     AND port_num IN ( ${alPorts.joinToString(" , ")} )
