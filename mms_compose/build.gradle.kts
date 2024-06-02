@@ -1,5 +1,4 @@
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
-import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 val isBuildSupressWarning: String by project
 
@@ -7,8 +6,8 @@ val kotlinLanguageVersion: String by project
 val kotlinApiVersion: String by project
 val kotlinJvmTarget: String by project
 
-val composeVersion: String by project
 val composeCompilerVersion: String by project
+val composeRuntimeVersion: String by project
 
 val androidCompileSdk: String by project
 val androidTargetSdk: String by project
@@ -63,7 +62,7 @@ android {
     namespace = "foatto.mms_compose"
 
     dependencies {
-        debugApi("androidx.compose.ui:ui-tooling:$composeVersion")
+        debugApi("androidx.compose.ui:ui-tooling:$composeRuntimeVersion")
     }
 
     sourceSets["main"].apply {
@@ -106,10 +105,6 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
-}
-
-compose.experimental {
-    web.application {}
 }
 
 tasks {

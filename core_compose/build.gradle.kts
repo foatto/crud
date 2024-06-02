@@ -6,9 +6,9 @@ val kotlinLanguageVersion: String by project
 val kotlinApiVersion: String by project
 val kotlinJvmTarget: String by project
 
-val composePluginVersion: String by project
-val composeVersion: String by project
 val composeCompilerVersion: String by project
+val composePluginVersion: String by project
+val composeRuntimeVersion: String by project
 
 val androidCompileSdk: String by project
 val androidTargetSdk: String by project
@@ -74,7 +74,7 @@ kotlin {
             api("io.ktor:ktor-client-android:$ktorVersion")
 //            api("io.ktor:ktor-client-okhttp:$ktorVersion") - alternate engine for http/2 & WebSockets support
 
-            api("androidx.compose.ui:ui-tooling-preview:$composeVersion")
+            api("androidx.compose.ui:ui-tooling-preview:$composeRuntimeVersion")
             api("androidx.activity:activity-compose:$androidxActivityComposeVersion")
 
 //WASM!!! пока не готов релиз wasm-версии ktor-client - сделаем отдельные зависимости в android-части,
@@ -91,7 +91,7 @@ android {
     namespace = "foatto.core_compose"
 
     dependencies {
-        debugApi("androidx.compose.ui:ui-tooling:$composeVersion")
+        debugApi("androidx.compose.ui:ui-tooling:$composeRuntimeVersion")
     }
 
     sourceSets["main"].apply {
@@ -130,8 +130,4 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
-}
-
-compose.experimental {
-    web.application {}
 }
