@@ -1,6 +1,6 @@
 package foatto.mms.core_mms.service
 
-import foatto.core.app.graphic.AnalogueValueType
+import foatto.core.app.chart.AnalogueValueType
 import foatto.core_server.service.CoreServiceWorker
 import foatto.mms.core_mms.MMSFunction
 import foatto.mms.core_mms.calc.AbstractObjectStateCalc
@@ -29,7 +29,9 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                 if (args.size == 1) {
                     Aggregator(args[0]).run()
                     exitCode = 1
-                } else println("Usage: $serviceWorkerName <ini-file-name>")
+                } else {
+                    println("Usage: $serviceWorkerName <ini-file-name>")
+                }
             } catch (t: Throwable) {
                 t.printStackTrace()
             }
@@ -172,13 +174,9 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                         )
                     }
 
-//                    SensorConfig.SENSOR_WORK -> {
-//                        calcWork(
-//                            sensorInfo = sensorInfo,
-//                            alValueSensor = alValueSensor,
-//                            alValueData = alValueData,
-//                        )
-//                    }
+                    SensorConfig.SENSOR_WORK -> {
+                        calcWork(sensorInfo = sensorInfo)
+                    }
 
                     else -> {
                         AdvancedLogger.error("Unknown sensor type = ${sensorInfo.sensorType}")
@@ -272,6 +270,7 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                     CAST(raw_time AS BIGINT) - CAST(calc_time AS BIGINT) AS diff_time
                 FROM MMS_sensor
                 WHERE sensor_type IN ( ${alPreparedSensorTypes.joinToString(" , ")} )
+                AND is_use_aggregator = 1
                 AND CAST(raw_time AS BIGINT) - CAST(calc_time AS BIGINT) > 0 
                 ORDER BY diff_time DESC
             """
@@ -472,7 +471,7 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
             val sensorValue = AbstractObjectStateCalc.getSensorValue(alValueSensor, alValueData, sensorData)
 
             if (sensorInfo.smoothTime == 0) {
-                //--- get previous non-averaged data
+                //--- get previous data
                 val (prevTime, prevValue) = getPrevData(sensorInfo, curTime, sensorValue)
 
                 val valueType = if (sensorInfo.sensorType == SensorConfig.SENSOR_LIQUID_LEVEL) {
@@ -496,7 +495,7 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
 
                     val avgValue = getMedianAvgValue(alRawValues)
 
-                    //--- get previous averaged data
+                    //--- get previous data
                     val (prevTime, prevValue) = getPrevData(sensorInfo, avgOntime, avgValue)
 
                     val valueType = if (sensorInfo.sensorType == SensorConfig.SENSOR_LIQUID_LEVEL) {
@@ -668,7 +667,7 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
     private fun storeRawAnalogueData(
         sensorInfo: SensorInfo,
         ontime: Int,
-        value: Double
+        value: Double,
     ) {
         alConn[0].executeUpdate(
             """
@@ -699,61 +698,109 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
 
 //--- EQUIPMENT WORK SENSOR PART
 
-//    private fun calcWork(
-//        sensorInfo: SensorInfo,
-//        alValueSensor: List<Double>,
-//        alValueData: List<Double>,
-//    ) {
-//        val (alRawTime, alRawData) = startUpSensorDatas(sensorInfo)
-//
-//        val (oldTime, oldValue) = getLastWorkState(sensorInfo.sensorId)
-//
-//        var workBeginTime = if (oldValue == 1) oldTime else 0
-//        var delayBeginTime = if (oldValue == 0) oldTime else 0
-//
-//        var curTime: Int? = null
-//        for (pos in alRawTime.indices) {
-//            curTime = alRawTime[pos]
-//
-//            val sensorData = AbstractObjectStateCalc.getSensorData(sensorInfo.portNum, alRawData[pos])?.toDouble() ?: continue
-//
-//            //--- ignore outbound values
-//            if (ObjectCalc.isIgnoreSensorData(sensorInfo.minIgnore, sensorInfo.maxIgnore, sensorData)) {
-//                continue
-//            }
-//
-//            val sensorValue = ((sensorInfo.activeValue == 0) xor (sensorData > sensorInfo.boundValue))
-//
-//
-//
-//
-//
-//        }
-//
-//        curTime?.let {
-//            refreshCalcTime(sensorInfo.sensorId, curTime)
-//            AdvancedLogger.debug("Calc finished: new calc_time = ${DateTime_YMDHMS(zoneId, curTime)}")
-//        }
-//    }
-//
-//    private fun getLastWorkState(sensorId: Int): Pair<Int?, Int?> {
-//        val rs = alConn[0].executeQuery(
-//            """
-//                SELECT ontime , type_1
-//                FROM MMS_agg_${sensorId}
-//                ORDER BY ontime DESC
-//                LIMIT 1
-//            """
-//        )
-//        val result = if (rs.next()) {
-//            rs.getInt(1) to rs.getInt(2)
-//        } else {
-//            null to null
-//        }
-//        rs.close()
-//
-//        return result
-//    }
+    private fun calcWork(sensorInfo: SensorInfo) {
+        val (alRawTime, alRawData) = startUpSensorDatas(sensorInfo)
+
+        val (oldTime, oldValue) = getLastWorkState(sensorInfo.sensorId)
+
+        var workBeginTime = if (oldValue == 1) {
+            oldTime ?: 0
+        } else {
+            0
+        }
+        var delayBeginTime = if (oldValue == 0) {
+            oldTime ?: 0
+        } else {
+            0
+        }
+
+        var curTime: Int? = null
+        for (pos in alRawTime.indices) {
+            curTime = alRawTime[pos]
+
+            val sensorData = AbstractObjectStateCalc.getSensorData(sensorInfo.portNum, alRawData[pos])?.toDouble() ?: continue
+
+            //--- ignore outbound values
+            if (ObjectCalc.isIgnoreSensorData(sensorInfo.minIgnore, sensorInfo.maxIgnore, sensorData)) {
+                continue
+            }
+
+            val sensorValue = ((sensorInfo.activeValue == 0) xor (sensorData > sensorInfo.boundValue))
+
+            //--- still in work?
+            if (sensorValue) {
+                //--- record of previous downtime
+                if (delayBeginTime != 0) {
+                    storeWorkState(sensorInfo.sensorId, delayBeginTime, curTime, 0, delayBeginTime == oldTime)
+                    delayBeginTime = 0
+                }
+                //--- beginning of work
+                if (workBeginTime == 0) {
+                    workBeginTime = curTime
+                }
+            } else {
+                //--- record of previous work
+                if (workBeginTime != 0) {
+                    storeWorkState(sensorInfo.sensorId, workBeginTime, curTime, 1, workBeginTime == oldTime)
+                    workBeginTime = 0
+                }
+                //--- start of downtime
+                if (delayBeginTime == 0) {
+                    delayBeginTime = curTime
+                }
+            }
+        }
+        //--- record of the last unclosed event
+        curTime?.let {
+            if (workBeginTime != 0) {
+                storeWorkState(sensorInfo.sensorId, workBeginTime, curTime, 1, workBeginTime == oldTime)
+            }
+            if (delayBeginTime != 0) {
+                storeWorkState(sensorInfo.sensorId, delayBeginTime, curTime, 0, delayBeginTime == oldTime)
+            }
+        }
+
+        curTime?.let {
+            refreshCalcTime(sensorInfo.sensorId, curTime)
+            AdvancedLogger.debug("Calc finished: new calc_time = ${DateTime_YMDHMS(zoneId, curTime)}")
+        }
+    }
+
+    private fun getLastWorkState(sensorId: Int): Pair<Int?, Int?> {
+        val rs = alConn[0].executeQuery(
+            """
+                SELECT ontime , type_1
+                FROM MMS_agg_${sensorId}
+                ORDER BY ontime DESC
+                LIMIT 1
+            """
+        )
+        val result = if (rs.next()) {
+            rs.getInt(1) to rs.getInt(2)
+        } else {
+            null to null
+        }
+        rs.close()
+
+        return result
+    }
+
+    private fun storeWorkState(sensorId: Int, begTime: Int, endTime: Int, value: Int, forUpdate: Boolean) {
+        alConn[0].executeUpdate(
+            if (forUpdate) {
+                """
+                    UPDATE MMS_agg_${sensorId}
+                    SET ontime_2 = $endTime
+                    WHERE ontime = $begTime
+                """
+            } else {
+                """
+                    INSERT INTO MMS_agg_${sensorId} ( ontime , ontime_2 , type_1 )
+                    VALUES ( $begTime , $endTime , $value ) 
+                """
+            }
+        )
+    }
 
     /*
             var prevSumValue = getLastAggregatedCounterValue(sensorInfo.sensorId)
