@@ -1,17 +1,11 @@
 package foatto.core_compose
 
 import com.darkrockstudios.libraries.mpfilepicker.PlatformFile
-import foatto.core.app.graphic.ChartActionRequest
-import foatto.core.app.graphic.ChartActionResponse
+import foatto.core.app.chart.ChartActionRequest
+import foatto.core.app.chart.ChartActionResponse
 import foatto.core.app.xy.XyActionRequest
 import foatto.core.app.xy.XyActionResponse
-import foatto.core.link.AppRequest
-import foatto.core.link.AppResponse
-import foatto.core.link.ChangePasswordRequest
-import foatto.core.link.ChangePasswordResponse
-import foatto.core.link.FormFileUploadResponse
-import foatto.core.link.LogoffRequest
-import foatto.core.link.LogoffResponse
+import foatto.core.link.*
 import foatto.core_compose.controls.models.form.FormGridData
 import foatto.core_compose.di.SETTINGS_SERVER_ADDRESS
 import foatto.core_compose.di.SETTINGS_SERVER_PORT
@@ -146,6 +140,27 @@ internal actual fun invokeLogoff(
         }.body()
 
         onSuccess(logoffResponse)
+    }
+}
+
+@OptIn(DelicateCoroutinesApi::class)
+internal actual fun invokeSaveUserProperty(
+    saveUserPropertyRequest: SaveUserPropertyRequest,
+    onSuccess: (responseData: SaveUserPropertyResponse) -> Unit,
+) {
+    GlobalScope.launch(applicationDispatcher) {
+        saveUserPropertyRequest.sessionId = sessionId
+
+        val saveUserPropertyResponse: SaveUserPropertyResponse = httpClient.post {
+            url("/api/save_user_property")
+            contentType(ContentType.Application.Json)
+            setBody(saveUserPropertyRequest)
+            timeout {
+                socketTimeoutMillis = 60_000
+            }
+        }.body()
+
+        onSuccess(saveUserPropertyResponse)
     }
 }
 

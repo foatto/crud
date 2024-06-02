@@ -1,17 +1,11 @@
 package foatto.core_compose
 
 import com.darkrockstudios.libraries.mpfilepicker.PlatformFile
-import foatto.core.app.graphic.ChartActionRequest
-import foatto.core.app.graphic.ChartActionResponse
+import foatto.core.app.chart.ChartActionRequest
+import foatto.core.app.chart.ChartActionResponse
 import foatto.core.app.xy.XyActionRequest
 import foatto.core.app.xy.XyActionResponse
-import foatto.core.link.AppRequest
-import foatto.core.link.AppResponse
-import foatto.core.link.ChangePasswordRequest
-import foatto.core.link.ChangePasswordResponse
-import foatto.core.link.FormFileUploadResponse
-import foatto.core.link.LogoffRequest
-import foatto.core.link.LogoffResponse
+import foatto.core.link.*
 import foatto.core.util.getRandomInt
 import foatto.core_compose.controls.models.form.FormFileData
 import foatto.core_compose.controls.models.form.FormGridData
@@ -188,6 +182,32 @@ internal actual fun invokeChart(
         chartActionRequest.sessionId = sessionId
 
         send(Json.encodeToString(chartActionRequest))
+    }
+}
+
+internal actual fun invokeSaveUserProperty(
+    saveUserPropertyRequest: SaveUserPropertyRequest,
+    onSuccess: (responseData: SaveUserPropertyResponse) -> Unit,
+) {
+    XMLHttpRequest().apply {
+        open("POST", "/api/save_user_property", true)
+        onreadystatechange = {
+            if (this.readyState == XMLHttpRequest.DONE) {
+                if (this.status == 200.toShort()) {
+                    if (responseText.isNotBlank()) {
+                        val response = Json.decodeFromString<SaveUserPropertyResponse>(responseText)
+                        onSuccess(response)
+                    }
+                } else {
+                    httpDefaultErrorHandler(this)
+                }
+            }
+        }
+        setRequestHeader("Content-Type", "application/json")
+
+        saveUserPropertyRequest.sessionId = sessionId
+
+        send(Json.encodeToString(saveUserPropertyRequest))
     }
 }
 
