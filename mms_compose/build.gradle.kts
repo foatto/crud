@@ -25,7 +25,8 @@ kotlin {
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         moduleName = "mms_compose"
-        browser {}
+        browser {
+        }
         binaries.executable()
     }
 
@@ -97,7 +98,6 @@ android {
 tasks {
     build {
         doLast {
-//            delete("/home/foatto/MMSServerSpring/web/compose")
             copy {
                 from("build/dist/wasmJs/productionExecutable")
                 into("/home/foatto/MMSServerSpring/web")

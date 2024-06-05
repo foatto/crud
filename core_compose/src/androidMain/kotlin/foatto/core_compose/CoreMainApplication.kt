@@ -3,6 +3,7 @@ package foatto.core_compose
 import android.app.Application
 
 class CoreMainApplication : Application() {
+
     companion object {
         lateinit var instance: CoreMainApplication
             private set

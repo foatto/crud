@@ -85,7 +85,6 @@ kotlin {
         }
     }
 }
-// ktor-client-js:3.0.0-wasm2
 
 android {
     namespace = "foatto.core_compose"
