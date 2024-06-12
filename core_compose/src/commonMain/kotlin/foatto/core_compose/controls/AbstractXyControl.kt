@@ -69,8 +69,8 @@ abstract class AbstractXyControl(
         val COLOR_XY_POLYGON_BORDER: Color = hsl(0.0f, 1.0f, 0.5f)    // красный
     }
 
-    protected var xyCanvasWidth: Int by mutableIntStateOf(0)
-    protected var xyCanvasHeight: Int by mutableIntStateOf(0)
+    protected var xyCanvasWidth: Float by mutableFloatStateOf(0.0f)
+    protected var xyCanvasHeight: Float by mutableFloatStateOf(0.0f)
 
     private val alXyElement = mutableStateListOf<List<XyElementData>>()
 
@@ -102,15 +102,15 @@ abstract class AbstractXyControl(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .clipToBounds()
                 .onSizeChanged { size ->
-                    xyCanvasWidth = size.width
-                    xyCanvasHeight = size.height
+                    xyCanvasWidth = size.width.toFloat()
+                    xyCanvasHeight = size.height.toFloat()
                 }
                 .offset(
                     x = with(density) { screenOffsetX.toDp() },
                     y = with(density) { screenOffsetY.toDp() },
                 )
+                .clipToBounds()
                 .pointerInput(Unit) {
                     if (withInteractive) {
                         awaitEachGesture {
@@ -395,7 +395,6 @@ abstract class AbstractXyControl(
         root.setTabInfo(tabId, xyResponse.shortTitle, xyResponse.fullTitle)
         alTitleData += xyResponse.fullTitle.split('\n').filter { it.isNotBlank() }.map { TitleData("", it) }
 
-        // doXySpecificComponentMounted
         startXySpecific(
             startExpandKoef = startExpandKoef,
             isCentered = isCentered,
@@ -403,7 +402,6 @@ abstract class AbstractXyControl(
         )
     }
 
-    //!!! separated public for Composite Control
     fun startXySpecific(
         startExpandKoef: Float,
         isCentered: Boolean,

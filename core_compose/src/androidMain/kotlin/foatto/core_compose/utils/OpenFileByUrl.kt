@@ -10,7 +10,6 @@ import foatto.core_compose.di.settings
 import io.ktor.http.*
 
 internal actual fun openFileByUrl(url: String) {
-
     val protocol = settings.getStringOrNull(SETTINGS_SERVER_PROTOCOL)?.let { protocolName ->
         URLProtocol.byName[protocolName]
     } ?: URLProtocol.HTTP
