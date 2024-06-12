@@ -1,6 +1,6 @@
 package foatto.ts_compose_web
 
-import foatto.core.link.CompositeResponse
+import foatto.core.app.composite.CompositeResponse
 import foatto.core_compose_web.*
 import foatto.core_compose_web.control.TableControl.Companion.hmTableIcon
 import foatto.core_compose_web.control.colorTableGroupBack0

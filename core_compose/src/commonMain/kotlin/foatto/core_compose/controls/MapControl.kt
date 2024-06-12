@@ -9,12 +9,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.hsl
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.PointerInputChange
 import foatto.core.app.xy.XyViewCoord
@@ -50,7 +48,7 @@ class MapControl(
         private val COLOR_MAP_LINE_WIDTH = 1.0f //!!! max(1.0, scaleKoef).roundToInt()
         private val COLOR_MAP_DISTANCER = hsl(30.0f, 1.0f, 0.5f)
         private const val mapBitmapTypeName = XyBitmapType.MS   // на текущий момент MapSurfer - наиболее правильная карта
-        private const val MAP_START_EXPAND_KOEF = 0.05f
+        const val MAP_START_EXPAND_KOEF = 0.05f
     }
 
     private var isToolBarsVisible by mutableStateOf(true)
@@ -100,7 +98,7 @@ class MapControl(
         Column(
             modifier = Modifier.fillMaxSize(),
         ) {
-            getChartAndXyHeader()
+            getChartAndXyAndCompositeHeader()
 
             MapToolBar(
                 isWideScreen = root.isWideScreen,
@@ -130,7 +128,6 @@ class MapControl(
             )
 
             getXyElementTemplate(true)
-
         }
     }
 

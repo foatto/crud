@@ -1,7 +1,7 @@
 package foatto.core_compose_web.control
 
 import androidx.compose.runtime.Composable
-import foatto.core.link.CompositeResponse
+import foatto.core.app.composite.CompositeResponse
 import foatto.core_compose_web.AppControl
 import foatto.core_compose_web.Root
 

@@ -196,7 +196,7 @@ class ChartControl(
         Column(
             modifier = Modifier.fillMaxSize(),
         ) {
-            getChartAndXyHeader()
+            getChartAndXyAndCompositeHeader()
 
             ChartToolBar(
                 isWideScreen = root.isWideScreen,
@@ -217,11 +217,10 @@ class ChartControl(
                 setInterval = { interval: Int -> setInterval(interval) }
             )
 
-            MainChartBody(true)
+            MainChartBody(withInteractive = true)
         }
     }
 
-    //--- предположительно, static метод, для использования в composite/dashboard
     @Composable
     fun MainChartBody(withInteractive: Boolean) {
         val density = LocalDensity.current
@@ -645,10 +644,10 @@ class ChartControl(
         root.setTabInfo(tabId, chartResponse.shortTitle, chartResponse.fullTitle)
         alTitleData.addAll(chartResponse.fullTitle.split('\n').filter { it.isNotBlank() }.map { TitleData("", it) })
 
-        doChartSpecificComponentMounted()
+        startChartSpecific()
     }
 
-    fun doChartSpecificComponentMounted() {
+    fun startChartSpecific() {
         val newViewCoord = ChartViewCoord(
             t1 = if (chartResponse.rangeType == 0) {
                 chartResponse.begTime

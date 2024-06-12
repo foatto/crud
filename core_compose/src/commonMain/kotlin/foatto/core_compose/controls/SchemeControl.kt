@@ -41,7 +41,7 @@ class SchemeControl(
         private const val COLOR_SCHEME_LINE_WIDTH = 1.0f   //!!! max(1.0, scaleKoef).roundToInt()
         private val COLOR_SCHEME_FILL: Color = hsl(180.0f, 1.0f, 0.5f)
 
-        private const val SCHEME_START_EXPAND_KOEF = 0.0f
+        const val SCHEME_START_EXPAND_KOEF: Float = 0.0f
     }
 
     private var isElementMoveEnabled by mutableStateOf(false)
@@ -67,7 +67,7 @@ class SchemeControl(
         Column(
             modifier = Modifier.fillMaxSize(),
         ) {
-            getChartAndXyHeader()
+            getChartAndXyAndCompositeHeader()
 
             SchemeToolBar(
                 isWideScreen = root.isWideScreen,

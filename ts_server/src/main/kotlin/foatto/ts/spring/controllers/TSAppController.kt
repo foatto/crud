@@ -2,11 +2,12 @@ package foatto.ts.spring.controllers
 
 import foatto.core.app.chart.ChartActionRequest
 import foatto.core.app.chart.ChartActionResponse
+import foatto.core.app.composite.CompositeBlockDTO
+import foatto.core.app.composite.CompositeResponse
 import foatto.core.app.xy.XyActionRequest
 import foatto.core.app.xy.XyActionResponse
 import foatto.core.link.AppRequest
 import foatto.core.link.AppResponse
-import foatto.core.link.CompositeResponse
 import foatto.core.link.ChartResponse
 import foatto.core.link.MenuData
 import foatto.core.link.ResponseCode
@@ -81,21 +82,38 @@ class TSAppController(
         return AppResponse(
             code = ResponseCode.COMPOSITE,
             composite = CompositeResponse(
-                xyResponse = XyResponse(
-                    documentConfig = CoreSpringApp.hmXyDocumentConfig["ts_state"]!!,
-                    startParamId = compositeStartData.xyStartDataId,
-                    shortTitle = shortTitle,
-                    fullTitle = fullTitle,
-                    alServerActionButton = compositeStartData.alServerActionButton,
-                ),
-                chartResponse = ChartResponse(
-                    documentTypeName = "ts_graphic_dsltt",
-                    startParamId = compositeStartData.graphicStartDataId,
-                    shortTitle = shortTitle,
-                    fullTitle = fullTitle,
-                    rangeType = compositeStartData.rangeType,
-                    begTime = compositeStartData.begTime,
-                    endTime = compositeStartData.endTime,
+                title = fullTitle,
+                cols = 2,
+                rows = 1,
+                blocks = listOf(
+                    CompositeBlockDTO(
+                        x = 0,
+                        y = 0,
+                        w = 1,
+                        h = 1,
+                        xyResponse = XyResponse(
+                            documentConfig = CoreSpringApp.hmXyDocumentConfig["ts_state"]!!,
+                            startParamId = compositeStartData.xyStartDataId,
+                            shortTitle = shortTitle,
+                            fullTitle = fullTitle,
+                            alServerActionButton = compositeStartData.alServerActionButton,
+                        ),
+                    ),
+                    CompositeBlockDTO(
+                        x = 1,
+                        y = 0,
+                        w = 1,
+                        h = 1,
+                        chartResponse = ChartResponse(
+                            documentTypeName = "ts_graphic_dsltt",
+                            startParamId = compositeStartData.graphicStartDataId,
+                            shortTitle = shortTitle,
+                            fullTitle = fullTitle,
+                            rangeType = compositeStartData.rangeType,
+                            begTime = compositeStartData.begTime,
+                            endTime = compositeStartData.endTime,
+                        ),
+                    ),
                 ),
             )
         )

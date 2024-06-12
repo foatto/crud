@@ -1,5 +1,6 @@
 package foatto.core.link
 
+import foatto.core.app.composite.CompositeResponse
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -63,8 +64,4 @@ class ChartResponse(
     val endTime: Int,
 )
 
-@Serializable
-class CompositeResponse(
-    val xyResponse: XyResponse,
-    val chartResponse: ChartResponse,
-)
+

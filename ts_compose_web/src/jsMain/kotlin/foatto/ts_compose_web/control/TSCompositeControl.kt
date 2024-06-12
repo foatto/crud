@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import foatto.core.link.CompositeResponse
+import foatto.core.app.composite.CompositeResponse
 import foatto.core_compose_web.AppControl
 import foatto.core_compose_web.Root
 import foatto.core_compose_web.control.BaseCompositeControl
@@ -14,8 +14,8 @@ import foatto.core_compose_web.control.StateControl
 import foatto.core_compose_web.control.composable.getRefreshSubToolbar
 import foatto.core_compose_web.control.composable.getToolBarSpan
 import foatto.core_compose_web.control.composable.getXyServerActionSubToolbar
-import foatto.core_compose_web.model.TitleData
 import foatto.core_compose_web.control.model.XyServerActionButtonData
+import foatto.core_compose_web.model.TitleData
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.Div
 
@@ -44,12 +44,12 @@ class TSCompositeControl(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    private val stateControl = StateControl(root, appControl, compositeResponse.xyResponse, tabId).apply {
+    private val stateControl = StateControl(root, appControl, compositeResponse.blocks.first().xyResponse!!, tabId).apply {
         containerPrefix = TS_COMPOSITE_PREFIX
         presetSvgHeight = TS_XY_SVG_HEIGHT
         arrAddHeights = emptyArray()
     }
-    private val graphicControl = GraphicControl(root, appControl, compositeResponse.chartResponse, tabId).apply {
+    private val graphicControl = GraphicControl(root, appControl, compositeResponse.blocks.last().chartResponse!!, tabId).apply {
         containerPrefix = TS_COMPOSITE_PREFIX
         presetSvgHeight = GRAPHIC_MIN_HEIGHT * 2
         arrAddHeights = arrayOf(TS_XY_SVG_HEIGHT)
@@ -121,12 +121,10 @@ class TSCompositeControl(
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     override fun start() {
-        val xyResponse = compositeResponse.xyResponse
+        root.setTabInfo(tabId, compositeResponse.title, compositeResponse.title)
+        alTitleData += compositeResponse.title.split('\n').filter { it.isNotBlank() }.map { TitleData("", it) }
 
-        root.setTabInfo(tabId, xyResponse.shortTitle, xyResponse.fullTitle)
-        alTitleData += xyResponse.fullTitle.split('\n').filter { it.isNotBlank() }.map { TitleData("", it) }
-
-        XyServerActionButtonData.readXyServerActionButton(xyResponse.alServerActionButton, alXyServerButton)
+        XyServerActionButtonData.readXyServerActionButton(compositeResponse.blocks.first().xyResponse?.alServerActionButton!!, alXyServerButton)
 
         stateControl.doXySpecificComponentMounted(
             startExpandKoef = TS_START_EXPAND_KOEF,

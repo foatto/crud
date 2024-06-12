@@ -20,13 +20,7 @@ import foatto.core.link.MenuData
 import foatto.core.link.ResponseCode
 import foatto.core.link.XyDocumentClientType
 import foatto.core_compose.composables.LogonForm
-import foatto.core_compose.controls.AbstractControl
-import foatto.core_compose.controls.ChartControl
-import foatto.core_compose.controls.EmptyControl
-import foatto.core_compose.controls.FormControl
-import foatto.core_compose.controls.MapControl
-import foatto.core_compose.controls.SchemeControl
-import foatto.core_compose.controls.getTableControl
+import foatto.core_compose.controls.*
 import foatto.core_compose.di.SETTINGS_LOGIN
 import foatto.core_compose.di.SETTINGS_PASSWORD
 import foatto.core_compose.di.settings
@@ -114,7 +108,7 @@ class AppControl(
                     )
                 }
 
-                ResponseCode.TABLE, ResponseCode.FORM, ResponseCode.XY, ResponseCode.CHART -> {
+                ResponseCode.TABLE, ResponseCode.FORM, ResponseCode.XY, ResponseCode.CHART, ResponseCode.COMPOSITE -> {
                     curControl.Body()
                 }
 
@@ -255,6 +249,14 @@ class AppControl(
                         chartControl.start()
                     }
 
+                    ResponseCode.COMPOSITE -> {
+                        val compositeControl = CompositeControl(root, this, appResponse.composite!!, tabId)
+                        curControl = compositeControl
+                        responseCode = appResponse.code
+
+                        compositeControl.start()
+                    }
+
 ////            ResponseCode.VIDEO_ONLINE, ResponseCode.VIDEO_ARCHIVE -> {
 ////                val vcstartParamId = bbIn.getShortString()
 ////                val vcStartTitle = bbIn.getShortString()
@@ -266,13 +268,6 @@ class AppControl(
 ////                //--- init работает совместно с read
 ////                videoControl.init( appContainer, appLink, tab, this, vcstartParamId, vcStartTitle )
 ////            }
-//                    ResponseCode.COMPOSITE -> {
-//                        val compositeControl = getCompositeControl(root, this, appResponse.composite!!, tabId)
-//                        curControl.value = compositeControl
-//                        responseCode.value = appResponse.code
-//
-//                        compositeControl.start()
-//                    }
 
                     else -> {
                         responseCode = appResponse.code

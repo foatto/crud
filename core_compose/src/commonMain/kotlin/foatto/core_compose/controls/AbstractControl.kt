@@ -104,7 +104,7 @@ abstract class AbstractControl(
     }
 
     @Composable
-    protected fun getChartAndXyHeader() {
+    protected fun getChartAndXyAndCompositeHeader() {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
