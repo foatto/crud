@@ -1,0 +1,21 @@
+package foatto.core.model.response.system.table.cells
+
+import kotlinx.serialization.Serializable
+
+@Serializable
+class TableBooleanCell(
+    override val row: Int,
+    override val col: Int,
+    override val rowSpan: Int = 1,
+    override val colSpan: Int = 1,
+    override val dataRow: Int,
+    override val tooltip: String,
+    override val minWidth: Int = 0,
+    override val align: TableCellAlign = TableCellAlign.CENTER,
+    override val backColor: Int? = null,
+    override val backColorType: TableCellBackColorType = TableCellBackColorType.DEFAULT,
+    override val foreColor: Int? = null,
+    override val fontStyle: Int = 0,
+
+    val value: Boolean,
+) : TableBaseCell()
