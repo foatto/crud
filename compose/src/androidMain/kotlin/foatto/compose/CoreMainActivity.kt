@@ -1,0 +1,25 @@
+package foatto.compose
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+
+open class CoreMainActivity : ComponentActivity() {
+
+    protected lateinit var root: Root
+
+    open fun init() {
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        init()
+
+        setContent {
+            root.Content()
+        }
+
+        root.start()
+    }
+}
