@@ -173,6 +173,33 @@ abstract class AbstractXyControl(
                 for (alElement in alXyElement) {
                     for (element in alElement) {
                         when (element.type) {
+                            XyElementDataType.ARC -> {
+                                element.fillColor?.let {
+                                    drawArc(
+                                        topLeft = Offset(element.x - element.radius, element.y - element.radius),
+                                        size = Size(element.radius * 2, element.radius * 2),
+                                        startAngle = -element.startAngle,                       // отсчёт углов в compose - в обратную сторону (по часовой стрелке)
+                                        sweepAngle = -(element.endAngle - element.startAngle),  // в compose считается по часовой стрелке
+                                        useCenter = true,
+                                        color = element.fillColor,
+                                        alpha = element.alpha,
+                                        style = Fill
+                                    )
+                                }
+                                element.strokeColor?.let {
+                                    drawArc(
+                                        topLeft = Offset(element.x - element.radius, element.y - element.radius),
+                                        size = Size(element.radius * 2, element.radius * 2),
+                                        startAngle = element.startAngle,
+                                        sweepAngle = -(element.endAngle - element.startAngle),  // в compose считается по часовой стрелке (рука-лицо)
+                                        useCenter = false,
+                                        color = element.strokeColor,
+                                        alpha = element.alpha,
+                                        style = getElementStrokeStyle(element),
+                                    )
+                                }
+                            }
+
                             XyElementDataType.CIRCLE -> {
                                 drawCircleOnCanvas(
                                     drawScope = this,
@@ -392,8 +419,8 @@ abstract class AbstractXyControl(
         isCentered: Boolean,
         curScale: Int,
     ) {
-        root.setTabInfo(tabId, xyResponse.shortTitle, xyResponse.fullTitle)
-        alTitleData += xyResponse.fullTitle.split('\n').filter { it.isNotBlank() }.map { TitleData("", it) }
+        root.setTabInfo(tabId, xyResponse.title, xyResponse.tooltip)
+        alTitleData += xyResponse.tooltip.split('\n').filter { it.isNotBlank() }.map { TitleData("", it) }
 
         startXySpecific(
             startExpandKoef = startExpandKoef,
@@ -610,19 +637,34 @@ abstract class AbstractXyControl(
         alLayer: MutableList<XyElementData>,
     ) {
 
-        val lineWidth = element.lineWidth
-        val drawColor = if (element.drawColor == 0) {
-            null
-        } else {
-            Color(element.drawColor)
-        }
-        val fillColor = if (element.fillColor == 0) {
-            null
-        } else {
-            Color(element.fillColor)
-        }
+        val lineWidth = element.lineWidth ?: 0
+        val drawColor = element.drawColor?.let { Color(it) }
+        val fillColor = element.fillColor?.let { Color(it) }
 
         when (elementConfig.clientType) {
+            XyElementClientType.ARC -> {
+                val p = element.alPoint.first()
+
+                alLayer.add(
+                    XyElementData(
+                        type = XyElementDataType.ARC,
+                        elementId = element.elementId,
+                        objectId = element.objectId,
+                        x = ((p.x - xyViewCoord.x1) / xyViewCoord.scale * root.scaleKoef),
+                        y = ((p.y - xyViewCoord.y1) / xyViewCoord.scale * root.scaleKoef),
+                        radius = element.radius / xyViewCoord.scale * root.scaleKoef,
+                        startAngle = element.startAngle.toFloat(),
+                        endAngle = element.endAngle.toFloat(),
+                        fillColor = fillColor,
+                        strokeColor = drawColor,
+                        strokeWidth = lineWidth * root.scaleKoef,
+                        strokeDash = floatArrayOf(root.scaleKoef * lineWidth * 2, root.scaleKoef * lineWidth * 2),
+                        tooltip = element.toolTipText,
+                        isReadOnly = element.isReadOnly
+                    )
+                )
+            }
+
             XyElementClientType.BITMAP -> {
                 val p = element.alPoint.first()
 
@@ -904,7 +946,7 @@ abstract class AbstractXyControl(
                 )
             }
 
-            XyElementClientType.SVG_TEXT, XyElementClientType.HTML_TEXT -> {
+            XyElementClientType.TEXT, XyElementClientType.SVG_TEXT, XyElementClientType.HTML_TEXT -> {
                 val p = element.alPoint.first()
 
                 val x = (p.x - xyViewCoord.x1) / xyViewCoord.scale * root.scaleKoef
@@ -958,9 +1000,9 @@ abstract class AbstractXyControl(
                         objectId = element.objectId,
                         x = x,
                         y = y,
-                        strokeColor = Color(element.drawColor),
-                        strokeWidth = element.lineWidth * root.scaleKoef,
-                        fillColor = Color(element.fillColor),
+                        strokeColor = element.drawColor?.let { Color(it) },
+                        strokeWidth = (element.lineWidth ?: 0) * root.scaleKoef,
+                        fillColor = element.fillColor?.let { Color(it) },
                         text = element.text,
                         textLimitWidth = limitWidth,
                         textLimitHeight = limitHeight,

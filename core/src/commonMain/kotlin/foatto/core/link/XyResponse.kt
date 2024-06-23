@@ -6,9 +6,9 @@ import kotlinx.serialization.Serializable
 class XyResponse(
     val documentConfig: XyDocumentConfig,
     val startParamId: String,
-    val shortTitle: String,
-    val fullTitle: String,
-    val alServerActionButton: List<XyServerActionButton>,
+    val title: String = "",
+    val tooltip: String = "",
+    val alServerActionButton: List<ServerActionButton>? = null,
 )
 
 @Serializable
@@ -36,27 +36,20 @@ class XyElementConfig(
 //    val isEditableText: Boolean,
 )
 
-@Serializable
-class XyServerActionButton(
-    val caption: String,
-    val tooltip: String,
-    val icon: String,
-    val url: String,
-    val isForWideScreenOnly: Boolean,
-)
-
 enum class XyDocumentClientType {
     MAP,
-    STATE
+    SCHEME,
 }
 
 enum class XyElementClientType {
+    ARC,
     BITMAP,
     ICON,
     MARKER,
     POLY,
-    SVG_TEXT,
-    HTML_TEXT,
+    TEXT,
+    SVG_TEXT,   //!!!убрать после отключение compose_html
+    HTML_TEXT,  //!!!убрать после отключение compose_html
     TRACE,
     ZONE,
 }

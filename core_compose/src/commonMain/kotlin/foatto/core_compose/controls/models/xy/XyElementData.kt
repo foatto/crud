@@ -39,6 +39,9 @@ class XyElementData(
 
     val radius: Float = 0.0f,
 
+    val startAngle: Float = 0.0f,
+    val endAngle: Float = 0.0f,
+
     val rx: Float = 0.0f,
     val ry: Float = 0.0f,
 
@@ -142,6 +145,10 @@ class XyElementData(
 
     fun isIntersects(rect: XyRect): Boolean {
         when (type) {
+            XyElementDataType.ARC -> {  //!!! временно: по упрощённой формуле, считая дугу как полный круг
+                return rect.isIntersects(XyRect(x - radius, y - radius, radius * 2, radius * 2))
+            }
+
             XyElementDataType.CIRCLE -> {
                 return rect.isIntersects(XyRect(x - radius, y - radius, radius * 2, radius * 2))
             }

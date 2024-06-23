@@ -29,10 +29,10 @@ class XyElement(
     var alPoint = listOf<XyPoint>()
     var isClosed = false
 
-    var lineWidth = 0
+    var lineWidth: Int? = null
 
-    var drawColor = 0
-    var fillColor = 0
+    var drawColor: Int? = null
+    var fillColor: Int? = null
 
     //--- the position of the anchor point relative to the image or text
     var anchorX = Anchor.CC
@@ -47,6 +47,11 @@ class XyElement(
     var isActual: Boolean = false
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    //--- Arc
+    var radius: Int = 0
+    var startAngle: Int = 0
+    var endAngle: Int = 0
 
     //--- Bitmap
     var imageName = ""
