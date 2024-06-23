@@ -27,7 +27,7 @@ import foatto.core.link.XyResponse
 import foatto.core_compose.AppControl
 import foatto.core_compose.Root
 import foatto.core_compose.controls.composables.scheme.SchemeToolBar
-import foatto.core_compose.controls.models.xy.XyServerActionButtonData
+import foatto.core_compose.controls.models.table.ServerActionButtonClient
 
 class SchemeControl(
     root: Root,
@@ -48,7 +48,7 @@ class SchemeControl(
     private var isShowElementList by mutableStateOf(false)
 
     private val alMoveableElementData = mutableStateListOf<ElementMoveData>()
-    private val alXyServerButton = mutableStateListOf<XyServerActionButtonData>()
+    private val alServerButton = mutableStateListOf<ServerActionButtonClient>()
 
     private var isShowStateAlert by mutableStateOf(false)
     private var stateAlertMessage by mutableStateOf("")
@@ -74,7 +74,7 @@ class SchemeControl(
                 refreshInterval = refreshInterval,
                 isElementMoveEnabled = isElementMoveEnabled,
                 isShowElementList = isShowElementList,
-                alXyServerButton = alXyServerButton,
+                alServerButton = alServerButton,
                 alMoveableElementData = alMoveableElementData,
                 onServerButtonClick = { url: String -> invokeServerButton(url) },
                 onMoveButtonClick = { isShowElementList = !isShowElementList },
@@ -116,7 +116,12 @@ class SchemeControl(
     }
 
     override fun start() {
-        XyServerActionButtonData.readXyServerActionButton(xyResponse.alServerActionButton, alXyServerButton)
+        alServerButton.clear()
+        xyResponse.alServerActionButton?.let { alServerActionButton ->
+            for (sab in alServerActionButton) {
+                alServerButton.add(ServerActionButtonClient.readFromServerActionButton(sab))
+            }
+        }
 
         startXy(
             startExpandKoef = SCHEME_START_EXPAND_KOEF,
