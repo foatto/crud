@@ -2,14 +2,18 @@ package foatto.mms.core_mms.calc
 
 import foatto.core.app.xy.XyProjection
 import foatto.core.app.xy.geom.XyPoint
-import foatto.util.getAngle
-import foatto.util.getCurrentTimeInt
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.sensor.config.SensorConfig
+import foatto.mms.core_mms.sensor.config.SensorConfigEnergoAnalogue
+import foatto.mms.core_mms.sensor.config.SensorConfigEnergoSummary
 import foatto.mms.core_mms.sensor.config.SensorConfigLiquidLevel
 import foatto.mms.core_mms.sensor.config.SensorConfigSignal
 import foatto.mms.core_mms.sensor.config.SensorConfigWork
 import foatto.sql.CoreAdvancedConnection
+import foatto.util.AdvancedByteBuffer
+import foatto.util.getAngle
+import foatto.util.getCurrentTimeInt
+import java.util.*
 
 class ObjectState {
 
@@ -32,6 +36,29 @@ class ObjectState {
 
     val tmLiquidUsingCounterTime = sortedMapOf<String, Int>()
     val tmLiquidUsingCounterState = sortedMapOf<String, String>()
+
+    val tmEnergoCountADTime = sortedMapOf<String, Int>()
+    val tmEnergoCountADValue = sortedMapOf<String, Double>()
+    val tmEnergoCountARTime = sortedMapOf<String, Int>()
+    val tmEnergoCountARValue = sortedMapOf<String, Double>()
+    val tmEnergoCountRDTime = sortedMapOf<String, Int>()
+    val tmEnergoCountRDValue = sortedMapOf<String, Double>()
+    val tmEnergoCountRRTime = sortedMapOf<String, Int>()
+    val tmEnergoCountRRValue = sortedMapOf<String, Double>()
+
+    // sensor_descr -> phase -> value
+    val tmEnergoVoltageTime = sortedMapOf<String, SortedMap<Int, Int>>()
+    val tmEnergoVoltageValue = sortedMapOf<String, SortedMap<Int, Double>>()
+    val tmEnergoCurrentTime = sortedMapOf<String, SortedMap<Int, Int>>()
+    val tmEnergoCurrentValue = sortedMapOf<String, SortedMap<Int, Double>>()
+    val tmEnergoPowerKoefTime = sortedMapOf<String, SortedMap<Int, Int>>()
+    val tmEnergoPowerKoefValue = sortedMapOf<String, SortedMap<Int, Double>>()
+    val tmEnergoPowerActiveTime = sortedMapOf<String, SortedMap<Int, Int>>()
+    val tmEnergoPowerActiveValue = sortedMapOf<String, SortedMap<Int, Double>>()
+    val tmEnergoPowerReactiveTime = sortedMapOf<String, SortedMap<Int, Int>>()
+    val tmEnergoPowerReactiveValue = sortedMapOf<String, SortedMap<Int, Double>>()
+    val tmEnergoPowerFullTime = sortedMapOf<String, SortedMap<Int, Int>>()
+    val tmEnergoPowerFullValue = sortedMapOf<String, SortedMap<Int, Double>>()
 
     companion object {
 
@@ -162,7 +189,141 @@ class ObjectState {
 //                }
 //            }
 
+            //--- energo count sensors
+            getStateEnergoSummary(
+                oc = oc,
+                sensorType = SensorConfig.SENSOR_ENERGO_COUNT_AD,
+                alRawTime = alRawTime,
+                alRawData = alRawData,
+                tmEnergoCountTime = result.tmEnergoCountADTime,
+                tmEnergoCountValue = result.tmEnergoCountADValue,
+            )
+            getStateEnergoSummary(
+                oc = oc,
+                sensorType = SensorConfig.SENSOR_ENERGO_COUNT_AR,
+                alRawTime = alRawTime,
+                alRawData = alRawData,
+                tmEnergoCountTime = result.tmEnergoCountARTime,
+                tmEnergoCountValue = result.tmEnergoCountARValue,
+            )
+            getStateEnergoSummary(
+                oc = oc,
+                sensorType = SensorConfig.SENSOR_ENERGO_COUNT_RD,
+                alRawTime = alRawTime,
+                alRawData = alRawData,
+                tmEnergoCountTime = result.tmEnergoCountRDTime,
+                tmEnergoCountValue = result.tmEnergoCountRDValue,
+            )
+            getStateEnergoSummary(
+                oc = oc,
+                sensorType = SensorConfig.SENSOR_ENERGO_COUNT_RR,
+                alRawTime = alRawTime,
+                alRawData = alRawData,
+                tmEnergoCountTime = result.tmEnergoCountRRTime,
+                tmEnergoCountValue = result.tmEnergoCountRRValue,
+            )
+
+            getStateEnergoAnalogue(
+                oc = oc,
+                sensorType = SensorConfig.SENSOR_ENERGO_VOLTAGE,
+                alRawTime = alRawTime,
+                alRawData = alRawData,
+                tmEnergoAnalogueTime = result.tmEnergoVoltageTime,
+                tmEnergoAnalogueValue = result.tmEnergoVoltageValue,
+            )
+            getStateEnergoAnalogue(
+                oc = oc,
+                sensorType = SensorConfig.SENSOR_ENERGO_CURRENT,
+                alRawTime = alRawTime,
+                alRawData = alRawData,
+                tmEnergoAnalogueTime = result.tmEnergoCurrentTime,
+                tmEnergoAnalogueValue = result.tmEnergoCurrentValue,
+            )
+            getStateEnergoAnalogue(
+                oc = oc,
+                sensorType = SensorConfig.SENSOR_ENERGO_POWER_KOEF,
+                alRawTime = alRawTime,
+                alRawData = alRawData,
+                tmEnergoAnalogueTime = result.tmEnergoPowerKoefTime,
+                tmEnergoAnalogueValue = result.tmEnergoPowerKoefValue,
+            )
+            getStateEnergoAnalogue(
+                oc = oc,
+                sensorType = SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
+                alRawTime = alRawTime,
+                alRawData = alRawData,
+                tmEnergoAnalogueTime = result.tmEnergoPowerActiveTime,
+                tmEnergoAnalogueValue = result.tmEnergoPowerActiveValue,
+            )
+            getStateEnergoAnalogue(
+                oc = oc,
+                sensorType = SensorConfig.SENSOR_ENERGO_POWER_REACTIVE,
+                alRawTime = alRawTime,
+                alRawData = alRawData,
+                tmEnergoAnalogueTime = result.tmEnergoPowerReactiveTime,
+                tmEnergoAnalogueValue = result.tmEnergoPowerReactiveValue,
+            )
+            getStateEnergoAnalogue(
+                oc = oc,
+                sensorType = SensorConfig.SENSOR_ENERGO_POWER_FULL,
+                alRawTime = alRawTime,
+                alRawData = alRawData,
+                tmEnergoAnalogueTime = result.tmEnergoPowerFullTime,
+                tmEnergoAnalogueValue = result.tmEnergoPowerFullValue,
+            )
+
             return result
+        }
+
+        private fun getStateEnergoSummary(
+            oc: ObjectConfig,
+            sensorType: Int,
+            alRawTime: List<Int>,
+            alRawData: List<AdvancedByteBuffer>,
+            tmEnergoCountTime: SortedMap<String, Int>,
+            tmEnergoCountValue: SortedMap<String, Double>,
+        ) {
+            oc.hmSensorConfig[sensorType]?.values?.forEach { sc ->
+                val sces = sc as SensorConfigEnergoSummary
+                for (i in alRawTime.size - 1 downTo 0) {
+                    val time = alRawTime[i]
+                    val bbIn = alRawData[i]
+
+                    val sensorData = AbstractObjectStateCalc.getSensorData(sces.portNum, bbIn)
+                    if (sensorData != null && !ObjectCalc.isIgnoreSensorData(sces.minIgnore, sces.maxIgnore, sensorData.toDouble())) {
+                        tmEnergoCountTime[sces.descr] = time
+                        tmEnergoCountValue[sces.descr] = AbstractObjectStateCalc.getSensorValue(sces.alValueSensor, sces.alValueData, sensorData.toDouble())
+                        break
+                    }
+                }
+            }
+        }
+
+        private fun getStateEnergoAnalogue(
+            oc: ObjectConfig,
+            sensorType: Int,
+            alRawTime: List<Int>,
+            alRawData: List<AdvancedByteBuffer>,
+            tmEnergoAnalogueTime: SortedMap<String, SortedMap<Int, Int>>,
+            tmEnergoAnalogueValue: SortedMap<String, SortedMap<Int, Double>>,
+        ) {
+            oc.hmSensorConfig[sensorType]?.values?.forEach { sc ->
+                val sces = sc as SensorConfigEnergoAnalogue
+                for (i in alRawTime.size - 1 downTo 0) {
+                    val time = alRawTime[i]
+                    val bbIn = alRawData[i]
+
+                    val sensorData = AbstractObjectStateCalc.getSensorData(sces.portNum, bbIn)
+                    if (sensorData != null && !ObjectCalc.isIgnoreSensorData(sces.minIgnore, sces.maxIgnore, sensorData.toDouble())) {
+                        val tmEnergoCountPhaseTime = tmEnergoAnalogueTime.getOrPut(sces.descr) { sortedMapOf() }
+                        tmEnergoCountPhaseTime[sces.phase] = time
+
+                        val tmEnergoAnaloguePhaseValue = tmEnergoAnalogueValue.getOrPut(sces.descr) { sortedMapOf() }
+                        tmEnergoAnaloguePhaseValue[sces.phase] = AbstractObjectStateCalc.getSensorValue(sces.alValueSensor, sces.alValueData, sensorData.toDouble())
+                        break
+                    }
+                }
+            }
         }
     }
 }

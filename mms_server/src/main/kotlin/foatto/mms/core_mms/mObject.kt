@@ -148,6 +148,8 @@ class mObject : mAbstractUserSelector() {
         alChildData.add(ChildData("Карты", "mms_object_zone", columnId, AppAction.TABLE))
 
         alChildData.add(ChildData("mms_show_state", columnId, AppAction.FORM, true))
+        alChildData.add(ChildData("mms_composite_liquid_level", columnId, AppAction.FORM))
+        alChildData.add(ChildData("mms_composite_energo", columnId, AppAction.FORM))
 
         alChildData.add(ChildData("mms_sensor", columnId, AppAction.TABLE, true))
         alChildData.add(ChildData("mms_equip", columnId, AppAction.TABLE))

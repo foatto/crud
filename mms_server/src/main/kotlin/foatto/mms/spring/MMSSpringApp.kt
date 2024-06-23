@@ -13,7 +13,9 @@ import foatto.mms.core_mms.graphic.server.graphic_handler.AnalogGraphicHandler
 import foatto.mms.core_mms.graphic.server.graphic_handler.LiquidGraphicHandler
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.xy.server.document.sdcMMSMap
-import foatto.mms.core_mms.xy.server.document.sdcMMSState
+import foatto.mms.core_mms.xy.server.document.sdcMMSSchemeAnalogueIndicator
+import foatto.mms.core_mms.xy.server.document.sdcMMSSchemeObject
+import foatto.mms.core_mms.xy.server.document.sdcMMSSchemeText
 import foatto.spring.CoreSpringApp
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.event.ApplicationReadyEvent
@@ -131,13 +133,31 @@ class MMSSpringApp : CoreSpringApp() {
             hmElementConfig = initMapElementConfig(MAP_MIN_SCALE, MAP_MAX_SCALE)
         )
 
-        hmXyDocumentConfig["mms_state"] = XyDocumentConfig(
-            name = "mms_state",
+        hmXyDocumentConfig["mms_scheme_object"] = XyDocumentConfig(
+            name = "mms_scheme_object",
             descr = "Состояние объекта",
-            serverClassName = "foatto.mms.core_mms.xy.server.document.sdcMMSState",
-            clientType = XyDocumentClientType.STATE,
+            serverClassName = "foatto.mms.core_mms.xy.server.document.sdcMMSSchemeObject",
+            clientType = XyDocumentClientType.SCHEME,
             isScaleAlign = false,
-            hmElementConfig = initStateElementConfig(1, 1024 * 1024 * 1024)
+            hmElementConfig = initObjectSchemeElementConfig(1, 1024 * 1024 * 1024)
+        )
+
+        hmXyDocumentConfig["mms_scheme_analogue_indicator"] = XyDocumentConfig(
+            name = "mms_scheme_analogue_indicator",
+            descr = "Аналоговый индикатор состояния",
+            serverClassName = "foatto.mms.core_mms.xy.server.document.sdcMMSSchemeAnalogueIndicator",
+            clientType = XyDocumentClientType.SCHEME,
+            isScaleAlign = false,
+            hmElementConfig = initSchemeAnalogueIndicatorElementConfig(1, 1024 * 1024 * 1024)
+        )
+
+        hmXyDocumentConfig["mms_scheme_text"] = XyDocumentConfig(
+            name = "mms_scheme_text",
+            descr = "Текстовый индикатор состояния",
+            serverClassName = "foatto.mms.core_mms.xy.server.document.sdcMMSSchemeText",
+            clientType = XyDocumentClientType.SCHEME,
+            isScaleAlign = false,
+            hmElementConfig = initSchemeTextElementConfig(1, 1024 * 1024 * 1024)
         )
     }
 
@@ -229,12 +249,12 @@ class MMSSpringApp : CoreSpringApp() {
         return hmElementConfig
     }
 
-    private fun initStateElementConfig(minScale: Int, maxScale: Int): MutableMap<String, XyElementConfig> {
+    private fun initObjectSchemeElementConfig(minScale: Int, maxScale: Int): MutableMap<String, XyElementConfig> {
 
         val hmElementConfig = initXyElementConfig(level = 10, minScale = minScale, maxScale = maxScale)
 
-        hmElementConfig[sdcMMSState.TYPE_STATE_GROUP_BOX] = XyElementConfig(
-            name = sdcMMSState.TYPE_STATE_GROUP_BOX,
+        hmElementConfig[sdcMMSSchemeObject.TYPE_STATE_GROUP_BOX] = XyElementConfig(
+            name = sdcMMSSchemeObject.TYPE_STATE_GROUP_BOX,
             clientType = XyElementClientType.POLY,
             layer = 11,
             scaleMin = minScale,
@@ -245,8 +265,8 @@ class MMSSpringApp : CoreSpringApp() {
             isEditablePoint = false
         )
 
-        hmElementConfig[sdcMMSState.TYPE_STATE_GROUP_TEXT] = XyElementConfig(
-            name = sdcMMSState.TYPE_STATE_GROUP_TEXT,
+        hmElementConfig[sdcMMSSchemeObject.TYPE_STATE_GROUP_TEXT] = XyElementConfig(
+            name = sdcMMSSchemeObject.TYPE_STATE_GROUP_TEXT,
             clientType = XyElementClientType.HTML_TEXT,
             layer = 12,
             scaleMin = minScale,
@@ -257,8 +277,8 @@ class MMSSpringApp : CoreSpringApp() {
             isEditablePoint = false
         )
 
-        hmElementConfig[sdcMMSState.TYPE_STATE_LL_TANK_WALL] = XyElementConfig(
-            name = sdcMMSState.TYPE_STATE_LL_TANK_WALL,
+        hmElementConfig[sdcMMSSchemeObject.TYPE_STATE_LL_TANK_WALL] = XyElementConfig(
+            name = sdcMMSSchemeObject.TYPE_STATE_LL_TANK_WALL,
             clientType = XyElementClientType.POLY,
             layer = 13,
             scaleMin = minScale,
@@ -269,8 +289,8 @@ class MMSSpringApp : CoreSpringApp() {
             isEditablePoint = false
         )
 
-        hmElementConfig[sdcMMSState.TYPE_STATE_LL_VOLUME] = XyElementConfig(
-            name = sdcMMSState.TYPE_STATE_LL_VOLUME,
+        hmElementConfig[sdcMMSSchemeObject.TYPE_STATE_LL_VOLUME] = XyElementConfig(
+            name = sdcMMSSchemeObject.TYPE_STATE_LL_VOLUME,
             clientType = XyElementClientType.POLY,
             layer = 14,
             scaleMin = minScale,
@@ -281,8 +301,8 @@ class MMSSpringApp : CoreSpringApp() {
             isEditablePoint = false
         )
 
-        hmElementConfig[sdcMMSState.TYPE_STATE_LL_TEXT] = XyElementConfig(
-            name = sdcMMSState.TYPE_STATE_LL_TEXT,
+        hmElementConfig[sdcMMSSchemeObject.TYPE_STATE_LL_TEXT] = XyElementConfig(
+            name = sdcMMSSchemeObject.TYPE_STATE_LL_TEXT,
             clientType = XyElementClientType.HTML_TEXT,
             layer = 14,
             scaleMin = minScale,
@@ -293,8 +313,8 @@ class MMSSpringApp : CoreSpringApp() {
             isEditablePoint = false
         )
 
-        hmElementConfig[sdcMMSState.TYPE_STATE_W_FIGURE] = XyElementConfig(
-            name = sdcMMSState.TYPE_STATE_W_FIGURE,
+        hmElementConfig[sdcMMSSchemeObject.TYPE_STATE_W_FIGURE] = XyElementConfig(
+            name = sdcMMSSchemeObject.TYPE_STATE_W_FIGURE,
             clientType = XyElementClientType.ICON,
             layer = 13,
             scaleMin = minScale,
@@ -305,8 +325,8 @@ class MMSSpringApp : CoreSpringApp() {
             isEditablePoint = false
         )
 
-        hmElementConfig[sdcMMSState.TYPE_STATE_W_TEXT] = XyElementConfig(
-            name = sdcMMSState.TYPE_STATE_W_TEXT,
+        hmElementConfig[sdcMMSSchemeObject.TYPE_STATE_W_TEXT] = XyElementConfig(
+            name = sdcMMSSchemeObject.TYPE_STATE_W_TEXT,
             clientType = XyElementClientType.HTML_TEXT,
             layer = 14,
             scaleMin = minScale,
@@ -317,8 +337,8 @@ class MMSSpringApp : CoreSpringApp() {
             isEditablePoint = false
         )
 
-        hmElementConfig[sdcMMSState.TYPE_STATE_S_FIGURE_25D] = XyElementConfig(
-            name = sdcMMSState.TYPE_STATE_S_FIGURE_25D,
+        hmElementConfig[sdcMMSSchemeObject.TYPE_STATE_S_FIGURE_25D] = XyElementConfig(
+            name = sdcMMSSchemeObject.TYPE_STATE_S_FIGURE_25D,
             clientType = XyElementClientType.MARKER,
             layer = 19,
             scaleMin = minScale,
@@ -329,10 +349,120 @@ class MMSSpringApp : CoreSpringApp() {
             isEditablePoint = false
         )
 
-        hmElementConfig[sdcMMSState.TYPE_STATE_S_TEXT_25D] = XyElementConfig(
-            name = sdcMMSState.TYPE_STATE_S_TEXT_25D,
+        hmElementConfig[sdcMMSSchemeObject.TYPE_STATE_S_TEXT_25D] = XyElementConfig(
+            name = sdcMMSSchemeObject.TYPE_STATE_S_TEXT_25D,
             clientType = XyElementClientType.HTML_TEXT,
             layer = 19,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
+        )
+
+        return hmElementConfig
+    }
+
+    private fun initSchemeAnalogueIndicatorElementConfig(minScale: Int, maxScale: Int): MutableMap<String, XyElementConfig> {
+
+        val hmElementConfig = initXyElementConfig(level = 10, minScale = minScale, maxScale = maxScale)
+
+        hmElementConfig[sdcMMSSchemeAnalogueIndicator.TYPE_SCHEME_AI_TITLE_TEXT] = XyElementConfig(
+            name = sdcMMSSchemeAnalogueIndicator.TYPE_SCHEME_AI_TITLE_TEXT,
+            clientType = XyElementClientType.TEXT,
+            layer = 11,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
+        )
+
+        hmElementConfig[sdcMMSSchemeAnalogueIndicator.TYPE_SCHEME_AI_INDICATOR] = XyElementConfig(
+            name = sdcMMSSchemeAnalogueIndicator.TYPE_SCHEME_AI_INDICATOR,
+            clientType = XyElementClientType.ARC,
+            layer = 11,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
+        )
+
+        hmElementConfig[sdcMMSSchemeAnalogueIndicator.TYPE_SCHEME_AI_ARROW] = XyElementConfig(
+            name = sdcMMSSchemeAnalogueIndicator.TYPE_SCHEME_AI_ARROW,
+            clientType = XyElementClientType.POLY,
+            layer = 11,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
+        )
+
+        hmElementConfig[sdcMMSSchemeAnalogueIndicator.TYPE_SCHEME_AI_VALUE_TEXT] = XyElementConfig(
+            name = sdcMMSSchemeAnalogueIndicator.TYPE_SCHEME_AI_VALUE_TEXT,
+            clientType = XyElementClientType.TEXT,
+            layer = 11,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
+        )
+
+        hmElementConfig[sdcMMSSchemeAnalogueIndicator.TYPE_SCHEME_AI_DESCR_TEXT] = XyElementConfig(
+            name = sdcMMSSchemeAnalogueIndicator.TYPE_SCHEME_AI_DESCR_TEXT,
+            clientType = XyElementClientType.TEXT,
+            layer = 11,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
+        )
+
+        return hmElementConfig
+    }
+
+    private fun initSchemeTextElementConfig(minScale: Int, maxScale: Int): MutableMap<String, XyElementConfig> {
+
+        val hmElementConfig = initXyElementConfig(level = 10, minScale = minScale, maxScale = maxScale)
+
+        hmElementConfig[sdcMMSSchemeText.TYPE_SCHEME_TEXT_TITLE_TEXT] = XyElementConfig(
+            name = sdcMMSSchemeText.TYPE_SCHEME_TEXT_TITLE_TEXT,
+            clientType = XyElementClientType.TEXT,
+            layer = 11,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
+        )
+
+        hmElementConfig[sdcMMSSchemeText.TYPE_SCHEME_TEXT_VALUE_TEXT] = XyElementConfig(
+            name = sdcMMSSchemeText.TYPE_SCHEME_TEXT_VALUE_TEXT,
+            clientType = XyElementClientType.TEXT,
+            layer = 11,
+            scaleMin = minScale,
+            scaleMax = maxScale,
+            descrForAction = "",
+            isRotatable = false,
+            isMoveable = false,
+            isEditablePoint = false
+        )
+
+        hmElementConfig[sdcMMSSchemeText.TYPE_SCHEME_TEXT_DESCR_TEXT] = XyElementConfig(
+            name = sdcMMSSchemeText.TYPE_SCHEME_TEXT_DESCR_TEXT,
+            clientType = XyElementClientType.TEXT,
+            layer = 11,
             scaleMin = minScale,
             scaleMax = maxScale,
             descrForAction = "",
