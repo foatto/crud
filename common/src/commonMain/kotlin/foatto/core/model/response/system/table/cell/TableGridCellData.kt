@@ -1,4 +1,4 @@
-package foatto.core.model.response.system.table.cells
+package foatto.core.model.response.system.table.cell
 
 import kotlinx.serialization.Serializable
 

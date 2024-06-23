@@ -1,0 +1,24 @@
+package foatto.core
+
+object IconName {
+    const val ADD_FOLDER: String = "add_folder"
+    const val ADD_ITEM: String = "add_item"
+    const val ARCHIVE: String = "archive"
+    const val BOSS: String = "boss"
+    const val CHART: String = "chart"
+    const val CLOSE: String = "close"
+    const val DELETE: String = "delete"
+    const val DIVISION: String = "division"
+    const val EXIT: String = "exit"
+    const val FILE: String = "file"
+    const val FOLDER: String = "folder"
+    const val MAP: String = "map"
+    const val PRINT_TABLE: String = "print_table"
+    const val PRINT_FORM: String = "print_form"
+    const val SAVE: String = "save"
+    const val SCHEME: String = "scheme"
+    const val SELECT: String = "select"
+    const val UNARCHIVE: String = "unarchive"
+    const val VIDEO: String = "video"
+    const val WORKER: String = "worker"
+}

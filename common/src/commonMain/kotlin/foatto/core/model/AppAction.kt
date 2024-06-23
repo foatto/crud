@@ -1,22 +1,23 @@
 package foatto.core.model
 
+import foatto.core.ActionType
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class AppAction(
-    val type: ActionType,
+    val type: String,
 
-    val module: AppModule? = null,
+    val module: String? = null,
     val id: Long? = null,
 
-    val parentModule: AppModule? = null,
+    val parentModule: String? = null,
     val parentId: Long? = null,
 
     val prevAction: AppAction? = null,
 
     val isSelectorMode: Boolean = false,
-    val selectorData: Map<String,String> = emptyMap(),
-    val selectorPath: Map<String,String> = emptyMap(),
+    val selectorData: Map<String, String> = emptyMap(),
+    val selectorPath: Map<String, String> = emptyMap(),
 
     val url: String? = null,
     val isAutoClose: Boolean = false,

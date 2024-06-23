@@ -1,9 +1,9 @@
-package foatto.core.model.response.system.table.cells
+package foatto.core.model.response.system.table.cell
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-class TableSimpleCell(
+class TableButtonCell(
     override val row: Int,
     override val col: Int,
     override val rowSpan: Int = 1,
@@ -17,16 +17,5 @@ class TableSimpleCell(
     override val foreColor: Int? = null,
     override val fontStyle: Int = 0,
 
-    val iconName: String? = null,
-    val imageUrl: String? = null,
-    val text: String? = null,
-
-    val isWordWrap: Boolean = true,
+    val values: List<TableButtonCellData>,
 ) : TableBaseCell()
-//            if (cs.isPassword) {
-//                "********"
-//            } else if (text.isEmpty()) {
-//                cs.emptyValueString
-//            } else {
-//                text
-//            }

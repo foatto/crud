@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 import foatto.core.model.response.system.table.AddActionButton
 import foatto.core.model.response.system.table.ClientActionButton
 import foatto.core.model.response.system.table.TableRowData
-import foatto.core.model.response.system.table.cells.TableBaseCell
+import foatto.core.model.response.system.table.cell.TableBaseCell
 
 @Serializable
 class TableResponse(
