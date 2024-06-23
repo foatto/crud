@@ -4,7 +4,7 @@ import foatto.core.app.chart.*
 import foatto.core.app.xy.XyProjection
 import foatto.util.AdvancedByteBuffer
 import foatto.core_server.app.AppParameter
-import foatto.core_server.app.graphic.server.GraphicStartData
+import foatto.core_server.app.graphic.server.ChartStartData
 import foatto.core_server.app.graphic.server.document.sdcAbstractGraphic
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.ZoneData
@@ -27,7 +27,7 @@ class sdcSpeed : sdcAbstractGraphic() {
         //AnalogGraphicHandler agh = ( AnalogGraphicHandler ) mmsgdc.graphicHandler;
 
         val graphicStartDataID = chartActionRequest.startParamId
-        val sd = chmSession[AppParameter.GRAPHIC_START_DATA + graphicStartDataID] as GraphicStartData
+        val sd = chmSession[AppParameter.CHART_START_DATA + graphicStartDataID] as ChartStartData
 
         val x1 = chartActionRequest.graphicCoords!!.first
         val x2 = chartActionRequest.graphicCoords!!.second

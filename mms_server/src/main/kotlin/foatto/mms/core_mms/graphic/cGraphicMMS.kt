@@ -5,7 +5,7 @@ import foatto.core.link.AppAction
 import foatto.core.link.FormData
 import foatto.core.util.getRandomInt
 import foatto.core_server.app.AppParameter
-import foatto.core_server.app.graphic.server.GraphicStartData
+import foatto.core_server.app.graphic.server.ChartStartData
 import foatto.core_server.app.server.cAbstractForm
 import foatto.core_server.app.server.data.DataDate3Int
 import foatto.core_server.app.server.data.DataInt
@@ -37,7 +37,7 @@ class cGraphicMMS : cAbstractForm() {
         //--- выборка данных параметров для отчета
         val selectObject = (hmColumnData[msfd.columnObject] as DataInt).intValue
 
-        val sd = GraphicStartData()
+        val sd = ChartStartData()
         sd.objectId = selectObject
         sd.rangeType = (hmColumnData[msfd.columnShowRangeType] as DataRadioButton).intValue
 
@@ -57,19 +57,19 @@ class cGraphicMMS : cAbstractForm() {
         //--- заполнение текста заголовка информацией по объекту
         val oc = (application as iMMSApplication).getObjectConfig(userConfig, selectObject)
 
-        sd.shortTitle = aliasConfig.descr + "\n${oc.name}"
+        sd.title = aliasConfig.descr + "\n${oc.name}"
         if (oc.model.isNotEmpty()) {
-            sd.shortTitle += ", ${oc.model}"
+            sd.title += ", ${oc.model}"
         }
 
-        sd.fullTitle = oc.name
+        sd.tooltip = oc.name
         if (oc.model.isNotEmpty()) {
-            sd.fullTitle += "\nМодель: ${oc.model}"
+            sd.tooltip += "\nМодель: ${oc.model}"
         }
 
         //--- заполнение текста заголовка информацией по периоду времени
         if (sd.rangeType != 0) {
-            sd.fullTitle += " за последние " +
+            sd.tooltip += " за последние " +
                 if (sd.rangeType % 3600 == 0) {
                     "${sd.rangeType / 3600} час(а,ов) "
                 } else if (sd.rangeType % 60 == 0) {
@@ -80,9 +80,9 @@ class cGraphicMMS : cAbstractForm() {
         }
 
         val paramID = getRandomInt()
-        hmOut[AppParameter.GRAPHIC_START_DATA + paramID] = sd
+        hmOut[AppParameter.CHART_START_DATA + paramID] = sd
 
-        return getParamURL(aliasConfig.name, AppAction.GRAPHIC, null, null, null, null, "&${AppParameter.GRAPHIC_START_DATA}=$paramID")
+        return getParamURL(aliasConfig.name, AppAction.GRAPHIC, null, null, null, null, "&${AppParameter.CHART_START_DATA}=$paramID")
     }
 }
 

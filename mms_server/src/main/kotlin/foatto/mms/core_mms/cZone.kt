@@ -22,18 +22,20 @@ class cZone : cStandart() {
     override fun getAddButtonURL(refererID: String, hmOut: MutableMap<String, Any>): MutableList<AddActionButton> {
         val alAddButtonList = super.getAddButtonURL(refererID, hmOut)
 
-        val sd = XyStartData()
-
         //--- загрузить список всех доступных по правам доступа зон
         val hmZoneData = ZoneData.getZoneData(conn, userConfig, 0)
 
-        for (zoneID in hmZoneData.keys) sd.alStartObjectData.add(XyStartObjectData(zoneID, "mms_zone", false, false, hmZoneData[zoneID]!!.hmUserRO[userConfig.userId]!!))
-
-        sd.shortTitle = "Создание геозоны"
-        sd.fullTitle = "Создание геозоны"
+        val alStartObjectData = mutableListOf<XyStartObjectData>()
+        for (zoneID in hmZoneData.keys) {
+            alStartObjectData.add(XyStartObjectData(zoneID, "mms_zone", false, false, hmZoneData[zoneID]!!.hmUserRO[userConfig.userId]!!))
+        }
 
         val paramID = getRandomInt()
-        hmOut[AppParameter.XY_START_DATA + paramID] = sd
+        hmOut[AppParameter.XY_START_DATA + paramID] = XyStartData(
+            alStartObjectData = alStartObjectData,
+            title = "Создание геозоны",
+            tooltip = "Создание геозоны",
+        )
 
         //--- для команды XY alias обозначает xy_document_type_name
         alAddButtonList.add(

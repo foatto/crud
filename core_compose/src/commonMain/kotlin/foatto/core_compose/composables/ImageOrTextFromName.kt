@@ -6,8 +6,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import foatto.core_compose.di.hmNameToImageVector
-import foatto.core_compose.di.hmNameToUrl
+import foatto.core_compose.utils.hmNameToImageVector
+import foatto.core_compose.utils.hmNameToUrl
 import foatto.core_compose.utils.getFullUrl
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource

@@ -35,27 +35,27 @@ class cShowState : cAbstractForm() {
 
         val oc = (application as iMMSApplication).getObjectConfig(userConfig, selectobjectId)
 
-        val sd = XyStartData()
-
-        sd.shortTitle = aliasConfig.descr + "\n${oc.name}"
+        var title = aliasConfig.descr + "\n${oc.name}"
         if (oc.model.isNotEmpty()) {
-            sd.shortTitle += ", ${oc.model}"
+            title += ", ${oc.model}"
         }
 
-        sd.fullTitle = oc.name
+        var tooltip = oc.name
         if (oc.model.isNotEmpty()) {
-            sd.fullTitle += "\nМодель: ${oc.model}"
+            tooltip += "\nМодель: ${oc.model}"
         }
-
-        sd.alStartObjectData.add(XyStartObjectData(selectobjectId, "mms_object", true, false, true))
 
         val paramID = getRandomInt()
-        hmOut[AppParameter.XY_START_DATA + paramID] = sd
+        hmOut[AppParameter.XY_START_DATA + paramID] = XyStartData(
+            alStartObjectData = mutableListOf(XyStartObjectData(selectobjectId, "mms_object", true, false, true)),
+            title = title,
+            tooltip = tooltip,
+        )
 
         //--- для команды XY alias обозначает xy_document_type_name
         //--- в отличие от графиков на картах/схемах может быть несколько классов-запускателей
         //--- (траектории объектов, зоны, схема оборудования/датчиков и т.п.)
-        return getParamURL("mms_state", AppAction.XY, null, null, null, null, "&${AppParameter.XY_START_DATA}=$paramID")
+        return getParamURL("mms_scheme_object", AppAction.XY, null, null, null, null, "&${AppParameter.XY_START_DATA}=$paramID")
     }
 
 }

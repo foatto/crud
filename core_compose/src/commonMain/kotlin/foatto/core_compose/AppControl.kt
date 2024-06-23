@@ -21,9 +21,9 @@ import foatto.core.link.ResponseCode
 import foatto.core.link.XyDocumentClientType
 import foatto.core_compose.composables.LogonForm
 import foatto.core_compose.controls.*
-import foatto.core_compose.di.SETTINGS_LOGIN
-import foatto.core_compose.di.SETTINGS_PASSWORD
-import foatto.core_compose.di.settings
+import foatto.core_compose.utils.SETTINGS_LOGIN
+import foatto.core_compose.utils.SETTINGS_PASSWORD
+import foatto.core_compose.utils.settings
 import foatto.core_compose.models.MenuDataClient
 import foatto.core_compose.utils.encodePassword
 
@@ -232,7 +232,7 @@ class AppControl(
                         appResponse.xy?.let { xy ->
                             val xyControl = when (xy.documentConfig.clientType) {
                                 XyDocumentClientType.MAP -> MapControl(root, this, xy, tabId)
-                                XyDocumentClientType.STATE -> SchemeControl(root, this, xy, tabId)
+                                XyDocumentClientType.SCHEME -> SchemeControl(root, this, xy, tabId)
                             }
                             curControl = xyControl
                             responseCode = appResponse.code

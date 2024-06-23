@@ -641,8 +641,8 @@ class ChartControl(
         }
 
     override fun start() {
-        root.setTabInfo(tabId, chartResponse.shortTitle, chartResponse.fullTitle)
-        alTitleData.addAll(chartResponse.fullTitle.split('\n').filter { it.isNotBlank() }.map { TitleData("", it) })
+        root.setTabInfo(tabId, chartResponse.title, chartResponse.tooltip)
+        alTitleData.addAll(chartResponse.tooltip.split('\n').filter { it.isNotBlank() }.map { TitleData("", it) })
 
         startChartSpecific()
     }

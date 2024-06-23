@@ -3,10 +3,6 @@ package foatto.core_compose.utils
 import android.content.Intent
 import android.net.Uri
 import foatto.core_compose.CoreMainApplication
-import foatto.core_compose.di.SETTINGS_SERVER_ADDRESS
-import foatto.core_compose.di.SETTINGS_SERVER_PORT
-import foatto.core_compose.di.SETTINGS_SERVER_PROTOCOL
-import foatto.core_compose.di.settings
 import io.ktor.http.*
 
 internal actual fun openFileByUrl(url: String) {

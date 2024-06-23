@@ -1,20 +1,16 @@
 package foatto.core_server.app.xy
 
-import foatto.core.link.XyServerActionButton
+import foatto.core.link.ServerActionButton
 
-class XyStartData {
-
-    var alStartObjectData = mutableListOf<XyStartObjectData>()
-
-    var rangeType = 0
-    var begTime = 0
-    var endTime = 0
-
-    var shortTitle = ""
-    var fullTitle = ""
-
-    var alServerActionButton = mutableListOf<XyServerActionButton>()
-}
+class XyStartData(
+    val alStartObjectData: MutableList<XyStartObjectData>,
+    val rangeType: Int = 0, // для статических элементов неюзабельно
+    val begTime: Int = 0,
+    val endTime: Int = 0,
+    var title: String = "",
+    var tooltip: String = "",
+    val alServerActionButton: MutableList<ServerActionButton> = mutableListOf(),
+)
 
 class XyStartObjectData(
     val objectId: Int,
@@ -23,11 +19,6 @@ class XyStartObjectData(
     var isTimed: Boolean = false,
     var isReadOnly: Boolean = false
 )
-//{
-//    constructor( aobjectId: Int ) {
-//        objectId = aobjectId
-//    }
-//}
 
 class XyStartObjectParsedData(val objectId: Int) {
     val hsType = mutableSetOf<String>()

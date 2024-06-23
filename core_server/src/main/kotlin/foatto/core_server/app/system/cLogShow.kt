@@ -5,7 +5,7 @@ import foatto.core.link.AppAction
 import foatto.core.link.FormData
 import foatto.core.util.getRandomInt
 import foatto.core_server.app.AppParameter
-import foatto.core_server.app.graphic.server.GraphicStartData
+import foatto.core_server.app.graphic.server.ChartStartData
 import foatto.core_server.app.server.cAbstractForm
 import foatto.core_server.app.server.data.DataDate3Int
 import foatto.core_server.app.server.data.DataRadioButton
@@ -26,7 +26,7 @@ class cLogShow : cAbstractForm() {
         val msfd = model as mLogShow
 
         //--- выборка данных параметров для отчета
-        val sd = GraphicStartData()
+        val sd = ChartStartData()
         //sd.objectId = selectObject;
         sd.rangeType = (hmColumnData[msfd.columnShowRangeType] as DataRadioButton).intValue
 
@@ -44,12 +44,12 @@ class cLogShow : cAbstractForm() {
         }
 
         //--- заполнение текста заголовка информацией по объекту
-        sd.shortTitle = aliasConfig.name
-        sd.fullTitle = ""
+        sd.title = aliasConfig.name
+        sd.tooltip = ""
 
         //--- заполнение текста заголовка информацией по периоду времени
         if (sd.rangeType != 0) {
-            sd.fullTitle += " за последние " +
+            sd.tooltip += " за последние " +
                 if (sd.rangeType % 3600 == 0) {
                     "${sd.rangeType / 3600} час(а,ов) "
                 } else if (sd.rangeType % 60 == 0) {
@@ -60,9 +60,9 @@ class cLogShow : cAbstractForm() {
         }
 
         val paramID = getRandomInt()
-        hmOut[AppParameter.GRAPHIC_START_DATA + paramID] = sd
+        hmOut[AppParameter.CHART_START_DATA + paramID] = sd
 
-        return getParamURL(aliasConfig.name, AppAction.GRAPHIC, null, null, null, null, "&${AppParameter.GRAPHIC_START_DATA}=$paramID")
+        return getParamURL(aliasConfig.name, AppAction.GRAPHIC, null, null, null, null, "&${AppParameter.CHART_START_DATA}=$paramID")
     }
 }
 

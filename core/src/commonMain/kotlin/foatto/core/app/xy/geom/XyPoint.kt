@@ -8,6 +8,8 @@ class XyPoint(var x: Int, var y: Int) {
 
     constructor(aX: Float, aY: Float) : this(aX.toInt(), aY.toInt())
 
+    constructor(aX: Double, aY: Double) : this(aX.toInt(), aY.toInt())
+
     fun set(aP: XyPoint) {
         set(aP.x, aP.y)
     }

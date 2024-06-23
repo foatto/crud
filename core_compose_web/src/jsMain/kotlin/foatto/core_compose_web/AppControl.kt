@@ -495,7 +495,7 @@ open class AppControl(
                         appResponse.xy?.let { xy ->
                             val xyControl = when (xy.documentConfig.clientType) {
                                 XyDocumentClientType.MAP -> MapControl(root, this, xy, tabId)
-                                XyDocumentClientType.STATE -> StateControl(root, this, xy, tabId)
+                                XyDocumentClientType.SCHEME -> StateControl(root, this, xy, tabId)
                                 else -> MapControl(root, this, xy, tabId)
                             }
                             curControl.value = xyControl

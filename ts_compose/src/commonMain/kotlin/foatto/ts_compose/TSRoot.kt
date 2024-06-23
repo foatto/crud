@@ -1,11 +1,11 @@
 package foatto.ts_compose
 
 import foatto.core_compose.Root
-import foatto.core_compose.di.SETTINGS_SERVER_ADDRESS
-import foatto.core_compose.di.SETTINGS_SERVER_PORT
-import foatto.core_compose.di.SETTINGS_SERVER_PROTOCOL
-import foatto.core_compose.di.SETTINGS_APP_PARAM
-import foatto.core_compose.di.settings
+import foatto.core_compose.utils.SETTINGS_SERVER_ADDRESS
+import foatto.core_compose.utils.SETTINGS_SERVER_PORT
+import foatto.core_compose.utils.SETTINGS_SERVER_PROTOCOL
+import foatto.core_compose.utils.SETTINGS_APP_PARAM
+import foatto.core_compose.utils.settings
 
 class TSRoot : Root() {
     init {

@@ -30,11 +30,9 @@ class cShowZone : cAbstractForm() {
         val hmZoneData = ZoneData.getZoneData(conn, userConfig, 0)
         val zoneData = hmZoneData[showZoneID]!!
 
-        val sd = XyStartData()
-        sd.shortTitle = aliasConfig.descr
-        sd.fullTitle = "Геозона: ${zoneData.name} [${zoneData.descr}]"
         //--- информация по зоне
-        sd.alStartObjectData.add(XyStartObjectData(showZoneID, "mms_zone", true, false, zoneData.hmUserRO[userConfig.userId]!!))
+        val alStartObjectData = mutableListOf<XyStartObjectData>()
+        alStartObjectData.add(XyStartObjectData(showZoneID, "mms_zone", true, false, zoneData.hmUserRO[userConfig.userId]!!))
 
         val hmAllZone = mutableMapOf<Int, Boolean>()
         for ((zoneID, zd) in hmZoneData) {
@@ -43,12 +41,16 @@ class cShowZone : cAbstractForm() {
 
         for (zoneID in hmAllZone.keys) {
             if (zoneID != showZoneID) {
-                sd.alStartObjectData.add(XyStartObjectData(zoneID, "mms_zone", false, false, hmAllZone[zoneID]!!))
+                alStartObjectData.add(XyStartObjectData(zoneID, "mms_zone", false, false, hmAllZone[zoneID]!!))
             }
         }
 
         val paramID = getRandomInt()
-        hmOut[AppParameter.XY_START_DATA + paramID] = sd
+        hmOut[AppParameter.XY_START_DATA + paramID] = XyStartData(
+            alStartObjectData = alStartObjectData,
+            title = aliasConfig.descr,
+            tooltip = "Геозона: ${zoneData.name} [${zoneData.descr}]",
+        )
 
         //--- для команды XY alias обозначает xy_document_type_name
         //--- в отличие от графиков на картах может быть несколько классов-запускателей

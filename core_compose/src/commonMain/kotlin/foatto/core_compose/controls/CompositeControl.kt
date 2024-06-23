@@ -159,7 +159,7 @@ class CompositeControl(
                             )
                         }
 
-                        XyDocumentClientType.STATE -> SchemeControl(root, appControl, xyResponse, tabId).apply {
+                        XyDocumentClientType.SCHEME -> SchemeControl(root, appControl, xyResponse, tabId).apply {
                             startXySpecific(
                                 startExpandKoef = SchemeControl.SCHEME_START_EXPAND_KOEF,
                                 isCentered = true,

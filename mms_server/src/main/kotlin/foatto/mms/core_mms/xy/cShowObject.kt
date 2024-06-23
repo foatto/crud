@@ -28,27 +28,36 @@ class cShowObject : cShowAbstractObject() {
             alobjectId.add(selectObject)
         }
 
-        val sd = XyStartData()
-        for (objectId in alobjectId)
-            sd.alStartObjectData.add(XyStartObjectData(objectId))
-        sd.rangeType = (hmColumnData[msa.columnShowRangeType] as DataRadioButton).intValue
-
-        //--- обработка динамических диапазонов - здесь не нужна, будет постоянно производиться при запросах траектории
-        if (sd.rangeType == -1) {
-            sd.begTime = ZonedDateTime.of(
-                (hmColumnData[msa.columnShowBegDate] as DataDate3Int).localDate,
-                (hmColumnData[msa.columnShowBegTime] as DataTime3Int).localTime,
-                zoneId
-            ).toEpochSecond().toInt()
-            sd.endTime = ZonedDateTime.of(
-                (hmColumnData[msa.columnShowEndDate] as DataDate3Int).localDate,
-                (hmColumnData[msa.columnShowEndTime] as DataTime3Int).localTime,
-                zoneId
-            ).toEpochSecond().toInt()
+        val alStartObjectData = mutableListOf<XyStartObjectData>()
+        for (objectId in alobjectId) {
+            alStartObjectData.add(XyStartObjectData(objectId))
         }
+        val rangeType = (hmColumnData[msa.columnShowRangeType] as DataRadioButton).intValue
+
         showZoneType = (hmColumnData[msa.columnShowZoneType] as DataComboBox).intValue
 
-        return sd
+        return XyStartData(
+            alStartObjectData = alStartObjectData,
+            rangeType = rangeType,
+            begTime = if (rangeType == -1) {
+                ZonedDateTime.of(
+                    (hmColumnData[msa.columnShowBegDate] as DataDate3Int).localDate,
+                    (hmColumnData[msa.columnShowBegTime] as DataTime3Int).localTime,
+                    zoneId
+                ).toEpochSecond().toInt()
+            } else {
+                0
+            },
+            endTime = if (rangeType == -1) {
+                ZonedDateTime.of(
+                    (hmColumnData[msa.columnShowEndDate] as DataDate3Int).localDate,
+                    (hmColumnData[msa.columnShowEndTime] as DataTime3Int).localTime,
+                    zoneId
+                ).toEpochSecond().toInt()
+            } else {
+                0
+            },
+        )
     }
 
 }

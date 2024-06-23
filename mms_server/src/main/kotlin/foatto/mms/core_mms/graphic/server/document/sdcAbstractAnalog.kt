@@ -2,7 +2,7 @@ package foatto.mms.core_mms.graphic.server.document
 
 import foatto.core.app.chart.*
 import foatto.core_server.app.AppParameter
-import foatto.core_server.app.graphic.server.GraphicStartData
+import foatto.core_server.app.graphic.server.ChartStartData
 import foatto.core_server.app.graphic.server.document.sdcAbstractGraphic
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.calc.AbstractObjectStateCalc
@@ -218,7 +218,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
         isCommonTroubleShowed = false
 
         val graphicStartDataID = chartActionRequest.startParamId
-        val sd = chmSession[AppParameter.GRAPHIC_START_DATA + graphicStartDataID] as GraphicStartData
+        val sd = chmSession[AppParameter.CHART_START_DATA + graphicStartDataID] as ChartStartData
 
         val (begTime, endTime) = chartActionRequest.graphicCoords!!
         val (viewWidth, viewHeight) = chartActionRequest.viewSize!!
@@ -266,7 +266,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
 
     //--- realize list of charts/graphics
     abstract fun getGraphicElements(
-        sd: GraphicStartData,
+        sd: ChartStartData,
         begTime: Int,
         endTime: Int,
         viewWidth: Int,

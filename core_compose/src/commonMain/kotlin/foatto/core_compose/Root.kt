@@ -33,10 +33,10 @@ import foatto.core_compose.composables.PasswordChangeDialog
 import foatto.core_compose.composables.StardartDialog
 import foatto.core_compose.composables.TabPanel
 import foatto.core_compose.composables.getClientSubMenu
-import foatto.core_compose.di.SETTINGS_APP_PARAM
-import foatto.core_compose.di.SETTINGS_LOGIN
-import foatto.core_compose.di.SETTINGS_PASSWORD
-import foatto.core_compose.di.settings
+import foatto.core_compose.utils.SETTINGS_APP_PARAM
+import foatto.core_compose.utils.SETTINGS_LOGIN
+import foatto.core_compose.utils.SETTINGS_PASSWORD
+import foatto.core_compose.utils.settings
 import foatto.core_compose.models.MenuDataClient
 import foatto.core_compose.models.TabInfo
 import foatto.core_compose.utils.encodePassword

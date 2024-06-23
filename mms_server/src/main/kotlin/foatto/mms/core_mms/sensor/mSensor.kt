@@ -428,7 +428,7 @@ class mSensor : mAbstract() {
             addFormVisible(columnSensorType, true, liquidLevelSensorType)
         }
 
-        val columnIsUseAggregator = ColumnBoolean(modelTableName, "is_use_aggregator", "Использовать агрегатор данных", false)  // включить после отладки? дать доступ монтажникам?
+        val columnIsUseAggregator = ColumnBoolean(modelTableName, "is_use_aggregator", "Использовать агрегатор данных", false)  //!!! включить после отладки? дать доступ монтажникам?
         columnIsRecalcAggregator = ColumnBoolean(modelTableName, "_is_recalc_aggregator", "Пересчитать в агрегаторе", false).apply {
             isVirtual = true
         }

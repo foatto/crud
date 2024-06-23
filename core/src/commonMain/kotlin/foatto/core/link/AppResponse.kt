@@ -14,11 +14,8 @@ class AppResponse(
     val xy: XyResponse? = null,
     val composite: CompositeResponse? = null,
 ) {
-
     var currentUserName = ""
-
     var hmUserProperty: Map<String, String>? = null
-
     var alMenuData: List<MenuData>? = null
 }
 
@@ -56,8 +53,9 @@ class MenuData(
 class ChartResponse(
     val documentTypeName: String,
     val startParamId: String,
-    val shortTitle: String,
-    val fullTitle: String,
+    
+    val title: String,
+    val tooltip: String,
 
     val rangeType: Int,
     val begTime: Int,

@@ -8,7 +8,7 @@ import foatto.core.app.chart.ChartElementLineDTO
 import foatto.core.app.chart.ChartElementTypeDTO
 import foatto.util.AdvancedByteBuffer
 import foatto.core_server.app.graphic.server.GraphicDocumentConfig
-import foatto.core_server.app.graphic.server.GraphicStartData
+import foatto.core_server.app.graphic.server.ChartStartData
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.calc.ObjectCalc
 import foatto.mms.core_mms.graphic.server.MMSGraphicDocumentConfig
@@ -73,7 +73,7 @@ class sdcLiquid : sdcAbstractAnalog() {
 //    private val alEnergoPowerLine = mutableListOf<GraphicDataContainer?>()
 
     override fun getGraphicElements(
-        sd: GraphicStartData,
+        sd: ChartStartData,
         begTime: Int,
         endTime: Int,
         viewWidth: Int,

@@ -41,7 +41,12 @@ fun getSplittedLong(value: Long, radix: Int = 10): String {
     return sOut
 }
 
-fun getSplittedDouble(value: Double, precision: Int, isUseThousandsDivider: Boolean, decimalDivider: Char): String {
+fun getSplittedDouble(
+    value: Double,
+    precision: Int,
+    isUseThousandsDivider: Boolean = true,
+    decimalDivider: Char = '.'
+): String {
 //    println("--------------------------------------")
 //    println("value = $value")
 //    println("precision = $precision")

@@ -17,7 +17,7 @@ import foatto.core_compose.controls.ElementMoveData
 import foatto.core_compose.controls.composables.RefreshSubToolBar
 import foatto.core_compose.controls.composables.ToolBarBlock
 import foatto.core_compose.controls.composables.ToolBarIconButton
-import foatto.core_compose.controls.models.xy.XyServerActionButtonData
+import foatto.core_compose.controls.models.table.ServerActionButtonClient
 import foatto.core_compose.getStyleToolbarIconNameSuffix
 
 @Composable
@@ -26,7 +26,7 @@ internal fun SchemeToolBar(
     refreshInterval: Int,
     isElementMoveEnabled: Boolean,
     isShowElementList: Boolean,
-    alXyServerButton: SnapshotStateList<XyServerActionButtonData>,
+    alServerButton: SnapshotStateList<ServerActionButtonClient>,
     alMoveableElementData: SnapshotStateList<ElementMoveData>,
     onServerButtonClick: (url: String) -> Unit,
     onMoveButtonClick: () -> Unit,
@@ -54,13 +54,13 @@ internal fun SchemeToolBar(
             // Space()?
         }
         ToolBarBlock {
-            for (serverButton in alXyServerButton) {
+            for (serverButton in alServerButton) {
                 if (isWideScreen || !serverButton.isForWideScreenOnly) {
                     ToolBarIconButton(
-                        name = serverButton.icon,
-                        tooltip = serverButton.caption,
+                        name = serverButton.name,
+                        tooltip = serverButton.tooltip,
                     ) {
-                        onServerButtonClick(serverButton.url)
+                        onServerButtonClick(serverButton.action)
                     }
                 }
             }

@@ -3,7 +3,7 @@ package foatto.ts.core_ts.graphic.server.document
 import foatto.core.app.chart.ChartGroupDTO
 import foatto.util.AdvancedByteBuffer
 import foatto.core_server.app.graphic.server.GraphicDocumentConfig
-import foatto.core_server.app.graphic.server.GraphicStartData
+import foatto.core_server.app.graphic.server.ChartStartData
 import foatto.ts.core_ts.ObjectConfig
 import foatto.ts.core_ts.graphic.server.TSGraphicDocumentConfig
 import foatto.ts.core_ts.graphic.server.graphic_handler.AnalogGraphicHandler
@@ -127,7 +127,7 @@ class sdcAnalog : sdcAbstractAnalog() {
     }
 
     override fun getGraphicElements(
-        sd: GraphicStartData,
+        sd: ChartStartData,
         begTime: Int,
         endTime: Int,
         viewWidth: Int,

@@ -301,7 +301,9 @@ class StateControl(
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     override fun start() {
-        XyServerActionButtonData.readXyServerActionButton(xyResponse.alServerActionButton, alXyServerButton)
+        xyResponse.alServerActionButton?.let { alServerActionButton ->
+            XyServerActionButtonData.readXyServerActionButton(alServerActionButton, alXyServerButton)
+        }
 
         doXyMounted(
             startExpandKoef = STATE_START_EXPAND_KOEF,

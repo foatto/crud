@@ -7,10 +7,10 @@ import foatto.core.app.xy.XyActionRequest
 import foatto.core.app.xy.XyActionResponse
 import foatto.core.link.*
 import foatto.core_compose.controls.models.form.FormGridData
-import foatto.core_compose.di.SETTINGS_SERVER_ADDRESS
-import foatto.core_compose.di.SETTINGS_SERVER_PORT
-import foatto.core_compose.di.SETTINGS_SERVER_PROTOCOL
-import foatto.core_compose.di.settings
+import foatto.core_compose.utils.SETTINGS_SERVER_ADDRESS
+import foatto.core_compose.utils.SETTINGS_SERVER_PORT
+import foatto.core_compose.utils.SETTINGS_SERVER_PROTOCOL
+import foatto.core_compose.utils.settings
 import foatto.core_compose.utils.applicationDispatcher
 import io.ktor.client.*
 import io.ktor.client.call.*

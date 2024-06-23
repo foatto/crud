@@ -2,12 +2,9 @@ package foatto.core_compose.controls
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.gestures.scrollBy
-import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -19,9 +16,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.PointerInputChange
-import androidx.compose.ui.input.pointer.isSecondaryPressed
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -519,15 +513,7 @@ class TableControl(
     private fun readServerButtons() {
         alServerButton.clear()
         for (sab in tableResponse.alServerActionButton) {
-            alServerButton.add(
-                ServerActionButtonClient(
-                    name = sab.icon ?: sab.text ?: "(не заданы иконка и текст)",
-                    tooltip = sab.tooltip,
-                    action = sab.action,
-                    inNewWindow = sab.inNewWindow,
-                    isForWideScreenOnly = sab.isForWideScreenOnly,
-                )
-            )
+            alServerButton.add(ServerActionButtonClient.readFromServerActionButton(sab))
         }
     }
 

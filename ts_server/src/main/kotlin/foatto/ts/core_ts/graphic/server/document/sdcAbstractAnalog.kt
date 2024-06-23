@@ -3,7 +3,7 @@ package foatto.ts.core_ts.graphic.server.document
 import foatto.core.app.chart.*
 import foatto.util.AdvancedByteBuffer
 import foatto.core_server.app.AppParameter
-import foatto.core_server.app.graphic.server.GraphicStartData
+import foatto.core_server.app.graphic.server.ChartStartData
 import foatto.core_server.app.graphic.server.document.sdcAbstractGraphic
 import foatto.ts.core_ts.ObjectConfig
 import foatto.ts.core_ts.calc.ObjectCalc
@@ -19,7 +19,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
 
     override fun doGetElements(chartActionRequest: ChartActionRequest): ChartActionResponse {
         val graphicStartDataID = chartActionRequest.startParamId
-        val sd = chmSession[AppParameter.GRAPHIC_START_DATA + graphicStartDataID] as GraphicStartData
+        val sd = chmSession[AppParameter.CHART_START_DATA + graphicStartDataID] as ChartStartData
 
         val (begTime, endTime) = chartActionRequest.graphicCoords!!
         val (viewWidth, viewHeight) = chartActionRequest.viewSize!!
@@ -60,7 +60,7 @@ abstract class sdcAbstractAnalog : sdcAbstractGraphic() {
 
     //--- realize list of charts/graphics
     abstract fun getGraphicElements(
-        sd: GraphicStartData,
+        sd: ChartStartData,
         begTime: Int,
         endTime: Int,
         viewWidth: Int,

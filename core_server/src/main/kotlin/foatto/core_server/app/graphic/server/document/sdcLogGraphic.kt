@@ -3,7 +3,7 @@ package foatto.core_server.app.graphic.server.document
 import foatto.core.app.chart.*
 import foatto.util.loadTextFile
 import foatto.core_server.app.AppParameter
-import foatto.core_server.app.graphic.server.GraphicStartData
+import foatto.core_server.app.graphic.server.ChartStartData
 import java.io.File
 import java.time.ZonedDateTime
 import java.util.*
@@ -13,7 +13,7 @@ class sdcLogGraphic : sdcAbstractGraphic() {
 
     override fun doGetElements(chartActionRequest: ChartActionRequest): ChartActionResponse {
 
-        val sd = chmSession[AppParameter.GRAPHIC_START_DATA + chartActionRequest.startParamId] as GraphicStartData
+        val sd = chmSession[AppParameter.CHART_START_DATA + chartActionRequest.startParamId] as ChartStartData
 
         val x1 = chartActionRequest.graphicCoords!!.first
         val x2 = chartActionRequest.graphicCoords!!.second
@@ -31,7 +31,7 @@ class sdcLogGraphic : sdcAbstractGraphic() {
         val tmMemoryUsed = TreeMap<Int, Int>()
         val tmMemoryTotal = TreeMap<Int, Int>()
 
-        val dirLog = File(application.hmAliasLogDir[sd.fullTitle]!!)
+        val dirLog = File(application.hmAliasLogDir[sd.tooltip]!!)
         val alLogWord = ArrayList<String>()
 
         val arrFile = dirLog.listFiles()

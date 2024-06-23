@@ -174,6 +174,8 @@ class mObject : mAbstract() {
         alChildData.add(ChildData("ts_setup", columnId, AppAction.FORM, true))
 
         alChildData.add(ChildData("Графики", "ts_graphic_dsltt", columnId, AppAction.FORM, true))
+//        alChildData.add(ChildData("Графики", "ts_graphic_dsl", columnId, AppAction.FORM, true))
+//        alChildData.add(ChildData("Графики", "ts_graphic_tt", columnId, AppAction.FORM, true))
         alChildData.add(ChildData("Графики", "ts_graphic_depth", columnId, AppAction.FORM))
         alChildData.add(ChildData("Графики", "ts_graphic_speed", columnId, AppAction.FORM))
         alChildData.add(ChildData("Графики", "ts_graphic_load", columnId, AppAction.FORM))

@@ -3,6 +3,7 @@ package foatto.spring.controllers
 import foatto.core.app.chart.ChartAction
 import foatto.core.app.chart.ChartActionRequest
 import foatto.core.app.chart.ChartActionResponse
+import foatto.core.app.composite.CompositeResponse
 import foatto.core.app.xy.XyAction
 import foatto.core.app.xy.XyActionRequest
 import foatto.core.app.xy.XyActionResponse
@@ -10,9 +11,8 @@ import foatto.core.link.*
 import foatto.core.util.BusinessException
 import foatto.core.util.getFilledNumberString
 import foatto.core_server.app.AppParameter
-import foatto.core_server.app.composite.server.CompositeStartData
 import foatto.core_server.app.graphic.server.GraphicDocumentConfig
-import foatto.core_server.app.graphic.server.GraphicStartData
+import foatto.core_server.app.graphic.server.ChartStartData
 import foatto.core_server.app.graphic.server.document.sdcAbstractGraphic
 import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.AliasConfig
@@ -311,17 +311,17 @@ abstract class CoreAppController(
                     AppAction.GRAPHIC -> {
 //                        if( userLogMode == SYSTEM_LOG_ALL ) logQuery( hmParam )
                         val aliasName = hmParam[AppParameter.ALIAS]!!
-                        val graphicStartDataID = hmParam[AppParameter.GRAPHIC_START_DATA]!!
+                        val graphicStartDataID = hmParam[AppParameter.CHART_START_DATA]!!
 
-                        val sd = chmSession[AppParameter.GRAPHIC_START_DATA + graphicStartDataID] as GraphicStartData
+                        val sd = chmSession[AppParameter.CHART_START_DATA + graphicStartDataID] as ChartStartData
 
                         appResponse = AppResponse(
                             code = ResponseCode.CHART,
                             chart = ChartResponse(
                                 documentTypeName = aliasName,
                                 startParamId = graphicStartDataID,
-                                shortTitle = sd.shortTitle.substring(0, min(32000, sd.shortTitle.length)),
-                                fullTitle = sd.fullTitle.substring(0, min(32000, sd.fullTitle.length)),
+                                title = sd.title.substring(0, min(32000, sd.title.length)),
+                                tooltip = sd.tooltip.substring(0, min(32000, sd.tooltip.length)),
                                 rangeType = sd.rangeType,
                                 begTime = sd.begTime,
                                 endTime = sd.endTime,
@@ -340,8 +340,8 @@ abstract class CoreAppController(
                             xy = XyResponse(
                                 documentConfig = CoreSpringApp.hmXyDocumentConfig[docTypeName]!!,
                                 startParamId = xyStartDataID,
-                                shortTitle = sd.shortTitle.substring(0, min(32000, sd.shortTitle.length)),
-                                fullTitle = sd.fullTitle.substring(0, min(32000, sd.fullTitle.length)),
+                                title = sd.title.substring(0, min(32000, sd.title.length)),
+                                tooltip = sd.tooltip.substring(0, min(32000, sd.tooltip.length)),
                                 alServerActionButton = sd.alServerActionButton,
                             )
                         )
@@ -367,10 +367,12 @@ abstract class CoreAppController(
 //                    withCompression = doc.doAction( bbIn, bbOut )
 //                    }
                     AppAction.COMPOSITE -> {
-                        val compositeStartDataID = hmParam[AppParameter.COMPOSITE_START_DATA]!!
+                        val compositeResponseId = hmParam[AppParameter.COMPOSITE_RESPONSE_ID]!!
+                        val compositeResponse = chmSession[AppParameter.COMPOSITE_RESPONSE_ID + compositeResponseId] as CompositeResponse
 
-                        appResponse = getCompositeResponse(
-                            compositeStartData = chmSession[AppParameter.COMPOSITE_START_DATA + compositeStartDataID] as CompositeStartData
+                        appResponse = AppResponse(
+                            code = ResponseCode.COMPOSITE,
+                            composite = compositeResponse,
                         )
                     }
 
@@ -684,8 +686,6 @@ abstract class CoreAppController(
 //    }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    protected open fun getCompositeResponse(compositeStartData: CompositeStartData): AppResponse = AppResponse(ResponseCode.COMPOSITE)
 
     protected open fun checkLogSkipAliasPrefix(alias: String): Boolean = false
 

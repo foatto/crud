@@ -556,8 +556,8 @@ abstract class AbstractXyControl(
         isCentered: Boolean,
         curScale: Int,
     ) {
-        root.setTabInfo(tabId, xyResponse.shortTitle, xyResponse.fullTitle)
-        alTitleData += xyResponse.fullTitle.split('\n').filter { it.isNotBlank() }.map { TitleData("", it) }
+        root.setTabInfo(tabId, xyResponse.title, xyResponse.tooltip)
+        alTitleData += xyResponse.tooltip.split('\n').filter { it.isNotBlank() }.map { TitleData("", it) }
 
         doXySpecificComponentMounted(
             startExpandKoef = startExpandKoef,
@@ -825,19 +825,12 @@ abstract class AbstractXyControl(
         alLayer: MutableList<XyElementData>,
     ) {
 
-        val lineWidth = element.lineWidth
-        val drawColor = if (element.drawColor == 0) {
-            COLOR_TRANSPARENT
-        } else {
-            getColorFromInt(element.drawColor)
-        }
-        val fillColor = if (element.fillColor == 0) {
-            COLOR_TRANSPARENT
-        } else {
-            getColorFromInt(element.fillColor)
-        }
+        val lineWidth = element.lineWidth ?: 0
+        val drawColor = getColorFromInt(element.drawColor)
+        val fillColor = getColorFromInt(element.fillColor)
 
         when (elementConfig.clientType) {
+            XyElementClientType.ARC, XyElementClientType.TEXT -> {} // используется только в новой версии compose-клиента
             XyElementClientType.BITMAP -> {
                 val p = element.alPoint.first()
 
@@ -1366,6 +1359,8 @@ abstract class AbstractXyControl(
         var result: XyElementData? = null
 
         when (elementConfig.clientType) {
+            XyElementClientType.ARC, XyElementClientType.TEXT -> {} // используется только в новой версии compose-клиента
+
             XyElementClientType.BITMAP -> {
             }
 

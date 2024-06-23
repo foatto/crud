@@ -28,13 +28,13 @@ object AppParameter {
     const val SAVED_SELECTOR_PARENT = "saved_selector_parent"
 
     //--- через него передается graphic_start_data_id=ХХХ, по которому берется значение graphic_start_data
-    const val GRAPHIC_START_DATA = "graphic_start_data"
+    const val CHART_START_DATA = "chart_start_data"
 
     //---- через него передается xy_start_data_id=ХХХ, по которому берется значение xy_start_data
     const val XY_START_DATA = "xy_start_data"
 
-    //--- через него передается composite_start_data_id=ХХХ, по которому берется значение composite_start_data
-    const val COMPOSITE_START_DATA = "composite_start_data"
+    //--- через него передается composite_response_id=ХХХ, по которому берется значение composite_response
+    const val COMPOSITE_RESPONSE_ID = "composite_response_id"
 
     fun parseParam(appParam: String, hmParam: MutableMap<String, String>): String {
         var action = EMPTY

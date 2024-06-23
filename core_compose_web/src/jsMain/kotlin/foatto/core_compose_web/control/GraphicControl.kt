@@ -761,8 +761,8 @@ class GraphicControl(
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     override fun start() {
-        root.setTabInfo(tabId, graphicResponse.shortTitle, graphicResponse.fullTitle)
-        alTitleData += graphicResponse.fullTitle.split('\n').filter { it.isNotBlank() }.map { TitleData("", it) }
+        root.setTabInfo(tabId, graphicResponse.title, graphicResponse.tooltip)
+        alTitleData += graphicResponse.tooltip.split('\n').filter { it.isNotBlank() }.map { TitleData("", it) }
 
         doGraphicSpecificComponentMounted()
     }
