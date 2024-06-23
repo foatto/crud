@@ -1,0 +1,51 @@
+package foatto.ts.core_ts.graphic.server.document
+
+import foatto.core.app.chart.ChartGroupDTO
+import foatto.core_server.app.graphic.server.GraphicDocumentConfig
+import foatto.core_server.app.graphic.server.ChartStartData
+import foatto.ts.core_ts.ObjectConfig
+import foatto.ts.core_ts.graphic.server.TSGraphicDocumentConfig
+import foatto.ts.core_ts.graphic.server.graphic_handler.AnalogGraphicHandler
+import foatto.ts.core_ts.sensor.config.SensorConfig
+import foatto.ts.core_ts.sensor.config.SensorConfigAnalogue
+import foatto.util.AdvancedByteBuffer
+import java.util.*
+
+class sdcAnalogDSL: sdcAbstractAnalog() {
+
+    override fun getGraphicElements(
+        sd: ChartStartData,
+        begTime: Int,
+        endTime: Int,
+        viewWidth: Int,
+        viewHeight: Int,
+        alRawTime: List<Int>,
+        alRawData: List<AdvancedByteBuffer>,
+        objectConfig: ObjectConfig,
+        tmElement: SortedMap<String, ChartGroupDTO>,
+        tmElementVisibleConfig: SortedMap<String, Triple<String, String, Boolean>>,
+    ) {
+        val tsgdc = GraphicDocumentConfig.hmConfig[documentTypeName] as TSGraphicDocumentConfig
+        val graphicHandler = tsgdc.graphicHandler as AnalogGraphicHandler
+
+        val scaDepth = objectConfig.hmSensorConfig[SensorConfig.SENSOR_DEPTH]?.values?.firstOrNull() as? SensorConfigAnalogue
+        val scaSpeed = objectConfig.hmSensorConfig[SensorConfig.SENSOR_SPEED]?.values?.firstOrNull() as? SensorConfigAnalogue
+        val scaLoad = objectConfig.hmSensorConfig[SensorConfig.SENSOR_LOAD]?.values?.firstOrNull() as? SensorConfigAnalogue
+
+        getGraphicElement(
+            graphicTitle = "Глубина, скорость и нагрузка",
+            begTime = begTime,
+            endTime = endTime,
+            viewWidth = viewWidth,
+            viewHeight = viewHeight,
+            alRawTime = alRawTime,
+            alRawData = alRawData,
+            objectConfig = objectConfig,
+            graphicHandler = graphicHandler,
+            alSca = listOfNotNull(scaDepth, scaSpeed, scaLoad),
+            tmElement = tmElement,
+            tmElementVisibleConfig = tmElementVisibleConfig,
+        )
+    }
+
+}

@@ -15,7 +15,7 @@ import foatto.core_server.app.iApplication
 import foatto.core_server.app.server.UserConfig
 import foatto.core_server.app.xy.XyStartData
 import foatto.core_server.app.xy.XyStartObjectParsedData
-import foatto.core_server.app.xy.server.document.sdcXyState
+import foatto.core_server.app.xy.server.document.sdcXyScheme
 import foatto.core_server.ds.CoreTelematicFunction
 import foatto.sql.CoreAdvancedConnection
 import foatto.ts.core_ts.cObject
@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
 import kotlin.math.min
 
-class sdcTSState : sdcXyState() {
+class sdcTSSchemeObject : sdcXyScheme() {
 
     companion object {
         //--- arrange in ascending order of the level of location
@@ -40,11 +40,6 @@ class sdcTSState : sdcXyState() {
         const val TYPE_STATE_TEXT_TEXT = "ts_state_text_text"
         const val TYPE_STATE_AXIS_POINTER = "ts_state_axis_pointer"
         const val TYPE_STATE_VALUE_BAR = "ts_state_value_bar"
-
-        //--- it was empirically found that if the step size is too small, side effects from integer division begin
-        //--- and the edges of the outline can flush against the edges of the window / screen.
-        //--- A step of 1 million points allows you to fit up to 2000 circuit elements (2 billion MAX_INTEGER / 1 million = 2000) with sufficient accuracy.
-        private const val GRID_STEP = 1024 * 1024
 
         //--- binding an element and a command on it
         private val chmElementCommand = ConcurrentHashMap<Int, String>()

@@ -12,7 +12,7 @@ import foatto.spring.CoreSpringApp
 import foatto.ts.core_ts.graphic.server.TSGraphicDocumentConfig
 import foatto.ts.core_ts.graphic.server.graphic_handler.AnalogGraphicHandler
 import foatto.ts.core_ts.sensor.config.SensorConfig
-import foatto.ts.core_ts.xy.server.document.sdcTSState
+import foatto.ts.core_ts.xy.server.document.sdcTSSchemeObject
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.boot.runApplication
@@ -51,6 +51,16 @@ class TSSpringApp : CoreSpringApp() {
                     graphicHandler = AnalogGraphicHandler()
                 )
             }
+            GraphicDocumentConfig.hmConfig["ts_graphic_dsl"] = TSGraphicDocumentConfig(
+                aServerControlClassName = "foatto.ts.core_ts.graphic.server.document.sdcAnalogDSL",
+                sensorType = 0, // не имеет значения
+                graphicHandler = AnalogGraphicHandler()
+            )
+            GraphicDocumentConfig.hmConfig["ts_graphic_tt"] = TSGraphicDocumentConfig(
+                aServerControlClassName = "foatto.ts.core_ts.graphic.server.document.sdcAnalogTT",
+                sensorType = 0, // не имеет значения
+                graphicHandler = AnalogGraphicHandler()
+            )
             GraphicDocumentConfig.hmConfig["ts_graphic_dsltt"] = TSGraphicDocumentConfig(
                 aServerControlClassName = "foatto.ts.core_ts.graphic.server.document.sdcAnalogDSLTT",
                 sensorType = 0, // не имеет значения
@@ -80,8 +90,8 @@ class TSSpringApp : CoreSpringApp() {
         hmXyDocumentConfig["ts_state"] = XyDocumentConfig(
             name = "ts_state",
             descr = "Состояние объекта",
-            serverClassName = "foatto.ts.core_ts.xy.server.document.sdcTSState",
-            clientType = XyDocumentClientType.STATE,
+            serverClassName = "foatto.ts.core_ts.xy.server.document.sdcTSSchemeObject",
+            clientType = XyDocumentClientType.SCHEME,
             isScaleAlign = false,
             hmElementConfig = initStateElementConfig(1, 1024 * 1024 * 1024)
         )
@@ -91,8 +101,8 @@ class TSSpringApp : CoreSpringApp() {
 
         val hmElementConfig = initXyElementConfig(level = 10, minScale = minScale, maxScale = maxScale)
 
-        hmElementConfig[sdcTSState.TYPE_STATE_VALUE_BAR] = XyElementConfig(
-            name = sdcTSState.TYPE_STATE_VALUE_BAR,
+        hmElementConfig[sdcTSSchemeObject.TYPE_STATE_VALUE_BAR] = XyElementConfig(
+            name = sdcTSSchemeObject.TYPE_STATE_VALUE_BAR,
             clientType = XyElementClientType.POLY,
             layer = 10,
             scaleMin = minScale,
@@ -103,8 +113,8 @@ class TSSpringApp : CoreSpringApp() {
             isEditablePoint = false
         )
 
-        hmElementConfig[sdcTSState.TYPE_STATE_AXIS] = XyElementConfig(
-            name = sdcTSState.TYPE_STATE_AXIS,
+        hmElementConfig[sdcTSSchemeObject.TYPE_STATE_AXIS] = XyElementConfig(
+            name = sdcTSSchemeObject.TYPE_STATE_AXIS,
             clientType = XyElementClientType.POLY,
             layer = 11,
             scaleMin = minScale,
@@ -115,8 +125,8 @@ class TSSpringApp : CoreSpringApp() {
             isEditablePoint = false
         )
 
-        hmElementConfig[sdcTSState.TYPE_STATE_AXIS_POINTER] = XyElementConfig(
-            name = sdcTSState.TYPE_STATE_AXIS_POINTER,
+        hmElementConfig[sdcTSSchemeObject.TYPE_STATE_AXIS_POINTER] = XyElementConfig(
+            name = sdcTSSchemeObject.TYPE_STATE_AXIS_POINTER,
             clientType = XyElementClientType.MARKER,
             layer = 12,
             scaleMin = minScale,
@@ -127,8 +137,8 @@ class TSSpringApp : CoreSpringApp() {
             isEditablePoint = false
         )
 
-        hmElementConfig[sdcTSState.TYPE_STATE_TEXT_BACK] = XyElementConfig(
-            name = sdcTSState.TYPE_STATE_TEXT_BACK,
+        hmElementConfig[sdcTSSchemeObject.TYPE_STATE_TEXT_BACK] = XyElementConfig(
+            name = sdcTSSchemeObject.TYPE_STATE_TEXT_BACK,
             clientType = XyElementClientType.POLY,
             layer = 13,
             scaleMin = minScale,
@@ -139,8 +149,8 @@ class TSSpringApp : CoreSpringApp() {
             isEditablePoint = false
         )
 
-        hmElementConfig[sdcTSState.TYPE_STATE_TEXT_TEXT] = XyElementConfig(
-            name = sdcTSState.TYPE_STATE_TEXT_TEXT,
+        hmElementConfig[sdcTSSchemeObject.TYPE_STATE_TEXT_TEXT] = XyElementConfig(
+            name = sdcTSSchemeObject.TYPE_STATE_TEXT_TEXT,
             clientType = XyElementClientType.SVG_TEXT,
             layer = 14,
             scaleMin = minScale,

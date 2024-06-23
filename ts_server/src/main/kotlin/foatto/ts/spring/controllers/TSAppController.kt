@@ -2,20 +2,13 @@ package foatto.ts.spring.controllers
 
 import foatto.core.app.chart.ChartActionRequest
 import foatto.core.app.chart.ChartActionResponse
-import foatto.core.app.composite.CompositeBlockDTO
-import foatto.core.app.composite.CompositeResponse
 import foatto.core.app.xy.XyActionRequest
 import foatto.core.app.xy.XyActionResponse
 import foatto.core.link.AppRequest
 import foatto.core.link.AppResponse
-import foatto.core.link.ChartResponse
 import foatto.core.link.MenuData
-import foatto.core.link.ResponseCode
-import foatto.core.link.XyResponse
-import foatto.core_server.app.composite.server.CompositeStartData
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
-import foatto.spring.CoreSpringApp
 import foatto.spring.controllers.CoreAppController
 import foatto.spring.services.UserService
 import foatto.sql.CoreAdvancedConnection
@@ -26,7 +19,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
-import kotlin.math.min
 
 @RestController
 class TSAppController(
@@ -75,50 +67,6 @@ class TSAppController(
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun getCompositeResponse(compositeStartData: CompositeStartData): AppResponse {
-        val shortTitle = compositeStartData.shortTitle.substring(0, min(32000, compositeStartData.shortTitle.length))
-        val fullTitle = compositeStartData.fullTitle.substring(0, min(32000, compositeStartData.fullTitle.length))
-
-        return AppResponse(
-            code = ResponseCode.COMPOSITE,
-            composite = CompositeResponse(
-                title = fullTitle,
-                cols = 2,
-                rows = 1,
-                blocks = listOf(
-                    CompositeBlockDTO(
-                        x = 0,
-                        y = 0,
-                        w = 1,
-                        h = 1,
-                        xyResponse = XyResponse(
-                            documentConfig = CoreSpringApp.hmXyDocumentConfig["ts_state"]!!,
-                            startParamId = compositeStartData.xyStartDataId,
-                            shortTitle = shortTitle,
-                            fullTitle = fullTitle,
-                            alServerActionButton = compositeStartData.alServerActionButton,
-                        ),
-                    ),
-                    CompositeBlockDTO(
-                        x = 1,
-                        y = 0,
-                        w = 1,
-                        h = 1,
-                        chartResponse = ChartResponse(
-                            documentTypeName = "ts_graphic_dsltt",
-                            startParamId = compositeStartData.graphicStartDataId,
-                            shortTitle = shortTitle,
-                            fullTitle = fullTitle,
-                            rangeType = compositeStartData.rangeType,
-                            begTime = compositeStartData.begTime,
-                            endTime = compositeStartData.endTime,
-                        ),
-                    ),
-                ),
-            )
-        )
-    }
-
     //--- пропускаем логи по запуску модулей из 1С, отчётов, графиков, показов картографии
     override fun checkLogSkipAliasPrefix(alias: String): Boolean =
         alias.startsWith("ts_report_") || alias.startsWith("ts_graphic_") || alias.startsWith("ts_show_")
@@ -154,6 +102,8 @@ class TSAppController(
         val alMenuGraphic = mutableListOf<MenuData>()
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "ts_graphic_dsltt", false)
+//        addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "ts_graphic_dsl", false)
+//        addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "ts_graphic_tt", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "ts_graphic_depth", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "ts_graphic_speed", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "ts_graphic_load", false)

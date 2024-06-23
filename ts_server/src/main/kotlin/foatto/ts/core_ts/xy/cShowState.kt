@@ -3,7 +3,7 @@ package foatto.ts.core_ts.xy
 import foatto.core.app.ICON_NAME_STATE
 import foatto.core.link.AppAction
 import foatto.core.link.FormData
-import foatto.core.link.XyServerActionButton
+import foatto.core.link.ServerActionButton
 import foatto.core.util.getRandomInt
 import foatto.core_server.app.AppParameter
 import foatto.core_server.app.server.cAbstractForm
@@ -35,27 +35,24 @@ class cShowState : cAbstractForm() {
 
         val oc = (application as iTSApplication).getObjectConfig(userConfig, selectObjectId)
 
-        val sd = XyStartData()
-
-        sd.shortTitle = aliasConfig.descr + "\n${oc.name}"
+        var title = aliasConfig.descr + "\n${oc.name}"
         if (oc.model.isNotEmpty()) {
-            sd.shortTitle += ", ${oc.model}"
+            title += ", ${oc.model}"
         }
 
-        sd.fullTitle = oc.name
+        var tooltip = oc.name
         if (oc.model.isNotEmpty()) {
-            sd.fullTitle += "\nМодель: ${oc.model}"
+            tooltip += "\nМодель: ${oc.model}"
         }
 
-        sd.alStartObjectData.add(XyStartObjectData(selectObjectId, "ts_object", true, false, true))
-
+        val alServerActionButton = mutableListOf<ServerActionButton>()
         hmAliasConfig["ts_setup"]?.let { setupAliasConfig ->
-            sd.alServerActionButton +=
-                XyServerActionButton(
-                    caption = setupAliasConfig.descr.replace(' ', '\n'),
-                    tooltip = setupAliasConfig.descr,
+            alServerActionButton +=
+                ServerActionButton(
                     icon = "",
-                    url = getParamURL(
+                    text = setupAliasConfig.descr.replace(' ', '\n'),
+                    tooltip = setupAliasConfig.descr,
+                    action = getParamURL(
                         aAlias = "ts_setup",
                         aAction = AppAction.FORM,
                         aRefererId = null,
@@ -66,12 +63,18 @@ class cShowState : cAbstractForm() {
                         aParentUserId = null,
                         aAltParams = ""
                     ),
+                    inNewWindow = true,
                     isForWideScreenOnly = true,
                 )
         }
 
         val paramID = getRandomInt()
-        hmOut[AppParameter.XY_START_DATA + paramID] = sd
+        hmOut[AppParameter.XY_START_DATA + paramID] = XyStartData(
+            alStartObjectData = mutableListOf(XyStartObjectData(selectObjectId, "ts_object", true, false, true)),
+            title = title,
+            tooltip = tooltip,
+            alServerActionButton = alServerActionButton,
+        )
 
         //--- для команды XY alias обозначает xy_document_type_name
         //--- в отличие от графиков на картах/схемах может быть несколько классов-запускателей
