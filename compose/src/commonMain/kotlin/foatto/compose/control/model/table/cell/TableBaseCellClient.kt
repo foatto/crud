@@ -10,10 +10,13 @@ import androidx.compose.ui.unit.dp
 import foatto.compose.model.MenuDataClient
 
 abstract class TableBaseCellClient(
-    val dataRow: Int?,
-    val backColor: Color,
-    val align: Alignment,
     val colSpan: Int,
+    val dataRow: Int?,
+    val align: Alignment,
+    val backColor: Color,
+    val textColor: Color,
+    val isBoldText: Boolean,
+    val tooltip: String,
 ) {
     var componentWidth: Dp by mutableStateOf(0.dp)
 

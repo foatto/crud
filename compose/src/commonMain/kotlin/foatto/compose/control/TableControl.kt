@@ -24,24 +24,37 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import foatto.compose.AppControl
 import foatto.compose.Root
+import foatto.compose.colorMainText
+import foatto.compose.composable.GenerateMenuBody
+import foatto.compose.composable.ImageOrTextFromName
+import foatto.compose.control.model.TitleData
 import foatto.compose.control.model.table.AddActionButtonClient
 import foatto.compose.control.model.table.ClientActionButtonClient
 import foatto.compose.control.model.table.PageButton
 import foatto.compose.control.model.table.ServerActionButtonClient
 import foatto.compose.control.model.table.TableCaptionData
-import foatto.compose.control.model.table.TableGridData
 import foatto.compose.control.model.table.cell.TableBaseCellClient
 import foatto.compose.control.model.table.cell.TableBooleanCellClient
+import foatto.compose.control.model.table.cell.TableButtonCellClient
+import foatto.compose.control.model.table.cell.TableCellDataClient
+import foatto.compose.control.model.table.cell.TableGridCellClient
 import foatto.compose.control.model.table.cell.TableSimpleCellClient
 import foatto.compose.controls.composables.table.TableImageOrTextCell
 import foatto.compose.controls.composables.table.TableToolBar
 import foatto.compose.model.MenuDataClient
+import foatto.compose.styleOtherIconSize
 import foatto.compose.utils.maxDp
 import foatto.core.model.AppAction
 import foatto.core.model.request.system.AppRequest
 import foatto.core.model.response.system.TableResponse
 import foatto.core.model.response.system.table.TablePopupData
 import foatto.core.model.response.system.table.TableRowData
+import foatto.core.model.response.system.table.cell.TableBooleanCell
+import foatto.core.model.response.system.table.cell.TableButtonCell
+import foatto.core.model.response.system.table.cell.TableCellAlign
+import foatto.core.model.response.system.table.cell.TableCellBackColorType
+import foatto.core.model.response.system.table.cell.TableGridCell
+import foatto.core.model.response.system.table.cell.TableSimpleCell
 import kotlinx.coroutines.launch
 import kotlin.math.max
 
@@ -102,7 +115,7 @@ class TableControl(
 
     //    private var currentGridData by mutableStateOf<TableGridData?>(null)
     private var currentGridData by mutableStateOf<TableBaseCellClient?>(null)
-    private var currentRowNo by mutableIntStateOf(-1)
+    private var currentRowNo by mutableStateOf<Int?>(null)
 
     private var pageUpAction: AppAction? = null
     private var pageDownAction: AppAction? = null
@@ -288,88 +301,90 @@ class TableControl(
                                     is TableBooleanCellClient -> {
                                         Checkbox(
                                             modifier = Modifier.padding(TABLE_CELL_PADDING),
-                                            checked = gridData.data.value,
+                                            checked = gridData.value,
                                             onCheckedChange = null,
                                         )
                                     }
 
                                     is TableSimpleCellClient -> {
                                         TableImageOrTextCell(
-                                            gridData = gridData,
-                                            cellData = gridData.textCellData!!,
+                                            baseCellData = gridData,
+                                            cellData = gridData.data,
                                             modifier = Modifier.padding(TABLE_CELL_PADDING),
                                         )
                                     }
 
-                                    TableCellType.BUTTON -> {
+                                    is TableButtonCellClient -> {
                                         Column(
                                             modifier = Modifier.padding(TABLE_CELL_PADDING),
                                         ) {
-                                            gridData.alButtonCellData?.let { alButtonCellData ->
-                                                for (cellData in alButtonCellData) {
-                                                    if (cellData.icon.isNotEmpty()) {
-                                                        IconButton(
-                                                            onClick = {
-                                                                call(cellData.url, cellData.inNewWindow)
+                                            gridData.data.forEach { cellData ->
+                                                cellData.icon?.let {
+                                                    IconButton(
+                                                        onClick = {
+                                                            cellData.action?.let {
+                                                                call(cellData.action, cellData.inNewTab)
                                                             }
-                                                        ) {
-                                                            ImageOrTextFromName(cellData.icon, gridData.tooltip, styleOtherIconSize)
                                                         }
-                                                    } else if (cellData.image.isNotEmpty()) {
-                                                        IconButton(
-                                                            onClick = {
-                                                                call(cellData.url, cellData.inNewWindow)
+                                                    ) {
+                                                        ImageOrTextFromName(cellData.icon, gridData.tooltip, styleOtherIconSize)
+                                                    }
+                                                } ?: cellData.image?.let {
+                                                    IconButton(
+                                                        onClick = {
+                                                            cellData.action?.let {
+                                                                call(cellData.action, cellData.inNewTab)
                                                             }
-                                                        ) {
-                                                            ImageOrTextFromName(cellData.image, gridData.tooltip, styleOtherIconSize)
                                                         }
-                                                    } else {
-                                                        Button(
-                                                            shape = RoundedCornerShape(0.dp),
-                                                            onClick = {
-                                                                call(cellData.url, cellData.inNewWindow)
+                                                    ) {
+                                                        ImageOrTextFromName(cellData.image, gridData.tooltip, styleOtherIconSize)
+                                                    }
+                                                } ?: run {
+                                                    Button(
+                                                        shape = RoundedCornerShape(0.dp),
+                                                        onClick = {
+                                                            cellData.action?.let {
+                                                                call(cellData.action, cellData.inNewTab)
                                                             }
-                                                        ) {
-                                                            Text(
-                                                                text = cellData.text,
+                                                        }
+                                                    ) {
+                                                        Text(
+                                                            text = cellData.text ?: "???",
 //                                                                color = gridData.textColor,
-                                                                fontWeight = if (gridData.isBoldText) {
-                                                                    FontWeight.Bold
-                                                                } else {
-                                                                    null
-                                                                },
-                                                            )
-                                                        }
+                                                            fontWeight = if (gridData.isBoldText) {
+                                                                FontWeight.Bold
+                                                            } else {
+                                                                null
+                                                            },
+                                                        )
                                                     }
                                                 }
                                             }
                                         }
                                     }
 
-                                    TableCellType.GRID -> {
+                                    is TableGridCellClient -> {
                                         Column(
                                             modifier = Modifier.padding(TABLE_CELL_PADDING),
                                         ) {
-                                            gridData.alGridCellData?.let { alGridCellData ->
-                                                for (alRow in alGridCellData) {
-                                                    Row(
-                                                        //horizontalArrangement = Arrangement.SpaceBetween, - don't work properly (?), use Spacer
-                                                    ) {
-                                                        alRow.forEachIndexed { index, cellData ->
-                                                            if (index > 0) {
-                                                                Spacer(modifier = Modifier.weight(1.0f))
-                                                            }
-                                                            val modifier = if (index > 0) {
-                                                                Modifier.padding(start = TABLE_CELL_PADDING)
-                                                            } else {
-                                                                Modifier
-                                                            }
-                                                            TableImageOrTextCell(
-                                                                gridData = gridData,
-                                                                cellData = cellData,
-                                                                modifier = modifier,
-                                                            )
+                                            gridData.data.forEach { alRow ->
+                                                Row(
+                                                    //horizontalArrangement = Arrangement.SpaceBetween, - don't work properly (?), use Spacer
+                                                ) {
+                                                    alRow.forEachIndexed { index, cellData ->
+                                                        if (index > 0) {
+                                                            Spacer(modifier = Modifier.weight(1.0f))
                                                         }
+                                                        val modifier = if (index > 0) {
+                                                            Modifier.padding(start = TABLE_CELL_PADDING)
+                                                        } else {
+                                                            Modifier
+                                                        }
+                                                        TableImageOrTextCell(
+                                                            baseCellData = gridData,
+                                                            cellData = cellData,
+                                                            modifier = modifier,
+                                                        )
                                                     }
                                                 }
                                             }
@@ -379,23 +394,25 @@ class TableControl(
                                     else -> {}
                                 }
                                 gridData?.let {
-                                    DropdownMenu(
-                                        expanded = gridData.isShowPopupMenu,
-                                        onDismissRequest = {
-                                            gridData.isShowPopupMenu = false
-                                        },
-                                    ) {
-                                        GenerateMenuBody(
-                                            alMenuDataClient = gridData.alCurrentPopupData!!,
-                                            level = 0,
-                                            closeMenu = {
+                                    if (!tableAction.isSelectorMode) {
+                                        DropdownMenu(
+                                            expanded = gridData.isShowPopupMenu,
+                                            onDismissRequest = {
                                                 gridData.isShowPopupMenu = false
                                             },
-                                            menuClick = { url: String, inNewWindow: Boolean ->
-                                                gridData.isShowPopupMenu = false
-                                                call(url, inNewWindow)
-                                            },
-                                        )
+                                        ) {
+                                            GenerateMenuBody(
+                                                alMenuDataClient = gridData.alCurrentPopupData!!,
+                                                level = 0,
+                                                closeMenu = {
+                                                    gridData.isShowPopupMenu = false
+                                                },
+                                                menuClick = { action: AppAction, inNewTab: Boolean ->
+                                                    gridData.isShowPopupMenu = false
+                                                    call(action, inNewTab)
+                                                },
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -424,10 +441,12 @@ class TableControl(
                     Button(
                         modifier = Modifier.padding(1.dp),
                         shape = RoundedCornerShape(0.dp),
-                        enabled = pageButton.url.isNotEmpty(),
+                        enabled = pageButton.action != null,
 //                                cursor("pointer")
                         onClick = {
-                            call(pageButton.url, false)
+                            pageButton.action?.let { action ->
+                                call(action, false)
+                            }
                         }
                     ) {
                         Text(pageButton.text)
@@ -439,9 +458,9 @@ class TableControl(
 
     override fun start() {
         readHeader()
-        selectorCancelUrl = tableResponse.selectorCancelURL
+        selectorCancelAction = tableResponse.selectorCancelAction
 
-        findUrl = tableResponse.findURL
+        findAction = tableResponse.findAction
         findText = tableResponse.findText
 
         readAddButtons()
@@ -451,10 +470,10 @@ class TableControl(
         readTable()
 
         //--- установка текущей строки
-        setCurrentRow(tableResponse.selectedRow)
+        setCurrentRow(tableResponse.selectedRowNo)
 
         //--- запоминаем текущий appParam для возможной установки в виде стартовой
-        root.curAppParam = appParam
+        root.curAction = tableAction
 
 //        //--- две попытки установить фокус, с минимальными задержками
 //        window.setTimeout({
@@ -471,7 +490,7 @@ class TableControl(
 
         //--- загрузка заголовка таблицы/формы
         alTitleData.clear()
-        for ((url, text) in tableResponse.alHeader) {
+        for ((action, text) in tableResponse.alHeader) {
             tabToolTip += (
                 if (tabToolTip.isEmpty()) {
                     ""
@@ -479,11 +498,11 @@ class TableControl(
                     " | "
                 }
                 ) + text
-            alTitleData.add(TitleData(url, text))
+            alTitleData.add(TitleData(action, text))
             //--- запомним последнюю кнопку заголовка в табличном режиме как кнопку отмены или возврата на уровень выше
             //butTableCancel = button - not used yet
         }
-        root.setTabInfo(tabId, tableResponse.tab, tabToolTip)
+        root.setTabInfo(tabId, tableResponse.tabCaption, tabToolTip)
     }
 
     private fun readAddButtons() {
@@ -522,25 +541,25 @@ class TableControl(
     }
 
     private fun readPageButtons() {
-        pageUpUrl = ""
-        pageDownUrl = ""
+        pageUpAction = null
+        pageDownAction = null
         alPageButton.clear()
 
         var isEmptyPassed = false
         //--- вывести новую разметку страниц
-        for ((url, text) in tableResponse.alPageButton) {
+        for ((action, text) in tableResponse.alPageButton) {
 
-            alPageButton.add(PageButton(url, text))
+            alPageButton.add(PageButton(action, text))
 
-            if (url.isEmpty()) {
-                isEmptyPassed = true
-            } else {
+            action?.let {
                 if (!isEmptyPassed) {
-                    pageUpUrl = url
+                    pageUpAction = action
                 }
-                if (isEmptyPassed && pageDownUrl.isEmpty()) {
-                    pageDownUrl = url
+                if (isEmptyPassed && pageDownAction == null) {
+                    pageDownAction = action
                 }
+            } ?: run {
+                isEmptyPassed = true
             }
         }
     }
@@ -555,8 +574,9 @@ class TableControl(
         for (tc in tableResponse.alTableCell) {
             maxColCount = max(maxColCount, tc.col + tc.colSpan)
 
-            val backColor = when (tc.backColorType) {
-                TableCellBackColorType.DEFINED -> Color(tc.backColor)
+            val backColor = tc.backColor?.let { bc ->
+                Color(bc)
+            } ?: when (tc.backColorType) {
                 TableCellBackColorType.GROUP_0 -> colorTableGroupBack0
                 TableCellBackColorType.GROUP_1 -> colorTableGroupBack1
                 else -> if (tc.dataRow % 2 == 0) {
@@ -565,110 +585,99 @@ class TableControl(
                     colorTableRowBack1
                 }
             }
-            val textColor = when (tc.foreColorType) {
-                TableCellForeColorType.DEFINED -> Color(tc.foreColor)
-                else -> Color.Black
-            }
-            val align = when (tc.cellType) {
-                TableCellType.BUTTON -> {
-                    Alignment.Center
-                }
+            val textColor = tc.foreColor?.let { fc ->
+                Color(fc)
+            } ?: colorMainText
 
-                TableCellType.CHECKBOX -> {
-                    Alignment.Center
-                }
-                //--- на самом деле нет других вариантов
-                //TableCellType.TEXT -> {
-                else -> {
-                    when (tc.align) {
-                        TableCellAlign.LEFT -> Alignment.CenterStart
-                        TableCellAlign.CENTER -> Alignment.Center
-                        TableCellAlign.RIGHT -> Alignment.CenterEnd
-                        else -> Alignment.Center
-                    }
-                }
+            val align = when (tc.align) {
+                TableCellAlign.LEFT -> Alignment.CenterStart
+                TableCellAlign.CENTER -> Alignment.Center
+                TableCellAlign.RIGHT -> Alignment.CenterEnd
+                else -> Alignment.Center
             }
 
-            var textCellData: TableCellDataClient? = null
-            val alButtonCellData = mutableListOf<TableCellDataClient>()
-            val alGridCellData = mutableListOf<MutableList<TableCellDataClient>>()
-
-            when (tc.cellType) {
-                TableCellType.CHECKBOX -> {
-                }
-
-                TableCellType.TEXT -> {
-                    textCellData = TableCellDataClient(
-                        icon = tc.textCellData.icon,
-                        image = tc.textCellData.image,
-                        text = tc.textCellData.text,
+            val tableCellClient = when (tc) {
+                is TableBooleanCell -> {
+                    TableBooleanCellClient(
+                        colSpan = tc.colSpan,
+                        dataRow = tc.dataRow,
+                        align = align,
+                        backColor = backColor,
+                        textColor = textColor,
+                        isBoldText = tc.fontStyle != 0,
+                        tooltip = tc.tooltip,
+                        value = tc.value,
                     )
-//                        if (!tc.isWordWrap) {
-//                            whiteSpace("nowrap")
-//                        }
-//                        userSelect(if (getStyleIsTouchScreen()) "none" else "auto")
                 }
 
-                TableCellType.BUTTON -> {
-                    tc.alButtonCellData.forEachIndexed { index, cellData ->
-                        alButtonCellData.add(
-                            TableCellDataClient(
-                                icon = cellData.icon,
-                                image = cellData.image,
-                                text = cellData.text,
-                                url = cellData.url,
-                                inNewWindow = cellData.inNewWindow,
-//                                    setBorder(color = getColorButtonBorder(), radius = styleButtonBorderRadius)
-//                                    backgroundColor(getColorButtonBack())
-//                                    color(textColor)
-//                                    fontSize(styleCommonButtonFontSize)
-//                                    padding(styleTextButtonPadding)
-                            )
+                is TableSimpleCell -> {
+                    TableSimpleCellClient(
+                        colSpan = tc.colSpan,
+                        dataRow = tc.dataRow,
+                        align = align,
+                        backColor = backColor,
+                        textColor = textColor,
+                        isBoldText = tc.fontStyle != 0,
+                        tooltip = tc.tooltip,
+                        //tc.isWordWrap
+                        data = TableCellDataClient(
+                            icon = tc.iconName,
+                            image = tc.imageUrl,
+                            text = tc.text,
                         )
-                    }
+                    )
                 }
 
-                TableCellType.GRID -> {
-                    tc.alGridCellData.forEach { cellRow ->
-                        alGridCellData.add(mutableListOf())
-
-                        cellRow.forEach { cellData ->
-                            alGridCellData.last().add(
-                                TableCellDataClient(
-                                    icon = cellData.icon,
-                                    image = cellData.image,
-                                    text = cellData.text,
-//                                        userSelect(if (getStyleIsTouchScreen()) "none" else "auto")
-//                                        if (!tc.isWordWrap) {
-//                                            whiteSpace("nowrap")
-//                                        }
-                                )
+                is TableButtonCell -> {
+                    TableButtonCellClient(
+                        colSpan = tc.colSpan,
+                        dataRow = tc.dataRow,
+                        align = align,
+                        backColor = backColor,
+                        textColor = textColor,
+                        isBoldText = tc.fontStyle != 0,
+                        tooltip = tc.tooltip,
+                        data = tc.values.map { tableButtonCellData ->
+                            TableCellDataClient(
+                                icon = tableButtonCellData.iconName,
+                                image = tableButtonCellData.imageUrl,
+                                text = tableButtonCellData.text,
+                                action = tableButtonCellData.action,
+                                inNewTab = tableButtonCellData.inNewTab,
                             )
                         }
-                    }
+                    )
                 }
+
+                is TableGridCell -> {
+                    TableGridCellClient(
+                        colSpan = tc.colSpan,
+                        dataRow = tc.dataRow,
+                        align = align,
+                        backColor = backColor,
+                        textColor = textColor,
+                        isBoldText = tc.fontStyle != 0,
+                        tooltip = tc.tooltip,
+                        data = tc.values.map { alTableGridCellData ->
+                            alTableGridCellData.map { tableGridCellData ->
+                                TableCellDataClient(
+                                    icon = tableGridCellData.iconName,
+                                    image = tableGridCellData.imageUrl,
+                                    text = tableGridCellData.text,
+                                )
+                            }
+                        }
+                    )
+                }
+
             }
-            val tableCell = TableGridData(
-                cellType = tc.cellType,
-                backColor = backColor,
-                textColor = textColor,
-                align = align,
-                isBoldText = tc.fontStyle != 0,
-                tooltip = tc.tooltip,
-                colSpan = tc.colSpan,
-                booleanValue = tc.booleanValue,
-                textCellData = textCellData,
-                alButtonCellData = alButtonCellData,
-                alGridCellData = alGridCellData,
-                dataRow = tc.dataRow,
-            )
 
             addCellToGrid(
                 alGridRows = alGridRows,
                 maxColCount = maxColCount,
                 row = tc.row,
                 col = tc.col,
-                cell = tableCell,
+                cell = tableCellClient,
             )
         }
 
@@ -679,7 +688,7 @@ class TableControl(
     private fun readCaption() {
         alCaptionData.clear()
         //--- заголовки столбцов таблицы
-        for ((url, text) in tableResponse.alColumnCaption) {
+        for ((action, text) in tableResponse.alColumnCaption) {
             val captionCell = TableCaptionData(
 //                    cursor(
 //                        if (url.isBlank()) {
@@ -688,13 +697,9 @@ class TableControl(
 //                            "pointer"
 //                        }
 //                    )
-                tooltip = if (url.isBlank()) {
-                    ""
-                } else {
-                    "Сортировать по этому столбцу"
-                },
+                tooltip = action?.let { "Сортировать по этому столбцу" } ?: "",
                 text = text,
-                url = url,
+                action = action,
             )
             alCaptionData.add(captionCell)
         }
@@ -712,19 +717,23 @@ class TableControl(
         if (!isClear && !isFindTextVisible) {
             isFindTextVisible = true
         } else {
-            appControl.call(AppRequest(action = findUrl, find = findText.trim()))
+//!!!            appControl.call(AppRequest(action = findAction, find = findText.trim()))
         }
     }
 
     private fun doForm() {
-        if (currentRowNo >= 0 && alRowData[currentRowNo].formURL.isNotEmpty()) {
-            call(alRowData[currentRowNo].formURL, false)
+        currentRowNo?.let { curRow ->
+            alRowData[curRow].formAction?.let { formAction ->
+                call(formAction, false)
+            }
         }
     }
 
     private fun doGoto() {
-        if (currentRowNo >= 0 && alRowData[currentRowNo].gotoURL.isNotEmpty()) {
-            call(alRowData[currentRowNo].gotoURL, alRowData[currentRowNo].isGotoURLInNewWindow)
+        currentRowNo?.let { curRow ->
+            alRowData[curRow].gotoAction?.let { gotoAction ->
+                call(gotoAction, alRowData[curRow].isGotoUrlInNewTab)
+            }
         }
     }
 
@@ -733,9 +742,9 @@ class TableControl(
     }
 
     private fun setCurrentRow(rowNo: Int?) {
-        isFormButtonVisible = rowNo >= 0 && alRowData[rowNo].formURL.isNotEmpty()
-        isGotoButtonVisible = rowNo >= 0 && alRowData[rowNo].gotoURL.isNotEmpty()
-        isPopupButtonVisible = rowNo >= 0 && alRowData[rowNo].alPopupData.isNotEmpty()
+        isFormButtonVisible = rowNo != null && alRowData[rowNo].formAction != null
+        isGotoButtonVisible = rowNo != null && alRowData[rowNo].gotoAction != null
+        isPopupButtonVisible = rowNo != null && alRowData[rowNo].alPopupData.isNotEmpty()
 
         currentRowNo = rowNo
 
@@ -743,29 +752,35 @@ class TableControl(
     }
 
     private fun doKeyEnter() {
-        if (currentRowNo >= 0 && currentRowNo < alRowData.size) {
-            val curRowData = alRowData[currentRowNo]
-            if (curRowData.rowURL.isNotEmpty()) {
-                call(curRowData.rowURL, curRowData.isRowURLInNewWindow)
+        currentRowNo?.let { curRow ->
+            if (curRow >= 0 && curRow < alRowData.size) {
+                val curRowData = alRowData[curRow]
+                curRowData.rowAction?.let { rowAction ->
+                    call(rowAction, curRowData.isRowUrlInNewTab)
+                }
             }
         }
     }
 
     private fun doKeyEsc() {
-        if (selectorCancelUrl.isNotEmpty()) {
-            call(selectorCancelUrl, false)
+        selectorCancelAction?.let { cancelAction ->
+            call(cancelAction, false)
         }
     }
 
     private fun doKeyUp() {
-        if (currentRowNo > 0) {
-            setCurrentRow(currentRowNo - 1)
+        currentRowNo?.let { curRow ->
+            if (curRow > 0) {
+                setCurrentRow(curRow - 1)
+            }
         }
     }
 
     private fun doKeyDown() {
-        if (currentRowNo < alRowData.lastIndex) {
-            setCurrentRow(currentRowNo + 1)
+        currentRowNo?.let { curRow ->
+            if (curRow < alRowData.lastIndex) {
+                setCurrentRow(curRow + 1)
+            }
         }
     }
 
@@ -782,14 +797,14 @@ class TableControl(
     }
 
     private fun doKeyPageUp() {
-        if (pageUpUrl.isNotEmpty()) {
-            call(pageUpUrl, false)
+        pageUpAction?.let { action ->
+            call(action, false)
         }
     }
 
     private fun doKeyPageDown() {
-        if (pageDownUrl.isNotEmpty()) {
-            call(pageDownUrl, false)
+        pageDownAction?.let { action ->
+            call(action, false)
         }
     }
 
@@ -827,46 +842,44 @@ class TableControl(
 
         var i = 0
         while (i < alMenuDataClient.size) {
-            val MenuDataClient = alMenuDataClient[i]
+            val menuDataClient = alMenuDataClient[i]
 
-            if (MenuDataClient.group.isEmpty()) {
-                alCurPopupData.add(
-                    MenuDataClient(
-                        url = MenuDataClient.url,
-                        text = MenuDataClient.text,
-                        alSubMenu = null,
-                        inNewWindow = MenuDataClient.inNewWindow
-                    )
-                )
-                i++
-            } else {
-                val groupName = MenuDataClient.group
-
+            menuDataClient.group?.let { groupName ->
                 val alPopupSubMenuDataClient = mutableListOf<MenuDataClient>()
                 while (i < alMenuDataClient.size) {
                     val subMenuDataClient = alMenuDataClient[i]
-                    if (subMenuDataClient.group.isEmpty() || subMenuDataClient.group != groupName) {
+                    if (subMenuDataClient.group == null || subMenuDataClient.group != groupName) {
                         break
                     }
 
                     alPopupSubMenuDataClient.add(
                         MenuDataClient(
-                            url = subMenuDataClient.url,
-                            text = subMenuDataClient.text,
+                            action = subMenuDataClient.action,
+                            caption = subMenuDataClient.text,
                             alSubMenu = null,
-                            inNewWindow = subMenuDataClient.inNewWindow
+                            inNewTab = subMenuDataClient.inNewTab
                         )
                     )
                     i++
                 }
                 alCurPopupData.add(
                     MenuDataClient(
-                        url = "",
-                        text = groupName,
+                        action = null,
+                        caption = groupName,
                         alSubMenu = alPopupSubMenuDataClient,
-                        inNewWindow = false
+                        inNewTab = false
                     )
                 )
+            } ?: run {
+                alCurPopupData.add(
+                    MenuDataClient(
+                        action = menuDataClient.action,
+                        caption = menuDataClient.text,
+                        alSubMenu = null,
+                        inNewTab = menuDataClient.inNewTab,
+                    )
+                )
+                i++
             }
         }
 

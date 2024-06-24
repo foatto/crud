@@ -2,17 +2,23 @@ package foatto.compose.control.model.table.cell
 
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
-import foatto.core.model.response.system.table.cell.TableGridCell
 
 class TableGridCellClient(
-    dataRow: Int?,
-    backColor: Color,
-    align: Alignment,
     colSpan: Int,
-    val data: TableGridCell,
+    dataRow: Int?,
+    align: Alignment,
+    backColor: Color,
+    textColor: Color,
+    isBoldText: Boolean,
+    tooltip: String,
+
+    val data: List<List<TableCellDataClient>>,
 ) : TableBaseCellClient(
-    dataRow = dataRow,
-    backColor = backColor,
-    align = align,
     colSpan = colSpan,
+    dataRow = dataRow,
+    align = align,
+    backColor = backColor,
+    textColor = textColor,
+    isBoldText = isBoldText,
+    tooltip = tooltip,
 )

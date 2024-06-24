@@ -5,26 +5,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import foatto.compose.composable.ImageOrTextFromName
-import foatto.compose.control.model.table.TableCellDataClient
-import foatto.compose.control.model.table.TableGridData
+import foatto.compose.control.model.table.cell.TableBaseCellClient
+import foatto.compose.control.model.table.cell.TableCellDataClient
 import foatto.compose.styleOtherIconSize
 
 @Composable
 fun TableImageOrTextCell(
-    gridData: TableGridData,
+    baseCellData: TableBaseCellClient,
     cellData: TableCellDataClient,
     modifier: Modifier = Modifier,
 ) {
-    if (cellData.icon.isNotEmpty()) {
-        ImageOrTextFromName(cellData.icon, gridData.tooltip, styleOtherIconSize)
-    } else if (cellData.image.isNotEmpty()) {
-        ImageOrTextFromName(cellData.image, gridData.tooltip, styleOtherIconSize)
-    } else {
+    cellData.icon?.let {
+        ImageOrTextFromName(cellData.icon, baseCellData.tooltip, styleOtherIconSize)
+    } ?: cellData.image?.let {
+        ImageOrTextFromName(cellData.image, baseCellData.tooltip, styleOtherIconSize)
+    } ?: run {
         Text(
             modifier = modifier,
-            text = cellData.text,
-            color = gridData.textColor,
-            fontWeight = if (gridData.isBoldText) {
+            text = cellData.text ?: "???",
+            color = baseCellData.textColor,
+            fontWeight = if (baseCellData.isBoldText) {
                 FontWeight.Bold
             } else {
                 null

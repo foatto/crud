@@ -165,11 +165,11 @@ class AppControl(
                     }
 
                     ResponseCode.MODULE_FORM -> {
-                        val formControl = FormControl(root, this, appRequest.action, appResponse.form!!, tabId)
-                        curControl = formControl
-                        responseCode = appResponse.responseCode
-
-                        formControl.start()
+//!!!                        val formControl = FormControl(root, this, appRequest.action, appResponse.form!!, tabId)
+//                        curControl = formControl
+//                        responseCode = appResponse.responseCode
+//
+//                        formControl.start()
                     }
 
 //!!!                    ResponseCode.XY -> {

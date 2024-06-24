@@ -9,6 +9,6 @@ class TableRowData(
     val rowAction: AppAction? = null,
     val isRowUrlInNewTab: Boolean = false,
     val gotoAction: AppAction? = null,
-    val isGotoUrlInNewWindow: Boolean = false,
+    val isGotoUrlInNewTab: Boolean = false,
     val alPopupData: List<TablePopupData> = listOf()
 )
