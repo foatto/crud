@@ -92,8 +92,7 @@ class FormControl(
         private val FORM_CELL_PADDING = 16.dp
     }
 
-    //    private val alGridData = mutableStateListOf<FormBaseCellClient>()
-    private val hmHiddenCells = mutableMapOf<Int, FormBaseCellClient>()
+    private val alHiddenCells = mutableListOf<FormBaseCellClient>()
     private val alGridRows = mutableStateListOf<MutableList<FormBaseCellClient?>>()
 
     private val verticalScrollState = ScrollState(0)
@@ -652,7 +651,7 @@ class FormControl(
     }
 
     private fun readForm() {
-        hmHiddenCells.clear()
+        alHiddenCells.clear()
         alGridRows.clear()
 
         var columnNo = 0       // счётчик столбцов grid-формы
@@ -675,7 +674,7 @@ class FormControl(
                     formCell = formCell,
                     gridCellId = gridCellId,
                 )
-                hmHiddenCells[formGridData.id] = formGridData
+                alHiddenCells += formGridData
 
                 if (formCell is FormBooleanCell || formCell is FormComboCell) {
                     hmFormCellMaster[formCell.name] = gridCellId
@@ -1184,8 +1183,8 @@ class FormControl(
     private fun doInvoke(actionType: String, withNewValues: Boolean) {
         val formActionData = mutableMapOf<String, FormActionData>()
 
-        hmHiddenCells.forEach { (_, gridData) ->
-            fillFormData(gridData, false, formActionData)
+        alHiddenCells.forEach { gridData ->
+            fillFormData(gridData, withNewValues, formActionData)
         }
         alGridRows.forEach { alGridRow ->
             alGridRow.forEach { gridData ->
@@ -1310,13 +1309,12 @@ class FormControl(
                 tabId = -1,
                 selectorFun = { selectorData ->
                     selectorSetAction.selectorPath.forEach { (fromField, toField) ->
+                        alHiddenCells.forEach { gridData ->
+                            setSelectorData(selectorData, fromField, toField, gridData)
+                        }
                         alGridRows.forEach { alGridRow ->
                             alGridRow.forEach { gridData ->
-                                if ((gridData as? FormSimpleCellClient)?.data?.name == toField) {
-                                    selectorData[fromField]?.let { fromData ->
-                                        (gridData as? FormSimpleCellClient)?.current?.value = fromData
-                                    }
-                                }
+                                setSelectorData(selectorData, fromField, toField, gridData)
                             }
                         }
                     }
@@ -1327,6 +1325,19 @@ class FormControl(
             tableControl.start()
 
             root.setWait(false)
+        }
+    }
+
+    private fun setSelectorData(
+        selectorData: Map<String, String>,
+        fromField: String,
+        toField: String,
+        gridData: FormBaseCellClient?,
+    ) {
+        if ((gridData as? FormSimpleCellClient)?.data?.name == toField) {
+            selectorData[fromField]?.let { fromData ->
+                (gridData as? FormSimpleCellClient)?.current?.value = fromData
+            }
         }
     }
 

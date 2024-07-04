@@ -97,6 +97,8 @@ class AppControl(
                     curControl.Body()
                 }
 
+                ResponseCode.LOGON_SUCCESS -> {}   // промежуточное состояние при автологоне
+
                 else -> {
                     Text(
                         modifier = Modifier.align(Alignment.Center),

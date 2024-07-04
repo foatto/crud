@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import foatto.compose.AppControl
 import foatto.compose.Root
+import foatto.compose.colorMainBack0
 import foatto.compose.colorMainText
 import foatto.compose.composable.GenerateMenuBody
 import foatto.compose.composable.ImageOrTextFromName
@@ -104,7 +105,6 @@ class TableControl(
 
     private var alCaptionData = mutableStateListOf<TableCaptionData>()
 
-    //!!!    private val alGridRows = mutableStateListOf<MutableList<TableGridData?>>()
     private val alGridRows = mutableStateListOf<MutableList<TableBaseCellClient?>>()
     private val verticalScrollState = ScrollState(0)
     private val horizontalScrollState = ScrollState(0)
@@ -113,7 +113,6 @@ class TableControl(
 
     private val hmColumnMaxWidth = mutableStateMapOf<Int, Dp>()
 
-    //    private var currentGridData by mutableStateOf<TableGridData?>(null)
     private var currentGridData by mutableStateOf<TableBaseCellClient?>(null)
     private var currentRowNo by mutableStateOf<Int?>(null)
 
@@ -127,7 +126,13 @@ class TableControl(
         val coroutineScope = rememberCoroutineScope()
 
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .then(
+                    selectorFun?.let {
+                        Modifier.background(colorMainBack0)
+                    } ?: Modifier
+                ),
         ) {
             getTableAndFormHeader(false) { action: AppAction ->
                 call(action, false)
@@ -224,7 +229,7 @@ class TableControl(
                                             } else {
                                                 gridData.backColor
                                             }
-                                        } ?: Color.White
+                                        } ?: colorMainBack0
                                     )
                                     .border(BorderStroke(width = 0.1.dp, color = colorTableCellBorder))
                                     //.wrapContentSize(align = Alignment.Center, unbounded = true)  //- ничем не помогает
@@ -808,11 +813,11 @@ class TableControl(
         }
     }
 
-    protected fun call(newAppAction: AppAction, inNewTab: Boolean) {
+    private fun call(newAppAction: AppAction, inNewTab: Boolean) {
         if (inNewTab) {
             root.openTab(newAppAction)
         } else {
-            appControl.call(AppRequest(action = newAppAction))
+            appControl.call(AppRequest(action = newAppAction.copy(prevAction = tableAction)))
         }
     }
 

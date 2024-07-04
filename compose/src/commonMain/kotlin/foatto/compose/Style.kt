@@ -16,21 +16,20 @@ var styleOtherIconSize: Int = 48
 fun getStyleToolbarIconNameSuffix(): String = (if (styleToolbarDarkIcon) "black" else "white") + "_" + styleToolbarIconSize + "dp"
 fun getStyleOtherIconNameSuffix(): String = (if (styleOtherDarkIcon) "black" else "white") + "_" + styleOtherIconSize + "dp"
 
-val COLOR_MAIN_BACK_0: Color = hsl(0.0f, 0.0f, 1.0f)  // main background - white color for input fields, etc.
-
 //--- different gray tones by default
 private const val MAIN_BACK_LIGHTNESS_0 = 0.97f
 private const val MAIN_BACK_LIGHTNESS_1 = 0.94f
 private const val MAIN_BACK_LIGHTNESS_2 = 0.88f
 private const val MAIN_BACK_LIGHTNESS_3 = 0.82f
 
-var colorMainBack0: Color = hsl(0.0f, 0.0f, MAIN_BACK_LIGHTNESS_0)     // buttons
-var colorMainBack1: Color = hsl(0.0f, 0.0f, MAIN_BACK_LIGHTNESS_1)     // panels, menus
-var colorMainBack2: Color = hsl(0.0f, 0.0f, MAIN_BACK_LIGHTNESS_2)     // non-active tabs
-var colorMainBack3: Color = hsl(0.0f, 0.0f, MAIN_BACK_LIGHTNESS_3)     // menu delimiters
+var colorMainBack0: Color = Color.hsl(0.0f, 0.0f, 1.0f)  // main background - white color for input fields, etc.
+var colorMainBack1: Color = Color.hsl(0.0f, 0.0f, MAIN_BACK_LIGHTNESS_0)     // buttons
+var colorMainBack2: Color = Color.hsl(0.0f, 0.0f, MAIN_BACK_LIGHTNESS_1)     // panels, menus
+var colorMainBack3: Color = Color.hsl(0.0f, 0.0f, MAIN_BACK_LIGHTNESS_2)     // non-active tabs
+var colorMainBack4: Color = Color.hsl(0.0f, 0.0f, MAIN_BACK_LIGHTNESS_3)     // menu delimiters
 
 var colorMainText: Color = Color.Black
 var colorMainBorder: Color = hsl(0f, 0f, 0.9f)
 
-var getColorButtonBack: () -> Color = { colorMainBack0 }
+var getColorButtonBack: () -> Color = { colorMainBack1 }
 
