@@ -1,7 +1,7 @@
 package foatto.compose
 
 import com.darkrockstudios.libraries.mpfilepicker.PlatformFile
-import foatto.compose.control.model.form.FormGridData
+import foatto.compose.control.model.form.cell.FormFileCellClient
 import foatto.core.model.request.system.BaseRequest
 import foatto.core.model.response.system.BaseResponse
 import foatto.core.model.response.system.FormFileUploadResponse
@@ -16,7 +16,7 @@ internal expect inline fun <reified IN : BaseRequest, reified OUT : BaseResponse
 )
 
 internal expect fun invokeUploadFormFile(
-    gridData: FormGridData,
+    gridData: FormFileCellClient,
     platformFiles: List<PlatformFile>,
     onSuccess: (responseData: FormFileUploadResponse) -> Unit = {},
 )

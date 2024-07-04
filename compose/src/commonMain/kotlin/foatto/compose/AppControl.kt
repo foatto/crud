@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import foatto.compose.composable.LogonForm
 import foatto.compose.control.AbstractControl
 import foatto.compose.control.EmptyControl
+import foatto.compose.control.FormControl
 import foatto.compose.control.TableControl
 import foatto.compose.model.MenuDataClient
 import foatto.compose.utils.SETTINGS_LOGIN
@@ -165,11 +166,11 @@ class AppControl(
                     }
 
                     ResponseCode.MODULE_FORM -> {
-//!!!                        val formControl = FormControl(root, this, appRequest.action, appResponse.form!!, tabId)
-//                        curControl = formControl
-//                        responseCode = appResponse.responseCode
-//
-//                        formControl.start()
+                        val formControl = FormControl(root, this, appRequest.action, appResponse.form!!, tabId)
+                        curControl = formControl
+                        responseCode = appResponse.responseCode
+
+                        formControl.start()
                     }
 
 //!!!                    ResponseCode.XY -> {

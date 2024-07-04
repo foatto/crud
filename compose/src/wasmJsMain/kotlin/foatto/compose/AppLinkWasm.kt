@@ -1,12 +1,14 @@
 package foatto.compose
 
 import com.darkrockstudios.libraries.mpfilepicker.PlatformFile
-import foatto.compose.control.model.form.FormGridData
+import foatto.compose.control.model.form.FormFileDataClient
+import foatto.compose.control.model.form.cell.FormFileCellClient
 import foatto.core.ApiUrl
 import foatto.core.model.emptyAction
 import foatto.core.model.request.system.BaseRequest
 import foatto.core.model.response.system.BaseResponse
 import foatto.core.model.response.system.FormFileUploadResponse
+import foatto.core.model.response.system.form.FormFileUploadParams
 import foatto.core.model.response.system.form.cells.FormFileData
 import foatto.core.util.getRandomLong
 import kotlinx.browser.window
@@ -42,7 +44,7 @@ internal actual inline fun <reified IN : BaseRequest, reified OUT : BaseResponse
 }
 
 internal actual fun invokeUploadFormFile(
-    gridData: FormGridData,
+    gridData: FormFileCellClient,
     platformFiles: List<PlatformFile>,
     onSuccess: (responseData: FormFileUploadResponse) -> Unit,
 ) {
@@ -50,11 +52,11 @@ internal actual fun invokeUploadFormFile(
         for (platformFile in platformFiles) {
             val id = -getRandomLong()
 
-            gridData.alFileData.add(FormFileData(id, emptyAction(), platformFile.file.name))
-            gridData.hmFileAdd[id] = platformFile.file.name
+            gridData.files.add(FormFileDataClient(id, null, platformFile.file.name))
+            gridData.addFiles[id] = platformFile.file.name
 
-            formData_.append("form_file_ids", id.toString())
-            formData_.append("form_file_blobs", platformFile.file)
+            formData_.append(FormFileUploadParams.FORM_FILE_IDS, id.toString())
+            formData_.append(FormFileUploadParams.FORM_FILE_BLOBS, platformFile.file)
         }
     }
 

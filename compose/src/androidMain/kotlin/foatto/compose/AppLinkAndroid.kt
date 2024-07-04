@@ -1,7 +1,7 @@
 package foatto.compose
 
 import com.darkrockstudios.libraries.mpfilepicker.PlatformFile
-import foatto.compose.control.model.form.FormGridData
+import foatto.compose.control.model.form.cell.FormFileCellClient
 import foatto.compose.utils.SETTINGS_SERVER_ADDRESS
 import foatto.compose.utils.SETTINGS_SERVER_PORT
 import foatto.compose.utils.SETTINGS_SERVER_PROTOCOL
@@ -58,7 +58,7 @@ internal actual inline fun <reified IN : BaseRequest, reified OUT : BaseResponse
 }
 
 internal actual fun invokeUploadFormFile(
-    gridData: FormGridData,
+    gridData: FormFileCellClient,
     platformFiles: List<PlatformFile>,
     onSuccess: (responseData: FormFileUploadResponse) -> Unit,
 ) {
