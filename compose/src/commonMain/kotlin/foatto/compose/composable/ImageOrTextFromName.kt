@@ -15,27 +15,26 @@ import io.kamel.image.asyncPainterResource
 @Composable
 internal fun ImageOrTextFromName(
     name: String,
-    tooltip: String?,
     iconSize: Int,
 ) {
     hmNameToImageVector[name]?.let { imageVector ->
         Icon(
             imageVector = imageVector,
-            contentDescription = tooltip,
+            contentDescription = name,
         )
     } ?: run {
         hmNameToUrl[name]?.let { url ->
             KamelImage(
                 modifier = Modifier.size(iconSize.dp),
                 resource = asyncPainterResource(data = getFullUrl(url)),
-                contentDescription = tooltip,
+                contentDescription = name,
             )
         } ?: run {
             if (name.startsWith('/')) {
                 KamelImage(
                     modifier = Modifier.size(iconSize.dp),
                     resource = asyncPainterResource(data = getFullUrl(name)),
-                    contentDescription = tooltip,
+                    contentDescription = name,
                 )
             } else {
                 Text(

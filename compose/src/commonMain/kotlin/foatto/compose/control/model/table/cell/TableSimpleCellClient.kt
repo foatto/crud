@@ -10,7 +10,6 @@ class TableSimpleCellClient(
     backColor: Color,
     textColor: Color,
     isBoldText: Boolean,
-    tooltip: String,
 
     val data: TableCellDataClient,
 ) : TableBaseCellClient(
@@ -20,5 +19,4 @@ class TableSimpleCellClient(
     backColor = backColor,
     textColor = textColor,
     isBoldText = isBoldText,
-    tooltip = tooltip,
 )

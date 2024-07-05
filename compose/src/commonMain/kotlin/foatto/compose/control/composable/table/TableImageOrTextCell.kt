@@ -16,9 +16,9 @@ fun TableImageOrTextCell(
     modifier: Modifier = Modifier,
 ) {
     cellData.icon?.let {
-        ImageOrTextFromName(cellData.icon, baseCellData.tooltip, styleOtherIconSize)
+        ImageOrTextFromName(cellData.icon, styleOtherIconSize)
     } ?: cellData.image?.let {
-        ImageOrTextFromName(cellData.image, baseCellData.tooltip, styleOtherIconSize)
+        ImageOrTextFromName(cellData.image, styleOtherIconSize)
     } ?: run {
         Text(
             modifier = modifier,

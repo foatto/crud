@@ -16,7 +16,6 @@ abstract class TableBaseCellClient(
     val backColor: Color,
     val textColor: Color,
     val isBoldText: Boolean,
-    val tooltip: String,
 ) {
     var componentWidth: Dp by mutableStateOf(0.dp)
 

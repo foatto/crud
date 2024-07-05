@@ -10,7 +10,6 @@ class TableBooleanCellClient(
     backColor: Color,
     textColor: Color,
     isBoldText: Boolean,
-    tooltip: String,
 
     val value: Boolean,
 ) : TableBaseCellClient(
@@ -20,5 +19,4 @@ class TableBooleanCellClient(
     backColor = backColor,
     textColor = textColor,
     isBoldText = isBoldText,
-    tooltip = tooltip,
 )

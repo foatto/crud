@@ -6,10 +6,8 @@ import kotlinx.serialization.Serializable
 class TableButtonCell(
     override val row: Int,
     override val col: Int,
-    override val rowSpan: Int = 1,
     override val colSpan: Int = 1,
     override val dataRow: Int,
-    override val tooltip: String,
     override val minWidth: Int = 0,
     override val align: TableCellAlign = TableCellAlign.CENTER,
     override val backColor: Int? = null,

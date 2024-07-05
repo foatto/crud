@@ -20,7 +20,7 @@ fun ToolBarIconButton(
                 onClick()
             }
         ) {
-            ImageOrTextFromName(name, tooltip, styleToolbarIconSize)
+            ImageOrTextFromName(name, styleToolbarIconSize)
 //                        fontSize(styleCommonButtonFontSize)
 //                        padding(styleIconButtonPadding)
 //                        setMargins(arrStyleCommonMargin)

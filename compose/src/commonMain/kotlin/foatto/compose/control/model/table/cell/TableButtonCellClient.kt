@@ -10,7 +10,6 @@ class TableButtonCellClient(
     backColor: Color,
     textColor: Color,
     isBoldText: Boolean,
-    tooltip: String,
 
     val data: List<TableCellDataClient>,
 ) : TableBaseCellClient(
@@ -20,5 +19,4 @@ class TableButtonCellClient(
     backColor = backColor,
     textColor = textColor,
     isBoldText = isBoldText,
-    tooltip = tooltip,
 )

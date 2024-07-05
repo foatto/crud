@@ -509,7 +509,7 @@ class FormControl(
                                                                         }
                                                                     }
                                                                 ) {
-                                                                    ImageOrTextFromName("/web/images/ic_delete_forever_${getStyleOtherIconNameSuffix()}.png", "Удалить файл", styleOtherIconSize)
+                                                                    ImageOrTextFromName("/web/images/ic_delete_forever_${getStyleOtherIconNameSuffix()}.png", styleOtherIconSize)
                                                                 }
 //                                                                backgroundColor(getColorFormButtonBack())
 //                                                                setBorder(getStyleFormButtonBorder())
@@ -531,7 +531,7 @@ class FormControl(
 //                                                        doKeyUp(gridData, syntheticKeyboardEvent)
 //                                                    }
                                                     ) {
-                                                        ImageOrTextFromName("/web/images/ic_add_${getStyleOtherIconNameSuffix()}.png", "Добавить файл", styleOtherIconSize)
+                                                        ImageOrTextFromName("/web/images/ic_add_${getStyleOtherIconNameSuffix()}.png", styleOtherIconSize)
                                                     }
                                                 }
 //                                            id(getFocusId(gridData.id))
@@ -548,7 +548,7 @@ class FormControl(
                                                         }
                                                     }
                                                 ) {
-                                                    ImageOrTextFromName("/web/images/ic_reply_${getStyleOtherIconNameSuffix()}.png", "Выбрать из справочника", styleOtherIconSize)
+                                                    ImageOrTextFromName("/web/images/ic_reply_${getStyleOtherIconNameSuffix()}.png", styleOtherIconSize)
                                                 }
 //                                                backgroundColor(getColorFormButtonBack())
 //                                                setBorder(getStyleFormButtonBorder())
@@ -615,7 +615,7 @@ class FormControl(
                                 }
                             }
                         ) {
-                            ImageOrTextFromName(formButton.name, formButton.tooltip, styleOtherIconSize)
+                            ImageOrTextFromName(formButton.name, styleOtherIconSize)
 //!!!                                    backgroundColor(
 //                                        if (formButton.withNewData) {
 //                                            getColorFormActionButtonSaveBack()

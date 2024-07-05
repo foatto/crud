@@ -332,7 +332,7 @@ class TableControl(
                                                             }
                                                         }
                                                     ) {
-                                                        ImageOrTextFromName(cellData.icon, gridData.tooltip, styleOtherIconSize)
+                                                        ImageOrTextFromName(cellData.icon, styleOtherIconSize)
                                                     }
                                                 } ?: cellData.image?.let {
                                                     IconButton(
@@ -342,7 +342,7 @@ class TableControl(
                                                             }
                                                         }
                                                     ) {
-                                                        ImageOrTextFromName(cellData.image, gridData.tooltip, styleOtherIconSize)
+                                                        ImageOrTextFromName(cellData.image, styleOtherIconSize)
                                                     }
                                                 } ?: run {
                                                     Button(
@@ -610,7 +610,6 @@ class TableControl(
                         backColor = backColor,
                         textColor = textColor,
                         isBoldText = tc.fontStyle != 0,
-                        tooltip = tc.tooltip,
                         value = tc.value,
                     )
                 }
@@ -623,7 +622,6 @@ class TableControl(
                         backColor = backColor,
                         textColor = textColor,
                         isBoldText = tc.fontStyle != 0,
-                        tooltip = tc.tooltip,
                         //tc.isWordWrap
                         data = TableCellDataClient(
                             icon = tc.iconName,
@@ -641,7 +639,6 @@ class TableControl(
                         backColor = backColor,
                         textColor = textColor,
                         isBoldText = tc.fontStyle != 0,
-                        tooltip = tc.tooltip,
                         data = tc.values.map { tableButtonCellData ->
                             TableCellDataClient(
                                 icon = tableButtonCellData.iconName,
@@ -662,7 +659,6 @@ class TableControl(
                         backColor = backColor,
                         textColor = textColor,
                         isBoldText = tc.fontStyle != 0,
-                        tooltip = tc.tooltip,
                         data = tc.values.map { alTableGridCellData ->
                             alTableGridCellData.map { tableGridCellData ->
                                 TableCellDataClient(

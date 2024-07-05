@@ -10,7 +10,6 @@ class TableGridCellClient(
     backColor: Color,
     textColor: Color,
     isBoldText: Boolean,
-    tooltip: String,
 
     val data: List<List<TableCellDataClient>>,
 ) : TableBaseCellClient(
@@ -20,5 +19,4 @@ class TableGridCellClient(
     backColor = backColor,
     textColor = textColor,
     isBoldText = isBoldText,
-    tooltip = tooltip,
 )
