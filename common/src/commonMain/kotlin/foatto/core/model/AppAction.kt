@@ -19,6 +19,9 @@ data class AppAction(
     val selectorData: Map<String, String> = emptyMap(),
     val selectorPath: Map<String, String> = emptyMap(),
 
+    val sortName: String? = null,
+    val isSortAsc: Boolean = true,
+
     val url: String? = null,
     val isAutoClose: Boolean = false,
 )
