@@ -22,6 +22,8 @@ data class AppAction(
     val sortName: String? = null,
     val isSortAsc: Boolean = true,
 
+    val pageNo: Int = 0,
+
     val url: String? = null,
     val isAutoClose: Boolean = false,
 )
