@@ -24,6 +24,8 @@ data class AppAction(
 
     val pageNo: Int = 0,
 
+    val findText: String? = null,
+
     val url: String? = null,
     val isAutoClose: Boolean = false,
 )

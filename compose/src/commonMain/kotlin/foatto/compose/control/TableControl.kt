@@ -90,8 +90,8 @@ class TableControl(
     }
 
     private var selectorCancelAction by mutableStateOf<AppAction?>(null)
+
     private var isFindTextVisible by mutableStateOf(root.isWideScreen)
-    private var findAction by mutableStateOf<AppAction?>(null)
     private var findText by mutableStateOf("")
 
     private var isFormButtonVisible by mutableStateOf(false)
@@ -465,7 +465,6 @@ class TableControl(
         readHeader()
         selectorCancelAction = tableResponse.selectorCancelAction
 
-        findAction = tableResponse.findAction
         findText = tableResponse.findText
 
         readAddButtons()
@@ -718,7 +717,7 @@ class TableControl(
         if (!isClear && !isFindTextVisible) {
             isFindTextVisible = true
         } else {
-//!!!            appControl.call(AppRequest(action = findAction, find = findText.trim()))
+            appControl.call(AppRequest(action = tableAction.copy(findText = findText.trim())))
         }
     }
 

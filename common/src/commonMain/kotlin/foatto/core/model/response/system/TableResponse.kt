@@ -12,7 +12,6 @@ class TableResponse(
     val tabCaption: String,
     val alHeader: List<Pair<AppAction?, String>>,
     val selectorCancelAction: AppAction? = null,
-    val findAction: AppAction? = null,
     val findText: String,
     val alAddActionButton: List<AddActionButton>,
     val alServerActionButton: List<ServerActionButton>,

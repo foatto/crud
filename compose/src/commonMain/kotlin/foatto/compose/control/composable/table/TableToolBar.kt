@@ -84,19 +84,17 @@ fun TableToolBar(
 //                }
             }
             ToolBarIconButton(
-                isVisible = selectorCancelAction != null,
                 name = "/web/images/ic_search_${getStyleToolbarIconNameSuffix()}.png",
                 tooltip = "Искать",
             ) {
                 doFind(false)
             }
-            if (findText.isNotEmpty()) {
-                ToolBarIconButton(
-                    name = "/web/images/ic_youtube_searched_for_${getStyleToolbarIconNameSuffix()}.png",
-                    tooltip = "Отключить поиск",
-                ) {
-                    doFind(true)
-                }
+            ToolBarIconButton(
+                isVisible = findText.isNotBlank(),
+                name = "/web/images/ic_youtube_searched_for_${getStyleToolbarIconNameSuffix()}.png",
+                tooltip = "Отключить поиск",
+            ) {
+                doFind(true)
             }
         }
 

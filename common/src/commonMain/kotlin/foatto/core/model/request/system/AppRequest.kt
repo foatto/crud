@@ -11,5 +11,3 @@ class AppRequest(
 ) : BaseRequest(
     url = appModuleUrls[action.module]?.appUrl ?: ApiUrl.ERROR,
 )
-
-//    val find: String? = null,
