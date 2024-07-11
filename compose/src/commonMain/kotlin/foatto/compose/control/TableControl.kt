@@ -27,7 +27,7 @@ import foatto.compose.Root
 import foatto.compose.colorMainBack0
 import foatto.compose.colorMainText
 import foatto.compose.composable.GenerateMenuBody
-import foatto.compose.composable.ImageOrTextFromName
+import foatto.compose.composable.ImageOrTextFromNameControl
 import foatto.compose.control.model.TitleData
 import foatto.compose.control.model.table.AddActionButtonClient
 import foatto.compose.control.model.table.ClientActionButtonClient
@@ -324,46 +324,41 @@ class TableControl(
                                             modifier = Modifier.padding(TABLE_CELL_PADDING),
                                         ) {
                                             gridData.data.forEach { cellData ->
-                                                cellData.icon?.let {
-                                                    IconButton(
-                                                        onClick = {
-                                                            cellData.action?.let {
-                                                                call(cellData.action, cellData.inNewTab)
+                                                ImageOrTextFromNameControl(
+                                                    name = cellData.name,
+                                                    iconSize = styleOtherIconSize,
+                                                    imageButton = { func ->
+                                                        IconButton(
+                                                            onClick = {
+                                                                cellData.action?.let {
+                                                                    call(cellData.action, cellData.inNewTab)
+                                                                }
                                                             }
+                                                        ) {
+                                                            func()
                                                         }
-                                                    ) {
-                                                        ImageOrTextFromName(cellData.icon, styleOtherIconSize)
-                                                    }
-                                                } ?: cellData.image?.let {
-                                                    IconButton(
-                                                        onClick = {
-                                                            cellData.action?.let {
-                                                                call(cellData.action, cellData.inNewTab)
+                                                    },
+                                                    textButton = { caption ->
+                                                        Button(
+                                                            shape = RoundedCornerShape(0.dp),
+                                                            onClick = {
+                                                                cellData.action?.let {
+                                                                    call(cellData.action, cellData.inNewTab)
+                                                                }
                                                             }
-                                                        }
-                                                    ) {
-                                                        ImageOrTextFromName(cellData.image, styleOtherIconSize)
-                                                    }
-                                                } ?: run {
-                                                    Button(
-                                                        shape = RoundedCornerShape(0.dp),
-                                                        onClick = {
-                                                            cellData.action?.let {
-                                                                call(cellData.action, cellData.inNewTab)
-                                                            }
-                                                        }
-                                                    ) {
-                                                        Text(
-                                                            text = cellData.text ?: "???",
+                                                        ) {
+                                                            Text(
+                                                                text = caption,
 //                                                                color = gridData.textColor,
-                                                            fontWeight = if (gridData.isBoldText) {
-                                                                FontWeight.Bold
-                                                            } else {
-                                                                null
-                                                            },
-                                                        )
+                                                                fontWeight = if (gridData.isBoldText) {
+                                                                    FontWeight.Bold
+                                                                } else {
+                                                                    null
+                                                                },
+                                                            )
+                                                        }
                                                     }
-                                                }
+                                                )
                                             }
                                         }
                                     }
@@ -623,9 +618,7 @@ class TableControl(
                         isBoldText = tc.fontStyle != 0,
                         //tc.isWordWrap
                         data = TableCellDataClient(
-                            icon = tc.iconName,
-                            image = tc.imageUrl,
-                            text = tc.text,
+                            name = tc.name,
                         )
                     )
                 }
@@ -640,9 +633,7 @@ class TableControl(
                         isBoldText = tc.fontStyle != 0,
                         data = tc.values.map { tableButtonCellData ->
                             TableCellDataClient(
-                                icon = tableButtonCellData.iconName,
-                                image = tableButtonCellData.imageUrl,
-                                text = tableButtonCellData.text,
+                                name = tableButtonCellData.name,
                                 action = tableButtonCellData.action,
                                 inNewTab = tableButtonCellData.inNewTab,
                             )
@@ -659,11 +650,9 @@ class TableControl(
                         textColor = textColor,
                         isBoldText = tc.fontStyle != 0,
                         data = tc.values.map { alTableGridCellData ->
-                            alTableGridCellData.map { tableGridCellData ->
+                            alTableGridCellData.map { name ->
                                 TableCellDataClient(
-                                    icon = tableGridCellData.iconName,
-                                    image = tableGridCellData.imageUrl,
-                                    text = tableGridCellData.text,
+                                    name = name,
                                 )
                             }
                         }

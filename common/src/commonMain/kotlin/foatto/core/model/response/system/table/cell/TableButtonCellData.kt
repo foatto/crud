@@ -5,9 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 class TableButtonCellData(
-    val iconName: String? = null,
-    val imageUrl: String? = null,
-    val text: String? = null,
+    val name: String,
     val action: AppAction? = null,
     val inNewTab: Boolean = false,
 )

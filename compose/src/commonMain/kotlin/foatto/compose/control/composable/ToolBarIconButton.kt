@@ -2,7 +2,7 @@ package foatto.compose.control.composable
 
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
-import foatto.compose.composable.ImageOrTextFromName
+import foatto.compose.composable.ImageOrTextFromNameControl
 import foatto.compose.styleToolbarIconSize
 
 @Composable
@@ -10,17 +10,24 @@ fun ToolBarIconButton(
     isVisible: Boolean = true,
     isEnabled: Boolean = true,
     name: String,
-    tooltip: String? = null,
     onClick: () -> Unit,
 ) {
     if (isVisible) {
-        IconButton(
-            enabled = isEnabled,
-            onClick = {
-                onClick()
-            }
-        ) {
-            ImageOrTextFromName(name, styleToolbarIconSize)
+        ImageOrTextFromNameControl(
+            name = name,
+            iconSize = styleToolbarIconSize,
+            imageButton = { func ->
+                IconButton(
+                    enabled = isEnabled,
+                    onClick = {
+                        onClick()
+                    }
+                ) {
+                    func()
+                }
+            },
+            textButton = {},
+        )
 //                        fontSize(styleCommonButtonFontSize)
 //                        padding(styleIconButtonPadding)
 //                        setMargins(arrStyleCommonMargin)
@@ -36,7 +43,6 @@ fun ToolBarIconButton(
 //                                padding(styleTextButtonPadding)
 //                                setMargins(arrStyleCommonMargin)
 //                                cursor("pointer")
-        }
     }
 }
 

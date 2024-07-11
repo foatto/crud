@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.toSize
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import foatto.compose.AppControl
 import foatto.compose.Root
-import foatto.compose.composable.ImageOrTextFromName
+import foatto.compose.composable.ImageOrTextFromNameControl
 import foatto.compose.control.model.TitleData
 import foatto.compose.control.model.form.FormButtonData
 import foatto.compose.control.model.form.FormCellCaptionInfo
@@ -502,15 +502,22 @@ class FormControl(
 //                                                            fontSize(styleCommonButtonFontSize)
 //                                                            doKeyUp(gridData, syntheticKeyboardEvent)
                                                             if (gridData.data.isEditable) {
-                                                                IconButton(
-                                                                    onClick = {
-                                                                        if (!isFileAddInProgress) {
-                                                                            deleteFile(gridData, fileData.id)
+                                                                ImageOrTextFromNameControl(
+                                                                    name = "/web/images/ic_delete_forever_${getStyleOtherIconNameSuffix()}.png",
+                                                                    iconSize = styleOtherIconSize,
+                                                                    imageButton = { func ->
+                                                                        IconButton(
+                                                                            onClick = {
+                                                                                if (!isFileAddInProgress) {
+                                                                                    deleteFile(gridData, fileData.id)
+                                                                                }
+                                                                            }
+                                                                        ) {
+                                                                            func()
                                                                         }
-                                                                    }
-                                                                ) {
-                                                                    ImageOrTextFromName("/web/images/ic_delete_forever_${getStyleOtherIconNameSuffix()}.png", styleOtherIconSize)
-                                                                }
+                                                                    },
+                                                                    textButton = {},
+                                                                )
 //                                                                backgroundColor(getColorFormButtonBack())
 //                                                                setBorder(getStyleFormButtonBorder())
 //                                                                doKeyUp(gridData, syntheticKeyboardEvent)
@@ -519,20 +526,27 @@ class FormControl(
                                                     }
                                                 }
                                                 if (gridData.data.isEditable) {
-                                                    IconButton(
-                                                        enabled = !isFileAddInProgress,
+                                                    ImageOrTextFromNameControl(
+                                                        name = "/web/images/ic_add_${getStyleOtherIconNameSuffix()}.png",
+                                                        iconSize = styleOtherIconSize,
+                                                        imageButton = { func ->
+                                                            IconButton(
+                                                                enabled = !isFileAddInProgress,
 //                                                        backgroundColor(getColorButtonBack())
 //                                                        setBorder(color = getColorButtonBorder(), radius = styleButtonBorderRadius)
-                                                        onClick = {
-                                                            fileGridData = gridData
-                                                            isFilePickerVisible = true
-                                                        }
+                                                                onClick = {
+                                                                    fileGridData = gridData
+                                                                    isFilePickerVisible = true
+                                                                }
 //                                                    onKeyUp { syntheticKeyboardEvent ->
 //                                                        doKeyUp(gridData, syntheticKeyboardEvent)
 //                                                    }
-                                                    ) {
-                                                        ImageOrTextFromName("/web/images/ic_add_${getStyleOtherIconNameSuffix()}.png", styleOtherIconSize)
-                                                    }
+                                                            ) {
+                                                                func()
+                                                            }
+                                                        },
+                                                        textButton = {},
+                                                    )
                                                 }
 //                                            id(getFocusId(gridData.id))
                                             }
@@ -540,16 +554,22 @@ class FormControl(
 
                                         if (gridData is FormSimpleCellClient) {
                                             gridData.data.selectorSetAction?.let { selectorSetAction ->
-                                                IconButton(
-                                                    onClick = {
-                                                        if (!isFileAddInProgress) {
-                                                            //!!! call(gridData.selectorSetURL, true, null)
-                                                            callSelector(selectorSetAction)
+                                                ImageOrTextFromNameControl(
+                                                    name = "/web/images/ic_reply_${getStyleOtherIconNameSuffix()}.png",
+                                                    iconSize = styleOtherIconSize,
+                                                    imageButton = { func ->
+                                                        IconButton(
+                                                            onClick = {
+                                                                if (!isFileAddInProgress) {
+                                                                    callSelector(selectorSetAction)
+                                                                }
+                                                            }
+                                                        ) {
+                                                            func()
                                                         }
-                                                    }
-                                                ) {
-                                                    ImageOrTextFromName("/web/images/ic_reply_${getStyleOtherIconNameSuffix()}.png", styleOtherIconSize)
-                                                }
+                                                    },
+                                                    textButton = {},
+                                                )
 //                                                backgroundColor(getColorFormButtonBack())
 //                                                setBorder(getStyleFormButtonBorder())
 //                                                doKeyUp(gridData, syntheticKeyboardEvent)
@@ -606,16 +626,24 @@ class FormControl(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     for (formButton in alFormButton) {
-                        IconButton(
-                            modifier = Modifier.padding(1.dp),
-                            enabled = !isFileAddInProgress,
-                            onClick = {
-                                if (!isFileAddInProgress) {
-                                    call(formButton.actionType, formButton.withNewData, formButton.question)
+                        ImageOrTextFromNameControl(
+                            name = formButton.name,
+                            iconSize = styleOtherIconSize,
+                            imageButton = { func ->
+                                IconButton(
+                                    modifier = Modifier.padding(1.dp),
+                                    enabled = !isFileAddInProgress,
+                                    onClick = {
+                                        if (!isFileAddInProgress) {
+                                            call(formButton.actionType, formButton.withNewData, formButton.question)
+                                        }
+                                    }
+                                ) {
+                                    func()
                                 }
-                            }
-                        ) {
-                            ImageOrTextFromName(formButton.name, styleOtherIconSize)
+                            },
+                            textButton = {},
+                        )
 //!!!                                    backgroundColor(
 //                                        if (formButton.withNewData) {
 //                                            getColorFormActionButtonSaveBack()
@@ -623,7 +651,6 @@ class FormControl(
 //                                            getColorFormActionButtonOtherBack()
 //                                        }
 //                                    )
-                        }
                     }
                 }
             }

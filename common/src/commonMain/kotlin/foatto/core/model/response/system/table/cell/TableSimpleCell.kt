@@ -15,9 +15,7 @@ class TableSimpleCell(
     override val foreColor: Int? = null,
     override val fontStyle: Int = 0,
 
-    val iconName: String? = null,
-    val imageUrl: String? = null,
-    val text: String? = null,
+    val name: String,
 
     val isWordWrap: Boolean = true,
 ) : TableBaseCell()

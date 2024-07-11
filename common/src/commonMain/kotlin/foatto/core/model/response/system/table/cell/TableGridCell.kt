@@ -15,7 +15,7 @@ class TableGridCell(
     override val foreColor: Int? = null,
     override val fontStyle: Int = 0,
 
-    val values: List<List<TableGridCellData>>,
+    val values: List<List<String>>,
     val isWordWrap: Boolean = true,
 ) : TableBaseCell()
 

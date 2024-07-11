@@ -61,7 +61,6 @@ fun TableToolBar(
             ToolBarIconButton(
                 isVisible = selectorCancelAction != null,
                 name = "/web/images/ic_reply_all_${getStyleToolbarIconNameSuffix()}.png",
-                tooltip = "Отменить выбор",
             ) {
                 selectorCancelAction?.let {
                     call(selectorCancelAction, false)
@@ -85,14 +84,12 @@ fun TableToolBar(
             }
             ToolBarIconButton(
                 name = "/web/images/ic_search_${getStyleToolbarIconNameSuffix()}.png",
-                tooltip = "Искать",
             ) {
                 doFind(false)
             }
             ToolBarIconButton(
                 isVisible = findText.isNotBlank(),
                 name = "/web/images/ic_youtube_searched_for_${getStyleToolbarIconNameSuffix()}.png",
-                tooltip = "Отключить поиск",
             ) {
                 doFind(true)
             }
@@ -104,7 +101,6 @@ fun TableToolBar(
                     ToolBarIconButton(
                         isVisible = isWideScreen || !isFindTextVisible,
                         name = addButton.name,
-                        tooltip = addButton.tooltip,
                     ) {
                         call(addButton.action, false)
                     }
@@ -112,21 +108,18 @@ fun TableToolBar(
                 ToolBarIconButton(
                     isVisible = (isWideScreen || !isFindTextVisible) && isFormButtonVisible,
                     name = "/web/images/ic_mode_edit_${getStyleToolbarIconNameSuffix()}.png",
-                    tooltip = "Открыть форму",
                 ) {
                     doForm()
                 }
                 ToolBarIconButton(
                     isVisible = (isWideScreen || !isFindTextVisible) && isGotoButtonVisible,
                     name = "/web/images/ic_exit_to_app_${getStyleToolbarIconNameSuffix()}.png",
-                    tooltip = "Перейти",
                 ) {
                     doGoto()
                 }
                 ToolBarIconButton(
                     isVisible = (isWideScreen || !isFindTextVisible) && isPopupButtonVisible,
                     name = "/web/images/ic_menu_${getStyleToolbarIconNameSuffix()}.png",
-                    tooltip = "Показать действия по строке",
                 ) {
                     doPopup()
                 }
@@ -137,7 +130,6 @@ fun TableToolBar(
                     ToolBarIconButton(
                         isVisible = isWideScreen || (!isFindTextVisible && !serverButton.isForWideScreenOnly),
                         name = serverButton.name,
-                        tooltip = serverButton.tooltip,
                     ) {
                         call(serverButton.action, serverButton.inNewTab)
                     }
@@ -149,7 +141,6 @@ fun TableToolBar(
                     ToolBarIconButton(
                         isVisible = isWideScreen || (!isFindTextVisible && !clientButton.isForWideScreenOnly),
                         name = clientButton.name,
-                        tooltip = clientButton.tooltip
                     ) {
                         clientAction(clientButton.action, clientButton.params)
                     }
@@ -160,7 +151,6 @@ fun TableToolBar(
                 if (isWideScreen || !isFindTextVisible) {
                     ToolBarIconButton(
                         name = "/web/images/ic_sync_${getStyleToolbarIconNameSuffix()}.png",
-                        tooltip = "Обновить",
                     ) {
                         call(tableAction, false)
                     }

@@ -4,7 +4,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import foatto.compose.composable.ImageOrTextFromName
+import foatto.compose.composable.ImageOrTextFromNameControl
 import foatto.compose.control.model.table.cell.TableBaseCellClient
 import foatto.compose.control.model.table.cell.TableCellDataClient
 import foatto.compose.styleOtherIconSize
@@ -15,20 +15,21 @@ fun TableImageOrTextCell(
     cellData: TableCellDataClient,
     modifier: Modifier = Modifier,
 ) {
-    cellData.icon?.let {
-        ImageOrTextFromName(cellData.icon, styleOtherIconSize)
-    } ?: cellData.image?.let {
-        ImageOrTextFromName(cellData.image, styleOtherIconSize)
-    } ?: run {
-        Text(
-            modifier = modifier,
-            text = cellData.text ?: "???",
-            color = baseCellData.textColor,
-            fontWeight = if (baseCellData.isBoldText) {
-                FontWeight.Bold
-            } else {
-                null
-            },
-        )
-    }
+    ImageOrTextFromNameControl(
+        name = cellData.name,
+        iconSize = styleOtherIconSize,
+        imageButton = {},
+        textButton = { caption ->
+            Text(
+                modifier = modifier,
+                text = caption,
+                color = baseCellData.textColor,
+                fontWeight = if (baseCellData.isBoldText) {
+                    FontWeight.Bold
+                } else {
+                    null
+                },
+            )
+        }
+    )
 }
