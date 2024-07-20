@@ -224,7 +224,7 @@ class FormControl(
 
                                             is FormSimpleCellClient -> {
                                                 OutlinedTextField(
-                                                    modifier = Modifier.padding(FORM_CELL_PADDING),
+                                                    modifier = Modifier.padding(FORM_CELL_PADDING).widthIn(max = root.scaledScreenWidth.dp / 2),
                                                     value = gridData.current.value,
                                                     onValueChange = { newText ->
                                                         gridData.current.value = newText
@@ -305,30 +305,29 @@ class FormControl(
                                             }
 
                                             is FormDateTimeCellClient -> {
-                                                for (index in 0 until gridData.data.value.size) {
+                                                val dateTimeFieldCount = gridData.data.value.size
+                                                for (index in 0 until dateTimeFieldCount) {
                                                     //--- time fields on new line on narrow screens
 //                                            if (styleIsNarrowScreen && index == 3) {
 //                                                Br()
 //                                            }
-//!!! - как различать разные подтипы даты/времени?
-//                                                if (gridData.cellType != FormCellTypeClient.TIME && index in (1..2)) {
-//                                                    Text(text = ".")
-//                                                } else if (gridData.cellType == FormCellTypeClient.TIME && index in (1..2)) {
-//                                                    Text(text = ":")
-//                                                } else if (gridData.cellType == FormCellTypeClient.DATE_TIME && index in (4..5)) {
-//                                                    Text(text = ":")
-//                                                }
+                                                    if (dateTimeFieldCount >= 3 && index in (1..2)) {
+                                                        Text(text = ".")
+                                                    } else if (dateTimeFieldCount < 3 && index in (1..2)) {
+                                                        Text(text = ":")
+                                                    } else if (index in (4..5)) {
+                                                        Text(text = ":")
+                                                    }
 
-//!!!                                                val isYearField = gridData.cellType != FormCellTypeClient.TIME && index == 2
                                                     OutlinedTextField(
                                                         modifier = Modifier
                                                             .padding(FORM_CELL_PADDING)
                                                             .width(
-//!!!                                                            if (isYearField) {
-//                                                                76.dp   // после ввода пятой (лишней) цифры первая наполовину уходит
-//                                                            } else {
-                                                                58.dp   // после ввода третьей (лишней) цифры первая наполовину уходит
-//                                                            }
+                                                                if (index == 2) {
+                                                                    76.dp   // после ввода пятой (лишней) цифры первая наполовину уходит
+                                                                } else {
+                                                                    58.dp   // после ввода третьей (лишней) цифры первая наполовину уходит
+                                                                }
                                                             ),
                                                         value = gridData.current[index].value,
                                                         onValueChange = { newText ->
@@ -553,7 +552,7 @@ class FormControl(
                                         }
 
                                         if (gridData is FormSimpleCellClient) {
-                                            gridData.data.selectorSetAction?.let { selectorSetAction ->
+                                            gridData.data.selectorAction?.let { selectorAction ->
                                                 ImageOrTextFromNameControl(
                                                     name = "/web/images/ic_reply_${getStyleOtherIconNameSuffix()}.png",
                                                     iconSize = styleOtherIconSize,
@@ -561,7 +560,7 @@ class FormControl(
                                                         IconButton(
                                                             onClick = {
                                                                 if (!isFileAddInProgress) {
-                                                                    callSelector(selectorSetAction)
+                                                                    callSelector(selectorAction)
                                                                 }
                                                             }
                                                         ) {
@@ -573,36 +572,27 @@ class FormControl(
 //                                                backgroundColor(getColorFormButtonBack())
 //                                                setBorder(getStyleFormButtonBorder())
 //                                                doKeyUp(gridData, syntheticKeyboardEvent)
-                                            }
 
-//                                        if (gridData.selectorClearURL.isNotEmpty()) {
-//                                            IconButton(
-//                                                onClick = {
-//                                                    if (!isFileAddInProgress) {
-//                                                        call(gridData.selectorClearURL, true, null)
-//                                                    }
-//                                                }
-//                                            ) {
-//                                                ImageOrTextFromName("/web/images/ic_delete_forever_${getStyleOtherIconNameSuffix()}.png", "Очистить выбор", styleOtherIconSize)
-//                                            }
-//
+                                                ImageOrTextFromNameControl(
+                                                    name = "/web/images/ic_delete_forever_${getStyleOtherIconNameSuffix()}.png",
+                                                    iconSize = styleOtherIconSize,
+                                                    imageButton = { func ->
+                                                        IconButton(
+                                                            onClick = {
+                                                                if (!isFileAddInProgress) {
+                                                                    clearSelector(selectorAction)
+                                                                }
+                                                            }
+                                                        ) {
+                                                            func()
+                                                        }
+                                                    },
+                                                    textButton = {},
+                                                )
 ////                                                backgroundColor(getColorFormButtonBack())
 ////                                                setBorder(getStyleFormButtonBorder())
 ////                                                doKeyUp(gridData, syntheticKeyboardEvent)
-//                                        }
-//TODO !!!
-//                            gridData.selectorClearAction?.let { selectorClearAction ->
-//                                getFormSelectorClear(
-//                                    onClick = {
-//                                        //TODO: не забыть вернуть/реализовать
-//                                        //call(selectorClearAction, true)
-//                                    },
-//                                    onKeyUp = { key, isCtrlKey ->
-//                                        doKeyUp(gridData, key, isCtrlKey)
-//                                    },
-//                                )
-//                            }
-
+                                            }
                                         }
                                     }
                                 }
@@ -1324,18 +1314,18 @@ class FormControl(
         }
     }
 
-    private fun callSelector(selectorSetAction: AppAction) {
+    private fun callSelector(selectorAction: AppAction) {
         root.setWait(true)
-        invokeRequest(AppRequest(action = selectorSetAction)) { appResponse: AppResponse ->
+        invokeRequest(AppRequest(action = selectorAction)) { appResponse: AppResponse ->
 
             val tableControl = TableControl(
                 root = root,
                 appControl = appControl,
-                tableAction = selectorSetAction,
+                tableAction = selectorAction,
                 tableResponse = appResponse.table!!,
                 tabId = -1,
                 selectorFun = { selectorData ->
-                    selectorSetAction.selectorPath.forEach { (fromField, toField) ->
+                    selectorAction.selectorPath.forEach { (fromField, toField) ->
                         alHiddenCells.forEach { gridData ->
                             setSelectorData(selectorData, fromField, toField, gridData)
                         }
@@ -1361,10 +1351,35 @@ class FormControl(
         toField: String,
         gridData: FormBaseCellClient?,
     ) {
-        if ((gridData as? FormSimpleCellClient)?.data?.name == toField) {
+        val toCell = gridData as? FormSimpleCellClient
+        if (toCell?.data?.name == toField) {
             selectorData[fromField]?.let { fromData ->
-                (gridData as? FormSimpleCellClient)?.current?.value = fromData
+                toCell.current.value = fromData
             }
+        }
+    }
+
+    private fun clearSelector(selectorAction: AppAction) {
+        selectorAction.selectorClear.forEach { (toField, clearValue) ->
+            alHiddenCells.forEach { gridData ->
+                clearSelectorData(toField, clearValue, gridData)
+            }
+            alGridRows.forEach { alGridRow ->
+                alGridRow.forEach { gridData ->
+                    clearSelectorData(toField, clearValue, gridData)
+                }
+            }
+        }
+    }
+
+    private fun clearSelectorData(
+        toField: String,
+        clearValue: String,
+        gridData: FormBaseCellClient?,
+    ) {
+        val toCell = gridData as? FormSimpleCellClient
+        if (toCell?.data?.name == toField) {
+            toCell.current.value = clearValue
         }
     }
 

@@ -16,7 +16,6 @@ class FormSimpleCell(
     val columns: Int = 40,
     val rows: Int = 1,
     val isPassword: Boolean = false,
-    val selectorSetAction: AppAction? = null,
-    val selectorClearAction: AppAction? = null,
+    val selectorAction: AppAction? = null,
     val isAutoStartSelector: Boolean = false,
 ) : FormBaseCell()
