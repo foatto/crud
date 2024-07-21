@@ -9,16 +9,16 @@ import foatto.compose.control.model.form.FormFileDataClient
 import foatto.core.model.response.system.form.cells.FormFileCell
 
 class FormFileCellClient(
-    id: Int,
     cellName: String,
     align: Arrangement.Horizontal,
     isVisible: MutableState<Boolean> = mutableStateOf(true),
+    focusId: Int,
     val data: FormFileCell,
 ) : FormBaseCellClient(
-    id = id,
     cellName = cellName,
     align = align,
     isVisible = isVisible,
+    focusId = focusId,
 ) {
     val files: SnapshotStateList<FormFileDataClient> = mutableStateListOf()
 

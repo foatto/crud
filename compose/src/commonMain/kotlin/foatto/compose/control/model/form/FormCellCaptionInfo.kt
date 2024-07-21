@@ -1,3 +1,6 @@
 package foatto.compose.control.model.form
 
-internal class FormCellCaptionInfo(val caption: String, val hsValue: Set<String>, val id: Int)
+internal class FormCellCaptionInfo(
+    val caption: String,
+    val values: Set<String>,
+)

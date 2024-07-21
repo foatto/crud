@@ -6,16 +6,16 @@ import androidx.compose.runtime.mutableStateOf
 import foatto.core.model.response.system.form.cells.FormBooleanCell
 
 class FormBooleanCellClient(
-    id: Int,
     cellName: String,
     align: Arrangement.Horizontal,
     isVisible: MutableState<Boolean> = mutableStateOf(true),
+    focusId: Int,
     val data: FormBooleanCell,
 ) : FormBaseCellClient(
-    id = id,
     cellName = cellName,
     align = align,
     isVisible = isVisible,
+    focusId = focusId,
 ) {
     val current: MutableState<Boolean> = mutableStateOf(data.value)
 }

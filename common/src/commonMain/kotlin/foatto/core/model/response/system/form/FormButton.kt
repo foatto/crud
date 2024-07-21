@@ -6,8 +6,8 @@ import kotlinx.serialization.Serializable
 class FormButton(
     val actionType: String,
     val withNewData: Boolean,
-    val iconName: String?,
-    val caption: String?,
+    val iconName: String,
+    val caption: String,
     val key: FormButtonKey? = null,
     val question: String? = null,
 )

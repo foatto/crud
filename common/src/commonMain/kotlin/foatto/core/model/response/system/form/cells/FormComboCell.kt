@@ -1,5 +1,7 @@
 package foatto.core.model.response.system.form.cells
 
+import foatto.core.model.response.system.form.FormCellCaption
+import foatto.core.model.response.system.form.FormCellVisibility
 import kotlinx.serialization.Serializable
 import foatto.core.model.response.system.form.FormPinMode
 
@@ -9,7 +11,9 @@ class FormComboCell(
     override val caption: String,
     override val isEditable: Boolean,
     override val isAutoFocus: Boolean,
-    override val formPinMode: FormPinMode = FormPinMode.AUTO,
+    override val pinMode: FormPinMode = FormPinMode.AUTO,
+    override val visibility: FormCellVisibility? = null,
+    override val captions: FormCellCaption? = null,
 
     val value: String,
     val values: List<Pair<String, String>>,

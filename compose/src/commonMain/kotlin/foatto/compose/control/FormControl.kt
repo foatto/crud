@@ -98,8 +98,8 @@ class FormControl(
     private val verticalScrollState = ScrollState(0)
     private val horizontalScrollState = ScrollState(0)
 
-    private val hmFormCellVisible = mutableMapOf<Int, MutableList<FormCellVisibleInfo>>()
-    private val hmFormCellCaption = mutableMapOf<Int, MutableList<FormCellCaptionInfo>>()
+    private val hmFormCellVisible = mutableMapOf<String, MutableMap<String, FormCellVisibleInfo>>()
+    private val hmFormCellCaption = mutableMapOf<String, MutableMap<String, List<FormCellCaptionInfo>>>()
 
     private val alFormButton = mutableListOf<FormButtonData>()
 
@@ -213,7 +213,7 @@ class FormControl(
                                             is FormLabelCellClient -> {
                                                 Text(
                                                     modifier = Modifier.padding(FORM_CELL_PADDING),
-                                                    text = gridData.caption,
+                                                    text = gridData.current.value,
                                                 )
 //                                            if (gridData.text.value == BR) {
 //                                                Br()
@@ -592,6 +592,7 @@ class FormControl(
 ////                                                backgroundColor(getColorFormButtonBack())
 ////                                                setBorder(getStyleFormButtonBorder())
 ////                                                doKeyUp(gridData, syntheticKeyboardEvent)
+
                                             }
                                         }
                                     }
@@ -653,7 +654,11 @@ class FormControl(
 
     override fun start() {
         readHeader()
-        readForm()
+        if (formResponse.alFormColumn.isEmpty()) {
+            readClassicForm()
+        } else {
+            readGridForm()
+        }
     }
 
     private fun readHeader() {
@@ -667,50 +672,40 @@ class FormControl(
         root.setTabInfo(tabId, formResponse.tabCaption, tabToolTip)
     }
 
-    private fun readForm() {
+    private fun readClassicForm() {
         alHiddenCells.clear()
         alGridRows.clear()
 
-        var columnNo = 0       // счётчик столбцов grid-формы
-        var columnIndex = 0
         var rowIndex = 0
-        val hmFormCellMaster = mutableMapOf<String, Int>()
-        var autoFocusId: String? = null
+        var colIndex = 0
         val alFormCellMasterPreAction = mutableListOf<FormBaseCellClient>()
-        var autoClickAction: AppAction? = null
+        var autoFocusId: String? = null
 
-        rowIndex = getGridFormTopBottomCaptions(formResponse.alFormColumn, rowIndex, 0)
-        //--- с запасом отдадим предыдущую сотню id-шек на построение grid-заголовков
-        var gridCellId = 100
+        var cellFocusId = 0
 
-        var maxColumnCount = 0
+        //--- хотя бы один столбец с полями всё равно будет
+        var maxColCount = 1
         for (formCell in formResponse.alFormCell) {
             //--- поле без заголовка считается невидимым (hidden)
             if (formCell.caption.isEmpty()) {
                 val formGridData = getFormDataCell(
                     formCell = formCell,
-                    gridCellId = gridCellId,
+                    cellFocusId = -1,
                 )
                 alHiddenCells += formGridData
 
                 if (formCell is FormBooleanCell || formCell is FormComboCell) {
-                    hmFormCellMaster[formCell.name] = gridCellId
-                    hmFormCellVisible[gridCellId] = mutableListOf()
-                    hmFormCellCaption[gridCellId] = mutableListOf()
+                    hmFormCellVisible[formCell.name] = mutableMapOf()
+                    hmFormCellCaption[formCell.name] = mutableMapOf()
                     alFormCellMasterPreAction.add(formGridData)
                 }
+            } else {
+                colIndex = 0
 
-                gridCellId++
-                continue
-            }
-
-            val alSlaveId = mutableListOf<Int>()
-
-            //--- обычная форма: начинаем новую строку
-            if (formResponse.alFormColumn.isEmpty()) {
-                columnIndex = 0
-                if (formCell.formPinMode == FormPinMode.ON ||
-                    formCell.formPinMode == FormPinMode.AUTO && !formCell.isEditable //!!! && (formCell as? FormSimpleCell)?.selectorSetAction == null
+                if (formCell.pinMode == FormPinMode.ON ||
+                    formCell.pinMode == FormPinMode.AUTO &&
+                    !formCell.isEditable &&
+                    (formCell as? FormSimpleCell)?.selectorAction == null
                 ) {
                     rowIndex++
                 } else {
@@ -719,144 +714,336 @@ class FormControl(
 //!!!                    val emptyCell = getFormEmptyCell(gridCellId, rowIndex)
 
 //!!!                    alGridData.add(emptyCell)
-                    alSlaveId.add(gridCellId++)
 
                     rowIndex++
                 }
-            }
 
-            //--- если это обычная форма или первое поле в строке GRID-формы, то добавляем левый заголовок поля
-            var captionGridCell: FormBaseCellClient? = null
-            if (formResponse.alFormColumn.isEmpty() || columnNo == 0) {
-                captionGridCell = getFormLabelCell(formCell, gridCellId)
-
+                //--- добавляем левый заголовок поля
                 addCellToGrid(
                     alGridRows = alGridRows,
-                    maxColCount = formResponse.alFormColumn.size,
+                    maxColCount = maxColCount,
                     row = rowIndex,
-                    col = columnIndex,
-                    cell = captionGridCell
+                    col = colIndex,
+                    cell = getClassicFormLabelCell(formCell)
                 )
-                alSlaveId.add(gridCellId++)
 
-                //--- если это широкий экран или строка GRID-формы
-                if (root.isWideScreen || formResponse.alFormColumn.isNotEmpty()) {
-                    columnIndex++
+                //--- если это широкий экран
+                if (root.isWideScreen) {
+                    colIndex++
                 } else {
                     rowIndex++
                 }
-            }
 
-            val formGridData = getFormDataCell(
-                formCell = formCell,
-                gridCellId = gridCellId,
-                isGridForm = formResponse.alFormColumn.isNotEmpty()
-            )
-            //--- на тачскринах автофокус только бесит автоматическим включением клавиатуры
-//            if (!getStyleIsTouchScreen()) {
-//                //--- set autofocus from server
-//                if (formCell.isAutoFocus) {
-//                    autoFocusId = getFocusId(formGridData.id, formGridData.alSubId?.get(0))
-//                }
-//                //--- automatic autofocus setting
-//                else if (autoFocusId == null && !formGridData.isReadOnly) {
-//                    autoFocusId = getFocusId(formGridData.id, formGridData.alSubId?.get(0))
-//                }
-//            }
-            addCellToGrid(
-                alGridRows = alGridRows,
-                maxColCount = formResponse.alFormColumn.size,
-                row = rowIndex,
-                col = columnIndex,
-                cell = formGridData
-            )
+                //--- на тачскринах автофокус только бесит автоматическим включением клавиатуры
+                //            if (!getStyleIsTouchScreen()) {
+                //                //--- set autofocus from server
+                //                if (formCell.isAutoFocus) {
+                //                    autoFocusId = getFocusId(formGridData.id, formGridData.alSubId?.get(0))
+                //                }
+                //                //--- automatic autofocus setting
+                //                else if (autoFocusId == null && !formGridData.isReadOnly) {
+                //                    autoFocusId = getFocusId(formGridData.id, formGridData.alSubId?.get(0))
+                //                }
+                //            }
 
-            //--- проверка на изначальную пустоту поля-автоселектора
-            //--- (по умолчанию оно заполнено, чтобы не запустить автоселектор на непроверяемых полях)
-            var isEmptyFieldValue = false
-            when (formCell) {
-                is FormSimpleCell -> {
-                    isEmptyFieldValue = formCell.value.isEmpty()
-                }
-
-                is FormBooleanCell, is FormComboCell -> {
-                    hmFormCellMaster[formCell.name] = gridCellId
-                    hmFormCellVisible[gridCellId] = mutableListOf()
-                    hmFormCellCaption[gridCellId] = mutableListOf()
-                    alFormCellMasterPreAction.add(formGridData)
-                }
-
-                is FormDateTimeCell -> {
-                    isEmptyFieldValue = formCell.value[0].isEmpty()
-                }
-
-                is FormFileCell -> {}
-            }
-            alSlaveId.add(gridCellId++)
-
-            columnNo++
-
-            //--- если это широкий экран или строка GRID-формы
-            if (root.isWideScreen || formResponse.alFormColumn.isNotEmpty()) {
-                columnIndex++
-            } else {
-                rowIndex++
-            }
-
-            //--- если это последнее поле в строке GRID-формы, то добавляем правый заголовок поля
-            if (formResponse.alFormColumn.isNotEmpty() && columnNo == formResponse.columnCount) {
+                val formGridData = getFormDataCell(
+                    formCell = formCell,
+                    cellFocusId = cellFocusId++,
+                )
                 addCellToGrid(
                     alGridRows = alGridRows,
-                    maxColCount = formResponse.alFormColumn.size,
+                    maxColCount = maxColCount,
                     row = rowIndex,
-                    col = columnIndex,
-                    cell = getGridFormRightCaption(
-                        formCell = formCell,
-                        gridCellId = gridCellId++,
-                    ),
+                    col = colIndex,
+                    cell = formGridData,
                 )
 
-                //columnIndex++     // здесь нет смысла
+                when (formCell) {
+                    is FormSimpleCell -> {}
 
-                columnNo = 0   // новая строка GRID-формы
-                columnIndex = 0
-                rowIndex++
+                    is FormBooleanCell, is FormComboCell -> {
+                        hmFormCellVisible[formCell.name] = mutableMapOf()
+                        hmFormCellCaption[formCell.name] = mutableMapOf()
+                        alFormCellMasterPreAction.add(formGridData)
+                    }
+
+                    is FormDateTimeCell -> {}
+
+                    is FormFileCell -> {}
+                }
+
+                //--- если это широкий экран
+                if (root.isWideScreen) {
+                    colIndex++
+                } else {
+                    rowIndex++
+                }
+
+                //--- определим visible-зависимости
+                formCell.visibility?.let { formCellVisibility ->
+                    val hmFCVI = hmFormCellVisible.getOrPut(formCellVisibility.name) { mutableMapOf() }
+                    hmFCVI[formCell.name] = FormCellVisibleInfo(
+                        state = formCellVisibility.state,
+                        values = formCellVisibility.values,
+                    )
+                }
+
+                //--- определим caption-зависимости
+                formCell.captions?.let { formCellCaption ->
+                    val hmFCCI = hmFormCellCaption.getOrPut(formCellCaption.name) { mutableMapOf() }
+                    hmFCCI[formCell.name] = formCellCaption.captions.map { (caption, values) ->
+                        FormCellCaptionInfo(
+                            caption = caption,
+                            values = values,
+                        )
+                    }
+                }
+
+                maxColCount = max(maxColCount, colIndex)
+            }
+        }
+
+        readFormButtons()
+
+        //--- начальные установки видимости и caption-зависимостей
+        for (gridData in alFormCellMasterPreAction) {
+            doVisibleAndCaptionChange(gridData)
+        }
+
+//        autoFocusId?.let { afId ->
+//            //--- две попытки установить фокус, с минимальными задержками
+//            window.setTimeout({
+//                if (!setFocus(afId)) {
+//                    window.setTimeout({
+//                        setFocus(afId)
+//                    }, 100)
+//                }
+//            }, 100)
+//        }
+    }
+
+    private fun readGridForm() {
+        alHiddenCells.clear()
+        alGridRows.clear()
+
+        val maxColCount = formResponse.alFormColumn.size + 2
+
+        var rowIndex = 1    // rowIndex = 0 занят top-captions
+        var colIndex = 0
+        var autoFocusId: String? = null
+
+        var cellFocusId = 0
+
+        getGridFormTopBottomCaptions(formResponse.alFormColumn, 0)
+
+        for (formCell in formResponse.alFormCell) {
+            //--- поле без заголовка считается невидимым (hidden)
+            if (formCell.caption.isEmpty()) {
+                val formGridData = getFormDataCell(
+                    formCell = formCell,
+                    cellFocusId = -1,
+                    isGridForm = true,
+                )
+                alHiddenCells += formGridData
+            } else {
+                //--- если это первое поле в строке GRID-формы, то добавляем левый заголовок поля
+                if (colIndex == 0) {
+                    addCellToGrid(
+                        alGridRows = alGridRows,
+                        maxColCount = maxColCount,
+                        row = rowIndex,
+                        col = colIndex,
+                        cell = getGridFormLeftCaption(formCell)
+                    )
+                    colIndex++
+                }
+
+                //--- на тачскринах автофокус только бесит автоматическим включением клавиатуры
+                //            if (!getStyleIsTouchScreen()) {
+                //                //--- set autofocus from server
+                //                if (formCell.isAutoFocus) {
+                //                    autoFocusId = getFocusId(formGridData.id, formGridData.alSubId?.get(0))
+                //                }
+                //                //--- automatic autofocus setting
+                //                else if (autoFocusId == null && !formGridData.isReadOnly) {
+                //                    autoFocusId = getFocusId(formGridData.id, formGridData.alSubId?.get(0))
+                //                }
+                //            }
+
+                val formGridData = getFormDataCell(
+                    formCell = formCell,
+                    cellFocusId = cellFocusId++,
+                    isGridForm = true,
+                )
+                addCellToGrid(
+                    alGridRows = alGridRows,
+                    maxColCount = maxColCount,
+                    row = rowIndex,
+                    col = colIndex,
+                    cell = formGridData
+                )
+
+                colIndex++
+
+                if (colIndex == maxColCount - 1) {
+                    addCellToGrid(
+                        alGridRows = alGridRows,
+                        maxColCount = maxColCount,
+                        row = rowIndex,
+                        col = colIndex,
+                        cell = getGridFormRightCaption(formCell)
+                    )
+                    colIndex = 0
+                    rowIndex++
+                }
+            }
+        }
+        getGridFormTopBottomCaptions(formResponse.alFormColumn, rowIndex + 1)
+
+        readFormButtons()
+
+//        autoFocusId?.let { afId ->
+//            //--- две попытки установить фокус, с минимальными задержками
+//            window.setTimeout({
+//                if (!setFocus(afId)) {
+//                    window.setTimeout({
+//                        setFocus(afId)
+//                    }, 100)
+//                }
+//            }, 100)
+//        }
+    }
+
+    private fun getClassicFormLabelCell(formCell: FormBaseCell): FormLabelCellClient {
+        return FormLabelCellClient(
+            cellName = formCell.name,
+            caption = formCell.caption,
+            align = if (root.isWideScreen) {
+                Arrangement.End
+            } else {
+                Arrangement.Start
+            },
+        )
+    }
+
+    private fun getGridFormTopBottomCaptions(alFormColumn: List<String>, rowIndex: Int) {
+        var colIndex = 1
+        for (caption in alFormColumn) {
+            val formGridData = FormLabelCellClient(
+                cellName = "",
+                caption = caption,
+                align = Arrangement.Center,
+            )
+            addCellToGrid(
+                alGridRows = alGridRows,
+                maxColCount = alFormColumn.size,
+                row = rowIndex,
+                col = colIndex,
+                cell = formGridData,
+            )
+            colIndex++
+        }
+    }
+
+    private fun getGridFormLeftCaption(formCell: FormBaseCell) = FormLabelCellClient(
+        cellName = "",
+        caption = formCell.caption,
+        align = Arrangement.End,
+    )
+
+    private fun getGridFormRightCaption(formCell: FormBaseCell) = FormLabelCellClient(
+        cellName = "",
+        caption = formCell.caption,
+        align = Arrangement.Start,
+    )
+
+    private fun getFormEmptyCell() = FormLabelCellClient(
+        cellName = "",
+        caption = "", //BR,
+        align = Arrangement.Center,
+    )
+
+    private fun getFormDataCell(
+        formCell: FormBaseCell,
+        cellFocusId: Int,
+        isGridForm: Boolean = false
+    ): FormBaseCellClient {
+
+        val align = if (isGridForm) {
+            Arrangement.Center
+        } else {
+            Arrangement.Start
+        }
+
+        val gridData = when (formCell) {
+            is FormSimpleCell -> {
+                FormSimpleCellClient(
+                    cellName = formCell.name,
+                    align = align,
+                    focusId = cellFocusId,
+                    data = formCell,
+                )
             }
 
-            //--- автостарт селектора запускается, только если поле данных пустое,
-            //-- иначе зациклимся на старте
-//!!!            if (formCell.isAutoStartSelector && isEmptyFieldValue && autoClickAction == null) {
-//                autoClickAction = formGridData.selectorSetAction
-//            }
+            is FormBooleanCell -> {
+                FormBooleanCellClient(
+                    cellName = formCell.name,
+                    align = align,
+                    focusId = cellFocusId,
+                    data = formCell,
+                )
+            }
 
-            //--- определим visible-зависимости
-//!!!            for ((name, state, value) in formCell.alVisible) {
-//                hmFormCellMaster[name]?.let { masterId ->
-//                    for (slaveId in alSlaveId) {
-//                        hmFormCellVisible[masterId]?.add(FormCellVisibleInfo(state, value, slaveId))
-//                    }
-//                }
-//            }
+            is FormDateTimeCell -> {
+                FormDateTimeCellClient(
+                    cellName = formCell.name,
+                    align = align,
+                    focusId = cellFocusId,
+                    data = formCell,
+                ).apply {
+                    formCell.value.indices.forEach { i ->
+                        alSubFocusId.add(i)
+                    }
+                }
+            }
 
-            //--- определим caption-зависимости
-//!!!            if (captionGridCell != null)
-//                for ((name, str, value) in formCell.alCaption) {
-//                    hmFormCellMaster[name]?.let { masterId ->
-//                        hmFormCellCaption[masterId]?.add(FormCellCaptionInfo(str, value, captionGridCell.id))
-//                    }
-//                }
+            is FormComboCell -> {
+                FormComboCellClient(
+                    cellName = formCell.name,
+                    align = align,
+                    focusId = cellFocusId,
+                    data = formCell,
+                ).apply {
+                    if (formCell.asRadioButtons) {
+                        formCell.values.indices.forEach { i ->
+                            alSubFocusId.add(i)
+                        }
+                    }
+                }
+            }
 
-            maxColumnCount = max(maxColumnCount, columnIndex)
+            is FormFileCell -> {
+                FormFileCellClient(
+                    cellName = formCell.name,
+                    align = align,
+                    focusId = cellFocusId,
+                    data = formCell,
+                )
+            }
+
         }
-        rowIndex = getGridFormTopBottomCaptions(formResponse.alFormColumn, rowIndex + 1, gridCellId)
 
+        return gridData
+    }
+
+    private fun readFormButtons() {
         formResponse.alFormButton.forEach { formButton ->
             alFormButton.add(
                 FormButtonData(
                     actionType = formButton.actionType,
                     withNewData = formButton.withNewData,
-                    name = formButton.iconName ?: formButton.caption ?: "(не заданы иконка и текст)",
-                    tooltip = formButton.caption ?: "",
+                    name = formButton.iconName,
+                    tooltip = formButton.caption,
                     question = formButton.question,
                 )
             )
@@ -871,177 +1058,6 @@ class FormControl(
                 else -> {}  // на время недописанности AUTOCLICK
             }
         }
-
-        //--- начальные установки видимости и caption-зависимостей
-        for (gridData in alFormCellMasterPreAction) {
-            doVisibleAndCaptionChange(gridData)
-        }
-
-//!!!        autoClickUrl?.let { acUrl ->
-//            call(acUrl, true, null)
-//        } ?: autoFocusId?.let { afId ->
-//            //--- две попытки установить фокус, с минимальными задержками
-//            window.setTimeout({
-//                if (!setFocus(afId)) {
-//                    window.setTimeout({
-//                        setFocus(afId)
-//                    }, 100)
-//                }
-//            }, 100)
-//        }
-    }
-
-    private fun getGridFormTopBottomCaptions(alFormColumn: List<String>, aRowIndex: Int, aGridCellId: Int): Int {
-        var rowIndex = aRowIndex
-        var gridCellId = aGridCellId
-        //--- верхние/нижние заголовки столбцов GRID-формы
-        if (alFormColumn.isNotEmpty()) {
-            var columnIndex = 1
-            for (caption in alFormColumn) {
-                //--- иначе в style-лямбде будут использоваться только самые последние значения rowIndex/colIndex
-                //--- и все тексты уползут в самую правую ячейку
-                val ri = rowIndex
-                val ci = columnIndex
-                val formGridData = FormLabelCellClient(
-                    id = gridCellId++,
-                    cellName = "",
-                    caption = caption,
-                    align = Arrangement.Center,
-                )
-                addCellToGrid(
-                    alGridRows = alGridRows,
-                    maxColCount = alFormColumn.size,
-                    row = ri,
-                    col = ci,
-                    cell = formGridData,
-                )
-                columnIndex++
-            }
-            rowIndex++
-        }
-        return rowIndex
-    }
-
-    private fun getGridFormRightCaption(
-        formCell: FormBaseCell,
-        gridCellId: Int,
-    ) = FormLabelCellClient(
-        id = gridCellId,
-        cellName = "",
-        caption = formCell.caption,
-        align = Arrangement.Start,
-    )
-
-    private fun getFormEmptyCell(
-        gridCellId: Int,
-    ) = FormLabelCellClient(
-        id = gridCellId,
-        cellName = "",
-        caption = "", //BR,
-        align = Arrangement.Center,
-    )
-
-    private fun getFormLabelCell(
-        formCell: FormBaseCell,
-        gridCellId: Int,
-    ): FormLabelCellClient {
-        val isWideOrGrid = root.isWideScreen || formResponse.alFormColumn.isNotEmpty()
-        return FormLabelCellClient(
-            id = gridCellId,
-            cellName = "",
-            caption = formCell.caption,
-            align = if (isWideOrGrid) {
-                Arrangement.End
-            } else {
-                Arrangement.Start
-            },
-        )
-    }
-
-    private fun getFormDataCell(
-        formCell: FormBaseCell,
-        gridCellId: Int,
-        isGridForm: Boolean = false
-    ): FormBaseCellClient {
-
-        val align = if (isGridForm) {
-            Arrangement.Center
-        } else {
-            Arrangement.Start
-        }
-
-        val gridData = when (formCell) {
-            is FormSimpleCell -> {
-                FormSimpleCellClient(
-                    id = gridCellId,
-                    cellName = formCell.name,
-                    align = align,
-                    data = formCell,
-                )
-            }
-
-            is FormBooleanCell -> {
-                FormBooleanCellClient(
-                    id = gridCellId,
-                    cellName = formCell.name,
-                    align = align,
-                    data = formCell,
-                )
-            }
-
-            is FormDateTimeCell -> {
-                FormDateTimeCellClient(
-//!!!                    cellType = when (formCell.cellType) {
-//                        FormCellType.DATE -> {
-//                            FormCellTypeClient.DATE
-//                        }
-//
-//                        FormCellType.TIME -> {
-//                            FormCellTypeClient.TIME
-//                        }
-//
-//                        else -> {
-//                            FormCellTypeClient.DATE_TIME
-//                        }
-//                    },
-                    id = gridCellId,
-                    cellName = formCell.name,
-                    align = align,
-                    data = formCell,
-                ).apply {
-                    formCell.value.indices.forEach { i ->
-                        alSubId.add(i)
-                    }
-                }
-            }
-
-            is FormComboCell -> {
-                FormComboCellClient(
-                    id = gridCellId,
-                    cellName = formCell.name,
-                    align = align,
-                    data = formCell,
-                ).apply {
-                    if (formCell.asRadioButtons) {
-                        formCell.values.indices.forEach { i ->
-                            alSubId.add(i)
-                        }
-                    }
-                }
-            }
-
-            is FormFileCell -> {
-                FormFileCellClient(
-                    id = gridCellId,
-                    cellName = formCell.name,
-                    align = align,
-                    data = formCell,
-                )
-            }
-
-        }
-
-        return gridData
     }
 
     private fun doVisibleAndCaptionChange(gdMaster: FormBaseCellClient) {
@@ -1050,29 +1066,36 @@ class FormControl(
             when (gdMaster) {
                 is FormBooleanCellClient -> gdMaster.current.value.toString()
                 is FormComboCellClient -> gdMaster.current.value
-                else -> "0"
+                else -> "null"
             }
 
-        hmFormCellVisible[gdMaster.id]?.let { alFCVI ->
-            alFCVI.forEach { fcvi ->
-                alGridRows.forEach { alGridRow ->
-                    alGridRow.find { gd -> gd?.id == fcvi.id }?.let { gdSlave ->
-                        gdSlave.isVisible.value = (fcvi.state == fcvi.hsValue.contains(controlValue))
-                        //--- Тут бы по-хорошему выйти из цикла пробежки по гриду, но фигушки.
-                        //--- Впрочем грид в форме мелкий и лишняя полная пробежка по нему на производительность не повлияет
+        hmFormCellVisible[gdMaster.cellName]?.let { hmFCVI ->
+            alGridRows.forEach { alGridRow ->
+                alGridRow.forEach { gdSlave ->
+                    gdSlave?.let {
+                        hmFCVI[gdSlave.cellName]?.let { fcvi ->
+                            gdSlave.isVisible.value = (fcvi.state == fcvi.values.contains(controlValue))
+                        }
                     }
                 }
             }
         }
 
-        hmFormCellCaption[gdMaster.id]?.let { alFCCI ->
-            alFCCI.forEach { fcci ->
-                alGridRows.forEach { alGridRow ->
-                    alGridRow.find { gd -> gd?.id == fcci.id }?.let { gdSlave ->
-                        if (fcci.hsValue.contains(controlValue)) {
-                            (gdSlave as? FormLabelCellClient)?.current?.value = fcci.caption
-                            //--- Тут бы по-хорошему выйти из цикла пробежки по гриду, но фигушки.
-                            //--- Впрочем грид в форме мелкий и лишняя полная пробежка по нему на производительность не повлияет
+        hmFormCellCaption[gdMaster.cellName]?.let { hmFCCI ->
+            alGridRows.forEach { alGridRow ->
+                alGridRow.forEach { gdSlave ->
+                    gdSlave?.let {
+                        hmFCCI[gdSlave.cellName]?.let { alFCCI ->
+                            (gdSlave as? FormLabelCellClient)?.let { gd ->
+                                var caption = gd.caption
+                                for (fcci in alFCCI) {
+                                    if (fcci.values.contains(controlValue)) {
+                                        caption = fcci.caption
+                                        break
+                                    }
+                                }
+                                gd.current.value = caption
+                            }
                         }
                     }
                 }
@@ -1277,12 +1300,12 @@ class FormControl(
             is FormDateTimeCellClient -> {
                 formActionData += gridData.data.name to FormActionData(
                     alDateTimeValue = (
-                        if (withNewValues) {
-                            gridData.current.map { s -> s.value }
-                        } else {
-                            gridData.data.value
-                        }
-                        ).toList()
+                            if (withNewValues) {
+                                gridData.current.map { s -> s.value }
+                            } else {
+                                gridData.data.value
+                            }
+                            ).toList()
                 )
             }
 

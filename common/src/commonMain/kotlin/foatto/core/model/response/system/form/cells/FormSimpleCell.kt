@@ -1,6 +1,8 @@
 package foatto.core.model.response.system.form.cells
 
 import foatto.core.model.AppAction
+import foatto.core.model.response.system.form.FormCellCaption
+import foatto.core.model.response.system.form.FormCellVisibility
 import foatto.core.model.response.system.form.FormPinMode
 import kotlinx.serialization.Serializable
 
@@ -10,12 +12,13 @@ class FormSimpleCell(
     override val caption: String,
     override val isEditable: Boolean,
     override val isAutoFocus: Boolean,
-    override val formPinMode: FormPinMode = FormPinMode.AUTO,
+    override val pinMode: FormPinMode = FormPinMode.AUTO,
+    override val visibility: FormCellVisibility? = null,
+    override val captions: FormCellCaption? = null,
 
     val value: String,
     val columns: Int = 40,
     val rows: Int = 1,
     val isPassword: Boolean = false,
     val selectorAction: AppAction? = null,
-    val isAutoStartSelector: Boolean = false,
 ) : FormBaseCell()
