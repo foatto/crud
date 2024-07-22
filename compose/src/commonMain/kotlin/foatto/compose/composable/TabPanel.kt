@@ -1,5 +1,6 @@
 package foatto.compose.composable
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,6 +16,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
+import foatto.compose.colorTabActive
+import foatto.compose.colorTabInactive
 import foatto.compose.model.TabInfo
 
 @Composable
@@ -32,7 +35,15 @@ internal fun TabPanel(
         ) {
             alTabInfo.forEachIndexed { index, tabInfo ->
                 Tab(
-                    modifier = Modifier.wrapContentWidth(),
+                    modifier = Modifier
+                        .wrapContentWidth()
+                        .background(
+                            if (index == selectedTabIndex) {
+                                colorTabActive
+                            } else {
+                                colorTabInactive
+                            }
+                        ),
                     selected = index == selectedTabIndex,
                     onClick = { onTabClick(index) },
                 ) {

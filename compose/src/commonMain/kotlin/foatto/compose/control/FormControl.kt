@@ -1,6 +1,7 @@
 package foatto.compose.control
 
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
@@ -30,8 +31,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
-import foatto.compose.AppControl
-import foatto.compose.Root
+import foatto.compose.*
 import foatto.compose.composable.ImageOrTextFromNameControl
 import foatto.compose.control.model.TitleData
 import foatto.compose.control.model.form.FormButtonData
@@ -44,10 +44,8 @@ import foatto.compose.control.model.form.cell.FormDateTimeCellClient
 import foatto.compose.control.model.form.cell.FormFileCellClient
 import foatto.compose.control.model.form.cell.FormLabelCellClient
 import foatto.compose.control.model.form.cell.FormSimpleCellClient
-import foatto.compose.getStyleOtherIconNameSuffix
 import foatto.compose.invokeRequest
 import foatto.compose.invokeUploadFormFile
-import foatto.compose.styleOtherIconSize
 import foatto.compose.utils.maxDp
 import foatto.core.model.AppAction
 import foatto.core.model.request.system.AppRequest
@@ -137,7 +135,7 @@ class FormControl(
         }
 
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().background(colorFormBack),
         ) {
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -224,7 +222,10 @@ class FormControl(
 
                                             is FormSimpleCellClient -> {
                                                 OutlinedTextField(
-                                                    modifier = Modifier.padding(FORM_CELL_PADDING).widthIn(max = root.scaledScreenWidth.dp / 2),
+                                                    modifier = Modifier
+                                                        .padding(FORM_CELL_PADDING)
+                                                        .widthIn(max = root.scaledScreenWidth.dp / 2)
+                                                        .background(colorControlBack),
                                                     value = gridData.current.value,
                                                     onValueChange = { newText ->
                                                         gridData.current.value = newText
@@ -262,7 +263,9 @@ class FormControl(
                                             is FormBooleanCellClient -> {
                                                 if (gridData.data.alSwitchText.isEmpty()) {
                                                     Checkbox(
-                                                        modifier = Modifier.padding(FORM_CELL_PADDING),
+                                                        modifier = Modifier
+                                                            .padding(FORM_CELL_PADDING)
+                                                            .background(colorControlBack),
                                                         checked = gridData.current.value,
                                                         //enabled = !gridData.data.isEditable, - слишком сильно отличается по стилю от обычных read-only текстовых полей ввода
                                                         onCheckedChange = { newState ->
@@ -328,7 +331,8 @@ class FormControl(
                                                                 } else {
                                                                     58.dp   // после ввода третьей (лишней) цифры первая наполовину уходит
                                                                 }
-                                                            ),
+                                                            )
+                                                            .background(colorControlBack),
                                                         value = gridData.current[index].value,
                                                         onValueChange = { newText ->
                                                             gridData.current[index].value = newText
@@ -413,7 +417,8 @@ class FormControl(
                                                             .padding(FORM_CELL_PADDING)
                                                             .onGloballyPositioned { coordinates ->
                                                                 textFieldSize = coordinates.size.toSize()
-                                                            },
+                                                            }
+                                                            .background(colorControlBack),
                                                         value = gridData.data.values.find { (value, _) ->
                                                             gridData.current.value == value
                                                         }?.second ?: "(неизвестное значение)",
@@ -607,7 +612,10 @@ class FormControl(
 //                        borderTop(width = 1.px, lineStyle = LineStyle.Solid, color = colorMainBorder)
 //                        padding(styleControlPadding)
                 Row(
-                    modifier = Modifier.fillMaxWidth().height(40.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(40.dp)
+                        .background(colorBottomBar),
 //                            if (!styleIsNarrowScreen) {
 //                                JustifyContent.Center
 //                            } else {

@@ -1,5 +1,6 @@
 package foatto.compose.control
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,6 +27,7 @@ import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.toSize
+import foatto.compose.colorHeader
 import foatto.compose.control.model.TitleData
 import foatto.core.model.AppAction
 import kotlin.math.max
@@ -51,7 +53,7 @@ abstract class AbstractControl(
         call: (action: AppAction) -> Unit,
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().background(colorHeader),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
 //                    borderTop(

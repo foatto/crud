@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import foatto.compose.AppControl
 import foatto.compose.Root
+import foatto.compose.colorBottomBar
 import foatto.compose.colorMainBack0
 import foatto.compose.colorMainText
 import foatto.compose.composable.GenerateMenuBody
@@ -426,7 +427,9 @@ class TableControl(
             }
             //--- Page Bar
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(colorBottomBar),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {

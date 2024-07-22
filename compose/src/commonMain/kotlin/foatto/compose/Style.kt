@@ -1,7 +1,6 @@
 package foatto.compose
 
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.hsl
 
 //--- по умолчанию - тёмные иконки на светлом фоне кнопок,
 //--- но в material 3 design (да и в прочих дизайнах) - контраст к основному фону - светлые иконки/текст на тёмном фоне иконок
@@ -22,14 +21,19 @@ private const val MAIN_BACK_LIGHTNESS_1 = 0.94f
 private const val MAIN_BACK_LIGHTNESS_2 = 0.88f
 private const val MAIN_BACK_LIGHTNESS_3 = 0.82f
 
-var colorMainBack0: Color = Color.hsl(0.0f, 0.0f, 1.0f)  // main background - white color for input fields, etc.
-var colorMainBack1: Color = Color.hsl(0.0f, 0.0f, MAIN_BACK_LIGHTNESS_0)     // buttons
-var colorMainBack2: Color = Color.hsl(0.0f, 0.0f, MAIN_BACK_LIGHTNESS_1)     // panels, menus
-var colorMainBack3: Color = Color.hsl(0.0f, 0.0f, MAIN_BACK_LIGHTNESS_2)     // non-active tabs
-var colorMainBack4: Color = Color.hsl(0.0f, 0.0f, MAIN_BACK_LIGHTNESS_3)     // menu delimiters
+val colorMainBack0: Color = Color.hsl(0.0f, 0.0f, 1.0f)                             // input field, etc.
+private val colorMainBack1: Color = Color.hsl(0.0f, 0.0f, MAIN_BACK_LIGHTNESS_0)    // form panel
+private val colorMainBack2: Color = Color.hsl(0.0f, 0.0f, MAIN_BACK_LIGHTNESS_1)    // active tab + header + toolbar
+private val colorMainBack3: Color = Color.hsl(0.0f, 0.0f, MAIN_BACK_LIGHTNESS_2)    // non-active tab
+private val colorMainBack4: Color = Color.hsl(0.0f, 0.0f, MAIN_BACK_LIGHTNESS_3)    // ?
 
-var colorMainText: Color = Color.Black
-var colorMainBorder: Color = hsl(0f, 0f, 0.9f)
+val colorControlBack: Color = colorMainBack0
+val colorFormBack: Color = colorMainBack1
+val colorTabActive: Color = colorMainBack2
+val colorTabInactive: Color = colorMainBack3
+val colorHeader: Color = colorTabActive
+val colorToolBar: Color = colorHeader
+val colorBottomBar: Color = colorToolBar
 
-var getColorButtonBack: () -> Color = { colorMainBack1 }
+val colorMainText: Color = Color.Black
 
