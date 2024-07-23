@@ -8,10 +8,10 @@ data class AppAction(
     val type: String,
 
     val module: String? = null,
-    val id: Long? = null,
+    val id: Int? = null,
 
     val parentModule: String? = null,
-    val parentId: Long? = null,
+    val parentId: Int? = null,
 
     val prevAction: AppAction? = null,
 

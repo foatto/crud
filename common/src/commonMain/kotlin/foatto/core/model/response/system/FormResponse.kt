@@ -7,7 +7,7 @@ import foatto.core.model.response.system.form.cells.FormBaseCell
 
 @Serializable
 class FormResponse(
-    val id: Long?,
+    val id: Int?,
     val tabCaption: String,
     val alHeader: List<Pair<AppAction?, String>>,
     val alFormColumn: List<String>,

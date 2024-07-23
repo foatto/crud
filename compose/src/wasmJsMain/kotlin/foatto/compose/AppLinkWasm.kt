@@ -4,13 +4,11 @@ import com.darkrockstudios.libraries.mpfilepicker.PlatformFile
 import foatto.compose.control.model.form.FormFileDataClient
 import foatto.compose.control.model.form.cell.FormFileCellClient
 import foatto.core.ApiUrl
-import foatto.core.model.emptyAction
 import foatto.core.model.request.system.BaseRequest
 import foatto.core.model.response.system.BaseResponse
 import foatto.core.model.response.system.FormFileUploadResponse
 import foatto.core.model.response.system.form.FormFileUploadParams
-import foatto.core.model.response.system.form.cells.FormFileData
-import foatto.core.util.getRandomLong
+import foatto.core.util.getRandomInt
 import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -50,7 +48,7 @@ internal actual fun invokeUploadFormFile(
 ) {
     val formData = org.w3c.xhr.FormData().also { formData_ ->
         for (platformFile in platformFiles) {
-            val id = -getRandomLong()
+            val id = -getRandomInt()
 
             gridData.files.add(FormFileDataClient(id, null, platformFile.file.name))
             gridData.addFiles[id] = platformFile.file.name

@@ -14,8 +14,8 @@ class FormActionData(
     val alDateTimeValue: List<String> = emptyList(),
 
     //--- FILE
-    val fileId: Long? = null,
+    val fileId: Int? = null,
     //-- use for passing String-to-String instead of Int/Long-to-String due to serialization problems in JSON (since field names will be obtained as numbers)
     val addFiles: Map<String, String>? = null,
-    val fileRemovedIds: List<Long>? = null,
+    val fileRemovedIds: List<Int>? = null,
 )

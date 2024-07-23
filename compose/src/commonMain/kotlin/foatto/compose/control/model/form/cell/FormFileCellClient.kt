@@ -22,6 +22,6 @@ class FormFileCellClient(
 ) {
     val files: SnapshotStateList<FormFileDataClient> = mutableStateListOf()
 
-    val addFiles = mutableMapOf<Long, String>()
-    val fileRemovedIds = mutableListOf<Long>()
+    val addFiles = mutableMapOf<Int, String>()
+    val fileRemovedIds = mutableListOf<Int>()
 }

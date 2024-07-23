@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 class FormFileData(
-    val id: Long,
+    val id: Int,
     val action: AppAction,
     val name: String,
 )

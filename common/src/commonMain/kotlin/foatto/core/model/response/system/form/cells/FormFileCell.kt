@@ -15,6 +15,6 @@ class FormFileCell(
     override val visibility: FormCellVisibility? = null,
     override val captions: FormCellCaption? = null,
 
-    val fileId: Long?,
+    val fileId: Int?,
     val files: List<FormFileData>
 ) : FormBaseCell()

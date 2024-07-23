@@ -1200,7 +1200,7 @@ class FormControl(
         root.openTab(action)
     }
 
-    private fun deleteFile(gridData: FormFileCellClient, fileDataId: Long) {
+    private fun deleteFile(gridData: FormFileCellClient, fileDataId: Int) {
         gridData.files.removeAll { formFileData ->
             formFileData.id == fileDataId
         }
