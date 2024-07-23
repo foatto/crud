@@ -6,7 +6,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import foatto.compose.control.model.form.FormFileDataClient
-import foatto.core.model.response.system.form.cells.FormFileCell
+import foatto.core.model.response.form.cells.FormFileCell
 
 class FormFileCellClient(
     cellName: String,

@@ -40,13 +40,15 @@ pluginManagement {
 
 include(
     ":common",
-    ":compose",
-
     ":common_mms",
-    ":compose_mms",
-
     ":common_ts",
+
+    ":compose",
+    ":compose_mms",
     ":compose_ts",
+
+    ":server",
+    ":server_mms",
 
 //---------------------
 

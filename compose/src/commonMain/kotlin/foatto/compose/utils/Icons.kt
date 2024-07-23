@@ -41,6 +41,7 @@ val hmNameToUrl: MutableMap<String, String> = mutableMapOf(
     IconName.PRINT_FORM to "/web/images/ic_print_${getStyleOtherIconNameSuffix()}.png",
     IconName.SAVE to "/web/images/ic_save_${getStyleOtherIconNameSuffix()}.png",
     IconName.SCHEME to "/web/images/ic_router_${getStyleOtherIconNameSuffix()}.png",
+    IconName.SELECT to "/web/images/ic_reply_${getStyleOtherIconNameSuffix()}.png",
     IconName.UNARCHIVE to "/web/images/ic_unarchive_${getStyleOtherIconNameSuffix()}.png",
     IconName.VIDEO to "/web/images/ic_play_circle_outline_${getStyleOtherIconNameSuffix()}.png",
 )

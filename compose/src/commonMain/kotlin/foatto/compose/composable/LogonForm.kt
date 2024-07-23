@@ -17,7 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import foatto.compose.utils.getFullUrl
-import foatto.core.model.response.system.ResponseCode
+import foatto.core.model.response.ResponseCode
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 

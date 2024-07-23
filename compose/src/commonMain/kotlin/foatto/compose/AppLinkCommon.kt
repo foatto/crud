@@ -2,9 +2,9 @@ package foatto.compose
 
 import com.darkrockstudios.libraries.mpfilepicker.PlatformFile
 import foatto.compose.control.model.form.cell.FormFileCellClient
-import foatto.core.model.request.system.BaseRequest
-import foatto.core.model.response.system.BaseResponse
-import foatto.core.model.response.system.FormFileUploadResponse
+import foatto.core.model.request.BaseRequest
+import foatto.core.model.response.BaseResponse
+import foatto.core.model.response.FormFileUploadResponse
 import foatto.core.util.getRandomLong
 
 //WASM!!! временно, до появления всеобщего ktor-client (в т.ч. для wasm)

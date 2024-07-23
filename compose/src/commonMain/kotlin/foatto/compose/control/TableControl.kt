@@ -47,16 +47,16 @@ import foatto.compose.model.MenuDataClient
 import foatto.compose.styleOtherIconSize
 import foatto.compose.utils.maxDp
 import foatto.core.model.AppAction
-import foatto.core.model.request.system.AppRequest
-import foatto.core.model.response.system.TableResponse
-import foatto.core.model.response.system.table.TablePopupData
-import foatto.core.model.response.system.table.TableRowData
-import foatto.core.model.response.system.table.cell.TableBooleanCell
-import foatto.core.model.response.system.table.cell.TableButtonCell
-import foatto.core.model.response.system.table.cell.TableCellAlign
-import foatto.core.model.response.system.table.cell.TableCellBackColorType
-import foatto.core.model.response.system.table.cell.TableGridCell
-import foatto.core.model.response.system.table.cell.TableSimpleCell
+import foatto.core.model.request.AppRequest
+import foatto.core.model.response.TableResponse
+import foatto.core.model.response.table.TablePopupData
+import foatto.core.model.response.table.TableRowData
+import foatto.core.model.response.table.cell.TableBooleanCell
+import foatto.core.model.response.table.cell.TableButtonCell
+import foatto.core.model.response.table.cell.TableCellAlign
+import foatto.core.model.response.table.cell.TableCellBackColorType
+import foatto.core.model.response.table.cell.TableGridCell
+import foatto.core.model.response.table.cell.TableSimpleCell
 import kotlinx.coroutines.launch
 import kotlin.math.max
 

@@ -7,9 +7,9 @@ import foatto.compose.utils.SETTINGS_SERVER_PORT
 import foatto.compose.utils.SETTINGS_SERVER_PROTOCOL
 import foatto.compose.utils.applicationDispatcher
 import foatto.compose.utils.settings
-import foatto.core.model.request.system.BaseRequest
-import foatto.core.model.response.system.BaseResponse
-import foatto.core.model.response.system.FormFileUploadResponse
+import foatto.core.model.request.BaseRequest
+import foatto.core.model.response.BaseResponse
+import foatto.core.model.response.FormFileUploadResponse
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*

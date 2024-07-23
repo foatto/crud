@@ -23,12 +23,12 @@ import foatto.compose.utils.encodePassword
 import foatto.compose.utils.settings
 import foatto.core.ActionType
 import foatto.core.model.AppAction
-import foatto.core.model.request.system.AppRequest
-import foatto.core.model.request.system.LogonRequest
-import foatto.core.model.response.system.AppResponse
-import foatto.core.model.response.system.LogonResponse
-import foatto.core.model.response.system.MenuData
-import foatto.core.model.response.system.ResponseCode
+import foatto.core.model.request.AppRequest
+import foatto.core.model.request.LogonRequest
+import foatto.core.model.response.AppResponse
+import foatto.core.model.response.LogonResponse
+import foatto.core.model.response.MenuData
+import foatto.core.model.response.ResponseCode
 
 class AppControl(
     private val root: Root,

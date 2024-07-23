@@ -1,7 +1,7 @@
 package foatto.compose.control.model.table
 
 import foatto.core.model.AppAction
-import foatto.core.model.response.system.ServerActionButton
+import foatto.core.model.response.ServerActionButton
 
 class ServerActionButtonClient(
     val name: String,

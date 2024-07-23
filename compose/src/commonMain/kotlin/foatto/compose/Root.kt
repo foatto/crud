@@ -37,10 +37,10 @@ import foatto.core.model.AppAction
 import foatto.core.model.AppUserConfig
 import foatto.compose.model.MenuDataClient
 import foatto.compose.model.TabInfo
-import foatto.core.model.request.system.ChangePasswordRequest
-import foatto.core.model.request.system.LogoffRequest
-import foatto.core.model.response.system.ChangePasswordResponse
-import foatto.core.model.response.system.LogoffResponse
+import foatto.core.model.request.ChangePasswordRequest
+import foatto.core.model.request.LogoffRequest
+import foatto.core.model.response.ChangePasswordResponse
+import foatto.core.model.response.LogoffResponse
 
 /* !!! для перекрытия в MMSRoot:
     var getMenu: (

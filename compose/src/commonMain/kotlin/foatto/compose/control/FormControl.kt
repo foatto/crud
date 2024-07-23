@@ -48,21 +48,21 @@ import foatto.compose.invokeRequest
 import foatto.compose.invokeUploadFormFile
 import foatto.compose.utils.maxDp
 import foatto.core.model.AppAction
-import foatto.core.model.request.system.AppRequest
-import foatto.core.model.request.system.FormActionData
-import foatto.core.model.request.system.FormActionRequest
-import foatto.core.model.response.system.AppResponse
-import foatto.core.model.response.system.FormActionResponse
-import foatto.core.model.response.system.FormResponse
-import foatto.core.model.response.system.ResponseCode
-import foatto.core.model.response.system.form.FormButtonKey
-import foatto.core.model.response.system.form.FormPinMode
-import foatto.core.model.response.system.form.cells.FormBaseCell
-import foatto.core.model.response.system.form.cells.FormBooleanCell
-import foatto.core.model.response.system.form.cells.FormComboCell
-import foatto.core.model.response.system.form.cells.FormDateTimeCell
-import foatto.core.model.response.system.form.cells.FormFileCell
-import foatto.core.model.response.system.form.cells.FormSimpleCell
+import foatto.core.model.request.AppRequest
+import foatto.core.model.request.FormActionData
+import foatto.core.model.request.FormActionRequest
+import foatto.core.model.response.AppResponse
+import foatto.core.model.response.FormActionResponse
+import foatto.core.model.response.FormResponse
+import foatto.core.model.response.ResponseCode
+import foatto.core.model.response.form.FormButtonKey
+import foatto.core.model.response.form.FormPinMode
+import foatto.core.model.response.form.cells.FormBaseCell
+import foatto.core.model.response.form.cells.FormBooleanCell
+import foatto.core.model.response.form.cells.FormComboCell
+import foatto.core.model.response.form.cells.FormDateTimeCell
+import foatto.core.model.response.form.cells.FormFileCell
+import foatto.core.model.response.form.cells.FormSimpleCell
 import kotlinx.coroutines.launch
 import kotlin.math.max
 import kotlin.math.min
@@ -75,17 +75,6 @@ class FormControl(
     tabId: Int,
 ) : AbstractControl(tabId) {
 
-    //    companion object {
-//        private val hmFormIcon = mapOf(
-//            IconName.DELETE to "/web/images/ic_delete_forever_black_48dp.png",
-//            IconName.EXIT to "/web/images/ic_exit_to_app_black_48dp.png",
-//            IconName.FILE to "/web/images/ic_attachment_black_48dp.png",
-//            IconName.PRINT to "/web/images/ic_print_black_48dp.png",
-//            IconName.SAVE to "/web/images/ic_save_black_48dp.png",
-//            IconName.SELECT to "/web/images/ic_reply_black_48dp.png",
-//            IconName.SAVE to "/web/images/ic_save_black_48dp.png",
-//        )
-//    }
     companion object {
         private val FORM_CELL_PADDING = 16.dp
     }
