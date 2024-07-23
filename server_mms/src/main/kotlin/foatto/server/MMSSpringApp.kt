@@ -1,10 +1,12 @@
 package foatto.server
 
 import foatto.core.ActionType
+import foatto.core.AppModule
 import foatto.core_mms.AppModuleMMS
 import foatto.core_mms.addAppModuleUrls
 import foatto.server.model.AppModuleConfig
 import foatto.server.model.AppRoleConfig
+import foatto.server.model.Permission
 import foatto.server.model.SessionData
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.event.ApplicationReadyEvent
@@ -56,18 +58,48 @@ class MMSSpringApp {
     }
 
     private fun initAppModuleConfigs() {
+        addDisabledRoles(AppModule.USER, ActionType.FORM_ADD, AppRoleMMS.SUPPORT)
+        addDisabledRoles(AppModule.USER, ActionType.FORM_EDIT, AppRoleMMS.SUPPORT)
+        addDisabledRoles(AppModule.USER, ActionType.FORM_DELETE, AppRoleMMS.SUPPORT)
+        addDisabledRoles(AppModule.USER, ActionType.FORM_EXIT, AppRoleMMS.SUPPORT)
+
         appModuleConfigs[AppModuleMMS.OBJECT] = AppModuleConfig(
             caption = "Объекты",
-            permissions = mapOf(
-                ActionType.MODULE_TABLE to setOf(AppRole.ADMIN, AppRoleMMS.SUPPORT, AppRole.USER),
-                ActionType.MODULE_FORM to setOf(AppRole.ADMIN, AppRoleMMS.SUPPORT, AppRole.USER),
-                ActionType.FORM_ADD to setOf(AppRole.ADMIN, AppRoleMMS.SUPPORT),
-                ActionType.FORM_EDIT to setOf(AppRole.ADMIN, AppRoleMMS.SUPPORT),
-                ActionType.FORM_DELETE to setOf(AppRole.ADMIN, AppRoleMMS.SUPPORT),
-                ActionType.FORM_EXIT to setOf(AppRole.ADMIN, AppRoleMMS.SUPPORT, AppRole.USER),
-            )
+            pageSize = AppModuleConfig.DEFAULT_PAGE_SIZE,
+            permissions = mutableMapOf(
+                ActionType.MODULE_TABLE to Permission(
+                    enabledRoles = getRoleAllPermissions(AppRole.ADMIN).apply {
+                        put(UserRelationEnum.SELF, mutableSetOf(AppRole.USER))
+                        put(UserRelationEnum.WORKER, mutableSetOf(AppRole.USER))
+                    },
+                ),
+                ActionType.MODULE_FORM to Permission(
+                    enabledRoles = getRoleAllPermissions(AppRole.ADMIN).apply {
+                        put(UserRelationEnum.SELF, mutableSetOf(AppRole.USER))
+                        put(UserRelationEnum.WORKER, mutableSetOf(AppRole.USER))
+                    },
+                ),
+                ActionType.FORM_ADD to Permission(
+                    enabledRoles = getRoleAllPermissions(AppRole.ADMIN),
+                    disabledRoles = getRoleAllPermissions(AppRole.USER),
+                ),
+                ActionType.FORM_EDIT to Permission(
+                    enabledRoles = getRoleAllPermissions(AppRole.ADMIN),
+                    disabledRoles = getRoleAllPermissions(AppRole.USER),
+                ),
+                ActionType.FORM_DELETE to Permission(
+                    enabledRoles = getRoleAllPermissions(AppRole.ADMIN),
+                    disabledRoles = getRoleAllPermissions(AppRole.USER),
+                ),
+                ActionType.FORM_EXIT to Permission(
+                    enabledRoles = getRoleAllPermissions(AppRole.ADMIN).apply {
+                        put(UserRelationEnum.SELF, mutableSetOf(AppRole.USER))
+                        put(UserRelationEnum.WORKER, mutableSetOf(AppRole.USER))
+                    },
+                    disabledRoles = getRoleAllPermissions(AppRole.USER),
+                ),
+            ),
         )
-
     }
 
 }
