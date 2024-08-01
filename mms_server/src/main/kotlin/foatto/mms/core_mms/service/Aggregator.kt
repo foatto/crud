@@ -166,6 +166,8 @@ class Aggregator(aConfigFileName: String) : CoreServiceWorker(aConfigFileName) {
                     SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
                     SensorConfig.SENSOR_ENERGO_POWER_REACTIVE,
                     SensorConfig.SENSOR_ENERGO_POWER_FULL,
+                    SensorConfig.SENSOR_ENERGO_TRANSFORM_KOEF_CURRENT,
+                    SensorConfig.SENSOR_ENERGO_TRANSFORM_KOEF_VOLTAGE,
                     -> {
                         calcAnalogue(
                             sensorInfo = sensorInfo,

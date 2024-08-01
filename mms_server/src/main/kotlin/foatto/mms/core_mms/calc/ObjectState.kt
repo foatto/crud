@@ -59,6 +59,10 @@ class ObjectState {
     val tmEnergoPowerReactiveValue = sortedMapOf<String, SortedMap<Int, Double>>()
     val tmEnergoPowerFullTime = sortedMapOf<String, SortedMap<Int, Int>>()
     val tmEnergoPowerFullValue = sortedMapOf<String, SortedMap<Int, Double>>()
+    val tmEnergoTransformKoefCurrentTime = sortedMapOf<String, SortedMap<Int, Int>>()
+    val tmEnergoTransformKoefCurrentValue = sortedMapOf<String, SortedMap<Int, Double>>()
+    val tmEnergoTransformKoefVoltageTime = sortedMapOf<String, SortedMap<Int, Int>>()
+    val tmEnergoTransformKoefVoltageValue = sortedMapOf<String, SortedMap<Int, Double>>()
 
     companion object {
 
@@ -270,6 +274,22 @@ class ObjectState {
                 alRawData = alRawData,
                 tmEnergoAnalogueTime = result.tmEnergoPowerFullTime,
                 tmEnergoAnalogueValue = result.tmEnergoPowerFullValue,
+            )
+            getStateEnergoAnalogue(
+                oc = oc,
+                sensorType = SensorConfig.SENSOR_ENERGO_TRANSFORM_KOEF_CURRENT,
+                alRawTime = alRawTime,
+                alRawData = alRawData,
+                tmEnergoAnalogueTime = result.tmEnergoTransformKoefCurrentTime,
+                tmEnergoAnalogueValue = result.tmEnergoTransformKoefCurrentValue,
+            )
+            getStateEnergoAnalogue(
+                oc = oc,
+                sensorType = SensorConfig.SENSOR_ENERGO_TRANSFORM_KOEF_VOLTAGE,
+                alRawTime = alRawTime,
+                alRawData = alRawData,
+                tmEnergoAnalogueTime = result.tmEnergoTransformKoefVoltageTime,
+                tmEnergoAnalogueValue = result.tmEnergoTransformKoefVoltageValue,
             )
 
             return result

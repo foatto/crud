@@ -251,6 +251,30 @@ class sdcMMSSchemeAnalogueIndicator : sdcXyScheme() {
                     else -> "-"
                 }
             }
+
+            SensorConfig.SENSOR_ENERGO_TRANSFORM_KOEF_CURRENT -> {
+                val phase = scea?.phase
+                sensorValue = objectState.tmEnergoTransformKoefCurrentValue[sensorDescr]?.get(phase)
+                descrText = when (phase) {
+                    0 -> "ABC"
+                    1 -> "A"
+                    2 -> "B"
+                    3 -> "C"
+                    else -> "-"
+                }
+            }
+
+            SensorConfig.SENSOR_ENERGO_TRANSFORM_KOEF_VOLTAGE -> {
+                val phase = scea?.phase
+                sensorValue = objectState.tmEnergoTransformKoefVoltageValue[sensorDescr]?.get(phase)
+                descrText = when (phase) {
+                    0 -> "ABC"
+                    1 -> "A"
+                    2 -> "B"
+                    3 -> "C"
+                    else -> "-"
+                }
+            }
         }
 
         XyElement(TYPE_SCHEME_AI_TITLE_TEXT, -getRandomInt(), objectId).apply {

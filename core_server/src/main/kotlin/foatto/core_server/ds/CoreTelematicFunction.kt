@@ -176,9 +176,9 @@ object CoreTelematicFunction {
             alPorts += portNum
         }
         hmTimePorts.forEach { (time, alPorts) ->
-            conn.executeUpdate(
+            conn.executeUpdate( // вместо MMS_sensor - передавать table name
                 """
-                    UPDATE TS_sensor 
+                    UPDATE MMS_sensor 
                     SET raw_time = $time
                     WHERE object_id = $objectId
                     AND port_num IN ( ${alPorts.joinToString(" , ")} )

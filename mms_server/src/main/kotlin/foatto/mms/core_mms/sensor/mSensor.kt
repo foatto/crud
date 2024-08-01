@@ -151,6 +151,9 @@ class mSensor : mAbstract() {
             SensorConfig.SENSOR_DENSITY,
             SensorConfig.SENSOR_MASS_FLOW,
             SensorConfig.SENSOR_VOLUME_FLOW,
+            //!!! без учёта фазы?
+            SensorConfig.SENSOR_ENERGO_TRANSFORM_KOEF_CURRENT,
+            SensorConfig.SENSOR_ENERGO_TRANSFORM_KOEF_VOLTAGE,
         ) + liquidLevelSensorType + phasedEnergoSensorTypes
 
         //--- geo-sensors (coordinates, speed and mileage) ----------------------------------------------------------------------------------------

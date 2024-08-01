@@ -1,10 +1,6 @@
 package foatto.mms.core_mms.ds
 
-import foatto.util.AdvancedByteBuffer
-import foatto.util.AdvancedLogger
-import foatto.util.DateTime_YMDHMS
 import foatto.core.util.crc16_modbus
-import foatto.util.getCurrentTimeInt
 import foatto.core_server.ds.CoreTelematicFunction
 import foatto.core_server.ds.nio.CoreNioServer
 import foatto.core_server.ds.nio.CoreNioWorker
@@ -12,6 +8,10 @@ import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigCounter
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.SQLBatch
+import foatto.util.AdvancedByteBuffer
+import foatto.util.AdvancedLogger
+import foatto.util.DateTime_YMDHMS
+import foatto.util.getCurrentTimeInt
 import io.ktor.util.network.*
 import java.nio.ByteOrder
 import java.nio.channels.SelectionKey
@@ -94,6 +94,8 @@ open class GalileoHandler : MMSNioHandler() {
     private val tmEnergoPowerActiveABC = sortedMapOf<Int, Int>()
     private val tmEnergoPowerReactiveABC = sortedMapOf<Int, Int>()
     private val tmEnergoPowerFullABC = sortedMapOf<Int, Int>()
+    private val tmEnergoTransformKoefCurrent = sortedMapOf<Int, Double>()
+    private val tmEnergoTransformKoefVoltage = sortedMapOf<Int, Double>()
 
     //--- массомер ЭМИС
     private val tmEMISDensity = sortedMapOf<Int, Double>()
@@ -113,9 +115,6 @@ open class GalileoHandler : MMSNioHandler() {
     private val tmESDReverseCameraVolume = sortedMapOf<Int, Double>()
     private val tmESDReverseCameraFlow = sortedMapOf<Int, Double>()
     private val tmESDReverseCameraTemperature = sortedMapOf<Int, Int>()
-
-    //--- датчик УСС
-    private val tmUSSAccumulatedVolume = sortedMapOf<Int, Double>()
 
     //--- список номеров портов с сохранёнными данными
     private val hmPortTime = mutableMapOf<Int, Int>()
@@ -474,14 +473,15 @@ open class GalileoHandler : MMSNioHandler() {
                                         in 0x052C..0x052F -> tmEnergoPowerFullB[id - 0x052C] = value
                                         in 0x0530..0x0533 -> tmEnergoPowerFullC[id - 0x0530] = value
 
+                                        in 0x0550..0x0553 -> tmEnergoTransformKoefCurrent[id - 0x0550] = double
+                                        in 0x0560..0x0563 -> tmEnergoTransformKoefVoltage[id - 0x0560] = double
+
                                         in 0x0541..0x0544 -> tmEMISMassFlow[id - 0x0541] = double
                                         in 0x0581..0x0584 -> tmEMISDensity[id - 0x0581] = double
                                         in 0x05C1..0x05C4 -> tmEMISTemperature[id - 0x05C1] = double
                                         in 0x0601..0x0604 -> tmEMISVolumeFlow[id - 0x0601] = double
                                         in 0x0641..0x0644 -> tmEMISAccumulatedMass[id - 0x0641] = double
                                         in 0x0681..0x0684 -> tmEMISAccumulatedVolume[id - 0x0681] = double
-
-                                        in 0x06C1..0x06C4 -> tmUSSAccumulatedVolume[id - 0x06C1] = double
 
                                         in 0x0700..0x0703 -> tmEnergoPowerActiveABC[id - 0x0700] = value
                                         in 0x0710..0x0713 -> tmEnergoPowerReactiveABC[id - 0x0710] = value
@@ -815,6 +815,10 @@ open class GalileoHandler : MMSNioHandler() {
                 CoreTelematicFunction.putDigitalSensor(dc.index, tmEnergoPowerFullB, GalileoFunction.PORT_NUM_MERCURY_POWER_FULL_B, 4, bbData, pointTime, hmPortTime)
                 CoreTelematicFunction.putDigitalSensor(dc.index, tmEnergoPowerFullC, GalileoFunction.PORT_NUM_MERCURY_POWER_FULL_C, 4, bbData, pointTime, hmPortTime)
 
+                //--- коэффициент трансформации по току и напряжению
+                CoreTelematicFunction.putDigitalSensor(dc.index, tmEnergoTransformKoefCurrent, GalileoFunction.PORT_NUM_MERCURY_TRANSFORM_KOEF_CURRENT, bbData, pointTime, hmPortTime)
+                CoreTelematicFunction.putDigitalSensor(dc.index, tmEnergoTransformKoefVoltage, GalileoFunction.PORT_NUM_MERCURY_TRANSFORM_KOEF_VOLTAGE, bbData, pointTime, hmPortTime)
+
                 //--- ЭМИС
                 CoreTelematicFunction.putDigitalSensor(dc.index, tmEMISMassFlow, GalileoFunction.PORT_NUM_EMIS_MASS_FLOW, bbData, pointTime, hmPortTime)
                 CoreTelematicFunction.putDigitalSensor(dc.index, tmEMISDensity, GalileoFunction.PORT_NUM_EMIS_DENSITY, bbData, pointTime, hmPortTime)
@@ -827,9 +831,6 @@ open class GalileoHandler : MMSNioHandler() {
                 CoreTelematicFunction.putDigitalSensor(dc.index, tmEnergoPowerActiveABC, GalileoFunction.PORT_NUM_MERCURY_POWER_ACTIVE_ABC, 4, bbData, pointTime, hmPortTime)
                 CoreTelematicFunction.putDigitalSensor(dc.index, tmEnergoPowerReactiveABC, GalileoFunction.PORT_NUM_MERCURY_POWER_REACTIVE_ABC, 4, bbData, pointTime, hmPortTime)
                 CoreTelematicFunction.putDigitalSensor(dc.index, tmEnergoPowerFullABC, GalileoFunction.PORT_NUM_MERCURY_POWER_FULL_ABC, 4, bbData, pointTime, hmPortTime)
-
-                //--- УСС
-                CoreTelematicFunction.putDigitalSensor(dc.index, tmUSSAccumulatedVolume, GalileoFunction.PORT_NUM_USS_ACCUMULATED_VOLUME, bbData, pointTime, hmPortTime)
 
                 //--- EuroSens Delta
                 CoreTelematicFunction.putDigitalSensor(dc.index, tmESDStatus, GalileoFunction.PORT_NUM_ESD_STATUS, 4, bbData, pointTime, hmPortTime)
@@ -920,6 +921,8 @@ open class GalileoHandler : MMSNioHandler() {
         tmEnergoPowerActiveABC.clear()
         tmEnergoPowerReactiveABC.clear()
         tmEnergoPowerFullABC.clear()
+        tmEnergoTransformKoefCurrent.clear()
+        tmEnergoTransformKoefVoltage.clear()
 
         tmEMISMassFlow.clear()
         tmEMISDensity.clear()
@@ -937,8 +940,6 @@ open class GalileoHandler : MMSNioHandler() {
         tmESDReverseCameraVolume.clear()
         tmESDReverseCameraFlow.clear()
         tmESDReverseCameraTemperature.clear()
-
-        tmUSSAccumulatedVolume.clear()
     }
 
 }

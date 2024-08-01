@@ -71,6 +71,9 @@ class cOverSensor : cMMSReport() {
             "mms_report_over_energo_power_active" -> SensorConfig.SENSOR_ENERGO_POWER_ACTIVE
             "mms_report_over_energo_power_reactive" -> SensorConfig.SENSOR_ENERGO_POWER_REACTIVE
             "mms_report_over_energo_power_full" -> SensorConfig.SENSOR_ENERGO_POWER_FULL
+//!!! не реализовано (и надо ли?)
+//            "mms_report_over_energo_transform_koef_current" -> SensorConfig.SENSOR_ENERGO_TRANSFORM_KOEF_CURRENT
+//            "mms_report_over_energo_transform_koef_voltage" -> SensorConfig.SENSOR_ENERGO_TRANSFORM_KOEF_VOLTAGE
             else -> 0
         }
 

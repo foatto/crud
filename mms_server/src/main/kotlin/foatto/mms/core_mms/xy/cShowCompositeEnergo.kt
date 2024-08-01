@@ -81,6 +81,8 @@ class cShowCompositeEnergo : cAbstractForm() {
             SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
             SensorConfig.SENSOR_ENERGO_POWER_REACTIVE,
             SensorConfig.SENSOR_ENERGO_POWER_FULL,
+            SensorConfig.SENSOR_ENERGO_TRANSFORM_KOEF_CURRENT,
+            SensorConfig.SENSOR_ENERGO_TRANSFORM_KOEF_VOLTAGE,
         ).forEachIndexed { index, sensorType ->
 //            for (sc in oc.hmSensorConfig[sensorType]?.values ?: emptyList()) {
             //!!! пока только первый попавшийся датчик из всей толпы

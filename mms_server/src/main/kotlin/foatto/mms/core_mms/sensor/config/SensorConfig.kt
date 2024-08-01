@@ -79,6 +79,8 @@ open class SensorConfig(
         const val SENSOR_ENERGO_POWER_ACTIVE = 33   // active power by phase
         const val SENSOR_ENERGO_POWER_REACTIVE = 34 // reactive power by phase
         const val SENSOR_ENERGO_POWER_FULL = 35     // full/summary power by phase
+        const val SENSOR_ENERGO_TRANSFORM_KOEF_CURRENT = 36 // transformation koeff by current
+        const val SENSOR_ENERGO_TRANSFORM_KOEF_VOLTAGE = 37  // transformation koeff by voltage
 
         //--- названия датчиков
         val hmSensorDescr = mutableMapOf(
@@ -110,6 +112,8 @@ open class SensorConfig(
             SENSOR_ENERGO_POWER_ACTIVE to "Активная мощность",
             SENSOR_ENERGO_POWER_REACTIVE to "Реактивная мощность",
             SENSOR_ENERGO_POWER_FULL to "Полная мощность",
+            SENSOR_ENERGO_TRANSFORM_KOEF_CURRENT to "Коэффициент трансформации по току",
+            SENSOR_ENERGO_TRANSFORM_KOEF_VOLTAGE to "Коэффициент трансформации по напряжению",
         )
     }
 }

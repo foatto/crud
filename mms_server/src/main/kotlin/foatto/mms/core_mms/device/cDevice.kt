@@ -211,20 +211,6 @@ class cDevice : cStandart() {
                 createEmisSensors(objectId, deviceIndex, alGroupName, alDescrPrefix, alDescrPostfix)
             }
 
-            val isUSSCreate = (hmColumnData[m.columnUSSCreatingEnabled] as DataBoolean).value
-            if (isUSSCreate) {
-                val alGroupName = m.alColumnUSSGroupName.map { column ->
-                    (hmColumnData[column] as DataString).text
-                }
-                val alDescrPrefix = m.alColumnUSSDescrPrefix.map { column ->
-                    (hmColumnData[column] as DataString).text
-                }
-                val alDescrPostfix = m.alColumnUSSDescrPostfix.map { column ->
-                    (hmColumnData[column] as DataString).text
-                }
-                createUSSSensors(objectId, deviceIndex, alGroupName, alDescrPrefix, alDescrPostfix)
-            }
-
             val isMercuryCreate = (hmColumnData[m.columnMercuryCreatingEnabled] as DataBoolean).value
             if (isMercuryCreate) {
                 val alGroupName = m.alColumnMercuryGroupName.map { column ->
@@ -434,34 +420,6 @@ class cDevice : cStandart() {
                     descrPostfix = descrPostfix,
                     sensorType = SensorConfig.SENSOR_VOLUME_ACCUMULATED,
                     portNum = GalileoFunction.PORT_NUM_EMIS_ACCUMULATED_VOLUME,
-                    descrBody = "Накопленный объём",
-                )
-            }
-        }
-    }
-
-    private fun createUSSSensors(
-        objectId: Int,
-        deviceIndex: Int,
-        alGroupName: List<String>,
-        alDescrPrefix: List<String>,
-        alDescrPostfix: List<String>,
-    ) {
-        for (si in 0 until mDevice.MAX_PORT_PER_SENSOR) {
-            val groupName = alGroupName[si].trim()
-            val descrPrefix = alDescrPrefix[si].trim()
-            val descrPostfix = alDescrPostfix[si].trim()
-
-            if (descrPrefix.isNotEmpty() || descrPostfix.isNotEmpty()) {
-                addCounterSensor(
-                    objectId = objectId,
-                    deviceIndex = deviceIndex,
-                    sensorIndex = si,
-                    groupName = groupName,
-                    descrPrefix = descrPrefix,
-                    descrPostfix = descrPostfix,
-                    sensorType = SensorConfig.SENSOR_VOLUME_ACCUMULATED,
-                    portNum = GalileoFunction.PORT_NUM_USS_ACCUMULATED_VOLUME,
                     descrBody = "Накопленный объём",
                 )
             }
@@ -820,6 +778,30 @@ class cDevice : cStandart() {
                     sensorType = SensorConfig.SENSOR_ENERGO_POWER_FULL,
                     portNum = GalileoFunction.PORT_NUM_MERCURY_POWER_FULL_ABC,
                     descrBody = "Мощность полная по всем фазам",
+                    phase = 0,
+                )
+                addEnergoAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_ENERGO_TRANSFORM_KOEF_CURRENT,
+                    portNum = GalileoFunction.PORT_NUM_MERCURY_TRANSFORM_KOEF_CURRENT,
+                    descrBody = "Коэффициент трансформации по току",
+                    phase = 0,
+                )
+                addEnergoAnalogueSensor(
+                    objectId = objectId,
+                    deviceIndex = deviceIndex,
+                    sensorIndex = si,
+                    groupName = groupName,
+                    descrPrefix = descrPrefix,
+                    descrPostfix = descrPostfix,
+                    sensorType = SensorConfig.SENSOR_ENERGO_TRANSFORM_KOEF_VOLTAGE,
+                    portNum = GalileoFunction.PORT_NUM_MERCURY_TRANSFORM_KOEF_VOLTAGE,
+                    descrBody = "Коэффициент трансформации по напряжению",
                     phase = 0,
                 )
             }

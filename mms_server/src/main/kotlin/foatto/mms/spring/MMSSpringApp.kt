@@ -72,6 +72,8 @@ class MMSSpringApp : CoreSpringApp() {
                 "mms_graphic_energo_power_active" to SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
                 "mms_graphic_energo_power_reactive" to SensorConfig.SENSOR_ENERGO_POWER_REACTIVE,
                 "mms_graphic_energo_power_full" to SensorConfig.SENSOR_ENERGO_POWER_FULL,
+                "mms_graphic_energo_transform_koef_current" to SensorConfig.SENSOR_ENERGO_TRANSFORM_KOEF_CURRENT,
+                "mms_graphic_energo_transform_koef_voltage" to SensorConfig.SENSOR_ENERGO_TRANSFORM_KOEF_VOLTAGE,
             ).forEach { (name, sensorType) ->
                 GraphicDocumentConfig.hmConfig[name] = MMSGraphicDocumentConfig(
                     aServerControlClassName = "foatto.mms.core_mms.graphic.server.document.sdcAnalog",

@@ -211,6 +211,8 @@ class MMSAppController(
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "mms_graphic_energo_power_koef", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "mms_graphic_energo_voltage", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "mms_graphic_energo_current", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "mms_graphic_energo_transform_koef_current", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuGraphic, "mms_graphic_energo_transform_koef_voltage", false)
 
         addSeparator(alMenuGraphic)
 
@@ -562,7 +564,8 @@ class MMSAppController(
 
                 SensorConfig.SENSOR_ENERGO_VOLTAGE, SensorConfig.SENSOR_ENERGO_CURRENT,
                 SensorConfig.SENSOR_ENERGO_POWER_KOEF, SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
-                SensorConfig.SENSOR_ENERGO_POWER_REACTIVE, SensorConfig.SENSOR_ENERGO_POWER_FULL -> {
+                SensorConfig.SENSOR_ENERGO_POWER_REACTIVE, SensorConfig.SENSOR_ENERGO_POWER_FULL,
+                SensorConfig.SENSOR_ENERGO_TRANSFORM_KOEF_CURRENT, SensorConfig.SENSOR_ENERGO_TRANSFORM_KOEF_VOLTAGE -> {
                     hmSC[portNum] = SensorConfigEnergoAnalogue(
                         aId = sensorEntity.id,
                         aName = sensorEntity.name,

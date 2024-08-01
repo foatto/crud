@@ -59,12 +59,6 @@ class mDevice : mAbstractUserSelector() {
     val alColumnEmisDescrPrefix: MutableList<ColumnString> = mutableListOf()
     val alColumnEmisDescrPostfix: MutableList<ColumnString> = mutableListOf()
 
-    lateinit var columnUSSCreatingEnabled: ColumnBoolean
-        private set
-    val alColumnUSSGroupName: MutableList<ColumnString> = mutableListOf()
-    val alColumnUSSDescrPrefix: MutableList<ColumnString> = mutableListOf()
-    val alColumnUSSDescrPostfix: MutableList<ColumnString> = mutableListOf()
-
     lateinit var columnMercuryCreatingEnabled: ColumnBoolean
         private set
     val alColumnMercuryGroupName: MutableList<ColumnString> = mutableListOf()
@@ -247,27 +241,6 @@ class mDevice : mAbstractUserSelector() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        columnUSSCreatingEnabled = ColumnBoolean(modelTableName, "_uss_create_enabled", "Автосоздание датчиков УСС", false).apply {
-            isVirtual = true
-            addFormVisible(columnCopySensors, false, setOf(1))
-        }
-        (1..MAX_PORT_PER_SENSOR).forEach { si ->
-            alColumnUSSGroupName += ColumnString(modelTableName, "_uss_group_name_$si", "Наименование группы датчиков $si", STRING_COLUMN_WIDTH).apply {
-                isVirtual = true
-                addFormVisible(columnUSSCreatingEnabled, true, setOf(1))
-            }
-            alColumnUSSDescrPrefix += ColumnString(modelTableName, "_uss_descr_prefix_$si", "Префикс наименования датчика $si", STRING_COLUMN_WIDTH).apply {
-                isVirtual = true
-                addFormVisible(columnUSSCreatingEnabled, true, setOf(1))
-            }
-            alColumnUSSDescrPostfix += ColumnString(modelTableName, "_uss_descr_postfix_$si", "Постфикс наименования датчика $si", STRING_COLUMN_WIDTH).apply {
-                isVirtual = true
-                addFormVisible(columnUSSCreatingEnabled, true, setOf(1))
-            }
-        }
-
-        //----------------------------------------------------------------------------------------------------------------------
-
         columnMercuryCreatingEnabled = ColumnBoolean(modelTableName, "_mercury_create_enabled", "Автосоздание датчиков Меркурий", false).apply {
             isVirtual = true
             addFormVisible(columnCopySensors, false, setOf(1))
@@ -375,13 +348,6 @@ class mDevice : mAbstractUserSelector() {
             alFormColumn += alColumnEmisGroupName[si]
             alFormColumn += alColumnEmisDescrPrefix[si]
             alFormColumn += alColumnEmisDescrPostfix[si]
-        }
-
-        alFormColumn += columnUSSCreatingEnabled
-        for (si in 0 until MAX_PORT_PER_SENSOR) {
-            alFormColumn += alColumnUSSGroupName[si]
-            alFormColumn += alColumnUSSDescrPrefix[si]
-            alFormColumn += alColumnUSSDescrPostfix[si]
         }
 
         alFormColumn += columnMercuryCreatingEnabled

@@ -192,6 +192,8 @@ object MMSFunction {
                 "mms_graphic_energo_power_koef",
                 "mms_graphic_energo_voltage",
                 "mms_graphic_energo_current",   // График значений электрического тока (э/счётчик)
+                "mms_graphic_energo_transform_koef_current",
+                "mms_graphic_energo_transform_koef_voltage",
                 "mms_graphic_mass_flow",
                 "mms_graphic_volume_flow",
                 "mms_graphic_weight",
