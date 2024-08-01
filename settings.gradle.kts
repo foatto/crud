@@ -67,10 +67,6 @@ include(
     ":office_compose_web",
     ":office_server",
 
-    ":shop_core",
-    ":shop_compose_web",
-    ":shop_server",
-
     ":ts_core",
     ":ts_compose",
     ":ts_compose_web",
