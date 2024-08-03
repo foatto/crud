@@ -1,17 +1,18 @@
 package foatto.mms.spring.controllers
 
-import foatto.util.AdvancedByteBuffer
-import foatto.util.AdvancedLogger
-import foatto.util.DateTime_YMDHMS
-import foatto.util.getCurrentTimeInt
 import foatto.core_server.ds.CoreTelematicFunction
 import foatto.mms.core_mms.ds.DeviceConfig
+import foatto.mms.core_mms.ds.GalileoFunction
 import foatto.mms.core_mms.ds.MMSTelematicFunction
 import foatto.mms.core_mms.ds.PulsarData
 import foatto.spring.CoreSpringApp
 import foatto.sql.AdvancedConnection
 import foatto.sql.CoreAdvancedConnection
 import foatto.sql.SQLBatch
+import foatto.util.AdvancedByteBuffer
+import foatto.util.AdvancedLogger
+import foatto.util.DateTime_YMDHMS
+import foatto.util.getCurrentTimeInt
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -83,6 +84,9 @@ class MMSPulsarDataController {
     private val tmEnergoPowerReactiveABC = sortedMapOf<Int, Double>()
     private val tmEnergoPowerFullABC = sortedMapOf<Int, Double>()
 
+    private val tmEnergoTransformKoefCurrent = sortedMapOf<Int, Double>()
+    private val tmEnergoTransformKoefVoltage = sortedMapOf<Int, Double>()
+
     //--- плотность
     private val tmDensity = TreeMap<Int, Double>()
 
@@ -146,7 +150,7 @@ class MMSPulsarDataController {
             //--- first initial row in data packet array
             if (pulsarData.deviceID != null) {
                 if (pulsarData.blockID == BLOCK_ID) {
-                    if (pulsarData.deviceID.isNullOrBlank()) {
+                    if (pulsarData.deviceID.isBlank()) {
                         outDeviceParseError(dirJournalLog, request.remoteAddr, "Empty deviceID")
                         break
                     }
@@ -203,6 +207,10 @@ class MMSPulsarDataController {
                                         in 0x0530..0x0533 -> tmEnergoPowerFullC[id - 0x0530] = value
 
                                         in 0x0541..0x0544 -> tmMassFlow[id - 0x0541] = value
+
+                                        in 0x0550..0x0553 -> tmEnergoTransformKoefCurrent[id - 0x0550] = value
+                                        in 0x0560..0x0563 -> tmEnergoTransformKoefVoltage[id - 0x0560] = value
+
                                         in 0x0581..0x0584 -> tmDensity[id - 0x0581] = value
                                         in 0x05C1..0x05C4 -> tmTemperature[id - 0x05C1] = value
                                         in 0x0601..0x0604 -> tmVolumeFlow[id - 0x0601] = value
@@ -285,36 +293,6 @@ class MMSPulsarDataController {
         if (pointTime > curTime - CoreTelematicFunction.MAX_PAST_TIME && pointTime < curTime + CoreTelematicFunction.MAX_FUTURE_TIME) {
             val bbData = AdvancedByteBuffer(conn.dialect.textFieldMaxSize / 2)
 
-//            //--- напряжения основного и резервного питаний
-//            putSensorData(8, 2, powerVoltage, bbData)
-//            putSensorData(9, 2, accumVoltage, bbData)
-//            //--- универсальные входы (аналоговые/частотные/счётные)
-//            putDigitalSensor(tmUniversalSensor, 10, 2, bbData)
-//            //--- температура контроллера
-//            putSensorData(18, 2, controllerTemperature, bbData)
-//            //--- гео-данные
-//            putSensorPortNumAndDataSize(SensorConfig.GEO_PORT_NUM, SensorConfig.GEO_DATA_SIZE, bbData)
-//            bbData.putInt(if (isCoordOk) wgsX else 0).putInt(if (isCoordOk) wgsY else 0)
-//                .putShort(if (isCoordOk && !isParking) speed else 0).putInt(if (isCoordOk) absoluteRun else 0)
-//
-//            //--- 16 RS485-датчиков уровня топлива, по 2 байта
-//            putDigitalSensor(tmRS485Fuel, 20, 2, bbData)
-//
-//            //--- CAN: уровень топлива в %
-//            putSensorData(36, 1, canFuelLevel, bbData)
-//            //--- CAN: температура охлаждающей жидкости - сохраняется в виде 4 байт,
-//            //--- чтобы сохранить знак числа, не попадая под переделку в unsigned short в виде & 0xFFFF
-//            putSensorData(37, 4, canCoolantTemperature, bbData)
-//            //--- CAN: обороты двигателя, об/мин
-//            putSensorData(38, 2, canEngineRPM, bbData)
-//
-//            //--- 39-й порт пока свободен
-//
-//            //--- 16 RS485-датчиков температуры, по 4 байта - пишем как int,
-//            //--- чтобы при чтении не потерялся +- температуры
-//            putDigitalSensor(tmRS485Temp, 40, 4, bbData)
-//
-//            putDigitalSensor(tmUserData, 100, 4, bbData)
             CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmCountSensor, 110, bbData, pointTime, hmPortTime)
             CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmLevelSensor, 120, bbData, pointTime, hmPortTime)
             CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmVoltageSensor, 140, bbData, pointTime, hmPortTime)
@@ -322,63 +300,56 @@ class MMSPulsarDataController {
             //--- данные по электросчётчику ---
 
             //--- значения счётчиков от последнего сброса (активная/реактивная прямая/обратная)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCountActiveDirect, 160, bbData, pointTime, hmPortTime)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCountActiveReverse, 164, bbData, pointTime, hmPortTime)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCountReactiveDirect, 168, bbData, pointTime, hmPortTime)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCountReactiveReverse, 172, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCountActiveDirect, GalileoFunction.PORT_NUM_MERCURY_COUNT_ACTIVE_DIRECT, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCountActiveReverse, GalileoFunction.PORT_NUM_MERCURY_COUNT_ACTIVE_REVERSE, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCountReactiveDirect, GalileoFunction.PORT_NUM_MERCURY_COUNT_REACTIVE_DIRECT, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCountReactiveReverse, GalileoFunction.PORT_NUM_MERCURY_COUNT_REACTIVE_REVERSE, bbData, pointTime, hmPortTime)
 
             //--- напряжение по фазам A1..4, B1..4, C1..4
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoVoltageA, 180, bbData, pointTime, hmPortTime)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoVoltageB, 184, bbData, pointTime, hmPortTime)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoVoltageC, 188, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoVoltageA, GalileoFunction.PORT_NUM_MERCURY_VOLTAGE_A, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoVoltageB, GalileoFunction.PORT_NUM_MERCURY_VOLTAGE_B, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoVoltageC, GalileoFunction.PORT_NUM_MERCURY_VOLTAGE_C, bbData, pointTime, hmPortTime)
 
             //--- ток по фазам A1..4, B1..4, C1..4
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCurrentA, 200, bbData, pointTime, hmPortTime)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCurrentB, 204, bbData, pointTime, hmPortTime)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCurrentC, 208, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCurrentA, GalileoFunction.PORT_NUM_MERCURY_CURRENT_A, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCurrentB, GalileoFunction.PORT_NUM_MERCURY_CURRENT_B, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoCurrentC, GalileoFunction.PORT_NUM_MERCURY_CURRENT_C, bbData, pointTime, hmPortTime)
 
             //--- коэффициент мощности по фазам A1..4, B1..4, C1..4
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerKoefA, 220, bbData, pointTime, hmPortTime)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerKoefB, 224, bbData, pointTime, hmPortTime)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerKoefC, 228, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerKoefA, GalileoFunction.PORT_NUM_MERCURY_POWER_KOEF_A, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerKoefB, GalileoFunction.PORT_NUM_MERCURY_POWER_KOEF_B, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerKoefC, GalileoFunction.PORT_NUM_MERCURY_POWER_KOEF_C, bbData, pointTime, hmPortTime)
 
             //--- активная мощность по фазам A1..4, B1..4, C1..4
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerActiveA, 232, bbData, pointTime, hmPortTime)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerActiveB, 236, bbData, pointTime, hmPortTime)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerActiveC, 240, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerActiveA, GalileoFunction.PORT_NUM_MERCURY_POWER_ACTIVE_A, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerActiveB, GalileoFunction.PORT_NUM_MERCURY_POWER_ACTIVE_B, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerActiveC, GalileoFunction.PORT_NUM_MERCURY_POWER_ACTIVE_C, bbData, pointTime, hmPortTime)
 
             //--- реактивная мощность по фазам A1..4, B1..4, C1..4
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerReactiveA, 244, bbData, pointTime, hmPortTime)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerReactiveB, 248, bbData, pointTime, hmPortTime)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerReactiveC, 252, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerReactiveA, GalileoFunction.PORT_NUM_MERCURY_POWER_REACTIVE_A, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerReactiveB, GalileoFunction.PORT_NUM_MERCURY_POWER_REACTIVE_B, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerReactiveC, GalileoFunction.PORT_NUM_MERCURY_POWER_REACTIVE_C, bbData, pointTime, hmPortTime)
 
             //--- полная мощность по фазам A1..4, B1..4, C1..4
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerFullA, 256, bbData, pointTime, hmPortTime)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerFullB, 260, bbData, pointTime, hmPortTime)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerFullC, 264, bbData, pointTime, hmPortTime)
-
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmMassFlow, 270, bbData, pointTime, hmPortTime)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmDensity, 280, bbData, pointTime, hmPortTime)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmTemperature, 290, bbData, pointTime, hmPortTime)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmVolumeFlow, 300, bbData, pointTime, hmPortTime)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmAccumulatedMass, 310, bbData, pointTime, hmPortTime)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmAccumulatedVolume, 320, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerFullA, GalileoFunction.PORT_NUM_MERCURY_POWER_FULL_A, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerFullB, GalileoFunction.PORT_NUM_MERCURY_POWER_FULL_B, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerFullC, GalileoFunction.PORT_NUM_MERCURY_POWER_FULL_C, bbData, pointTime, hmPortTime)
 
             //--- мощность по трём фазам: активная, реактивная, суммарная
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerActiveABC, 330, bbData, pointTime, hmPortTime)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerReactiveABC, 340, bbData, pointTime, hmPortTime)
-            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerFullABC, 350, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerActiveABC, GalileoFunction.PORT_NUM_MERCURY_POWER_ACTIVE_ABC, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerReactiveABC, GalileoFunction.PORT_NUM_MERCURY_POWER_REACTIVE_ABC, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoPowerFullABC, GalileoFunction.PORT_NUM_MERCURY_POWER_FULL_ABC, bbData, pointTime, hmPortTime)
 
-//            //--- EuroSens Delta
-//            putDigitalSensor(tmESDStatus, 500, bbData)
-//            putDigitalSensor(tmESDVolume, 504, bbData)
-//            putDigitalSensor(tmESDFlow, 508, bbData)
-//            putDigitalSensor(tmESDCameraVolume, 512, bbData)
-//            putDigitalSensor(tmESDCameraFlow, 516, bbData)
-//            putDigitalSensor(tmESDCameraTemperature, 520, bbData)
-//            putDigitalSensor(tmESDReverseCameraVolume, 524, bbData)
-//            putDigitalSensor(tmESDReverseCameraFlow, 528, bbData)
-//            putDigitalSensor(tmESDReverseCameraTemperature, 532, bbData)
+            //--- коэффициент трансформации по току и напряжению
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoTransformKoefCurrent, GalileoFunction.PORT_NUM_MERCURY_TRANSFORM_KOEF_CURRENT, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmEnergoTransformKoefVoltage, GalileoFunction.PORT_NUM_MERCURY_TRANSFORM_KOEF_VOLTAGE, bbData, pointTime, hmPortTime)
+
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmMassFlow, GalileoFunction.PORT_NUM_EMIS_MASS_FLOW, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmDensity, GalileoFunction.PORT_NUM_EMIS_DENSITY, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmTemperature, GalileoFunction.PORT_NUM_EMIS_TEMPERATURE, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmVolumeFlow, GalileoFunction.PORT_NUM_EMIS_VOLUME_FLOW, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmAccumulatedMass, GalileoFunction.PORT_NUM_EMIS_ACCUMULATED_MASS, bbData, pointTime, hmPortTime)
+            CoreTelematicFunction.putDigitalSensor(deviceConfig.index, tmAccumulatedVolume, GalileoFunction.PORT_NUM_EMIS_ACCUMULATED_VOLUME, bbData, pointTime, hmPortTime)
 
             MMSTelematicFunction.addPoint(conn, deviceConfig, pointTime, bbData, sqlBatchData)
             dataCount++
@@ -395,27 +366,6 @@ class MMSPulsarDataController {
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     private fun clearSensorArrays() {
-//        isCoordOk = false
-//        wgsX = 0
-//        wgsY = 0
-//        isParking = false
-//        speed = 0
-//        absoluteRun = 0
-//
-//        powerVoltage = 0
-//        accumVoltage = 0
-//        controllerTemperature = 0
-//
-//        canFuelLevel = 0
-//        canCoolantTemperature = 0
-//        canEngineRPM = 0
-//
-//        tmUniversalSensor.clear()
-//        tmRS485Fuel.clear()
-//        tmRS485Temp.clear()
-//
-//        tmUserData.clear()
-
         tmLevelSensor.clear()
         tmVoltageSensor.clear()
         tmCountSensor.clear()
@@ -450,22 +400,15 @@ class MMSPulsarDataController {
         tmEnergoPowerReactiveABC.clear()
         tmEnergoPowerFullABC.clear()
 
+        tmEnergoTransformKoefCurrent.clear()
+        tmEnergoTransformKoefVoltage.clear()
+
         tmMassFlow.clear()
         tmDensity.clear()
         tmTemperature.clear()
         tmVolumeFlow.clear()
         tmAccumulatedMass.clear()
         tmAccumulatedVolume.clear()
-
-//        tmESDStatus.clear()
-//        tmESDVolume.clear()
-//        tmESDFlow.clear()
-//        tmESDCameraVolume.clear()
-//        tmESDCameraFlow.clear()
-//        tmESDCameraTemperature.clear()
-//        tmESDReverseCameraVolume.clear()
-//        tmESDReverseCameraFlow.clear()
-//        tmESDReverseCameraTemperature.clear()
     }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
