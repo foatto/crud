@@ -1,4 +1,4 @@
-package foatto.compose.controls.composables.table
+package foatto.compose.control.composable.table
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -26,7 +26,7 @@ import foatto.core.model.AppAction
 fun TableToolBar(
     isSelectorMode: Boolean,
     isWideScreen: Boolean,
-    selectorCancelAction: AppAction?,
+    selectorCancelAction: (() -> Unit)?,
     isFindTextVisible: Boolean,
     findText: String,
     alAddButton: SnapshotStateList<AddActionButtonClient>,
@@ -67,9 +67,7 @@ fun TableToolBar(
                 isVisible = selectorCancelAction != null,
                 name = "/web/images/ic_reply_all_${getStyleToolbarIconNameSuffix()}.png",
             ) {
-                selectorCancelAction?.let {
-                    call(selectorCancelAction, false)
-                }
+                selectorCancelAction?.invoke()
             }
             if (isFindTextVisible) {
                 OutlinedTextField(
@@ -152,14 +150,14 @@ fun TableToolBar(
                     }
                 }
             }
+        }
 
-            ToolBarBlock {
-                if (isWideScreen || !isFindTextVisible) {
-                    ToolBarIconButton(
-                        name = "/web/images/ic_sync_${getStyleToolbarIconNameSuffix()}.png",
-                    ) {
-                        call(tableAction, false)
-                    }
+        ToolBarBlock {
+            if (isWideScreen || !isFindTextVisible) {
+                ToolBarIconButton(
+                    name = "/web/images/ic_sync_${getStyleToolbarIconNameSuffix()}.png",
+                ) {
+                    call(tableAction, false)
                 }
             }
         }

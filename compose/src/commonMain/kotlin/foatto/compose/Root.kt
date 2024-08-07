@@ -31,6 +31,7 @@ import foatto.compose.composable.PasswordChangeDialog
 import foatto.compose.composable.StardartDialog
 import foatto.compose.composable.TabPanel
 import foatto.compose.composable.getClientSubMenu
+import foatto.compose.control.TableControl
 import foatto.compose.utils.*
 import foatto.core.ActionType
 import foatto.core.model.AppAction
@@ -86,6 +87,7 @@ open class Root {
     private val alTabInfo = mutableStateListOf<TabInfo>()
 
     private val alControl = mutableStateListOf<AppControl>()
+    var selectorControl by mutableStateOf<TableControl?>(null)
 
     private var waitCount by mutableIntStateOf(0)
 
@@ -162,6 +164,9 @@ open class Root {
                     }
                     alControl.getOrNull(selectedTabIndex)?.Body()
                 }
+
+                selectorControl?.Body()
+
                 if (showPasswordChangeDialog) {
                     PasswordChangeDialog(
                         onOkClick = { newPassword ->

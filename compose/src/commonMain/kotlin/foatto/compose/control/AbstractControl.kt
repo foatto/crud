@@ -49,6 +49,7 @@ abstract class AbstractControl(
 
     @Composable
     protected fun getTableAndFormHeader(
+        isSelectorMode: Boolean,
         withBottomBorder: Boolean,
         call: (action: AppAction) -> Unit,
     ) {
@@ -66,6 +67,12 @@ abstract class AbstractControl(
 //                    }
 //                    backgroundColor(getColorTableHeaderBack())
         ) {
+            if (isSelectorMode) {
+                Text(
+                    text = "Выбор: ",
+                    fontWeight = FontWeight.Bold,
+                )
+            }
             for (titleData in alTitleData) {
                 titleData.action?.let { action ->
                     Button(

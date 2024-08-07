@@ -28,6 +28,7 @@ private val colorMainBack3: Color = Color.hsl(0.0f, 0.0f, MAIN_BACK_LIGHTNESS_2)
 private val colorMainBack4: Color = Color.hsl(0.0f, 0.0f, MAIN_BACK_LIGHTNESS_3)    // ?
 
 val colorControlBack: Color = colorMainBack0
+val colorTableSelectorBack: Color = colorMainBack0  //.copy(alpha = 0.9f)
 val colorFormBack: Color = colorMainBack1
 val colorTabActive: Color = colorMainBack2
 val colorTabInactive: Color = colorMainBack3

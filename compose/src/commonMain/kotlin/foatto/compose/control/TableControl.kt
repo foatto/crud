@@ -22,11 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import foatto.compose.AppControl
-import foatto.compose.Root
-import foatto.compose.colorBottomBar
-import foatto.compose.colorMainBack0
-import foatto.compose.colorMainText
+import foatto.compose.*
 import foatto.compose.composable.GenerateMenuBody
 import foatto.compose.composable.ImageOrTextFromNameControl
 import foatto.compose.control.model.TitleData
@@ -42,12 +38,14 @@ import foatto.compose.control.model.table.cell.TableCellDataClient
 import foatto.compose.control.model.table.cell.TableGridCellClient
 import foatto.compose.control.model.table.cell.TableSimpleCellClient
 import foatto.compose.controls.composables.table.TableImageOrTextCell
-import foatto.compose.controls.composables.table.TableToolBar
+import foatto.compose.control.composable.table.TableToolBar
 import foatto.compose.model.MenuDataClient
-import foatto.compose.styleOtherIconSize
 import foatto.compose.utils.maxDp
+import foatto.core.ActionType
 import foatto.core.model.AppAction
 import foatto.core.model.request.AppRequest
+import foatto.core.model.response.AppResponse
+import foatto.core.model.response.ResponseCode
 import foatto.core.model.response.TableResponse
 import foatto.core.model.response.table.TablePopupData
 import foatto.core.model.response.table.TableRowData
@@ -67,6 +65,10 @@ var colorTableGroupBack1: Color = Color.hsl(0f, 0f, 0.7f)
 var colorTableRowBack0: Color = Color.hsl(0f, 0f, 1.0f)
 var colorTableRowBack1: Color = Color.hsl(0f, 0f, 0.95f)
 
+typealias SelectorFunType = ((selectorData: Map<String, String>) -> Unit)
+
+val tableSelectorFuns = mutableMapOf<Long, SelectorFunType>()
+
 //--- base/standart table/grid control
 
 class TableControl(
@@ -75,7 +77,6 @@ class TableControl(
     private val tableAction: AppAction,
     private val tableResponse: TableResponse,
     tabId: Int,
-    private val selectorFun: ((selectorData: Map<String, String>) -> Unit)? = null,
 ) : AbstractControl(tabId) {
 
     companion object {
@@ -130,18 +131,27 @@ class TableControl(
             modifier = Modifier
                 .fillMaxSize()
                 .then(
-                    selectorFun?.let {
-                        Modifier.background(colorMainBack0)
-                    } ?: Modifier
+                    if (tableAction.isSelectorMode) {
+                        Modifier.background(colorTableSelectorBack)
+                    } else {
+                        Modifier
+                    }
                 ),
         ) {
-            getTableAndFormHeader(false) { action: AppAction ->
+            getTableAndFormHeader(
+                isSelectorMode = tableAction.isSelectorMode,
+                withBottomBorder = false
+            ) { action: AppAction ->
                 call(action, false)
             }
             TableToolBar(
                 isSelectorMode = tableAction.isSelectorMode,
                 isWideScreen = root.isWideScreen,
-                selectorCancelAction = selectorCancelAction,
+                selectorCancelAction = if (tableAction.isSelectorMode) {
+                    { closeSelector() }
+                } else {
+                    null
+                },
                 isFindTextVisible = isFindTextVisible,
                 findText = findText,
                 alAddButton = alAddButton,
@@ -253,7 +263,8 @@ class TableControl(
                                                 val rowData = alRowData[dataRow]
                                                 rowData.rowAction?.let { rowAction ->
                                                     if (tableAction.isSelectorMode) {
-                                                        selectorFun?.invoke(rowAction.selectorData)
+                                                        tableSelectorFuns[tableAction.selectorFunId]?.invoke(rowAction.selectorData)
+                                                        closeSelector()
                                                     } else {
                                                         call(rowAction, rowData.isRowUrlInNewTab)
                                                     }
@@ -394,8 +405,8 @@ class TableControl(
 
                                     else -> {}
                                 }
-                                gridData?.let {
-                                    if (!tableAction.isSelectorMode) {
+                                if (!tableAction.isSelectorMode) {
+                                    gridData?.let {
                                         DropdownMenu(
                                             expanded = gridData.isShowPopupMenu,
                                             onDismissRequest = {
@@ -709,7 +720,13 @@ class TableControl(
         if (!isClear && !isFindTextVisible) {
             isFindTextVisible = true
         } else {
-            appControl.call(AppRequest(action = tableAction.copy(findText = findText.trim())))
+            call(
+                newAppAction = tableAction.copy(
+                    findText = findText.trim(),
+                    pageNo = 0,
+                ),
+                inNewTab = false,
+            )
         }
     }
 
@@ -801,11 +818,55 @@ class TableControl(
     }
 
     private fun call(newAppAction: AppAction, inNewTab: Boolean) {
-        if (inNewTab) {
-            root.openTab(newAppAction)
+        if (tableAction.isSelectorMode) {
+            if (newAppAction.type == ActionType.MODULE_TABLE) {
+                val selectorAppAction = newAppAction.copy(
+                    prevAction = tableAction,
+                    isSelectorMode = true,
+                    selectorFunId = tableAction.selectorFunId,
+                )
+                root.setWait(true)
+                invokeRequest(
+                    AppRequest(
+                        action = selectorAppAction
+                    )
+                ) { appResponse: AppResponse ->
+                    when (appResponse.responseCode) {
+                        ResponseCode.MODULE_TABLE -> {
+                            root.selectorControl = TableControl(root, appControl, selectorAppAction, appResponse.table!!, tabId)
+                            root.selectorControl?.start()
+                        }
+
+                        else -> {
+                            //!!! dialog с ошибкой
+                            println("Wrong response.responseCode in SELECTOR_MODE = ${appResponse.responseCode}")
+                        }
+                    }
+                    root.setWait(false)
+                }
+
+            } else {    //--- невозможная (?) ситуация
+                //!!! dialog с ошибкой
+                println("Wrong call in SELECTOR_MODE = $newAppAction")
+            }
         } else {
-            appControl.call(AppRequest(action = newAppAction.copy(prevAction = tableAction)))
+            if (inNewTab) {
+                root.openTab(newAppAction)
+            } else {
+                appControl.call(
+                    AppRequest(
+                        action = newAppAction.copy(
+                            prevAction = tableAction,
+                        )
+                    )
+                )
+            }
         }
+    }
+
+    private fun closeSelector() {
+        tableSelectorFuns.remove(tableAction.selectorFunId)
+        root.selectorControl = null
     }
 
     private fun clientAction(action: AppAction, params: List<Pair<String, String>>) {

@@ -44,8 +44,6 @@ import foatto.compose.control.model.form.cell.FormDateTimeCellClient
 import foatto.compose.control.model.form.cell.FormFileCellClient
 import foatto.compose.control.model.form.cell.FormLabelCellClient
 import foatto.compose.control.model.form.cell.FormSimpleCellClient
-import foatto.compose.invokeRequest
-import foatto.compose.invokeUploadFormFile
 import foatto.compose.utils.maxDp
 import foatto.core.model.AppAction
 import foatto.core.model.request.AppRequest
@@ -63,6 +61,7 @@ import foatto.core.model.response.form.cells.FormComboCell
 import foatto.core.model.response.form.cells.FormDateTimeCell
 import foatto.core.model.response.form.cells.FormFileCell
 import foatto.core.model.response.form.cells.FormSimpleCell
+import foatto.core.util.getRandomLong
 import kotlinx.coroutines.launch
 import kotlin.math.max
 import kotlin.math.min
@@ -93,8 +92,6 @@ class FormControl(
     private var formSaveActionType: String? = null
     private var formExitActionType: String? = null
 
-    private var selectorControl by mutableStateOf<TableControl?>(null)
-
     private val hmColumnMaxWidth = mutableStateMapOf<Int, Dp>()
 
     private var isFileAddInProgress by mutableStateOf(false)
@@ -123,122 +120,119 @@ class FormControl(
             }
         }
 
-        Box(
+        Column(
             modifier = Modifier.fillMaxSize().background(colorFormBack),
         ) {
+            getTableAndFormHeader(isSelectorMode = false, withBottomBorder = true) { _: AppAction -> }
+
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(state = verticalScrollState)
+                    .horizontalScroll(state = horizontalScrollState)
+                    .draggable(
+                        orientation = Orientation.Horizontal,
+                        state = rememberDraggableState { delta ->
+                            coroutineScope.launch {
+                                horizontalScrollState.scrollBy(-delta)
+                            }
+                        },
+                    )
+                    .draggable(
+                        orientation = Orientation.Vertical,
+                        state = rememberDraggableState { delta ->
+                            coroutineScope.launch {
+                                verticalScrollState.scrollBy(-delta)
+                            }
+                        },
+                    )
+                    .weight(1.0f),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                getTableAndFormHeader(true) { _: AppAction -> }
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(state = verticalScrollState)
-                        .horizontalScroll(state = horizontalScrollState)
-                        .draggable(
-                            orientation = Orientation.Horizontal,
-                            state = rememberDraggableState { delta ->
-                                coroutineScope.launch {
-                                    horizontalScrollState.scrollBy(-delta)
-                                }
-                            },
-                        )
-                        .draggable(
-                            orientation = Orientation.Vertical,
-                            state = rememberDraggableState { delta ->
-                                coroutineScope.launch {
-                                    verticalScrollState.scrollBy(-delta)
-                                }
-                            },
-                        )
-                        .weight(1.0f),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    for (alGridRow in alGridRows) {
-                        Row(
-                            modifier = Modifier
-                                //.width(intrinsicSize = IntrinsicSize.Max) - оставлю на память, чтобы опять не искать, но пользы/разницы не увидел
-                                //--- чтобы ячейки занимали всю отведённую им (общую) высоту (работает только совместно с .fillMaxHeight())
-                                .height(intrinsicSize = IntrinsicSize.Max),
+                for (alGridRow in alGridRows) {
+                    Row(
+                        modifier = Modifier
+                            //.width(intrinsicSize = IntrinsicSize.Max) - оставлю на память, чтобы опять не искать, но пользы/разницы не увидел
+                            //--- чтобы ячейки занимали всю отведённую им (общую) высоту (работает только совместно с .fillMaxHeight())
+                            .height(intrinsicSize = IntrinsicSize.Max),
 //?                        horizontalArrangement = Arrangement.aligned(Alignment.CenterHorizontally),
-                        ) {
-                            alGridRow.forEachIndexed { col, gridData ->
-                                //--- специальное хитрое условие: показывать если gridData == null или isVisible == true
-                                if (gridData?.isVisible?.value != false) {
-                                    Row(
-                                        horizontalArrangement = gridData?.align ?: Arrangement.Center,
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier
-                                            .fillMaxHeight()    // работает только совместно с .height(intrinsicSize = IntrinsicSize.Max)
-                                            //!!! только на время отладки
-                                            //.border(BorderStroke(width = 1.dp, color = Color.LightGray))
-                                            //.wrapContentSize(align = Alignment.Center, unbounded = true)  //- ничем не помогает
-                                            .onSizeChanged { size ->
-                                                gridData?.let {
-                                                    val componentWidth = with(density) {
-                                                        maxDp(size.width.toDp(), FORM_CELL_PADDING * 2)    //!!! minWidth
-                                                    }
-                                                    gridData.componentWidth = maxDp(gridData.componentWidth, componentWidth)
-                                                    hmColumnMaxWidth[col] = maxDp(hmColumnMaxWidth[col] ?: 0.dp, componentWidth)
+                    ) {
+                        alGridRow.forEachIndexed { col, gridData ->
+                            //--- специальное хитрое условие: показывать если gridData == null или isVisible == true
+                            if (gridData?.isVisible?.value != false) {
+                                Row(
+                                    horizontalArrangement = gridData?.align ?: Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .fillMaxHeight()    // работает только совместно с .height(intrinsicSize = IntrinsicSize.Max)
+                                        //!!! только на время отладки
+                                        //.border(BorderStroke(width = 1.dp, color = Color.LightGray))
+                                        //.wrapContentSize(align = Alignment.Center, unbounded = true)  //- ничем не помогает
+                                        .onSizeChanged { size ->
+                                            gridData?.let {
+                                                val componentWidth = with(density) {
+                                                    maxDp(size.width.toDp(), FORM_CELL_PADDING * 2)    //!!! minWidth
                                                 }
+                                                gridData.componentWidth = maxDp(gridData.componentWidth, componentWidth)
+                                                hmColumnMaxWidth[col] = maxDp(hmColumnMaxWidth[col] ?: 0.dp, componentWidth)
                                             }
-                                            .then(
-                                                gridData?.let {
-                                                    hmColumnMaxWidth[col]?.let { maxColWidth ->
-                                                        if (gridData.componentWidth < maxColWidth) {
-                                                            Modifier.width(maxColWidth)
-                                                        } else {
-                                                            Modifier.width(gridData.componentWidth)
-                                                        }
+                                        }
+                                        .then(
+                                            gridData?.let {
+                                                hmColumnMaxWidth[col]?.let { maxColWidth ->
+                                                    if (gridData.componentWidth < maxColWidth) {
+                                                        Modifier.width(maxColWidth)
+                                                    } else {
+                                                        Modifier.width(gridData.componentWidth)
                                                     }
-                                                } ?: Modifier
-                                            )
+                                                }
+                                            } ?: Modifier
+                                        )
 
-                                    ) {
-                                        when (gridData) {
-                                            is FormLabelCellClient -> {
-                                                Text(
-                                                    modifier = Modifier.padding(FORM_CELL_PADDING),
-                                                    text = gridData.current.value,
-                                                )
+                                ) {
+                                    when (gridData) {
+                                        is FormLabelCellClient -> {
+                                            Text(
+                                                modifier = Modifier.padding(FORM_CELL_PADDING),
+                                                text = gridData.current.value,
+                                            )
 //                                            if (gridData.text.value == BR) {
 //                                                Br()
 //                                            } else {
 //                                                Text(gridData.text.value)
 //                                            }
-                                            }
+                                        }
 
-                                            is FormSimpleCellClient -> {
-                                                OutlinedTextField(
-                                                    modifier = Modifier
-                                                        .padding(FORM_CELL_PADDING)
-                                                        .widthIn(max = root.scaledScreenWidth.dp / 2)
-                                                        .background(colorControlBack),
-                                                    value = gridData.current.value,
-                                                    onValueChange = { newText ->
-                                                        gridData.current.value = newText
-                                                    },
-                                                    readOnly = !gridData.data.isEditable,
-                                                    //!!! label = { Text("Имя") }, - использовать для мобильной версии без FormCellTypeClient.LABEL
-                                                    isError = gridData.error != null,
-                                                    supportingText = gridData.error?.let { error ->
-                                                        {
-                                                            Text(
-                                                                text = error,
-                                                                color = Color.Red,
-                                                            )
-                                                        }
-                                                    },
-                                                    singleLine = gridData.data.rows == 1,
-                                                    minLines = gridData.data.rows,
-                                                    maxLines = gridData.data.rows,
-                                                    visualTransformation = if (gridData.data.isPassword) {
-                                                        PasswordVisualTransformation()
-                                                    } else {
-                                                        VisualTransformation.None
-                                                    },
-                                                )
+                                        is FormSimpleCellClient -> {
+                                            OutlinedTextField(
+                                                modifier = Modifier
+                                                    .padding(FORM_CELL_PADDING)
+                                                    .widthIn(max = root.scaledScreenWidth.dp / 2)
+                                                    .background(colorControlBack),
+                                                value = gridData.current.value,
+                                                onValueChange = { newText ->
+                                                    gridData.current.value = newText
+                                                },
+                                                readOnly = !gridData.data.isEditable,
+                                                //!!! label = { Text("Имя") }, - использовать для мобильной версии без FormCellTypeClient.LABEL
+                                                isError = gridData.error != null,
+                                                supportingText = gridData.error?.let { error ->
+                                                    {
+                                                        Text(
+                                                            text = error,
+                                                            color = Color.Red,
+                                                        )
+                                                    }
+                                                },
+                                                singleLine = gridData.data.rows == 1,
+                                                minLines = gridData.data.rows,
+                                                maxLines = gridData.data.rows,
+                                                visualTransformation = if (gridData.data.isPassword) {
+                                                    PasswordVisualTransformation()
+                                                } else {
+                                                    VisualTransformation.None
+                                                },
+                                            )
 //                                            id(getFocusId(gridData.id))
 //                                            size(gridData.data.columns)
 //                                            onFocusIn { syntheticFocusEvent ->
@@ -247,29 +241,29 @@ class FormControl(
 //                                            onKeyUp { syntheticKeyboardEvent ->
 //                                                doKeyUp(gridData, syntheticKeyboardEvent)
 //                                            }
-                                            }
+                                        }
 
-                                            is FormBooleanCellClient -> {
-                                                if (gridData.data.alSwitchText.isEmpty()) {
-                                                    Checkbox(
-                                                        modifier = Modifier
-                                                            .padding(FORM_CELL_PADDING)
-                                                            .background(colorControlBack),
-                                                        checked = gridData.current.value,
-                                                        //enabled = !gridData.data.isEditable, - слишком сильно отличается по стилю от обычных read-only текстовых полей ввода
-                                                        onCheckedChange = { newState ->
-                                                            if (gridData.data.isEditable) {
-                                                                gridData.current.value = newState
-                                                                doVisibleAndCaptionChange(gridData)
-                                                            }
-                                                        },
-                                                    )
-                                                    //                                            id(getFocusId(gridData.id))
-                                                    //onInput { syntheticInputEvent -> - тоже можно
-                                                    //                                            onKeyUp { syntheticKeyboardEvent ->
-                                                    //                                                doKeyUp(gridData, syntheticKeyboardEvent)
-                                                    //                                            }
-                                                } else {
+                                        is FormBooleanCellClient -> {
+                                            if (gridData.data.alSwitchText.isEmpty()) {
+                                                Checkbox(
+                                                    modifier = Modifier
+                                                        .padding(FORM_CELL_PADDING)
+                                                        .background(colorControlBack),
+                                                    checked = gridData.current.value,
+                                                    //enabled = !gridData.data.isEditable, - слишком сильно отличается по стилю от обычных read-only текстовых полей ввода
+                                                    onCheckedChange = { newState ->
+                                                        if (gridData.data.isEditable) {
+                                                            gridData.current.value = newState
+                                                            doVisibleAndCaptionChange(gridData)
+                                                        }
+                                                    },
+                                                )
+                                                //                                            id(getFocusId(gridData.id))
+                                                //onInput { syntheticInputEvent -> - тоже можно
+                                                //                                            onKeyUp { syntheticKeyboardEvent ->
+                                                //                                                doKeyUp(gridData, syntheticKeyboardEvent)
+                                                //                                            }
+                                            } else {
 //                                                getFormSwitch(
 //                                                    id0 = getFocusId(gridData.id, 0),
 //                                                    id1 = getFocusId(gridData.id, 1),
@@ -293,56 +287,56 @@ class FormControl(
 //                                                        doKeyUp(gridData, key, isCtrlKey)
 //                                                    },
 //                                                )
-                                                }
                                             }
+                                        }
 
-                                            is FormDateTimeCellClient -> {
-                                                val dateTimeFieldCount = gridData.data.value.size
-                                                for (index in 0 until dateTimeFieldCount) {
-                                                    //--- time fields on new line on narrow screens
+                                        is FormDateTimeCellClient -> {
+                                            val dateTimeFieldCount = gridData.data.value.size
+                                            for (index in 0 until dateTimeFieldCount) {
+                                                //--- time fields on new line on narrow screens
 //                                            if (styleIsNarrowScreen && index == 3) {
 //                                                Br()
 //                                            }
-                                                    if (dateTimeFieldCount >= 3 && index in (1..2)) {
-                                                        Text(text = ".")
-                                                    } else if (dateTimeFieldCount < 3 && index in (1..2)) {
-                                                        Text(text = ":")
-                                                    } else if (index in (4..5)) {
-                                                        Text(text = ":")
-                                                    }
+                                                if (dateTimeFieldCount >= 3 && index in (1..2)) {
+                                                    Text(text = ".")
+                                                } else if (dateTimeFieldCount < 3 && index in (1..2)) {
+                                                    Text(text = ":")
+                                                } else if (index in (4..5)) {
+                                                    Text(text = ":")
+                                                }
 
-                                                    OutlinedTextField(
-                                                        modifier = Modifier
-                                                            .padding(FORM_CELL_PADDING)
-                                                            .width(
-                                                                if (index == 2) {
-                                                                    76.dp   // после ввода пятой (лишней) цифры первая наполовину уходит
-                                                                } else {
-                                                                    58.dp   // после ввода третьей (лишней) цифры первая наполовину уходит
-                                                                }
-                                                            )
-                                                            .background(colorControlBack),
-                                                        value = gridData.current[index].value,
-                                                        onValueChange = { newText ->
-                                                            gridData.current[index].value = newText
-                                                        },
-                                                        readOnly = !gridData.data.isEditable,
-                                                        //!!! label = { Text("Имя") }, - использовать для мобильной версии без FormCellTypeClient.LABEL
-                                                        isError = gridData.error != null,
-                                                        supportingText = gridData.error?.let { error ->
-                                                            if (index == 0) {
-                                                                {
-                                                                    Text(
-                                                                        text = error,
-                                                                        color = Color.Red,
-                                                                    )
-                                                                }
+                                                OutlinedTextField(
+                                                    modifier = Modifier
+                                                        .padding(FORM_CELL_PADDING)
+                                                        .width(
+                                                            if (index == 2) {
+                                                                76.dp   // после ввода пятой (лишней) цифры первая наполовину уходит
                                                             } else {
-                                                                null
+                                                                58.dp   // после ввода третьей (лишней) цифры первая наполовину уходит
                                                             }
-                                                        },
-                                                        singleLine = true,
-                                                    )
+                                                        )
+                                                        .background(colorControlBack),
+                                                    value = gridData.current[index].value,
+                                                    onValueChange = { newText ->
+                                                        gridData.current[index].value = newText
+                                                    },
+                                                    readOnly = !gridData.data.isEditable,
+                                                    //!!! label = { Text("Имя") }, - использовать для мобильной версии без FormCellTypeClient.LABEL
+                                                    isError = gridData.error != null,
+                                                    supportingText = gridData.error?.let { error ->
+                                                        if (index == 0) {
+                                                            {
+                                                                Text(
+                                                                    text = error,
+                                                                    color = Color.Red,
+                                                                )
+                                                            }
+                                                        } else {
+                                                            null
+                                                        }
+                                                    },
+                                                    singleLine = true,
+                                                )
 //                                                id(getFocusId(gridData.id, gridData.alSubId?.get(index)))
 //                                                onFocusIn { syntheticFocusEvent ->
 //                                                    selectAllText(syntheticFocusEvent)
@@ -350,42 +344,42 @@ class FormControl(
 //                                                onKeyUp { syntheticKeyboardEvent ->
 //                                                    doKeyUp(gridData, syntheticKeyboardEvent)
 //                                                }
-                                                }
                                             }
+                                        }
 
-                                            is FormComboCellClient -> {
-                                                if (gridData.data.asRadioButtons) {
-                                                    Column(
-                                                        modifier = Modifier.selectableGroup(),
-                                                    ) {
-                                                        for ((value, descr) in gridData.data.values) {
-                                                            Row(
-                                                                modifier = Modifier.selectable(
-                                                                    selected = gridData.current.value == value,
-                                                                    onClick = {
-                                                                        if (gridData.data.isEditable) {
-                                                                            gridData.current.value = value
-                                                                            doVisibleAndCaptionChange(gridData)
-                                                                        }
+                                        is FormComboCellClient -> {
+                                            if (gridData.data.asRadioButtons) {
+                                                Column(
+                                                    modifier = Modifier.selectableGroup(),
+                                                ) {
+                                                    for ((value, descr) in gridData.data.values) {
+                                                        Row(
+                                                            modifier = Modifier.selectable(
+                                                                selected = gridData.current.value == value,
+                                                                onClick = {
+                                                                    if (gridData.data.isEditable) {
+                                                                        gridData.current.value = value
+                                                                        doVisibleAndCaptionChange(gridData)
                                                                     }
-                                                                ),
-                                                                verticalAlignment = Alignment.CenterVertically,
-                                                            ) {
-                                                                RadioButton(
-                                                                    selected = gridData.current.value == value,
-                                                                    onClick = {
-                                                                        if (gridData.data.isEditable) {
-                                                                            gridData.current.value = value
-                                                                            doVisibleAndCaptionChange(gridData)
-                                                                        }
+                                                                }
+                                                            ),
+                                                            verticalAlignment = Alignment.CenterVertically,
+                                                        ) {
+                                                            RadioButton(
+                                                                selected = gridData.current.value == value,
+                                                                onClick = {
+                                                                    if (gridData.data.isEditable) {
+                                                                        gridData.current.value = value
+                                                                        doVisibleAndCaptionChange(gridData)
                                                                     }
-                                                                )
-                                                                Text(
-                                                                    text = descr,
-                                                                )
-                                                            }
+                                                                }
+                                                            )
+                                                            Text(
+                                                                text = descr,
+                                                            )
                                                         }
                                                     }
+                                                }
 //                                            gridData.alComboData.forEachIndexed { index, comboData ->
 //                                                val focusId = getFocusId(gridData.id, gridData.alSubId?.get(index))
 //                                                    id(focusId)
@@ -393,201 +387,199 @@ class FormControl(
 //                                                        doKeyUp(gridData, syntheticKeyboardEvent)
 //                                                    }
 //                                                }
-                                                } else {
+                                            } else {
 //                                                id(getFocusId(gridData.id))
 //                                                onKeyUp { syntheticKeyboardEvent ->
 //                                                    doKeyUp(gridData, syntheticKeyboardEvent)
 //                                                }
-                                                    var isExpanded by remember { mutableStateOf(false) }
-                                                    var textFieldSize by remember { mutableStateOf(Size.Zero) }
+                                                var isExpanded by remember { mutableStateOf(false) }
+                                                var textFieldSize by remember { mutableStateOf(Size.Zero) }
 
-                                                    OutlinedTextField(
-                                                        modifier = Modifier
-                                                            .padding(FORM_CELL_PADDING)
-                                                            .onGloballyPositioned { coordinates ->
-                                                                textFieldSize = coordinates.size.toSize()
-                                                            }
-                                                            .background(colorControlBack),
-                                                        value = gridData.data.values.find { (value, _) ->
-                                                            gridData.current.value == value
-                                                        }?.second ?: "(неизвестное значение)",
-                                                        onValueChange = {},
-                                                        readOnly = !gridData.data.isEditable,
-                                                        //!!! label = { Text("Имя") }, - использовать для мобильной версии без FormCellTypeClient.LABEL
-                                                        isError = gridData.error != null,
-                                                        supportingText = gridData.error?.let { error ->
-                                                            {
-                                                                Text(
-                                                                    text = error,
-                                                                    color = Color.Red,
-                                                                )
-                                                            }
-                                                        },
-                                                        singleLine = true,
-                                                        trailingIcon = {
-                                                            Icon(
-                                                                imageVector = if (isExpanded) {
-                                                                    Icons.Filled.KeyboardArrowUp
-                                                                } else {
-                                                                    Icons.Filled.KeyboardArrowDown
-                                                                },
-                                                                contentDescription = null,
-                                                                modifier = Modifier.clickable {
-                                                                    if (gridData.data.isEditable) {
-                                                                        isExpanded = !isExpanded
-                                                                    }
-                                                                }
-                                                            )
-                                                        },
-                                                    )
-                                                    DropdownMenu(
-                                                        modifier = Modifier
-                                                            .offset(
-                                                                //!!! x = FORM_CELL_PADDING, - почему-то не срабатывает, даже если включить внутри Box или Column
-                                                                //y = +- FORM_CELL_PADDING, - бесполезно, т.к. меню может вылезти как снизу, так и сверху
-                                                            )
-                                                            .width(
-                                                                with(density) {
-                                                                    textFieldSize.width.toDp()
-                                                                }
-                                                            ),
-                                                        expanded = isExpanded,
-                                                        onDismissRequest = { isExpanded = false },
-                                                    ) {
-                                                        for ((value, descr) in gridData.data.values) {
-                                                            DropdownMenuItem(
-                                                                text = {
-                                                                    Text(text = descr)
-                                                                },
-                                                                onClick = {
-                                                                    gridData.current.value = value
-                                                                    isExpanded = false
-                                                                    doVisibleAndCaptionChange(gridData)
-                                                                },
-                                                                //contentPadding = PaddingValues(start = getMenuPadding(level), end = 16.dp),
+                                                OutlinedTextField(
+                                                    modifier = Modifier
+                                                        .padding(FORM_CELL_PADDING)
+                                                        .onGloballyPositioned { coordinates ->
+                                                            textFieldSize = coordinates.size.toSize()
+                                                        }
+                                                        .background(colorControlBack),
+                                                    value = gridData.data.values.find { (value, _) ->
+                                                        gridData.current.value == value
+                                                    }?.second ?: "(неизвестное значение)",
+                                                    onValueChange = {},
+                                                    readOnly = !gridData.data.isEditable,
+                                                    //!!! label = { Text("Имя") }, - использовать для мобильной версии без FormCellTypeClient.LABEL
+                                                    isError = gridData.error != null,
+                                                    supportingText = gridData.error?.let { error ->
+                                                        {
+                                                            Text(
+                                                                text = error,
+                                                                color = Color.Red,
                                                             )
                                                         }
+                                                    },
+                                                    singleLine = true,
+                                                    trailingIcon = {
+                                                        Icon(
+                                                            imageVector = if (isExpanded) {
+                                                                Icons.Filled.KeyboardArrowUp
+                                                            } else {
+                                                                Icons.Filled.KeyboardArrowDown
+                                                            },
+                                                            contentDescription = null,
+                                                            modifier = Modifier.clickable {
+                                                                if (gridData.data.isEditable) {
+                                                                    isExpanded = !isExpanded
+                                                                }
+                                                            }
+                                                        )
+                                                    },
+                                                )
+                                                DropdownMenu(
+                                                    modifier = Modifier
+                                                        .offset(
+                                                            //!!! x = FORM_CELL_PADDING, - почему-то не срабатывает, даже если включить внутри Box или Column
+                                                            //y = +- FORM_CELL_PADDING, - бесполезно, т.к. меню может вылезти как снизу, так и сверху
+                                                        )
+                                                        .width(
+                                                            with(density) {
+                                                                textFieldSize.width.toDp()
+                                                            }
+                                                        ),
+                                                    expanded = isExpanded,
+                                                    onDismissRequest = { isExpanded = false },
+                                                ) {
+                                                    for ((value, descr) in gridData.data.values) {
+                                                        DropdownMenuItem(
+                                                            text = {
+                                                                Text(text = descr)
+                                                            },
+                                                            onClick = {
+                                                                gridData.current.value = value
+                                                                isExpanded = false
+                                                                doVisibleAndCaptionChange(gridData)
+                                                            },
+                                                            //contentPadding = PaddingValues(start = getMenuPadding(level), end = 16.dp),
+                                                        )
                                                     }
                                                 }
                                             }
+                                        }
 
-                                            is FormFileCellClient -> {
-                                                Column {
-                                                    for (fileData in gridData.files) {
-                                                        Row(
-                                                            verticalAlignment = Alignment.CenterVertically,
-                                                        ) {
-                                                            Button(
-                                                                enabled = fileData.id >= 0 && fileData.action != null,
-                                                                shape = RoundedCornerShape(0.dp),
-                                                                onClick = {
-                                                                    if (fileData.id >= 0) {
-                                                                        fileData.action?.let {
-                                                                            showFile(fileData.action)
-                                                                        }
+                                        is FormFileCellClient -> {
+                                            Column {
+                                                for (fileData in gridData.files) {
+                                                    Row(
+                                                        verticalAlignment = Alignment.CenterVertically,
+                                                    ) {
+                                                        Button(
+                                                            enabled = fileData.id >= 0 && fileData.action != null,
+                                                            shape = RoundedCornerShape(0.dp),
+                                                            onClick = {
+                                                                if (fileData.id >= 0) {
+                                                                    fileData.action?.let {
+                                                                        showFile(fileData.action)
                                                                     }
-                                                                },
-                                                            ) {
-                                                                Text(text = fileData.text)
-                                                            }
+                                                                }
+                                                            },
+                                                        ) {
+                                                            Text(text = fileData.text)
+                                                        }
 //                                                            backgroundColor(getColorButtonBack())
 //                                                            setBorder(color = getColorButtonBorder(), radius = styleButtonBorderRadius)
 //                                                            fontSize(styleCommonButtonFontSize)
 //                                                            doKeyUp(gridData, syntheticKeyboardEvent)
-                                                            if (gridData.data.isEditable) {
-                                                                ImageOrTextFromNameControl(
-                                                                    name = "/web/images/ic_delete_forever_${getStyleOtherIconNameSuffix()}.png",
-                                                                    iconSize = styleOtherIconSize,
-                                                                    imageButton = { func ->
-                                                                        IconButton(
-                                                                            onClick = {
-                                                                                if (!isFileAddInProgress) {
-                                                                                    deleteFile(gridData, fileData.id)
-                                                                                }
+                                                        if (gridData.data.isEditable) {
+                                                            ImageOrTextFromNameControl(
+                                                                name = "/web/images/ic_delete_forever_${getStyleOtherIconNameSuffix()}.png",
+                                                                iconSize = styleOtherIconSize,
+                                                                imageButton = { func ->
+                                                                    IconButton(
+                                                                        onClick = {
+                                                                            if (!isFileAddInProgress) {
+                                                                                deleteFile(gridData, fileData.id)
                                                                             }
-                                                                        ) {
-                                                                            func()
                                                                         }
-                                                                    },
-                                                                    textButton = {},
-                                                                )
+                                                                    ) {
+                                                                        func()
+                                                                    }
+                                                                },
+                                                                textButton = {},
+                                                            )
 //                                                                backgroundColor(getColorFormButtonBack())
 //                                                                setBorder(getStyleFormButtonBorder())
 //                                                                doKeyUp(gridData, syntheticKeyboardEvent)
-                                                            }
                                                         }
                                                     }
                                                 }
-                                                if (gridData.data.isEditable) {
-                                                    ImageOrTextFromNameControl(
-                                                        name = "/web/images/ic_add_${getStyleOtherIconNameSuffix()}.png",
-                                                        iconSize = styleOtherIconSize,
-                                                        imageButton = { func ->
-                                                            IconButton(
-                                                                enabled = !isFileAddInProgress,
-//                                                        backgroundColor(getColorButtonBack())
-//                                                        setBorder(color = getColorButtonBorder(), radius = styleButtonBorderRadius)
-                                                                onClick = {
-                                                                    fileGridData = gridData
-                                                                    isFilePickerVisible = true
-                                                                }
-//                                                    onKeyUp { syntheticKeyboardEvent ->
-//                                                        doKeyUp(gridData, syntheticKeyboardEvent)
-//                                                    }
-                                                            ) {
-                                                                func()
-                                                            }
-                                                        },
-                                                        textButton = {},
-                                                    )
-                                                }
-//                                            id(getFocusId(gridData.id))
                                             }
-                                        }
-
-                                        if (gridData is FormSimpleCellClient) {
-                                            gridData.data.selectorAction?.let { selectorAction ->
+                                            if (gridData.data.isEditable) {
                                                 ImageOrTextFromNameControl(
-                                                    name = "/web/images/ic_reply_${getStyleOtherIconNameSuffix()}.png",
+                                                    name = "/web/images/ic_add_${getStyleOtherIconNameSuffix()}.png",
                                                     iconSize = styleOtherIconSize,
                                                     imageButton = { func ->
                                                         IconButton(
+                                                            enabled = !isFileAddInProgress,
+//                                                        backgroundColor(getColorButtonBack())
+//                                                        setBorder(color = getColorButtonBorder(), radius = styleButtonBorderRadius)
                                                             onClick = {
-                                                                if (!isFileAddInProgress) {
-                                                                    callSelector(selectorAction)
-                                                                }
+                                                                fileGridData = gridData
+                                                                isFilePickerVisible = true
                                                             }
+//                                                    onKeyUp { syntheticKeyboardEvent ->
+//                                                        doKeyUp(gridData, syntheticKeyboardEvent)
+//                                                    }
                                                         ) {
                                                             func()
                                                         }
                                                     },
                                                     textButton = {},
                                                 )
+                                            }
+//                                            id(getFocusId(gridData.id))
+                                        }
+                                    }
+
+                                    if (gridData is FormSimpleCellClient) {
+                                        gridData.data.selectorAction?.let { selectorAction ->
+                                            ImageOrTextFromNameControl(
+                                                name = "/web/images/ic_reply_${getStyleOtherIconNameSuffix()}.png",
+                                                iconSize = styleOtherIconSize,
+                                                imageButton = { func ->
+                                                    IconButton(
+                                                        onClick = {
+                                                            if (!isFileAddInProgress) {
+                                                                callSelector(selectorAction)
+                                                            }
+                                                        }
+                                                    ) {
+                                                        func()
+                                                    }
+                                                },
+                                                textButton = {},
+                                            )
 //                                                backgroundColor(getColorFormButtonBack())
 //                                                setBorder(getStyleFormButtonBorder())
 //                                                doKeyUp(gridData, syntheticKeyboardEvent)
 
-                                                ImageOrTextFromNameControl(
-                                                    name = "/web/images/ic_delete_forever_${getStyleOtherIconNameSuffix()}.png",
-                                                    iconSize = styleOtherIconSize,
-                                                    imageButton = { func ->
-                                                        IconButton(
-                                                            onClick = {
-                                                                if (!isFileAddInProgress) {
-                                                                    clearSelector(selectorAction)
-                                                                }
+                                            ImageOrTextFromNameControl(
+                                                name = "/web/images/ic_delete_forever_${getStyleOtherIconNameSuffix()}.png",
+                                                iconSize = styleOtherIconSize,
+                                                imageButton = { func ->
+                                                    IconButton(
+                                                        onClick = {
+                                                            if (!isFileAddInProgress) {
+                                                                clearSelector(selectorAction)
                                                             }
-                                                        ) {
-                                                            func()
                                                         }
-                                                    },
-                                                    textButton = {},
-                                                )
+                                                    ) {
+                                                        func()
+                                                    }
+                                                },
+                                                textButton = {},
+                                            )
 ////                                                backgroundColor(getColorFormButtonBack())
 ////                                                setBorder(getStyleFormButtonBorder())
 ////                                                doKeyUp(gridData, syntheticKeyboardEvent)
-
-                                            }
                                         }
                                     }
                                 }
@@ -595,43 +587,44 @@ class FormControl(
                         }
                     }
                 }
+            }
 
-                //--- Form Button Bar
+            //--- Form Button Bar
 //                        backgroundColor(getColorFormBack())
 //                        borderTop(width = 1.px, lineStyle = LineStyle.Solid, color = colorMainBorder)
 //                        padding(styleControlPadding)
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(40.dp)
-                        .background(colorBottomBar),
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(40.dp)
+                    .background(colorBottomBar),
 //                            if (!styleIsNarrowScreen) {
 //                                JustifyContent.Center
 //                            } else {
 //                                JustifyContent.SpaceBetween
 //                            }
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    for (formButton in alFormButton) {
-                        ImageOrTextFromNameControl(
-                            name = formButton.name,
-                            iconSize = styleOtherIconSize,
-                            imageButton = { func ->
-                                IconButton(
-                                    modifier = Modifier.padding(1.dp),
-                                    enabled = !isFileAddInProgress,
-                                    onClick = {
-                                        if (!isFileAddInProgress) {
-                                            call(formButton.actionType, formButton.withNewData, formButton.question)
-                                        }
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                for (formButton in alFormButton) {
+                    ImageOrTextFromNameControl(
+                        name = formButton.name,
+                        iconSize = styleOtherIconSize,
+                        imageButton = { func ->
+                            IconButton(
+                                modifier = Modifier.padding(1.dp),
+                                enabled = !isFileAddInProgress,
+                                onClick = {
+                                    if (!isFileAddInProgress) {
+                                        call(formButton.actionType, formButton.withNewData, formButton.question)
                                     }
-                                ) {
-                                    func()
                                 }
-                            },
-                            textButton = {},
-                        )
+                            ) {
+                                func()
+                            }
+                        },
+                        textButton = {},
+                    )
 //!!!                                    backgroundColor(
 //                                        if (formButton.withNewData) {
 //                                            getColorFormActionButtonSaveBack()
@@ -639,11 +632,8 @@ class FormControl(
 //                                            getColorFormActionButtonOtherBack()
 //                                        }
 //                                    )
-                    }
                 }
             }
-
-            selectorControl?.Body()
         }
     }
 
@@ -1297,12 +1287,12 @@ class FormControl(
             is FormDateTimeCellClient -> {
                 formActionData += gridData.data.name to FormActionData(
                     alDateTimeValue = (
-                            if (withNewValues) {
-                                gridData.current.map { s -> s.value }
-                            } else {
-                                gridData.data.value
-                            }
-                            ).toList()
+                        if (withNewValues) {
+                            gridData.current.map { s -> s.value }
+                        } else {
+                            gridData.data.value
+                        }
+                        ).toList()
                 )
             }
 
@@ -1336,29 +1326,31 @@ class FormControl(
 
     private fun callSelector(selectorAction: AppAction) {
         root.setWait(true)
-        invokeRequest(AppRequest(action = selectorAction)) { appResponse: AppResponse ->
 
+        val selectorFunId = getRandomLong()
+        val selectorFun: SelectorFunType = { selectorData ->
+            selectorAction.selectorPath.forEach { (fromField, toField) ->
+                alHiddenCells.forEach { gridData ->
+                    setSelectorData(selectorData, fromField, toField, gridData)
+                }
+                alGridRows.forEach { alGridRow ->
+                    alGridRow.forEach { gridData ->
+                        setSelectorData(selectorData, fromField, toField, gridData)
+                    }
+                }
+            }
+        }
+        tableSelectorFuns[selectorFunId] = selectorFun
+
+        invokeRequest(AppRequest(action = selectorAction.copy(selectorFunId = selectorFunId))) { appResponse: AppResponse ->
             val tableControl = TableControl(
                 root = root,
                 appControl = appControl,
-                tableAction = selectorAction,
+                tableAction = selectorAction.copy(selectorFunId = selectorFunId),
                 tableResponse = appResponse.table!!,
                 tabId = -1,
-                selectorFun = { selectorData ->
-                    selectorAction.selectorPath.forEach { (fromField, toField) ->
-                        alHiddenCells.forEach { gridData ->
-                            setSelectorData(selectorData, fromField, toField, gridData)
-                        }
-                        alGridRows.forEach { alGridRow ->
-                            alGridRow.forEach { gridData ->
-                                setSelectorData(selectorData, fromField, toField, gridData)
-                            }
-                        }
-                    }
-                    selectorControl = null
-                }
             )
-            selectorControl = tableControl
+            root.selectorControl = tableControl
             tableControl.start()
 
             root.setWait(false)
