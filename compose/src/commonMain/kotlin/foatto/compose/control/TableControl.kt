@@ -91,8 +91,6 @@ class TableControl(
     ) -> Unit = { _: AppAction, _: List<Pair<String, String>>, _: TableControl ->
     }
 
-    private var selectorCancelAction by mutableStateOf<AppAction?>(null)
-
     private var isFindTextVisible by mutableStateOf(root.isWideScreen)
     private var findText by mutableStateOf("")
 
@@ -472,7 +470,6 @@ class TableControl(
 
     override fun start() {
         readHeader()
-        selectorCancelAction = tableResponse.selectorCancelAction
 
         findText = tableResponse.findText
 
@@ -772,8 +769,8 @@ class TableControl(
     }
 
     private fun doKeyEsc() {
-        selectorCancelAction?.let { cancelAction ->
-            call(cancelAction, false)
+        if (tableAction.isSelectorMode) {
+            closeSelector()
         }
     }
 
