@@ -145,11 +145,17 @@ class mWorkShift : mAbstractReport() {
 
         //----------------------------------------------------------------------------------------------------------------------
 
-        (if (isWaybillReport) alFormColumn else alFormHiddenColumn).add(columnShiftNo)
-        alFormColumn.add(columnShiftBegDoc)
-        alFormColumn.add(columnShiftEndDoc)
-        alFormColumn.add(columnShiftBegFact)
-        alFormColumn.add(columnShiftEndFact)
+//        (if (isWaybillReport) alFormColumn else alFormHiddenColumn).add(columnShiftNo)
+//        alFormColumn.add(columnShiftBegDoc)
+//        alFormColumn.add(columnShiftEndDoc)
+//        alFormColumn.add(columnShiftBegFact)
+//        alFormColumn.add(columnShiftEndFact)
+
+        alFormHiddenColumn.add(columnShiftNo)
+        alFormHiddenColumn.add(columnShiftBegDoc)
+        alFormHiddenColumn.add(columnShiftEndDoc)
+        alFormHiddenColumn.add(columnShiftBegFact)
+        alFormHiddenColumn.add(columnShiftEndFact)
 
         uodg = UODGSelector()
         uodg.fillColumns(application, modelTableName, userConfig, hmParentColumn, alFormHiddenColumn, alFormColumn)
