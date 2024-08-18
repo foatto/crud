@@ -1,5 +1,6 @@
-package foatto.compose.controls.composables.table
+package foatto.compose.control.composable.table
 
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -18,7 +19,14 @@ fun TableImageOrTextCell(
     ImageOrTextFromNameControl(
         name = cellData.name,
         iconSize = styleOtherIconSize,
-        imageButton = {},
+        imageButton = { func ->
+            IconButton(
+//                modifier = modifier, - несоразмерно увеличивает размер ячейки
+                onClick = {},
+            ) {
+                func()
+            }
+        },
         textButton = { caption ->
             Text(
                 modifier = modifier,

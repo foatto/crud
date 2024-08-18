@@ -37,7 +37,7 @@ import foatto.compose.control.model.table.cell.TableButtonCellClient
 import foatto.compose.control.model.table.cell.TableCellDataClient
 import foatto.compose.control.model.table.cell.TableGridCellClient
 import foatto.compose.control.model.table.cell.TableSimpleCellClient
-import foatto.compose.controls.composables.table.TableImageOrTextCell
+import foatto.compose.control.composable.table.TableImageOrTextCell
 import foatto.compose.control.composable.table.TableToolBar
 import foatto.compose.model.MenuDataClient
 import foatto.compose.utils.maxDp
