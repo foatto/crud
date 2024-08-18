@@ -95,13 +95,13 @@ android {
     }
 }
 
-//tasks {
-//    build {
-//        doLast {
-//            copy {
-//                from("build/dist/wasmJs/productionExecutable")
-//                into("/home/foatto/MMSServerSpring/web")
-//            }
-//        }
-//    }
-//}
+tasks {
+    build {
+        doLast {
+            copy {
+                from("build/dist/wasmJs/productionExecutable")
+                into("/home/foatto/MMSServerSpring/web")
+            }
+        }
+    }
+}
