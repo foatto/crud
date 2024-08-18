@@ -9,8 +9,11 @@ val appModuleConfigs: MutableMap<String, AppModuleConfig> = mutableMapOf(
 
     AppModule.USER to AppModuleConfig(
         caption = "Пользователи",
-        pageSize = AppModuleConfig.DEFAULT_PAGE_SIZE,
-        permissions = mutableMapOf(
+        enabledAccessRoles = mutableSetOf(AppRole.ADMIN),
+        disabledAccessRoles = mutableSetOf(AppRole.USER),
+        enabledFormAddRoles = mutableSetOf(AppRole.ADMIN),
+        disabledFormAddRoles = mutableSetOf(AppRole.USER),
+        rowPermissions = mutableMapOf(
             ActionType.MODULE_TABLE to Permission(
                 enabledRoles = getRoleAllPermissions(AppRole.ADMIN),
                 disabledRoles = getRoleAllPermissions(AppRole.USER),
@@ -19,19 +22,11 @@ val appModuleConfigs: MutableMap<String, AppModuleConfig> = mutableMapOf(
                 enabledRoles = getRoleAllPermissions(AppRole.ADMIN),
                 disabledRoles = getRoleAllPermissions(AppRole.USER),
             ),
-            ActionType.FORM_ADD to Permission(
-                enabledRoles = getRoleAllPermissions(AppRole.ADMIN),
-                disabledRoles = getRoleAllPermissions(AppRole.USER),
-            ),
             ActionType.FORM_EDIT to Permission(
                 enabledRoles = getRoleAllPermissions(AppRole.ADMIN),
                 disabledRoles = getRoleAllPermissions(AppRole.USER),
             ),
             ActionType.FORM_DELETE to Permission(
-                enabledRoles = getRoleAllPermissions(AppRole.ADMIN),
-                disabledRoles = getRoleAllPermissions(AppRole.USER),
-            ),
-            ActionType.FORM_EXIT to Permission(
                 enabledRoles = getRoleAllPermissions(AppRole.ADMIN),
                 disabledRoles = getRoleAllPermissions(AppRole.USER),
             ),
@@ -50,7 +45,7 @@ fun getRoleAllPermissions(vararg roles: String): MutableMap<UserRelationEnum, Mu
 
 fun addEnabledRoles(moduleName: String, permissionName: String, enabledRole: String) {
     appModuleConfigs[moduleName]?.let { appModuleConfig ->
-        appModuleConfig.permissions[permissionName]?.let { permission ->
+        appModuleConfig.rowPermissions[permissionName]?.let { permission ->
             permission.enabledRoles[UserRelationEnum.SELF]?.add(enabledRole)
             permission.enabledRoles[UserRelationEnum.EQUAL]?.add(enabledRole)
             permission.enabledRoles[UserRelationEnum.BOSS]?.add(enabledRole)
@@ -63,7 +58,7 @@ fun addEnabledRoles(moduleName: String, permissionName: String, enabledRole: Str
 
 fun addDisabledRoles(moduleName: String, permissionName: String, disabledRole: String) {
     appModuleConfigs[moduleName]?.let { appModuleConfig ->
-        appModuleConfig.permissions[permissionName]?.let { permission ->
+        appModuleConfig.rowPermissions[permissionName]?.let { permission ->
             permission.disabledRoles[UserRelationEnum.SELF]?.add(disabledRole)
             permission.disabledRoles[UserRelationEnum.EQUAL]?.add(disabledRole)
             permission.disabledRoles[UserRelationEnum.BOSS]?.add(disabledRole)
@@ -72,4 +67,75 @@ fun addDisabledRoles(moduleName: String, permissionName: String, disabledRole: S
             permission.disabledRoles[UserRelationEnum.NOBODY]?.add(disabledRole)
         }
     }
+}
+
+fun checkAccessPermission(module: String?, userRoles: Set<String>): Boolean {
+    appModuleConfigs[module]?.let { moduleConfig ->
+        //--- любая отрицательная роль достаточна для отказа
+        if (
+            moduleConfig.disabledAccessRoles.any { disabledRole ->
+                userRoles.contains(disabledRole)
+            }
+        ) {
+            return false
+        }
+        //--- любая положительная роль достаточна для согласия
+        if (
+            moduleConfig.enabledAccessRoles.any { enabledRole ->
+                userRoles.contains(enabledRole)
+            }
+        ) {
+            return true
+        }
+    }
+    //--- по всех прочих/неопределённых ситуациях - отказ
+    return false
+}
+
+fun checkFormAddPermission(module: String?, userRoles: Set<String>): Boolean {
+    appModuleConfigs[module]?.let { moduleConfig ->
+        //--- любая отрицательная роль достаточна для отказа
+        if (
+            moduleConfig.disabledFormAddRoles.any { disabledRole ->
+                userRoles.contains(disabledRole)
+            }
+        ) {
+            return false
+        }
+        //--- любая положительная роль достаточна для согласия
+        if (
+            moduleConfig.enabledFormAddRoles.any { enabledRole ->
+                userRoles.contains(enabledRole)
+            }
+        ) {
+            return true
+        }
+    }
+    //--- по всех прочих/неопределённых ситуациях - отказ
+    return false
+}
+
+fun checkRowPermission(module: String?, actionType: String, rowUserRelation: UserRelationEnum?, userRoles: Set<String>): Boolean {
+    appModuleConfigs[module]?.let { moduleConfig ->
+        moduleConfig.rowPermissions[actionType]?.let { permission ->
+            //--- любая отрицательная роль достаточна для отказа
+            if (
+                permission.disabledRoles[rowUserRelation]?.any { disabledRole ->
+                    userRoles.contains(disabledRole)
+                } == true
+            ) {
+                return false
+            }
+            //--- любая положительная роль достаточна для согласия
+            if (
+                permission.enabledRoles[rowUserRelation]?.any { enabledRole ->
+                    userRoles.contains(enabledRole)
+                } == true
+            ) {
+                return true
+            }
+        }
+    }
+    //--- по всех прочих/неопределённых ситуациях - отказ
+    return false
 }
