@@ -18,6 +18,7 @@ interface UserRepository : JpaRepository<UserEntity, Int> {
             WHERE ue.id <> 0
                 AND ue.parentId = ?1
                 AND ue.userId IN ?2
+            ORDER BY ue.orgType , ue.fullName
         """
     )
     fun findByParentIdAndUserIdIn(parentId: Int, userIds: List<Int>, pageRequest: PageRequest): Page<UserEntity>
@@ -35,6 +36,7 @@ interface UserRepository : JpaRepository<UserEntity, Int> {
                      OR LOWER(ue.eMail) LIKE LOWER( CONCAT( '%', ?3, '%' ) )
                      OR LOWER(ue.contactInfo) LIKE LOWER( CONCAT( '%', ?3, '%' ) )
                 )
+            ORDER BY ue.orgType , ue.fullName
         """
     )
     fun findByParentIdAndUserIdInAndFilter(parentId: Int, userIds: List<Int>, findText: String, pageRequest: PageRequest): Page<UserEntity>
