@@ -1,0 +1,38 @@
+package foatto.server.entity
+
+import javax.persistence.Column
+import javax.persistence.Entity
+import javax.persistence.Id
+import javax.persistence.Table
+
+@Entity
+@Table(name = "SYSTEM_file_store")
+class FileStoreEntity(
+    @Id
+    val id: Int,
+
+    @Column(name = "file_id")
+    val fileId: Int?,
+
+    val name: String?,
+
+    val dir: String?,
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is FileStoreEntity) return false
+
+        if (fileId != other.fileId) return false
+        if (name != other.name) return false
+        if (dir != other.dir) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = fileId?.hashCode() ?: 0
+        result = 31 * result + (name?.hashCode() ?: 0)
+        result = 31 * result + (dir?.hashCode() ?: 0)
+        return result
+    }
+}
