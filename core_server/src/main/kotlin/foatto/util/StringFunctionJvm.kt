@@ -10,7 +10,7 @@ const val sLineSeparator = "\n"
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 fun encodePassword(plainPassword: String): String {
-    val md = MessageDigest.getInstance("SHA")
+    val md = MessageDigest.getInstance("SHA-1")
     md.update(plainPassword.toByteArray(charset("UTF-8")))
     return Base64.getEncoder().encodeToString(md.digest())
 }

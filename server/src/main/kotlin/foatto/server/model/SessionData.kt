@@ -1,5 +1,5 @@
 package foatto.server.model
 
-class SessionData(
+data class SessionData(
     val serverUserConfig: ServerUserConfig? = null,
 )
