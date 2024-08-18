@@ -7,33 +7,22 @@ import foatto.core_mms.addAppModuleUrls
 import foatto.server.model.AppModuleConfig
 import foatto.server.model.AppRoleConfig
 import foatto.server.model.Permission
-import foatto.server.model.SessionData
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.boot.runApplication
 import org.springframework.context.event.EventListener
 import org.springframework.web.servlet.config.annotation.EnableWebMvc
-import java.util.concurrent.ConcurrentHashMap
 
-@SpringBootApplication
+@SpringBootApplication(
+    scanBasePackages = ["foatto.server"],
+)
 @EnableWebMvc
-class MMSSpringApp {
+class MMSSpringApp : SpringApp() {
 
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
             runApplication<MMSSpringApp>(*args)
-        }
-
-        private val sessionDataStore = ConcurrentHashMap<Long, SessionData>()
-
-        fun getSessionData(sessionId: Long): SessionData = sessionDataStore.getOrPut(sessionId) { SessionData() }
-        fun putSessionData(sessionId: Long, sessionData: SessionData) {
-            sessionDataStore[sessionId] = sessionData
-        }
-
-        fun removeSessionData(sessionId: Long) {
-            sessionDataStore.remove(sessionId)
         }
     }
 
@@ -58,15 +47,19 @@ class MMSSpringApp {
     }
 
     private fun initAppModuleConfigs() {
-        addDisabledRoles(AppModule.USER, ActionType.FORM_ADD, AppRoleMMS.SUPPORT)
+        //--- add disabled permissions for SUPPORT role to USER module
+        appModuleConfigs[AppModule.USER]?.disabledFormAddRoles?.add(AppRoleMMS.SUPPORT)
         addDisabledRoles(AppModule.USER, ActionType.FORM_EDIT, AppRoleMMS.SUPPORT)
         addDisabledRoles(AppModule.USER, ActionType.FORM_DELETE, AppRoleMMS.SUPPORT)
-        addDisabledRoles(AppModule.USER, ActionType.FORM_EXIT, AppRoleMMS.SUPPORT)
 
         appModuleConfigs[AppModuleMMS.OBJECT] = AppModuleConfig(
             caption = "Объекты",
             pageSize = AppModuleConfig.DEFAULT_PAGE_SIZE,
-            permissions = mutableMapOf(
+            enabledAccessRoles = mutableSetOf(AppRole.ADMIN, AppRole.USER),
+            disabledAccessRoles = mutableSetOf(),
+            enabledFormAddRoles = mutableSetOf(AppRole.ADMIN),
+            disabledFormAddRoles = mutableSetOf(AppRole.USER),
+            rowPermissions = mutableMapOf(
                 ActionType.MODULE_TABLE to Permission(
                     enabledRoles = getRoleAllPermissions(AppRole.ADMIN).apply {
                         put(UserRelationEnum.SELF, mutableSetOf(AppRole.USER))
@@ -79,23 +72,12 @@ class MMSSpringApp {
                         put(UserRelationEnum.WORKER, mutableSetOf(AppRole.USER))
                     },
                 ),
-                ActionType.FORM_ADD to Permission(
-                    enabledRoles = getRoleAllPermissions(AppRole.ADMIN),
-                    disabledRoles = getRoleAllPermissions(AppRole.USER),
-                ),
                 ActionType.FORM_EDIT to Permission(
                     enabledRoles = getRoleAllPermissions(AppRole.ADMIN),
                     disabledRoles = getRoleAllPermissions(AppRole.USER),
                 ),
                 ActionType.FORM_DELETE to Permission(
                     enabledRoles = getRoleAllPermissions(AppRole.ADMIN),
-                    disabledRoles = getRoleAllPermissions(AppRole.USER),
-                ),
-                ActionType.FORM_EXIT to Permission(
-                    enabledRoles = getRoleAllPermissions(AppRole.ADMIN).apply {
-                        put(UserRelationEnum.SELF, mutableSetOf(AppRole.USER))
-                        put(UserRelationEnum.WORKER, mutableSetOf(AppRole.USER))
-                    },
                     disabledRoles = getRoleAllPermissions(AppRole.USER),
                 ),
             ),
