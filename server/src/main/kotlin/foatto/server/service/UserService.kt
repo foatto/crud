@@ -17,6 +17,7 @@ import foatto.core.model.response.table.TableRowData
 import foatto.core.model.response.table.cell.TableBaseCell
 import foatto.core.model.response.table.cell.TableBooleanCell
 import foatto.core.model.response.table.cell.TableButtonCell
+import foatto.core.model.response.table.cell.TableCellAlign
 import foatto.core.model.response.table.cell.TableSimpleCell
 import foatto.server.AppRole
 import foatto.server.OrgType
@@ -160,7 +161,7 @@ class UserService(
             alTableCell += TableBooleanCell(row = row, col = col++, dataRow = row, value = userEntity.isDisabled ?: false)
             alTableCell += TableSimpleCell(row = row, col = col++, dataRow = row, name = userEntity.login ?: "-")
             alTableCell += TableSimpleCell(row = row, col = col++, dataRow = row, name = userEntity.shortName ?: "-")
-            alTableCell += TableSimpleCell(row = row, col = col++, dataRow = row, name = userEntity.fullName ?: "-")
+            alTableCell += TableSimpleCell(row = row, col = col++, dataRow = row, name = userEntity.fullName ?: "-", align = TableCellAlign.LEFT)
             if (isAdminOnly(userConfig)) {
                 alTableCell += TableSimpleCell(row = row, col = col++, dataRow = row, name = userEntity.roles.joinToString())
             }
