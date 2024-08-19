@@ -5,6 +5,7 @@ import foatto.core.AppModule
 import foatto.core.IconName
 import foatto.core.model.AppAction
 import foatto.core.model.request.FormActionData
+import foatto.core.model.response.form.FormButton
 import foatto.core.model.response.form.FormCellVisibility
 import foatto.core.model.response.form.cells.FormBaseCell
 import foatto.core.model.response.form.cells.FormBooleanCell
@@ -17,6 +18,7 @@ import foatto.core.model.response.table.TableRowData
 import foatto.core.model.response.table.cell.TableBaseCell
 import foatto.core.model.response.table.cell.TableBooleanCell
 import foatto.core.model.response.table.cell.TableButtonCell
+import foatto.core.model.response.table.cell.TableButtonCellData
 import foatto.core.model.response.table.cell.TableCellAlign
 import foatto.core.model.response.table.cell.TableSimpleCell
 import foatto.server.AppRole
@@ -48,9 +50,8 @@ class UserService(
         var parentId = action.parentId
         while (parentId != null && parentId != 0) {
             userRepository.findByIdOrNull(parentId)?.let { userEntity ->
-                val pid = userEntity.parentId
-                headers.add(0, action.copy(parentId = pid) to (userEntity.fullName ?: "(неизвестно)"))
-                parentId = pid
+                headers.add(0, action.copy(parentId = userEntity.id) to (userEntity.fullName ?: "(неизвестно)"))
+                parentId = userEntity.parentId
             } ?: run {
                 parentId = null
             }
@@ -63,6 +64,9 @@ class UserService(
     override fun getTableColumnCaptions(action: AppAction, userConfig: ServerUserConfig): List<Pair<AppAction, String>> {
         val alColumnInfo = mutableListOf<Pair<String?, String>>()
 
+        if (action.isSelectorMode) {
+            alColumnInfo += null to "" // selector button
+        }
         alColumnInfo += null to "" // userId
         alColumnInfo += null to "" // orgType
         alColumnInfo += FIELD_IS_DISABLED to "Заблокирован"
@@ -133,6 +137,27 @@ class UserService(
 
             val isFormEnabled = checkRowPermission(action.module, ActionType.MODULE_FORM, userConfig.relatedUserIds[userEntity.userId], userConfig.roles)
 
+            val selectorAction = AppAction(
+                type = ActionType.FORM_SELECTOR,
+                selectorData = mapOf(
+                    FIELD_ID to userEntity.id.toString(),
+                    FIELD_FULL_NAME to (userEntity.fullName ?: "(неизвестно)"),
+                ),
+            )
+
+            if (action.isSelectorMode) {
+                alTableCell += TableButtonCell(
+                    row = row,
+                    col = col++,
+                    dataRow = row,
+                    values = listOf(
+                        TableButtonCellData(
+                            name = IconName.SELECT,
+                            action = selectorAction,
+                        ),
+                    ),
+                )
+            }
             alTableCell += TableSimpleCell(
                 row = row,
                 col = col++,
@@ -158,7 +183,11 @@ class UserService(
                     else -> "-"
                 }
             )
-            alTableCell += TableBooleanCell(row = row, col = col++, dataRow = row, value = userEntity.isDisabled ?: false)
+            alTableCell += if (userEntity.orgType == OrgType.ORG_TYPE_DIVISION) {
+                TableSimpleCell(row = row, col = col++, dataRow = row, name = "")
+            } else {
+                TableBooleanCell(row = row, col = col++, dataRow = row, value = userEntity.isDisabled ?: false)
+            }
             alTableCell += TableSimpleCell(row = row, col = col++, dataRow = row, name = userEntity.login ?: "-")
             alTableCell += TableSimpleCell(row = row, col = col++, dataRow = row, name = userEntity.shortName ?: "-")
             alTableCell += TableSimpleCell(row = row, col = col++, dataRow = row, name = userEntity.fullName ?: "-", align = TableCellAlign.LEFT)
@@ -177,7 +206,7 @@ class UserService(
             }
             alTableCell += TableSimpleCell(row = row, col = col++, dataRow = row, name = userEntity.timeOffset?.toString() ?: "-")
             if (isAdminOnly(userConfig)) {
-                alTableCell += TableSimpleCell(row = row, col = col++, dataRow = row, name = userEntity.lastIP ?: "-")
+                alTableCell += TableSimpleCell(row = row, col = col++, dataRow = row, name = userEntity.lastIP?.removePrefix("/") ?: "-")
             }
 
             val formAction = AppAction(
@@ -206,7 +235,15 @@ class UserService(
                         null
                     },
                     rowAction = if (userEntity.orgType == OrgType.ORG_TYPE_DIVISION) {
-                        AppAction(type = ActionType.MODULE_TABLE, module = action.module, parentModule = action.module, parentId = userEntity.id)
+                        action.copy(parentModule = action.module, parentId = userEntity.id)
+                    } else if (action.isSelectorMode) {
+                        AppAction(
+                            type = ActionType.FORM_SELECTOR,
+                            selectorData = mapOf(
+                                FIELD_ID to userEntity.id.toString(),
+                                FIELD_FULL_NAME to (userEntity.fullName ?: "(неизвестно)"),
+                            ),
+                        )
                     } else if (isFormEnabled) {
                         formAction
                     } else {
@@ -240,6 +277,8 @@ class UserService(
         action: AppAction,
         userConfig: ServerUserConfig,
         moduleConfig: AppModuleConfig,
+        addEnabled: Boolean,
+        editEnabled: Boolean,
     ): List<FormBaseCell> {
         val formCells = mutableListOf<FormBaseCell>()
 
@@ -249,9 +288,9 @@ class UserService(
             //--- TODO: ошибка об отсутствии такой записи
             userRepository.findByIdOrNull(id) ?: return emptyList()
         }
+        val parentId = userEntity?.parentId
+        val userId = userEntity?.userId
 
-        val addEnabled = checkFormAddPermission(action.module, userConfig.roles)
-        val editEnabled = checkRowPermission(action.module, ActionType.FORM_EDIT, userConfig.relatedUserIds[userEntity?.userId], userConfig.roles)
         val changeEnabled = action.id?.let { editEnabled } ?: addEnabled
 
         val nonVisibleForDivision = FormCellVisibility(
@@ -265,24 +304,28 @@ class UserService(
             caption = "",
             isEditable = false,
             isAutoFocus = false,
-            value = userEntity?.parentId.toString(),
+            value = parentId.toString(),
         )
         formCells += FormSimpleCell(
             name = FIELD_PARENT_FULL_NAME,
             caption = "Верхнее подразделение",
             isEditable = false,
             isAutoFocus = false,
-            value = userConfig.fullNames[userEntity?.parentId] ?: "(неизвестно)",
+            value = if (parentId == null || parentId == 0) {
+                "-"
+            } else {
+                userConfig.fullNames[parentId] ?: "(неизвестно)"
+            },
             selectorAction = AppAction(
                 type = ActionType.MODULE_TABLE,
                 module = AppModule.USER,
                 isSelectorMode = true,
                 selectorPath = mapOf(
-                    FIELD_USER_ID to FIELD_PARENT_ID,
+                    FIELD_ID to FIELD_PARENT_ID,
                     FIELD_FULL_NAME to FIELD_PARENT_FULL_NAME,
                 ),
                 selectorClear = mapOf(
-                    FIELD_PARENT_ID to "null",
+                    FIELD_PARENT_ID to "0",
                     FIELD_PARENT_FULL_NAME to "",
                 ),
             ),
@@ -292,24 +335,28 @@ class UserService(
             caption = "",
             isEditable = false,
             isAutoFocus = false,
-            value = userEntity?.userId.toString(),
+            value = userId.toString(),
         )
         formCells += FormSimpleCell(
             name = FIELD_OWNER_FULL_NAME,
             caption = "Владелец",
             isEditable = false,
             isAutoFocus = false,
-            value = userConfig.fullNames[userEntity?.userId] ?: "(неизвестно)",
+            value = if (userId == null || userId == 0) {
+                "-"
+            } else {
+                userConfig.fullNames[userId] ?: "(неизвестно)"
+            },
             selectorAction = AppAction(
                 type = ActionType.MODULE_TABLE,
                 module = AppModule.USER,
                 isSelectorMode = true,
                 selectorPath = mapOf(
-                    FIELD_USER_ID to FIELD_USER_ID,
+                    FIELD_ID to FIELD_USER_ID,
                     FIELD_FULL_NAME to FIELD_OWNER_FULL_NAME,
                 ),
                 selectorClear = mapOf(
-                    FIELD_USER_ID to "null",
+                    FIELD_USER_ID to "0",
                     FIELD_OWNER_FULL_NAME to "",
                 ),
             ),
@@ -320,10 +367,10 @@ class UserService(
             isEditable = changeEnabled,
             isAutoFocus = false,
             value = when (userEntity?.orgType) {
-                OrgType.ORG_TYPE_DIVISION -> "Подразделение"
-                OrgType.ORG_TYPE_BOSS -> "Руководитель"
-                OrgType.ORG_TYPE_WORKER -> "Работник"
-                else -> "(неизвестно)"
+                OrgType.ORG_TYPE_DIVISION -> "0"
+                OrgType.ORG_TYPE_BOSS -> "1"
+                OrgType.ORG_TYPE_WORKER -> "2"
+                else -> "2"
             },
             values = listOf(
                 OrgType.ORG_TYPE_DIVISION.toString() to "Подразделение",
@@ -453,6 +500,20 @@ class UserService(
         return formCells
     }
 
+    override fun getFormButtons(action: AppAction, userConfig: ServerUserConfig, moduleConfig: AppModuleConfig, addEnabled: Boolean, editEnabled: Boolean, deleteEnabled: Boolean): List<FormButton> {
+        val id = action.id
+
+        val isExistsDepencies: Boolean = if (deleteEnabled) {
+            id?.let {
+                userRepository.findByParentId(id).isNotEmpty()
+            } ?: false
+        } else {
+            false
+        }
+
+        return super.getFormButtons(action, userConfig, moduleConfig, addEnabled, editEnabled, deleteEnabled && !isExistsDepencies)
+    }
+
     override fun formActionSave(
         action: AppAction,
         userConfig: ServerUserConfig,
@@ -486,13 +547,13 @@ class UserService(
             userRepository.findByIdOrNull(id)?.let { userEntity ->
                 //--- шифруем пароль только если он поменялся
                 //--- (в прочих случаях в этой поле лежит хэш-код текущего пароля и второй раз перешифровывать его не надо)
-                if (password != userEntity.password) {
-                    encodePassword(password)
-                } else {
+                if (userEntity.password == password) {
                     password
+                } else {
+                    encodePassword(password)
                 }
-            } ?: password
-        } ?: password
+            } ?: encodePassword(password)
+        } ?: encodePassword(password)
 
         val roles = appRoleConfigs.map { (role, _) ->
             role
@@ -570,6 +631,7 @@ class UserService(
     private fun isAdminOnly(userConfig: ServerUserConfig) = userConfig.roles.size == 1 && userConfig.roles.contains(AppRole.ADMIN)
 
     companion object {
+        private const val FIELD_ID = "id"
         private const val FIELD_PARENT_ID = "parentId"
         private const val FIELD_USER_ID = "userId"
         private const val FIELD_ORG_TYPE = "orgType"

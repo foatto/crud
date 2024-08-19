@@ -256,15 +256,26 @@ abstract class ApplicationService {
     ): AppResponse {
         val formCaption = moduleConfig.caption
 
-        val alFormCell = getFormCells(
+        val (addEnabled, editEnabled, deleteEnabled) = getFormActionPermissions(
             action = action,
             userConfig = userConfig,
             moduleConfig = moduleConfig,
         )
+        val alFormCell = getFormCells(
+            action = action,
+            userConfig = userConfig,
+            moduleConfig = moduleConfig,
+            addEnabled = addEnabled,
+            editEnabled = editEnabled,
+        )
+
         val alFormButton = getFormButtons(
             action = action,
             userConfig = userConfig,
             moduleConfig = moduleConfig,
+            addEnabled = addEnabled,
+            editEnabled = editEnabled,
+            deleteEnabled = deleteEnabled,
         )
 
         return AppResponse(
@@ -285,6 +296,8 @@ abstract class ApplicationService {
         action: AppAction,
         userConfig: ServerUserConfig,
         moduleConfig: AppModuleConfig,
+        addEnabled: Boolean,
+        editEnabled: Boolean,
     ): List<FormBaseCell>
 
     protected fun getFormFileCellData(
@@ -304,17 +317,14 @@ abstract class ApplicationService {
         action: AppAction,
         userConfig: ServerUserConfig,
         moduleConfig: AppModuleConfig,
+        addEnabled: Boolean,
+        editEnabled: Boolean,
+        deleteEnabled: Boolean,
     ): List<FormButton> {
 
         val alFormButton = mutableListOf<FormButton>()
 
         val id = action.id
-
-        val (addEnabled, editEnabled, deleteEnabled) = getFormActionPermissions(
-            action = action,
-            userConfig = userConfig,
-            moduleConfig = moduleConfig,
-        )
 
         if (id == null && addEnabled || id != null && editEnabled) {
             alFormButton += FormButton(
