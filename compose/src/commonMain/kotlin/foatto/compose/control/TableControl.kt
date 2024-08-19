@@ -12,7 +12,13 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import foatto.compose.*
 import foatto.compose.composable.GenerateMenuBody
 import foatto.compose.composable.ImageOrTextFromNameControl
+import foatto.compose.control.composable.table.TableImageOrTextCell
+import foatto.compose.control.composable.table.TableToolBar
 import foatto.compose.control.model.TitleData
 import foatto.compose.control.model.table.AddActionButtonClient
 import foatto.compose.control.model.table.ClientActionButtonClient
@@ -37,8 +45,6 @@ import foatto.compose.control.model.table.cell.TableButtonCellClient
 import foatto.compose.control.model.table.cell.TableCellDataClient
 import foatto.compose.control.model.table.cell.TableGridCellClient
 import foatto.compose.control.model.table.cell.TableSimpleCellClient
-import foatto.compose.control.composable.table.TableImageOrTextCell
-import foatto.compose.control.composable.table.TableToolBar
 import foatto.compose.model.MenuDataClient
 import foatto.compose.utils.maxDp
 import foatto.core.ActionType
@@ -260,12 +266,7 @@ class TableControl(
                                             gridData?.dataRow?.let { dataRow ->
                                                 val rowData = alRowData[dataRow]
                                                 rowData.rowAction?.let { rowAction ->
-                                                    if (tableAction.isSelectorMode) {
-                                                        tableSelectorFuns[tableAction.selectorFunId]?.invoke(rowAction.selectorData)
-                                                        closeSelector()
-                                                    } else {
-                                                        call(rowAction, rowData.isRowUrlInNewTab)
-                                                    }
+                                                    call(rowAction, rowData.isRowUrlInNewTab)
                                                 }
                                             }
                                         },
@@ -816,35 +817,44 @@ class TableControl(
 
     private fun call(newAppAction: AppAction, inNewTab: Boolean) {
         if (tableAction.isSelectorMode) {
-            if (newAppAction.type == ActionType.MODULE_TABLE) {
-                val selectorAppAction = newAppAction.copy(
-                    prevAction = tableAction,
-                    isSelectorMode = true,
-                    selectorFunId = tableAction.selectorFunId,
-                )
-                root.setWait(true)
-                invokeRequest(
-                    AppRequest(
-                        action = selectorAppAction
-                    )
-                ) { appResponse: AppResponse ->
-                    when (appResponse.responseCode) {
-                        ResponseCode.MODULE_TABLE -> {
-                            root.selectorControl = TableControl(root, appControl, selectorAppAction, appResponse.table!!, tabId)
-                            root.selectorControl?.start()
-                        }
-
-                        else -> {
-                            //!!! dialog с ошибкой
-                            println("Wrong response.responseCode in SELECTOR_MODE = ${appResponse.responseCode}")
-                        }
-                    }
-                    root.setWait(false)
+            when (newAppAction.type) {
+                ActionType.FORM_SELECTOR -> {
+                    tableSelectorFuns[tableAction.selectorFunId]?.invoke(newAppAction.selectorData)
+                    closeSelector()
                 }
 
-            } else {    //--- невозможная (?) ситуация
-                //!!! dialog с ошибкой
-                println("Wrong call in SELECTOR_MODE = $newAppAction")
+                ActionType.MODULE_TABLE -> {
+                    val selectorAppAction = newAppAction.copy(
+                        prevAction = tableAction,
+                        isSelectorMode = true,
+                        selectorFunId = tableAction.selectorFunId,
+                    )
+                    root.setWait(true)
+                    invokeRequest(
+                        AppRequest(
+                            action = selectorAppAction
+                        )
+                    ) { appResponse: AppResponse ->
+                        when (appResponse.responseCode) {
+                            ResponseCode.MODULE_TABLE -> {
+                                root.selectorControl = TableControl(root, appControl, selectorAppAction, appResponse.table!!, tabId)
+                                root.selectorControl?.start()
+                            }
+
+                            else -> {
+                                //!!! dialog с ошибкой
+                                println("Wrong response.responseCode in SELECTOR_MODE = ${appResponse.responseCode}")
+                            }
+                        }
+                        root.setWait(false)
+                    }
+
+                }
+
+                else -> {    //--- невозможная (?) ситуация
+                    //!!! dialog с ошибкой
+                    println("Wrong call in SELECTOR_MODE = $newAppAction")
+                }
             }
         } else {
             if (inNewTab) {
