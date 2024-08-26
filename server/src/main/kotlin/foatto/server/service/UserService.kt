@@ -18,10 +18,8 @@ import foatto.core.model.response.table.TableRowData
 import foatto.core.model.response.table.cell.TableBaseCell
 import foatto.core.model.response.table.cell.TableBooleanCell
 import foatto.core.model.response.table.cell.TableButtonCell
-import foatto.core.model.response.table.cell.TableButtonCellData
 import foatto.core.model.response.table.cell.TableCellAlign
 import foatto.core.model.response.table.cell.TableSimpleCell
-import foatto.server.AppRole
 import foatto.server.OrgType
 import foatto.server.appRoleConfigs
 import foatto.server.checkFormAddPermission
@@ -105,7 +103,7 @@ class UserService(
         var currentRowNo: Int? = null
         var row = 0
 
-        val pageRequest = getTableSortedPageRequest(action, FIELD_FULL_NAME)
+        val pageRequest = getTableSortedPageRequest(action, defaultFieldNames = arrayOf(FIELD_ORG_TYPE, FIELD_FULL_NAME))
         val findText = action.findText?.trim() ?: ""
 
         //--- hierarchical table/data - parent id is existing always
@@ -115,11 +113,7 @@ class UserService(
             0
         }
 
-        val enabledUserIds = userConfig.relatedUserIds.filterValues { userRelation ->
-            checkRowPermission(action.module, action.type, userRelation, userConfig.roles)
-        }.map { (userId, _) ->
-            userId
-        }
+        val enabledUserIds = getEnabledUserIds(action, userConfig)
 
         val page: Page<UserEntity> = if (findText.isNotEmpty()) {
             userRepository.findByParentIdAndUserIdInAndFilter(parentId, enabledUserIds, findText, pageRequest)
@@ -135,7 +129,12 @@ class UserService(
             val rowOwnerShortName = userConfig.shortNames[userEntity.userId]
             val rowOwnerFullName = userConfig.fullNames[userEntity.userId]
 
-            val isFormEnabled = checkRowPermission(action.module, ActionType.MODULE_FORM, userConfig.relatedUserIds[userEntity.userId], userConfig.roles)
+            val isFormEnabled = checkRowPermission(
+                module = action.module,
+                actionType = ActionType.MODULE_FORM,
+                rowUserRelation = userConfig.relatedUserIds[userEntity.userId],
+                userRoles = userConfig.roles
+            )
 
             val selectorAction = AppAction(
                 type = ActionType.FORM_SELECTOR,
@@ -146,31 +145,15 @@ class UserService(
             )
 
             if (action.isSelectorMode) {
-                alTableCell += TableButtonCell(
-                    row = row,
-                    col = col++,
-                    dataRow = row,
-                    values = listOf(
-                        TableButtonCellData(
-                            name = IconName.SELECT,
-                            action = selectorAction,
-                        ),
-                    ),
-                )
+                alTableCell += getTableSelectorButtonCell(row = row, col = col++, selectorAction = selectorAction)
             }
-            alTableCell += TableSimpleCell(
+            alTableCell += getTableUserNameCell(
                 row = row,
                 col = col++,
-                dataRow = row,
-                name = if (userEntity.userId == 0) {
-                    "-"
-                } else if (userEntity.userId == userConfig.id) {
-                    ""
-                } else if (!rowOwnerShortName.isNullOrEmpty()) {
-                    rowOwnerShortName
-                } else {
-                    rowOwnerFullName ?: "(неизвестно)"
-                }
+                userId = userConfig.id,
+                rowUserId = userEntity.userId,
+                rowOwnerShortName = rowOwnerShortName,
+                rowOwnerFullName = rowOwnerFullName
             )
             alTableCell += TableSimpleCell(
                 row = row,
@@ -265,14 +248,6 @@ class UserService(
         return currentRowNo
     }
 
-    override fun getTableAddAction(action: AppAction, parentModule: String?, parentId: Int?): AppAction =
-        AppAction(
-            type = ActionType.MODULE_FORM,
-            module = action.module,
-            parentModule = parentModule,
-            parentId = parentId,
-        )
-
     override fun getFormCells(
         action: AppAction,
         userConfig: ServerUserConfig,
@@ -288,8 +263,15 @@ class UserService(
             //--- TODO: ошибка об отсутствии такой записи
             userRepository.findByIdOrNull(id) ?: return emptyList()
         }
-        val parentId = userEntity?.parentId
-        val userId = userEntity?.userId
+
+        val parentId = userEntity?.let {
+            userEntity.parentId
+        } ?: action.parentId
+
+        //--- в отличие от прочих модулей, запись пользователя создаётся не "на себя", а с "общим" пользователем по умолчанию
+        val userId = userEntity?.let {
+            userEntity.userId
+        } ?: 0
 
         val changeEnabled = action.id?.let { editEnabled } ?: addEnabled
 
@@ -330,36 +312,12 @@ class UserService(
                 ),
             ),
         )
-        formCells += FormSimpleCell(
-            name = FIELD_USER_ID,
-            caption = "",
-            isEditable = false,
-            isAutoFocus = false,
-            value = userId.toString(),
-        )
-        formCells += FormSimpleCell(
-            name = FIELD_OWNER_FULL_NAME,
-            caption = "Владелец",
-            isEditable = false,
-            isAutoFocus = false,
-            value = if (userId == null || userId == 0) {
-                "-"
-            } else {
-                userConfig.fullNames[userId] ?: "(неизвестно)"
-            },
-            selectorAction = AppAction(
-                type = ActionType.MODULE_TABLE,
-                module = AppModule.USER,
-                isSelectorMode = true,
-                selectorPath = mapOf(
-                    FIELD_ID to FIELD_USER_ID,
-                    FIELD_FULL_NAME to FIELD_OWNER_FULL_NAME,
-                ),
-                selectorClear = mapOf(
-                    FIELD_USER_ID to "0",
-                    FIELD_OWNER_FULL_NAME to "",
-                ),
-            ),
+        fillFormUserCells(
+            fieldUserId = FIELD_USER_ID,
+            fieldOwnerFullName = FIELD_OWNER_FULL_NAME,
+            userId = userId,
+            userConfig = userConfig,
+            formCells = formCells,
         )
         formCells += FormComboCell(
             name = FIELD_ORG_TYPE,
@@ -628,16 +586,14 @@ class UserService(
 
     override fun checkExistingId(nextId: Int): Boolean = userRepository.existsById(nextId)
 
-    private fun isAdminOnly(userConfig: ServerUserConfig) = userConfig.roles.size == 1 && userConfig.roles.contains(AppRole.ADMIN)
-
     companion object {
-        private const val FIELD_ID = "id"
+        const val FIELD_ID: String = "id"
         private const val FIELD_PARENT_ID = "parentId"
         private const val FIELD_USER_ID = "userId"
         private const val FIELD_ORG_TYPE = "orgType"
 
         private const val FIELD_IS_DISABLED = "isDisabled"
-        private const val FIELD_FULL_NAME = "fullName"
+        const val FIELD_FULL_NAME: String = "fullName"
         private const val FIELD_SHORT_NAME = "shortName"
         private const val FIELD_LOGIN = "login"
         private const val FIELD_PASSWORD = "password"

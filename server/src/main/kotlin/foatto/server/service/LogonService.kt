@@ -13,6 +13,7 @@ import foatto.server.appModuleConfigs
 import foatto.server.appRoleConfigs
 import foatto.server.checkAccessPermission
 import foatto.server.entity.UserEntity
+import foatto.server.menuInit
 import foatto.server.model.LogonResult
 import foatto.server.model.ServerUserConfig
 import foatto.server.model.SessionData
@@ -80,51 +81,6 @@ class LogonService(
         } else {
             ResponseCode.LOGON_SUCCESS
         }
-
-    private fun menuInit(serverUserConfig: ServerUserConfig): List<MenuData> {
-
-        val alMenu = mutableListOf<MenuData>()
-
-//        mutableListOf<MenuData>().apply {
-//
-//            addMenuItem(AppModule.LICENSE, ActionType.MODULE_TABLE, serverUserConfig, this)
-//            addMenuItem(AppModule.DEVICE, ActionType.MODULE_TABLE, serverUserConfig, this)
-//
-//            if (size > 0) {
-//                alMenu += MenuData("Лицензирование", null, this)
-//            }
-//        }
-
-        mutableListOf<MenuData>().apply {
-
-            addMenuItem(AppModule.USER, ActionType.MODULE_TABLE, serverUserConfig, this)
-
-            if (size > 1) {
-                alMenu += MenuData("Система", null, this)
-            }
-        }
-
-        return alMenu
-    }
-
-    private fun addMenuItem(module: String, actionType: String, serverUserConfig: ServerUserConfig, alMenu: MutableList<MenuData>) {
-        appModuleConfigs[module]?.let { moduleConfig ->
-            if (checkAccessPermission(module, serverUserConfig.roles)) {
-                alMenu += MenuData(
-                    caption = moduleConfig.caption,
-                    action = AppAction(
-                        type = actionType,
-                        module = module,
-                    ),
-                )
-                return
-            }
-        }
-    }
-
-    private fun addSeparator(alMenu: MutableList<MenuData>) {
-        alMenu += MenuData("", null)
-    }
 
     private fun loadFullUserNames(): Map<Int, String> {
         val hmFullName = mutableMapOf<Int, String>()

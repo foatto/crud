@@ -1,6 +1,7 @@
 package foatto.server.service
 
 import foatto.core.ActionType
+import foatto.core.AppModule
 import foatto.core.IconName
 import foatto.core.model.AppAction
 import foatto.core.model.request.FormActionData
@@ -14,27 +15,35 @@ import foatto.core.model.response.form.FormButton
 import foatto.core.model.response.form.FormButtonKey
 import foatto.core.model.response.form.cells.FormBaseCell
 import foatto.core.model.response.form.cells.FormFileData
+import foatto.core.model.response.form.cells.FormSimpleCell
 import foatto.core.model.response.table.AddActionButton
 import foatto.core.model.response.table.ClientActionButton
 import foatto.core.model.response.table.TableRowData
 import foatto.core.model.response.table.cell.TableBaseCell
+import foatto.core.model.response.table.cell.TableButtonCell
 import foatto.core.model.response.table.cell.TableButtonCellData
+import foatto.core.model.response.table.cell.TableSimpleCell
 import foatto.core.util.getFilledNumberString
 import foatto.core.util.getRandomInt
+import foatto.server.AppRole
 import foatto.server.SpringApp
 import foatto.server.appModuleConfigs
 import foatto.server.checkAccessPermission
 import foatto.server.checkFormAddPermission
+import foatto.server.checkRowPermission
 import foatto.server.controller.FileController
 import foatto.server.entity.FileStoreEntity
 import foatto.server.model.AppModuleConfig
 import foatto.server.model.ServerUserConfig
 import foatto.server.repository.FileStoreRepository
+import org.hibernate.Session
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.data.repository.findByIdOrNull
 import java.io.File
+import java.sql.Statement
+import javax.persistence.EntityManager
 
 abstract class ApplicationService {
 
@@ -178,13 +187,13 @@ abstract class ApplicationService {
 
     protected fun getTableSortedPageRequest(
         action: AppAction,
-        defaultFieldName: String,
         defaultDirection: Sort.Direction = Sort.Direction.ASC,
+        vararg defaultFieldNames: String,
     ): PageRequest {
         val sort = action.sortName?.let { sortName ->
             Sort.by(if (action.isSortAsc) Sort.Direction.ASC else Sort.Direction.DESC, sortName)
         } ?: run {
-            Sort.by(defaultDirection, defaultFieldName)
+            Sort.by(defaultDirection, *defaultFieldNames)
         }
 
         var pageSize = appModuleConfigs[action.module]?.pageSize ?: 0
@@ -194,6 +203,46 @@ abstract class ApplicationService {
 
         return PageRequest.of(action.pageNo, pageSize, sort)
     }
+
+    protected fun getEnabledUserIds(action: AppAction, userConfig: ServerUserConfig) = userConfig.relatedUserIds.filterValues { userRelation ->
+        checkRowPermission(action.module, action.type, userRelation, userConfig.roles)
+    }.map { (userId, _) ->
+        userId
+    }
+
+    protected fun getTableSelectorButtonCell(row: Int, col: Int, selectorAction: AppAction): TableBaseCell = TableButtonCell(
+        row = row,
+        col = col,
+        dataRow = row,
+        values = listOf(
+            TableButtonCellData(
+                name = IconName.SELECT,
+                action = selectorAction,
+            ),
+        ),
+    )
+
+    protected fun getTableUserNameCell(
+        row: Int,
+        col: Int,
+        userId: Int,
+        rowUserId: Int?,
+        rowOwnerShortName: String?,
+        rowOwnerFullName: String?,
+    ): TableBaseCell = TableSimpleCell(
+        row = row,
+        col = col,
+        dataRow = row,
+        name = if (rowUserId == 0) {
+            "-"
+        } else if (rowUserId == userId) {
+            ""
+        } else if (!rowOwnerShortName.isNullOrEmpty()) {
+            rowOwnerShortName
+        } else {
+            rowOwnerFullName ?: "(неизвестно)"
+        }
+    )
 
     protected fun getTableFileButtonCellData(
         fileStoreRepository: FileStoreRepository,
@@ -208,7 +257,13 @@ abstract class ApplicationService {
         }
     } ?: emptyList()
 
-    protected abstract fun getTableAddAction(action: AppAction, parentModule: String?, parentId: Int?): AppAction
+    protected open fun getTableAddAction(action: AppAction, parentModule: String?, parentId: Int?): AppAction =
+        AppAction(
+            type = ActionType.MODULE_FORM,
+            module = action.module,
+            parentModule = parentModule,
+            parentId = parentId,
+        )
 
     protected fun fillTablePageButtons(
         action: AppAction,
@@ -299,6 +354,46 @@ abstract class ApplicationService {
         addEnabled: Boolean,
         editEnabled: Boolean,
     ): List<FormBaseCell>
+
+    protected fun fillFormUserCells(
+        fieldUserId: String,
+        fieldOwnerFullName: String,
+        userId: Int?,
+        userConfig: ServerUserConfig,
+        formCells: MutableList<FormBaseCell>,
+    ) {
+        formCells += FormSimpleCell(
+            name = fieldUserId,
+            caption = "",
+            isEditable = false,
+            isAutoFocus = false,
+            value = userId.toString(),
+        )
+        formCells += FormSimpleCell(
+            name = fieldOwnerFullName,
+            caption = "Владелец",
+            isEditable = false,
+            isAutoFocus = false,
+            value = if (userId == null || userId == 0) {
+                "-"
+            } else {
+                userConfig.fullNames[userId] ?: "(неизвестно)"
+            },
+            selectorAction = AppAction(
+                type = ActionType.MODULE_TABLE,
+                module = AppModule.USER,
+                isSelectorMode = true,
+                selectorPath = mapOf(
+                    UserService.FIELD_ID to fieldUserId,
+                    UserService.FIELD_FULL_NAME to fieldOwnerFullName,
+                ),
+                selectorClear = mapOf(
+                    fieldUserId to "0",
+                    fieldOwnerFullName to "",
+                ),
+            ),
+        )
+    }
 
     protected fun getFormFileCellData(
         fileStoreRepository: FileStoreRepository,
@@ -454,6 +549,30 @@ abstract class ApplicationService {
     ): Map<String, String>?
 
     protected abstract fun formActionDelete(userId: Int, id: Int): Map<String, String>?
+
+    protected fun isAdminOnly(userConfig: ServerUserConfig) = userConfig.roles.size == 1 && userConfig.roles.contains(AppRole.ADMIN)
+
+    protected fun executeNativeSql(entityManager: EntityManager, vararg sqls: String): Int {
+        var result = 0
+
+        entityManager.unwrap(Session::class.java).let { session ->
+            session.doWork { conn ->
+                var stm: Statement? = null
+                try {
+                    stm = conn.createStatement()
+                    sqls.forEach { sql ->
+                        result += stm.executeUpdate(sql)
+                    }
+                } finally {
+                    stm?.close()
+                }
+            }
+        }
+
+        return result
+    }
+
+    //--- file functions ---
 
     protected fun formActionSaveFiles(fileStoreRepository: FileStoreRepository, formActionData: FormActionData): Int {
         val fileId = formActionData.fileId ?: getNextFileId(fileStoreRepository)
