@@ -2,6 +2,7 @@ package foatto.server
 
 import foatto.core.ActionType
 import foatto.core.AppModule
+import foatto.core.model.response.MenuData
 import foatto.core_mms.AppModuleMMS
 import foatto.core_mms.addAppModuleUrls
 import foatto.server.model.AppModuleConfig
@@ -31,6 +32,7 @@ class MMSSpringApp : SpringApp() {
         addAppModuleUrls()
         initAppRoleConfigs()
         initAppModuleConfigs()
+        initMenuInit()
     }
 
     private fun initAppRoleConfigs() {
@@ -82,6 +84,107 @@ class MMSSpringApp : SpringApp() {
                 ),
             ),
         )
+
+        appModuleConfigs[AppModuleMMS.DEPARTMENT] = AppModuleConfig(
+            caption = "Подразделения",
+            pageSize = AppModuleConfig.DEFAULT_PAGE_SIZE,
+            enabledAccessRoles = mutableSetOf(AppRole.ADMIN, AppRole.USER),
+            disabledAccessRoles = mutableSetOf(),
+            enabledFormAddRoles = mutableSetOf(AppRole.ADMIN, AppRole.USER),
+            disabledFormAddRoles = mutableSetOf(),
+            rowPermissions = mutableMapOf(
+                ActionType.MODULE_TABLE to Permission(
+                    enabledRoles = getRoleAllPermissions(AppRole.ADMIN).apply {
+                        put(UserRelationEnum.SELF, mutableSetOf(AppRole.USER))
+                        put(UserRelationEnum.WORKER, mutableSetOf(AppRole.USER))
+                    },
+                ),
+                ActionType.MODULE_FORM to Permission(
+                    enabledRoles = getRoleAllPermissions(AppRole.ADMIN).apply {
+                        put(UserRelationEnum.SELF, mutableSetOf(AppRole.USER))
+                        put(UserRelationEnum.WORKER, mutableSetOf(AppRole.USER))
+                    },
+                ),
+                ActionType.FORM_EDIT to Permission(
+                    enabledRoles = getRoleAllPermissions(AppRole.ADMIN).apply {
+                        put(UserRelationEnum.SELF, mutableSetOf(AppRole.USER))
+                    },
+                ),
+                ActionType.FORM_DELETE to Permission(
+                    enabledRoles = getRoleAllPermissions(AppRole.ADMIN).apply {
+                        put(UserRelationEnum.SELF, mutableSetOf(AppRole.USER))
+                    },
+                ),
+            ),
+        )
+        appModuleConfigs[AppModuleMMS.GROUP] = AppModuleConfig(
+            caption = "Группы",
+            pageSize = AppModuleConfig.DEFAULT_PAGE_SIZE,
+            enabledAccessRoles = mutableSetOf(AppRole.ADMIN, AppRole.USER),
+            disabledAccessRoles = mutableSetOf(),
+            enabledFormAddRoles = mutableSetOf(AppRole.ADMIN, AppRole.USER),
+            disabledFormAddRoles = mutableSetOf(),
+            rowPermissions = mutableMapOf(
+                ActionType.MODULE_TABLE to Permission(
+                    enabledRoles = getRoleAllPermissions(AppRole.ADMIN).apply {
+                        put(UserRelationEnum.SELF, mutableSetOf(AppRole.USER))
+                        put(UserRelationEnum.WORKER, mutableSetOf(AppRole.USER))
+                    },
+                ),
+                ActionType.MODULE_FORM to Permission(
+                    enabledRoles = getRoleAllPermissions(AppRole.ADMIN).apply {
+                        put(UserRelationEnum.SELF, mutableSetOf(AppRole.USER))
+                        put(UserRelationEnum.WORKER, mutableSetOf(AppRole.USER))
+                    },
+                ),
+                ActionType.FORM_EDIT to Permission(
+                    enabledRoles = getRoleAllPermissions(AppRole.ADMIN).apply {
+                        put(UserRelationEnum.SELF, mutableSetOf(AppRole.USER))
+                    },
+                ),
+                ActionType.FORM_DELETE to Permission(
+                    enabledRoles = getRoleAllPermissions(AppRole.ADMIN).apply {
+                        put(UserRelationEnum.SELF, mutableSetOf(AppRole.USER))
+                    },
+                ),
+            ),
+        )
+    }
+
+    private fun initMenuInit() {
+        menuInit = { serverUserConfig ->
+            val alMenu = mutableListOf<MenuData>()
+
+            mutableListOf<MenuData>().apply {
+
+                addMenuItem(AppModuleMMS.OBJECT, ActionType.MODULE_TABLE, serverUserConfig, this)
+
+                if (size > 0) {
+                    alMenu += MenuData("Учёт", null, this)
+                }
+            }
+
+            mutableListOf<MenuData>().apply {
+
+                addMenuItem(AppModuleMMS.DEPARTMENT, ActionType.MODULE_TABLE, serverUserConfig, this)
+                addMenuItem(AppModuleMMS.GROUP, ActionType.MODULE_TABLE, serverUserConfig, this)
+
+                if (size > 0) {
+                    alMenu += MenuData("Справочники", null, this)
+                }
+            }
+
+            mutableListOf<MenuData>().apply {
+
+                addMenuItem(AppModule.USER, ActionType.MODULE_TABLE, serverUserConfig, this)
+
+                if (size > 1) {
+                    alMenu += MenuData("Система", null, this)
+                }
+            }
+
+            alMenu
+        }
     }
 
 }
