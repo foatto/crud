@@ -6,4 +6,5 @@ import kotlinx.serialization.Serializable
 class AppUserConfig(
     val currentUserName: String,
     val timeOffset: Int,
+    val userProperties: MutableMap<String, String>
 )

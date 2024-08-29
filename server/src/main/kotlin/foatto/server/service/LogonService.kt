@@ -1,22 +1,17 @@
 package foatto.server.service
 
-import foatto.core.ActionType
-import foatto.core.AppModule
-import foatto.core.model.AppAction
 import foatto.core.model.request.AppRequest
-import foatto.core.model.response.MenuData
 import foatto.core.model.response.ResponseCode
 import foatto.server.OrgType
 import foatto.server.SpringApp
 import foatto.server.UserRelationEnum
-import foatto.server.appModuleConfigs
 import foatto.server.appRoleConfigs
-import foatto.server.checkAccessPermission
 import foatto.server.entity.UserEntity
 import foatto.server.menuInit
 import foatto.server.model.LogonResult
 import foatto.server.model.ServerUserConfig
 import foatto.server.model.SessionData
+import foatto.server.repository.UserPropertyRepository
 import foatto.server.repository.UserRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -24,6 +19,7 @@ import org.springframework.stereotype.Service
 @Service
 class LogonService(
     private val userRepository: UserRepository,
+    private val userPropertyRepository: UserPropertyRepository,
 ) {
 
     fun logon(
@@ -46,6 +42,12 @@ class LogonService(
                         parentId = userEntity.parentId ?: 0,
                         orgType = userEntity.orgType ?: OrgType.ORG_TYPE_WORKER
                     ),
+                    userProperties = userPropertyRepository.findByUserId(userEntity.id)
+                        .filter { userPropertyEntity ->
+                            !userPropertyEntity.name.isNullOrBlank() && !userPropertyEntity.value.isNullOrBlank()
+                        }.associate { userPropertyEntity ->
+                            (userPropertyEntity.name ?: "") to (userPropertyEntity.value ?: "")
+                        }.toMutableMap(),
                 )
 
                 val sessionData = SpringApp.getSessionData(sessionId) ?: SessionData()

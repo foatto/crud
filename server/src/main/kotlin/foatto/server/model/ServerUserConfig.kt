@@ -11,9 +11,11 @@ class ServerUserConfig(
     val fullNames: Map<Int, String>,
     val shortNames: Map<Int, String>,
     val relatedUserIds: Map<Int, UserRelationEnum>,
+    val userProperties: MutableMap<String, String>
 ) {
     fun toAppUserConfig(): AppUserConfig = AppUserConfig(
         currentUserName = currentUserName,
         timeOffset = timeOffset,
+        userProperties = userProperties,
     )
 }
