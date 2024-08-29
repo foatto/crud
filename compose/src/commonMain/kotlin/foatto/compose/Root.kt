@@ -16,6 +16,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -72,10 +73,11 @@ open class Root {
     var scaleKoef: Float = 1.0f
         private set
 
-    val appUserConfig = mutableStateOf(
+    val appUserConfig: MutableState<AppUserConfig> = mutableStateOf(
         AppUserConfig(
             currentUserName = "",
             timeOffset = 0,
+            userProperties = mutableMapOf(),
         )
     )
 
