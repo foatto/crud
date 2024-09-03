@@ -1,7 +1,7 @@
 package foatto.server.controller
 
 import foatto.core.ApiUrl
-import foatto.core.model.response.FormFileUploadResponse
+import foatto.core.model.response.form.FormFileUploadResponse
 import foatto.core.model.response.form.FormFileUploadParams
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.GetMapping

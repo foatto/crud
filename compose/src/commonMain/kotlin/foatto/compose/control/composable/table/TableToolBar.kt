@@ -11,6 +11,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.unit.dp
 import foatto.compose.colorControlBack
 import foatto.compose.colorToolBar
@@ -71,7 +74,12 @@ fun TableToolBar(
             }
             if (isFindTextVisible) {
                 OutlinedTextField(
-                    modifier = Modifier.background(colorControlBack),
+                    modifier = Modifier.background(colorControlBack).onKeyEvent { keyEvent ->
+                        if (keyEvent.key == Key.Enter) {
+                            doFind(false)
+                        }
+                        true
+                    },
                     value = findText,
                     onValueChange = { newText ->
                         onFindInput(newText)

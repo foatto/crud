@@ -51,7 +51,7 @@ import foatto.core.model.request.FormActionData
 import foatto.core.model.request.FormActionRequest
 import foatto.core.model.response.AppResponse
 import foatto.core.model.response.FormActionResponse
-import foatto.core.model.response.FormResponse
+import foatto.core.model.response.form.FormResponse
 import foatto.core.model.response.ResponseCode
 import foatto.core.model.response.form.FormButtonKey
 import foatto.core.model.response.form.FormPinMode
@@ -123,7 +123,7 @@ class FormControl(
         Column(
             modifier = Modifier.fillMaxSize().background(colorFormBack),
         ) {
-            getTableAndFormHeader(isSelectorMode = false, withBottomBorder = true) { _: AppAction -> }
+            getHeader()
 
             Column(
                 modifier = Modifier
@@ -649,14 +649,10 @@ class FormControl(
     }
 
     private fun readHeader() {
-        var tabToolTip = ""
+        root.setTabInfo(tabId, formResponse.tabCaption)
 
         alTitleData.clear()
-        for ((action, text) in formResponse.alHeader) {
-            tabToolTip += (if (tabToolTip.isEmpty()) "" else " | ") + text
-            alTitleData.add(TitleData(action, text))
-        }
-        root.setTabInfo(tabId, formResponse.tabCaption, tabToolTip)
+        alTitleData.add(TitleData(null, formResponse.header, false))
     }
 
     private fun readClassicForm() {

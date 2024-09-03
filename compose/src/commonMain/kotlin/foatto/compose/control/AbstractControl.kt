@@ -37,7 +37,7 @@ abstract class AbstractControl(
 ) {
 
     companion object {
-        val MIN_USER_RECT_SIZE: Float = 8.0f
+        const val MIN_USER_RECT_SIZE: Float = 8.0f
     }
 
     protected val alTitleData: SnapshotStateList<TitleData> = mutableStateListOf()
@@ -48,10 +48,8 @@ abstract class AbstractControl(
     abstract fun start()
 
     @Composable
-    protected fun getTableAndFormHeader(
-        isSelectorMode: Boolean,
-        withBottomBorder: Boolean,
-        call: (action: AppAction) -> Unit,
+    protected fun getHeader(
+        call: (action: AppAction) -> Unit = {},
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().background(colorHeader),
@@ -65,14 +63,7 @@ abstract class AbstractControl(
 //                    if (withBottomBorder) {
 //                        borderBottom(width = 1.px, lineStyle = LineStyle.Solid, color = colorMainBorder)
 //                    }
-//                    backgroundColor(getColorTableHeaderBack())
         ) {
-            if (isSelectorMode) {
-                Text(
-                    text = "Выбор: ",
-                    fontWeight = FontWeight.Bold,
-                )
-            }
             for (titleData in alTitleData) {
                 titleData.action?.let { action ->
                     Button(
@@ -85,7 +76,14 @@ abstract class AbstractControl(
                         Text(titleData.text)
                     }
                 } ?: run {
-                    Text(titleData.text)
+                    Text(
+                        text = titleData.text,
+                        fontWeight = if (titleData.isBold) {
+                            FontWeight.Bold
+                        } else {
+                            FontWeight.Normal
+                        },
+                    )
                 }
             }
         }
@@ -111,36 +109,6 @@ abstract class AbstractControl(
             alGridRow.add(null)
         }
         alGridRow[col] = cell
-    }
-
-    @Composable
-    protected fun getChartAndXyAndCompositeHeader() {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-//                    borderTop(
-//                        width = (if (!styleIsNarrowScreen) {
-//                            0
-//                        } else {
-//                            1
-//                        }).px,
-//                        lineStyle = LineStyle.Solid,
-//                        color = colorMainBorder,
-//                    )
-//                    backgroundColor(getColorGraphicAndXyToolbarBack())
-        ) {
-            alTitleData.forEachIndexed { index, titleData ->
-                Text(
-                    text = titleData.text,
-                    fontWeight = if (alTitleData.size > 1 && index == 0) {
-                        FontWeight.Bold
-                    } else {
-                        FontWeight.Normal
-                    }
-                )
-            }
-        }
     }
 
     protected fun drawCircleOnCanvas(

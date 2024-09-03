@@ -52,7 +52,7 @@ import foatto.core.model.AppAction
 import foatto.core.model.request.AppRequest
 import foatto.core.model.response.AppResponse
 import foatto.core.model.response.ResponseCode
-import foatto.core.model.response.TableResponse
+import foatto.core.model.response.table.TableResponse
 import foatto.core.model.response.table.TablePopupData
 import foatto.core.model.response.table.TableRowData
 import foatto.core.model.response.table.cell.TableBooleanCell
@@ -142,10 +142,7 @@ class TableControl(
                     }
                 ),
         ) {
-            getTableAndFormHeader(
-                isSelectorMode = tableAction.isSelectorMode,
-                withBottomBorder = false
-            ) { action: AppAction ->
+            getHeader { action: AppAction ->
                 call(action, false)
             }
             TableToolBar(
@@ -497,23 +494,17 @@ class TableControl(
     }
 
     private fun readHeader() {
-        var tabToolTip = ""
+        root.setTabInfo(tabId, tableResponse.tabCaption)
 
-        //--- загрузка заголовка таблицы/формы
         alTitleData.clear()
+        if (tableAction.isSelectorMode) {
+            alTitleData.add(TitleData(null, "Выбор: ", true))
+        }
         for ((action, text) in tableResponse.alHeader) {
-            tabToolTip += (
-                if (tabToolTip.isEmpty()) {
-                    ""
-                } else {
-                    " | "
-                }
-                ) + text
-            alTitleData.add(TitleData(action, text))
+            alTitleData.add(TitleData(action, text, false))
             //--- запомним последнюю кнопку заголовка в табличном режиме как кнопку отмены или возврата на уровень выше
             //butTableCancel = button - not used yet
         }
-        root.setTabInfo(tabId, tableResponse.tabCaption, tabToolTip)
     }
 
     private fun readAddButtons() {

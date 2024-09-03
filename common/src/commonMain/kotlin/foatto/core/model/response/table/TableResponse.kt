@@ -1,10 +1,8 @@
-package foatto.core.model.response
+package foatto.core.model.response.table
 
 import foatto.core.model.AppAction
+import foatto.core.model.response.ServerActionButton
 import kotlinx.serialization.Serializable
-import foatto.core.model.response.table.AddActionButton
-import foatto.core.model.response.table.ClientActionButton
-import foatto.core.model.response.table.TableRowData
 import foatto.core.model.response.table.cell.TableBaseCell
 
 @Serializable

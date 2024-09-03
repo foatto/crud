@@ -6,7 +6,7 @@ import foatto.compose.control.model.form.cell.FormFileCellClient
 import foatto.core.ApiUrl
 import foatto.core.model.request.BaseRequest
 import foatto.core.model.response.BaseResponse
-import foatto.core.model.response.FormFileUploadResponse
+import foatto.core.model.response.form.FormFileUploadResponse
 import foatto.core.model.response.form.FormFileUploadParams
 import foatto.core.util.getRandomInt
 import kotlinx.browser.window

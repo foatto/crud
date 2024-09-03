@@ -33,12 +33,18 @@ import foatto.compose.composable.StardartDialog
 import foatto.compose.composable.TabPanel
 import foatto.compose.composable.getClientSubMenu
 import foatto.compose.control.TableControl
-import foatto.compose.utils.*
+import foatto.compose.model.MenuDataClient
+import foatto.compose.model.TabInfo
+import foatto.compose.utils.SETTINGS_LOGIN
+import foatto.compose.utils.SETTINGS_PASSWORD
+import foatto.compose.utils.SETTINGS_START_MODULE
+import foatto.compose.utils.encodePassword
+import foatto.compose.utils.getScaledScreenWidth
+import foatto.compose.utils.openFileByUrl
+import foatto.compose.utils.settings
 import foatto.core.ActionType
 import foatto.core.model.AppAction
 import foatto.core.model.AppUserConfig
-import foatto.compose.model.MenuDataClient
-import foatto.compose.model.TabInfo
 import foatto.core.model.request.ChangePasswordRequest
 import foatto.core.model.request.LogoffRequest
 import foatto.core.model.response.ChangePasswordResponse
@@ -261,7 +267,7 @@ open class Root {
 
         val appControl = AppControl(this, action, lastTabId)
 
-        alTabInfo += TabInfo(lastTabId, listOf(), "")
+        alTabInfo += TabInfo(lastTabId, listOf())
         alControl += appControl
 
         selectedTabIndex = alTabInfo.lastIndex
@@ -269,7 +275,7 @@ open class Root {
         appControl.start()
     }
 
-    fun setTabInfo(tabId: Int, tabText: String, tabToolTip: String) {
+    fun setTabInfo(tabId: Int, tabText: String) {
         alTabInfo.find { tabInfo ->
             tabInfo.id == tabId
         }?.let { tabInfo ->
@@ -283,7 +289,6 @@ open class Root {
 //                    tabWord
 //                }
             }
-            tabInfo.tooltip = tabToolTip
         }
     }
 

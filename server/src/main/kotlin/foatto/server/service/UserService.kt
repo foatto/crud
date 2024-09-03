@@ -42,6 +42,33 @@ class UserService(
     private val fileStoreRepository: FileStoreRepository,
 ) : ApplicationService() {
 
+   companion object {
+        const val FIELD_ID: String = "id"
+        private const val FIELD_PARENT_ID = "parentId"
+        private const val FIELD_USER_ID = "userId"
+        private const val FIELD_ORG_TYPE = "orgType"
+
+        private const val FIELD_IS_DISABLED = "isDisabled"
+        const val FIELD_FULL_NAME: String = "fullName"
+        private const val FIELD_SHORT_NAME = "shortName"
+        private const val FIELD_LOGIN = "login"
+        private const val FIELD_PASSWORD = "password"
+        private const val FIELD_ROLES = "roles"
+
+        private const val FIELD_TIME_OFFSET = "timeOffset"
+        private const val FIELD_EMAIL = "eMail"
+        private const val FIELD_CONTACT_INFO = "contactInfo"
+        private const val FIELD_FILE = "fileId"
+
+        private const val FIELD_AT_COUNT = "atCount"
+        private const val FIELD_LAST_LOGIN = "lastLoginDateTime"
+        private const val FIELD_LAST_IP = "lastIP"
+        private const val FIELD_PASSWORD_LAST_CHANGE = "passwordLastChangeDate"
+
+        private const val FIELD_OWNER_FULL_NAME = "ownerFullName"   // псевдополе для селектора
+        private const val FIELD_PARENT_FULL_NAME = "parentFullName"   // псевдополе для селектора
+    }
+
     override fun getTableHeader(action: AppAction, userConfig: ServerUserConfig, moduleConfig: AppModuleConfig): List<Pair<AppAction?, String>> {
         val headers = mutableListOf<Pair<AppAction?, String>>()
 
@@ -586,30 +613,4 @@ class UserService(
 
     override fun checkExistingId(nextId: Int): Boolean = userRepository.existsById(nextId)
 
-    companion object {
-        const val FIELD_ID: String = "id"
-        private const val FIELD_PARENT_ID = "parentId"
-        private const val FIELD_USER_ID = "userId"
-        private const val FIELD_ORG_TYPE = "orgType"
-
-        private const val FIELD_IS_DISABLED = "isDisabled"
-        const val FIELD_FULL_NAME: String = "fullName"
-        private const val FIELD_SHORT_NAME = "shortName"
-        private const val FIELD_LOGIN = "login"
-        private const val FIELD_PASSWORD = "password"
-        private const val FIELD_ROLES = "roles"
-
-        private const val FIELD_TIME_OFFSET = "timeOffset"
-        private const val FIELD_EMAIL = "eMail"
-        private const val FIELD_CONTACT_INFO = "contactInfo"
-        private const val FIELD_FILE = "fileId"
-
-        private const val FIELD_AT_COUNT = "atCount"
-        private const val FIELD_LAST_LOGIN = "lastLoginDateTime"
-        private const val FIELD_LAST_IP = "lastIP"
-        private const val FIELD_PASSWORD_LAST_CHANGE = "passwordLastChangeDate"
-
-        private const val FIELD_OWNER_FULL_NAME = "ownerFullName"   // псевдополе для селектора
-        private const val FIELD_PARENT_FULL_NAME = "parentFullName"   // псевдополе для селектора
-    }
 }

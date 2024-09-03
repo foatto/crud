@@ -1,6 +1,5 @@
 package foatto.core.model
 
-import foatto.core.ActionType
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -30,6 +29,8 @@ data class AppAction(
 
     val url: String? = null,
     val isAutoClose: Boolean = false,
-)
 
-fun emptyAction() = AppAction(type = ActionType.NOTHING)
+    val timeRangeType: Int = 0,
+    val begTime: Int? = null,
+    val endTime: Int? = null,
+)

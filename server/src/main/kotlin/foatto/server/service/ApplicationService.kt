@@ -7,17 +7,17 @@ import foatto.core.model.AppAction
 import foatto.core.model.request.FormActionData
 import foatto.core.model.response.AppResponse
 import foatto.core.model.response.FormActionResponse
-import foatto.core.model.response.FormResponse
 import foatto.core.model.response.ResponseCode
 import foatto.core.model.response.ServerActionButton
-import foatto.core.model.response.TableResponse
 import foatto.core.model.response.form.FormButton
 import foatto.core.model.response.form.FormButtonKey
+import foatto.core.model.response.form.FormResponse
 import foatto.core.model.response.form.cells.FormBaseCell
 import foatto.core.model.response.form.cells.FormFileData
 import foatto.core.model.response.form.cells.FormSimpleCell
 import foatto.core.model.response.table.AddActionButton
 import foatto.core.model.response.table.ClientActionButton
+import foatto.core.model.response.table.TableResponse
 import foatto.core.model.response.table.TableRowData
 import foatto.core.model.response.table.cell.TableBaseCell
 import foatto.core.model.response.table.cell.TableButtonCell
@@ -94,7 +94,7 @@ abstract class ApplicationService {
         }
     }
 
-    protected fun getTableResponse(
+    private fun getTableResponse(
         action: AppAction,
         userConfig: ServerUserConfig,
         moduleConfig: AppModuleConfig,
@@ -204,7 +204,7 @@ abstract class ApplicationService {
         return PageRequest.of(action.pageNo, pageSize, sort)
     }
 
-    protected fun getEnabledUserIds(action: AppAction, userConfig: ServerUserConfig) = userConfig.relatedUserIds.filterValues { userRelation ->
+    protected fun getEnabledUserIds(action: AppAction, userConfig: ServerUserConfig): List<Int> = userConfig.relatedUserIds.filterValues { userRelation ->
         checkRowPermission(action.module, action.type, userRelation, userConfig.roles)
     }.map { (userId, _) ->
         userId
@@ -338,7 +338,7 @@ abstract class ApplicationService {
             form = FormResponse(
                 id = action.id,
                 tabCaption = formCaption,
-                alHeader = listOf(null to formCaption),
+                header = formCaption,
                 alFormColumn = emptyList(),
                 alFormCell = alFormCell,
                 alFormButton = alFormButton,
@@ -550,7 +550,7 @@ abstract class ApplicationService {
 
     protected abstract fun formActionDelete(userId: Int, id: Int): Map<String, String>?
 
-    protected fun isAdminOnly(userConfig: ServerUserConfig) = userConfig.roles.size == 1 && userConfig.roles.contains(AppRole.ADMIN)
+    protected fun isAdminOnly(userConfig: ServerUserConfig): Boolean = userConfig.roles.size == 1 && userConfig.roles.contains(AppRole.ADMIN)
 
     protected fun executeNativeSql(entityManager: EntityManager, vararg sqls: String): Int {
         var result = 0

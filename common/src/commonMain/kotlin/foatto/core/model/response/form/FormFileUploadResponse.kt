@@ -1,4 +1,4 @@
-package foatto.core.model.response
+package foatto.core.model.response.form
 
 import kotlinx.serialization.Serializable
 

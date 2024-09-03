@@ -5,9 +5,9 @@ class AppModuleConfig(
     val pageSize: Int? = null,
     val enabledAccessRoles: MutableSet<String>,
     val disabledAccessRoles: MutableSet<String>,
-    val enabledFormAddRoles: MutableSet<String>,
-    val disabledFormAddRoles: MutableSet<String>,
-    val rowPermissions: MutableMap<String, Permission>,
+    val enabledFormAddRoles: MutableSet<String> = mutableSetOf(),
+    val disabledFormAddRoles: MutableSet<String> = mutableSetOf(),
+    val rowPermissions: MutableMap<String, Permission> = mutableMapOf(),
 ) {
     companion object {
         val DEFAULT_PAGE_SIZE: Int = 20
