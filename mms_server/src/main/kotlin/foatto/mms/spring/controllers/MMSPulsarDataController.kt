@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController
 import java.io.File
 import java.time.ZoneId
 import java.util.*
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 @RestController
 class MMSPulsarDataController {

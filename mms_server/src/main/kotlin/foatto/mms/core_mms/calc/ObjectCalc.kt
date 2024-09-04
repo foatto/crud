@@ -527,24 +527,24 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             endTime: Int
         ): Double {
             var energo = 0.0
-            if (sces.isUseAggregator &&
-                MMSFunction.checkAggregationTableIsExists(conn, sces.id) &&
-                (endTime <= sces.calcTime || (sces.rawTime - sces.calcTime) <= MAX_AGGREGATOR_TIME_DIFF)
-            ) {
-                val rs = conn.executeQuery(
-                    """
-                        SELECT SUM( value_1 ) 
-                        FROM MMS_agg_${sces.id}
-                        WHERE ontime BETWEEN $begTime AND $endTime
-                    """
-                )
-                energo = if (rs.next()) {
-                    rs.getDouble(1)
-                } else {
-                    0.0
-                }
-                rs.close()
-            } else {
+//            if (sces.isUseAggregator &&
+//                MMSFunction.checkAggregationTableIsExists(conn, sces.id) &&
+//                (endTime <= sces.calcTime || (sces.rawTime - sces.calcTime) <= MAX_AGGREGATOR_TIME_DIFF)
+//            ) {
+//                val rs = conn.executeQuery(
+//                    """
+//                        SELECT SUM( value_1 )
+//                        FROM MMS_agg_${sces.id}
+//                        WHERE ontime BETWEEN $begTime AND $endTime
+//                    """
+//                )
+//                energo = if (rs.next()) {
+//                    rs.getDouble(1)
+//                } else {
+//                    0.0
+//                }
+//                rs.close()
+//            } else {
                 //--- counters that give absolute values in their readings can reset it on command or overflow.
                 //--- you will have to catch each such reset (the algorithm is somewhat similar to the search for refueling / draining)
                 //--- also skip sudden dots with a zero counter
@@ -575,7 +575,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                     }
                     lastE = sensorValue
 
-                }
+//                }
                 energo += lastE - begE
             }
             return energo
@@ -647,56 +647,56 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
         ) {
             val alGLD = aLine.alGLD.toMutableList()
 
-            if (sca.isUseAggregator &&
-                MMSFunction.checkAggregationTableIsExists(conn, sca.id) &&
-                (endTime <= sca.calcTime || (sca.rawTime - sca.calcTime) <= MAX_AGGREGATOR_TIME_DIFF)
-            ) {
-                val rs = conn.executeQuery(
-                    """
-                        SELECT ontime, value_2 , type_1 
-                        FROM MMS_agg_${sca.id}
-                        WHERE ontime BETWEEN $begTime AND $endTime
-                        ORDER BY ontime
-                    """
-                )
-                while (rs.next()) {
-                    val time = rs.getInt(1)
-                    val value = rs.getDouble(2)
-                    val type = rs.getInt(3)
-
-                    val curColorIndex = when (type) {
-                        AnalogueValueType.NONE.value -> {
-                            chartLineNoneColorIndexes[axisIndex]
-                        }
-
-                        AnalogueValueType.NORMAL.value -> {
-                            chartLineNormalColorIndexes[axisIndex]
-                        }
-
-                        AnalogueValueType.BELOW.value -> {
-                            chartLineBelowColorIndexes[axisIndex]
-                        }
-
-                        AnalogueValueType.ABOVE.value -> {
-                            chartLineAboveColorIndexes[axisIndex]
-                        }
-
-                        else -> {
-                            chartLineNoneColorIndexes[axisIndex]
-                        }
-                    }
-
-                    val gldLast = alGLD.lastOrNull()
-                    if (gldLast == null || time - gldLast.x > xScale || abs(value - gldLast.y) > yScale || curColorIndex != gldLast.colorIndex) {
-//!!! add GEO info ?
-//                        val gd = scg?.let {
-//                            AbstractObjectStateCalc.getGeoData(scg, alRawData[pos])
+//            if (sca.isUseAggregator &&
+//                MMSFunction.checkAggregationTableIsExists(conn, sca.id) &&
+//                (endTime <= sca.calcTime || (sca.rawTime - sca.calcTime) <= MAX_AGGREGATOR_TIME_DIFF)
+//            ) {
+//                val rs = conn.executeQuery(
+//                    """
+//                        SELECT ontime, value_2 , type_1
+//                        FROM MMS_agg_${sca.id}
+//                        WHERE ontime BETWEEN $begTime AND $endTime
+//                        ORDER BY ontime
+//                    """
+//                )
+//                while (rs.next()) {
+//                    val time = rs.getInt(1)
+//                    val value = rs.getDouble(2)
+//                    val type = rs.getInt(3)
+//
+//                    val curColorIndex = when (type) {
+//                        AnalogueValueType.NONE.value -> {
+//                            chartLineNoneColorIndexes[axisIndex]
 //                        }
-                        alGLD.add(ChartElementLineDTO(time, value.toFloat(), curColorIndex, null /*gd?.let { XyProjection.wgs_pix(gd.wgs) }*/))
-                    }
-                }
-                rs.close()
-            } else {
+//
+//                        AnalogueValueType.NORMAL.value -> {
+//                            chartLineNormalColorIndexes[axisIndex]
+//                        }
+//
+//                        AnalogueValueType.BELOW.value -> {
+//                            chartLineBelowColorIndexes[axisIndex]
+//                        }
+//
+//                        AnalogueValueType.ABOVE.value -> {
+//                            chartLineAboveColorIndexes[axisIndex]
+//                        }
+//
+//                        else -> {
+//                            chartLineNoneColorIndexes[axisIndex]
+//                        }
+//                    }
+//
+//                    val gldLast = alGLD.lastOrNull()
+//                    if (gldLast == null || time - gldLast.x > xScale || abs(value - gldLast.y) > yScale || curColorIndex != gldLast.colorIndex) {
+////!!! add GEO info ?
+////                        val gd = scg?.let {
+////                            AbstractObjectStateCalc.getGeoData(scg, alRawData[pos])
+////                        }
+//                        alGLD.add(ChartElementLineDTO(time, value.toFloat(), curColorIndex, null /*gd?.let { XyProjection.wgs_pix(gd.wgs) }*/))
+//                    }
+//                }
+//                rs.close()
+//            } else {
                 //--- immediately add / set static (permanent) constraints if required / supported
                 if (graphicHandler.isStaticMinLimit(sca)) {
                     graphicHandler.setStaticMinLimit(sca, begTime, endTime, aMinLimit)
@@ -784,7 +784,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                         }
                     }
                 }
-            }
+//            }
 
             aLine.alGLD = alGLD
         }
@@ -1263,24 +1263,24 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             endTime: Int
         ): CounterCalcData {
             var sumValue = 0.0
-            if (scc.isUseAggregator &&
-                MMSFunction.checkAggregationTableIsExists(conn, scc.id) &&
-                (endTime <= scc.calcTime || (scc.rawTime - scc.calcTime) <= MAX_AGGREGATOR_TIME_DIFF)
-            ) {
-                val rs = conn.executeQuery(
-                    """
-                        SELECT SUM( value_1 ) 
-                        FROM MMS_agg_${scc.id}
-                        WHERE ontime BETWEEN $begTime AND $endTime
-                    """
-                )
-                sumValue = if (rs.next()) {
-                    rs.getDouble(1)
-                } else {
-                    0.0
-                }
-                rs.close()
-            } else {
+//            if (scc.isUseAggregator &&
+//                MMSFunction.checkAggregationTableIsExists(conn, scc.id) &&
+//                (endTime <= scc.calcTime || (scc.rawTime - scc.calcTime) <= MAX_AGGREGATOR_TIME_DIFF)
+//            ) {
+//                val rs = conn.executeQuery(
+//                    """
+//                        SELECT SUM( value_1 )
+//                        FROM MMS_agg_${scc.id}
+//                        WHERE ontime BETWEEN $begTime AND $endTime
+//                    """
+//                )
+//                sumValue = if (rs.next()) {
+//                    rs.getDouble(1)
+//                } else {
+//                    0.0
+//                }
+//                rs.close()
+//            } else {
                 //--- counters that give absolute values in their readings can reset it on command or overflow.
                 //--- you will have to catch each such reset (the algorithm is somewhat similar to the search for refueling / draining)
                 //--- also skip sudden dots with a zero counter
@@ -1320,7 +1320,7 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 if (scc.isAbsoluteCount) {
                     sumValue += lastValue - begValue
                 }
-            }
+//            }
 
             return CounterCalcData(
                 scc = scc,

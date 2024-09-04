@@ -13,7 +13,6 @@ class SensorConfigWork(
     aBegDa: Int,
     aRawTime: Int,
     aCalcTime: Int,
-    aIsUseAggregator: Boolean,
     val boundValue: Int,
     val activeValue: Int,
     val minOnTime: Int,
@@ -42,5 +41,4 @@ class SensorConfigWork(
     begDa = aBegDa,
     rawTime = aRawTime,
     calcTime = aCalcTime,
-    isUseAggregator = aIsUseAggregator,
 )

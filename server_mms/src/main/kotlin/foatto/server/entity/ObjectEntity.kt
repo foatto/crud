@@ -1,7 +1,7 @@
 package foatto.server.entity
 
 import foatto.server.entity.converter.BooleanToIntConverter
-import javax.persistence.*
+import jakarta.persistence.*
 
 @Entity
 @Table(name = "MMS_object")

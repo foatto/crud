@@ -1,7 +1,7 @@
 //package foatto.office.entity
 //
 //import foatto.core_server.app.server.entity.DateTimeField
-//import javax.persistence.*
+//import jakarta.persistence.*
 //
 //@Entity
 //@Table(name = "OFFICE_people")

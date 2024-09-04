@@ -43,7 +43,7 @@ import org.springframework.data.domain.Sort
 import org.springframework.data.repository.findByIdOrNull
 import java.io.File
 import java.sql.Statement
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 
 abstract class ApplicationService {
 

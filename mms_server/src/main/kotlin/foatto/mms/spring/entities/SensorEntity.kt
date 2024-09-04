@@ -1,6 +1,6 @@
 package foatto.mms.spring.entities
 
-import javax.persistence.*
+import jakarta.persistence.*
 
 @Entity
 @Table(name = "MMS_sensor")
@@ -198,11 +198,7 @@ class SensorEntity(
 
     @OneToMany(mappedBy = "sensor", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     var calibration: MutableSet<SensorCalibrationEntity> = mutableSetOf(),
-
-    @Column(name = "is_use_aggregator")
-    val isUseAggregator: Int?,
-
-    ) {
+) {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

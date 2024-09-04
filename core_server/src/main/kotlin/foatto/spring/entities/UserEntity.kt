@@ -1,6 +1,6 @@
 package foatto.spring.entities
 
-import javax.persistence.*
+import jakarta.persistence.*
 
 @Entity
 @Table(name = "SYSTEM_users")

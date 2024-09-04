@@ -13,7 +13,6 @@ class SensorConfigEnergoSummary(
     aBegDa: Int,
     aRawTime: Int,
     aCalcTime: Int,
-    aIsUseAggregator: Boolean,
     aMinIgnore: Double,
     aMaxIgnore: Double,
 ) : SensorConfigBase(
@@ -29,7 +28,6 @@ class SensorConfigEnergoSummary(
     aBegDa = aBegDa,
     rawTime = aRawTime,
     calcTime = aCalcTime,
-    aIsUseAggregator = aIsUseAggregator,
     minIgnore = aMinIgnore,
     maxIgnore = aMaxIgnore,
 )

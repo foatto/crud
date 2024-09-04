@@ -1,6 +1,6 @@
 package foatto.server.entity
 
-import javax.persistence.Embeddable
+import jakarta.persistence.Embeddable
 
 @Embeddable
 class DateTimeEntity(

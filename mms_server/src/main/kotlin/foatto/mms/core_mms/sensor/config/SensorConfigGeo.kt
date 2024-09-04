@@ -13,7 +13,6 @@ class SensorConfigGeo(
     aBegDa: Int,
     aRawTime: Int,
     aCalcTime: Int,
-    aIsUseAggregator: Boolean,
     val minMovingTime: Int,
     val minParkingTime: Int,
     val minOverSpeedTime: Int,
@@ -39,7 +38,6 @@ class SensorConfigGeo(
     begDa = aBegDa,
     rawTime = aRawTime,
     calcTime = aCalcTime,
-    isUseAggregator = aIsUseAggregator,
 ) {
 
     companion object {

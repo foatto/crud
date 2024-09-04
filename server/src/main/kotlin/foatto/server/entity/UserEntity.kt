@@ -2,7 +2,7 @@ package foatto.server.entity
 
 import foatto.server.entity.converter.BooleanToIntConverter
 import foatto.server.entity.converter.SetToStringConverter
-import javax.persistence.*
+import jakarta.persistence.*
 
 @Entity
 @Table(name = "SYSTEM_users")

@@ -13,7 +13,6 @@ open class SensorConfig(
     val begDa: Int,
     val rawTime: Int,
     val calcTime: Int,
-    val isUseAggregator: Boolean,
 ) {
 
     companion object {

@@ -27,6 +27,14 @@ class DepartmentService(
     private val objectRepository: ObjectRepository,
 ) : ApplicationService() {
 
+    companion object {
+        const val FIELD_ID: String = "id"
+        private const val FIELD_USER_ID = "userId"
+        const val FIELD_NAME: String = "name"
+
+        private const val FIELD_OWNER_FULL_NAME = "ownerFullName"   // псевдополе для селектора
+    }
+
     override fun getTableColumnCaptions(action: AppAction, userConfig: ServerUserConfig): List<Pair<AppAction, String>> {
         val alColumnInfo = mutableListOf<Pair<String?, String>>()
 
@@ -264,13 +272,5 @@ class DepartmentService(
     }
 
     override fun checkExistingId(nextId: Int): Boolean = departmentRepository.existsById(nextId)
-
-    companion object {
-        const val FIELD_ID: String = "id"
-        private const val FIELD_USER_ID = "userId"
-        const val FIELD_NAME: String = "name"
-
-        private const val FIELD_OWNER_FULL_NAME = "ownerFullName"   // псевдополе для селектора
-    }
 
 }

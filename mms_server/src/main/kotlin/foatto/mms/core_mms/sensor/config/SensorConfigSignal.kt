@@ -13,7 +13,6 @@ class SensorConfigSignal(
     aBegDa: Int,
     aRawTime: Int,
     aCalcTime: Int,
-    aIsUseAggregator: Boolean,
     val boundValue: Int,
     val activeValue: Int,
     val minIgnore: Double,
@@ -33,5 +32,4 @@ class SensorConfigSignal(
     begDa = aBegDa,
     rawTime = aRawTime,
     calcTime = aCalcTime,
-    isUseAggregator = aIsUseAggregator,
 )

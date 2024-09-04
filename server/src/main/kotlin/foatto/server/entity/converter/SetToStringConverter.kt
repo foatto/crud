@@ -1,7 +1,7 @@
 package foatto.server.entity.converter
 
-import javax.persistence.AttributeConverter
-import javax.persistence.Converter
+import jakarta.persistence.AttributeConverter
+import jakarta.persistence.Converter
 
 @Converter
 class SetToStringConverter : AttributeConverter<Set<String>?, String?> {

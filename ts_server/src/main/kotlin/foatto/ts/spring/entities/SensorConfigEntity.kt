@@ -1,6 +1,6 @@
 package foatto.ts.spring.entities
 
-import javax.persistence.*
+import jakarta.persistence.*
 
 @Entity
 @Table(name = "TS_sensor")
