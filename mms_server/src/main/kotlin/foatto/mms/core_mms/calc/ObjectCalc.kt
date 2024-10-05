@@ -1,12 +1,14 @@
 package foatto.mms.core_mms.calc
 
-import foatto.core.app.chart.*
+import foatto.core.app.chart.ChartColorIndex
+import foatto.core.app.chart.ChartElementDTO
+import foatto.core.app.chart.ChartElementLineDTO
+import foatto.core.app.chart.ChartElementTypeDTO
 import foatto.core.app.xy.XyProjection
 import foatto.core.app.xy.geom.XyPoint
 import foatto.core.util.getSplittedDouble
 import foatto.core.util.getSplittedLong
 import foatto.core_server.app.server.UserConfig
-import foatto.mms.core_mms.MMSFunction
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.ZoneData
 import foatto.mms.core_mms.ZoneLimitData
@@ -89,9 +91,6 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
         //--- maximum duration of the previous "normal" period,
         //--- used to calculate the average fuel consumption during refueling / draining
         private const val MAX_CALC_PREV_NORMAL_PERIOD = 3 * 60 * 60
-
-        //--- maximum allowable duration of (raw_time - calc_time)
-        private const val MAX_AGGREGATOR_TIME_DIFF = 5 * 60
 
         fun calcObject(conn: CoreAdvancedConnection, userConfig: UserConfig, oc: ObjectConfig, begTime: Int, endTime: Int): ObjectCalc {
 
@@ -545,35 +544,35 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
 //                }
 //                rs.close()
 //            } else {
-                //--- counters that give absolute values in their readings can reset it on command or overflow.
-                //--- you will have to catch each such reset (the algorithm is somewhat similar to the search for refueling / draining)
-                //--- also skip sudden dots with a zero counter
-                var begE = 0.0
-                var lastE = 0.0
+            //--- counters that give absolute values in their readings can reset it on command or overflow.
+            //--- you will have to catch each such reset (the algorithm is somewhat similar to the search for refueling / draining)
+            //--- also skip sudden dots with a zero counter
+            var begE = 0.0
+            var lastE = 0.0
 
-                for (i in alRawTime.indices) {
-                    val curTime = alRawTime[i]
-                    if (curTime < begTime) {
-                        continue
-                    }
-                    if (curTime > endTime) {
-                        break
-                    }
+            for (i in alRawTime.indices) {
+                val curTime = alRawTime[i]
+                if (curTime < begTime) {
+                    continue
+                }
+                if (curTime > endTime) {
+                    break
+                }
 
-                    val sensorData = AbstractObjectStateCalc.getSensorData(sces.portNum, alRawData[i])?.toDouble() ?: continue
-                    if (isIgnoreSensorData(sces.minIgnore, sces.maxIgnore, sensorData)) {
-                        continue
-                    }
+                val sensorData = AbstractObjectStateCalc.getSensorData(sces.portNum, alRawData[i])?.toDouble() ?: continue
+                if (isIgnoreSensorData(sces.minIgnore, sces.maxIgnore, sensorData)) {
+                    continue
+                }
 
-                    val sensorValue = AbstractObjectStateCalc.getSensorValue(sces.alValueSensor, sces.alValueData, sensorData)
+                val sensorValue = AbstractObjectStateCalc.getSensorValue(sces.alValueSensor, sces.alValueData, sensorData)
 
-                    if (begE == 0.0) {
-                        begE = sensorValue
-                    } else if (sensorValue < lastE) {
-                        energo += lastE - begE
-                        begE = sensorValue
-                    }
-                    lastE = sensorValue
+                if (begE == 0.0) {
+                    begE = sensorValue
+                } else if (sensorValue < lastE) {
+                    energo += lastE - begE
+                    begE = sensorValue
+                }
+                lastE = sensorValue
 
 //                }
                 energo += lastE - begE
@@ -697,93 +696,93 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
 //                }
 //                rs.close()
 //            } else {
-                //--- immediately add / set static (permanent) constraints if required / supported
-                if (graphicHandler.isStaticMinLimit(sca)) {
-                    graphicHandler.setStaticMinLimit(sca, begTime, endTime, aMinLimit)
+            //--- immediately add / set static (permanent) constraints if required / supported
+            if (graphicHandler.isStaticMinLimit(sca)) {
+                graphicHandler.setStaticMinLimit(sca, begTime, endTime, aMinLimit)
+            }
+            if (graphicHandler.isStaticMaxLimit(sca)) {
+                graphicHandler.setStaticMaxLimit(sca, begTime, endTime, aMaxLimit)
+            }
+
+            //--- for smoothing, you may need data before and after the time of the current point,
+            //--- therefore, we overload / translate data in advance
+            val alSensorData = mutableListOf<Double?>()
+            for (bb in alRawData) {
+                alSensorData.add(graphicHandler.getRawData(sca, bb))
+            }
+
+            //--- raw data processing -----------------------------------------------------------------------------------------
+
+            for (pos in alRawTime.indices) {
+                val rawTime = alRawTime[pos]
+                //--- immediately skip outrageous points loaded for seamless smoothing between adjacent ranges
+                if (rawTime < begTime) {
+                    continue
                 }
-                if (graphicHandler.isStaticMaxLimit(sca)) {
-                    graphicHandler.setStaticMaxLimit(sca, begTime, endTime, aMaxLimit)
+                if (rawTime > endTime) {
+                    break
                 }
 
-                //--- for smoothing, you may need data before and after the time of the current point,
-                //--- therefore, we overload / translate data in advance
-                val alSensorData = mutableListOf<Double?>()
-                for (bb in alRawData) {
-                    alSensorData.add(graphicHandler.getRawData(sca, bb))
-                }
+                //--- insert the first and last pseudo-points for seamless connection between periods
 
-                //--- raw data processing -----------------------------------------------------------------------------------------
+                //--- sensor value mb. == null, for example, ignored below / above the specified value boundaries (noise filtering)
+                val rawData = alSensorData[pos] ?: continue
 
-                for (pos in alRawTime.indices) {
-                    val rawTime = alRawTime[pos]
-                    //--- immediately skip outrageous points loaded for seamless smoothing between adjacent ranges
-                    if (rawTime < begTime) {
-                        continue
+                //--- if lines are shown
+                aLine.let {
+                    //--- finding the left border of the smoothing range
+                    var pos1 = pos - 1
+                    while (pos1 >= 0) {
+                        if (rawTime - alRawTime[pos1] > sca.smoothTime) {
+                            break
+                        }
+                        pos1--
                     }
-                    if (rawTime > endTime) {
-                        break
+                    //--- finding the right border of the smoothing range
+                    var pos2 = pos + 1
+                    while (pos2 < alRawTime.size) {
+                        if (alRawTime[pos2] - rawTime > sca.smoothTime) {
+                            break
+                        }
+                        pos2++
                     }
 
-                    //--- insert the first and last pseudo-points for seamless connection between periods
+                    //--- smoothing
+                    val avgValue: Double
+                    val alSubList = mutableListOf<Double>()
 
-                    //--- sensor value mb. == null, for example, ignored below / above the specified value boundaries (noise filtering)
-                    val rawData = alSensorData[pos] ?: continue
+                    for (p in pos1 + 1 until pos2) {
+                        val v = alSensorData[p] ?: continue
+                        alSubList.add(v)
+                    }
+                    alSubList.sort()
+                    //--- if the number of values is odd, take exactly the middle
+                    avgValue = if (alSubList.size % 2 != 0) {
+                        alSubList[alSubList.size / 2]
+                    }
+                    //--- otherwise the arithmetic mean between two values closest to the middle
+                    else {
+                        val val1 = alSubList[alSubList.size / 2 - 1]
+                        val val2 = alSubList[alSubList.size / 2]
+                        val1 + (val2 - val1) / 2
+                    }
 
-                    //--- if lines are shown
-                    aLine.let {
-                        //--- finding the left border of the smoothing range
-                        var pos1 = pos - 1
-                        while (pos1 >= 0) {
-                            if (rawTime - alRawTime[pos1] > sca.smoothTime) {
-                                break
-                            }
-                            pos1--
+                    val gldLast = alGLD.lastOrNull()
+
+                    //--- if boundary values are set, we look at the averaged avgValue,
+                    //--- so the typical getDynamicXXX from the beginning of the cycle does not suit us
+                    val prevTime = (gldLast?.x ?: rawTime)
+                    val prevData = (gldLast?.y ?: avgValue).toDouble()
+                    val curColorIndex = graphicHandler.getLineColorIndex(axisIndex, sca, rawTime, avgValue, prevTime, prevData)
+
+                    if (gldLast == null || rawTime - gldLast.x > xScale || abs(rawData - gldLast.y) > yScale || curColorIndex != gldLast.colorIndex) {
+                        val gd = scg?.let {
+                            AbstractObjectStateCalc.getGeoData(scg, alRawData[pos])
                         }
-                        //--- finding the right border of the smoothing range
-                        var pos2 = pos + 1
-                        while (pos2 < alRawTime.size) {
-                            if (alRawTime[pos2] - rawTime > sca.smoothTime) {
-                                break
-                            }
-                            pos2++
-                        }
-
-                        //--- smoothing
-                        val avgValue: Double
-                        val alSubList = mutableListOf<Double>()
-
-                        for (p in pos1 + 1 until pos2) {
-                            val v = alSensorData[p] ?: continue
-                            alSubList.add(v)
-                        }
-                        alSubList.sort()
-                        //--- if the number of values is odd, take exactly the middle
-                        avgValue = if (alSubList.size % 2 != 0) {
-                            alSubList[alSubList.size / 2]
-                        }
-                        //--- otherwise the arithmetic mean between two values closest to the middle
-                        else {
-                            val val1 = alSubList[alSubList.size / 2 - 1]
-                            val val2 = alSubList[alSubList.size / 2]
-                            val1 + (val2 - val1) / 2
-                        }
-
-                        val gldLast = alGLD.lastOrNull()
-
-                        //--- if boundary values are set, we look at the averaged avgValue,
-                        //--- so the typical getDynamicXXX from the beginning of the cycle does not suit us
-                        val prevTime = (gldLast?.x ?: rawTime)
-                        val prevData = (gldLast?.y ?: avgValue).toDouble()
-                        val curColorIndex = graphicHandler.getLineColorIndex(axisIndex, sca, rawTime, avgValue, prevTime, prevData)
-
-                        if (gldLast == null || rawTime - gldLast.x > xScale || abs(rawData - gldLast.y) > yScale || curColorIndex != gldLast.colorIndex) {
-                            val gd = scg?.let {
-                                AbstractObjectStateCalc.getGeoData(scg, alRawData[pos])
-                            }
-                            alGLD.add(ChartElementLineDTO(rawTime, avgValue.toFloat(), curColorIndex, gd?.let { XyProjection.wgs_pix(gd.wgs) }))
-                        }
+                        alGLD.add(ChartElementLineDTO(rawTime, avgValue.toFloat(), curColorIndex, gd?.let { XyProjection.wgs_pix(gd.wgs) }))
                     }
                 }
+            }
 //            }
 
             aLine.alGLD = alGLD
@@ -1281,45 +1280,45 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
 //                }
 //                rs.close()
 //            } else {
-                //--- counters that give absolute values in their readings can reset it on command or overflow.
-                //--- you will have to catch each such reset (the algorithm is somewhat similar to the search for refueling / draining)
-                //--- also skip sudden dots with a zero counter
-                var begValue = 0.0
-                var lastValue = 0.0
+            //--- counters that give absolute values in their readings can reset it on command or overflow.
+            //--- you will have to catch each such reset (the algorithm is somewhat similar to the search for refueling / draining)
+            //--- also skip sudden dots with a zero counter
+            var begValue = 0.0
+            var lastValue = 0.0
 
-                for (pos in alRawTime.indices) {
-                    val curTime = alRawTime[pos]
+            for (pos in alRawTime.indices) {
+                val curTime = alRawTime[pos]
 
-                    if (curTime < begTime) {
-                        continue
-                    }
-                    if (curTime > endTime) {
-                        break
-                    }
-
-                    val sensorData = AbstractObjectStateCalc.getSensorData(scc.portNum, alRawData[pos])?.toDouble() ?: continue
-                    //--- ignore outbound values
-                    if (isIgnoreSensorData(scc.minIgnore, scc.maxIgnore, sensorData)) {
-                        continue
-                    }
-
-                    val sensorValue = AbstractObjectStateCalc.getSensorValue(scc.alValueSensor, scc.alValueData, sensorData)
-
-                    if (scc.isAbsoluteCount) {
-                        if (begValue <= 0) {
-                            begValue = sensorValue
-                        } else if (sensorValue < lastValue) {
-                            sumValue += lastValue - begValue
-                            begValue = sensorValue
-                        }
-                        lastValue = sensorValue
-                    } else {
-                        sumValue += sensorValue
-                    }
+                if (curTime < begTime) {
+                    continue
                 }
+                if (curTime > endTime) {
+                    break
+                }
+
+                val sensorData = AbstractObjectStateCalc.getSensorData(scc.portNum, alRawData[pos])?.toDouble() ?: continue
+                //--- ignore outbound values
+                if (isIgnoreSensorData(scc.minIgnore, scc.maxIgnore, sensorData)) {
+                    continue
+                }
+
+                val sensorValue = AbstractObjectStateCalc.getSensorValue(scc.alValueSensor, scc.alValueData, sensorData)
+
                 if (scc.isAbsoluteCount) {
-                    sumValue += lastValue - begValue
+                    if (begValue <= 0) {
+                        begValue = sensorValue
+                    } else if (sensorValue < lastValue) {
+                        sumValue += lastValue - begValue
+                        begValue = sensorValue
+                    }
+                    lastValue = sensorValue
+                } else {
+                    sumValue += sensorValue
                 }
+            }
+            if (scc.isAbsoluteCount) {
+                sumValue += lastValue - begValue
+            }
 //            }
 
             return CounterCalcData(

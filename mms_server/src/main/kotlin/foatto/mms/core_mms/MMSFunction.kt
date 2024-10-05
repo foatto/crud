@@ -246,24 +246,4 @@ object MMSFunction {
         return result
     }
 
-    fun createAggTable(conn: CoreAdvancedConnection, sensorId: Int) {
-        conn.executeUpdate(
-            """ 
-                CREATE TABLE MMS_agg_$sensorId ( 
-                    ontime   ${conn.dialect.integerFieldTypeName} NOT NULL ,
-                    ontime_2 ${conn.dialect.integerFieldTypeName} ,
-                    type_1   ${conn.dialect.integerFieldTypeName} ,
-                    value_1  ${conn.dialect.doubleFieldTypeName} ,
-                    value_2  ${conn.dialect.doubleFieldTypeName} 
-                ) 
-            """.trimMargin()
-        )
-        conn.executeUpdate(conn.dialect.createClusteredIndex + " MMS_agg_${sensorId}_ontime ON MMS_agg_$sensorId ( ontime ) ")
-        conn.executeUpdate(conn.dialect.createClusteredIndex + " MMS_agg_${sensorId}_value_2 ON MMS_agg_$sensorId ( value_2 ) ")
-    }
-
-    fun deleteAggTable(conn: CoreAdvancedConnection, id: Int) {
-        conn.executeUpdate(" DROP TABLE MMS_agg_$id ")
-    }
-
 }

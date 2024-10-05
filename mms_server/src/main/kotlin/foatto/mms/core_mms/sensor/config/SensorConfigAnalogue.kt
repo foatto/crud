@@ -11,8 +11,6 @@ open class SensorConfigAnalogue(
     aBegYe: Int,
     aBegMo: Int,
     aBegDa: Int,
-    aRawTime: Int,
-    aCalcTime: Int,
     val smoothTime: Int,
     aMinIgnore: Double,
     aMaxIgnore: Double,
@@ -31,8 +29,6 @@ open class SensorConfigAnalogue(
     aBegYe = aBegYe,
     aBegMo = aBegMo,
     aBegDa = aBegDa,
-    rawTime = aRawTime,
-    calcTime = aCalcTime,
     minIgnore = aMinIgnore,
     maxIgnore = aMaxIgnore,
 )

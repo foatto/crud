@@ -108,7 +108,7 @@ abstract class CoreDataClean(aConfigFileName: String) : CoreServiceWorker(aConfi
 
             sensorIds.forEach { sensorId ->
                 if (MMSFunction.checkAggregationTableIsExists(alConn[0], sensorId)) {
-                    val aggRows = alConn[0].executeUpdate(" DELETE FROM MMS_agg_$sensorId WHERE ontime < $expireTime ")
+                    val aggRows = alConn[0].executeUpdate(" DELETE FROM MMS_agg_$sensorId WHERE ontime_0 < $expireTime ")
                     alConn[0].commit()
 
                     AdvancedLogger.debug("MMS_agg_$sensorId: ${hmObject[objectId]} = $aggRows rows")

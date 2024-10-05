@@ -11,8 +11,6 @@ class SensorConfigEnergoSummary(
     aBegYe: Int,
     aBegMo: Int,
     aBegDa: Int,
-    aRawTime: Int,
-    aCalcTime: Int,
     aMinIgnore: Double,
     aMaxIgnore: Double,
 ) : SensorConfigBase(
@@ -26,8 +24,6 @@ class SensorConfigEnergoSummary(
     aBegYe = aBegYe,
     aBegMo = aBegMo,
     aBegDa = aBegDa,
-    rawTime = aRawTime,
-    calcTime = aCalcTime,
     minIgnore = aMinIgnore,
     maxIgnore = aMaxIgnore,
 )

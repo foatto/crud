@@ -145,8 +145,7 @@ class cDevice : cStandart() {
                         is_absolute_count , in_out_type , energo_phase , container_type , analog_using_min_len , analog_is_using_calc ,
                         analog_detect_inc , analog_detect_inc_min_diff , analog_detect_inc_min_len , analog_inc_add_time_before , analog_inc_add_time_after ,
                         analog_detect_dec , analog_detect_dec_min_diff , analog_detect_dec_min_len , analog_dec_add_time_before , analog_dec_add_time_after ,
-                        smooth_time , ignore_min_sensor , ignore_max_sensor , liquid_name , liquid_norm , scheme_x , scheme_y ,
-                        raw_time , calc_time , is_use_aggregator  
+                        smooth_time , ignore_min_sensor , ignore_max_sensor , liquid_name , liquid_norm , scheme_x , scheme_y 
                     ) SELECT
                         $newSensorId , $newObjectId , name , group_name , descr , port_num + (${(newDeviceIndex - oldDeviceIndex) * MAX_PORT_PER_DEVICE}) , 
                         sensor_type , serial_no , beg_ye , beg_mo , beg_da ,
@@ -156,8 +155,7 @@ class cDevice : cStandart() {
                         is_absolute_count , in_out_type , energo_phase , container_type , analog_using_min_len , analog_is_using_calc ,
                         analog_detect_inc , analog_detect_inc_min_diff , analog_detect_inc_min_len , analog_inc_add_time_before , analog_inc_add_time_after ,
                         analog_detect_dec , analog_detect_dec_min_diff , analog_detect_dec_min_len , analog_dec_add_time_before , analog_dec_add_time_after ,
-                        smooth_time , ignore_min_sensor , ignore_max_sensor , liquid_name , liquid_norm , scheme_x , scheme_y ,
-                        raw_time , calc_time , is_use_aggregator  
+                        smooth_time , ignore_min_sensor , ignore_max_sensor , liquid_name , liquid_norm , scheme_x , scheme_y 
                     FROM MMS_sensor WHERE id = $oldSensorId
                 """
             )

@@ -11,8 +11,6 @@ class SensorConfigGeo(
     aBegYe: Int,
     aBegMo: Int,
     aBegDa: Int,
-    aRawTime: Int,
-    aCalcTime: Int,
     val minMovingTime: Int,
     val minParkingTime: Int,
     val minOverSpeedTime: Int,
@@ -36,8 +34,6 @@ class SensorConfigGeo(
     begYe = aBegYe,
     begMo = aBegMo,
     begDa = aBegDa,
-    rawTime = aRawTime,
-    calcTime = aCalcTime,
 ) {
 
     companion object {

@@ -95,12 +95,6 @@ class cObject : cStandart() {
         }
         rs.close()
 
-        for (sensorId in sensorIds) {
-            if (MMSFunction.checkAggregationTableIsExists(conn, sensorId)) {
-                MMSFunction.deleteAggTable(conn, sensorId)
-            }
-        }
-
         conn.executeUpdate(" DELETE FROM MMS_work_shift_data WHERE shift_id IN ( SELECT id FROM MMS_work_shift WHERE object_id = $id ) ")
         conn.executeUpdate(" DELETE FROM MMS_work_shift WHERE object_id = $id ")
 
