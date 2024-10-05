@@ -3,6 +3,8 @@ package foatto.server.service
 import foatto.core.ActionType
 import foatto.core.model.AppAction
 import foatto.core.model.request.FormActionData
+import foatto.core.model.response.FormActionResponse
+import foatto.core.model.response.ResponseCode
 import foatto.core.model.response.form.FormButton
 import foatto.core.model.response.form.cells.FormBaseCell
 import foatto.core.model.response.form.cells.FormSimpleCell
@@ -127,31 +129,29 @@ class GroupService(
                 )
             }
 
-            alTableRowData.add(
-                TableRowData(
-                    formAction = if (isFormEnabled) {
-                        formAction
-                    } else {
-                        null
-                    },
-                    rowAction = if (action.isSelectorMode) {
-                        AppAction(
-                            type = ActionType.FORM_SELECTOR,
-                            selectorData = mapOf(
-                                FIELD_ID to groupEntity.id.toString(),
-                                FIELD_NAME to (groupEntity.name ?: "(неизвестно)"),
-                            ),
-                        )
-                    } else if (isFormEnabled) {
-                        formAction
-                    } else {
-                        null
-                    },
-                    isRowUrlInNewTab = false,
-                    gotoAction = null,
-                    isGotoUrlInNewTab = true,
-                    alPopupData = alPopupData,
-                )
+            alTableRowData += TableRowData(
+                formAction = if (isFormEnabled) {
+                    formAction
+                } else {
+                    null
+                },
+                rowAction = if (action.isSelectorMode) {
+                    AppAction(
+                        type = ActionType.FORM_SELECTOR,
+                        selectorData = mapOf(
+                            FIELD_ID to groupEntity.id.toString(),
+                            FIELD_NAME to (groupEntity.name ?: "(неизвестно)"),
+                        ),
+                    )
+                } else if (isFormEnabled) {
+                    formAction
+                } else {
+                    null
+                },
+                isRowUrlInNewTab = false,
+                gotoAction = null,
+                isGotoUrlInNewTab = true,
+                alPopupData = alPopupData,
             )
 
             if (groupEntity.id == action.id) {
@@ -196,7 +196,6 @@ class GroupService(
             name = FIELD_NAME,
             caption = "Наименование",
             isEditable = changeEnabled,
-            isAutoFocus = false,
             value = groupEntity?.name ?: "",
         )
 
@@ -222,18 +221,18 @@ class GroupService(
         userConfig: ServerUserConfig,
         moduleConfig: AppModuleConfig,
         formActionData: Map<String, FormActionData>
-    ): Map<String, String>? {
+    ): FormActionResponse {
         val id = action.id
 
         //TODO: общий Map со всеми ошибками
         val recordUserId = formActionData[FIELD_USER_ID]?.stringValue?.toIntOrNull() ?: 0
 
-        val name = formActionData[FIELD_NAME]?.stringValue ?: return mapOf(FIELD_NAME to "Не введёно наименование")
+        val name = formActionData[FIELD_NAME]?.stringValue ?: return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_NAME to "Не введёно наименование"))
         if (name.isBlank()) {
-            return mapOf(FIELD_NAME to "Не введёно наименование")
+            return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_NAME to "Не введёно наименование"))
         }
         if (groupRepository.findByUserIdAndName(recordUserId, name).any { ge -> ge.id != id }) {
-            return mapOf(FIELD_NAME to "Такое наименование уже существует")
+            return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_NAME to "Такое наименование уже существует"))
         }
 
         val recordId = id ?: getNextId()
@@ -244,12 +243,12 @@ class GroupService(
         )
         groupRepository.saveAndFlush(groupEntity)
 
-        return null
+        return FormActionResponse(responseCode = ResponseCode.OK)
     }
 
-    override fun formActionDelete(userId: Int, id: Int): Map<String, String>? {
+    override fun formActionDelete(userId: Int, id: Int): FormActionResponse {
         groupRepository.deleteById(id)
-        return null
+        return FormActionResponse(responseCode = ResponseCode.OK)
     }
 
     override fun getFormActionPermissions(

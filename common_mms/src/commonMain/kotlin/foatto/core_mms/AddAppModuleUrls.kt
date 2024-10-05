@@ -17,4 +17,32 @@ fun addAppModuleUrls() {
         appUrl = ApiUrlMMS.GROUP,
         formActionUrl = ApiUrlMMS.GROUP_FORM_ACTION,
     )
+
+    appModuleUrls[AppModuleMMS.SENSOR] = AppModuleUrl(
+        appUrl = ApiUrlMMS.SENSOR,
+        formActionUrl = ApiUrlMMS.SENSOR_FORM_ACTION,
+    )
+    appModuleUrls[AppModuleMMS.SENSOR_CALIBRATION] = AppModuleUrl(
+        appUrl = ApiUrlMMS.SENSOR_CALIBRATION,
+        formActionUrl = ApiUrlMMS.SENSOR_CALIBRATION_FORM_ACTION,
+    )
+
+    appModuleUrls[AppModuleMMS.CHART_LIQUID_LEVEL] = AppModuleUrl(
+        appUrl = ApiUrlMMS.CHART_LIQUID_LEVEL,
+        chartActionUrl = ApiUrlMMS.CHART_LIQUID_LEVEL_ACTION,
+    )
+
+    appModuleUrls[AppModuleMMS.MAP_TRACE] = AppModuleUrl(
+        appUrl = ApiUrlMMS.MAP_TRACE,
+        mapActionUrl = ApiUrlMMS.MAP_TRACE_ACTION,
+    )
+
+    appModuleUrls[AppModuleMMS.SCHEME_ANALOGUE_INDICATOR_STATE] = AppModuleUrl(
+        appUrl = ApiUrlMMS.SCHEME_ANALOGUE_INDICATOR_STATE,
+        schemeActionUrl = ApiUrlMMS.SCHEME_ANALOGUE_INDICATOR_STATE_ACTION,
+    )
+
+    appModuleUrls[AppModuleMMS.COMPOSITE_OBJECT_DASHBOARD] = AppModuleUrl(
+        appUrl = ApiUrlMMS.COMPOSITE_OBJECT_DASHBOARD,
+    )
 }
