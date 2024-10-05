@@ -12,10 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import foatto.compose.composable.LogonForm
-import foatto.compose.control.AbstractControl
-import foatto.compose.control.EmptyControl
-import foatto.compose.control.FormControl
-import foatto.compose.control.TableControl
+import foatto.compose.control.*
 import foatto.compose.model.MenuDataClient
 import foatto.compose.utils.SETTINGS_LOGIN
 import foatto.compose.utils.SETTINGS_PASSWORD
@@ -91,9 +88,12 @@ class AppControl(
                     )
                 }
 
-                ResponseCode.MODULE_TABLE, ResponseCode.MODULE_FORM,
-                    /* !!!ResponseCode.XY, ResponseCode.CHART, ResponseCode.COMPOSITE*/
-                -> {
+                ResponseCode.MODULE_TABLE,
+                ResponseCode.MODULE_FORM,
+                ResponseCode.MODULE_CHART,
+                ResponseCode.MODULE_MAP,
+                ResponseCode.MODULE_SCHEME,
+                ResponseCode.MODULE_COMPOSITE -> {
                     curControl.Body()
                 }
 
@@ -116,18 +116,10 @@ class AppControl(
     }
 
     fun call(appRequest: AppRequest) {
-        val isAutoClose = appRequest.action.isAutoClose
-
-        //--- пустое урло, ничего не делаем
-        if (appRequest.action.module.isNullOrBlank()) {
-            if (isAutoClose) {
-                root.closeTabById(tabId)
-            }
-        }
         //--- файловое урло
-        else if (appRequest.action.type == ActionType.FILE) {
+        if (appRequest.action.type == ActionType.FILE) {
             root.openTab(appRequest.action)
-            if (isAutoClose) {
+            if (appRequest.action.isAutoClose) {
                 root.closeTabById(tabId)
             }
         } else {
@@ -175,34 +167,37 @@ class AppControl(
                         formControl.start()
                     }
 
-//!!!                    ResponseCode.XY -> {
-//                        appResponse.xy?.let { xy ->
-//                            val xyControl = when (xy.documentConfig.clientType) {
-//                                XyDocumentClientType.MAP -> MapControl(root, this, xy, tabId)
-//                                XyDocumentClientType.SCHEME -> SchemeControl(root, this, xy, tabId)
-//                            }
-//                            curControl = xyControl
-//                            responseCode = appResponse.code
-//
-//                            xyControl.start()
-//                        }
-//                    }
-//
-//                    ResponseCode.CHART -> {
-//                        val chartControl = ChartControl(root, this, appResponse.chart!!, tabId)
-//                        curControl = chartControl
-//                        responseCode = appResponse.code
-//
-//                        chartControl.start()
-//                    }
-//
-//                    ResponseCode.COMPOSITE -> {
-//                        val compositeControl = CompositeControl(root, this, appResponse.composite!!, tabId)
-//                        curControl = compositeControl
-//                        responseCode = appResponse.code
-//
-//                        compositeControl.start()
-//                    }
+                    ResponseCode.MODULE_CHART -> {
+                        val chartControl = ChartControl(root, this, appRequest.action, appResponse.chart!!, tabId)
+                        curControl = chartControl
+                        responseCode = appResponse.responseCode
+
+                        chartControl.start()
+                    }
+
+                    ResponseCode.MODULE_MAP -> {
+                        val mapControl = MapControl(root, this, appRequest.action, appResponse.map!!, tabId)
+                        curControl = mapControl
+                        responseCode = appResponse.responseCode
+
+                        mapControl.start()
+                    }
+
+                    ResponseCode.MODULE_SCHEME -> {
+                        val schemeControl = SchemeControl(root, this, appRequest.action, appResponse.scheme!!, tabId)
+                        curControl = schemeControl
+                        responseCode = appResponse.responseCode
+
+                        schemeControl.start()
+                    }
+
+                    ResponseCode.MODULE_COMPOSITE -> {
+                        val compositeControl = CompositeControl(root, this, appResponse.composite!!, tabId)
+                        curControl = compositeControl
+                        responseCode = appResponse.responseCode
+
+                        compositeControl.start()
+                    }
 
 ////            ResponseCode.VIDEO_ONLINE, ResponseCode.VIDEO_ARCHIVE -> {
 ////                val vcstartParamId = bbIn.getShortString()

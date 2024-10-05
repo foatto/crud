@@ -10,7 +10,7 @@ class FormComboCell(
     override val name: String,
     override val caption: String,
     override val isEditable: Boolean,
-    override val isAutoFocus: Boolean,
+    override val isAutoFocus: Boolean = false,
     override val pinMode: FormPinMode = FormPinMode.AUTO,
     override val visibility: FormCellVisibility? = null,
     override val captions: FormCellCaption? = null,

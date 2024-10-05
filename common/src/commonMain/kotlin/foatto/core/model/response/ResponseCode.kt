@@ -17,4 +17,8 @@ enum class ResponseCode {
 
     MODULE_TABLE,
     MODULE_FORM,
+    MODULE_CHART,
+    MODULE_MAP,
+    MODULE_SCHEME,
+    MODULE_COMPOSITE,
 }

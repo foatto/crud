@@ -36,6 +36,7 @@ import foatto.server.entity.FileStoreEntity
 import foatto.server.model.AppModuleConfig
 import foatto.server.model.ServerUserConfig
 import foatto.server.repository.FileStoreRepository
+import jakarta.persistence.EntityManager
 import org.hibernate.Session
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.PageRequest
@@ -43,7 +44,6 @@ import org.springframework.data.domain.Sort
 import org.springframework.data.repository.findByIdOrNull
 import java.io.File
 import java.sql.Statement
-import jakarta.persistence.EntityManager
 
 abstract class ApplicationService {
 
@@ -52,6 +52,34 @@ abstract class ApplicationService {
 
     @Value("\${temp_dir}")
     private val tempDirName: String = ""
+
+    companion object {
+
+        @JvmStatic
+        protected fun executeNativeSql(entityManager: EntityManager, vararg sqls: String): Int {
+            var result = 0
+
+            entityManager.unwrap(Session::class.java).let { session ->
+                session.doWork { conn ->
+                    var stm: Statement? = null
+                    var currentSql: String? = null
+                    try {
+                        stm = conn.createStatement()
+                        sqls.forEach { sql ->
+                            currentSql = sql
+                            result += stm.executeUpdate(sql)
+                        }
+                    } catch (t: Throwable) {
+                        println("currentSql = '$currentSql'")
+                        t.printStackTrace()
+                    } finally {
+                        stm?.close()
+                    }
+                }
+            }
+            return result
+        }
+    }
 
     fun app(
         sessionId: Long,
@@ -366,14 +394,12 @@ abstract class ApplicationService {
             name = fieldUserId,
             caption = "",
             isEditable = false,
-            isAutoFocus = false,
             value = userId.toString(),
         )
         formCells += FormSimpleCell(
             name = fieldOwnerFullName,
             caption = "Владелец",
             isEditable = false,
-            isAutoFocus = false,
             value = if (userId == null || userId == 0) {
                 "-"
             } else {
@@ -479,7 +505,6 @@ abstract class ApplicationService {
 
     protected abstract fun checkExistingId(nextId: Int): Boolean
 
-    //TODO: возвращать соответствующие коды/тексты ошибок
     open fun formAction(
         sessionId: Long,
         action: AppAction,
@@ -495,7 +520,7 @@ abstract class ApplicationService {
             moduleConfig = moduleConfig,
         )
 
-        val errors = when (action.type) {
+        return when (action.type) {
             ActionType.FORM_ADD -> {
                 if (addEnabled) {
                     formActionSave(
@@ -531,13 +556,8 @@ abstract class ApplicationService {
             }
 
             else -> {
-                null
+                FormActionResponse(ResponseCode.OK)
             }
-        }
-        return if (errors == null) {
-            FormActionResponse(ResponseCode.OK)
-        } else {
-            FormActionResponse(responseCode = ResponseCode.ERROR, errors = errors)
         }
     }
 
@@ -546,31 +566,11 @@ abstract class ApplicationService {
         userConfig: ServerUserConfig,
         moduleConfig: AppModuleConfig,
         formActionData: Map<String, FormActionData>
-    ): Map<String, String>?
+    ): FormActionResponse
 
-    protected abstract fun formActionDelete(userId: Int, id: Int): Map<String, String>?
+    protected abstract fun formActionDelete(userId: Int, id: Int): FormActionResponse
 
     protected fun isAdminOnly(userConfig: ServerUserConfig): Boolean = userConfig.roles.size == 1 && userConfig.roles.contains(AppRole.ADMIN)
-
-    protected fun executeNativeSql(entityManager: EntityManager, vararg sqls: String): Int {
-        var result = 0
-
-        entityManager.unwrap(Session::class.java).let { session ->
-            session.doWork { conn ->
-                var stm: Statement? = null
-                try {
-                    stm = conn.createStatement()
-                    sqls.forEach { sql ->
-                        result += stm.executeUpdate(sql)
-                    }
-                } finally {
-                    stm?.close()
-                }
-            }
-        }
-
-        return result
-    }
 
     //--- file functions ---
 

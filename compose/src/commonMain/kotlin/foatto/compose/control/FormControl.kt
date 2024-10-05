@@ -1228,9 +1228,6 @@ class FormControl(
                 formActionData = formActionData,
             )
         ) { formActionResponse: FormActionResponse ->
-            //TODO:
-            // 1. разные страницы в зависимости от responseCode
-            // 2. возможен кастомный/нестандартный prevAction от сервера
             when (formActionResponse.responseCode) {
                 ResponseCode.ERROR -> {
                     formActionResponse.errors?.let { errors ->
@@ -1250,7 +1247,9 @@ class FormControl(
                 }
 
                 else -> {   // и в т.ч. ResponseCode.OK
-                    formResponse.prevAction?.let { prevAction ->
+                    formActionResponse.nextAction?.let { nextAction ->
+                        appControl.call(AppRequest(nextAction))
+                    } ?: formResponse.prevAction?.let { prevAction ->
                         appControl.call(AppRequest(prevAction))
                     }
                 }

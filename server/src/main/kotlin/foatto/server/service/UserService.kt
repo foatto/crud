@@ -5,6 +5,8 @@ import foatto.core.AppModule
 import foatto.core.IconName
 import foatto.core.model.AppAction
 import foatto.core.model.request.FormActionData
+import foatto.core.model.response.FormActionResponse
+import foatto.core.model.response.ResponseCode
 import foatto.core.model.response.form.FormButton
 import foatto.core.model.response.form.FormCellVisibility
 import foatto.core.model.response.form.cells.FormBaseCell
@@ -42,7 +44,7 @@ class UserService(
     private val fileStoreRepository: FileStoreRepository,
 ) : ApplicationService() {
 
-   companion object {
+    companion object {
         const val FIELD_ID: String = "id"
         private const val FIELD_PARENT_ID = "parentId"
         private const val FIELD_USER_ID = "userId"
@@ -200,7 +202,7 @@ class UserService(
             }
             alTableCell += TableSimpleCell(row = row, col = col++, dataRow = row, name = userEntity.login ?: "-")
             alTableCell += TableSimpleCell(row = row, col = col++, dataRow = row, name = userEntity.shortName ?: "-")
-            alTableCell += TableSimpleCell(row = row, col = col++, dataRow = row, name = userEntity.fullName ?: "-", align = TableCellAlign.LEFT)
+            alTableCell += TableSimpleCell(row = row, col = col++, dataRow = row, name = userEntity.fullName ?: "-")
             if (isAdminOnly(userConfig)) {
                 alTableCell += TableSimpleCell(row = row, col = col++, dataRow = row, name = userEntity.roles.joinToString())
             }
@@ -237,33 +239,31 @@ class UserService(
                 )
             }
 
-            alTableRowData.add(
-                TableRowData(
-                    formAction = if (isFormEnabled) {
-                        formAction
-                    } else {
-                        null
-                    },
-                    rowAction = if (userEntity.orgType == OrgType.ORG_TYPE_DIVISION) {
-                        action.copy(parentModule = action.module, parentId = userEntity.id)
-                    } else if (action.isSelectorMode) {
-                        AppAction(
-                            type = ActionType.FORM_SELECTOR,
-                            selectorData = mapOf(
-                                FIELD_ID to userEntity.id.toString(),
-                                FIELD_FULL_NAME to (userEntity.fullName ?: "(неизвестно)"),
-                            ),
-                        )
-                    } else if (isFormEnabled) {
-                        formAction
-                    } else {
-                        null
-                    },
-                    isRowUrlInNewTab = false,
-                    gotoAction = null,
-                    isGotoUrlInNewTab = true,
-                    alPopupData = alPopupData,
-                )
+            alTableRowData += TableRowData(
+                formAction = if (isFormEnabled) {
+                    formAction
+                } else {
+                    null
+                },
+                rowAction = if (userEntity.orgType == OrgType.ORG_TYPE_DIVISION) {
+                    action.copy(parentModule = action.module, parentId = userEntity.id)
+                } else if (action.isSelectorMode) {
+                    AppAction(
+                        type = ActionType.FORM_SELECTOR,
+                        selectorData = mapOf(
+                            FIELD_ID to userEntity.id.toString(),
+                            FIELD_FULL_NAME to (userEntity.fullName ?: "(неизвестно)"),
+                        ),
+                    )
+                } else if (isFormEnabled) {
+                    formAction
+                } else {
+                    null
+                },
+                isRowUrlInNewTab = false,
+                gotoAction = null,
+                isGotoUrlInNewTab = true,
+                alPopupData = alPopupData,
             )
 
             if (userEntity.id == action.id) {
@@ -312,14 +312,12 @@ class UserService(
             name = FIELD_PARENT_ID,
             caption = "",
             isEditable = false,
-            isAutoFocus = false,
             value = parentId.toString(),
         )
         formCells += FormSimpleCell(
             name = FIELD_PARENT_FULL_NAME,
             caption = "Верхнее подразделение",
             isEditable = false,
-            isAutoFocus = false,
             value = if (parentId == null || parentId == 0) {
                 "-"
             } else {
@@ -350,13 +348,7 @@ class UserService(
             name = FIELD_ORG_TYPE,
             caption = "Тип",
             isEditable = changeEnabled,
-            isAutoFocus = false,
-            value = when (userEntity?.orgType) {
-                OrgType.ORG_TYPE_DIVISION -> "0"
-                OrgType.ORG_TYPE_BOSS -> "1"
-                OrgType.ORG_TYPE_WORKER -> "2"
-                else -> "2"
-            },
+            value = userEntity?.orgType?.toString() ?: OrgType.ORG_TYPE_WORKER.toString(),
             values = listOf(
                 OrgType.ORG_TYPE_DIVISION.toString() to "Подразделение",
                 OrgType.ORG_TYPE_BOSS.toString() to "Руководитель",
@@ -367,7 +359,6 @@ class UserService(
             name = FIELD_IS_DISABLED,
             caption = "Заблокирован",
             isEditable = changeEnabled,
-            isAutoFocus = false,
             value = userEntity?.isDisabled ?: false,
             visibility = nonVisibleForDivision,
         )
@@ -375,21 +366,18 @@ class UserService(
             name = FIELD_FULL_NAME,
             caption = "Полное имя",
             isEditable = changeEnabled,
-            isAutoFocus = false,
             value = userEntity?.fullName ?: "",
         )
         formCells += FormSimpleCell(
             name = FIELD_SHORT_NAME,
             caption = "Краткое имя",
             isEditable = changeEnabled,
-            isAutoFocus = false,
             value = userEntity?.shortName ?: "",
         )
         formCells += FormSimpleCell(
             name = FIELD_LOGIN,
             caption = "Логин",
             isEditable = changeEnabled,
-            isAutoFocus = false,
             value = userEntity?.login ?: "",
             visibility = nonVisibleForDivision,
         )
@@ -397,7 +385,6 @@ class UserService(
             name = FIELD_PASSWORD,
             caption = "Пароль",
             isEditable = changeEnabled,
-            isAutoFocus = false,
             value = userEntity?.password ?: "",
             isPassword = true,
             visibility = nonVisibleForDivision,
@@ -409,7 +396,6 @@ class UserService(
                 name = FIELD_ROLES + "_" + role,
                 caption = "Роль $role",
                 isEditable = changeEnabled,
-                isAutoFocus = false,
                 value = userEntity?.roles?.contains(role) ?: false,
                 visibility = nonVisibleForDivision,
             )
@@ -418,7 +404,6 @@ class UserService(
             name = FIELD_TIME_OFFSET,
             caption = "Сдвиг часового пояса [сек]",
             isEditable = changeEnabled,
-            isAutoFocus = false,
             value = userEntity?.timeOffset?.toString() ?: "10800",
             visibility = nonVisibleForDivision,
         )
@@ -426,14 +411,12 @@ class UserService(
             name = FIELD_EMAIL,
             caption = "E-mail",
             isEditable = changeEnabled,
-            isAutoFocus = false,
             value = userEntity?.eMail ?: "",
         )
         formCells += FormSimpleCell(
             name = FIELD_CONTACT_INFO,
             caption = "Контактная информация",
             isEditable = changeEnabled,
-            isAutoFocus = false,
             value = userEntity?.contactInfo ?: "",
             rows = 5,
         )
@@ -441,7 +424,6 @@ class UserService(
             name = FIELD_FILE,
             caption = "Файлы",
             isEditable = changeEnabled,
-            isAutoFocus = false,
             fileId = userEntity?.fileId,
             files = getFormFileCellData(fileStoreRepository, userEntity?.fileId)
         )
@@ -449,7 +431,6 @@ class UserService(
             name = FIELD_AT_COUNT,
             caption = "Кол-во попыток входа",
             isEditable = changeEnabled,
-            isAutoFocus = false,
             value = userEntity?.atCount?.toString() ?: "",
             visibility = nonVisibleForDivision,
         )
@@ -457,7 +438,6 @@ class UserService(
             name = FIELD_LAST_LOGIN,
             caption = "Дата/время последнего входа",
             isEditable = false,
-            isAutoFocus = false,
             value = userEntity?.lastLoginDateTime?.let { dt ->
                 listOf(dt.da.toString(), dt.mo.toString(), dt.ye.toString(), dt.ho.toString(), dt.mi.toString(), dt.se.toString())
             } ?: listOf("", "", "", "", "", ""),
@@ -467,7 +447,6 @@ class UserService(
             name = FIELD_LAST_IP,
             caption = "Last IP",
             isEditable = false,
-            isAutoFocus = false,
             value = userEntity?.lastIP ?: "",
             visibility = nonVisibleForDivision,
         )
@@ -475,7 +454,6 @@ class UserService(
             name = FIELD_PASSWORD_LAST_CHANGE,
             caption = "Дата/время последней смены пароля",
             isEditable = false,
-            isAutoFocus = false,
             value = userEntity?.passwordLastChangeDate?.let { d ->
                 listOf(d.da.toString(), d.mo.toString(), d.ye.toString())
             } ?: listOf("", "", ""),
@@ -504,29 +482,29 @@ class UserService(
         userConfig: ServerUserConfig,
         moduleConfig: AppModuleConfig,
         formActionData: Map<String, FormActionData>
-    ): Map<String, String>? {
+    ): FormActionResponse {
         val id = action.id
 
         //TODO: общий Map со всеми ошибками
-        val fullName = formActionData[FIELD_FULL_NAME]?.stringValue ?: return mapOf(FIELD_FULL_NAME to "Не введёно полное имя")
+        val fullName = formActionData[FIELD_FULL_NAME]?.stringValue ?: return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_FULL_NAME to "Не введёно полное имя"))
         if (fullName.isBlank()) {
-            return mapOf(FIELD_FULL_NAME to "Не введёно полное имя")
+            return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_FULL_NAME to "Не введёно полное имя"))
         }
         if (userRepository.findByFullName(fullName).any { ue -> ue.id != id }) {
-            return mapOf(FIELD_FULL_NAME to "Такое полное имя уже существует")
+            return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_FULL_NAME to "Такое полное имя уже существует"))
         }
 
-        val login = formActionData[FIELD_LOGIN]?.stringValue ?: return mapOf(FIELD_LOGIN to "Не введён логин")
+        val login = formActionData[FIELD_LOGIN]?.stringValue ?: return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_LOGIN to "Не введён логин"))
         if (login.isBlank()) {
-            return mapOf(FIELD_LOGIN to "Не введён логин")
+            return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_LOGIN to "Не введён логин"))
         }
         if (userRepository.findByLogin(login).any { ue -> ue.id != id }) {
-            return mapOf(FIELD_LOGIN to "Такой логин уже существует")
+            return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_LOGIN to "Такой логин уже существует"))
         }
 
-        val password = formActionData[FIELD_PASSWORD]?.stringValue ?: return mapOf(FIELD_PASSWORD to "Не введён пароль")
+        val password = formActionData[FIELD_PASSWORD]?.stringValue ?: return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_PASSWORD to "Не введён пароль"))
         if (password.isBlank()) {
-            return mapOf(FIELD_PASSWORD to "Не введён пароль")
+            return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_PASSWORD to "Не введён пароль"))
         }
         val encodedPassword: String = id?.let {
             userRepository.findByIdOrNull(id)?.let { userEntity ->
@@ -584,12 +562,12 @@ class UserService(
         )
         userRepository.saveAndFlush(userEntity)
 
-        return null
+        return FormActionResponse(responseCode = ResponseCode.OK)
     }
 
-    override fun formActionDelete(userId: Int, id: Int): Map<String, String>? {
+    override fun formActionDelete(userId: Int, id: Int): FormActionResponse {
         userRepository.deleteById(id)
-        return null
+        return FormActionResponse(responseCode = ResponseCode.OK)
     }
 
     override fun getFormActionPermissions(

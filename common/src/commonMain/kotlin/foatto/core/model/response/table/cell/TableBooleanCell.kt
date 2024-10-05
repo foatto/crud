@@ -13,7 +13,7 @@ class TableBooleanCell(
     override val backColor: Int? = null,
     override val backColorType: TableCellBackColorType = TableCellBackColorType.DEFAULT,
     override val foreColor: Int? = null,
-    override val fontStyle: Int = 0,
+    override val isBoldText: Boolean = false,
 
     val value: Boolean,
 ) : TableBaseCell()

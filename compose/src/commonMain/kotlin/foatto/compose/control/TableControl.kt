@@ -52,8 +52,8 @@ import foatto.core.model.AppAction
 import foatto.core.model.request.AppRequest
 import foatto.core.model.response.AppResponse
 import foatto.core.model.response.ResponseCode
-import foatto.core.model.response.table.TableResponse
 import foatto.core.model.response.table.TablePopupData
+import foatto.core.model.response.table.TableResponse
 import foatto.core.model.response.table.TableRowData
 import foatto.core.model.response.table.cell.TableBooleanCell
 import foatto.core.model.response.table.cell.TableButtonCell
@@ -433,13 +433,14 @@ class TableControl(
                 //}
             }
             //--- Page Bar
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(colorBottomBar),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
+            if (alPageButton.size > 1) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(colorBottomBar),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
 //                            borderTop(
 //                                width = getStyleTableCaptionBorderTop().width,
 //                                lineStyle = getStyleTableCaptionBorderTop().style,
@@ -447,19 +448,20 @@ class TableControl(
 //                            )
 //                            backgroundColor(getColorTablePagebarBack())
 
-                for (pageButton in alPageButton) {
-                    Button(
-                        modifier = Modifier.padding(1.dp),
-                        shape = RoundedCornerShape(0.dp),
-                        enabled = pageButton.action != null,
+                    for (pageButton in alPageButton) {
+                        Button(
+                            modifier = Modifier.padding(1.dp),
+                            shape = RoundedCornerShape(0.dp),
+                            enabled = pageButton.action != null,
 //                                cursor("pointer")
-                        onClick = {
-                            pageButton.action?.let { action ->
-                                call(action, false)
+                            onClick = {
+                                pageButton.action?.let { action ->
+                                    call(action, false)
+                                }
                             }
+                        ) {
+                            Text(pageButton.text)
                         }
-                    ) {
-                        Text(pageButton.text)
                     }
                 }
             }
@@ -606,7 +608,7 @@ class TableControl(
                         align = align,
                         backColor = backColor,
                         textColor = textColor,
-                        isBoldText = tc.fontStyle != 0,
+                        isBoldText = tc.isBoldText,
                         value = tc.value,
                     )
                 }
@@ -618,7 +620,7 @@ class TableControl(
                         align = align,
                         backColor = backColor,
                         textColor = textColor,
-                        isBoldText = tc.fontStyle != 0,
+                        isBoldText = tc.isBoldText,
                         //tc.isWordWrap
                         data = TableCellDataClient(
                             name = tc.name,
@@ -633,7 +635,7 @@ class TableControl(
                         align = align,
                         backColor = backColor,
                         textColor = textColor,
-                        isBoldText = tc.fontStyle != 0,
+                        isBoldText = tc.isBoldText,
                         data = tc.values.map { tableButtonCellData ->
                             TableCellDataClient(
                                 name = tableButtonCellData.name,
@@ -651,7 +653,7 @@ class TableControl(
                         align = align,
                         backColor = backColor,
                         textColor = textColor,
-                        isBoldText = tc.fontStyle != 0,
+                        isBoldText = tc.isBoldText,
                         data = tc.values.map { alTableGridCellData ->
                             alTableGridCellData.map { name ->
                                 TableCellDataClient(

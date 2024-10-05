@@ -13,5 +13,5 @@ sealed class TableBaseCell {
     abstract val backColor: Int?
     abstract val backColorType: TableCellBackColorType
     abstract val foreColor: Int?
-    abstract val fontStyle: Int
+    abstract val isBoldText: Boolean
 }

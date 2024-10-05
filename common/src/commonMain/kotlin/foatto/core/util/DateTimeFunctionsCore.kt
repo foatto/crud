@@ -108,6 +108,12 @@ fun DateTime_YMDHMS(ye: Int, mo: Int, da: Int, ho: Int, mi: Int, se: Int): Strin
 fun DateTime_YMDHM(ye: Int, mo: Int, da: Int, ho: Int, mi: Int): String =
     "${getDigit(ye)}.${getDigit(mo)}.${getDigit(da)} ${getDigit(ho)}:${getDigit(mi)}"
 
+fun Date_YMD(ye: Int, mo: Int, da: Int): String =
+    "${getDigit(ye)}.${getDigit(mo)}.${getDigit(da)}"
+
+fun Date_DMY(ye: Int, mo: Int, da: Int): String =
+    "${getDigit(da)}.${getDigit(mo)}.${getDigit(ye)}"
+
 //-------------------------------------------------------------------------------------------------
 
 private fun getDigit(value: Int): String = "${if (value < 10) '0' else ""}${value}"
@@ -166,10 +172,6 @@ fun getDateArray(ld: LocalDate) = arrayOf(ld.year, ld.monthValue, ld.dayOfMonth)
 fun DateTime_DMY(zoneId: ZoneId, second: Int) = DateTime_DMY(getDateTimeArray(zoneId, second))
 fun DateTime_DMY(zdt: ZonedDateTime) = DateTime_DMY(getDateTimeArray(zdt))
 fun DateTime_DMY(ld: LocalDate) = DateTime_DMY(getDateArray(ld))
-fun DateTime_DMY(arrDT: Array<Int>) =
-    "${if (arrDT[2] < 10) "0" else ""}${arrDT[2]}." +
-        "${if (arrDT[1] < 10) "0" else ""}${arrDT[1]}." +
-        "${if (arrDT[0] < 10) "0" else ""}${arrDT[0]}"
 
 fun Time_HMS(ld: LocalTime) =
     "${if (ld.hour < 10) "0" else ""}${ld.hour}:" +
