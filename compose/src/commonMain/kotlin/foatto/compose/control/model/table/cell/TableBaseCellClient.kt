@@ -12,6 +12,7 @@ import foatto.compose.model.MenuDataClient
 abstract class TableBaseCellClient(
     val colSpan: Int,
     val dataRow: Int?,
+    val minWidth: Int,
     val align: Alignment,
     val backColor: Color,
     val textColor: Color,

@@ -9,6 +9,7 @@ import foatto.core.model.response.form.FormPinMode
 sealed class FormBaseCell {
     abstract val name: String
     abstract val caption: String
+    abstract val minWidth: Int
     abstract val isEditable: Boolean
     abstract val isAutoFocus: Boolean
     abstract val pinMode: FormPinMode

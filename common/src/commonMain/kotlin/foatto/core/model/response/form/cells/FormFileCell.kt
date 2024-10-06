@@ -9,6 +9,7 @@ import foatto.core.model.response.form.FormPinMode
 class FormFileCell(
     override val name: String,
     override val caption: String,
+    override val minWidth: Int = 0,
     override val isEditable: Boolean,
     override val isAutoFocus: Boolean = false,
     override val pinMode: FormPinMode = FormPinMode.AUTO,

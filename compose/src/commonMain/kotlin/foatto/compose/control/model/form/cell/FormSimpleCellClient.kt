@@ -7,12 +7,14 @@ import foatto.core.model.response.form.cells.FormSimpleCell
 
 class FormSimpleCellClient(
     cellName: String,
+    minWidth: Int,
     align: Arrangement.Horizontal,
     isVisible: MutableState<Boolean> = mutableStateOf(true),
     focusId: Int,
     val data: FormSimpleCell,
 ) : FormBaseCellClient(
     cellName = cellName,
+    minWidth = minWidth,
     align = align,
     isVisible = isVisible,
     focusId = focusId,

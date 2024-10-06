@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 
 abstract class FormBaseCellClient(
     val cellName: String,
+    val minWidth: Int,
     val align: Arrangement.Horizontal,
     val isVisible: MutableState<Boolean> = mutableStateOf(true),
     val focusId: Int,

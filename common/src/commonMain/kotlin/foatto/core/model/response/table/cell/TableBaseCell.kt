@@ -8,7 +8,7 @@ sealed class TableBaseCell {
     abstract val col: Int
     abstract val colSpan: Int
     abstract val dataRow: Int
-    abstract val minWidth: Int?
+    abstract val minWidth: Int
     abstract val align: TableCellAlign
     abstract val backColor: Int?
     abstract val backColorType: TableCellBackColorType

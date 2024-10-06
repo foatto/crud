@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.Color
 class TableSimpleCellClient(
     colSpan: Int,
     dataRow: Int?,
+    minWidth: Int,
     align: Alignment,
     backColor: Color,
     textColor: Color,
@@ -15,6 +16,7 @@ class TableSimpleCellClient(
 ) : TableBaseCellClient(
     colSpan = colSpan,
     dataRow = dataRow,
+    minWidth = minWidth,
     align = align,
     backColor = backColor,
     textColor = textColor,

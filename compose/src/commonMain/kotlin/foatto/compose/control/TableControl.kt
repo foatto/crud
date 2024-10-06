@@ -278,7 +278,7 @@ class TableControl(
                                     .onSizeChanged { size ->
                                         gridData?.let {
                                             val componentWidth = with(density) {
-                                                maxDp(size.width.toDp(), TABLE_CELL_PADDING * 2)    // minWidth
+                                                maxDp(size.width.toDp(), gridData.minWidth.dp)
                                             }
                                             gridData.componentWidth = maxDp(gridData.componentWidth, componentWidth)
 
@@ -605,6 +605,7 @@ class TableControl(
                     TableBooleanCellClient(
                         colSpan = tc.colSpan,
                         dataRow = tc.dataRow,
+                        minWidth = tc.minWidth,
                         align = align,
                         backColor = backColor,
                         textColor = textColor,
@@ -617,6 +618,7 @@ class TableControl(
                     TableSimpleCellClient(
                         colSpan = tc.colSpan,
                         dataRow = tc.dataRow,
+                        minWidth = tc.minWidth,
                         align = align,
                         backColor = backColor,
                         textColor = textColor,
@@ -632,6 +634,7 @@ class TableControl(
                     TableButtonCellClient(
                         colSpan = tc.colSpan,
                         dataRow = tc.dataRow,
+                        minWidth = tc.minWidth,
                         align = align,
                         backColor = backColor,
                         textColor = textColor,
@@ -650,6 +653,7 @@ class TableControl(
                     TableGridCellClient(
                         colSpan = tc.colSpan,
                         dataRow = tc.dataRow,
+                        minWidth = tc.minWidth,
                         align = align,
                         backColor = backColor,
                         textColor = textColor,

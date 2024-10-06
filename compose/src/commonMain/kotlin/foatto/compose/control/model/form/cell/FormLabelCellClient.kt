@@ -6,11 +6,13 @@ import androidx.compose.runtime.mutableStateOf
 
 class FormLabelCellClient(
     cellName: String,
+    minWidth: Int,
     align: Arrangement.Horizontal,
     isVisible: MutableState<Boolean> = mutableStateOf(true),
     val caption: String,
 ) : FormBaseCellClient(
     cellName = cellName,
+    minWidth = minWidth,
     align = align,
     isVisible = isVisible,
     focusId = -1,

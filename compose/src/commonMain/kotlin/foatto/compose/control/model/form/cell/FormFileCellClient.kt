@@ -10,12 +10,14 @@ import foatto.core.model.response.form.cells.FormFileCell
 
 class FormFileCellClient(
     cellName: String,
+    minWidth: Int,
     align: Arrangement.Horizontal,
     isVisible: MutableState<Boolean> = mutableStateOf(true),
     focusId: Int,
     val data: FormFileCell,
 ) : FormBaseCellClient(
     cellName = cellName,
+    minWidth = minWidth,
     align = align,
     isVisible = isVisible,
     focusId = focusId,

@@ -171,7 +171,7 @@ class FormControl(
                                         .onSizeChanged { size ->
                                             gridData?.let {
                                                 val componentWidth = with(density) {
-                                                    maxDp(size.width.toDp(), FORM_CELL_PADDING * 2)    //!!! minWidth
+                                                    maxDp(size.width.toDp(), gridData.minWidth.dp)
                                                 }
                                                 gridData.componentWidth = maxDp(gridData.componentWidth, componentWidth)
                                                 hmColumnMaxWidth[col] = maxDp(hmColumnMaxWidth[col] ?: 0.dp, componentWidth)
@@ -900,6 +900,7 @@ class FormControl(
     private fun getClassicFormLabelCell(formCell: FormBaseCell): FormLabelCellClient {
         return FormLabelCellClient(
             cellName = formCell.name,
+            minWidth = formCell.minWidth,
             caption = formCell.caption,
             align = if (root.isWideScreen) {
                 Arrangement.End
@@ -914,6 +915,7 @@ class FormControl(
         for (caption in alFormColumn) {
             val formGridData = FormLabelCellClient(
                 cellName = "",
+                minWidth = 0,
                 caption = caption,
                 align = Arrangement.Center,
             )
@@ -930,18 +932,21 @@ class FormControl(
 
     private fun getGridFormLeftCaption(formCell: FormBaseCell) = FormLabelCellClient(
         cellName = "",
+        minWidth = formCell.minWidth,
         caption = formCell.caption,
         align = Arrangement.End,
     )
 
     private fun getGridFormRightCaption(formCell: FormBaseCell) = FormLabelCellClient(
         cellName = "",
+        minWidth = formCell.minWidth,
         caption = formCell.caption,
         align = Arrangement.Start,
     )
 
     private fun getFormEmptyCell() = FormLabelCellClient(
         cellName = "",
+        minWidth = 0,
         caption = "", //BR,
         align = Arrangement.Center,
     )
@@ -962,6 +967,7 @@ class FormControl(
             is FormSimpleCell -> {
                 FormSimpleCellClient(
                     cellName = formCell.name,
+                    minWidth = formCell.minWidth,
                     align = align,
                     focusId = cellFocusId,
                     data = formCell,
@@ -971,6 +977,7 @@ class FormControl(
             is FormBooleanCell -> {
                 FormBooleanCellClient(
                     cellName = formCell.name,
+                    minWidth = formCell.minWidth,
                     align = align,
                     focusId = cellFocusId,
                     data = formCell,
@@ -980,6 +987,7 @@ class FormControl(
             is FormDateTimeCell -> {
                 FormDateTimeCellClient(
                     cellName = formCell.name,
+                    minWidth = formCell.minWidth,
                     align = align,
                     focusId = cellFocusId,
                     data = formCell,
@@ -993,6 +1001,7 @@ class FormControl(
             is FormComboCell -> {
                 FormComboCellClient(
                     cellName = formCell.name,
+                    minWidth = formCell.minWidth,
                     align = align,
                     focusId = cellFocusId,
                     data = formCell,
@@ -1008,6 +1017,7 @@ class FormControl(
             is FormFileCell -> {
                 FormFileCellClient(
                     cellName = formCell.name,
+                    minWidth = formCell.minWidth,
                     align = align,
                     focusId = cellFocusId,
                     data = formCell,
