@@ -77,8 +77,10 @@ fun TableToolBar(
                     modifier = Modifier.background(colorControlBack).onKeyEvent { keyEvent ->
                         if (keyEvent.key == Key.Enter) {
                             doFind(false)
+                            true
+                        } else {
+                            false
                         }
-                        true
                     },
                     value = findText,
                     onValueChange = { newText ->
