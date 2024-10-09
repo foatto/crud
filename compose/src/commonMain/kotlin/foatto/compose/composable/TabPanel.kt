@@ -63,6 +63,7 @@ internal fun TabPanel(
                         Spacer(modifier = Modifier.weight(1.0f))
                         IconButton(
                             modifier = Modifier.align(Alignment.CenterVertically),
+                            enabled = alTabInfo.size > 1,
                             onClick = {
                                 onTabCloseClick(index)
                             }
