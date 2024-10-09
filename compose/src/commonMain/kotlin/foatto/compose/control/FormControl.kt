@@ -51,10 +51,10 @@ import foatto.core.model.request.FormActionData
 import foatto.core.model.request.FormActionRequest
 import foatto.core.model.response.AppResponse
 import foatto.core.model.response.FormActionResponse
-import foatto.core.model.response.form.FormResponse
 import foatto.core.model.response.ResponseCode
 import foatto.core.model.response.form.FormButtonKey
 import foatto.core.model.response.form.FormPinMode
+import foatto.core.model.response.form.FormResponse
 import foatto.core.model.response.form.cells.FormBaseCell
 import foatto.core.model.response.form.cells.FormBooleanCell
 import foatto.core.model.response.form.cells.FormComboCell
@@ -512,28 +512,31 @@ class FormControl(
                                                     }
                                                 }
                                             }
-                                            if (gridData.data.isEditable) {
-                                                ImageOrTextFromNameControl(
-                                                    name = "/web/images/ic_add_${getStyleOtherIconNameSuffix()}.png",
-                                                    iconSize = styleOtherIconSize,
-                                                    imageButton = { func ->
-                                                        IconButton(
-                                                            enabled = !isFileAddInProgress,
+                                            if (gridData.data.isEditable && gridData.data.maxFileCount > gridData.files.size) {
+                                                if (isFileAddInProgress) {
+                                                    CircularProgressIndicator()
+                                                } else {
+                                                    ImageOrTextFromNameControl(
+                                                        name = "/web/images/ic_add_${getStyleOtherIconNameSuffix()}.png",
+                                                        iconSize = styleOtherIconSize,
+                                                        imageButton = { func ->
+                                                            IconButton(
 //                                                        backgroundColor(getColorButtonBack())
 //                                                        setBorder(color = getColorButtonBorder(), radius = styleButtonBorderRadius)
-                                                            onClick = {
-                                                                fileGridData = gridData
-                                                                isFilePickerVisible = true
-                                                            }
+                                                                onClick = {
+                                                                    fileGridData = gridData
+                                                                    isFilePickerVisible = true
+                                                                }
 //                                                    onKeyUp { syntheticKeyboardEvent ->
 //                                                        doKeyUp(gridData, syntheticKeyboardEvent)
 //                                                    }
-                                                        ) {
-                                                            func()
-                                                        }
-                                                    },
-                                                    textButton = {},
-                                                )
+                                                            ) {
+                                                                func()
+                                                            }
+                                                        },
+                                                        textButton = {},
+                                                    )
+                                                }
                                             }
 //                                            id(getFocusId(gridData.id))
                                         }

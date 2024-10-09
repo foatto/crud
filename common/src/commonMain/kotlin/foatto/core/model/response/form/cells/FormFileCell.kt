@@ -17,5 +17,6 @@ class FormFileCell(
     override val captions: FormCellCaption? = null,
 
     val fileId: Int?,
-    val files: List<FormFileData>
+    val files: List<FormFileData>,
+    val maxFileCount: Int = Int.MAX_VALUE,
 ) : FormBaseCell()
