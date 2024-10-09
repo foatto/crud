@@ -511,6 +511,12 @@ class FormControl(
                                                         }
                                                     }
                                                 }
+                                                gridData.error?.let { error ->
+                                                    Text(
+                                                        text = error,
+                                                        color = Color.Red,
+                                                    )
+                                                }
                                             }
                                             if (gridData.data.isEditable && gridData.data.maxFileCount > gridData.files.size) {
                                                 if (isFileAddInProgress) {
