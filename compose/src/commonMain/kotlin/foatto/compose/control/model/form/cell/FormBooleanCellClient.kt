@@ -10,14 +10,12 @@ class FormBooleanCellClient(
     minWidth: Int,
     align: Arrangement.Horizontal,
     isVisible: MutableState<Boolean> = mutableStateOf(true),
-    focusId: Int,
     val data: FormBooleanCell,
 ) : FormBaseCellClient(
     cellName = cellName,
     minWidth = minWidth,
     align = align,
     isVisible = isVisible,
-    focusId = focusId,
 ) {
     val current: MutableState<Boolean> = mutableStateOf(data.value)
 }

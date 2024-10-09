@@ -20,6 +20,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -102,6 +104,8 @@ class FormControl(
         val density = LocalDensity.current
         val coroutineScope = rememberCoroutineScope()
         var isFilePickerVisible by remember { mutableStateOf(false) }
+        val focusRequester = remember { FocusRequester() }
+        var isFocusRequesterDefined = false
 
         FilePicker(
             isFilePickerVisible,
@@ -208,7 +212,15 @@ class FormControl(
                                                 modifier = Modifier
                                                     .padding(FORM_CELL_PADDING)
                                                     .widthIn(max = root.scaledScreenWidth.dp / 2)
-                                                    .background(colorControlBack),
+                                                    .background(colorControlBack)
+                                                    .then(
+                                                        if (gridData.data.isEditable && gridData.data.isAutoFocus) {
+                                                            isFocusRequesterDefined = true
+                                                            Modifier.focusRequester(focusRequester)
+                                                        } else {
+                                                            Modifier
+                                                        }
+                                                    ),
                                                 value = gridData.current.value,
                                                 onValueChange = { newText ->
                                                     gridData.current.value = newText
@@ -644,6 +656,12 @@ class FormControl(
                 }
             }
         }
+
+        LaunchedEffect(Unit) {
+            if (isFocusRequesterDefined) {
+                focusRequester.requestFocus()
+            }
+        }
     }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -671,9 +689,7 @@ class FormControl(
         var rowIndex = 0
         var colIndex = 0
         val alFormCellMasterPreAction = mutableListOf<FormBaseCellClient>()
-        var autoFocusId: String? = null
 
-        var cellFocusId = 0
 
         //--- хотя бы один столбец с полями всё равно будет
         var maxColCount = 1
@@ -682,7 +698,6 @@ class FormControl(
             if (formCell.caption.isEmpty()) {
                 val formGridData = getFormDataCell(
                     formCell = formCell,
-                    cellFocusId = -1,
                 )
                 alHiddenCells += formGridData
 
@@ -740,7 +755,6 @@ class FormControl(
 
                 val formGridData = getFormDataCell(
                     formCell = formCell,
-                    cellFocusId = cellFocusId++,
                 )
                 addCellToGrid(
                     alGridRows = alGridRows,
@@ -822,9 +836,6 @@ class FormControl(
 
         var rowIndex = 1    // rowIndex = 0 занят top-captions
         var colIndex = 0
-        var autoFocusId: String? = null
-
-        var cellFocusId = 0
 
         getGridFormTopBottomCaptions(formResponse.alFormColumn, 0)
 
@@ -833,7 +844,6 @@ class FormControl(
             if (formCell.caption.isEmpty()) {
                 val formGridData = getFormDataCell(
                     formCell = formCell,
-                    cellFocusId = -1,
                     isGridForm = true,
                 )
                 alHiddenCells += formGridData
@@ -864,7 +874,6 @@ class FormControl(
 
                 val formGridData = getFormDataCell(
                     formCell = formCell,
-                    cellFocusId = cellFocusId++,
                     isGridForm = true,
                 )
                 addCellToGrid(
@@ -962,7 +971,6 @@ class FormControl(
 
     private fun getFormDataCell(
         formCell: FormBaseCell,
-        cellFocusId: Int,
         isGridForm: Boolean = false
     ): FormBaseCellClient {
 
@@ -978,7 +986,6 @@ class FormControl(
                     cellName = formCell.name,
                     minWidth = formCell.minWidth,
                     align = align,
-                    focusId = cellFocusId,
                     data = formCell,
                 )
             }
@@ -988,7 +995,6 @@ class FormControl(
                     cellName = formCell.name,
                     minWidth = formCell.minWidth,
                     align = align,
-                    focusId = cellFocusId,
                     data = formCell,
                 )
             }
@@ -998,7 +1004,6 @@ class FormControl(
                     cellName = formCell.name,
                     minWidth = formCell.minWidth,
                     align = align,
-                    focusId = cellFocusId,
                     data = formCell,
                 ).apply {
                     formCell.value.indices.forEach { i ->
@@ -1012,7 +1017,6 @@ class FormControl(
                     cellName = formCell.name,
                     minWidth = formCell.minWidth,
                     align = align,
-                    focusId = cellFocusId,
                     data = formCell,
                 ).apply {
                     if (formCell.asRadioButtons) {
@@ -1028,7 +1032,6 @@ class FormControl(
                     cellName = formCell.name,
                     minWidth = formCell.minWidth,
                     align = align,
-                    focusId = cellFocusId,
                     data = formCell,
                 )
             }

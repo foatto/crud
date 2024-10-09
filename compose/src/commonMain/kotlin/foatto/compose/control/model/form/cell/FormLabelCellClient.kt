@@ -15,7 +15,6 @@ class FormLabelCellClient(
     minWidth = minWidth,
     align = align,
     isVisible = isVisible,
-    focusId = -1,
 ) {
     val current: MutableState<String> = mutableStateOf(caption)
 }

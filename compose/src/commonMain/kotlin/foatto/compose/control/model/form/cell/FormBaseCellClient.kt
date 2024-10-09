@@ -13,7 +13,6 @@ abstract class FormBaseCellClient(
     val minWidth: Int,
     val align: Arrangement.Horizontal,
     val isVisible: MutableState<Boolean> = mutableStateOf(true),
-    val focusId: Int,
 ) {
     val alSubFocusId: MutableList<Int> = mutableListOf()
     var error: String? by mutableStateOf(null)

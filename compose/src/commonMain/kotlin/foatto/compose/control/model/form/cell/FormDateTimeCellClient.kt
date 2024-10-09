@@ -10,14 +10,12 @@ class FormDateTimeCellClient(
     minWidth: Int,
     align: Arrangement.Horizontal,
     isVisible: MutableState<Boolean> = mutableStateOf(true),
-    focusId: Int,
     val data: FormDateTimeCell,
 ) : FormBaseCellClient(
     cellName = cellName,
     minWidth = minWidth,
     align = align,
     isVisible = isVisible,
-    focusId = focusId,
 ) {
     val current: List<MutableState<String>> = data.value.map { s -> mutableStateOf(s) }
 }

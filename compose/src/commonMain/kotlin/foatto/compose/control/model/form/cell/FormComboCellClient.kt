@@ -10,14 +10,12 @@ class FormComboCellClient(
     minWidth: Int,
     align: Arrangement.Horizontal,
     isVisible: MutableState<Boolean> = mutableStateOf(true),
-    focusId: Int,
     val data: FormComboCell,
 ) : FormBaseCellClient(
     cellName = cellName,
     minWidth = minWidth,
     align = align,
     isVisible = isVisible,
-    focusId = focusId,
 ) {
     val current: MutableState<String> = mutableStateOf(data.value)
 }

@@ -10,14 +10,12 @@ class FormSimpleCellClient(
     minWidth: Int,
     align: Arrangement.Horizontal,
     isVisible: MutableState<Boolean> = mutableStateOf(true),
-    focusId: Int,
     val data: FormSimpleCell,
 ) : FormBaseCellClient(
     cellName = cellName,
     minWidth = minWidth,
     align = align,
     isVisible = isVisible,
-    focusId = focusId,
 ) {
     var current: MutableState<String> = mutableStateOf(data.value)
 }

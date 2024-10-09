@@ -13,14 +13,12 @@ class FormFileCellClient(
     minWidth: Int,
     align: Arrangement.Horizontal,
     isVisible: MutableState<Boolean> = mutableStateOf(true),
-    focusId: Int,
     val data: FormFileCell,
 ) : FormBaseCellClient(
     cellName = cellName,
     minWidth = minWidth,
     align = align,
     isVisible = isVisible,
-    focusId = focusId,
 ) {
     val files: SnapshotStateList<FormFileDataClient> = mutableStateListOf()
 
