@@ -63,6 +63,10 @@ kotlin {
 //            api(compose.components.resources) - пока не может грузить картинки со внешних ресурсов
 //            api(compose.components.uiToolingPreview)
 
+//            implementation("org.jetbrains.compose.material3.adaptive:adaptive:1.0.0-alpha01")
+//            implementation("org.jetbrains.compose.material3.adaptive:adaptive-layout:1.0.0-alpha01")
+//            implementation("org.jetbrains.compose.material3.adaptive:adaptive-navigation:1.0.0-alpha01")
+
             api("com.russhwolf:multiplatform-settings:$multiplatformSettingsVersion")
             api("com.russhwolf:multiplatform-settings-no-arg:$multiplatformSettingsVersion")
             api("media.kamel:kamel-image-default:$kamelImageVersion")
