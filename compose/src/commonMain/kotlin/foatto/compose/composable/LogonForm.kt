@@ -10,9 +10,17 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -33,6 +41,10 @@ fun LogonForm(
     onIsRememberMeChange: (Boolean) -> Unit,
     logon: () -> Unit,
 ) {
+    val focusRequester = remember { FocusRequester() }
+    var isFocusRequesterDefined = false
+    val focusManager = LocalFocusManager.current
+
     Column(
         modifier = modifier
     ) {
@@ -50,6 +62,21 @@ fun LogonForm(
             )
         }
         OutlinedTextField(
+            modifier = Modifier
+                .onKeyEvent { keyEvent ->
+                    if (keyEvent.key == Key.Enter) {
+                        focusManager.moveFocus(FocusDirection.Next)
+                        true
+                    } else {
+                        false
+                    }
+                }
+                .then(
+                    run {
+                        isFocusRequesterDefined = true
+                        Modifier.focusRequester(focusRequester)
+                    }
+                ),
             value = login,
             onValueChange = { newText ->
                 onLoginInput(newText)
@@ -58,6 +85,15 @@ fun LogonForm(
             singleLine = true,
         )
         OutlinedTextField(
+            modifier = Modifier
+                .onKeyEvent { keyEvent ->
+                    if (keyEvent.key == Key.Enter) {
+                        logon()
+                        true
+                    } else {
+                        false
+                    }
+                },
             value = password,
             onValueChange = { newText ->
                 onPasswordInput(newText)
@@ -89,4 +125,11 @@ fun LogonForm(
             )
         }
     }
+
+//!!! TODO: ждём исправления бага с автофокусом (сейчас курсов визуально в поле, но ввод не происходит)
+//    LaunchedEffect(Unit) {
+//        if (isFocusRequesterDefined) {
+//            focusRequester.requestFocus()
+//        }
+//    }
 }

@@ -35,13 +35,10 @@ import foatto.compose.composable.getClientSubMenu
 import foatto.compose.control.TableControl
 import foatto.compose.model.MenuDataClient
 import foatto.compose.model.TabInfo
-import foatto.compose.utils.SETTINGS_LOGIN
-import foatto.compose.utils.SETTINGS_PASSWORD
-import foatto.compose.utils.SETTINGS_START_MODULE
+import foatto.compose.utils.*
 import foatto.compose.utils.encodePassword
 import foatto.compose.utils.getScaledScreenWidth
 import foatto.compose.utils.openFileByUrl
-import foatto.compose.utils.settings
 import foatto.core.ActionType
 import foatto.core.model.AppAction
 import foatto.core.model.AppUserConfig
@@ -71,6 +68,11 @@ import foatto.core.model.response.LogoffResponse
 */
 
 open class Root {
+
+    companion object {
+        //--- новый рекорд: Samsung A52, inner width = 509, outer width = 412
+        private val WIDE_SCREEN_WIDTH = 600
+    }
 
     var scaledScreenWidth: Int = 0
         private set
@@ -117,8 +119,7 @@ open class Root {
         val density = LocalDensity.current
 
         scaledScreenWidth = getScaledScreenWidth()
-        //--- новый рекорд: Samsung A52, inner width = 509, outer width = 412
-        isWideScreen = scaledScreenWidth >= 600
+        isWideScreen = scaledScreenWidth >= WIDE_SCREEN_WIDTH
         //--- инициализируем ДО того, как будет использоваться в Map/Scheme/Chart/Dashboard
         scaleKoef = density.density
 
@@ -250,6 +251,7 @@ open class Root {
             ActionType.LOGOFF -> {
                 settings.remove(SETTINGS_LOGIN)
                 settings.remove(SETTINGS_PASSWORD)
+                settings.remove(SETTINGS_LOGON_EXPIRE)
 
                 invokeRequest(LogoffRequest()) { logoffResponse: LogoffResponse ->
                     //!!! закрыть все вкладки и открыть стартовый модуль

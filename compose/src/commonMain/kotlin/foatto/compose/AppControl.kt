@@ -15,10 +15,12 @@ import foatto.compose.composable.LogonForm
 import foatto.compose.control.*
 import foatto.compose.model.MenuDataClient
 import foatto.compose.utils.SETTINGS_LOGIN
+import foatto.compose.utils.SETTINGS_LOGON_EXPIRE
 import foatto.compose.utils.SETTINGS_PASSWORD
 import foatto.compose.utils.encodePassword
 import foatto.compose.utils.settings
 import foatto.core.ActionType
+import foatto.core.SESSION_EXPIRE_TIME
 import foatto.core.model.AppAction
 import foatto.core.model.request.AppRequest
 import foatto.core.model.request.LogonRequest
@@ -26,6 +28,7 @@ import foatto.core.model.response.AppResponse
 import foatto.core.model.response.LogonResponse
 import foatto.core.model.response.MenuData
 import foatto.core.model.response.ResponseCode
+import foatto.core.util.getCurrentTimeInt
 
 class AppControl(
     private val root: Root,
@@ -134,7 +137,9 @@ class AppControl(
                         //--- попробуем автологон
                         val savedLogin = settings.getStringOrNull(SETTINGS_LOGIN)
                         val savedPassword = settings.getStringOrNull(SETTINGS_PASSWORD)
-                        if (!savedLogin.isNullOrBlank() && !savedPassword.isNullOrEmpty()) {
+                        val logonExpireTime = settings.getInt(SETTINGS_LOGON_EXPIRE, getCurrentTimeInt() + SESSION_EXPIRE_TIME)
+
+                        if (!savedLogin.isNullOrBlank() && !savedPassword.isNullOrEmpty() && getCurrentTimeInt() < logonExpireTime) {
                             invokeLogonRequest(
                                 LogonRequest(
                                     login = savedLogin,
@@ -143,6 +148,9 @@ class AppControl(
                                 )
                             )
                         } else {
+                            login = ""
+                            password = ""
+
                             responseCode = appResponse.responseCode
 //                            val element = document.getElementById("logon_0")
 //                            if (element is HTMLElement) {
@@ -226,9 +234,11 @@ class AppControl(
         if (isRememberMe) {
             settings.putString(SETTINGS_LOGIN, login)
             settings.putString(SETTINGS_PASSWORD, encodedPassword)
+            settings.putInt(SETTINGS_LOGON_EXPIRE, getCurrentTimeInt() + SESSION_EXPIRE_TIME)
         } else {
             settings.remove(SETTINGS_LOGIN)
             settings.remove(SETTINGS_PASSWORD)
+            settings.remove(SETTINGS_LOGON_EXPIRE)
         }
 
         return LogonRequest(
