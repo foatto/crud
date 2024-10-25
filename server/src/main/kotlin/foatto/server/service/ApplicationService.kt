@@ -43,6 +43,7 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.data.repository.findByIdOrNull
 import java.io.File
+import java.sql.ResultSet
 import java.sql.Statement
 
 abstract class ApplicationService {
@@ -55,8 +56,26 @@ abstract class ApplicationService {
 
     companion object {
 
-        @JvmStatic
-        protected fun executeNativeSql(entityManager: EntityManager, vararg sqls: String): Int {
+        fun queryNativeSql(entityManager: EntityManager, sql: String, func: (rs: ResultSet) -> Unit) {
+            entityManager.unwrap(Session::class.java).let { session ->
+                session.doWork { conn ->
+                    var stm: Statement? = null
+                    var rs: ResultSet? = null
+                    try {
+                        stm = conn.createStatement()
+                        rs = stm.executeQuery(sql)
+                        func(rs)
+                    } catch (t: Throwable) {
+                        t.printStackTrace()
+                    } finally {
+                        rs?.close()
+                        stm?.close()
+                    }
+                }
+            }
+        }
+
+        fun executeNativeSql(entityManager: EntityManager, vararg sqls: String): Int {
             var result = 0
 
             entityManager.unwrap(Session::class.java).let { session ->

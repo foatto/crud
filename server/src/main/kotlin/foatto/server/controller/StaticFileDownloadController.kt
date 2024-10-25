@@ -9,10 +9,6 @@ import jakarta.servlet.http.HttpServletResponse
 @RestController
 class StaticFileDownloadController {
 
-    companion object {
-        const val LICENSE_QR_DIR = "license-qr"
-    }
-
     @Value("\${root_dir}")
     val rootDirName: String = ""
 
@@ -20,6 +16,7 @@ class StaticFileDownloadController {
 
     @GetMapping(value = ["/"])
     fun downloadRoot(response: HttpServletResponse) {
+//        response.sendRedirect("https://pulsar.report:444")
         FileController.download(response, "${rootDirName}/web/index.html")
     }
 
@@ -68,15 +65,6 @@ class StaticFileDownloadController {
         fileName: String
     ) {
         FileController.download(response, "${rootDirName}/web/compose/$fileName")
-    }
-
-    @GetMapping(value = ["/$LICENSE_QR_DIR/{fileName}"])
-    fun downloadQR(
-        response: HttpServletResponse,
-        @PathVariable("fileName")
-        fileName: String
-    ) {
-        FileController.download(response, "${rootDirName}/$LICENSE_QR_DIR/$fileName")
     }
 
 //    @GetMapping(value = ["/reports/{fileName}"])

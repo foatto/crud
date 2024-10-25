@@ -27,6 +27,15 @@ fun addAppModuleUrls() {
         formActionUrl = ApiUrlMMS.SENSOR_CALIBRATION_FORM_ACTION,
     )
 
+    appModuleUrls[AppModuleMMS.OBJECT_DATA] = AppModuleUrl(
+        appUrl = ApiUrlMMS.OBJECT_DATA,
+        formActionUrl = null,
+    )
+    appModuleUrls[AppModuleMMS.SENSOR_DATA] = AppModuleUrl(
+        appUrl = ApiUrlMMS.SENSOR_DATA,
+        formActionUrl = null,
+    )
+
     appModuleUrls[AppModuleMMS.CHART_LIQUID_LEVEL] = AppModuleUrl(
         appUrl = ApiUrlMMS.CHART_LIQUID_LEVEL,
         chartActionUrl = ApiUrlMMS.CHART_LIQUID_LEVEL_ACTION,
