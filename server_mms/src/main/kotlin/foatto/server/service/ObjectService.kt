@@ -77,8 +77,8 @@ class ObjectService(
         alColumnInfo += FIELD_IS_DISABLED to "Заблокирован"
         alColumnInfo += FIELD_NAME to "Наименование"
         alColumnInfo += FIELD_MODEL to "Модель"
-        alColumnInfo += null to "Подразделение"
-        alColumnInfo += null to "Группа"
+        alColumnInfo += null to "Подразделение"     //!!! сортировка как в gnssapp (и проверить поиск!)
+        alColumnInfo += null to "Группа"            //!!! сортировка как в gnssapp (и проверить поиск!)
 
         if (isAdminOnly(userConfig)) {
             alColumnInfo += null to "Файл схемы объекта"
@@ -249,6 +249,18 @@ class ObjectService(
                     parentId = id,
                 ),
                 text = appModuleConfigs[AppModuleMMS.SENSOR]?.caption ?: "(неизвестный тип модуля: ${AppModuleMMS.SENSOR})",
+                inNewTab = true,
+            )
+        }
+        if (checkAccessPermission(AppModuleMMS.OBJECT_DATA, userConfig.roles)) {
+            alPopupData += TablePopupData(
+                action = AppAction(
+                    type = ActionType.MODULE_TABLE,
+                    module = AppModuleMMS.OBJECT_DATA,
+                    parentModule = AppModuleMMS.OBJECT,
+                    parentId = id,
+                ),
+                text = appModuleConfigs[AppModuleMMS.OBJECT_DATA]?.caption ?: "(неизвестный тип модуля: ${AppModuleMMS.OBJECT_DATA})",
                 inNewTab = true,
             )
         }
@@ -528,7 +540,7 @@ class ObjectService(
         //--- remove all depended sensors & datas
         objectRepository.findByIdOrNull(id)?.let { objectEntity ->
             sensorRepository.findByObj(objectEntity).forEach { sensorEntity ->
-                SensorService.deleteSensorData(
+                SensorService.deleteSensor(
                     entityManager = entityManager,
                     sensorRepository = sensorRepository,
                     sensorCalibrationRepository = sensorCalibrationRepository,

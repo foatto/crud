@@ -38,12 +38,10 @@ import foatto.server.repository.ObjectRepository
 import foatto.server.repository.SensorCalibrationRepository
 import foatto.server.repository.SensorRepository
 import jakarta.persistence.EntityManager
-import org.hibernate.Session
 import org.springframework.data.domain.Page
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import java.sql.ResultSet
-import java.sql.Statement
 
 @Service
 class SensorService(
@@ -122,33 +120,38 @@ class SensorService(
         fun checkAggTableIsExists(entityManager: EntityManager, sensorId: Int): Boolean {
             var result = false
 
-            entityManager.unwrap(Session::class.java).let { session ->
-                session.doWork { conn ->
-                    var stm: Statement? = null
-                    var rs: ResultSet? = null
-                    try {
-                        stm = conn.createStatement()
-                        //--- именно mms_agg, с маленькой буквы, так на самом деле создаются таблицы
-                        rs = stm.executeQuery(
-                            """
-                                SELECT tablename FROM pg_tables
-                                WHERE schemaname = 'public' 
-                                AND tablename = 'mms_agg_$sensorId'
-                            """.trimIndent()
-                        )
-                        result = rs.next()
-                    } catch (t: Throwable) {
-                        t.printStackTrace()
-                    } finally {
-                        rs?.close()
-                        stm?.close()
-                    }
-                }
+            queryNativeSql(
+                entityManager,
+                """
+                    SELECT tablename FROM pg_tables
+                    WHERE schemaname = 'public' 
+                    AND tablename = 'mms_agg_$sensorId'
+                """.trimIndent()
+            ) { rs: ResultSet ->
+                result = rs.next()
             }
+
             return result
         }
 
-        fun deleteSensorData(
+        fun createAggTable(entityManager: EntityManager, sensorId: Int) {
+            executeNativeSql(
+                entityManager,
+                """
+                        CREATE TABLE MMS_agg_$sensorId (
+                            ontime_0        INT NOT NULL,
+                            ontime_1        INT,         
+                            type_0          INT,
+                            value_0         FLOAT8,
+                            value_1         FLOAT8
+                        )
+                    """.trimMargin(),
+                " CREATE INDEX MMS_agg_${sensorId}_ontime_0 ON MMS_agg_$sensorId ( ontime_0 ) ",
+                " CREATE INDEX MMS_agg_${sensorId}_ontime_1 ON MMS_agg_$sensorId ( ontime_1 ) ",
+            )
+        }
+
+        fun deleteSensor(
             entityManager: EntityManager,
             sensorRepository: SensorRepository,
             sensorCalibrationRepository: SensorCalibrationRepository,
@@ -193,17 +196,18 @@ class SensorService(
         val findText = action.findText?.trim() ?: ""
 
         val parentObjectId = if (action.parentModule == AppModuleMMS.OBJECT) {
-            action.parentId ?: 0
+            action.parentId ?: return null
         } else {
-            0
+            return null
         }
-        val parentObjectEntity = objectRepository.findByIdOrNull(parentObjectId)!!
+        val parentObjectEntity = objectRepository.findByIdOrNull(parentObjectId) ?: return null
 
         val page: Page<SensorEntity> = if (findText.isNotEmpty()) {
             sensorRepository.findByObjAndFilter(parentObjectEntity, findText, pageRequest)
         } else {
             sensorRepository.findByObj(parentObjectEntity, pageRequest)
         }
+
         fillTablePageButtons(action, page.totalPages, alPageButton)
         val sensorEntities = page.content
 
@@ -292,6 +296,18 @@ class SensorService(
                         parentId = sensorEntity.id,
                     ),
                     text = appModuleConfigs[AppModuleMMS.SENSOR_CALIBRATION]?.caption ?: "(неизвестный тип модуля: ${AppModuleMMS.SENSOR_CALIBRATION})",
+                    inNewTab = true,
+                )
+            }
+            if (checkAccessPermission(AppModuleMMS.SENSOR_DATA, userConfig.roles)) {
+                alPopupData += TablePopupData(
+                    action = AppAction(
+                        type = ActionType.MODULE_TABLE,
+                        module = AppModuleMMS.SENSOR_DATA,
+                        parentModule = AppModuleMMS.SENSOR,
+                        parentId = sensorEntity.id,
+                    ),
+                    text = appModuleConfigs[AppModuleMMS.SENSOR_DATA]?.caption ?: "(неизвестный тип модуля: ${AppModuleMMS.SENSOR_DATA})",
                     inNewTab = true,
                 )
             }
@@ -1147,20 +1163,7 @@ class SensorService(
         sensorCalibrationRepository.flush()
 
         if (!checkAggTableIsExists(entityManager, recordId)) {
-            executeNativeSql(
-                entityManager,
-                """
-                        CREATE TABLE MMS_agg_$recordId (
-                            ontime_0        INT NOT NULL,
-                            ontime_1        INT,         
-                            type_0          INT,
-                            value_0         FLOAT8,
-                            value_1         FLOAT8
-                        )
-                    """.trimMargin(),
-                " CREATE INDEX MMS_agg_${recordId}_ontime_0 ON MMS_agg_$recordId ( ontime_0 ) ",
-                " CREATE INDEX MMS_agg_${recordId}_ontime_1 ON MMS_agg_$recordId ( ontime_1 ) ",
-            )
+            createAggTable(entityManager, recordId)
         }
 
         return FormActionResponse(responseCode = ResponseCode.OK)
@@ -1195,7 +1198,7 @@ class SensorService(
     override fun checkExistingId(nextId: Int): Boolean = sensorRepository.existsById(nextId)
 
     override fun formActionDelete(userId: Int, id: Int): FormActionResponse {
-        deleteSensorData(
+        deleteSensor(
             entityManager = entityManager,
             sensorRepository = sensorRepository,
             sensorCalibrationRepository = sensorCalibrationRepository,

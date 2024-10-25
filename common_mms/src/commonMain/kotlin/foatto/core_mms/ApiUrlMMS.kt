@@ -18,6 +18,12 @@ object ApiUrlMMS {
     const val SENSOR_CALIBRATION: String = "${ApiUrl.URL_BASE}/sensor_calibration/${ApiUrl.CURRENT_VERSION}"
     const val SENSOR_CALIBRATION_FORM_ACTION: String = "${ApiUrl.URL_BASE}/sensor_calibration_form_action/${ApiUrl.CURRENT_VERSION}"
 
+    const val OBJECT_DATA: String = "${ApiUrl.URL_BASE}/object_data/${ApiUrl.CURRENT_VERSION}"
+//    const val OBJECT_DATA_FORM_ACTION: String = "${ApiUrl.URL_BASE}/object_data_form_action/${ApiUrl.CURRENT_VERSION}"
+
+    const val SENSOR_DATA: String = "${ApiUrl.URL_BASE}/sensor_data/${ApiUrl.CURRENT_VERSION}"
+//    const val SENSOR_DATA_FORM_ACTION: String = "${ApiUrl.URL_BASE}/sensor__dataform_action/${ApiUrl.CURRENT_VERSION}"
+
     const val CHART_LIQUID_LEVEL: String = "${ApiUrl.URL_BASE}/chart_liquid_level/${ApiUrl.CURRENT_VERSION}"
     const val CHART_LIQUID_LEVEL_ACTION: String = "${ApiUrl.URL_BASE}/chart_liquid_level_action/${ApiUrl.CURRENT_VERSION}"
 

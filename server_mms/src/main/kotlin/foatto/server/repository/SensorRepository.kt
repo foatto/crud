@@ -19,6 +19,20 @@ interface SensorRepository : JpaRepository<SensorEntity, Int> {
             SELECT se
             FROM SensorEntity se
             WHERE se.id <> 0
+                AND (
+                        LOWER(se.group) LIKE LOWER( CONCAT( '%', ?1, '%' ) )
+                     OR LOWER(se.descr) LIKE LOWER( CONCAT( '%', ?1, '%' ) )
+                     OR LOWER(se.serialNo) LIKE LOWER( CONCAT( '%', ?1, '%' ) )
+                )
+        """
+    )
+
+    fun findByFilter(findText: String, pageRequest: PageRequest): Page<SensorEntity>
+    @Query(
+        """
+            SELECT se
+            FROM SensorEntity se
+            WHERE se.id <> 0
                 AND se.obj = ?1
                 AND (
                         LOWER(se.group) LIKE LOWER( CONCAT( '%', ?2, '%' ) )

@@ -62,20 +62,14 @@ class SensorCalibrationService(
         var row = 0
 
         val pageRequest = getTableSortedPageRequest(action, defaultFieldNames = arrayOf(FIELD_SENSOR_VALUE))
-        val findText = action.findText?.trim() ?: ""
 
         val parentSensorId = if (action.parentModule == AppModuleMMS.SENSOR) {
-            action.parentId ?: 0
+            action.parentId ?: return null
         } else {
-            0
+            return null
         }
-        val parentSensorEntity = sensorRepository.findByIdOrNull(parentSensorId)!!
+        val parentSensorEntity = sensorRepository.findByIdOrNull(parentSensorId) ?: return null
 
-//        val page: Page<SensorCalibrationEntity> = if (findText.isNotEmpty()) {
-//            sensorCalibrationRepository.findBySensorAndFilter(parentSensorEntity, findText, pageRequest)
-//        } else {
-//            sensorCalibrationRepository.findBySensor(parentSensorEntity, pageRequest)
-//        }
         val page: Page<SensorCalibrationEntity> = sensorCalibrationRepository.findBySensor(parentSensorEntity, pageRequest)
 
         fillTablePageButtons(action, page.totalPages, alPageButton)

@@ -1,0 +1,229 @@
+package foatto.server.service
+
+import foatto.core.model.AppAction
+import foatto.core.model.request.FormActionData
+import foatto.core.model.response.FormActionResponse
+import foatto.core.model.response.ResponseCode
+import foatto.core.model.response.form.cells.FormBaseCell
+import foatto.core.model.response.table.TableRowData
+import foatto.core.model.response.table.cell.TableBaseCell
+import foatto.core.model.response.table.cell.TableSimpleCell
+import foatto.core_mms.AppModuleMMS
+import foatto.server.calc.AbstractObjectStateCalc
+import foatto.server.entity.ObjectEntity
+import foatto.server.model.AppModuleConfig
+import foatto.server.model.ServerUserConfig
+import foatto.server.repository.ObjectRepository
+import foatto.server.repository.SensorRepository
+import foatto.server.util.AdvancedByteBuffer
+import foatto.server.util.getDateTimeDMYHMSString
+import foatto.server.util.getZoneId
+import jakarta.persistence.EntityManager
+import org.springframework.data.repository.findByIdOrNull
+import org.springframework.stereotype.Service
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.util.*
+
+@Service
+class ObjectDataService(
+    private val entityManager: EntityManager,
+    private val objectRepository: ObjectRepository,
+    private val sensorRepository: SensorRepository,
+) : ApplicationService() {
+
+    companion object {
+        private const val PAGE_SIZE_IN_SEC = 300    // 900    // 3600  // 10_800 // 21_600 // 43_200 // 86_400
+    }
+
+    override fun getTableColumnCaptions(action: AppAction, userConfig: ServerUserConfig): List<Pair<AppAction, String>> {
+        val alColumnInfo = mutableListOf<Pair<String?, String>>()
+
+        val emptyResult = getTableColumnCaptionActions(action, alColumnInfo)
+
+        val parentObjectId = if (action.parentModule == AppModuleMMS.OBJECT) {
+            action.parentId ?: return emptyResult
+        } else {
+            return emptyResult
+        }
+        val parentObjectEntity = objectRepository.findByIdOrNull(parentObjectId) ?: return emptyResult
+
+        val sensorConfigs = getSensorConfigs(parentObjectEntity)
+
+        alColumnInfo += null to "Время (UTC)"
+        alColumnInfo += null to "Время (местное)"
+        sensorConfigs.forEach { (portNum, _) ->
+            alColumnInfo += null to "$portNum"
+        }
+        alColumnInfo += null to "Прочие данные"
+
+        return getTableColumnCaptionActions(
+            action = action,
+            alColumnInfo = alColumnInfo,
+        )
+    }
+
+    override fun fillTableGridData(
+        action: AppAction,
+        userConfig: ServerUserConfig,
+        moduleConfig: AppModuleConfig,
+        alTableCell: MutableList<TableBaseCell>,
+        alTableRowData: MutableList<TableRowData>,
+        alPageButton: MutableList<Pair<AppAction?, String>>,
+    ): Int? {
+        var row = 0
+
+        val parentObjectId = if (action.parentModule == AppModuleMMS.OBJECT) {
+            action.parentId ?: return null
+        } else {
+            return null
+        }
+        val parentObjectEntity = objectRepository.findByIdOrNull(parentObjectId) ?: return null
+
+        val sensorConfigs = getSensorConfigs(parentObjectEntity)
+
+        val zoneUTC = getZoneId(0)
+        val zoneLocal = getZoneId(userConfig.timeOffset)
+
+        var firstTimeUTC = 0
+        var lastTimeUTC = 0
+        queryNativeSql(
+            entityManager,
+            """
+                SELECT MIN(ontime), MAX(ontime)
+                FROM MMS_data_$parentObjectId
+            """.trimIndent()
+        ) { rs ->
+            if (rs.next()) {
+                firstTimeUTC = rs.getInt(1)
+                lastTimeUTC = rs.getInt(2)
+            }
+        }
+
+        val currentPageNo = lastTimeUTC / PAGE_SIZE_IN_SEC - action.pageNo
+        val begPageTime = currentPageNo * PAGE_SIZE_IN_SEC
+        val endPageTime = begPageTime + PAGE_SIZE_IN_SEC
+
+        queryNativeSql(
+            entityManager,
+            """
+                SELECT ontime , sensor_data
+                FROM MMS_data_$parentObjectId
+                WHERE ontime BETWEEN $begPageTime AND $endPageTime
+                ORDER BY ontime DESC
+            """.trimIndent()
+        ) { rs ->
+            while (rs.next()) {
+                var col = 0
+
+                val ontime = rs.getInt(1)
+                val bb = AdvancedByteBuffer(rs.getBytes(2))
+
+                alTableCell += TableSimpleCell(
+                    row = row,
+                    col = col++,
+                    dataRow = row,
+                    name = getDateTimeDMYHMSString(ZonedDateTime.ofInstant(Instant.ofEpochSecond(ontime.toLong()), zoneUTC))
+                )
+                alTableCell += TableSimpleCell(
+                    row = row,
+                    col = col++,
+                    dataRow = row,
+                    name = getDateTimeDMYHMSString(ZonedDateTime.ofInstant(Instant.ofEpochSecond(ontime.toLong()), zoneLocal))
+                )
+
+                val valuesByPortNum = mutableMapOf<Int, String>()
+                var otherData = ""
+                while (bb.hasRemaining()) {
+                    val (portNum, dataSize) = AbstractObjectStateCalc.getSensorPortNumAndDataSize(bb)
+
+                    val sensorType = sensorConfigs[portNum]
+                    //--- по каждому номеру порта - составляем визуальное представление значения
+                    val sensorValue = AbstractObjectStateCalc.getSensorString(sensorConfigs[portNum], dataSize, bb)
+
+                    //--- выводим только определённые порты
+                    sensorType?.let {
+                        valuesByPortNum[portNum] = sensorValue
+                    } ?: run {
+                        otherData += "${(if (otherData.isEmpty()) "" else "  ")}$portNum=$sensorValue"
+                    }
+                }
+                if (otherData.isEmpty()) {
+                    otherData = "-"
+                }
+
+                sensorConfigs.forEach { (portNum, _) ->
+                    alTableCell += TableSimpleCell(row = row, col = col++, dataRow = row, name = valuesByPortNum[portNum] ?: "-")
+                }
+                alTableCell += TableSimpleCell(row = row, col = col++, dataRow = row, name = otherData)
+
+                alTableRowData += TableRowData(
+                    formAction = null,
+                    rowAction = null,
+                    isRowUrlInNewTab = false,
+                    gotoAction = null,
+                    isGotoUrlInNewTab = true,
+                    alPopupData = emptyList(),
+                )
+                row++
+            }
+        }
+
+        val pageCount = lastTimeUTC / PAGE_SIZE_IN_SEC - firstTimeUTC / PAGE_SIZE_IN_SEC + 1
+
+        //--- first page
+        if (action.pageNo > 0) {
+            alPageButton += action.copy(pageNo = 0) to getPageCaption(zoneUTC, lastTimeUTC / PAGE_SIZE_IN_SEC * PAGE_SIZE_IN_SEC)
+        }
+        //--- empty
+        if (action.pageNo > 2) {
+            alPageButton += null to "..."
+        }
+        //--- prev page
+        if (action.pageNo > 1) {
+            alPageButton += action.copy(pageNo = action.pageNo - 1) to getPageCaption(zoneUTC, (currentPageNo + 1) * PAGE_SIZE_IN_SEC)
+        }
+        //--- current page
+        alPageButton += null to getPageCaption(zoneUTC, currentPageNo * PAGE_SIZE_IN_SEC)
+        //--- next page
+        if (action.pageNo < pageCount - 2) {
+            alPageButton += action.copy(pageNo = action.pageNo + 1) to getPageCaption(zoneUTC, (currentPageNo - 1) * PAGE_SIZE_IN_SEC)
+        }
+        //--- empty
+        if (action.pageNo < pageCount - 3) {
+            alPageButton += null to "..."
+        }
+        //--- last page
+        if (action.pageNo < pageCount - 1) {
+            alPageButton += action.copy(pageNo = pageCount - 1) to getPageCaption(zoneUTC, firstTimeUTC / PAGE_SIZE_IN_SEC * PAGE_SIZE_IN_SEC)
+        }
+
+        return null
+    }
+
+    private fun getSensorConfigs(parentObjectEntity: ObjectEntity): TreeMap<Int, Int> {
+        val sensorConfigs = TreeMap<Int, Int>()
+        sensorRepository.findByObj(parentObjectEntity).forEach { sensorEntity ->
+            sensorEntity.portNum?.let { portNum ->
+                sensorEntity.sensorType?.let { sensorType ->
+                    sensorConfigs[portNum] = sensorType
+                }
+            }
+        }
+        return sensorConfigs
+    }
+
+    private fun getPageCaption(zoneId: ZoneId, time: Int): String {
+        val caption = getDateTimeDMYHMSString(zoneId, time)
+        //--- remove last seconds digits
+        return caption.substring(0, caption.length - 3)
+    }
+
+    override fun getFormCells(action: AppAction, userConfig: ServerUserConfig, moduleConfig: AppModuleConfig, addEnabled: Boolean, editEnabled: Boolean): List<FormBaseCell> = emptyList()
+    override fun getFormActionPermissions(action: AppAction, userConfig: ServerUserConfig, moduleConfig: AppModuleConfig): Triple<Boolean, Boolean, Boolean> = Triple(false, false, false)
+    override fun checkExistingId(nextId: Int): Boolean = false
+    override fun formActionSave(action: AppAction, userConfig: ServerUserConfig, moduleConfig: AppModuleConfig, formActionData: Map<String, FormActionData>): FormActionResponse = FormActionResponse(ResponseCode.ERROR)
+    override fun formActionDelete(userId: Int, id: Int): FormActionResponse = FormActionResponse(ResponseCode.ERROR)
+}
+
