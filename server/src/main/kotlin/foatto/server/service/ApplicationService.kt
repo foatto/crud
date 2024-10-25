@@ -36,6 +36,8 @@ import foatto.server.entity.FileStoreEntity
 import foatto.server.model.AppModuleConfig
 import foatto.server.model.ServerUserConfig
 import foatto.server.repository.FileStoreRepository
+import foatto.server.sql.CoreAdvancedConnection
+import foatto.server.sql.SpringConnection
 import jakarta.persistence.EntityManager
 import org.hibernate.Session
 import org.springframework.beans.factory.annotation.Value
@@ -56,6 +58,14 @@ abstract class ApplicationService {
 
     companion object {
 
+        fun withConnection(entityManager: EntityManager, func: (conn: CoreAdvancedConnection) -> Unit) {
+            entityManager.unwrap(Session::class.java).let { session ->
+                session.doWork { conn ->
+                    func(SpringConnection(conn))
+                }
+            }
+        }
+
         fun queryNativeSql(entityManager: EntityManager, sql: String, func: (rs: ResultSet) -> Unit) {
             entityManager.unwrap(Session::class.java).let { session ->
                 session.doWork { conn ->
@@ -63,9 +73,10 @@ abstract class ApplicationService {
                     var rs: ResultSet? = null
                     try {
                         stm = conn.createStatement()
-                        rs = stm.executeQuery(sql)
+                        rs = stm.executeQuery(sql.trimIndent())
                         func(rs)
                     } catch (t: Throwable) {
+                        println("sql = '$sql'")
                         t.printStackTrace()
                     } finally {
                         rs?.close()
@@ -86,7 +97,7 @@ abstract class ApplicationService {
                         stm = conn.createStatement()
                         sqls.forEach { sql ->
                             currentSql = sql
-                            result += stm.executeUpdate(sql)
+                            result += stm.executeUpdate(sql.trimIndent())
                         }
                     } catch (t: Throwable) {
                         println("currentSql = '$currentSql'")
