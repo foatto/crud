@@ -17,7 +17,7 @@ import foatto.core.model.response.table.TableRowData
 import foatto.core.model.response.table.cell.TableBaseCell
 import foatto.core.model.response.table.cell.TableCellBackColorType
 import foatto.core.model.response.table.cell.TableSimpleCell
-import foatto.core.util.Date_DMY
+import foatto.core.util.getDateDMYString
 import foatto.core.util.getRandomInt
 import foatto.core_mms.AppModuleMMS
 import foatto.server.UserRelationEnum
@@ -126,7 +126,7 @@ class SensorService(
                     SELECT tablename FROM pg_tables
                     WHERE schemaname = 'public' 
                     AND tablename = 'mms_agg_$sensorId'
-                """.trimIndent()
+                """
             ) { rs: ResultSet ->
                 result = rs.next()
             }
@@ -145,7 +145,7 @@ class SensorService(
                             value_0         FLOAT8,
                             value_1         FLOAT8
                         )
-                    """.trimMargin(),
+                    """,
                 " CREATE INDEX MMS_agg_${sensorId}_ontime_0 ON MMS_agg_$sensorId ( ontime_0 ) ",
                 " CREATE INDEX MMS_agg_${sensorId}_ontime_1 ON MMS_agg_$sensorId ( ontime_1 ) ",
             )
@@ -256,7 +256,7 @@ class SensorService(
                 dataRow = row,
                 name = sensorEntity.usingStartDate?.let { dateEntity ->
                     if (dateEntity.ye != null && dateEntity.mo != null && dateEntity.da != null) {
-                        Date_DMY(dateEntity.ye!!, dateEntity.mo!!, dateEntity.da!!)
+                        getDateDMYString(dateEntity.ye!!, dateEntity.mo!!, dateEntity.da!!)
                     } else {
                         "-"
                     }

@@ -8,18 +8,16 @@ import foatto.core.model.response.form.cells.FormBaseCell
 import foatto.core.model.response.table.TableRowData
 import foatto.core.model.response.table.cell.TableBaseCell
 import foatto.core.model.response.table.cell.TableSimpleCell
+import foatto.core.util.getDateTimeDMYHMSString
+import foatto.core.util.getTimeZone
 import foatto.core_mms.AppModuleMMS
 import foatto.server.model.AppModuleConfig
 import foatto.server.model.ServerUserConfig
 import foatto.server.repository.SensorRepository
-import foatto.server.util.getDateTimeDMYHMSString
-import foatto.server.util.getZoneId
 import jakarta.persistence.EntityManager
+import kotlinx.datetime.TimeZone
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
-import java.time.Instant
-import java.time.ZoneId
-import java.time.ZonedDateTime
 
 @Service
 class SensorDataService(
@@ -70,8 +68,8 @@ class SensorDataService(
             SensorService.createAggTable(entityManager, parentSensorEntity.id)
         }
 
-        val zoneUTC = getZoneId(0)
-        val zoneLocal = getZoneId(userConfig.timeOffset)
+        val zoneUTC = getTimeZone(0)
+        val zoneLocal = getTimeZone(userConfig.timeOffset)
 
         var firstTimeUTC = 0
         var lastTimeUTC = 0
@@ -80,7 +78,7 @@ class SensorDataService(
             """
                 SELECT MIN(ontime_0), MAX(ontime_0)
                 FROM MMS_agg_$parentSensorId
-            """.trimIndent()
+            """
         ) { rs ->
             if (rs.next()) {
                 firstTimeUTC = rs.getInt(1)
@@ -106,7 +104,7 @@ class SensorDataService(
                 FROM MMS_agg_$parentSensorId
                 WHERE ontime_0 BETWEEN $begPageTime AND $endPageTime
                 ORDER BY ontime_0 DESC
-            """.trimIndent()
+            """
         ) { rs ->
             while (rs.next()) {
                 var col = 0
@@ -121,25 +119,25 @@ class SensorDataService(
                     row = row,
                     col = col++,
                     dataRow = row,
-                    name = getDateTimeDMYHMSString(ZonedDateTime.ofInstant(Instant.ofEpochSecond(ontime0.toLong()), zoneUTC))
+                    name = getDateTimeDMYHMSString(zoneUTC, ontime0)
                 )
                 alTableCell += TableSimpleCell(
                     row = row,
                     col = col++,
                     dataRow = row,
-                    name = getDateTimeDMYHMSString(ZonedDateTime.ofInstant(Instant.ofEpochSecond(ontime0.toLong()), zoneLocal))
+                    name = getDateTimeDMYHMSString(zoneLocal, ontime0)
                 )
                 alTableCell += TableSimpleCell(
                     row = row,
                     col = col++,
                     dataRow = row,
-                    name = getDateTimeDMYHMSString(ZonedDateTime.ofInstant(Instant.ofEpochSecond(ontime1.toLong()), zoneUTC))
+                    name = getDateTimeDMYHMSString(zoneUTC, ontime1)
                 )
                 alTableCell += TableSimpleCell(
                     row = row,
                     col = col++,
                     dataRow = row,
-                    name = getDateTimeDMYHMSString(ZonedDateTime.ofInstant(Instant.ofEpochSecond(ontime1.toLong()), zoneLocal))
+                    name = getDateTimeDMYHMSString(zoneLocal, ontime1)
                 )
                 alTableCell += TableSimpleCell(row = row, col = col++, dataRow = row, name = type0.toString())
                 alTableCell += TableSimpleCell(row = row, col = col++, dataRow = row, name = value0.toString())
@@ -189,8 +187,8 @@ class SensorDataService(
         return null
     }
 
-    private fun getPageCaption(zoneId: ZoneId, time: Int): String {
-        val caption = getDateTimeDMYHMSString(zoneId, time)
+     private fun getPageCaption(timeZone: TimeZone, time: Int): String {
+        val caption = getDateTimeDMYHMSString(timeZone, time)
         //--- remove last seconds digits
         return caption.substring(0, caption.length - 3)
     }

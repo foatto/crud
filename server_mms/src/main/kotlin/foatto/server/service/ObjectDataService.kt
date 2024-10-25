@@ -8,6 +8,8 @@ import foatto.core.model.response.form.cells.FormBaseCell
 import foatto.core.model.response.table.TableRowData
 import foatto.core.model.response.table.cell.TableBaseCell
 import foatto.core.model.response.table.cell.TableSimpleCell
+import foatto.core.util.getDateTimeDMYHMSString
+import foatto.core.util.getTimeZone
 import foatto.core_mms.AppModuleMMS
 import foatto.server.calc.AbstractObjectStateCalc
 import foatto.server.entity.ObjectEntity
@@ -16,14 +18,10 @@ import foatto.server.model.ServerUserConfig
 import foatto.server.repository.ObjectRepository
 import foatto.server.repository.SensorRepository
 import foatto.server.util.AdvancedByteBuffer
-import foatto.server.util.getDateTimeDMYHMSString
-import foatto.server.util.getZoneId
 import jakarta.persistence.EntityManager
+import kotlinx.datetime.TimeZone
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
-import java.time.Instant
-import java.time.ZoneId
-import java.time.ZonedDateTime
 import java.util.*
 
 @Service
@@ -83,8 +81,8 @@ class ObjectDataService(
 
         val sensorConfigs = getSensorConfigs(parentObjectEntity)
 
-        val zoneUTC = getZoneId(0)
-        val zoneLocal = getZoneId(userConfig.timeOffset)
+        val zoneUTC = getTimeZone(0)
+        val zoneLocal = getTimeZone(userConfig.timeOffset)
 
         var firstTimeUTC = 0
         var lastTimeUTC = 0
@@ -93,7 +91,7 @@ class ObjectDataService(
             """
                 SELECT MIN(ontime), MAX(ontime)
                 FROM MMS_data_$parentObjectId
-            """.trimIndent()
+            """
         ) { rs ->
             if (rs.next()) {
                 firstTimeUTC = rs.getInt(1)
@@ -112,7 +110,7 @@ class ObjectDataService(
                 FROM MMS_data_$parentObjectId
                 WHERE ontime BETWEEN $begPageTime AND $endPageTime
                 ORDER BY ontime DESC
-            """.trimIndent()
+            """
         ) { rs ->
             while (rs.next()) {
                 var col = 0
@@ -124,13 +122,13 @@ class ObjectDataService(
                     row = row,
                     col = col++,
                     dataRow = row,
-                    name = getDateTimeDMYHMSString(ZonedDateTime.ofInstant(Instant.ofEpochSecond(ontime.toLong()), zoneUTC))
+                    name = getDateTimeDMYHMSString(zoneUTC, ontime)
                 )
                 alTableCell += TableSimpleCell(
                     row = row,
                     col = col++,
                     dataRow = row,
-                    name = getDateTimeDMYHMSString(ZonedDateTime.ofInstant(Instant.ofEpochSecond(ontime.toLong()), zoneLocal))
+                    name = getDateTimeDMYHMSString(zoneLocal, ontime)
                 )
 
                 val valuesByPortNum = mutableMapOf<Int, String>()
@@ -214,8 +212,8 @@ class ObjectDataService(
         return sensorConfigs
     }
 
-    private fun getPageCaption(zoneId: ZoneId, time: Int): String {
-        val caption = getDateTimeDMYHMSString(zoneId, time)
+    private fun getPageCaption(timeZone: TimeZone, time: Int): String {
+        val caption = getDateTimeDMYHMSString(timeZone, time)
         //--- remove last seconds digits
         return caption.substring(0, caption.length - 3)
     }
