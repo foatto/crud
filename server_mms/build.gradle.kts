@@ -41,10 +41,10 @@ tasks {
     }
     build {
         doLast {
-            delete("/home/foatto/MMSServerSpring/lib2")
+            delete("/home/foatto/MMSServerSpring/lib_2")
             copy {
                 from("build/libs/server_mms-plain.jar", configurations["runtimeClasspath"])
-                into("/home/foatto/MMSServerSpring/lib2")
+                into("/home/foatto/MMSServerSpring/lib_2")
             }
         }
     }
