@@ -1,26 +1,13 @@
 package foatto.server.model
 
-/*open*/ class SensorConfig(
-//    val id: Int,
-//    val name: String,       // внутреннее/системное имя датчика, необходимо для поиска/идентификации при программном добавлении датчиков ( например, из дпнных измерений )
-//    val group: String,      // имя группы датчиков для логической связки разнотипных датчиков в пределах одного графика/отчёта
-//    val descr: String,      // видимое/выводимое описание датчика
-//    val portNum: Int,
-//    val sensorType: Int,
-//    val serialNo: String,
-//    val begYe: Int,
-//    val begMo: Int,
-//    val begDa: Int,
-//    val rawTime: Int,
-//    val calcTime: Int,
-)  {
+class SensorConfig {
 
     companion object {
 
         //--- предопределённый номер порта для гео-датика
         const val GEO_PORT_NUM = 19
 
-        //--- предопределённый размер гео-данных (  wgsX + wgsY + speed + distance = 4 + 4 + 2 + 4 = 14  )
+        //--- предопределённый размер гео-данных (wgsX + wgsY + speed + distance = 4 + 4 + 2 + 4 = 14)
         const val GEO_DATA_SIZE = 14
 
         //--- логические входы с датчиков

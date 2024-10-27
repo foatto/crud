@@ -37,7 +37,6 @@ abstract class MMSNioHandler : AbstractTelematicNioHandler() {
             status = status,
             errorText = "Disconnect from device ID = $serialNo",
             dataCount = dataCount,
-            dataCountAll = dataCountAll,
             firstPointTime = firstPointTime,
             lastPointTime = lastPointTime,
         )
@@ -65,7 +64,6 @@ abstract class MMSNioHandler : AbstractTelematicNioHandler() {
                 status = status,
                 errorText = "Unknown device ID = $serialNo",
                 dataCount = dataCount,
-                dataCountAll = dataCountAll,
                 firstPointTime = firstPointTime,
                 lastPointTime = lastPointTime,
             )

@@ -1,17 +1,17 @@
 package foatto.server.ds
 
-import java.time.Instant
+import kotlinx.datetime.Instant
+import kotlinx.serialization.Serializable
 
-//--- JSON-class, do not rename fields!
-// @Serializable - для перехода на kotlin-serilization
-class PulsarData(
-    //!!! при переходе на kotlin-serialization перестаёт работать сериализация Instant, заменить на String и его ручной разбор?
+//--- outer JSON-class, don't rename fields!
+@Serializable
+data class PulsarData(
     val dateTime: Instant? = null,
 
     val deviceID: String? = null,
     val blockID: String? = null,
 
     val idx: Int? = null,
-    val vals: Array<Map<String, Double>>? = null,
+    val vals: List<Map<String, Double>>? = null,
 )
 

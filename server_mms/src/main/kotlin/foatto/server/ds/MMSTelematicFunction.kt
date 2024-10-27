@@ -3,13 +3,16 @@ package foatto.server.ds
 import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.getDateTimeYMDHMSList
 import foatto.core.util.getDateTimeYMDHMSString
+import foatto.server.calc.AbstractObjectStateCalc
+import foatto.server.entity.SensorEntity
+import foatto.server.model.SensorConfig
 import foatto.server.sql.CoreAdvancedConnection
-import foatto.server.sql.SQLBatch
 import foatto.server.util.AdvancedByteBuffer
 import foatto.server.util.AdvancedLogger
 import foatto.server.util.getFileWriter
 import kotlinx.datetime.TimeZone
 import java.io.File
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 object MMSTelematicFunction {
@@ -72,11 +75,11 @@ object MMSTelematicFunction {
         )
     }
 
-    fun addPoint(conn: CoreAdvancedConnection, deviceConfig: DeviceConfig, time: Int, bbData: AdvancedByteBuffer, sqlBatchData: SQLBatch) {
+    fun addPoint(conn: CoreAdvancedConnection, deviceConfig: DeviceConfig, time: Int, bbData: AdvancedByteBuffer) {
         //--- если объект прописан, то записываем точки, иначе просто пропускаем
         if (deviceConfig.objectId != 0) {
             bbData.flip()
-            sqlBatchData.add(
+            conn.executeUpdate(
                 """
                     INSERT INTO MMS_data_${deviceConfig.objectId} ( ontime , sensor_data ) 
                     VALUES ( $time , ${conn.getHexValue(bbData)} ) 
@@ -150,7 +153,6 @@ object MMSTelematicFunction {
         status: String,
         errorText: String,
         dataCount: Int,
-        dataCountAll: Int,
         firstPointTime: Int,
         lastPointTime: Int,
         isOk: Boolean = true,
@@ -159,8 +161,8 @@ object MMSTelematicFunction {
         val logTime = getDateTimeYMDHMSString(timeZone, getCurrentTimeInt())
         val curLogFileName = logTime.substring(0, 13).replace('.', '-').replace(' ', '-')
 
-        var text = "$logTime $address Длительность [сек]: ${getCurrentTimeInt() - begTime} Точек записано: $dataCount из $dataCountAll "
-        if (dataCountAll > 0) {
+        var text = "$logTime $address Длительность [сек]: ${getCurrentTimeInt() - begTime} Точек записано: $dataCount "
+        if (dataCount > 0) {
             text += " Время первой точки: ${getDateTimeYMDHMSString(timeZone, firstPointTime)} Время последней точки: ${getDateTimeYMDHMSString(timeZone, lastPointTime)} "
         }
         text += " Статус: $status "
@@ -210,7 +212,6 @@ object MMSTelematicFunction {
         status: String,
         errorText: String,
         dataCount: Int,
-        dataCountAll: Int,
         firstPointTime: Int,
         lastPointTime: Int,
     ) {
@@ -226,7 +227,6 @@ object MMSTelematicFunction {
                 status = status + "Error;",
                 errorText = errorText,
                 dataCount = dataCount,
-                dataCountAll = dataCountAll,
                 firstPointTime = firstPointTime,
                 lastPointTime = lastPointTime,
                 isOk = false,
@@ -272,4 +272,148 @@ object MMSTelematicFunction {
         }
     }
 
+    fun saveSensorData(
+        conn: CoreAdvancedConnection,
+        deviceIndex: Int,
+        sensorConfigs: Map<Int, List<SensorEntity>>,               // portNum to sensorEntities
+        sensorCalibrations: Map<Int, List<Pair<Double, Double>>>,  // sensorId to list of <sensorValue to dataValue> pairs
+        pointTime: Int,
+        tmSensorData: SortedMap<Int, Double>,
+        startPortNum: Int,
+        bbData: AdvancedByteBuffer,
+    ) {
+        //--- write raw data into MMS_data_XXX
+        CoreTelematicFunction.putDigitalSensor(deviceIndex, tmSensorData, startPortNum, bbData)
+
+        //--- write smoothed/aggregated data into MMS_agg_YYY
+        tmSensorData.forEach { (index, sensorValue) ->
+            val portNum = startPortNum + index
+            //--- на одном порту может быть несколько разнотипных датчиков,
+            //--- например, датчик напряжения и датчик работы оборудования (работающий по величине этого напряжения)
+            sensorConfigs[portNum]?.forEach { sensorEntity ->
+                when (sensorEntity.sensorType) {
+                    SensorConfig.SENSOR_LIQUID_LEVEL,
+                    SensorConfig.SENSOR_WEIGHT,
+                    SensorConfig.SENSOR_TURN,
+                    SensorConfig.SENSOR_PRESSURE,
+                    SensorConfig.SENSOR_TEMPERATURE,
+                    SensorConfig.SENSOR_VOLTAGE,
+                    SensorConfig.SENSOR_POWER,
+                    SensorConfig.SENSOR_DENSITY,
+                    SensorConfig.SENSOR_MASS_FLOW,
+                    SensorConfig.SENSOR_VOLUME_FLOW,
+                    SensorConfig.SENSOR_ENERGO_VOLTAGE,
+                    SensorConfig.SENSOR_ENERGO_CURRENT,
+                    SensorConfig.SENSOR_ENERGO_POWER_KOEF,
+                    SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
+                    SensorConfig.SENSOR_ENERGO_POWER_REACTIVE,
+                    SensorConfig.SENSOR_ENERGO_POWER_FULL,
+                    SensorConfig.SENSOR_ENERGO_TRANSFORM_KOEF_CURRENT,
+                    SensorConfig.SENSOR_ENERGO_TRANSFORM_KOEF_VOLTAGE,
+                    -> {
+                        saveAnalogueSensorData(
+                            conn = conn,
+                            sensorEntity = sensorEntity,
+                            sensorCalibration = sensorCalibrations[sensorEntity.id] ?: emptyList(),
+                            pointTime = pointTime,
+                            sensorValue = sensorValue,
+                        )
+                    }
+                }
+            }
+        }
+
+    }
+
+    private fun saveAnalogueSensorData(
+        conn: CoreAdvancedConnection,
+        sensorEntity: SensorEntity,
+        sensorCalibration: List<Pair<Double, Double>>,
+        pointTime: Int,
+        sensorValue: Double,
+    ) {
+        //--- ignore outbound values
+        if (AbstractObjectStateCalc.isIgnoreSensorData(sensorEntity.minIgnore, sensorEntity.maxIgnore, sensorValue)) {
+            return
+        }
+        val dataValue = AbstractObjectStateCalc.getDataValue(sensorCalibration, sensorValue)
+
+        val smoothPeriod = sensorEntity.smoothTime ?: 0
+        val smoothValue = if (smoothPeriod > 0) {
+            val values = mutableListOf(dataValue)
+            val rs = conn.executeQuery(
+                """
+                    SELECT value_0
+                    FROM MMS_agg_${sensorEntity.id}
+                    WHERE ontime_0 >= ${pointTime - smoothPeriod * 60}
+                """
+            )
+            while (rs.next()) {
+                values += rs.getDouble(1)
+            }
+            rs.close()
+
+            values.sort()
+
+            //--- if the number of values is odd, take exactly the middle
+            if (values.size % 2 != 0) {
+                values[values.size / 2]
+            }
+            //--- otherwise the arithmetic mean between two values closest to the middle
+            else {
+                val val1 = values[values.size / 2 - 1]
+                val val2 = values[values.size / 2]
+                val1 + (val2 - val1) / 2
+            }
+        } else {
+            dataValue
+        }
+
+//        val (valueType, incDecValue) = if (sensorInfo.sensorType == SensorConfig.SENSOR_LIQUID_LEVEL) {
+//            getValueTypeForLiquidLevelSensors(sensorInfo, avgOntime, avgValue, prevTime, prevValue)
+//        } else {
+//            getValueTypeForAnalogueSensors(sensorInfo, avgOntime, avgValue, prevTime)
+//        }
+
+        conn.executeUpdate(
+            """
+                INSERT INTO MMS_agg_${sensorEntity.id} ( ontime_0 , ontime_1 , type_0 , value_0 , value_1 ) 
+                VALUES ( $pointTime , $pointTime , 0 , $dataValue , $smoothValue )  
+            """
+        )
+    }
+
+    /*
+        //--- особые величины - сигнал с устройства
+        const val SENSOR_SIGNAL = -2   // Есть/нет
+
+        //--- составной датчик - гео-данных ( координаты,скорость,пробег )
+        const val SENSOR_GEO = -1           // координаты, км/ч, м или км
+
+        //--- учётные величины - отчёты
+        const val SENSOR_WORK = 1           // мото * час
+
+        //--- контрольные величины - графики
+        const val SENSOR_LIQUID_FLOW_CALC = 3
+
+        //--- учётные величины - отчёты
+
+        //--- Исторически сложилось так, что это три разных датчика (трёх разных производителей и возможностей)
+        //--- но используются они пока одинаково.
+        //--- Возможно, когда-нибудь их удастся объединить.
+        const val SENSOR_MASS_ACCUMULATED = 14
+        const val SENSOR_VOLUME_ACCUMULATED = 15
+        const val SENSOR_LIQUID_USING = 16
+
+        //--- сигнальная величина - состояние расходомера/счётчика
+        const val SENSOR_LIQUID_USING_COUNTER_STATE = 17
+
+        //--- electro energo counters
+
+        //--- учётные величины - отчёты
+        const val SENSOR_ENERGO_COUNT_AD = 20   // Active Direct - активная прямая электроэнергия
+        const val SENSOR_ENERGO_COUNT_AR = 21   // Active Reverse - активная обратная электроэнергия
+        const val SENSOR_ENERGO_COUNT_RD = 22   // Reactive Direct - реактивная прямая электроэнергия
+        const val SENSOR_ENERGO_COUNT_RR = 23   // Reactive Reverse - реактивная обратная электроэнергия
+*/
 }

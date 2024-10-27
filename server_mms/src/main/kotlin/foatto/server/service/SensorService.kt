@@ -449,7 +449,9 @@ class SensorService(
         formCells += FormComboCell(
             name = FIELD_SENSOR_TYPE,
             caption = "Тип датчика",
-            isEditable = changeEnabled,
+            //--- нельзя менять тип уже созданному датчику, т.к. в его таблицу уже записаны данные,
+            //--- могущими быть некорректными для нового типа датчика
+            isEditable = changeEnabled && id == null,
 //            isEditable = !isEquip
             value = sensorEntity?.sensorType?.toString() ?: "",
             //!!! заполнять с сортировкой по популярности

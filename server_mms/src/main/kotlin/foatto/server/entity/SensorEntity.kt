@@ -254,7 +254,6 @@ class SensorEntity(
         if (decAddTimeAfter != other.decAddTimeAfter) return false
         if (schemeX != other.schemeX) return false
         if (schemeY != other.schemeY) return false
-//        if (calibration != other.calibration) return false
 
         return true
     }
@@ -313,7 +312,7 @@ class SensorEntity(
         result = 31 * result + (decAddTimeAfter ?: 0)
         result = 31 * result + (schemeX ?: 0)
         result = 31 * result + (schemeY ?: 0)
-//        result = 31 * result + calibration.hashCode()
+
         return result
     }
 
