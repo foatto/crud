@@ -124,7 +124,7 @@ class TSCompositeControl(
         root.setTabInfo(tabId, compositeResponse.title, compositeResponse.title)
         alTitleData += compositeResponse.title.split('\n').filter { it.isNotBlank() }.map { TitleData("", it) }
 
-        XyServerActionButtonData.readXyServerActionButton(compositeResponse.blocks.first().xyResponse?.alServerActionButton!!, alXyServerButton)
+        XyServerActionButtonData.readXyServerActionButton(compositeResponse.alServerActionButton, alXyServerButton)
 
         stateControl.doXySpecificComponentMounted(
             startExpandKoef = TS_START_EXPAND_KOEF,

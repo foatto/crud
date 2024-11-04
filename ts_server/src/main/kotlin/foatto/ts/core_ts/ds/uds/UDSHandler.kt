@@ -1,11 +1,11 @@
-package foatto.ts.core_ts.ds
+package foatto.ts.core_ts.ds.uds
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import foatto.util.AdvancedLogger
-import foatto.util.getCurrentTimeInt
 import foatto.core_server.ds.CoreTelematicFunction
 import foatto.core_server.ds.nio.CoreNioWorker
-import foatto.sql.SQLBatch
+import foatto.ts.core_ts.ds.CommonUDSHandler
+import foatto.util.AdvancedLogger
+import foatto.util.getCurrentTimeInt
 import java.nio.ByteOrder
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
@@ -38,7 +38,6 @@ class UDSHandler : CommonUDSHandler() {
             return true
         }
 
-        val sqlBatchData = SQLBatch()
         while (true) {
             val strPacket = sbData.substring(0, packetEndPos)
             AdvancedLogger.debug("data = $strPacket")
@@ -50,6 +49,7 @@ class UDSHandler : CommonUDSHandler() {
             status += " DataRead;"
 
             serialNo = udsRawPacket.id.toString()
+            //--- "принимаем" даже непрописанные приборы (для удобства быстрого/полевого тестирования связи с приборов)
             loadDeviceConfig(dataWorker, DEVICE_TYPE_UDS)
 
             val pointTime = UDS_RAW_PACKET_TIME_BASE + udsRawPacket.timeSys
@@ -64,7 +64,7 @@ class UDSHandler : CommonUDSHandler() {
                 val udsDataPacket = udsRawPacket.normalize()
                 val bbData = dataToByteBuffer(dataWorker, udsDataPacket)
 
-                addPoint(dataWorker.conn, pointTime, bbData, sqlBatchData)
+                addPoint(dataWorker.conn, pointTime, bbData)
                 dataCount++
 
                 if (firstPointTime == 0) {
@@ -80,7 +80,6 @@ class UDSHandler : CommonUDSHandler() {
                 break
             }
         }
-        sqlBatchData.execute(dataWorker.conn)
 
         sendCommand(dataWorker)
 
@@ -112,8 +111,3 @@ class UDSHandler : CommonUDSHandler() {
         return objectMapper.writeValueAsString(commandData)
     }
 }
-
-private class UDSCommandData(
-    val id: Int,
-    val state: String,
-)

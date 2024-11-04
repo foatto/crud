@@ -18,6 +18,11 @@ object AbstractObjectStateCalc {
                     3 -> sensorValue = bb.getInt3()
                     4 -> sensorValue = bb.getInt()
                     8 -> sensorValue = bb.getDouble()
+                    else -> {
+                        if (dataSize < 0) {
+                            bb.getShortString() // пока неясно, как использовать
+                        }
+                    }
                 }
                 break
             } else {
@@ -30,7 +35,7 @@ object AbstractObjectStateCalc {
 
     fun getSensorPortNumAndDataSize(bb: AdvancedByteBuffer): Pair<Int, Int> {
         val portNum = bb.getShort().toInt() and 0xFFFF
-        val dataSize = (bb.getShort().toInt() and 0xFFFF) + 1
+        val dataSize = bb.getShort() + 1
         return Pair(portNum, dataSize)
     }
 
@@ -69,7 +74,7 @@ object AbstractObjectStateCalc {
     }
 
     //--- defining the string form of sensor data
-    fun getSensorString(aSensorType: Int?, dataSize: Int, bb: AdvancedByteBuffer): String =
+    fun getSensorString(dataSize: Int, bb: AdvancedByteBuffer): String =
         when (dataSize) {
             1 -> (bb.getByte().toInt() and 0xFF).toString()
             2 -> (bb.getShort().toInt() and 0xFFFF).toString()
@@ -77,11 +82,15 @@ object AbstractObjectStateCalc {
             4 -> bb.getInt().toString()
             8 -> bb.getDouble().toString()
             else -> {
-                val sensorValue = StringBuilder()
-                for (i in 0 until dataSize) {
-                    byteToHex(bb.getByte(), sensorValue, false)
+                if (dataSize < 0) {
+                    bb.getShortString()
+                } else {
+                    val sb = StringBuilder()
+                    for (i in 0 until dataSize) {
+                        byteToHex(bb.getByte(), sb, false)
+                    }
+                    sb
                 }
-                sensorValue
             }
         }.toString()
 }

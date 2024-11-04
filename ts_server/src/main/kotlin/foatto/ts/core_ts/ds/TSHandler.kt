@@ -1,16 +1,17 @@
 package foatto.ts.core_ts.ds
 
-import foatto.util.AdvancedByteBuffer
-import foatto.util.AdvancedLogger
-import foatto.util.DateTime_YMDHMS
-import foatto.util.getCurrentTimeInt
-import foatto.util.getFileWriter
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import foatto.core_server.app.server.column.ColumnRadioButton
 import foatto.core_server.ds.CoreTelematicFunction
 import foatto.core_server.ds.nio.AbstractTelematicNioHandler
 import foatto.core_server.ds.nio.CoreNioWorker
 import foatto.sql.CoreAdvancedConnection
-import foatto.sql.SQLBatch
+import foatto.util.AdvancedByteBuffer
+import foatto.util.AdvancedLogger
+import foatto.util.DateTime_YMDHMS
+import foatto.util.getCurrentTimeInt
+import foatto.util.getFileWriter
 import java.io.File
 import java.nio.channels.SocketChannel
 
@@ -20,6 +21,7 @@ abstract class TSHandler : AbstractTelematicNioHandler() {
 
         const val DEVICE_TYPE_UDS = 1
         const val DEVICE_TYPE_UDS_OLD = 2
+        const val DEVICE_TYPE_SKK = 3
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -28,11 +30,14 @@ abstract class TSHandler : AbstractTelematicNioHandler() {
 
             columnDeviceType.addChoice(DEVICE_TYPE_UDS, "УДС-Техно 110")
             columnDeviceType.addChoice(DEVICE_TYPE_UDS_OLD, "УДС-Техно 101")
+            columnDeviceType.addChoice(DEVICE_TYPE_SKK, "СКК")
         }
 
     }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    protected val objectMapper: ObjectMapper = jacksonObjectMapper()
 
     override val configSessionLogPath: String = "ts_log_session"
     override val configJournalLogPath: String = "ts_log_journal"
@@ -138,9 +143,9 @@ abstract class TSHandler : AbstractTelematicNioHandler() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    protected fun addPoint(conn: CoreAdvancedConnection, time: Int, bbData: AdvancedByteBuffer, sqlBatchData: SQLBatch) {
+    protected fun addPoint(conn: CoreAdvancedConnection, time: Int, bbData: AdvancedByteBuffer) {
         bbData.flip()
-        sqlBatchData.add(" INSERT INTO TS_data_${deviceConfig!!.objectId} ( ontime , sensor_data ) VALUES ( $time , ${conn.getHexValue(bbData)} ); ")
+        conn.executeUpdate(" INSERT INTO TS_data_${deviceConfig!!.objectId} ( ontime , sensor_data ) VALUES ( $time , ${conn.getHexValue(bbData)} ); ")
     }
 
 }

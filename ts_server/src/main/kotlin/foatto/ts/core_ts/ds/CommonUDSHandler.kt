@@ -1,23 +1,18 @@
 package foatto.ts.core_ts.ds
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import foatto.core_server.ds.CoreTelematicFunction
+import foatto.core_server.ds.nio.CoreNioWorker
+import foatto.ts.core_ts.ds.uds.UDSDataPacket
+import foatto.ts_core.app.CommandStatusCode
 import foatto.util.AdvancedByteBuffer
 import foatto.util.AdvancedLogger
 import foatto.util.getCurrentTimeInt
-import foatto.core_server.ds.CoreTelematicFunction
-import foatto.core_server.ds.nio.CoreNioWorker
-import foatto.ts_core.app.CommandStatusCode
 
 abstract class CommonUDSHandler : TSHandler() {
-
-    protected val objectMapper = jacksonObjectMapper()
 
     protected fun dataToByteBuffer(dataWorker: CoreNioWorker, udsDataPacket: UDSDataPacket): AdvancedByteBuffer {
         val bbData = AdvancedByteBuffer(dataWorker.conn.dialect.textFieldMaxSize / 2)
         deviceConfig?.let { dc ->
-            //!!! агрегации данных не производится
-            val pointTime = 0
-            val hmPortTime = mutableMapOf<Int, Int>()
             // Код текущего состояния установки УДС
             CoreTelematicFunction.putSensorData(dc.index, 0, 4, udsDataPacket.state, bbData)
             // Глубина (в метрах)

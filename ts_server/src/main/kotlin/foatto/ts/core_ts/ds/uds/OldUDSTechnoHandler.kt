@@ -1,13 +1,13 @@
-package foatto.ts.core_ts.ds
+package foatto.ts.core_ts.ds.uds
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import foatto.core_server.ds.CoreTelematicFunction
+import foatto.core_server.ds.nio.CoreNioWorker
+import foatto.ts.core_ts.ds.CommonUDSHandler
 import foatto.util.AdvancedLogger
 import foatto.util.YMDHMS_DateTime
 import foatto.util.getCurrentTimeInt
 import foatto.util.getDateTimeInt
-import foatto.core_server.ds.CoreTelematicFunction
-import foatto.core_server.ds.nio.CoreNioWorker
-import foatto.sql.SQLBatch
 import java.nio.ByteOrder
 
 class OldUDSTechnoHandler : CommonUDSHandler() {
@@ -34,7 +34,6 @@ class OldUDSTechnoHandler : CommonUDSHandler() {
             return true
         }
 
-        val sqlBatchData = SQLBatch()
         while (true) {
             //--- последняя рабочая '}' тоже входит в рабочую строку
             packetEndPos++
@@ -62,7 +61,7 @@ class OldUDSTechnoHandler : CommonUDSHandler() {
                 val udsDataPacket = udsRawPacket.normalize(zoneId)
                 val bbData = dataToByteBuffer(dataWorker, udsDataPacket)
 
-                addPoint(dataWorker.conn, pointTime, bbData, sqlBatchData)
+                addPoint(dataWorker.conn, pointTime, bbData)
                 dataCount++
 
                 if (firstPointTime == 0) {
@@ -78,7 +77,6 @@ class OldUDSTechnoHandler : CommonUDSHandler() {
                 break
             }
         }
-        sqlBatchData.execute(dataWorker.conn)
 
         sendCommand(dataWorker)
 
@@ -116,12 +114,3 @@ class OldUDSTechnoHandler : CommonUDSHandler() {
     }
 
 }
-
-private class OldUDSTechnoCommandData(
-    val id: Int,
-    val pass: String = "bb9ec852de3e8f7609d3676ede4444fa",  //--- for compatibility, removed later
-    val state: String,
-    //--- for compatibility, not used, removed later
-    val crc16L: Int = 0,
-    val crc16H: Int = 0,
-)

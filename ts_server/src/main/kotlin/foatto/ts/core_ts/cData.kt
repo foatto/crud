@@ -46,7 +46,7 @@ class cData : cTSOneObjectParent() {
             val (portNum, dataSize) = AbstractObjectStateCalc.getSensorPortNumAndDataSize(bb)
             val isPresentedPort = tmSensorColumn.containsKey(portNum)
             //--- по каждому номеру порта - составляем визуальное представление значения
-            val sensorValue = AbstractObjectStateCalc.getSensorString(hmSensorPortType[portNum], dataSize, bb)
+            val sensorValue = AbstractObjectStateCalc.getSensorString(dataSize, bb)
             //--- выводим только определённые порты
             if (isPresentedPort) {
                 (hmColumnData[tmSensorColumn[portNum]!!] as DataString).text = sensorValue

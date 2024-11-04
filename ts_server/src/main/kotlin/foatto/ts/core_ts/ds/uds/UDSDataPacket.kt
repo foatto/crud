@@ -1,4 +1,4 @@
-package foatto.ts.core_ts.ds
+package foatto.ts.core_ts.ds.uds
 
 class UDSDataPacket(
 

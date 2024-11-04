@@ -115,13 +115,13 @@ class cCompositeTS : cAbstractForm() {
             title = title,
             tooltip = tooltip,
             alServerActionButton = alServerActionButton,
-            cols = 2,
+            cols = 1,
             rows = 2,
             blocks = listOf(
                 CompositeBlockDTO(
                     x = 0,
                     y = 0,
-                    w = 2,
+                    w = 1,
                     h = 1,
                     xyResponse = XyResponse(
                         documentConfig = CoreSpringApp.hmXyDocumentConfig["ts_state"]!!,
@@ -137,7 +137,7 @@ class cCompositeTS : cAbstractForm() {
                     w = 1,
                     h = 1,
                     chartResponse = ChartResponse(
-                        documentTypeName = "ts_graphic_dsl",
+                        documentTypeName = "ts_graphic_dsltt",
                         startParamId = grParamId.toString(),
                         title = title,
                         tooltip = tooltip,
@@ -146,21 +146,21 @@ class cCompositeTS : cAbstractForm() {
                         endTime = 0,
                     ),
                 ),
-                CompositeBlockDTO(
-                    x = 1,
-                    y = 1,
-                    w = 1,
-                    h = 1,
-                    chartResponse = ChartResponse(
-                        documentTypeName = "ts_graphic_tt",
-                        startParamId = grParamId.toString(),
-                        title = title,
-                        tooltip = tooltip,
-                        rangeType = rangeType,
-                        begTime = 0,
-                        endTime = 0,
-                    ),
-                ),
+//                CompositeBlockDTO(
+//                    x = 0,
+//                    y = 2,
+//                    w = 1,
+//                    h = 1,
+//                    chartResponse = ChartResponse(
+//                        documentTypeName = "ts_graphic_tt",
+//                        startParamId = grParamId.toString(),
+//                        title = title,
+//                        tooltip = tooltip,
+//                        rangeType = rangeType,
+//                        begTime = 0,
+//                        endTime = 0,
+//                    ),
+//                ),
             ),
         )
 
