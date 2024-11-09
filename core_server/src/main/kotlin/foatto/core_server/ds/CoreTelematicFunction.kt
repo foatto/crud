@@ -7,6 +7,7 @@ import foatto.util.getFileWriter
 import java.io.File
 import java.time.ZoneId
 import java.util.*
+import kotlin.math.min
 
 object CoreTelematicFunction {
     //--- учитывая возможность подключения нескольких контроллеров к одному объекту,
@@ -20,7 +21,7 @@ object CoreTelematicFunction {
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    fun putBitSensor(
+    fun putBitSensorData(
         deviceIndex: Int,
         bitValue: Int,
         startPortNum: Int,
@@ -38,7 +39,7 @@ object CoreTelematicFunction {
         }
     }
 
-    fun putDigitalSensor(
+    fun putDigitalSensors(
         deviceIndex: Int,
         tmDigitalSensor: SortedMap<Int, Int>,
         startPortNum: Int,
@@ -56,7 +57,7 @@ object CoreTelematicFunction {
         }
     }
 
-    fun putDigitalSensor(
+    fun putDigitalSensors(
         deviceIndex: Int,
         tmDigitalSensor: SortedMap<Int, Double>,
         startPortNum: Int,
@@ -118,16 +119,26 @@ object CoreTelematicFunction {
         bbData.putDouble(dataValue)
     }
 
-    //!!! ещё не мешало бы проверить корректность записи данных
-    //    protected void putSensorData( int portNum, int dataSize, int[] arrDataValue, AdvancedByteBuffer bbData ) throws Throwable {
-    //        putSensorPortNumAndDataSize( portNum, dataSize, bbData );
-    //
-    //        for( int i = 0; i < arrDataValue.length; i++ )
-    //                 if( dataSize == 1 ) bbData.putByte( arrDataValue[ i ] );
-    //            else if( dataSize == 2 ) bbData.putShort( arrDataValue[ i ] );
-    //            else if( dataSize == 3 ) bbData.putInt3( arrDataValue[ i ] );
-    //            else if( dataSize == 4 ) bbData.putInt( arrDataValue[ i ] );
-    //    }
+    fun putStringSensorData(
+        deviceIndex: Int,
+        portNum: Int,
+        stringValue: String,
+        bbData: AdvancedByteBuffer,
+    ) {
+        //--- чтобы не путать короткие строки с 1-2-3-4-8-байтовыми числами,
+        //--- запишем длину строки в виде отрицательного числа (т.е. как флаг строковых данных)
+        val len = min(stringValue.length, 32_000)   // dataSize as Short
+        val dataSize = 2 + len * 2
+
+        putSensorPortNumAndDataSize(
+            deviceIndex = deviceIndex,
+            portNum = portNum,
+            dataSize = -dataSize,
+            bbData = bbData,
+        )
+
+        bbData.putShortString(stringValue.subSequence(0, len))
+    }
 
     fun putSensorPortNumAndDataSize(
         deviceIndex: Int,

@@ -283,7 +283,7 @@ object MMSTelematicFunction {
         bbData: AdvancedByteBuffer,
     ) {
         //--- write raw data into MMS_data_XXX
-        CoreTelematicFunction.putDigitalSensor(deviceIndex, tmSensorData, startPortNum, bbData)
+        CoreTelematicFunction.putDigitalSensors(deviceIndex, tmSensorData, startPortNum, bbData)
 
         //--- write smoothed/aggregated data into MMS_agg_YYY
         tmSensorData.forEach { (index, sensorValue) ->
@@ -394,7 +394,7 @@ object MMSTelematicFunction {
         const val SENSOR_WORK = 1           // мото * час
 
         //--- контрольные величины - графики
-        const val SENSOR_LIQUID_FLOW_CALC = 3
+        const val SENSOR_LIQUID_FLOW_CALC = 3 - убрать нафиг этот расчётный "датчик"
 
         //--- учётные величины - отчёты
 
