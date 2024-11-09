@@ -2,7 +2,7 @@ package foatto.ts.core_ts.ds.skk
 
 class SKKDataData(
 
-    // время данных
+    // время данных (секунды от 01.01.2000 00:00:00)
     val t: Int,
 
     // глубина

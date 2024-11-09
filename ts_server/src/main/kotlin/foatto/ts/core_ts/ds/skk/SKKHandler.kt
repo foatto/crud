@@ -8,8 +8,15 @@ import foatto.util.AdvancedByteBuffer
 import foatto.util.AdvancedLogger
 import foatto.util.getCurrentTimeInt
 import java.nio.ByteOrder
+import java.nio.charset.Charset
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
 class SKKHandler : TSHandler() {
+
+    companion object {
+        private val SKK_RAW_PACKET_TIME_BASE: Int = OffsetDateTime.of(2000, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC).toEpochSecond().toInt()
+    }
 
     private val sbData = StringBuilder()
 
@@ -25,7 +32,7 @@ class SKKHandler : TSHandler() {
 
         val arrByte = ByteArray(bbIn.remaining())
         bbIn.get(arrByte)
-        sbData.append(String(arrByte))
+        sbData.append(String(arrByte, Charset.forName("Cp1251")))
         AdvancedLogger.debug("sbData = $sbData")
 
         //--- хотя бы один пакет собрался в общей строке данных?
@@ -64,7 +71,7 @@ class SKKHandler : TSHandler() {
                 deviceConfig?.let { deviceConfig ->
                     packet.data?.let { datas ->
                         for (data in datas) {
-                            val pointTime = data.t
+                            val pointTime = SKK_RAW_PACKET_TIME_BASE + data.t
 
                             if (deviceConfig.objectId != 0 &&
                                 pointTime > curTime - CoreTelematicFunction.MAX_PAST_TIME &&
@@ -74,6 +81,8 @@ class SKKHandler : TSHandler() {
                                 val bbData = dataToByteBuffer(dataWorker, data)
 
                                 addPoint(dataWorker.conn, pointTime, bbData)
+                                dataWorker.conn.commit()
+                                
                                 dataCount++
 
                                 if (firstPointTime == 0) {
