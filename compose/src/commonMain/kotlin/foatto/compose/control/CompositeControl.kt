@@ -1,4 +1,4 @@
-package foatto.core_compose.controls
+package foatto.compose.control
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,17 +9,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import foatto.core.app.composite.CompositeResponse
-import foatto.core.link.XyDocumentClientType
-import foatto.core_compose.AppControl
-import foatto.core_compose.Root
-import foatto.core_compose.controls.models.TitleData
-import foatto.core_compose.controls.models.composite.CompositeBlock
+import foatto.compose.AppControl
+import foatto.compose.Root
+import foatto.compose.control.model.TitleData
+import foatto.compose.control.model.composite.CompositeBlockControl
+import foatto.core.model.response.composite.CompositeResponse
 
 class CompositeControl(
     protected val root: Root,
@@ -28,10 +28,10 @@ class CompositeControl(
     tabId: Int,
 ) : AbstractControl(tabId) {
 
-    private var compositeWidth: Float by mutableFloatStateOf(0.0f)
-    private var compositeHeight: Float by mutableFloatStateOf(0.0f)
+    private var oneBlockWidth by mutableFloatStateOf(0.0f)
+    private var oneBlockHeight by mutableFloatStateOf(0.0f)
 
-    private val blocks = mutableListOf<CompositeBlock>()
+    private val blocks = mutableStateListOf<CompositeBlockControl>()
 
     @Composable
     override fun Body() {
@@ -42,7 +42,7 @@ class CompositeControl(
         Column(
             modifier = Modifier.fillMaxSize(),
         ) {
-            getChartAndXyAndCompositeHeader()
+            getHeader()
 
 //            CompositeToolBar(
 //                isWideScreen = root.isWideScreen,
@@ -76,8 +76,8 @@ class CompositeControl(
                     .fillMaxSize()
                     .clipToBounds()
                     .onSizeChanged { size ->
-                        compositeWidth = size.width.toFloat()
-                        compositeHeight = size.height.toFloat()
+                        oneBlockWidth = size.width.toFloat() / compositeResponse.cols
+                        oneBlockHeight = size.height.toFloat() / compositeResponse.rows
                     }
 //                    .pointerInput(Unit) {
 //                        awaitEachGesture {
@@ -107,9 +107,6 @@ class CompositeControl(
 //                        )
 //                    }
             ) {
-                val oneBlockWidth = compositeWidth / compositeResponse.cols
-                val oneBlockHeight = compositeHeight / compositeResponse.rows
-
                 for (block in blocks) {
                     val blockX = block.x * oneBlockWidth
                     val blockY = block.y * oneBlockHeight
@@ -127,8 +124,9 @@ class CompositeControl(
                                 height = with(density) { blockH.toDp() },
                             )
                     ) {
-                        block.xyBlock?.getXyElementTemplate(false)
-                            ?: block.chartBlock?.MainChartBody(false)
+                        block.chartBlock?.MainChartBody(false)
+                            ?: block.mapBlock?.getXyElementTemplate(false)
+                            ?: block.schemeBlock?.getXyElementTemplate(false)
                             ?: run {
                                 Text(text = "Не задан тип блока!")
                             }
@@ -139,44 +137,54 @@ class CompositeControl(
     }
 
     override fun start() {
-        root.setTabInfo(tabId, compositeResponse.title, compositeResponse.title)
+        readHeader()
 
-        alTitleData.addAll(compositeResponse.title.split('\n').filter { it.isNotBlank() }.map { TitleData("", it) })
-
-        compositeResponse.blocks.forEach { blockDTO ->
-            blocks += CompositeBlock(
-                x = blockDTO.x.toFloat(),
-                y = blockDTO.y.toFloat(),
-                w = blockDTO.w.toFloat(),
-                h = blockDTO.h.toFloat(),
-                xyBlock = blockDTO.xyResponse?.let { xyResponse ->
-                    when (xyResponse.documentConfig.clientType) {
-                        XyDocumentClientType.MAP -> MapControl(root, appControl, xyResponse, tabId).apply {
-                            startXySpecific(
-                                startExpandKoef = MapControl.MAP_START_EXPAND_KOEF,
-                                isCentered = false,
-                                curScale = xyResponse.documentConfig.hmElementConfig.minBy { (_, value) -> value.scaleMin }.value.scaleMin
-                            )
-                        }
-
-                        XyDocumentClientType.SCHEME -> SchemeControl(root, appControl, xyResponse, tabId).apply {
-                            startXySpecific(
-                                startExpandKoef = SchemeControl.SCHEME_START_EXPAND_KOEF,
-                                isCentered = true,
-                                curScale = 1,
-                            )
-                        }
+        blocks.clear()
+        compositeResponse.blocks.forEach { blockControlData ->
+            blocks += CompositeBlockControl(
+                x = blockControlData.x.toFloat(),
+                y = blockControlData.y.toFloat(),
+                w = blockControlData.w.toFloat(),
+                h = blockControlData.h.toFloat(),
+                chartBlock = blockControlData.chartResponse?.let { chartResponse ->
+                    ChartControl(root, appControl, blockControlData.action, chartResponse, tabId).apply {
+                        startChartBody()
                     }
                 },
-                chartBlock = blockDTO.chartResponse?.let { chartResponse ->
-                    ChartControl(root, appControl, chartResponse, tabId).apply {
-                        startChartSpecific()
+                mapBlock = blockControlData.mapResponse?.let { mapResponse ->
+                    MapControl(root, appControl, blockControlData.action, mapResponse, tabId).apply {
+                        startMapBody(
+                            startExpandKoef = MapControl.MAP_START_EXPAND_KOEF,
+                            isCentered = false,
+                            curScale = this.minXyScale
+                        )
+                    }
+                },
+                schemeBlock = blockControlData.schemeResponse?.let { schemeResponse ->
+                    SchemeControl(root, appControl, blockControlData.action, schemeResponse, tabId).apply {
+                        startSchemeBody(
+                            startExpandKoef = SchemeControl.SCHEME_START_EXPAND_KOEF,
+                            isCentered = true,
+                            curScale = 1,
+                        )
                     }
                 }
             )
+            /*
+                    !!! setInterval(10)
+             */
         }
-        /*
-                setInterval(10)
-         */
     }
+
+    private fun readHeader() {
+        root.setTabInfo(tabId, compositeResponse.tabCaption)
+
+        alTitleData.clear()
+        compositeResponse.headers.forEachIndexed { index, text ->
+            alTitleData.add(TitleData(null, text, compositeResponse.headers.size > 1 && index == 0))
+            //--- запомним последнюю кнопку заголовка в табличном режиме как кнопку отмены или возврата на уровень выше
+            //butTableCancel = button - not used yet
+        }
+    }
+
 }

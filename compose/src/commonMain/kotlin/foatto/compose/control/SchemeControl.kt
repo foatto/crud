@@ -1,4 +1,4 @@
-package foatto.core_compose.controls
+package foatto.compose.control
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,26 +15,32 @@ import androidx.compose.ui.graphics.Color.Companion.hsl
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.PointerInputChange
-import foatto.core.app.STATE_ALERT_MESSAGE
-import foatto.core.app.STATE_ELEMENT_MOVE_DESCR
-import foatto.core.app.STATE_ELEMENT_MOVE_ENABLED
-import foatto.core.app.STATE_ELEMENT_MOVE_ID
-import foatto.core.app.STATE_ELEMENT_MOVE_X
-import foatto.core.app.STATE_ELEMENT_MOVE_Y
-import foatto.core.app.xy.XyActionResponse
-import foatto.core.app.xy.XyViewCoord
-import foatto.core.link.XyResponse
-import foatto.core_compose.AppControl
-import foatto.core_compose.Root
-import foatto.core_compose.controls.composables.scheme.SchemeToolBar
-import foatto.core_compose.controls.models.table.ServerActionButtonClient
+import foatto.compose.AppControl
+import foatto.compose.Root
+import foatto.compose.control.composable.scheme.SchemeToolBar
+import foatto.compose.control.model.TitleData
+import foatto.compose.control.model.scheme.ElementMoveData
+import foatto.compose.control.model.table.ServerActionButtonClient
+import foatto.compose.invokeRequest
+import foatto.core.ActionType
+import foatto.core.model.AppAction
+import foatto.core.model.model.scheme.SchemeParam
+import foatto.core.model.model.xy.XyViewCoord
+import foatto.core.model.request.SchemeActionRequest
+import foatto.core.model.response.SchemeActionResponse
+import foatto.core.model.response.xy.scheme.SchemeResponse
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
 
 class SchemeControl(
     root: Root,
     appControl: AppControl,
-    xyResponse: XyResponse,
+    private val schemeAction: AppAction,
+    private val schemeResponse: SchemeResponse,
     tabId: Int
-) : AbstractXyControl(root, appControl, xyResponse, tabId) {
+) : AbstractXyControl(root, appControl, schemeResponse.elementConfigs, tabId) {
 
     companion object {
         private val COLOR_SCHEME_LINE: Color = hsl(180.0f, 1.0f, 1.0f)
@@ -67,7 +73,7 @@ class SchemeControl(
         Column(
             modifier = Modifier.fillMaxSize(),
         ) {
-            getChartAndXyAndCompositeHeader()
+            getHeader()
 
             SchemeToolBar(
                 isWideScreen = root.isWideScreen,
@@ -76,7 +82,7 @@ class SchemeControl(
                 isShowElementList = isShowElementList,
                 alServerButton = alServerButton,
                 alMoveableElementData = alMoveableElementData,
-                onServerButtonClick = { url: String -> invokeServerButton(url) },
+                onServerButtonClick = { action: AppAction -> invokeServerButton(action) },
                 onMoveButtonClick = { isShowElementList = !isShowElementList },
                 doCloseElementList = { isShowElementList = false },
                 onElementListClick = { data: ElementMoveData ->
@@ -117,35 +123,85 @@ class SchemeControl(
 
     override fun start() {
         alServerButton.clear()
-        xyResponse.alServerActionButton?.let { alServerActionButton ->
+        schemeResponse.alServerActionButton?.let { alServerActionButton ->
             for (sab in alServerActionButton) {
                 alServerButton.add(ServerActionButtonClient.readFromServerActionButton(sab))
             }
         }
 
-        startXy(
+        readHeader()
+
+        startSchemeBody(
             startExpandKoef = SCHEME_START_EXPAND_KOEF,
             isCentered = true,
             curScale = 1,
         )
     }
 
-    override fun xyRefreshView(aView: XyViewCoord?, withWait: Boolean) {
+    private fun readHeader() {
+        root.setTabInfo(tabId, schemeResponse.tabCaption)
+
+        alTitleData.clear()
+        schemeResponse.headers.forEachIndexed { index, text ->
+            alTitleData.add(TitleData(null, text, schemeResponse.headers.size > 1 && index == 0))
+            //--- запомним последнюю кнопку заголовка в табличном режиме как кнопку отмены или возврата на уровень выше
+            //butTableCancel = button - not used yet
+        }
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun startSchemeBody(
+        startExpandKoef: Float,
+        isCentered: Boolean,
+        curScale: Int,
+    ) {
+        root.setWait(true)
+        invokeRequest(
+            SchemeActionRequest(
+                action = schemeAction.copy(
+                    type = ActionType.GET_COORDS
+                )
+            )
+        ) { schemeActionResponse: SchemeActionResponse ->
+
+            GlobalScope.launch {
+                while (xyCanvasWidth == 0.0f) {
+                    yield()
+                }
+                val newViewCoord = getXyCoordsDone(
+                    startExpandKoef = startExpandKoef,
+                    isCentered = isCentered,
+                    curScale = curScale,
+                    minCoord = schemeActionResponse.minCoord!!,
+                    maxCoord = schemeActionResponse.maxCoord!!,
+                )
+
+                //--- именно до xyRefreshView, чтобы не сбросить сразу после включения
+                root.setWait(false)
+                xyRefreshView(newViewCoord, true)
+            }
+        }
+    }
+
+    fun xyRefreshView(
+        aView: XyViewCoord?,
+        withWait: Boolean,
+    ) {
         doStateRefreshView(
             aView = aView,
             withWait = withWait,
-            doAdditionalWork = { xyActionResponse: XyActionResponse ->
-                xyActionResponse.hmParam[STATE_ALERT_MESSAGE]?.let { value ->
+            doAdditionalWork = { schemeActionResponse: SchemeActionResponse ->
+                schemeActionResponse.hmParam[SchemeParam.SCHEME_ALERT_MESSAGE]?.let { value ->
                     stateAlertMessage = value
                     isShowStateAlert = true
                 }
 
-                isElementMoveEnabled = (xyActionResponse.hmParam[STATE_ELEMENT_MOVE_ENABLED]?.toBooleanStrictOrNull() == true)
+                isElementMoveEnabled = (schemeActionResponse.hmParam[SchemeParam.SCHEME_ELEMENT_MOVE_ENABLED]?.toBooleanStrictOrNull() == true)
 
-                val sElementMoveId = xyActionResponse.hmParam[STATE_ELEMENT_MOVE_ID]
-                val sElementMoveDescr = xyActionResponse.hmParam[STATE_ELEMENT_MOVE_DESCR]
-                val sElementMoveX = xyActionResponse.hmParam[STATE_ELEMENT_MOVE_X]
-                val sElementMoveY = xyActionResponse.hmParam[STATE_ELEMENT_MOVE_Y]
+                val sElementMoveId = schemeActionResponse.hmParam[SchemeParam.SCHEME_ELEMENT_MOVE_ID]
+                val sElementMoveDescr = schemeActionResponse.hmParam[SchemeParam.SCHEME_ELEMENT_MOVE_DESCR]
+                val sElementMoveX = schemeActionResponse.hmParam[SchemeParam.SCHEME_ELEMENT_MOVE_X]
+                val sElementMoveY = schemeActionResponse.hmParam[SchemeParam.SCHEME_ELEMENT_MOVE_Y]
 
                 if (!sElementMoveId.isNullOrBlank() && !sElementMoveDescr.isNullOrEmpty() &&
                     !sElementMoveX.isNullOrBlank() && !sElementMoveY.isNullOrEmpty()
@@ -175,19 +231,53 @@ class SchemeControl(
     fun doStateRefreshView(
         aView: XyViewCoord?,
         withWait: Boolean,
-        doAdditionalWork: (xyActionResponse: XyActionResponse) -> Unit = { _: XyActionResponse -> },
+        doAdditionalWork: (xyActionResponse: SchemeActionResponse) -> Unit = { _: SchemeActionResponse -> },
     ) {
         aView?.let {
             //--- принимаем новый ViewCoord как есть, но корректируем масштаб в зависимости от текущего размера выводимой области
             aView.scale = calcXyScale(aView.x1, aView.y1, aView.x2, aView.y2)
             xyViewCoord = aView
         }
-
-        getXyElements(
+        getSchemeElements(
             mapBitmapTypeName = "",
             withWait = withWait,
             doAdditionalWork = doAdditionalWork,
         )
+    }
+
+    private fun getSchemeElements(
+        mapBitmapTypeName: String,
+        withWait: Boolean,
+        doAdditionalWork: (schemeActionResponse: SchemeActionResponse) -> Unit = { _: SchemeActionResponse -> },
+    ) {
+        if (withWait) {
+            root.setWait(true)
+        }
+        invokeRequest(
+            SchemeActionRequest(
+                action = schemeAction.copy(
+                    type = ActionType.GET_ELEMENTS
+                ),
+//                documentTypeName = xyDocumentConfig.name,
+//                type = XyActionType.GET_ELEMENTS,
+//                startParamId = schemeResponse.startParamId,
+//                viewCoord = xyViewCoord,
+//                bitmapTypeName = mapBitmapTypeName
+            )
+        ) { schemeActionResponse: SchemeActionResponse ->
+
+            //--- сбрасываем горизонтальный и вертикальный скроллинг/смещение
+            screenOffsetX = 0.0f
+            screenOffsetY = 0.0f
+
+            readXyElements(schemeActionResponse.elements)
+
+            if (withWait) {
+                root.setWait(false)
+            }
+
+            doAdditionalWork(schemeActionResponse)
+        }
     }
 
     override fun onPointerDown(pointerInputChange: PointerInputChange) {
@@ -344,8 +434,8 @@ class SchemeControl(
         }
 
     */
-    private fun invokeServerButton(url: String) {
-        root.openTab(url)
+    private fun invokeServerButton(action: AppAction) {
+        root.openTab(action)
     }
 
     /*
@@ -380,9 +470,3 @@ class SchemeControl(
      */
 }
 
-internal class ElementMoveData(
-    val id: Int,
-    val descr: String,
-    val x: Int,
-    val y: Int,
-)

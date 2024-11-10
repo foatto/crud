@@ -31,6 +31,7 @@ object AbstractObjectStateCalc {
 //        }
 //    }
 //
+//    --- чтение сырых данных в pulsar 2.0 вообще не используется ---
 //    fun getSensorData(sensorPortNum: Int, bb: AdvancedByteBuffer): Number? {
 //        var sensorValue: Number? = null
 //
@@ -44,6 +45,11 @@ object AbstractObjectStateCalc {
 //                    3 -> sensorValue = bb.getInt3()
 //                    4 -> sensorValue = bb.getInt()
 //                    8 -> sensorValue = bb.getDouble()
+//                    else -> {
+//                        if (dataSize < 0) {
+//                            bb.getShortString() // пока неясно, как использовать
+//                        }
+//                    }
 //                }
 //                break
 //            } else {
@@ -56,7 +62,7 @@ object AbstractObjectStateCalc {
 
     fun getSensorPortNumAndDataSize(bb: AdvancedByteBuffer): Pair<Int, Int> {
         val portNum = bb.getShort().toInt() and 0xFFFF
-        val dataSize = (bb.getShort().toInt() and 0xFFFF) + 1
+        val dataSize = bb.getShort() + 1
         return Pair(portNum, dataSize)
     }
 
@@ -145,8 +151,15 @@ object AbstractObjectStateCalc {
                     4 -> sensorValue = bb.getInt().toString()
                     8 -> sensorValue = bb.getDouble().toString()
                     else -> {
-                        sensorValue = StringBuilder()
-                        for (i in 0 until dataSize) byteToHex(bb.getByte(), sensorValue, false)
+                        sensorValue = if (dataSize < 0) {
+                            bb.getShortString()
+                        } else {
+                            val sb = StringBuilder()
+                            for (i in 0 until dataSize) {
+                                byteToHex(bb.getByte(), sb, false)
+                            }
+                            sb
+                        }
                     }
                 }
             }

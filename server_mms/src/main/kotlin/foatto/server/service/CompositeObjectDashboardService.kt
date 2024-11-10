@@ -1,0 +1,123 @@
+package foatto.server.service
+
+import foatto.core.ActionType
+import foatto.core.model.AppAction
+import foatto.core.model.response.AppResponse
+import foatto.core.model.response.ResponseCode
+import foatto.core.model.response.composite.CompositeBlock
+import foatto.core.model.response.composite.CompositeResponse
+import foatto.core.model.response.xy.scheme.SchemeResponse
+import foatto.core_mms.AppModuleMMS
+import foatto.server.SpringApp
+import foatto.server.appModuleConfigs
+import foatto.server.checkAccessPermission
+import foatto.server.entity.SensorEntity
+import foatto.server.model.SensorConfig
+import foatto.server.repository.ObjectRepository
+import foatto.server.repository.SensorRepository
+import org.springframework.data.repository.findByIdOrNull
+import org.springframework.stereotype.Service
+import kotlin.math.ceil
+import kotlin.math.sqrt
+
+@Service
+class CompositeObjectDashboardService(
+    private val objectRepository: ObjectRepository,
+    private val sensorRepository: SensorRepository,
+) {
+
+    fun composite(
+        sessionId: Long,
+        action: AppAction,
+    ): AppResponse {
+        val actionModule = action.module
+
+        val sessionData = SpringApp.getSessionData(sessionId) ?: return AppResponse(ResponseCode.LOGON_NEED)
+        val userConfig = sessionData.serverUserConfig ?: return AppResponse(ResponseCode.LOGON_NEED)
+        if (!checkAccessPermission(actionModule, userConfig.roles)) {
+            return AppResponse(ResponseCode.LOGON_NEED)
+        }
+
+        val moduleConfig = appModuleConfigs[actionModule] ?: return AppResponse(ResponseCode.LOGON_NEED)
+
+        val caption = moduleConfig.caption
+
+        val objectEntity = objectRepository.findByIdOrNull(action.id) ?: return AppResponse(ResponseCode.LOGON_NEED)
+
+        val headers = mutableListOf("$caption: ", "${objectEntity.name}")
+        if (!objectEntity.model.isNullOrBlank()) {
+            headers += ", ${objectEntity.model}"
+        }
+
+        val analogueSensorEntities = mutableListOf<SensorEntity>()
+        //--- пока просто подряд, по порядку перечисления в SensorConfig
+        //--- потом по просьбам заказчиком перетасуем
+        listOf(
+            SensorConfig.SENSOR_LIQUID_LEVEL,
+            SensorConfig.SENSOR_WEIGHT,
+            SensorConfig.SENSOR_TURN,
+            SensorConfig.SENSOR_PRESSURE,
+            SensorConfig.SENSOR_TEMPERATURE,
+            SensorConfig.SENSOR_VOLTAGE,
+            SensorConfig.SENSOR_POWER,
+            SensorConfig.SENSOR_DENSITY,
+            SensorConfig.SENSOR_MASS_FLOW,
+            SensorConfig.SENSOR_VOLUME_FLOW,
+            SensorConfig.SENSOR_ENERGO_VOLTAGE,
+            SensorConfig.SENSOR_ENERGO_CURRENT,
+            SensorConfig.SENSOR_ENERGO_POWER_KOEF,
+            SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
+            SensorConfig.SENSOR_ENERGO_POWER_REACTIVE,
+            SensorConfig.SENSOR_ENERGO_POWER_FULL,
+            SensorConfig.SENSOR_ENERGO_TRANSFORM_KOEF_CURRENT,
+            SensorConfig.SENSOR_ENERGO_TRANSFORM_KOEF_VOLTAGE,
+        ).forEach { sensorType ->
+            analogueSensorEntities += sensorRepository.findByObjAndSensorType(objectEntity, sensorType)
+        }
+
+        //--- в соотношении 2:1
+        val blockRows = ceil(sqrt(analogueSensorEntities.size / 2.0)).toInt()
+        val blockOnRow = blockRows * 2
+
+        val blocks = mutableListOf<CompositeBlock>()
+        var row = 0
+        var col = 0
+
+        analogueSensorEntities.forEach { analogueSensorEntity ->
+            blocks += CompositeBlock(
+                x = col,
+                y = row,
+                w = 1,
+                h = 1,
+                action = AppAction(
+                    type = ActionType.MODULE_SCHEME,
+                    module = AppModuleMMS.SCHEME_ANALOGUE_INDICATOR_STATE,
+                    id = analogueSensorEntity.id,
+                ),
+                schemeResponse = SchemeResponse(
+                    elementConfigs = SchemeAnalogueIndicatorStateService.elementConfigs,
+                    tabCaption = "",
+                    headers = emptyList(),
+                ),
+            )
+
+            col++
+            if (col >= blockOnRow) {
+                row++
+                col = 0
+            }
+        }
+
+        return AppResponse(
+            responseCode = ResponseCode.MODULE_COMPOSITE,
+            composite = CompositeResponse(
+                tabCaption = caption,
+                headers = headers,
+                cols = blockOnRow,
+                rows = blockRows,
+                blocks = blocks,
+            )
+        )
+    }
+
+}
