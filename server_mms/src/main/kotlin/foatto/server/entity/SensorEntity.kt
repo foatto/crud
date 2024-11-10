@@ -133,6 +133,12 @@ class SensorEntity(
     @Column(name = "analog_max_limit")
     val maxLimit: Double?,
 
+    @Column(name = "analog_indicator_delimiter_count")
+    val indicatorDelimiterCount: Int?,
+
+    @Column(name = "analog_indicator_multiplicator")
+    val indicatorMultiplicator: Double?,
+
     //--- (fuel) counter sensor attributes
 
     @Convert(converter = BooleanToIntConverter::class)

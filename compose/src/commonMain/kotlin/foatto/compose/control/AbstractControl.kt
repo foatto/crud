@@ -26,6 +26,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import foatto.compose.colorHeader
 import foatto.compose.control.model.TitleData
@@ -216,6 +217,8 @@ abstract class AbstractControl(
         canvasHeight: Float,
         textMeasurer: TextMeasurer,
         text: String,
+        fontSize: Int,
+        textIsBold: Boolean,
         x: Float,
         y: Float,
         textLimitWidth: Float?,
@@ -227,7 +230,6 @@ abstract class AbstractControl(
         strokeWidth: Float?,
         textAnchor: Alignment,
         textColor: Color,
-        textIsBold: Boolean,
     ) {
         val isTextSizeLimited = textLimitWidth != null && textLimitHeight != null
         val isBordered = strokeColor != null && (strokeWidth ?: 0.0f) > 0
@@ -246,11 +248,21 @@ abstract class AbstractControl(
             0.0f to 0.0f
         }
 
+        val textStyle = TextStyle(
+            color = textColor,
+            fontSize = fontSize.sp,
+            fontWeight = if (textIsBold) {
+                FontWeight.Bold
+            } else {
+                FontWeight.Normal
+            }
+        )
         val textSize = if (isTextSizeLimited) {
             Size(textLimitWidth!! - paddingX * 2, textLimitHeight!! - paddingY * 2)
         } else {
             textMeasurer.measure(
                 text = text,
+                style = textStyle,
                 softWrap = false,
             ).size.toSize()
         }
@@ -310,14 +322,7 @@ abstract class AbstractControl(
 //                                }
 //                            }
 //                        },
-                            style = TextStyle(
-                                color = textColor,
-                                fontWeight = if (textIsBold) {
-                                    FontWeight.Bold
-                                } else {
-                                    FontWeight.Normal
-                                }
-                            ),
+                            style = textStyle,
                             softWrap = false,
                             overflow = if (isTextSizeLimited) {
                                 TextOverflow.Ellipsis

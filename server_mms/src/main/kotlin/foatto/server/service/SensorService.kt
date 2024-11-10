@@ -95,6 +95,9 @@ class SensorService(
         private const val FIELD_MIN_LIMIT = "minLimit"
         private const val FIELD_MAX_LIMIT = "maxLimit"
 
+        private const val FIELD_INDICATOR_DELIMITER_COUNT = "indicatorDelimiterCount"
+        private const val FIELD_INDICATOR_MILTIPLICATOR = "indicatorMultiplicator"
+
         private const val FIELD_IS_ABSOLUTE_COUNT = "isAbsoluteCount"
         private const val FIELD_PHASE = "phase"
         private const val FIELD_IN_OUT_TYPE = "inOutType"
@@ -872,6 +875,31 @@ class SensorService(
             ),
         )
 
+        //--- analog measuring sensors ---------------------------------------------------------------------------------
+
+        formCells += FormSimpleCell(
+            name = FIELD_INDICATOR_DELIMITER_COUNT,
+            caption = "Шкала: количество делений",
+            isEditable = changeEnabled,
+            value = sensorEntity?.indicatorDelimiterCount?.toString() ?: "4",
+            visibility = FormCellVisibility(
+                name = FIELD_SENSOR_TYPE,
+                state = true,
+                values = analogSensorTypes,
+            ),
+        )
+        formCells += FormSimpleCell(
+            name = FIELD_INDICATOR_MILTIPLICATOR,
+            caption = "Шкала: множитель",
+            isEditable = changeEnabled,
+            value = sensorEntity?.indicatorMultiplicator?.toString() ?: "1",
+            visibility = FormCellVisibility(
+                name = FIELD_SENSOR_TYPE,
+                state = true,
+                values = analogSensorTypes,
+            ),
+        )
+
         //--- while they are only used for liquid (fuel) level sensors
 
         formCells += FormComboCell(
@@ -1122,6 +1150,8 @@ class SensorService(
             maxView = formActionData[FIELD_MAX_VIEW]?.stringValue?.toDoubleOrNull() ?: 100.0,
             minLimit = formActionData[FIELD_MIN_LIMIT]?.stringValue?.toDoubleOrNull() ?: 0.0,
             maxLimit = formActionData[FIELD_MAX_LIMIT]?.stringValue?.toDoubleOrNull() ?: 100.0,
+            indicatorDelimiterCount = formActionData[FIELD_INDICATOR_DELIMITER_COUNT]?.stringValue?.toIntOrNull() ?: 4,
+            indicatorMultiplicator = formActionData[FIELD_INDICATOR_MILTIPLICATOR]?.stringValue?.toDoubleOrNull() ?: 1.0,
             isAbsoluteCount = formActionData[FIELD_IS_ABSOLUTE_COUNT]?.booleanValue ?: true,
             phase = formActionData[FIELD_PHASE]?.stringValue?.toIntOrNull() ?: 0,
             inOutType = formActionData[FIELD_IN_OUT_TYPE]?.stringValue?.toIntOrNull() ?: SensorConfigCounter.CALC_TYPE_OUT,

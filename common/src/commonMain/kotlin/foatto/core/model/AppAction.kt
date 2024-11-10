@@ -33,4 +33,6 @@ data class AppAction(
     val timeRangeType: Int = 0,
     val begTime: Int? = null,
     val endTime: Int? = null,
+
+    val params: Map<String, String> = emptyMap(),
 )
