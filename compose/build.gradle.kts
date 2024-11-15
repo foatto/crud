@@ -27,6 +27,7 @@ plugins {
 
     id("com.android.library")
     id("org.jetbrains.compose")
+//    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 kotlin {
@@ -45,17 +46,20 @@ kotlin {
         }
     }
 
+    jvm {
+        val main by compilations.getting {
+            kotlinOptions {
+                languageVersion = kotlinLanguageVersion
+                apiVersion = kotlinApiVersion
+                jvmTarget = kotlinJvmTarget
+                freeCompilerArgs = listOf("-Xjsr305=strict")
+                suppressWarnings = isBuildSupressWarning.toBoolean()
+            }
+        }
+    }
+
     sourceSets {
         commonMain.dependencies {
-            api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
-
-//WASM!!! пока не готов релиз wasm-версии ktor-client - сделаем отдельные зависимости в android-части,
-// а у wasm будем использовать "родной" XMLHttpRequest
-//
-//            //api("io.ktor:ktor-client-core:$ktorVersion") - уже есть в ktor-client-content-negotiation
-//            api("io.ktor:ktor-client-content-negotiation:$ktorVersion")
-//            api("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
-
             api(compose.runtime)
             api(compose.foundation)
             api(compose.ui)
@@ -63,32 +67,54 @@ kotlin {
 //            api(compose.components.resources) - пока не может грузить картинки со внешних ресурсов
 //            api(compose.components.uiToolingPreview)
 
-//            implementation("org.jetbrains.compose.material3.adaptive:adaptive:1.0.0-alpha01")
-//            implementation("org.jetbrains.compose.material3.adaptive:adaptive-layout:1.0.0-alpha01")
-//            implementation("org.jetbrains.compose.material3.adaptive:adaptive-navigation:1.0.0-alpha01")
+            api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
 
             api("com.russhwolf:multiplatform-settings:$multiplatformSettingsVersion")
             api("com.russhwolf:multiplatform-settings-no-arg:$multiplatformSettingsVersion")
             api("media.kamel:kamel-image-default:$kamelImageVersion")
 
+//WASM!!! пока не готов релиз wasm-версии ktor-client - сделаем отдельные зависимости в android-части,
+// а у wasm будем использовать "родной" XMLHttpRequest
+//
+//            //api("io.ktor:ktor-client-core:$ktorVersion") - уже есть в ktor-client-content-negotiation
+//            api("io.ktor:ktor-client-content-negotiation:$ktorVersion")       ??? не входит ли один в другой
+//            api("io.ktor:ktor-client-content-negotiation-core:$ktorVersion")  ??? не входит ли один в другой
+//            api("io.ktor:ktor-client-serialization:$ktorVersion")         ??? не входит ли один в другой
+//            api("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")   ??? не входит ли один в другой
+
             api(project(":common"))
         }
         androidMain.dependencies {
-            api("org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesVersion")
-            api("io.ktor:ktor-client-android:$ktorVersion")
-//            api("io.ktor:ktor-client-okhttp:$ktorVersion") - alternate engine for http/2 & WebSockets support
-
             api("androidx.compose.ui:ui-tooling-preview:$composeRuntimeVersion")
             api("androidx.activity:activity-compose:$androidxActivityComposeVersion")
 
+            api("org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesVersion")
+
+            api("io.ktor:ktor-client-android:$ktorVersion")
+//            api("io.ktor:ktor-client-okhttp:$ktorVersion") - alternate engine for http/2 & WebSockets support
 //WASM!!! пока не готов релиз wasm-версии ktor-client - сделаем отдельные зависимости в android-части,
 // а у wasm будем использовать "родной" XMLHttpRequest
             //api("io.ktor:ktor-client-core-jvm:$ktorVersion") - уже есть в ktor-client-content-negotiation
             api("io.ktor:ktor-client-content-negotiation-jvm:$ktorVersion")
             api("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion")
         }
+        jvmMain.dependencies {
+            api(compose.desktop.currentOs)  //!!! linux, windows
+
+            api("org.jetbrains.kotlinx:kotlinx-coroutines-swing:$kotlinxCoroutinesVersion")
+
+//            api("io.ktor:ktor-client-jvm:$ktorVersion") - default вариант вместо CIO
+            api("io.ktor:ktor-client-cio-jvm:$ktorVersion")
+            api("io.ktor:ktor-client-content-negotiation-jvm:$ktorVersion")
+            api("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion")
+        }
     }
 }
+/*
+ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" } - подойдёт ли для wasm?
+ktor-client-curl = { module = "io.ktor:ktor-client-curl", version.ref = "ktor" }
+ktor-client-winhttp = { module = "io.ktor:ktor-client-winhttp", version.ref = "ktor" }
+*/
 
 android {
     namespace = "foatto.compose"

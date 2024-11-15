@@ -1,3 +1,4 @@
+import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 val isBuildSupressWarning: String by project
@@ -18,6 +19,7 @@ plugins {
 
     id("com.android.application")
     id("org.jetbrains.compose")
+//    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 kotlin {
@@ -25,8 +27,7 @@ kotlin {
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         moduleName = "compose_mms"
-        browser {
-        }
+        browser {}
         binaries.executable()
     }
 
@@ -34,6 +35,18 @@ kotlin {
         compilations.all {
             kotlinOptions {
                 jvmTarget = kotlinJvmTarget
+            }
+        }
+    }
+
+    jvm {
+        val main by compilations.getting {
+            kotlinOptions {
+                languageVersion = kotlinLanguageVersion
+                apiVersion = kotlinApiVersion
+                jvmTarget = kotlinJvmTarget
+                freeCompilerArgs = listOf("-Xjsr305=strict")
+                suppressWarnings = isBuildSupressWarning.toBoolean()
             }
         }
     }
@@ -95,6 +108,18 @@ android {
     }
 }
 
+compose.desktop {
+    application {
+        mainClass = "foatto.compose_mms.MainKt"
+
+        nativeDistributions {
+            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            packageName = "foatto.compose_mms"
+            packageVersion = "1.0.0"
+        }
+    }
+}
+
 tasks {
     build {
         doLast {
@@ -102,6 +127,21 @@ tasks {
                 from("build/dist/wasmJs/productionExecutable")
                 into("/home/foatto/MMSServerSpring/web")
             }
+
+            delete("/home/foatto/MMSDesktop/lib")
+            copy {
+                from("build/compose/binaries/main/app/XXX/lib/app") //!!!
+                into("/home/foatto/MMSDesktop/lib")
+            }
+
+/* native distributable
+            delete("/home/foatto/MMSDesktop/bin")
+            delete("/home/foatto/MMSDesktop/lib")
+            copy {
+                from("build/compose/binaries/main/app/XXX")
+                into("/home/foatto/MMSDesktop")
+            }
+*/
         }
     }
 }

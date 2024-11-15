@@ -10,6 +10,7 @@ plugins {
     id("com.android.library").apply(false)
 
     id("org.jetbrains.compose").apply(false)
+//    id("org.jetbrains.kotlin.plugin.compose").apply(false)
 
     kotlin("plugin.spring").apply(false)
     kotlin("plugin.jpa").apply(false)
@@ -24,6 +25,14 @@ subprojects {
         maven("https://maven.pkg.jetbrains.space/kotlin/p/wasm/experimental")
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
         google()
+//        google {
+//            mavenContent {
+//                includeGroupAndSubgroups("android")
+//                includeGroupAndSubgroups("androidx")
+//                includeGroupAndSubgroups("com.android")
+//                includeGroupAndSubgroups("com.google")
+//            }
+//        }
         mavenCentral()
     }
 }

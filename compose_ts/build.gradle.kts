@@ -1,3 +1,4 @@
+import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 val isBuildSupressWarning: String by project
@@ -18,6 +19,7 @@ plugins {
 
     id("com.android.application")
     id("org.jetbrains.compose")
+//    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 kotlin {
@@ -33,6 +35,18 @@ kotlin {
         compilations.all {
             kotlinOptions {
                 jvmTarget = kotlinJvmTarget
+            }
+        }
+    }
+
+    jvm {
+        val main by compilations.getting {
+            kotlinOptions {
+                languageVersion = kotlinLanguageVersion
+                apiVersion = kotlinApiVersion
+                jvmTarget = kotlinJvmTarget
+                freeCompilerArgs = listOf("-Xjsr305=strict")
+                suppressWarnings = isBuildSupressWarning.toBoolean()
             }
         }
     }
@@ -94,6 +108,18 @@ android {
     }
 }
 
+//compose.desktop {
+//    application {
+//        mainClass = "foatto.compose_ts.MainKt"
+//
+//        nativeDistributions {
+//            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+//            packageName = "foatto.compose_ts"
+//            packageVersion = "1.0.0"
+//        }
+//    }
+//}
+
 //tasks {
 //    build {
 //        doLast {
@@ -101,6 +127,21 @@ android {
 //                from("build/dist/wasmJs/productionExecutable")
 //                into("/home/foatto/TSServerSpring/web")
 //            }
+//
+//            delete("/home/foatto/TSDesktop/lib")
+//            copy {
+//                from("build/compose/binaries/main/app/XXX/lib/app")
+//                into("/home/foatto/TSDesktop/lib")
+//            }
+//
+///* native distributable
+//            delete("/home/foatto/TSDesktop/bin")
+//            delete("/home/foatto/TSDesktop/lib")
+//            copy {
+//                from("build/compose/binaries/main/app/XXX")
+//                into("/home/foatto/TSDesktop")
+//            }
+//*/
 //        }
 //    }
 //}

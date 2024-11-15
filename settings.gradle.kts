@@ -13,6 +13,14 @@ pluginManagement {
         maven("https://maven.pkg.jetbrains.space/kotlin/p/wasm/experimental")
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
         google()
+//        google {
+//            mavenContent {
+//                includeGroupAndSubgroups("android")
+//                includeGroupAndSubgroups("androidx")
+//                includeGroupAndSubgroups("com.android")
+//                includeGroupAndSubgroups("com.google")
+//            }
+//        }
         gradlePluginPortal()
         mavenCentral()
     }
