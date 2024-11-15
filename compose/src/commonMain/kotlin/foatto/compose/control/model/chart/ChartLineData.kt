@@ -1,4 +1,4 @@
-package foatto.core_compose.controls.models.chart
+package foatto.compose.control.model.chart
 
 import androidx.compose.runtime.MutableFloatState
 import androidx.compose.runtime.MutableState

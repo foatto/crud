@@ -1,4 +1,4 @@
-package foatto.core_compose.controls.models.chart
+package foatto.compose.control.model.chart
 
 internal class ChartGroup(
     val title: ChartTextDrawData,

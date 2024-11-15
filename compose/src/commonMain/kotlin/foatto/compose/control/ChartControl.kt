@@ -1,4 +1,4 @@
-package foatto.core_compose.controls
+package foatto.compose.control
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -10,13 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -31,30 +25,35 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.rememberTextMeasurer
-import foatto.core.app.chart.ChartAction
-import foatto.core.app.chart.ChartActionRequest
-import foatto.core.app.chart.ChartActionResponse
-import foatto.core.app.chart.ChartColorIndex
-import foatto.core.app.chart.ChartElementTypeDTO
-import foatto.core.app.chart.ChartGroupDTO
-import foatto.core.app.chart.ChartViewCoord
-import foatto.core.app.xy.geom.XyRect
-import foatto.core.link.ChartResponse
-import foatto.core.link.SaveUserPropertyRequest
-import foatto.core.util.DateTime_DMYHMS
+import foatto.compose.AppControl
+import foatto.compose.Root
+import foatto.compose.colorControlBack
+import foatto.compose.colorMainBack0
+import foatto.compose.colorMainText
+import foatto.compose.control.composable.chart.ChartToolBar
+import foatto.compose.control.model.MouseRectData
+import foatto.compose.control.model.TitleData
+import foatto.compose.control.model.chart.*
+import foatto.compose.invokeRequest
+import foatto.core.ActionType
+import foatto.core.model.AppAction
+import foatto.core.model.request.ChartActionRequest
+import foatto.core.model.request.SaveUserPropertyRequest
+import foatto.core.model.response.ChartActionResponse
+import foatto.core.model.response.SaveUserPropertyResponse
+import foatto.core.model.response.chart.ChartColorIndex
+import foatto.core.model.response.chart.ChartElementTypeDTO
+import foatto.core.model.response.chart.ChartGroupDTO
+import foatto.core.model.response.chart.ChartResponse
+import foatto.core.model.response.chart.ChartViewCoord
+import foatto.core.model.response.xy.geom.XyRect
 import foatto.core.util.getCurrentTimeInt
+import foatto.core.util.getDateTimeDMYHMSString
 import foatto.core.util.getSplittedDouble
-import foatto.core_compose.AppControl
-import foatto.core_compose.COLOR_MAIN_BACK_0
-import foatto.core_compose.Root
-import foatto.core_compose.colorMainText
-import foatto.core_compose.controls.composables.chart.ChartToolBar
-import foatto.core_compose.controls.models.MouseRectData
-import foatto.core_compose.controls.models.TitleData
-import foatto.core_compose.controls.models.chart.*
-import foatto.core_compose.getColorButtonBack
-import foatto.core_compose.invokeChart
-import foatto.core_compose.invokeSaveUserProperty
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.max
@@ -65,6 +64,7 @@ import kotlin.math.roundToInt
 class ChartControl(
     private val root: Root,
     private val appControl: AppControl,
+    private val chartAction: AppAction,
     private val chartResponse: ChartResponse,
     tabId: Int,
 ) : AbstractControl(tabId) {
@@ -193,10 +193,13 @@ class ChartControl(
 
     @Composable
     override fun Body() {
+        val density = LocalDensity.current
+        val coroutineScope = rememberCoroutineScope()
+
         Column(
             modifier = Modifier.fillMaxSize(),
         ) {
-            getChartAndXyAndCompositeHeader()
+            getHeader()
 
             ChartToolBar(
                 isWideScreen = root.isWideScreen,
@@ -206,13 +209,15 @@ class ChartControl(
                 isShowChartList = isShowChartList,
                 alChartVisibleData = alChartVisibleData,
                 setMode = { chartWorkMode: ChartWorkMode -> setMode(chartWorkMode) },
-                zoomIn = { zoomIn() },
-                zoomOut = { zoomOut() },
+                zoomIn = { coroutineScope.launch { zoomIn() } },
+                zoomOut = { coroutineScope.launch { zoomOut() } },
                 onShowChartList = { isShowChartList = !isShowChartList },
                 doCloseChartList = { isShowChartList = false },
                 onChartListClick = { data: ChartVisibleData ->
                     data.check.value = !data.check.value
-                    doChangeChartVisibility()
+                    coroutineScope.launch {
+                        doChangeChartVisibility()
+                    }
                 },
                 setInterval = { interval: Int -> setInterval(interval) }
             )
@@ -224,7 +229,7 @@ class ChartControl(
     @Composable
     fun MainChartBody(withInteractive: Boolean) {
         val density = LocalDensity.current
-//        val coroutineScope = rememberCoroutineScope()
+        val coroutineScope = rememberCoroutineScope()
         val textMeasurer = rememberTextMeasurer()
 
         Row(
@@ -293,18 +298,19 @@ class ChartControl(
                         canvasHeight = canvasHeight,
                         textMeasurer = textMeasurer,
                         text = axisText.text,
+                        fontSize = 12,
+                        textIsBold = false,
                         x = axisText.x,
                         y = axisText.y + screenOffsetY,
                         textLimitWidth = null,
                         textLimitHeight = null,
                         rotateDegree = axisText.rotateDegree,
-                        fillAlpha = 1.0f,
                         fillColor = axisText.fillColor,
+                        fillAlpha = 1.0f,
                         strokeColor = axisText.strokeColor,
                         strokeWidth = axisText.strokeWidth,
                         textAnchor = axisText.textAnchor,
                         textColor = axisText.textColor,
-                        textIsBold = false,
                     )
 //                                fontSize((1.0 * scaleKoef).cssRem)
                 }
@@ -331,18 +337,19 @@ class ChartControl(
                     canvasHeight = canvasHeight,
                     textMeasurer = textMeasurer,
                     text = chartGroup.title.text,
+                    fontSize = 12,
+                    textIsBold = false,
                     x = chartGroup.title.x + screenOffsetX,
                     y = chartGroup.title.y + screenOffsetY,
                     textLimitWidth = null,
                     textLimitHeight = null,
                     rotateDegree = null,
-                    fillAlpha = 1.0f,
                     fillColor = chartGroup.title.fillColor,
+                    fillAlpha = 1.0f,
                     strokeColor = chartGroup.title.strokeColor,
                     strokeWidth = chartGroup.title.strokeWidth,
                     textAnchor = chartGroup.title.textAnchor,
                     textColor = chartGroup.title.textColor,
-                    textIsBold = false,
                 )
 //                            fontSize((1.0 * scaleKoef).cssRem)
                 for (graphicBack in chartGroup.alChartBack) {
@@ -378,18 +385,19 @@ class ChartControl(
                         canvasHeight = canvasHeight,
                         textMeasurer = textMeasurer,
                         text = axisText.text,
+                        fontSize = 12,
+                        textIsBold = false,
                         x = axisText.x + screenOffsetX,
                         y = axisText.y + screenOffsetY,
                         textLimitWidth = null,
                         textLimitHeight = null,
                         rotateDegree = null,
-                        fillAlpha = 1.0f,
                         fillColor = axisText.fillColor,
+                        fillAlpha = 1.0f,
                         strokeColor = axisText.strokeColor,
                         strokeWidth = axisText.strokeWidth,
                         textAnchor = axisText.textAnchor,
                         textColor = axisText.textColor,
-                        textIsBold = false,
                     )
 //                                fontSize((1.0 * scaleKoef).cssRem)
                 }
@@ -438,18 +446,19 @@ class ChartControl(
                         canvasHeight = canvasHeight,
                         textMeasurer = textMeasurer,
                         text = graphicText.text,
+                        fontSize = 12,
+                        textIsBold = false,
                         x = graphicText.x + screenOffsetX,
                         y = graphicText.y + screenOffsetY,
                         textLimitWidth = graphicText.textLimitWidth,
                         textLimitHeight = graphicText.textLimitHeight,
                         rotateDegree = null,
-                        fillAlpha = 0.7f,
                         fillColor = graphicText.fillColor,
+                        fillAlpha = 0.7f,
                         strokeColor = graphicText.strokeColor,
                         strokeWidth = graphicText.strokeWidth,
                         textAnchor = graphicText.textAnchor,
                         textColor = graphicText.textColor,
-                        textIsBold = false,
                     )
 //                                onMouseEnter { syntheticMouseEvent ->
 //                                    onGrMouseOver(syntheticMouseEvent, graphicText)
@@ -495,13 +504,15 @@ class ChartControl(
                             canvasHeight = canvasHeight,
                             textMeasurer = textMeasurer,
                             text = timeLabel.text.value,
+                            fontSize = 12,
+                            textIsBold = false,
                             x = timeLabel.x.value,
                             y = canvasHeight,
                             textLimitWidth = null,
                             textLimitHeight = null,
                             rotateDegree = null,
-                            fillAlpha = 1.0f,
                             fillColor = COLOR_CHART_LABEL_BACK,
+                            fillAlpha = 1.0f,
                             strokeColor = COLOR_CHART_LABEL_BORDER,
                             strokeWidth = 1.0f,
                             textAnchor = when {
@@ -518,7 +529,6 @@ class ChartControl(
                                 }
                             },
                             textColor = colorMainText,
-                            textIsBold = false,
                         )
                     }
                 }
@@ -580,18 +590,19 @@ class ChartControl(
                         canvasHeight = canvasHeight,
                         textMeasurer = textMeasurer,
                         text = legendText.text,
+                        fontSize = 12,
+                        textIsBold = true,
                         x = legendText.x,
                         y = legendText.y + screenOffsetY,
                         textLimitWidth = null,
                         textLimitHeight = null,
                         rotateDegree = legendText.rotateDegree,
-                        fillAlpha = 1.0f,
                         fillColor = legendText.fillColor,
+                        fillAlpha = 1.0f,
                         strokeColor = legendText.strokeColor,
                         strokeWidth = legendText.strokeWidth,
                         textAnchor = legendText.textAnchor,
                         textColor = legendText.textColor,
-                        textIsBold = true,
                     )
 //                                fontSize((1.0 * scaleKoef).cssRem)
                 }
@@ -625,12 +636,14 @@ class ChartControl(
     @Composable
     private fun Modifier.onDragEvents(
         withInteractive: Boolean,
-    ): Modifier =
-        this.pointerInput(Unit) {
+    ): Modifier {
+        val coroutineScope = rememberCoroutineScope()
+
+        return this.pointerInput(Unit) {
             if (withInteractive) {
                 detectDragGestures(
                     onDragStart = { offset: Offset -> onDragStart(offset) },
-                    onDragEnd = { onDragEnd() },
+                    onDragEnd = { coroutineScope.launch { onDragEnd() } },
                     onDragCancel = { onDragCancel() },
                     onDrag = { change, dragAmount ->
                         change.consume()
@@ -639,31 +652,47 @@ class ChartControl(
                 )
             }
         }
-
-    override fun start() {
-        root.setTabInfo(tabId, chartResponse.title, chartResponse.tooltip)
-        alTitleData.addAll(chartResponse.tooltip.split('\n').filter { it.isNotBlank() }.map { TitleData("", it) })
-
-        startChartSpecific()
     }
 
-    fun startChartSpecific() {
+    override suspend fun start() {
+        readHeader()
+        startChartBody()
+    }
+
+    private fun readHeader() {
+        root.setTabInfo(tabId, chartResponse.tabCaption)
+
+        alTitleData.clear()
+        chartResponse.headers.forEachIndexed { index, text ->
+            alTitleData.add(TitleData(null, text, chartResponse.headers.size > 1 && index == 0))
+            //--- запомним последнюю кнопку заголовка в табличном режиме как кнопку отмены или возврата на уровень выше
+            //butTableCancel = button - not used yet
+        }
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun startChartBody() {
         val newViewCoord = ChartViewCoord(
-            t1 = if (chartResponse.rangeType == 0) {
+            t1 = if (chartResponse.timeRangeType == 0) {
                 chartResponse.begTime
             } else {
-                getCurrentTimeInt() - chartResponse.rangeType
+                getCurrentTimeInt() - chartResponse.timeRangeType
             },
-            t2 = if (chartResponse.rangeType == 0) {
+            t2 = if (chartResponse.timeRangeType == 0) {
                 chartResponse.endTime
             } else {
                 getCurrentTimeInt()
             },
         )
-        doChartRefresh(
-            aView = newViewCoord,
-            withWait = true,
-        )
+        GlobalScope.launch {
+            while (canvasWidth == 0.0f) {
+                yield()
+            }
+            doChartRefresh(
+                aView = newViewCoord,
+                withWait = true,
+            )
+        }
     }
 
     fun setInterval(sec: Int) {
@@ -688,23 +717,23 @@ class ChartControl(
 //        refreshInterval.value = sec
     }
 
-    private fun chartRefreshView(aView: ChartViewCoord?) {
+    private suspend fun chartRefreshView(aView: ChartViewCoord?) {
         doChartRefresh(
             aView = aView,
             withWait = true,
         )
     }
 
-    private fun doChartRefresh(
+    private suspend fun doChartRefresh(
         aView: ChartViewCoord?,
         withWait: Boolean,
     ) {
         aView?.let {
             chartViewCoord = aView
         } ?: run {
-            if (chartResponse.rangeType != 0 && refreshInterval != 0) {
+            if (chartResponse.timeRangeType != 0 && refreshInterval != 0) {
                 chartViewCoord = ChartViewCoord(
-                    t1 = getCurrentTimeInt() - chartResponse.rangeType,
+                    t1 = getCurrentTimeInt() - chartResponse.timeRangeType,
                     t2 = getCurrentTimeInt(),
                 )
             }
@@ -713,10 +742,10 @@ class ChartControl(
         if (withWait) {
             root.setWait(true)
         }
-        invokeChart(
+        invokeRequest(
             ChartActionRequest(
                 documentTypeName = chartResponse.documentTypeName,
-                action = ChartAction.GET_ELEMENTS,
+                action = chartAction.copy(type = ActionType.GET_ELEMENTS),
                 startParamId = chartResponse.startParamId,
                 graphicCoords = Pair(chartViewCoord.t1, chartViewCoord.t2),
                 viewSize = Pair((bodyCanvasWidth / root.scaleKoef).roundToInt(), (canvasHeight / root.scaleKoef).roundToInt())
@@ -753,7 +782,7 @@ class ChartControl(
                         fillColor = if (isBack) {
                             Color(color)
                         } else {
-                            getColorButtonBack()
+                            colorControlBack
                         },
                         textColor = if (isBack) {
                             colorMainText
@@ -1065,7 +1094,7 @@ class ChartControl(
                                 textLimitHeight = rect.height.toFloat(),
                                 textAnchor = Alignment.TopStart,
                                 text = gtd.text,
-                                fillColor = hmIndexColor[gtd.fillColorIndex] ?: COLOR_MAIN_BACK_0,
+                                fillColor = hmIndexColor[gtd.fillColorIndex] ?: colorMainBack0,
                                 strokeColor = hmIndexColor[gtd.borderColorIndex] ?: colorMainText,
                                 strokeWidth = 1 * root.scaleKoef,
                                 //radius = (2 * scaleKoef).px,
@@ -1106,7 +1135,7 @@ class ChartControl(
         alAxisLine: MutableList<ChartLineDrawData>,
         alAxisText: MutableList<ChartTextDrawData>
     ) {
-        val timeOffset = root.timeOffset
+        val timeOffset = root.appUserConfig.value.timeOffset
 
         val timeWidth = t2 - t1
 
@@ -1156,7 +1185,7 @@ class ChartControl(
 
             //--- текст метки по оси X
             if ((notchX + timeOffset) % labelStepX == 0) {
-                val text = DateTime_DMYHMS(timeOffset, notchX).replace(" ", "\n  ")
+                val text = getDateTimeDMYHMSString(timeOffset, notchX).replace(" ", "\n  ")
                 alAxisText.add(
                     ChartTextDrawData(
                         x = pixDrawX,
@@ -1383,7 +1412,7 @@ class ChartControl(
         curMode = newMode
     }
 
-    private fun zoomIn() {
+    private suspend fun zoomIn() {
         val t1 = chartViewCoord.t1
         val t2 = chartViewCoord.t2
         val grWidth = chartViewCoord.width
@@ -1397,7 +1426,7 @@ class ChartControl(
 
     }
 
-    private fun zoomOut() {
+    private suspend fun zoomOut() {
         val t1 = chartViewCoord.t1
         val t2 = chartViewCoord.t2
         val grWidth = chartViewCoord.width
@@ -1409,15 +1438,20 @@ class ChartControl(
         }
     }
 
-    private fun doChangeChartVisibility() {
+    private suspend fun doChangeChartVisibility() {
         isShowChartList = false
         alChartVisibleData.forEach { chartVisibleData ->
-            invokeSaveUserProperty(
+            val propertyName = chartVisibleData.name
+            val propertyValue = chartVisibleData.check.value.toString()
+
+            invokeRequest(
                 SaveUserPropertyRequest(
-                    name = chartVisibleData.name,
-                    value = chartVisibleData.check.value.toString(),
+                    name = propertyName,
+                    value = propertyValue,
                 )
-            ) {}
+            ) { _: SaveUserPropertyResponse ->
+                root.appUserConfig.value.userProperties[propertyName] = propertyValue
+            }
         }
         chartRefreshView(null)
     }
@@ -1513,7 +1547,7 @@ class ChartControl(
          */
     }
 
-    private fun onDragEnd() {
+    private suspend fun onDragEnd() {
         when (curMode) {
             ChartWorkMode.PAN -> {
                 //--- перезагружаем график, только если был горизонтальный сдвиг
@@ -1585,7 +1619,7 @@ class ChartControl(
 
         timeLabelData.isVisible.value = true
         timeLabelData.x.value = x
-        timeLabelData.text.value = DateTime_DMYHMS(root.timeOffset, cursorTime).replace(" ", "\n  ")
+        timeLabelData.text.value = getDateTimeDMYHMSString(root.appUserConfig.value.timeOffset, cursorTime).replace(" ", "\n  ")
     }
 
     //--- в double и обратно из-за ошибок округления
