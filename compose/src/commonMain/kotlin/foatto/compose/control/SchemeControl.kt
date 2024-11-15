@@ -7,6 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -15,6 +16,7 @@ import androidx.compose.ui.graphics.Color.Companion.hsl
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.PointerInputChange
+import androidx.compose.ui.platform.LocalDensity
 import foatto.compose.AppControl
 import foatto.compose.Root
 import foatto.compose.control.composable.scheme.SchemeToolBar
@@ -67,8 +69,8 @@ class SchemeControl(
 
     @Composable
     override fun Body() {
-//        val density = LocalDensity.current
-//        val coroutineScope = rememberCoroutineScope()
+        val density = LocalDensity.current
+        val coroutineScope = rememberCoroutineScope()
 
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -82,7 +84,7 @@ class SchemeControl(
                 isShowElementList = isShowElementList,
                 alServerButton = alServerButton,
                 alMoveableElementData = alMoveableElementData,
-                onServerButtonClick = { action: AppAction -> invokeServerButton(action) },
+                onServerButtonClick = { action: AppAction -> coroutineScope.launch { invokeServerButton(action) } },
                 onMoveButtonClick = { isShowElementList = !isShowElementList },
                 doCloseElementList = { isShowElementList = false },
                 onElementListClick = { data: ElementMoveData ->
@@ -121,7 +123,7 @@ class SchemeControl(
         }
     }
 
-    override fun start() {
+    override suspend fun start() {
         alServerButton.clear()
         schemeResponse.alServerActionButton?.let { alServerActionButton ->
             for (sab in alServerActionButton) {
@@ -150,7 +152,7 @@ class SchemeControl(
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun startSchemeBody(
+    suspend fun startSchemeBody(
         startExpandKoef: Float,
         isCentered: Boolean,
         curScale: Int,
@@ -183,7 +185,7 @@ class SchemeControl(
         }
     }
 
-    fun xyRefreshView(
+    suspend fun xyRefreshView(
         aView: XyViewCoord?,
         withWait: Boolean,
     ) {
@@ -228,7 +230,7 @@ class SchemeControl(
         )
     }
 
-    fun doStateRefreshView(
+    suspend fun doStateRefreshView(
         aView: XyViewCoord?,
         withWait: Boolean,
         doAdditionalWork: (xyActionResponse: SchemeActionResponse) -> Unit = { _: SchemeActionResponse -> },
@@ -245,7 +247,7 @@ class SchemeControl(
         )
     }
 
-    private fun getSchemeElements(
+    private suspend fun getSchemeElements(
         mapBitmapTypeName: String,
         withWait: Boolean,
         doAdditionalWork: (schemeActionResponse: SchemeActionResponse) -> Unit = { _: SchemeActionResponse -> },
@@ -434,7 +436,7 @@ class SchemeControl(
         }
 
     */
-    private fun invokeServerButton(action: AppAction) {
+    private suspend fun invokeServerButton(action: AppAction) {
         root.openTab(action)
     }
 

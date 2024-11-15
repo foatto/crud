@@ -1,4 +1,4 @@
-package foatto.core_compose.controls.composables.scheme
+package foatto.compose.control.composable.scheme
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,12 +13,13 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import foatto.core_compose.controls.ElementMoveData
-import foatto.core_compose.controls.composables.RefreshSubToolBar
-import foatto.core_compose.controls.composables.ToolBarBlock
-import foatto.core_compose.controls.composables.ToolBarIconButton
-import foatto.core_compose.controls.models.table.ServerActionButtonClient
-import foatto.core_compose.getStyleToolbarIconNameSuffix
+import foatto.compose.control.composable.RefreshSubToolBar
+import foatto.compose.control.composable.ToolBarBlock
+import foatto.compose.control.composable.ToolBarIconButton
+import foatto.compose.control.model.scheme.ElementMoveData
+import foatto.compose.control.model.table.ServerActionButtonClient
+import foatto.compose.getStyleToolbarIconNameSuffix
+import foatto.core.model.AppAction
 
 @Composable
 internal fun SchemeToolBar(
@@ -28,7 +29,7 @@ internal fun SchemeToolBar(
     isShowElementList: Boolean,
     alServerButton: SnapshotStateList<ServerActionButtonClient>,
     alMoveableElementData: SnapshotStateList<ElementMoveData>,
-    onServerButtonClick: (url: String) -> Unit,
+    onServerButtonClick: (action: AppAction) -> Unit,
     onMoveButtonClick: () -> Unit,
     doCloseElementList: () -> Unit,
     onElementListClick: (data: ElementMoveData) -> Unit,
@@ -55,13 +56,11 @@ internal fun SchemeToolBar(
         }
         ToolBarBlock {
             for (serverButton in alServerButton) {
-                if (isWideScreen || !serverButton.isForWideScreenOnly) {
-                    ToolBarIconButton(
-                        name = serverButton.name,
-                        tooltip = serverButton.tooltip,
-                    ) {
-                        onServerButtonClick(serverButton.action)
-                    }
+                ToolBarIconButton(
+                    isVisible = isWideScreen || !serverButton.isForWideScreenOnly,
+                    name = serverButton.name,
+                ) {
+                    onServerButtonClick(serverButton.action)
                 }
             }
         }
@@ -70,7 +69,6 @@ internal fun SchemeToolBar(
                 ToolBarIconButton(
                     isEnabled = refreshInterval == 0,
                     name = "/web/images/ic_touch_app_${getStyleToolbarIconNameSuffix()}.png",
-                    tooltip = "Перемещение датчиков по объекту",
                 ) {
                     onMoveButtonClick()
                 }
