@@ -121,7 +121,7 @@ class ObjectMonitor(aConfigFileName: String) : CoreServiceWorker(aConfigFileName
         alObject.forEach {
             var message = ""
 
-            rs = alConn[0].executeQuery(" SELECT ontime FROM MMS_data_${it.objectId} ORDER BY ontime DESC ")
+            rs = alConn[0].executeQuery(" SELECT ontime FROM MMS_data_${it.objectId} ORDER BY ontime DESC LIMIT 1")
             if (rs.next()) {
                 val lastDataTime = rs.getInt(1)
 

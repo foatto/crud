@@ -27,7 +27,7 @@ class SensorDataService(
 
     companion object {
         //!!! попробовать размеры побольше
-        private const val PAGE_SIZE_IN_SEC = 600    // 900    // 3600  // 10_800 // 21_600 // 43_200 // 86_400
+        private const val PAGE_SIZE_IN_SEC = 900    // 3600  // 10_800 // 21_600 // 43_200 // 86_400
     }
 
     override fun getTableColumnCaptions(action: AppAction, userConfig: ServerUserConfig): List<Pair<AppAction, String>> {
