@@ -1,4 +1,4 @@
-package foatto.core_compose.controls.composables.map
+package foatto.compose.control.composable.map
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -11,12 +11,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import foatto.core.link.XyElementConfig
-import foatto.core_compose.controls.composables.RefreshSubToolBar
-import foatto.core_compose.controls.composables.ToolBarBlock
-import foatto.core_compose.controls.composables.ToolBarIconButton
-import foatto.core_compose.controls.models.map.MapWorkMode
-import foatto.core_compose.getStyleToolbarIconNameSuffix
+import foatto.compose.control.composable.RefreshSubToolBar
+import foatto.compose.control.composable.ToolBarBlock
+import foatto.compose.control.composable.ToolBarIconButton
+import foatto.compose.control.model.map.MapWorkMode
+import foatto.compose.getStyleToolbarIconNameSuffix
+import foatto.core.model.response.xy.XyElementConfig
 
 @Composable
 internal fun MapToolBar(
@@ -66,14 +66,12 @@ internal fun MapToolBar(
                 ToolBarIconButton(
                     isEnabled = refreshInterval == 0 && isPanButtonEnabled,
                     name = "/web/images/ic_open_with_${getStyleToolbarIconNameSuffix()}.png",
-                    tooltip = "Перемещение по карте",
                 ) {
                     setMode(MapWorkMode.PAN)
                 }
                 ToolBarIconButton(
                     isEnabled = refreshInterval == 0 && isZoomButtonEnabled,
                     name = "/web/images/ic_search_${getStyleToolbarIconNameSuffix()}.png",
-                    tooltip = "Выбор области для показа",
                 ) {
                     setMode(MapWorkMode.ZOOM_BOX)
                 }
@@ -81,14 +79,12 @@ internal fun MapToolBar(
                     ToolBarIconButton(
                         isEnabled = refreshInterval == 0 && isDistancerButtonEnabled,
                         name = "/web/images/ic_linear_scale_${getStyleToolbarIconNameSuffix()}.png",
-                        tooltip = "Измерение расстояний",
                     ) {
                         setMode(MapWorkMode.DISTANCER)
                     }
                     ToolBarIconButton(
                         isEnabled = refreshInterval == 0 && isSelectButtonEnabled,
                         name = "/web/images/ic_touch_app_${getStyleToolbarIconNameSuffix()}.png",
-                        tooltip = "Работа с объектами",
                     ) {
                         setMode(MapWorkMode.SELECT_FOR_ACTION)
                     }
@@ -100,14 +96,12 @@ internal fun MapToolBar(
                 ToolBarIconButton(
                     isEnabled = refreshInterval == 0 && isZoomInButtonEnabled,
                     name = "/web/images/ic_zoom_in_${getStyleToolbarIconNameSuffix()}.png",
-                    tooltip = "Ближе",
                 ) {
                     zoomIn()
                 }
                 ToolBarIconButton(
                     isEnabled = refreshInterval == 0 && isZoomOutButtonEnabled,
                     name = "/web/images/ic_zoom_out_${getStyleToolbarIconNameSuffix()}.png",
-                    tooltip = "Дальше",
                 ) {
                     zoomOut()
                 }
@@ -137,14 +131,12 @@ internal fun MapToolBar(
             ToolBarIconButton(
                 isVisible = refreshInterval == 0 && isEditPointButtonVisible,
                 name = "/web/images/ic_format_shapes_${getStyleToolbarIconNameSuffix()}.png",
-                tooltip = "Редактирование точек",
             ) {
                 startEditPoint()
             }
             ToolBarIconButton(
                 isVisible = refreshInterval == 0 && isMoveElementsButtonVisible,
                 name = "/web/images/ic_zoom_out_map_${getStyleToolbarIconNameSuffix()}.png",
-                tooltip = "Перемещение объектов",
             ) {
                 startMoveElements()
             }
@@ -153,14 +145,12 @@ internal fun MapToolBar(
             ToolBarIconButton(
                 isVisible = refreshInterval == 0 && isActionOkButtonVisible,
                 name = "/web/images/ic_save_${getStyleToolbarIconNameSuffix()}.png",
-                tooltip = "Сохранить",
             ) {
                 actionOk()
             }
             ToolBarIconButton(
                 isVisible = refreshInterval == 0 && isActionCancelButtonVisible,
                 name = "/web/images/ic_exit_to_app_${getStyleToolbarIconNameSuffix()}.png",
-                tooltip = "Отменить",
             ) {
                 actionCancel()
             }

@@ -1,4 +1,4 @@
-package foatto.core_compose.controls.models.map
+package foatto.compose.control.model.map
 
 internal enum class MapWorkMode {
     PAN,

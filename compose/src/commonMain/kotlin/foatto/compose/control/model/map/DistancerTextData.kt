@@ -1,4 +1,4 @@
-package foatto.core_compose.controls.models.map
+package foatto.compose.control.model.map
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf

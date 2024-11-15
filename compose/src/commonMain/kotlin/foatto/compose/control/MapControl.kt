@@ -1,4 +1,4 @@
-package foatto.core_compose.controls
+package foatto.compose.control
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -15,19 +16,30 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.PointerInputChange
-import foatto.core.app.xy.XyViewCoord
-import foatto.core.app.xy.config.XyBitmapType
-import foatto.core.link.XyElementConfig
-import foatto.core.link.XyResponse
-import foatto.core_compose.AppControl
-import foatto.core_compose.Root
-import foatto.core_compose.controls.composables.map.MapToolBar
-import foatto.core_compose.controls.models.MouseRectData
-import foatto.core_compose.controls.models.map.DistancerLineData
-import foatto.core_compose.controls.models.map.DistancerTextData
-import foatto.core_compose.controls.models.map.MapWorkMode
-import foatto.core_compose.controls.models.xy.XyElementData
-import foatto.core_compose.controls.models.xy.XyElementDataType
+import androidx.compose.ui.platform.LocalDensity
+import foatto.compose.AppControl
+import foatto.compose.Root
+import foatto.compose.control.composable.map.MapToolBar
+import foatto.compose.control.model.MouseRectData
+import foatto.compose.control.model.TitleData
+import foatto.compose.control.model.map.DistancerLineData
+import foatto.compose.control.model.map.DistancerTextData
+import foatto.compose.control.model.map.MapWorkMode
+import foatto.compose.control.model.xy.XyElementData
+import foatto.compose.control.model.xy.XyElementDataType
+import foatto.compose.invokeRequest
+import foatto.core.ActionType
+import foatto.core.model.AppAction
+import foatto.core.model.model.xy.XyViewCoord
+import foatto.core.model.request.MapActionRequest
+import foatto.core.model.response.MapActionResponse
+import foatto.core.model.response.xy.XyBitmapType
+import foatto.core.model.response.xy.XyElementConfig
+import foatto.core.model.response.xy.map.MapResponse
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.max
@@ -39,16 +51,17 @@ private enum class SelectOption { SET, ADD, REVERT, DELETE }
 class MapControl(
     root: Root,
     appControl: AppControl,
-    xyResponse: XyResponse,
+    private val mapAction: AppAction,
+    private val mapResponse: MapResponse,
     tabId: Int
-) : AbstractXyControl(root, appControl, xyResponse, tabId) {
+) : AbstractXyControl(root, appControl, mapResponse.documentConfig.hmElementConfig, tabId) {
 
     companion object {
         private val COLOR_MAP_LINE: Color = hsl(180.0f, 1.0f, 0.5f)
         private val COLOR_MAP_LINE_WIDTH = 1.0f //!!! max(1.0, scaleKoef).roundToInt()
         private val COLOR_MAP_DISTANCER = hsl(30.0f, 1.0f, 0.5f)
         private const val mapBitmapTypeName = XyBitmapType.MS   // на текущий момент MapSurfer - наиболее правильная карта
-        const val MAP_START_EXPAND_KOEF = 0.05f
+        const val MAP_START_EXPAND_KOEF = 0.05f                 // расширение стартовой области, чтобы "отодвинуть" элементы от края карты
     }
 
     private var isToolBarsVisible by mutableStateOf(true)
@@ -92,13 +105,13 @@ class MapControl(
 
     @Composable
     override fun Body() {
-//        val density = LocalDensity.current
-//        val coroutineScope = rememberCoroutineScope()
+        val density = LocalDensity.current
+        val coroutineScope = rememberCoroutineScope()
 
         Column(
             modifier = Modifier.fillMaxSize(),
         ) {
-            getChartAndXyAndCompositeHeader()
+            getHeader()
 
             MapToolBar(
                 isWideScreen = root.isWideScreen,
@@ -145,7 +158,7 @@ class MapControl(
                     drawScope = this,
                     x = x,
                     y = y,
-                    width = width ,
+                    width = width,
                     height = height,
                     fillColor = COLOR_MAP_LINE,
                     fillAlpha = 0.25f,
@@ -209,47 +222,96 @@ class MapControl(
         }
     }
 
-    override fun start() {
+    override suspend fun start() {
 //    var mapBitmapTypeName = XyBitmapType.MS   // на текущий момент MapSurfer - наиболее правильная карта
 //        //--- на текущий момент MapSurfer - наиболее правильная карта
 //        val bitmapMapMode = appContainer.getUserProperty( iCoreAppContainer.UP_BITMAP_MAP_MODE )
 //        mapBitmapTypeName = if( bitmapMapMode.isNullOrEmpty() ) XyBitmapType.MS else bitmapMapMode
 
         //--- подготовка данных для меню добавления
-        alAddEC.addAll(
-            xyResponse.documentConfig.hmElementConfig.filterValues { value ->
-                value.descrForAction.isNotEmpty()
-            }.values
-        )
+//!!!
+//        alAddEC.addAll(
+//            xyDocumentConfig.hmElementConfig.filterValues { value ->
+//                value.descrForAction.isNotEmpty()
+//            }.values
+//        )
 
-        startXy(
+        readHeader()
+
+        startMapBody(
             startExpandKoef = MAP_START_EXPAND_KOEF,
             isCentered = false,
-            curScale = xyResponse.documentConfig.hmElementConfig.minBy { (_, value) -> value.scaleMin }.value.scaleMin
+            curScale = minXyScale,
         )
 
         setMode(MapWorkMode.PAN)
     }
 
-    override fun xyRefreshView(aView: XyViewCoord?, withWait: Boolean) {
+    private fun readHeader() {
+        root.setTabInfo(tabId, mapResponse.tabCaption)
+
+        alTitleData.clear()
+        mapResponse.headers.forEachIndexed { index, text ->
+            alTitleData.add(TitleData(null, text, mapResponse.headers.size > 1 && index == 0))
+            //--- запомним последнюю кнопку заголовка в табличном режиме как кнопку отмены или возврата на уровень выше
+            //butTableCancel = button - not used yet
+        }
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    suspend fun startMapBody(
+        startExpandKoef: Float,
+        isCentered: Boolean,
+        curScale: Int,
+    ) {
+        root.setWait(true)
+        invokeRequest(
+            MapActionRequest(
+                action = mapAction.copy(
+                    type = ActionType.GET_COORDS
+                )
+            )
+        ) { xyActionResponse: MapActionResponse ->
+
+            GlobalScope.launch {
+                while (xyCanvasWidth == 0.0f) {
+                    yield()
+                }
+                val newViewCoord = getXyCoordsDone(
+                    startExpandKoef = startExpandKoef,
+                    isCentered = isCentered,
+                    curScale = curScale,
+                    minCoord = xyActionResponse.minCoord!!,
+                    maxCoord = xyActionResponse.maxCoord!!,
+                )
+
+                //--- именно до xyRefreshView, чтобы не сбросить сразу после включения
+                root.setWait(false)
+                xyRefreshView(newViewCoord, true)
+            }
+        }
+    }
+
+    fun xyRefreshView(aView: XyViewCoord?, withWait: Boolean) {
         if (aView != null) {
             //--- вычисляем координату середины (безопасным от переполнения способом)
             //--- и выносим эту точку на середину экрана
             //--- и сохраненяем новое состояние в view
-            val checkedView = getXyViewCoord(
-                aScale = checkXyScale(
-                    isScaleAlign = xyResponse.documentConfig.isScaleAlign,
-                    curScale = xyViewCoord.scale,
-                    newScale = aView.scale,
-                    isAdaptive = false
-                ),
-                aCenterX = aView.x1 + (aView.x2 - aView.x1) / 2,
-                aCenterY = aView.y1 + (aView.y2 - aView.y1) / 2,
-            )
-            xyViewCoord = checkedView
+//!!!
+//            val checkedView = getXyViewCoord(
+//                aScale = checkXyScale(
+//                    isScaleAlign = xyDocumentConfig.isScaleAlign,
+//                    curScale = xyViewCoord.scale,
+//                    newScale = aView.scale,
+//                    isAdaptive = false
+//                ),
+//                aCenterX = aView.x1 + (aView.x2 - aView.x1) / 2,
+//                aCenterY = aView.y1 + (aView.y2 - aView.y1) / 2,
+//            )
+//            xyViewCoord = checkedView
         }
 
-        getXyElements(
+        getMapElements(
             mapBitmapTypeName = mapBitmapTypeName,
             withWait = withWait,
         )
@@ -257,6 +319,39 @@ class MapControl(
         //--- обновление в любом случае сбрасывает выделенность элементов и возможность соответствующих операций
         isEditPointButtonVisible = false
         isMoveElementsButtonVisible = false
+    }
+
+    private fun getMapElements(
+        mapBitmapTypeName: String,
+        withWait: Boolean,
+        doAdditionalWork: (xyActionResponse: MapActionResponse) -> Unit = { _: MapActionResponse -> },
+    ) {
+        if (withWait) {
+            root.setWait(true)
+        }
+//!!!
+//        invokeRequest(
+//            MapActionRequest(
+//                documentTypeName = xyDocumentConfig.name,
+//                type = XyActionType.GET_ELEMENTS,
+//                startParamId = mapResponse.startParamId,
+//                viewCoord = xyViewCoord,
+//                bitmapTypeName = mapBitmapTypeName
+//            )
+//        ) { mapActionResponse: MapActionResponse ->
+//
+//            //--- сбрасываем горизонтальный и вертикальный скроллинг/смещение
+//            screenOffsetX = 0.0f
+//            screenOffsetY = 0.0f
+//
+//            readXyElements(mapActionResponse.alElement)
+//
+//            if (withWait) {
+//                root.setWait(false)
+//            }
+//
+//            doAdditionalWork(mapActionResponse)
+//        }
     }
 
     private fun setMode(newMode: MapWorkMode) {
@@ -341,31 +436,33 @@ class MapControl(
     }
 
     private fun zoomIn() {
-        //--- проверить масштаб
-        val newScale = checkXyScale(
-            isScaleAlign = xyResponse.documentConfig.isScaleAlign,
-            curScale = xyViewCoord.scale,
-            newScale = xyViewCoord.scale / 2,
-            isAdaptive = false,
-        )
-
-        xyViewCoord.scale = newScale
-
-        xyRefreshView(xyViewCoord, true)
+//!!!
+//        //--- проверить масштаб
+//        val newScale = checkXyScale(
+//            isScaleAlign = xyDocumentConfig.isScaleAlign,
+//            curScale = xyViewCoord.scale,
+//            newScale = xyViewCoord.scale / 2,
+//            isAdaptive = false,
+//        )
+//
+//        xyViewCoord.scale = newScale
+//
+//        xyRefreshView(xyViewCoord, true)
     }
 
     private fun zoomOut() {
-        //--- проверить масштаб
-        val newScale = checkXyScale(
-            isScaleAlign = xyResponse.documentConfig.isScaleAlign,
-            curScale = xyViewCoord.scale,
-            newScale = xyViewCoord.scale * 2,
-            isAdaptive = false,
-        )
-
-        xyViewCoord.scale = newScale
-
-        xyRefreshView(xyViewCoord, true)
+//!!!
+//        //--- проверить масштаб
+//        val newScale = checkXyScale(
+//            isScaleAlign = xyDocumentConfig.isScaleAlign,
+//            curScale = xyViewCoord.scale,
+//            newScale = xyViewCoord.scale * 2,
+//            isAdaptive = false,
+//        )
+//
+//        xyViewCoord.scale = newScale
+//
+//        xyRefreshView(xyViewCoord, true)
     }
 
     override fun onPointerDown(pointerInputChange: PointerInputChange) {
@@ -484,7 +581,7 @@ class MapControl(
                 //--- перезагружаем карту, только если был сдвиг
                 if (abs(screenOffsetX) >= 1 || abs(screenOffsetY) >= 1) {
                     xyViewCoord.moveRel((-screenOffsetX * xyViewCoord.scale / root.scaleKoef).roundToInt(), (-screenOffsetY * xyViewCoord.scale / root.scaleKoef).roundToInt())
-                    xyRefreshView(xyViewCoord, true)
+                    xyRefreshView(aView = xyViewCoord, withWait = true)
                 }
             }
 
@@ -505,14 +602,14 @@ class MapControl(
                         val newScale = ceil(xyViewCoord.scale * max(1.0 * mouseWidth / xyCanvasWidth, 1.0 * mouseHeight / xyCanvasHeight)).toInt()
                         //--- переводим в мировые координаты
                         xyRefreshView(
-                            XyViewCoord(
+                            aView = XyViewCoord(
                                 newScale,
                                 xyViewCoord.x1 + mouseToReal(root.scaleKoef, xyViewCoord.scale, min(mouseRect.x1.value, mouseRect.x2.value)),
                                 xyViewCoord.y1 + mouseToReal(root.scaleKoef, xyViewCoord.scale, min(mouseRect.y1.value, mouseRect.y2.value)),
                                 xyViewCoord.x1 + mouseToReal(root.scaleKoef, xyViewCoord.scale, max(mouseRect.x1.value, mouseRect.x2.value)),
                                 xyViewCoord.y1 + mouseToReal(root.scaleKoef, xyViewCoord.scale, max(mouseRect.y1.value, mouseRect.y2.value)),
                             ),
-                            true
+                            withWait = true
                         )
                     }
                 }
@@ -925,5 +1022,106 @@ class MapControl(
         }
     }
 }
+
+----------------
+
+XyElementData:
+
+    fun doAddElement(
+        root: Root,
+        xyControl: AbstractXyControl,
+        documentTypeName: String,
+        startParamId: String,
+        scaleKoef: Double,
+        viewCoord: XyViewCoord
+    ) {
+        lateinit var xyActionRequest: XyActionRequest
+
+        when (type) {
+            XyElementDataType.POLY -> {
+                val xyElement = XyElement(
+                    typeName = typeName!!,
+                    elementId = 0,
+                    objectId = 0
+                )
+                //--- переводим в мировые координаты
+                xyElement.alPoint = alPoints.map {
+                    XyPoint(
+                        viewCoord.x1 + (it.x * viewCoord.scale / scaleKoef).roundToInt(),
+                        viewCoord.y1 + (it.y * viewCoord.scale / scaleKoef).roundToInt()
+                    )
+                }.dropLast(1)  // убираем последнюю служебную точку
+
+                xyActionRequest = XyActionRequest(
+                    documentTypeName = documentTypeName,
+                    action = XyAction.ADD_ELEMENT,
+                    startParamId = startParamId,
+                    xyElement = xyElement
+                )
+
+                alAddInfo!!.forEach {
+                    xyActionRequest.hmParam[it.first] = it.second()
+                }
+            }
+
+            else -> {}
+//            //--- приводим в локальные/экранные размеры
+//            actionElement!!.element.imageWidth *= xyModel.viewCoord.scale / scaleKoef
+//            actionElement!!.element.imageHeight *= xyModel.viewCoord.scale / scaleKoef
+        }
+
+        root.setWait(true)
+        invokeRequest(xyActionRequest) { _: XyActionResponse ->
+            root.setWait(false)
+            xyControl.xyRefreshView(null, true)
+        }
+    }
+
+    fun doEditElementPoint(
+        root: Root,
+        xyControl: AbstractXyControl,
+        documentTypeName: String,
+        startParamId: String,
+        scaleKoef: Double,
+        viewCoord: XyViewCoord
+    ) {
+        lateinit var xyActionRequest: XyActionRequest
+
+        when (type) {
+            XyElementDataType.POLY -> {
+                val xyElement = XyElement(
+                    typeName = "",      // неважно для редактирования точек
+                    elementId = elementId,
+                    objectId = 0
+                )
+                //--- переводим в мировые координаты
+                xyElement.alPoint = alPoints.map {
+                    XyPoint(
+                        viewCoord.x1 + (it.x * viewCoord.scale / scaleKoef).roundToInt(),
+                        viewCoord.y1 + (it.y * viewCoord.scale / scaleKoef).roundToInt()
+                    )
+                }
+
+                xyActionRequest = XyActionRequest(
+                    documentTypeName = documentTypeName,
+                    action = XyAction.EDIT_ELEMENT_POINT,
+                    startParamId = startParamId,
+                    xyElement = xyElement
+                )
+            }
+
+            else -> {}
+//            //--- приводим в локальные/экранные размеры
+//            actionElement!!.element.imageWidth *= xyModel.viewCoord.scale / scaleKoef
+//            actionElement!!.element.imageHeight *= xyModel.viewCoord.scale / scaleKoef
+        }
+
+        root.setWait(true)
+        invokeRequest(xyActionRequest) { _: XyActionResponse ->
+            root.setWait(false)
+            xyControl.xyRefreshView(null, true)
+        }
+    }
+
 
  */
