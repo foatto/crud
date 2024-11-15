@@ -136,7 +136,7 @@ class CompositeControl(
         }
     }
 
-    override fun start() {
+    override suspend fun start() {
         readHeader()
 
         blocks.clear()

@@ -10,5 +10,5 @@ class EmptyControl : AbstractControl(
     override fun Body() {
     }
 
-    override fun start() {}
+    override suspend fun start() {}
 }

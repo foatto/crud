@@ -46,7 +46,7 @@ abstract class AbstractControl(
     @Composable
     abstract fun Body()
 
-    abstract fun start()
+    abstract suspend fun start()
 
     @Composable
     protected fun getHeader(

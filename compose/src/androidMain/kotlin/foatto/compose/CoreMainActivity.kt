@@ -3,6 +3,10 @@ package foatto.compose
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import foatto.compose.utils.applicationDispatcher
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 open class CoreMainActivity : ComponentActivity() {
 
@@ -11,15 +15,21 @@ open class CoreMainActivity : ComponentActivity() {
     open fun init() {
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         init()
 
+        //!!! проверить
+        // enableEdgeToEdge()
+
         setContent {
             root.Content()
         }
 
-        root.start()
+        GlobalScope.launch(applicationDispatcher) {
+            root.start()
+        }
     }
 }

@@ -149,7 +149,9 @@ class TableControl(
                 ),
         ) {
             getHeader { action: AppAction ->
-                call(action, false)
+                coroutineScope.launch {
+                    call(action, false)
+                }
             }
             TableToolBar(
                 isSelectorMode = tableAction.isSelectorMode,
@@ -169,12 +171,12 @@ class TableControl(
                 alClientButton = alClientButton,
                 tableAction = tableAction,
                 onFindInput = { newText: String -> findText = newText },
-                doFind = { isClear: Boolean -> doFind(isClear) },
-                doForm = { doForm() },
-                doGoto = { doGoto() },
+                doFind = { isClear: Boolean -> coroutineScope.launch { doFind(isClear) } },
+                doForm = { coroutineScope.launch { doForm() } },
+                doGoto = { coroutineScope.launch { doGoto() } },
                 doPopup = { doPopup() },
                 clientAction = { action: AppAction, params: List<Pair<String, String>> -> clientAction(action, params) },
-                call = { action: AppAction, inNewTab: Boolean -> call(action, inNewTab) },
+                call = { action: AppAction, inNewTab: Boolean -> coroutineScope.launch { call(action, inNewTab) } },
             )
             Row(
                 modifier = Modifier
@@ -192,7 +194,9 @@ class TableControl(
                         ),
                         onClick = {
                             captionData.action?.let {
-                                call(captionData.action, false)
+                                coroutineScope.launch {
+                                    call(captionData.action, false)
+                                }
                             }
                         }
                     ) {
@@ -277,7 +281,9 @@ class TableControl(
                                                 gridData?.dataRow?.let { dataRow ->
                                                     val rowData = alRowData[dataRow]
                                                     rowData.rowAction?.let { rowAction ->
-                                                        call(rowAction, rowData.isRowUrlInNewTab)
+                                                        coroutineScope.launch {
+                                                            call(rowAction, rowData.isRowUrlInNewTab)
+                                                        }
                                                     }
                                                 }
                                             },
@@ -353,7 +359,9 @@ class TableControl(
                                                             IconButton(
                                                                 onClick = {
                                                                     cellData.action?.let {
-                                                                        call(cellData.action, cellData.inNewTab)
+                                                                        coroutineScope.launch {
+                                                                            call(cellData.action, cellData.inNewTab)
+                                                                        }
                                                                     }
                                                                 }
                                                             ) {
@@ -365,7 +373,9 @@ class TableControl(
                                                                 shape = RoundedCornerShape(0.dp),
                                                                 onClick = {
                                                                     cellData.action?.let {
-                                                                        call(cellData.action, cellData.inNewTab)
+                                                                        coroutineScope.launch {
+                                                                            call(cellData.action, cellData.inNewTab)
+                                                                        }
                                                                     }
                                                                 }
                                                             ) {
@@ -431,7 +441,9 @@ class TableControl(
                                                     },
                                                     menuClick = { action: AppAction, inNewTab: Boolean ->
                                                         gridData.isShowPopupMenu = false
-                                                        call(action, inNewTab)
+                                                        coroutineScope.launch {
+                                                            call(action, inNewTab)
+                                                        }
                                                     },
                                                 )
                                             }
@@ -537,7 +549,9 @@ class TableControl(
 //                                cursor("pointer")
                             onClick = {
                                 pageButton.action?.let { action ->
-                                    call(action, false)
+                                    coroutineScope.launch {
+                                        call(action, false)
+                                    }
                                 }
                             }
                         ) {
@@ -553,7 +567,7 @@ class TableControl(
         //}
     }
 
-    override fun start() {
+    override suspend fun start() {
         readHeader()
 
         findText = tableResponse.findText
@@ -792,7 +806,7 @@ class TableControl(
         root.closeTabById(tabId)
     }
 
-    private fun doFind(isClear: Boolean) {
+    private suspend fun doFind(isClear: Boolean) {
         if (isClear) {
             findText = ""
         }
@@ -810,7 +824,7 @@ class TableControl(
         }
     }
 
-    private fun doForm() {
+    private suspend fun doForm() {
         currentRowNo?.let { curRow ->
             alRowData[curRow].formAction?.let { formAction ->
                 call(formAction, false)
@@ -818,7 +832,7 @@ class TableControl(
         }
     }
 
-    private fun doGoto() {
+    private suspend fun doGoto() {
         currentRowNo?.let { curRow ->
             alRowData[curRow].gotoAction?.let { gotoAction ->
                 call(gotoAction, alRowData[curRow].isGotoUrlInNewTab)
@@ -840,7 +854,7 @@ class TableControl(
 //        focusToCursorField(tabId)
     }
 
-    private fun doKeyEnter() {
+    private suspend fun doKeyEnter() {
         currentRowNo?.let { curRow ->
             if (curRow >= 0 && curRow < alRowData.size) {
                 val curRowData = alRowData[curRow]
@@ -885,19 +899,19 @@ class TableControl(
         }
     }
 
-    private fun doKeyPageUp() {
+    private suspend fun doKeyPageUp() {
         pageUpAction?.let { action ->
             call(action, false)
         }
     }
 
-    private fun doKeyPageDown() {
+    private suspend fun doKeyPageDown() {
         pageDownAction?.let { action ->
             call(action, false)
         }
     }
 
-    private fun call(newAppAction: AppAction, inNewTab: Boolean) {
+    private suspend fun call(newAppAction: AppAction, inNewTab: Boolean) {
         if (tableAction.isSelectorMode) {
             when (newAppAction.type) {
                 ActionType.FORM_SELECTOR -> {

@@ -15,13 +15,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -46,6 +40,7 @@ import foatto.core.model.request.ChangePasswordRequest
 import foatto.core.model.request.LogoffRequest
 import foatto.core.model.response.ChangePasswordResponse
 import foatto.core.model.response.LogoffResponse
+import kotlinx.coroutines.launch
 
 /* !!! для перекрытия в MMSRoot:
     var getMenu: (
@@ -117,6 +112,7 @@ open class Root {
     @Composable
     fun Content() {
         val density = LocalDensity.current
+        val coroutineScope = rememberCoroutineScope()
 
         scaledScreenWidth = getScaledScreenWidth()
         isWideScreen = scaledScreenWidth >= WIDE_SCREEN_WIDTH
@@ -155,7 +151,9 @@ open class Root {
                                     isShowMainMenu = false
                                 },
                                 menuClick = { action: AppAction, inNewTab: Boolean ->
+                                    coroutineScope.launch {
                                     openTab(action)
+                                    }
                                 }
                             )
                         }
@@ -180,8 +178,10 @@ open class Root {
                     PasswordChangeDialog(
                         onOkClick = { newPassword ->
                             showPasswordChangeDialog = false
+                            coroutineScope.launch {
                             invokeRequest(ChangePasswordRequest(encodePassword(newPassword))) { changePasswordResponse: ChangePasswordResponse ->
                                 showAlert("Пароль успешно сменён.")
+                            }
                             }
                         },
                         onCancelClick = {
@@ -215,7 +215,7 @@ open class Root {
         }
     }
 
-    fun start() {
+    suspend fun start() {
         settings.getStringOrNull(SETTINGS_START_MODULE)?.let { startModule ->
             addTabComp(
                 AppAction(
@@ -226,7 +226,7 @@ open class Root {
         }
     }
 
-    fun openTab(action: AppAction) {
+    suspend fun openTab(action: AppAction) {
         when (action.type) {
             ActionType.FILE -> {
                 action.url?.let { fileUrl ->
@@ -264,7 +264,7 @@ open class Root {
         }
     }
 
-    private fun addTabComp(action: AppAction) {
+    private suspend fun addTabComp(action: AppAction) {
         lastTabId++
 
         val appControl = AppControl(this, action, lastTabId)

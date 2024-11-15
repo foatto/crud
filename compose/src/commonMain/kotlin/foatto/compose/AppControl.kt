@@ -6,6 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +30,7 @@ import foatto.core.model.response.LogonResponse
 import foatto.core.model.response.MenuData
 import foatto.core.model.response.ResponseCode
 import foatto.core.util.getCurrentTimeInt
+import kotlinx.coroutines.launch
 
 class AppControl(
     private val root: Root,
@@ -47,6 +49,8 @@ class AppControl(
 
     @Composable
     fun Body() {
+        val coroutineScope = rememberCoroutineScope()
+
         Box(
             modifier = Modifier.fillMaxSize(),
         ) {
@@ -68,7 +72,9 @@ class AppControl(
                             isRememberMe = value
                         },
                         logon = {
+                            coroutineScope.launch {
                             invokeLogonRequest(getLogonRequest())
+                            }
                         }
                     )
                 }
@@ -114,11 +120,11 @@ class AppControl(
         }
     }
 
-    fun start() {
+    suspend fun start() {
         call(AppRequest(action = action))
     }
 
-    fun call(appRequest: AppRequest) {
+    suspend fun call(appRequest: AppRequest) {
         //--- файловое урло
         if (appRequest.action.type == ActionType.FILE) {
             root.openTab(appRequest.action)
@@ -248,7 +254,7 @@ class AppControl(
         )
     }
 
-    private fun invokeLogonRequest(logonRequest: LogonRequest) {
+    private suspend fun invokeLogonRequest(logonRequest: LogonRequest) {
         root.setWait(true)
         invokeRequest(logonRequest) { logonResponse: LogonResponse ->
             responseCode = logonResponse.responseCode

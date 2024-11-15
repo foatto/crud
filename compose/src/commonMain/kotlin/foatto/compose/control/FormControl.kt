@@ -489,7 +489,9 @@ class FormControl(
                                                             onClick = {
                                                                 if (fileData.id >= 0) {
                                                                     fileData.action?.let {
-                                                                        showFile(fileData.action)
+                                                                        coroutineScope.launch {
+                                                                            showFile(fileData.action)
+                                                                        }
                                                                     }
                                                                 }
                                                             },
@@ -508,7 +510,9 @@ class FormControl(
                                                                     IconButton(
                                                                         onClick = {
                                                                             if (!isFileAddInProgress) {
-                                                                                deleteFile(gridData, fileData.id)
+                                                                                coroutineScope.launch {
+                                                                                    deleteFile(gridData, fileData.id)
+                                                                                }
                                                                             }
                                                                         }
                                                                     ) {
@@ -569,7 +573,9 @@ class FormControl(
                                                     IconButton(
                                                         onClick = {
                                                             if (!isFileAddInProgress) {
-                                                                callSelector(selectorAction)
+                                                                coroutineScope.launch {
+                                                                    callSelector(selectorAction)
+                                                                }
                                                             }
                                                         }
                                                     ) {
@@ -637,7 +643,9 @@ class FormControl(
                                 enabled = !isFileAddInProgress,
                                 onClick = {
                                     if (!isFileAddInProgress) {
-                                        call(formButton.actionType, formButton.withNewData, formButton.question)
+                                        coroutineScope.launch {
+                                            call(formButton.actionType, formButton.withNewData, formButton.question)
+                                        }
                                     }
                                 }
                             ) {
@@ -666,7 +674,7 @@ class FormControl(
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    override fun start() {
+    override suspend fun start() {
         readHeader()
         if (formResponse.alFormColumn.isEmpty()) {
             readClassicForm()
@@ -689,7 +697,6 @@ class FormControl(
         var rowIndex = 0
         var colIndex = 0
         val alFormCellMasterPreAction = mutableListOf<FormBaseCellClient>()
-
 
         //--- хотя бы один столбец с полями всё равно будет
         var maxColCount = 1
@@ -1193,7 +1200,7 @@ class FormControl(
         root.closeTabById(tabId)
     }
 
-    private fun showFile(action: AppAction) {
+    private suspend fun showFile(action: AppAction) {
         root.openTab(action)
     }
 
@@ -1211,7 +1218,7 @@ class FormControl(
         }
     }
 
-    private fun call(actionType: String, withNewData: Boolean, dialogQuestion: String?) {
+    private suspend fun call(actionType: String, withNewData: Boolean, dialogQuestion: String?) {
         doInvoke(actionType, withNewData)
 //        dialogQuestion?.let {
 //            root.dialogActionFun = {
@@ -1225,7 +1232,7 @@ class FormControl(
 //        }
     }
 
-    private fun doInvoke(actionType: String, withNewValues: Boolean) {
+    private suspend fun doInvoke(actionType: String, withNewValues: Boolean) {
         val formActionData = mutableMapOf<String, FormActionData>()
 
         alHiddenCells.forEach { gridData ->
@@ -1341,7 +1348,7 @@ class FormControl(
         }
     }
 
-    private fun callSelector(selectorAction: AppAction) {
+    private suspend fun callSelector(selectorAction: AppAction) {
         root.setWait(true)
 
         val selectorFunId = getRandomLong()

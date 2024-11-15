@@ -3,22 +3,27 @@ package foatto.compose
 import com.darkrockstudios.libraries.mpfilepicker.PlatformFile
 import foatto.compose.control.model.form.FormFileDataClient
 import foatto.compose.control.model.form.cell.FormFileCellClient
+import foatto.compose.utils.applicationDispatcher
 import foatto.core.ApiUrl
 import foatto.core.model.request.BaseRequest
 import foatto.core.model.response.BaseResponse
-import foatto.core.model.response.form.FormFileUploadResponse
 import foatto.core.model.response.form.FormFileUploadParams
+import foatto.core.model.response.form.FormFileUploadResponse
 import foatto.core.util.getRandomInt
 import kotlinx.browser.window
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.w3c.xhr.XMLHttpRequest
 
 //WASM!!! временно, до появления всеобщего ktor-client (в т.ч. для wasm)
 
-internal actual inline fun <reified IN : BaseRequest, reified OUT : BaseResponse> invokeRequest(
+@OptIn(DelicateCoroutinesApi::class)
+internal actual suspend inline fun <reified IN : BaseRequest, reified OUT : BaseResponse> invokeRequest(
     requestData: IN,
-    crossinline onSuccess: (responseData: OUT) -> Unit,
+    crossinline onSuccess: suspend (responseData: OUT) -> Unit,
 ) {
     XMLHttpRequest().apply {
         open("POST", requestData.url, true)
@@ -27,7 +32,9 @@ internal actual inline fun <reified IN : BaseRequest, reified OUT : BaseResponse
                 if (this.status == 200.toShort()) {
                     if (responseText.isNotBlank()) {
                         val responseData = Json.decodeFromString<OUT>(responseText)
-                        onSuccess(responseData)
+                        GlobalScope.launch(applicationDispatcher) {
+                            onSuccess(responseData)
+                        }
                     }
                 } else {
                     httpDefaultErrorHandler(this)
