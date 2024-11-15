@@ -1,4 +1,4 @@
-package foatto.core_compose.controls
+package foatto.compose.control
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -21,8 +21,8 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.hsl
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Fill
@@ -32,22 +32,16 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.rememberTextMeasurer
-import foatto.core.app.xy.XyAction
-import foatto.core.app.xy.XyActionRequest
-import foatto.core.app.xy.XyActionResponse
-import foatto.core.app.xy.XyElement
-import foatto.core.app.xy.XyViewCoord
-import foatto.core.app.xy.geom.XyPoint
-import foatto.core.app.xy.geom.XyRect
-import foatto.core.link.XyElementClientType
-import foatto.core.link.XyElementConfig
-import foatto.core.link.XyResponse
-import foatto.core_compose.AppControl
-import foatto.core_compose.Root
-import foatto.core_compose.controls.models.TitleData
-import foatto.core_compose.controls.models.xy.XyElementData
-import foatto.core_compose.controls.models.xy.XyElementDataType
-import foatto.core_compose.invokeXy
+import foatto.compose.AppControl
+import foatto.compose.Root
+import foatto.compose.control.model.xy.XyElementData
+import foatto.compose.control.model.xy.XyElementDataType
+import foatto.core.model.model.xy.XyElement
+import foatto.core.model.model.xy.XyViewCoord
+import foatto.core.model.response.xy.XyElementClientType
+import foatto.core.model.response.xy.XyElementConfig
+import foatto.core.model.response.xy.geom.XyPoint
+import foatto.core.model.response.xy.geom.XyRect
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 import kotlin.math.max
@@ -56,23 +50,23 @@ import kotlin.math.roundToInt
 abstract class AbstractXyControl(
     protected val root: Root,
     private val appControl: AppControl,
-    protected val xyResponse: XyResponse,
+    protected val elementConfigs: Map<String, XyElementConfig>,
     tabId: Int,
 ) : AbstractControl(tabId) {
 
     companion object {
-        val COLOR_XY_LABEL_BACK = hsl(60.0f, 1.0f, 0.5f)
-        val COLOR_XY_LABEL_BORDER = hsl(60.0f, 1.0f, 0.25f)
+        val COLOR_XY_LABEL_BACK = Color.hsl(60.0f, 1.0f, 0.5f)
+        val COLOR_XY_LABEL_BORDER = Color.hsl(60.0f, 1.0f, 0.25f)
 
-        private val COLOR_XY_POLYGON_CASUAL = hsl(60.0f, 1.0f, 0.5f)  // полупрозрачный жёлтый
-        private val COLOR_XY_POLYGON_ACTUAL = hsl(30.0f, 1.0f, 0.5f)  // полупрозрачный оранжевый
-        val COLOR_XY_POLYGON_BORDER: Color = hsl(0.0f, 1.0f, 0.5f)    // красный
+        private val COLOR_XY_POLYGON_CASUAL = Color.hsl(60.0f, 1.0f, 0.5f)  // полупрозрачный жёлтый
+        private val COLOR_XY_POLYGON_ACTUAL = Color.hsl(30.0f, 1.0f, 0.5f)  // полупрозрачный оранжевый
+        val COLOR_XY_POLYGON_BORDER: Color = Color.hsl(0.0f, 1.0f, 0.5f)    // красный
     }
 
     protected var xyCanvasWidth: Float by mutableFloatStateOf(0.0f)
     protected var xyCanvasHeight: Float by mutableFloatStateOf(0.0f)
 
-    private val alXyElement = mutableStateListOf<List<XyElementData>>()
+    private val xyElements = mutableStateListOf<List<XyElementData>>()
 
 //    private val xyTooltipVisible = mutableStateOf(false)
 //    private val xyTooltipText = mutableStateOf("")
@@ -81,8 +75,8 @@ abstract class AbstractXyControl(
 
     protected var refreshInterval: Int by mutableIntStateOf(0)
 
-    private val minXyScale: Int = xyResponse.documentConfig.hmElementConfig.minByOrNull { (_, value) -> value.scaleMin }!!.value.scaleMin
-    private val maxXyScale: Int = xyResponse.documentConfig.hmElementConfig.maxByOrNull { (_, value) -> value.scaleMax }!!.value.scaleMax
+    val minXyScale: Int = elementConfigs.minByOrNull { (_, value) -> value.scaleMin }!!.value.scaleMin
+    val maxXyScale: Int = elementConfigs.maxByOrNull { (_, value) -> value.scaleMax }!!.value.scaleMax
 
     protected var xyViewCoord: XyViewCoord = XyViewCoord(1, 0, 0, 1, 1)
 
@@ -98,7 +92,6 @@ abstract class AbstractXyControl(
         val density = LocalDensity.current
 //        val coroutineScope = rememberCoroutineScope()
         val textMeasurer = rememberTextMeasurer()
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -143,7 +136,7 @@ abstract class AbstractXyControl(
                     }
                 }
         ) {
-            for (alElement in alXyElement) {
+            for (alElement in xyElements) {
                 for (element in alElement) {
                     if (element.type == XyElementDataType.IMAGE) {
                         KamelImage(
@@ -170,7 +163,7 @@ abstract class AbstractXyControl(
             }
 
             Canvas(modifier = Modifier.fillMaxSize()) {
-                for (alElement in alXyElement) {
+                for (alElement in xyElements) {
                     for (element in alElement) {
                         when (element.type) {
                             XyElementDataType.ARC -> {
@@ -178,8 +171,8 @@ abstract class AbstractXyControl(
                                     drawArc(
                                         topLeft = Offset(element.x - element.radius, element.y - element.radius),
                                         size = Size(element.radius * 2, element.radius * 2),
-                                        startAngle = -element.startAngle,                       // отсчёт углов в compose - в обратную сторону (по часовой стрелке)
-                                        sweepAngle = -(element.endAngle - element.startAngle),  // в compose считается по часовой стрелке
+                                        startAngle = element.startAngle,
+                                        sweepAngle = element.sweepAngle,
                                         useCenter = true,
                                         color = element.fillColor,
                                         alpha = element.alpha,
@@ -191,7 +184,7 @@ abstract class AbstractXyControl(
                                         topLeft = Offset(element.x - element.radius, element.y - element.radius),
                                         size = Size(element.radius * 2, element.radius * 2),
                                         startAngle = element.startAngle,
-                                        sweepAngle = -(element.endAngle - element.startAngle),  // в compose считается по часовой стрелке (рука-лицо)
+                                        sweepAngle = element.sweepAngle,
                                         useCenter = false,
                                         color = element.strokeColor,
                                         alpha = element.alpha,
@@ -330,22 +323,23 @@ abstract class AbstractXyControl(
                                     drawTextOnCanvas(
                                         drawScope = this,
                                         scaleKoef = root.scaleKoef,
-                                        canvasWidth = xyCanvasWidth.toFloat(),
-                                        canvasHeight = xyCanvasHeight.toFloat(),
+                                        canvasWidth = xyCanvasWidth,
+                                        canvasHeight = xyCanvasHeight,
                                         textMeasurer = textMeasurer,
                                         text = element.text,
+                                        fontSize = element.textFontSize,
+                                        textIsBold = element.textIsBold,
                                         x = element.x,
                                         y = element.y,
                                         textLimitWidth = element.textLimitWidth,
                                         textLimitHeight = element.textLimitHeight,
                                         rotateDegree = null,
-                                        fillAlpha = element.alpha,
                                         fillColor = element.fillColor,
+                                        fillAlpha = element.alpha,
                                         strokeColor = element.strokeColor,
                                         strokeWidth = element.strokeWidth,
                                         textAnchor = element.textAnchor,
                                         textColor = element.textColor ?: Color.Black,
-                                        textIsBold = element.textIsBold,
                                     )
                                 }
 //                                    onMouseEnter { syntheticMouseEvent ->
@@ -414,50 +408,7 @@ abstract class AbstractXyControl(
             },
         )
 
-    protected fun startXy(
-        startExpandKoef: Float,
-        isCentered: Boolean,
-        curScale: Int,
-    ) {
-        root.setTabInfo(tabId, xyResponse.title, xyResponse.tooltip)
-        alTitleData += xyResponse.tooltip.split('\n').filter { it.isNotBlank() }.map { TitleData("", it) }
-
-        startXySpecific(
-            startExpandKoef = startExpandKoef,
-            isCentered = isCentered,
-            curScale = curScale,
-        )
-    }
-
-    fun startXySpecific(
-        startExpandKoef: Float,
-        isCentered: Boolean,
-        curScale: Int,
-    ) {
-        root.setWait(true)
-        invokeXy(
-            XyActionRequest(
-                documentTypeName = xyResponse.documentConfig.name,
-                action = XyAction.GET_COORDS,
-                startParamId = xyResponse.startParamId
-            )
-        ) { xyActionResponse: XyActionResponse ->
-
-            val newViewCoord = getXyCoordsDone(
-                startExpandKoef = startExpandKoef,
-                isCentered = isCentered,
-                curScale = curScale,
-                minCoord = xyActionResponse.minCoord!!,
-                maxCoord = xyActionResponse.maxCoord!!,
-            )
-
-            //--- именно до xyRefreshView, чтобы не сбросить сразу после включения
-            root.setWait(false)
-            xyRefreshView(newViewCoord, true)
-        }
-    }
-
-    private fun getXyCoordsDone(
+    protected fun getXyCoordsDone(
         startExpandKoef: Float,
         isCentered: Boolean,
         curScale: Int,
@@ -508,7 +459,7 @@ abstract class AbstractXyControl(
         y2: Int
     ): Int = max((x2 - x1) * root.scaleKoef / xyCanvasWidth, (y2 - y1) * root.scaleKoef / xyCanvasHeight).roundToInt()
 
-    abstract fun xyRefreshView(aView: XyViewCoord?, withWait: Boolean)
+//    abstract fun xyRefreshView(aView: XyViewCoord?, withWait: Boolean, doAfterFullLoad: (SchemeControl) -> Unit)
 
     protected fun getXyViewCoord(aScale: Int, aCenterX: Int, aCenterY: Int): XyViewCoord {
         val vc = XyViewCoord()
@@ -586,49 +537,17 @@ abstract class AbstractXyControl(
         return 0   //XyConfig.MAX_SCALE;
     }
 
-    protected fun getXyElements(
-        mapBitmapTypeName: String,
-        withWait: Boolean,
-        doAdditionalWork: (xyActionResponse: XyActionResponse) -> Unit = { _: XyActionResponse -> },
-    ) {
-        if (withWait) {
-            root.setWait(true)
-        }
-        invokeXy(
-            XyActionRequest(
-                documentTypeName = xyResponse.documentConfig.name,
-                action = XyAction.GET_ELEMENTS,
-                startParamId = xyResponse.startParamId,
-                viewCoord = xyViewCoord,
-                bitmapTypeName = mapBitmapTypeName
-            )
-        ) { xyActionResponse: XyActionResponse ->
-
-            //--- сбрасываем горизонтальный и вертикальный скроллинг/смещение
-            screenOffsetX = 0.0f
-            screenOffsetY = 0.0f
-
-            readXyElements(xyActionResponse.alElement)
-
-            if (withWait) {
-                root.setWait(false)
-            }
-
-            doAdditionalWork(xyActionResponse)
-        }
-    }
-
-    private fun readXyElements(alElement: List<XyElement>) {
+    protected fun readXyElements(alElement: List<XyElement>) {
         val hmLayer = mutableMapOf<Int, MutableList<XyElementData>>()
         alElement.forEach { element ->
-            val elementConfig = xyResponse.documentConfig.hmElementConfig[element.typeName]!!
+            val elementConfig = elementConfigs[element.typeName]!!
             val alLayer = hmLayer.getOrPut(elementConfig.layer) { mutableListOf() }
 
             readXyElementData(elementConfig, element, alLayer)
         }
 
-        alXyElement.clear()
-        alXyElement.addAll(hmLayer.toList().sortedBy { it.first }.map { it.second })
+        xyElements.clear()
+        xyElements.addAll(hmLayer.toList().sortedBy { it.first }.map { it.second })
     }
 
     private fun readXyElementData(
@@ -654,12 +573,11 @@ abstract class AbstractXyControl(
                         y = ((p.y - xyViewCoord.y1) / xyViewCoord.scale * root.scaleKoef),
                         radius = element.radius / xyViewCoord.scale * root.scaleKoef,
                         startAngle = element.startAngle.toFloat(),
-                        endAngle = element.endAngle.toFloat(),
+                        sweepAngle = element.sweepAngle.toFloat(),
                         fillColor = fillColor,
                         strokeColor = drawColor,
                         strokeWidth = lineWidth * root.scaleKoef,
                         strokeDash = floatArrayOf(root.scaleKoef * lineWidth * 2, root.scaleKoef * lineWidth * 2),
-                        tooltip = element.toolTipText,
                         isReadOnly = element.isReadOnly
                     )
                 )
@@ -678,10 +596,9 @@ abstract class AbstractXyControl(
                             y = ((p.y - xyViewCoord.y1) / xyViewCoord.scale * root.scaleKoef),
                             width = (element.imageWidth / xyViewCoord.scale * root.scaleKoef),
                             height = (element.imageHeight / xyViewCoord.scale * root.scaleKoef),
-                            strokeColor = hsl(0.0f, 0.0f, 0.5f), // gray
+                            strokeColor = Color.hsl(0.0f, 0.0f, 0.5f), // gray
                             strokeWidth = 1.0f, //!!! root.scaleKoef,
                             strokeDash = floatArrayOf(root.scaleKoef * 2, root.scaleKoef * 2),
-                            tooltip = element.imageName,
                             isReadOnly = element.isReadOnly,
                         )
                     )
@@ -716,7 +633,6 @@ abstract class AbstractXyControl(
                         height = element.imageHeight * root.scaleKoef,
                         rotateDegree = element.rotateDegree.toFloat(),
                         url = element.imageName,
-                        tooltip = element.toolTipText,
                         isReadOnly = element.isReadOnly
                     )
                 )
@@ -749,7 +665,6 @@ abstract class AbstractXyControl(
                                 strokeWidth = max(1.0f, lineWidth * root.scaleKoef),
                                 strokeDash = floatArrayOf(root.scaleKoef * lineWidth * 2, root.scaleKoef * lineWidth * 2),
                                 rotateDegree = element.rotateDegree.toFloat(),
-                                tooltip = element.toolTipText,
                                 isReadOnly = element.isReadOnly
                             )
                         )
@@ -770,7 +685,6 @@ abstract class AbstractXyControl(
                                     strokeWidth = max(1.0f, lineWidth * root.scaleKoef),
                                     strokeDash = floatArrayOf(root.scaleKoef * lineWidth * 2, root.scaleKoef * lineWidth * 2),
                                     rotateDegree = element.rotateDegree.toFloat(),
-                                    tooltip = element.toolTipText,
                                     isReadOnly = element.isReadOnly
                                 )
                             )
@@ -789,7 +703,6 @@ abstract class AbstractXyControl(
                                     strokeWidth = max(1.0f, lineWidth * root.scaleKoef),
                                     strokeDash = floatArrayOf(root.scaleKoef * lineWidth * 2, root.scaleKoef * lineWidth * 2),
                                     rotateDegree = element.rotateDegree.toFloat(),
-                                    tooltip = element.toolTipText,
                                     isReadOnly = element.isReadOnly
                                 )
                             )
@@ -838,7 +751,6 @@ abstract class AbstractXyControl(
                                 strokeWidth = max(1.0f, lineWidth * root.scaleKoef),
                                 strokeDash = floatArrayOf(root.scaleKoef * lineWidth * 2, root.scaleKoef * lineWidth * 2),
                                 rotateDegree = element.rotateDegree.toFloat(),
-                                tooltip = element.toolTipText,
                                 isReadOnly = element.isReadOnly
                             )
                         )
@@ -884,7 +796,6 @@ abstract class AbstractXyControl(
                                 strokeWidth = max(1.0f, lineWidth * root.scaleKoef),
                                 strokeDash = floatArrayOf(root.scaleKoef * lineWidth * 2, root.scaleKoef * lineWidth * 2),
                                 rotateDegree = element.rotateDegree.toFloat(),
-                                tooltip = element.toolTipText,
                                 isReadOnly = element.isReadOnly
                             )
                         )
@@ -907,7 +818,6 @@ abstract class AbstractXyControl(
                                 strokeWidth = max(1.0f, lineWidth * root.scaleKoef),
                                 strokeDash = floatArrayOf(root.scaleKoef * lineWidth * 2, root.scaleKoef * lineWidth * 2),
                                 rotateDegree = element.rotateDegree.toFloat(),
-                                tooltip = element.toolTipText,
                                 isReadOnly = element.isReadOnly
                             )
                         )
@@ -939,14 +849,13 @@ abstract class AbstractXyControl(
                         fillColor = fillColor,
                         strokeWidth = max(1.0f, lineWidth * root.scaleKoef),
                         strokeDash = floatArrayOf(root.scaleKoef * lineWidth * 2, root.scaleKoef * lineWidth * 2),
-                        tooltip = element.toolTipText,
                         isReadOnly = element.isReadOnly,
                         dialogQuestion = element.dialogQuestion,
                     )
                 )
             }
 
-            XyElementClientType.TEXT, XyElementClientType.SVG_TEXT, XyElementClientType.HTML_TEXT -> {
+            XyElementClientType.TEXT -> {
                 val p = element.alPoint.first()
 
                 val x = (p.x - xyViewCoord.x1) / xyViewCoord.scale * root.scaleKoef
@@ -1008,8 +917,8 @@ abstract class AbstractXyControl(
                         textLimitHeight = limitHeight,
                         textAnchor = textAnchor,
                         textColor = Color(element.textColor),
+                        textFontSize = element.fontSize,
                         textIsBold = element.isFontBold,
-                        tooltip = element.toolTipText,
                         isReadOnly = element.isReadOnly,
                         isVisible = true,
                         dialogQuestion = element.dialogQuestion,
@@ -1033,7 +942,6 @@ abstract class AbstractXyControl(
                             y2 = (p2.y - xyViewCoord.y1) / xyViewCoord.scale * root.scaleKoef,
                             strokeColor = Color(element.alDrawColor[i]),
                             strokeWidth = max(1.0f, lineWidth * root.scaleKoef),
-                            tooltip = element.alToolTip[i],
                             isReadOnly = element.isReadOnly,
                         )
                     )
@@ -1058,7 +966,6 @@ abstract class AbstractXyControl(
                         alpha = 0.25f,
                         strokeWidth = 2 * root.scaleKoef,
                         strokeDash = floatArrayOf(root.scaleKoef * 2 /*lineWidth*/ * 2, root.scaleKoef * 2 /*lineWidth*/ * 2),
-                        tooltip = element.toolTipText,
                         isReadOnly = element.isReadOnly,
                         isEditablePoint = !element.isReadOnly,
                         isMoveable = !element.isReadOnly,
@@ -1086,7 +993,7 @@ abstract class AbstractXyControl(
     }
 
     protected fun xyDeselectAll() {
-        alXyElement.forEach { alElement ->
+        xyElements.forEach { alElement ->
             alElement.forEach { xyElement ->
                 xyElement.isSelected = false
             }
@@ -1108,7 +1015,7 @@ abstract class AbstractXyControl(
     )
 
     protected fun getXyElementList(rect: XyRect, isCollectEditableOnly: Boolean): List<XyElementData> =
-        alXyElement.flatten().filter { xyElement ->
+        xyElements.flatten().filter { xyElement ->
             isCollectEditableOnly.xor(xyElement.isReadOnly) && xyElement.isIntersects(rect)
         }.asReversed()
 

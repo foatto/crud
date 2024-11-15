@@ -1,20 +1,12 @@
-package foatto.core_compose.controls.models.xy
+package foatto.compose.control.model.xy
 
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import foatto.core.app.xy.XyAction
-import foatto.core.app.xy.XyActionRequest
-import foatto.core.app.xy.XyElement
-import foatto.core.app.xy.XyViewCoord
-import foatto.core.app.xy.geom.XyLine
-import foatto.core.app.xy.geom.XyPoint
-import foatto.core.app.xy.geom.XyPolygon
-import foatto.core.app.xy.geom.XyRect
-import foatto.core_compose.Root
-import foatto.core_compose.controls.AbstractXyControl
-import foatto.core_compose.invokeXy
-import kotlin.math.roundToInt
+import foatto.core.model.response.xy.geom.XyLine
+import foatto.core.model.response.xy.geom.XyPoint
+import foatto.core.model.response.xy.geom.XyPolygon
+import foatto.core.model.response.xy.geom.XyRect
 
 class XyElementData(
     val type: XyElementDataType,
@@ -40,7 +32,7 @@ class XyElementData(
     val radius: Float = 0.0f,
 
     val startAngle: Float = 0.0f,
-    val endAngle: Float = 0.0f,
+    val sweepAngle: Float = 0.0f,
 
     val rx: Float = 0.0f,
     val ry: Float = 0.0f,
@@ -64,13 +56,12 @@ class XyElementData(
     val textLimitHeight: Float? = null,
     val textAnchor: Alignment = Alignment.TopStart,
     val textColor: Color? = null,
+    val textFontSize: Int = 8,
     val textIsBold: Boolean = false,
 
 //---------------------------------
 
     val url: String = "",
-
-    val tooltip: String? = null,
 
 //---------------------------------
 
@@ -293,104 +284,6 @@ class XyElementData(
             }
 
             else -> {}
-        }
-    }
-
-    fun doAddElement(
-        root: Root,
-        xyControl: AbstractXyControl,
-        documentTypeName: String,
-        startParamId: String,
-        scaleKoef: Double,
-        viewCoord: XyViewCoord
-    ) {
-        lateinit var xyActionRequest: XyActionRequest
-
-        when (type) {
-            XyElementDataType.POLY -> {
-                val xyElement = XyElement(
-                    typeName = typeName!!,
-                    elementId = 0,
-                    objectId = 0
-                )
-                //--- переводим в мировые координаты
-                xyElement.alPoint = alPoints.map {
-                    XyPoint(
-                        viewCoord.x1 + (it.x * viewCoord.scale / scaleKoef).roundToInt(),
-                        viewCoord.y1 + (it.y * viewCoord.scale / scaleKoef).roundToInt()
-                    )
-                }.dropLast(1)  // убираем последнюю служебную точку
-
-                xyActionRequest = XyActionRequest(
-                    documentTypeName = documentTypeName,
-                    action = XyAction.ADD_ELEMENT,
-                    startParamId = startParamId,
-                    xyElement = xyElement
-                )
-
-                alAddInfo!!.forEach {
-                    xyActionRequest.hmParam[it.first] = it.second()
-                }
-            }
-
-            else -> {}
-//            //--- приводим в локальные/экранные размеры
-//            actionElement!!.element.imageWidth *= xyModel.viewCoord.scale / scaleKoef
-//            actionElement!!.element.imageHeight *= xyModel.viewCoord.scale / scaleKoef
-        }
-
-        root.setWait(true)
-        invokeXy(xyActionRequest) {
-            root.setWait(false)
-            xyControl.xyRefreshView(null, true)
-        }
-    }
-
-    fun doEditElementPoint(
-        root: Root,
-        xyControl: AbstractXyControl,
-        documentTypeName: String,
-        startParamId: String,
-        scaleKoef: Double,
-        viewCoord: XyViewCoord
-    ) {
-        lateinit var xyActionRequest: XyActionRequest
-
-        when (type) {
-            XyElementDataType.POLY -> {
-                val xyElement = XyElement(
-                    typeName = "",      // неважно для редактирования точек
-                    elementId = elementId,
-                    objectId = 0
-                )
-                //--- переводим в мировые координаты
-                xyElement.alPoint = alPoints.map {
-                    XyPoint(
-                        viewCoord.x1 + (it.x * viewCoord.scale / scaleKoef).roundToInt(),
-                        viewCoord.y1 + (it.y * viewCoord.scale / scaleKoef).roundToInt()
-                    )
-                }
-
-                xyActionRequest = XyActionRequest(
-                    documentTypeName = documentTypeName,
-                    action = XyAction.EDIT_ELEMENT_POINT,
-                    startParamId = startParamId,
-                    xyElement = xyElement
-                )
-            }
-
-            else -> {}
-//            //--- приводим в локальные/экранные размеры
-//            actionElement!!.element.imageWidth *= xyModel.viewCoord.scale / scaleKoef
-//            actionElement!!.element.imageHeight *= xyModel.viewCoord.scale / scaleKoef
-        }
-
-        root.setWait(true)
-        invokeXy(
-            xyActionRequest
-        ) {
-            root.setWait(false)
-            xyControl.xyRefreshView(null, true)
         }
     }
 

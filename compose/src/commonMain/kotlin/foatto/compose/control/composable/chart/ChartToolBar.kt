@@ -1,4 +1,4 @@
-package foatto.core_compose.controls.composables.chart
+package foatto.compose.control.composable.chart
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,12 +16,12 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import foatto.core_compose.controls.composables.RefreshSubToolBar
-import foatto.core_compose.controls.composables.ToolBarBlock
-import foatto.core_compose.controls.composables.ToolBarIconButton
-import foatto.core_compose.controls.models.chart.ChartVisibleData
-import foatto.core_compose.controls.models.chart.ChartWorkMode
-import foatto.core_compose.getStyleToolbarIconNameSuffix
+import foatto.compose.control.composable.RefreshSubToolBar
+import foatto.compose.control.composable.ToolBarBlock
+import foatto.compose.control.composable.ToolBarIconButton
+import foatto.compose.control.model.chart.ChartVisibleData
+import foatto.compose.control.model.chart.ChartWorkMode
+import foatto.compose.getStyleToolbarIconNameSuffix
 
 @Composable
 internal fun ChartToolBar(
@@ -60,14 +60,12 @@ internal fun ChartToolBar(
             ToolBarIconButton(
                 isEnabled = refreshInterval == 0 && isPanButtonEnabled,
                 name = "/web/images/ic_open_with_${getStyleToolbarIconNameSuffix()}.png",
-                tooltip = "Перемещение по графику",
             ) {
                 setMode(ChartWorkMode.PAN)
             }
             ToolBarIconButton(
                 isEnabled = refreshInterval == 0 && isZoomButtonEnabled,
                 name = "/web/images/ic_search_${getStyleToolbarIconNameSuffix()}.png",
-                tooltip = "Выбор области для показа",
             ) {
                 setMode(ChartWorkMode.ZOOM_BOX)
             }
@@ -76,14 +74,12 @@ internal fun ChartToolBar(
             ToolBarIconButton(
                 isEnabled = refreshInterval == 0,
                 name = "/web/images/ic_zoom_in_${getStyleToolbarIconNameSuffix()}.png",
-                tooltip = "Ближе",
             ) {
                 zoomIn()
             }
             ToolBarIconButton(
                 isEnabled = refreshInterval == 0,
                 name = "/web/images/ic_zoom_out_${getStyleToolbarIconNameSuffix()}.png",
-                tooltip = "Дальше",
             ) {
                 zoomOut()
             }
@@ -92,7 +88,6 @@ internal fun ChartToolBar(
             ToolBarIconButton(
                 isEnabled = refreshInterval == 0,
                 name = "/web/images/ic_timeline_${getStyleToolbarIconNameSuffix()}.png",
-                tooltip = "Включить/выключить отдельные графики",
             ) {
                 onShowChartList()
             }

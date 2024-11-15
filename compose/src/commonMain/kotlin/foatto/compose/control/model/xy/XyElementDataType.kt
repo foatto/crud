@@ -1,4 +1,4 @@
-package foatto.core_compose.controls.models.xy
+package foatto.compose.control.model.xy
 
 enum class XyElementDataType {
     ARC,

@@ -1,3 +1,3 @@
-package foatto.core_compose.controls.models.xy
+package foatto.compose.control.model.xy
 
 enum class AddPointStatus { COMPLETED, COMPLETEABLE, NOT_COMPLETEABLE }
