@@ -130,7 +130,7 @@ tasks {
 
             delete("/home/foatto/MMSDesktop/lib")
             copy {
-                from("build/compose/binaries/main/app/XXX/lib/app") //!!!
+                from("build/compose/binaries/main/app/foatto.compose_mms/lib/app")
                 into("/home/foatto/MMSDesktop/lib")
             }
 
@@ -138,7 +138,7 @@ tasks {
             delete("/home/foatto/MMSDesktop/bin")
             delete("/home/foatto/MMSDesktop/lib")
             copy {
-                from("build/compose/binaries/main/app/XXX")
+                from("build/compose/binaries/main/app/foatto.compose_mms")
                 into("/home/foatto/MMSDesktop")
             }
 */
