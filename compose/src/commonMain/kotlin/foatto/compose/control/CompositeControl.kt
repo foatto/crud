@@ -9,7 +9,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -17,9 +19,12 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import foatto.compose.AppControl
 import foatto.compose.Root
+import foatto.compose.control.composable.composite.CompositeToolBar
 import foatto.compose.control.model.TitleData
 import foatto.compose.control.model.composite.CompositeBlockControl
 import foatto.core.model.response.composite.CompositeResponse
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class CompositeControl(
     protected val root: Root,
@@ -27,6 +32,8 @@ class CompositeControl(
     protected val compositeResponse: CompositeResponse,
     tabId: Int,
 ) : AbstractControl(tabId) {
+
+    private var refreshInterval: Int by mutableIntStateOf(0)
 
     private var oneBlockWidth by mutableFloatStateOf(0.0f)
     private var oneBlockHeight by mutableFloatStateOf(0.0f)
@@ -36,7 +43,7 @@ class CompositeControl(
     @Composable
     override fun Body() {
         val density = LocalDensity.current
-//        val coroutineScope = rememberCoroutineScope()
+        val coroutineScope = rememberCoroutineScope()
 //        val textMeasurer = rememberTextMeasurer()
 
         Column(
@@ -44,32 +51,11 @@ class CompositeControl(
         ) {
             getHeader()
 
-//            CompositeToolBar(
-//                isWideScreen = root.isWideScreen,
-//                isToolBarsVisible = isToolBarsVisible,
-//                refreshInterval = refreshInterval,
-//                isPanButtonEnabled = isPanButtonEnabled,
-//                isZoomButtonEnabled = isZoomButtonEnabled,
-//                isDistancerButtonEnabled = isDistancerButtonEnabled,
-//                isSelectButtonEnabled = isSelectButtonEnabled,
-//                isZoomInButtonEnabled = isZoomInButtonEnabled,
-//                isZoomOutButtonEnabled = isZoomOutButtonEnabled,
-//                isAddElementButtonVisible = isAddElementButtonVisible,
-//                isEditPointButtonVisible = isEditPointButtonVisible,
-//                isMoveElementsButtonVisible = isMoveElementsButtonVisible,
-//                isActionOkButtonVisible = isActionOkButtonVisible,
-//                isActionCancelButtonVisible = isActionCancelButtonVisible,
-//                alAddEC = alAddEC,
-//                setMode = { mapWorkMode: MapWorkMode -> setMode(mapWorkMode) },
-//                zoomIn = { zoomIn() },
-//                zoomOut = { zoomOut() },
-//                startAdd = { elementConfig: XyElementConfig -> /*!!! startAdd(elementConfig)*/ },
-//                startEditPoint = { /*!!! startEditPoint()*/ },
-//                startMoveElements = { /*!!! startMoveElements()*/ },
-//                actionOk = { /*!!! actionOk()*/ },
-//                actionCancel = { /*!!! actionCancel()*/ },
-//                setInterval = { interval: Int -> setInterval(interval) }
-//            )
+            CompositeToolBar(
+                isWideScreen = root.isWideScreen,
+                refreshInterval = refreshInterval,
+                setInterval = { interval: Int -> coroutineScope.launch { setInterval(interval) } },
+            )
 
             Box(
                 modifier = Modifier
@@ -134,6 +120,13 @@ class CompositeControl(
                 }
             }
         }
+
+        coroutineScope.launch {
+            while (refreshInterval > 0) {
+                refreshAll()
+                delay(refreshInterval * 1000L)
+            }
+        }
     }
 
     override suspend fun start() {
@@ -170,10 +163,10 @@ class CompositeControl(
                     }
                 }
             )
-            /*
-                    !!! setInterval(10)
-             */
         }
+        /*
+            !!! setInterval(10)
+         */
     }
 
     private fun readHeader() {
@@ -184,6 +177,26 @@ class CompositeControl(
             alTitleData.add(TitleData(null, text, compositeResponse.headers.size > 1 && index == 0))
             //--- запомним последнюю кнопку заголовка в табличном режиме как кнопку отмены или возврата на уровень выше
             //butTableCancel = button - not used yet
+        }
+    }
+
+    private suspend fun setInterval(sec: Int) {
+        refreshInterval = sec
+
+        if (sec == 0) {
+            refreshAll()
+        }
+    }
+
+    private suspend fun refreshAll() {
+        for (block in blocks) {
+            block.chartBlock?.doChartRefresh(null, false)
+                ?: run {
+                    block.mapBlock?.mapRefreshView(null, false)
+                        ?: run {
+                            block.schemeBlock?.schemeRefreshView(null, false)
+                        }
+                }
         }
     }
 

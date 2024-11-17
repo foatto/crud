@@ -38,6 +38,7 @@ import foatto.core.model.response.xy.XyElementConfig
 import foatto.core.model.response.xy.map.MapResponse
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.yield
 import kotlin.math.abs
@@ -137,10 +138,17 @@ class MapControl(
                 startMoveElements = { /*!!! startMoveElements()*/ },
                 actionOk = { /*!!! actionOk()*/ },
                 actionCancel = { /*!!! actionCancel()*/ },
-                setInterval = { interval: Int -> setInterval(interval) }
+                setInterval = { interval: Int -> coroutineScope.launch { setInterval(interval) } },
             )
 
             getXyElementTemplate(true)
+        }
+
+        coroutineScope.launch {
+            while (refreshInterval > 0) {
+                mapRefreshView(null, false)
+                delay(refreshInterval * 1000L)
+            }
         }
     }
 
@@ -287,12 +295,12 @@ class MapControl(
 
                 //--- именно до xyRefreshView, чтобы не сбросить сразу после включения
                 root.setWait(false)
-                xyRefreshView(newViewCoord, true)
+                mapRefreshView(newViewCoord, true)
             }
         }
     }
 
-    fun xyRefreshView(aView: XyViewCoord?, withWait: Boolean) {
+    suspend fun mapRefreshView(aView: XyViewCoord?, withWait: Boolean) {
         if (aView != null) {
             //--- вычисляем координату середины (безопасным от переполнения способом)
             //--- и выносим эту точку на середину экрана
@@ -575,13 +583,13 @@ class MapControl(
         }
     }
 
-    override fun onDragEnd() {
+    override suspend fun onDragEnd() {
         when (curMode) {
             MapWorkMode.PAN -> {
                 //--- перезагружаем карту, только если был сдвиг
                 if (abs(screenOffsetX) >= 1 || abs(screenOffsetY) >= 1) {
                     xyViewCoord.moveRel((-screenOffsetX * xyViewCoord.scale / root.scaleKoef).roundToInt(), (-screenOffsetY * xyViewCoord.scale / root.scaleKoef).roundToInt())
-                    xyRefreshView(aView = xyViewCoord, withWait = true)
+                    mapRefreshView(aView = xyViewCoord, withWait = true)
                 }
             }
 
@@ -601,7 +609,7 @@ class MapControl(
                         //--- (и scaleKoef здесь не нужен!)
                         val newScale = ceil(xyViewCoord.scale * max(1.0 * mouseWidth / xyCanvasWidth, 1.0 * mouseHeight / xyCanvasHeight)).toInt()
                         //--- переводим в мировые координаты
-                        xyRefreshView(
+                        mapRefreshView(
                             aView = XyViewCoord(
                                 newScale,
                                 xyViewCoord.x1 + mouseToReal(root.scaleKoef, xyViewCoord.scale, min(mouseRect.x1.value, mouseRect.x2.value)),
@@ -770,6 +778,14 @@ class MapControl(
 
     //--- преобразование экранных координат в мировые
     private fun mouseToReal(scaleKoef: Float, scale: Int, screenCoord: Float): Int = (screenCoord * scale / scaleKoef).roundToInt()
+
+    private suspend fun setInterval(sec: Int) {
+        refreshInterval = sec
+
+        if (sec == 0) {
+            mapRefreshView(null, false)
+        }
+    }
 
 }
 

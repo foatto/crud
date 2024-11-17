@@ -33,6 +33,7 @@ import foatto.core.model.response.SchemeActionResponse
 import foatto.core.model.response.xy.scheme.SchemeResponse
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.yield
 
@@ -93,13 +94,20 @@ class SchemeControl(
                     moveRectX = (data.x - xyViewCoord.x1) / xyViewCoord.scale * root.scaleKoef
                     moveRectY = (data.y - xyViewCoord.y1) / xyViewCoord.scale * root.scaleKoef
                 },
-                setInterval = { interval: Int -> setInterval(interval) }
+                setInterval = { interval: Int -> coroutineScope.launch { setInterval(interval) } },
             )
 
             getXyElementTemplate(true)
         }
 
 //!!!        getStateAlertBody()
+
+        coroutineScope.launch {
+            while (refreshInterval > 0) {
+                schemeRefreshView(null, false)
+                delay(refreshInterval * 1000L)
+            }
+        }
     }
 
     override fun addSpecificXy(drawScope: DrawScope) {
@@ -180,12 +188,12 @@ class SchemeControl(
 
                 //--- именно до xyRefreshView, чтобы не сбросить сразу после включения
                 root.setWait(false)
-                xyRefreshView(newViewCoord, true)
+                schemeRefreshView(newViewCoord, true)
             }
         }
     }
 
-    suspend fun xyRefreshView(
+    suspend fun schemeRefreshView(
         aView: XyViewCoord?,
         withWait: Boolean,
     ) {
@@ -300,12 +308,20 @@ class SchemeControl(
         println("DRAG!")
     }
 
-    override fun onDragEnd() {
+    override suspend fun onDragEnd() {
         println("Drag Finish!")
     }
 
     override fun onDragCancel() {
         println("Drag Cancel!")
+    }
+
+    private suspend fun setInterval(sec: Int) {
+        refreshInterval = sec
+
+        if (sec == 0) {
+            schemeRefreshView(null, false)
+        }
     }
 
     /*

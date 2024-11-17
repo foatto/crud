@@ -14,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,7 +23,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Fill
@@ -44,6 +44,7 @@ import foatto.core.model.response.xy.geom.XyPoint
 import foatto.core.model.response.xy.geom.XyRect
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
+import kotlinx.coroutines.launch
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -85,13 +86,12 @@ abstract class AbstractXyControl(
 
 //    private var xyTooltipOffTime = 0.0
 
-//    private var refreshHandlerId = 0
-
     @Composable
     fun getXyElementTemplate(withInteractive: Boolean) {
         val density = LocalDensity.current
-//        val coroutineScope = rememberCoroutineScope()
+        val coroutineScope = rememberCoroutineScope()
         val textMeasurer = rememberTextMeasurer()
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -126,7 +126,7 @@ abstract class AbstractXyControl(
                     if (withInteractive) {
                         detectDragGestures(
                             onDragStart = { offset: Offset -> onDragStart(offset) },
-                            onDragEnd = { onDragEnd() },
+                            onDragEnd = { coroutineScope.launch { onDragEnd() } },
                             onDragCancel = { onDragCancel() },
                             onDrag = { change, dragAmount ->
                                 change.consume()
@@ -975,23 +975,6 @@ abstract class AbstractXyControl(
         }
     }
 
-    fun setInterval(sec: Int) {
-//!!!
-//        if (refreshHandlerId != 0) {
-//            window.clearInterval(refreshHandlerId)
-//        }
-//
-//        if (sec == 0) {
-//            xyRefreshView(null, true)
-//        } else {
-//            refreshHandlerId = window.setInterval({
-//                xyRefreshView(null, false)
-//            }, sec * 1000)
-//        }
-//
-//        refreshInterval.value = sec
-    }
-
     protected fun xyDeselectAll() {
         xyElements.forEach { alElement ->
             alElement.forEach { xyElement ->
@@ -1004,7 +987,7 @@ abstract class AbstractXyControl(
     protected abstract fun onPointerUp(pointerInputChange: PointerInputChange)
     protected abstract fun onDragStart(offset: Offset)
     protected abstract fun onDrag(change: PointerInputChange, dragAmount: Offset)
-    protected abstract fun onDragEnd()
+    protected abstract suspend fun onDragEnd()
     protected abstract fun onDragCancel()
 
     protected fun getXyClickRect(mouseX: Int, mouseY: Int): XyRect = XyRect(

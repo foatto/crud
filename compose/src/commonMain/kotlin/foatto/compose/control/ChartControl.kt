@@ -52,6 +52,7 @@ import foatto.core.util.getDateTimeDMYHMSString
 import foatto.core.util.getSplittedDouble
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.yield
 import kotlin.math.abs
@@ -219,10 +220,17 @@ class ChartControl(
                         doChangeChartVisibility()
                     }
                 },
-                setInterval = { interval: Int -> setInterval(interval) }
+                setInterval = { interval: Int -> coroutineScope.launch { setInterval(interval) } },
             )
 
             MainChartBody(withInteractive = true)
+        }
+
+        coroutineScope.launch {
+            while (refreshInterval > 0) {
+                doChartRefresh(null, false)
+                delay(refreshInterval * 1000L)
+            }
         }
     }
 
@@ -695,36 +703,19 @@ class ChartControl(
         }
     }
 
-    fun setInterval(sec: Int) {
-//        if (refreshHandlerId != 0) {
-//            window.clearInterval(refreshHandlerId)
-//        }
-//
-//        if (sec == 0) {
-//            doGraphicRefresh(
-//                aView = null,
-//                withWait = true,
-//            )
-//        } else {
-//            refreshHandlerId = window.setInterval({
-//                doGraphicRefresh(
-//                    aView = null,
-//                    withWait = false,
-//                )
-//            }, sec * 1000)
-//        }
-//
-//        refreshInterval.value = sec
+    private suspend fun setInterval(sec: Int) {
+        refreshInterval = sec
+
+        if (sec == 0) {
+            doChartRefresh(null, false)
+        }
     }
 
     private suspend fun chartRefreshView(aView: ChartViewCoord?) {
-        doChartRefresh(
-            aView = aView,
-            withWait = true,
-        )
+        doChartRefresh(aView = aView, withWait = true)
     }
 
-    private suspend fun doChartRefresh(
+    suspend fun doChartRefresh(
         aView: ChartViewCoord?,
         withWait: Boolean,
     ) {
