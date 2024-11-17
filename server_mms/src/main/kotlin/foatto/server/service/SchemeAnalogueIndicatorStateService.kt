@@ -177,7 +177,7 @@ class SchemeAnalogueIndicatorStateService(
                 SchemeActionResponse(
                     responseCode = ResponseCode.OK,
                     minCoord = XyPoint(0, 0),
-                    maxCoord = XyPoint(10 * GRID_STEP, 8 * GRID_STEP),
+                    maxCoord = XyPoint(12 * GRID_STEP, 8 * GRID_STEP),
                 )
             }
 
@@ -279,11 +279,14 @@ class SchemeAnalogueIndicatorStateService(
             }
         }
 
+        val x0 = 6 * GRID_STEP
+        val y0 = 6 * GRID_STEP
+
         //--- заголовок
 
         XyElement(TYPE_SCHEME_AI_TITLE_TEXT, -getRandomInt(), sensorId).apply {
             isReadOnly = true
-            alPoint = listOf(XyPoint(5 * GRID_STEP, 1 * GRID_STEP))
+            alPoint = listOf(XyPoint(x0, 1 * GRID_STEP))
             anchorX = XyElement.Anchor.CC
             anchorY = XyElement.Anchor.RB
             text = sensorEntity.descr ?: "-"
@@ -296,9 +299,6 @@ class SchemeAnalogueIndicatorStateService(
         }.let { xyElement ->
             alResult.add(xyElement)
         }
-
-        val x0 = 5 * GRID_STEP
-        val y0 = 6 * GRID_STEP
 
         //--- по краю шкалы - широкая цветная дуга лимитов
 
@@ -512,7 +512,7 @@ class SchemeAnalogueIndicatorStateService(
         sensorTime?.let { lastDataTime ->
             XyElement(TYPE_SCHEME_AI_DESCR_TEXT, -getRandomInt(), sensorId).apply {
                 isReadOnly = true
-                alPoint = listOf(XyPoint(5 * GRID_STEP, 7 * GRID_STEP))
+                alPoint = listOf(XyPoint(x0, 7 * GRID_STEP + GRID_STEP / 4))
                 anchorX = XyElement.Anchor.CC
                 anchorY = XyElement.Anchor.LT
                 text = getDateTimeDMYHMSString(userConfig.timeOffset, lastDataTime)

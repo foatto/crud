@@ -25,12 +25,6 @@ open class SensorConfig(
 
         const val SENSOR_NEXT_CLEAN_DATETIME = 9
 
-        //--- алгоритмы усреднения:
-        //--- медиана
-        const val SMOOTH_METOD_MEDIAN = 0
-        //--- среднее арифметическое
-        const val SMOOTH_METOD_AVERAGE = 1
-
         //--- названия датчиков
         val hmSensorDescr = mutableMapOf(
             SENSOR_STATE to "Код текущего состояния",

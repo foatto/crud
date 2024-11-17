@@ -7,7 +7,6 @@ abstract class SensorConfigBase(
     aDescr: String,
     aPortNum: Int,
     aSensorType: Int,
-    val smoothMethod: Int,
     val smoothTime: Int,
     val minIgnore: Double,
     val maxIgnore: Double,
@@ -21,6 +20,6 @@ abstract class SensorConfigBase(
 ) {
 
     //--- must be double, so as not to run into errors with integer division later
-    val alValueSensor = mutableListOf<Double>()
-    val alValueData = mutableListOf<Double>()
+    val alValueSensor: MutableList<Double> = mutableListOf()
+    val alValueData: MutableList<Double> = mutableListOf()
 }

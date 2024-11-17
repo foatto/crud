@@ -89,7 +89,6 @@ class ObjectService(
                         aDescr = sensorEntity.descr,
                         aPortNum = portNum,
                         aSensorType = sensorType,
-                        aSmoothMethod = sensorEntity.smoothMethod ?: 0,
                         aSmoothTime = (sensorEntity.smoothTime ?: 0) * 60,
                         aMinIgnore = sensorEntity.minIgnore ?: 0.0,
                         aMaxIgnore = sensorEntity.maxIgnore ?: 0.0,

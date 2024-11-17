@@ -94,7 +94,10 @@ class cDevice : cStandart() {
         val isSensorCreate = (hmColumnData[m.columnSensorCreatingEnabled] as DataBoolean).value
 
         if (objectId != 0 && isSensorCreate) {
-            createSensors(objectId, deviceIndex, deviceType)
+            when (deviceType) {
+                TSHandler.DEVICE_TYPE_UDS, TSHandler.DEVICE_TYPE_UDS_OLD -> createUDSSensors(objectId, deviceIndex, deviceType)
+                TSHandler.DEVICE_TYPE_SKK -> createSKKSensors(objectId, deviceIndex, deviceType)
+            }
         }
 
         fillObjectModel(hmColumnData)
@@ -113,7 +116,10 @@ class cDevice : cStandart() {
         val isSensorCreate = (hmColumnData[m.columnSensorCreatingEnabled] as DataBoolean).value
 
         if (objectId != 0 && isSensorCreate) {
-            createSensors(objectId, deviceIndex, deviceType)
+            when (deviceType) {
+                TSHandler.DEVICE_TYPE_UDS, TSHandler.DEVICE_TYPE_UDS_OLD -> createUDSSensors(objectId, deviceIndex, deviceType)
+                TSHandler.DEVICE_TYPE_SKK -> createSKKSensors(objectId, deviceIndex, deviceType)
+            }
         }
 
         fillObjectModel(hmColumnData)
@@ -121,8 +127,7 @@ class cDevice : cStandart() {
         return postURL
     }
 
-    //--- temporary for MVP
-    private fun createSensors(objectId: Int, deviceIndex: Int, deviceType: Int) {
+    private fun createUDSSensors(objectId: Int, deviceIndex: Int, deviceType: Int) {
         //--- state sensor
         conn.executeUpdate(
             """
@@ -139,12 +144,12 @@ class cDevice : cStandart() {
             """
                 INSERT INTO TS_sensor( 
                     id , object_id , name , group_name , descr , port_num , sensor_type ,
-                    ignore_min_sensor , ignore_max_sensor , smooth_method , smooth_time ,
+                    ignore_min_sensor , ignore_max_sensor , smooth_time ,
                     analog_min_view , analog_max_view , analog_min_limit , analog_max_limit , state_min_view , state_max_view                                          
                 ) VALUES ( 
                     ${conn.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Глубина [м]' , 
                     ${deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + 1} , ${SensorConfig.SENSOR_DEPTH} ,
-                    -1 , 1000000 , ${SensorConfig.SMOOTH_METOD_MEDIAN} , 0 ,
+                    -1 , 1000000 , 0 ,
                     0, 2000 , 0 , 0 , 0, 2000                    
                 )
             """
@@ -153,12 +158,12 @@ class cDevice : cStandart() {
             """
                 INSERT INTO TS_sensor( 
                     id , object_id , name , group_name , descr , port_num , sensor_type ,
-                    ignore_min_sensor , ignore_max_sensor , smooth_method , smooth_time ,
+                    ignore_min_sensor , ignore_max_sensor , smooth_time ,
                     analog_min_view , analog_max_view , analog_min_limit , analog_max_limit , state_min_view , state_max_view                                          
                 ) VALUES ( 
                     ${conn.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Скорость спуска [м/ч]' , 
                     ${deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + 2} , ${SensorConfig.SENSOR_SPEED} ,
-                    -1 , 1000 , ${SensorConfig.SMOOTH_METOD_MEDIAN} , 0 ,
+                    -1 , 1000 , 0 ,
                     0 , 1000 , 0 , 0 , 0 , 1000
                 )
             """
@@ -167,12 +172,12 @@ class cDevice : cStandart() {
             """
                 INSERT INTO TS_sensor( 
                     id , object_id , name , group_name , descr , port_num , sensor_type ,
-                    ignore_min_sensor , ignore_max_sensor , smooth_method , smooth_time ,
+                    ignore_min_sensor , ignore_max_sensor , smooth_time ,
                     analog_min_view , analog_max_view , analog_min_limit , analog_max_limit , state_min_view , state_max_view                                          
                 ) VALUES ( 
                     ${conn.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Нагрузка на привод [%]' , 
                     ${deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + 3} , ${SensorConfig.SENSOR_LOAD} ,
-                    -1 , 151 , ${SensorConfig.SMOOTH_METOD_MEDIAN} , 0 ,
+                    -1 , 151 , 0 ,
                     0 , 150 , 0 , 0 , 0 , 150
                 )
             """
@@ -230,12 +235,12 @@ class cDevice : cStandart() {
             """
                 INSERT INTO TS_sensor( 
                     id , object_id , name , group_name , descr , port_num , sensor_type ,
-                    ignore_min_sensor , ignore_max_sensor , smooth_method , smooth_time ,
+                    ignore_min_sensor , ignore_max_sensor , smooth_time ,
                     analog_min_view , analog_max_view , analog_min_limit , analog_max_limit , state_min_view , state_max_view                                          
                 ) VALUES ( 
                     $signalLevelSensorId , $objectId ,  '' , '' , 'Уровень сигнала [%]' , 
                     ${deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + 8} , ${SensorConfig.SENSOR_SIGNAL_LEVEL} ,
-                    -1 , 101 , ${SensorConfig.SMOOTH_METOD_MEDIAN} , 0 ,
+                    -1 , 101 , 0 ,
                     0 , 100 , 0 , 0 , 0 , 100
                 )
             """
@@ -318,12 +323,12 @@ class cDevice : cStandart() {
             """
                 INSERT INTO TS_sensor( 
                     id , object_id , name , group_name , descr , port_num , sensor_type ,
-                    ignore_min_sensor , ignore_max_sensor , smooth_method , smooth_time ,
+                    ignore_min_sensor , ignore_max_sensor , smooth_time ,
                     analog_min_view , analog_max_view , analog_min_limit , analog_max_limit , state_min_view , state_max_view                                          
                 ) VALUES ( 
                     ${conn.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Температура внутри станции [˚С]' , 
                     ${deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + 16} , ${SensorConfig.SENSOR_TEMPERATURE_IN} ,
-                    -200 , 1000 , ${SensorConfig.SMOOTH_METOD_MEDIAN} , 0 ,
+                    -200 , 1000 , 0 ,
                     -100 , 200 , 0 , 0 , -100 , 200
                 )
             """
@@ -332,12 +337,12 @@ class cDevice : cStandart() {
             """
                 INSERT INTO TS_sensor( 
                     id , object_id , name , group_name , descr , port_num , sensor_type ,
-                    ignore_min_sensor , ignore_max_sensor , smooth_method , smooth_time ,
+                    ignore_min_sensor , ignore_max_sensor , smooth_time ,
                     analog_min_view , analog_max_view , analog_min_limit , analog_max_limit , state_min_view , state_max_view                                          
                 ) VALUES ( 
                     ${conn.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Температура снаружи [˚С]' , 
                     ${deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + 17} , ${SensorConfig.SENSOR_TEMPERATURE_OUT} ,
-                    -200 , 1000 , ${SensorConfig.SMOOTH_METOD_MEDIAN} , 0 ,
+                    -200 , 1000 , 0 ,
                     -100 , 200 , 0 , 0 , -100 , 200
                 )
             """
@@ -366,6 +371,130 @@ class cDevice : cStandart() {
                 )
             """
         )
+    }
+
+    private fun createSKKSensors(objectId: Int, deviceIndex: Int, deviceType: Int) {
+        //--- analogue sensors
+        conn.executeUpdate(
+            """
+                INSERT INTO TS_sensor( 
+                    id , object_id , name , group_name , descr , port_num , sensor_type ,
+                    ignore_min_sensor , ignore_max_sensor , smooth_time ,
+                    analog_min_view , analog_max_view , analog_min_limit , analog_max_limit , state_min_view , state_max_view                                          
+                ) VALUES ( 
+                    ${conn.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Глубина [м]' , 
+                    ${deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + 1} , ${SensorConfig.SENSOR_DEPTH} ,
+                    -1 , 1000000 , 0 ,
+                    0, 2000 , 0 , 0 , 0, 2000                    
+                )
+            """
+        )
+        conn.executeUpdate(
+            """
+                INSERT INTO TS_sensor( 
+                    id , object_id , name , group_name , descr , port_num , sensor_type ,
+                    ignore_min_sensor , ignore_max_sensor , smooth_time ,
+                    analog_min_view , analog_max_view , analog_min_limit , analog_max_limit , state_min_view , state_max_view                                          
+                ) VALUES ( 
+                    ${conn.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Скорость спуска [м/ч]' , 
+                    ${deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + 2} , ${SensorConfig.SENSOR_SPEED} ,
+                    -1 , 1000 , 0 ,
+                    0 , 1000 , 0 , 0 , 0 , 1000
+                )
+            """
+        )
+        conn.executeUpdate(
+            """
+                INSERT INTO TS_sensor( 
+                    id , object_id , name , group_name , descr , port_num , sensor_type ,
+                    ignore_min_sensor , ignore_max_sensor , smooth_time ,
+                    analog_min_view , analog_max_view , analog_min_limit , analog_max_limit , state_min_view , state_max_view                                          
+                ) VALUES ( 
+                    ${conn.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Нагрузка на привод [%]' , 
+                    ${deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + 3} , ${SensorConfig.SENSOR_LOAD} ,
+                    -1 , 151 , 0 ,
+                    0 , 150 , 0 , 0 , 0 , 150
+                )
+            """
+        )
+//        //--- setup/config sensors
+//        conn.executeUpdate(
+//            """
+//                INSERT INTO TS_sensor(
+//                    id , object_id , name , group_name , descr , port_num , sensor_type ,
+//                    show_pos , value_type , prec
+//                ) VALUES (
+//                    ${conn.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Глубина очистки [м]' ,
+//                    ${deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + 5} , ${SensorConfig.SENSOR_SETUP} ,
+//                    $CLEANING_DEPTH_SHOW_POS , ${SensorConfigSetup.VALUE_TYPE_NUMBER}, 0
+//                )
+//            """
+//        )
+//        conn.executeUpdate(
+//            """
+//                INSERT INTO TS_sensor(
+//                    id , object_id , name , group_name , descr , port_num , sensor_type ,
+//                    show_pos , value_type , prec
+//                ) VALUES (
+//                    ${conn.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Скорость очистки [м/ч]' ,
+//                    ${deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + 7} , ${SensorConfig.SENSOR_SETUP} ,
+//                    2 , ${SensorConfigSetup.VALUE_TYPE_NUMBER}, 0
+//                )
+//            """
+//        )
+        val signalLevelSensorId = conn.getNextIntId("TS_sensor", "id")
+        conn.executeUpdate(
+            """
+                INSERT INTO TS_sensor( 
+                    id , object_id , name , group_name , descr , port_num , sensor_type ,
+                    ignore_min_sensor , ignore_max_sensor , smooth_time ,
+                    analog_min_view , analog_max_view , analog_min_limit , analog_max_limit , state_min_view , state_max_view                                          
+                ) VALUES ( 
+                    $signalLevelSensorId , $objectId ,  '' , '' , 'Уровень сигнала [%]' , 
+                    ${deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + 11} , ${SensorConfig.SENSOR_SIGNAL_LEVEL} ,
+                    -1 , 101 , 0 ,
+                    0 , 100 , 0 , 0 , 0 , 100
+                )
+            """
+        )
+//        if (deviceType == TSHandler.DEVICE_TYPE_UDS_OLD) {
+//            conn.executeUpdate(
+//                """
+//                    INSERT INTO TS_sensor_calibration ( id , sensor_id , value_sensor , value_data ) VALUES (
+//                    ${conn.getNextIntId("TS_sensor_calibration", "id")} , $signalLevelSensorId , 0.0 , 0.0 )
+//                """
+//            )
+//            conn.executeUpdate(
+//                """
+//                    INSERT INTO TS_sensor_calibration ( id , sensor_id , value_sensor , value_data ) VALUES (
+//                    ${conn.getNextIntId("TS_sensor_calibration", "id")} , $signalLevelSensorId , 31.0 , 100.0 )
+//                """
+//            )
+//        }
+//        conn.executeUpdate(
+//            """
+//                INSERT INTO TS_sensor(
+//                    id , object_id , name , group_name , descr , port_num , sensor_type ,
+//                    show_pos , value_type , prec
+//                ) VALUES (
+//                    ${conn.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Ограничение нагрузки на привод [%]' ,
+//                    ${deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + 10} , ${SensorConfig.SENSOR_SETUP} ,
+//                    $DRIVE_LOAD_RESTRICT_SHOW_POS , ${SensorConfigSetup.VALUE_TYPE_NUMBER}, 0
+//                )
+//            """
+//        )
+//        conn.executeUpdate(
+//            """
+//                INSERT INTO TS_sensor(
+//                    id , object_id , name , group_name , descr , port_num , sensor_type ,
+//                    show_pos , value_type , prec
+//                ) VALUES (
+//                    ${conn.getNextIntId("TS_sensor", "id")} , $objectId ,  '' , '' , 'Глубина парковки скребка [м]' ,
+//                    ${deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + 12} , ${SensorConfig.SENSOR_SETUP} ,
+//                    $PARKING_DEPTH_SHOW_POS , ${SensorConfigSetup.VALUE_TYPE_NUMBER}, 0
+//                )
+//            """
+//        )
     }
 
     private fun fillObjectModel(hmColumnData: Map<iColumn, iData>) {

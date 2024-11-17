@@ -2,15 +2,13 @@ package foatto.ts.core_ts.calc
 
 import foatto.core.app.chart.ChartElementDTO
 import foatto.core.app.chart.ChartElementLineDTO
-import foatto.util.AdvancedByteBuffer
-import foatto.core_server.app.server.UserConfig
 import foatto.sql.CoreAdvancedConnection
 import foatto.ts.core_ts.ObjectConfig
 import foatto.ts.core_ts.graphic.server.graphic_handler.iGraphicHandler
-import foatto.ts.core_ts.sensor.config.SensorConfig
 import foatto.ts.core_ts.sensor.config.SensorConfigAnalogue
 import foatto.ts.core_ts.sensor.config.SensorConfigBase
 import foatto.ts.core_ts.sensor.config.SensorConfigState
+import foatto.util.AdvancedByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.abs
 import kotlin.math.max
@@ -21,59 +19,6 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
 
         //--- the maximum allowable time interval between points
         const val MAX_WORK_TIME_INTERVAL = 10 * 60
-
-        fun calcObject(conn: CoreAdvancedConnection, userConfig: UserConfig, oc: ObjectConfig, begTime: Int, endTime: Int): ObjectCalc {
-
-            val result = ObjectCalc(oc)
-
-//            val zoneId = getZoneId(userConfig.getUserProperty(UP_TIME_OFFSET)?.toIntOrNull())
-//            val (alRawTime, alRawData) = loadAllSensorData(stm, oc, begTime, endTime)
-
-            //--- some analogue sensors
-//            oc.hmSensorConfig[SensorConfig.SENSOR_TEMPERATURE]?.values?.forEach { sc ->
-//                val sca = sc as SensorConfigAnalogue
-//                val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2)
-//                getSmoothAnalogGraphicData(
-//                    alRawTime = alRawTime,
-//                    alRawData = alRawData,
-//                    scg = oc.scg,
-//                    scsc = sca,
-//                    begTime = begTime,
-//                    endTime = endTime,
-//                    xScale = 0,
-//                    yScale = 0.0,
-//                    aMinLimit = null,
-//                    aMaxLimit = null,
-//                    aPoint = null,
-//                    aLine = aLine,
-//                    gh = AnalogGraphicHandler()
-//                )
-//                result.tmTemperature[sc.descr] = aLine
-//            }
-//
-//            oc.hmSensorConfig[SensorConfig.SENSOR_DENSITY]?.values?.forEach { sc ->
-//                val sca = sc as SensorConfigAnalogue
-//                val aLine = GraphicDataContainer(GraphicDataContainer.ElementType.LINE, 0, 2)
-//                getSmoothAnalogGraphicData(
-//                    alRawTime = alRawTime,
-//                    alRawData = alRawData,
-//                    scg = oc.scg,
-//                    scsc = sca,
-//                    begTime = begTime,
-//                    endTime = endTime,
-//                    xScale = 0,
-//                    yScale = 0.0,
-//                    aMinLimit = null,
-//                    aMaxLimit = null,
-//                    aPoint = null,
-//                    aLine = aLine,
-//                    gh = AnalogGraphicHandler()
-//                )
-//                result.tmDensity[sc.descr] = aLine
-//            }
-
-            return result
-        }
 
         fun loadAllSensorData(conn: CoreAdvancedConnection, oc: ObjectConfig, begTime: Int, endTime: Int): Pair<List<Int>, List<AdvancedByteBuffer>> {
             var maxSmoothTime = 0
@@ -243,44 +188,21 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                     }
 
                     //--- smoothing
-                    var sumValue: Double
-                    var countValue: Int
-                    val avgValue: Double
-                    when (sca.smoothMethod) {
-                        //--- since pos1 and pos2 are OUTSIDE the smoothing range,
-                        //--- then we skip them, starting from pos1 + 1 and ending BEFORE pos2
-
-                        SensorConfig.SMOOTH_METOD_MEDIAN -> {
-                            val alSubList = mutableListOf<Double>()
-                            for (p in pos1 + 1 until pos2) {
-                                val v = alSensorData[p] ?: continue
-                                alSubList.add(v)
-                            }
-                            alSubList.sort()
-                            //--- if the number of values is odd, take exactly the middle
-                            avgValue = if (alSubList.size % 2 != 0) {
-                                alSubList[alSubList.size / 2]
-                            }
-                            //--- otherwise the arithmetic mean between two values closest to the middle
-                            else {
-                                val val1 = alSubList[alSubList.size / 2 - 1]
-                                val val2 = alSubList[alSubList.size / 2]
-                                val1 + (val2 - val1) / 2
-                            }
-                        }
-
-                        SensorConfig.SMOOTH_METOD_AVERAGE -> {
-                            sumValue = 0.0
-                            countValue = 0
-                            for (p in pos1 + 1 until pos2) {
-                                val v = alSensorData[p] ?: continue
-                                sumValue += v
-                                countValue++
-                            }
-                            avgValue = sumValue / countValue
-                        }
-
-                        else -> avgValue = 0.0
+                    val alSubList = mutableListOf<Double>()
+                    for (p in pos1 + 1 until pos2) {
+                        val v = alSensorData[p] ?: continue
+                        alSubList.add(v)
+                    }
+                    alSubList.sort()
+                    //--- if the number of values is odd, take exactly the middle
+                    val avgValue = if (alSubList.size % 2 != 0) {
+                        alSubList[alSubList.size / 2]
+                    }
+                    //--- otherwise the arithmetic mean between two values closest to the middle
+                    else {
+                        val val1 = alSubList[alSubList.size / 2 - 1]
+                        val val2 = alSubList[alSubList.size / 2]
+                        val1 + (val2 - val1) / 2
                     }
 
                     val gldLast = alGLD.lastOrNull()
@@ -300,58 +222,6 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
             aLine?.alGLD = alGLD
         }
 
-        private fun mergePeriods(alPD: MutableList<AbstractPeriodData>, minOnTime: Int, minOffTime: Int) {
-            //--- ejection of insufficient on / off periods
-            //--- and the subsequent merging of adjacent off / on, respectively
-            while (true) {
-                var isShortFound = false
-                var i = 0
-                while (i < alPD.size) {
-                    val pd = alPD[i]
-                    //--- if the period is too short to account for
-                    if (pd.endTime - pd.begTime < (if (pd.getState() != 0) minOnTime else minOffTime)) {
-                        //--- if there is at least one long opposite period nearby, then we remove the short one and connect the adjacent ones
-                        var isLongFound = false
-                        if (i > 0) {
-                            val pdPrev = alPD[i - 1]
-                            isLongFound = isLongFound or (pdPrev.endTime - pdPrev.begTime >= if (pdPrev.getState() != 0) minOnTime else minOffTime)
-                        }
-                        if (i < alPD.size - 1) {
-                            val pdNext = alPD[i + 1]
-                            isLongFound = isLongFound or (pdNext.endTime - pdNext.begTime >= if (pdNext.getState() != 0) minOnTime else minOffTime)
-                        }
-                        //--- found long neighbor (s)
-                        if (isLongFound) {
-                            //--- first short period
-                            if (i == 0) {
-                                alPD[1].begTime = alPD[0].begTime
-                                alPD.removeAt(0)
-                                i = 1    // the current period is already long, we go immediately further
-                            } else if (i == alPD.size - 1) {    //--- middle short period
-                                alPD[i - 1].endTime = alPD[i].endTime
-                                alPD.removeAt(i)
-                                i++    // the current period is already long, we go immediately further (although for the last period this is no longer necessary)
-                            } else {   //--- last short period
-                                alPD[i - 1].endTime = alPD[i + 1].endTime
-                                alPD.removeAt(i)   // delete the current short period
-                                alPD.removeAt(i)   // delete the next opposite period, merged with the previous opposite
-                                //i++ - do not need to be done, since the current period is now new with an unknown duration
-                            }
-                            isShortFound = true    // deletion was, it makes sense to go through the chain again
-                        } else {
-                            i++ // no long neighbors found - let's move on
-                        }
-                    } else {
-                        i++
-                    }
-                }
-                //--- nothing more to throw away and connect
-                if (!isShortFound) {
-                    break
-                }
-            }
-        }
-
         //--- define sensor data ignoring
         fun isIgnoreSensorData(scb: SensorConfigBase, sensorData: Double?): Boolean =
             if (sensorData == null) {
@@ -365,15 +235,6 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                 //--- given the case, if minIgnore == maxIgnore, then ignore nothing
                 sensorData < scb.minIgnore && sensorData > scb.maxIgnore
             }
-
-        fun getPrecision(aValue: Double): Int {
-            val value = abs(aValue)
-            //--- updated / simplified version of the output accuracy - more cubic meters - in whole liters, less - in hundreds of milliliters / gram
-            return if (value >= 1000) 0
-            else if (value >= 100) 1
-            else if (value >= 10) 2
-            else 3
-        }
 
     }
 }

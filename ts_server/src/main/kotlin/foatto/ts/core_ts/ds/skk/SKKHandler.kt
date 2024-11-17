@@ -82,7 +82,7 @@ class SKKHandler : TSHandler() {
 
                                 addPoint(dataWorker.conn, pointTime, bbData)
                                 dataWorker.conn.commit()
-                                
+
                                 dataCount++
 
                                 if (firstPointTime == 0) {
@@ -137,16 +137,16 @@ class SKKHandler : TSHandler() {
             //--- какие-нибудь очень важные данные сюда запишем :)
             //CoreTelematicFunction.putSensorData(dc.index, 0, 4, XXX, bbData)
             // Глубина (в метрах)
-            CoreTelematicFunction.putSensorData(dc.index, 1, 4, dataPacket.d, bbData)
+            CoreTelematicFunction.putSensorData(dc.index, 1, 4, dataPacket.d, bbData)   // SENSOR_DEPTH
             // Скорость спуска (метров/час)
-            CoreTelematicFunction.putSensorData(dc.index, 2, 4, dataPacket.s, bbData)
+            CoreTelematicFunction.putSensorData(dc.index, 2, 4, dataPacket.s, bbData)   // SENSOR_SPEED
             // Нагрузка на привод (%)
-            CoreTelematicFunction.putSensorData(dc.index, 3, 4, dataPacket.f, bbData)
+            CoreTelematicFunction.putSensorData(dc.index, 3, 4, dataPacket.f, bbData)   // SENSOR_LOAD
 
             curHeaderPacket?.let { headerData ->
                 headerData.modem?.let { modemData ->
                     CoreTelematicFunction.putSensorData(dc.index, 10, 4, modemData.state, bbData)
-                    CoreTelematicFunction.putSensorData(dc.index, 11, 4, modemData.csq, bbData)
+                    CoreTelematicFunction.putSensorData(dc.index, 11, 4, modemData.csq, bbData)     // SENSOR_SIGNAL_LEVEL
                     CoreTelematicFunction.putSensorData(dc.index, 12, 4, modemData.many, bbData)
                 }
                 headerData.depth?.let { depthData ->
