@@ -54,9 +54,9 @@ class MMSPulsarDataController(
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     //--- по 16 типизированных датчиков от юриковского радиоудлиннителя
-    private val tmLevelSensor = sortedMapOf<Int, Double>()
-    private val tmVoltageSensor = sortedMapOf<Int, Double>()
-    private val tmCountSensor = sortedMapOf<Int, Double>()
+    private val tmLLSLevel = sortedMapOf<Int, Double>()
+    private val tmGalileoVoltage = sortedMapOf<Int, Double>()
+    private val tmGalileoCount = sortedMapOf<Int, Double>()
 
     //--- 4 вида счётчиков энергии от сброса (активная прямая, активная обратная, реактивная прямая, реактивная обратная)
     private val tmEnergoCountActiveDirect = sortedMapOf<Int, Double>()
@@ -96,23 +96,20 @@ class MMSPulsarDataController(
     private val tmEnergoTransformKoefCurrent = sortedMapOf<Int, Double>()
     private val tmEnergoTransformKoefVoltage = sortedMapOf<Int, Double>()
 
-    //--- плотность
-    private val tmDensity = sortedMapOf<Int, Double>()
+    //--- датчики ЭМИС/Эльметро
+    private val tmEmisDensity = sortedMapOf<Int, Double>()              // плотность
+    private val tmEmisTemperature = sortedMapOf<Int, Double>()          // температура
+    private val tmEmisMassFlow = sortedMapOf<Int, Double>()             // массовый расход
+    private val tmEmisVolumeFlow = sortedMapOf<Int, Double>()           // объёмный расход
+    private val tmEmisAccumulatedMass = sortedMapOf<Int, Double>()      // накопленная масса
+    private val tmEmisAccumulatedVolume = sortedMapOf<Int, Double>()    // накопленный объём
 
-    //--- температура
-    private val tmTemperature = sortedMapOf<Int, Double>()
-
-    //--- массовый расход
-    private val tmMassFlow = sortedMapOf<Int, Double>()
-
-    //--- объёмный расход
-    private val tmVolumeFlow = sortedMapOf<Int, Double>()
-
-    //--- накопленная масса
-    private val tmAccumulatedMass = sortedMapOf<Int, Double>()
-
-    //--- накопленный объём
-    private val tmAccumulatedVolume = sortedMapOf<Int, Double>()
+    //--- датчики ПМП-201/218
+    private val tmPMPLevel = sortedMapOf<Int, Double>()         // уровень [м]
+    private val tmPMPTemperature = sortedMapOf<Int, Double>()   // температура
+    private val tmPMPVolume = sortedMapOf<Int, Double>()        // (накопленный) объём [куб.м]
+    private val tmPMPMass = sortedMapOf<Int, Double>()          // (накопленная) масса [тонна]
+    private val tmPMPDensity = sortedMapOf<Int, Double>()       // плотность [г/куб.см == тонна/куб.м]
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -210,9 +207,9 @@ class MMSPulsarDataController(
                             if (sId.startsWith(ID_PREFIX)) {
                                 sId.substring(ID_PREFIX.length).toIntOrNull(16)?.let { id ->
                                     when (id) {
-                                        in 0x0100..0x010F -> tmLevelSensor[id - 0x0100] = value
-                                        in 0x0140..0x014F -> tmVoltageSensor[id - 0x0140] = value
-                                        in 0x0180..0x018F -> tmCountSensor[id - 0x0180] = value
+                                        in 0x0100..0x010F -> tmLLSLevel[id - 0x0100] = value
+                                        in 0x0140..0x014F -> tmGalileoVoltage[id - 0x0140] = value
+                                        in 0x0180..0x018F -> tmGalileoCount[id - 0x0180] = value
 
                                         in 0x01C1..0x01C4 -> tmEnergoCountActiveDirect[id - 0x01C1] = value
                                         in 0x0201..0x0204 -> tmEnergoCountActiveReverse[id - 0x0201] = value
@@ -243,20 +240,26 @@ class MMSPulsarDataController(
                                         in 0x052C..0x052F -> tmEnergoPowerFullB[id - 0x052C] = value
                                         in 0x0530..0x0533 -> tmEnergoPowerFullC[id - 0x0530] = value
 
-                                        in 0x0541..0x0544 -> tmMassFlow[id - 0x0541] = value
+                                        in 0x0541..0x0544 -> tmEmisMassFlow[id - 0x0541] = value
 
                                         in 0x0550..0x0553 -> tmEnergoTransformKoefCurrent[id - 0x0550] = value
                                         in 0x0560..0x0563 -> tmEnergoTransformKoefVoltage[id - 0x0560] = value
 
-                                        in 0x0581..0x0584 -> tmDensity[id - 0x0581] = value
-                                        in 0x05C1..0x05C4 -> tmTemperature[id - 0x05C1] = value
-                                        in 0x0601..0x0604 -> tmVolumeFlow[id - 0x0601] = value
-                                        in 0x0641..0x0644 -> tmAccumulatedMass[id - 0x0641] = value
-                                        in 0x0681..0x0684 -> tmAccumulatedVolume[id - 0x0681] = value
+                                        in 0x0581..0x0584 -> tmEmisDensity[id - 0x0581] = value
+                                        in 0x05C1..0x05C4 -> tmEmisTemperature[id - 0x05C1] = value
+                                        in 0x0601..0x0604 -> tmEmisVolumeFlow[id - 0x0601] = value
+                                        in 0x0641..0x0644 -> tmEmisAccumulatedMass[id - 0x0641] = value
+                                        in 0x0681..0x0684 -> tmEmisAccumulatedVolume[id - 0x0681] = value
 
                                         in 0x0700..0x0703 -> tmEnergoPowerActiveABC[id - 0x0700] = value
                                         in 0x0710..0x0713 -> tmEnergoPowerReactiveABC[id - 0x0710] = value
                                         in 0x0720..0x0723 -> tmEnergoPowerFullABC[id - 0x0720] = value
+
+                                        in 0x0800..0x080F -> tmPMPLevel[id - 0x0800] = value
+                                        in 0x0810..0x081F -> tmPMPTemperature[id - 0x0810] = value
+                                        in 0x0820..0x082F -> tmPMPVolume[id - 0x0820] = value
+                                        in 0x0830..0x083F -> tmPMPMass[id - 0x0830] = value
+                                        in 0x0840..0x084F -> tmPMPDensity[id - 0x0840] = value
 
                                         else -> outDataParseError(serialNo, "Unknown ID value == '$sId'")
                                     }
@@ -318,9 +321,9 @@ class MMSPulsarDataController(
     ) {
         val bbData = AdvancedByteBuffer(MAX_PORT_PER_DEVICE * 8)
 
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmCountSensor, 110, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmLevelSensor, 120, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmVoltageSensor, 140, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmGalileoCount, GalileoFunction.PORT_NUM_GALILEO_COUNT, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmLLSLevel, GalileoFunction.PORT_NUM_LLS_LEVEL, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmGalileoVoltage, GalileoFunction.PORT_NUM_GALILEO_VOLTAGE, bbData)
 
         //--- данные по электросчётчику ---
 
@@ -369,12 +372,18 @@ class MMSPulsarDataController(
         MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoTransformKoefCurrent, GalileoFunction.PORT_NUM_MERCURY_TRANSFORM_KOEF_CURRENT, bbData)
         MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoTransformKoefVoltage, GalileoFunction.PORT_NUM_MERCURY_TRANSFORM_KOEF_VOLTAGE, bbData)
 
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmMassFlow, GalileoFunction.PORT_NUM_EMIS_MASS_FLOW, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmDensity, GalileoFunction.PORT_NUM_EMIS_DENSITY, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmTemperature, GalileoFunction.PORT_NUM_EMIS_TEMPERATURE, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmVolumeFlow, GalileoFunction.PORT_NUM_EMIS_VOLUME_FLOW, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmAccumulatedMass, GalileoFunction.PORT_NUM_EMIS_ACCUMULATED_MASS, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmAccumulatedVolume, GalileoFunction.PORT_NUM_EMIS_ACCUMULATED_VOLUME, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEmisMassFlow, GalileoFunction.PORT_NUM_EMIS_MASS_FLOW, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEmisDensity, GalileoFunction.PORT_NUM_EMIS_DENSITY, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEmisTemperature, GalileoFunction.PORT_NUM_EMIS_TEMPERATURE, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEmisVolumeFlow, GalileoFunction.PORT_NUM_EMIS_VOLUME_FLOW, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEmisAccumulatedMass, GalileoFunction.PORT_NUM_EMIS_ACCUMULATED_MASS, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEmisAccumulatedVolume, GalileoFunction.PORT_NUM_EMIS_ACCUMULATED_VOLUME, bbData)
+
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmPMPLevel, GalileoFunction.PORT_NUM_PMP_LEVEL, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmPMPTemperature, GalileoFunction.PORT_NUM_PMP_TEMPERATURE, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmPMPVolume, GalileoFunction.PORT_NUM_PMP_VOLUME, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmPMPMass, GalileoFunction.PORT_NUM_PMP_MASS, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmPMPDensity, GalileoFunction.PORT_NUM_PMP_DENSITY, bbData)
 
         ApplicationService.withConnection(entityManager) { conn ->
             MMSTelematicFunction.addPoint(conn, deviceConfig, pointTime, bbData)
@@ -392,9 +401,9 @@ class MMSPulsarDataController(
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     private fun clearSensorArrays() {
-        tmLevelSensor.clear()
-        tmVoltageSensor.clear()
-        tmCountSensor.clear()
+        tmLLSLevel.clear()
+        tmGalileoVoltage.clear()
+        tmGalileoCount.clear()
 
         tmEnergoCountActiveDirect.clear()
         tmEnergoCountActiveReverse.clear()
@@ -429,12 +438,18 @@ class MMSPulsarDataController(
         tmEnergoTransformKoefCurrent.clear()
         tmEnergoTransformKoefVoltage.clear()
 
-        tmMassFlow.clear()
-        tmDensity.clear()
-        tmTemperature.clear()
-        tmVolumeFlow.clear()
-        tmAccumulatedMass.clear()
-        tmAccumulatedVolume.clear()
+        tmEmisMassFlow.clear()
+        tmEmisDensity.clear()
+        tmEmisTemperature.clear()
+        tmEmisVolumeFlow.clear()
+        tmEmisAccumulatedMass.clear()
+        tmEmisAccumulatedVolume.clear()
+
+        tmPMPLevel.clear()
+        tmPMPTemperature.clear()
+        tmPMPVolume.clear()
+        tmPMPMass.clear()
+        tmPMPDensity.clear()
     }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------

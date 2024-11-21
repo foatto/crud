@@ -2,6 +2,10 @@ package foatto.server.ds
 
 object GalileoFunction {
 
+    val PORT_NUM_GALILEO_COUNT = 110
+    val PORT_NUM_LLS_LEVEL = 120
+    val PORT_NUM_GALILEO_VOLTAGE = 140
+
     val PORT_NUM_MERCURY_COUNT_ACTIVE_DIRECT = 160
     val PORT_NUM_MERCURY_COUNT_ACTIVE_REVERSE = 164
     val PORT_NUM_MERCURY_COUNT_REACTIVE_DIRECT = 168
@@ -38,6 +42,7 @@ object GalileoFunction {
     val PORT_NUM_MERCURY_TRANSFORM_KOEF_CURRENT = 360
     val PORT_NUM_MERCURY_TRANSFORM_KOEF_VOLTAGE = 370
 
+    //--- нет в MMSPulsarDataController
     val PORT_NUM_ESD_STATUS = 500
     val PORT_NUM_ESD_VOLUME = 504
     val PORT_NUM_ESD_FLOW = 508
@@ -47,4 +52,11 @@ object GalileoFunction {
     val PORT_NUM_ESD_REVERSE_CAMERA_VOLUME = 524
     val PORT_NUM_ESD_REVERSE_CAMERA_FLOW = 528
     val PORT_NUM_ESD_REVERSE_CAMERA_TEMPERATURE = 532
+
+    //--- нет в GalileoHandler
+    val PORT_NUM_PMP_LEVEL = 540
+    val PORT_NUM_PMP_TEMPERATURE = 560
+    val PORT_NUM_PMP_VOLUME = 580
+    val PORT_NUM_PMP_MASS = 600
+    val PORT_NUM_PMP_DENSITY = 620
 }

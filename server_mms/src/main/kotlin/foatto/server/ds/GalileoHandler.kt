@@ -52,9 +52,9 @@ open class GalileoHandler : MMSNioHandler() {
     private val tmUserData = sortedMapOf<Int, Int>()
 
     //--- по 16 типизированных датчиков от юриковского радиоудлиннителя
-    private val tmLevelSensor = sortedMapOf<Int, Int>()
-    private val tmVoltageSensor = sortedMapOf<Int, Int>()
-    private val tmCountSensor = sortedMapOf<Int, Int>()
+    private val tmLLSLevel = sortedMapOf<Int, Int>()
+    private val tmGalileoVoltage = sortedMapOf<Int, Int>()
+    private val tmGalileoCount = sortedMapOf<Int, Int>()
 
     //--- 4 вида счётчиков энергии от сброса (активная прямая, активная обратная, реактивная прямая, реактивная обратная)
     private val tmEnergoCountActiveDirect = sortedMapOf<Int, Int>()
@@ -94,14 +94,14 @@ open class GalileoHandler : MMSNioHandler() {
     private val tmEnergoTransformKoefVoltage = sortedMapOf<Int, Double>()
 
     //--- массомер ЭМИС
-    private val tmEMISDensity = sortedMapOf<Int, Double>()
-    private val tmEMISTemperature = sortedMapOf<Int, Double>()
-    private val tmEMISMassFlow = sortedMapOf<Int, Double>()
-    private val tmEMISVolumeFlow = sortedMapOf<Int, Double>()
-    private val tmEMISAccumulatedMass = sortedMapOf<Int, Double>()
-    private val tmEMISAccumulatedVolume = sortedMapOf<Int, Double>()
+    private val tmEmisDensity = sortedMapOf<Int, Double>()
+    private val tmEmisTemperature = sortedMapOf<Int, Double>()
+    private val tmEmisMassFlow = sortedMapOf<Int, Double>()
+    private val tmEmisVolumeFlow = sortedMapOf<Int, Double>()
+    private val tmEmisAccumulatedMass = sortedMapOf<Int, Double>()
+    private val tmEmisAccumulatedVolume = sortedMapOf<Int, Double>()
 
-    //--- датчик EuroSense Delta (4 датчика)
+    //--- датчик EuroSense Delta (4 датчика) - нет в MMSPulsarDataController
     private val tmESDStatus = sortedMapOf<Int, Int>()
     private val tmESDVolume = sortedMapOf<Int, Double>()
     private val tmESDFlow = sortedMapOf<Int, Double>()
@@ -433,9 +433,9 @@ open class GalileoHandler : MMSNioHandler() {
                                         0 -> {
                                         } // молча пропускаем пустой 0-й id
 
-                                        in 0x0100..0x010F -> tmLevelSensor[id - 0x0100] = value
-                                        in 0x0140..0x014F -> tmVoltageSensor[id - 0x0140] = value
-                                        in 0x0180..0x018F -> tmCountSensor[id - 0x0180] = value
+                                        in 0x0100..0x010F -> tmLLSLevel[id - 0x0100] = value
+                                        in 0x0140..0x014F -> tmGalileoVoltage[id - 0x0140] = value
+                                        in 0x0180..0x018F -> tmGalileoCount[id - 0x0180] = value
 
                                         in 0x01C1..0x01C4 -> tmEnergoCountActiveDirect[id - 0x01C1] = value
                                         in 0x0201..0x0204 -> tmEnergoCountActiveReverse[id - 0x0201] = value
@@ -469,12 +469,12 @@ open class GalileoHandler : MMSNioHandler() {
                                         in 0x0550..0x0553 -> tmEnergoTransformKoefCurrent[id - 0x0550] = double
                                         in 0x0560..0x0563 -> tmEnergoTransformKoefVoltage[id - 0x0560] = double
 
-                                        in 0x0541..0x0544 -> tmEMISMassFlow[id - 0x0541] = double
-                                        in 0x0581..0x0584 -> tmEMISDensity[id - 0x0581] = double
-                                        in 0x05C1..0x05C4 -> tmEMISTemperature[id - 0x05C1] = double
-                                        in 0x0601..0x0604 -> tmEMISVolumeFlow[id - 0x0601] = double
-                                        in 0x0641..0x0644 -> tmEMISAccumulatedMass[id - 0x0641] = double
-                                        in 0x0681..0x0684 -> tmEMISAccumulatedVolume[id - 0x0681] = double
+                                        in 0x0541..0x0544 -> tmEmisMassFlow[id - 0x0541] = double
+                                        in 0x0581..0x0584 -> tmEmisDensity[id - 0x0581] = double
+                                        in 0x05C1..0x05C4 -> tmEmisTemperature[id - 0x05C1] = double
+                                        in 0x0601..0x0604 -> tmEmisVolumeFlow[id - 0x0601] = double
+                                        in 0x0641..0x0644 -> tmEmisAccumulatedMass[id - 0x0641] = double
+                                        in 0x0681..0x0684 -> tmEmisAccumulatedVolume[id - 0x0681] = double
 
                                         in 0x0700..0x0703 -> tmEnergoPowerActiveABC[id - 0x0700] = value
                                         in 0x0710..0x0713 -> tmEnergoPowerReactiveABC[id - 0x0710] = value
@@ -757,9 +757,9 @@ open class GalileoHandler : MMSNioHandler() {
                 CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmRS485Temp, 40, 4, bbData)
 
                 CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmUserData, 100, 4, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmCountSensor, 110, 4, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmLevelSensor, 120, 4, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmVoltageSensor, 140, 4, bbData)
+                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmGalileoCount, GalileoFunction.PORT_NUM_GALILEO_COUNT, 4, bbData)
+                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmLLSLevel, GalileoFunction.PORT_NUM_LLS_LEVEL, 4, bbData)
+                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmGalileoVoltage, GalileoFunction.PORT_NUM_GALILEO_VOLTAGE, 4, bbData)
 
                 //--- данные по электросчётчику ---
 
@@ -804,12 +804,12 @@ open class GalileoHandler : MMSNioHandler() {
                 CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEnergoTransformKoefVoltage, GalileoFunction.PORT_NUM_MERCURY_TRANSFORM_KOEF_VOLTAGE, bbData)
 
                 //--- ЭМИС
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEMISMassFlow, GalileoFunction.PORT_NUM_EMIS_MASS_FLOW, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEMISDensity, GalileoFunction.PORT_NUM_EMIS_DENSITY, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEMISTemperature, GalileoFunction.PORT_NUM_EMIS_TEMPERATURE, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEMISVolumeFlow, GalileoFunction.PORT_NUM_EMIS_VOLUME_FLOW, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEMISAccumulatedMass, GalileoFunction.PORT_NUM_EMIS_ACCUMULATED_MASS, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEMISAccumulatedVolume, GalileoFunction.PORT_NUM_EMIS_ACCUMULATED_VOLUME, bbData)
+                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEmisMassFlow, GalileoFunction.PORT_NUM_EMIS_MASS_FLOW, bbData)
+                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEmisDensity, GalileoFunction.PORT_NUM_EMIS_DENSITY, bbData)
+                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEmisTemperature, GalileoFunction.PORT_NUM_EMIS_TEMPERATURE, bbData)
+                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEmisVolumeFlow, GalileoFunction.PORT_NUM_EMIS_VOLUME_FLOW, bbData)
+                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEmisAccumulatedMass, GalileoFunction.PORT_NUM_EMIS_ACCUMULATED_MASS, bbData)
+                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEmisAccumulatedVolume, GalileoFunction.PORT_NUM_EMIS_ACCUMULATED_VOLUME, bbData)
 
                 //--- мощность по трём фазам: активная, реактивная, суммарная
                 CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEnergoPowerActiveABC, GalileoFunction.PORT_NUM_MERCURY_POWER_ACTIVE_ABC, 4, bbData)
@@ -872,9 +872,9 @@ open class GalileoHandler : MMSNioHandler() {
 
         tmUserData.clear()
 
-        tmLevelSensor.clear()
-        tmVoltageSensor.clear()
-        tmCountSensor.clear()
+        tmLLSLevel.clear()
+        tmGalileoVoltage.clear()
+        tmGalileoCount.clear()
 
         tmEnergoCountActiveDirect.clear()
         tmEnergoCountActiveReverse.clear()
@@ -908,12 +908,12 @@ open class GalileoHandler : MMSNioHandler() {
         tmEnergoTransformKoefCurrent.clear()
         tmEnergoTransformKoefVoltage.clear()
 
-        tmEMISMassFlow.clear()
-        tmEMISDensity.clear()
-        tmEMISTemperature.clear()
-        tmEMISVolumeFlow.clear()
-        tmEMISAccumulatedMass.clear()
-        tmEMISAccumulatedVolume.clear()
+        tmEmisMassFlow.clear()
+        tmEmisDensity.clear()
+        tmEmisTemperature.clear()
+        tmEmisVolumeFlow.clear()
+        tmEmisAccumulatedMass.clear()
+        tmEmisAccumulatedVolume.clear()
 
         tmESDStatus.clear()
         tmESDVolume.clear()
