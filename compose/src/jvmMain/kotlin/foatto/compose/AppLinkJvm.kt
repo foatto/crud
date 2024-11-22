@@ -5,6 +5,7 @@ import foatto.compose.control.model.form.cell.FormFileCellClient
 import foatto.compose.utils.SETTINGS_SERVER_ADDRESS
 import foatto.compose.utils.SETTINGS_SERVER_PORT
 import foatto.compose.utils.SETTINGS_SERVER_PROTOCOL
+import foatto.compose.utils.applicationDispatcher
 import foatto.compose.utils.settings
 import foatto.core.model.request.BaseRequest
 import foatto.core.model.response.BaseResponse
@@ -17,6 +18,9 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 //WASM!!! временно, до появления всеобщего ktor-client (в т.ч. для wasm)
 private val httpClient = HttpClient(CIO) {
@@ -33,22 +37,25 @@ private val httpClient = HttpClient(CIO) {
     }
 }
 
-internal actual suspend inline fun <reified IN : BaseRequest, reified OUT : BaseResponse> invokeRequest(
+@OptIn(DelicateCoroutinesApi::class)
+internal actual inline fun <reified IN : BaseRequest, reified OUT : BaseResponse> invokeRequest(
     requestData: IN,
     crossinline onSuccess: suspend (responseData: OUT) -> Unit,
 ) {
-    requestData.sessionId = sessionId
+    GlobalScope.launch(applicationDispatcher) {
+        requestData.sessionId = sessionId
 
-    val responseData: OUT = httpClient.post {
-        url(requestData.url)
-        contentType(ContentType.Application.Json)
-        setBody(requestData)
-        timeout {
-            socketTimeoutMillis = 60_000
-        }
-    }.body()
+        val responseData: OUT = httpClient.post {
+            url(requestData.url)
+            contentType(ContentType.Application.Json)
+            setBody(requestData)
+            timeout {
+                socketTimeoutMillis = 60_000
+            }
+        }.body()
 
-    onSuccess(responseData)
+        onSuccess(responseData)
+    }
 }
 
 internal actual fun invokeUploadFormFile(

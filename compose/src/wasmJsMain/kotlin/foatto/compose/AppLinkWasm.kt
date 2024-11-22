@@ -21,7 +21,7 @@ import org.w3c.xhr.XMLHttpRequest
 //WASM!!! временно, до появления всеобщего ktor-client (в т.ч. для wasm)
 
 @OptIn(DelicateCoroutinesApi::class)
-internal actual suspend inline fun <reified IN : BaseRequest, reified OUT : BaseResponse> invokeRequest(
+internal actual inline fun <reified IN : BaseRequest, reified OUT : BaseResponse> invokeRequest(
     requestData: IN,
     crossinline onSuccess: suspend (responseData: OUT) -> Unit,
 ) {

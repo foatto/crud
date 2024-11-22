@@ -10,7 +10,7 @@ import foatto.core.util.getRandomLong
 //WASM!!! временно, до появления всеобщего ktor-client (в т.ч. для wasm)
 /*private*/ internal val sessionId = getRandomLong()
 
-internal expect suspend inline fun <reified IN : BaseRequest, reified OUT : BaseResponse> invokeRequest(
+internal expect inline fun <reified IN : BaseRequest, reified OUT : BaseResponse> invokeRequest(
     requestData: IN,
     crossinline onSuccess: suspend (responseData: OUT) -> Unit,
 )
