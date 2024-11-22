@@ -270,6 +270,12 @@ class FormControl(
                                                         }
                                                     },
                                                 )
+                                                gridData.error?.let { error ->
+                                                    Text(
+                                                        text = error,
+                                                        color = Color.Red,
+                                                    )
+                                                }
                                                 //                                            id(getFocusId(gridData.id))
                                                 //onInput { syntheticInputEvent -> - тоже можно
                                                 //                                            onKeyUp { syntheticKeyboardEvent ->
