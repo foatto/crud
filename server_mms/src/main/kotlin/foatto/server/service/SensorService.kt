@@ -7,6 +7,7 @@ import foatto.core.model.response.FormActionResponse
 import foatto.core.model.response.ResponseCode
 import foatto.core.model.response.form.FormCellCaption
 import foatto.core.model.response.form.FormCellVisibility
+import foatto.core.model.response.form.FormDateTimeCellMode
 import foatto.core.model.response.form.cells.FormBaseCell
 import foatto.core.model.response.form.cells.FormBooleanCell
 import foatto.core.model.response.form.cells.FormComboCell
@@ -18,7 +19,9 @@ import foatto.core.model.response.table.cell.TableBaseCell
 import foatto.core.model.response.table.cell.TableCellBackColorType
 import foatto.core.model.response.table.cell.TableSimpleCell
 import foatto.core.util.getDateDMYString
+import foatto.core.util.getDateTimeYMDHMSInts
 import foatto.core.util.getRandomInt
+import foatto.core.util.getTimeZone
 import foatto.core_mms.AppModuleMMS
 import foatto.server.UserRelationEnum
 import foatto.server.appModuleConfigs
@@ -38,6 +41,8 @@ import foatto.server.repository.ObjectRepository
 import foatto.server.repository.SensorCalibrationRepository
 import foatto.server.repository.SensorRepository
 import jakarta.persistence.EntityManager
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.toInstant
 import org.springframework.data.domain.Page
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -494,9 +499,10 @@ class SensorService(
             caption = "Дата начала эксплуатации",
             isEditable = changeEnabled,
 //            isEditable = !isEquip
-            value = sensorEntity?.usingStartDate?.let { d ->
-                listOf(d.da.toString(), d.mo.toString(), d.ye.toString())
-            } ?: listOf("", "", ""),
+            mode = FormDateTimeCellMode.DMY,
+            value = sensorEntity?.usingStartDate?.let { dt ->
+                LocalDateTime(dt.ye ?: 2000, dt.mo ?: 1, dt.da ?: 1, 0, 0, 0).toInstant(getTimeZone(userConfig.timeOffset)).epochSeconds.toInt()
+            },
         )
 
         //--- geo-sensors (coordinates, speed and mileage) ----------------------------------------------------------------------------------------
@@ -1106,7 +1112,7 @@ class SensorService(
             return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_PORT_NUM to "Номер входа должен быть в диапазоне от 0 до 65535"))
         }
 
-        val usingStartDate = formActionData[FIELD_USING_START_DATE]?.alDateTimeValue ?: listOf("1", "1", "2000")
+        val usingStartDate = getDateTimeYMDHMSInts(getTimeZone(userConfig.timeOffset), formActionData[FIELD_USING_START_DATE]?.dateTimeValue ?: 0)
 
         val recordId = id ?: getNextId()
         val sensorEntity = SensorEntity(
@@ -1119,9 +1125,9 @@ class SensorService(
             sensorType = formActionData[FIELD_SENSOR_TYPE]?.stringValue?.toIntOrNull() ?: SensorConfig.SENSOR_GEO,
             serialNo = formActionData[FIELD_SERIAL_NO]?.stringValue ?: "",
             usingStartDate = DateEntity(
-                ye = usingStartDate[2].toIntOrNull(),
-                mo = usingStartDate[1].toIntOrNull(),
-                da = usingStartDate[0].toIntOrNull(),
+                ye = usingStartDate[0],
+                mo = usingStartDate[1],
+                da = usingStartDate[2],
             ),
             minMovingTime = formActionData[FIELD_MIN_MOVING_TIME]?.stringValue?.toIntOrNull() ?: 1,
             minParkingTime = formActionData[FIELD_MIN_PARKING_TIME]?.stringValue?.toIntOrNull() ?: 300,

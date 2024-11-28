@@ -9,6 +9,7 @@ import foatto.core.model.response.FormActionResponse
 import foatto.core.model.response.ResponseCode
 import foatto.core.model.response.form.FormButton
 import foatto.core.model.response.form.FormCellVisibility
+import foatto.core.model.response.form.FormDateTimeCellMode
 import foatto.core.model.response.form.cells.FormBaseCell
 import foatto.core.model.response.form.cells.FormBooleanCell
 import foatto.core.model.response.form.cells.FormComboCell
@@ -20,8 +21,9 @@ import foatto.core.model.response.table.TableRowData
 import foatto.core.model.response.table.cell.TableBaseCell
 import foatto.core.model.response.table.cell.TableBooleanCell
 import foatto.core.model.response.table.cell.TableButtonCell
-import foatto.core.model.response.table.cell.TableCellAlign
 import foatto.core.model.response.table.cell.TableSimpleCell
+import foatto.core.util.getDateTimeYMDHMSInts
+import foatto.core.util.getTimeZone
 import foatto.server.OrgType
 import foatto.server.appRoleConfigs
 import foatto.server.checkFormAddPermission
@@ -34,6 +36,8 @@ import foatto.server.model.ServerUserConfig
 import foatto.server.repository.FileStoreRepository
 import foatto.server.repository.UserRepository
 import foatto.server.util.encodePassword
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.toInstant
 import org.springframework.data.domain.Page
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -438,9 +442,10 @@ class UserService(
             name = FIELD_LAST_LOGIN,
             caption = "Дата/время последнего входа",
             isEditable = false,
+            mode = FormDateTimeCellMode.DMYHMS,
             value = userEntity?.lastLoginDateTime?.let { dt ->
-                listOf(dt.da.toString(), dt.mo.toString(), dt.ye.toString(), dt.ho.toString(), dt.mi.toString(), dt.se.toString())
-            } ?: listOf("", "", "", "", "", ""),
+                LocalDateTime(dt.ye ?: 2000, dt.mo ?: 1, dt.da ?: 1, dt.ho ?: 0, dt.mi ?: 0, dt.se ?: 0).toInstant(getTimeZone(userConfig.timeOffset)).epochSeconds.toInt()
+            },
             visibility = nonVisibleForDivision,
         )
         formCells += FormSimpleCell(
@@ -454,9 +459,10 @@ class UserService(
             name = FIELD_PASSWORD_LAST_CHANGE,
             caption = "Дата/время последней смены пароля",
             isEditable = false,
-            value = userEntity?.passwordLastChangeDate?.let { d ->
-                listOf(d.da.toString(), d.mo.toString(), d.ye.toString())
-            } ?: listOf("", "", ""),
+            mode = FormDateTimeCellMode.DMY,
+            value = userEntity?.passwordLastChangeDate?.let { dt ->
+                LocalDateTime(dt.ye ?: 2000, dt.mo ?: 1, dt.da ?: 1, 0, 0, 0).toInstant(getTimeZone(userConfig.timeOffset)).epochSeconds.toInt()
+            },
             visibility = nonVisibleForDivision,
         )
 
@@ -523,8 +529,8 @@ class UserService(
         }.filter { role ->
             formActionData[FIELD_ROLES + "_" + role]?.booleanValue == true
         }.toSet()
-        val lastLoginDateTime = formActionData[FIELD_LAST_LOGIN]?.alDateTimeValue ?: listOf("1", "1", "2000", "0", "0", "0")
-        val passwordLastChangeDate = formActionData[FIELD_PASSWORD_LAST_CHANGE]?.alDateTimeValue ?: listOf("1", "1", "2000")
+        val lastLoginDateTime = getDateTimeYMDHMSInts(getTimeZone(userConfig.timeOffset), formActionData[FIELD_LAST_LOGIN]?.dateTimeValue ?: 0)
+        val passwordLastChangeDate = getDateTimeYMDHMSInts(getTimeZone(userConfig.timeOffset), formActionData[FIELD_PASSWORD_LAST_CHANGE]?.dateTimeValue ?: 0)
 
         val recordId = id ?: getNextId()
         val userEntity = UserEntity(
@@ -546,18 +552,18 @@ class UserService(
             },
             atCount = formActionData[FIELD_AT_COUNT]?.stringValue?.toIntOrNull() ?: 0,
             lastLoginDateTime = DateTimeEntity(
-                ye = lastLoginDateTime[2].toIntOrNull(),
-                mo = lastLoginDateTime[1].toIntOrNull(),
-                da = lastLoginDateTime[0].toIntOrNull(),
-                ho = lastLoginDateTime[3].toIntOrNull(),
-                mi = lastLoginDateTime[4].toIntOrNull(),
-                se = lastLoginDateTime[5].toIntOrNull(),
+                ye = lastLoginDateTime[0],
+                mo = lastLoginDateTime[1],
+                da = lastLoginDateTime[2],
+                ho = lastLoginDateTime[3],
+                mi = lastLoginDateTime[4],
+                se = lastLoginDateTime[5],
             ),
             lastIP = formActionData[FIELD_LAST_IP]?.stringValue,
             passwordLastChangeDate = DateEntity(
-                ye = passwordLastChangeDate[2].toIntOrNull(),
-                mo = passwordLastChangeDate[1].toIntOrNull(),
-                da = passwordLastChangeDate[0].toIntOrNull(),
+                ye = passwordLastChangeDate[1],
+                mo = passwordLastChangeDate[2],
+                da = passwordLastChangeDate[3],
             ),
         )
         userRepository.saveAndFlush(userEntity)

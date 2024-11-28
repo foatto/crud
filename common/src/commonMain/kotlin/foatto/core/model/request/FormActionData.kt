@@ -11,7 +11,7 @@ class FormActionData(
     val booleanValue: Boolean = false,
 
     //--- DateTime
-    val alDateTimeValue: List<String> = emptyList(),
+    val dateTimeValue: Int? = null,
 
     //--- FILE
     val fileId: Int? = null,

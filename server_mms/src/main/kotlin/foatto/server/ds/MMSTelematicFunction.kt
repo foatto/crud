@@ -1,7 +1,7 @@
 package foatto.server.ds
 
 import foatto.core.util.getCurrentTimeInt
-import foatto.core.util.getDateTimeYMDHMSList
+import foatto.core.util.getDateTimeYMDHMSInts
 import foatto.core.util.getDateTimeYMDHMSString
 import foatto.server.calc.AbstractObjectStateCalc
 import foatto.server.entity.SensorEntity
@@ -96,7 +96,7 @@ object MMSTelematicFunction {
 
     private fun checkAndCreateDayWork(conn: CoreAdvancedConnection, deviceConfig: DeviceConfig, time: Int) {
         val arrLastDT = chmLastDayWork[deviceConfig.objectId]
-        val arrDT = getDateTimeYMDHMSList(deviceConfig.timeZone, time)
+        val arrDT = getDateTimeYMDHMSInts(deviceConfig.timeZone, time)
         //--- создаем новую пустую запись по дневной работе при необходимости
         if (arrLastDT == null || arrLastDT[0] != arrDT[0] || arrLastDT[1] != arrDT[1] || arrLastDT[2] != arrDT[2]) {
             //--- создадим пустую запись по дневной работе, если ее не было

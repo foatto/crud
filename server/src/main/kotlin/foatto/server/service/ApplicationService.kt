@@ -323,6 +323,12 @@ abstract class ApplicationService {
             parentId = parentId,
         )
 
+/*
+    protected fun jvmInstantToString(currentUserTimeZone: TimeZone, instant: Instant?): String = instant?.let {
+        getDateTimeDMYHMSString(currentUserTimeZone, instant.epochSecond.toInt())
+    } ?: "-"
+ */
+
     protected fun fillTablePageButtons(
         action: AppAction,
         pageCount: Int,

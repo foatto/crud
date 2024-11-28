@@ -2,6 +2,7 @@ package foatto.core.model.response.form.cells
 
 import foatto.core.model.response.form.FormCellCaption
 import foatto.core.model.response.form.FormCellVisibility
+import foatto.core.model.response.form.FormDateTimeCellMode
 import kotlinx.serialization.Serializable
 import foatto.core.model.response.form.FormPinMode
 
@@ -16,5 +17,6 @@ class FormDateTimeCell(
     override val visibility: FormCellVisibility? = null,
     override val captions: FormCellCaption? = null,
 
-    val value: List<String>,
+    val mode: FormDateTimeCellMode,
+    val value: Int?,
 ) : FormBaseCell()

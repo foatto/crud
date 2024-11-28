@@ -14,6 +14,7 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
@@ -55,6 +56,7 @@ import foatto.core.model.response.AppResponse
 import foatto.core.model.response.FormActionResponse
 import foatto.core.model.response.ResponseCode
 import foatto.core.model.response.form.FormButtonKey
+import foatto.core.model.response.form.FormDateTimeCellMode
 import foatto.core.model.response.form.FormPinMode
 import foatto.core.model.response.form.FormResponse
 import foatto.core.model.response.form.cells.FormBaseCell
@@ -63,8 +65,14 @@ import foatto.core.model.response.form.cells.FormComboCell
 import foatto.core.model.response.form.cells.FormDateTimeCell
 import foatto.core.model.response.form.cells.FormFileCell
 import foatto.core.model.response.form.cells.FormSimpleCell
+import foatto.core.util.getDateTimeDMYHMSString
+import foatto.core.util.getLocalDateTime
 import foatto.core.util.getRandomLong
+import foatto.core.util.getTimeZone
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.toInstant
 import kotlin.math.max
 import kotlin.math.min
 
@@ -75,10 +83,6 @@ class FormControl(
     private val formResponse: FormResponse,
     tabId: Int,
 ) : AbstractControl(tabId) {
-
-    companion object {
-        private val FORM_CELL_PADDING = 16.dp
-    }
 
     private val alHiddenCells = mutableListOf<FormBaseCellClient>()
     private val alGridRows = mutableStateListOf<MutableList<FormBaseCellClient?>>()
@@ -96,16 +100,103 @@ class FormControl(
 
     private val hmColumnMaxWidth = mutableStateMapOf<Int, Dp>()
 
+    private var datePickerData by mutableStateOf<FormDateTimeCellClient?>(null)
+    private var timePickerData by mutableStateOf<FormDateTimeCellClient?>(null)
+
     private var isFileAddInProgress by mutableStateOf(false)
     private var fileGridData: FormFileCellClient? = null
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun Body() {
         val density = LocalDensity.current
         val coroutineScope = rememberCoroutineScope()
         var isFilePickerVisible by remember { mutableStateOf(false) }
+        val datePickerState = rememberDatePickerState(
+            initialDisplayMode = DisplayMode.Picker,
+        )
+        val timePickerState = rememberTimePickerState()
         val focusRequester = remember { FocusRequester() }
         var isFocusRequesterDefined = false
+
+        datePickerData?.let { dateTimeData ->
+            AlertDialog(
+                text = {
+                    DatePicker(state = datePickerState)
+                },
+                onDismissRequest = {
+                    datePickerData = null
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            datePickerState.selectedDateMillis?.let { millis ->
+                                dateTimeData.current.value = (millis / 1000).toInt()
+                            }
+                            datePickerData = null
+                        }
+                    ) {
+                        Text(text = "OK")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            datePickerData = null
+                        }
+                    ) {
+                        Text(text = "Отмена")
+                    }
+                },
+            )
+        }
+
+        timePickerData?.let { dateTimeData ->
+            val localDateTime = getLocalDateTime(
+                timeOffset = root.appUserConfig.value.timeOffset,
+                seconds = dateTimeData.current.value ?: Clock.System.now().epochSeconds.toInt()
+            )
+
+            timePickerState.selection = TimePickerSelectionMode.Hour
+            timePickerState.is24hour = true
+            timePickerState.hour = localDateTime.hour
+            timePickerState.minute = localDateTime.minute
+
+            AlertDialog(
+                text = {
+                    TimePicker(state = timePickerState)
+                },
+                onDismissRequest = {
+                    timePickerData = null
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            dateTimeData.current.value = LocalDateTime(
+                                year = localDateTime.year,
+                                monthNumber = localDateTime.monthNumber,
+                                dayOfMonth = localDateTime.dayOfMonth,
+                                hour = timePickerState.hour,
+                                minute = timePickerState.minute,
+                                second = 0
+                            ).toInstant(getTimeZone(root.appUserConfig.value.timeOffset)).epochSeconds.toInt()
+                            timePickerData = null
+                        }
+                    ) {
+                        Text(text = "OK")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            timePickerData = null
+                        }
+                    ) {
+                        Text(text = "Отмена")
+                    }
+                },
+            )
+        }
 
         FilePicker(
             isFilePickerVisible,
@@ -172,6 +263,7 @@ class FormControl(
                                         //!!! только на время отладки
                                         //.border(BorderStroke(width = 1.dp, color = Color.LightGray))
                                         //.wrapContentSize(align = Alignment.Center, unbounded = true)  //- ничем не помогает
+                                        .padding(16.dp)
                                         .onSizeChanged { size ->
                                             gridData?.let {
                                                 val componentWidth = with(density) {
@@ -192,14 +284,10 @@ class FormControl(
                                                 }
                                             } ?: Modifier
                                         )
-
                                 ) {
                                     when (gridData) {
                                         is FormLabelCellClient -> {
-                                            Text(
-                                                modifier = Modifier.padding(FORM_CELL_PADDING),
-                                                text = gridData.current.value,
-                                            )
+                                            Text(text = gridData.current.value)
 //                                            if (gridData.text.value == BR) {
 //                                                Br()
 //                                            } else {
@@ -210,10 +298,14 @@ class FormControl(
                                         is FormSimpleCellClient -> {
                                             OutlinedTextField(
                                                 modifier = Modifier
-                                                    .padding(FORM_CELL_PADDING)
                                                     .widthIn(max = root.scaledScreenWidth.dp / 2)
-                                                    .background(colorControlBack)
                                                     .then(
+                                                        if (gridData.data.isEditable) {
+                                                            Modifier.background(colorControlBack)
+                                                        } else {
+                                                            Modifier
+                                                        }
+                                                    ).then(
                                                         if (gridData.data.isEditable && gridData.data.isAutoFocus) {
                                                             isFocusRequesterDefined = true
                                                             Modifier.focusRequester(focusRequester)
@@ -246,7 +338,6 @@ class FormControl(
                                                 },
                                             )
 //                                            id(getFocusId(gridData.id))
-//                                            size(gridData.data.columns)
 //                                            onFocusIn { syntheticFocusEvent ->
 //                                                selectAllText(syntheticFocusEvent)
 //                                            }
@@ -259,10 +350,14 @@ class FormControl(
                                             if (gridData.data.alSwitchText.isEmpty()) {
                                                 Checkbox(
                                                     modifier = Modifier
-                                                        .padding(FORM_CELL_PADDING)
-                                                        .background(colorControlBack),
+                                                        .then(
+                                                            if (gridData.data.isEditable) {
+                                                                Modifier.background(colorControlBack)
+                                                            } else {
+                                                                Modifier
+                                                            }
+                                                        ),
                                                     checked = gridData.current.value,
-                                                    //enabled = !gridData.data.isEditable, - слишком сильно отличается по стилю от обычных read-only текстовых полей ввода
                                                     onCheckedChange = { newState ->
                                                         if (gridData.data.isEditable) {
                                                             gridData.current.value = newState
@@ -309,52 +404,78 @@ class FormControl(
                                         }
 
                                         is FormDateTimeCellClient -> {
-                                            val dateTimeFieldCount = gridData.data.value.size
-                                            for (index in 0 until dateTimeFieldCount) {
-                                                //--- time fields on new line on narrow screens
+                                            val (dateString, timeString) = gridData.current.value?.let { curDateTimeValue ->
+                                                val dateTimeString = getDateTimeDMYHMSString(
+                                                    root.appUserConfig.value.timeOffset,
+                                                    curDateTimeValue,
+                                                )
+                                                when (gridData.data.mode) {
+                                                    FormDateTimeCellMode.DMY -> dateTimeString.substring(0, 10) to null
+                                                    FormDateTimeCellMode.DMYHMS -> dateTimeString.substring(0, 10) to dateTimeString.substring(11)
+                                                }
+                                            } ?: run {
+                                                when (gridData.data.mode) {
+                                                    FormDateTimeCellMode.DMY -> {
+                                                        if (gridData.data.isEditable) {
+                                                            "-" to null
+                                                        } else {
+                                                            "" to null
+                                                        }
+                                                    }
+
+                                                    FormDateTimeCellMode.DMYHMS -> {
+                                                        if (gridData.data.isEditable) {
+                                                            "-" to "-"
+                                                        } else {
+                                                            "" to ""
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            Text(text = dateString)
+                                            if (gridData.data.isEditable) {
+                                                IconButton(
+                                                    onClick = {
+                                                        val curDateTime = gridData.current.value?.let { seconds ->
+                                                            seconds * 1000L
+                                                        } ?: Clock.System.now().toEpochMilliseconds()
+
+                                                        datePickerState.displayedMonthMillis = curDateTime
+                                                        datePickerState.selectedDateMillis = curDateTime
+
+                                                        datePickerData = gridData
+                                                    }
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Edit,
+                                                        contentDescription = null,
+                                                    )
+                                                }
+                                            }
+                                            //--- time fields on new line on narrow screens
 //                                            if (styleIsNarrowScreen && index == 3) {
 //                                                Br()
 //                                            }
-                                                if (dateTimeFieldCount >= 3 && index in (1..2)) {
-                                                    Text(text = ".")
-                                                } else if (dateTimeFieldCount < 3 && index in (1..2)) {
-                                                    Text(text = ":")
-                                                } else if (index in (4..5)) {
-                                                    Text(text = ":")
-                                                }
+                                            if (!gridData.data.isEditable) {
+                                                Text(modifier = Modifier.padding(8.dp), text = "")
+                                            }
 
-                                                OutlinedTextField(
-                                                    modifier = Modifier
-                                                        .padding(FORM_CELL_PADDING)
-                                                        .width(
-                                                            if (index == 2) {
-                                                                76.dp   // после ввода пятой (лишней) цифры первая наполовину уходит
-                                                            } else {
-                                                                58.dp   // после ввода третьей (лишней) цифры первая наполовину уходит
-                                                            }
-                                                        )
-                                                        .background(colorControlBack),
-                                                    value = gridData.current[index].value,
-                                                    onValueChange = { newText ->
-                                                        gridData.current[index].value = newText
-                                                    },
-                                                    readOnly = !gridData.data.isEditable,
-                                                    //!!! label = { Text("Имя") }, - использовать для мобильной версии без FormCellTypeClient.LABEL
-                                                    isError = gridData.error != null,
-                                                    supportingText = gridData.error?.let { error ->
-                                                        if (index == 0) {
-                                                            {
-                                                                Text(
-                                                                    text = error,
-                                                                    color = Color.Red,
-                                                                )
-                                                            }
-                                                        } else {
-                                                            null
+                                            timeString?.let {
+                                                Text(text = timeString)
+                                                if (gridData.data.isEditable) {
+                                                    IconButton(
+                                                        onClick = {
+                                                            timePickerData = gridData
                                                         }
-                                                    },
-                                                    singleLine = true,
-                                                )
+                                                    ) {
+                                                        Icon(
+                                                            imageVector = Icons.Default.Edit,
+                                                            contentDescription = null,
+                                                        )
+                                                    }
+                                                }
+                                            }
 //                                                id(getFocusId(gridData.id, gridData.alSubId?.get(index)))
 //                                                onFocusIn { syntheticFocusEvent ->
 //                                                    selectAllText(syntheticFocusEvent)
@@ -362,7 +483,6 @@ class FormControl(
 //                                                onKeyUp { syntheticKeyboardEvent ->
 //                                                    doKeyUp(gridData, syntheticKeyboardEvent)
 //                                                }
-                                            }
                                         }
 
                                         is FormComboCellClient -> {
@@ -415,11 +535,15 @@ class FormControl(
 
                                                 OutlinedTextField(
                                                     modifier = Modifier
-                                                        .padding(FORM_CELL_PADDING)
                                                         .onGloballyPositioned { coordinates ->
                                                             textFieldSize = coordinates.size.toSize()
-                                                        }
-                                                        .background(colorControlBack),
+                                                        }.then(
+                                                            if (gridData.data.isEditable) {
+                                                                Modifier.background(colorControlBack)
+                                                            } else {
+                                                                Modifier
+                                                            }
+                                                        ),
                                                     value = gridData.data.values.find { (value, _) ->
                                                         gridData.current.value == value
                                                     }?.second ?: "(неизвестное значение)",
@@ -645,7 +769,7 @@ class FormControl(
                         iconSize = styleOtherIconSize,
                         imageButton = { func ->
                             IconButton(
-                                modifier = Modifier.padding(1.dp),
+                                modifier = Modifier.padding(2.dp),
                                 enabled = !isFileAddInProgress,
                                 onClick = {
                                     if (!isFileAddInProgress) {
@@ -818,7 +942,7 @@ class FormControl(
                     }
                 }
 
-                maxColCount = max(maxColCount, colIndex)
+                maxColCount = max(maxColCount, colIndex - 1)
             }
         }
 
@@ -1019,9 +1143,9 @@ class FormControl(
                     align = align,
                     data = formCell,
                 ).apply {
-                    formCell.value.indices.forEach { i ->
-                        alSubFocusId.add(i)
-                    }
+//                    formCell.value.indices.forEach { i ->
+//                        alSubFocusId.add(i)
+//                    }
                 }
             }
 
@@ -1316,13 +1440,11 @@ class FormControl(
 
             is FormDateTimeCellClient -> {
                 formActionData += gridData.data.name to FormActionData(
-                    alDateTimeValue = (
-                        if (withNewValues) {
-                            gridData.current.map { s -> s.value }
-                        } else {
-                            gridData.data.value
-                        }
-                        ).toList()
+                    dateTimeValue = if (withNewValues) {
+                        gridData.current.value
+                    } else {
+                        gridData.data.value
+                    }
                 )
             }
 

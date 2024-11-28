@@ -37,62 +37,68 @@ fun getTimeZone(timeOffset: Int?): FixedOffsetTimeZone = FixedOffsetTimeZone(
 
 //-------------------------------------------------------------------------------------------------
 
-fun getLocalDateTime(timeOffset: Int, sec: Int): LocalDateTime = getLocalDateTime(getTimeZone(timeOffset), sec)
-fun getLocalDateTime(timeZone: TimeZone, sec: Int): LocalDateTime = Instant.fromEpochSeconds(sec.toLong()).toLocalDateTime(timeZone)
+fun getLocalDateTime(timeOffset: Int, seconds: Int): LocalDateTime = getLocalDateTime(getTimeZone(timeOffset), seconds)
+fun getLocalDateTime(timeZone: TimeZone, seconds: Int): LocalDateTime = Instant.fromEpochSeconds(seconds.toLong()).toLocalDateTime(timeZone)
 
 //-------------------------------------------------------------------------------------------------
 
-fun getDateTimeYMDHMSList(timeZone: TimeZone, second: Int): List<Int> = getDateTimeYMDHMSList(getLocalDateTime(timeZone, second))
-fun getDateTimeYMDHMSList(ldt: LocalDateTime): List<Int> = listOf(ldt.year, ldt.month.ordinal + 1, ldt.dayOfMonth, ldt.hour, ldt.minute, ldt.second)
+fun getDateTimeDMYHMSInts(timeZone: TimeZone, seconds: Int): List<Int> = getDateTimeDMYHMSInts(getLocalDateTime(timeZone, seconds))
+fun getDateTimeDMYHMSInts(ldt: LocalDateTime): List<Int> = listOf(ldt.dayOfMonth, ldt.monthNumber, ldt.year, ldt.hour, ldt.minute, ldt.second)
 
-fun getDateTimeDMYHMSList(timeZone: TimeZone, second: Int): List<Int> = getDateTimeDMYHMSList(getLocalDateTime(timeZone, second))
-fun getDateTimeDMYHMSList(ldt: LocalDateTime): List<Int> = listOf(ldt.dayOfMonth, ldt.month.ordinal + 1, ldt.year, ldt.hour, ldt.minute, ldt.second)
+fun getDateTimeYMDHMSInts(timeZone: TimeZone, seconds: Int): List<Int> = getDateTimeYMDHMSInts(getLocalDateTime(timeZone, seconds))
+fun getDateTimeYMDHMSInts(ldt: LocalDateTime): List<Int> = listOf(ldt.year, ldt.monthNumber, ldt.dayOfMonth, ldt.hour, ldt.minute, ldt.second)
+
+fun getDateTimeDMYHMSStrings(timeZone: TimeZone, seconds: Int): List<String> = getDateTimeDMYHMSStrings(getLocalDateTime(timeZone, seconds))
+fun getDateTimeDMYHMSStrings(ldt: LocalDateTime): List<String> = listOf(getDigit(ldt.dayOfMonth), getDigit(ldt.monthNumber), getDigit(ldt.year), getDigit(ldt.hour), getDigit(ldt.minute), getDigit(ldt.second))
+
+fun getDateTimeYMDHMSStrings(timeZone: TimeZone, seconds: Int): List<String> = getDateTimeYMDHMSStrings(getLocalDateTime(timeZone, seconds))
+fun getDateTimeYMDHMSStrings(ldt: LocalDateTime): List<String> = listOf(getDigit(ldt.year), getDigit(ldt.monthNumber), getDigit(ldt.dayOfMonth), getDigit(ldt.hour), getDigit(ldt.minute), getDigit(ldt.second))
 
 //-------------------------------------------------------------------------------------------------
 
-fun getDateTimeDMYHMSString(timeOffset: Int, sec: Int): String {
-    val dt = getLocalDateTime(timeOffset, sec)
-    return getDateTimeDMYHMSString(dt.year, dt.month.ordinal + 1, dt.dayOfMonth, dt.hour, dt.minute, dt.second)
+fun getDateTimeDMYHMSString(timeOffset: Int, seconds: Int): String {
+    val dt = getLocalDateTime(timeOffset, seconds)
+    return getDateTimeDMYHMSString(dt.year, dt.monthNumber, dt.dayOfMonth, dt.hour, dt.minute, dt.second)
 }
-fun getDateTimeDMYHMSString(timeZone: TimeZone, sec: Int): String {
-    val dt = getLocalDateTime(timeZone, sec)
-    return getDateTimeDMYHMSString(dt.year, dt.month.ordinal + 1, dt.dayOfMonth, dt.hour, dt.minute, dt.second)
+fun getDateTimeDMYHMSString(timeZone: TimeZone, seconds: Int): String {
+    val dt = getLocalDateTime(timeZone, seconds)
+    return getDateTimeDMYHMSString(dt.year, dt.monthNumber, dt.dayOfMonth, dt.hour, dt.minute, dt.second)
 }
 fun getDateTimeDMYHMSString(ldt: LocalDateTime): String =
-    getDateTimeDMYHMSString(ldt.year, ldt.month.ordinal + 1, ldt.dayOfMonth, ldt.hour, ldt.minute, ldt.second)
+    getDateTimeDMYHMSString(ldt.year, ldt.monthNumber, ldt.dayOfMonth, ldt.hour, ldt.minute, ldt.second)
 
-fun getDateTimeDMYHMString(timeOffset: Int, sec: Int): String {
-    val dt = getLocalDateTime(timeOffset, sec)
-    return getDateTimeDMYHMString(dt.year, dt.month.ordinal + 1, dt.dayOfMonth, dt.hour, dt.minute)
+fun getDateTimeDMYHMString(timeOffset: Int, seconds: Int): String {
+    val dt = getLocalDateTime(timeOffset, seconds)
+    return getDateTimeDMYHMString(dt.year, dt.monthNumber, dt.dayOfMonth, dt.hour, dt.minute)
 }
-fun getDateTimeDMYHMString(timeZone: TimeZone, sec: Int): String {
-    val dt = getLocalDateTime(timeZone, sec)
-    return getDateTimeDMYHMString(dt.year, dt.month.ordinal + 1, dt.dayOfMonth, dt.hour, dt.minute)
+fun getDateTimeDMYHMString(timeZone: TimeZone, seconds: Int): String {
+    val dt = getLocalDateTime(timeZone, seconds)
+    return getDateTimeDMYHMString(dt.year, dt.monthNumber, dt.dayOfMonth, dt.hour, dt.minute)
 }
 fun getDateTimeDMYHMString(ldt: LocalDateTime): String =
-    getDateTimeDMYHMString(ldt.year, ldt.month.ordinal + 1, ldt.dayOfMonth, ldt.hour, ldt.minute)
+    getDateTimeDMYHMString(ldt.year, ldt.monthNumber, ldt.dayOfMonth, ldt.hour, ldt.minute)
 
-fun getDateTimeYMDHMSString(timeOffset: Int, sec: Int): String {
-    val dt = getLocalDateTime(timeOffset, sec)
-    return getDateTimeYMDHMSString(dt.year, dt.month.ordinal + 1, dt.dayOfMonth, dt.hour, dt.minute, dt.second)
+fun getDateTimeYMDHMSString(timeOffset: Int, seconds: Int): String {
+    val dt = getLocalDateTime(timeOffset, seconds)
+    return getDateTimeYMDHMSString(dt.year, dt.monthNumber, dt.dayOfMonth, dt.hour, dt.minute, dt.second)
 }
-fun getDateTimeYMDHMSString(timeZone: TimeZone, sec: Int): String {
-    val dt = getLocalDateTime(timeZone, sec)
-    return getDateTimeYMDHMSString(dt.year, dt.month.ordinal + 1, dt.dayOfMonth, dt.hour, dt.minute, dt.second)
+fun getDateTimeYMDHMSString(timeZone: TimeZone, seconds: Int): String {
+    val dt = getLocalDateTime(timeZone, seconds)
+    return getDateTimeYMDHMSString(dt.year, dt.monthNumber, dt.dayOfMonth, dt.hour, dt.minute, dt.second)
 }
 fun getDateTimeYMDHMSString(ldt: LocalDateTime): String =
-    getDateTimeYMDHMSString(ldt.year, ldt.month.ordinal + 1, ldt.dayOfMonth, ldt.hour, ldt.minute, ldt.second)
+    getDateTimeYMDHMSString(ldt.year, ldt.monthNumber, ldt.dayOfMonth, ldt.hour, ldt.minute, ldt.second)
 
-fun getDateTimeYMDHMString(timeOffset: Int, sec: Int): String {
-    val dt = getLocalDateTime(timeOffset, sec)
-    return getDateTimeYMDHMString(dt.year, dt.month.ordinal + 1, dt.dayOfMonth, dt.hour, dt.minute)
+fun getDateTimeYMDHMString(timeOffset: Int, seconds: Int): String {
+    val dt = getLocalDateTime(timeOffset, seconds)
+    return getDateTimeYMDHMString(dt.year, dt.monthNumber, dt.dayOfMonth, dt.hour, dt.minute)
 }
-fun getDateTimeYMDHMString(timeZone: TimeZone, sec: Int): String {
-    val dt = getLocalDateTime(timeZone, sec)
-    return getDateTimeYMDHMString(dt.year, dt.month.ordinal + 1, dt.dayOfMonth, dt.hour, dt.minute)
+fun getDateTimeYMDHMString(timeZone: TimeZone, seconds: Int): String {
+    val dt = getLocalDateTime(timeZone, seconds)
+    return getDateTimeYMDHMString(dt.year, dt.monthNumber, dt.dayOfMonth, dt.hour, dt.minute)
 }
 fun getDateTimeYMDHMString(ldt: LocalDateTime): String =
-    getDateTimeYMDHMString(ldt.year, ldt.month.ordinal + 1, ldt.dayOfMonth, ldt.hour, ldt.minute)
+    getDateTimeYMDHMString(ldt.year, ldt.monthNumber, ldt.dayOfMonth, ldt.hour, ldt.minute)
 
 //-------------------------------------------------------------------------------------------------
 

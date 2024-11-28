@@ -17,5 +17,5 @@ class FormDateTimeCellClient(
     align = align,
     isVisible = isVisible,
 ) {
-    val current: List<MutableState<String>> = data.value.map { s -> mutableStateOf(s) }
+    val current: MutableState<Int?> = mutableStateOf(data.value)
 }
