@@ -255,7 +255,13 @@ open class Root {
                 settings.remove(SETTINGS_LOGON_EXPIRE)
 
                 invokeRequest(LogoffRequest()) { logoffResponse: LogoffResponse ->
-                    //!!! закрыть все вкладки и открыть стартовый модуль
+                    alMenuDataClient.clear()
+                    isTabPanelVisible = false
+                    selectedTabIndex = 0
+                    alTabInfo.clear()
+                    alControl.clear()
+
+                    start()
                 }
             }
 
