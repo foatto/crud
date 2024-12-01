@@ -1,5 +1,6 @@
 package foatto.compose.control
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -36,7 +37,6 @@ import androidx.compose.ui.unit.toSize
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import foatto.compose.*
 import foatto.compose.composable.ImageOrTextFromNameControl
-import foatto.compose.control.model.form.FormButtonData
 import foatto.compose.control.model.form.FormCellCaptionInfo
 import foatto.compose.control.model.form.FormCellVisibleInfo
 import foatto.compose.control.model.form.cell.FormBaseCellClient
@@ -54,6 +54,7 @@ import foatto.core.model.request.FormActionRequest
 import foatto.core.model.response.AppResponse
 import foatto.core.model.response.FormActionResponse
 import foatto.core.model.response.ResponseCode
+import foatto.core.model.response.form.FormButton
 import foatto.core.model.response.form.FormButtonKey
 import foatto.core.model.response.form.FormDateTimeCellMode
 import foatto.core.model.response.form.FormPinMode
@@ -91,8 +92,6 @@ class FormControl(
 
     private val hmFormCellVisible = mutableMapOf<String, MutableMap<String, FormCellVisibleInfo>>()
     private val hmFormCellCaption = mutableMapOf<String, MutableMap<String, List<FormCellCaptionInfo>>>()
-
-    private val alFormButton = mutableListOf<FormButtonData>()
 
     private var formSaveActionType: String? = null
     private var formExitActionType: String? = null
@@ -752,17 +751,12 @@ class FormControl(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(40.dp)
+                    .height(50.dp)
                     .background(colorBottomBar),
-//                            if (!styleIsNarrowScreen) {
-//                                JustifyContent.Center
-//                            } else {
-//                                JustifyContent.SpaceBetween
-//                            }
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                for (formButton in alFormButton) {
+                for (formButton in formResponse.alFormButton) {
                     ImageOrTextFromNameControl(
                         name = formButton.name,
                         iconSize = styleOtherIconSize,
@@ -773,15 +767,45 @@ class FormControl(
                                 onClick = {
                                     if (!isFileAddInProgress) {
                                         coroutineScope.launch {
-                                            call(formButton.actionType, formButton.withNewData, formButton.question)
+                                            call(formButton)
                                         }
                                     }
-                                }
+                                },
                             ) {
                                 func()
                             }
                         },
-                        textButton = {},
+                        textButton = { caption ->
+                            Button(
+                                modifier = Modifier.padding(2.dp),
+                                shape = RoundedCornerShape(4.dp),
+                                colors = ButtonDefaults.textButtonColors().copy(
+                                    containerColor = Color.Transparent,
+                                    contentColor = Color.Black,
+                                ),
+                                border = BorderStroke(
+                                    width = 2.dp,
+                                    color = Color.Black,
+                                ),
+                                enabled = !isFileAddInProgress,
+                                onClick = {
+                                    if (!isFileAddInProgress) {
+                                        coroutineScope.launch {
+                                            call(formButton)
+                                        }
+                                    }
+                                },
+                            ) {
+                                Text(
+                                    text = caption,
+//                                    fontWeight = if (gridData.isBoldText) {
+//                                        FontWeight.Bold
+//                                    } else {
+//                                        null
+//                                    },
+                                )
+                            }
+                        },
                     )
 //!!!                                    backgroundColor(
 //                                        if (formButton.withNewData) {
@@ -1174,21 +1198,11 @@ class FormControl(
 
     private fun readFormButtons() {
         formResponse.alFormButton.forEach { formButton ->
-            alFormButton.add(
-                FormButtonData(
-                    actionType = formButton.actionType,
-                    withNewData = formButton.withNewData,
-                    name = formButton.iconName,
-                    tooltip = formButton.caption,
-                    question = formButton.question,
-                )
-            )
             //--- назначение кнопок на горячие клавиши
             when (formButton.key) {
 //!!!                FormButtonKey.AUTOCLICK -> if (autoClickAction == null) {
 //                    autoClickAction = formButton.actionType
 //                }
-
                 FormButtonKey.SAVE -> formSaveActionType = formButton.actionType
                 FormButtonKey.EXIT -> formExitActionType = formButton.actionType
                 else -> {}  // на время недописанности AUTOCLICK
@@ -1342,8 +1356,8 @@ class FormControl(
         }
     }
 
-    private suspend fun call(actionType: String, withNewData: Boolean, dialogQuestion: String?) {
-        doInvoke(actionType, withNewData)
+    private suspend fun call(formButton: FormButton) {
+        doInvoke(formButton)
 //        dialogQuestion?.let {
 //            root.dialogActionFun = {
 //            doInvoke(actionType, withNewData)
@@ -1356,27 +1370,28 @@ class FormControl(
 //        }
     }
 
-    private suspend fun doInvoke(actionType: String, withNewValues: Boolean) {
+    private suspend fun doInvoke(formButton: FormButton) {
         val formActionData = mutableMapOf<String, FormActionData>()
 
         alHiddenCells.forEach { gridData ->
-            fillFormData(gridData, withNewValues, formActionData)
+            fillFormData(gridData, formButton.withNewData, formActionData)
         }
         alGridRows.forEach { alGridRow ->
             alGridRow.forEach { gridData ->
                 gridData?.let {
-                    fillFormData(gridData, withNewValues, formActionData)
+                    fillFormData(gridData, formButton.withNewData, formActionData)
                 }
             }
         }
 
         invokeRequest(
             FormActionRequest(
-                action = AppAction(
-                    type = actionType,
+                action = formAction.copy(
+                    type = formButton.actionType,
                     module = formAction.module,
                     id = formResponse.id,
                     prevAction = formResponse.prevAction,
+                    params = formButton.params,
                 ),
                 formActionData = formActionData,
             )

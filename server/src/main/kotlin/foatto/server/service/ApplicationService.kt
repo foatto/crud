@@ -338,11 +338,11 @@ abstract class ApplicationService {
             parentId = parentId,
         )
 
-/*
-    protected fun jvmInstantToString(currentUserTimeZone: TimeZone, instant: Instant?): String = instant?.let {
-        getDateTimeDMYHMSString(currentUserTimeZone, instant.epochSecond.toInt())
-    } ?: "-"
- */
+    /*
+        protected fun jvmInstantToString(currentUserTimeZone: TimeZone, instant: Instant?): String = instant?.let {
+            getDateTimeDMYHMSString(currentUserTimeZone, instant.epochSecond.toInt())
+        } ?: "-"
+     */
 
     protected fun fillTablePageButtons(
         action: AppAction,
@@ -519,8 +519,7 @@ abstract class ApplicationService {
             alFormButton += FormButton(
                 actionType = id?.let { ActionType.FORM_EDIT } ?: ActionType.FORM_ADD,
                 withNewData = true,
-                caption = "Сохранить",
-                iconName = IconName.SAVE,
+                name = IconName.SAVE,
                 key = FormButtonKey.SAVE,
             )
         }
@@ -529,16 +528,14 @@ abstract class ApplicationService {
             alFormButton += FormButton(
                 actionType = ActionType.FORM_DELETE,
                 withNewData = false,
-                caption = "Удалить",
-                iconName = IconName.DELETE,
+                name = IconName.DELETE,
             )
         }
 
         alFormButton += FormButton(
             actionType = ActionType.FORM_EXIT,
             withNewData = false,
-            caption = "Выйти",
-            iconName = IconName.EXIT,
+            name = IconName.EXIT,
             key = FormButtonKey.EXIT,
         )
 
@@ -598,7 +595,7 @@ abstract class ApplicationService {
                         formActionData = formActionData
                     )
                 } else {
-                    return FormActionResponse(ResponseCode.ERROR)
+                    FormActionResponse(ResponseCode.ERROR)
                 }
             }
 
@@ -611,20 +608,22 @@ abstract class ApplicationService {
                         formActionData = formActionData
                     )
                 } else {
-                    return FormActionResponse(ResponseCode.ERROR)
+                    FormActionResponse(ResponseCode.ERROR)
                 }
             }
 
             ActionType.FORM_DELETE -> {
                 if (deleteEnabled) {
-                    formActionDelete(userConfig.id, action.id ?: return FormActionResponse(ResponseCode.ERROR))
+                    action.id?.let { id ->
+                        formActionDelete(userConfig.id, id)
+                    } ?: FormActionResponse(ResponseCode.ERROR)
                 } else {
-                    return FormActionResponse(ResponseCode.ERROR)
+                    FormActionResponse(ResponseCode.ERROR)
                 }
             }
 
             else -> {
-                FormActionResponse(ResponseCode.OK)
+                formActionExit(action)
             }
         }
     }
@@ -637,6 +636,8 @@ abstract class ApplicationService {
     ): FormActionResponse
 
     protected abstract fun formActionDelete(userId: Int, id: Int): FormActionResponse
+
+    protected open fun formActionExit(action: AppAction): FormActionResponse = FormActionResponse(ResponseCode.OK)
 
     protected fun isAdminOnly(userConfig: ServerUserConfig): Boolean = userConfig.roles.size == 1 && userConfig.roles.contains(AppRole.ADMIN)
 
