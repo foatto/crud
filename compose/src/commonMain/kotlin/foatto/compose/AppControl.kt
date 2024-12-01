@@ -263,7 +263,7 @@ class AppControl(
             ) {
 //                            if( appResponse.code == Code.LOGON_SUCCESS_BUT_OLD )
 //                                showWarning( "Система безопасности", "Срок действия пароля истек.\nПожалуйста, смените пароль." )
-                root.appUserConfig.value = logonResponse.appUserConfig!!
+                root.appUserConfig = logonResponse.appUserConfig!!
                 root.setMenuBarData(
                     alMenuData = logonResponse.alMenuData!!.map { menuDataServer ->
                         mapMenuData(menuDataServer)

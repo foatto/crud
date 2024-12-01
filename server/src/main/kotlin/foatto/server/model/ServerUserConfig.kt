@@ -1,6 +1,7 @@
 package foatto.server.model
 
 import foatto.core.model.AppUserConfig
+import foatto.server.AppRole
 import foatto.server.UserRelationEnum
 
 class ServerUserConfig(
@@ -15,6 +16,7 @@ class ServerUserConfig(
 ) {
     fun toAppUserConfig(): AppUserConfig = AppUserConfig(
         currentUserName = currentUserName,
+        isAdmin = roles.contains(AppRole.ADMIN),
         timeOffset = timeOffset,
         userProperties = userProperties,
     )

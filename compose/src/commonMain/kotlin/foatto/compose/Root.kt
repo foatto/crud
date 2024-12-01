@@ -76,9 +76,10 @@ open class Root {
     var scaleKoef: Float = 1.0f
         private set
 
-    val appUserConfig: MutableState<AppUserConfig> = mutableStateOf(
+    var appUserConfig: AppUserConfig by mutableStateOf(
         AppUserConfig(
             currentUserName = "",
+            isAdmin = false,
             timeOffset = 0,
             userProperties = mutableMapOf(),
         )
@@ -314,7 +315,7 @@ open class Root {
     fun setMenuBarData(alMenuData: List<MenuDataClient>, scaledScreenWidth: Int) {
         alMenuDataClient.clear()
         alMenuDataClient.addAll(alMenuData)
-        alMenuDataClient.add(getClientSubMenu(appUserConfig.value, scaledScreenWidth, scaleKoef))
+        alMenuDataClient.add(getClientSubMenu(appUserConfig, scaledScreenWidth, scaleKoef))
         isTabPanelVisible = true
     }
 

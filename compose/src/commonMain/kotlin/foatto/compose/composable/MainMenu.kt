@@ -106,11 +106,13 @@ internal fun getClientSubMenu(
     alClientSubMenu += MenuDataClient(caption = "Установить вкладку как стартовую", action = AppAction(ActionType.SET_START_MODULE))
     alClientSubMenu += MenuDataClient(caption = "Очистить установку стартовой", action = AppAction(ActionType.CLEAR_START_MODULE))
 
-    alClientSubMenu += MenuDataClient(caption = "")
+    if (appUserConfig.isAdmin) {
+        alClientSubMenu += MenuDataClient(caption = "")
 
-    alClientSubMenu += MenuDataClient(caption = "scaled screen width = $scaledScreenWidth")
-    alClientSubMenu += MenuDataClient(caption = "device pixel ratio = $scaleKoef")
+        alClientSubMenu += MenuDataClient(caption = "scaled screen width = $scaledScreenWidth")
+        alClientSubMenu += MenuDataClient(caption = "device pixel ratio = $scaleKoef")
 //    alClientSubMenu.add(MenuDataClient(url = "", text = "touch screen = ${getStyleIsTouchScreen()}"))
+    }
 
     return MenuDataClient(caption = "Дополнительно", alSubMenu = alClientSubMenu)
 }
