@@ -20,7 +20,7 @@ import androidx.compose.ui.platform.LocalDensity
 import foatto.compose.AppControl
 import foatto.compose.Root
 import foatto.compose.control.composable.composite.CompositeToolBar
-import foatto.compose.control.model.TitleData
+import foatto.core.model.response.TitleData
 import foatto.compose.control.model.composite.CompositeBlockControl
 import foatto.core.model.response.composite.CompositeResponse
 import kotlinx.coroutines.delay
@@ -130,7 +130,8 @@ class CompositeControl(
     }
 
     override suspend fun start() {
-        readHeader()
+        root.setTabInfo(tabId, compositeResponse.tabCaption)
+        headerData = compositeResponse.headerData
 
         blocks.clear()
         compositeResponse.blocks.forEach { blockControlData ->
@@ -167,17 +168,6 @@ class CompositeControl(
         /*
             !!! setInterval(10)
          */
-    }
-
-    private fun readHeader() {
-        root.setTabInfo(tabId, compositeResponse.tabCaption)
-
-        alTitleData.clear()
-        compositeResponse.headers.forEachIndexed { index, text ->
-            alTitleData.add(TitleData(null, text, compositeResponse.headers.size > 1 && index == 0))
-            //--- запомним последнюю кнопку заголовка в табличном режиме как кнопку отмены или возврата на уровень выше
-            //butTableCancel = button - not used yet
-        }
     }
 
     private suspend fun setInterval(sec: Int) {

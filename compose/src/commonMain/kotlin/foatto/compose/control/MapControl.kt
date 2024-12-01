@@ -21,7 +21,7 @@ import foatto.compose.AppControl
 import foatto.compose.Root
 import foatto.compose.control.composable.map.MapToolBar
 import foatto.compose.control.model.MouseRectData
-import foatto.compose.control.model.TitleData
+import foatto.core.model.response.TitleData
 import foatto.compose.control.model.map.DistancerLineData
 import foatto.compose.control.model.map.DistancerTextData
 import foatto.compose.control.model.map.MapWorkMode
@@ -244,7 +244,8 @@ class MapControl(
 //            }.values
 //        )
 
-        readHeader()
+        root.setTabInfo(tabId, mapResponse.tabCaption)
+        headerData = mapResponse.headerData
 
         startMapBody(
             startExpandKoef = MAP_START_EXPAND_KOEF,
@@ -253,17 +254,6 @@ class MapControl(
         )
 
         setMode(MapWorkMode.PAN)
-    }
-
-    private fun readHeader() {
-        root.setTabInfo(tabId, mapResponse.tabCaption)
-
-        alTitleData.clear()
-        mapResponse.headers.forEachIndexed { index, text ->
-            alTitleData.add(TitleData(null, text, mapResponse.headers.size > 1 && index == 0))
-            //--- запомним последнюю кнопку заголовка в табличном режиме как кнопку отмены или возврата на уровень выше
-            //butTableCancel = button - not used yet
-        }
     }
 
     @OptIn(DelicateCoroutinesApi::class)

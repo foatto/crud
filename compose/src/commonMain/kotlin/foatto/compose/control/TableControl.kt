@@ -34,7 +34,6 @@ import foatto.compose.composable.GenerateMenuBody
 import foatto.compose.composable.ImageOrTextFromNameControl
 import foatto.compose.control.composable.table.TableImageOrTextCell
 import foatto.compose.control.composable.table.TableToolBar
-import foatto.compose.control.model.TitleData
 import foatto.compose.control.model.table.AddActionButtonClient
 import foatto.compose.control.model.table.ClientActionButtonClient
 import foatto.compose.control.model.table.PageButton
@@ -568,7 +567,8 @@ class TableControl(
     }
 
     override suspend fun start() {
-        readHeader()
+        root.setTabInfo(tabId, tableResponse.tabCaption)
+        headerData = tableResponse.headerData
 
         findText = tableResponse.findText
 
@@ -592,20 +592,6 @@ class TableControl(
 //                }, 100)
 //            }
 //        }, 100)
-    }
-
-    private fun readHeader() {
-        root.setTabInfo(tabId, tableResponse.tabCaption)
-
-        alTitleData.clear()
-        if (tableAction.isSelectorMode) {
-            alTitleData.add(TitleData(null, "Выбор: ", true))
-        }
-        for ((action, text) in tableResponse.alHeader) {
-            alTitleData.add(TitleData(action, text, false))
-            //--- запомним последнюю кнопку заголовка в табличном режиме как кнопку отмены или возврата на уровень выше
-            //butTableCancel = button - not used yet
-        }
     }
 
     private fun readAddButtons() {

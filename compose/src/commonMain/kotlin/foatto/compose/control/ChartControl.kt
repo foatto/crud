@@ -32,7 +32,6 @@ import foatto.compose.colorMainBack0
 import foatto.compose.colorMainText
 import foatto.compose.control.composable.chart.ChartToolBar
 import foatto.compose.control.model.MouseRectData
-import foatto.compose.control.model.TitleData
 import foatto.compose.control.model.chart.*
 import foatto.compose.invokeRequest
 import foatto.core.ActionType
@@ -663,19 +662,9 @@ class ChartControl(
     }
 
     override suspend fun start() {
-        readHeader()
-        startChartBody()
-    }
-
-    private fun readHeader() {
         root.setTabInfo(tabId, chartResponse.tabCaption)
-
-        alTitleData.clear()
-        chartResponse.headers.forEachIndexed { index, text ->
-            alTitleData.add(TitleData(null, text, chartResponse.headers.size > 1 && index == 0))
-            //--- запомним последнюю кнопку заголовка в табличном режиме как кнопку отмены или возврата на уровень выше
-            //butTableCancel = button - not used yet
-        }
+        headerData = chartResponse.headerData
+        startChartBody()
     }
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -1126,7 +1115,7 @@ class ChartControl(
         alAxisLine: MutableList<ChartLineDrawData>,
         alAxisText: MutableList<ChartTextDrawData>
     ) {
-        val timeOffset = root.appUserConfig.value.timeOffset
+        val timeOffset = root.appUserConfig.timeOffset
 
         val timeWidth = t2 - t1
 
@@ -1441,7 +1430,7 @@ class ChartControl(
                     value = propertyValue,
                 )
             ) { _: SaveUserPropertyResponse ->
-                root.appUserConfig.value.userProperties[propertyName] = propertyValue
+                root.appUserConfig.userProperties[propertyName] = propertyValue
             }
         }
         chartRefreshView(null)
@@ -1610,7 +1599,7 @@ class ChartControl(
 
         timeLabelData.isVisible.value = true
         timeLabelData.x.value = x
-        timeLabelData.text.value = getDateTimeDMYHMSString(root.appUserConfig.value.timeOffset, cursorTime).replace(" ", "\n  ")
+        timeLabelData.text.value = getDateTimeDMYHMSString(root.appUserConfig.timeOffset, cursorTime).replace(" ", "\n  ")
     }
 
     //--- в double и обратно из-за ошибок округления

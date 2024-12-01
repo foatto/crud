@@ -6,7 +6,9 @@ import foatto.core.IconName
 import foatto.core.model.AppAction
 import foatto.core.model.request.FormActionData
 import foatto.core.model.response.FormActionResponse
+import foatto.core.model.response.HeaderData
 import foatto.core.model.response.ResponseCode
+import foatto.core.model.response.TitleData
 import foatto.core.model.response.form.FormButton
 import foatto.core.model.response.form.FormCellVisibility
 import foatto.core.model.response.form.FormDateTimeCellMode
@@ -75,21 +77,42 @@ class UserService(
         private const val FIELD_PARENT_FULL_NAME = "parentFullName"   // псевдополе для селектора
     }
 
-    override fun getTableHeader(action: AppAction, userConfig: ServerUserConfig, moduleConfig: AppModuleConfig): List<Pair<AppAction?, String>> {
-        val headers = mutableListOf<Pair<AppAction?, String>>()
+    override fun getTableHeaderData(
+        action: AppAction,
+        userConfig: ServerUserConfig,
+        moduleConfig: AppModuleConfig
+    ): HeaderData {
+        val titles = mutableListOf<TitleData>()
 
         var parentId = action.parentId
         while (parentId != null && parentId != 0) {
             userRepository.findByIdOrNull(parentId)?.let { userEntity ->
-                headers.add(0, action.copy(parentId = userEntity.id) to (userEntity.fullName ?: "(неизвестно)"))
+                titles.add(
+                    0,
+                    TitleData(
+                        action = action.copy(parentId = userEntity.id),
+                        text = userEntity.fullName ?: "(неизвестно)",
+                        isBold = false,
+                    )
+                )
                 parentId = userEntity.parentId
             } ?: run {
                 parentId = null
             }
         }
-        headers.add(0, action.copy(parentId = 0) to moduleConfig.caption)
+        titles.add(
+            0,
+            TitleData(
+                action = action.copy(parentId = 0),
+                text = moduleConfig.caption,
+                isBold = true,
+            )
+        )
 
-        return headers
+        return HeaderData(
+            titles = titles,
+            rows = emptyList(),
+        )
     }
 
     override fun getTableColumnCaptions(action: AppAction, userConfig: ServerUserConfig): List<Pair<AppAction, String>> {

@@ -36,7 +36,6 @@ import androidx.compose.ui.unit.toSize
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import foatto.compose.*
 import foatto.compose.composable.ImageOrTextFromNameControl
-import foatto.compose.control.model.TitleData
 import foatto.compose.control.model.form.FormButtonData
 import foatto.compose.control.model.form.FormCellCaptionInfo
 import foatto.compose.control.model.form.FormCellVisibleInfo
@@ -153,7 +152,7 @@ class FormControl(
 
         timePickerData?.let { dateTimeData ->
             val localDateTime = getLocalDateTime(
-                timeOffset = root.appUserConfig.value.timeOffset,
+                timeOffset = root.appUserConfig.timeOffset,
                 seconds = dateTimeData.current.value ?: Clock.System.now().epochSeconds.toInt()
             )
 
@@ -179,7 +178,7 @@ class FormControl(
                                 hour = timePickerState.hour,
                                 minute = timePickerState.minute,
                                 second = 0
-                            ).toInstant(getTimeZone(root.appUserConfig.value.timeOffset)).epochSeconds.toInt()
+                            ).toInstant(getTimeZone(root.appUserConfig.timeOffset)).epochSeconds.toInt()
                             timePickerData = null
                         }
                     ) {
@@ -406,7 +405,7 @@ class FormControl(
                                         is FormDateTimeCellClient -> {
                                             val (dateString, timeString) = gridData.current.value?.let { curDateTimeValue ->
                                                 val dateTimeString = getDateTimeDMYHMSString(
-                                                    root.appUserConfig.value.timeOffset,
+                                                    root.appUserConfig.timeOffset,
                                                     curDateTimeValue,
                                                 )
                                                 when (gridData.data.mode) {
@@ -805,19 +804,14 @@ class FormControl(
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     override suspend fun start() {
-        readHeader()
+        root.setTabInfo(tabId, formResponse.tabCaption)
+        headerData = formResponse.headerData
+
         if (formResponse.alFormColumn.isEmpty()) {
             readClassicForm()
         } else {
             readGridForm()
         }
-    }
-
-    private fun readHeader() {
-        root.setTabInfo(tabId, formResponse.tabCaption)
-
-        alTitleData.clear()
-        alTitleData.add(TitleData(null, formResponse.header, false))
     }
 
     private fun readClassicForm() {

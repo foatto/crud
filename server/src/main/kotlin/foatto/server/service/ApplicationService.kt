@@ -7,8 +7,10 @@ import foatto.core.model.AppAction
 import foatto.core.model.request.FormActionData
 import foatto.core.model.response.AppResponse
 import foatto.core.model.response.FormActionResponse
+import foatto.core.model.response.HeaderData
 import foatto.core.model.response.ResponseCode
 import foatto.core.model.response.ServerActionButton
+import foatto.core.model.response.TitleData
 import foatto.core.model.response.form.FormButton
 import foatto.core.model.response.form.FormButtonKey
 import foatto.core.model.response.form.FormResponse
@@ -177,7 +179,7 @@ abstract class ApplicationService {
             responseCode = ResponseCode.MODULE_TABLE,
             table = TableResponse(
                 tabCaption = tableCaption,
-                alHeader = getTableHeader(
+                headerData = getTableHeaderData(
                     action = action,
                     userConfig = userConfig,
                     moduleConfig = moduleConfig,
@@ -210,11 +212,24 @@ abstract class ApplicationService {
         )
     }
 
-    protected open fun getTableHeader(
+    protected open fun getTableHeaderData(
         action: AppAction,
         userConfig: ServerUserConfig,
         moduleConfig: AppModuleConfig,
-    ): List<Pair<AppAction?, String>> = listOf(null to moduleConfig.caption)
+    ): HeaderData = HeaderData(
+        titles = listOf(
+            TitleData(
+                action = null,
+                text = if (action.isSelectorMode) {
+                    "Выбор: "
+                } else {
+                    ""
+                } + moduleConfig.caption,
+                isBold = true,
+            ),
+        ),
+        rows = emptyList()
+    )
 
     protected open fun getTableServerActionButtons(): List<ServerActionButton> = emptyList()
 
@@ -373,8 +388,6 @@ abstract class ApplicationService {
         userConfig: ServerUserConfig,
         moduleConfig: AppModuleConfig,
     ): AppResponse {
-        val formCaption = moduleConfig.caption
-
         val (addEnabled, editEnabled, deleteEnabled) = getFormActionPermissions(
             action = action,
             userConfig = userConfig,
@@ -401,8 +414,12 @@ abstract class ApplicationService {
             responseCode = ResponseCode.MODULE_FORM,
             form = FormResponse(
                 id = action.id,
-                tabCaption = formCaption,
-                header = formCaption,
+                tabCaption = moduleConfig.caption,
+                headerData = getFormHeaderData(
+                    action = action,
+                    userConfig = userConfig,
+                    moduleConfig = moduleConfig
+                ),
                 alFormColumn = emptyList(),
                 alFormCell = alFormCell,
                 alFormButton = alFormButton,
@@ -410,6 +427,21 @@ abstract class ApplicationService {
             )
         )
     }
+
+    protected open fun getFormHeaderData(
+        action: AppAction,
+        userConfig: ServerUserConfig,
+        moduleConfig: AppModuleConfig,
+    ): HeaderData = HeaderData(
+        titles = listOf(
+            TitleData(
+                action = null,
+                text = moduleConfig.caption,
+                isBold = true,
+            ),
+        ),
+        rows = emptyList()
+    )
 
     protected abstract fun getFormCells(
         action: AppAction,

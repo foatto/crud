@@ -20,7 +20,6 @@ import androidx.compose.ui.platform.LocalDensity
 import foatto.compose.AppControl
 import foatto.compose.Root
 import foatto.compose.control.composable.scheme.SchemeToolBar
-import foatto.compose.control.model.TitleData
 import foatto.compose.control.model.scheme.ElementMoveData
 import foatto.compose.control.model.table.ServerActionButtonClient
 import foatto.compose.invokeRequest
@@ -132,6 +131,9 @@ class SchemeControl(
     }
 
     override suspend fun start() {
+        root.setTabInfo(tabId, schemeResponse.tabCaption)
+        headerData = schemeResponse.headerData
+
         alServerButton.clear()
         schemeResponse.alServerActionButton?.let { alServerActionButton ->
             for (sab in alServerActionButton) {
@@ -139,24 +141,11 @@ class SchemeControl(
             }
         }
 
-        readHeader()
-
         startSchemeBody(
             startExpandKoef = SCHEME_START_EXPAND_KOEF,
             isCentered = true,
             curScale = 1,
         )
-    }
-
-    private fun readHeader() {
-        root.setTabInfo(tabId, schemeResponse.tabCaption)
-
-        alTitleData.clear()
-        schemeResponse.headers.forEachIndexed { index, text ->
-            alTitleData.add(TitleData(null, text, schemeResponse.headers.size > 1 && index == 0))
-            //--- запомним последнюю кнопку заголовка в табличном режиме как кнопку отмены или возврата на уровень выше
-            //butTableCancel = button - not used yet
-        }
     }
 
     @OptIn(DelicateCoroutinesApi::class)

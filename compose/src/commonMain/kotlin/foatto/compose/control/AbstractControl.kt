@@ -2,12 +2,15 @@ package foatto.compose.control
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
@@ -29,8 +32,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import foatto.compose.colorHeader
-import foatto.compose.control.model.TitleData
 import foatto.core.model.AppAction
+import foatto.core.model.response.HeaderData
 import kotlin.math.max
 
 abstract class AbstractControl(
@@ -41,7 +44,7 @@ abstract class AbstractControl(
         const val MIN_USER_RECT_SIZE: Float = 8.0f
     }
 
-    protected val alTitleData: SnapshotStateList<TitleData> = mutableStateListOf()
+    protected var headerData by mutableStateOf<HeaderData?>(null)
 
     @Composable
     abstract fun Body()
@@ -52,10 +55,11 @@ abstract class AbstractControl(
     protected fun getHeader(
         call: (action: AppAction) -> Unit = {},
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().background(colorHeader),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
+        headerData?.let { headerData ->
+            Row(
+                modifier = Modifier.fillMaxWidth().background(colorHeader),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
 //                    borderTop(
 //                        width = if (!styleIsNarrowScreen) 0.px else 1.px,
 //                        lineStyle = LineStyle.Solid,
@@ -64,27 +68,47 @@ abstract class AbstractControl(
 //                    if (withBottomBorder) {
 //                        borderBottom(width = 1.px, lineStyle = LineStyle.Solid, color = colorMainBorder)
 //                    }
-        ) {
-            for (titleData in alTitleData) {
-                titleData.action?.let { action ->
-                    Button(
-                        onClick = {
-                            call(action)
-                        },
+            ) {
+                for (titleData in headerData.titles) {
+                    titleData.action?.let { action ->
+                        Button(
+                            onClick = {
+                                call(action)
+                            },
 //                                backgroundColor(getColorButtonBack())
 //                                setBorder(color = getColorButtonBorder(), radius = styleButtonBorderRadius)
-                    ) {
-                        Text(titleData.text)
+                        ) {
+                            Text(titleData.text)
+                        }
+                    } ?: run {
+                        Text(
+                            text = titleData.text,
+                            fontWeight = if (titleData.isBold) {
+                                FontWeight.Bold
+                            } else {
+                                FontWeight.Normal
+                            },
+                        )
                     }
-                } ?: run {
-                    Text(
-                        text = titleData.text,
-                        fontWeight = if (titleData.isBold) {
-                            FontWeight.Bold
-                        } else {
-                            FontWeight.Normal
-                        },
-                    )
+                }
+            }
+            headerData.rows.forEach { (label, value) ->
+                Row(
+                    modifier = Modifier.fillMaxWidth().background(colorHeader),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1.0f)
+                    ) {
+                        Text(modifier = Modifier.align(Alignment.End), text = label)
+                    }
+                    Text(text = " : ")
+                    Column(
+                        modifier = Modifier.weight(1.0f)
+                    ) {
+                        Text(modifier = Modifier.align(Alignment.Start), text = value)
+                    }
                 }
             }
         }

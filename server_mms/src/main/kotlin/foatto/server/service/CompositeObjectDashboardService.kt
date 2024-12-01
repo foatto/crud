@@ -3,7 +3,9 @@ package foatto.server.service
 import foatto.core.ActionType
 import foatto.core.model.AppAction
 import foatto.core.model.response.AppResponse
+import foatto.core.model.response.HeaderData
 import foatto.core.model.response.ResponseCode
+import foatto.core.model.response.TitleData
 import foatto.core.model.response.composite.CompositeBlock
 import foatto.core.model.response.composite.CompositeResponse
 import foatto.core.model.response.xy.scheme.SchemeResponse
@@ -37,17 +39,14 @@ class CompositeObjectDashboardService(
         if (!checkAccessPermission(actionModule, userConfig.roles)) {
             return AppResponse(ResponseCode.LOGON_NEED)
         }
-
         val moduleConfig = appModuleConfigs[actionModule] ?: return AppResponse(ResponseCode.LOGON_NEED)
-
-        val caption = moduleConfig.caption
-
         val objectEntity = objectRepository.findByIdOrNull(action.id) ?: return AppResponse(ResponseCode.LOGON_NEED)
 
-        val headers = mutableListOf("$caption: ", "${objectEntity.name}")
-        if (!objectEntity.model.isNullOrBlank()) {
-            headers += ", ${objectEntity.model}"
-        }
+        val caption = moduleConfig.caption
+        val rows = listOf(
+            "Наименование объекта" to (objectEntity.name ?: "-"),
+            "Модель" to (objectEntity.model ?: "-"),
+        )
 
         val analogueSensorEntities = mutableListOf<SensorEntity>()
         //--- пока просто подряд, по порядку перечисления в SensorConfig
@@ -97,7 +96,10 @@ class CompositeObjectDashboardService(
                 schemeResponse = SchemeResponse(
                     elementConfigs = SchemeAnalogueIndicatorStateService.elementConfigs,
                     tabCaption = "",
-                    headers = emptyList(),
+                    headerData = HeaderData(
+                        titles = emptyList(),
+                        rows = emptyList(),
+                    ),
                 ),
             )
 
@@ -112,7 +114,16 @@ class CompositeObjectDashboardService(
             responseCode = ResponseCode.MODULE_COMPOSITE,
             composite = CompositeResponse(
                 tabCaption = caption,
-                headers = headers,
+                headerData = HeaderData(
+                    titles = listOf(
+                        TitleData(
+                            action = null,
+                            text = caption,
+                            isBold = true,
+                        )
+                    ),
+                    rows = rows,
+                ),
                 cols = blockOnRow,
                 rows = blockRows,
                 blocks = blocks,

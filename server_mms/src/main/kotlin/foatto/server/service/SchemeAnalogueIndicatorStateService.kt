@@ -5,8 +5,10 @@ import foatto.core.model.AppAction
 import foatto.core.model.model.xy.XyElement
 import foatto.core.model.request.SchemeActionRequest
 import foatto.core.model.response.AppResponse
+import foatto.core.model.response.HeaderData
 import foatto.core.model.response.ResponseCode
 import foatto.core.model.response.SchemeActionResponse
+import foatto.core.model.response.TitleData
 import foatto.core.model.response.xy.XyElementClientType
 import foatto.core.model.response.xy.XyElementConfig
 import foatto.core.model.response.xy.geom.XyPoint
@@ -140,25 +142,30 @@ class SchemeAnalogueIndicatorStateService(
         if (!checkAccessPermission(actionModule, userConfig.roles)) {
             return AppResponse(ResponseCode.LOGON_NEED)
         }
-
         val moduleConfig = appModuleConfigs[actionModule] ?: return AppResponse(ResponseCode.LOGON_NEED)
+        val objectEntity = objectRepository.findByIdOrNull(action.id) ?: return AppResponse(ResponseCode.LOGON_NEED)
 
         val caption = moduleConfig.caption
-
-        val headers = mutableListOf(caption)
-        objectRepository.findByIdOrNull(action.id)?.let { objectEntity ->
-            headers += "\n${objectEntity.name}"
-            if (!objectEntity.model.isNullOrBlank()) {
-                headers += ", ${objectEntity.model}"
-            }
-        }
+        val rows = listOf(
+            "Наименование объекта" to (objectEntity.name ?: "-"),
+            "Модель" to (objectEntity.model ?: "-"),
+        )
 
         return AppResponse(
             responseCode = ResponseCode.MODULE_SCHEME,
             scheme = SchemeResponse(
                 elementConfigs = elementConfigs,
                 tabCaption = caption,
-                headers = headers,
+                headerData = HeaderData(
+                    titles = listOf(
+                        TitleData(
+                            action = null,
+                            text = caption,
+                            isBold = true,
+                        )
+                    ),
+                    rows = rows,
+                ),
             )
         )
     }
