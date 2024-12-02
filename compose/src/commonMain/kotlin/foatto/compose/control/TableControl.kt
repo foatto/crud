@@ -2,6 +2,7 @@ package foatto.compose.control
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
@@ -22,6 +23,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Fill
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.isSecondaryPressed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -262,19 +265,15 @@ class TableControl(
                                         )
                                         .border(BorderStroke(width = 0.1.dp, color = colorTableCellBorder))
                                         //.wrapContentSize(align = Alignment.Center, unbounded = true)  //- ничем не помогает
-//!!! ждём, когда завезут onPointerEvent (кнопки мыши) на мультиплатформу
-//                                    .onPointerEvent(
-//                                      eventType = PointerEventType.Press,
-//                                      pass = PointerEventPass.Initial,
-//                                      onEvent = { event ->
-//                                        t = event.button?.index?.toString() ?: "null"
-//                                      }
-//                                    )
-//                                    .pointerInput(Unit) {
-//                                        awaitPointerEventScope {
-//                                            println("Mouse Right 1 = ${currentEvent.buttons.isSecondaryPressed}")
-//                                        }
-//                                    }
+                                        //--- Непрямой метод поймать правую кнопку мыши. Ждём, когда завезут официальную реакцию на правую мышь.
+                                        .pointerInput(Unit) {
+                                            awaitEachGesture {
+                                                val event = awaitPointerEvent(PointerEventPass.Main)
+                                                if (event.buttons.isSecondaryPressed) {
+                                                    showPopupMenu(gridData)
+                                                }
+                                            }
+                                        }
                                         .combinedClickable(
                                             onDoubleClick = {
                                                 gridData?.dataRow?.let { dataRow ->
