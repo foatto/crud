@@ -30,7 +30,7 @@ abstract class TSHandler : AbstractTelematicNioHandler() {
 
             columnDeviceType.addChoice(DEVICE_TYPE_UDS, "УДС-Техно 110")
             columnDeviceType.addChoice(DEVICE_TYPE_UDS_OLD, "УДС-Техно 101")
-            columnDeviceType.addChoice(DEVICE_TYPE_SKK, "СКК")
+            columnDeviceType.addChoice(DEVICE_TYPE_SKK, "СКК-Техно 311")
         }
 
     }

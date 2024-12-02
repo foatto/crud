@@ -7,6 +7,8 @@ val kotlinJvmTarget: String by project
 plugins {
     kotlin("jvm")
 
+    kotlin("plugin.serialization")
+
     kotlin("plugin.spring")
     kotlin("plugin.jpa")
 

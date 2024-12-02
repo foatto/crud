@@ -9,13 +9,20 @@ import foatto.core.link.AppResponse
 import foatto.core.link.MenuData
 import foatto.core_server.app.server.AliasConfig
 import foatto.core_server.app.server.UserConfig
+import foatto.core_server.app.server.UserRelation
+import foatto.spring.CoreSpringApp
 import foatto.spring.controllers.CoreAppController
 import foatto.spring.services.UserService
+import foatto.sql.AdvancedConnection
 import foatto.sql.CoreAdvancedConnection
 import foatto.ts.core_ts.ObjectConfig
+import foatto.ts.core_ts.ds.TSHandler
 import foatto.ts.iTSApplication
+import foatto.ts.spring.models.DevicesRequest
+import foatto.ts.spring.models.DevicesResponse
 import foatto.ts.spring.services.ObjectService
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
@@ -182,4 +189,141 @@ class TSAppController(
             userConfig = userConfig,
             objectId = objectId,
         )
+
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    companion object {
+        private const val URL_API_BASE = "api"
+        private const val URL_API_VERSION = "v1"
+
+        private const val URL_DEVICES = "devices"
+
+        private val requestTypeToDeviceType = mapOf(
+            "uds110" to TSHandler.DEVICE_TYPE_UDS,
+            "uds101" to TSHandler.DEVICE_TYPE_UDS_OLD,
+            "skk311" to TSHandler.DEVICE_TYPE_SKK,
+        )
+    }
+
+    @PostMapping(value = ["/$URL_API_BASE/$URL_API_VERSION/$URL_DEVICES"])
+    @Transactional
+    fun devices(
+        @RequestBody
+        request: DevicesRequest,
+    ): List<DevicesResponse> {
+
+        val devices = mutableMapOf<Int, DevicesResponse>()
+
+        val conn = AdvancedConnection(CoreSpringApp.dbConfig)
+
+        val tokens = request.token.split(" ")
+        val (login, password) = tokens.firstOrNull() to tokens.lastOrNull()
+        val rsUsers = conn.executeQuery(
+            """
+                SELECT id
+                FROM SYSTEM_users
+                WHERE login = '$login'
+                AND pwd = '$password'
+            """
+        )
+        val userId = if (rsUsers.next()) {
+            rsUsers.getInt(1)
+        } else {
+            0
+        }
+        rsUsers.close()
+
+        if (userId != 0) {
+            val userConfig = getUserConfig(conn, userId)
+            val objectPermissions = userConfig.userPermission["ts_object"] ?: emptySet()
+
+            val deviceIds = mutableListOf<Int>()
+            val deviceTypes = mutableListOf<Int>()
+            val userIds = mutableListOf<Int>()
+            val userNames = mutableListOf<String>()
+
+            val rsDevices = conn.executeQuery(
+                """
+                    SELECT TS_device.id, TS_device.type, TS_object.user_id, SYSTEM_users.full_name  
+                    FROM TS_device, TS_object, SYSTEM_users
+                    WHERE TS_device.object_id = TS_object.id
+                    AND TS_object.user_id = SYSTEM_users.id  
+                """ +
+                    (
+                        request.companyId?.let { companyId ->
+                            """
+                                AND SYSTEM_users.id = $companyId  
+                            """
+                        } ?: ""
+                        ) +
+                    (
+                        request.type?.let { type ->
+                            """
+                                AND TS_device.type = ${requestTypeToDeviceType[type] ?: 0}  
+                            """
+                        } ?: ""
+                        )
+            )
+            while (rsDevices.next()) {
+                var pos = 1
+
+                deviceIds += rsDevices.getInt(pos++)
+                deviceTypes += rsDevices.getInt(pos++)
+                userIds += rsDevices.getInt(pos++)
+                userNames += rsDevices.getString(pos++)
+            }
+            rsDevices.close()
+            /*
+    device_index        INT NOT NULL,
+    serial_no           VARCHAR(250),
+    cell_num            VARCHAR(250),
+    fw_version          VARCHAR(250),
+    imei                VARCHAR(250),
+             */
+
+            userIds.forEachIndexed { index, rowUserId ->
+                if (checkPerm(userConfig, objectPermissions, rowUserId)) {
+                    val deviceId = deviceIds[index]
+                    val deviceType = deviceTypes[index]
+                    val userName = userNames[index]
+
+                    val devicesResponse = devices.getOrPut(rowUserId) {
+                        DevicesResponse(
+                            companyId = rowUserId,
+                            companyName = userName,
+                            uds110 = mutableListOf(),
+                            uds101 = mutableListOf(),
+                            skk311 = mutableListOf(),
+                        )
+                    }
+                    when (deviceType) {
+                        TSHandler.DEVICE_TYPE_UDS -> devicesResponse.uds110 += deviceIds[index]
+                        TSHandler.DEVICE_TYPE_UDS_OLD -> devicesResponse.uds101 += deviceIds[index]
+                        TSHandler.DEVICE_TYPE_SKK -> devicesResponse.skk311 += deviceIds[index]
+                    }
+                }
+            }
+        }
+
+        conn.commit()
+        conn.close()
+
+        return devices.values.toList()
+    }
+
+    private fun checkPerm(userConfig: UserConfig, hsPermission: Set<String>, userId: Int): Boolean {
+        for ((relName, _) in UserRelation.arrNameDescr) {
+            if (userConfig.getUserIDList(relName).contains(userId)) {
+                return hsPermission.contains("table_$relName")
+            }
+        }
+        return hsPermission.contains("table_${UserRelation.OTHER}")
+    }
+
+    /*
+checkPerm(PERM_TABLE, recordUserID)
+
+
+ */
+
 }
