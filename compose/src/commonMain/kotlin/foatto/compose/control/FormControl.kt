@@ -1415,7 +1415,9 @@ class FormControl(
                 }
 
                 else -> {   // и в т.ч. ResponseCode.OK
-                    formActionResponse.nextAction?.let { nextAction ->
+                    formActionResponse.newTabAction?.let { newTabAction ->
+                        root.openTab(newTabAction)
+                    } ?: formActionResponse.nextAction?.let { nextAction ->
                         appControl.call(AppRequest(nextAction))
                     } ?: formResponse.prevAction?.let { prevAction ->
                         appControl.call(AppRequest(prevAction))

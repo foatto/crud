@@ -7,5 +7,6 @@ import kotlinx.serialization.Serializable
 class FormActionResponse(
     override val responseCode: ResponseCode,
     val errors: Map<String, String>? = null,
+    val newTabAction: AppAction? = null,
     val nextAction: AppAction? = null,
 ) : BaseResponse()
