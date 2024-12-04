@@ -202,6 +202,11 @@ class SensorEntity(
 
     @Column(name = "scheme_y")
     val schemeY: Int?,
+
+    //!!! для совместимости со старой версией
+    @Column(name = "smooth_method")
+    val smoothMethod: Int?,
+
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

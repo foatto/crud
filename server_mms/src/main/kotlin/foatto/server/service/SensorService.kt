@@ -1118,7 +1118,7 @@ class SensorService(
         val sensorEntity = SensorEntity(
             id = recordId,
             obj = parentObjectEntity,
-            name = null,
+            name = "",
             group = formActionData[FIELD_GROUP]?.stringValue ?: "",
             descr = descr,
             portNum = portNum,
@@ -1141,10 +1141,11 @@ class SensorService(
             boundValue = formActionData[FIELD_BOUND_VALUE]?.stringValue?.toIntOrNull() ?: 0,
             activeValue = formActionData[FIELD_ACTIVE_VALUE]?.stringValue?.toIntOrNull() ?: 1,
             begWorkValue = formActionData[FIELD_BEG_WORK_VALUE]?.stringValue?.toDoubleOrNull() ?: 0.0,
-            cmdOnId = null,
-            cmdOffId = null,
-            signalOn = null,
-            signalOff = null,
+            //!!! для совместимости со старой версией
+            cmdOnId = 0,
+            cmdOffId = 0,
+            signalOn = "",
+            signalOff = "",
             minOnTime = formActionData[FIELD_MIN_ON_TIME]?.stringValue?.toIntOrNull() ?: 1,
             minOffTime = formActionData[FIELD_MIN_OFF_TIME]?.stringValue?.toIntOrNull() ?: 1,
             smoothTime = formActionData[FIELD_SMOOTH_TIME]?.stringValue?.toIntOrNull() ?: 0,
@@ -1176,6 +1177,8 @@ class SensorService(
             decAddTimeAfter = formActionData[FIELD_DEC_ADD_TIME_AFTER]?.stringValue?.toIntOrNull() ?: 0,
             schemeX = formActionData[FIELD_SCHEME_X]?.stringValue?.toIntOrNull() ?: 0,
             schemeY = formActionData[FIELD_SCHEME_Y]?.stringValue?.toIntOrNull() ?: 0,
+            //!!! для совместимости со старой версией
+            smoothMethod = 0,
         )
         sensorRepository.saveAndFlush(sensorEntity)
 
