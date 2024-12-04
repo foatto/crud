@@ -33,7 +33,7 @@ class ObjectDataService(
 
     companion object {
         //!!! попробовать увеличить в compose 1.8.x
-        private const val PAGE_SIZE_IN_SEC = 300    // 900    // 3600  // 10_800 // 21_600 // 43_200 // 86_400
+        private const val PAGE_SIZE_IN_SEC = 900    // 3600  // 10_800 // 21_600 // 43_200 // 86_400
     }
 
     override fun getTableColumnCaptions(action: AppAction, userConfig: ServerUserConfig): List<Pair<AppAction, String>> {
