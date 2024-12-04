@@ -78,8 +78,6 @@ class DepartmentService(
         val departmentEntities = page.content
 
         for (departmentEntity in departmentEntities) {
-            var col = 0
-
             val rowOwnerShortName = userConfig.shortNames[departmentEntity.userId]
             val rowOwnerFullName = userConfig.fullNames[departmentEntity.userId]
 
@@ -97,6 +95,8 @@ class DepartmentService(
                     FIELD_NAME to (departmentEntity.name ?: "(неизвестно)"),
                 ),
             )
+
+            var col = 0
 
             if (action.isSelectorMode) {
                 alTableCell += getTableSelectorButtonCell(row = row, col = col++, selectorAction = selectorAction)
@@ -136,13 +136,7 @@ class DepartmentService(
                     null
                 },
                 rowAction = if (action.isSelectorMode) {
-                    AppAction(
-                        type = ActionType.FORM_SELECTOR,
-                        selectorData = mapOf(
-                            FIELD_ID to departmentEntity.id.toString(),
-                            FIELD_NAME to (departmentEntity.name ?: "(неизвестно)"),
-                        ),
-                    )
+                    selectorAction
                 } else if (isFormEnabled) {
                     formAction
                 } else {

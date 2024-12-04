@@ -20,7 +20,6 @@ import androidx.compose.ui.platform.LocalDensity
 import foatto.compose.AppControl
 import foatto.compose.Root
 import foatto.compose.control.composable.composite.CompositeToolBar
-import foatto.core.model.response.TitleData
 import foatto.compose.control.model.composite.CompositeBlockControl
 import foatto.core.model.response.composite.CompositeResponse
 import kotlinx.coroutines.delay

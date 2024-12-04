@@ -205,7 +205,7 @@ class TSAppController(
         )
     }
 
-    @PostMapping(value = ["/$URL_API_BASE/$URL_API_VERSION/$URL_DEVICES"])
+    @PostMapping(value = ["/$URL_API_BASE/$URL_DEVICES/$URL_API_VERSION"])
     @Transactional
     fun devices(
         @RequestBody
