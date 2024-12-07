@@ -129,7 +129,8 @@ class LogonService(
         hsOtherUsers -= userId
 
         //--- userId коллег одного уровня в одном подразделении
-        val hsEqualUserIds = loadUserIds(parentId, orgType)
+        val hsEqualUserIds = loadUserIds(parentId, orgType).toMutableSet()
+        hsEqualUserIds.remove(userId)
         fillUserRelations(hsEqualUserIds, UserRelationEnum.EQUAL, relatedUserIds)
         hsOtherUsers -= hsEqualUserIds
 

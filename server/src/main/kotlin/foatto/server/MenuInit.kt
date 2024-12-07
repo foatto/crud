@@ -41,7 +41,6 @@ fun addMenuItem(module: String, actionType: String, serverUserConfig: ServerUser
                     module = module,
                 ),
             )
-            return
         }
     }
 }

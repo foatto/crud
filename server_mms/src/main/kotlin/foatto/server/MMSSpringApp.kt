@@ -304,7 +304,7 @@ class MMSSpringApp : SpringApp() {
 
                 addMenuItem(AppModule.USER, ActionType.MODULE_TABLE, serverUserConfig, this)
 
-                if (size > 1) {
+                if (size > 0) {
                     alMenu += MenuData("Система", null, this)
                 }
             }

@@ -277,11 +277,12 @@ abstract class ApplicationService {
         return PageRequest.of(action.pageNo, pageSize, sort)
     }
 
-    protected fun getEnabledUserIds(action: AppAction, userConfig: ServerUserConfig): List<Int> = userConfig.relatedUserIds.filterValues { userRelation ->
-        checkRowPermission(action.module, action.type, userRelation, userConfig.roles)
-    }.map { (userId, _) ->
-        userId
-    }
+    protected fun getEnabledUserIds(action: AppAction, userConfig: ServerUserConfig): List<Int> =
+        userConfig.relatedUserIds.filterValues { userRelation ->
+            checkRowPermission(action.module, action.type, userRelation, userConfig.roles)
+        }.map { (userId, _) ->
+            userId
+        }
 
     protected fun getTableSelectorButtonCell(row: Int, col: Int, selectorAction: AppAction): TableBaseCell = TableButtonCell(
         row = row,
@@ -456,6 +457,7 @@ abstract class ApplicationService {
         fieldOwnerFullName: String,
         userId: Int?,
         userConfig: ServerUserConfig,
+        changeEnabled: Boolean,
         formCells: MutableList<FormBaseCell>,
     ) {
         formCells += FormSimpleCell(
@@ -473,19 +475,23 @@ abstract class ApplicationService {
             } else {
                 userConfig.fullNames[userId] ?: "(неизвестно)"
             },
-            selectorAction = AppAction(
-                type = ActionType.MODULE_TABLE,
-                module = AppModule.USER,
-                isSelectorMode = true,
-                selectorPath = mapOf(
-                    UserService.FIELD_ID to fieldUserId,
-                    UserService.FIELD_FULL_NAME to fieldOwnerFullName,
-                ),
-                selectorClear = mapOf(
-                    fieldUserId to "0",
-                    fieldOwnerFullName to "",
-                ),
-            ),
+            selectorAction = if (changeEnabled) {
+                AppAction(
+                    type = ActionType.MODULE_TABLE,
+                    module = AppModule.USER,
+                    isSelectorMode = true,
+                    selectorPath = mapOf(
+                        UserService.FIELD_ID to fieldUserId,
+                        UserService.FIELD_FULL_NAME to fieldOwnerFullName,
+                    ),
+                    selectorClear = mapOf(
+                        fieldUserId to "0",
+                        fieldOwnerFullName to "",
+                    ),
+                )
+            } else {
+                null
+            },
         )
     }
 
