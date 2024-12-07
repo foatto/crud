@@ -190,6 +190,7 @@ class GroupService(
             fieldOwnerFullName = FIELD_OWNER_FULL_NAME,
             userId = userId,
             userConfig = userConfig,
+            changeEnabled = changeEnabled,
             formCells = formCells,
         )
         formCells += FormSimpleCell(

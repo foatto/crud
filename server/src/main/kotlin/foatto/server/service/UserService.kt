@@ -350,25 +350,30 @@ class UserService(
             } else {
                 userConfig.fullNames[parentId] ?: "(неизвестно)"
             },
-            selectorAction = AppAction(
-                type = ActionType.MODULE_TABLE,
-                module = AppModule.USER,
-                isSelectorMode = true,
-                selectorPath = mapOf(
-                    FIELD_ID to FIELD_PARENT_ID,
-                    FIELD_FULL_NAME to FIELD_PARENT_FULL_NAME,
-                ),
-                selectorClear = mapOf(
-                    FIELD_PARENT_ID to "0",
-                    FIELD_PARENT_FULL_NAME to "",
-                ),
-            ),
+            selectorAction = if (changeEnabled) {
+                AppAction(
+                    type = ActionType.MODULE_TABLE,
+                    module = AppModule.USER,
+                    isSelectorMode = true,
+                    selectorPath = mapOf(
+                        FIELD_ID to FIELD_PARENT_ID,
+                        FIELD_FULL_NAME to FIELD_PARENT_FULL_NAME,
+                    ),
+                    selectorClear = mapOf(
+                        FIELD_PARENT_ID to "0",
+                        FIELD_PARENT_FULL_NAME to "",
+                    ),
+                )
+            } else {
+                null
+            },
         )
         fillFormUserCells(
             fieldUserId = FIELD_USER_ID,
             fieldOwnerFullName = FIELD_OWNER_FULL_NAME,
             userId = userId,
             userConfig = userConfig,
+            changeEnabled = changeEnabled,
             formCells = formCells,
         )
         formCells += FormComboCell(
@@ -467,7 +472,14 @@ class UserService(
             isEditable = false,
             mode = FormDateTimeCellMode.DMYHMS,
             value = userEntity?.lastLoginDateTime?.let { dt ->
-                LocalDateTime(dt.ye ?: 2000, dt.mo ?: 1, dt.da ?: 1, dt.ho ?: 0, dt.mi ?: 0, dt.se ?: 0).toInstant(getTimeZone(userConfig.timeOffset)).epochSeconds.toInt()
+                LocalDateTime(
+                    year = dt.ye ?: 2000,
+                    monthNumber = dt.mo ?: 1,
+                    dayOfMonth = dt.da ?: 1,
+                    hour = dt.ho ?: 0,
+                    minute = dt.mi ?: 0,
+                    second = dt.se ?: 0
+                ).toInstant(getTimeZone(userConfig.timeOffset)).epochSeconds.toInt()
             },
             visibility = nonVisibleForDivision,
         )
@@ -484,7 +496,14 @@ class UserService(
             isEditable = false,
             mode = FormDateTimeCellMode.DMY,
             value = userEntity?.passwordLastChangeDate?.let { dt ->
-                LocalDateTime(dt.ye ?: 2000, dt.mo ?: 1, dt.da ?: 1, 0, 0, 0).toInstant(getTimeZone(userConfig.timeOffset)).epochSeconds.toInt()
+                LocalDateTime(
+                    year = dt.ye ?: 2000,
+                    monthNumber = dt.mo ?: 1,
+                    dayOfMonth = dt.da ?: 1,
+                    hour = 0,
+                    minute = 0,
+                    second = 0
+                ).toInstant(getTimeZone(userConfig.timeOffset)).epochSeconds.toInt()
             },
             visibility = nonVisibleForDivision,
         )
@@ -584,9 +603,9 @@ class UserService(
             ),
             lastIP = formActionData[FIELD_LAST_IP]?.stringValue,
             passwordLastChangeDate = DateEntity(
-                ye = passwordLastChangeDate[1],
-                mo = passwordLastChangeDate[2],
-                da = passwordLastChangeDate[3],
+                ye = passwordLastChangeDate[0],
+                mo = passwordLastChangeDate[1],
+                da = passwordLastChangeDate[2],
             ),
         )
         userRepository.saveAndFlush(userEntity)

@@ -265,44 +265,45 @@ class ObjectService(
             )
         }
 
-        if (checkAccessPermission(AppModuleMMS.CHART_LIQUID_LEVEL, userConfig.roles)) {
-            alPopupData += TablePopupData(
-                group = "Графики",
-                action = AppAction(
-                    type = ActionType.MODULE_CHART,
-                    module = AppModuleMMS.CHART_LIQUID_LEVEL,
-                    id = id,
-                    timeRangeType = 24 * 60 * 60,   // графики за последние 24 часа
-                ),
-                text = appModuleConfigs[AppModuleMMS.CHART_LIQUID_LEVEL]?.caption ?: "(неизвестный тип графика)",
-                inNewTab = true,
-            )
-        }
-        if (checkAccessPermission(AppModuleMMS.MAP_TRACE, userConfig.roles)) {
-            alPopupData += TablePopupData(
-                group = "Карты",
-                action = AppAction(
-                    type = ActionType.MODULE_MAP,
-                    module = AppModuleMMS.MAP_TRACE,
-                    id = id,
-                    timeRangeType = 24 * 60 * 60,   // траектория за последние 24 часа
-                ),
-                text = appModuleConfigs[AppModuleMMS.MAP_TRACE]?.caption ?: "(неизвестный тип карты)",
-                inNewTab = true,
-            )
-        }
-        if (checkAccessPermission(AppModuleMMS.SCHEME_ANALOGUE_INDICATOR_STATE, userConfig.roles)) {
-            alPopupData += TablePopupData(
-                group = "Контрольные схемы",
-                action = AppAction(
-                    type = ActionType.MODULE_SCHEME,
-                    module = AppModuleMMS.SCHEME_ANALOGUE_INDICATOR_STATE,
-                    id = id,
-                ),
-                text = appModuleConfigs[AppModuleMMS.SCHEME_ANALOGUE_INDICATOR_STATE]?.caption ?: "(неизвестный тип схемы)",
-                inNewTab = true,
-            )
-        }
+//!!!
+//        if (checkAccessPermission(AppModuleMMS.CHART_LIQUID_LEVEL, userConfig.roles)) {
+//            alPopupData += TablePopupData(
+//                group = "Графики",
+//                action = AppAction(
+//                    type = ActionType.MODULE_CHART,
+//                    module = AppModuleMMS.CHART_LIQUID_LEVEL,
+//                    id = id,
+//                    timeRangeType = 24 * 60 * 60,   // графики за последние 24 часа
+//                ),
+//                text = appModuleConfigs[AppModuleMMS.CHART_LIQUID_LEVEL]?.caption ?: "(неизвестный тип графика)",
+//                inNewTab = true,
+//            )
+//        }
+//        if (checkAccessPermission(AppModuleMMS.MAP_TRACE, userConfig.roles)) {
+//            alPopupData += TablePopupData(
+//                group = "Карты",
+//                action = AppAction(
+//                    type = ActionType.MODULE_MAP,
+//                    module = AppModuleMMS.MAP_TRACE,
+//                    id = id,
+//                    timeRangeType = 24 * 60 * 60,   // траектория за последние 24 часа
+//                ),
+//                text = appModuleConfigs[AppModuleMMS.MAP_TRACE]?.caption ?: "(неизвестный тип карты)",
+//                inNewTab = true,
+//            )
+//        }
+//        if (checkAccessPermission(AppModuleMMS.SCHEME_ANALOGUE_INDICATOR_STATE, userConfig.roles)) {
+//            alPopupData += TablePopupData(
+//                group = "Контрольные схемы",
+//                action = AppAction(
+//                    type = ActionType.MODULE_SCHEME,
+//                    module = AppModuleMMS.SCHEME_ANALOGUE_INDICATOR_STATE,
+//                    id = id,
+//                ),
+//                text = appModuleConfigs[AppModuleMMS.SCHEME_ANALOGUE_INDICATOR_STATE]?.caption ?: "(неизвестный тип схемы)",
+//                inNewTab = true,
+//            )
+//        }
         if (checkAccessPermission(AppModuleMMS.COMPOSITE_OBJECT_DASHBOARD, userConfig.roles)) {
             alPopupData += TablePopupData(
                 group = "Контрольные панели",
@@ -366,6 +367,7 @@ class ObjectService(
             fieldOwnerFullName = FIELD_OWNER_FULL_NAME,
             userId = userId,
             userConfig = userConfig,
+            changeEnabled = changeEnabled,
             formCells = formCells,
         )
         formCells += FormBooleanCell(
@@ -412,19 +414,23 @@ class ObjectService(
             } else {
                 objectEntity?.department?.name ?: "(неизвестно)"
             },
-            selectorAction = AppAction(
-                type = ActionType.MODULE_TABLE,
-                module = AppModuleMMS.DEPARTMENT,
-                isSelectorMode = true,
-                selectorPath = mapOf(
-                    DepartmentService.FIELD_ID to FIELD_DEPARTMENT,
-                    DepartmentService.FIELD_NAME to FIELD_DEPARTMENT_NAME,
-                ),
-                selectorClear = mapOf(
-                    FIELD_DEPARTMENT to "0",
-                    FIELD_DEPARTMENT_NAME to "",
-                ),
-            ),
+            selectorAction = if (changeEnabled) {
+                AppAction(
+                    type = ActionType.MODULE_TABLE,
+                    module = AppModuleMMS.DEPARTMENT,
+                    isSelectorMode = true,
+                    selectorPath = mapOf(
+                        DepartmentService.FIELD_ID to FIELD_DEPARTMENT,
+                        DepartmentService.FIELD_NAME to FIELD_DEPARTMENT_NAME,
+                    ),
+                    selectorClear = mapOf(
+                        FIELD_DEPARTMENT to "0",
+                        FIELD_DEPARTMENT_NAME to "",
+                    ),
+                )
+            } else {
+                null
+            },
         )
         formCells += FormSimpleCell(
             name = FIELD_GROUP,
@@ -441,19 +447,23 @@ class ObjectService(
             } else {
                 objectEntity?.group?.name ?: "(неизвестно)"
             },
-            selectorAction = AppAction(
-                type = ActionType.MODULE_TABLE,
-                module = AppModuleMMS.GROUP,
-                isSelectorMode = true,
-                selectorPath = mapOf(
-                    GroupService.FIELD_ID to FIELD_GROUP,
-                    GroupService.FIELD_NAME to FIELD_GROUP_NAME,
-                ),
-                selectorClear = mapOf(
-                    FIELD_GROUP to "0",
-                    FIELD_GROUP_NAME to "",
-                ),
-            ),
+            selectorAction = if (changeEnabled) {
+                AppAction(
+                    type = ActionType.MODULE_TABLE,
+                    module = AppModuleMMS.GROUP,
+                    isSelectorMode = true,
+                    selectorPath = mapOf(
+                        GroupService.FIELD_ID to FIELD_GROUP,
+                        GroupService.FIELD_NAME to FIELD_GROUP_NAME,
+                    ),
+                    selectorClear = mapOf(
+                        FIELD_GROUP to "0",
+                        FIELD_GROUP_NAME to "",
+                    ),
+                )
+            } else {
+                null
+            },
         )
         formCells += FormSimpleCell(
             name = FIELD_INFO,
