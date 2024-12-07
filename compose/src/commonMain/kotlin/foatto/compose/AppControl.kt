@@ -73,7 +73,7 @@ class AppControl(
                         },
                         logon = {
                             coroutineScope.launch {
-                            invokeLogonRequest(getLogonRequest())
+                                invokeLogonRequest(getLogonRequest())
                             }
                         }
                     )
