@@ -6,6 +6,7 @@ import foatto.core.util.getDateTimeYMDHMSString
 import foatto.server.calc.AbstractObjectStateCalc
 import foatto.server.entity.SensorEntity
 import foatto.server.model.SensorConfig
+import foatto.server.service.SensorService
 import foatto.server.sql.CoreAdvancedConnection
 import foatto.server.util.AdvancedByteBuffer
 import foatto.server.util.AdvancedLogger
@@ -311,6 +312,7 @@ object MMSTelematicFunction {
                     SensorConfig.SENSOR_ENERGO_TRANSFORM_KOEF_CURRENT,
                     SensorConfig.SENSOR_ENERGO_TRANSFORM_KOEF_VOLTAGE,
                     -> {
+                        SensorService.checkAndCreateAggTable(conn, sensorEntity.id)
                         saveAnalogueSensorData(
                             conn = conn,
                             sensorEntity = sensorEntity,

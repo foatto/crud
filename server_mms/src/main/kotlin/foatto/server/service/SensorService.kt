@@ -40,6 +40,7 @@ import foatto.server.model.ServerUserConfig
 import foatto.server.repository.ObjectRepository
 import foatto.server.repository.SensorCalibrationRepository
 import foatto.server.repository.SensorRepository
+import foatto.server.sql.CoreAdvancedConnection
 import jakarta.persistence.EntityManager
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.toInstant
@@ -125,7 +126,33 @@ class SensorService(
 
         private const val FIELD_CALIBRATION = "calibration" // псевдополе для калибровки/тарировки
 
-        fun checkAggTableIsExists(entityManager: EntityManager, sensorId: Int): Boolean {
+        fun checkAndCreateAggTable(conn: CoreAdvancedConnection, sensorId: Int) {
+            if (!checkAggTableIsExists(conn, sensorId)) {
+                createAggTable(conn, sensorId)
+            }
+        }
+
+        fun checkAndCreateAggTable(entityManager: EntityManager, sensorId: Int) {
+            if (!checkAggTableIsExists(entityManager, sensorId)) {
+                createAggTable(entityManager, sensorId)
+            }
+        }
+
+        private fun checkAggTableIsExists(conn: CoreAdvancedConnection, sensorId: Int): Boolean {
+            val rs = conn.executeQuery(
+                """
+                    SELECT tablename FROM pg_tables
+                    WHERE schemaname = 'public' 
+                    AND tablename = 'mms_agg_$sensorId'
+                """
+            )
+            val result = rs.next()
+            rs.close()
+
+            return result
+        }
+
+        private fun checkAggTableIsExists(entityManager: EntityManager, sensorId: Int): Boolean {
             var result = false
 
             queryNativeSql(
@@ -142,18 +169,34 @@ class SensorService(
             return result
         }
 
-        fun createAggTable(entityManager: EntityManager, sensorId: Int) {
+        private fun createAggTable(conn: CoreAdvancedConnection, sensorId: Int) {
+            conn.executeUpdate(
+                """
+                    CREATE TABLE MMS_agg_$sensorId (
+                        ontime_0        INT NOT NULL,
+                        ontime_1        INT,         
+                        type_0          INT,
+                        value_0         FLOAT8,
+                        value_1         FLOAT8
+                    )
+                """
+            )
+            conn.executeUpdate(" CREATE INDEX MMS_agg_${sensorId}_ontime_0 ON MMS_agg_$sensorId ( ontime_0 ) ")
+            conn.executeUpdate(" CREATE INDEX MMS_agg_${sensorId}_ontime_1 ON MMS_agg_$sensorId ( ontime_1 ) ")
+        }
+
+        private fun createAggTable(entityManager: EntityManager, sensorId: Int) {
             executeNativeSql(
                 entityManager,
                 """
-                        CREATE TABLE MMS_agg_$sensorId (
-                            ontime_0        INT NOT NULL,
-                            ontime_1        INT,         
-                            type_0          INT,
-                            value_0         FLOAT8,
-                            value_1         FLOAT8
-                        )
-                    """,
+                    CREATE TABLE MMS_agg_$sensorId (
+                        ontime_0        INT NOT NULL,
+                        ontime_1        INT,         
+                        type_0          INT,
+                        value_0         FLOAT8,
+                        value_1         FLOAT8
+                    )
+                """,
                 " CREATE INDEX MMS_agg_${sensorId}_ontime_0 ON MMS_agg_$sensorId ( ontime_0 ) ",
                 " CREATE INDEX MMS_agg_${sensorId}_ontime_1 ON MMS_agg_$sensorId ( ontime_1 ) ",
             )
@@ -1203,9 +1246,7 @@ class SensorService(
         }
         sensorCalibrationRepository.flush()
 
-        if (!checkAggTableIsExists(entityManager, recordId)) {
-            createAggTable(entityManager, recordId)
-        }
+        checkAndCreateAggTable(entityManager, recordId)
 
         return FormActionResponse(responseCode = ResponseCode.OK)
     }

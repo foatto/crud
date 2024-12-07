@@ -213,6 +213,8 @@ class SchemeAnalogueIndicatorStateService(
         var sensorTime: Int? = null
         var sensorValue: Double? = null
 
+        SensorService.checkAndCreateAggTable(entityManager, sensorEntity.id)
+
         ApplicationService.withConnection(entityManager) { conn ->
             val rs = conn.executeQuery(
                 """

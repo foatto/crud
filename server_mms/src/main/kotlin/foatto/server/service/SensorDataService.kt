@@ -64,9 +64,7 @@ class SensorDataService(
         }
         val parentSensorEntity = sensorRepository.findByIdOrNull(parentSensorId) ?: return null
 
-        if (!SensorService.checkAggTableIsExists(entityManager, parentSensorEntity.id)) {
-            SensorService.createAggTable(entityManager, parentSensorEntity.id)
-        }
+        SensorService.checkAndCreateAggTable(entityManager, parentSensorEntity.id)
 
         val zoneUTC = getTimeZone(0)
         val zoneLocal = getTimeZone(userConfig.timeOffset)
