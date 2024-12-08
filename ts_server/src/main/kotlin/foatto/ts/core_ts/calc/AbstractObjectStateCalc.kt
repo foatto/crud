@@ -2,35 +2,36 @@ package foatto.ts.core_ts.calc
 
 import foatto.util.AdvancedByteBuffer
 import foatto.util.byteToHex
+import kotlin.math.abs
 
 object AbstractObjectStateCalc {
 
-    fun getSensorData(sensorPortNum: Int, bb: AdvancedByteBuffer): Number? {
-        var sensorValue: Number? = null
+    fun getSensorData(sensorPortNum: Int, bb: AdvancedByteBuffer): SensorData? {
+        var sensorData: SensorData? = null
 
         while (bb.hasRemaining()) {
             val (portNum, dataSize) = getSensorPortNumAndDataSize(bb)
 
             if (portNum == sensorPortNum) {
                 when (dataSize) {
-                    1 -> sensorValue = bb.getByte().toInt() and 0xFF
-                    2 -> sensorValue = bb.getShort().toInt() and 0xFFFF
-                    3 -> sensorValue = bb.getInt3()
-                    4 -> sensorValue = bb.getInt()
-                    8 -> sensorValue = bb.getDouble()
+                    1 -> sensorData = SensorData(i = bb.getByte().toInt() and 0xFF)
+                    2 -> sensorData = SensorData(i = bb.getShort().toInt() and 0xFFFF)
+                    3 -> sensorData = SensorData(i = bb.getInt3())
+                    4 -> sensorData = SensorData(i = bb.getInt())
+                    8 -> sensorData = SensorData(d = bb.getDouble())
                     else -> {
                         if (dataSize < 0) {
-                            bb.getShortString() // пока неясно, как использовать
+                            sensorData = SensorData(s = bb.getShortString())
                         }
                     }
                 }
                 break
             } else {
-                bb.skip(dataSize)
+                bb.skip(abs(dataSize))
             }
         }
         bb.rewind()
-        return sensorValue
+        return sensorData
     }
 
     fun getSensorPortNumAndDataSize(bb: AdvancedByteBuffer): Pair<Int, Int> {
