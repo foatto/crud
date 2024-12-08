@@ -16,16 +16,18 @@ import foatto.spring.services.UserService
 import foatto.sql.AdvancedConnection
 import foatto.sql.CoreAdvancedConnection
 import foatto.ts.core_ts.ObjectConfig
+import foatto.ts.core_ts.calc.AbstractObjectStateCalc
 import foatto.ts.core_ts.ds.TSHandler
 import foatto.ts.iTSApplication
-import foatto.ts.spring.models.DevicesRequest
-import foatto.ts.spring.models.DevicesResponse
+import foatto.ts.spring.models.*
 import foatto.ts.spring.services.ObjectService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import java.nio.ByteOrder
+import java.time.Instant
 
 @RestController
 class TSAppController(
@@ -197,6 +199,8 @@ class TSAppController(
         private const val URL_API_VERSION = "v1"
 
         private const val URL_DEVICES = "devices"
+        private const val URL_DEVICES_DETAIL = "devices_detail"
+        private const val URL_DEVICE_DATA = "device_data"
 
         private val requestTypeToDeviceType = mapOf(
             "uds110" to TSHandler.DEVICE_TYPE_UDS,
@@ -211,12 +215,220 @@ class TSAppController(
         @RequestBody
         request: DevicesRequest,
     ): List<DevicesResponse> {
-
         val devices = mutableMapOf<Int, DevicesResponse>()
 
         val conn = AdvancedConnection(CoreSpringApp.dbConfig)
 
-        val tokens = request.token.split(" ")
+        getUserId(conn, request.token)?.let { userId ->
+            val userConfig = getUserConfig(conn, userId)
+            val objectPermissions = userConfig.userPermission["ts_object"] ?: emptySet()
+
+            val deviceInfos = getDeviceInfos(conn, request.companyId, request.type)
+
+            deviceInfos.forEach { deviceInfo ->
+                if (checkPerm(userConfig, objectPermissions, deviceInfo.userId)) {
+
+                    val devicesResponse = devices.getOrPut(deviceInfo.userId) {
+                        DevicesResponse(
+                            companyId = deviceInfo.userId,
+                            companyName = deviceInfo.userName,
+                            uds110 = mutableListOf(),
+                            uds101 = mutableListOf(),
+                            skk311 = mutableListOf(),
+                        )
+                    }
+                    when (deviceInfo.deviceType) {
+                        TSHandler.DEVICE_TYPE_UDS -> devicesResponse.uds110 += deviceInfo.serialNo
+                        TSHandler.DEVICE_TYPE_UDS_OLD -> devicesResponse.uds101 += deviceInfo.serialNo
+                        TSHandler.DEVICE_TYPE_SKK -> devicesResponse.skk311 += deviceInfo.serialNo
+                    }
+                }
+            }
+        }
+
+        conn.commit()
+        conn.close()
+
+        return devices.values.toList()
+    }
+
+    @PostMapping(value = ["/$URL_API_BASE/$URL_DEVICES_DETAIL/$URL_API_VERSION"])
+    @Transactional
+    fun devicesDetail(
+        @RequestBody
+        request: DevicesDetailRequest,
+    ): List<DevicesDetailResponse> {
+        val devices = mutableMapOf<Int, DevicesDetailResponse>()
+
+        val conn = AdvancedConnection(CoreSpringApp.dbConfig)
+
+        getUserId(conn, request.token)?.let { userId ->
+            val userConfig = getUserConfig(conn, userId)
+            val objectPermissions = userConfig.userPermission["ts_object"] ?: emptySet()
+
+            val deviceInfos = getDeviceInfos(conn, request.companyId, request.type)
+
+            deviceInfos.forEach { deviceInfo ->
+                if (checkPerm(userConfig, objectPermissions, deviceInfo.userId)) {
+                    var sensorData: DeviceSensorShortData? = null
+
+                    val rs = conn.executeQuery(
+                        """
+                            SELECT ontime , sensor_data 
+                            FROM TS_data_${deviceInfo.objectId} 
+                            WHERE ontime = ( SELECT MAX(ontime) FROM TS_data_${deviceInfo.objectId} ) 
+                        """
+                    )
+                    while (rs.next()) {
+                        val curTime = rs.getInt(1)
+                        val bbIn = rs.getByteBuffer(2, ByteOrder.BIG_ENDIAN)
+
+                        sensorData = DeviceSensorShortData(
+                            onTime = Instant.ofEpochSecond(curTime.toLong()).toString(),
+                            depth = AbstractObjectStateCalc.getSensorData(1, bbIn)?.toDouble(),
+                            speed = AbstractObjectStateCalc.getSensorData(2, bbIn)?.toDouble(),
+                            force = AbstractObjectStateCalc.getSensorData(3, bbIn)?.toDouble(),
+                        )
+                    }
+                    rs.close()
+
+                    val devicesDetailResponse = devices.getOrPut(deviceInfo.userId) {
+                        DevicesDetailResponse(
+                            companyId = deviceInfo.userId,
+                            companyName = deviceInfo.userName,
+                            uds110 = mutableMapOf(),
+                            uds101 = mutableMapOf(),
+                            skk311 = mutableMapOf(),
+                        )
+                    }
+                    when (deviceInfo.deviceType) {
+                        TSHandler.DEVICE_TYPE_UDS -> devicesDetailResponse.uds110[deviceInfo.serialNo] = sensorData
+                        TSHandler.DEVICE_TYPE_UDS_OLD -> devicesDetailResponse.uds101[deviceInfo.serialNo] = sensorData
+                        TSHandler.DEVICE_TYPE_SKK -> devicesDetailResponse.skk311[deviceInfo.serialNo] = sensorData
+                    }
+                }
+            }
+        }
+
+        conn.commit()
+        conn.close()
+
+        return devices.values.toList()
+    }
+
+    @PostMapping(value = ["/$URL_API_BASE/$URL_DEVICE_DATA/$URL_API_VERSION"])
+    @Transactional
+    fun deviceData(
+        @RequestBody
+        request: DeviceDataRequest,
+    ): DeviceDataResponse {
+        val result = DeviceDataResponse(
+            companyId = 0,
+            companyName = "",
+            type = "",
+            serialNo = "",
+            vers = "",
+            imei = "",
+            rows = mutableListOf(),
+        )
+
+        val conn = AdvancedConnection(CoreSpringApp.dbConfig)
+
+        getUserId(conn, request.token)?.let { userId ->
+            val userConfig = getUserConfig(conn, userId)
+            val objectPermissions = userConfig.userPermission["ts_object"] ?: emptySet()
+
+            getDeviceInfo(conn, request.serialNo, request.type)?.let { deviceInfo ->
+                if (checkPerm(userConfig, objectPermissions, deviceInfo.userId)) {
+                    result.companyId = deviceInfo.userId
+                    result.companyName = deviceInfo.userName
+                    result.type = request.type
+                    result.serialNo = request.serialNo
+                    result.vers = deviceInfo.fwVersion
+                    result.imei = deviceInfo.imei
+
+                    val rs = conn.executeQuery(
+                        """
+                            SELECT ontime, sensor_data 
+                            FROM TS_data_${deviceInfo.objectId} 
+                            WHERE  
+                        """ +
+                            if (request.isArchive) {
+                                (request.start?.let { start ->
+                                    """
+                                        ontime >= ${Instant.parse(start).epochSecond}
+                                    """
+                                } ?: "") +
+                                    (request.end?.let { end ->
+                                        """
+                                            ${request.start?.let { " AND " } ?: ""}
+                                            ontime <= ${Instant.parse(end).epochSecond}
+                                        """
+                                    } ?: "") +
+                                    """
+                                        ORDER BY ontime
+                                    """
+                            } else {
+                                """
+                                ontime = ( SELECT MAX(ontime) FROM TS_data_${deviceInfo.objectId} )
+                            """
+                            }
+                    )
+                    while (rs.next()) {
+                        val curTime = rs.getInt(1)
+                        val bbIn = rs.getByteBuffer(2, ByteOrder.BIG_ENDIAN)
+
+                        result.rows += if (deviceInfo.deviceType == TSHandler.DEVICE_TYPE_SKK) {
+                            DeviceSensorFullData(
+                                onTime = Instant.ofEpochSecond(curTime.toLong()).toString(),
+                                depth = AbstractObjectStateCalc.getSensorData(1, bbIn)?.toDouble(),
+                                speed = AbstractObjectStateCalc.getSensorData(2, bbIn)?.toDouble(),
+                                force = AbstractObjectStateCalc.getSensorData(3, bbIn)?.toDouble(),
+                                mdmRC = AbstractObjectStateCalc.getSensorData(10, bbIn)?.toInt(),
+                                mdmCSQ = AbstractObjectStateCalc.getSensorData(11, bbIn)?.toInt(),
+                                mdmMany = AbstractObjectStateCalc.getSensorData(12, bbIn)?.toInt(),
+                                depthMin = AbstractObjectStateCalc.getSensorData(20, bbIn)?.toInt(),
+                                depthMax = AbstractObjectStateCalc.getSensorData(21, bbIn)?.toInt(),
+                                depthFlags = AbstractObjectStateCalc.getSensorData(22, bbIn)?.toInt(),
+                                speedMin = AbstractObjectStateCalc.getSensorData(30, bbIn)?.toInt(),
+                                speedMax = AbstractObjectStateCalc.getSensorData(31, bbIn)?.toInt(),
+                                speedFlags = AbstractObjectStateCalc.getSensorData(32, bbIn)?.toInt(),
+                                forceMin = AbstractObjectStateCalc.getSensorData(40, bbIn)?.toInt(),
+                                forceMax = AbstractObjectStateCalc.getSensorData(41, bbIn)?.toInt(),
+                                forceFlags = AbstractObjectStateCalc.getSensorData(42, bbIn)?.toInt(),
+                                wire = AbstractObjectStateCalc.getSensorData(50, bbIn)?.toInt(),
+                                encoder = AbstractObjectStateCalc.getSensorData(51, bbIn)?.toInt(),
+                                roller = AbstractObjectStateCalc.getSensorData(52, bbIn)?.toInt(),
+                                area = AbstractObjectStateCalc.getSensorData(60, bbIn)?.toString(),
+                                bush = AbstractObjectStateCalc.getSensorData(61, bbIn)?.toString(),
+                                well = AbstractObjectStateCalc.getSensorData(62, bbIn)?.toString(),
+                                shop = AbstractObjectStateCalc.getSensorData(63, bbIn)?.toString(),
+                                crew = AbstractObjectStateCalc.getSensorData(64, bbIn)?.toString(),
+                                auto = AbstractObjectStateCalc.getSensorData(65, bbIn)?.toString(),
+                                people = AbstractObjectStateCalc.getSensorData(66, bbIn)?.toString(),
+                            )
+                        } else {
+                            DeviceSensorFullData(
+                                onTime = Instant.ofEpochSecond(curTime.toLong()).toString(),
+                                depth = AbstractObjectStateCalc.getSensorData(1, bbIn)?.toDouble(),
+                                speed = AbstractObjectStateCalc.getSensorData(2, bbIn)?.toDouble(),
+                                force = AbstractObjectStateCalc.getSensorData(3, bbIn)?.toDouble(),
+                            )
+                        }
+                    }
+                    rs.close()
+                }
+            }
+        }
+
+        conn.commit()
+        conn.close()
+
+        return result
+    }
+
+    private fun getUserId(conn: CoreAdvancedConnection, token: String): Int? {
+        val tokens = token.split(" ")
         val (login, password) = tokens.firstOrNull() to tokens.lastOrNull()
         val rsUsers = conn.executeQuery(
             """
@@ -229,86 +441,77 @@ class TSAppController(
         val userId = if (rsUsers.next()) {
             rsUsers.getInt(1)
         } else {
-            0
+            null
         }
         rsUsers.close()
 
-        if (userId != 0) {
-            val userConfig = getUserConfig(conn, userId)
-            val objectPermissions = userConfig.userPermission["ts_object"] ?: emptySet()
+        return userId
+    }
 
-            val deviceIds = mutableListOf<Int>()
-            val deviceTypes = mutableListOf<Int>()
-            val userIds = mutableListOf<Int>()
-            val userNames = mutableListOf<String>()
+    private fun getDeviceInfos(conn: CoreAdvancedConnection, companyId: Int?, deviceType: String?): List<DeviceInfo> {
+        val deviceInfos = mutableListOf<DeviceInfo>()
 
-            val rsDevices = conn.executeQuery(
-                """
-                    SELECT TS_device.id, TS_device.type, TS_object.user_id, SYSTEM_users.full_name  
-                    FROM TS_device, TS_object, SYSTEM_users
-                    WHERE TS_device.object_id = TS_object.id
-                    AND TS_object.user_id = SYSTEM_users.id  
-                """ +
-                    (
-                        request.companyId?.let { companyId ->
-                            """
-                                AND SYSTEM_users.id = $companyId  
-                            """
-                        } ?: ""
-                        ) +
-                    (
-                        request.type?.let { type ->
-                            """
-                                AND TS_device.type = ${requestTypeToDeviceType[type] ?: 0}  
-                            """
-                        } ?: ""
-                        )
+        val rs = conn.executeQuery(
+            """
+                SELECT SYSTEM_users.id, SYSTEM_users.full_name, 
+                       TS_device.type, TS_device.serial_no, TS_device.fw_version, TS_device.imei,
+                       TS_object.id   
+                FROM TS_device, TS_object, SYSTEM_users
+                WHERE TS_device.object_id = TS_object.id
+                AND TS_object.user_id = SYSTEM_users.id  
+            """ +
+                (companyId?.let { " AND SYSTEM_users.id = $companyId " } ?: "") +
+                (deviceType?.let { " AND TS_device.type = ${requestTypeToDeviceType[deviceType] ?: 0} " } ?: "")
+        )
+        while (rs.next()) {
+            var pos = 1
+
+            deviceInfos += DeviceInfo(
+                userId = rs.getInt(pos++),
+                userName = rs.getString(pos++),
+                deviceType = rs.getInt(pos++),
+                serialNo = rs.getString(pos++),
+                fwVersion = rs.getString(pos++),
+                imei = rs.getString(pos++),
+                objectId = rs.getInt(pos++),
             )
-            while (rsDevices.next()) {
-                var pos = 1
-
-                deviceIds += rsDevices.getInt(pos++)
-                deviceTypes += rsDevices.getInt(pos++)
-                userIds += rsDevices.getInt(pos++)
-                userNames += rsDevices.getString(pos++)
-            }
-            rsDevices.close()
-            /*
-    device_index        INT NOT NULL,
-    serial_no           VARCHAR(250),
-    cell_num            VARCHAR(250),
-    fw_version          VARCHAR(250),
-    imei                VARCHAR(250),
-             */
-
-            userIds.forEachIndexed { index, rowUserId ->
-                if (checkPerm(userConfig, objectPermissions, rowUserId)) {
-                    val deviceId = deviceIds[index]
-                    val deviceType = deviceTypes[index]
-                    val userName = userNames[index]
-
-                    val devicesResponse = devices.getOrPut(rowUserId) {
-                        DevicesResponse(
-                            companyId = rowUserId,
-                            companyName = userName,
-                            uds110 = mutableListOf(),
-                            uds101 = mutableListOf(),
-                            skk311 = mutableListOf(),
-                        )
-                    }
-                    when (deviceType) {
-                        TSHandler.DEVICE_TYPE_UDS -> devicesResponse.uds110 += deviceIds[index]
-                        TSHandler.DEVICE_TYPE_UDS_OLD -> devicesResponse.uds101 += deviceIds[index]
-                        TSHandler.DEVICE_TYPE_SKK -> devicesResponse.skk311 += deviceIds[index]
-                    }
-                }
-            }
         }
+        rs.close()
 
-        conn.commit()
-        conn.close()
+        return deviceInfos
+    }
 
-        return devices.values.toList()
+    private fun getDeviceInfo(conn: CoreAdvancedConnection, serialNo: String, deviceType: String): DeviceInfo? {
+        var deviceInfo: DeviceInfo? = null
+
+        val rs = conn.executeQuery(
+            """
+                SELECT SYSTEM_users.id, SYSTEM_users.full_name, 
+                       TS_device.type, TS_device.serial_no, TS_device.fw_version, TS_device.imei,
+                       TS_object.id   
+                FROM TS_device, TS_object, SYSTEM_users
+                WHERE TS_device.object_id = TS_object.id
+                    AND TS_object.user_id = SYSTEM_users.id  
+                    AND TS_device.serial_no = '$serialNo' 
+                    AND TS_device.type = ${requestTypeToDeviceType[deviceType] ?: 0} 
+            """
+        )
+        while (rs.next()) {
+            var pos = 1
+
+            deviceInfo = DeviceInfo(
+                userId = rs.getInt(pos++),
+                userName = rs.getString(pos++),
+                deviceType = rs.getInt(pos++),
+                serialNo = rs.getString(pos++),
+                fwVersion = rs.getString(pos++),
+                imei = rs.getString(pos++),
+                objectId = rs.getInt(pos++),
+            )
+        }
+        rs.close()
+
+        return deviceInfo
     }
 
     private fun checkPerm(userConfig: UserConfig, hsPermission: Set<String>, userId: Int): Boolean {
@@ -320,10 +523,14 @@ class TSAppController(
         return hsPermission.contains("table_${UserRelation.OTHER}")
     }
 
-    /*
-checkPerm(PERM_TABLE, recordUserID)
-
-
- */
-
 }
+
+private class DeviceInfo(
+    val userId: Int,
+    val userName: String,
+    val deviceType: Int,
+    val serialNo: String,
+    val fwVersion: String,
+    val imei: String,
+    val objectId: Int,
+)

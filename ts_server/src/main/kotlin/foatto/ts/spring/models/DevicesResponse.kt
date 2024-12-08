@@ -7,8 +7,7 @@ class DevicesResponse(
     val companyId: Int,
     val companyName: String,
 
-    val uds110: MutableList<Int>,
-    val uds101: MutableList<Int>,
-    val skk311: MutableList<Int>,
+    val uds110: MutableList<String>,
+    val uds101: MutableList<String>,
+    val skk311: MutableList<String>,
 )
-

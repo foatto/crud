@@ -4,7 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 class DevicesRequest(
-
     val token: String,
 
     val companyId: Int? = null,
