@@ -9,8 +9,5 @@ class DeviceDataRequest(
     val type: String,
     val serialNo: String,
 
-    val isArchive: Boolean,
-
-    val start: String? = null,
-    val end: String? = null,
+    val date: String? = null,
 )

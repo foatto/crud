@@ -21,6 +21,7 @@ import foatto.ts.core_ts.ds.TSHandler
 import foatto.ts.iTSApplication
 import foatto.ts.spring.models.*
 import foatto.ts.spring.services.ObjectService
+import foatto.util.getZoneId
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.PostMapping
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import java.nio.ByteOrder
 import java.time.Instant
+import java.time.ZonedDateTime
 
 @RestController
 class TSAppController(
@@ -195,6 +197,8 @@ class TSAppController(
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     companion object {
+        private val zoneId0 = getZoneId(0)
+
         private const val URL_API_BASE = "api"
         private const val URL_API_VERSION = "v1"
 
@@ -244,6 +248,15 @@ class TSAppController(
                     }
                 }
             }
+        } ?: run {
+            devices[0] = DevicesResponse(
+                companyId = 0,
+                companyName = "",
+                uds110 = mutableListOf(),
+                uds101 = mutableListOf(),
+                skk311 = mutableListOf(),
+            )
+
         }
 
         conn.commit()
@@ -308,6 +321,14 @@ class TSAppController(
                     }
                 }
             }
+        } ?: run {
+            devices[0] = DevicesDetailResponse(
+                companyId = 0,
+                companyName = "",
+                uds110 = mutableMapOf(),
+                uds101 = mutableMapOf(),
+                skk311 = mutableMapOf(),
+            )
         }
 
         conn.commit()
@@ -353,26 +374,19 @@ class TSAppController(
                             FROM TS_data_${deviceInfo.objectId} 
                             WHERE  
                         """ +
-                            if (request.isArchive) {
-                                (request.start?.let { start ->
+                            (
+                                request.date?.let { date ->
+                                    val requestDaySec = getDateTimeFromYMD(date)
                                     """
-                                        ontime >= ${Instant.parse(start).epochSecond}
-                                    """
-                                } ?: "") +
-                                    (request.end?.let { end ->
-                                        """
-                                            ${request.start?.let { " AND " } ?: ""}
-                                            ontime <= ${Instant.parse(end).epochSecond}
-                                        """
-                                    } ?: "") +
-                                    """
+                                        ontime >= $requestDaySec
+                                        AND
+                                        ontime < ${requestDaySec + 86_400}
                                         ORDER BY ontime
                                     """
-                            } else {
-                                """
-                                ontime = ( SELECT MAX(ontime) FROM TS_data_${deviceInfo.objectId} )
-                            """
-                            }
+                                } ?: """
+                                        ontime = ( SELECT MAX(ontime) FROM TS_data_${deviceInfo.objectId} )
+                                    """
+                                )
                     )
                     while (rs.next()) {
                         val curTime = rs.getInt(1)
@@ -458,7 +472,9 @@ class TSAppController(
                        TS_object.id   
                 FROM TS_device, TS_object, SYSTEM_users
                 WHERE TS_device.object_id = TS_object.id
-                AND TS_object.user_id = SYSTEM_users.id  
+                    AND TS_object.user_id = SYSTEM_users.id  
+                    AND TS_device.id <> 0
+                    AND TS_object.id <> 0 
             """ +
                 (companyId?.let { " AND SYSTEM_users.id = $companyId " } ?: "") +
                 (deviceType?.let { " AND TS_device.type = ${requestTypeToDeviceType[deviceType] ?: 0} " } ?: "")
@@ -491,7 +507,9 @@ class TSAppController(
                        TS_object.id   
                 FROM TS_device, TS_object, SYSTEM_users
                 WHERE TS_device.object_id = TS_object.id
-                    AND TS_object.user_id = SYSTEM_users.id  
+                    AND TS_object.user_id = SYSTEM_users.id
+                    AND TS_device.id <> 0
+                    AND TS_object.id <> 0 
                     AND TS_device.serial_no = '$serialNo' 
                     AND TS_device.type = ${requestTypeToDeviceType[deviceType] ?: 0} 
             """
@@ -521,6 +539,18 @@ class TSAppController(
             }
         }
         return hsPermission.contains("table_${UserRelation.OTHER}")
+    }
+
+    private fun getDateTimeFromYMD(date: String): Int {
+        val tokens = date.split("-").filter { it.isNotEmpty() }
+        if (tokens.size != 3) {
+            return 0
+        }
+        val ye = tokens[0].toIntOrNull() ?: return 0
+        val mo = tokens[1].toIntOrNull() ?: return 0
+        val da = tokens[2].toIntOrNull() ?: return 0
+
+        return ZonedDateTime.of(ye, mo, da, 0, 0, 0, 0, zoneId0).toEpochSecond().toInt()
     }
 
 }
