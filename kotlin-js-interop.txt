@@ -1,0 +1,168 @@
+Permissions-Policy: serial=*
+Permissions-Policy: usb=*
+
+--- functions:
+
+    function greet (name) {
+        console.log("Hello, " + name + "!");
+    }
+
+    external fun greet(name: String)
+
+--- properties:
+
+    let globalCounter = 0;
+
+    external var globalCounter: Int
+
+--- classes:
+
+    class Rectangle {
+        constructor (height, widt:h) {
+            this.height = height.
+            this.width = width;
+        }
+        area () {
+            return this.height * this.width;
+        }
+    }
+
+    external class Rectangle(height: Double, width: Double) : JsAny {
+        val height: Double
+        val width: Double
+        fun area(): Double
+    }
+
+--- interfaces (implicit classes)
+
+    function createUser (name, age) {
+        return { name: name, age: age };
+    }
+
+    external interface User : JsAny {
+        val name: String
+        val age: Int
+    }
+    external fun createUser(name: String, age: Int): User
+
+--- objects:
+
+    let Counter = {
+        value: 0,
+        step: 1,
+        increment () {
+            this.value += this.step;
+        }
+    };
+
+    external object Counter : JsAny {
+        fun increment()
+        val value: Int
+        var step: Int
+    }
+
+--- js-functions:
+
+    fun getCurrentURL(): String = js("window.location.href")
+
+    fun setLocalSettings(value: String): Unit = js(
+        """{
+            localStorage.setItem('settings', value);
+        }"""
+    )
+
+    fun createJsUser(name: String, age: Int): JsAny = js("({ name: name, age: age })")
+
+--- js modules:
+
+    //--- users.mjs
+    export let maxUsers = 10;
+    export class User {
+        constructor (username) {
+            this.username = username;
+        }
+    }
+
+    //--- Kotlin
+    @file:JsModule("./users.mjs")
+
+    external val maxUsers: Int
+
+    external class User : JsAny {
+        constructor(username: String)
+        val username: String
+    }
+
+--- js arrays:
+
+    val list: List<JsString> = listOf("Kotlin", "Wasm").map { it.toJsString() }
+
+    // Uses .toJsArray() to convert List or Array to JsArray
+    val jsArray: JsArray<JsString> = list.toJsArray()
+
+    // Uses .toArray() and .toList() to convert it back to Kotlin types
+    val kotlinArray: Array<JsString> = jsArray.toArray()
+    val kotlinList: List<JsString> = jsArray.toList()
+
+
+    import org.khronos.webgl.*
+
+    val intArray: IntArray = intArrayOf(1, 2, 3)
+
+    // Uses .toInt32Array() to convert Kotlin IntArray to JavaScript Int32Array
+    val jsInt32Array: Int32Array = intArray.toInt32Array()
+
+    // Uses toIntArray() to convert JavaScript Int32Array back to Kotlin IntArray
+    val kotlnIntArray: IntArray = jsInt32Array.toIntArray()
+
+--- JS Exceptions:
+
+    kotlin {
+        wasmJs {
+            compilerOptions {
+                freeCompilerArgs.add("-Xwasm-attach-js-exception")
+            }
+        }
+    }
+
+    external object JSON {
+        fun <T: JsAny> parse(json: String): T
+    }
+
+    fun main() {
+        try {
+            JSON.parse("an invalid JSON")
+        } catch (e: JsException) {
+            println("Thrown value is: ${e.thrownValue}")
+            // SyntaxError: Unexpected token 'a', "an invalid JSON" is not valid JSON
+
+            println("Message: ${e.message}")
+            // Message: Unexpected token 'a', "an invalid JSON" is not valid JSON
+
+            println("Stacktrace:")
+            // Stacktrace:
+
+            // Prints the full JavaScript stack trace
+            e.printStackTrace()
+        }
+    }
+
+---
+
+    // Kotlin/JS
+    fun processUser(user: dynamic, age: Int) {
+        // ...
+        user.profile.updateAge(age)
+        // ...
+    }
+
+    // Kotlin/Wasm
+    private fun updateUserAge(user: JsAny, age: Int): Unit =
+        js("{ user.profile.updateAge(age); }")
+
+    fun processUser(user: JsAny, age: Int) {
+        // ...
+        updateUserAge(user, age)
+        // ...
+    }
+
