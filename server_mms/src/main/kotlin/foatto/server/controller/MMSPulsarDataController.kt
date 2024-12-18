@@ -4,7 +4,7 @@ import foatto.core.util.getCurrentTimeInt
 import foatto.server.ds.CoreTelematicFunction
 import foatto.server.ds.CoreTelematicFunction.MAX_PORT_PER_DEVICE
 import foatto.server.ds.DeviceConfig
-import foatto.server.ds.GalileoFunction
+import foatto.server.ds.PortNumbers
 import foatto.server.ds.MMSTelematicFunction
 import foatto.server.ds.PulsarData
 import foatto.server.entity.SensorEntity
@@ -321,73 +321,72 @@ class MMSPulsarDataController(
     ) {
         val bbData = AdvancedByteBuffer(MAX_PORT_PER_DEVICE * 8)
 
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmGalileoCount, GalileoFunction.PORT_NUM_GALILEO_COUNT, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmLLSLevel, GalileoFunction.PORT_NUM_LLS_LEVEL, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmGalileoVoltage, GalileoFunction.PORT_NUM_GALILEO_VOLTAGE, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmGalileoCount, PortNumbers.GALILEO_COUNT_110, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmLLSLevel, PortNumbers.LLS_LEVEL_120, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmGalileoVoltage, PortNumbers.GALILEO_VOLTAGE_140, bbData)
 
         //--- данные по электросчётчику ---
 
         //--- значения счётчиков от последнего сброса (активная/реактивная прямая/обратная)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoCountActiveDirect, GalileoFunction.PORT_NUM_MERCURY_COUNT_ACTIVE_DIRECT, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoCountActiveReverse, GalileoFunction.PORT_NUM_MERCURY_COUNT_ACTIVE_REVERSE, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoCountReactiveDirect, GalileoFunction.PORT_NUM_MERCURY_COUNT_REACTIVE_DIRECT, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoCountReactiveReverse, GalileoFunction.PORT_NUM_MERCURY_COUNT_REACTIVE_REVERSE, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoCountActiveDirect, PortNumbers.MERCURY_COUNT_ACTIVE_DIRECT_160, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoCountActiveReverse, PortNumbers.MERCURY_COUNT_ACTIVE_REVERSE_164, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoCountReactiveDirect, PortNumbers.MERCURY_COUNT_REACTIVE_DIRECT_168, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoCountReactiveReverse, PortNumbers.MERCURY_COUNT_REACTIVE_REVERSE_172, bbData)
 
         //--- напряжение по фазам A1..4, B1..4, C1..4
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoVoltageA, GalileoFunction.PORT_NUM_MERCURY_VOLTAGE_A, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoVoltageB, GalileoFunction.PORT_NUM_MERCURY_VOLTAGE_B, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoVoltageC, GalileoFunction.PORT_NUM_MERCURY_VOLTAGE_C, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoVoltageA, PortNumbers.MERCURY_VOLTAGE_A_180, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoVoltageB, PortNumbers.MERCURY_VOLTAGE_B_184, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoVoltageC, PortNumbers.MERCURY_VOLTAGE_C_188, bbData)
 
         //--- ток по фазам A1..4, B1..4, C1..4
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoCurrentA, GalileoFunction.PORT_NUM_MERCURY_CURRENT_A, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoCurrentB, GalileoFunction.PORT_NUM_MERCURY_CURRENT_B, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoCurrentC, GalileoFunction.PORT_NUM_MERCURY_CURRENT_C, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoCurrentA, PortNumbers.MERCURY_CURRENT_A_200, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoCurrentB, PortNumbers.MERCURY_CURRENT_B_204, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoCurrentC, PortNumbers.MERCURY_CURRENT_C_208, bbData)
 
         //--- коэффициент мощности по фазам A1..4, B1..4, C1..4
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerKoefA, GalileoFunction.PORT_NUM_MERCURY_POWER_KOEF_A, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerKoefB, GalileoFunction.PORT_NUM_MERCURY_POWER_KOEF_B, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerKoefC, GalileoFunction.PORT_NUM_MERCURY_POWER_KOEF_C, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerKoefA, PortNumbers.MERCURY_POWER_KOEF_A_220, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerKoefB, PortNumbers.MERCURY_POWER_KOEF_B_224, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerKoefC, PortNumbers.MERCURY_POWER_KOEF_C_228, bbData)
 
         //--- активная мощность по фазам A1..4, B1..4, C1..4
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerActiveA, GalileoFunction.PORT_NUM_MERCURY_POWER_ACTIVE_A, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerActiveB, GalileoFunction.PORT_NUM_MERCURY_POWER_ACTIVE_B, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerActiveC, GalileoFunction.PORT_NUM_MERCURY_POWER_ACTIVE_C, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerActiveA, PortNumbers.MERCURY_POWER_ACTIVE_A_232, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerActiveB, PortNumbers.MERCURY_POWER_ACTIVE_B_236, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerActiveC, PortNumbers.MERCURY_POWER_ACTIVE_C_240, bbData)
 
         //--- реактивная мощность по фазам A1..4, B1..4, C1..4
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerReactiveA, GalileoFunction.PORT_NUM_MERCURY_POWER_REACTIVE_A, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerReactiveB, GalileoFunction.PORT_NUM_MERCURY_POWER_REACTIVE_B, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerReactiveC, GalileoFunction.PORT_NUM_MERCURY_POWER_REACTIVE_C, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerReactiveA, PortNumbers.MERCURY_POWER_REACTIVE_A_244, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerReactiveB, PortNumbers.MERCURY_POWER_REACTIVE_B_248, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerReactiveC, PortNumbers.MERCURY_POWER_REACTIVE_C_252, bbData)
 
         //--- полная мощность по фазам A1..4, B1..4, C1..4
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerFullA, GalileoFunction.PORT_NUM_MERCURY_POWER_FULL_A, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerFullB, GalileoFunction.PORT_NUM_MERCURY_POWER_FULL_B, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerFullC, GalileoFunction.PORT_NUM_MERCURY_POWER_FULL_C, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerFullA, PortNumbers.MERCURY_POWER_FULL_A_256, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerFullB, PortNumbers.MERCURY_POWER_FULL_B_260, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerFullC, PortNumbers.MERCURY_POWER_FULL_C_264, bbData)
+
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEmisMassFlow, PortNumbers.EMIS_MASS_FLOW_270, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEmisDensity, PortNumbers.EMIS_DENSITY_280, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEmisTemperature, PortNumbers.EMIS_TEMPERATURE_290, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEmisVolumeFlow, PortNumbers.EMIS_VOLUME_FLOW_300, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEmisAccumulatedMass, PortNumbers.EMIS_ACCUMULATED_MASS_310, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEmisAccumulatedVolume, PortNumbers.EMIS_ACCUMULATED_VOLUME_320, bbData)
 
         //--- мощность по трём фазам: активная, реактивная, суммарная
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerActiveABC, GalileoFunction.PORT_NUM_MERCURY_POWER_ACTIVE_ABC, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerReactiveABC, GalileoFunction.PORT_NUM_MERCURY_POWER_REACTIVE_ABC, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerFullABC, GalileoFunction.PORT_NUM_MERCURY_POWER_FULL_ABC, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerActiveABC, PortNumbers.MERCURY_POWER_ACTIVE_ABC_330, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerReactiveABC, PortNumbers.MERCURY_POWER_REACTIVE_ABC_340, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerFullABC, PortNumbers.MERCURY_POWER_FULL_ABC_350, bbData)
 
         //--- коэффициент трансформации по току и напряжению
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoTransformKoefCurrent, GalileoFunction.PORT_NUM_MERCURY_TRANSFORM_KOEF_CURRENT, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoTransformKoefVoltage, GalileoFunction.PORT_NUM_MERCURY_TRANSFORM_KOEF_VOLTAGE, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoTransformKoefCurrent, PortNumbers.MERCURY_TRANSFORM_KOEF_CURRENT_360, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoTransformKoefVoltage, PortNumbers.MERCURY_TRANSFORM_KOEF_VOLTAGE_370, bbData)
 
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEmisMassFlow, GalileoFunction.PORT_NUM_EMIS_MASS_FLOW, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEmisDensity, GalileoFunction.PORT_NUM_EMIS_DENSITY, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEmisTemperature, GalileoFunction.PORT_NUM_EMIS_TEMPERATURE, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEmisVolumeFlow, GalileoFunction.PORT_NUM_EMIS_VOLUME_FLOW, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEmisAccumulatedMass, GalileoFunction.PORT_NUM_EMIS_ACCUMULATED_MASS, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEmisAccumulatedVolume, GalileoFunction.PORT_NUM_EMIS_ACCUMULATED_VOLUME, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmPMPLevel, PortNumbers.PMP_LEVEL_540, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmPMPTemperature, PortNumbers.PMP_TEMPERATURE_560, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmPMPVolume, PortNumbers.PMP_VOLUME_580, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmPMPMass, PortNumbers.PMP_MASS_600, bbData)
+        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmPMPDensity, PortNumbers.PMP_DENSITY_620, bbData)
 
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmPMPLevel, GalileoFunction.PORT_NUM_PMP_LEVEL, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmPMPTemperature, GalileoFunction.PORT_NUM_PMP_TEMPERATURE, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmPMPVolume, GalileoFunction.PORT_NUM_PMP_VOLUME, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmPMPMass, GalileoFunction.PORT_NUM_PMP_MASS, bbData)
-        MMSTelematicFunction.saveSensorData(conn, deviceConfig.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmPMPDensity, GalileoFunction.PORT_NUM_PMP_DENSITY, bbData)
+        MMSTelematicFunction.addPoint(conn, deviceConfig, pointTime, bbData)
 
-        ApplicationService.withConnection(entityManager) { conn ->
-            MMSTelematicFunction.addPoint(conn, deviceConfig, pointTime, bbData)
-        }
         dataCount++
 
         if (firstPointTime == 0) {

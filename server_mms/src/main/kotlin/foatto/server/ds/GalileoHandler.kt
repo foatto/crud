@@ -2,7 +2,6 @@ package foatto.server.ds
 
 import foatto.core.util.crc16_modbus
 import foatto.core.util.getCurrentTimeInt
-import foatto.core.util.getDateTimeYMDHMSString
 import foatto.server.model.SensorConfig
 import foatto.server.model.SensorConfigCounter
 import foatto.server.sql.CoreAdvancedConnection
@@ -16,6 +15,12 @@ import java.nio.channels.SocketChannel
 import kotlin.math.roundToInt
 
 open class GalileoHandler : MMSNioHandler() {
+
+    companion object {
+        val timeZone: TimeZone = TimeZone.currentSystemDefault()
+    }
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     override val byteOrder: ByteOrder = ByteOrder.LITTLE_ENDIAN
 
@@ -52,44 +57,44 @@ open class GalileoHandler : MMSNioHandler() {
     private val tmUserData = sortedMapOf<Int, Int>()
 
     //--- по 16 типизированных датчиков от юриковского радиоудлиннителя
-    private val tmLLSLevel = sortedMapOf<Int, Int>()
-    private val tmGalileoVoltage = sortedMapOf<Int, Int>()
-    private val tmGalileoCount = sortedMapOf<Int, Int>()
+    private val tmLLSLevel = sortedMapOf<Int, Double>()
+    private val tmGalileoVoltage = sortedMapOf<Int, Double>()
+    private val tmGalileoCount = sortedMapOf<Int, Double>()
 
     //--- 4 вида счётчиков энергии от сброса (активная прямая, активная обратная, реактивная прямая, реактивная обратная)
-    private val tmEnergoCountActiveDirect = sortedMapOf<Int, Int>()
-    private val tmEnergoCountActiveReverse = sortedMapOf<Int, Int>()
-    private val tmEnergoCountReactiveDirect = sortedMapOf<Int, Int>()
-    private val tmEnergoCountReactiveReverse = sortedMapOf<Int, Int>()
+    private val tmEnergoCountActiveDirect = sortedMapOf<Int, Double>()
+    private val tmEnergoCountActiveReverse = sortedMapOf<Int, Double>()
+    private val tmEnergoCountReactiveDirect = sortedMapOf<Int, Double>()
+    private val tmEnergoCountReactiveReverse = sortedMapOf<Int, Double>()
 
     //--- напряжение по фазам
-    private val tmEnergoVoltageA = sortedMapOf<Int, Int>()
-    private val tmEnergoVoltageB = sortedMapOf<Int, Int>()
-    private val tmEnergoVoltageC = sortedMapOf<Int, Int>()
+    private val tmEnergoVoltageA = sortedMapOf<Int, Double>()
+    private val tmEnergoVoltageB = sortedMapOf<Int, Double>()
+    private val tmEnergoVoltageC = sortedMapOf<Int, Double>()
 
     //--- ток по фазам
-    private val tmEnergoCurrentA = sortedMapOf<Int, Int>()
-    private val tmEnergoCurrentB = sortedMapOf<Int, Int>()
-    private val tmEnergoCurrentC = sortedMapOf<Int, Int>()
+    private val tmEnergoCurrentA = sortedMapOf<Int, Double>()
+    private val tmEnergoCurrentB = sortedMapOf<Int, Double>()
+    private val tmEnergoCurrentC = sortedMapOf<Int, Double>()
 
     //--- коэффициент мощности по фазам
-    private val tmEnergoPowerKoefA = sortedMapOf<Int, Int>()
-    private val tmEnergoPowerKoefB = sortedMapOf<Int, Int>()
-    private val tmEnergoPowerKoefC = sortedMapOf<Int, Int>()
+    private val tmEnergoPowerKoefA = sortedMapOf<Int, Double>()
+    private val tmEnergoPowerKoefB = sortedMapOf<Int, Double>()
+    private val tmEnergoPowerKoefC = sortedMapOf<Int, Double>()
 
     //--- energy power (active, reactive, full/summary) by phase by 4 indicators
-    private val tmEnergoPowerActiveA = sortedMapOf<Int, Int>()
-    private val tmEnergoPowerActiveB = sortedMapOf<Int, Int>()
-    private val tmEnergoPowerActiveC = sortedMapOf<Int, Int>()
-    private val tmEnergoPowerReactiveA = sortedMapOf<Int, Int>()
-    private val tmEnergoPowerReactiveB = sortedMapOf<Int, Int>()
-    private val tmEnergoPowerReactiveC = sortedMapOf<Int, Int>()
-    private val tmEnergoPowerFullA = sortedMapOf<Int, Int>()
-    private val tmEnergoPowerFullB = sortedMapOf<Int, Int>()
-    private val tmEnergoPowerFullC = sortedMapOf<Int, Int>()
-    private val tmEnergoPowerActiveABC = sortedMapOf<Int, Int>()
-    private val tmEnergoPowerReactiveABC = sortedMapOf<Int, Int>()
-    private val tmEnergoPowerFullABC = sortedMapOf<Int, Int>()
+    private val tmEnergoPowerActiveA = sortedMapOf<Int, Double>()
+    private val tmEnergoPowerActiveB = sortedMapOf<Int, Double>()
+    private val tmEnergoPowerActiveC = sortedMapOf<Int, Double>()
+    private val tmEnergoPowerReactiveA = sortedMapOf<Int, Double>()
+    private val tmEnergoPowerReactiveB = sortedMapOf<Int, Double>()
+    private val tmEnergoPowerReactiveC = sortedMapOf<Int, Double>()
+    private val tmEnergoPowerFullA = sortedMapOf<Int, Double>()
+    private val tmEnergoPowerFullB = sortedMapOf<Int, Double>()
+    private val tmEnergoPowerFullC = sortedMapOf<Int, Double>()
+    private val tmEnergoPowerActiveABC = sortedMapOf<Int, Double>()
+    private val tmEnergoPowerReactiveABC = sortedMapOf<Int, Double>()
+    private val tmEnergoPowerFullABC = sortedMapOf<Int, Double>()
     private val tmEnergoTransformKoefCurrent = sortedMapOf<Int, Double>()
     private val tmEnergoTransformKoefVoltage = sortedMapOf<Int, Double>()
 
@@ -107,10 +112,10 @@ open class GalileoHandler : MMSNioHandler() {
     private val tmESDFlow = sortedMapOf<Int, Double>()
     private val tmESDCameraVolume = sortedMapOf<Int, Double>()
     private val tmESDCameraFlow = sortedMapOf<Int, Double>()
-    private val tmESDCameraTemperature = sortedMapOf<Int, Int>()
+    private val tmESDCameraTemperature = sortedMapOf<Int, Double>()
     private val tmESDReverseCameraVolume = sortedMapOf<Int, Double>()
     private val tmESDReverseCameraFlow = sortedMapOf<Int, Double>()
-    private val tmESDReverseCameraTemperature = sortedMapOf<Int, Int>()
+    private val tmESDReverseCameraTemperature = sortedMapOf<Int, Double>()
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -208,9 +213,7 @@ open class GalileoHandler : MMSNioHandler() {
                 //--- date time
                 0x20 -> {
                     //--- если была предыдущая точка, то запишем её
-                    if (pointTime != 0) {
-                        savePoint(dataWorker.conn, pointTime)
-                    }
+                    savePoint(dataWorker.conn, pointTime)
                     //--- даже с учётом игнорирования/обнуления старшего/знакового бита, этого нам хватит еще до 2038 года
                     pointTime = (bbIn.getInt() and 0x7F_FF_FF_FF)
                 }
@@ -424,61 +427,67 @@ open class GalileoHandler : MMSNioHandler() {
                                     b2 = bbIn.getByte()
                                     val b3 = bbIn.getByte()
                                     val b4 = bbIn.getByte()
-                                    val value = (b1.toInt() and 0xFF shl 24) or (b2.toInt() and 0xFF shl 16) or (b3.toInt() and 0xFF shl 8) or (b4.toInt() and 0xFF)
-                                    //int value = bbIn.getInt();
 
-                                    val double = Float.fromBits(value).toDouble()
+                                    //--- борьба с переполнением Int и выходом его в отрицательную зону
+                                    val doubleFromInt =
+                                        (b1.toInt() and 0xFF) * 256.0 * 256.0 * 256.0 +
+                                            (b2.toInt() and 0xFF) * 256.0 * 256.0 +
+                                            (b3.toInt() and 0xFF) * 256.0 +
+                                            (b4.toInt() and 0xFF)
+
+                                    val floatBitsValue = (b1.toInt() and 0xFF shl 24) or (b2.toInt() and 0xFF shl 16) or (b3.toInt() and 0xFF shl 8) or (b4.toInt() and 0xFF)
+                                    val doubleFromBits = Float.fromBits(floatBitsValue).toDouble()
 
                                     when (id) {
                                         0 -> {
                                         } // молча пропускаем пустой 0-й id
 
-                                        in 0x0100..0x010F -> tmLLSLevel[id - 0x0100] = value
-                                        in 0x0140..0x014F -> tmGalileoVoltage[id - 0x0140] = value
-                                        in 0x0180..0x018F -> tmGalileoCount[id - 0x0180] = value
+                                        in 0x0100..0x010F -> tmLLSLevel[id - 0x0100] = doubleFromInt
+                                        in 0x0140..0x014F -> tmGalileoVoltage[id - 0x0140] = doubleFromInt
+                                        in 0x0180..0x018F -> tmGalileoCount[id - 0x0180] = doubleFromInt
 
-                                        in 0x01C1..0x01C4 -> tmEnergoCountActiveDirect[id - 0x01C1] = value
-                                        in 0x0201..0x0204 -> tmEnergoCountActiveReverse[id - 0x0201] = value
-                                        in 0x0241..0x0244 -> tmEnergoCountReactiveDirect[id - 0x0241] = value
-                                        in 0x0281..0x0284 -> tmEnergoCountReactiveReverse[id - 0x0281] = value
+                                        in 0x01C1..0x01C4 -> tmEnergoCountActiveDirect[id - 0x01C1] = doubleFromInt
+                                        in 0x0201..0x0204 -> tmEnergoCountActiveReverse[id - 0x0201] = doubleFromInt
+                                        in 0x0241..0x0244 -> tmEnergoCountReactiveDirect[id - 0x0241] = doubleFromInt
+                                        in 0x0281..0x0284 -> tmEnergoCountReactiveReverse[id - 0x0281] = doubleFromInt
 
-                                        in 0x02C1..0x02C4 -> tmEnergoVoltageA[id - 0x02C1] = value
-                                        in 0x0301..0x0304 -> tmEnergoVoltageB[id - 0x0301] = value
-                                        in 0x0341..0x0344 -> tmEnergoVoltageC[id - 0x0341] = value
+                                        in 0x02C1..0x02C4 -> tmEnergoVoltageA[id - 0x02C1] = doubleFromInt
+                                        in 0x0301..0x0304 -> tmEnergoVoltageB[id - 0x0301] = doubleFromInt
+                                        in 0x0341..0x0344 -> tmEnergoVoltageC[id - 0x0341] = doubleFromInt
 
-                                        in 0x0381..0x0384 -> tmEnergoCurrentA[id - 0x0381] = value
-                                        in 0x03C1..0x03C4 -> tmEnergoCurrentB[id - 0x03C1] = value
-                                        in 0x0401..0x0404 -> tmEnergoCurrentC[id - 0x0401] = value
+                                        in 0x0381..0x0384 -> tmEnergoCurrentA[id - 0x0381] = doubleFromInt
+                                        in 0x03C1..0x03C4 -> tmEnergoCurrentB[id - 0x03C1] = doubleFromInt
+                                        in 0x0401..0x0404 -> tmEnergoCurrentC[id - 0x0401] = doubleFromInt
 
-                                        in 0x0441..0x0444 -> tmEnergoPowerKoefA[id - 0x0441] = value
-                                        in 0x0481..0x0484 -> tmEnergoPowerKoefB[id - 0x0481] = value
-                                        in 0x0501..0x0504 -> tmEnergoPowerKoefC[id - 0x0501] = value
+                                        in 0x0441..0x0444 -> tmEnergoPowerKoefA[id - 0x0441] = doubleFromInt
+                                        in 0x0481..0x0484 -> tmEnergoPowerKoefB[id - 0x0481] = doubleFromInt
+                                        in 0x0501..0x0504 -> tmEnergoPowerKoefC[id - 0x0501] = doubleFromInt
 
-                                        in 0x0510..0x0513 -> tmEnergoPowerActiveA[id - 0x0510] = value
-                                        in 0x0514..0x0517 -> tmEnergoPowerActiveB[id - 0x0514] = value
-                                        in 0x0518..0x051B -> tmEnergoPowerActiveC[id - 0x0518] = value
+                                        in 0x0510..0x0513 -> tmEnergoPowerActiveA[id - 0x0510] = doubleFromInt
+                                        in 0x0514..0x0517 -> tmEnergoPowerActiveB[id - 0x0514] = doubleFromInt
+                                        in 0x0518..0x051B -> tmEnergoPowerActiveC[id - 0x0518] = doubleFromInt
 
-                                        in 0x051C..0x051F -> tmEnergoPowerReactiveA[id - 0x051C] = value
-                                        in 0x0520..0x0523 -> tmEnergoPowerReactiveB[id - 0x0520] = value
-                                        in 0x0524..0x0527 -> tmEnergoPowerReactiveC[id - 0x0524] = value
+                                        in 0x051C..0x051F -> tmEnergoPowerReactiveA[id - 0x051C] = doubleFromInt
+                                        in 0x0520..0x0523 -> tmEnergoPowerReactiveB[id - 0x0520] = doubleFromInt
+                                        in 0x0524..0x0527 -> tmEnergoPowerReactiveC[id - 0x0524] = doubleFromInt
 
-                                        in 0x0528..0x052B -> tmEnergoPowerFullA[id - 0x0528] = value
-                                        in 0x052C..0x052F -> tmEnergoPowerFullB[id - 0x052C] = value
-                                        in 0x0530..0x0533 -> tmEnergoPowerFullC[id - 0x0530] = value
+                                        in 0x0528..0x052B -> tmEnergoPowerFullA[id - 0x0528] = doubleFromInt
+                                        in 0x052C..0x052F -> tmEnergoPowerFullB[id - 0x052C] = doubleFromInt
+                                        in 0x0530..0x0533 -> tmEnergoPowerFullC[id - 0x0530] = doubleFromInt
 
-                                        in 0x0550..0x0553 -> tmEnergoTransformKoefCurrent[id - 0x0550] = double
-                                        in 0x0560..0x0563 -> tmEnergoTransformKoefVoltage[id - 0x0560] = double
+                                        in 0x0550..0x0553 -> tmEnergoTransformKoefCurrent[id - 0x0550] = doubleFromBits
+                                        in 0x0560..0x0563 -> tmEnergoTransformKoefVoltage[id - 0x0560] = doubleFromBits
 
-                                        in 0x0541..0x0544 -> tmEmisMassFlow[id - 0x0541] = double
-                                        in 0x0581..0x0584 -> tmEmisDensity[id - 0x0581] = double
-                                        in 0x05C1..0x05C4 -> tmEmisTemperature[id - 0x05C1] = double
-                                        in 0x0601..0x0604 -> tmEmisVolumeFlow[id - 0x0601] = double
-                                        in 0x0641..0x0644 -> tmEmisAccumulatedMass[id - 0x0641] = double
-                                        in 0x0681..0x0684 -> tmEmisAccumulatedVolume[id - 0x0681] = double
+                                        in 0x0541..0x0544 -> tmEmisMassFlow[id - 0x0541] = doubleFromBits
+                                        in 0x0581..0x0584 -> tmEmisDensity[id - 0x0581] = doubleFromBits
+                                        in 0x05C1..0x05C4 -> tmEmisTemperature[id - 0x05C1] = doubleFromBits
+                                        in 0x0601..0x0604 -> tmEmisVolumeFlow[id - 0x0601] = doubleFromBits
+                                        in 0x0641..0x0644 -> tmEmisAccumulatedMass[id - 0x0641] = doubleFromBits
+                                        in 0x0681..0x0684 -> tmEmisAccumulatedVolume[id - 0x0681] = doubleFromBits
 
-                                        in 0x0700..0x0703 -> tmEnergoPowerActiveABC[id - 0x0700] = value
-                                        in 0x0710..0x0713 -> tmEnergoPowerReactiveABC[id - 0x0710] = value
-                                        in 0x0720..0x0723 -> tmEnergoPowerFullABC[id - 0x0720] = value
+                                        in 0x0700..0x0703 -> tmEnergoPowerActiveABC[id - 0x0700] = doubleFromInt
+                                        in 0x0710..0x0713 -> tmEnergoPowerReactiveABC[id - 0x0710] = doubleFromInt
+                                        in 0x0720..0x0723 -> tmEnergoPowerFullABC[id - 0x0720] = doubleFromInt
 
                                         else -> AdvancedLogger.error("serialNo = $serialNo\n модуль сбора данных: неизвестный id = ${id.toString(16)}.")
                                     }
@@ -512,14 +521,14 @@ open class GalileoHandler : MMSNioHandler() {
                             }
 
                             if (esdStatus != 0) {
-                                tmESDVolume[groupIndex] = bbIn.getInt() * 0.01                      // litres
-                                tmESDFlow[groupIndex] = bbIn.getInt() * 0.1                         // litres/hour
-                                tmESDCameraVolume[groupIndex] = bbIn.getInt() * 0.01                // litres
-                                tmESDCameraFlow[groupIndex] = bbIn.getInt() * 0.1                   // litres/hour
-                                tmESDCameraTemperature[groupIndex] = bbIn.getByte().toInt()         // C
-                                tmESDReverseCameraVolume[groupIndex] = bbIn.getInt() * 0.01         // litres
-                                tmESDReverseCameraFlow[groupIndex] = bbIn.getInt() * 0.1            // litres/hour
-                                tmESDReverseCameraTemperature[groupIndex] = bbIn.getByte().toInt()  // C
+                                tmESDVolume[groupIndex] = bbIn.getInt() * 0.01                          // litres
+                                tmESDFlow[groupIndex] = bbIn.getInt() * 0.1                             // litres/hour
+                                tmESDCameraVolume[groupIndex] = bbIn.getInt() * 0.01                    // litres
+                                tmESDCameraFlow[groupIndex] = bbIn.getInt() * 0.1                       // litres/hour
+                                tmESDCameraTemperature[groupIndex] = bbIn.getByte().toDouble()          // C
+                                tmESDReverseCameraVolume[groupIndex] = bbIn.getInt() * 0.01             // litres
+                                tmESDReverseCameraFlow[groupIndex] = bbIn.getInt() * 0.1                // litres/hour
+                                tmESDReverseCameraTemperature[groupIndex] = bbIn.getByte().toDouble()   // C
                             }
                         }
                     }
@@ -636,9 +645,7 @@ open class GalileoHandler : MMSNioHandler() {
         status += " DataRead;"
 
         //--- здесь имеет смысл сохранить данные по последней точке, если таковая была считана
-        if (pointTime != 0) {
-            savePoint(dataWorker.conn, pointTime)
-        }
+        savePoint(dataWorker.conn, pointTime)
 
         sendAccept(crc)
 
@@ -723,7 +730,6 @@ open class GalileoHandler : MMSNioHandler() {
     private fun savePoint(conn: CoreAdvancedConnection, pointTime: Int) {
         deviceConfig?.let { dc ->
             val curTime = getCurrentTimeInt()
-            AdvancedLogger.debug("pointTime = ${getDateTimeYMDHMSString(TimeZone.currentSystemDefault(), pointTime)}")
             if (pointTime > curTime - CoreTelematicFunction.MAX_PAST_TIME && pointTime < curTime + CoreTelematicFunction.MAX_FUTURE_TIME) {
                 val bbData = AdvancedByteBuffer(CoreTelematicFunction.MAX_PORT_PER_DEVICE * 8)
 
@@ -757,77 +763,78 @@ open class GalileoHandler : MMSNioHandler() {
                 CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmRS485Temp, 40, 4, bbData)
 
                 CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmUserData, 100, 4, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmGalileoCount, GalileoFunction.PORT_NUM_GALILEO_COUNT, 4, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmLLSLevel, GalileoFunction.PORT_NUM_LLS_LEVEL, 4, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmGalileoVoltage, GalileoFunction.PORT_NUM_GALILEO_VOLTAGE, 4, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmGalileoCount, PortNumbers.GALILEO_COUNT_110, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmLLSLevel, PortNumbers.LLS_LEVEL_120, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmGalileoVoltage, PortNumbers.GALILEO_VOLTAGE_140, bbData)
 
                 //--- данные по электросчётчику ---
 
                 //--- значения счётчиков от последнего сброса (активная/реактивная прямая/обратная)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEnergoCountActiveDirect, GalileoFunction.PORT_NUM_MERCURY_COUNT_ACTIVE_DIRECT, 4, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEnergoCountActiveReverse, GalileoFunction.PORT_NUM_MERCURY_COUNT_ACTIVE_REVERSE, 4, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEnergoCountReactiveDirect, GalileoFunction.PORT_NUM_MERCURY_COUNT_REACTIVE_DIRECT, 4, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEnergoCountReactiveReverse, GalileoFunction.PORT_NUM_MERCURY_COUNT_REACTIVE_REVERSE, 4, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoCountActiveDirect, PortNumbers.MERCURY_COUNT_ACTIVE_DIRECT_160, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoCountActiveReverse, PortNumbers.MERCURY_COUNT_ACTIVE_REVERSE_164, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoCountReactiveDirect, PortNumbers.MERCURY_COUNT_REACTIVE_DIRECT_168, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoCountReactiveReverse, PortNumbers.MERCURY_COUNT_REACTIVE_REVERSE_172, bbData)
 
                 //--- напряжение по фазам A1..4, B1..4, C1..4
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEnergoVoltageA, GalileoFunction.PORT_NUM_MERCURY_VOLTAGE_A, 4, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEnergoVoltageB, GalileoFunction.PORT_NUM_MERCURY_VOLTAGE_B, 4, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEnergoVoltageC, GalileoFunction.PORT_NUM_MERCURY_VOLTAGE_C, 4, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoVoltageA, PortNumbers.MERCURY_VOLTAGE_A_180, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoVoltageB, PortNumbers.MERCURY_VOLTAGE_B_184, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoVoltageC, PortNumbers.MERCURY_VOLTAGE_C_188, bbData)
 
                 //--- ток по фазам A1..4, B1..4, C1..4
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEnergoCurrentA, GalileoFunction.PORT_NUM_MERCURY_CURRENT_A, 4, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEnergoCurrentB, GalileoFunction.PORT_NUM_MERCURY_CURRENT_B, 4, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEnergoCurrentC, GalileoFunction.PORT_NUM_MERCURY_CURRENT_C, 4, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoCurrentA, PortNumbers.MERCURY_CURRENT_A_200, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoCurrentB, PortNumbers.MERCURY_CURRENT_B_204, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoCurrentC, PortNumbers.MERCURY_CURRENT_C_208, bbData)
 
                 //--- коэффициент мощности по фазам A1..4, B1..4, C1..4
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEnergoPowerKoefA, GalileoFunction.PORT_NUM_MERCURY_POWER_KOEF_A, 4, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEnergoPowerKoefB, GalileoFunction.PORT_NUM_MERCURY_POWER_KOEF_B, 4, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEnergoPowerKoefC, GalileoFunction.PORT_NUM_MERCURY_POWER_KOEF_C, 4, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerKoefA, PortNumbers.MERCURY_POWER_KOEF_A_220, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerKoefB, PortNumbers.MERCURY_POWER_KOEF_B_224, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerKoefC, PortNumbers.MERCURY_POWER_KOEF_C_228, bbData)
 
                 //--- активная мощность по фазам A1..4, B1..4, C1..4
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEnergoPowerActiveA, GalileoFunction.PORT_NUM_MERCURY_POWER_ACTIVE_A, 4, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEnergoPowerActiveB, GalileoFunction.PORT_NUM_MERCURY_POWER_ACTIVE_B, 4, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEnergoPowerActiveC, GalileoFunction.PORT_NUM_MERCURY_POWER_ACTIVE_C, 4, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerActiveA, PortNumbers.MERCURY_POWER_ACTIVE_A_232, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerActiveB, PortNumbers.MERCURY_POWER_ACTIVE_B_236, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerActiveC, PortNumbers.MERCURY_POWER_ACTIVE_C_240, bbData)
 
                 //--- реактивная мощность по фазам A1..4, B1..4, C1..4
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEnergoPowerReactiveA, GalileoFunction.PORT_NUM_MERCURY_POWER_REACTIVE_A, 4, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEnergoPowerReactiveB, GalileoFunction.PORT_NUM_MERCURY_POWER_REACTIVE_B, 4, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEnergoPowerReactiveC, GalileoFunction.PORT_NUM_MERCURY_POWER_REACTIVE_C, 4, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerReactiveA, PortNumbers.MERCURY_POWER_REACTIVE_A_244, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerReactiveB, PortNumbers.MERCURY_POWER_REACTIVE_B_248, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerReactiveC, PortNumbers.MERCURY_POWER_REACTIVE_C_252, bbData)
 
                 //--- полная мощность по фазам A1..4, B1..4, C1..4
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEnergoPowerFullA, GalileoFunction.PORT_NUM_MERCURY_POWER_FULL_A, 4, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEnergoPowerFullB, GalileoFunction.PORT_NUM_MERCURY_POWER_FULL_B, 4, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEnergoPowerFullC, GalileoFunction.PORT_NUM_MERCURY_POWER_FULL_C, 4, bbData)
-
-                //--- коэффициент трансформации по току и напряжению
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEnergoTransformKoefCurrent, GalileoFunction.PORT_NUM_MERCURY_TRANSFORM_KOEF_CURRENT, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEnergoTransformKoefVoltage, GalileoFunction.PORT_NUM_MERCURY_TRANSFORM_KOEF_VOLTAGE, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerFullA, PortNumbers.MERCURY_POWER_FULL_A_256, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerFullB, PortNumbers.MERCURY_POWER_FULL_B_260, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerFullC, PortNumbers.MERCURY_POWER_FULL_C_264, bbData)
 
                 //--- ЭМИС
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEmisMassFlow, GalileoFunction.PORT_NUM_EMIS_MASS_FLOW, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEmisDensity, GalileoFunction.PORT_NUM_EMIS_DENSITY, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEmisTemperature, GalileoFunction.PORT_NUM_EMIS_TEMPERATURE, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEmisVolumeFlow, GalileoFunction.PORT_NUM_EMIS_VOLUME_FLOW, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEmisAccumulatedMass, GalileoFunction.PORT_NUM_EMIS_ACCUMULATED_MASS, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEmisAccumulatedVolume, GalileoFunction.PORT_NUM_EMIS_ACCUMULATED_VOLUME, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEmisMassFlow, PortNumbers.EMIS_MASS_FLOW_270, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEmisDensity, PortNumbers.EMIS_DENSITY_280, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEmisTemperature, PortNumbers.EMIS_TEMPERATURE_290, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEmisVolumeFlow, PortNumbers.EMIS_VOLUME_FLOW_300, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEmisAccumulatedMass, PortNumbers.EMIS_ACCUMULATED_MASS_310, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEmisAccumulatedVolume, PortNumbers.EMIS_ACCUMULATED_VOLUME_320, bbData)
 
                 //--- мощность по трём фазам: активная, реактивная, суммарная
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEnergoPowerActiveABC, GalileoFunction.PORT_NUM_MERCURY_POWER_ACTIVE_ABC, 4, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEnergoPowerReactiveABC, GalileoFunction.PORT_NUM_MERCURY_POWER_REACTIVE_ABC, 4, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmEnergoPowerFullABC, GalileoFunction.PORT_NUM_MERCURY_POWER_FULL_ABC, 4, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerActiveABC, PortNumbers.MERCURY_POWER_ACTIVE_ABC_330, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerReactiveABC, PortNumbers.MERCURY_POWER_REACTIVE_ABC_340, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoPowerFullABC, PortNumbers.MERCURY_POWER_FULL_ABC_350, bbData)
+
+                //--- коэффициент трансформации по току и напряжению
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoTransformKoefCurrent, PortNumbers.MERCURY_TRANSFORM_KOEF_CURRENT_360, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmEnergoTransformKoefVoltage, PortNumbers.MERCURY_TRANSFORM_KOEF_VOLTAGE_370, bbData)
 
                 //--- EuroSens Delta
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmESDStatus, GalileoFunction.PORT_NUM_ESD_STATUS, 4, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmESDVolume, GalileoFunction.PORT_NUM_ESD_VOLUME, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmESDFlow, GalileoFunction.PORT_NUM_ESD_FLOW, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmESDCameraVolume, GalileoFunction.PORT_NUM_ESD_CAMERA_VOLUME, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmESDCameraFlow, GalileoFunction.PORT_NUM_ESD_CAMERA_FLOW, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmESDCameraTemperature, GalileoFunction.PORT_NUM_ESD_CAMERA_TEMPERATURE, 4, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmESDReverseCameraVolume, GalileoFunction.PORT_NUM_ESD_REVERSE_CAMERA_VOLUME, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmESDReverseCameraFlow, GalileoFunction.PORT_NUM_ESD_REVERSE_CAMERA_FLOW, bbData)
-                CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmESDReverseCameraTemperature, GalileoFunction.PORT_NUM_ESD_REVERSE_CAMERA_TEMPERATURE, 4, bbData)
+                //MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmESDStatus, PortNumbers.ESD_STATUS_500, 4, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmESDVolume, PortNumbers.ESD_VOLUME_504, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmESDFlow, PortNumbers.ESD_FLOW_508, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmESDCameraVolume, PortNumbers.ESD_CAMERA_VOLUME_512, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmESDCameraFlow, PortNumbers.ESD_CAMERA_FLOW_516, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmESDCameraTemperature, PortNumbers.ESD_CAMERA_TEMPERATURE_520, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmESDReverseCameraVolume, PortNumbers.ESD_REVERSE_CAMERA_VOLUME_524, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmESDReverseCameraFlow, PortNumbers.ESD_REVERSE_CAMERA_FLOW_528, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmESDReverseCameraTemperature, PortNumbers.ESD_REVERSE_CAMERA_TEMPERATURE_532, bbData)
 
                 MMSTelematicFunction.addPoint(conn, dc, pointTime, bbData)
+
                 dataCount++
             }
             dataCountAll++

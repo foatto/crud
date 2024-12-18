@@ -1,16 +1,10 @@
 package foatto.server.ds
 
 import foatto.core.util.getCurrentTimeInt
-import kotlinx.datetime.TimeZone
 import java.io.File
 import java.nio.channels.SelectionKey
-import java.time.ZoneId
 
 abstract class AbstractTelematicNioHandler : AbstractNioHandler() {
-
-    protected val timeZone: TimeZone = TimeZone.currentSystemDefault()
-
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     override var startBufSize: Int = 1024
 
