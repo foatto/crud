@@ -8,6 +8,8 @@ import foatto.core_mms.addAppModuleUrls
 import foatto.server.model.AppModuleConfig
 import foatto.server.model.AppRoleConfig
 import foatto.server.model.Permission
+import foatto.server.util.AdvancedLogger
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.boot.runApplication
@@ -27,8 +29,17 @@ class MMSSpringApp : SpringApp() {
         }
     }
 
+    @Value("\${log_dir}")
+    val logDir: String = ""
+
+    @Value("\${log_options}")
+    val logOptions: String = ""
+
     @EventListener(ApplicationReadyEvent::class)
     fun init() {
+        AdvancedLogger.init(logDir, logOptions.contains("error"), logOptions.contains("info"), logOptions.contains("debug"))
+        AdvancedLogger.info("==================== MMSSpringApp started ====================")
+
         addAppModuleUrls()
         initAppRoleConfigs()
         initAppModuleConfigs()
