@@ -177,7 +177,9 @@ class SensorService(
                         ontime_1        INT,         
                         type_0          INT,
                         value_0         FLOAT8,
-                        value_1         FLOAT8
+                        value_1         FLOAT8,
+                        value_2         FLOAT8,
+                        value_3         FLOAT8
                     )
                 """
             )
@@ -194,7 +196,9 @@ class SensorService(
                         ontime_1        INT,         
                         type_0          INT,
                         value_0         FLOAT8,
-                        value_1         FLOAT8
+                        value_1         FLOAT8,
+                        value_2         FLOAT8,
+                        value_3         FLOAT8
                     )
                 """,
                 " CREATE INDEX MMS_agg_${sensorId}_ontime_0 ON MMS_agg_$sensorId ( ontime_0 ) ",

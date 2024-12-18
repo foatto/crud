@@ -167,7 +167,7 @@ class MMSPulsarDataController(
         }
 
         val deviceConfig: DeviceConfig = dc?.let {
-            status += " ID;"
+            status += " ID 2.0;"
             dc
         } ?: run {
             outDeviceParseError(dirJournalLog, request.remoteAddr, "Unlinked object or unknown serialNo = '$serialNo'")

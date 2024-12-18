@@ -40,6 +40,8 @@ class SensorDataService(
         alColumnInfo += null to "Тип"
         alColumnInfo += null to "Значение"
         alColumnInfo += null to "Значение 2"
+        alColumnInfo += null to "Значение 3"
+        alColumnInfo += null to "Значение 4"
 
         return getTableColumnCaptionActions(
             action = action,
@@ -98,21 +100,24 @@ class SensorDataService(
         queryNativeSql(
             entityManager,
             """
-                SELECT ontime_0 , ontime_1 , type_0 , value_0 , value_1
+                SELECT ontime_0 , ontime_1 , type_0 , value_0 , value_1 , value_2 , value_3
                 FROM MMS_agg_$parentSensorId
                 WHERE ontime_0 BETWEEN $begPageTime AND $endPageTime
                 ORDER BY ontime_0 DESC
             """
         ) { rs ->
             while (rs.next()) {
+                var pos = 1
+
+                val ontime0 = rs.getInt(pos++)
+                val ontime1 = rs.getInt(pos++)
+                val type0 = rs.getInt(pos++)
+                val value0 = rs.getDouble(pos++)
+                val value1 = rs.getDouble(pos++)
+                val value2 = rs.getDouble(pos++)
+                val value3 = rs.getDouble(pos++)
+
                 var col = 0
-
-                val ontime0 = rs.getInt(1)
-                val ontime1 = rs.getInt(2)
-                val type0 = rs.getInt(3)
-                val value0 = rs.getDouble(4)
-                val value1 = rs.getDouble(5)
-
                 alTableCell += TableSimpleCell(
                     row = row,
                     col = col++,
@@ -140,6 +145,8 @@ class SensorDataService(
                 alTableCell += TableSimpleCell(row = row, col = col++, dataRow = row, name = type0.toString())
                 alTableCell += TableSimpleCell(row = row, col = col++, dataRow = row, name = value0.toString())
                 alTableCell += TableSimpleCell(row = row, col = col++, dataRow = row, name = value1.toString())
+                alTableCell += TableSimpleCell(row = row, col = col++, dataRow = row, name = value2.toString())
+                alTableCell += TableSimpleCell(row = row, col = col++, dataRow = row, name = value3.toString())
 
                 alTableRowData += TableRowData(
                     formAction = null,

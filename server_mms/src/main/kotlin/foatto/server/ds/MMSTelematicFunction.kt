@@ -321,6 +321,24 @@ object MMSTelematicFunction {
                             sensorValue = sensorValue,
                         )
                     }
+
+                    SensorConfig.SENSOR_MASS_ACCUMULATED,
+                    SensorConfig.SENSOR_VOLUME_ACCUMULATED,
+                    SensorConfig.SENSOR_LIQUID_USING,
+                    SensorConfig.SENSOR_ENERGO_COUNT_AD,
+                    SensorConfig.SENSOR_ENERGO_COUNT_AR,
+                    SensorConfig.SENSOR_ENERGO_COUNT_RD,
+                    SensorConfig.SENSOR_ENERGO_COUNT_RR,
+                    -> {
+                        SensorService.checkAndCreateAggTable(conn, sensorEntity.id)
+                        saveCounterSensorData(
+                            conn = conn,
+                            sensorEntity = sensorEntity,
+                            sensorCalibration = sensorCalibrations[sensorEntity.id] ?: emptyList(),
+                            pointTime = pointTime,
+                            sensorValue = sensorValue,
+                        )
+                    }
                 }
             }
         }
@@ -385,6 +403,76 @@ object MMSTelematicFunction {
         )
     }
 
+    private fun saveCounterSensorData(
+        conn: CoreAdvancedConnection,
+        sensorEntity: SensorEntity,
+        sensorCalibration: List<Pair<Double, Double>>,
+        pointTime: Int,
+        sensorValue: Double,
+    ) {
+        //--- ignore outbound values
+        if (AbstractObjectStateCalc.isIgnoreSensorData(sensorEntity.minIgnore, sensorEntity.maxIgnore, sensorValue)) {
+            return
+        }
+        val dataValue = AbstractObjectStateCalc.getDataValue(sensorCalibration, sensorValue)
+
+        var prevValue = 0.0
+        if (sensorEntity.isAbsoluteCount == true) {
+            val rs = conn.executeQuery(
+                """
+                    SELECT value_0
+                    FROM MMS_agg_${sensorEntity.id}
+                    WHERE ontime_0 = ( SELECT MAX(ontime_0) FROM MMS_agg_${sensorEntity.id} ) 
+                """
+            )
+            if (rs.next()) {
+                prevValue = rs.getDouble(1)
+            }
+            rs.close()
+        }
+
+        var deltaValue = dataValue - prevValue
+        //--- учитываем возможный/периодический сброс абсолютного счётчика
+        if (deltaValue < 0) {
+            deltaValue = 0.0
+        }
+
+        var rs = conn.executeQuery(
+            """
+                SELECT SUM(value_1)
+                FROM MMS_agg_${sensorEntity.id}
+                WHERE ontime_0 > ${pointTime - 60} ) 
+            """
+        )
+        val lastMinuteSum = if (rs.next()) {
+            rs.getDouble(1)
+        } else {
+            0.0
+        }
+        rs.close()
+
+        rs = conn.executeQuery(
+            """
+                SELECT SUM(value_1)
+                FROM MMS_agg_${sensorEntity.id}
+                WHERE ontime_0 > ${pointTime - 3600} ) 
+            """
+        )
+        val lastHourSum = if (rs.next()) {
+            rs.getDouble(1)
+        } else {
+            0.0
+        }
+        rs.close()
+
+        conn.executeUpdate(
+            """
+                INSERT INTO MMS_agg_${sensorEntity.id} ( ontime_0 , ontime_1 , type_0 , value_0 , value_1 , value_2 , value_3 ) 
+                VALUES ( $pointTime , $pointTime , 0 , $dataValue , $deltaValue , ${lastMinuteSum + deltaValue} , ${lastHourSum + deltaValue} )  
+            """
+        )
+    }
+
     /*
         //--- особые величины - сигнал с устройства
         const val SENSOR_SIGNAL = -2   // Есть/нет
@@ -398,24 +486,7 @@ object MMSTelematicFunction {
         //--- контрольные величины - графики
         const val SENSOR_LIQUID_FLOW_CALC = 3 - убрать нафиг этот расчётный "датчик"
 
-        //--- учётные величины - отчёты
-
-        //--- Исторически сложилось так, что это три разных датчика (трёх разных производителей и возможностей)
-        //--- но используются они пока одинаково.
-        //--- Возможно, когда-нибудь их удастся объединить.
-        const val SENSOR_MASS_ACCUMULATED = 14
-        const val SENSOR_VOLUME_ACCUMULATED = 15
-        const val SENSOR_LIQUID_USING = 16
-
         //--- сигнальная величина - состояние расходомера/счётчика
         const val SENSOR_LIQUID_USING_COUNTER_STATE = 17
-
-        //--- electro energo counters
-
-        //--- учётные величины - отчёты
-        const val SENSOR_ENERGO_COUNT_AD = 20   // Active Direct - активная прямая электроэнергия
-        const val SENSOR_ENERGO_COUNT_AR = 21   // Active Reverse - активная обратная электроэнергия
-        const val SENSOR_ENERGO_COUNT_RD = 22   // Reactive Direct - реактивная прямая электроэнергия
-        const val SENSOR_ENERGO_COUNT_RR = 23   // Reactive Reverse - реактивная обратная электроэнергия
 */
 }
