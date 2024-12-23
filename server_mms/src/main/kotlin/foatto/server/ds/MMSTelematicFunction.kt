@@ -339,6 +339,16 @@ object MMSTelematicFunction {
                             sensorValue = sensorValue,
                         )
                     }
+
+                    SensorConfig.SENSOR_WORK -> {
+                        SensorService.checkAndCreateAggTable(conn, sensorEntity.id)
+                        saveWorkSensorData(
+                            conn = conn,
+                            sensorEntity = sensorEntity,
+                            pointTime = pointTime,
+                            sensorValue = sensorValue,
+                        )
+                    }
                 }
             }
         }
@@ -473,6 +483,74 @@ object MMSTelematicFunction {
         )
     }
 
+    private fun saveWorkSensorData(
+        conn: CoreAdvancedConnection,
+        sensorEntity: SensorEntity,
+        pointTime: Int,
+        sensorValue: Double,
+    ) {
+        //--- ignore outbound values
+        if (AbstractObjectStateCalc.isIgnoreSensorData(sensorEntity.minIgnore, sensorEntity.maxIgnore, sensorValue)) {
+            return
+        }
+
+        val workValue: Boolean = sensorEntity.boundValue?.let { boundValue ->
+            sensorEntity.activeValue?.let { activeValue ->
+                if (activeValue != 0) {
+                    sensorValue > boundValue
+                } else {
+                    sensorValue < boundValue
+                }
+            } ?: false
+        } ?: false
+
+        val rs = conn.executeQuery(
+            """
+                SELECT ontime_0 , ontime_1 , type_0
+                FROM MMS_agg_${sensorEntity.id}
+                WHERE ontime_0 = ( SELECT MAX(ontime_0) FROM MMS_agg_${sensorEntity.id} ) 
+            """
+        )
+        val (onTime0, onTime1, prevValue) = if (rs.next()) {
+            Triple(rs.getInt(1), rs.getInt(2), rs.getInt(3) != 0)
+        } else {
+            Triple(0, 0, null)
+        }
+        rs.close()
+
+        prevValue?.let {
+            if (workValue == prevValue) {
+                conn.executeUpdate(
+                    """
+                        UPDATE MMS_agg_${sensorEntity.id} 
+                        SET ontime_1 = $pointTime 
+                        WHERE ontime_0 = $onTime0 
+                    """
+                )
+                return
+            } else {
+                //--- слишком короткий предыдущий период
+                if (
+                    !prevValue && (onTime1 - onTime0 < (sensorEntity.minOffTime ?: 0)) ||
+                    prevValue && (onTime1 - onTime0 < (sensorEntity.minOnTime ?: 0))
+                ) {
+                    conn.executeUpdate(
+                        """
+                            DELETE FROM MMS_agg_${sensorEntity.id} 
+                            WHERE ontime_0 = $onTime0 
+                        """
+                    )
+                }
+            }
+        }
+        conn.executeUpdate(
+            """
+                INSERT INTO MMS_agg_${sensorEntity.id} ( ontime_0 , ontime_1 , type_0 , value_0 , value_1 , value_2 , value_3 ) 
+                VALUES ( $pointTime , $pointTime , 0 , ${if (workValue) 1 else 0} , 0 , 0 , 0 )  
+            """
+        )
+    }
+
     /*
         //--- особые величины - сигнал с устройства
         const val SENSOR_SIGNAL = -2   // Есть/нет
@@ -481,10 +559,7 @@ object MMSTelematicFunction {
         const val SENSOR_GEO = -1           // координаты, км/ч, м или км
 
         //--- учётные величины - отчёты
-        const val SENSOR_WORK = 1           // мото * час
-
-        //--- контрольные величины - графики
-        const val SENSOR_LIQUID_FLOW_CALC = 3 - убрать нафиг этот расчётный "датчик"
+        const val  = 1           // мото * час
 
         //--- сигнальная величина - состояние расходомера/счётчика
         const val SENSOR_LIQUID_USING_COUNTER_STATE = 17

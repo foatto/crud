@@ -680,8 +680,8 @@ class SensorService(
             isEditable = changeEnabled,
             value = sensorEntity?.activeValue?.toString() ?: "1",
             values = listOf(
-                "0" to "<= граничному значению",
-                "1" to ">  граничного значения",
+                "0" to "если < граничного значения",
+                "1" to "если > граничного значения",
             ),
             asRadioButtons = true,
             visibility = FormCellVisibility(
