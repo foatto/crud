@@ -38,6 +38,7 @@ import foatto.server.model.ServerUserConfig
 import foatto.server.repository.FileStoreRepository
 import foatto.server.repository.UserRepository
 import foatto.server.util.encodePassword
+import foatto.server.util.getNextId
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.toInstant
 import org.springframework.data.domain.Page
@@ -574,7 +575,7 @@ class UserService(
         val lastLoginDateTime = getDateTimeYMDHMSInts(getTimeZone(userConfig.timeOffset), formActionData[FIELD_LAST_LOGIN]?.dateTimeValue ?: 0)
         val passwordLastChangeDate = getDateTimeYMDHMSInts(getTimeZone(userConfig.timeOffset), formActionData[FIELD_PASSWORD_LAST_CHANGE]?.dateTimeValue ?: 0)
 
-        val recordId = id ?: getNextId()
+        val recordId = id ?: getNextId { nextId -> userRepository.existsById(nextId) }
         val userEntity = UserEntity(
             id = recordId,
             parentId = formActionData[FIELD_PARENT_ID]?.stringValue?.toIntOrNull() ?: 0,
@@ -636,7 +637,5 @@ class UserService(
 
         return Triple(addEnabled, editEnabled, deleteEnabled)
     }
-
-    override fun checkExistingId(nextId: Int): Boolean = userRepository.existsById(nextId)
 
 }

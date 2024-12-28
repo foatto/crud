@@ -20,6 +20,7 @@ import foatto.server.model.AppModuleConfig
 import foatto.server.model.ServerUserConfig
 import foatto.server.repository.SensorCalibrationRepository
 import foatto.server.repository.SensorRepository
+import foatto.server.util.getNextId
 import org.springframework.data.domain.Page
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -31,7 +32,7 @@ class SensorCalibrationService(
 ) : ApplicationService() {
 
     companion object {
-        private const val FIELD_ID = "id"
+//        private const val FIELD_ID = "id"
         private const val FIELD_SENSOR = "sensor"
         private const val FIELD_SENSOR_VALUE = "sensorValue"
         private const val FIELD_SENSOR_DATA = "sensorData"
@@ -193,7 +194,7 @@ class SensorCalibrationService(
         val sensorValue = formActionData[FIELD_SENSOR_VALUE]?.stringValue?.toDoubleOrNull() ?: return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_SENSOR_VALUE to "Не введёно значение датчика"))
         val dataValue = formActionData[FIELD_SENSOR_DATA]?.stringValue?.toDoubleOrNull() ?: return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_SENSOR_DATA to "Не введёно значение измеряемой величины"))
 
-        val recordId = id ?: getNextId()
+        val recordId = id ?: getNextId { nextId -> sensorCalibrationRepository.existsById(nextId) }
         val sensorCalibrationEntity = SensorCalibrationEntity(
             id = recordId,
             sensor = parentSensorEntity,
@@ -216,8 +217,6 @@ class SensorCalibrationService(
 
         return Triple(addEnabled, editEnabled, deleteEnabled)
     }
-
-    override fun checkExistingId(nextId: Int): Boolean = sensorCalibrationRepository.existsById(nextId)
 
     override fun formActionDelete(userId: Int, id: Int): FormActionResponse {
         sensorCalibrationRepository.deleteById(id)

@@ -18,7 +18,6 @@ import foatto.core.model.response.table.TableRowData
 import foatto.core.model.response.table.cell.TableBaseCell
 import foatto.core.model.response.table.cell.TableCellBackColorType
 import foatto.core.model.response.table.cell.TableSimpleCell
-import foatto.core.util.getDateDMYString
 import foatto.core.util.getDateTimeYMDHMSInts
 import foatto.core.util.getRandomInt
 import foatto.core.util.getTimeZone
@@ -41,6 +40,7 @@ import foatto.server.repository.ObjectRepository
 import foatto.server.repository.SensorCalibrationRepository
 import foatto.server.repository.SensorRepository
 import foatto.server.sql.CoreAdvancedConnection
+import foatto.server.util.getNextId
 import jakarta.persistence.EntityManager
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.toInstant
@@ -124,7 +124,7 @@ class SensorService(
         private const val FIELD_SCHEME_X = "schemeX"
         private const val FIELD_SCHEME_Y = "schemeY"
 
-        private const val FIELD_CALIBRATION = "calibration" // псевдополе для калибровки/тарировки
+        private const val FIELD_CALIBRATION = "_calibration" // псевдополе для калибровки/тарировки
 
         fun checkAndCreateAggTable(conn: CoreAdvancedConnection, sensorId: Int) {
             if (!checkAggTableIsExists(conn, sensorId)) {
@@ -309,13 +309,7 @@ class SensorService(
                 row = row,
                 col = col++,
                 dataRow = row,
-                name = sensorEntity.usingStartDate?.let { dateEntity ->
-                    if (dateEntity.ye != null && dateEntity.mo != null && dateEntity.da != null) {
-                        getDateDMYString(dateEntity.ye!!, dateEntity.mo!!, dateEntity.da!!)
-                    } else {
-                        "-"
-                    }
-                } ?: "-"
+                name = getDateEntityDMYString(sensorEntity.usingStartDate),
             )
 
             val formOpenAction = AppAction(
@@ -472,7 +466,6 @@ class SensorService(
 
         //--- common data
 
-//            var obj: ObjectEntity,
         formCells += FormSimpleCell(
             name = FIELD_OBJECT,
             caption = "",
@@ -1161,7 +1154,7 @@ class SensorService(
 
         val usingStartDate = getDateTimeYMDHMSInts(getTimeZone(userConfig.timeOffset), formActionData[FIELD_USING_START_DATE]?.dateTimeValue ?: 0)
 
-        val recordId = id ?: getNextId()
+        val recordId = id ?: getNextId { nextId -> sensorRepository.existsById(nextId) }
         val sensorEntity = SensorEntity(
             id = recordId,
             obj = parentObjectEntity,
@@ -1188,11 +1181,6 @@ class SensorService(
             boundValue = formActionData[FIELD_BOUND_VALUE]?.stringValue?.toIntOrNull() ?: 0,
             activeValue = formActionData[FIELD_ACTIVE_VALUE]?.stringValue?.toIntOrNull() ?: 1,
             begWorkValue = formActionData[FIELD_BEG_WORK_VALUE]?.stringValue?.toDoubleOrNull() ?: 0.0,
-            //!!! для совместимости со старой версией
-            cmdOnId = 0,
-            cmdOffId = 0,
-            signalOn = "",
-            signalOff = "",
             minOnTime = formActionData[FIELD_MIN_ON_TIME]?.stringValue?.toIntOrNull() ?: 1,
             minOffTime = formActionData[FIELD_MIN_OFF_TIME]?.stringValue?.toIntOrNull() ?: 1,
             smoothTime = formActionData[FIELD_SMOOTH_TIME]?.stringValue?.toIntOrNull() ?: 0,
@@ -1225,6 +1213,10 @@ class SensorService(
             schemeX = formActionData[FIELD_SCHEME_X]?.stringValue?.toIntOrNull() ?: 0,
             schemeY = formActionData[FIELD_SCHEME_Y]?.stringValue?.toIntOrNull() ?: 0,
             //!!! для совместимости со старой версией
+            cmdOnId = 0,
+            cmdOffId = 0,
+            signalOn = "",
+            signalOff = "",
             smoothMethod = 0,
         )
         sensorRepository.saveAndFlush(sensorEntity)
@@ -1280,8 +1272,6 @@ class SensorService(
 
         return Triple(addEnabled, editEnabled, deleteEnabled)
     }
-
-    override fun checkExistingId(nextId: Int): Boolean = sensorRepository.existsById(nextId)
 
     override fun formActionDelete(userId: Int, id: Int): FormActionResponse {
         deleteSensor(

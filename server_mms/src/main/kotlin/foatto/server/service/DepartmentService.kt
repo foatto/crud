@@ -19,6 +19,7 @@ import foatto.server.model.AppModuleConfig
 import foatto.server.model.ServerUserConfig
 import foatto.server.repository.DepartmentRepository
 import foatto.server.repository.ObjectRepository
+import foatto.server.util.getNextId
 import org.springframework.data.domain.Page
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -230,7 +231,7 @@ class DepartmentService(
             return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_NAME to "Такое наименование уже существует"))
         }
 
-        val recordId = id ?: getNextId()
+        val recordId = id ?: getNextId { nextId -> departmentRepository.existsById(nextId) }
         val departmentEntity = DepartmentEntity(
             id = recordId,
             userId = recordUserId,
@@ -264,7 +265,5 @@ class DepartmentService(
 
         return Triple(addEnabled, editEnabled, deleteEnabled)
     }
-
-    override fun checkExistingId(nextId: Int): Boolean = departmentRepository.existsById(nextId)
 
 }

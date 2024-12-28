@@ -25,6 +25,8 @@ import foatto.core.model.response.table.cell.TableBaseCell
 import foatto.core.model.response.table.cell.TableButtonCell
 import foatto.core.model.response.table.cell.TableButtonCellData
 import foatto.core.model.response.table.cell.TableSimpleCell
+import foatto.core.util.getDateDMYString
+import foatto.core.util.getDateTimeDMYHMSString
 import foatto.core.util.getFilledNumberString
 import foatto.core.util.getRandomInt
 import foatto.server.AppRole
@@ -34,6 +36,8 @@ import foatto.server.checkAccessPermission
 import foatto.server.checkFormAddPermission
 import foatto.server.checkRowPermission
 import foatto.server.controller.FileController
+import foatto.server.entity.DateEntity
+import foatto.server.entity.DateTimeEntity
 import foatto.server.entity.FileStoreEntity
 import foatto.server.model.AppModuleConfig
 import foatto.server.model.ServerUserConfig
@@ -560,22 +564,6 @@ abstract class ApplicationService {
         moduleConfig: AppModuleConfig,
     ): Triple<Boolean, Boolean, Boolean>
 
-    protected fun getNextId(): Int {
-        var nextId: Int
-        while (true) {
-            nextId = getRandomInt()
-            if (nextId == 0) {
-                continue
-            }
-            if (checkExistingId(nextId)) {
-                continue
-            }
-            return nextId
-        }
-    }
-
-    protected abstract fun checkExistingId(nextId: Int): Boolean
-
     open fun formAction(
         sessionId: Long,
         action: AppAction,
@@ -749,4 +737,25 @@ abstract class ApplicationService {
             i++
         }
     }
+
+//--- date/time helper functions
+
+    protected fun getDateEntityDMYString(dateEntity: DateEntity?): String =
+        dateEntity?.let { de ->
+            if (de.ye != null && de.mo != null && de.da != null) {
+                getDateDMYString(de.ye, de.mo, de.da)
+            } else {
+                "-"
+            }
+        } ?: "-"
+
+    protected fun getDateTimeEntityDMYString(dateTimeEntity: DateTimeEntity?): String =
+        dateTimeEntity?.let { dte ->
+            if (dte.ye != null && dte.mo != null && dte.da != null && dte.ho != null && dte.mi != null && dte.se != null) {
+                getDateTimeDMYHMSString(dte.ye, dte.mo, dte.da, dte.ho, dte.mi, dte.se)
+            } else {
+                "-"
+            }
+        } ?: "-"
+
 }

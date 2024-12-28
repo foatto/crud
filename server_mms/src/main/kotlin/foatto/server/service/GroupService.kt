@@ -19,6 +19,7 @@ import foatto.server.model.AppModuleConfig
 import foatto.server.model.ServerUserConfig
 import foatto.server.repository.GroupRepository
 import foatto.server.repository.ObjectRepository
+import foatto.server.util.getNextId
 import org.springframework.data.domain.Page
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -236,7 +237,7 @@ class GroupService(
             return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_NAME to "Такое наименование уже существует"))
         }
 
-        val recordId = id ?: getNextId()
+        val recordId = id ?: getNextId { nextId -> groupRepository.existsById(nextId) }
         val groupEntity = GroupEntity(
             id = recordId,
             userId = recordUserId,
@@ -270,7 +271,5 @@ class GroupService(
 
         return Triple(addEnabled, editEnabled, deleteEnabled)
     }
-
-    override fun checkExistingId(nextId: Int): Boolean = groupRepository.existsById(nextId)
 
 }
