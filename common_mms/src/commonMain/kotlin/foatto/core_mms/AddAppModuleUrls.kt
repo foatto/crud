@@ -36,6 +36,11 @@ fun addAppModuleUrls() {
         formActionUrl = null,
     )
 
+    appModuleUrls[AppModuleMMS.DEVICE] = AppModuleUrl(
+        appUrl = ApiUrlMMS.DEVICE,
+        formActionUrl = ApiUrlMMS.DEVICE_FORM_ACTION,
+    )
+
     appModuleUrls[AppModuleMMS.CHART_LIQUID_LEVEL] = AppModuleUrl(
         appUrl = ApiUrlMMS.CHART_LIQUID_LEVEL,
         chartActionUrl = ApiUrlMMS.CHART_LIQUID_LEVEL_ACTION,
