@@ -75,14 +75,14 @@ class MMSSpringApp : SpringApp() {
             rowPermissions = mutableMapOf(
                 ActionType.MODULE_TABLE to Permission(
                     enabledRoles = getRoleAllPermissions(AppRole.ADMIN).apply {
-                        put(UserRelationEnum.SELF, mutableSetOf(AppRole.USER))
-                        put(UserRelationEnum.WORKER, mutableSetOf(AppRole.USER))
+                        getOrPut(UserRelationEnum.SELF) { mutableSetOf() } += AppRole.USER
+                        getOrPut(UserRelationEnum.WORKER) { mutableSetOf() } += AppRole.USER
                     },
                 ),
                 ActionType.MODULE_FORM to Permission(
                     enabledRoles = getRoleAllPermissions(AppRole.ADMIN).apply {
-                        put(UserRelationEnum.SELF, mutableSetOf(AppRole.USER))
-                        put(UserRelationEnum.WORKER, mutableSetOf(AppRole.USER))
+                        getOrPut(UserRelationEnum.SELF) { mutableSetOf() } += AppRole.USER
+                        getOrPut(UserRelationEnum.WORKER) { mutableSetOf() } += AppRole.USER
                     },
                 ),
                 ActionType.FORM_EDIT to Permission(
@@ -106,24 +106,24 @@ class MMSSpringApp : SpringApp() {
             rowPermissions = mutableMapOf(
                 ActionType.MODULE_TABLE to Permission(
                     enabledRoles = getRoleAllPermissions(AppRole.ADMIN).apply {
-                        put(UserRelationEnum.SELF, mutableSetOf(AppRole.USER))
-                        put(UserRelationEnum.WORKER, mutableSetOf(AppRole.USER))
+                        getOrPut(UserRelationEnum.SELF) { mutableSetOf() } += AppRole.USER
+                        getOrPut(UserRelationEnum.WORKER) { mutableSetOf() } += AppRole.USER
                     },
                 ),
                 ActionType.MODULE_FORM to Permission(
                     enabledRoles = getRoleAllPermissions(AppRole.ADMIN).apply {
-                        put(UserRelationEnum.SELF, mutableSetOf(AppRole.USER))
-                        put(UserRelationEnum.WORKER, mutableSetOf(AppRole.USER))
+                        getOrPut(UserRelationEnum.SELF) { mutableSetOf() } += AppRole.USER
+                        getOrPut(UserRelationEnum.WORKER) { mutableSetOf() } += AppRole.USER
                     },
                 ),
                 ActionType.FORM_EDIT to Permission(
                     enabledRoles = getRoleAllPermissions(AppRole.ADMIN).apply {
-                        put(UserRelationEnum.SELF, mutableSetOf(AppRole.USER))
+                        getOrPut(UserRelationEnum.SELF) { mutableSetOf() } += AppRole.USER
                     },
                 ),
                 ActionType.FORM_DELETE to Permission(
                     enabledRoles = getRoleAllPermissions(AppRole.ADMIN).apply {
-                        put(UserRelationEnum.SELF, mutableSetOf(AppRole.USER))
+                        getOrPut(UserRelationEnum.SELF) { mutableSetOf() } += AppRole.USER
                     },
                 ),
             ),
@@ -138,24 +138,24 @@ class MMSSpringApp : SpringApp() {
             rowPermissions = mutableMapOf(
                 ActionType.MODULE_TABLE to Permission(
                     enabledRoles = getRoleAllPermissions(AppRole.ADMIN).apply {
-                        put(UserRelationEnum.SELF, mutableSetOf(AppRole.USER))
-                        put(UserRelationEnum.WORKER, mutableSetOf(AppRole.USER))
+                        getOrPut(UserRelationEnum.SELF) { mutableSetOf() } += AppRole.USER
+                        getOrPut(UserRelationEnum.WORKER) { mutableSetOf() } += AppRole.USER
                     },
                 ),
                 ActionType.MODULE_FORM to Permission(
                     enabledRoles = getRoleAllPermissions(AppRole.ADMIN).apply {
-                        put(UserRelationEnum.SELF, mutableSetOf(AppRole.USER))
-                        put(UserRelationEnum.WORKER, mutableSetOf(AppRole.USER))
+                        getOrPut(UserRelationEnum.SELF) { mutableSetOf() } += AppRole.USER
+                        getOrPut(UserRelationEnum.WORKER) { mutableSetOf() } += AppRole.USER
                     },
                 ),
                 ActionType.FORM_EDIT to Permission(
                     enabledRoles = getRoleAllPermissions(AppRole.ADMIN).apply {
-                        put(UserRelationEnum.SELF, mutableSetOf(AppRole.USER))
+                        getOrPut(UserRelationEnum.SELF) { mutableSetOf() } += AppRole.USER
                     },
                 ),
                 ActionType.FORM_DELETE to Permission(
                     enabledRoles = getRoleAllPermissions(AppRole.ADMIN).apply {
-                        put(UserRelationEnum.SELF, mutableSetOf(AppRole.USER))
+                        getOrPut(UserRelationEnum.SELF) { mutableSetOf() } += AppRole.USER
                     },
                 ),
             ),
@@ -263,6 +263,37 @@ class MMSSpringApp : SpringApp() {
             ),
         )
 
+        appModuleConfigs[AppModuleMMS.DEVICE] = AppModuleConfig(
+            caption = "Контроллеры",
+            pageSize = AppModuleConfig.DEFAULT_PAGE_SIZE,
+            enabledAccessRoles = mutableSetOf(AppRole.ADMIN),
+            disabledAccessRoles = mutableSetOf(AppRole.USER),
+            enabledFormAddRoles = mutableSetOf(AppRole.ADMIN),
+            disabledFormAddRoles = mutableSetOf(AppRole.USER),
+            rowPermissions = mutableMapOf(
+                ActionType.MODULE_TABLE to Permission(
+                    enabledRoles = getRoleAllPermissions(AppRole.ADMIN).apply {
+                        getOrPut(UserRelationEnum.SELF) { mutableSetOf() } += AppRole.USER
+                        getOrPut(UserRelationEnum.WORKER) { mutableSetOf() } += AppRole.USER
+                    },
+                ),
+                ActionType.MODULE_FORM to Permission(
+                    enabledRoles = getRoleAllPermissions(AppRole.ADMIN).apply {
+                        getOrPut(UserRelationEnum.SELF) { mutableSetOf() } += AppRole.USER
+                        getOrPut(UserRelationEnum.WORKER) { mutableSetOf() } += AppRole.USER
+                    },
+                ),
+                ActionType.FORM_EDIT to Permission(
+                    enabledRoles = getRoleAllPermissions(AppRole.ADMIN),
+                    disabledRoles = getRoleAllPermissions(AppRole.USER),
+                ),
+                ActionType.FORM_DELETE to Permission(
+                    enabledRoles = getRoleAllPermissions(AppRole.ADMIN),
+                    disabledRoles = getRoleAllPermissions(AppRole.USER),
+                ),
+            ),
+        )
+
         appModuleConfigs[AppModuleMMS.CHART_LIQUID_LEVEL] = AppModuleConfig(
             caption = "Графики уровня топлива",
             enabledAccessRoles = mutableSetOf(AppRole.ADMIN, AppRoleMMS.USER_FIXED_OBJECTS),
@@ -308,6 +339,15 @@ class MMSSpringApp : SpringApp() {
 
                 if (size > 0) {
                     alMenu += MenuData("Справочники", null, this)
+                }
+            }
+
+            mutableListOf<MenuData>().apply {
+
+                addMenuItem(AppModuleMMS.DEVICE, ActionType.MODULE_TABLE, serverUserConfig, this)
+
+                if (size > 0) {
+                    alMenu += MenuData("Контроллеры", null, this)
                 }
             }
 

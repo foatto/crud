@@ -46,12 +46,12 @@ fun getRoleAllPermissions(vararg roles: String): MutableMap<UserRelationEnum, Mu
 fun addEnabledRoles(moduleName: String, permissionName: String, enabledRole: String) {
     appModuleConfigs[moduleName]?.let { appModuleConfig ->
         appModuleConfig.rowPermissions[permissionName]?.let { permission ->
-            permission.enabledRoles[UserRelationEnum.SELF]?.add(enabledRole)
-            permission.enabledRoles[UserRelationEnum.EQUAL]?.add(enabledRole)
-            permission.enabledRoles[UserRelationEnum.BOSS]?.add(enabledRole)
-            permission.enabledRoles[UserRelationEnum.WORKER]?.add(enabledRole)
-            permission.enabledRoles[UserRelationEnum.OTHER]?.add(enabledRole)
-            permission.enabledRoles[UserRelationEnum.NOBODY]?.add(enabledRole)
+            permission.enabledRoles.getOrPut(UserRelationEnum.SELF) { mutableSetOf() }.add(enabledRole)
+            permission.enabledRoles.getOrPut(UserRelationEnum.EQUAL) { mutableSetOf() }.add(enabledRole)
+            permission.enabledRoles.getOrPut(UserRelationEnum.BOSS) { mutableSetOf() }.add(enabledRole)
+            permission.enabledRoles.getOrPut(UserRelationEnum.WORKER) { mutableSetOf() }.add(enabledRole)
+            permission.enabledRoles.getOrPut(UserRelationEnum.OTHER) { mutableSetOf() }.add(enabledRole)
+            permission.enabledRoles.getOrPut(UserRelationEnum.NOBODY) { mutableSetOf() }.add(enabledRole)
         }
     }
 }
@@ -59,12 +59,12 @@ fun addEnabledRoles(moduleName: String, permissionName: String, enabledRole: Str
 fun addDisabledRoles(moduleName: String, permissionName: String, disabledRole: String) {
     appModuleConfigs[moduleName]?.let { appModuleConfig ->
         appModuleConfig.rowPermissions[permissionName]?.let { permission ->
-            permission.disabledRoles[UserRelationEnum.SELF]?.add(disabledRole)
-            permission.disabledRoles[UserRelationEnum.EQUAL]?.add(disabledRole)
-            permission.disabledRoles[UserRelationEnum.BOSS]?.add(disabledRole)
-            permission.disabledRoles[UserRelationEnum.WORKER]?.add(disabledRole)
-            permission.disabledRoles[UserRelationEnum.OTHER]?.add(disabledRole)
-            permission.disabledRoles[UserRelationEnum.NOBODY]?.add(disabledRole)
+            permission.disabledRoles.getOrPut(UserRelationEnum.SELF) { mutableSetOf() }.add(disabledRole)
+            permission.disabledRoles.getOrPut(UserRelationEnum.EQUAL) { mutableSetOf() }.add(disabledRole)
+            permission.disabledRoles.getOrPut(UserRelationEnum.BOSS) { mutableSetOf() }.add(disabledRole)
+            permission.disabledRoles.getOrPut(UserRelationEnum.WORKER) { mutableSetOf() }.add(disabledRole)
+            permission.disabledRoles.getOrPut(UserRelationEnum.OTHER) { mutableSetOf() }.add(disabledRole)
+            permission.disabledRoles.getOrPut(UserRelationEnum.NOBODY) { mutableSetOf() }.add(disabledRole)
         }
     }
 }
@@ -118,7 +118,7 @@ fun checkFormAddPermission(module: String?, userRoles: Set<String>): Boolean {
 fun checkRowPermission(module: String?, actionType: String, rowUserRelation: UserRelationEnum?, userRoles: Set<String>): Boolean {
     appModuleConfigs[module]?.let { moduleConfig ->
         moduleConfig.rowPermissions[actionType]?.let { permission ->
-            //--- любая отрицательная роль достаточна для отказа
+            //--- вначале любая отрицательная роль достаточна для отказа
             if (
                 permission.disabledRoles[rowUserRelation]?.any { disabledRole ->
                     userRoles.contains(disabledRole)
@@ -126,7 +126,7 @@ fun checkRowPermission(module: String?, actionType: String, rowUserRelation: Use
             ) {
                 return false
             }
-            //--- любая положительная роль достаточна для согласия
+            //--- после этого любая положительная роль достаточна для согласия
             if (
                 permission.enabledRoles[rowUserRelation]?.any { enabledRole ->
                     userRoles.contains(enabledRole)
