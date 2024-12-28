@@ -5,6 +5,7 @@ import foatto.core.model.AppAction
 import foatto.core.model.request.FormActionData
 import foatto.core.model.response.FormActionResponse
 import foatto.core.model.response.ResponseCode
+import foatto.core.model.response.form.FormButton
 import foatto.core.model.response.form.FormCellVisibility
 import foatto.core.model.response.form.cells.FormBaseCell
 import foatto.core.model.response.form.cells.FormBooleanCell
@@ -25,11 +26,13 @@ import foatto.server.entity.ObjectEntity
 import foatto.server.model.AppModuleConfig
 import foatto.server.model.ServerUserConfig
 import foatto.server.repository.DepartmentRepository
+import foatto.server.repository.DeviceRepository
 import foatto.server.repository.FileStoreRepository
 import foatto.server.repository.GroupRepository
 import foatto.server.repository.ObjectRepository
 import foatto.server.repository.SensorCalibrationRepository
 import foatto.server.repository.SensorRepository
+import foatto.server.util.getNextId
 import jakarta.persistence.EntityManager
 import org.springframework.data.domain.Page
 import org.springframework.data.repository.findByIdOrNull
@@ -43,16 +46,17 @@ class ObjectService(
     private val groupRepository: GroupRepository,
     private val sensorRepository: SensorRepository,
     private val sensorCalibrationRepository: SensorCalibrationRepository,
+    private val deviceRepository: DeviceRepository,
     private val fileStoreRepository: FileStoreRepository,
 ) : ApplicationService() {
 
     companion object {
-        private const val FIELD_ID = "id"
+        const val FIELD_ID: String = "id"
         private const val FIELD_USER_ID = "userId"
         private const val FIELD_IS_DISABLED = "isDisabled"
         private const val FIELD_DISABLE_REASON = "disableReason"
-        private const val FIELD_NAME = "name"
-        private const val FIELD_MODEL = "model"
+        const val FIELD_NAME: String = "name"
+        const val FIELD_MODEL: String = "model"
         private const val FIELD_DEPARTMENT = "department"
         private const val FIELD_GROUP = "group"
         private const val FIELD_INFO = "info"
@@ -62,9 +66,9 @@ class ObjectService(
         //        private const val FIELD_LAST_ALERT_TIME = "lastAlertTime"
         private const val FIELD_IS_AUTO_WORK_SHIFT_ENABLED = "isAutoWorkShiftEnabled"
 
-        private const val FIELD_OWNER_FULL_NAME = "ownerFullName"   // псевдополе для селектора
-        private const val FIELD_DEPARTMENT_NAME = "departmentName"   // псевдополе для селектора
-        private const val FIELD_GROUP_NAME = "groupName"             // псевдополе для селектора
+        private const val FIELD_OWNER_FULL_NAME = "_ownerFullName"   // псевдополе для селектора
+        private const val FIELD_DEPARTMENT_NAME = "_departmentName"   // псевдополе для селектора
+        private const val FIELD_GROUP_NAME = "_groupName"             // псевдополе для селектора
     }
 
     override fun getTableColumnCaptions(action: AppAction, userConfig: ServerUserConfig): List<Pair<AppAction, String>> {
@@ -241,28 +245,13 @@ class ObjectService(
                 }
          */
         if (checkAccessPermission(AppModuleMMS.SENSOR, userConfig.roles)) {
-            alPopupData += TablePopupData(
-                action = AppAction(
-                    type = ActionType.MODULE_TABLE,
-                    module = AppModuleMMS.SENSOR,
-                    parentModule = AppModuleMMS.OBJECT,
-                    parentId = id,
-                ),
-                text = appModuleConfigs[AppModuleMMS.SENSOR]?.caption ?: "(неизвестный тип модуля: ${AppModuleMMS.SENSOR})",
-                inNewTab = true,
-            )
+            alPopupData += getTablePopupData(AppModuleMMS.SENSOR, id)
         }
         if (checkAccessPermission(AppModuleMMS.OBJECT_DATA, userConfig.roles)) {
-            alPopupData += TablePopupData(
-                action = AppAction(
-                    type = ActionType.MODULE_TABLE,
-                    module = AppModuleMMS.OBJECT_DATA,
-                    parentModule = AppModuleMMS.OBJECT,
-                    parentId = id,
-                ),
-                text = appModuleConfigs[AppModuleMMS.OBJECT_DATA]?.caption ?: "(неизвестный тип модуля: ${AppModuleMMS.OBJECT_DATA})",
-                inNewTab = true,
-            )
+            alPopupData += getTablePopupData(AppModuleMMS.OBJECT_DATA, id)
+        }
+        if (checkAccessPermission(AppModuleMMS.DEVICE, userConfig.roles)) {
+            alPopupData += getTablePopupData(AppModuleMMS.DEVICE, id)
         }
 
 //!!!
@@ -344,9 +333,9 @@ class ObjectService(
             objectEntity.department?.id
         } ?: run {
             if (action.parentModule == AppModuleMMS.DEPARTMENT) {
-                action.parentId
+                action.parentId ?: 0
             } else {
-                null
+                0
             }
         }
 
@@ -354,9 +343,9 @@ class ObjectService(
             objectEntity.group?.id
         } ?: run {
             if (action.parentModule == AppModuleMMS.GROUP) {
-                action.parentId
+                action.parentId ?: 0
             } else {
-                null
+                0
             }
         }
 
@@ -495,6 +484,20 @@ class ObjectService(
         return formCells
     }
 
+    override fun getFormButtons(action: AppAction, userConfig: ServerUserConfig, moduleConfig: AppModuleConfig, addEnabled: Boolean, editEnabled: Boolean, deleteEnabled: Boolean): List<FormButton> {
+        val id = action.id
+
+        val isExistsDepencies: Boolean = if (deleteEnabled) {
+            id?.let {
+                deviceRepository.findByObjectId(id).isNotEmpty()
+            } ?: false
+        } else {
+            false
+        }
+
+        return super.getFormButtons(action, userConfig, moduleConfig, addEnabled, editEnabled, deleteEnabled && !isExistsDepencies)
+    }
+
     override fun formActionSave(
         action: AppAction,
         userConfig: ServerUserConfig,
@@ -514,7 +517,7 @@ class ObjectService(
         }
 
         // !!! getNextIntId(arrayOf("MMS_object", "MMS_zone"), arrayOf("id", "id"))
-        val recordId = id ?: getNextId()
+        val recordId = id ?: getNextId { nextId -> objectRepository.existsById(nextId) }
         val objectEntity = ObjectEntity(
             id = recordId,
             userId = recordUserId,
@@ -539,7 +542,7 @@ class ObjectService(
             executeNativeSql(
                 entityManager,
                 " CREATE TABLE MMS_data_$recordId ( ontime INT NOT NULL, sensor_data BYTEA ) ",
-                " CREATE INDEX MMS_data_${recordId}_ontime ON MMS_data_$recordId ( ontime ) "
+                " CREATE INDEX MMS_data_${recordId}_ontime ON MMS_data_$recordId ( ontime ) ",
             )
         }
 
@@ -563,11 +566,11 @@ class ObjectService(
         executeNativeSql(entityManager, " DROP TABLE MMS_data_$id ")
 
         /*
-                conn.executeUpdate(" DELETE FROM MMS_work_shift_data WHERE shift_id IN ( SELECT id FROM MMS_work_shift WHERE object_id = $id ) ")
-                conn.executeUpdate(" DELETE FROM MMS_work_shift WHERE object_id = $id ")
+            conn.executeUpdate(" DELETE FROM MMS_work_shift_data WHERE shift_id IN ( SELECT id FROM MMS_work_shift WHERE object_id = $id ) ")
+            conn.executeUpdate(" DELETE FROM MMS_work_shift WHERE object_id = $id ")
 
-                conn.executeUpdate(" DELETE FROM MMS_equip_service_shedule WHERE equip_id IN ( SELECT id FROM MMS_sensor WHERE object_id = $id ) ")
-                conn.executeUpdate(" DELETE FROM MMS_equip_service_history WHERE equip_id IN ( SELECT id FROM MMS_sensor WHERE object_id = $id ) ")
+            conn.executeUpdate(" DELETE FROM MMS_equip_service_shedule WHERE equip_id IN ( SELECT id FROM MMS_sensor WHERE object_id = $id ) ")
+            conn.executeUpdate(" DELETE FROM MMS_equip_service_history WHERE equip_id IN ( SELECT id FROM MMS_sensor WHERE object_id = $id ) ")
          */
         return FormActionResponse(responseCode = ResponseCode.OK)
     }
@@ -591,10 +594,18 @@ class ObjectService(
         return Triple(addEnabled, editEnabled, deleteEnabled)
     }
 
-    override fun checkExistingId(nextId: Int): Boolean = objectRepository.existsById(nextId)
+    private fun getTablePopupData(module: String, id: Int): TablePopupData = TablePopupData(
+        action = AppAction(
+            type = ActionType.MODULE_TABLE,
+            module = module,
+            parentModule = AppModuleMMS.OBJECT,
+            parentId = id,
+        ),
+        text = appModuleConfigs[module]?.caption ?: "(неизвестный тип модуля: '$module')",
+        inNewTab = true,
+    )
 
 }
-
 /*
     companion object {
         const val PERM_REMOTE_CONTROL: String = "remote_control"
