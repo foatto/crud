@@ -13,19 +13,4 @@ interface SensorCalibrationRepository : JpaRepository<SensorCalibrationEntity, I
     fun deleteBySensorId(sensorId: Int): Int
 
     fun findBySensor(sensor: SensorEntity, pageRequest: PageRequest): Page<SensorCalibrationEntity>
-
-//    @Query(
-//        """
-//            SELECT sce
-//            FROM SensorCalibrationEntity sce
-//            WHERE sce.id <> 0
-//                AND sce.sensor = ?1
-//                AND (
-//                        LOWER(sce.sensorValue) LIKE LOWER( CONCAT( '%', ?2, '%' ) )
-//                     OR LOWER(sce.dataValue) LIKE LOWER( CONCAT( '%', ?2, '%' ) )
-//                )
-//        """
-//    )
-//    fun findBySensorAndFilter(sensor: SensorEntity, findText: String, pageRequest: PageRequest): Page<SensorCalibrationEntity>
-
 }
