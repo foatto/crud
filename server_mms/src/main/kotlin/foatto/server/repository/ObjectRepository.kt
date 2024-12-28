@@ -15,7 +15,8 @@ interface ObjectRepository : JpaRepository<ObjectEntity, Int> {
         """
             SELECT oe
             FROM ObjectEntity oe
-            WHERE oe.department.id = ?1
+            LEFT JOIN oe.department de
+            WHERE de.id = ?1
         """
     )
     fun findByDepartmentId(departmentId: Int): List<ObjectEntity>
@@ -24,7 +25,8 @@ interface ObjectRepository : JpaRepository<ObjectEntity, Int> {
         """
             SELECT oe
             FROM ObjectEntity oe
-            WHERE oe.group.id = ?1
+            LEFT JOIN oe.group ge
+            WHERE ge.id = ?1
         """
     )
     fun findByGroupId(groupId: Int): List<ObjectEntity>
@@ -43,13 +45,15 @@ interface ObjectRepository : JpaRepository<ObjectEntity, Int> {
         """
             SELECT oe
             FROM ObjectEntity oe
+            LEFT JOIN oe.department de
+            LEFT JOIN oe.group ge
             WHERE oe.id <> 0
                 AND oe.userId IN ?1
                 AND (
                         LOWER(oe.name) LIKE LOWER( CONCAT( '%', ?2, '%' ) )
                      OR LOWER(oe.model) LIKE LOWER( CONCAT( '%', ?2, '%' ) )
-                     OR LOWER(oe.department.name) LIKE LOWER( CONCAT( '%', ?2, '%' ) )
-                     OR LOWER(oe.group.name) LIKE LOWER( CONCAT( '%', ?2, '%' ) )
+                     OR LOWER(de.name) LIKE LOWER( CONCAT( '%', ?2, '%' ) )
+                     OR LOWER(ge.name) LIKE LOWER( CONCAT( '%', ?2, '%' ) )
                 )
         """
     )

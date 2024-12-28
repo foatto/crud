@@ -14,6 +14,8 @@ interface SensorRepository : JpaRepository<SensorEntity, Int> {
     fun findByObj(obj: ObjectEntity): List<SensorEntity>
     fun findByObj(obj: ObjectEntity, pageRequest: PageRequest): Page<SensorEntity>
 
+    fun findByObjAndPortNumBetween(obj: ObjectEntity, startPort: Int, endPort: Int): List<SensorEntity>
+
     @Query(
         """
             SELECT se
@@ -26,14 +28,15 @@ interface SensorRepository : JpaRepository<SensorEntity, Int> {
                 )
         """
     )
-
     fun findByFilter(findText: String, pageRequest: PageRequest): Page<SensorEntity>
+
     @Query(
         """
             SELECT se
             FROM SensorEntity se
+            LEFT JOIN se.obj oe
             WHERE se.id <> 0
-                AND se.obj = ?1
+                AND oe = ?1
                 AND (
                         LOWER(se.group) LIKE LOWER( CONCAT( '%', ?2, '%' ) )
                      OR LOWER(se.descr) LIKE LOWER( CONCAT( '%', ?2, '%' ) )
