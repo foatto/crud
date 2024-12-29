@@ -313,7 +313,7 @@ class MMSSpringApp : SpringApp() {
         )
 
         appModuleConfigs[AppModuleMMS.COMPOSITE_OBJECT_DASHBOARD] = AppModuleConfig(
-            caption = "Контрольная панель объекта",
+            caption = "Контрольная панель объекта: все датчики",
             enabledAccessRoles = mutableSetOf(AppRole.ADMIN, AppRole.USER),
             disabledAccessRoles = mutableSetOf(),
         )
