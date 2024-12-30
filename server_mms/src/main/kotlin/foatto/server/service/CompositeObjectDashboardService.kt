@@ -48,7 +48,7 @@ class CompositeObjectDashboardService(
             "Модель" to (objectEntity.model ?: "-"),
         )
 
-        val analogueSensorEntities = mutableListOf<SensorEntity>()
+        val sensorEntities = mutableListOf<Pair<DashboardSensorTypeEnum, SensorEntity>>()
         //--- пока просто подряд, по порядку перечисления в SensorConfig
         //--- потом по просьбам заказчиком перетасуем
         listOf(
@@ -71,18 +71,40 @@ class CompositeObjectDashboardService(
             SensorConfig.SENSOR_ENERGO_TRANSFORM_KOEF_CURRENT,
             SensorConfig.SENSOR_ENERGO_TRANSFORM_KOEF_VOLTAGE,
         ).forEach { sensorType ->
-            analogueSensorEntities += sensorRepository.findByObjAndSensorType(objectEntity, sensorType)
+            sensorRepository.findByObjAndSensorType(objectEntity, sensorType).forEach { sensorEntity ->
+                sensorEntities += DashboardSensorTypeEnum.ANALOGUE to sensorEntity
+            }
+        }
+        listOf(
+            SensorConfig.SENSOR_MASS_ACCUMULATED,
+            SensorConfig.SENSOR_VOLUME_ACCUMULATED,
+            SensorConfig.SENSOR_LIQUID_USING,
+            SensorConfig.SENSOR_ENERGO_COUNT_AD,
+            SensorConfig.SENSOR_ENERGO_COUNT_AR,
+            SensorConfig.SENSOR_ENERGO_COUNT_RD,
+            SensorConfig.SENSOR_ENERGO_COUNT_RR,
+        ).forEach { sensorType ->
+            sensorRepository.findByObjAndSensorType(objectEntity, sensorType).forEach { sensorEntity ->
+                sensorEntities += DashboardSensorTypeEnum.COUNTER to sensorEntity
+            }
+        }
+        listOf(
+            SensorConfig.SENSOR_WORK,
+        ).forEach { sensorType ->
+            sensorRepository.findByObjAndSensorType(objectEntity, sensorType).forEach { sensorEntity ->
+                sensorEntities += DashboardSensorTypeEnum.WORK to sensorEntity
+            }
         }
 
         //--- в соотношении 2:1
-        val blockRows = ceil(sqrt(analogueSensorEntities.size / 2.0)).toInt()
+        val blockRows = ceil(sqrt(sensorEntities.size / 2.0)).toInt()
         val blockOnRow = blockRows * 2
 
         val blocks = mutableListOf<CompositeBlock>()
         var row = 0
         var col = 0
 
-        analogueSensorEntities.forEach { analogueSensorEntity ->
+        sensorEntities.forEach { (sensorType, sensorEntity) ->
             blocks += CompositeBlock(
                 x = col,
                 y = row,
@@ -90,11 +112,19 @@ class CompositeObjectDashboardService(
                 h = 1,
                 action = AppAction(
                     type = ActionType.MODULE_SCHEME,
-                    module = AppModuleMMS.SCHEME_ANALOGUE_INDICATOR_STATE,
-                    id = analogueSensorEntity.id,
+                    module = when (sensorType) {
+                        DashboardSensorTypeEnum.ANALOGUE -> AppModuleMMS.SCHEME_ANALOGUE_INDICATOR_STATE
+                        DashboardSensorTypeEnum.COUNTER -> AppModuleMMS.SCHEME_COUNTER_INDICATOR_STATE
+                        DashboardSensorTypeEnum.WORK -> AppModuleMMS.SCHEME_WORK_INDICATOR_STATE
+                    },
+                    id = sensorEntity.id,
                 ),
                 schemeResponse = SchemeResponse(
-                    elementConfigs = SchemeAnalogueIndicatorStateService.elementConfigs,
+                    elementConfigs = when (sensorType) {
+                        DashboardSensorTypeEnum.ANALOGUE -> SchemeAnalogueIndicatorStateService.elementConfigs
+                        DashboardSensorTypeEnum.COUNTER -> SchemeCounterIndicatorStateService.elementConfigs
+                        DashboardSensorTypeEnum.WORK -> SchemeWorkIndicatorStateService.elementConfigs
+                    },
                     tabCaption = "",
                     headerData = HeaderData(
                         titles = emptyList(),
@@ -131,4 +161,10 @@ class CompositeObjectDashboardService(
         )
     }
 
+}
+
+private enum class DashboardSensorTypeEnum {
+    ANALOGUE,
+    COUNTER,
+    WORK,
 }

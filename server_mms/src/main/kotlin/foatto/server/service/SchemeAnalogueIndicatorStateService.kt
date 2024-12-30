@@ -536,25 +536,6 @@ class SchemeAnalogueIndicatorStateService(
             }
         }
 
-//            //--- выводим время последних данных
-//            val label = XyElement(TEXT, -getRandomInt(), objectConfig.objectId).apply {
-//                //typeName = TYPE_STATE_W_TEXT;
-//                isReadOnly = true
-//                alPoint = listOf(XyPoint(GRID_STEP * 6, GRID_STEP * 26))
-//                anchorX = XyElement.Anchor.LT
-//                anchorY = XyElement.Anchor.LT
-//                alignX = XyElement.Align.LT
-//                alignY = XyElement.Align.LT
-//                fillColor = 0xFF_F0_F0_F0.toInt()
-//                text = objectState.lastDataTime?.let { lastDataTime ->
-//                    "По состоянию на ${DateTime_YMDHMS(zoneId, lastDataTime)}"
-//                } ?: "(нет данных)"
-//                textColor = TEXT_COLOR
-//                fontSize = iCoreAppContainer.BASE_FONT_SIZE
-//                isFontBold = false
-//            }
-//            alResult.add(label)
-
         return alResult
     }
 

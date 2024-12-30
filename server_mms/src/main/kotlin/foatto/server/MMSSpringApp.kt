@@ -311,6 +311,16 @@ class MMSSpringApp : SpringApp() {
             enabledAccessRoles = mutableSetOf(AppRole.ADMIN, AppRole.USER),
             disabledAccessRoles = mutableSetOf(),
         )
+        appModuleConfigs[AppModuleMMS.SCHEME_COUNTER_INDICATOR_STATE] = AppModuleConfig(
+            caption = "Индикатор счётного датчика объекта",
+            enabledAccessRoles = mutableSetOf(AppRole.ADMIN, AppRole.USER),
+            disabledAccessRoles = mutableSetOf(),
+        )
+        appModuleConfigs[AppModuleMMS.SCHEME_WORK_INDICATOR_STATE] = AppModuleConfig(
+            caption = "Индикатор датчика работы объекта",
+            enabledAccessRoles = mutableSetOf(AppRole.ADMIN, AppRole.USER),
+            disabledAccessRoles = mutableSetOf(),
+        )
 
         appModuleConfigs[AppModuleMMS.COMPOSITE_OBJECT_DASHBOARD] = AppModuleConfig(
             caption = "Контрольная панель объекта: все датчики",

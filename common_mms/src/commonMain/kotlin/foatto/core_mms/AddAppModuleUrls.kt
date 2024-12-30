@@ -55,6 +55,14 @@ fun addAppModuleUrls() {
         appUrl = ApiUrlMMS.SCHEME_ANALOGUE_INDICATOR_STATE,
         schemeActionUrl = ApiUrlMMS.SCHEME_ANALOGUE_INDICATOR_STATE_ACTION,
     )
+    appModuleUrls[AppModuleMMS.SCHEME_COUNTER_INDICATOR_STATE] = AppModuleUrl(
+        appUrl = ApiUrlMMS.SCHEME_COUNTER_INDICATOR_STATE,
+        schemeActionUrl = ApiUrlMMS.SCHEME_COUNTER_INDICATOR_STATE_ACTION,
+    )
+    appModuleUrls[AppModuleMMS.SCHEME_WORK_INDICATOR_STATE] = AppModuleUrl(
+        appUrl = ApiUrlMMS.SCHEME_WORK_INDICATOR_STATE,
+        schemeActionUrl = ApiUrlMMS.SCHEME_WORK_INDICATOR_STATE_ACTION,
+    )
 
     appModuleUrls[AppModuleMMS.COMPOSITE_OBJECT_DASHBOARD] = AppModuleUrl(
         appUrl = ApiUrlMMS.COMPOSITE_OBJECT_DASHBOARD,

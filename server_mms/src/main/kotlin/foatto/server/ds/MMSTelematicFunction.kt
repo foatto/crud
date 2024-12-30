@@ -407,8 +407,8 @@ object MMSTelematicFunction {
 
         conn.executeUpdate(
             """
-                INSERT INTO MMS_agg_${sensorEntity.id} ( ontime_0 , ontime_1 , type_0 , value_0 , value_1 ) 
-                VALUES ( $pointTime , $pointTime , 0 , $dataValue , $smoothValue )  
+                INSERT INTO MMS_agg_${sensorEntity.id} ( ontime_0 , ontime_1 , type_0 , value_0 , value_1 , value_2 , value_3 ) 
+                VALUES ( $pointTime , $pointTime , 0 , $dataValue , $smoothValue , 0 , 0 )  
             """
         )
     }
@@ -451,7 +451,7 @@ object MMSTelematicFunction {
             """
                 SELECT SUM(value_1)
                 FROM MMS_agg_${sensorEntity.id}
-                WHERE ontime_0 > ${pointTime - 60} ) 
+                WHERE ontime_0 > ${pointTime - 60}
             """
         )
         val lastMinuteSum = if (rs.next()) {
@@ -465,7 +465,7 @@ object MMSTelematicFunction {
             """
                 SELECT SUM(value_1)
                 FROM MMS_agg_${sensorEntity.id}
-                WHERE ontime_0 > ${pointTime - 3600} ) 
+                WHERE ontime_0 > ${pointTime - 3600}
             """
         )
         val lastHourSum = if (rs.next()) {

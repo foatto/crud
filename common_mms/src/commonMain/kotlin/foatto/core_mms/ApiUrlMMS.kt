@@ -36,5 +36,11 @@ object ApiUrlMMS {
     const val SCHEME_ANALOGUE_INDICATOR_STATE: String = "${ApiUrl.URL_BASE}/scheme_analogue_indicator_state/${ApiUrl.CURRENT_VERSION}"
     const val SCHEME_ANALOGUE_INDICATOR_STATE_ACTION: String = "${ApiUrl.URL_BASE}/scheme_analogue_indicator_state_action/${ApiUrl.CURRENT_VERSION}"
 
+    const val SCHEME_COUNTER_INDICATOR_STATE: String = "${ApiUrl.URL_BASE}/scheme_counter_indicator_state/${ApiUrl.CURRENT_VERSION}"
+    const val SCHEME_COUNTER_INDICATOR_STATE_ACTION: String = "${ApiUrl.URL_BASE}/scheme_counter_indicator_state_action/${ApiUrl.CURRENT_VERSION}"
+
+    const val SCHEME_WORK_INDICATOR_STATE: String = "${ApiUrl.URL_BASE}/scheme_work_indicator_state/${ApiUrl.CURRENT_VERSION}"
+    const val SCHEME_WORK_INDICATOR_STATE_ACTION: String = "${ApiUrl.URL_BASE}/scheme_work_indicator_state_action/${ApiUrl.CURRENT_VERSION}"
+
     const val COMPOSITE_OBJECT_DASHBOARD: String = "${ApiUrl.URL_BASE}/composite_object_dashboard/${ApiUrl.CURRENT_VERSION}"
 }

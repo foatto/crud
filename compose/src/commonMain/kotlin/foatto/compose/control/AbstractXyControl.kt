@@ -540,10 +540,10 @@ abstract class AbstractXyControl(
     protected fun readXyElements(alElement: List<XyElement>) {
         val hmLayer = mutableMapOf<Int, MutableList<XyElementData>>()
         alElement.forEach { element ->
-            val elementConfig = elementConfigs[element.typeName]!!
-            val alLayer = hmLayer.getOrPut(elementConfig.layer) { mutableListOf() }
-
-            readXyElementData(elementConfig, element, alLayer)
+            elementConfigs[element.typeName]?.let { elementConfig ->
+                val alLayer = hmLayer.getOrPut(elementConfig.layer) { mutableListOf() }
+                readXyElementData(elementConfig, element, alLayer)
+            }
         }
 
         xyElements.clear()
