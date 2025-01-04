@@ -19,11 +19,9 @@ class MapController(
     fun mapTrace(
         @RequestBody
         appRequest: AppRequest
-    ): AppResponse {
-        return mapService.map(
-            sessionId = appRequest.sessionId,
-            action = appRequest.action,
-        )
-    }
+    ): AppResponse = mapService.map(
+        sessionId = appRequest.sessionId,
+        action = appRequest.action,
+    )
 
 }

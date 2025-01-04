@@ -19,11 +19,9 @@ class CompositeObjectDashboardController(
     fun compositeObjectDashboard(
         @RequestBody
         appRequest: AppRequest
-    ): AppResponse {
-        return compositeObjectDashboardService.composite(
-            sessionId = appRequest.sessionId,
-            action = appRequest.action,
-        )
-    }
+    ): AppResponse = compositeObjectDashboardService.composite(
+        sessionId = appRequest.sessionId,
+        action = appRequest.action,
+    )
 
 }

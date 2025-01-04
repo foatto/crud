@@ -36,7 +36,8 @@ class MapActionRequest(
 
 ) : BaseRequest(
     url = appModuleUrls[action.module]?.mapActionUrl ?: ApiUrl.ERROR,
-) {
-    val hmParam: MutableMap<String, String> = mutableMapOf()
-}
+)
+//{
+//    val hmParam: MutableMap<String, String> = mutableMapOf()
+//}
 
