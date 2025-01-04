@@ -31,6 +31,7 @@ class SchemeActionRequest(
 
 ) : BaseRequest(
     url = appModuleUrls[action.module]?.schemeActionUrl ?: ApiUrl.ERROR,
-) {
-    val hmParam: MutableMap<String, String> = mutableMapOf()
-}
+)
+//{
+//    val hmParam: MutableMap<String, String> = mutableMapOf()
+//}

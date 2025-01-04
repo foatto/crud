@@ -253,16 +253,7 @@ class SchemeControl(
             root.setWait(true)
         }
         invokeRequest(
-            SchemeActionRequest(
-                action = schemeAction.copy(
-                    type = ActionType.GET_ELEMENTS
-                ),
-//                documentTypeName = xyDocumentConfig.name,
-//                type = XyActionType.GET_ELEMENTS,
-//                startParamId = schemeResponse.startParamId,
-//                viewCoord = xyViewCoord,
-//                bitmapTypeName = mapBitmapTypeName
-            )
+            SchemeActionRequest(action = schemeAction.copy(type = ActionType.GET_ELEMENTS))
         ) { schemeActionResponse: SchemeActionResponse ->
 
             //--- сбрасываем горизонтальный и вертикальный скроллинг/смещение

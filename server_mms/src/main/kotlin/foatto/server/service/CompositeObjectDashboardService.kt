@@ -17,6 +17,9 @@ import foatto.server.entity.SensorEntity
 import foatto.server.model.SensorConfig
 import foatto.server.repository.ObjectRepository
 import foatto.server.repository.SensorRepository
+import foatto.server.service.scheme.SchemeAnalogueIndicatorStateService
+import foatto.server.service.scheme.SchemeCounterIndicatorStateService
+import foatto.server.service.scheme.SchemeWorkIndicatorStateService
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import kotlin.math.ceil
