@@ -16,6 +16,7 @@ object AppModuleMMS {
 
 //    const val DAY_WORK: String = "DAY_WORK"
 
+    const val CHART_ANALOGUE_BY_TYPE: String = "CHART_ANALOGUE_BY_TYPE"
     const val CHART_LIQUID_LEVEL: String = "CHART_LIQUID_LEVEL"
 
     const val MAP_TRACE: String = "MAP_TRACE"

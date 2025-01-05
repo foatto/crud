@@ -45,6 +45,10 @@ fun addAppModuleUrls() {
         appUrl = ApiUrlMMS.CHART_LIQUID_LEVEL,
         chartActionUrl = ApiUrlMMS.CHART_LIQUID_LEVEL_ACTION,
     )
+    appModuleUrls[AppModuleMMS.CHART_ANALOGUE_BY_TYPE] = AppModuleUrl(
+        appUrl = ApiUrlMMS.CHART_ANALOGUE_BY_TYPE,
+        chartActionUrl = ApiUrlMMS.CHART_ANALOGUE_BY_TYPE_ACTION,
+    )
 
     appModuleUrls[AppModuleMMS.MAP_TRACE] = AppModuleUrl(
         appUrl = ApiUrlMMS.MAP_TRACE,

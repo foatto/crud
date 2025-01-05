@@ -1,6 +1,6 @@
 package foatto.compose.control.model.chart
 
-internal class ChartGroup(
+internal class ChartGroupClient(
     val title: ChartTextDrawData,
     val alAxisYLine: MutableList<ChartLineDrawData>,
     val alAxisYText: MutableList<ChartTextDrawData>,

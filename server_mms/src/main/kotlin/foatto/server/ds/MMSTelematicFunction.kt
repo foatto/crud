@@ -293,25 +293,7 @@ object MMSTelematicFunction {
             //--- например, датчик напряжения и датчик работы оборудования (работающий по величине этого напряжения)
             sensorConfigs[portNum]?.forEach { sensorEntity ->
                 when (sensorEntity.sensorType) {
-                    SensorConfig.SENSOR_LIQUID_LEVEL,
-                    SensorConfig.SENSOR_WEIGHT,
-                    SensorConfig.SENSOR_TURN,
-                    SensorConfig.SENSOR_PRESSURE,
-                    SensorConfig.SENSOR_TEMPERATURE,
-                    SensorConfig.SENSOR_VOLTAGE,
-                    SensorConfig.SENSOR_POWER,
-                    SensorConfig.SENSOR_DENSITY,
-                    SensorConfig.SENSOR_MASS_FLOW,
-                    SensorConfig.SENSOR_VOLUME_FLOW,
-                    SensorConfig.SENSOR_ENERGO_VOLTAGE,
-                    SensorConfig.SENSOR_ENERGO_CURRENT,
-                    SensorConfig.SENSOR_ENERGO_POWER_KOEF,
-                    SensorConfig.SENSOR_ENERGO_POWER_ACTIVE,
-                    SensorConfig.SENSOR_ENERGO_POWER_REACTIVE,
-                    SensorConfig.SENSOR_ENERGO_POWER_FULL,
-                    SensorConfig.SENSOR_ENERGO_TRANSFORM_KOEF_CURRENT,
-                    SensorConfig.SENSOR_ENERGO_TRANSFORM_KOEF_VOLTAGE,
-                    -> {
+                    in SensorConfig.analogueSensorTypes -> {
                         SensorService.checkAndCreateAggTable(conn, sensorEntity.id)
                         saveAnalogueSensorData(
                             conn = conn,
@@ -322,14 +304,7 @@ object MMSTelematicFunction {
                         )
                     }
 
-                    SensorConfig.SENSOR_MASS_ACCUMULATED,
-                    SensorConfig.SENSOR_VOLUME_ACCUMULATED,
-                    SensorConfig.SENSOR_LIQUID_USING,
-                    SensorConfig.SENSOR_ENERGO_COUNT_AD,
-                    SensorConfig.SENSOR_ENERGO_COUNT_AR,
-                    SensorConfig.SENSOR_ENERGO_COUNT_RD,
-                    SensorConfig.SENSOR_ENERGO_COUNT_RR,
-                    -> {
+                    in SensorConfig.counterSensorTypes -> {
                         SensorService.checkAndCreateAggTable(conn, sensorEntity.id)
                         saveCounterSensorData(
                             conn = conn,

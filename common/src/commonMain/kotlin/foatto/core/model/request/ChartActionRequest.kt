@@ -9,12 +9,12 @@ import kotlinx.serialization.Serializable
 class ChartActionRequest(
     val action: AppAction,
 
-    val documentTypeName: String,
-    val startParamId: String,
-
-    val graphicCoords: Pair<Int, Int>? = null,
-    val viewSize: Pair<Int, Int>? = null
+    val times: Pair<Int, Int>? = null,
+    val viewSize: Pair<Float, Float>? = null,
 ) : BaseRequest(
     url = appModuleUrls[action.module]?.chartActionUrl ?: ApiUrl.ERROR,
 )
+//{
+//    val hmParam: MutableMap<String, String> = mutableMapOf()
+//}
 

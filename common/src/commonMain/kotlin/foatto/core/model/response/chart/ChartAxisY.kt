@@ -3,7 +3,7 @@ package foatto.core.model.response.chart
 import kotlinx.serialization.Serializable
 
 @Serializable
-class ChartAxisYDTO(
+class ChartAxisY(
     val title: String,
     var min: Float,
     var max: Float,

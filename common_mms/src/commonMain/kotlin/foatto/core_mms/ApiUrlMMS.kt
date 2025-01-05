@@ -30,6 +30,9 @@ object ApiUrlMMS {
     const val CHART_LIQUID_LEVEL: String = "${ApiUrl.URL_BASE}/chart_liquid_level/${ApiUrl.CURRENT_VERSION}"
     const val CHART_LIQUID_LEVEL_ACTION: String = "${ApiUrl.URL_BASE}/chart_liquid_level_action/${ApiUrl.CURRENT_VERSION}"
 
+    const val CHART_ANALOGUE_BY_TYPE: String = "${ApiUrl.URL_BASE}/chart_analogue_by_type/${ApiUrl.CURRENT_VERSION}"
+    const val CHART_ANALOGUE_BY_TYPE_ACTION: String = "${ApiUrl.URL_BASE}/chart_analogue_by_type_action/${ApiUrl.CURRENT_VERSION}"
+
     const val MAP_TRACE: String = "${ApiUrl.URL_BASE}/map_trace/${ApiUrl.CURRENT_VERSION}"
     const val MAP_TRACE_ACTION: String = "${ApiUrl.URL_BASE}/map_trace_action/${ApiUrl.CURRENT_VERSION}"
 

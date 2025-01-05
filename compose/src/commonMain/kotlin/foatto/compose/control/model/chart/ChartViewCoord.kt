@@ -1,4 +1,4 @@
-package foatto.core.model.response.chart
+package foatto.compose.control.model.chart
 
 class ChartViewCoord(
     var t1: Int,

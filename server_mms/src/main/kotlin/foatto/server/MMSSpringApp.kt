@@ -294,6 +294,11 @@ class MMSSpringApp : SpringApp() {
             ),
         )
 
+        appModuleConfigs[AppModuleMMS.CHART_ANALOGUE_BY_TYPE] = AppModuleConfig(
+            caption = "Графики по типам датчиков",
+            enabledAccessRoles = mutableSetOf(AppRole.ADMIN, AppRoleMMS.USER_FIXED_OBJECTS),
+            disabledAccessRoles = mutableSetOf(),
+        )
         appModuleConfigs[AppModuleMMS.CHART_LIQUID_LEVEL] = AppModuleConfig(
             caption = "Графики уровня топлива",
             enabledAccessRoles = mutableSetOf(AppRole.ADMIN, AppRoleMMS.USER_FIXED_OBJECTS),

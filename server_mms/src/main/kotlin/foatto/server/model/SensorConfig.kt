@@ -68,8 +68,41 @@ class SensorConfig {
         const val SENSOR_ENERGO_TRANSFORM_KOEF_CURRENT = 36 // transformation koeff by current
         const val SENSOR_ENERGO_TRANSFORM_KOEF_VOLTAGE = 37  // transformation koeff by voltage
 
+        //--- отдельный список аналоговых датчиков, чтобы не перечислять их каждый раз (и не пропустить в очередном перечислении)
+        val analogueSensorTypes: Set<Int> = setOf(
+            SENSOR_LIQUID_LEVEL,
+            SENSOR_WEIGHT,
+            SENSOR_TURN,
+            SENSOR_PRESSURE,
+            SENSOR_TEMPERATURE,
+            SENSOR_VOLTAGE,
+            SENSOR_POWER,
+            SENSOR_DENSITY,
+            SENSOR_MASS_FLOW,
+            SENSOR_VOLUME_FLOW,
+            SENSOR_ENERGO_VOLTAGE,
+            SENSOR_ENERGO_CURRENT,
+            SENSOR_ENERGO_POWER_KOEF,
+            SENSOR_ENERGO_POWER_ACTIVE,
+            SENSOR_ENERGO_POWER_REACTIVE,
+            SENSOR_ENERGO_POWER_FULL,
+            SENSOR_ENERGO_TRANSFORM_KOEF_CURRENT,
+            SENSOR_ENERGO_TRANSFORM_KOEF_VOLTAGE,
+        )
+
+        //--- отдельный список счётных датчиков, чтобы не перечислять их каждый раз (и не пропустить в очередном перечислении)
+        val counterSensorTypes: Set<Int> = setOf(
+            SENSOR_MASS_ACCUMULATED,
+            SENSOR_VOLUME_ACCUMULATED,
+            SENSOR_LIQUID_USING,
+            SENSOR_ENERGO_COUNT_AD,
+            SENSOR_ENERGO_COUNT_AR,
+            SENSOR_ENERGO_COUNT_RD,
+            SENSOR_ENERGO_COUNT_RR,
+        )
+
         //--- названия датчиков
-        val hmSensorDescr = mutableMapOf(
+        val hmSensorDescr: Map<Int, String> = mapOf(
             SENSOR_SIGNAL to "Сигнал",
             SENSOR_GEO to "Гео-данные",
             SENSOR_WORK to "Работа оборудования",

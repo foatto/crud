@@ -244,30 +244,13 @@ class ObjectService(
                     ).toEpochSecond().toInt()
                 }
          */
-        if (checkAccessPermission(AppModuleMMS.SENSOR, userConfig.roles)) {
-            alPopupData += getTablePopupData(AppModuleMMS.SENSOR, id)
-        }
-        if (checkAccessPermission(AppModuleMMS.OBJECT_DATA, userConfig.roles)) {
-            alPopupData += getTablePopupData(AppModuleMMS.OBJECT_DATA, id)
-        }
-        if (checkAccessPermission(AppModuleMMS.DEVICE, userConfig.roles)) {
-            alPopupData += getTablePopupData(AppModuleMMS.DEVICE, id)
-        }
+        getTableTablePopupData(userConfig, AppModuleMMS.SENSOR, id, alPopupData)
+        getTableTablePopupData(userConfig, AppModuleMMS.OBJECT_DATA, id, alPopupData)
+        getTableTablePopupData(userConfig, AppModuleMMS.DEVICE, id, alPopupData)
 
-//!!!
-//        if (checkAccessPermission(AppModuleMMS.CHART_LIQUID_LEVEL, userConfig.roles)) {
-//            alPopupData += TablePopupData(
-//                group = "Графики",
-//                action = AppAction(
-//                    type = ActionType.MODULE_CHART,
-//                    module = AppModuleMMS.CHART_LIQUID_LEVEL,
-//                    id = id,
-//                    timeRangeType = 24 * 60 * 60,   // графики за последние 24 часа
-//                ),
-//                text = appModuleConfigs[AppModuleMMS.CHART_LIQUID_LEVEL]?.caption ?: "(неизвестный тип графика)",
-//                inNewTab = true,
-//            )
-//        }
+        getTableChartPopupData(userConfig, AppModuleMMS.CHART_LIQUID_LEVEL, id, alPopupData)
+        getTableChartPopupData(userConfig, AppModuleMMS.CHART_ANALOGUE_BY_TYPE, id, alPopupData)
+
 //        if (checkAccessPermission(AppModuleMMS.MAP_TRACE, userConfig.roles)) {
 //            alPopupData += TablePopupData(
 //                group = "Карты",
@@ -594,16 +577,37 @@ class ObjectService(
         return Triple(addEnabled, editEnabled, deleteEnabled)
     }
 
-    private fun getTablePopupData(module: String, id: Int): TablePopupData = TablePopupData(
-        action = AppAction(
-            type = ActionType.MODULE_TABLE,
-            module = module,
-            parentModule = AppModuleMMS.OBJECT,
-            parentId = id,
-        ),
-        text = appModuleConfigs[module]?.caption ?: "(неизвестный тип модуля: '$module')",
-        inNewTab = true,
-    )
+    private fun getTableTablePopupData(userConfig: ServerUserConfig, module: String, id: Int, alPopupData: MutableList<TablePopupData>) {
+        if (checkAccessPermission(module, userConfig.roles)) {
+            alPopupData += TablePopupData(
+                action = AppAction(
+                    type = ActionType.MODULE_TABLE,
+                    module = module,
+                    parentModule = AppModuleMMS.OBJECT,
+                    parentId = id,
+                ),
+                text = appModuleConfigs[module]?.caption ?: "(неизвестный тип модуля: '$module')",
+                inNewTab = true,
+            )
+        }
+    }
+
+    private fun getTableChartPopupData(userConfig: ServerUserConfig, module: String, id: Int, alPopupData: MutableList<TablePopupData>) {
+        if (checkAccessPermission(module, userConfig.roles)) {
+            alPopupData += TablePopupData(
+                group = "Графики",
+                action = AppAction(
+                    type = ActionType.MODULE_CHART,
+                    module = module,
+                    id = id,
+                    timeRangeType = 24 * 60 * 60,   // графики за последние 24 часа
+                    //!!! где-то здесь надо передавать конкретный тип аналогового датчика (пока будем выводить графики по всем аналоговым датчикам сразу)
+                ),
+                text = appModuleConfigs[module]?.caption ?: "(неизвестный тип модуля: '$module')",
+                inNewTab = true,
+            )
+        }
+    }
 
 }
 /*

@@ -41,10 +41,10 @@ import foatto.core.model.request.SaveUserPropertyRequest
 import foatto.core.model.response.ChartActionResponse
 import foatto.core.model.response.SaveUserPropertyResponse
 import foatto.core.model.response.chart.ChartColorIndex
-import foatto.core.model.response.chart.ChartElementTypeDTO
-import foatto.core.model.response.chart.ChartGroupDTO
+import foatto.core.model.response.chart.ChartElementType
+import foatto.core.model.response.chart.ChartData
 import foatto.core.model.response.chart.ChartResponse
-import foatto.core.model.response.chart.ChartViewCoord
+import foatto.compose.control.model.chart.ChartViewCoord
 import foatto.core.model.response.xy.geom.XyRect
 import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.getDateTimeDMYHMSString
@@ -153,12 +153,12 @@ class ChartControl(
 
     //--- нужен для извлечения/показа величин на графике
     //    private val alElement = mutableStateListOf<Pair<String, ChartGroupDTO>>()
-    private val alChartGroupDTO = mutableListOf<Pair<String, ChartGroupDTO>>()
+    private val alChartData = mutableListOf<Pair<String, ChartData>>()
 
     private val alChartLegend = mutableStateListOf<ChartLegendData>()
 
     //    private val alGraphicElement = mutableStateListOf<GraphicElementData>()
-    private val alChartGroup = mutableStateListOf<ChartGroup>()
+    private val alChartGroupClient = mutableStateListOf<ChartGroupClient>()
     private val alYData = mutableListOf<ChartYData>()
 
     private val mouseRect = MouseRectData()     // contains state-fields
@@ -285,7 +285,7 @@ class ChartControl(
                 .onPointerEvents(withInteractive)
                 .onDragEvents(withInteractive)
         ) {
-            for (chartGroup in alChartGroup) {
+            for (chartGroup in alChartGroupClient) {
                 for (axisLine in chartGroup.alAxisYLine) {
                     drawLine(
                         start = Offset(axisLine.x1, axisLine.y1 + screenOffsetY),
@@ -336,7 +336,7 @@ class ChartControl(
                 .onPointerEvents(withInteractive)
                 .onDragEvents(withInteractive)
         ) {
-            for (chartGroup in alChartGroup) {
+            for (chartGroup in alChartGroupClient) {
                 drawTextOnCanvas(
                     drawScope = this,
                     scaleKoef = root.scaleKoef,
@@ -574,7 +574,7 @@ class ChartControl(
                 .onPointerEvents(withInteractive)
                 .onDragEvents(withInteractive)
         ) {
-            for (chartGroup in alChartGroup) {
+            for (chartGroup in alChartGroupClient) {
                 for (legendBack in chartGroup.alLegendBack) {
                     drawRectOnCanvas(
                         drawScope = this,
@@ -664,19 +664,20 @@ class ChartControl(
     override suspend fun start() {
         root.setTabInfo(tabId, chartResponse.tabCaption)
         headerData = chartResponse.headerData
+
         startChartBody()
     }
 
     @OptIn(DelicateCoroutinesApi::class)
     fun startChartBody() {
         val newViewCoord = ChartViewCoord(
-            t1 = if (chartResponse.timeRangeType == 0) {
-                chartResponse.begTime
+            t1 = if (chartAction.timeRangeType == 0) {
+                chartAction.begTime ?: (getCurrentTimeInt() - 86_400)
             } else {
-                getCurrentTimeInt() - chartResponse.timeRangeType
+                getCurrentTimeInt() - chartAction.timeRangeType
             },
-            t2 = if (chartResponse.timeRangeType == 0) {
-                chartResponse.endTime
+            t2 = if (chartAction.timeRangeType == 0) {
+                chartAction.endTime ?: getCurrentTimeInt()
             } else {
                 getCurrentTimeInt()
             },
@@ -711,9 +712,9 @@ class ChartControl(
         aView?.let {
             chartViewCoord = aView
         } ?: run {
-            if (chartResponse.timeRangeType != 0 && refreshInterval != 0) {
+            if (chartAction.timeRangeType != 0 && refreshInterval != 0) {
                 chartViewCoord = ChartViewCoord(
-                    t1 = getCurrentTimeInt() - chartResponse.timeRangeType,
+                    t1 = getCurrentTimeInt() - chartAction.timeRangeType,
                     t2 = getCurrentTimeInt(),
                 )
             }
@@ -724,25 +725,23 @@ class ChartControl(
         }
         invokeRequest(
             ChartActionRequest(
-                documentTypeName = chartResponse.documentTypeName,
                 action = chartAction.copy(type = ActionType.GET_ELEMENTS),
-                startParamId = chartResponse.startParamId,
-                graphicCoords = Pair(chartViewCoord.t1, chartViewCoord.t2),
-                viewSize = Pair((bodyCanvasWidth / root.scaleKoef).roundToInt(), (canvasHeight / root.scaleKoef).roundToInt())
+                times = Pair(chartViewCoord.t1, chartViewCoord.t2),
+                viewSize = bodyCanvasWidth / root.scaleKoef to canvasHeight / root.scaleKoef,
             )
         ) { chartActionResponse: ChartActionResponse ->
 
             //--- сбрасываем горизонтальный скроллинг/смещение
             screenOffsetX = 0.0f
 
-            alChartGroupDTO.clear()
-            alChartGroupDTO.addAll(chartActionResponse.alCharts)
+            alChartData.clear()
+            alChartData.addAll(chartActionResponse.charts)
 
             //--- пары element-descr -> element-key, отсортированные по element-descr для определения ключа,
             //--- по которому будет управляться видимость графиков
             alChartVisibleData.clear()
             alChartVisibleData.addAll(
-                chartActionResponse.alVisibleElement.map { (first, second, third) ->
+                chartActionResponse.visibleElements.map { (first, second, third) ->
                     ChartVisibleData(
                         descr = first,
                         name = second,
@@ -751,12 +750,12 @@ class ChartControl(
                 }
             )
 
-            val hmIndexColor = chartActionResponse.hmIndexColor.map { (colorIndex, intColor) ->
+            val hmIndexColor = chartActionResponse.colorIndexes.map { (colorIndex, intColor) ->
                 colorIndex to Color(intColor)
             }.toMap()
             alChartLegend.clear()
             alChartLegend.addAll(
-                chartActionResponse.alLegend.map { (color, isBack, text) ->
+                chartActionResponse.legends.map { (color, isBack, text) ->
                     ChartLegendData(
                         text = text,
                         fillColor = if (isBack) {
@@ -781,7 +780,7 @@ class ChartControl(
             //--- определить hard/soft-высоты графиков (для распределения области окна между графиками)
             var sumHard = 0.0f        // сумма жестко заданных высот
             var sumSoft = 0.0f        // сумма мягко/относительно заданных высот
-            alChartGroupDTO.forEach { pair ->
+            alChartData.forEach { pair ->
                 val cge = pair.second
                 //--- prerare data for Y-reversed charts
                 cge.alAxisYData.forEach { axisYData ->
@@ -793,11 +792,11 @@ class ChartControl(
                         axisYData.max = -minY
                     }
                 }
-                cge.alGDC.forEach { gdc ->
+                cge.elements.forEach { gdc ->
                     if (gdc.isReversedY) {
                         when (gdc.type) {
-                            ChartElementTypeDTO.LINE -> {
-                                gdc.alGLD.forEach { gld ->
+                            ChartElementType.LINE -> {
+                                gdc.lines.forEach { gld ->
                                     gld.y = -gld.y
                                 }
                             }
@@ -809,9 +808,9 @@ class ChartControl(
 
                 //--- переинициализировать значение левого поля
                 maxMarginLeft = max(maxMarginLeft, cge.alAxisYData.size * MARGIN_LEFT * root.scaleKoef)
-                maxMarginRight = max(maxMarginRight, cge.alLegend.size * getLegendWidth(root.scaleKoef))
+                maxMarginRight = max(maxMarginRight, cge.legends.size * getLegendWidth(root.scaleKoef))
 
-                val grHeight = cge.chartHeight.toInt()
+                val grHeight = cge.height.toInt()
                 if (grHeight > 0) {
                     //--- "положительная" высота - жестко заданная
                     sumHard += (grHeight * root.scaleKoef).roundToInt()
@@ -834,13 +833,13 @@ class ChartControl(
             }
 
             var localPixEndY = 0.0f
-            alChartGroup.clear()
+            alChartGroupClient.clear()
             alYData.clear()
 
-            alChartGroupDTO.forEach { pair ->
+            alChartData.forEach { pair ->
                 val element = pair.second
 
-                val grHeight = element.chartHeight
+                val grHeight = element.height
                 val pixRealHeight = if (grHeight > 0) {
                     grHeight * root.scaleKoef
                 } else {
@@ -888,7 +887,7 @@ class ChartControl(
         hmIndexColor: Map<ChartColorIndex, Color>,
         t1: Int,
         t2: Int,
-        element: ChartGroupDTO,
+        element: ChartData,
         pixRealHeight: Float,
         pixStartY: Float,
     ) {
@@ -914,7 +913,7 @@ class ChartControl(
             x = MIN_GRID_STEP_X * root.scaleKoef,
             y = pixDrawTopY - 4 * root.scaleKoef,
             textAnchor = Alignment.BottomStart,
-            text = element.chartTitle,
+            text = element.title,
             textColor = colorMainText,
         )
 
@@ -969,8 +968,9 @@ class ChartControl(
 
         //--- легенда ---
 
-        for (i in element.alLegend.indices) {
+        for (i in element.legends.indices) {
             drawLegend(
+                hmIndexColor = hmIndexColor,
                 element = element,
                 legendIndex = i,
                 pixDrawHeight = pixDrawHeight,
@@ -985,12 +985,12 @@ class ChartControl(
 
         val alPrevTextBounds = mutableListOf<XyRect>()
 
-        for (cagdc in element.alGDC) {
+        for (cagdc in element.elements) {
             val axisYIndex = cagdc.axisYIndex
 
             when (cagdc.type) {
-                ChartElementTypeDTO.BACK -> {
-                    for (grd in cagdc.alGBD) {
+                ChartElementType.BACK -> {
+                    for (grd in cagdc.backs) {
                         val drawX1 = bodyCanvasWidth * (grd.x1 - t1) / (t2 - t1)
                         val drawX2 = bodyCanvasWidth * (grd.x2 - t1) / (t2 - t1)
 
@@ -1006,14 +1006,14 @@ class ChartControl(
                     }
                 }
 
-                ChartElementTypeDTO.LINE -> {
+                ChartElementType.LINE -> {
                     var prevDrawX = -1.0f
                     var prevDrawY = -1.0f
                     var prevDrawColorIndex: ChartColorIndex? = null
                     val ayd = element.alAxisYData[axisYIndex]
                     val graphicHeight = ayd.max - ayd.min
 
-                    for (gld in cagdc.alGLD) {
+                    for (gld in cagdc.lines) {
                         val drawX = bodyCanvasWidth * (gld.x - t1) / (t2 - t1)
                         val drawY = pixDrawY0 - pixDrawHeight * (gld.y - ayd.min) / graphicHeight
                         prevDrawColorIndex?.let {
@@ -1035,8 +1035,8 @@ class ChartControl(
                     }
                 }
 
-                ChartElementTypeDTO.TEXT -> {
-                    for (gtd in cagdc.alGTD) {
+                ChartElementType.TEXT -> {
+                    for (gtd in cagdc.texts) {
                         val drawX1 = bodyCanvasWidth * (gtd.textX1 - t1) / (t2 - t1)
                         val drawX2 = bodyCanvasWidth * (gtd.textX2 - t1) / (t2 - t1)
                         val drawWidth = drawX2 - drawX1
@@ -1089,8 +1089,8 @@ class ChartControl(
             }
         }
 
-        alChartGroup.add(
-            ChartGroup(
+        alChartGroupClient.add(
+            ChartGroupClient(
                 title = titleData,
                 alAxisYLine = alAxisYLine,
                 alAxisYText = alAxisYText,
@@ -1202,7 +1202,7 @@ class ChartControl(
 
     private fun drawAxisY(
         hmIndexColor: Map<ChartColorIndex, Color>,
-        element: ChartGroupDTO,
+        element: ChartData,
         axisIndex: Int,
         pixDrawWidth: Float,
         pixDrawHeight: Float,
@@ -1329,7 +1329,8 @@ class ChartControl(
     }
 
     private fun drawLegend(
-        element: ChartGroupDTO,
+        hmIndexColor: Map<ChartColorIndex, Color>,
+        element: ChartData,
         legendIndex: Int,
         pixDrawHeight: Float,
         pixDrawY0: Float,
@@ -1337,10 +1338,10 @@ class ChartControl(
         alLegendBack: MutableList<ChartRectDrawData>,
         alLegendText: MutableList<ChartTextDrawData>,
     ) {
-        val triple = element.alLegend[legendIndex]
-        val color = triple.first
-        val isBack = triple.second
-        val text = triple.third
+        val chartLegend = element.legends[legendIndex]
+//        val color = triple.first
+//        val isBack = triple.second
+//        val text = triple.third
 
         val width = getLegendWidth(root.scaleKoef)
 
@@ -1354,9 +1355,9 @@ class ChartControl(
             y = y1,
             width = width - 2.0f * root.scaleKoef,
             height = pixDrawHeight,
-            strokeColor = Color(color),
-            fillColor = if (isBack) {
-                Color(color)
+            strokeColor = hmIndexColor[chartLegend.colorIndex],
+            fillColor = if (chartLegend.isBack) {
+                hmIndexColor[chartLegend.colorIndex]
             } else {
                 null
             },
@@ -1369,10 +1370,10 @@ class ChartControl(
         val legendText = ChartTextDrawData(
             x = x1 + 1.0f * root.scaleKoef,
             y = (y1 + y2) / 2,
-            text = text,
+            text = chartLegend.descr,
             textAnchor = Alignment.TopCenter,
             rotateDegree = -90.0f,
-            textColor = if (isBack) colorMainText else Color(color),
+            textColor = if (chartLegend.isBack) colorMainText else hmIndexColor[chartLegend.colorIndex] ?: Color.Black,
         )
         alLegendText += legendText
     }
