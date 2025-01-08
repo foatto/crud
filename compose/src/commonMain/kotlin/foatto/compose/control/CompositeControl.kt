@@ -64,33 +64,15 @@ class CompositeControl(
                         oneBlockWidth = size.width.toFloat() / compositeResponse.cols
                         oneBlockHeight = size.height.toFloat() / compositeResponse.rows
                     }
-//                    .pointerInput(Unit) {
-//                        awaitEachGesture {
-//                            awaitFirstDown().also { pointerInputChange: PointerInputChange ->
-//                                pointerInputChange.consume()
-//                                onPointerDown(pointerInputChange)
-//                            }
-//                            while (true) {
-//                                val pointerInputChange = waitForUpOrCancellation()
-//                                if (pointerInputChange != null) {
-//                                    pointerInputChange.consume()
-//                                    onPointerUp(pointerInputChange)
-//                                    break
-//                                }
-//                            }
-//                        }
-//                    }
-//                    .pointerInput(Unit) {
-//                        detectDragGestures(
-//                            onDragStart = { offset: Offset -> onDragStart(offset) },
-//                            onDragEnd = { onDragEnd() },
-//                            onDragCancel = { onDragCancel() },
-//                            onDrag = { change, dragAmount ->
-//                                change.consume()
-//                                onDrag(change, dragAmount)
-//                            },
-//                        )
-//                    }
+//                    .onPointerEvents(
+//                        withInteractive = withInteractive,
+//                        onPointerDown = { pointerInputChange -> onPointerDown(pointerInputChange) },
+//                        onPointerUp = { pointerInputChange -> onPointerUp(pointerInputChange) },
+//                        onDragStart = { offset -> onDragStart(offset) },
+//                        onDrag = { pointerInputChange, offset -> onDrag(pointerInputChange, offset) },
+//                        onDragEnd = { onDragEnd() },
+//                        onDragCancel = { onDragCancel() },
+//                    ),
             ) {
                 for (block in blocks) {
                     val blockX = block.x * oneBlockWidth

@@ -268,7 +268,7 @@ class TableControl(
                                         //--- Непрямой метод поймать правую кнопку мыши. Ждём, когда завезут официальную реакцию на правую мышь.
                                         .pointerInput(Unit) {
                                             awaitEachGesture {
-                                                val event = awaitPointerEvent(PointerEventPass.Main)
+                                                val event = awaitPointerEvent()
                                                 if (event.buttons.isSecondaryPressed) {
                                                     showPopupMenu(gridData)
                                                 }

@@ -34,6 +34,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.rememberTextMeasurer
 import foatto.compose.AppControl
 import foatto.compose.Root
+import foatto.compose.control.composable.onPointerEvents
 import foatto.compose.control.model.xy.XyElementData
 import foatto.compose.control.model.xy.XyElementDataType
 import foatto.core.model.model.xy.XyElement
@@ -104,37 +105,15 @@ abstract class AbstractXyControl(
                     y = with(density) { screenOffsetY.toDp() },
                 )
                 .clipToBounds()
-                .pointerInput(Unit) {
-                    if (withInteractive) {
-                        awaitEachGesture {
-                            awaitFirstDown().also { pointerInputChange: PointerInputChange ->
-                                pointerInputChange.consume()
-                                onPointerDown(pointerInputChange)
-                            }
-                            while (true) {
-                                val pointerInputChange = waitForUpOrCancellation()
-                                if (pointerInputChange != null) {
-                                    pointerInputChange.consume()
-                                    onPointerUp(pointerInputChange)
-                                    break
-                                }
-                            }
-                        }
-                    }
-                }
-                .pointerInput(Unit) {
-                    if (withInteractive) {
-                        detectDragGestures(
-                            onDragStart = { offset: Offset -> onDragStart(offset) },
-                            onDragEnd = { coroutineScope.launch { onDragEnd() } },
-                            onDragCancel = { onDragCancel() },
-                            onDrag = { change, dragAmount ->
-                                change.consume()
-                                onDrag(change, dragAmount)
-                            },
-                        )
-                    }
-                }
+                .onPointerEvents(
+                    withInteractive = withInteractive,
+                    onPointerDown = { pointerInputChange -> onPointerDown(pointerInputChange) },
+                    onPointerUp = { pointerInputChange -> onPointerUp(pointerInputChange) },
+                    onDragStart = { offset -> onDragStart(offset) },
+                    onDrag = { pointerInputChange, offset -> onDrag(pointerInputChange, offset) },
+                    onDragEnd = { onDragEnd() },
+                    onDragCancel = { onDragCancel() },
+                ),
         ) {
             for (alElement in xyElements) {
                 for (element in alElement) {

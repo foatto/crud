@@ -1,10 +1,6 @@
 package foatto.compose.control
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -20,7 +16,6 @@ import androidx.compose.ui.graphics.Color.Companion.hsl
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.PointerInputChange
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextMeasurer
@@ -31,6 +26,7 @@ import foatto.compose.colorControlBack
 import foatto.compose.colorMainBack0
 import foatto.compose.colorMainText
 import foatto.compose.control.composable.chart.ChartToolBar
+import foatto.compose.control.composable.onPointerEvents
 import foatto.compose.control.model.MouseRectData
 import foatto.compose.control.model.chart.*
 import foatto.compose.invokeRequest
@@ -41,10 +37,9 @@ import foatto.core.model.request.SaveUserPropertyRequest
 import foatto.core.model.response.ChartActionResponse
 import foatto.core.model.response.SaveUserPropertyResponse
 import foatto.core.model.response.chart.ChartColorIndex
-import foatto.core.model.response.chart.ChartElementType
 import foatto.core.model.response.chart.ChartData
+import foatto.core.model.response.chart.ChartElementType
 import foatto.core.model.response.chart.ChartResponse
-import foatto.compose.control.model.chart.ChartViewCoord
 import foatto.core.model.response.xy.geom.XyRect
 import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.getDateTimeDMYHMSString
@@ -281,9 +276,15 @@ class ChartControl(
         withInteractive: Boolean,
     ) {
         Canvas(
-            modifier = modifier
-                .onPointerEvents(withInteractive)
-                .onDragEvents(withInteractive)
+            modifier = modifier.onPointerEvents(
+                withInteractive = withInteractive,
+                onPointerDown = { pointerInputChange -> onPointerDown(pointerInputChange) },
+                onPointerUp = { pointerInputChange -> onPointerUp(pointerInputChange) },
+                onDragStart = { offset -> onDragStart(offset) },
+                onDrag = { pointerInputChange, offset -> onDrag(pointerInputChange, offset) },
+                onDragEnd = { onDragEnd() },
+                onDragCancel = { onDragCancel() },
+            ),
         ) {
             for (chartGroup in alChartGroupClient) {
                 for (axisLine in chartGroup.alAxisYLine) {
@@ -332,9 +333,15 @@ class ChartControl(
         withInteractive: Boolean,
     ) {
         Canvas(
-            modifier = modifier
-                .onPointerEvents(withInteractive)
-                .onDragEvents(withInteractive)
+            modifier = modifier.onPointerEvents(
+                withInteractive = withInteractive,
+                onPointerDown = { pointerInputChange -> onPointerDown(pointerInputChange) },
+                onPointerUp = { pointerInputChange -> onPointerUp(pointerInputChange) },
+                onDragStart = { offset -> onDragStart(offset) },
+                onDrag = { pointerInputChange, offset -> onDrag(pointerInputChange, offset) },
+                onDragEnd = { onDragEnd() },
+                onDragCancel = { onDragCancel() },
+            ),
         ) {
             for (chartGroup in alChartGroupClient) {
                 drawTextOnCanvas(
@@ -570,9 +577,15 @@ class ChartControl(
         withInteractive: Boolean,
     ) {
         Canvas(
-            modifier = modifier
-                .onPointerEvents(withInteractive)
-                .onDragEvents(withInteractive)
+            modifier = modifier.onPointerEvents(
+                withInteractive = withInteractive,
+                onPointerDown = { pointerInputChange -> onPointerDown(pointerInputChange) },
+                onPointerUp = { pointerInputChange -> onPointerUp(pointerInputChange) },
+                onDragStart = { offset -> onDragStart(offset) },
+                onDrag = { pointerInputChange, offset -> onDrag(pointerInputChange, offset) },
+                onDragEnd = { onDragEnd() },
+                onDragCancel = { onDragCancel() },
+            ),
         ) {
             for (chartGroup in alChartGroupClient) {
                 for (legendBack in chartGroup.alLegendBack) {
@@ -613,50 +626,6 @@ class ChartControl(
                     )
 //                                fontSize((1.0 * scaleKoef).cssRem)
                 }
-            }
-        }
-    }
-
-    @Composable
-    private fun Modifier.onPointerEvents(
-        withInteractive: Boolean,
-    ): Modifier =
-        this.pointerInput(Unit) {
-            if (withInteractive) {
-                awaitEachGesture {
-                    awaitFirstDown().also { pointerInputChange: PointerInputChange ->
-                        pointerInputChange.consume()
-                        onPointerDown(pointerInputChange)
-                    }
-                    while (true) {
-                        val pointerInputChange = waitForUpOrCancellation()
-                        if (pointerInputChange != null) {
-                            pointerInputChange.consume()
-                            onPointerUp(pointerInputChange)
-                            break
-                        }
-                    }
-                }
-            }
-        }
-
-    @Composable
-    private fun Modifier.onDragEvents(
-        withInteractive: Boolean,
-    ): Modifier {
-        val coroutineScope = rememberCoroutineScope()
-
-        return this.pointerInput(Unit) {
-            if (withInteractive) {
-                detectDragGestures(
-                    onDragStart = { offset: Offset -> onDragStart(offset) },
-                    onDragEnd = { coroutineScope.launch { onDragEnd() } },
-                    onDragCancel = { onDragCancel() },
-                    onDrag = { change, dragAmount ->
-                        change.consume()
-                        onDrag(change, dragAmount)
-                    },
-                )
             }
         }
     }
@@ -1486,8 +1455,13 @@ class ChartControl(
 
                 screenOffsetX += dx
                 val newOffsetY = screenOffsetY + dy
-                if (newOffsetY <= 0 && newOffsetY >= canvasHeight - pixEndY) {
-                    screenOffsetY = newOffsetY
+                if (newOffsetY <= 0) {
+                    screenOffsetY = if (newOffsetY >= canvasHeight - pixEndY) {
+                        newOffsetY
+                    } else {
+                        //--- докрутить до конца графиков (но меньше, чем на dy)
+                        canvasHeight - pixEndY
+                    }
                 }
             }
 
