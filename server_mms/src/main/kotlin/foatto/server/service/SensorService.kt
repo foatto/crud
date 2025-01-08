@@ -58,10 +58,10 @@ class SensorService(
 ) : ApplicationService() {
 
     companion object {
-        private const val FIELD_ID = "id"
+        // private const val FIELD_ID = "id"
         private const val FIELD_OBJECT = "obj"
 
-        //        private const val FIELD_NAME = "name"
+        // private const val FIELD_NAME = "name"
         private const val FIELD_GROUP = "group"
         private const val FIELD_DESCR = "descr"
         private const val FIELD_PORT_NUM = "portNum"
@@ -449,7 +449,6 @@ class SensorService(
             SensorConfig.SENSOR_ENERGO_POWER_FULL,
         ).map { it.toString() }.toSet()
         val analogSensorTypes = (setOf(
-            SensorConfig.SENSOR_LIQUID_FLOW_CALC,
             SensorConfig.SENSOR_WEIGHT,
             SensorConfig.SENSOR_TURN,
             SensorConfig.SENSOR_PRESSURE,

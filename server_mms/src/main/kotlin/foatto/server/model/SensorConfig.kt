@@ -22,7 +22,7 @@ class SensorConfig {
         const val SENSOR_WORK = 1           // мото * час
 
         //--- контрольные величины - графики
-        const val SENSOR_LIQUID_FLOW_CALC = 3
+        //const val SENSOR_LIQUID_FLOW_CALC = 3 - считается автоматически при записи данных со счётчика расхода
         const val SENSOR_LIQUID_LEVEL = 4
         const val SENSOR_WEIGHT = 5
         const val SENSOR_TURN = 6
@@ -106,7 +106,6 @@ class SensorConfig {
             SENSOR_SIGNAL to "Сигнал",
             SENSOR_GEO to "Гео-данные",
             SENSOR_WORK to "Работа оборудования",
-            SENSOR_LIQUID_FLOW_CALC to "Скорость потока топлива (расчётная)",
             SENSOR_LIQUID_LEVEL to "Уровень топлива",
             SENSOR_WEIGHT to "Вес",
             SENSOR_TURN to "Обороты",
