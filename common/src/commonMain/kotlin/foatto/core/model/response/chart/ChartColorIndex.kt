@@ -50,37 +50,44 @@ enum class ChartColorIndex {
     LINE_NORMAL_3,      // normal line
 }
 
-val chartAxisColorIndexes: List<ChartColorIndex> = listOf(
+private val chartAxisColorIndexes: List<ChartColorIndex> = listOf(
     ChartColorIndex.AXIS_0,
     ChartColorIndex.AXIS_1,
     ChartColorIndex.AXIS_2,
     ChartColorIndex.AXIS_3,
 )
 
-val chartLineNoneColorIndexes: List<ChartColorIndex> = listOf(
+private val chartLineNoneColorIndexes: List<ChartColorIndex> = listOf(
     ChartColorIndex.LINE_NONE_0,
     ChartColorIndex.LINE_NONE_1,
     ChartColorIndex.LINE_NONE_2,
     ChartColorIndex.LINE_NONE_3,
 )
 
-val chartLineNormalColorIndexes: List<ChartColorIndex> = listOf(
+private val chartLineNormalColorIndexes: List<ChartColorIndex> = listOf(
     ChartColorIndex.LINE_NORMAL_0,
     ChartColorIndex.LINE_NORMAL_1,
     ChartColorIndex.LINE_NORMAL_2,
     ChartColorIndex.LINE_NORMAL_3,
 )
 
-val chartLineBelowColorIndexes: List<ChartColorIndex> = listOf(
+private val chartLineBelowColorIndexes: List<ChartColorIndex> = listOf(
     ChartColorIndex.LINE_BELOW_0,
     ChartColorIndex.LINE_BELOW_0,
     ChartColorIndex.LINE_BELOW_0,
     ChartColorIndex.LINE_BELOW_0,
 )
 
-val chartLineAboveColorIndexes: List<ChartColorIndex> = listOf(
+private val chartLineAboveColorIndexes: List<ChartColorIndex> = listOf(
     ChartColorIndex.LINE_ABOVE_0,
     ChartColorIndex.LINE_ABOVE_0,
     ChartColorIndex.LINE_ABOVE_0,
     ChartColorIndex.LINE_ABOVE_0,
 )
+
+fun getChartAxisColorIndexes(index: Int): ChartColorIndex = chartAxisColorIndexes[index % chartAxisColorIndexes.size]
+fun getChartLineNoneColorIndexes(index: Int): ChartColorIndex = chartLineNoneColorIndexes[index % chartLineNoneColorIndexes.size]
+fun getChartLineNormalColorIndexes(index: Int): ChartColorIndex = chartLineNormalColorIndexes[index % chartLineNormalColorIndexes.size]
+fun getChartLineBelowColorIndexes(index: Int): ChartColorIndex = chartLineBelowColorIndexes[index % chartLineBelowColorIndexes.size]
+fun getChartLineAboveColorIndexes(index: Int): ChartColorIndex = chartLineAboveColorIndexes[index % chartLineAboveColorIndexes.size]
+

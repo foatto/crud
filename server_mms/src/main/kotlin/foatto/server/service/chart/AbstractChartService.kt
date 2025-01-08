@@ -9,14 +9,20 @@ import foatto.core.model.response.HeaderData
 import foatto.core.model.response.ResponseCode
 import foatto.core.model.response.TitleData
 import foatto.core.model.response.chart.ChartColorIndex
+import foatto.core.model.response.chart.ChartElement
+import foatto.core.model.response.chart.ChartElementLine
 import foatto.core.model.response.chart.ChartResponse
 import foatto.server.SpringApp
 import foatto.server.appModuleConfigs
 import foatto.server.checkAccessPermission
+import foatto.server.entity.SensorEntity
 import foatto.server.repository.ObjectRepository
 import foatto.server.repository.SensorRepository
+import foatto.server.service.ApplicationService
+import foatto.server.service.SensorService
 import jakarta.persistence.EntityManager
 import org.springframework.data.repository.findByIdOrNull
+import kotlin.math.abs
 
 abstract class AbstractChartService(
     private val entityManager: EntityManager,
@@ -142,6 +148,43 @@ abstract class AbstractChartService(
     }
 
     protected abstract fun getCharts(chartActionRequest: ChartActionRequest): ChartActionResponse
+
+    protected fun getLines(
+        sensorEntity: SensorEntity,
+        valueIndex: Int,
+        begTime: Int,
+        endTime: Int,
+        xScale: Float,
+        yScale: Float,
+        colorIndexFun: (value: Double) -> ChartColorIndex,
+        lines: ChartElement,
+    ) {
+        SensorService.checkAndCreateAggTable(entityManager, sensorEntity.id)
+
+        ApplicationService.withConnection(entityManager) { conn ->
+            val rs = conn.executeQuery(
+                """
+                    SELECT ontime_0, value_$valueIndex
+                    FROM MMS_agg_${sensorEntity.id}
+                    WHERE ontime_0 BETWEEN $begTime AND $endTime
+                    ORDER BY ontime_0
+                """
+            )
+            while (rs.next()) {
+                val time = rs.getInt(1)
+                val value = rs.getDouble(2)
+
+                val curColorIndex = colorIndexFun(value)
+
+                val lastPoint = lines.lines.lastOrNull()
+                if (lastPoint == null || time - lastPoint.x > xScale || abs(value - lastPoint.y) > yScale || curColorIndex != lastPoint.colorIndex) {
+                    lines.lines += ChartElementLine(time, value.toFloat(), curColorIndex)
+                }
+            }
+            rs.close()
+        }
+    }
+
 }
 
 /*

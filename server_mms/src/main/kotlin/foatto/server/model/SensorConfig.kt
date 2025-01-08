@@ -101,6 +101,10 @@ class SensorConfig {
             SENSOR_ENERGO_COUNT_RR,
         )
 
+        //--- перевёрнутые графики для датчиков
+        private val reversedChartSensorTypes = setOf<Int>(/* SensorConfig.SENSOR_DEPTH */)
+        fun isReversedChart(sensorType: Int?): Boolean = reversedChartSensorTypes.contains(sensorType)
+
         //--- названия датчиков
         val hmSensorDescr: Map<Int, String> = mapOf(
             SENSOR_SIGNAL to "Сигнал",

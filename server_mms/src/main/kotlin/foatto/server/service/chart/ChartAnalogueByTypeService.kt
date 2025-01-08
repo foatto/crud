@@ -9,15 +9,11 @@ import foatto.server.entity.SensorEntity
 import foatto.server.model.SensorConfig
 import foatto.server.repository.ObjectRepository
 import foatto.server.repository.SensorRepository
-import foatto.server.service.ApplicationService
-import foatto.server.service.SensorService
 import foatto.server.util.AdvancedLogger
 import jakarta.persistence.EntityManager
-import kotlinx.datetime.Clock
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import java.util.*
-import kotlin.math.abs
 
 @Service
 class ChartAnalogueByTypeService(
@@ -114,13 +110,16 @@ class ChartAnalogueByTypeService(
 
             val alAxisYData = mutableListOf<ChartAxisY>()
 
+            val isReversedY = SensorConfig.isReversedChart(sensorEntity.sensorType)
+
             val axisIndex = 0
-//            var axisIndex = 0
-//            alSca.forEachIndexed { sensorIndex, sca ->
-
-            val isReversedY = false //sca.sensorType == SensorConfig.SENSOR_DEPTH
-
-            alAxisYData += ChartAxisY(chartTitle, minView, maxView, chartAxisColorIndexes[axisIndex], isReversedY)
+            alAxisYData += ChartAxisY(
+                title = chartTitle,
+                min = minView,
+                max = maxView,
+                colorIndex = getChartAxisColorIndexes(axisIndex),
+                isReversedY = isReversedY
+            )
 
             sensorEntity.minLimit?.let { minLimit ->
                 val minLimitLines = ChartElement(ChartElementType.LINE, axisIndex, 1, isReversedY).apply {
@@ -141,11 +140,26 @@ class ChartAnalogueByTypeService(
             val lines = ChartElement(ChartElementType.LINE, axisIndex, 3, isReversedY)
             getLines(
                 sensorEntity = sensorEntity,
+                valueIndex = 1,
                 begTime = begTime,
                 endTime = endTime,
                 xScale = xScale,
                 yScale = yScale,
-                axisIndex = axisIndex,
+                colorIndexFun = { value: Double ->
+                    when {
+                        sensorEntity.minLimit != null && sensorEntity.minLimit != sensorEntity.maxLimit && value < sensorEntity.minLimit -> {
+                            getChartLineBelowColorIndexes(axisIndex)
+                        }
+
+                        sensorEntity.maxLimit != null && sensorEntity.minLimit != sensorEntity.maxLimit && value > sensorEntity.maxLimit -> {
+                            getChartLineAboveColorIndexes(axisIndex)
+                        }
+
+                        else -> {
+                            getChartLineNormalColorIndexes(axisIndex)
+                        }
+                    }
+                },
                 lines = lines,
             )
             elements += lines
@@ -238,53 +252,6 @@ class ChartAnalogueByTypeService(
                 alAxisYData = alAxisYData,
                 elements = elements,
             )
-        }
-    }
-
-    private fun getLines(
-        sensorEntity: SensorEntity,
-        begTime: Int,
-        endTime: Int,
-        xScale: Float,
-        yScale: Float,
-        axisIndex: Int,
-        lines: ChartElement,
-    ) {
-        SensorService.checkAndCreateAggTable(entityManager, sensorEntity.id)
-
-        ApplicationService.withConnection(entityManager) { conn ->
-            val rs = conn.executeQuery(
-                """
-                    SELECT ontime_0, value_1
-                    FROM MMS_agg_${sensorEntity.id}
-                    WHERE ontime_0 BETWEEN $begTime AND $endTime
-                    ORDER BY ontime_0
-                """
-            )
-            while (rs.next()) {
-                val time = rs.getInt(1)
-                val value = rs.getDouble(2)
-
-                val curColorIndex = when {
-                    sensorEntity.minLimit != null && value < sensorEntity.minLimit -> {
-                        chartLineBelowColorIndexes[axisIndex]
-                    }
-
-                    sensorEntity.maxLimit != null && value > sensorEntity.maxLimit -> {
-                        chartLineAboveColorIndexes[axisIndex]
-                    }
-
-                    else -> {
-                        chartLineNormalColorIndexes[axisIndex]
-                    }
-                }
-
-                val lastPoint = lines.lines.lastOrNull()
-                if (lastPoint == null || time - lastPoint.x > xScale || abs(value - lastPoint.y) > yScale || curColorIndex != lastPoint.colorIndex) {
-                    lines.lines += ChartElementLine(time, value.toFloat(), curColorIndex)
-                }
-            }
-            rs.close()
         }
     }
 
