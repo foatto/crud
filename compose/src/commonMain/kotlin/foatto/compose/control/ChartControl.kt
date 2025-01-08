@@ -1462,6 +1462,8 @@ class ChartControl(
                         //--- докрутить до конца графиков (но меньше, чем на dy)
                         canvasHeight - pixEndY
                     }
+                } else {
+                    screenOffsetY = 0.0f
                 }
             }
 
