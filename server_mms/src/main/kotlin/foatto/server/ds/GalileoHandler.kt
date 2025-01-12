@@ -1,5 +1,6 @@
 package foatto.server.ds
 
+import foatto.core.model.model.xy.XyProjection
 import foatto.core.util.crc16_modbus
 import foatto.core.util.getCurrentTimeInt
 import foatto.server.model.SensorConfig
@@ -37,7 +38,7 @@ open class GalileoHandler : MMSNioHandler() {
     private var wgsX = 0
     private var wgsY = 0
     private var isParking = false
-    private var speed: Short = 0
+    private var speed: Int = 0
     private var absoluteRun = 0
 
     private var powerVoltage = 0
@@ -171,10 +172,10 @@ open class GalileoHandler : MMSNioHandler() {
 
         //--- обработка данных, кроме последних 2 байт CRC
         while (bbIn.remaining() > 2) {
-            AdvancedLogger.debug("serialNo = $serialNo, remaining = " + bbIn.remaining())
+//            AdvancedLogger.debug("serialNo = $serialNo, remaining = " + bbIn.remaining())
             //--- тег данных
             val tag = bbIn.getByte().toInt() and 0xFF
-            AdvancedLogger.debug("tag = ${tag.toString(16)}")
+//            AdvancedLogger.debug("tag = ${tag.toString(16)}")
             when (tag) {
 
                 //--- версия прибора/железа
@@ -638,11 +639,11 @@ open class GalileoHandler : MMSNioHandler() {
                 }
             }
         }
-        AdvancedLogger.debug("serialNo = $serialNo, before CRC remaining = " + bbIn.remaining())
+//        AdvancedLogger.debug("serialNo = $serialNo, before CRC remaining = " + bbIn.remaining())
         val crc = bbIn.getShort()
-        AdvancedLogger.debug("serialNo = $serialNo, after CRC remaining = " + bbIn.remaining())
+//        AdvancedLogger.debug("serialNo = $serialNo, after CRC remaining = " + bbIn.remaining())
 
-        status += " DataRead;"
+        status += " DataRead 2;"
 
         //--- здесь имеет смысл сохранить данные по последней точке, если таковая была считана
         savePoint(dataWorker.conn, pointTime)
@@ -660,7 +661,6 @@ open class GalileoHandler : MMSNioHandler() {
                 if (cmdStr.isNotEmpty()) {
                     val dataSize = 1 + 15 + 1 + 2 + 1 + 4 + 1 + 1 + cmdStr.length
 
-                    //!!! точно BigEndian???
                     val bbOut = AdvancedByteBuffer(64)  // 64 байта в большинстве случаев хватает
 
                     bbOut.putByte(0x01)
@@ -691,7 +691,7 @@ open class GalileoHandler : MMSNioHandler() {
         }
 
         //--- данные успешно переданы - теперь можно завершить транзакцию
-        status += " Ok;"
+        status += " Ok 2;"
         errorText = ""
         deviceConfig?.let { dc ->
             MMSTelematicFunction.writeSession(
@@ -735,34 +735,71 @@ open class GalileoHandler : MMSNioHandler() {
 
                 //--- напряжения основного и резервного питаний
                 CoreTelematicFunction.putSensorData(dc.deviceIndex, 8, 2, powerVoltage, bbData)
+                MMSTelematicFunction.saveSensorData(conn, sensorConfigs, sensorCalibrations, pointTime, 8, powerVoltage.toDouble())
+
                 CoreTelematicFunction.putSensorData(dc.deviceIndex, 9, 2, accumVoltage, bbData)
+                MMSTelematicFunction.saveSensorData(conn, sensorConfigs, sensorCalibrations, pointTime, 9, accumVoltage.toDouble())
+
                 //--- универсальные входы (аналоговые/частотные/счётные)
                 CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmUniversalSensor, 10, 2, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmUniversalSensor, 10, 2, bbData)
+
                 //--- температура контроллера
                 CoreTelematicFunction.putSensorData(dc.deviceIndex, 18, 1, controllerTemperature, bbData)
-                //--- гео-данные
-                CoreTelematicFunction.putSensorPortNumAndDataSize(dc.deviceIndex, SensorConfig.GEO_PORT_NUM, SensorConfig.GEO_DATA_SIZE, bbData)
-                bbData.putInt(if (isCoordOk) wgsX else 0).putInt(if (isCoordOk) wgsY else 0)
-                    .putShort(if (isCoordOk && !isParking) speed else 0).putInt(if (isCoordOk) absoluteRun else 0)
+                MMSTelematicFunction.saveSensorData(conn, sensorConfigs, sensorCalibrations, pointTime, 18, controllerTemperature.toDouble())
+
+                //--- гео-данные пишутся особым образом
+                if (isCoordOk) {
+                    CoreTelematicFunction.putSensorPortNumAndDataSize(dc.deviceIndex, SensorConfig.GEO_PORT_NUM, SensorConfig.GEO_DATA_SIZE, bbData)
+                    bbData.putInt(wgsX).putInt(wgsY).putShort(if (!isParking) speed else 0).putInt(absoluteRun)
+
+                    val portNum = dc.deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + SensorConfig.GEO_PORT_NUM
+
+                    sensorConfigs[portNum]?.let { sensorEntities ->
+                        sensorEntities.forEach { sensorEntity ->
+                            if (sensorEntity.sensorType == SensorConfig.SENSOR_GEO) {
+                                MMSTelematicFunction.saveGeoSensorData(
+                                    conn = conn,
+                                    sensorEntity = sensorEntity,
+                                    pointTime = pointTime,
+                                    wgsX = wgsX / XyProjection.WGS_KOEF_d,
+                                    wgsY = wgsY / XyProjection.WGS_KOEF_d,
+                                    speed = if (isParking) 0 else speed,
+                                    absoluteRun = absoluteRun.toDouble(),
+                                )
+                            }
+                        }
+                    }
+                }
 
                 //--- 16 RS485-датчиков уровня топлива, по 2 байта
                 CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmRS485Fuel, 20, 2, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmRS485Fuel, 20, 2, bbData)
 
                 //--- CAN: уровень топлива в %
                 CoreTelematicFunction.putSensorData(dc.deviceIndex, 36, 1, canFuelLevel, bbData)
+                MMSTelematicFunction.saveSensorData(conn, sensorConfigs, sensorCalibrations, pointTime, 36, canFuelLevel.toDouble())
+
                 //--- CAN: температура охлаждающей жидкости - сохраняется в виде 4 байт,
-                //---, чтобы сохранить знак числа, не попадая под переделку в unsigned short в виде & 0xFFFF
+                //--- чтобы сохранить знак числа, не попадая под переделку в unsigned short в виде & 0xFFFF
                 CoreTelematicFunction.putSensorData(dc.deviceIndex, 37, 4, canCoolantTemperature, bbData)
+                MMSTelematicFunction.saveSensorData(conn, sensorConfigs, sensorCalibrations, pointTime, 37, canCoolantTemperature.toDouble())
+
                 //--- CAN: обороты двигателя, об/мин
                 CoreTelematicFunction.putSensorData(dc.deviceIndex, 38, 2, canEngineRPM, bbData)
+                MMSTelematicFunction.saveSensorData(conn, sensorConfigs, sensorCalibrations, pointTime, 38, canEngineRPM.toDouble())
 
                 //--- 39-й порт пока свободен
 
                 //--- 16 RS485-датчиков температуры, по 4 байта - пишем как int,
                 //--- чтобы при чтении не потерялся +- температуры
                 CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmRS485Temp, 40, 4, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmRS485Temp, 40, 4, bbData)
 
+                //--- galileo user data
                 CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmUserData, 100, 4, bbData)
+                MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmUserData, 100, 4, bbData)
+
                 MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmGalileoCount, PortNumbers.GALILEO_COUNT_110, bbData)
                 MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmLLSLevel, PortNumbers.LLS_LEVEL_120, bbData)
                 MMSTelematicFunction.saveSensorData(conn, dc.deviceIndex, sensorConfigs, sensorCalibrations, pointTime, tmGalileoVoltage, PortNumbers.GALILEO_VOLTAGE_140, bbData)

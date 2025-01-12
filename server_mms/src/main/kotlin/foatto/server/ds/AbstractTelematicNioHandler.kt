@@ -47,7 +47,7 @@ abstract class AbstractTelematicNioHandler : AbstractNioHandler() {
         dirJournalLog = File(dataServer.hmConfig[configJournalLogPath]!!)
 
         begTime = getCurrentTimeInt()
-        status += " Init;"
+        status += " Init 2;"
     }
 
     override fun work(dataWorker: CoreNioWorker): Boolean {
@@ -59,7 +59,7 @@ abstract class AbstractTelematicNioHandler : AbstractNioHandler() {
     }
 
     override fun preWork() {
-        status += " Start;"
+        status += " Start 2;"
     }
 
 }

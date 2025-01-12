@@ -57,7 +57,7 @@ abstract class MMSNioHandler : AbstractTelematicNioHandler() {
     protected fun loadDeviceConfig(conn: CoreAdvancedConnection): Boolean {
         DeviceConfig.getDeviceConfig(conn, serialNo)?.let { dc ->
             deviceConfig = dc
-            status += " ID;"
+            status += " ID 2;"
 
             if (dc.objectId != 0) {
                 loadSensorConfigs(conn, dc)
@@ -219,12 +219,12 @@ abstract class MMSNioHandler : AbstractTelematicNioHandler() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    protected fun roundSpeed(speed: Double) =
+    protected fun roundSpeed(speed: Double): Int =
         when (deviceConfig!!.speedRoundRule) {
-            SensorConfigGeo.SPEED_ROUND_RULE_LESS -> floor(speed).toInt().toShort()
-            SensorConfigGeo.SPEED_ROUND_RULE_GREATER -> ceil(speed).toInt().toShort()
-            SensorConfigGeo.SPEED_ROUND_RULE_STANDART -> round(speed).toInt().toShort()
-            else -> round(speed).toInt().toShort()
+            SensorConfigGeo.SPEED_ROUND_RULE_LESS -> floor(speed).toInt()
+            SensorConfigGeo.SPEED_ROUND_RULE_GREATER -> ceil(speed).toInt()
+            SensorConfigGeo.SPEED_ROUND_RULE_STANDART -> round(speed).toInt()
+            else -> round(speed).toInt()
         }
 
 }

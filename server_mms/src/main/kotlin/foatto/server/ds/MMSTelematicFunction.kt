@@ -1,5 +1,6 @@
 package foatto.server.ds
 
+import foatto.core.model.model.xy.XyProjection
 import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.getDateTimeYMDHMSInts
 import foatto.core.util.getDateTimeYMDHMSString
@@ -15,6 +16,7 @@ import kotlinx.datetime.TimeZone
 import java.io.File
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.math.max
 
 object MMSTelematicFunction {
 
@@ -279,6 +281,34 @@ object MMSTelematicFunction {
         sensorConfigs: Map<Int, List<SensorEntity>>,               // portNum to sensorEntities
         sensorCalibrations: Map<Int, List<Pair<Double, Double>>>,  // sensorId to list of <sensorValue to dataValue> pairs
         pointTime: Int,
+        tmSensorData: SortedMap<Int, Int>,
+        startPortNum: Int,
+        sensorDataSize: Int,
+        bbData: AdvancedByteBuffer,
+    ) {
+        //--- write raw data into MMS_data_XXX
+        CoreTelematicFunction.putDigitalSensors(deviceIndex, tmSensorData, startPortNum, sensorDataSize, bbData)
+
+        //--- write smoothed/aggregated data into MMS_agg_YYY
+        tmSensorData.forEach { (index, sensorValue) ->
+            val portNum = startPortNum + index
+            saveSensorData(
+                conn = conn,
+                sensorConfigs = sensorConfigs,
+                sensorCalibrations = sensorCalibrations,
+                pointTime = pointTime,
+                portNum = portNum,
+                sensorValue = sensorValue.toDouble(),
+            )
+        }
+    }
+
+    fun saveSensorData(
+        conn: CoreAdvancedConnection,
+        deviceIndex: Int,
+        sensorConfigs: Map<Int, List<SensorEntity>>,               // portNum to sensorEntities
+        sensorCalibrations: Map<Int, List<Pair<Double, Double>>>,  // sensorId to list of <sensorValue to dataValue> pairs
+        pointTime: Int,
         tmSensorData: SortedMap<Int, Double>,
         startPortNum: Int,
         bbData: AdvancedByteBuffer,
@@ -289,45 +319,103 @@ object MMSTelematicFunction {
         //--- write smoothed/aggregated data into MMS_agg_YYY
         tmSensorData.forEach { (index, sensorValue) ->
             val portNum = startPortNum + index
-            //--- на одном порту может быть несколько разнотипных датчиков,
-            //--- например, датчик напряжения и датчик работы оборудования (работающий по величине этого напряжения)
-            sensorConfigs[portNum]?.forEach { sensorEntity ->
-                when (sensorEntity.sensorType) {
-                    in SensorConfig.analogueSensorTypes -> {
-                        SensorService.checkAndCreateAggTable(conn, sensorEntity.id)
-                        saveAnalogueSensorData(
-                            conn = conn,
-                            sensorEntity = sensorEntity,
-                            sensorCalibration = sensorCalibrations[sensorEntity.id] ?: emptyList(),
-                            pointTime = pointTime,
-                            sensorValue = sensorValue,
-                        )
-                    }
+            saveSensorData(
+                conn = conn,
+                sensorConfigs = sensorConfigs,
+                sensorCalibrations = sensorCalibrations,
+                pointTime = pointTime,
+                portNum = portNum,
+                sensorValue = sensorValue,
+            )
+        }
+    }
 
-                    in SensorConfig.counterSensorTypes -> {
-                        SensorService.checkAndCreateAggTable(conn, sensorEntity.id)
-                        saveCounterSensorData(
-                            conn = conn,
-                            sensorEntity = sensorEntity,
-                            sensorCalibration = sensorCalibrations[sensorEntity.id] ?: emptyList(),
-                            pointTime = pointTime,
-                            sensorValue = sensorValue,
-                        )
-                    }
+    fun saveSensorData(
+        conn: CoreAdvancedConnection,
+        sensorConfigs: Map<Int, List<SensorEntity>>,               // portNum to sensorEntities
+        sensorCalibrations: Map<Int, List<Pair<Double, Double>>>,  // sensorId to list of <sensorValue to dataValue> pairs
+        pointTime: Int,
+        portNum: Int,
+        sensorValue: Double,
+    ) {
+        //--- на одном порту может быть несколько разнотипных датчиков,
+        //--- например, датчик напряжения и датчик работы оборудования (работающий по величине этого напряжения)
+        sensorConfigs[portNum]?.forEach { sensorEntity ->
+            when (sensorEntity.sensorType) {
+                in SensorConfig.analogueSensorTypes -> {
+                    SensorService.checkAndCreateAggTable(conn, sensorEntity.id)
+                    saveAnalogueSensorData(
+                        conn = conn,
+                        sensorEntity = sensorEntity,
+                        sensorCalibration = sensorCalibrations[sensorEntity.id] ?: emptyList(),
+                        pointTime = pointTime,
+                        sensorValue = sensorValue,
+                    )
+                }
 
-                    SensorConfig.SENSOR_WORK -> {
-                        SensorService.checkAndCreateAggTable(conn, sensorEntity.id)
-                        saveWorkSensorData(
-                            conn = conn,
-                            sensorEntity = sensorEntity,
-                            pointTime = pointTime,
-                            sensorValue = sensorValue,
-                        )
-                    }
+                in SensorConfig.counterSensorTypes -> {
+                    SensorService.checkAndCreateAggTable(conn, sensorEntity.id)
+                    saveCounterSensorData(
+                        conn = conn,
+                        sensorEntity = sensorEntity,
+                        sensorCalibration = sensorCalibrations[sensorEntity.id] ?: emptyList(),
+                        pointTime = pointTime,
+                        sensorValue = sensorValue,
+                    )
+                }
+
+                SensorConfig.SENSOR_WORK -> {
+                    SensorService.checkAndCreateAggTable(conn, sensorEntity.id)
+                    saveWorkSensorData(
+                        conn = conn,
+                        sensorEntity = sensorEntity,
+                        pointTime = pointTime,
+                        sensorValue = sensorValue,
+                    )
                 }
             }
         }
+    }
 
+    fun saveGeoSensorData(
+        conn: CoreAdvancedConnection,
+        sensorEntity: SensorEntity,
+        pointTime: Int,
+        wgsX: Double,
+        wgsY: Double,
+        speed: Int,
+        absoluteRun: Double?,
+    ) {
+        SensorService.checkAndCreateAggTable(conn, sensorEntity.id)
+
+        var relativeRun = 0.0
+
+        val rs = conn.executeQuery(
+            """
+                SELECT value_0 , value_1 , value_2
+                FROM MMS_agg_${sensorEntity.id}
+                WHERE ontime_0 = ( SELECT MAX(ontime_0) FROM MMS_agg_${sensorEntity.id} ) 
+            """
+        )
+        if (rs.next()) {
+            val prevWgsX = rs.getDouble(1)
+            val prevWgsY = rs.getDouble(2)
+            val prevAbsoluteRun = rs.getDouble(3)
+
+            relativeRun = absoluteRun?.let {
+                max(absoluteRun - prevAbsoluteRun, 0.0)
+            } ?: XyProjection.distance(prevWgsX, prevWgsY, wgsX, wgsY)
+        }
+        rs.close()
+
+        relativeRun *= sensorEntity.runKoef ?: 1.0
+
+        conn.executeUpdate(
+            """
+                INSERT INTO MMS_agg_${sensorEntity.id} ( ontime_0 , ontime_1 , type_0 , value_0 , value_1 , value_2 , value_3 ) 
+                VALUES ( $pointTime , $pointTime , $speed , $wgsX , $wgsY , $absoluteRun , $relativeRun )  
+            """
+        )
     }
 
     private fun saveAnalogueSensorData(
