@@ -21,6 +21,7 @@ import foatto.server.appModuleConfigs
 import foatto.server.calc.DataValueStateEnum
 import foatto.server.checkAccessPermission
 import foatto.server.initXyElementConfig
+import foatto.server.model.SensorConfig
 import foatto.server.model.ServerUserConfig
 import foatto.server.repository.ObjectRepository
 import foatto.server.repository.SensorRepository
@@ -306,7 +307,7 @@ class SchemeAnalogueIndicatorStateService(
                         //val degree = 180 * sensorValue / dv
                         //val radian = degree * PI / 180
                         //--- итого:
-                        val radian = value / (maxView - minView) * PI
+                        val radian = (value - minView) / (maxView - minView) * PI
                         val dxt = -cos(radian) * (GRID_STEP * 4 + GRID_STEP / 4)
                         val dyt = -sin(radian) * (GRID_STEP * 4 + GRID_STEP / 4)
                         val dx1 = -cos(radian) * GRID_STEP * 4
@@ -400,7 +401,7 @@ class SchemeAnalogueIndicatorStateService(
                         //val degree = 180 * sensorValue / dv
                         //val radian = degree * PI / 180
                         //--- итого:
-                        val radian = sv / (maxView - minView) * PI
+                        val radian = (sv - minView) / (maxView - minView) * PI
                         val dx = -cos(radian) * (GRID_STEP * 4 - GRID_STEP / 3)
                         val dy = -sin(radian) * (GRID_STEP * 4 - GRID_STEP / 3)
                         XyElement(TYPE_SCHEME_AI_ARROW, -getRandomInt(), sensorId).apply {
