@@ -291,7 +291,7 @@ object MMSTelematicFunction {
 
         //--- write smoothed/aggregated data into MMS_agg_YYY
         tmSensorData.forEach { (index, sensorValue) ->
-            val portNum = startPortNum + index
+            val portNum = deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + startPortNum + index
             saveSensorData(
                 conn = conn,
                 sensorConfigs = sensorConfigs,
@@ -318,7 +318,7 @@ object MMSTelematicFunction {
 
         //--- write smoothed/aggregated data into MMS_agg_YYY
         tmSensorData.forEach { (index, sensorValue) ->
-            val portNum = startPortNum + index
+            val portNum = deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + startPortNum + index
             saveSensorData(
                 conn = conn,
                 sensorConfigs = sensorConfigs,

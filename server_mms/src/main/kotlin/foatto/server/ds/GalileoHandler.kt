@@ -397,7 +397,7 @@ open class GalileoHandler : MMSNioHandler() {
                     //AdvancedLogger.debug( "deviceID = " + deviceID + "\n user data time = " + StringFunction.DateTime_YMDHMS( timeZone, pointTime ) );
 
                     val userDataSize = bbIn.getByte().toInt() and 0xFF // размер данных
-                    AdvancedLogger.debug("serialNo = $serialNo\n userDataSize = $userDataSize")
+//                    AdvancedLogger.debug("serialNo = $serialNo\n userDataSize = $userDataSize")
 
                     //                StringBuilder sbHex = new StringBuilder( " 0xEA =" );
                     //                for( int i = 0; i < userDataSize; i++ ) {
@@ -438,7 +438,16 @@ open class GalileoHandler : MMSNioHandler() {
 
                                     val floatBitsValue = (b1.toInt() and 0xFF shl 24) or (b2.toInt() and 0xFF shl 16) or (b3.toInt() and 0xFF shl 8) or (b4.toInt() and 0xFF)
                                     val doubleFromBits = Float.fromBits(floatBitsValue).toDouble()
-
+//AdvancedLogger.debug("----------------")
+//AdvancedLogger.debug("id = ${id.toString(16)}")
+//AdvancedLogger.debug("b1 = ${(b1.toInt() and 0xFF).toString(16)}")
+//AdvancedLogger.debug("b2 = ${(b2.toInt() and 0xFF).toString(16)}")
+//AdvancedLogger.debug("b3 = ${(b3.toInt() and 0xFF).toString(16)}")
+//AdvancedLogger.debug("b3 = ${(b3.toInt() and 0xFF).toString(16)}")
+//val intValue = (b1.toInt() and 0xFF shl 24) or (b2.toInt() and 0xFF shl 16) or (b3.toInt() and 0xFF shl 8) or (b4.toInt() and 0xFF)
+//AdvancedLogger.debug("intValue = $intValue")
+//AdvancedLogger.debug("doubleFromBits = $doubleFromBits")
+//AdvancedLogger.debug("doubleFromInt = $doubleFromInt")
                                     when (id) {
                                         0 -> {
                                         } // молча пропускаем пустой 0-й id
@@ -735,10 +744,24 @@ open class GalileoHandler : MMSNioHandler() {
 
                 //--- напряжения основного и резервного питаний
                 CoreTelematicFunction.putSensorData(dc.deviceIndex, 8, 2, powerVoltage, bbData)
-                MMSTelematicFunction.saveSensorData(conn, sensorConfigs, sensorCalibrations, pointTime, 8, powerVoltage.toDouble())
+                MMSTelematicFunction.saveSensorData(
+                    conn = conn,
+                    sensorConfigs = sensorConfigs,
+                    sensorCalibrations = sensorCalibrations,
+                    pointTime = pointTime,
+                    portNum = dc.deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + 8,
+                    sensorValue = powerVoltage.toDouble()
+                )
 
                 CoreTelematicFunction.putSensorData(dc.deviceIndex, 9, 2, accumVoltage, bbData)
-                MMSTelematicFunction.saveSensorData(conn, sensorConfigs, sensorCalibrations, pointTime, 9, accumVoltage.toDouble())
+                MMSTelematicFunction.saveSensorData(
+                    conn = conn,
+                    sensorConfigs = sensorConfigs,
+                    sensorCalibrations = sensorCalibrations,
+                    pointTime = pointTime,
+                    portNum = dc.deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + 9,
+                    sensorValue = accumVoltage.toDouble()
+                )
 
                 //--- универсальные входы (аналоговые/частотные/счётные)
                 CoreTelematicFunction.putDigitalSensors(dc.deviceIndex, tmUniversalSensor, 10, 2, bbData)
@@ -746,7 +769,14 @@ open class GalileoHandler : MMSNioHandler() {
 
                 //--- температура контроллера
                 CoreTelematicFunction.putSensorData(dc.deviceIndex, 18, 1, controllerTemperature, bbData)
-                MMSTelematicFunction.saveSensorData(conn, sensorConfigs, sensorCalibrations, pointTime, 18, controllerTemperature.toDouble())
+                MMSTelematicFunction.saveSensorData(
+                    conn = conn,
+                    sensorConfigs = sensorConfigs,
+                    sensorCalibrations = sensorCalibrations,
+                    pointTime = pointTime,
+                    portNum = dc.deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + 18,
+                    sensorValue = controllerTemperature.toDouble()
+                )
 
                 //--- гео-данные пишутся особым образом
                 if (isCoordOk) {
@@ -778,16 +808,37 @@ open class GalileoHandler : MMSNioHandler() {
 
                 //--- CAN: уровень топлива в %
                 CoreTelematicFunction.putSensorData(dc.deviceIndex, 36, 1, canFuelLevel, bbData)
-                MMSTelematicFunction.saveSensorData(conn, sensorConfigs, sensorCalibrations, pointTime, 36, canFuelLevel.toDouble())
+                MMSTelematicFunction.saveSensorData(
+                    conn = conn,
+                    sensorConfigs = sensorConfigs,
+                    sensorCalibrations = sensorCalibrations,
+                    pointTime = pointTime,
+                    portNum = dc.deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + 36,
+                    sensorValue = canFuelLevel.toDouble()
+                )
 
                 //--- CAN: температура охлаждающей жидкости - сохраняется в виде 4 байт,
                 //--- чтобы сохранить знак числа, не попадая под переделку в unsigned short в виде & 0xFFFF
                 CoreTelematicFunction.putSensorData(dc.deviceIndex, 37, 4, canCoolantTemperature, bbData)
-                MMSTelematicFunction.saveSensorData(conn, sensorConfigs, sensorCalibrations, pointTime, 37, canCoolantTemperature.toDouble())
+                MMSTelematicFunction.saveSensorData(
+                    conn = conn,
+                    sensorConfigs = sensorConfigs,
+                    sensorCalibrations = sensorCalibrations,
+                    pointTime = pointTime,
+                    portNum = dc.deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + 37,
+                    sensorValue = canCoolantTemperature.toDouble()
+                )
 
                 //--- CAN: обороты двигателя, об/мин
                 CoreTelematicFunction.putSensorData(dc.deviceIndex, 38, 2, canEngineRPM, bbData)
-                MMSTelematicFunction.saveSensorData(conn, sensorConfigs, sensorCalibrations, pointTime, 38, canEngineRPM.toDouble())
+                MMSTelematicFunction.saveSensorData(
+                    conn = conn,
+                    sensorConfigs = sensorConfigs,
+                    sensorCalibrations = sensorCalibrations,
+                    pointTime = pointTime,
+                    portNum = dc.deviceIndex * CoreTelematicFunction.MAX_PORT_PER_DEVICE + 38,
+                    sensorValue = canEngineRPM.toDouble()
+                )
 
                 //--- 39-й порт пока свободен
 
