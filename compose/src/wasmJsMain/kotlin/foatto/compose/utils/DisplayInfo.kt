@@ -7,7 +7,7 @@ import kotlinx.browser.window
 //--- причём на некоторых устройствах (особенно с iOS) глючит как innerWidth == 0,
 //--- и тогда приходится использовать outerWidth
 @Composable
-internal actual fun getScaledScreenWidth(): Int = if (window.innerWidth > 0) {
+internal actual fun getScaledWindowWidth(): Int = if (window.innerWidth > 0) {
     window.innerWidth
 } else {
     window.outerWidth

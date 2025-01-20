@@ -6,4 +6,4 @@ import androidx.compose.ui.platform.LocalWindowInfo
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-internal actual fun getScaledScreenWidth(): Int = LocalWindowInfo.current.containerSize.width
+internal actual fun getScaledWindowWidth(): Int = LocalWindowInfo.current.containerSize.width

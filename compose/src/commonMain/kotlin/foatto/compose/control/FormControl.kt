@@ -296,7 +296,7 @@ class FormControl(
                                         is FormSimpleCellClient -> {
                                             OutlinedTextField(
                                                 modifier = Modifier
-                                                    .widthIn(max = root.scaledScreenWidth.dp / 2)
+                                                    .widthIn(max = root.scaledWindowWidth.dp / 2)
                                                     .then(
                                                         if (gridData.data.isEditable) {
                                                             Modifier.background(colorControlBack)
@@ -1576,7 +1576,7 @@ class FormControl(
 //    }
 
     private fun getStyleFormEditBoxColumn(initSize: Int) = if (root.isWideScreen) {
-        min(initSize, root.scaledScreenWidth / 19)
+        min(initSize, root.scaledWindowWidth / 19)
     } else {
         min(initSize, 30)
     }

@@ -72,7 +72,7 @@ open class Root {
         private val WIDE_SCREEN_WIDTH = 600
     }
 
-    var scaledScreenWidth: Int = 0
+    var scaledWindowWidth: Int = 0
         private set
     var isWideScreen: Boolean by mutableStateOf(false)
         private set
@@ -118,8 +118,8 @@ open class Root {
         val density = LocalDensity.current
         val coroutineScope = rememberCoroutineScope()
 
-        scaledScreenWidth = getScaledScreenWidth()
-        isWideScreen = scaledScreenWidth >= WIDE_SCREEN_WIDTH
+        scaledWindowWidth = getScaledWindowWidth()
+        isWideScreen = scaledWindowWidth >= WIDE_SCREEN_WIDTH
         //--- инициализируем ДО того, как будет использоваться в Map/Scheme/Chart/Dashboard
         scaleKoef = density.density
 
@@ -321,10 +321,10 @@ open class Root {
         alTabInfo.removeAt(indexForClose)
     }
 
-    fun setMenuBarData(alMenuData: List<MenuDataClient>, scaledScreenWidth: Int) {
+    fun setMenuBarData(alMenuData: List<MenuDataClient>, scaledWindowWidth: Int) {
         alMenuDataClient.clear()
         alMenuDataClient.addAll(alMenuData)
-        alMenuDataClient.add(getClientSubMenu(appUserConfig, scaledScreenWidth, scaleKoef))
+        alMenuDataClient.add(getClientSubMenu(appUserConfig, scaledWindowWidth, scaleKoef))
         isTabPanelVisible = true
     }
 

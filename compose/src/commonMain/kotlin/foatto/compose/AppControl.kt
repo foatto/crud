@@ -268,7 +268,7 @@ class AppControl(
                     alMenuData = logonResponse.alMenuData!!.map { menuDataServer ->
                         mapMenuData(menuDataServer)
                     }.toMutableList(),
-                    scaledScreenWidth = root.scaledScreenWidth
+                    scaledWindowWidth = root.scaledWindowWidth
                 )
                 prevRequest = logonResponse.redirectOnLogon ?: prevRequest
                 //--- перевызовем сервер с предыдущей (до-логинной) командой
