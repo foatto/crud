@@ -668,13 +668,15 @@ abstract class ApplicationService {
         fileStoreRepository.saveAndFlush(fileStoreEntity)
     }
 
-    private fun deleteFile(fileStoreRepository: FileStoreRepository, fileId: Int, fileStoreId: Int?) {
+    protected fun deleteFile(fileStoreRepository: FileStoreRepository, fileId: Int?, fileStoreId: Int?) {
         val fileStoreEntities = fileStoreId?.let {
             fileStoreRepository.findByIdOrNull(fileStoreId)?.let { fse ->
                 listOf(fse)
             } ?: emptyList()
         } ?: run {
-            fileStoreRepository.findByFileId(fileId)
+            fileId?.let {
+                fileStoreRepository.findByFileId(fileId)
+            } ?: emptyList()
         }
 
         for (fileStoreEntity in fileStoreEntities) {

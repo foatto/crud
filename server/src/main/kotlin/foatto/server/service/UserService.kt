@@ -615,6 +615,9 @@ class UserService(
     }
 
     override fun formActionDelete(userId: Int, id: Int): FormActionResponse {
+        userRepository.findByIdOrNull(id)?.let { userEntity ->
+            deleteFile(fileStoreRepository, userEntity.fileId, null)
+        }
         userRepository.deleteById(id)
         return FormActionResponse(responseCode = ResponseCode.OK)
     }
