@@ -58,8 +58,7 @@ class SensorService(
 ) : ApplicationService() {
 
     companion object {
-        // private const val FIELD_ID = "id"
-        private const val FIELD_OBJECT = "obj"
+        private const val FIELD_OBJECT_ID = "obj_id"
 
         // private const val FIELD_NAME = "name"
         private const val FIELD_GROUP = "group"
@@ -466,7 +465,7 @@ class SensorService(
         //--- common data
 
         formCells += FormSimpleCell(
-            name = FIELD_OBJECT,
+            name = FIELD_OBJECT_ID,
             caption = "",
             isEditable = false,
             value = parentObjectId.toString(),
@@ -1135,7 +1134,7 @@ class SensorService(
     ): FormActionResponse {
         val id = action.id
 
-        val parentObjectId = formActionData[FIELD_OBJECT]?.stringValue?.toIntOrNull() ?: 0
+        val parentObjectId = formActionData[FIELD_OBJECT_ID]?.stringValue?.toIntOrNull() ?: 0
         val parentObjectEntity = objectRepository.findByIdOrNull(parentObjectId)!!
 
         val descr = formActionData[FIELD_DESCR]?.stringValue ?: return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_DESCR to "Не введёно описание"))
