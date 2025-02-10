@@ -7,11 +7,10 @@ val kotlinJvmTarget: String by project
 //val javaxMailApiVersion: String by project
 val jExcelApiVersion: String by project
 //val ktorVersion: String by project
-//val minioVersion: String by project
+val minioVersion: String by project
 val postgresJdbcVersion: String by project
-//val zxingVersion: String by project
-
 val springBootVersion: String by project
+//val zxingVersion: String by project
 
 plugins {
     kotlin("jvm")
@@ -43,8 +42,7 @@ dependencies {
 ////    api("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion") - later instead jackson
 //    api("io.ktor:ktor-serialization-jackson-jvm:$ktorVersion")
 
-//--- пока обойдёмся без minio
-//    api("io.minio:minio:$minioVersion")
+    api("io.minio:minio:$minioVersion")
 
 //--- пока не используется
 //    api("com.google.zxing:javase:$zxingVersion")

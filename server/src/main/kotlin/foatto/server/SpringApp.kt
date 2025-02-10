@@ -3,11 +3,15 @@ package foatto.server
 import foatto.core.SESSION_EXPIRE_TIME
 import foatto.core.util.getCurrentTimeInt
 import foatto.server.model.SessionData
+import foatto.server.util.MinioProxy
+import org.springframework.beans.factory.annotation.Value
 import java.util.concurrent.ConcurrentHashMap
 
 abstract class SpringApp {
 
     companion object {
+        var minioProxy: MinioProxy? = null
+
         private val sessionDataTime = ConcurrentHashMap<Long, Int>()
         private val sessionDataStore = ConcurrentHashMap<Long, SessionData>()
 
@@ -30,6 +34,27 @@ abstract class SpringApp {
         fun removeSessionData(sessionId: Long) {
             sessionDataTime.remove(sessionId)
             sessionDataStore.remove(sessionId)
+        }
+    }
+
+    @Value("\${minio.endpoint}")
+    val minioEndpoint: String = ""
+
+    @Value("\${minio.accessKey}")
+    val minioAccessKey: String = ""
+
+    @Value("\${minio.secretKey}")
+    val minioSecretKey: String = ""
+
+    @Value("\${minio.timeout}")
+    val minioTimeout: String = ""
+
+    @Value("\${minio.bucket}")
+    val minioBucket: String = ""
+
+    open fun init() {
+        if (minioEndpoint.isNotBlank()) {
+            minioProxy = MinioProxy(minioEndpoint, minioAccessKey, minioSecretKey, minioTimeout.toLong(), minioBucket)
         }
     }
 }

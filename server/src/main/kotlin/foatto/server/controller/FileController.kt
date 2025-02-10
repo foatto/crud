@@ -1,8 +1,9 @@
 package foatto.server.controller
 
 import foatto.core.ApiUrl
-import foatto.core.model.response.form.FormFileUploadResponse
 import foatto.core.model.response.form.FormFileUploadParams
+import foatto.core.model.response.form.FormFileUploadResponse
+import foatto.server.SpringApp
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.GetMapping
@@ -74,7 +75,16 @@ class FileController {
         val fileUrl = getFileUrl(dirName, fileName)
         val fileTime = chmFileTime[fileUrl] ?: 0L
         if (System.currentTimeMillis() < fileTime + (fileAccessPeriod.toIntOrNull() ?: 24) * 60 * 60) {
-            download(response, "$rootDirName/$fileUrl")
+            SpringApp.minioProxy?.let { minioProxy ->
+                val mimeType = URLConnection.guessContentTypeFromName(fileName)
+                val byteArray = minioProxy.loadFileAsByteArray(dirName)
+
+                response.contentType = mimeType
+                response.setContentLength(byteArray.size)
+                response.outputStream.write(byteArray)
+            } ?: run {
+                download(response, "$rootDirName/$fileUrl")
+            }
         } else {
             response.status = 403   // forbidden
         }
