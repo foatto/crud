@@ -108,7 +108,7 @@ class LogonService(
         return hmShortName
     }
 
-    private fun loadRelatedUserIds(
+    fun loadRelatedUserIds(
         userId: Int,
         parentId: Int,
         orgType: Int,

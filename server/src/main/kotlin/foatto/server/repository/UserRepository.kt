@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query
 
 interface UserRepository : JpaRepository<UserEntity, Int> {
     fun findByLogin(login: String): List<UserEntity>
+    fun findByLoginAndPassword(login: String, password: String): List<UserEntity>
     fun findByFullName(fullName: String): List<UserEntity>
     fun findByParentId(parentId: Int): List<UserEntity>
     fun findByParentIdAndOrgType(parentId: Int, orgType: Int): List<UserEntity>

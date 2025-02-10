@@ -34,7 +34,6 @@ import foatto.server.SpringApp
 import foatto.server.appModuleConfigs
 import foatto.server.checkAccessPermission
 import foatto.server.checkFormAddPermission
-import foatto.server.checkRowPermission
 import foatto.server.controller.FileController
 import foatto.server.entity.DateEntity
 import foatto.server.entity.DateTimeEntity
@@ -280,13 +279,6 @@ abstract class ApplicationService {
 
         return PageRequest.of(action.pageNo, pageSize, sort)
     }
-
-    protected fun getEnabledUserIds(action: AppAction, userConfig: ServerUserConfig): List<Int> =
-        userConfig.relatedUserIds.filterValues { userRelation ->
-            checkRowPermission(action.module, action.type, userRelation, userConfig.roles)
-        }.map { (userId, _) ->
-            userId
-        }
 
     protected fun getTableSelectorButtonCell(row: Int, col: Int, selectorAction: AppAction): TableBaseCell = TableButtonCell(
         row = row,
@@ -653,14 +645,27 @@ abstract class ApplicationService {
 
     private fun addFile(fileStoreRepository: FileStoreRepository, fileId: Int, fromClientId: String, fileName: String) {
         val fileFromClient = File(tempDirName, fromClientId)
+        val fileStoreId = getNextFileStoreId(fileStoreRepository)
 
-        val dirName = getFreeDir(fileName)
-        val newFile = File(rootDirName, FileController.getFileUrl(dirName, fileName))
+        val dirName = SpringApp.minioProxy?.let { minioProxy ->
+            minioProxy.saveFile(
+                objectName = fileStoreId.toString(),
+                objectStream = fileFromClient.inputStream(),
+                objectSize = fileFromClient.length()
+            )
 
-        fileFromClient.renameTo(newFile)
+            fileStoreId.toString()
+        } ?: run {
+            val dirName = getFreeDir(fileName)
+            val newFile = File(rootDirName, FileController.getFileUrl(dirName, fileName))
+
+            fileFromClient.renameTo(newFile)
+
+            dirName
+        }
 
         val fileStoreEntity = FileStoreEntity(
-            id = getNextFileStoreId(fileStoreRepository),
+            id = fileStoreId,
             fileId = fileId,
             name = fileName,
             dir = dirName,
@@ -680,9 +685,13 @@ abstract class ApplicationService {
         }
 
         for (fileStoreEntity in fileStoreEntities) {
-            val deleteFile = File(rootDirName, FileController.getFileUrl(fileStoreEntity.dir, fileStoreEntity.name))
-            if (deleteFile.exists()) {
-                deleteFile.delete()
+            SpringApp.minioProxy?.removeFile(
+                objectName = fileStoreEntity.id.toString()
+            ) ?: run {
+                val deleteFile = File(rootDirName, FileController.getFileUrl(fileStoreEntity.dir, fileStoreEntity.name))
+                if (deleteFile.exists()) {
+                    deleteFile.delete()
+                }
             }
         }
 

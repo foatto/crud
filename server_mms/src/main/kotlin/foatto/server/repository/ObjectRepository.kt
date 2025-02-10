@@ -1,6 +1,5 @@
 package foatto.server.repository
 
-import foatto.server.entity.GroupEntity
 import foatto.server.entity.ObjectEntity
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -9,7 +8,8 @@ import org.springframework.data.jpa.repository.Query
 
 interface ObjectRepository : JpaRepository<ObjectEntity, Int> {
 
-    fun findByUserIdAndName(userId: Int, name: String): List<GroupEntity>
+    fun findByUserIdAndName(userId: Int, name: String): List<ObjectEntity>
+    fun findByUserIdInAndName(userIds: List<Int>, name: String): List<ObjectEntity>
 
     @Query(
         """
