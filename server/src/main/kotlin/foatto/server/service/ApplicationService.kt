@@ -27,20 +27,15 @@ import foatto.core.model.response.table.cell.TableButtonCellData
 import foatto.core.model.response.table.cell.TableSimpleCell
 import foatto.core.util.getDateDMYString
 import foatto.core.util.getDateTimeDMYHMSString
-import foatto.core.util.getFilledNumberString
-import foatto.core.util.getRandomInt
 import foatto.server.AppRole
 import foatto.server.SpringApp
 import foatto.server.appModuleConfigs
 import foatto.server.checkAccessPermission
 import foatto.server.checkFormAddPermission
-import foatto.server.controller.FileController
 import foatto.server.entity.DateEntity
 import foatto.server.entity.DateTimeEntity
-import foatto.server.entity.FileStoreEntity
 import foatto.server.model.AppModuleConfig
 import foatto.server.model.ServerUserConfig
-import foatto.server.repository.FileStoreRepository
 import foatto.server.sql.CoreAdvancedConnection
 import foatto.server.sql.SpringConnection
 import jakarta.persistence.EntityManager
@@ -48,12 +43,12 @@ import org.hibernate.Session
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
-import org.springframework.data.repository.findByIdOrNull
-import java.io.File
 import java.sql.ResultSet
 import java.sql.Statement
 
-abstract class ApplicationService {
+abstract class ApplicationService(
+    private val fileService: FileService,
+) {
 
     @Value("\${root_dir}")
     val rootDirName: String = ""
@@ -314,11 +309,8 @@ abstract class ApplicationService {
         }
     )
 
-    protected fun getTableFileButtonCellData(
-        fileStoreRepository: FileStoreRepository,
-        fileId: Int?,
-    ): List<TableButtonCellData> = fileId?.let {
-        getFileList(fileStoreRepository, fileId).map { (_, url) ->
+    protected fun getTableFileButtonCellData(fileId: Int?): List<TableButtonCellData> = fileId?.let {
+        fileService.getFileList(fileId).map { (_, url) ->
             TableButtonCellData(
                 name = url.substringAfterLast('/'),
                 action = AppAction(type = ActionType.FILE, url = url),
@@ -491,11 +483,8 @@ abstract class ApplicationService {
         )
     }
 
-    protected fun getFormFileCellData(
-        fileStoreRepository: FileStoreRepository,
-        fileId: Int?,
-    ): List<FormFileData> = fileId?.let {
-        getFileList(fileStoreRepository, fileId).map { (recordId, url) ->
+    protected fun getFormFileCellData(fileId: Int?): List<FormFileData> = fileId?.let {
+        fileService.getFileList(fileId).map { (recordId, url) ->
             FormFileData(
                 id = recordId,
                 action = AppAction(type = ActionType.FILE, url = url),
@@ -627,126 +616,18 @@ abstract class ApplicationService {
 
     protected fun isAdminOnly(userConfig: ServerUserConfig): Boolean = userConfig.roles.size == 1 && userConfig.roles.contains(AppRole.ADMIN)
 
-    //--- file functions ---
-
-    protected fun formActionSaveFiles(fileStoreRepository: FileStoreRepository, formActionData: FormActionData): Int {
-        val fileId = formActionData.fileId ?: getNextFileId(fileStoreRepository)
+    protected fun formActionSaveFiles(formActionData: FormActionData): Int {
+        val fileId = formActionData.fileId ?: fileService.getNextFileId()
 
         formActionData.addFiles?.forEach { (fromClientId, fileName) ->
-            addFile(fileStoreRepository, fileId, fromClientId, fileName)
+            fileService.addFile(fileId, fromClientId, fileName)
         }
 
         formActionData.fileRemovedIds?.forEach { idForDelete ->
-            deleteFile(fileStoreRepository, fileId, idForDelete)
+            fileService.deleteFile(fileId, idForDelete)
         }
 
         return fileId
-    }
-
-    private fun addFile(fileStoreRepository: FileStoreRepository, fileId: Int, fromClientId: String, fileName: String) {
-        val fileFromClient = File(tempDirName, fromClientId)
-        val fileStoreId = getNextFileStoreId(fileStoreRepository)
-
-        val dirName = SpringApp.minioProxy?.let { minioProxy ->
-            minioProxy.saveFile(
-                objectName = fileStoreId.toString(),
-                objectStream = fileFromClient.inputStream(),
-                objectSize = fileFromClient.length()
-            )
-
-            fileStoreId.toString()
-        } ?: run {
-            val dirName = getFreeDir(fileName)
-            val newFile = File(rootDirName, FileController.getFileUrl(dirName, fileName))
-
-            fileFromClient.renameTo(newFile)
-
-            dirName
-        }
-
-        val fileStoreEntity = FileStoreEntity(
-            id = fileStoreId,
-            fileId = fileId,
-            name = fileName,
-            dir = dirName,
-        )
-        fileStoreRepository.saveAndFlush(fileStoreEntity)
-    }
-
-    protected fun deleteFile(fileStoreRepository: FileStoreRepository, fileId: Int?, fileStoreId: Int?) {
-        val fileStoreEntities = fileStoreId?.let {
-            fileStoreRepository.findByIdOrNull(fileStoreId)?.let { fse ->
-                listOf(fse)
-            } ?: emptyList()
-        } ?: run {
-            fileId?.let {
-                fileStoreRepository.findByFileId(fileId)
-            } ?: emptyList()
-        }
-
-        for (fileStoreEntity in fileStoreEntities) {
-            SpringApp.minioProxy?.removeFile(
-                objectName = fileStoreEntity.id.toString()
-            ) ?: run {
-                val deleteFile = File(rootDirName, FileController.getFileUrl(fileStoreEntity.dir, fileStoreEntity.name))
-                if (deleteFile.exists()) {
-                    deleteFile.delete()
-                }
-            }
-        }
-
-        fileStoreRepository.deleteAllInBatch(fileStoreEntities)
-    }
-
-    private fun getFileList(fileStoreRepository: FileStoreRepository, fileId: Int): List<Pair<Int, String>> =
-        fileStoreRepository.findByFileIdOrderByName(fileId).map { fileStoreEntity ->
-            val fileUrl = FileController.getFileUrl(fileStoreEntity.dir, fileStoreEntity.name)
-
-            FileController.chmFileTime[fileUrl] = System.currentTimeMillis()
-
-            Pair(fileStoreEntity.id, fileUrl)
-        }
-
-    private fun getNextFileId(fileStoreRepository: FileStoreRepository): Int {
-        var nextId: Int
-        while (true) {
-            nextId = getRandomInt()
-            if (nextId == 0) {
-                continue
-            }
-            if (fileStoreRepository.existsByFileId(nextId)) {
-                continue
-            }
-            return nextId
-        }
-    }
-
-    private fun getNextFileStoreId(fileStoreRepository: FileStoreRepository): Int {
-        var nextId: Int
-        while (true) {
-            nextId = getRandomInt()
-            if (nextId == 0) {
-                continue
-            }
-            if (fileStoreRepository.existsById(nextId)) {
-                continue
-            }
-            return nextId
-        }
-    }
-
-    private fun getFreeDir(fileName: String): String {
-        var i = 0
-        while (true) {
-            val newDirName = getFilledNumberString(i, 8)
-            val newDir = File(rootDirName, "${FileController.FILE_BASE}/$newDirName")
-            newDir.mkdirs()
-            val file = File(newDir, fileName)
-            if (!file.exists()) {
-                return newDirName
-            }
-            i++
-        }
     }
 
 //--- date/time helper functions

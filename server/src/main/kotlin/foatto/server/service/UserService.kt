@@ -36,7 +36,6 @@ import foatto.server.entity.UserEntity
 import foatto.server.getEnabledUserIds
 import foatto.server.model.AppModuleConfig
 import foatto.server.model.ServerUserConfig
-import foatto.server.repository.FileStoreRepository
 import foatto.server.repository.UserRepository
 import foatto.server.util.encodePassword
 import foatto.server.util.getNextId
@@ -49,8 +48,10 @@ import org.springframework.stereotype.Service
 @Service
 class UserService(
     private val userRepository: UserRepository,
-    private val fileStoreRepository: FileStoreRepository,
-) : ApplicationService() {
+    private val fileService: FileService,
+) : ApplicationService(
+    fileService = fileService,
+) {
 
     companion object {
         const val FIELD_ID: String = "id"
@@ -247,7 +248,7 @@ class UserService(
                     row = row,
                     col = col++,
                     dataRow = row,
-                    values = getTableFileButtonCellData(fileStoreRepository, userEntity.fileId),
+                    values = getTableFileButtonCellData(userEntity.fileId),
                 )
             }
             alTableCell += TableSimpleCell(row = row, col = col++, dataRow = row, name = userEntity.timeOffset?.toString() ?: "-")
@@ -464,7 +465,7 @@ class UserService(
             caption = "Файлы",
             isEditable = changeEnabled,
             fileId = userEntity?.fileId,
-            files = getFormFileCellData(fileStoreRepository, userEntity?.fileId)
+            files = getFormFileCellData(userEntity?.fileId)
         )
         formCells += FormSimpleCell(
             name = FIELD_AT_COUNT,
@@ -597,7 +598,7 @@ class UserService(
             eMail = formActionData[FIELD_EMAIL]?.stringValue,
             contactInfo = formActionData[FIELD_CONTACT_INFO]?.stringValue,
             fileId = formActionData[FIELD_FILE]?.let { fad ->
-                formActionSaveFiles(fileStoreRepository, fad)
+                formActionSaveFiles(fad)
             },
             atCount = formActionData[FIELD_AT_COUNT]?.stringValue?.toIntOrNull() ?: 0,
             lastLoginDateTime = DateTimeEntity(
@@ -622,7 +623,7 @@ class UserService(
 
     override fun formActionDelete(userId: Int, id: Int): FormActionResponse {
         userRepository.findByIdOrNull(id)?.let { userEntity ->
-            deleteFile(fileStoreRepository, userEntity.fileId, null)
+            fileService.deleteFile(userEntity.fileId, null)
         }
         userRepository.deleteById(id)
         return FormActionResponse(responseCode = ResponseCode.OK)

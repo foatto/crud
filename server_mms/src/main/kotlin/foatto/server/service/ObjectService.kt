@@ -23,11 +23,11 @@ import foatto.server.checkAccessPermission
 import foatto.server.checkFormAddPermission
 import foatto.server.checkRowPermission
 import foatto.server.entity.ObjectEntity
+import foatto.server.getEnabledUserIds
 import foatto.server.model.AppModuleConfig
 import foatto.server.model.ServerUserConfig
 import foatto.server.repository.DepartmentRepository
 import foatto.server.repository.DeviceRepository
-import foatto.server.repository.FileStoreRepository
 import foatto.server.repository.GroupRepository
 import foatto.server.repository.ObjectRepository
 import foatto.server.repository.SensorCalibrationRepository
@@ -47,8 +47,10 @@ class ObjectService(
     private val sensorRepository: SensorRepository,
     private val sensorCalibrationRepository: SensorCalibrationRepository,
     private val deviceRepository: DeviceRepository,
-    private val fileStoreRepository: FileStoreRepository,
-) : ApplicationService() {
+    private val fileService: FileService,
+) : ApplicationService(
+    fileService = fileService,
+) {
 
     companion object {
         const val FIELD_ID: String = "id"
@@ -109,7 +111,7 @@ class ObjectService(
         val pageRequest = getTableSortedPageRequest(action, defaultFieldNames = arrayOf(FIELD_NAME))
         val findText = action.findText?.trim() ?: ""
 
-        val enabledUserIds = getEnabledUserIds(action, userConfig)
+        val enabledUserIds = getEnabledUserIds(action.module, action.type, userConfig.relatedUserIds, userConfig.roles)
 
         val page: Page<ObjectEntity> = if (findText.isNotEmpty()) {
             objectRepository.findByUserIdInAndFilter(enabledUserIds, findText, pageRequest)
@@ -161,7 +163,7 @@ class ObjectService(
                     row = row,
                     col = col++,
                     dataRow = row,
-                    values = getTableFileButtonCellData(fileStoreRepository, objectEntity.fileId),
+                    values = getTableFileButtonCellData(objectEntity.fileId),
                 )
             }
 
@@ -251,6 +253,8 @@ class ObjectService(
         getTableChartPopupData(userConfig, AppModuleMMS.CHART_LIQUID_LEVEL, id, alPopupData)
         getTableChartPopupData(userConfig, AppModuleMMS.CHART_ANALOGUE_BY_TYPE, id, alPopupData)
 
+        getTableReportPopupData(userConfig, AppModuleMMS.REPORT_SUMMARY, alPopupData)
+
 //        if (checkAccessPermission(AppModuleMMS.MAP_TRACE, userConfig.roles)) {
 //            alPopupData += TablePopupData(
 //                group = "Карты",
@@ -290,6 +294,53 @@ class ObjectService(
         }
 
         return alPopupData
+    }
+
+    private fun getTableTablePopupData(userConfig: ServerUserConfig, module: String, id: Int, alPopupData: MutableList<TablePopupData>) {
+        if (checkAccessPermission(module, userConfig.roles)) {
+            alPopupData += TablePopupData(
+                action = AppAction(
+                    type = ActionType.MODULE_TABLE,
+                    module = module,
+                    parentModule = AppModuleMMS.OBJECT,
+                    parentId = id,
+                ),
+                text = appModuleConfigs[module]?.caption ?: "(неизвестный тип модуля: '$module')",
+                inNewTab = true,
+            )
+        }
+    }
+
+    private fun getTableChartPopupData(userConfig: ServerUserConfig, module: String, id: Int, alPopupData: MutableList<TablePopupData>) {
+        if (checkAccessPermission(module, userConfig.roles)) {
+            alPopupData += TablePopupData(
+                group = "Графики",
+                action = AppAction(
+                    type = ActionType.MODULE_CHART,
+                    module = module,
+                    id = id,
+                    timeRangeType = 24 * 60 * 60,   // графики за последние 24 часа
+                    //!!! где-то здесь надо передавать конкретный тип аналогового датчика (пока будем выводить графики по всем аналоговым датчикам сразу)
+                ),
+                text = appModuleConfigs[module]?.caption ?: "(неизвестный тип модуля: '$module')",
+                inNewTab = true,
+            )
+        }
+    }
+
+    private fun getTableReportPopupData(userConfig: ServerUserConfig, module: String, alPopupData: MutableList<TablePopupData>) {
+        if (checkAccessPermission(module, userConfig.roles)) {
+            alPopupData += TablePopupData(
+                group = "Отчёты",
+                action = AppAction(
+                    type = ActionType.MODULE_FORM,
+                    module = module,
+                    id = 0,
+                ),
+                text = appModuleConfigs[module]?.caption ?: "(неизвестный тип модуля: '$module')",
+                inNewTab = true,
+            )
+        }
     }
 
     override fun getFormCells(
@@ -455,7 +506,7 @@ class ObjectService(
             caption = "Файл схемы объекта",
             isEditable = changeEnabled,
             fileId = objectEntity?.fileId,
-            files = getFormFileCellData(fileStoreRepository, objectEntity?.fileId)
+            files = getFormFileCellData(objectEntity?.fileId)
         )
         formCells += FormBooleanCell(
             name = FIELD_IS_AUTO_WORK_SHIFT_ENABLED,
@@ -513,7 +564,7 @@ class ObjectService(
             info = formActionData[FIELD_INFO]?.stringValue,
             eMail = formActionData[FIELD_EMAIL]?.stringValue,
             fileId = formActionData[FIELD_FILE]?.let { fad ->
-                formActionSaveFiles(fileStoreRepository, fad)
+                formActionSaveFiles(fad)
             },
             isAutoWorkShiftEnabled = formActionData[FIELD_IS_AUTO_WORK_SHIFT_ENABLED]?.booleanValue == true,
         )
@@ -535,6 +586,7 @@ class ObjectService(
     override fun formActionDelete(userId: Int, id: Int): FormActionResponse {
         //--- remove all depended sensors & datas
         objectRepository.findByIdOrNull(id)?.let { objectEntity ->
+            fileService.deleteFile(objectEntity.fileId, null)
             sensorRepository.findByObj(objectEntity).forEach { sensorEntity ->
                 SensorService.deleteSensor(
                     entityManager = entityManager,
@@ -575,38 +627,6 @@ class ObjectService(
         val deleteEnabled = checkRowPermission(action.module, ActionType.FORM_DELETE, userConfig.relatedUserIds[objectEntity?.userId], userConfig.roles)
 
         return Triple(addEnabled, editEnabled, deleteEnabled)
-    }
-
-    private fun getTableTablePopupData(userConfig: ServerUserConfig, module: String, id: Int, alPopupData: MutableList<TablePopupData>) {
-        if (checkAccessPermission(module, userConfig.roles)) {
-            alPopupData += TablePopupData(
-                action = AppAction(
-                    type = ActionType.MODULE_TABLE,
-                    module = module,
-                    parentModule = AppModuleMMS.OBJECT,
-                    parentId = id,
-                ),
-                text = appModuleConfigs[module]?.caption ?: "(неизвестный тип модуля: '$module')",
-                inNewTab = true,
-            )
-        }
-    }
-
-    private fun getTableChartPopupData(userConfig: ServerUserConfig, module: String, id: Int, alPopupData: MutableList<TablePopupData>) {
-        if (checkAccessPermission(module, userConfig.roles)) {
-            alPopupData += TablePopupData(
-                group = "Графики",
-                action = AppAction(
-                    type = ActionType.MODULE_CHART,
-                    module = module,
-                    id = id,
-                    timeRangeType = 24 * 60 * 60,   // графики за последние 24 часа
-                    //!!! где-то здесь надо передавать конкретный тип аналогового датчика (пока будем выводить графики по всем аналоговым датчикам сразу)
-                ),
-                text = appModuleConfigs[module]?.caption ?: "(неизвестный тип модуля: '$module')",
-                inNewTab = true,
-            )
-        }
     }
 
 }

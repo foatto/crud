@@ -55,7 +55,10 @@ class SensorService(
     private val sensorRepository: SensorRepository,
     private val objectRepository: ObjectRepository,
     private val sensorCalibrationRepository: SensorCalibrationRepository,
-) : ApplicationService() {
+    private val fileService: FileService,
+) : ApplicationService(
+    fileService = fileService,
+) {
 
     companion object {
         private const val FIELD_OBJECT_ID = "obj_id"

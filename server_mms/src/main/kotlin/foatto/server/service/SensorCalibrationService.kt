@@ -29,7 +29,10 @@ import org.springframework.stereotype.Service
 class SensorCalibrationService(
     private val sensorRepository: SensorRepository,
     private val sensorCalibrationRepository: SensorCalibrationRepository,
-) : ApplicationService() {
+    private val fileService: FileService,
+) : ApplicationService(
+    fileService = fileService,
+) {
 
     companion object {
 //        private const val FIELD_ID = "id"

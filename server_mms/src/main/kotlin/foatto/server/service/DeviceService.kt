@@ -29,6 +29,7 @@ import foatto.server.entity.DateEntity
 import foatto.server.entity.DeviceEntity
 import foatto.server.entity.ObjectEntity
 import foatto.server.entity.SensorEntity
+import foatto.server.getEnabledUserIds
 import foatto.server.model.AppModuleConfig
 import foatto.server.model.SensorConfig
 import foatto.server.model.SensorConfigCounter
@@ -55,7 +56,10 @@ class DeviceService(
     private val objectRepository: ObjectRepository,
     private val sensorRepository: SensorRepository,
     private val sensorCalibrationRepository: SensorCalibrationRepository,
-) : ApplicationService() {
+    private val fileService: FileService,
+) : ApplicationService(
+    fileService = fileService,
+) {
 
     companion object {
         //        private const val FIELD_ID = "id"
@@ -254,7 +258,12 @@ class DeviceService(
             objectRepository.findByIdOrNull(parentObjectId)
         }
 
-        val enabledUserIds = getEnabledUserIds(action, userConfig)
+        val enabledUserIds = getEnabledUserIds(
+            module = action.module,
+            actionType = action.type,
+            relatedUserIds = userConfig.relatedUserIds,
+            roles = userConfig.roles,
+        )
 
         val page: Page<DeviceEntity> = parentObjectEntity?.let {
             if (findText.isNotEmpty()) {

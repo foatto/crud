@@ -15,6 +15,7 @@ import foatto.core.model.response.table.cell.TableSimpleCell
 import foatto.server.checkFormAddPermission
 import foatto.server.checkRowPermission
 import foatto.server.entity.DepartmentEntity
+import foatto.server.getEnabledUserIds
 import foatto.server.model.AppModuleConfig
 import foatto.server.model.ServerUserConfig
 import foatto.server.repository.DepartmentRepository
@@ -28,7 +29,10 @@ import org.springframework.stereotype.Service
 class DepartmentService(
     private val departmentRepository: DepartmentRepository,
     private val objectRepository: ObjectRepository,
-) : ApplicationService() {
+    private val fileService: FileService,
+) : ApplicationService(
+    fileService = fileService,
+) {
 
     companion object {
         const val FIELD_ID: String = "id"
@@ -68,7 +72,12 @@ class DepartmentService(
         val pageRequest = getTableSortedPageRequest(action, defaultFieldNames = arrayOf(FIELD_NAME))
         val findText = action.findText?.trim() ?: ""
 
-        val enabledUserIds = getEnabledUserIds(action, userConfig)
+        val enabledUserIds = getEnabledUserIds(
+            module = action.module,
+            actionType = action.type,
+            relatedUserIds = userConfig.relatedUserIds,
+            roles = userConfig.roles,
+        )
 
         val page: Page<DepartmentEntity> = if (findText.isNotEmpty()) {
             departmentRepository.findByUserIdInAndFilter(enabledUserIds, findText, pageRequest)

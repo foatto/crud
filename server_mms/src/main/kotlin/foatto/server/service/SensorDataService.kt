@@ -23,7 +23,10 @@ import org.springframework.stereotype.Service
 class SensorDataService(
     private val entityManager: EntityManager,
     private val sensorRepository: SensorRepository,
-) : ApplicationService() {
+    private val fileService: FileService,
+) : ApplicationService(
+    fileService = fileService,
+) {
 
     companion object {
         //!!! попробовать размеры побольше
@@ -89,14 +92,7 @@ class SensorDataService(
         val currentPageNo = lastTimeUTC / PAGE_SIZE_IN_SEC - action.pageNo
         val begPageTime = currentPageNo * PAGE_SIZE_IN_SEC
         val endPageTime = begPageTime + PAGE_SIZE_IN_SEC
-        /*
-        //CREATE TABLE MMS_agg_# (
-        //            INT NOT NULL,   -- date-time of point or period's begin
-        //            INT,            -- date-time of period's end
-        //              INT,
-        //             FLOAT8,
-        //             FLOAT8,
-        */
+
         queryNativeSql(
             entityManager,
             """

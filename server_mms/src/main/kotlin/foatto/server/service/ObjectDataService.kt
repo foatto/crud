@@ -1,6 +1,7 @@
 package foatto.server.service
 
 import foatto.core.model.AppAction
+import foatto.core.model.model.xy.GeoData
 import foatto.core.model.request.FormActionData
 import foatto.core.model.response.FormActionResponse
 import foatto.core.model.response.ResponseCode
@@ -11,13 +12,14 @@ import foatto.core.model.response.table.cell.TableSimpleCell
 import foatto.core.util.getDateTimeDMYHMSString
 import foatto.core.util.getTimeZone
 import foatto.core_mms.AppModuleMMS
-import foatto.server.calc.AbstractObjectStateCalc
 import foatto.server.entity.ObjectEntity
 import foatto.server.model.AppModuleConfig
+import foatto.server.model.SensorConfig
 import foatto.server.model.ServerUserConfig
 import foatto.server.repository.ObjectRepository
 import foatto.server.repository.SensorRepository
 import foatto.server.util.AdvancedByteBuffer
+import foatto.server.util.byteToHex
 import jakarta.persistence.EntityManager
 import kotlinx.datetime.TimeZone
 import org.springframework.data.repository.findByIdOrNull
@@ -29,7 +31,10 @@ class ObjectDataService(
     private val entityManager: EntityManager,
     private val objectRepository: ObjectRepository,
     private val sensorRepository: SensorRepository,
-) : ApplicationService() {
+    private val fileService: FileService,
+) : ApplicationService(
+    fileService = fileService,
+) {
 
     companion object {
         //!!! попробовать увеличить в compose 1.8.x
@@ -135,11 +140,11 @@ class ObjectDataService(
                 val valuesByPortNum = mutableMapOf<Int, String>()
                 var otherData = ""
                 while (bb.hasRemaining()) {
-                    val (portNum, dataSize) = AbstractObjectStateCalc.getSensorPortNumAndDataSize(bb)
+                    val (portNum, dataSize) = getSensorPortNumAndDataSize(bb)
 
                     val sensorType = sensorConfigs[portNum]
                     //--- по каждому номеру порта - составляем визуальное представление значения
-                    val sensorValue = AbstractObjectStateCalc.getSensorString(sensorConfigs[portNum], dataSize, bb)
+                    val sensorValue = getSensorString(sensorConfigs[portNum], dataSize, bb)
 
                     //--- выводим только определённые порты
                     sensorType?.let {
@@ -223,5 +228,52 @@ class ObjectDataService(
     override fun getFormActionPermissions(action: AppAction, userConfig: ServerUserConfig, moduleConfig: AppModuleConfig): Triple<Boolean, Boolean, Boolean> = Triple(false, false, false)
     override fun formActionSave(action: AppAction, userConfig: ServerUserConfig, moduleConfig: AppModuleConfig, formActionData: Map<String, FormActionData>): FormActionResponse = FormActionResponse(ResponseCode.ERROR)
     override fun formActionDelete(userId: Int, id: Int): FormActionResponse = FormActionResponse(ResponseCode.ERROR)
+
+    private fun getSensorPortNumAndDataSize(bb: AdvancedByteBuffer): Pair<Int, Int> {
+        val portNum = bb.getShort().toInt() and 0xFFFF
+        val dataSize = bb.getShort() + 1
+        return Pair(portNum, dataSize)
+    }
+
+    //--- defining the string form of sensor data
+    private fun getSensorString(aSensorType: Int?, dataSize: Int, bb: AdvancedByteBuffer): String {
+        var sensorType = aSensorType
+        val sensorValue: CharSequence
+
+        if (sensorType == null) {
+            sensorType = 0
+        }
+
+        when (sensorType) {
+            SensorConfig.SENSOR_GEO -> {
+                val gd = GeoData(bb.getInt(), bb.getInt(), bb.getShort().toInt(), bb.getInt())
+                sensorValue = "x = ${gd.wgs.x}\ny = ${gd.wgs.y}\nскорость = ${gd.speed}\nпробег = ${gd.distance}"
+            }
+
+            else -> {
+                when (dataSize) {
+                    1 -> sensorValue = (bb.getByte().toInt() and 0xFF).toString()
+                    2 -> sensorValue = (bb.getShort().toInt() and 0xFFFF).toString()
+                    3 -> sensorValue = bb.getInt3().toString()
+                    4 -> sensorValue = bb.getInt().toString()
+                    8 -> sensorValue = bb.getDouble().toString()
+                    else -> {
+                        sensorValue = if (dataSize < 0) {
+                            bb.getShortString()
+                        } else {
+                            val sb = StringBuilder()
+                            for (i in 0 until dataSize) {
+                                byteToHex(bb.getByte(), sb, false)
+                            }
+                            sb
+                        }
+                    }
+                }
+            }
+        }
+
+        return sensorValue.toString()
+    }
+
 }
 
