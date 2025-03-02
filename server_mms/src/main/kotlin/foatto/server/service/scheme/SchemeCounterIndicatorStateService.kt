@@ -1,7 +1,6 @@
 package foatto.server.service.scheme
 
 import foatto.core.model.model.xy.XyElement
-import foatto.core.model.response.xy.XyElementClientType
 import foatto.core.model.response.xy.XyElementConfig
 import foatto.core.model.response.xy.geom.XyPoint
 import foatto.core.util.getDateTimeDMYHMSString
@@ -23,38 +22,23 @@ class SchemeCounterIndicatorStateService(
     private val objectRepository: ObjectRepository,
     private val sensorRepository: SensorRepository,
 ) : AbstractSchemeIndicatorStateService(
-    entityManager = entityManager,
     objectRepository = objectRepository,
-    sensorRepository = sensorRepository,
 ) {
 
     companion object {
-
         private const val TYPE_SCHEME_CI_TITLE_TEXT: String = "mms_scheme_ci_title_text"
 
         private const val TYPE_SCHEME_CI_CUR_VALUE_TEXT: String = "mms_scheme_ci_cur_value_text"
         private const val TYPE_SCHEME_CI_DESCR_TEXT: String = "mms_scheme_ci_descr_text"
 
         private const val TEXT_COLOR = 0xFF_00_00_00.toInt()
+    }
 
-        val elementConfigs: MutableMap<String, XyElementConfig> = initXyElementConfig(level = 10, minScale = MIN_SCALE, maxScale = MAX_SCALE).apply {
-            this[TYPE_SCHEME_CI_TITLE_TEXT] = getTextConfig(TYPE_SCHEME_CI_TITLE_TEXT, 1)
+    override fun getElementConfigs(): Map<String, XyElementConfig> = initXyElementConfig(level = 10, minScale = MIN_SCALE, maxScale = MAX_SCALE).apply {
+        this[TYPE_SCHEME_CI_TITLE_TEXT] = getTextConfig(TYPE_SCHEME_CI_TITLE_TEXT, 1)
 
-            this[TYPE_SCHEME_CI_CUR_VALUE_TEXT] = getTextConfig(TYPE_SCHEME_CI_CUR_VALUE_TEXT, 1)
-            this[TYPE_SCHEME_CI_DESCR_TEXT] = getTextConfig(TYPE_SCHEME_CI_DESCR_TEXT, 1)
-        }
-
-        private fun getTextConfig(name: String, layer: Int) = XyElementConfig(
-            name = name,
-            clientType = XyElementClientType.TEXT,
-            layer = layer,
-            scaleMin = MIN_SCALE,
-            scaleMax = MAX_SCALE,
-            descrForAction = "",
-            isRotatable = false,
-            isMoveable = false,
-            isEditablePoint = false
-        )
+        this[TYPE_SCHEME_CI_CUR_VALUE_TEXT] = getTextConfig(TYPE_SCHEME_CI_CUR_VALUE_TEXT, 1)
+        this[TYPE_SCHEME_CI_DESCR_TEXT] = getTextConfig(TYPE_SCHEME_CI_DESCR_TEXT, 1)
     }
 
     override fun getElements(userConfig: ServerUserConfig, sensorId: Int): List<XyElement> {

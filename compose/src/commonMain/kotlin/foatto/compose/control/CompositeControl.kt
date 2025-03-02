@@ -128,11 +128,7 @@ class CompositeControl(
                 },
                 mapBlock = blockControlData.mapResponse?.let { mapResponse ->
                     MapControl(root, appControl, blockControlData.action, mapResponse, tabId).apply {
-                        startMapBody(
-                            startExpandKoef = MapControl.MAP_START_EXPAND_KOEF,
-                            isCentered = false,
-                            curScale = this.minXyScale
-                        )
+                        startMapBody(curScale = this.minXyScale)
                     }
                 },
                 schemeBlock = blockControlData.schemeResponse?.let { schemeResponse ->

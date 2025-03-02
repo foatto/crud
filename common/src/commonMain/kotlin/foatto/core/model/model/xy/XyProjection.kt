@@ -5,22 +5,31 @@ import kotlin.math.*
 
 object XyProjection {
 
-    const val WGS_KOEF_i = 10000000
-    const val WGS_KOEF_d = 10_000_000.0
+//    const val WGS_KOEF_i: Int = 10_000_000
+//    const val WGS_KOEF_d: Double = 10_000_000.0
 
     private const val MAX_MAP_SIZE = 1024 * 1024 * 1024
     private const val CENTER_COORD = MAX_MAP_SIZE / 2
     private const val PIXEL_PER_LON_DEGREE = MAX_MAP_SIZE / 360.0
     private const val PIXEL_PER_LON_RADIAN = MAX_MAP_SIZE.toDouble() / 2.0 / PI
 
-    fun wgs_pix(wgs: XyPoint): XyPoint = wgs_pix(wgs.x, wgs.y, XyPoint(0, 0))
+//    fun wgs_pix(wgs: XyPoint): XyPoint = wgs_pix(wgs.x, wgs.y, XyPoint(0, 0))
 
-    fun wgs_pix(wgs: XyPoint, pix: XyPoint): XyPoint = wgs_pix(wgs.x, wgs.y, pix)
+//    fun wgs_pix(wgs: XyPoint, pix: XyPoint): XyPoint = wgs_pix(wgs.x, wgs.y, pix)
 
-    fun wgs_pix(wgsX: Int, wgsY: Int, pix: XyPoint = XyPoint(0, 0)): XyPoint {
-        val sinLat = sin((wgsY / WGS_KOEF_d) * PI / 180)
+//    fun wgs_pix(wgsX: Int, wgsY: Int, pix: XyPoint = XyPoint(0, 0)): XyPoint {
+//        val sinLat = sin((wgsY / WGS_KOEF_d) * PI / 180)
+//
+//        pix.x = round(CENTER_COORD + wgsX / WGS_KOEF_d * PIXEL_PER_LON_DEGREE).toInt()
+//        pix.y = round(CENTER_COORD - ln((1 + sinLat) / (1 - sinLat)) * PIXEL_PER_LON_RADIAN / 2).toInt()
+//
+//        return pix
+//    }
 
-        pix.x = round(CENTER_COORD + wgsX / WGS_KOEF_d * PIXEL_PER_LON_DEGREE).toInt()
+    fun wgs_pix(wgsX: Double, wgsY: Double, pix: XyPoint = XyPoint(0, 0)): XyPoint {
+        val sinLat = sin(wgsY * PI / 180)
+
+        pix.x = round(CENTER_COORD + wgsX * PIXEL_PER_LON_DEGREE).toInt()
         pix.y = round(CENTER_COORD - ln((1 + sinLat) / (1 - sinLat)) * PIXEL_PER_LON_RADIAN / 2).toInt()
 
         return pix
@@ -60,55 +69,55 @@ object XyProjection {
     //    }
 
     //--- there is no usual inverse transformation function, we make an iterative approximation
-    fun pix_wgs(pix: XyPoint, delta: Int): XyPoint = pix_wgs(pix, XyPoint(0, 0), delta)
+//    fun pix_wgs(pix: XyPoint, delta: Int): XyPoint = pix_wgs(pix, XyPoint(0, 0), delta)
 
-    fun pix_wgs(pix: XyPoint, wgs: XyPoint, delta: Int): XyPoint {
-        val wgsMin = XyPoint(-180 * WGS_KOEF_i, -85 * WGS_KOEF_i)
-        val wgsMax = XyPoint(180 * WGS_KOEF_i, 85 * WGS_KOEF_i)
-        val pixCalc = XyPoint(0, 0)
+//    fun pix_wgs(pix: XyPoint, wgs: XyPoint, delta: Int): XyPoint {
+//        val wgsMin = XyPoint(-180 * WGS_KOEF_i, -85 * WGS_KOEF_i)
+//        val wgsMax = XyPoint(180 * WGS_KOEF_i, 85 * WGS_KOEF_i)
+//        val pixCalc = XyPoint(0, 0)
+//
+//        while (true) {
+//            //--- 1. the classic version is fraught with overflow when adding two extreme numbers
+//            //wgs.x = ( wgsMin.x + wgsMax.x ) / 2;
+//            //wgs.y = ( wgsMin.y + wgsMax.y ) / 2;
+//            //--- 2.the corrected version gives an overflow when subtracting an extreme negative number
+//            //--- from the extreme positive, for example, with 18 * 10 ^ 8 - (-18 * 10 ^ 8) gives addition with overflow to negative numbers
+//            //wgs.x = wgsMin.x + ( wgsMax.x - wgsMin.x ) / 2;
+//            //wgs.y = wgsMin.y + ( wgsMax.y - wgsMin.y ) / 2;
+//            //--- 3.we use a modification of option 1 with an error / shift of integer division
+//            //--- for 1 unit downward, but in our case it is not critical
+//            wgs.x = wgsMin.x / 2 + wgsMax.x / 2
+//            wgs.y = wgsMin.y / 2 + wgsMax.y / 2
+//            wgs_pix(wgs, pixCalc)
+//
+//            //--- coordinates coincided (with some tolerance), we selected the wgs-coordinates corresponding to the component
+//            val isFoundX = abs(pix.x - pixCalc.x) < delta
+//            val isFoundY = abs(pix.y - pixCalc.y) < delta
+//            //--- both coordinate components coincided - exit
+//            if (isFoundX && isFoundY) break
+//
+//            //--- search correction
+//            if (!isFoundX) {
+//                if (pix.x < pixCalc.x) wgsMax.x = wgs.x
+//                else wgsMin.x = wgs.x
+//            }
+//
+//            //--- correction of search along Y "in the opposite direction", since Y-axes are directed in opposite directions
+//            if (!isFoundY) {
+//                if (pix.y < pixCalc.y) wgsMin.y = wgs.y
+//                else wgsMax.y = wgs.y
+//            }
+//        }
+//        return wgs
+//    }
 
-        while (true) {
-            //--- 1. the classic version is fraught with overflow when adding two extreme numbers
-            //wgs.x = ( wgsMin.x + wgsMax.x ) / 2;
-            //wgs.y = ( wgsMin.y + wgsMax.y ) / 2;
-            //--- 2.the corrected version gives an overflow when subtracting an extreme negative number
-            //--- from the extreme positive, for example, with 18 * 10 ^ 8 - (-18 * 10 ^ 8) gives addition with overflow to negative numbers
-            //wgs.x = wgsMin.x + ( wgsMax.x - wgsMin.x ) / 2;
-            //wgs.y = wgsMin.y + ( wgsMax.y - wgsMin.y ) / 2;
-            //--- 3.we use a modification of option 1 with an error / shift of integer division
-            //--- for 1 unit downward, but in our case it is not critical
-            wgs.x = wgsMin.x / 2 + wgsMax.x / 2
-            wgs.y = wgsMin.y / 2 + wgsMax.y / 2
-            wgs_pix(wgs, pixCalc)
+//    fun distancePrj(pix1: XyPoint, pix2: XyPoint, delta: Int): Double {
+//        val wgs1 = pix_wgs(pix1, delta)
+//        val wgs2 = pix_wgs(pix2, delta)
+//        return distance(wgs1.x / WGS_KOEF_d, wgs1.y / WGS_KOEF_d, wgs2.x / WGS_KOEF_d, wgs2.y / WGS_KOEF_d)
+//    }
 
-            //--- coordinates coincided (with some tolerance), we selected the wgs-coordinates corresponding to the component
-            val isFoundX = abs(pix.x - pixCalc.x) < delta
-            val isFoundY = abs(pix.y - pixCalc.y) < delta
-            //--- both coordinate components coincided - exit
-            if (isFoundX && isFoundY) break
-
-            //--- search correction
-            if (!isFoundX) {
-                if (pix.x < pixCalc.x) wgsMax.x = wgs.x
-                else wgsMin.x = wgs.x
-            }
-
-            //--- correction of search along Y "in the opposite direction", since Y-axes are directed in opposite directions
-            if (!isFoundY) {
-                if (pix.y < pixCalc.y) wgsMin.y = wgs.y
-                else wgsMax.y = wgs.y
-            }
-        }
-        return wgs
-    }
-
-    fun distancePrj(pix1: XyPoint, pix2: XyPoint, delta: Int): Double {
-        val wgs1 = pix_wgs(pix1, delta)
-        val wgs2 = pix_wgs(pix2, delta)
-        return distance(wgs1.x / WGS_KOEF_d, wgs1.y / WGS_KOEF_d, wgs2.x / WGS_KOEF_d, wgs2.y / WGS_KOEF_d)
-    }
-
-    fun distanceWGS(wgs1: XyPoint, wgs2: XyPoint): Double = distance(wgs1.x / WGS_KOEF_d, wgs1.y / WGS_KOEF_d, wgs2.x / WGS_KOEF_d, wgs2.y / WGS_KOEF_d)
+//    fun distanceWGS(wgs1: XyPoint, wgs2: XyPoint): Double = distance(wgs1.x / WGS_KOEF_d, wgs1.y / WGS_KOEF_d, wgs2.x / WGS_KOEF_d, wgs2.y / WGS_KOEF_d)
 
     fun distance(lon1: Double, lat1: Double, lon2: Double, lat2: Double): Double {
         val D2R = PI / 180

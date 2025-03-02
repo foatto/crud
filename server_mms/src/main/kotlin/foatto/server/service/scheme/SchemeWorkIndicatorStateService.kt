@@ -1,7 +1,6 @@
 package foatto.server.service.scheme
 
 import foatto.core.model.model.xy.XyElement
-import foatto.core.model.response.xy.XyElementClientType
 import foatto.core.model.response.xy.XyElementConfig
 import foatto.core.model.response.xy.geom.XyPoint
 import foatto.core.util.getDateTimeDMYHMSString
@@ -22,13 +21,10 @@ class SchemeWorkIndicatorStateService(
     private val objectRepository: ObjectRepository,
     private val sensorRepository: SensorRepository,
 ) : AbstractSchemeIndicatorStateService(
-    entityManager = entityManager,
     objectRepository = objectRepository,
-    sensorRepository = sensorRepository,
 ) {
 
     companion object {
-
         private const val TYPE_SCHEME_WI_TITLE_TEXT: String = "type_scheme_wi_title_text"
 
         private const val TYPE_SCHEME_WI_VALUE: String = "type_scheme_wi_value"
@@ -44,39 +40,14 @@ class SchemeWorkIndicatorStateService(
         private const val INDICATOR_BORDER_COLOR_ON = 0xFF_00_B0_00.toInt()
 
         private const val TEXT_COLOR = 0xFF_00_00_00.toInt()
+    }
 
-        val elementConfigs: MutableMap<String, XyElementConfig> = initXyElementConfig(level = 10, minScale = MIN_SCALE, maxScale = MAX_SCALE).apply {
-            this[TYPE_SCHEME_WI_TITLE_TEXT] = getTextConfig(TYPE_SCHEME_WI_TITLE_TEXT, 1)
+    override fun getElementConfigs(): Map<String, XyElementConfig> = initXyElementConfig(level = 10, minScale = MIN_SCALE, maxScale = MAX_SCALE).apply {
+        this[TYPE_SCHEME_WI_TITLE_TEXT] = getTextConfig(TYPE_SCHEME_WI_TITLE_TEXT, 1)
 
-            this[TYPE_SCHEME_WI_VALUE] = getArcConfig(TYPE_SCHEME_WI_VALUE, 1)
+        this[TYPE_SCHEME_WI_VALUE] = getArcConfig(TYPE_SCHEME_WI_VALUE, 1)
 
-            this[TYPE_SCHEME_WI_DESCR_TEXT] = getTextConfig(TYPE_SCHEME_WI_DESCR_TEXT, 1)
-        }
-
-        private fun getArcConfig(name: String, layer: Int) = XyElementConfig(
-            name = name,
-            clientType = XyElementClientType.ARC,
-            layer = layer,
-            scaleMin = MIN_SCALE,
-            scaleMax = MAX_SCALE,
-            descrForAction = "",
-            isRotatable = false,
-            isMoveable = false,
-            isEditablePoint = false
-        )
-
-        private fun getTextConfig(name: String, layer: Int) = XyElementConfig(
-            name = name,
-            clientType = XyElementClientType.TEXT,
-            layer = layer,
-            scaleMin = MIN_SCALE,
-            scaleMax = MAX_SCALE,
-            descrForAction = "",
-            isRotatable = false,
-            isMoveable = false,
-            isEditablePoint = false
-        )
-
+        this[TYPE_SCHEME_WI_DESCR_TEXT] = getTextConfig(TYPE_SCHEME_WI_DESCR_TEXT, 1)
     }
 
     override fun getElements(userConfig: ServerUserConfig, sensorId: Int): List<XyElement> {

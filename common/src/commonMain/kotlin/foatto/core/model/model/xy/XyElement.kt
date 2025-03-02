@@ -83,9 +83,9 @@ class XyElement(
     var arrowHeight = 0
     var arrowLineWidth = 0
 
-    var alDrawColor = listOf<Int>()
-    var alFillColor = listOf<Int>()
-    var alToolTip = listOf<String>()
+    var drawColors = listOf<Int>()
+    var fillColors = listOf<Int>()
+//    var alToolTip = listOf<String>()
 
     var dialogQuestion: String = ""
 

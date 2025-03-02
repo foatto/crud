@@ -13,7 +13,7 @@ class MapActionResponse(
     val maxCoord: XyPoint? = null,
 
     //--- response on GET_ELEMENTS
-    val alElement: List<XyElement> = emptyList(),
+    val elements: List<XyElement> = emptyList(),
 
     //--- response on GET_ONE_ELEMENT
     val element: XyElement? = null,

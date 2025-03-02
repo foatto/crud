@@ -39,6 +39,7 @@ import foatto.compose.*
 import foatto.compose.composable.ImageOrTextFromNameControl
 import foatto.compose.control.model.form.FormCellCaptionInfo
 import foatto.compose.control.model.form.FormCellVisibleInfo
+import foatto.compose.control.model.form.FormFileDataClient
 import foatto.compose.control.model.form.cell.FormBaseCellClient
 import foatto.compose.control.model.form.cell.FormBooleanCellClient
 import foatto.compose.control.model.form.cell.FormComboCellClient
@@ -1188,7 +1189,16 @@ class FormControl(
                     minWidth = formCell.minWidth,
                     align = align,
                     data = formCell,
-                )
+                ).apply {
+                    files.clear()
+                    formCell.files.forEach { formFileData ->
+                        files += FormFileDataClient(
+                            id = formFileData.id,
+                            action = formFileData.action,
+                            text = formFileData.name,
+                        )
+                    }
+                }
             }
 
         }

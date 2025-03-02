@@ -1,13 +1,12 @@
 package foatto.core.model.response.xy.map
 
 import foatto.core.model.response.HeaderData
-import foatto.core.model.response.xy.XyDocumentConfig
+import foatto.core.model.response.xy.XyElementConfig
 import kotlinx.serialization.Serializable
 
 @Serializable
 class MapResponse(
-    val documentConfig: XyDocumentConfig,
-    val startParamId: String,
+    val elementConfigs: Map<String, XyElementConfig>,
 
     val tabCaption: String,
     val headerData: HeaderData,

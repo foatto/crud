@@ -1,10 +1,6 @@
 package foatto.compose.control
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
@@ -28,7 +24,6 @@ import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.PointerInputChange
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -45,7 +40,6 @@ import foatto.core.model.response.xy.geom.XyPoint
 import foatto.core.model.response.xy.geom.XyRect
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
-import kotlinx.coroutines.launch
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -919,7 +913,7 @@ abstract class AbstractXyControl(
                             y1 = (p1.y - xyViewCoord.y1) / xyViewCoord.scale * root.scaleKoef,
                             x2 = (p2.x - xyViewCoord.x1) / xyViewCoord.scale * root.scaleKoef,
                             y2 = (p2.y - xyViewCoord.y1) / xyViewCoord.scale * root.scaleKoef,
-                            strokeColor = Color(element.alDrawColor[i]),
+                            strokeColor = Color(element.drawColors[i]),
                             strokeWidth = max(1.0f, lineWidth * root.scaleKoef),
                             isReadOnly = element.isReadOnly,
                         )

@@ -1,27 +1,13 @@
 package foatto.server.service.scheme
 
-import foatto.core.ActionType
-import foatto.core.model.AppAction
 import foatto.core.model.model.xy.XyElement
-import foatto.core.model.request.SchemeActionRequest
-import foatto.core.model.response.AppResponse
-import foatto.core.model.response.HeaderData
-import foatto.core.model.response.ResponseCode
-import foatto.core.model.response.SchemeActionResponse
-import foatto.core.model.response.TitleData
-import foatto.core.model.response.xy.XyElementClientType
 import foatto.core.model.response.xy.XyElementConfig
 import foatto.core.model.response.xy.geom.XyPoint
-import foatto.core.model.response.xy.scheme.SchemeResponse
 import foatto.core.util.getDateTimeDMYHMSString
 import foatto.core.util.getRandomInt
 import foatto.core.util.getSplittedDouble
-import foatto.server.SpringApp
-import foatto.server.appModuleConfigs
 import foatto.server.calc.DataValueStateEnum
-import foatto.server.checkAccessPermission
 import foatto.server.initXyElementConfig
-import foatto.server.model.SensorConfig
 import foatto.server.model.ServerUserConfig
 import foatto.server.repository.ObjectRepository
 import foatto.server.repository.SensorRepository
@@ -40,13 +26,10 @@ class SchemeAnalogueIndicatorStateService(
     private val objectRepository: ObjectRepository,
     private val sensorRepository: SensorRepository,
 ) : AbstractSchemeIndicatorStateService(
-    entityManager = entityManager,
     objectRepository = objectRepository,
-    sensorRepository = sensorRepository,
 ) {
 
     companion object {
-
         private const val TYPE_SCHEME_AI_TITLE_TEXT: String = "mms_scheme_ai_title_text"
 
         private const val TYPE_SCHEME_AI_ARC_LIMIT: String = "mms_scheme_ai_arc_limit"
@@ -75,59 +58,23 @@ class SchemeAnalogueIndicatorStateService(
         private const val INDICATOR_MULTIPLICATOR_COLOR = 0xFF_A0_A0_A0.toInt()
 
         private const val TEXT_COLOR = 0xFF_00_00_00.toInt()
+    }
 
-        val elementConfigs: MutableMap<String, XyElementConfig> = initXyElementConfig(level = 10, minScale = MIN_SCALE, maxScale = MAX_SCALE).apply {
-            this[TYPE_SCHEME_AI_TITLE_TEXT] = getTextConfig(TYPE_SCHEME_AI_TITLE_TEXT, 1)
+    override fun getElementConfigs(): Map<String, XyElementConfig> = initXyElementConfig(level = 10, minScale = MIN_SCALE, maxScale = MAX_SCALE).apply {
+        this[TYPE_SCHEME_AI_TITLE_TEXT] = getTextConfig(TYPE_SCHEME_AI_TITLE_TEXT, 1)
 
-            this[TYPE_SCHEME_AI_ARC_LIMIT] = getArcConfig(TYPE_SCHEME_AI_ARC_LIMIT, 1)
-            this[TYPE_SCHEME_AI_ARC_BASE] = getArcConfig(TYPE_SCHEME_AI_ARC_BASE, 2)
-            this[TYPE_SCHEME_AI_ARC_NOTCH] = getLineConfig(TYPE_SCHEME_AI_ARC_NOTCH, 2)
-            this[TYPE_SCHEME_AI_ARC_VALUE_TEXT] = getTextConfig(TYPE_SCHEME_AI_ARC_VALUE_TEXT, 2)
+        this[TYPE_SCHEME_AI_ARC_LIMIT] = getArcConfig(TYPE_SCHEME_AI_ARC_LIMIT, 1)
+        this[TYPE_SCHEME_AI_ARC_BASE] = getArcConfig(TYPE_SCHEME_AI_ARC_BASE, 2)
+        this[TYPE_SCHEME_AI_ARC_NOTCH] = getLineConfig(TYPE_SCHEME_AI_ARC_NOTCH, 2)
+        this[TYPE_SCHEME_AI_ARC_VALUE_TEXT] = getTextConfig(TYPE_SCHEME_AI_ARC_VALUE_TEXT, 2)
 
-            this[TYPE_SCHEME_AI_MULTIPLICATOR] = getTextConfig(TYPE_SCHEME_AI_MULTIPLICATOR, 3)
+        this[TYPE_SCHEME_AI_MULTIPLICATOR] = getTextConfig(TYPE_SCHEME_AI_MULTIPLICATOR, 3)
 
-            this[TYPE_SCHEME_AI_ARROW_BASE] = getArcConfig(TYPE_SCHEME_AI_ARROW_BASE, 3)
-            this[TYPE_SCHEME_AI_ARROW] = getLineConfig(TYPE_SCHEME_AI_ARROW, 3)
+        this[TYPE_SCHEME_AI_ARROW_BASE] = getArcConfig(TYPE_SCHEME_AI_ARROW_BASE, 3)
+        this[TYPE_SCHEME_AI_ARROW] = getLineConfig(TYPE_SCHEME_AI_ARROW, 3)
 
-            this[TYPE_SCHEME_AI_CUR_VALUE_TEXT] = getTextConfig(TYPE_SCHEME_AI_CUR_VALUE_TEXT, 1)
-            this[TYPE_SCHEME_AI_DESCR_TEXT] = getTextConfig(TYPE_SCHEME_AI_DESCR_TEXT, 1)
-        }
-
-        private fun getArcConfig(name: String, layer: Int) = XyElementConfig(
-            name = name,
-            clientType = XyElementClientType.ARC,
-            layer = layer,
-            scaleMin = MIN_SCALE,
-            scaleMax = MAX_SCALE,
-            descrForAction = "",
-            isRotatable = false,
-            isMoveable = false,
-            isEditablePoint = false
-        )
-
-        private fun getTextConfig(name: String, layer: Int) = XyElementConfig(
-            name = name,
-            clientType = XyElementClientType.TEXT,
-            layer = layer,
-            scaleMin = MIN_SCALE,
-            scaleMax = MAX_SCALE,
-            descrForAction = "",
-            isRotatable = false,
-            isMoveable = false,
-            isEditablePoint = false
-        )
-
-        private fun getLineConfig(name: String, layer: Int) = XyElementConfig(
-            name = name,
-            clientType = XyElementClientType.POLY,
-            layer = layer,
-            scaleMin = MIN_SCALE,
-            scaleMax = MAX_SCALE,
-            descrForAction = "",
-            isRotatable = false,
-            isMoveable = false,
-            isEditablePoint = false
-        )
+        this[TYPE_SCHEME_AI_CUR_VALUE_TEXT] = getTextConfig(TYPE_SCHEME_AI_CUR_VALUE_TEXT, 1)
+        this[TYPE_SCHEME_AI_DESCR_TEXT] = getTextConfig(TYPE_SCHEME_AI_DESCR_TEXT, 1)
     }
 
     override fun getElements(userConfig: ServerUserConfig, sensorId: Int): List<XyElement> {

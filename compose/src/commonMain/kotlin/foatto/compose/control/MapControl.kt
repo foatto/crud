@@ -21,7 +21,6 @@ import foatto.compose.AppControl
 import foatto.compose.Root
 import foatto.compose.control.composable.map.MapToolBar
 import foatto.compose.control.model.MouseRectData
-import foatto.core.model.response.TitleData
 import foatto.compose.control.model.map.DistancerLineData
 import foatto.compose.control.model.map.DistancerTextData
 import foatto.compose.control.model.map.MapWorkMode
@@ -55,7 +54,7 @@ class MapControl(
     private val mapAction: AppAction,
     private val mapResponse: MapResponse,
     tabId: Int
-) : AbstractXyControl(root, appControl, mapResponse.documentConfig.hmElementConfig, tabId) {
+) : AbstractXyControl(root, appControl, mapResponse.elementConfigs, tabId) {
 
     companion object {
         private val COLOR_MAP_LINE: Color = hsl(180.0f, 1.0f, 0.5f)
@@ -247,26 +246,18 @@ class MapControl(
         root.setTabInfo(tabId, mapResponse.tabCaption)
         headerData = mapResponse.headerData
 
-        startMapBody(
-            startExpandKoef = MAP_START_EXPAND_KOEF,
-            isCentered = false,
-            curScale = minXyScale,
-        )
+        startMapBody(curScale = minXyScale)
 
-        setMode(MapWorkMode.PAN)
+        setMode(MapWorkMode.PAN)    //!!! может дефолтное значение подойдёт?
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    suspend fun startMapBody(
-        startExpandKoef: Float,
-        isCentered: Boolean,
-        curScale: Int,
-    ) {
+    suspend fun startMapBody(curScale: Int) {
         root.setWait(true)
         invokeRequest(
             MapActionRequest(
                 action = mapAction.copy(
-                    type = ActionType.GET_COORDS
+                    type = ActionType.GET_COORDS,
                 )
             )
         ) { xyActionResponse: MapActionResponse ->
@@ -276,8 +267,8 @@ class MapControl(
                     yield()
                 }
                 val newViewCoord = getXyCoordsDone(
-                    startExpandKoef = startExpandKoef,
-                    isCentered = isCentered,
+                    startExpandKoef = MAP_START_EXPAND_KOEF,
+                    isCentered = false,
                     curScale = curScale,
                     minCoord = xyActionResponse.minCoord!!,
                     maxCoord = xyActionResponse.maxCoord!!,
@@ -295,18 +286,17 @@ class MapControl(
             //--- вычисляем координату середины (безопасным от переполнения способом)
             //--- и выносим эту точку на середину экрана
             //--- и сохраненяем новое состояние в view
-//!!!
-//            val checkedView = getXyViewCoord(
-//                aScale = checkXyScale(
-//                    isScaleAlign = xyDocumentConfig.isScaleAlign,
-//                    curScale = xyViewCoord.scale,
-//                    newScale = aView.scale,
-//                    isAdaptive = false
-//                ),
-//                aCenterX = aView.x1 + (aView.x2 - aView.x1) / 2,
-//                aCenterY = aView.y1 + (aView.y2 - aView.y1) / 2,
-//            )
-//            xyViewCoord = checkedView
+            val checkedView = getXyViewCoord(
+                aScale = checkXyScale(
+                    isScaleAlign = true,
+                    curScale = xyViewCoord.scale,
+                    newScale = aView.scale,
+                    isAdaptive = false
+                ),
+                aCenterX = aView.x1 + (aView.x2 - aView.x1) / 2,
+                aCenterY = aView.y1 + (aView.y2 - aView.y1) / 2,
+            )
+            xyViewCoord = checkedView
         }
 
         getMapElements(
@@ -319,6 +309,7 @@ class MapControl(
         isMoveElementsButtonVisible = false
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     private fun getMapElements(
         mapBitmapTypeName: String,
         withWait: Boolean,
@@ -327,29 +318,30 @@ class MapControl(
         if (withWait) {
             root.setWait(true)
         }
-//!!!
-//        invokeRequest(
-//            MapActionRequest(
-//                documentTypeName = xyDocumentConfig.name,
-//                type = XyActionType.GET_ELEMENTS,
-//                startParamId = mapResponse.startParamId,
-//                viewCoord = xyViewCoord,
-//                bitmapTypeName = mapBitmapTypeName
-//            )
-//        ) { mapActionResponse: MapActionResponse ->
-//
-//            //--- сбрасываем горизонтальный и вертикальный скроллинг/смещение
-//            screenOffsetX = 0.0f
-//            screenOffsetY = 0.0f
-//
-//            readXyElements(mapActionResponse.alElement)
-//
-//            if (withWait) {
-//                root.setWait(false)
-//            }
-//
-//            doAdditionalWork(mapActionResponse)
-//        }
+        invokeRequest(
+            MapActionRequest(
+                action = mapAction.copy(
+                    type = ActionType.GET_ELEMENTS
+                ),
+                viewCoord = xyViewCoord,
+                bitmapTypeName = mapBitmapTypeName,
+            )
+        ) { mapActionResponse: MapActionResponse ->
+
+            GlobalScope.launch {
+                //--- сбрасываем горизонтальный и вертикальный скроллинг/смещение
+                screenOffsetX = 0.0f
+                screenOffsetY = 0.0f
+
+                readXyElements(mapActionResponse.elements)
+
+                if (withWait) {
+                    root.setWait(false)
+                }
+
+                doAdditionalWork(mapActionResponse)
+            }
+        }
     }
 
     private fun setMode(newMode: MapWorkMode) {

@@ -9,6 +9,8 @@ import foatto.core.model.response.HeaderData
 import foatto.core.model.response.ResponseCode
 import foatto.core.model.response.SchemeActionResponse
 import foatto.core.model.response.TitleData
+import foatto.core.model.response.xy.XyElementClientType
+import foatto.core.model.response.xy.XyElementConfig
 import foatto.core.model.response.xy.geom.XyPoint
 import foatto.core.model.response.xy.scheme.SchemeResponse
 import foatto.server.SpringApp
@@ -16,14 +18,10 @@ import foatto.server.appModuleConfigs
 import foatto.server.checkAccessPermission
 import foatto.server.model.ServerUserConfig
 import foatto.server.repository.ObjectRepository
-import foatto.server.repository.SensorRepository
-import jakarta.persistence.EntityManager
 import org.springframework.data.repository.findByIdOrNull
 
 abstract class AbstractSchemeIndicatorStateService(
-    private val entityManager: EntityManager,
     private val objectRepository: ObjectRepository,
-    private val sensorRepository: SensorRepository,
 ) {
 
     companion object {
@@ -60,7 +58,7 @@ abstract class AbstractSchemeIndicatorStateService(
         return AppResponse(
             responseCode = ResponseCode.MODULE_SCHEME,
             scheme = SchemeResponse(
-                elementConfigs = SchemeCounterIndicatorStateService.elementConfigs,
+                elementConfigs = getElementConfigs(),
                 tabCaption = caption,
                 headerData = HeaderData(
                     titles = listOf(
@@ -75,6 +73,8 @@ abstract class AbstractSchemeIndicatorStateService(
             )
         )
     }
+
+    abstract fun getElementConfigs(): Map<String, XyElementConfig>
 
     fun schemeAction(schemeActionRequest: SchemeActionRequest): SchemeActionResponse {
         val actionModule = schemeActionRequest.action.module
@@ -111,4 +111,39 @@ abstract class AbstractSchemeIndicatorStateService(
 
     protected abstract fun getElements(userConfig: ServerUserConfig, sensorId: Int): List<XyElement>
 
+    protected fun getArcConfig(name: String, layer: Int) = XyElementConfig(
+        name = name,
+        clientType = XyElementClientType.ARC,
+        layer = layer,
+        scaleMin = MIN_SCALE,
+        scaleMax = MAX_SCALE,
+        descrForAction = "",
+        isRotatable = false,
+        isMoveable = false,
+        isEditablePoint = false
+    )
+
+    protected fun getLineConfig(name: String, layer: Int) = XyElementConfig(
+        name = name,
+        clientType = XyElementClientType.POLY,
+        layer = layer,
+        scaleMin = MIN_SCALE,
+        scaleMax = MAX_SCALE,
+        descrForAction = "",
+        isRotatable = false,
+        isMoveable = false,
+        isEditablePoint = false
+    )
+
+    protected fun getTextConfig(name: String, layer: Int) = XyElementConfig(
+        name = name,
+        clientType = XyElementClientType.TEXT,
+        layer = layer,
+        scaleMin = MIN_SCALE,
+        scaleMax = MAX_SCALE,
+        descrForAction = "",
+        isRotatable = false,
+        isMoveable = false,
+        isEditablePoint = false
+    )
 }
