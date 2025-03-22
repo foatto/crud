@@ -22,6 +22,7 @@ import foatto.server.repository.DepartmentRepository
 import foatto.server.repository.ObjectRepository
 import foatto.server.util.getNextId
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.Sort
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
@@ -69,7 +70,7 @@ class DepartmentService(
         var currentRowNo: Int? = null
         var row = 0
 
-        val pageRequest = getTableSortedPageRequest(action, defaultFieldNames = arrayOf(FIELD_NAME))
+        val pageRequest = getTableSortedPageRequest(action, Sort.Order(Sort.Direction.ASC, FIELD_NAME))
         val findText = action.findText?.trim() ?: ""
 
         val enabledUserIds = getEnabledUserIds(
@@ -232,8 +233,8 @@ class DepartmentService(
         //TODO: общий Map со всеми ошибками
         val recordUserId = formActionData[FIELD_USER_ID]?.stringValue?.toIntOrNull() ?: 0
 
-        val name = formActionData[FIELD_NAME]?.stringValue ?: return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_NAME to "Не введёно наименование"))
-        if (name.isBlank()) {
+        val name = formActionData[FIELD_NAME]?.stringValue?.trim() ?: return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_NAME to "Не введёно наименование"))
+        if (name.isEmpty()) {
             return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_NAME to "Не введёно наименование"))
         }
         if (departmentRepository.findByUserIdAndName(recordUserId, name).any { de -> de.id != id }) {

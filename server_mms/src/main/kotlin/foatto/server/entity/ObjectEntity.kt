@@ -45,29 +45,6 @@ class ObjectEntity(
     @Column(name = "is_auto_work_shift")
     val isAutoWorkShiftEnabled: Boolean?,
 
-//    @OneToMany(mappedBy = "obj", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
-//    var sensors: MutableSet<SensorEntity> = mutableSetOf(),
-
-    /*
-            if (rs.next()) {
-                objectConfig.objectId = aobjectId
-                objectConfig.userID = rs.getInt(1)
-                objectConfig.isDisabled = rs.getInt(2) != 0
-                val sbObjectInfo = StringBuilder(rs.getString(3))
-                objectConfig.model = rs.getString(4)
-                objectConfig.groupName = rs.getString(5)
-                objectConfig.departmentName = rs.getString(6)
-                objectConfig.info = rs.getString(7)
-
-                //--- дополним наименование объекта его кратким логинным названием
-                val shortUserName = userConfig.hmUserShortNames[objectConfig.userID]
-                if (shortUserName != null && !shortUserName.isEmpty()) sbObjectInfo.append(" ( ").append(shortUserName).append(" ) ")
-                objectConfig.name = sbObjectInfo.toString()
-            } else {
-                AdvancedLogger.error("ObjectConfig not exist for object_id = $aobjectId")
-            }
-
-     */
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

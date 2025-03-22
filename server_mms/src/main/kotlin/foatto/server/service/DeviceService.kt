@@ -46,6 +46,7 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.toInstant
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.Sort
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
@@ -246,7 +247,7 @@ class DeviceService(
 
         val zoneLocal = getTimeZone(userConfig.timeOffset)
 
-        val pageRequest = getTableSortedPageRequest(action, defaultFieldNames = arrayOf(FIELD_SERIAL_NO))
+        val pageRequest = getTableSortedPageRequest(action, Sort.Order(Sort.Direction.ASC, FIELD_SERIAL_NO))
         val findText = action.findText?.trim() ?: ""
 
         val parentObjectId = if (action.parentModule == AppModuleMMS.OBJECT) {
@@ -685,8 +686,8 @@ class DeviceService(
             return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_INDEX to "Индекс должен быть в диапазоне от 0 до ${MAX_DEVICE_COUNT_PER_OBJECT - 1}"))
         }
 
-        val serialNo = formActionData[FIELD_SERIAL_NO]?.stringValue ?: return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_SERIAL_NO to "Не введён серийный номер"))
-        if (serialNo.isBlank()) {
+        val serialNo = formActionData[FIELD_SERIAL_NO]?.stringValue?.trim() ?: return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_SERIAL_NO to "Не введён серийный номер"))
+        if (serialNo.isEmpty()) {
             return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_SERIAL_NO to "Не введён серийный номер"))
         }
         if (deviceRepository.findBySerialNo(serialNo).any { se -> se.id != id }) {

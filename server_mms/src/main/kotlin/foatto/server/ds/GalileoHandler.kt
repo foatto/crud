@@ -15,10 +15,11 @@ import java.nio.channels.SelectionKey
 import java.nio.channels.SocketChannel
 import kotlin.math.roundToInt
 
-open class GalileoHandler : MMSNioHandler() {
+class GalileoHandler : MMSNioHandler() {
 
     companion object {
-        val timeZone: TimeZone = TimeZone.currentSystemDefault()
+        private const val WGS_KOEF_d: Double = 10_000_000.0
+        private val timeZone: TimeZone = TimeZone.currentSystemDefault()
     }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -792,8 +793,8 @@ open class GalileoHandler : MMSNioHandler() {
                                     conn = conn,
                                     sensorEntity = sensorEntity,
                                     pointTime = pointTime,
-                                    wgsX = wgsX / XyProjection.WGS_KOEF_d,
-                                    wgsY = wgsY / XyProjection.WGS_KOEF_d,
+                                    wgsX = wgsX / WGS_KOEF_d,
+                                    wgsY = wgsY / WGS_KOEF_d,
                                     speed = if (isParking) 0 else speed,
                                     absoluteRun = absoluteRun.toDouble(),
                                 )

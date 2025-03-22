@@ -17,6 +17,7 @@ import foatto.core.model.response.table.cell.TableBaseCell
 import foatto.core.model.response.table.cell.TableBooleanCell
 import foatto.core.model.response.table.cell.TableButtonCell
 import foatto.core.model.response.table.cell.TableSimpleCell
+import foatto.core.util.getCurrentTimeInt
 import foatto.core_mms.AppModuleMMS
 import foatto.server.appModuleConfigs
 import foatto.server.checkAccessPermission
@@ -35,6 +36,7 @@ import foatto.server.repository.SensorRepository
 import foatto.server.util.getNextId
 import jakarta.persistence.EntityManager
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.Sort
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
@@ -108,7 +110,7 @@ class ObjectService(
         var currentRowNo: Int? = null
         var row = 0
 
-        val pageRequest = getTableSortedPageRequest(action, defaultFieldNames = arrayOf(FIELD_NAME))
+        val pageRequest = getTableSortedPageRequest(action, Sort.Order(Sort.Direction.ASC, FIELD_NAME))
         val findText = action.findText?.trim() ?: ""
 
         val enabledUserIds = getEnabledUserIds(action.module, action.type, userConfig.relatedUserIds, userConfig.roles)
@@ -232,20 +234,11 @@ class ObjectService(
             )
         }
 
-        /*
-                if (sd.rangeType == 0) {
-                    sd.begTime = ZonedDateTime.of(
-                        (hmColumnData[msfd.columnShowBegDate] as DataDate3Int).localDate,
-                        (hmColumnData[msfd.columnShowBegTime] as DataTime3Int).localTime,
-                        zoneId
-                    ).toEpochSecond().toInt()
-                    sd.endTime = ZonedDateTime.of(
-                        (hmColumnData[msfd.columnShowEndDate] as DataDate3Int).localDate,
-                        (hmColumnData[msfd.columnShowEndTime] as DataTime3Int).localTime,
-                        zoneId
-                    ).toEpochSecond().toInt()
-                }
-         */
+        val begTime = getCurrentTimeInt() / 86_400 * 86_400 - userConfig.timeOffset
+        val endTime = begTime + 86_400
+
+        getTableTablePopupData(userConfig, AppModuleMMS.DAY_WORK, id, alPopupData)
+
         getTableTablePopupData(userConfig, AppModuleMMS.SENSOR, id, alPopupData)
         getTableTablePopupData(userConfig, AppModuleMMS.OBJECT_DATA, id, alPopupData)
         getTableTablePopupData(userConfig, AppModuleMMS.DEVICE, id, alPopupData)
@@ -253,21 +246,21 @@ class ObjectService(
         getTableChartPopupData(userConfig, AppModuleMMS.CHART_LIQUID_LEVEL, id, alPopupData)
         getTableChartPopupData(userConfig, AppModuleMMS.CHART_ANALOGUE_BY_TYPE, id, alPopupData)
 
-        getTableReportPopupData(userConfig, AppModuleMMS.REPORT_SUMMARY, alPopupData)
+        getTableReportPopupData(userConfig, AppModuleMMS.REPORT_SUMMARY, id, begTime, endTime, alPopupData)
 
-//        if (checkAccessPermission(AppModuleMMS.MAP_TRACE, userConfig.roles)) {
-//            alPopupData += TablePopupData(
-//                group = "Карты",
-//                action = AppAction(
-//                    type = ActionType.MODULE_MAP,
-//                    module = AppModuleMMS.MAP_TRACE,
-//                    id = id,
-//                    timeRangeType = 24 * 60 * 60,   // траектория за последние 24 часа
-//                ),
-//                text = appModuleConfigs[AppModuleMMS.MAP_TRACE]?.caption ?: "(неизвестный тип карты)",
-//                inNewTab = true,
-//            )
-//        }
+        if (checkAccessPermission(AppModuleMMS.MAP_TRACE, userConfig.roles)) {
+            alPopupData += TablePopupData(
+                group = "Карты",
+                action = AppAction(
+                    type = ActionType.MODULE_MAP,
+                    module = AppModuleMMS.MAP_TRACE,
+                    id = id,
+                    timeRangeType = 30 * 24 * 60 * 60,   //!!! траектория за последние 24 часа
+                ),
+                text = appModuleConfigs[AppModuleMMS.MAP_TRACE]?.caption ?: "(неизвестный тип карты)",
+                inNewTab = true,
+            )
+        }
 //        if (checkAccessPermission(AppModuleMMS.SCHEME_ANALOGUE_INDICATOR_STATE, userConfig.roles)) {
 //            alPopupData += TablePopupData(
 //                group = "Контрольные схемы",
@@ -328,14 +321,25 @@ class ObjectService(
         }
     }
 
-    private fun getTableReportPopupData(userConfig: ServerUserConfig, module: String, alPopupData: MutableList<TablePopupData>) {
+    private fun getTableReportPopupData(
+        userConfig: ServerUserConfig,
+        module: String,
+        id: Int,
+        begTime: Int,
+        endTime: Int,
+        alPopupData: MutableList<TablePopupData>
+    ) {
         if (checkAccessPermission(module, userConfig.roles)) {
             alPopupData += TablePopupData(
                 group = "Отчёты",
                 action = AppAction(
                     type = ActionType.MODULE_FORM,
                     module = module,
-                    id = 0,
+                    id = null,
+                    parentModule = AppModuleMMS.OBJECT,
+                    parentId = id,
+                    begTime = begTime,
+                    endTime = endTime,
                 ),
                 text = appModuleConfigs[module]?.caption ?: "(неизвестный тип модуля: '$module')",
                 inNewTab = true,
@@ -542,8 +546,8 @@ class ObjectService(
 
         val recordUserId = formActionData[FIELD_USER_ID]?.stringValue?.toIntOrNull() ?: 0
 
-        val name = formActionData[FIELD_NAME]?.stringValue ?: return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_NAME to "Не введёно наименование"))
-        if (name.isBlank()) {
+        val name = formActionData[FIELD_NAME]?.stringValue?.trim() ?: return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_NAME to "Не введёно наименование"))
+        if (name.isEmpty()) {
             return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_NAME to "Не введёно наименование"))
         }
         if (objectRepository.findByUserIdAndName(recordUserId, name).any { oe -> oe.id != id }) {

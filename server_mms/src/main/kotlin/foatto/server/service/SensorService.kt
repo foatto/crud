@@ -45,6 +45,7 @@ import jakarta.persistence.EntityManager
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.toInstant
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.Sort
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import java.sql.ResultSet
@@ -249,7 +250,7 @@ class SensorService(
         var currentRowNo: Int? = null
         var row = 0
 
-        val pageRequest = getTableSortedPageRequest(action, defaultFieldNames = arrayOf(FIELD_GROUP, FIELD_PORT_NUM))
+        val pageRequest = getTableSortedPageRequest(action, Sort.Order(Sort.Direction.ASC, FIELD_GROUP), Sort.Order(Sort.Direction.ASC, FIELD_PORT_NUM))
         val findText = action.findText?.trim() ?: ""
 
         val parentObjectId = if (action.parentModule == AppModuleMMS.OBJECT) {
@@ -1140,8 +1141,8 @@ class SensorService(
         val parentObjectId = formActionData[FIELD_OBJECT_ID]?.stringValue?.toIntOrNull() ?: 0
         val parentObjectEntity = objectRepository.findByIdOrNull(parentObjectId)!!
 
-        val descr = formActionData[FIELD_DESCR]?.stringValue ?: return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_DESCR to "Не введёно описание"))
-        if (descr.isBlank()) {
+        val descr = formActionData[FIELD_DESCR]?.stringValue?.trim() ?: return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_DESCR to "Не введёно описание"))
+        if (descr.isEmpty()) {
             return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_DESCR to "Не введёно описание"))
         }
         if (sensorRepository.findByObjAndDescr(parentObjectEntity, descr).any { oe -> oe.id != id }) {

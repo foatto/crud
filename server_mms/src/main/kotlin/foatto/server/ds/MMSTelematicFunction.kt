@@ -4,7 +4,6 @@ import foatto.core.model.model.xy.XyProjection
 import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.getDateTimeYMDHMSInts
 import foatto.core.util.getDateTimeYMDHMSString
-import foatto.server.calc.AbstractObjectStateCalc
 import foatto.server.entity.SensorEntity
 import foatto.server.model.SensorConfig
 import foatto.server.service.SensorService
@@ -426,10 +425,10 @@ object MMSTelematicFunction {
         sensorValue: Double,
     ) {
         //--- ignore outbound values
-        if (AbstractObjectStateCalc.isIgnoreSensorData(sensorEntity.minIgnore, sensorEntity.maxIgnore, sensorValue)) {
+        if (isIgnoreSensorData(sensorEntity.minIgnore, sensorEntity.maxIgnore, sensorValue)) {
             return
         }
-        val dataValue = AbstractObjectStateCalc.getDataValue(sensorCalibration, sensorValue)
+        val dataValue = getDataValue(sensorCalibration, sensorValue)
 
         val smoothPeriod = sensorEntity.smoothTime ?: 0
         val smoothValue = if (smoothPeriod > 0) {
@@ -484,10 +483,10 @@ object MMSTelematicFunction {
         sensorValue: Double,
     ) {
         //--- ignore outbound values
-        if (AbstractObjectStateCalc.isIgnoreSensorData(sensorEntity.minIgnore, sensorEntity.maxIgnore, sensorValue)) {
+        if (isIgnoreSensorData(sensorEntity.minIgnore, sensorEntity.maxIgnore, sensorValue)) {
             return
         }
-        val dataValue = AbstractObjectStateCalc.getDataValue(sensorCalibration, sensorValue)
+        val dataValue = getDataValue(sensorCalibration, sensorValue)
 
         var prevValue = 0.0
         if (sensorEntity.isAbsoluteCount == true) {
@@ -553,7 +552,7 @@ object MMSTelematicFunction {
         sensorValue: Double,
     ) {
         //--- ignore outbound values
-        if (AbstractObjectStateCalc.isIgnoreSensorData(sensorEntity.minIgnore, sensorEntity.maxIgnore, sensorValue)) {
+        if (isIgnoreSensorData(sensorEntity.minIgnore, sensorEntity.maxIgnore, sensorValue)) {
             return
         }
 
@@ -609,7 +608,7 @@ object MMSTelematicFunction {
         conn.executeUpdate(
             """
                 INSERT INTO MMS_agg_${sensorEntity.id} ( ontime_0 , ontime_1 , type_0 , value_0 , value_1 , value_2 , value_3 ) 
-                VALUES ( $pointTime , $pointTime , 0 , ${if (workValue) 1 else 0} , 0 , 0 , 0 )  
+                VALUES ( $pointTime , $pointTime , ${if (workValue) 1 else 0} , 0 , 0 , 0 , 0 )  
             """
         )
     }
@@ -624,4 +623,67 @@ object MMSTelematicFunction {
         //--- сигнальная величина - состояние расходомера/счётчика
         const val SENSOR_LIQUID_USING_COUNTER_STATE = 17
 */
+
+    //--- define sensor data ignoring
+    private fun isIgnoreSensorData(minIgnore: Double?, maxIgnore: Double?, sensorData: Double?): Boolean =
+        sensorData?.let {
+            minIgnore?.let {
+                maxIgnore?.let {
+                    //--- classic variant: if minIgnore < maxIgnore, then ignore below minIgnore or above maxIgnore
+                    if (minIgnore < maxIgnore) {
+                        sensorData < minIgnore || sensorData > maxIgnore
+                    } else {
+                        //--- alternative: if minIgnore >= maxIgnore, then ignore between minIgnore and maxIgnore,
+                        //--- given the case, if minIgnore == maxIgnore, then ignore nothing
+                        sensorData < minIgnore && sensorData > maxIgnore
+                    }
+                } ?: run {
+                    sensorData < minIgnore
+                }
+            } ?: run {
+                maxIgnore?.let {
+                    sensorData > maxIgnore
+                } ?: false
+            }
+        } ?: true
+
+    //--- calculation of the measured value by linear approximation
+    private fun getDataValue(sensorCalibration: List<Pair<Double, Double>>, sensorValue: Double): Double {
+        var pos = -1
+
+        if (sensorCalibration.isEmpty()) {
+            return sensorValue
+        }
+        //--- if only one value is specified, use it as a usual "transforming" multiplier
+        //--- (that is, it is a special case of two values, one of which is "0-> 0")
+        if (sensorCalibration.size == 1) {
+            val calibrationSensorValue = sensorCalibration[0].first
+            val calibrationDataValue = sensorCalibration[0].second
+            //--- meaningless one-to-one calibration or reduction to 0-th ADC, we can get division by 0, skip
+            return if (calibrationSensorValue == calibrationDataValue || calibrationSensorValue == 0.0) {
+                sensorValue
+            } else {
+                sensorValue / calibrationSensorValue * calibrationDataValue
+            }
+        }
+
+        if (sensorValue < sensorCalibration[0].first) {
+            pos = 0
+        } else if (sensorValue > sensorCalibration[sensorCalibration.lastIndex].first) {
+            pos = sensorCalibration.lastIndex - 1
+        } else {
+            for (i in 0 until sensorCalibration.size - 1) {
+                if (sensorValue >= sensorCalibration[i].first && sensorValue <= sensorCalibration[i + 1].first) {
+                    pos = i
+                    break
+                }
+            }
+        }
+
+        return (sensorValue - sensorCalibration[pos].first) /
+            (sensorCalibration[pos + 1].first - sensorCalibration[pos].first) *
+            (sensorCalibration[pos + 1].second - sensorCalibration[pos].second) +
+            sensorCalibration[pos].second
+    }
+
 }

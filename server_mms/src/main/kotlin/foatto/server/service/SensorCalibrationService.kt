@@ -22,6 +22,7 @@ import foatto.server.repository.SensorCalibrationRepository
 import foatto.server.repository.SensorRepository
 import foatto.server.util.getNextId
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.Sort
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
@@ -35,7 +36,7 @@ class SensorCalibrationService(
 ) {
 
     companion object {
-//        private const val FIELD_ID = "id"
+        //        private const val FIELD_ID = "id"
         private const val FIELD_SENSOR = "sensor"
         private const val FIELD_SENSOR_VALUE = "sensorValue"
         private const val FIELD_SENSOR_DATA = "sensorData"
@@ -65,7 +66,7 @@ class SensorCalibrationService(
         var currentRowNo: Int? = null
         var row = 0
 
-        val pageRequest = getTableSortedPageRequest(action, defaultFieldNames = arrayOf(FIELD_SENSOR_VALUE))
+        val pageRequest = getTableSortedPageRequest(action, Sort.Order(Sort.Direction.ASC, FIELD_SENSOR_VALUE))
 
         val parentSensorId = if (action.parentModule == AppModuleMMS.SENSOR) {
             action.parentId ?: return null

@@ -42,6 +42,7 @@ import foatto.server.util.getNextId
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.toInstant
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.Sort
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
@@ -87,15 +88,25 @@ class UserService(
     ): HeaderData {
         val titles = mutableListOf<TitleData>()
 
-        var parentId = action.parentId
+        var parentId = if (action.parentModule == action.module) {
+            action.parentId
+        } else {
+            null
+        }
+        val currentParentId = parentId
+
         while (parentId != null && parentId != 0) {
             userRepository.findByIdOrNull(parentId)?.let { userEntity ->
                 titles.add(
-                    0,
-                    TitleData(
-                        action = action.copy(parentId = userEntity.id),
+                    index = 0,
+                    element = TitleData(
+                        action = if (parentId == currentParentId) {
+                            null
+                        } else {
+                            action.copy(parentId = userEntity.id)
+                        },
                         text = userEntity.fullName ?: "(неизвестно)",
-                        isBold = false,
+                        isBold = parentId == currentParentId,
                     )
                 )
                 parentId = userEntity.parentId
@@ -107,7 +118,11 @@ class UserService(
             0,
             TitleData(
                 action = action.copy(parentId = 0),
-                text = moduleConfig.caption,
+                text = if (action.isSelectorMode) {
+                    "Выбор: "
+                } else {
+                    ""
+                } + moduleConfig.caption,
                 isBold = true,
             )
         )
@@ -137,7 +152,7 @@ class UserService(
         alColumnInfo += FIELD_EMAIL to "E-mail"
         alColumnInfo += FIELD_CONTACT_INFO to "Контактная информация"
         if (isAdminOnly(userConfig)) {
-            alColumnInfo += FIELD_FILE to "Файлы"
+            alColumnInfo += null to "Файлы"
         }
         alColumnInfo += FIELD_TIME_OFFSET to "Time Offset"
         if (isAdminOnly(userConfig)) {
@@ -162,11 +177,11 @@ class UserService(
         var currentRowNo: Int? = null
         var row = 0
 
-        val pageRequest = getTableSortedPageRequest(action, defaultFieldNames = arrayOf(FIELD_ORG_TYPE, FIELD_FULL_NAME))
+        val pageRequest = getTableSortedPageRequest(action, Sort.Order(Sort.Direction.ASC, FIELD_ORG_TYPE), Sort.Order(Sort.Direction.ASC, FIELD_FULL_NAME))
         val findText = action.findText?.trim() ?: ""
 
         //--- hierarchical table/data - parent id is existing always
-        val parentId = if (action.parentModule == AppModule.USER) {
+        val parentId = if (action.parentModule == action.module) {
             action.parentId ?: 0
         } else {
             0
@@ -542,24 +557,24 @@ class UserService(
         val id = action.id
 
         //TODO: общий Map со всеми ошибками
-        val fullName = formActionData[FIELD_FULL_NAME]?.stringValue ?: return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_FULL_NAME to "Не введёно полное имя"))
-        if (fullName.isBlank()) {
+        val fullName = formActionData[FIELD_FULL_NAME]?.stringValue?.trim() ?: return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_FULL_NAME to "Не введёно полное имя"))
+        if (fullName.isEmpty()) {
             return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_FULL_NAME to "Не введёно полное имя"))
         }
         if (userRepository.findByFullName(fullName).any { ue -> ue.id != id }) {
             return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_FULL_NAME to "Такое полное имя уже существует"))
         }
 
-        val login = formActionData[FIELD_LOGIN]?.stringValue ?: return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_LOGIN to "Не введён логин"))
-        if (login.isBlank()) {
+        val login = formActionData[FIELD_LOGIN]?.stringValue?.trim() ?: return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_LOGIN to "Не введён логин"))
+        if (login.isEmpty()) {
             return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_LOGIN to "Не введён логин"))
         }
         if (userRepository.findByLogin(login).any { ue -> ue.id != id }) {
             return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_LOGIN to "Такой логин уже существует"))
         }
 
-        val password = formActionData[FIELD_PASSWORD]?.stringValue ?: return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_PASSWORD to "Не введён пароль"))
-        if (password.isBlank()) {
+        val password = formActionData[FIELD_PASSWORD]?.stringValue?.trim() ?: return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_PASSWORD to "Не введён пароль"))
+        if (password.isEmpty()) {
             return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_PASSWORD to "Не введён пароль"))
         }
         val encodedPassword: String = id?.let {

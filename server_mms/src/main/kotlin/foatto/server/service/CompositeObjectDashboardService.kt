@@ -29,6 +29,9 @@ import kotlin.math.sqrt
 class CompositeObjectDashboardService(
     private val objectRepository: ObjectRepository,
     private val sensorRepository: SensorRepository,
+    private val schemeAnalogueIndicatorStateService: SchemeAnalogueIndicatorStateService,
+    private val schemeCounterIndicatorStateService: SchemeCounterIndicatorStateService,
+    private val schemeWorkIndicatorStateService: SchemeWorkIndicatorStateService,
 ) {
 
     fun composite(
@@ -124,9 +127,9 @@ class CompositeObjectDashboardService(
                 ),
                 schemeResponse = SchemeResponse(
                     elementConfigs = when (sensorType) {
-                        DashboardSensorTypeEnum.ANALOGUE -> SchemeAnalogueIndicatorStateService.elementConfigs
-                        DashboardSensorTypeEnum.COUNTER -> SchemeCounterIndicatorStateService.elementConfigs
-                        DashboardSensorTypeEnum.WORK -> SchemeWorkIndicatorStateService.elementConfigs
+                        DashboardSensorTypeEnum.ANALOGUE -> schemeAnalogueIndicatorStateService.getElementConfigs()
+                        DashboardSensorTypeEnum.COUNTER -> schemeCounterIndicatorStateService.getElementConfigs()
+                        DashboardSensorTypeEnum.WORK -> schemeWorkIndicatorStateService.getElementConfigs()
                     },
                     tabCaption = "",
                     headerData = HeaderData(

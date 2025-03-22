@@ -258,21 +258,14 @@ abstract class ApplicationService(
 
     protected fun getTableSortedPageRequest(
         action: AppAction,
-        defaultDirection: Sort.Direction = Sort.Direction.ASC,
-        vararg defaultFieldNames: String,
+        vararg orders: Sort.Order,
     ): PageRequest {
-        val sort = action.sortName?.let { sortName ->
-            Sort.by(if (action.isSortAsc) Sort.Direction.ASC else Sort.Direction.DESC, sortName)
-        } ?: run {
-            Sort.by(defaultDirection, *defaultFieldNames)
-        }
-
         var pageSize = appModuleConfigs[action.module]?.pageSize ?: 0
         if (pageSize < 1) {
             pageSize = Int.MAX_VALUE
         }
 
-        return PageRequest.of(action.pageNo, pageSize, sort)
+        return PageRequest.of(action.pageNo, pageSize, Sort.by(*orders))
     }
 
     protected fun getTableSelectorButtonCell(row: Int, col: Int, selectorAction: AppAction): TableBaseCell = TableButtonCell(
@@ -298,7 +291,9 @@ abstract class ApplicationService(
         row = row,
         col = col,
         dataRow = row,
-        name = if (rowUserId == 0) {
+        name = if (rowUserId == null) {
+            "-"
+        } else if (rowUserId == 0) {
             "-"
         } else if (rowUserId == userId) {
             ""

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,6 +30,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import foatto.compose.colorHeader
@@ -72,6 +74,7 @@ abstract class AbstractControl(
                 for (titleData in headerData.titles) {
                     titleData.action?.let { action ->
                         Button(
+                            modifier = Modifier.padding(start = 4.dp, end = 4.dp),
                             onClick = {
                                 call(action)
                             },
@@ -82,6 +85,7 @@ abstract class AbstractControl(
                         }
                     } ?: run {
                         Text(
+                            modifier = Modifier.padding(start = 4.dp, end = 4.dp),
                             text = titleData.text,
                             fontWeight = if (titleData.isBold) {
                                 FontWeight.Bold
