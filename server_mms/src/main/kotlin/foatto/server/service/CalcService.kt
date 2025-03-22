@@ -1,19 +1,386 @@
-//package foatto.server.calc
+package foatto.server.service
+
+import foatto.server.calc.WorkCalcData
+import foatto.server.calc.WorkPeriodData
+import foatto.server.entity.ObjectEntity
+import foatto.server.entity.SensorEntity
+import foatto.server.model.SensorConfig
+import foatto.server.repository.SensorRepository
+import jakarta.persistence.EntityManager
+import org.springframework.stereotype.Service
+import java.util.*
+import kotlin.math.max
+import kotlin.math.min
+
+@Service
+class CalcService(
+    private val entityManager: EntityManager,
+    private val sensorRepository: SensorRepository,
+) {
+
+//---------------------------------------------------------------------------------------------------------------------
+
+    fun calcWork(
+        objectEntity: ObjectEntity,
+        begTime: Int,
+        endTime: Int,
+        byGroupLiquidSum: SortedMap<String, SortedMap<String, Double>>,
+        allLiquidSum: SortedMap<String, Double>,
+    ): SortedMap<String, WorkCalcData> {
+        val tmWork = sortedMapOf<String, WorkCalcData>()
+
+        sensorRepository.findByObjAndSensorType(objectEntity, SensorConfig.SENSOR_WORK).forEach { sensorEntity ->
+            val wcd = calcWorkSensor(sensorEntity, begTime, endTime)
+            tmWork[sensorEntity.descr ?: ""] = wcd
+
+            addLiquidUsingSum(
+                groupName = wcd.group,
+                liquidName = wcd.liquidName,
+                using = wcd.liquidCalc,
+                byGroupLiquidSum = byGroupLiquidSum,
+                allLiquidSum = allLiquidSum,
+            )
+        }
+
+        return tmWork
+    }
+
+    fun calcWorkSensor(
+        sensorEntity: SensorEntity,
+        begTime: Int,
+        endTime: Int,
+    ): WorkCalcData {
+        val states = mutableListOf<WorkPeriodData>()
+
+        ApplicationService.withConnection(entityManager) { conn ->
+            SensorService.checkAndCreateAggTable(conn, sensorEntity.id)
+
+            val rs = conn.executeQuery(
+                """
+                    SELECT ontime_0 , ontime_1 , type_0
+                    FROM MMS_agg_${sensorEntity.id}
+                    WHERE ontime_0 < $endTime
+                      AND ontime_1 > $begTime
+                    ORDER BY ontime_0
+                """
+            )
+            while (rs.next()) {
+                val onTime0 = rs.getInt(1)
+                val onTime1 = rs.getInt(2)
+                val state = rs.getInt(3) != 0
+
+                states += WorkPeriodData(
+                    begTime = max(begTime, onTime0),
+                    endTime = min(endTime, onTime1),
+                    state = state,
+                )
+            }
+            rs.close()
+        }
+
+        val onTime = states
+            .filter { wpd -> wpd.state }
+            .sumOf { wpd ->
+                wpd.endTime - wpd.begTime
+            }
+
+        val liquidCalc = if (!sensorEntity.liquidName.isNullOrBlank()) {
+            (sensorEntity.liquidNorm ?: 0.0) * onTime / 60.0 / 60.0
+        } else {
+            null
+        }
+
+        return WorkCalcData(
+            group = sensorEntity.group ?: "",
+            states = states,
+            onTime = onTime,
+            liquidName = sensorEntity.liquidName,
+            liquidCalc = liquidCalc,
+        )
+    }
+
+//---------------------------------------------------------------------------------------------------------------------
+
+    fun calcEnergo(
+        objectEntity: ObjectEntity,
+        begTime: Int,
+        endTime: Int,
+    ): SortedMap<String, Double> {
+        val tmEnergo = sortedMapOf<String, Double>()
+
+        listOf(
+            SensorConfig.SENSOR_ENERGO_COUNT_AD,
+            SensorConfig.SENSOR_ENERGO_COUNT_AR,
+            SensorConfig.SENSOR_ENERGO_COUNT_RD,
+            SensorConfig.SENSOR_ENERGO_COUNT_RR,
+        ).forEach { sensorType ->
+            sensorRepository.findByObjAndSensorType(objectEntity, sensorType).forEach { sensorEntity ->
+                val result = calcCounterSensor(sensorEntity, begTime, endTime)
+                tmEnergo[sensorEntity.descr ?: ""] = result
+
+//!!!
+//            //--- calculate the group amount
+//            val groupSum = result.tmGroupSum.getOrPut(sces.group) { CalcSumData() }
+//            val byType = groupSum.tmEnergo.getOrPut(sces.sensorType) { sortedMapOf() }
+//            val byPhase = byType[0] ?: 0.0
+//            byType[0] = byPhase + e
 //
-//class ObjectCalc(val objectConfig: ObjectConfig) {
-//
-//    var gcd: GeoCalcData? = null
-//    val tmWork = sortedMapOf<String, WorkCalcData>()
-//    val tmEnergo = sortedMapOf<String, Double>()
-//    val tmLiquidUsing = sortedMapOf<String, Double>()
+//            val byTypeAll = result.allSumData.tmEnergo.getOrPut(sces.sensorType) { sortedMapOf() }
+//            val byPhaseAll = byTypeAll[0] ?: 0.0
+//            byTypeAll[0] = byPhaseAll + e
+            }
+        }
+
+        return tmEnergo
+    }
+
+//---------------------------------------------------------------------------------------------------------------------
+
+    fun calcLiquidUsing(
+        objectEntity: ObjectEntity,
+        begTime: Int,
+        endTime: Int,
+        byGroupLiquidSum: SortedMap<String, SortedMap<String, Double>>,
+        allLiquidSum: SortedMap<String, Double>,
+    ) {
+        listOf(
+            SensorConfig.SENSOR_MASS_ACCUMULATED,
+            SensorConfig.SENSOR_VOLUME_ACCUMULATED,
+            SensorConfig.SENSOR_LIQUID_USING,
+        ).forEach { sensorType ->
+            sensorRepository.findByObjAndSensorType(objectEntity, sensorType).forEach { sensorEntity ->
+                if (!sensorEntity.liquidName.isNullOrBlank()) {
+                    val result = calcCounterSensor(sensorEntity, begTime, endTime)
+
+                    addLiquidUsingSum(
+                        groupName = sensorEntity.group,
+                        liquidName = sensorEntity.liquidName,
+                        using = result,
+                        byGroupLiquidSum = byGroupLiquidSum,
+                        allLiquidSum = allLiquidSum,
+                    )
+                }
+            }
+        }
+    }
+
+//---------------------------------------------------------------------------------------------------------------------
+
+    fun calcLiquidLevel(
+        objectEntity: ObjectEntity,
+        begTime: Int,
+        endTime: Int,
+        byGroupLiquidSum: SortedMap<String, SortedMap<String, Double>>,
+        allLiquidSum: SortedMap<String, Double>,
+    ) {
+    }
 //    val tmLiquidLevel = sortedMapOf<String, LiquidLevelCalcData>()
+
+//            //--- liquid level sensors
+//            oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_LEVEL]?.values?.forEach { sc ->
+//                calcLiquidLevel(alRawTime, alRawData, conn, oc, sc as SensorConfigLiquidLevel, begTime, endTime, 0, result)
+//            }
+//
+
+//        private fun calcLiquidLevel(
+//            alRawTime: List<Int>,
+//            alRawData: List<AdvancedByteBuffer>,
+//            conn: CoreAdvancedConnection,
+//            oc: ObjectConfig,
+//            scll: SensorConfigLiquidLevel,
+//            begTime: Int,
+//            endTime: Int,
+//            axisIndex: Int,
+//            result: ObjectCalc
+//        ) {
+//            val llcd = calcLiquidLevelSensor(conn, oc, scll, alRawTime, alRawData, begTime, endTime, axisIndex)
+//
+//            result.tmLiquidLevel[scll.descr] = llcd
+//
+//            result.tmLiquidUsing["${scll.descr} ${scll.liquidName}"] = llcd.usingTotal
+//            addLiquidUsingSum(scll.group, scll.liquidName, llcd.usingTotal, result)
+//
+//            val groupSum = result.tmGroupSum.getOrPut(scll.group) { CalcSumData() }
+//            groupSum.addLiquidLevel(scll.descr, llcd.incTotal, llcd.decTotal)
+//
+//            result.allSumData.addLiquidLevel(scll.descr, llcd.incTotal, llcd.decTotal)
+//        }
+//
+
+//        fun calcLiquidLevelSensor(
+//            conn: CoreAdvancedConnection,
+//            oc: ObjectConfig,
+//            sca: SensorConfigLiquidLevel,
+//            alRawTime: List<Int>,
+//            alRawData: List<AdvancedByteBuffer>,
+//            begTime: Int,
+//            endTime: Int,
+//            axisIndex: Int,
+//        ): LiquidLevelCalcData {
+//
+//            val aLine = ChartElementDTO(ChartElementTypeDTO.LINE, 0, 2, false)
+//            val alLSPD = mutableListOf<LiquidStatePeriodData>()
+//            getSmoothLiquidGraphicData(conn, alRawTime, alRawData, oc.scg, sca, begTime, endTime, axisIndex, aLine, alLSPD)
+//
+//            val llcd = LiquidLevelCalcData(sca.containerType, aLine, alLSPD)
+//            calcLiquidUsingByLevel(sca, llcd, conn, oc, begTime, endTime, axisIndex)
+//
+//            return llcd
+//        }
+//
+
+//---------------------------------------------------------------------------------------------------------------------
+
+    fun calcAnalogueSensorValue(
+        objectEntity: ObjectEntity,
+        begTime: Int,
+        endTime: Int,
+        sensorType: Int,
+    ): SortedMap<String, Pair<Double?, Double?>> {
+        val result = sortedMapOf<String, Pair<Double?, Double?>>()
+
+        ApplicationService.withConnection(entityManager) { conn ->
+            sensorRepository.findByObjAndSensorType(objectEntity, sensorType).forEach { sensorEntity ->
+                SensorService.checkAndCreateAggTable(conn, sensorEntity.id)
+
+                var rs = conn.executeQuery(
+                    """
+                        SELECT value_1
+                        FROM MMS_agg_${sensorEntity.id}
+                        WHERE ontime_0 = ( SELECT MIN(ontime_0) FROM MMS_agg_${sensorEntity.id} WHERE ontime_0 BETWEEN $begTime AND $endTime )
+                    """
+                )
+                val begValue = if (rs.next()) {
+                    rs.getDouble(1)
+                } else {
+                    null
+                }
+                rs.close()
+
+                rs = conn.executeQuery(
+                    """
+                        SELECT value_1
+                        FROM MMS_agg_${sensorEntity.id}
+                        WHERE ontime_0 = ( SELECT MAX(ontime_0) FROM MMS_agg_${sensorEntity.id} WHERE ontime_0 BETWEEN $begTime AND $endTime )
+                    """
+                )
+                val endValue = if (rs.next()) {
+                    rs.getDouble(1)
+                } else {
+                    null
+                }
+                rs.close()
+
+                result[sensorEntity.descr] = begValue to endValue
+            }
+        }
+
+        return result
+    }
+//            //--- some analogue sensors
+//            oc.hmSensorConfig[]?.values?.forEach { sc ->
+//                val sca = sc as SensorConfigAnalogue
+//                val aLine = ChartElementDTO(ChartElementTypeDTO.LINE, 0, 2, false)
+//                getSmoothAnalogGraphicData(
+//                    conn = conn,
+//                    alRawTime = alRawTime,
+//                    alRawData = alRawData,
+//                    scg = oc.scg,
+//                    sca = sca,
+//                    begTime = begTime,
+//                    endTime = endTime,
+//                    xScale = 0,
+//                    yScale = 0.0,
+//                    axisIndex = 0,
+//                    aMinLimit = null,
+//                    aMaxLimit = null,
+//                    aLine = aLine,
+//                    graphicHandler = AnalogGraphicHandler()
+//                )
+//                result.tmTemperature[sc.descr] = aLine
+//            }
+//
+//            oc.hmSensorConfig[]?.values?.forEach { sc ->
+//                val sca = sc as SensorConfigAnalogue
+//                val aLine = ChartElementDTO(ChartElementTypeDTO.LINE, 0, 2, false)
+//                getSmoothAnalogGraphicData(
+//                    conn = conn,
+//                    alRawTime = alRawTime,
+//                    alRawData = alRawData,
+//                    scg = oc.scg,
+//                    sca = sca,
+//                    begTime = begTime,
+//                    endTime = endTime,
+//                    xScale = 0,
+//                    yScale = 0.0,
+//                    axisIndex = 0,
+//                    aMinLimit = null,
+//                    aMaxLimit = null,
+//                    aLine = aLine,
+//                    graphicHandler = AnalogGraphicHandler()
+//                )
+//                result.tmDensity[sc.descr] = aLine
+//                //--- прикрепить данные по плотности с данным по расходомеру
+//                result.tmCounterData.forEach { (_, counterCalcData) ->
+//                    if (counterCalcData.scc.group == sc.group) {
+//                        counterCalcData.density = aLine
+//                    }
+//                }
+//            }
+
+//---------------------------------------------------------------------------------------------------------------------
+
+    private fun calcCounterSensor(
+        sensorEntity: SensorEntity,
+        begTime: Int,
+        endTime: Int,
+    ): Double {
+        var result = 0.0
+        ApplicationService.withConnection(entityManager) { conn ->
+            SensorService.checkAndCreateAggTable(conn, sensorEntity.id)
+
+            val rs = conn.executeQuery(
+                """
+                    SELECT SUM( value_1 )
+                    FROM MMS_agg_${sensorEntity.id}
+                    WHERE ontime_0 BETWEEN $begTime AND $endTime
+                """
+            )
+            if (rs.next()) {
+                result = rs.getDouble(1)
+            }
+            rs.close()
+        }
+
+        return result
+    }
+
+    private fun addLiquidUsingSum(
+        groupName: String?,
+        liquidName: String?,
+        using: Double?,
+        byGroupLiquidSum: SortedMap<String, SortedMap<String, Double>>,
+        allLiquidSum: SortedMap<String, Double>,
+    ) {
+        liquidName?.let {
+            using?.let {
+                val groupSum = byGroupLiquidSum.getOrPut(groupName ?: "") { sortedMapOf() }
+                val prevGroupValue = groupSum[liquidName] ?: 0.0
+                groupSum[liquidName] = prevGroupValue + using
+
+                val prevAllValue = allLiquidSum[liquidName] ?: 0.0
+                allLiquidSum[liquidName] = prevAllValue + using
+            }
+        }
+    }
+
+}
+
+//    var gcd: GeoCalcData? = null
 //    val tmCounterData = sortedMapOf<String, CounterCalcData>()
 //
 //    val tmGroupSum = sortedMapOf<String, CalcSumData>() // sums by group
 //    val allSumData = CalcSumData()                  // overall sum
-//
-//    val tmTemperature = sortedMapOf<String, ChartElementDTO>()
-//    val tmDensity = sortedMapOf<String, ChartElementDTO>()
 //
 //    var sGeoName: String = ""
 //    var sGeoRun: String = ""
@@ -23,15 +390,6 @@
 //    var sGeoMovingTime: String = ""
 //    var sGeoParkingTime: String = ""
 //    var sGeoParkingCount: String = ""
-//
-//    var sWorkName: String = ""
-//    var sWorkValue: String = ""
-//
-//    var sEnergoName: String = ""
-//    var sEnergoValue: String = ""
-//
-//    var sAllSumEnergoName: String = ""
-//    var sAllSumEnergoValue: String = ""
 //
 //    var sLiquidUsingName: String = ""
 //    var sLiquidUsingValue: String = ""
@@ -77,136 +435,7 @@
 //                calcGeo(alRawTime, alRawData, scg, begTime, endTime, result)
 //            }
 //
-//            //--- equipment operation sensors
-//            oc.hmSensorConfig[SensorConfig.SENSOR_WORK]?.values?.forEach { sc ->
-//                calcWork(alRawTime, alRawData, sc as SensorConfigWork, begTime, endTime, result)
-//            }
-//
-//            //--- sensors - electricity meters
-//            listOf(
-//                SensorConfig.SENSOR_ENERGO_COUNT_AD,
-//                SensorConfig.SENSOR_ENERGO_COUNT_AR,
-//                SensorConfig.SENSOR_ENERGO_COUNT_RD,
-//                SensorConfig.SENSOR_ENERGO_COUNT_RR,
-//            ).forEach { sensorType ->
-//                oc.hmSensorConfig[sensorType]?.values?.forEach { sc ->
-//                    calcEnergo(conn, alRawTime, alRawData, sc as SensorConfigEnergoSummary, begTime, endTime, result)
-//                }
-//            }
-//
-//            //--- mass accumulated values sensor
-//            oc.hmSensorConfig[SensorConfig.SENSOR_MASS_ACCUMULATED]?.values?.forEach { sc ->
-//                calcCounterOrAccumulatedSensor(conn, alRawTime, alRawData, sc as SensorConfigCounter, begTime, endTime, result)
-//            }
-//            //--- volume accumulated values sensor
-//            oc.hmSensorConfig[SensorConfig.SENSOR_VOLUME_ACCUMULATED]?.values?.forEach { sc ->
-//                calcCounterOrAccumulatedSensor(conn, alRawTime, alRawData, sc as SensorConfigCounter, begTime, endTime, result)
-//            }
-//            //--- liquid calc sensor
-//            oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_USING]?.values?.forEach { sc ->
-//                calcCounterOrAccumulatedSensor(conn, alRawTime, alRawData, sc as SensorConfigCounter, begTime, endTime, result)
-//            }
-//
-//            //--- liquid level sensors
-//            oc.hmSensorConfig[SensorConfig.SENSOR_LIQUID_LEVEL]?.values?.forEach { sc ->
-//                calcLiquidLevel(alRawTime, alRawData, conn, oc, sc as SensorConfigLiquidLevel, begTime, endTime, 0, result)
-//            }
-//
-//            //--- some analogue sensors
-//            oc.hmSensorConfig[SensorConfig.SENSOR_TEMPERATURE]?.values?.forEach { sc ->
-//                val sca = sc as SensorConfigAnalogue
-//                val aLine = ChartElementDTO(ChartElementTypeDTO.LINE, 0, 2, false)
-//                getSmoothAnalogGraphicData(
-//                    conn = conn,
-//                    alRawTime = alRawTime,
-//                    alRawData = alRawData,
-//                    scg = oc.scg,
-//                    sca = sca,
-//                    begTime = begTime,
-//                    endTime = endTime,
-//                    xScale = 0,
-//                    yScale = 0.0,
-//                    axisIndex = 0,
-//                    aMinLimit = null,
-//                    aMaxLimit = null,
-//                    aLine = aLine,
-//                    graphicHandler = AnalogGraphicHandler()
-//                )
-//                result.tmTemperature[sc.descr] = aLine
-//            }
-//
-//            oc.hmSensorConfig[SensorConfig.SENSOR_DENSITY]?.values?.forEach { sc ->
-//                val sca = sc as SensorConfigAnalogue
-//                val aLine = ChartElementDTO(ChartElementTypeDTO.LINE, 0, 2, false)
-//                getSmoothAnalogGraphicData(
-//                    conn = conn,
-//                    alRawTime = alRawTime,
-//                    alRawData = alRawData,
-//                    scg = oc.scg,
-//                    sca = sca,
-//                    begTime = begTime,
-//                    endTime = endTime,
-//                    xScale = 0,
-//                    yScale = 0.0,
-//                    axisIndex = 0,
-//                    aMinLimit = null,
-//                    aMaxLimit = null,
-//                    aLine = aLine,
-//                    graphicHandler = AnalogGraphicHandler()
-//                )
-//                result.tmDensity[sc.descr] = aLine
-//                //--- прикрепить данные по плотности с данным по расходомеру
-//                result.tmCounterData.forEach { (_, counterCalcData) ->
-//                    if (counterCalcData.scc.group == sc.group) {
-//                        counterCalcData.density = aLine
-//                    }
-//                }
-//            }
-//
-//            if (oc.scg != null) {
-//                fillGeoString(userConfig, result)
-//            }
-//            fillWorkString(userConfig, result)
-//            fillEnergoString(userConfig, result)
-//            fillLiquidUsingString(userConfig, result)
-//            fillLiquidLevelString(userConfig, result)
-//
 //            return result
-//        }
-//
-//        fun loadAllSensorData(conn: CoreAdvancedConnection, oc: ObjectConfig, begTime: Int, endTime: Int): Pair<List<Int>, List<AdvancedByteBuffer>> {
-//            var maxSmoothTime = 0
-//            oc.hmSensorConfig.values.forEach { hmSC ->
-//                hmSC.values.forEach { sensorConfig ->
-//                    if (sensorConfig is SensorConfigAnalogue) {
-//                        maxSmoothTime = max(maxSmoothTime, sensorConfig.smoothTime)
-//                    }
-//                }
-//            }
-//
-//            //--- collect raw data
-//            val alRawTime = mutableListOf<Int>()
-//            val alRawData = mutableListOf<AdvancedByteBuffer>()
-//
-//            //--- so that start / end points do not disappear in periods
-//            //--- and so that the final levels of one period and the initial levels of the next one coincide -
-//            //--- take ranges with a margin for smoothing
-//            val sql =
-//                """
-//                    SELECT ontime , sensor_data
-//                    FROM MMS_data_${oc.objectId}
-//                    WHERE ontime >= ${begTime - maxSmoothTime} AND ontime <= ${endTime + maxSmoothTime}
-//                    ORDER BY ontime
-//                """
-//
-//            val inRs = conn.executeQuery(sql)
-//            while (inRs.next()) {
-//                alRawTime.add(inRs.getInt(1))
-//                alRawData.add(inRs.getByteBuffer(2, ByteOrder.BIG_ENDIAN))
-//            }
-//            inRs.close()
-//
-//            return Pair(alRawTime, alRawData)
 //        }
 //
 //        fun calcGeoSensor(
@@ -414,165 +643,6 @@
 //                alPointSpeed = alPointSpeed,
 //                alPointOverSpeed = alPointOverSpeed
 //            )
-//        }
-//
-//        fun calcWorkSensor(
-//            alRawTime: List<Int>,
-//            alRawData: List<AdvancedByteBuffer>,
-//            scw: SensorConfigWork,
-//            begTime: Int,
-//            endTime: Int,
-//        ): WorkCalcData {
-//
-//            val alResult = mutableListOf<AbstractPeriodData>()
-//
-//            var workBeginTime = 0
-//            var delayBeginTime = 0
-//
-//            var lastTime = 0
-//            var curTime = 0
-//            for (i in alRawTime.indices) {
-//                curTime = alRawTime[i]
-//                if (curTime < begTime) {
-//                    continue
-//                }
-//                if (curTime > endTime) {
-//                    if (i > 0) {
-//                        curTime = alRawTime[i - 1]
-//                    }
-//                    break
-//                }
-//
-//                val sensorData = AbstractObjectStateCalc.getSensorData(scw.portNum, alRawData[i])?.toDouble()
-//
-//                // --- manually ignore:
-//                // --- 1. too long intervals between points (except for the first point)
-//                // --- 2. foreign values
-//                val curValue = sensorData != null &&
-//                    (lastTime == 0 || curTime - lastTime <= MAX_WORK_TIME_INTERVAL) &&
-//                    getWorkSensorValue(scw, sensorData)
-//
-//                //--- still in work?
-//                if (curValue) {
-//                    //--- record of previous downtime
-//                    if (delayBeginTime != 0) {
-//                        alResult.add(WorkPeriodData(delayBeginTime, curTime, 0))
-//                        delayBeginTime = 0
-//                    }
-//                    //--- Beginning of work
-//                    if (workBeginTime == 0) {
-//                        workBeginTime = curTime
-//                    }
-//                } else {
-//                    //--- record of previous work
-//                    if (workBeginTime != 0) {
-//                        alResult.add(WorkPeriodData(workBeginTime, curTime, 1))
-//                        workBeginTime = 0
-//                    }
-//                    //--- start of downtime
-//                    if (delayBeginTime == 0) {
-//                        delayBeginTime = curTime
-//                    }
-//                }
-//                lastTime = curTime
-//            }
-//
-//            //--- record of the last unclosed event
-//            if (workBeginTime != 0) {
-//                alResult.add(WorkPeriodData(workBeginTime, curTime, 1))
-//            }
-//            if (delayBeginTime != 0) {
-//                alResult.add(WorkPeriodData(delayBeginTime, curTime, 0))
-//            }
-//
-//            //--- merging of work / downtime periods according to minimum durations
-//            mergePeriods(alResult, scw.minOnTime, scw.minOffTime)
-//
-//            return WorkCalcData(scw.group, alResult)
-//        }
-//
-//        private fun calcEnergoSensor(
-//            conn: CoreAdvancedConnection,
-//            alRawTime: List<Int>,
-//            alRawData: List<AdvancedByteBuffer>,
-//            sces: SensorConfigEnergoSummary,
-//            begTime: Int,
-//            endTime: Int
-//        ): Double {
-//            var energo = 0.0
-////            if (sces.isUseAggregator &&
-////                MMSFunction.checkAggregationTableIsExists(conn, sces.id) &&
-////                (endTime <= sces.calcTime || (sces.rawTime - sces.calcTime) <= MAX_AGGREGATOR_TIME_DIFF)
-////            ) {
-////                val rs = conn.executeQuery(
-////                    """
-////                        SELECT SUM( value_1 )
-////                        FROM MMS_agg_${sces.id}
-////                        WHERE ontime BETWEEN $begTime AND $endTime
-////                    """
-////                )
-////                energo = if (rs.next()) {
-////                    rs.getDouble(1)
-////                } else {
-////                    0.0
-////                }
-////                rs.close()
-////            } else {
-//            //--- counters that give absolute values in their readings can reset it on command or overflow.
-//            //--- you will have to catch each such reset (the algorithm is somewhat similar to the search for refueling / draining)
-//            //--- also skip sudden dots with a zero counter
-//            var begE = 0.0
-//            var lastE = 0.0
-//
-//            for (i in alRawTime.indices) {
-//                val curTime = alRawTime[i]
-//                if (curTime < begTime) {
-//                    continue
-//                }
-//                if (curTime > endTime) {
-//                    break
-//                }
-//
-//                val sensorData = AbstractObjectStateCalc.getSensorData(sces.portNum, alRawData[i])?.toDouble() ?: continue
-//                if (isIgnoreSensorData(sces.minIgnore, sces.maxIgnore, sensorData)) {
-//                    continue
-//                }
-//
-//                val sensorValue = AbstractObjectStateCalc.getSensorValue(sces.alValueSensor, sces.alValueData, sensorData)
-//
-//                if (begE == 0.0) {
-//                    begE = sensorValue
-//                } else if (sensorValue < lastE) {
-//                    energo += lastE - begE
-//                    begE = sensorValue
-//                }
-//                lastE = sensorValue
-//
-////                }
-//                energo += lastE - begE
-//            }
-//            return energo
-//        }
-//
-//        fun calcLiquidLevelSensor(
-//            conn: CoreAdvancedConnection,
-//            oc: ObjectConfig,
-//            sca: SensorConfigLiquidLevel,
-//            alRawTime: List<Int>,
-//            alRawData: List<AdvancedByteBuffer>,
-//            begTime: Int,
-//            endTime: Int,
-//            axisIndex: Int,
-//        ): LiquidLevelCalcData {
-//
-//            val aLine = ChartElementDTO(ChartElementTypeDTO.LINE, 0, 2, false)
-//            val alLSPD = mutableListOf<LiquidStatePeriodData>()
-//            getSmoothLiquidGraphicData(conn, alRawTime, alRawData, oc.scg, sca, begTime, endTime, axisIndex, aLine, alLSPD)
-//
-//            val llcd = LiquidLevelCalcData(sca.containerType, aLine, alLSPD)
-//            calcLiquidUsingByLevel(sca, llcd, conn, oc, begTime, endTime, axisIndex)
-//
-//            return llcd
 //        }
 //
 //        //--- another public part -----------------------------------------------------------------------------------------------------------
@@ -1103,202 +1173,6 @@
 //
 //        }
 //
-//        private fun calcWork(
-//            alRawTime: List<Int>,
-//            alRawData: List<AdvancedByteBuffer>,
-//            scw: SensorConfigWork,
-//            begTime: Int,
-//            endTime: Int,
-//            result: ObjectCalc
-//        ) {
-//            val wcd = calcWorkSensor(alRawTime, alRawData, scw, begTime, endTime)
-//            result.tmWork[scw.descr] = wcd
-//
-//            //--- needed to determine the uniqueness of equipment in a group to calculate the average fuel consumption
-//            val groupSum = result.tmGroupSum.getOrPut(scw.group) { CalcSumData() }
-//            groupSum.tmWork[scw.descr] = wcd.onTime
-//
-//            //--- do not needed
-//            //result.allSumData.tmWork[scw.descr] = wcd.onTime
-//
-//            //--- if the standard for liquid (fuel) is set, we will calculate it
-//            if (scw.liquidName.isNotBlank() && scw.liquidNorm != 0.0) {
-//                val liquidUsing = scw.liquidNorm * wcd.onTime / 60.0 / 60.0
-//
-//                result.tmLiquidUsing["${scw.descr} (расч.) ${scw.liquidName}"] = liquidUsing
-//                addLiquidUsingSum(scw.group, scw.liquidName, liquidUsing, result)
-//            }
-//        }
-//
-//        private fun calcEnergo(
-//            conn: CoreAdvancedConnection,
-//            alRawTime: List<Int>,
-//            alRawData: List<AdvancedByteBuffer>,
-//            sces: SensorConfigEnergoSummary,
-//            begTime: Int,
-//            endTime: Int,
-//            result: ObjectCalc
-//        ) {
-//            val e = calcEnergoSensor(conn, alRawTime, alRawData, sces, begTime, endTime)
-//
-//            result.tmEnergo[sces.descr] = e
-//
-//            //--- calculate the group amount
-//            val groupSum = result.tmGroupSum.getOrPut(sces.group) { CalcSumData() }
-//            val byType = groupSum.tmEnergo.getOrPut(sces.sensorType) { sortedMapOf() }
-//            val byPhase = byType[0] ?: 0.0
-//            byType[0] = byPhase + e
-//
-//            val byTypeAll = result.allSumData.tmEnergo.getOrPut(sces.sensorType) { sortedMapOf() }
-//            val byPhaseAll = byTypeAll[0] ?: 0.0
-//            byTypeAll[0] = byPhaseAll + e
-//        }
-//
-//        private fun calcCounterOrAccumulatedSensor(
-//            conn: CoreAdvancedConnection,
-//            alRawTime: List<Int>,
-//            alRawData: List<AdvancedByteBuffer>,
-//            scc: SensorConfigCounter,
-//            begTime: Int,
-//            endTime: Int,
-//            result: ObjectCalc
-//        ) {
-//            //--- if the name of the liquid (fuel) is given, then add its consumption to the general list
-//            if (scc.liquidName.isNotBlank()) {
-//                val counterCalcData = calcCounterOrAccumulatedSensor(conn, alRawTime, alRawData, scc, begTime, endTime)
-//
-//                result.tmCounterData[scc.descr] = counterCalcData
-//
-//                result.tmLiquidUsing["${scc.descr} ${scc.liquidName}"] = counterCalcData.value
-//                addLiquidUsingSum(scc.group, scc.liquidName, counterCalcData.value, result)
-//            }
-//        }
-//
-//        private fun calcLiquidLevel(
-//            alRawTime: List<Int>,
-//            alRawData: List<AdvancedByteBuffer>,
-//            conn: CoreAdvancedConnection,
-//            oc: ObjectConfig,
-//            scll: SensorConfigLiquidLevel,
-//            begTime: Int,
-//            endTime: Int,
-//            axisIndex: Int,
-//            result: ObjectCalc
-//        ) {
-//            val llcd = calcLiquidLevelSensor(conn, oc, scll, alRawTime, alRawData, begTime, endTime, axisIndex)
-//
-//            result.tmLiquidLevel[scll.descr] = llcd
-//
-//            result.tmLiquidUsing["${scll.descr} ${scll.liquidName}"] = llcd.usingTotal
-//            addLiquidUsingSum(scll.group, scll.liquidName, llcd.usingTotal, result)
-//
-//            val groupSum = result.tmGroupSum.getOrPut(scll.group) { CalcSumData() }
-//            groupSum.addLiquidLevel(scll.descr, llcd.incTotal, llcd.decTotal)
-//
-//            result.allSumData.addLiquidLevel(scll.descr, llcd.incTotal, llcd.decTotal)
-//        }
-//
-//        //-----------------------------
-//
-//        private fun addLiquidUsingSum(
-//            groupName: String,
-//            liquidName: String,
-//            using: Double,
-//            result: ObjectCalc,
-//        ) {
-//            val groupSum = result.tmGroupSum.getOrPut(groupName) { CalcSumData() }
-//            groupSum.addLiquidUsing(liquidName, using)
-//
-//            result.allSumData.addLiquidUsing(liquidName, using)
-//        }
-//
-//        //--- universal function for determining the REAL sum of counter values
-//        fun calcCounterOrAccumulatedSensor(
-//            conn: CoreAdvancedConnection,
-//            alRawTime: List<Int>,
-//            alRawData: List<AdvancedByteBuffer>,
-//            scc: SensorConfigCounter,
-//            begTime: Int,
-//            endTime: Int
-//        ): CounterCalcData {
-//            var sumValue = 0.0
-////            if (scc.isUseAggregator &&
-////                MMSFunction.checkAggregationTableIsExists(conn, scc.id) &&
-////                (endTime <= scc.calcTime || (scc.rawTime - scc.calcTime) <= MAX_AGGREGATOR_TIME_DIFF)
-////            ) {
-////                val rs = conn.executeQuery(
-////                    """
-////                        SELECT SUM( value_1 )
-////                        FROM MMS_agg_${scc.id}
-////                        WHERE ontime BETWEEN $begTime AND $endTime
-////                    """
-////                )
-////                sumValue = if (rs.next()) {
-////                    rs.getDouble(1)
-////                } else {
-////                    0.0
-////                }
-////                rs.close()
-////            } else {
-//            //--- counters that give absolute values in their readings can reset it on command or overflow.
-//            //--- you will have to catch each such reset (the algorithm is somewhat similar to the search for refueling / draining)
-//            //--- also skip sudden dots with a zero counter
-//            var begValue = 0.0
-//            var lastValue = 0.0
-//
-//            for (pos in alRawTime.indices) {
-//                val curTime = alRawTime[pos]
-//
-//                if (curTime < begTime) {
-//                    continue
-//                }
-//                if (curTime > endTime) {
-//                    break
-//                }
-//
-//                val sensorData = AbstractObjectStateCalc.getSensorData(scc.portNum, alRawData[pos])?.toDouble() ?: continue
-//                //--- ignore outbound values
-//                if (isIgnoreSensorData(scc.minIgnore, scc.maxIgnore, sensorData)) {
-//                    continue
-//                }
-//
-//                val sensorValue = AbstractObjectStateCalc.getSensorValue(scc.alValueSensor, scc.alValueData, sensorData)
-//
-//                if (scc.isAbsoluteCount) {
-//                    if (begValue <= 0) {
-//                        begValue = sensorValue
-//                    } else if (sensorValue < lastValue) {
-//                        sumValue += lastValue - begValue
-//                        begValue = sensorValue
-//                    }
-//                    lastValue = sensorValue
-//                } else {
-//                    sumValue += sensorValue
-//                }
-//            }
-//            if (scc.isAbsoluteCount) {
-//                sumValue += lastValue - begValue
-//            }
-////            }
-//
-//            return CounterCalcData(
-//                scc = scc,
-//                value = sumValue,
-//            )
-//        }
-//
-//        //--- not yet applied
-//        //    private static boolean checkZoneInTime(  ZoneLimitData zd, long pointTime  ) throws Exception {
-//        //        //--- if there are no restrictions, then everything is a bunch :)
-//        //        if(  zd.alBeg.isEmpty()  ) return true;
-//        //        //--- if there are restrictions on the time of validity, check their entry
-//        //        else {
-//        //            for(  int j = 0; j < zd.alBeg.size(); j++  )
-//        //                if(  pointTime >= zd.alBeg.get(  j  ) && pointTime <= zd.alEnd.get(  j  )  ) return true; // just enter one interval
-//        //            return false;
-//        //        }
-//        //    }
-//
 //        private fun mergePeriods(alPD: MutableList<AbstractPeriodData>, minOnTime: Int, minOffTime: Int) {
 //            //--- ejection of insufficient on / off periods
 //            //--- and the subsequent merging of adjacent off / on, respectively
@@ -1350,123 +1224,6 @@
 //                }
 //            }
 //        }
-//
-////        private fun multiplePeriods(alPD1: List<AbstractPeriodData>, alPD2: List<AbstractPeriodData>): List<MultiplePeriodData> {
-////            val alResult = mutableListOf<MultiplePeriodData>()
-////
-////            var pos1 = 0
-////            var pos2 = 0
-////            while (pos1 < alPD1.size && pos2 < alPD2.size) {
-////                val pd1 = alPD1[pos1]
-////                val pd2 = alPD2[pos2]
-////
-////                //--- complete mismatch: the first is quite earlier than the second
-////                //--- 1: -|===|-----
-////                //--- 2: -----|===|-
-////                if (pd1.endTime <= pd2.begTime) {
-////                    alResult.add(MultiplePeriodData(pd1.begTime, pd1.endTime, pd1.getState(), 0))
-////                    pos1++
-////                } else if (pd2.endTime <= pd1.begTime) {
-////                    alResult.add(MultiplePeriodData(pd2.begTime, pd2.endTime, 0, pd2.getState()))
-////                    pos2++
-////                } else if (pd1.begTime <= pd2.begTime) {
-////                    //--- "empty time" between the beginning of the first and second periods is possible only if
-////                    //--- if the second period is the initial element in its list (i.e. there is no data before it),
-////                    //--- otherwise this segment should have been recorded in the previous step
-////                    //--- 1: -|=======|-   -|=====|-   -|===|---
-////                    //--- 2: -|?|===|---   -|?|===|-   -|?|===|-
-////                    if (pd1.begTime < pd2.begTime && pos2 == 0) alResult.add(MultiplePeriodData(pd1.begTime, pd2.begTime, pd1.getState(), 0))
-////                    //--- subvariants: the second ended earlier than the first - i.e. completely enters the first or ended simultaneously with the first
-////                    //--- 1: -|=======|-   -|=====|-
-////                    //--- 2: ---|===|---   ---|===|-
-////                    //--- 1: -|=======|-   -|=====|-
-////                    //--- 2: -|=====|---   -|=====|-
-////                    if (pd2.endTime <= pd1.endTime) {
-////                        alResult.add(MultiplePeriodData(pd2.begTime, pd2.endTime, pd1.getState(), pd2.getState()))
-////                        pos2++
-////                        if (pd1.endTime == pd2.endTime) {
-////                            pos1++
-////                        }
-////                        //--- если это был последний второй, то запишем остаток/хвост первого
-////                        else if (pos2 == alPD2.size) {
-////                            alResult.add(MultiplePeriodData(pd2.endTime, pd1.endTime, pd1.getState(), 0))
-////                            pos1++
-////                        }
-////                    }
-////                    //--- the first ended before the second
-////                    //--- 1: -|===|---
-////                    //--- 2: ---|===|-
-////                    //--- 1: -|===|---
-////                    //--- 2: -|=====|-
-////                    else if (pd1.endTime < pd2.endTime) {
-////                        alResult.add(MultiplePeriodData(pd2.begTime, pd1.endTime, pd1.getState(), pd2.getState()))
-////                        pos1++
-////                        //--- if it was the last first, then write the remainder / tail of the second
-////                        if (pos1 == alPD1.size) {
-////                            alResult.add(MultiplePeriodData(pd1.endTime, pd2.endTime, 0, pd2.getState()))
-////                            pos2++
-////                        }
-////                    }
-////                }
-////                //--- partial overlap: the second started earlier than the first
-////                //--- 1: ---|===|---   ---|===|-   ---|===|-
-////                //--- 2: -|=======|-   -|=====|-   -|===|---
-////                //--- partial overlap: the first started earlier than the second or started the same way
-////                //--- 1: -|=======|-   -|=====|-   -|===|---
-////                //--- 2: ---|===|---   ---|===|-   ---|===|-
-////                //--- 1: -|=======|-   -|=====|-   -|===|---
-////                //--- 2: -|=====|---   -|=====|-   -|=====|-
-////                //--- complete mismatch: the second is quite earlier than the first
-////                //--- 1: -----|===|-
-////                //--- 2: -|===|-----
-////                else if (pd2.begTime < pd1.begTime) {
-////                    // --- "empty time" between the beginning of the second and first periods is possible only
-////                    // --- if the first period is the initial element in its list (i.e. there is no data before it),
-////                    // --- otherwise this segment should have been written at the previous step
-////                    //--- 1: -|?|===|---   -|?|===|-   -|?|===|-
-////                    //--- 2: -|=======|-   -|=====|-   -|===|---
-////                    if (pos1 == 0) alResult.add(MultiplePeriodData(pd2.begTime, pd1.begTime, 0, pd2.getState()))
-////                    //--- subvariants: the first ended earlier than the second - i.e. completely enters the second or ended simultaneously with the second
-////                    //--- 1: ---|===|---   ---|===|-
-////                    //--- 2: -|=======|-   -|=====|-
-////                    if (pd1.endTime <= pd2.endTime) {
-////                        alResult.add(MultiplePeriodData(pd1.begTime, pd1.endTime, pd1.getState(), pd2.getState()))
-////                        pos1++
-////                        if (pd1.endTime == pd2.endTime) pos2++
-////                        //--- if it was the last first, then write the remainder / tail of the second
-////                        else if (pos1 == alPD1.size) {
-////                            alResult.add(MultiplePeriodData(pd1.endTime, pd2.endTime, 0, pd2.getState()))
-////                            pos2++
-////                        }
-////                    }
-////                    //--- the second ended before the first
-////                    //--- 1: ---|===|-
-////                    //--- 2: -|===|---
-////                    else if (pd2.endTime < pd1.endTime) {
-////                        alResult.add(MultiplePeriodData(pd1.begTime, pd2.endTime, pd1.getState(), pd2.getState()))
-////                        pos2++
-////                        //--- if it was the last second, then write the remainder / tail of the first
-////                        if (pos2 == alPD2.size) {
-////                            alResult.add(MultiplePeriodData(pd2.endTime, pd1.endTime, pd1.getState(), 0))
-////                            pos1++
-////                        }
-////                    }
-////                }
-////            }
-////            //--- add the remaining periods of the first sequence, if any
-////            while (pos1 < alPD1.size) {
-////                val pd1 = alPD1[pos1]
-////                alResult.add(MultiplePeriodData(pd1.begTime, pd1.endTime, pd1.getState(), 0))
-////                pos1++
-////            }
-////            //--- add the remaining periods of the second sequence, if any
-////            while (pos2 < alPD2.size) {
-////                val pd2 = alPD2[pos2]
-////                alResult.add(MultiplePeriodData(pd2.begTime, pd2.endTime, 0, pd2.getState()))
-////                pos2++
-////            }
-////            return alResult
-////        }
 //
 //        //--- smoothing the graph of the analog value of the liquid / fuel level (abbreviated call for generating reports)
 //        private fun getSmoothLiquidGraphicData(
@@ -1817,23 +1574,6 @@
 //                else -> " (неизв. фаза)"
 //            }
 //
-//        fun getPrecision(aValue: Double): Int {
-//            val value = abs(aValue)
-//            //--- updated / simplified version of the output accuracy - more cubic meters - in whole liters, less - in hundreds of milliliters / gram
-//            return if (value >= 1000) 0
-//            else if (value >= 100) 1
-//            else if (value >= 10) 2
-//            else 3
-//        }
-//
-//        fun getPrecision(aValue: Float): Int {
-//            val value = abs(aValue)
-//            //--- updated / simplified version of the output accuracy - more cubic meters - in whole liters, less - in hundreds of milliliters / gram
-//            return if (value >= 1000) 0
-//            else if (value >= 100) 1
-//            else if (value >= 10) 2
-//            else 3
-//        }
 //
 //        fun fillZoneList(hmZoneData: Map<Int, ZoneData>, reportZone: Int, p: XyPoint, tsZoneName: TreeSet<String>): Boolean {
 //            var inZone = false
