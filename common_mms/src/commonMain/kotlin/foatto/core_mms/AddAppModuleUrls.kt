@@ -41,6 +41,11 @@ fun addAppModuleUrls() {
         formActionUrl = ApiUrlMMS.DEVICE_FORM_ACTION,
     )
 
+    appModuleUrls[AppModuleMMS.DAY_WORK] = AppModuleUrl(
+        appUrl = ApiUrlMMS.DAY_WORK,
+        formActionUrl = ApiUrlMMS.DAY_WORK_FORM_ACTION,
+    )
+
     appModuleUrls[AppModuleMMS.CHART_LIQUID_LEVEL] = AppModuleUrl(
         appUrl = ApiUrlMMS.CHART_LIQUID_LEVEL,
         chartActionUrl = ApiUrlMMS.CHART_LIQUID_LEVEL_ACTION,
@@ -70,5 +75,10 @@ fun addAppModuleUrls() {
 
     appModuleUrls[AppModuleMMS.COMPOSITE_OBJECT_DASHBOARD] = AppModuleUrl(
         appUrl = ApiUrlMMS.COMPOSITE_OBJECT_DASHBOARD,
+    )
+
+    appModuleUrls[AppModuleMMS.REPORT_SUMMARY] = AppModuleUrl(
+        appUrl = ApiUrlMMS.REPORT_SUMMARY,
+        formActionUrl = ApiUrlMMS.REPORT_SUMMARY_FORM_ACTION,
     )
 }
