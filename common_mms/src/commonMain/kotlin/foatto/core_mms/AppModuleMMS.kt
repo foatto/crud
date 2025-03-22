@@ -14,7 +14,7 @@ object AppModuleMMS {
 
     const val DEVICE: String = "DEVICE"
 
-//    const val DAY_WORK: String = "DAY_WORK"
+    const val DAY_WORK: String = "DAY_WORK"
 
     const val CHART_ANALOGUE_BY_TYPE: String = "CHART_ANALOGUE_BY_TYPE"
     const val CHART_LIQUID_LEVEL: String = "CHART_LIQUID_LEVEL"
@@ -26,4 +26,6 @@ object AppModuleMMS {
     const val SCHEME_WORK_INDICATOR_STATE: String = "SCHEME_WORK_INDICATOR_STATE"
 
     const val COMPOSITE_OBJECT_DASHBOARD: String = "COMPOSITE_OBJECT_DASHBOARD"
+
+    const val REPORT_SUMMARY: String = "REPORT_SUMMARY"
 }

@@ -2,8 +2,10 @@ package foatto.server
 
 import foatto.core.ActionType
 import foatto.core.AppModule
+import foatto.core.model.AppAction
 import foatto.server.model.AppModuleConfig
 import foatto.server.model.Permission
+import foatto.server.model.ServerUserConfig
 
 val appModuleConfigs: MutableMap<String, AppModuleConfig> = mutableMapOf(
 
@@ -139,3 +141,38 @@ fun checkRowPermission(module: String?, actionType: String, rowUserRelation: Use
     //--- по всех прочих/неопределённых ситуациях - отказ
     return false
 }
+
+fun checkReportUnlockPermission(module: String?, userRoles: Set<String>): Boolean {
+    appModuleConfigs[module]?.let { moduleConfig ->
+        //--- любая отрицательная роль достаточна для отказа
+        if (
+            moduleConfig.disabledReportUnlockRoles.any { disabledRole ->
+                userRoles.contains(disabledRole)
+            }
+        ) {
+            return false
+        }
+        //--- любая положительная роль достаточна для согласия
+        if (
+            moduleConfig.enabledReportUnlockRoles.any { enabledRole ->
+                userRoles.contains(enabledRole)
+            }
+        ) {
+            return true
+        }
+    }
+    //--- по всех прочих/неопределённых ситуациях - отказ
+    return false
+}
+
+fun getEnabledUserIds(
+    module: String?,
+    actionType: String,
+    relatedUserIds: Map<Int, UserRelationEnum>,
+    roles: Set<String>,
+): List<Int> =
+    relatedUserIds.filterValues { userRelation ->
+        checkRowPermission(module, actionType, userRelation, roles)
+    }.map { (userId, _) ->
+        userId
+    }

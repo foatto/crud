@@ -36,11 +36,14 @@ class MMSSpringApp : SpringApp() {
     val logOptions: String = ""
 
     @EventListener(ApplicationReadyEvent::class)
-    fun init() {
+    override fun init() {
+        super.init()
+
         AdvancedLogger.init(logDir, logOptions.contains("error"), logOptions.contains("info"), logOptions.contains("debug"))
         AdvancedLogger.info("==================== MMSSpringApp started ====================")
 
         addAppModuleUrls()
+        //--- строго после addAppModuleUrls
         initAppRoleConfigs()
         initAppModuleConfigs()
         initMenuInit()
@@ -294,6 +297,35 @@ class MMSSpringApp : SpringApp() {
             ),
         )
 
+        appModuleConfigs[AppModuleMMS.DAY_WORK] = AppModuleConfig(
+            caption = "Журнал суточных работ",
+            pageSize = AppModuleConfig.DEFAULT_PAGE_SIZE,
+            enabledAccessRoles = mutableSetOf(AppRole.ADMIN, AppRole.USER),
+            disabledAccessRoles = mutableSetOf(),
+            enabledFormAddRoles = mutableSetOf(AppRole.ADMIN),
+            disabledFormAddRoles = mutableSetOf(AppRole.USER),
+            rowPermissions = mutableMapOf(
+                ActionType.MODULE_TABLE to Permission(
+                    enabledRoles = getRoleAllPermissions(AppRole.ADMIN).apply {
+                        getOrPut(UserRelationEnum.SELF) { mutableSetOf() } += AppRole.USER
+                        getOrPut(UserRelationEnum.WORKER) { mutableSetOf() } += AppRole.USER
+                    },
+                ),
+                ActionType.MODULE_FORM to Permission(
+                    enabledRoles = getRoleAllPermissions(AppRole.ADMIN),
+                    disabledRoles = getRoleAllPermissions(AppRole.USER),
+                ),
+                ActionType.FORM_EDIT to Permission(
+                    enabledRoles = getRoleAllPermissions(AppRole.ADMIN),
+                    disabledRoles = getRoleAllPermissions(AppRole.USER),
+                ),
+                ActionType.FORM_DELETE to Permission(
+                    enabledRoles = getRoleAllPermissions(AppRole.ADMIN),
+                    disabledRoles = getRoleAllPermissions(AppRole.USER),
+                ),
+            ),
+        )
+
         appModuleConfigs[AppModuleMMS.CHART_ANALOGUE_BY_TYPE] = AppModuleConfig(
             caption = "Графики по типам датчиков",
             enabledAccessRoles = mutableSetOf(AppRole.ADMIN, AppRoleMMS.USER_FIXED_OBJECTS),
@@ -332,6 +364,33 @@ class MMSSpringApp : SpringApp() {
             enabledAccessRoles = mutableSetOf(AppRole.ADMIN, AppRole.USER),
             disabledAccessRoles = mutableSetOf(),
         )
+
+        appModuleConfigs[AppModuleMMS.REPORT_SUMMARY] = AppModuleConfig(
+            caption = "Суммарный отчёт",
+            enabledAccessRoles = mutableSetOf(AppRole.ADMIN, AppRole.USER),
+            disabledAccessRoles = mutableSetOf(),
+            enabledFormAddRoles = mutableSetOf(AppRole.ADMIN, AppRole.USER),
+            disabledFormAddRoles = mutableSetOf(),
+            rowPermissions = mutableMapOf(
+////                ActionType.MODULE_TABLE to Permission(
+////                    enabledRoles = getRoleAllPermissions(AppRole.ADMIN),
+////                    disabledRoles = getRoleAllPermissions(AppRole.USER),
+////                ),
+                ActionType.MODULE_FORM to Permission(
+                    enabledRoles = getRoleAllPermissions(AppRole.ADMIN, AppRole.USER),
+//                    disabledRoles = getRoleAllPermissions(),
+                ),
+////                ActionType.FORM_EDIT to Permission(
+////                    enabledRoles = getRoleAllPermissions(AppRole.ADMIN),
+////                    disabledRoles = getRoleAllPermissions(AppRole.USER),
+////                ),
+////                ActionType.FORM_DELETE to Permission(
+////                    enabledRoles = getRoleAllPermissions(AppRole.ADMIN),
+////                    disabledRoles = getRoleAllPermissions(AppRole.USER),
+////                ),
+            ),
+        )
+
     }
 
     private fun initMenuInit() {
@@ -341,6 +400,7 @@ class MMSSpringApp : SpringApp() {
             mutableListOf<MenuData>().apply {
 
                 addMenuItem(AppModuleMMS.OBJECT, ActionType.MODULE_TABLE, serverUserConfig, this)
+                addMenuItem(AppModuleMMS.DAY_WORK, ActionType.MODULE_TABLE, serverUserConfig, this)
 
                 if (size > 0) {
                     alMenu += MenuData("Учёт", null, this)
