@@ -25,14 +25,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import foatto.compose.utils.getFullUrl
-import foatto.core.model.response.ResponseCode
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 
 @Composable
 fun LogonForm(
     modifier: Modifier,
-    responseCode: ResponseCode,
+    errorText: String?,
+    loginError: String?,
+    passwordError: String?,
     login: String,
     password: String,
     isRememberMe: Boolean,
@@ -53,10 +54,10 @@ fun LogonForm(
             resource = asyncPainterResource(data = getFullUrl("/web/images/logo.png")),
             contentDescription = null,
         )
-        if (responseCode == ResponseCode.LOGON_FAILED) {
+        errorText?.let {
             Text(
                 modifier = Modifier.align(Alignment.CenterHorizontally),
-                text = "Неправильное имя или пароль!",
+                text = errorText,
                 color = Color.Red,
                 fontWeight = FontWeight.Bold,
             )
@@ -82,6 +83,15 @@ fun LogonForm(
                 onLoginInput(newText)
             },
             label = { Text("Имя") },
+            isError = loginError != null,
+            supportingText = loginError?.let {
+                {
+                    Text(
+                        text = loginError,
+                        color = Color.Red,
+                    )
+                }
+            },
             singleLine = true,
         )
         OutlinedTextField(
@@ -99,6 +109,15 @@ fun LogonForm(
                 onPasswordInput(newText)
             },
             label = { Text("Пароль") },
+            isError = passwordError != null,
+            supportingText = passwordError?.let {
+                {
+                    Text(
+                        text = passwordError,
+                        color = Color.Red,
+                    )
+                }
+            },
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
         )

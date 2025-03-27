@@ -38,8 +38,11 @@ class AppControl(
     private val tabId: Int,
 ) {
 
-    private var responseCode by mutableStateOf(ResponseCode.LOGON_NEED)
+    private var responseCode by mutableStateOf(ResponseCode.LOGON_SUCCESS)
     private var curControl by mutableStateOf<AbstractControl>(EmptyControl())
+
+    private var loginError by mutableStateOf<String?>(null)
+    private var passwordError by mutableStateOf<String?>(null)
 
     private var login by mutableStateOf("")
     private var password by mutableStateOf("")
@@ -58,7 +61,13 @@ class AppControl(
                 ResponseCode.LOGON_NEED, ResponseCode.LOGON_FAILED -> {
                     LogonForm(
                         modifier = Modifier.align(Alignment.Center),
-                        responseCode = responseCode,
+                        errorText = if (responseCode == ResponseCode.LOGON_FAILED) {
+                            "Неправильное имя или пароль!"
+                        } else {
+                            null
+                        },
+                        loginError = loginError,
+                        passwordError = passwordError,
                         login = login,
                         password = password,
                         isRememberMe = isRememberMe,
@@ -72,8 +81,18 @@ class AppControl(
                             isRememberMe = value
                         },
                         logon = {
-                            coroutineScope.launch {
-                                invokeLogonRequest(getLogonRequest())
+                            if (login.isBlank()) {
+                                loginError = "Пустой логин!"
+                                passwordError = null
+                            } else if (password.isBlank()) {
+                                loginError = null
+                                passwordError = "Пустой пароль!"
+                            } else {
+                                loginError = null
+                                passwordError = null
+                                coroutineScope.launch {
+                                    invokeLogonRequest(getLogonRequest())
+                                }
                             }
                         }
                     )
