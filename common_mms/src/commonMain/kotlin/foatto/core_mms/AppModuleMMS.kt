@@ -2,6 +2,7 @@ package foatto.core_mms
 
 object AppModuleMMS {
     const val OBJECT: String = "OBJECT"
+    const val OBJECT_LIST: String = "OBJECT_LIST"
 
     const val DEPARTMENT: String = "DEPARTMENT"
     const val GROUP: String = "GROUP"
@@ -25,6 +26,7 @@ object AppModuleMMS {
     const val SCHEME_COUNTER_INDICATOR_STATE: String = "SCHEME_COUNTER_INDICATOR_STATE"
     const val SCHEME_WORK_INDICATOR_STATE: String = "SCHEME_WORK_INDICATOR_STATE"
 
+    const val COMPOSITE_OBJECT_LIST_DASHBOARD: String = "COMPOSITE_OBJECT_LIST_DASHBOARD"
     const val COMPOSITE_OBJECT_DASHBOARD: String = "COMPOSITE_OBJECT_DASHBOARD"
 
     const val REPORT_SUMMARY: String = "REPORT_SUMMARY"

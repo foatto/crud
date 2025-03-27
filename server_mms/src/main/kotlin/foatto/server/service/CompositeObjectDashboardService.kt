@@ -10,6 +10,7 @@ import foatto.core.model.response.composite.CompositeBlock
 import foatto.core.model.response.composite.CompositeResponse
 import foatto.core.model.response.xy.scheme.SchemeResponse
 import foatto.core_mms.AppModuleMMS
+import foatto.server.DashboardSensorTypeEnum
 import foatto.server.SpringApp
 import foatto.server.appModuleConfigs
 import foatto.server.checkAccessPermission
@@ -169,8 +170,3 @@ class CompositeObjectDashboardService(
 
 }
 
-private enum class DashboardSensorTypeEnum {
-    ANALOGUE,
-    COUNTER,
-    WORK,
-}

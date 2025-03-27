@@ -99,6 +99,22 @@ class MMSSpringApp : SpringApp() {
             ),
         )
 
+        appModuleConfigs[AppModuleMMS.OBJECT_LIST] = AppModuleConfig(
+            caption = "Список объектов",
+            enabledAccessRoles = mutableSetOf(AppRole.ADMIN, AppRole.USER),
+            disabledAccessRoles = mutableSetOf(),
+            enabledFormAddRoles = mutableSetOf(),
+            disabledFormAddRoles = mutableSetOf(),
+            rowPermissions = mutableMapOf(
+                ActionType.MODULE_TABLE to Permission(
+                    enabledRoles = getRoleAllPermissions(AppRole.ADMIN).apply {
+                        getOrPut(UserRelationEnum.SELF) { mutableSetOf() } += AppRole.USER
+                        getOrPut(UserRelationEnum.WORKER) { mutableSetOf() } += AppRole.USER
+                    },
+                ),
+            ),
+        )
+
         appModuleConfigs[AppModuleMMS.DEPARTMENT] = AppModuleConfig(
             caption = "Подразделения",
             pageSize = AppModuleConfig.DEFAULT_PAGE_SIZE,
@@ -364,6 +380,11 @@ class MMSSpringApp : SpringApp() {
             enabledAccessRoles = mutableSetOf(AppRole.ADMIN, AppRole.USER),
             disabledAccessRoles = mutableSetOf(),
         )
+        appModuleConfigs[AppModuleMMS.COMPOSITE_OBJECT_LIST_DASHBOARD] = AppModuleConfig(
+            caption = "Контрольная панель объектов: все датчики",
+            enabledAccessRoles = mutableSetOf(AppRole.ADMIN, AppRole.USER),
+            disabledAccessRoles = mutableSetOf(),
+        )
 
         appModuleConfigs[AppModuleMMS.REPORT_SUMMARY] = AppModuleConfig(
             caption = "Суммарный отчёт",
@@ -396,6 +417,15 @@ class MMSSpringApp : SpringApp() {
     private fun initMenuInit() {
         menuInit = { serverUserConfig ->
             val alMenu = mutableListOf<MenuData>()
+
+            mutableListOf<MenuData>().apply {
+
+                addMenuItem(AppModuleMMS.COMPOSITE_OBJECT_LIST_DASHBOARD, ActionType.MODULE_COMPOSITE, serverUserConfig, this)
+
+                if (size > 0) {
+                    alMenu += MenuData("Контроль", null, this)
+                }
+            }
 
             mutableListOf<MenuData>().apply {
 

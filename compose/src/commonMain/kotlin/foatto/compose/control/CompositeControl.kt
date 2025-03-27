@@ -94,6 +94,7 @@ class CompositeControl(
                         block.chartBlock?.MainChartBody(false)
                             ?: block.mapBlock?.getXyElementTemplate(false)
                             ?: block.schemeBlock?.getXyElementTemplate(false)
+                            ?: block.tableBlock?.TableBody(Modifier) //!!! надо сделать всё, кроме тулбара?
                             ?: run {
                                 Text(text = "Не задан тип блока!")
                             }
@@ -139,7 +140,12 @@ class CompositeControl(
                             curScale = 1,
                         )
                     }
-                }
+                },
+                tableBlock = blockControlData.tableResponse?.let { tableResponse ->
+                    TableControl(root, appControl, blockControlData.action, tableResponse, tabId).apply {
+                        startTableBody()
+                    }
+                },
             )
         }
         /*
