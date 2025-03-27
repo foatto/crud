@@ -255,7 +255,7 @@ class ObjectService(
                     type = ActionType.MODULE_MAP,
                     module = AppModuleMMS.MAP_TRACE,
                     id = id,
-                    timeRangeType = 30 * 24 * 60 * 60,   //!!! траектория за последние 24 часа
+                    timeRangeType = 30 * 24 * 60 * 60,   //!!! траектория за последние 24 часа (а не 30 дней, как сейчас)
                 ),
                 text = appModuleConfigs[AppModuleMMS.MAP_TRACE]?.caption ?: "(неизвестный тип карты)",
                 inNewTab = true,

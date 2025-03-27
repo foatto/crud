@@ -101,10 +101,10 @@ internal fun getClientSubMenu(
     alClientSubMenu += MenuDataClient(caption = "Сменить пароль", action = AppAction(ActionType.CHANGE_PASSWORD))
     alClientSubMenu += MenuDataClient(caption = "Выход из системы", action = AppAction(ActionType.LOGOFF))
 
-    alClientSubMenu += MenuDataClient(caption = "")
-
-    alClientSubMenu += MenuDataClient(caption = "Установить вкладку как стартовую", action = AppAction(ActionType.SET_START_MODULE))
-    alClientSubMenu += MenuDataClient(caption = "Очистить установку стартовой", action = AppAction(ActionType.CLEAR_START_MODULE))
+//    alClientSubMenu += MenuDataClient(caption = "")
+//
+//    alClientSubMenu += MenuDataClient(caption = "Установить вкладку как стартовую", action = AppAction(ActionType.SET_START_MODULE))
+//    alClientSubMenu += MenuDataClient(caption = "Очистить установку стартовой", action = AppAction(ActionType.CLEAR_START_MODULE))
 
     if (appUserConfig.isAdmin) {
         alClientSubMenu += MenuDataClient(caption = "")

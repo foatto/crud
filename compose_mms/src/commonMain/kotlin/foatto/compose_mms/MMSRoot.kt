@@ -15,9 +15,9 @@ class MMSRoot : Root() {
         settings.putString(SETTINGS_SERVER_ADDRESS, "192.168.0.44")
         settings.putInt(SETTINGS_SERVER_PORT, 19998)
 
-        if (settings.getStringOrNull(SETTINGS_START_MODULE) == null) {
+//        if (settings.getStringOrNull(SETTINGS_START_MODULE) == null) {
             settings.putString(SETTINGS_START_MODULE, AppModuleMMS.OBJECT)
-        }
+//        }
 
         addAppModuleUrls()
     }
