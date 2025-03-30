@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -16,6 +17,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.unit.dp
 import foatto.compose.colorControlBack
+import foatto.compose.colorOutlinedTextInput
 import foatto.compose.colorToolBar
 import foatto.compose.control.composable.ToolBarBlock
 import foatto.compose.control.composable.ToolBarIconButton
@@ -82,11 +84,13 @@ fun TableToolBar(
                             false
                         }
                     },
+                    colors = colorOutlinedTextInput ?: OutlinedTextFieldDefaults.colors(),
                     value = findText,
                     onValueChange = { newText ->
                         onFindInput(newText)
                     },
-                    label = { Text("Поиск...") },
+                    //label = { Text("Поиск...") }, - появляется паразитный белый фон вокруг рамки
+                    placeholder = { Text("Поиск...") },
                     singleLine = true,
                 )
 //                    onKeyUp { event ->

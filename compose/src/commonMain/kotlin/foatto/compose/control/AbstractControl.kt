@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import foatto.compose.colorHeader
+import foatto.compose.colorTextButton
 import foatto.core.model.AppAction
 import foatto.core.model.response.HeaderData
 import kotlin.math.max
@@ -75,10 +78,11 @@ abstract class AbstractControl(
                     titleData.action?.let { action ->
                         Button(
                             modifier = Modifier.padding(start = 4.dp, end = 4.dp),
+                            shape = RoundedCornerShape(0.dp),   // чтобы образовалась почти сплошная полоса кнопок
+                            colors = colorTextButton ?: ButtonDefaults.buttonColors(),
                             onClick = {
                                 call(action)
                             },
-//                                backgroundColor(getColorButtonBack())
 //                                setBorder(color = getColorButtonBorder(), radius = styleButtonBorderRadius)
                         ) {
                             Text(titleData.text)

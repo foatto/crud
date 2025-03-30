@@ -1,8 +1,11 @@
 package foatto.compose.control.composable
 
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.runtime.Composable
+import foatto.compose.colorIconButton
 import foatto.compose.composable.ImageOrTextFromNameControl
+import foatto.compose.singleButtonShape
 import foatto.compose.styleToolbarIconSize
 
 @Composable
@@ -17,7 +20,9 @@ fun ToolBarIconButton(
             name = name,
             iconSize = styleToolbarIconSize,
             imageButton = { func ->
-                IconButton(
+                FilledIconButton(
+                    shape = singleButtonShape,
+                    colors = colorIconButton ?: IconButtonDefaults.iconButtonColors(),
                     enabled = isEnabled,
                     onClick = {
                         onClick()
@@ -28,21 +33,6 @@ fun ToolBarIconButton(
             },
             textButton = {},
         )
-//                        fontSize(styleCommonButtonFontSize)
-//                        padding(styleIconButtonPadding)
-//                        setMargins(arrStyleCommonMargin)
-//                        if (isEnabled) {
-//                            backgroundColor(getColorToolbarButtonBack())
-//                            setBorder(getStyleToolbarButtonBorder())
-//                            cursor("pointer")
-//                        }
-
-//                                backgroundColor(getColorButtonBack())
-//                                setBorder(color = getColorButtonBorder(), radius = styleButtonBorderRadius)
-//                                fontSize(styleCommonButtonFontSize)
-//                                padding(styleTextButtonPadding)
-//                                setMargins(arrStyleCommonMargin)
-//                                cursor("pointer")
     }
 }
 

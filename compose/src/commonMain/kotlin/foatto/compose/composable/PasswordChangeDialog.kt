@@ -2,7 +2,9 @@ package foatto.compose.composable
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -15,6 +17,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import foatto.compose.alertDialogShape
+import foatto.compose.colorOutlinedTextInput
+import foatto.compose.colorTextButton
+import foatto.compose.colorTextButtonDefault
+import foatto.compose.singleButtonShape
 
 @Composable
 fun PasswordChangeDialog(
@@ -25,10 +32,12 @@ fun PasswordChangeDialog(
     var password2 by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
     AlertDialog(
+        shape = alertDialogShape,
         text = {
             Column {
                 Text(text = "Введите новый пароль:")
                 OutlinedTextField(
+                    colors = colorOutlinedTextInput ?: OutlinedTextFieldDefaults.colors(),
                     value = password1,
                     onValueChange = { newPass ->
                         password1 = newPass
@@ -39,6 +48,7 @@ fun PasswordChangeDialog(
                     visualTransformation = PasswordVisualTransformation(),
                 )
                 OutlinedTextField(
+                    colors = colorOutlinedTextInput ?: OutlinedTextFieldDefaults.colors(),
                     value = password2,
                     onValueChange = { newPass ->
                         password2 = newPass
@@ -61,6 +71,8 @@ fun PasswordChangeDialog(
         },
         confirmButton = {
             TextButton(
+                shape = singleButtonShape,
+                colors = colorTextButtonDefault ?: ButtonDefaults.textButtonColors(),
                 onClick = {
                     if (password1 != password2) {
                         errorMessage = "Вы ввели разные пароли. Попробуйте ввести ещё раз."
@@ -77,6 +89,8 @@ fun PasswordChangeDialog(
         },
         dismissButton = {
             TextButton(
+                shape = singleButtonShape,
+                colors = colorTextButton ?: ButtonDefaults.textButtonColors(),
                 onClick = {
                     errorMessage = ""
                     onCancelClick()

@@ -1,13 +1,16 @@
 package foatto.compose.composable
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -24,6 +27,10 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import foatto.compose.colorCheckBox
+import foatto.compose.colorOutlinedTextInput
+import foatto.compose.colorTextButton
+import foatto.compose.singleButtonShape
 import foatto.compose.utils.getFullUrl
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
@@ -78,6 +85,7 @@ fun LogonForm(
                         Modifier.focusRequester(focusRequester)
                     }
                 ),
+            colors = colorOutlinedTextInput ?: OutlinedTextFieldDefaults.colors(),
             value = login,
             onValueChange = { newText ->
                 onLoginInput(newText)
@@ -104,6 +112,7 @@ fun LogonForm(
                         false
                     }
                 },
+            colors = colorOutlinedTextInput ?: OutlinedTextFieldDefaults.colors(),
             value = password,
             onValueChange = { newText ->
                 onPasswordInput(newText)
@@ -123,7 +132,10 @@ fun LogonForm(
         )
         Row {
             Checkbox(
-                modifier = Modifier.align(Alignment.CenterVertically),
+                modifier = Modifier
+                    .background(Color.Transparent)
+                    .align(Alignment.CenterVertically),
+                colors = colorCheckBox ?: CheckboxDefaults.colors(),
                 checked = isRememberMe,
                 onCheckedChange = { newState ->
                     onIsRememberMeChange(newState)
@@ -136,7 +148,8 @@ fun LogonForm(
         }
         Button(
             modifier = Modifier.align(Alignment.CenterHorizontally),
-            shape = RoundedCornerShape(0.dp),
+            shape = singleButtonShape,
+            colors = colorTextButton ?: ButtonDefaults.buttonColors(),
             onClick = logon,
         ) {
             Text(

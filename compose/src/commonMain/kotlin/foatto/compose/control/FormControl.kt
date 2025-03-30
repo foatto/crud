@@ -12,7 +12,6 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
@@ -120,14 +119,20 @@ class FormControl(
 
         datePickerData?.let { dateTimeData ->
             AlertDialog(
+                shape = alertDialogShape,
                 text = {
-                    DatePicker(state = datePickerState)
+                    DatePicker(
+                        colors = colorDatePicker ?: DatePickerDefaults.colors(),
+                        state = datePickerState,
+                    )
                 },
                 onDismissRequest = {
                     datePickerData = null
                 },
                 confirmButton = {
                     TextButton(
+                        shape = singleButtonShape,
+                        colors = colorTextButtonDefault ?: ButtonDefaults.textButtonColors(),
                         onClick = {
                             datePickerState.selectedDateMillis?.let { millis ->
                                 dateTimeData.current.value = (millis / 1000).toInt()
@@ -140,6 +145,8 @@ class FormControl(
                 },
                 dismissButton = {
                     TextButton(
+                        shape = singleButtonShape,
+                        colors = colorTextButton ?: ButtonDefaults.textButtonColors(),
                         onClick = {
                             datePickerData = null
                         }
@@ -162,14 +169,20 @@ class FormControl(
             timePickerState.minute = localDateTime.minute
 
             AlertDialog(
+                shape = alertDialogShape,
                 text = {
-                    TimePicker(state = timePickerState)
+                    TimePicker(
+                        colors = colorTimePicker ?: TimePickerDefaults.colors(),
+                        state = timePickerState,
+                    )
                 },
                 onDismissRequest = {
                     timePickerData = null
                 },
                 confirmButton = {
                     TextButton(
+                        shape = singleButtonShape,
+                        colors = colorTextButtonDefault ?: ButtonDefaults.textButtonColors(),
                         onClick = {
                             dateTimeData.current.value = LocalDateTime(
                                 year = localDateTime.year,
@@ -187,6 +200,8 @@ class FormControl(
                 },
                 dismissButton = {
                     TextButton(
+                        shape = singleButtonShape,
+                        colors = colorTextButton ?: ButtonDefaults.textButtonColors(),
                         onClick = {
                             timePickerData = null
                         }
@@ -312,6 +327,7 @@ class FormControl(
                                                             Modifier
                                                         }
                                                     ),
+                                                colors = colorOutlinedTextInput ?: OutlinedTextFieldDefaults.colors(),
                                                 value = gridData.current.value,
                                                 onValueChange = { newText ->
                                                     gridData.current.value = newText
@@ -351,11 +367,12 @@ class FormControl(
                                                     modifier = Modifier
                                                         .then(
                                                             if (gridData.data.isEditable) {
-                                                                Modifier.background(colorControlBack)
+                                                                Modifier.background(Color.Transparent)
                                                             } else {
                                                                 Modifier
                                                             }
                                                         ),
+                                                    colors = colorCheckBox ?: CheckboxDefaults.colors(),
                                                     checked = gridData.current.value,
                                                     onCheckedChange = { newState ->
                                                         if (gridData.data.isEditable) {
@@ -434,7 +451,9 @@ class FormControl(
 
                                             Text(text = dateString)
                                             if (gridData.data.isEditable) {
-                                                IconButton(
+                                                FilledIconButton(
+                                                    shape = singleButtonShape,
+                                                    colors = colorIconButton ?: IconButtonDefaults.iconButtonColors(),
                                                     onClick = {
                                                         val curDateTime = gridData.current.value?.let { seconds ->
                                                             seconds * 1000L
@@ -463,7 +482,9 @@ class FormControl(
                                             timeString?.let {
                                                 Text(text = timeString)
                                                 if (gridData.data.isEditable) {
-                                                    IconButton(
+                                                    FilledIconButton(
+                                                        shape = singleButtonShape,
+                                                        colors = colorIconButton ?: IconButtonDefaults.iconButtonColors(),
                                                         onClick = {
                                                             timePickerData = gridData
                                                         }
@@ -503,6 +524,7 @@ class FormControl(
                                                             verticalAlignment = Alignment.CenterVertically,
                                                         ) {
                                                             RadioButton(
+                                                                colors = colorRadioButton ?: RadioButtonDefaults.colors(),
                                                                 selected = gridData.current.value == value,
                                                                 onClick = {
                                                                     if (gridData.data.isEditable) {
@@ -543,6 +565,7 @@ class FormControl(
                                                                 Modifier
                                                             }
                                                         ),
+                                                    colors = colorOutlinedTextInput ?: OutlinedTextFieldDefaults.colors(),
                                                     value = gridData.data.values.find { (value, _) ->
                                                         gridData.current.value == value
                                                     }?.second ?: "(неизвестное значение)",
@@ -607,62 +630,6 @@ class FormControl(
                                         }
 
                                         is FormFileCellClient -> {
-                                            Column {
-                                                for (fileData in gridData.files) {
-                                                    Row(
-                                                        verticalAlignment = Alignment.CenterVertically,
-                                                    ) {
-                                                        Button(
-                                                            enabled = fileData.id >= 0 && fileData.action != null,
-                                                            shape = RoundedCornerShape(0.dp),
-                                                            onClick = {
-                                                                if (fileData.id >= 0) {
-                                                                    fileData.action?.let {
-                                                                        coroutineScope.launch {
-                                                                            showFile(fileData.action)
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                        ) {
-                                                            Text(text = fileData.text)
-                                                        }
-//                                                            backgroundColor(getColorButtonBack())
-//                                                            setBorder(color = getColorButtonBorder(), radius = styleButtonBorderRadius)
-//                                                            fontSize(styleCommonButtonFontSize)
-//                                                            doKeyUp(gridData, syntheticKeyboardEvent)
-                                                        if (gridData.data.isEditable) {
-                                                            ImageOrTextFromNameControl(
-                                                                name = "/web/images/ic_delete_forever_${getStyleOtherIconNameSuffix()}.png",
-                                                                iconSize = styleOtherIconSize,
-                                                                imageButton = { func ->
-                                                                    IconButton(
-                                                                        onClick = {
-                                                                            if (!isFileAddInProgress) {
-                                                                                coroutineScope.launch {
-                                                                                    deleteFile(gridData, fileData.id)
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    ) {
-                                                                        func()
-                                                                    }
-                                                                },
-                                                                textButton = {},
-                                                            )
-//                                                                backgroundColor(getColorFormButtonBack())
-//                                                                setBorder(getStyleFormButtonBorder())
-//                                                                doKeyUp(gridData, syntheticKeyboardEvent)
-                                                        }
-                                                    }
-                                                }
-                                                gridData.error?.let { error ->
-                                                    Text(
-                                                        text = error,
-                                                        color = Color.Red,
-                                                    )
-                                                }
-                                            }
                                             if (gridData.data.isEditable && gridData.data.maxFileCount > gridData.files.size) {
                                                 if (isFileAddInProgress) {
                                                     CircularProgressIndicator()
@@ -671,9 +638,9 @@ class FormControl(
                                                         name = "/web/images/ic_add_${getStyleOtherIconNameSuffix()}.png",
                                                         iconSize = styleOtherIconSize,
                                                         imageButton = { func ->
-                                                            IconButton(
-//                                                        backgroundColor(getColorButtonBack())
-//                                                        setBorder(color = getColorButtonBorder(), radius = styleButtonBorderRadius)
+                                                            FilledIconButton(
+                                                                shape = singleButtonShape,
+                                                                colors = colorIconButton ?: IconButtonDefaults.iconButtonColors(),
                                                                 onClick = {
                                                                     fileGridData = gridData
                                                                     isFilePickerVisible = true
@@ -689,6 +656,60 @@ class FormControl(
                                                     )
                                                 }
                                             }
+                                            Column {
+                                                for (fileData in gridData.files) {
+                                                    Row(
+                                                        verticalAlignment = Alignment.CenterVertically,
+                                                    ) {
+                                                        Button(
+                                                            shape = singleButtonShape,
+                                                            colors = colorTextButton ?: ButtonDefaults.buttonColors(),
+                                                            enabled = fileData.id >= 0 && fileData.action != null,
+                                                            onClick = {
+                                                                if (fileData.id >= 0) {
+                                                                    fileData.action?.let {
+                                                                        coroutineScope.launch {
+                                                                            showFile(fileData.action)
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                        ) {
+                                                            Text(text = fileData.text)
+                                                        }
+//                                                            doKeyUp(gridData, syntheticKeyboardEvent)
+                                                        if (gridData.data.isEditable) {
+                                                            ImageOrTextFromNameControl(
+                                                                name = "/web/images/ic_delete_forever_${getStyleOtherIconNameSuffix()}.png",
+                                                                iconSize = styleOtherIconSize,
+                                                                imageButton = { func ->
+                                                                    FilledIconButton(
+                                                                        shape = singleButtonShape,
+                                                                        colors = colorIconButton ?: IconButtonDefaults.iconButtonColors(),
+                                                                        onClick = {
+                                                                            if (!isFileAddInProgress) {
+                                                                                coroutineScope.launch {
+                                                                                    deleteFile(gridData, fileData.id)
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    ) {
+                                                                        func()
+                                                                    }
+                                                                },
+                                                                textButton = {},
+                                                            )
+//                                                                doKeyUp(gridData, syntheticKeyboardEvent)
+                                                        }
+                                                    }
+                                                }
+                                                gridData.error?.let { error ->
+                                                    Text(
+                                                        text = error,
+                                                        color = Color.Red,
+                                                    )
+                                                }
+                                            }
 //                                            id(getFocusId(gridData.id))
                                         }
                                     }
@@ -699,7 +720,9 @@ class FormControl(
                                                 name = "/web/images/ic_reply_${getStyleOtherIconNameSuffix()}.png",
                                                 iconSize = styleOtherIconSize,
                                                 imageButton = { func ->
-                                                    IconButton(
+                                                    FilledIconButton(
+                                                        shape = singleButtonShape,
+                                                        colors = colorIconButton ?: IconButtonDefaults.iconButtonColors(),
                                                         onClick = {
                                                             if (!isFileAddInProgress) {
                                                                 coroutineScope.launch {
@@ -713,15 +736,15 @@ class FormControl(
                                                 },
                                                 textButton = {},
                                             )
-//                                                backgroundColor(getColorFormButtonBack())
-//                                                setBorder(getStyleFormButtonBorder())
 //                                                doKeyUp(gridData, syntheticKeyboardEvent)
 
                                             ImageOrTextFromNameControl(
                                                 name = "/web/images/ic_delete_forever_${getStyleOtherIconNameSuffix()}.png",
                                                 iconSize = styleOtherIconSize,
                                                 imageButton = { func ->
-                                                    IconButton(
+                                                    FilledIconButton(
+                                                        shape = singleButtonShape,
+                                                        colors = colorIconButton ?: IconButtonDefaults.iconButtonColors(),
                                                         onClick = {
                                                             if (!isFileAddInProgress) {
                                                                 clearSelector(selectorAction)
@@ -733,8 +756,6 @@ class FormControl(
                                                 },
                                                 textButton = {},
                                             )
-////                                                backgroundColor(getColorFormButtonBack())
-////                                                setBorder(getStyleFormButtonBorder())
 ////                                                doKeyUp(gridData, syntheticKeyboardEvent)
                                         }
                                     }
@@ -746,7 +767,6 @@ class FormControl(
             }
 
             //--- Form Button Bar
-//                        backgroundColor(getColorFormBack())
 //                        borderTop(width = 1.px, lineStyle = LineStyle.Solid, color = colorMainBorder)
 //                        padding(styleControlPadding)
             Row(
@@ -762,8 +782,10 @@ class FormControl(
                         name = formButton.name,
                         iconSize = styleOtherIconSize,
                         imageButton = { func ->
-                            IconButton(
+                            FilledIconButton(
                                 modifier = Modifier.padding(2.dp),
+                                shape = singleButtonShape,
+                                colors = colorIconButton ?: IconButtonDefaults.iconButtonColors(),
                                 enabled = !isFileAddInProgress,
                                 onClick = {
                                     if (!isFileAddInProgress) {
@@ -779,11 +801,8 @@ class FormControl(
                         textButton = { caption ->
                             Button(
                                 modifier = Modifier.padding(2.dp),
-                                shape = RoundedCornerShape(4.dp),
-                                colors = ButtonDefaults.textButtonColors().copy(
-                                    containerColor = Color.Transparent,
-                                    contentColor = Color.Black,
-                                ),
+                                shape = singleButtonShape,
+                                colors = colorTextButton ?: ButtonDefaults.buttonColors(),
                                 border = BorderStroke(
                                     width = 2.dp,
                                     color = Color.Black,

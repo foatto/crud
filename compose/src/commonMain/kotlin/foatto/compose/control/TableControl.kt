@@ -9,12 +9,7 @@ import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -65,13 +60,6 @@ import foatto.core.model.response.table.cell.TableGridCell
 import foatto.core.model.response.table.cell.TableSimpleCell
 import kotlinx.coroutines.launch
 import kotlin.math.max
-
-var colorTableCellBorder: Color = Color.hsl(0f, 0f, 0.9f)
-var colorTableRowHover: Color = Color.hsl(133f, 0.54f, 0.93f)
-var colorTableGroupBack0: Color = Color.hsl(0f, 0f, 0.8f)
-var colorTableGroupBack1: Color = Color.hsl(0f, 0f, 0.7f)
-var colorTableRowBack0: Color = Color.hsl(0f, 0f, 1.0f)
-var colorTableRowBack1: Color = Color.hsl(0f, 0f, 0.95f)
 
 typealias SelectorFunType = ((selectorData: Map<String, String>) -> Unit)
 
@@ -182,12 +170,14 @@ class TableControl(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .background(colorToolBar)
                     .horizontalScroll(state = horizontalScrollState)
             ) {
                 alCaptionData.forEachIndexed { col, captionData ->
                     Button(
                         contentPadding = PaddingValues(0.dp),
-                        shape = RoundedCornerShape(0.dp),
+                        shape = RoundedCornerShape(0.dp),   // чтобы получился сплошной ряд заголовков
+                        colors = colorTextButton ?: ButtonDefaults.buttonColors(),
                         modifier = Modifier.then(
                             hmColumnMaxWidth[col]?.let { maxColWidth ->
                                 Modifier.width(maxColWidth)
@@ -231,7 +221,8 @@ class TableControl(
                     for (pageButton in alPageButton) {
                         Button(
                             modifier = Modifier.padding(1.dp),
-                            shape = RoundedCornerShape(0.dp),
+                            shape = RoundedCornerShape(0.dp),   // чтобы получился почти сплошной ряд кнопок
+                            colors = colorTextButton ?: ButtonDefaults.buttonColors(),
                             enabled = pageButton.action != null,
 //                                cursor("pointer")
                             onClick = {
@@ -304,7 +295,7 @@ class TableControl(
                                     .background(
                                         gridData?.let {
                                             if (gridData.dataRow == currentRowNo) {
-                                                colorTableRowHover
+                                                colorTableCurrentRow
                                             } else {
                                                 gridData.backColor
                                             }
@@ -378,7 +369,8 @@ class TableControl(
                                 when (gridData) {
                                     is TableBooleanCellClient -> {
                                         Checkbox(
-                                            modifier = Modifier.padding(TABLE_CELL_PADDING),
+                                            modifier = Modifier.padding(TABLE_CELL_PADDING),    //.background(Color.Transparent), - и без этого хорошо
+                                            colors = colorCheckBox ?: CheckboxDefaults.colors(),
                                             checked = gridData.value,
                                             onCheckedChange = null,
                                         )
@@ -401,7 +393,9 @@ class TableControl(
                                                     name = cellData.name,
                                                     iconSize = styleOtherIconSize,
                                                     imageButton = { func ->
-                                                        IconButton(
+                                                        FilledIconButton(
+                                                            shape = singleButtonShape,
+                                                            colors = colorIconButton ?: IconButtonDefaults.iconButtonColors(),
                                                             onClick = {
                                                                 cellData.action?.let {
                                                                     coroutineScope.launch {
@@ -415,7 +409,8 @@ class TableControl(
                                                     },
                                                     textButton = { caption ->
                                                         Button(
-                                                            shape = RoundedCornerShape(0.dp),
+                                                            shape = singleButtonShape,
+                                                            colors = colorTextButton ?: ButtonDefaults.buttonColors(),
                                                             onClick = {
                                                                 cellData.action?.let {
                                                                     coroutineScope.launch {
@@ -500,7 +495,6 @@ class TableControl(
                 }
             }
 
-            val scrollBarBackColor = ButtonDefaults.buttonColors().containerColor
             Canvas(
                 modifier = Modifier
                     .width(scrollBarWidth)
@@ -552,7 +546,7 @@ class TableControl(
                 drawRect(
                     topLeft = Offset(0.0f, 0.0f),
                     size = Size(with(density) { scrollBarWidth.toPx() }, scrollBarHeight),
-                    color = scrollBarBackColor.copy(alpha = 0.2f),
+                    color = colorScrollBarBack,
                     style = Fill,
                 )
                 val rowHeightSum = rowHeights.values.sum()
@@ -570,7 +564,7 @@ class TableControl(
                 drawRect(
                     topLeft = Offset(0.0f, scrollBarY),
                     size = Size(with(density) { scrollBarWidth.toPx() }, scrollBarH),
-                    color = scrollBarBackColor.copy(alpha = 0.2f),
+                    color = colorScrollBarFore,
                     style = Fill,
                 )
             }

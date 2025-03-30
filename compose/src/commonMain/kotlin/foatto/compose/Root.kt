@@ -8,13 +8,16 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -69,7 +72,7 @@ open class Root {
 
     companion object {
         //--- новый рекорд: Samsung A52, inner width = 509, outer width = 412
-        private val WIDE_SCREEN_WIDTH = 600
+        private const val WIDE_SCREEN_WIDTH = 600
     }
 
     var scaledWindowWidth: Int = 0
@@ -88,6 +91,7 @@ open class Root {
         )
     )
 
+    private var isShowMainMenuButton: Boolean by mutableStateOf(false)
     private val alMenuDataClient = mutableStateListOf<MenuDataClient>()
     private var isShowMainMenu by mutableStateOf(false)
 
@@ -96,7 +100,7 @@ open class Root {
     private val alTabInfo = mutableStateListOf<TabInfo>()
 
     private val alControl = mutableStateListOf<AppControl>()
-    var selectorControl by mutableStateOf<TableControl?>(null)
+    var selectorControl: TableControl? by mutableStateOf(null)
 
     private var waitCount by mutableIntStateOf(0)
 
@@ -115,6 +119,8 @@ open class Root {
 
     @Composable
     fun Content() {
+        setCustomColors()
+
         val density = LocalDensity.current
         val coroutineScope = rememberCoroutineScope()
 
@@ -134,19 +140,24 @@ open class Root {
                 ) {
                     Row {
                         Column {
-                            IconButton(
-                                onClick = {
-                                    isShowMainMenu = !isShowMainMenu
+                            if (isShowMainMenuButton) {
+                                FilledIconButton(
+                                    modifier = Modifier.size(48.dp),
+                                    shape = RoundedCornerShape(0.dp),   // чтобы кнопка заполнила всё пространство
+                                    colors = colorIconButton ?: IconButtonDefaults.iconButtonColors(),
+                                    onClick = {
+                                        isShowMainMenu = !isShowMainMenu
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = if (isShowMainMenu) {
+                                            Icons.Default.Close
+                                        } else {
+                                            Icons.Default.Menu
+                                        },
+                                        contentDescription = null,
+                                    )
                                 }
-                            ) {
-                                Icon(
-                                    imageVector = if (isShowMainMenu) {
-                                        Icons.Default.Close
-                                    } else {
-                                        Icons.Default.Menu
-                                    },
-                                    contentDescription = null,
-                                )
                             }
                             MainMenu(
                                 isShowMainMenu = isShowMainMenu,
@@ -199,6 +210,9 @@ open class Root {
                     ) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(128.dp).align(Alignment.Center),
+                            strokeWidth = 8.dp,
+                            color = colorWait ?: ProgressIndicatorDefaults.circularColor,
+                            trackColor = colorWaitTrack ?: ProgressIndicatorDefaults.circularIndeterminateTrackColor,
                         )
                     }
                 }
@@ -217,6 +231,10 @@ open class Root {
                 }
             }
         }
+    }
+
+    @Composable
+    open fun setCustomColors() {
     }
 
     suspend fun start() {
@@ -258,7 +276,10 @@ open class Root {
                 settings.remove(SETTINGS_LOGON_EXPIRE)
 
                 invokeRequest(LogoffRequest()) { logoffResponse: LogoffResponse ->
+                    isShowMainMenuButton = false
+
                     alMenuDataClient.clear()
+
                     isTabPanelVisible = false
                     selectedTabIndex = 0
                     alTabInfo.clear()
@@ -322,9 +343,12 @@ open class Root {
     }
 
     fun setMenuBarData(alMenuData: List<MenuDataClient>, scaledWindowWidth: Int) {
+        isShowMainMenuButton = true
+
         alMenuDataClient.clear()
         alMenuDataClient.addAll(alMenuData)
         alMenuDataClient.add(getClientSubMenu(appUserConfig, scaledWindowWidth, scaleKoef))
+
         isTabPanelVisible = true
     }
 

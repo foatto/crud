@@ -4,18 +4,20 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import foatto.compose.colorTextButton
 import foatto.compose.control.composable.RefreshSubToolBar
 import foatto.compose.control.composable.ToolBarBlock
 import foatto.compose.control.composable.ToolBarIconButton
 import foatto.compose.control.model.map.MapWorkMode
 import foatto.compose.getStyleToolbarIconNameSuffix
+import foatto.compose.singleButtonShape
 import foatto.core.model.response.xy.XyElementConfig
 
 @Composable
@@ -114,7 +116,8 @@ internal fun MapToolBar(
                 }
                 for (ec in alAddEC) {
                     Button(
-                        shape = RoundedCornerShape(0.dp),
+                        shape = singleButtonShape,
+                        colors = colorTextButton ?: ButtonDefaults.buttonColors(),
                         onClick = {
                             startAdd(ec)
                         }
