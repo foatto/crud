@@ -33,6 +33,7 @@ val hmNameToUrl: MutableMap<String, String> = mutableMapOf(
     IconName.PRINT_TABLE to "/web/images/ic_print_${getStyleToolbarIconNameSuffix()}.png",
 
     IconName.ARCHIVE to "/web/images/ic_archive_${getStyleOtherIconNameSuffix()}.png",
+    IconName.COPY to "/web/images/ic_content_copy_${getStyleOtherIconNameSuffix()}.png",
     IconName.DELETE to "/web/images/ic_delete_forever_${getStyleOtherIconNameSuffix()}.png",
     IconName.EXIT to "/web/images/ic_exit_to_app_${getStyleOtherIconNameSuffix()}.png",
     IconName.FILE to "/web/images/ic_attachment_${getStyleOtherIconNameSuffix()}.png",

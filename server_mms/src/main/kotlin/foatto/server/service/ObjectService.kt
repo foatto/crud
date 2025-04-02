@@ -49,9 +49,9 @@ class ObjectService(
     private val sensorRepository: SensorRepository,
     private val sensorCalibrationRepository: SensorCalibrationRepository,
     private val deviceRepository: DeviceRepository,
-    private val fileService: FileService,
+    private val fileStoreService: FileStoreService,
 ) : ApplicationService(
-    fileService = fileService,
+    fileStoreService = fileStoreService,
 ) {
 
     companion object {
@@ -590,7 +590,7 @@ class ObjectService(
     override fun formActionDelete(userId: Int, id: Int): FormActionResponse {
         //--- remove all depended sensors & datas
         objectRepository.findByIdOrNull(id)?.let { objectEntity ->
-            fileService.deleteFile(objectEntity.fileId, null)
+            fileStoreService.deleteFile(objectEntity.fileId, null)
             sensorRepository.findByObj(objectEntity).forEach { sensorEntity ->
                 SensorService.deleteSensor(
                     entityManager = entityManager,

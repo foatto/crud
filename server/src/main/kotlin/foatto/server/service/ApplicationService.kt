@@ -47,7 +47,7 @@ import java.sql.ResultSet
 import java.sql.Statement
 
 abstract class ApplicationService(
-    private val fileService: FileService,
+    private val fileStoreService: FileStoreService,
 ) {
 
     @Value("\${root_dir}")
@@ -55,6 +55,9 @@ abstract class ApplicationService(
 
     @Value("\${temp_dir}")
     private val tempDirName: String = ""
+
+    @Value("\${file_access_period}")
+    private val fileAccessPeriod: String = "24"  // 24 hour file accessibility by default
 
     companion object {
 
@@ -305,10 +308,10 @@ abstract class ApplicationService(
     )
 
     protected fun getTableFileButtonCellData(fileId: Int?): List<TableButtonCellData> = fileId?.let {
-        fileService.getFileList(fileId).map { (_, url) ->
+        fileStoreService.getFileList(fileId, fileAccessPeriod.toIntOrNull() ?: 24).map { ref ->
             TableButtonCellData(
-                name = url.substringAfterLast('/'),
-                action = AppAction(type = ActionType.FILE, url = url),
+                name = "${fileStoreService.getFileName(ref)} [${((fileStoreService.getFileSize(ref) ?: 0) / 1000) + 1} Кб]",
+                action = AppAction(type = ActionType.FILE, url = fileStoreService.getFileRefUrl(ref)),
                 inNewTab = true,
             )
         }
@@ -479,11 +482,12 @@ abstract class ApplicationService(
     }
 
     protected fun getFormFileCellData(fileId: Int?): List<FormFileData> = fileId?.let {
-        fileService.getFileList(fileId).map { (recordId, url) ->
+        fileStoreService.getFileList(fileId, fileAccessPeriod.toIntOrNull() ?: 24).map { ref ->
             FormFileData(
-                id = recordId,
-                action = AppAction(type = ActionType.FILE, url = url),
-                name = url.substringAfterLast('/'),
+                id = fileStoreService.getFileStoreData(ref)?.id ?: -1,
+                ref = ref,
+                action = AppAction(type = ActionType.FILE, url = fileStoreService.getFileRefUrl(ref)),
+                name = "${fileStoreService.getFileName(ref)} [${((fileStoreService.getFileSize(ref) ?: 0) / 1000) + 1} Кб]",
             )
         }
     } ?: emptyList()
@@ -612,14 +616,14 @@ abstract class ApplicationService(
     protected fun isAdminOnly(userConfig: ServerUserConfig): Boolean = userConfig.roles.size == 1 && userConfig.roles.contains(AppRole.ADMIN)
 
     protected fun formActionSaveFiles(formActionData: FormActionData): Int {
-        val fileId = formActionData.fileId ?: fileService.getNextFileId()
+        val fileId = formActionData.fileId ?: fileStoreService.getNextFileId()
 
         formActionData.addFiles?.forEach { (fromClientId, fileName) ->
-            fileService.addFile(fileId, fromClientId, fileName)
+            fileStoreService.addFile(fileId, fromClientId, fileName)
         }
 
         formActionData.fileRemovedIds?.forEach { idForDelete ->
-            fileService.deleteFile(fileId, idForDelete)
+            fileStoreService.deleteFile(fileId, idForDelete)
         }
 
         return fileId

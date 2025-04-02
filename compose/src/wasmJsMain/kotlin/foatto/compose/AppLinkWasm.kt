@@ -1,14 +1,15 @@
 package foatto.compose
 
 import com.darkrockstudios.libraries.mpfilepicker.PlatformFile
-import foatto.compose.control.model.form.FormFileDataClient
 import foatto.compose.control.model.form.cell.FormFileCellClient
 import foatto.compose.utils.applicationDispatcher
 import foatto.core.ApiUrl
+import foatto.core.model.emptyAction
 import foatto.core.model.request.BaseRequest
 import foatto.core.model.response.BaseResponse
 import foatto.core.model.response.form.FormFileUploadParams
 import foatto.core.model.response.form.FormFileUploadResponse
+import foatto.core.model.response.form.cells.FormFileData
 import foatto.core.util.getRandomInt
 import kotlinx.browser.window
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -57,7 +58,7 @@ internal actual fun invokeUploadFormFile(
         for (platformFile in platformFiles) {
             val id = -getRandomInt()
 
-            gridData.files.add(FormFileDataClient(id, null, platformFile.file.name))
+            gridData.files.add(FormFileData(id, 0, emptyAction(), platformFile.file.name))
             gridData.addFiles[id] = platformFile.file.name
 
             formData_.append(FormFileUploadParams.FORM_FILE_IDS, id.toString())

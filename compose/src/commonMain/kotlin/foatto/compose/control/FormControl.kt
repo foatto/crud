@@ -27,7 +27,9 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.Dp
@@ -35,10 +37,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import foatto.compose.*
+import foatto.compose.composable.FileLinkLifeTimeInputDialog
 import foatto.compose.composable.ImageOrTextFromNameControl
+import foatto.compose.composable.StardartDialog
 import foatto.compose.control.model.form.FormCellCaptionInfo
 import foatto.compose.control.model.form.FormCellVisibleInfo
-import foatto.compose.control.model.form.FormFileDataClient
 import foatto.compose.control.model.form.cell.FormBaseCellClient
 import foatto.compose.control.model.form.cell.FormBooleanCellClient
 import foatto.compose.control.model.form.cell.FormComboCellClient
@@ -47,12 +50,15 @@ import foatto.compose.control.model.form.cell.FormFileCellClient
 import foatto.compose.control.model.form.cell.FormLabelCellClient
 import foatto.compose.control.model.form.cell.FormSimpleCellClient
 import foatto.compose.utils.maxDp
+import foatto.core.IconName
 import foatto.core.model.AppAction
 import foatto.core.model.request.AppRequest
 import foatto.core.model.request.FormActionData
 import foatto.core.model.request.FormActionRequest
+import foatto.core.model.request.GetShortFileLinkRequest
 import foatto.core.model.response.AppResponse
 import foatto.core.model.response.FormActionResponse
+import foatto.core.model.response.GetShortFileLinkResponse
 import foatto.core.model.response.ResponseCode
 import foatto.core.model.response.form.FormButton
 import foatto.core.model.response.form.FormButtonKey
@@ -104,17 +110,30 @@ class FormControl(
     private var isFileAddInProgress by mutableStateOf(false)
     private var fileGridData: FormFileCellClient? = null
 
+    private var dialogActionFun: () -> Unit = {}
+    private var dialogQuestion by mutableStateOf("")
+    private var showDialogCancel by mutableStateOf(false)
+    private var showDialog by mutableStateOf(false)
+    private val dialogButtonOkText by mutableStateOf("OK")
+    private val dialogButtonCancelText by mutableStateOf("Отмена")
+
+    private var showFileLinkLifeTimeInputDialog by mutableStateOf(false)
+    private var copyFileRef: Long = 0
+
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun Body() {
         val density = LocalDensity.current
+        val clipboardManager = LocalClipboardManager.current
         val coroutineScope = rememberCoroutineScope()
+
         var isFilePickerVisible by remember { mutableStateOf(false) }
         val datePickerState = rememberDatePickerState(
             initialDisplayMode = DisplayMode.Picker,
         )
         val timePickerState = rememberTimePickerState()
         val focusRequester = remember { FocusRequester() }
+
         var isFocusRequesterDefined = false
 
         datePickerData?.let { dateTimeData ->
@@ -227,6 +246,41 @@ class FormControl(
                     }
                 }
             }
+        }
+
+        if (showDialog) {
+            StardartDialog(
+                question = dialogQuestion,
+                buttonOkText = dialogButtonOkText,
+                buttonCancelText = dialogButtonCancelText,
+                showCancelButton = showDialogCancel,
+                onOkClick = {
+                    showDialog = false
+                    dialogActionFun()
+                },
+                onCancelClick = { showDialog = false },
+            )
+        }
+
+        if (showFileLinkLifeTimeInputDialog) {
+            FileLinkLifeTimeInputDialog(
+                onOkClick = { hour ->
+                    showFileLinkLifeTimeInputDialog = false
+                    coroutineScope.launch {
+                        invokeRequest(GetShortFileLinkRequest(copyFileRef, hour)) { getShortFileLinkResponse: GetShortFileLinkResponse ->
+                            clipboardManager.setText(AnnotatedString(getShortFileLinkResponse.url))
+
+                            dialogActionFun = {}
+                            dialogQuestion = "Новая ссылка скопирована в буфер обмена"
+                            showDialogCancel = false
+                            showDialog = true
+                        }
+                    }
+                },
+                onCancelClick = {
+                    showFileLinkLifeTimeInputDialog = false
+                }
+            )
         }
 
         Column(
@@ -664,20 +718,36 @@ class FormControl(
                                                         Button(
                                                             shape = singleButtonShape,
                                                             colors = colorTextButton ?: ButtonDefaults.buttonColors(),
-                                                            enabled = fileData.id >= 0 && fileData.action != null,
+                                                            enabled = fileData.id >= 0,
                                                             onClick = {
                                                                 if (fileData.id >= 0) {
-                                                                    fileData.action?.let {
-                                                                        coroutineScope.launch {
-                                                                            showFile(fileData.action)
-                                                                        }
+                                                                    coroutineScope.launch {
+                                                                        showFile(fileData.action)
                                                                     }
                                                                 }
                                                             },
                                                         ) {
-                                                            Text(text = fileData.text)
+                                                            Text(text = fileData.name)
                                                         }
-//                                                            doKeyUp(gridData, syntheticKeyboardEvent)
+                                                        ImageOrTextFromNameControl(
+                                                            name = IconName.COPY,
+                                                            iconSize = styleOtherIconSize,
+                                                            imageButton = { func ->
+                                                                FilledIconButton(
+                                                                    shape = singleButtonShape,
+                                                                    colors = colorIconButton ?: IconButtonDefaults.iconButtonColors(),
+                                                                    onClick = {
+                                                                        if (fileData.id >= 0) {
+                                                                            copyFileRef = fileData.ref
+                                                                            showFileLinkLifeTimeInputDialog = true
+                                                                        }
+                                                                    }
+                                                                ) {
+                                                                    func()
+                                                                }
+                                                            },
+                                                            textButton = {},
+                                                        )
                                                         if (gridData.data.isEditable) {
                                                             ImageOrTextFromNameControl(
                                                                 name = "/web/images/ic_delete_forever_${getStyleOtherIconNameSuffix()}.png",
@@ -1210,13 +1280,7 @@ class FormControl(
                     data = formCell,
                 ).apply {
                     files.clear()
-                    formCell.files.forEach { formFileData ->
-                        files += FormFileDataClient(
-                            id = formFileData.id,
-                            action = formFileData.action,
-                            text = formFileData.name,
-                        )
-                    }
+                    files.addAll(formCell.files)
                 }
             }
 

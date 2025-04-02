@@ -1,14 +1,18 @@
 package foatto.server.controller
 
 import foatto.core.ApiUrl
+import foatto.core.model.request.GetShortFileLinkRequest
+import foatto.core.model.response.GetShortFileLinkResponse
 import foatto.core.model.response.form.FormFileUploadParams
 import foatto.core.model.response.form.FormFileUploadResponse
 import foatto.server.SpringApp
+import foatto.server.service.FileStoreService
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
@@ -17,14 +21,11 @@ import java.net.URLConnection
 import java.util.concurrent.ConcurrentHashMap
 
 @RestController
-class FileController {
+class FileStoreController(
+    private val fileStoreService: FileStoreService,
+) {
 
     companion object {
-        const val FILE_BASE: String = "files"
-
-        val chmFileTime: ConcurrentHashMap<String, Long> = ConcurrentHashMap<String, Long>()
-
-        fun getFileUrl(dirName: String?, fileName: String?): String = "$FILE_BASE/$dirName/$fileName"
 
         fun download(response: HttpServletResponse, path: String) {
             val file = File(path.replace("..", "").replace("//", ""))
@@ -46,8 +47,12 @@ class FileController {
     @Value("\${temp_dir}")
     private val tempDirName: String = ""
 
-    @Value("\${file_access_period}")
-    private val fileAccessPeriod: String = "24"  // 24 hour file accessibility by default
+    @PostMapping(ApiUrl.GET_SHORT_FILE_LINK)
+    fun getShortFileLink(
+        @RequestBody
+        getShortFileLinkRequest: GetShortFileLinkRequest,
+    ): GetShortFileLinkResponse =
+        GetShortFileLinkResponse(url = fileStoreService.getShortFileLink(getShortFileLinkRequest.copyRef, getShortFileLinkRequest.hour))
 
     @PostMapping(ApiUrl.UPLOAD_FORM_FILE)
     fun uploadFormFile(
@@ -64,29 +69,29 @@ class FileController {
         return FormFileUploadResponse()
     }
 
-    @GetMapping(value = ["/$FILE_BASE/{dirName}/{fileName}"])
+    @GetMapping(value = ["/${FileStoreService.FILE_URL_BASE}/{ref}"])
     fun downloadFile(
         response: HttpServletResponse,
-        @PathVariable("dirName")
-        dirName: String,
-        @PathVariable("fileName")
-        fileName: String
+        @PathVariable("ref")
+        refString: String,
     ) {
-        val fileUrl = getFileUrl(dirName, fileName)
-        val fileTime = chmFileTime[fileUrl] ?: 0L
-        if (System.currentTimeMillis() < fileTime + (fileAccessPeriod.toIntOrNull() ?: 24) * 60 * 60) {
-            SpringApp.minioProxy?.let { minioProxy ->
-                val mimeType = URLConnection.guessContentTypeFromName(fileName)
-                val byteArray = minioProxy.loadFileAsByteArray(dirName)
+        refString.toLongOrNull()?.let { ref ->
+            fileStoreService.getFileStoreData(ref)?.let { fileStoreData ->
+                SpringApp.minioProxy?.let { minioProxy ->
+                    val mimeType = URLConnection.guessContentTypeFromName(fileStoreData.name)
+                    val byteArray = minioProxy.loadFileAsByteArray(fileStoreData.dir)
 
-                response.contentType = mimeType
-                response.setContentLength(byteArray.size)
-                response.outputStream.write(byteArray)
+                    response.contentType = mimeType
+                    response.setContentLength(byteArray.size)
+                    response.outputStream.write(byteArray)
+                } ?: run {
+                    download(response, "$rootDirName/${fileStoreService.getFilePath(fileStoreData.dir, fileStoreData.name)}")
+                }
             } ?: run {
-                download(response, "$rootDirName/$fileUrl")
+                response.status = 403   // forbidden
             }
-        } else {
-            response.status = 403   // forbidden
+        } ?: run {
+            response.status = 403       // forbidden
         }
     }
 

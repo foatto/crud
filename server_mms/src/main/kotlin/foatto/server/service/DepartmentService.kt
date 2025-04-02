@@ -30,9 +30,9 @@ import org.springframework.stereotype.Service
 class DepartmentService(
     private val departmentRepository: DepartmentRepository,
     private val objectRepository: ObjectRepository,
-    private val fileService: FileService,
+    private val fileStoreService: FileStoreService,
 ) : ApplicationService(
-    fileService = fileService,
+    fileStoreService = fileStoreService,
 ) {
 
     companion object {

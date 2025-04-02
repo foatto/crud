@@ -1,38 +1,89 @@
 package foatto.server.service
 
+import foatto.core.util.getCurrentTimeInt
 import foatto.core.util.getFilledNumberString
 import foatto.core.util.getRandomInt
+import foatto.core.util.getRandomLong
 import foatto.server.SpringApp
-import foatto.server.controller.FileController
 import foatto.server.entity.FileStoreEntity
+import foatto.server.model.FileStoreData
 import foatto.server.repository.FileStoreRepository
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 
 @Service
-class FileService(
+class FileStoreService(
     private val fileStoreRepository: FileStoreRepository,
 ) {
 
+    companion object {
+        const val FILE_URL_BASE: String = "file"
+        private const val FILE_PATH_BASE = "files"
+
+        private val chmRefData = ConcurrentHashMap<Long, FileStoreData>()
+        private val chmRefTime = ConcurrentHashMap<Long, Int>()
+    }
+
     @Value("\${root_dir}")
-    val rootDirName: String = ""
+    private val rootDirName: String = ""
 
     @Value("\${temp_dir}")
-    protected val tempDirName: String = ""
+    private val tempDirName: String = ""
 
-    fun getFileList(fileId: Int): List<Pair<Int, String>> =
-        fileStoreRepository.findByFileIdOrderByName(fileId).map { fileStoreEntity ->
-            val fileUrl = FileController.getFileUrl(fileStoreEntity.dir, fileStoreEntity.name)
+    @Value("\${server_url}")
+    private val serverUrl: String = ""
 
-            FileController.chmFileTime[fileUrl] = System.currentTimeMillis()
+    fun getFileRefUrl(ref: Long): String = "$FILE_URL_BASE/$ref"
 
-            Pair(fileStoreEntity.id, fileUrl)
+    fun getFileName(ref: Long): String? = chmRefData[ref]?.name
+
+    fun getFileSize(ref: Long): Long? = chmRefData[ref]?.fileSize
+
+    fun getFilePath(dirName: String?, fileName: String?) = "$FILE_PATH_BASE/$dirName/$fileName"
+
+    fun getFileStoreData(ref: Long): FileStoreData? =
+        if (getCurrentTimeInt() < (chmRefTime[ref] ?: 0)) {
+            chmRefData[ref]
+        } else {
+            null
+        }
+
+    fun getShortFileLink(copyRef: Long, hour: Int): String {
+        val newRef = getRandomLong()
+
+        return chmRefData[copyRef]?.let { fileStoreData ->
+            chmRefData[newRef] = fileStoreData
+            chmRefTime[newRef] = getCurrentTimeInt() + hour * 3600
+
+            serverUrl + "/" + getFileRefUrl(newRef)
+        } ?: "(файл не найден)"
+    }
+
+    fun getFileList(fileId: Int, expireHour: Int): List<Long> =
+        fileStoreRepository.findByFileIdOrderByName(fileId).mapNotNull { fileStoreEntity ->
+            fileStoreEntity.name?.let { name ->
+                fileStoreEntity.dir?.let { dir ->
+                    val ref = getRandomLong()
+
+                    chmRefData[ref] = FileStoreData(
+                        id = fileStoreEntity.id,
+                        name = name,
+                        dir = dir,
+                        fileSize = fileStoreEntity.fileSize,
+                    )
+                    chmRefTime[ref] = getCurrentTimeInt() + expireHour * 3600
+
+                    ref
+                }
+            }
         }
 
     fun addFile(fileId: Int, tempFileName: String, fileName: String) {
         val fileFromClient = File(tempDirName, tempFileName)
+        val fileSize = fileFromClient.length()
         val fileStoreId = getNextFileStoreId()
 
         val dirName = SpringApp.minioProxy?.let { minioProxy ->
@@ -41,11 +92,12 @@ class FileService(
                 objectStream = fileFromClient.inputStream(),
                 objectSize = fileFromClient.length()
             )
+            fileFromClient.delete()
 
             fileStoreId.toString()
         } ?: run {
             val dirName = getFreeDir(fileName)
-            val newFile = File(rootDirName, FileController.getFileUrl(dirName, fileName))
+            val newFile = File(rootDirName, getFilePath(dirName, fileName))
 
             fileFromClient.renameTo(newFile)
 
@@ -57,6 +109,7 @@ class FileService(
             fileId = fileId,
             name = fileName,
             dir = dirName,
+            fileSize = fileSize,
         )
         fileStoreRepository.saveAndFlush(fileStoreEntity)
     }
@@ -76,7 +129,7 @@ class FileService(
             SpringApp.minioProxy?.removeFile(
                 objectName = fileStoreEntity.id.toString()
             ) ?: run {
-                val deleteFile = File(rootDirName, FileController.getFileUrl(fileStoreEntity.dir, fileStoreEntity.name))
+                val deleteFile = File(rootDirName, getFilePath(fileStoreEntity.dir, fileStoreEntity.name))
                 if (deleteFile.exists()) {
                     deleteFile.delete()
                 }
@@ -118,7 +171,7 @@ class FileService(
         var i = 0
         while (true) {
             val newDirName = getFilledNumberString(i, 8)
-            val newDir = File(rootDirName, "${FileController.FILE_BASE}/$newDirName")
+            val newDir = File(rootDirName, "$FILE_PATH_BASE/$newDirName")
             newDir.mkdirs()
             val file = File(newDir, fileName)
             if (!file.exists()) {

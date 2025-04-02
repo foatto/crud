@@ -17,6 +17,9 @@ class FileStoreEntity(
     val name: String?,
 
     val dir: String?,
+
+    @Column(name = "file_size")
+    val fileSize: Long?,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -25,6 +28,7 @@ class FileStoreEntity(
         if (fileId != other.fileId) return false
         if (name != other.name) return false
         if (dir != other.dir) return false
+        if (fileSize != other.fileSize) return false
 
         return true
     }
@@ -33,6 +37,7 @@ class FileStoreEntity(
         var result = fileId?.hashCode() ?: 0
         result = 31 * result + (name?.hashCode() ?: 0)
         result = 31 * result + (dir?.hashCode() ?: 0)
+        result = 31 * result + (fileSize?.hashCode() ?: 0)
         return result
     }
 }

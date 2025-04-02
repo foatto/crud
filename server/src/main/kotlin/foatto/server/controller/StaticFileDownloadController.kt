@@ -17,7 +17,7 @@ class StaticFileDownloadController {
     @GetMapping(value = ["/"])
     fun downloadRoot(response: HttpServletResponse) {
 //        response.sendRedirect("https://pulsar.report:444")
-        FileController.download(response, "${rootDirName}/web/index.html")
+        FileStoreController.download(response, "${rootDirName}/web/index.html")
     }
 
     @GetMapping(value = ["/{fileName}"])
@@ -26,7 +26,7 @@ class StaticFileDownloadController {
         @PathVariable("fileName")
         fileName: String
     ) {
-        FileController.download(response, "${rootDirName}/web/$fileName")
+        FileStoreController.download(response, "${rootDirName}/web/$fileName")
     }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -37,7 +37,7 @@ class StaticFileDownloadController {
         @PathVariable("fileName")
         fileName: String
     ) {
-        FileController.download(response, "${rootDirName}/web/$fileName")
+        FileStoreController.download(response, "${rootDirName}/web/$fileName")
     }
 
     @GetMapping(value = ["/web/images/{fileName}"])
@@ -46,7 +46,7 @@ class StaticFileDownloadController {
         @PathVariable("fileName")
         fileName: String
     ) {
-        FileController.download(response, "${rootDirName}/web/images/$fileName")
+        FileStoreController.download(response, "${rootDirName}/web/images/$fileName")
     }
 
     @GetMapping(value = ["/web/js/{fileName}"])
@@ -55,7 +55,7 @@ class StaticFileDownloadController {
         @PathVariable("fileName")
         fileName: String
     ) {
-        FileController.download(response, "${rootDirName}/web/js/$fileName")
+        FileStoreController.download(response, "${rootDirName}/web/js/$fileName")
     }
 
     @GetMapping(value = ["/web/compose/{fileName}"])
@@ -64,7 +64,7 @@ class StaticFileDownloadController {
         @PathVariable("fileName")
         fileName: String
     ) {
-        FileController.download(response, "${rootDirName}/web/compose/$fileName")
+        FileStoreController.download(response, "${rootDirName}/web/compose/$fileName")
     }
 
 //    @GetMapping(value = ["/reports/{fileName}"])

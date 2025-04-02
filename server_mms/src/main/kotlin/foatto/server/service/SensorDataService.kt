@@ -23,9 +23,9 @@ import org.springframework.stereotype.Service
 class SensorDataService(
     private val entityManager: EntityManager,
     private val sensorRepository: SensorRepository,
-    private val fileService: FileService,
+    private val fileStoreService: FileStoreService,
 ) : ApplicationService(
-    fileService = fileService,
+    fileStoreService = fileStoreService,
 ) {
 
     companion object {

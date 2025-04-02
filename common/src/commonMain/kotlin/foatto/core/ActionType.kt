@@ -1,6 +1,8 @@
 package foatto.core
 
 object ActionType {
+    const val NOTHING: String = "NOTHING"
+
     const val FILE: String = "FILE"
 
     const val CHANGE_PASSWORD: String = "CHANGE_PASSWORD"

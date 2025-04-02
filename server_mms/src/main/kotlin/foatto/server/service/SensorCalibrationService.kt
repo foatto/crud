@@ -30,9 +30,9 @@ import org.springframework.stereotype.Service
 class SensorCalibrationService(
     private val sensorRepository: SensorRepository,
     private val sensorCalibrationRepository: SensorCalibrationRepository,
-    private val fileService: FileService,
+    private val fileStoreService: FileStoreService,
 ) : ApplicationService(
-    fileService = fileService,
+    fileStoreService = fileStoreService,
 ) {
 
     companion object {

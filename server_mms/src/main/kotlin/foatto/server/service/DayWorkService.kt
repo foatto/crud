@@ -41,9 +41,9 @@ class DayWorkService(
     private val sensorRepository: SensorRepository,
     private val sensorCalibrationRepository: SensorCalibrationRepository,
     private val calcService: CalcService,
-    private val fileService: FileService,
+    private val fileStoreService: FileStoreService,
 ) : ApplicationService(
-    fileService = fileService,
+    fileStoreService = fileStoreService,
 ) {
 
     companion object {

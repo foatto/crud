@@ -1,5 +1,6 @@
 package foatto.core.model
 
+import foatto.core.ActionType
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -36,3 +37,5 @@ data class AppAction(
 
     val params: Map<String, String> = emptyMap(),
 )
+
+fun emptyAction() = AppAction(type = ActionType.NOTHING)
