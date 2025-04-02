@@ -6,6 +6,7 @@ object ApiUrl {
 
     const val ERROR: String = "$URL_BASE/error/$CURRENT_VERSION"
 
+    const val GET_SHORT_FILE_LINK: String = "$URL_BASE/get_short_file_link/$CURRENT_VERSION"
     const val UPLOAD_FORM_FILE: String = "$URL_BASE/upload_form_file/$CURRENT_VERSION"
 
     const val LOGON: String = "$URL_BASE/logon/$CURRENT_VERSION"

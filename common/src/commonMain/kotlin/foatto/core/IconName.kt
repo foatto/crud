@@ -7,6 +7,7 @@ object IconName {
     const val BOSS: String = "boss"
     const val CHART: String = "chart"
     const val CLOSE: String = "close"
+    const val COPY: String = "copy"
     const val DELETE: String = "delete"
     const val DIVISION: String = "division"
     const val EXIT: String = "exit"
