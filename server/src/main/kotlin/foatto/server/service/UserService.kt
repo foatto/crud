@@ -49,9 +49,9 @@ import org.springframework.stereotype.Service
 @Service
 class UserService(
     private val userRepository: UserRepository,
-    private val fileService: FileService,
+    private val fileStoreService: FileStoreService,
 ) : ApplicationService(
-    fileService = fileService,
+    fileStoreService = fileStoreService,
 ) {
 
     companion object {
@@ -117,7 +117,11 @@ class UserService(
         titles.add(
             0,
             TitleData(
-                action = action.copy(parentId = 0),
+                action = if (titles.isEmpty()) {
+                    null
+                } else {
+                    action.copy(parentId = 0)
+                },
                 text = if (action.isSelectorMode) {
                     "Выбор: "
                 } else {
@@ -638,7 +642,7 @@ class UserService(
 
     override fun formActionDelete(userId: Int, id: Int): FormActionResponse {
         userRepository.findByIdOrNull(id)?.let { userEntity ->
-            fileService.deleteFile(userEntity.fileId, null)
+            fileStoreService.deleteFile(userEntity.fileId, null)
         }
         userRepository.deleteById(id)
         return FormActionResponse(responseCode = ResponseCode.OK)
