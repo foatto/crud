@@ -16,6 +16,10 @@ import foatto.core_mms.addAppModuleUrls
 private const val MMS_FIRM_COLOR_1_H = 213f
 private const val MMS_FIRM_COLOR_1_S = 0.80f
 private const val MMS_FIRM_COLOR_1_L = 0.24f
+//--- фирменный тёмно-синий         #0D54A2 = hsl(211,85%,34%) - с сайта - получается светлее и не очень контрастным с рыжим
+//private const val MMS_FIRM_COLOR_1_H = 211f
+//private const val MMS_FIRM_COLOR_1_S = 0.85f
+//private const val MMS_FIRM_COLOR_1_L = 0.34f
 
 //--- фирменный терракотовый        #F7AA47 = hsl(34,92%,62%)
 private const val MMS_FIRM_COLOR_2_H = 34f

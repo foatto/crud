@@ -31,9 +31,9 @@ import jxl.write.WritableSheet
 import java.io.File
 
 abstract class ReportService(
-    private val fileService: FileService,
+    private val fileStoreService: FileStoreService,
 ) : ApplicationService(
-    fileService = fileService,
+    fileStoreService = fileStoreService,
 ) {
 
     companion object {

@@ -15,15 +15,19 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import foatto.compose.AppControl
 import foatto.compose.Root
 import foatto.compose.control.composable.composite.CompositeToolBar
+import foatto.compose.control.composable.onPointerEvents
 import foatto.compose.control.model.composite.CompositeBlockControl
 import foatto.core.model.response.composite.CompositeResponse
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.max
 
 class CompositeControl(
     protected val root: Root,
@@ -32,12 +36,28 @@ class CompositeControl(
     tabId: Int,
 ) : AbstractControl(tabId) {
 
+    companion object {
+        //--- 350 - узковато - не помещаются некоторые наименования, при этом 6-й столбец на стандартный FullHD уже не помещается;
+        //--- 400 - ширина достаточна, при этом 5-й столбец на стандартный FullHD помещается не полностью;
+        //--- 380 == (1920 - 16) / 5 (с учётом вертикального тулбара)
+        const val BLOCK_MIN_WIDTH: Int = 360
+
+        //--- 200 - низковато, соседние заголовки и подписи располагаются слишком близко
+        const val BLOCK_MIN_HEIGHT: Int = 240
+    }
+
     private var refreshInterval: Int by mutableIntStateOf(0)
+
+    private var canvasWidth: Float by mutableFloatStateOf(0.0f)
+    private var canvasHeight: Float by mutableFloatStateOf(0.0f)
 
     private var oneBlockWidth by mutableFloatStateOf(0.0f)
     private var oneBlockHeight by mutableFloatStateOf(0.0f)
 
     private val blocks = mutableStateListOf<CompositeBlockControl>()
+
+    private var screenOffsetX: Float by mutableFloatStateOf(0.0f)
+    private var screenOffsetY: Float by mutableFloatStateOf(0.0f)
 
     @Composable
     override fun Body() {
@@ -61,22 +81,25 @@ class CompositeControl(
                     .fillMaxSize()
                     .clipToBounds()
                     .onSizeChanged { size ->
-                        oneBlockWidth = size.width.toFloat() / compositeResponse.cols
-                        oneBlockHeight = size.height.toFloat() / compositeResponse.rows
+                        canvasWidth = size.width.toFloat()
+                        canvasHeight = size.height.toFloat()
+
+                        oneBlockWidth = max(BLOCK_MIN_WIDTH * root.scaleKoef, canvasWidth / compositeResponse.cols)
+                        oneBlockHeight = max(BLOCK_MIN_HEIGHT * root.scaleKoef, canvasHeight / compositeResponse.rows)
                     }
-//                    .onPointerEvents(
-//                        withInteractive = withInteractive,
-//                        onPointerDown = { pointerInputChange -> onPointerDown(pointerInputChange) },
-//                        onPointerUp = { pointerInputChange -> onPointerUp(pointerInputChange) },
-//                        onDragStart = { offset -> onDragStart(offset) },
-//                        onDrag = { pointerInputChange, offset -> onDrag(pointerInputChange, offset) },
-//                        onDragEnd = { onDragEnd() },
-//                        onDragCancel = { onDragCancel() },
-//                    ),
+                    .onPointerEvents(
+                        withInteractive = true,
+                        onPointerDown = { pointerInputChange -> },
+                        onPointerUp = { pointerInputChange -> },
+                        onDragStart = { offset -> },
+                        onDrag = { pointerInputChange, offset -> onDrag(pointerInputChange, offset) },
+                        onDragEnd = { },
+                        onDragCancel = { },
+                    ),
             ) {
                 for (block in blocks) {
-                    val blockX = block.x * oneBlockWidth
-                    val blockY = block.y * oneBlockHeight
+                    val blockX = block.x * oneBlockWidth + screenOffsetX
+                    val blockY = block.y * oneBlockHeight + screenOffsetY
                     val blockW = block.w * oneBlockWidth
                     val blockH = block.h * oneBlockHeight
 
@@ -94,7 +117,7 @@ class CompositeControl(
                         block.chartBlock?.MainChartBody(false)
                             ?: block.mapBlock?.getXyElementTemplate(false)
                             ?: block.schemeBlock?.getXyElementTemplate(false)
-                            ?: block.tableBlock?.TableBody(Modifier) //!!! надо сделать всё, кроме тулбара?
+                            ?: block.tableBlock?.TableBody(Modifier)
                             ?: run {
                                 Text(text = "Не задан тип блока!")
                             }
@@ -170,6 +193,34 @@ class CompositeControl(
                             block.schemeBlock?.schemeRefreshView(null, false)
                         }
                 }
+        }
+    }
+
+    private fun onDrag(change: PointerInputChange, dragAmount: Offset) {
+        val pixEndX = compositeResponse.cols * oneBlockWidth
+        val pixEndY = compositeResponse.rows * oneBlockHeight
+
+        val newOffsetX = screenOffsetX + dragAmount.x
+        val newOffsetY = screenOffsetY + dragAmount.y
+
+        if (newOffsetX <= 0) {
+            screenOffsetX = if (newOffsetX >= canvasWidth - pixEndX) {
+                newOffsetX
+            } else {
+                canvasWidth - pixEndX
+            }
+        } else {
+            screenOffsetX = 0.0f
+        }
+
+        if (newOffsetY <= 0) {
+            screenOffsetY = if (newOffsetY >= canvasHeight - pixEndY) {
+                newOffsetY
+            } else {
+                canvasHeight - pixEndY
+            }
+        } else {
+            screenOffsetY = 0.0f
         }
     }
 

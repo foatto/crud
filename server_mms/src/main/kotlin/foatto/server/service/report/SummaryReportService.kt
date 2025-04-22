@@ -9,20 +9,16 @@ import foatto.core.model.response.form.cells.FormBooleanCell
 import foatto.core.model.response.form.cells.FormDateTimeCell
 import foatto.core.model.response.form.cells.FormSimpleCell
 import foatto.core.util.getCurrentTimeInt
-import foatto.core.util.getLocalDateTime
 import foatto.core_mms.AppModuleMMS
 import foatto.server.model.AppModuleConfig
 import foatto.server.model.ServerUserConfig
 import foatto.server.repository.ObjectRepository
 import foatto.server.repository.SensorRepository
 import foatto.server.service.CalcService
-import foatto.server.service.FileService
+import foatto.server.service.FileStoreService
 import foatto.server.service.ObjectService
 import jakarta.persistence.EntityManager
 import jxl.write.WritableSheet
-import kotlinx.datetime.Clock
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalDateTime
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
@@ -32,10 +28,10 @@ class SummaryReportService(
     private val objectRepository: ObjectRepository,
     private val sensorRepository: SensorRepository,
     private val calcService: CalcService,
-    private val fileService: FileService,
+    private val fileStoreService: FileStoreService,
 ) : AbstractPeriodSummaryService(
     calcService,
-    fileService,
+    fileStoreService,
 ) {
 
     companion object {

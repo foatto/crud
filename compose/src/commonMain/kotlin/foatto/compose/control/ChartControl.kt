@@ -79,7 +79,7 @@ class ChartControl(
         private const val MARGIN_TOP = 40
         private const val MARGIN_BOTTOM = 60
 
-        const val GRAPHIC_MIN_HEIGHT: Int = 300
+        const val CHART_MIN_HEIGHT: Int = 300
 
         private const val MIN_GRID_STEP_X = 40  // минимальный шаг между линиями сетки в пикселях
         private const val MIN_GRID_STEP_Y = 40  // минимальный шаг между линиями сетки в пикселях
@@ -812,7 +812,7 @@ class ChartControl(
                 val pixRealHeight = if (grHeight > 0) {
                     grHeight * root.scaleKoef
                 } else {
-                    max(GRAPHIC_MIN_HEIGHT * root.scaleKoef, -grHeight * oneSoftHeight)
+                    max(CHART_MIN_HEIGHT * root.scaleKoef, -grHeight * oneSoftHeight)
                 }
                 outChart(
                     hmIndexColor = hmIndexColor,

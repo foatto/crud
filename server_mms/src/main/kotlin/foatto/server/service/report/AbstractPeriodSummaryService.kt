@@ -6,7 +6,7 @@ import foatto.server.entity.ObjectEntity
 import foatto.server.model.SensorConfig
 import foatto.server.model.ServerUserConfig
 import foatto.server.service.CalcService
-import foatto.server.service.FileService
+import foatto.server.service.FileStoreService
 import jxl.CellView
 import jxl.format.PageOrientation
 import jxl.format.PaperSize
@@ -16,9 +16,9 @@ import java.util.*
 
 abstract class AbstractPeriodSummaryService(
     private val calcService: CalcService,
-    private val fileService: FileService,
+    private val fileStoreService: FileStoreService,
 ) : MMSReportService(
-    fileService = fileService,
+    fileStoreService = fileStoreService,
 ) {
     companion object {
         const val PERM_SHOW_DIFF_INC_DEC: String = "show_diff_inc_dec"
