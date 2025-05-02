@@ -255,238 +255,241 @@ class TableControl(
             modifier = modifier
                 .fillMaxWidth()
         ) {
-            Column(
-                modifier = Modifier
-                    .weight(1.0f)
-                    .fillMaxHeight()
-                    .verticalScroll(state = verticalScrollState)
-                    .horizontalScroll(state = horizontalScrollState)
-                    .draggable(
-                        orientation = Orientation.Horizontal,
-                        state = rememberDraggableState { delta ->
-                            coroutineScope.launch {
-                                horizontalScrollState.scrollBy(-delta)
-                            }
-                        },
-                    )
-                    .draggable(
-                        orientation = Orientation.Vertical,
-                        state = rememberDraggableState { delta ->
-                            coroutineScope.launch {
-                                verticalScrollState.scrollBy(-delta)
-                            }
-                        },
-                    )
-            ) {
-                alGridRows.forEachIndexed { index, alGridRow ->
-                    Row(
-                        modifier = Modifier
-                            //.width(intrinsicSize = IntrinsicSize.Max) - оставлю на память, чтобы опять не искать, но пользы/разницы не увидел
-                            //--- чтобы ячейки занимали всю отведённую им (общую) высоту (работает только совместно с .fillMaxHeight())
-                            .height(intrinsicSize = IntrinsicSize.Max)
-                            .onSizeChanged { size ->
-                                rowHeights[index] = size.height
-                            }
-                    ) {
-                        alGridRow.forEachIndexed { col, gridData ->
-                            Box(
-                                contentAlignment = gridData?.align ?: Alignment.Center,
-                                modifier = Modifier
-                                    .fillMaxHeight()    // работает только совместно с .height(intrinsicSize = IntrinsicSize.Max)
-                                    .background(
-                                        gridData?.let {
-                                            if (gridData.dataRow == currentRowNo) {
-                                                colorTableCurrentRow
-                                            } else {
-                                                gridData.backColor
-                                            }
-                                        } ?: colorMainBack0
-                                    )
-                                    .border(BorderStroke(width = 0.1.dp, color = colorTableCellBorder))
-                                    //.wrapContentSize(align = Alignment.Center, unbounded = true)  //- ничем не помогает
-                                    //--- Непрямой метод поймать правую кнопку мыши. Ждём, когда завезут официальную реакцию на правую мышь.
-                                    .pointerInput(Unit) {
-                                        awaitEachGesture {
-                                            val event = awaitPointerEvent()
-                                            if (event.buttons.isSecondaryPressed) {
-                                                showPopupMenu(gridData)
+            //--- bugfix for verticalScrollState/horizontalScrollState value cashing
+            key(verticalScrollState, horizontalScrollState) {
+                Column(
+                    modifier = Modifier
+                        .weight(1.0f)
+                        .fillMaxHeight()
+                        .verticalScroll(state = verticalScrollState)
+                        .horizontalScroll(state = horizontalScrollState)
+                        .draggable(
+                            orientation = Orientation.Horizontal,
+                            state = rememberDraggableState { delta ->
+                                coroutineScope.launch {
+                                    horizontalScrollState.scrollBy(-delta)
+                                }
+                            },
+                        )
+                        .draggable(
+                            orientation = Orientation.Vertical,
+                            state = rememberDraggableState { delta ->
+                                coroutineScope.launch {
+                                    verticalScrollState.scrollBy(-delta)
+                                }
+                            },
+                        )
+                ) {
+                    alGridRows.forEachIndexed { index, alGridRow ->
+                        Row(
+                            modifier = Modifier
+                                //.width(intrinsicSize = IntrinsicSize.Max) - оставлю на память, чтобы опять не искать, но пользы/разницы не увидел
+                                //--- чтобы ячейки занимали всю отведённую им (общую) высоту (работает только совместно с .fillMaxHeight())
+                                .height(intrinsicSize = IntrinsicSize.Max)
+                                .onSizeChanged { size ->
+                                    rowHeights[index] = size.height
+                                }
+                        ) {
+                            alGridRow.forEachIndexed { col, gridData ->
+                                Box(
+                                    contentAlignment = gridData?.align ?: Alignment.Center,
+                                    modifier = Modifier
+                                        .fillMaxHeight()    // работает только совместно с .height(intrinsicSize = IntrinsicSize.Max)
+                                        .background(
+                                            gridData?.let {
+                                                if (gridData.dataRow == currentRowNo) {
+                                                    colorTableCurrentRow
+                                                } else {
+                                                    gridData.backColor
+                                                }
+                                            } ?: colorMainBack0
+                                        )
+                                        .border(BorderStroke(width = 0.1.dp, color = colorTableCellBorder))
+                                        //.wrapContentSize(align = Alignment.Center, unbounded = true)  //- ничем не помогает
+                                        //--- Непрямой метод поймать правую кнопку мыши. Ждём, когда завезут официальную реакцию на правую мышь.
+                                        .pointerInput(Unit) {
+                                            awaitEachGesture {
+                                                val event = awaitPointerEvent()
+                                                if (event.buttons.isSecondaryPressed) {
+                                                    showPopupMenu(gridData)
+                                                }
                                             }
                                         }
-                                    }
-                                    .combinedClickable(
-                                        onDoubleClick = {
-                                            gridData?.dataRow?.let { dataRow ->
-                                                val rowData = alRowData[dataRow]
-                                                rowData.rowAction?.let { rowAction ->
-                                                    coroutineScope.launch {
-                                                        call(rowAction, rowData.isRowUrlInNewTab)
+                                        .combinedClickable(
+                                            onDoubleClick = {
+                                                gridData?.dataRow?.let { dataRow ->
+                                                    val rowData = alRowData[dataRow]
+                                                    rowData.rowAction?.let { rowAction ->
+                                                        coroutineScope.launch {
+                                                            call(rowAction, rowData.isRowUrlInNewTab)
+                                                        }
                                                     }
                                                 }
-                                            }
-                                        },
-                                        onClick = {
-                                            currentGridData = gridData
-                                            setCurrentRow(gridData?.dataRow)
-                                        },
-                                        onLongClick = {
-                                            showPopupMenu(gridData)
-                                        },
-                                    )
-                                    .onSizeChanged { size ->
-                                        gridData?.let {
-                                            val componentWidth = with(density) {
-                                                maxDp(size.width.toDp(), gridData.minWidth.dp)
-                                            }
-                                            gridData.componentWidth = maxDp(gridData.componentWidth, componentWidth)
-
-                                            hmColumnMaxWidth[col] = maxDp(
-                                                hmColumnMaxWidth[col] ?: 0.dp,
-                                                if (gridData.colSpan == 1) {
-                                                    componentWidth
-                                                } else {
-                                                    8.dp    // minWidth for explicitly empty column (from group-column)
-                                                }
-                                            )
-                                        }
-                                    }
-                                    .then(
-                                        gridData?.let {
-                                            var maxColWidth: Dp? = null
-                                            for (c in col until col + gridData.colSpan) {
-                                                hmColumnMaxWidth[c]?.let { cmw ->
-                                                    maxColWidth = (maxColWidth ?: 0.dp) + cmw
-                                                }
-                                            }
-                                            maxColWidth?.let { mcw ->
-                                                if (gridData.componentWidth < mcw) {
-                                                    Modifier.width(mcw)
-                                                } else {
-                                                    Modifier.width(gridData.componentWidth)
-                                                }
-                                            }
-                                        } ?: Modifier
-                                    )
-                            ) {
-                                when (gridData) {
-                                    is TableBooleanCellClient -> {
-                                        Checkbox(
-                                            modifier = Modifier.padding(TABLE_CELL_PADDING),    //.background(Color.Transparent), - и без этого хорошо
-                                            colors = colorCheckBox ?: CheckboxDefaults.colors(),
-                                            checked = gridData.value,
-                                            onCheckedChange = null,
+                                            },
+                                            onClick = {
+                                                currentGridData = gridData
+                                                setCurrentRow(gridData?.dataRow)
+                                            },
+                                            onLongClick = {
+                                                showPopupMenu(gridData)
+                                            },
                                         )
-                                    }
+                                        .onSizeChanged { size ->
+                                            gridData?.let {
+                                                val componentWidth = with(density) {
+                                                    maxDp(size.width.toDp(), gridData.minWidth.dp)
+                                                }
+                                                gridData.componentWidth = maxDp(gridData.componentWidth, componentWidth)
 
-                                    is TableSimpleCellClient -> {
-                                        TableImageOrTextCell(
-                                            baseCellData = gridData,
-                                            cellData = gridData.data,
-                                            modifier = Modifier.padding(TABLE_CELL_PADDING),
-                                        )
-                                    }
-
-                                    is TableButtonCellClient -> {
-                                        Column(
-                                            modifier = Modifier.padding(TABLE_CELL_PADDING),
-                                        ) {
-                                            gridData.data.forEach { cellData ->
-                                                ImageOrTextFromNameControl(
-                                                    name = cellData.name,
-                                                    iconSize = styleOtherIconSize,
-                                                    imageButton = { func ->
-                                                        FilledIconButton(
-                                                            shape = singleButtonShape,
-                                                            colors = colorIconButton ?: IconButtonDefaults.iconButtonColors(),
-                                                            onClick = {
-                                                                cellData.action?.let {
-                                                                    coroutineScope.launch {
-                                                                        call(cellData.action, cellData.inNewTab)
-                                                                    }
-                                                                }
-                                                            }
-                                                        ) {
-                                                            func()
-                                                        }
-                                                    },
-                                                    textButton = { caption ->
-                                                        Button(
-                                                            shape = singleButtonShape,
-                                                            colors = colorTextButton ?: ButtonDefaults.buttonColors(),
-                                                            onClick = {
-                                                                cellData.action?.let {
-                                                                    coroutineScope.launch {
-                                                                        call(cellData.action, cellData.inNewTab)
-                                                                    }
-                                                                }
-                                                            }
-                                                        ) {
-                                                            Text(
-                                                                text = caption,
-//                                                                color = gridData.textColor,
-                                                                fontWeight = if (gridData.isBoldText) {
-                                                                    FontWeight.Bold
-                                                                } else {
-                                                                    null
-                                                                },
-                                                            )
-                                                        }
+                                                hmColumnMaxWidth[col] = maxDp(
+                                                    hmColumnMaxWidth[col] ?: 0.dp,
+                                                    if (gridData.colSpan == 1) {
+                                                        componentWidth
+                                                    } else {
+                                                        8.dp    // minWidth for explicitly empty column (from group-column)
                                                     }
                                                 )
                                             }
                                         }
-                                    }
+                                        .then(
+                                            gridData?.let {
+                                                var maxColWidth: Dp? = null
+                                                for (c in col until col + gridData.colSpan) {
+                                                    hmColumnMaxWidth[c]?.let { cmw ->
+                                                        maxColWidth = (maxColWidth ?: 0.dp) + cmw
+                                                    }
+                                                }
+                                                maxColWidth?.let { mcw ->
+                                                    if (gridData.componentWidth < mcw) {
+                                                        Modifier.width(mcw)
+                                                    } else {
+                                                        Modifier.width(gridData.componentWidth)
+                                                    }
+                                                }
+                                            } ?: Modifier
+                                        )
+                                ) {
+                                    when (gridData) {
+                                        is TableBooleanCellClient -> {
+                                            Checkbox(
+                                                modifier = Modifier.padding(TABLE_CELL_PADDING),    //.background(Color.Transparent), - и без этого хорошо
+                                                colors = colorCheckBox ?: CheckboxDefaults.colors(),
+                                                checked = gridData.value,
+                                                onCheckedChange = null,
+                                            )
+                                        }
 
-                                    is TableGridCellClient -> {
-                                        Column(
-                                            modifier = Modifier.padding(TABLE_CELL_PADDING),
-                                        ) {
-                                            gridData.data.forEach { alRow ->
-                                                Row(
-                                                    //horizontalArrangement = Arrangement.SpaceBetween, - don't work properly (?), use Spacer
-                                                ) {
-                                                    alRow.forEachIndexed { index, cellData ->
-                                                        if (index > 0) {
-                                                            Spacer(modifier = Modifier.weight(1.0f))
+                                        is TableSimpleCellClient -> {
+                                            TableImageOrTextCell(
+                                                baseCellData = gridData,
+                                                cellData = gridData.data,
+                                                modifier = Modifier.padding(TABLE_CELL_PADDING),
+                                            )
+                                        }
+
+                                        is TableButtonCellClient -> {
+                                            Column(
+                                                modifier = Modifier.padding(TABLE_CELL_PADDING),
+                                            ) {
+                                                gridData.data.forEach { cellData ->
+                                                    ImageOrTextFromNameControl(
+                                                        name = cellData.name,
+                                                        iconSize = styleOtherIconSize,
+                                                        imageButton = { func ->
+                                                            FilledIconButton(
+                                                                shape = singleButtonShape,
+                                                                colors = colorIconButton ?: IconButtonDefaults.iconButtonColors(),
+                                                                onClick = {
+                                                                    cellData.action?.let {
+                                                                        coroutineScope.launch {
+                                                                            call(cellData.action, cellData.inNewTab)
+                                                                        }
+                                                                    }
+                                                                }
+                                                            ) {
+                                                                func()
+                                                            }
+                                                        },
+                                                        textButton = { caption ->
+                                                            Button(
+                                                                shape = singleButtonShape,
+                                                                colors = colorTextButton ?: ButtonDefaults.buttonColors(),
+                                                                onClick = {
+                                                                    cellData.action?.let {
+                                                                        coroutineScope.launch {
+                                                                            call(cellData.action, cellData.inNewTab)
+                                                                        }
+                                                                    }
+                                                                }
+                                                            ) {
+                                                                Text(
+                                                                    text = caption,
+//                                                                color = gridData.textColor,
+                                                                    fontWeight = if (gridData.isBoldText) {
+                                                                        FontWeight.Bold
+                                                                    } else {
+                                                                        null
+                                                                    },
+                                                                )
+                                                            }
                                                         }
-                                                        val modifier = if (index > 0) {
-                                                            Modifier.padding(start = TABLE_CELL_PADDING)
-                                                        } else {
-                                                            Modifier
+                                                    )
+                                                }
+                                            }
+                                        }
+
+                                        is TableGridCellClient -> {
+                                            Column(
+                                                modifier = Modifier.padding(TABLE_CELL_PADDING),
+                                            ) {
+                                                gridData.data.forEach { alRow ->
+                                                    Row(
+                                                        //horizontalArrangement = Arrangement.SpaceBetween, - don't work properly (?), use Spacer
+                                                    ) {
+                                                        alRow.forEachIndexed { index, cellData ->
+                                                            if (index > 0) {
+                                                                Spacer(modifier = Modifier.weight(1.0f))
+                                                            }
+                                                            val modifier = if (index > 0) {
+                                                                Modifier.padding(start = TABLE_CELL_PADDING)
+                                                            } else {
+                                                                Modifier
+                                                            }
+                                                            TableImageOrTextCell(
+                                                                baseCellData = gridData,
+                                                                cellData = cellData,
+                                                                modifier = modifier,
+                                                            )
                                                         }
-                                                        TableImageOrTextCell(
-                                                            baseCellData = gridData,
-                                                            cellData = cellData,
-                                                            modifier = modifier,
-                                                        )
                                                     }
                                                 }
                                             }
                                         }
-                                    }
 
-                                    else -> {}
-                                }
-                                if (!tableAction.isSelectorMode) {
-                                    gridData?.let {
-                                        DropdownMenu(
-                                            expanded = gridData.isShowPopupMenu,
-                                            onDismissRequest = {
-                                                gridData.isShowPopupMenu = false
-                                            },
-                                        ) {
-                                            GenerateMenuBody(
-                                                alMenuDataClient = gridData.alCurrentPopupData!!,
-                                                level = 0,
-                                                closeMenu = {
+                                        else -> {}
+                                    }
+                                    if (!tableAction.isSelectorMode) {
+                                        gridData?.let {
+                                            DropdownMenu(
+                                                expanded = gridData.isShowPopupMenu,
+                                                onDismissRequest = {
                                                     gridData.isShowPopupMenu = false
                                                 },
-                                                menuClick = { action: AppAction, inNewTab: Boolean ->
-                                                    gridData.isShowPopupMenu = false
-                                                    coroutineScope.launch {
-                                                        call(action, inNewTab)
-                                                    }
-                                                },
-                                            )
+                                            ) {
+                                                GenerateMenuBody(
+                                                    alMenuDataClient = gridData.alCurrentPopupData!!,
+                                                    level = 0,
+                                                    closeMenu = {
+                                                        gridData.isShowPopupMenu = false
+                                                    },
+                                                    menuClick = { action: AppAction, inNewTab: Boolean ->
+                                                        gridData.isShowPopupMenu = false
+                                                        coroutineScope.launch {
+                                                            call(action, inNewTab)
+                                                        }
+                                                    },
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -494,10 +497,7 @@ class TableControl(
                         }
                     }
                 }
-            }
 
-            //--- bugfix for verticalScrollState value cashing
-            key(verticalScrollState) {
                 VerticalScrollBody()
             }
         }
