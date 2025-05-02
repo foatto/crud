@@ -77,6 +77,8 @@ class TableControl(
 ) : AbstractControl(tabId) {
 
     companion object {
+        private val SCROLL_BAR_WIDTH = 16.dp
+
         private val TABLE_CELL_PADDING = 16.dp
     }
 
@@ -114,8 +116,7 @@ class TableControl(
     private var pageUpAction: AppAction? = null
     private var pageDownAction: AppAction? = null
 
-    private val scrollBarWidth = 16.dp
-    private var scrollBarHeight: Float by mutableFloatStateOf(0.0f)
+    private var hScrollBarLength: Float by mutableFloatStateOf(0.0f)
     private val rowHeights = mutableStateMapOf<Int, Int>()
 
     private val verticalScrollState = ScrollState(0)
@@ -495,14 +496,26 @@ class TableControl(
                 }
             }
 
-            Canvas(
-                modifier = Modifier
-                    .width(scrollBarWidth)
-                    .fillMaxHeight()
-                    .onSizeChanged { size ->
-                        scrollBarHeight = size.height.toFloat()
-                    }
-                    .clipToBounds()
+            //--- bugfix for verticalScrollState value cashing
+            key(verticalScrollState) {
+                VerticalScrollBody()
+            }
+        }
+    }
+
+    @Composable
+    private fun VerticalScrollBody() {
+        val density = LocalDensity.current
+        val coroutineScope = rememberCoroutineScope()
+
+        Canvas(
+            modifier = Modifier
+                .width(SCROLL_BAR_WIDTH)
+                .fillMaxHeight()
+                .onSizeChanged { size ->
+                    hScrollBarLength = size.height.toFloat()
+                }
+                .clipToBounds()
 //TODO: отложим реализацию пока не очень нужных кликов по free-зонам скроллбара
 //                        .pointerInput(Unit) {
 //                            awaitEachGesture {
@@ -520,54 +533,53 @@ class TableControl(
 //                                }
 //                            }
 //                        }
-                    .pointerInput(Unit) {
-                        detectDragGestures(
-                            onDrag = { change, dragAmount ->
-                                change.consume()
-                                val dy = dragAmount.y
-                                if (
-                                    dy < 0 && verticalScrollState.value > 0 ||
-                                    dy > 0 && verticalScrollState.value < verticalScrollState.maxValue
-                                ) {
-                                    coroutineScope.launch {
-                                        val rowHeightSum = rowHeights.values.sum()
-                                        val scaleY = if (scrollBarHeight >= rowHeightSum) {
-                                            1.0f
-                                        } else {
-                                            rowHeightSum / scrollBarHeight
-                                        }
-                                        verticalScrollState.scrollTo((verticalScrollState.value + dy * scaleY).toInt())
+                .pointerInput(Unit) {
+                    detectDragGestures(
+                        onDrag = { change, dragAmount ->
+                            change.consume()
+                            val dy = dragAmount.y
+                            if (
+                                dy < 0 && verticalScrollState.value > 0 ||
+                                dy > 0 && verticalScrollState.value < verticalScrollState.maxValue
+                            ) {
+                                coroutineScope.launch {
+                                    val rowHeightSum = rowHeights.values.sum()
+                                    val scaleY = if (hScrollBarLength >= rowHeightSum) {
+                                        1.0f
+                                    } else {
+                                        rowHeightSum / hScrollBarLength
                                     }
+                                    verticalScrollState.scrollTo((verticalScrollState.value + dy * scaleY).toInt())
                                 }
-                            },
-                        )
-                    },
-            ) {
-                drawRect(
-                    topLeft = Offset(0.0f, 0.0f),
-                    size = Size(with(density) { scrollBarWidth.toPx() }, scrollBarHeight),
-                    color = colorScrollBarBack,
-                    style = Fill,
-                )
-                val rowHeightSum = rowHeights.values.sum()
-                val koefY = if (scrollBarHeight >= rowHeightSum) {
-                    1.0f
-                } else {
-                    scrollBarHeight / rowHeightSum
-                }
-                val scrollBarH = scrollBarHeight * koefY
-                val scrollBarY = if (scrollBarHeight >= rowHeightSum) {
-                    0.0f
-                } else {
-                    (scrollBarHeight - scrollBarH) * verticalScrollState.value / verticalScrollState.maxValue
-                }
-                drawRect(
-                    topLeft = Offset(0.0f, scrollBarY),
-                    size = Size(with(density) { scrollBarWidth.toPx() }, scrollBarH),
-                    color = colorScrollBarFore,
-                    style = Fill,
-                )
+                            }
+                        },
+                    )
+                },
+        ) {
+            drawRect(
+                topLeft = Offset(0.0f, 0.0f),
+                size = Size(with(density) { SCROLL_BAR_WIDTH.toPx() }, hScrollBarLength),
+                color = colorScrollBarBack,
+                style = Fill,
+            )
+            val rowHeightSum = rowHeights.values.sum()
+            val koefY = if (hScrollBarLength >= rowHeightSum) {
+                1.0f
+            } else {
+                hScrollBarLength / rowHeightSum
             }
+            val scrollBarH = hScrollBarLength * koefY
+            val scrollBarY = if (hScrollBarLength >= rowHeightSum) {
+                0.0f
+            } else {
+                (hScrollBarLength - scrollBarH) * verticalScrollState.value / verticalScrollState.maxValue
+            }
+            drawRect(
+                topLeft = Offset(0.0f, scrollBarY),
+                size = Size(with(density) { SCROLL_BAR_WIDTH.toPx() }, scrollBarH),
+                color = colorScrollBarFore,
+                style = Fill,
+            )
         }
     }
 
@@ -906,7 +918,11 @@ class TableControl(
         }
     }
 
-    private suspend fun call(newAppAction: AppAction, inNewTab: Boolean) {
+    suspend fun refreshTableFromComposite() {
+//!!!        call(tableAction, false, false) - сейчас обновляется вся вкладка!
+    }
+
+    private suspend fun call(newAppAction: AppAction, inNewTab: Boolean, withWait: Boolean = true) {
         if (tableAction.isSelectorMode) {
             when (newAppAction.type) {
                 ActionType.FORM_SELECTOR -> {
@@ -920,7 +936,9 @@ class TableControl(
                         isSelectorMode = true,
                         selectorFunId = tableAction.selectorFunId,
                     )
-                    root.setWait(true)
+                    if (withWait) {
+                        root.setWait(true)
+                    }
                     invokeRequest(
                         AppRequest(
                             action = selectorAppAction
@@ -937,7 +955,9 @@ class TableControl(
                                 println("Wrong response.responseCode in SELECTOR_MODE = ${appResponse.responseCode}")
                             }
                         }
-                        root.setWait(false)
+                        if (withWait) {
+                            root.setWait(false)
+                        }
                     }
 
                 }

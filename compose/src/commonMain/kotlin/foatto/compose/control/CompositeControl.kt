@@ -71,7 +71,7 @@ class CompositeControl(
                 setInterval = { interval: Int -> coroutineScope.launch { setInterval(interval) } },
             )
 
-            //--- compositeResponse после загрузки меняется, а состояние внутри функций (onDrag, например) - нет
+            //--- bugfix for compositeResponse value caching
             key(compositeResponse) {
                 Box(
                     modifier = Modifier
