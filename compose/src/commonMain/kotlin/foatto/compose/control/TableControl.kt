@@ -60,6 +60,7 @@ import foatto.core.model.response.table.cell.TableGridCell
 import foatto.core.model.response.table.cell.TableSimpleCell
 import kotlinx.coroutines.launch
 import kotlin.math.max
+import kotlin.math.min
 
 typealias SelectorFunType = ((selectorData: Map<String, String>) -> Unit)
 
@@ -115,6 +116,9 @@ class TableControl(
 
     private var pageUpAction: AppAction? = null
     private var pageDownAction: AppAction? = null
+
+    private var tableBodyWidth: Float by mutableFloatStateOf(0.0f)
+    private var tableBodyHeight: Float by mutableFloatStateOf(0.0f)
 
     private var vScrollBarLength: Float by mutableFloatStateOf(0.0f)
     private val rowHeights = mutableStateMapOf<Int, Float>()
@@ -269,6 +273,10 @@ class TableControl(
                         modifier = Modifier
                             .weight(1.0f)
                             .fillMaxHeight()
+                            .onSizeChanged { size ->
+                                tableBodyWidth = size.width.toFloat()
+                                tableBodyHeight = size.height.toFloat()
+                            }
                             .verticalScroll(state = verticalScrollState)
                             .horizontalScroll(state = horizontalScrollState)
                             .draggable(
@@ -542,12 +550,9 @@ class TableControl(
                         ) {
                             coroutineScope.launch {
                                 val rowHeightSum = rowHeights.values.sum()
-                                val scaleY = if (vScrollBarLength >= rowHeightSum) {
-                                    1.0f
-                                } else {
-                                    rowHeightSum / vScrollBarLength
-                                }
-                                verticalScrollState.scrollTo((verticalScrollState.value + dy * scaleY).toInt())
+                                val incScaleY = max(1.0f, rowHeightSum / vScrollBarLength)
+                                verticalScrollState.scrollBy(dy * incScaleY)
+                                //verticalScrollState.scrollTo((verticalScrollState.value + dy * incScaleY).toInt())
                             }
                         }
                     },
@@ -562,13 +567,9 @@ class TableControl(
                 style = Fill,
             )
             val rowHeightSum = rowHeights.values.sum()
-            val koefY = if (vScrollBarLength >= rowHeightSum) {
-                1.0f
-            } else {
-                vScrollBarLength / rowHeightSum
-            }
-            val scrollBarH = vScrollBarLength * koefY
-            val scrollBarY = if (vScrollBarLength >= rowHeightSum) {
+            val decScaleY = min(1.0f, tableBodyHeight / rowHeightSum)
+            val scrollBarH = vScrollBarLength * decScaleY
+            val scrollBarY = if (tableBodyHeight >= rowHeightSum) {
                 0.0f
             } else {
                 (vScrollBarLength - scrollBarH) * verticalScrollState.value / verticalScrollState.maxValue
@@ -608,12 +609,9 @@ class TableControl(
                         ) {
                             coroutineScope.launch {
                                 val colWidthSum = colWidths.values.sum()
-                                val scaleX = if (hScrollBarLength >= colWidthSum) {
-                                    1.0f
-                                } else {
-                                    colWidthSum / hScrollBarLength
-                                }
-                                horizontalScrollState.scrollTo((horizontalScrollState.value + dx * scaleX).toInt())
+                                val incScaleX = max(1.0f, colWidthSum / hScrollBarLength)
+                                horizontalScrollState.scrollBy(dx * incScaleX)
+                                //horizontalScrollState.scrollTo((horizontalScrollState.value + dx * incScaleX).toInt())
                             }
                         }
                     },
@@ -628,13 +626,9 @@ class TableControl(
                 style = Fill,
             )
             val colWidthSum = colWidths.values.sum()
-            val koefX = if (hScrollBarLength >= colWidthSum) {
-                1.0f
-            } else {
-                hScrollBarLength / colWidthSum
-            }
-            val scrollBarW = hScrollBarLength * koefX
-            val scrollBarX = if (hScrollBarLength >= colWidthSum) {
+            val decScaleX = min(1.0f, tableBodyWidth / colWidthSum)
+            val scrollBarW = hScrollBarLength * decScaleX
+            val scrollBarX = if (tableBodyWidth >= colWidthSum) {
                 0.0f
             } else {
                 (hScrollBarLength - scrollBarW) * horizontalScrollState.value / horizontalScrollState.maxValue
