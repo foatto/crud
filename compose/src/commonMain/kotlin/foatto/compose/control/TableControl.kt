@@ -3,7 +3,6 @@ package foatto.compose.control
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.gestures.scrollBy
@@ -29,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import foatto.compose.*
 import foatto.compose.composable.GenerateMenuBody
 import foatto.compose.composable.ImageOrTextFromNameControl
+import foatto.compose.control.composable.onPointerEvents
 import foatto.compose.control.composable.table.TableImageOrTextCell
 import foatto.compose.control.composable.table.TableToolBar
 import foatto.compose.control.model.table.AddActionButtonClient
@@ -529,45 +529,31 @@ class TableControl(
                     vScrollBarLength = size.height.toFloat()
                 }
                 .clipToBounds()
-//TODO: отложим реализацию пока не очень нужных кликов по free-зонам скроллбара
-//                        .pointerInput(Unit) {
-//                            awaitEachGesture {
-//                                awaitFirstDown().also { pointerInputChange: PointerInputChange ->
-//                                    pointerInputChange.consume()
-//                                    onPointerDown(pointerInputChange) - не используется
-//                                }
-//                                while (true) {
-//                                    val pointerInputChange = waitForUpOrCancellation()
-//                                    if (pointerInputChange != null) {
-//                                        pointerInputChange.consume()
-//                                        onPointerUp(pointerInputChange)
-//                                        break
-//                                    }
-//                                }
-//                            }
-//                        }
-                .pointerInput(Unit) {
-                    detectDragGestures(
-                        onDrag = { change, dragAmount ->
-                            change.consume()
-                            val dy = dragAmount.y
-                            if (
-                                dy < 0 && verticalScrollState.value > 0 ||
-                                dy > 0 && verticalScrollState.value < verticalScrollState.maxValue
-                            ) {
-                                coroutineScope.launch {
-                                    val rowHeightSum = rowHeights.values.sum()
-                                    val scaleY = if (vScrollBarLength >= rowHeightSum) {
-                                        1.0f
-                                    } else {
-                                        rowHeightSum / vScrollBarLength
-                                    }
-                                    verticalScrollState.scrollTo((verticalScrollState.value + dy * scaleY).toInt())
+                .onPointerEvents(
+                    withInteractive = true,
+                    onPointerDown = { pointerInputChange -> },
+                    onPointerUp = { pointerInputChange -> },
+                    onDragStart = { offset -> },
+                    onDrag = { pointerInputChange, offset ->
+                        val dy = offset.y
+                        if (
+                            dy < 0 && verticalScrollState.value > 0 ||
+                            dy > 0 && verticalScrollState.value < verticalScrollState.maxValue
+                        ) {
+                            coroutineScope.launch {
+                                val rowHeightSum = rowHeights.values.sum()
+                                val scaleY = if (vScrollBarLength >= rowHeightSum) {
+                                    1.0f
+                                } else {
+                                    rowHeightSum / vScrollBarLength
                                 }
+                                verticalScrollState.scrollTo((verticalScrollState.value + dy * scaleY).toInt())
                             }
-                        },
-                    )
-                },
+                        }
+                    },
+                    onDragEnd = { },
+                    onDragCancel = { },
+                )
         ) {
             drawRect(
                 topLeft = Offset(0.0f, 0.0f),
@@ -609,45 +595,31 @@ class TableControl(
                     hScrollBarLength = size.width.toFloat()
                 }
                 .clipToBounds()
-//TODO: отложим реализацию пока не очень нужных кликов по free-зонам скроллбара
-//                        .pointerInput(Unit) {
-//                            awaitEachGesture {
-//                                awaitFirstDown().also { pointerInputChange: PointerInputChange ->
-//                                    pointerInputChange.consume()
-//                                    onPointerDown(pointerInputChange) - не используется
-//                                }
-//                                while (true) {
-//                                    val pointerInputChange = waitForUpOrCancellation()
-//                                    if (pointerInputChange != null) {
-//                                        pointerInputChange.consume()
-//                                        onPointerUp(pointerInputChange)
-//                                        break
-//                                    }
-//                                }
-//                            }
-//                        }
-                .pointerInput(Unit) {
-                    detectDragGestures(
-                        onDrag = { change, dragAmount ->
-                            change.consume()
-                            val dx = dragAmount.x
-                            if (
-                                dx < 0 && horizontalScrollState.value > 0 ||
-                                dx > 0 && horizontalScrollState.value < horizontalScrollState.maxValue
-                            ) {
-                                coroutineScope.launch {
-                                    val colWidthSum = colWidths.values.sum()
-                                    val scaleX = if (hScrollBarLength >= colWidthSum) {
-                                        1.0f
-                                    } else {
-                                        colWidthSum / hScrollBarLength
-                                    }
-                                    horizontalScrollState.scrollTo((horizontalScrollState.value + dx * scaleX).toInt())
+                .onPointerEvents(
+                    withInteractive = true,
+                    onPointerDown = { pointerInputChange -> },
+                    onPointerUp = { pointerInputChange -> },
+                    onDragStart = { offset -> },
+                    onDrag = { pointerInputChange, offset ->
+                        val dx = offset.x
+                        if (
+                            dx < 0 && horizontalScrollState.value > 0 ||
+                            dx > 0 && horizontalScrollState.value < horizontalScrollState.maxValue
+                        ) {
+                            coroutineScope.launch {
+                                val colWidthSum = colWidths.values.sum()
+                                val scaleX = if (hScrollBarLength >= colWidthSum) {
+                                    1.0f
+                                } else {
+                                    colWidthSum / hScrollBarLength
                                 }
+                                horizontalScrollState.scrollTo((horizontalScrollState.value + dx * scaleX).toInt())
                             }
-                        },
-                    )
-                },
+                        }
+                    },
+                    onDragEnd = { },
+                    onDragCancel = { },
+                )
         ) {
             drawRect(
                 topLeft = Offset(0.0f, 0.0f),
