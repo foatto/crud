@@ -9,6 +9,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 class CompositeBlock(
+    val isScrollable: Boolean,
+
     val x: Int,
     val y: Int,
     val w: Int,

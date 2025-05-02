@@ -6,6 +6,8 @@ import foatto.compose.control.SchemeControl
 import foatto.compose.control.TableControl
 
 class CompositeBlockControl(
+    val isScrollable: Boolean,
+
     val x: Float,
     val y: Float,
     val w: Float,

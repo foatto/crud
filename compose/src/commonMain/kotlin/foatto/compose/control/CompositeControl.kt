@@ -6,13 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
@@ -24,6 +18,7 @@ import foatto.compose.Root
 import foatto.compose.control.composable.composite.CompositeToolBar
 import foatto.compose.control.composable.onPointerEvents
 import foatto.compose.control.model.composite.CompositeBlockControl
+import foatto.core.model.response.composite.CompositeBlock
 import foatto.core.model.response.composite.CompositeResponse
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -54,7 +49,7 @@ class CompositeControl(
     private var oneBlockWidth by mutableFloatStateOf(0.0f)
     private var oneBlockHeight by mutableFloatStateOf(0.0f)
 
-    private val blocks = mutableStateListOf<CompositeBlockControl>()
+    private var blocks by mutableStateOf<List<CompositeBlockControl>>(emptyList())
 
     private var screenOffsetX: Float by mutableFloatStateOf(0.0f)
     private var screenOffsetY: Float by mutableFloatStateOf(0.0f)
@@ -76,51 +71,62 @@ class CompositeControl(
                 setInterval = { interval: Int -> coroutineScope.launch { setInterval(interval) } },
             )
 
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clipToBounds()
-                    .onSizeChanged { size ->
-                        canvasWidth = size.width.toFloat()
-                        canvasHeight = size.height.toFloat()
+            //--- compositeResponse после загрузки меняется, а состояние внутри функций (onDrag, например) - нет
+            key(compositeResponse) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clipToBounds()
+                        .onSizeChanged { size ->
+                            canvasWidth = size.width.toFloat()
+                            canvasHeight = size.height.toFloat()
 
-                        oneBlockWidth = max(BLOCK_MIN_WIDTH * root.scaleKoef, canvasWidth / compositeResponse.cols)
-                        oneBlockHeight = max(BLOCK_MIN_HEIGHT * root.scaleKoef, canvasHeight / compositeResponse.rows)
-                    }
-                    .onPointerEvents(
-                        withInteractive = true,
-                        onPointerDown = { pointerInputChange -> },
-                        onPointerUp = { pointerInputChange -> },
-                        onDragStart = { offset -> },
-                        onDrag = { pointerInputChange, offset -> onDrag(pointerInputChange, offset) },
-                        onDragEnd = { },
-                        onDragCancel = { },
-                    ),
-            ) {
-                for (block in blocks) {
-                    val blockX = block.x * oneBlockWidth + screenOffsetX
-                    val blockY = block.y * oneBlockHeight + screenOffsetY
-                    val blockW = block.w * oneBlockWidth
-                    val blockH = block.h * oneBlockHeight
+                            oneBlockWidth = max(BLOCK_MIN_WIDTH * root.scaleKoef, canvasWidth / compositeResponse.cols)
+                            oneBlockHeight = max(BLOCK_MIN_HEIGHT * root.scaleKoef, canvasHeight / compositeResponse.rows)
+                        }
+                        .onPointerEvents(
+                            withInteractive = true,
+                            onPointerDown = { pointerInputChange -> },
+                            onPointerUp = { pointerInputChange -> },
+                            onDragStart = { offset -> },
+                            onDrag = { pointerInputChange, offset -> onDrag(pointerInputChange, offset) },
+                            onDragEnd = { },
+                            onDragCancel = { },
+                        ),
+                ) {
+                    for (block in blocks) {
+                        val blockX = block.x * oneBlockWidth + if (block.isScrollable) {
+                            screenOffsetX
+                        } else {
+                            0.0f
+                        }
+                        val blockY = block.y * oneBlockHeight + if (block.isScrollable) {
+                            screenOffsetY
+                        } else {
+                            0.0f
+                        }
+                        val blockW = block.w * oneBlockWidth
+                        val blockH = block.h * oneBlockHeight
 
-                    Box(
-                        modifier = Modifier
-                            .offset(
-                                x = with(density) { blockX.toDp() },
-                                y = with(density) { blockY.toDp() },
-                            )
-                            .size(
-                                width = with(density) { blockW.toDp() },
-                                height = with(density) { blockH.toDp() },
-                            )
-                    ) {
-                        block.chartBlock?.MainChartBody(false)
-                            ?: block.mapBlock?.getXyElementTemplate(false)
-                            ?: block.schemeBlock?.getXyElementTemplate(false)
-                            ?: block.tableBlock?.TableBody(Modifier)
-                            ?: run {
-                                Text(text = "Не задан тип блока!")
-                            }
+                        Box(
+                            modifier = Modifier
+                                .offset(
+                                    x = with(density) { blockX.toDp() },
+                                    y = with(density) { blockY.toDp() },
+                                )
+                                .size(
+                                    width = with(density) { blockW.toDp() },
+                                    height = with(density) { blockH.toDp() },
+                                )
+                        ) {
+                            block.chartBlock?.MainChartBody(false)
+                                ?: block.mapBlock?.getXyElementTemplate(false)
+                                ?: block.schemeBlock?.getXyElementTemplate(false)
+                                ?: block.tableBlock?.TableBody(Modifier)
+                                ?: run {
+                                    Text(text = "Не задан тип блока!")
+                                }
+                        }
                     }
                 }
             }
@@ -138,42 +144,55 @@ class CompositeControl(
         root.setTabInfo(tabId, compositeResponse.tabCaption)
         headerData = compositeResponse.headerData
 
-        blocks.clear()
-        compositeResponse.blocks.forEach { blockControlData ->
-            blocks += CompositeBlockControl(
-                x = blockControlData.x.toFloat(),
-                y = blockControlData.y.toFloat(),
-                w = blockControlData.w.toFloat(),
-                h = blockControlData.h.toFloat(),
-                chartBlock = blockControlData.chartResponse?.let { chartResponse ->
-                    ChartControl(root, appControl, blockControlData.action, chartResponse, tabId).apply {
-                        startChartBody()
-                    }
-                },
-                mapBlock = blockControlData.mapResponse?.let { mapResponse ->
-                    MapControl(root, appControl, blockControlData.action, mapResponse, tabId).apply {
-                        startMapBody(curScale = this.minXyScale)
-                    }
-                },
-                schemeBlock = blockControlData.schemeResponse?.let { schemeResponse ->
-                    SchemeControl(root, appControl, blockControlData.action, schemeResponse, tabId).apply {
-                        startSchemeBody(
-                            startExpandKoef = SchemeControl.SCHEME_START_EXPAND_KOEF,
-                            isCentered = true,
-                            curScale = 1,
-                        )
-                    }
-                },
-                tableBlock = blockControlData.tableResponse?.let { tableResponse ->
-                    TableControl(root, appControl, blockControlData.action, tableResponse, tabId).apply {
-                        startTableBody()
-                    }
-                },
-            )
+        val newBlocks = mutableListOf<CompositeBlockControl>()
+
+        //--- scrollable blocks first
+        compositeResponse.blocks.filter { block -> block.isScrollable }.forEach { blockControlData ->
+            readBlock(blockControlData, newBlocks)
         }
+        //--- static/non-scrollable blocks seconds (as next layer for drawing)
+        compositeResponse.blocks.filter { block -> !block.isScrollable }.forEach { blockControlData ->
+            readBlock(blockControlData, newBlocks)
+        }
+
+        blocks = newBlocks
         /*
             !!! setInterval(10)
          */
+    }
+
+    private suspend fun readBlock(blockControlData: CompositeBlock, newBlocks: MutableList<CompositeBlockControl>) {
+        newBlocks += CompositeBlockControl(
+            isScrollable = blockControlData.isScrollable,
+            x = blockControlData.x.toFloat(),
+            y = blockControlData.y.toFloat(),
+            w = blockControlData.w.toFloat(),
+            h = blockControlData.h.toFloat(),
+            chartBlock = blockControlData.chartResponse?.let { chartResponse ->
+                ChartControl(root, appControl, blockControlData.action, chartResponse, tabId).apply {
+                    startChartBody()
+                }
+            },
+            mapBlock = blockControlData.mapResponse?.let { mapResponse ->
+                MapControl(root, appControl, blockControlData.action, mapResponse, tabId).apply {
+                    startMapBody(curScale = this.minXyScale)
+                }
+            },
+            schemeBlock = blockControlData.schemeResponse?.let { schemeResponse ->
+                SchemeControl(root, appControl, blockControlData.action, schemeResponse, tabId).apply {
+                    startSchemeBody(
+                        startExpandKoef = SchemeControl.SCHEME_START_EXPAND_KOEF,
+                        isCentered = true,
+                        curScale = 1,
+                    )
+                }
+            },
+            tableBlock = blockControlData.tableResponse?.let { tableResponse ->
+                TableControl(root, appControl, blockControlData.action, tableResponse, tabId).apply {
+                    startTableBody()
+                }
+            },
+        )
     }
 
     private suspend fun setInterval(sec: Int) {
@@ -188,10 +207,11 @@ class CompositeControl(
         for (block in blocks) {
             block.chartBlock?.doChartRefresh(null, false)
                 ?: run {
-                    block.mapBlock?.mapRefreshView(null, false)
-                        ?: run {
-                            block.schemeBlock?.schemeRefreshView(null, false)
-                        }
+                    block.chartBlock?.doChartRefresh(null, false)
+                        ?: block.mapBlock?.mapRefreshView(null, false)
+                        ?: block.schemeBlock?.schemeRefreshView(null, false)
+                        ?: block.tableBlock?.refreshTableFromComposite()
+                        ?: println("refreshAll: не задан тип блока!")
                 }
         }
     }

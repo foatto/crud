@@ -113,6 +113,7 @@ class CompositeObjectDashboardService(
 
         sensorEntities.forEach { (sensorType, sensorEntity) ->
             blocks += CompositeBlock(
+                isScrollable = true,
                 x = col,
                 y = row,
                 w = 1,
