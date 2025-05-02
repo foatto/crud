@@ -1,20 +1,22 @@
 package foatto.compose.control
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
 import foatto.compose.AppControl
 import foatto.compose.Root
+import foatto.compose.colorScrollBarBack
+import foatto.compose.colorScrollBarFore
 import foatto.compose.control.composable.composite.CompositeToolBar
 import foatto.compose.control.composable.onPointerEvents
 import foatto.compose.control.model.composite.CompositeBlockControl
@@ -23,6 +25,7 @@ import foatto.core.model.response.composite.CompositeResponse
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.max
+import kotlin.math.min
 
 class CompositeControl(
     protected val root: Root,
@@ -32,6 +35,8 @@ class CompositeControl(
 ) : AbstractControl(tabId) {
 
     companion object {
+        private val SCROLL_BAR_TICKNESS = 16.dp
+
         //--- 350 - узковато - не помещаются некоторые наименования, при этом 6-й столбец на стандартный FullHD уже не помещается;
         //--- 400 - ширина достаточна, при этом 5-й столбец на стандартный FullHD помещается не полностью;
         //--- 380 == (1920 - 16) / 5 (с учётом вертикального тулбара)
@@ -50,6 +55,9 @@ class CompositeControl(
     private var oneBlockHeight by mutableFloatStateOf(0.0f)
 
     private var blocks by mutableStateOf<List<CompositeBlockControl>>(emptyList())
+
+    private var vScrollBarLength: Float by mutableFloatStateOf(0.0f)
+    private var hScrollBarLength: Float by mutableFloatStateOf(0.0f)
 
     private var screenOffsetX: Float by mutableFloatStateOf(0.0f)
     private var screenOffsetY: Float by mutableFloatStateOf(0.0f)
@@ -73,62 +81,71 @@ class CompositeControl(
 
             //--- bugfix for compositeResponse value caching
             key(compositeResponse) {
-                Box(
+                Row(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .clipToBounds()
-                        .onSizeChanged { size ->
-                            canvasWidth = size.width.toFloat()
-                            canvasHeight = size.height.toFloat()
-
-                            oneBlockWidth = max(BLOCK_MIN_WIDTH * root.scaleKoef, canvasWidth / compositeResponse.cols)
-                            oneBlockHeight = max(BLOCK_MIN_HEIGHT * root.scaleKoef, canvasHeight / compositeResponse.rows)
-                        }
-                        .onPointerEvents(
-                            withInteractive = true,
-                            onPointerDown = { pointerInputChange -> },
-                            onPointerUp = { pointerInputChange -> },
-                            onDragStart = { offset -> },
-                            onDrag = { pointerInputChange, offset -> onDrag(pointerInputChange, offset) },
-                            onDragEnd = { },
-                            onDragCancel = { },
-                        ),
+                        .weight(1.0f)
+                        .fillMaxWidth()
                 ) {
-                    for (block in blocks) {
-                        val blockX = block.x * oneBlockWidth + if (block.isScrollable) {
-                            screenOffsetX
-                        } else {
-                            0.0f
-                        }
-                        val blockY = block.y * oneBlockHeight + if (block.isScrollable) {
-                            screenOffsetY
-                        } else {
-                            0.0f
-                        }
-                        val blockW = block.w * oneBlockWidth
-                        val blockH = block.h * oneBlockHeight
+                    Box(
+                        modifier = Modifier
+                            .weight(1.0f)
+                            .fillMaxSize()
+                            .clipToBounds()
+                            .onSizeChanged { size ->
+                                canvasWidth = size.width.toFloat()
+                                canvasHeight = size.height.toFloat()
 
-                        Box(
-                            modifier = Modifier
-                                .offset(
-                                    x = with(density) { blockX.toDp() },
-                                    y = with(density) { blockY.toDp() },
-                                )
-                                .size(
-                                    width = with(density) { blockW.toDp() },
-                                    height = with(density) { blockH.toDp() },
-                                )
-                        ) {
-                            block.chartBlock?.MainChartBody(false)
-                                ?: block.mapBlock?.getXyElementTemplate(false)
-                                ?: block.schemeBlock?.getXyElementTemplate(false)
-                                ?: block.tableBlock?.TableBody(Modifier)
-                                ?: run {
-                                    Text(text = "Не задан тип блока!")
-                                }
+                                oneBlockWidth = max(BLOCK_MIN_WIDTH * root.scaleKoef, canvasWidth / compositeResponse.cols)
+                                oneBlockHeight = max(BLOCK_MIN_HEIGHT * root.scaleKoef, canvasHeight / compositeResponse.rows)
+                            }
+                            .onPointerEvents(
+                                withInteractive = true,
+                                onPointerDown = { pointerInputChange -> },
+                                onPointerUp = { pointerInputChange -> },
+                                onDragStart = { offset -> },
+                                onDrag = { pointerInputChange, offset -> onDrag(pointerInputChange, offset.x, offset.y) },
+                                onDragEnd = { },
+                                onDragCancel = { },
+                            ),
+                    ) {
+                        for (block in blocks) {
+                            val blockX = block.x * oneBlockWidth + if (block.isScrollable) {
+                                screenOffsetX
+                            } else {
+                                0.0f
+                            }
+                            val blockY = block.y * oneBlockHeight + if (block.isScrollable) {
+                                screenOffsetY
+                            } else {
+                                0.0f
+                            }
+                            val blockW = block.w * oneBlockWidth
+                            val blockH = block.h * oneBlockHeight
+
+                            Box(
+                                modifier = Modifier
+                                    .offset(
+                                        x = with(density) { blockX.toDp() },
+                                        y = with(density) { blockY.toDp() },
+                                    )
+                                    .size(
+                                        width = with(density) { blockW.toDp() },
+                                        height = with(density) { blockH.toDp() },
+                                    )
+                            ) {
+                                block.chartBlock?.MainChartBody(false)
+                                    ?: block.mapBlock?.getXyElementTemplate(false)
+                                    ?: block.schemeBlock?.getXyElementTemplate(false)
+                                    ?: block.tableBlock?.TableBody(Modifier)
+                                    ?: run {
+                                        Text(text = "Не задан тип блока!")
+                                    }
+                            }
                         }
                     }
+                    VerticalScrollBody()
                 }
+                HorizontalScrollBody()
             }
         }
 
@@ -137,6 +154,106 @@ class CompositeControl(
                 refreshAll()
                 delay(refreshInterval * 1000L)
             }
+        }
+    }
+
+    @Composable
+    private fun VerticalScrollBody() {
+        val density = LocalDensity.current
+        val coroutineScope = rememberCoroutineScope()
+
+        Canvas(
+            modifier = Modifier
+                .width(SCROLL_BAR_TICKNESS)
+                .fillMaxHeight()
+                .onSizeChanged { size ->
+                    vScrollBarLength = size.height.toFloat()
+                }
+                .clipToBounds()
+                .onPointerEvents(
+                    withInteractive = true,
+                    onPointerDown = { pointerInputChange -> },
+                    onPointerUp = { pointerInputChange -> },
+                    onDragStart = { offset -> },
+                    onDrag = { pointerInputChange, offset ->
+                        val pixEndY = compositeResponse.rows * oneBlockHeight
+                        val incScaleY = pixEndY / vScrollBarLength
+                        onDrag(pointerInputChange, 0.0f, -offset.y * incScaleY)
+                    },
+                    onDragEnd = { },
+                    onDragCancel = { },
+                )
+        ) {
+            drawRect(
+                topLeft = Offset(0.0f, 0.0f),
+                size = Size(with(density) { SCROLL_BAR_TICKNESS.toPx() }, vScrollBarLength),
+                color = colorScrollBarBack,
+                style = Fill,
+            )
+            val pixEndY = compositeResponse.rows * oneBlockHeight
+            val decScaleY = min(1.0f, canvasHeight / pixEndY)
+            val scrollBarH = vScrollBarLength * decScaleY
+            val scrollBarY = if (canvasHeight >= pixEndY) {
+                0.0f
+            } else {
+                (vScrollBarLength - scrollBarH) * (-screenOffsetY) / (pixEndY - canvasHeight)
+            }
+            drawRect(
+                topLeft = Offset(0.0f, scrollBarY),
+                size = Size(with(density) { SCROLL_BAR_TICKNESS.toPx() }, scrollBarH),
+                color = colorScrollBarFore,
+                style = Fill,
+            )
+        }
+    }
+
+    @Composable
+    private fun HorizontalScrollBody() {
+        val density = LocalDensity.current
+        val coroutineScope = rememberCoroutineScope()
+
+        Canvas(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(SCROLL_BAR_TICKNESS)
+                .onSizeChanged { size ->
+                    hScrollBarLength = size.width.toFloat()
+                }
+                .clipToBounds()
+                .onPointerEvents(
+                    withInteractive = true,
+                    onPointerDown = { pointerInputChange -> },
+                    onPointerUp = { pointerInputChange -> },
+                    onDragStart = { offset -> },
+                    onDrag = { pointerInputChange, offset ->
+                        val pixEndX = compositeResponse.cols * oneBlockWidth
+                        val incScaleX = pixEndX / hScrollBarLength
+                        onDrag(pointerInputChange, -offset.x * incScaleX, 0.0f)
+                    },
+                    onDragEnd = { },
+                    onDragCancel = { },
+                )
+        ) {
+            drawRect(
+                topLeft = Offset(0.0f, 0.0f),
+                size = Size(hScrollBarLength, with(density) { SCROLL_BAR_TICKNESS.toPx() }),
+                color = colorScrollBarBack,
+                style = Fill,
+            )
+            val pixEndX = compositeResponse.cols * oneBlockWidth
+            val decScaleX = min(1.0f, canvasWidth / pixEndX)
+            val scrollBarW = hScrollBarLength * decScaleX
+            val scrollBarX = if (canvasWidth >= pixEndX) {
+                0.0f
+            } else {
+                (hScrollBarLength - scrollBarW) * (-screenOffsetX) / (pixEndX - canvasWidth)
+            }
+            drawRect(
+                topLeft = Offset(scrollBarX, 0.0f),
+                size = Size(scrollBarW, with(density) { SCROLL_BAR_TICKNESS.toPx() }),
+                color = colorScrollBarFore,
+                style = Fill,
+            )
         }
     }
 
@@ -216,12 +333,12 @@ class CompositeControl(
         }
     }
 
-    private fun onDrag(change: PointerInputChange, dragAmount: Offset) {
+    private fun onDrag(change: PointerInputChange, dx: Float, dy: Float) {
         val pixEndX = compositeResponse.cols * oneBlockWidth
         val pixEndY = compositeResponse.rows * oneBlockHeight
 
-        val newOffsetX = screenOffsetX + dragAmount.x
-        val newOffsetY = screenOffsetY + dragAmount.y
+        val newOffsetX = screenOffsetX + dx
+        val newOffsetY = screenOffsetY + dy
 
         if (newOffsetX <= 0) {
             screenOffsetX = if (newOffsetX >= canvasWidth - pixEndX) {
