@@ -70,6 +70,8 @@ class UserService(
         private const val FIELD_TIME_OFFSET = "timeOffset"
         private const val FIELD_EMAIL = "eMail"
         private const val FIELD_CONTACT_INFO = "contactInfo"
+        private const val FIELD_USE_THOUSANDS_DIVIDER = "useThousandsDivider"
+        private const val FIELD_DECIMAL_SEPARATOR = "decimalSeparator"
         private const val FIELD_FILE = "fileId"
 
         private const val FIELD_AT_COUNT = "atCount"
@@ -341,7 +343,6 @@ class UserService(
         val id = action.id
 
         val userEntity = id?.let {
-            //--- TODO: ошибка об отсутствии такой записи
             userRepository.findByIdOrNull(id) ?: return emptyList()
         }
 
@@ -479,6 +480,19 @@ class UserService(
             value = userEntity?.contactInfo ?: "",
             rows = 5,
         )
+        formCells += FormBooleanCell(
+            name = FIELD_USE_THOUSANDS_DIVIDER,
+            caption = "Разделять тысячи пробелами",
+            isEditable = changeEnabled,
+            value = userEntity?.useThousandsDivider ?: true,
+            visibility = nonVisibleForDivision,
+        )
+        formCells += FormSimpleCell(
+            name = FIELD_DECIMAL_SEPARATOR,
+            caption = "Разделить дробной части",
+            isEditable = changeEnabled,
+            value = userEntity?.decimalSeparator ?: ".",
+        )
         formCells += FormFileCell(
             name = FIELD_FILE,
             caption = "Файлы",
@@ -560,7 +574,6 @@ class UserService(
     ): FormActionResponse {
         val id = action.id
 
-        //TODO: общий Map со всеми ошибками
         val fullName = formActionData[FIELD_FULL_NAME]?.stringValue?.trim() ?: return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_FULL_NAME to "Не введёно полное имя"))
         if (fullName.isEmpty()) {
             return FormActionResponse(responseCode = ResponseCode.ERROR, errors = mapOf(FIELD_FULL_NAME to "Не введёно полное имя"))
@@ -616,6 +629,8 @@ class UserService(
             timeOffset = formActionData[FIELD_TIME_OFFSET]?.stringValue?.toIntOrNull() ?: 0,
             eMail = formActionData[FIELD_EMAIL]?.stringValue,
             contactInfo = formActionData[FIELD_CONTACT_INFO]?.stringValue,
+            useThousandsDivider = formActionData[FIELD_USE_THOUSANDS_DIVIDER]?.booleanValue ?: true,
+            decimalSeparator = formActionData[FIELD_DECIMAL_SEPARATOR]?.stringValue ?: ".",
             fileId = formActionData[FIELD_FILE]?.let { fad ->
                 formActionSaveFiles(fad)
             },

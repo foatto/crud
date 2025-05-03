@@ -40,16 +40,22 @@ class UserEntity(
     val roles: Set<String> = emptySet(),
 
     @Column(name = "time_offset")
-    val timeOffset: Int?,
+    var timeOffset: Int?,
 
     @Column(name = "e_mail")
-    val eMail: String?,
+    var eMail: String?,
 
     @Column(name = "contact_info")
-    val contactInfo: String?,
+    var contactInfo: String?,
+
+    @Column(name = "use_thousands_divider")
+    var useThousandsDivider: Boolean?,
+
+    @Column(name = "decimal_separator")
+    var decimalSeparator: String?,
 
     @Column(name = "file_id")
-    val fileId: Int?,
+    var fileId: Int?,
 
     @Column(name = "at_count")
     val atCount: Int?,
@@ -94,6 +100,8 @@ class UserEntity(
         if (timeOffset != other.timeOffset) return false
         if (eMail != other.eMail) return false
         if (contactInfo != other.contactInfo) return false
+        if (useThousandsDivider != other.useThousandsDivider) return false
+        if (decimalSeparator != other.decimalSeparator) return false
         if (fileId != other.fileId) return false
         if (atCount != other.atCount) return false
         if (lastLoginDateTime != other.lastLoginDateTime) return false
@@ -116,6 +124,8 @@ class UserEntity(
         result = 31 * result + (timeOffset ?: 0)
         result = 31 * result + (eMail?.hashCode() ?: 0)
         result = 31 * result + (contactInfo?.hashCode() ?: 0)
+        result = 31 * result + (useThousandsDivider?.hashCode() ?: 0)
+        result = 31 * result + (decimalSeparator?.hashCode() ?: 0)
         result = 31 * result + (fileId ?: 0)
         result = 31 * result + (atCount ?: 0)
         result = 31 * result + lastLoginDateTime.hashCode()

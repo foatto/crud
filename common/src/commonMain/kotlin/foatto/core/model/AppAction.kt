@@ -38,4 +38,4 @@ data class AppAction(
     val params: Map<String, String> = emptyMap(),
 )
 
-fun emptyAction() = AppAction(type = ActionType.NOTHING)
+fun emptyAction(): AppAction = AppAction(type = ActionType.NOTHING)

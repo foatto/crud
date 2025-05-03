@@ -144,8 +144,12 @@ class AppControl(
     }
 
     suspend fun call(appRequest: AppRequest) {
-        //--- файловое урло
-        if (appRequest.action.type == ActionType.FILE) {
+        //--- special empty action for current tab closing
+        if (appRequest.action.type == ActionType.NOTHING) {
+            if (appRequest.action.isAutoClose) {
+                root.closeTabById(tabId)
+            }
+        } else if (appRequest.action.type == ActionType.FILE) {
             root.openTab(appRequest.action)
             if (appRequest.action.isAutoClose) {
                 root.closeTabById(tabId)

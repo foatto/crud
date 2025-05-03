@@ -2,10 +2,8 @@ package foatto.server
 
 import foatto.core.ActionType
 import foatto.core.AppModule
-import foatto.core.model.AppAction
 import foatto.server.model.AppModuleConfig
 import foatto.server.model.Permission
-import foatto.server.model.ServerUserConfig
 
 val appModuleConfigs: MutableMap<String, AppModuleConfig> = mutableMapOf(
 
@@ -31,6 +29,27 @@ val appModuleConfigs: MutableMap<String, AppModuleConfig> = mutableMapOf(
             ActionType.FORM_DELETE to Permission(
                 enabledRoles = getRoleAllPermissions(AppRole.ADMIN),
                 disabledRoles = getRoleAllPermissions(AppRole.USER),
+            ),
+        )
+    ),
+
+    AppModule.USER_PROPERTY_EDIT to AppModuleConfig(
+        caption = "Мои настройки",
+        enabledAccessRoles = mutableSetOf(AppRole.ADMIN, AppRole.USER),
+        disabledAccessRoles = mutableSetOf(),
+        disabledFormAddRoles = mutableSetOf(AppRole.ADMIN, AppRole.USER),
+        rowPermissions = mutableMapOf(
+            ActionType.MODULE_TABLE to Permission(
+                disabledRoles = getRoleAllPermissions(AppRole.ADMIN, AppRole.USER),
+            ),
+            ActionType.MODULE_FORM to Permission(
+                enabledRoles = getRoleAllPermissions(AppRole.ADMIN, AppRole.USER),
+            ),
+            ActionType.FORM_EDIT to Permission(
+                enabledRoles = getRoleAllPermissions(AppRole.ADMIN, AppRole.USER),
+            ),
+            ActionType.FORM_DELETE to Permission(
+                disabledRoles = getRoleAllPermissions(AppRole.ADMIN, AppRole.USER),
             ),
         )
     ),

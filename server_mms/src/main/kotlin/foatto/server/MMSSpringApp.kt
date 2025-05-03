@@ -420,8 +420,8 @@ class MMSSpringApp : SpringApp() {
 
             mutableListOf<MenuData>().apply {
 
-                addMenuItem(AppModuleMMS.OBJECT, ActionType.MODULE_TABLE, serverUserConfig, this)
-                addMenuItem(AppModuleMMS.DAY_WORK, ActionType.MODULE_TABLE, serverUserConfig, this)
+                addMenuItem(AppModuleMMS.OBJECT, ActionType.MODULE_TABLE, null, serverUserConfig, this)
+                addMenuItem(AppModuleMMS.DAY_WORK, ActionType.MODULE_TABLE, null, serverUserConfig, this)
 
                 if (size > 0) {
                     alMenu += MenuData("Учёт", null, this)
@@ -430,7 +430,7 @@ class MMSSpringApp : SpringApp() {
 
             mutableListOf<MenuData>().apply {
 
-                addMenuItem(AppModuleMMS.COMPOSITE_OBJECT_LIST_DASHBOARD, ActionType.MODULE_COMPOSITE, serverUserConfig, this)
+                addMenuItem(AppModuleMMS.COMPOSITE_OBJECT_LIST_DASHBOARD, ActionType.MODULE_COMPOSITE, null, serverUserConfig, this)
 
                 if (size > 0) {
                     alMenu += MenuData("Контроль", null, this)
@@ -439,8 +439,8 @@ class MMSSpringApp : SpringApp() {
 
             mutableListOf<MenuData>().apply {
 
-                addMenuItem(AppModuleMMS.DEPARTMENT, ActionType.MODULE_TABLE, serverUserConfig, this)
-                addMenuItem(AppModuleMMS.GROUP, ActionType.MODULE_TABLE, serverUserConfig, this)
+                addMenuItem(AppModuleMMS.DEPARTMENT, ActionType.MODULE_TABLE, null, serverUserConfig, this)
+                addMenuItem(AppModuleMMS.GROUP, ActionType.MODULE_TABLE, null, serverUserConfig, this)
 
                 if (size > 0) {
                     alMenu += MenuData("Справочники", null, this)
@@ -449,7 +449,7 @@ class MMSSpringApp : SpringApp() {
 
             mutableListOf<MenuData>().apply {
 
-                addMenuItem(AppModuleMMS.DEVICE, ActionType.MODULE_TABLE, serverUserConfig, this)
+                addMenuItem(AppModuleMMS.DEVICE, ActionType.MODULE_TABLE, null, serverUserConfig, this)
 
                 if (size > 0) {
                     alMenu += MenuData("Контроллеры", null, this)
@@ -458,7 +458,8 @@ class MMSSpringApp : SpringApp() {
 
             mutableListOf<MenuData>().apply {
 
-                addMenuItem(AppModule.USER, ActionType.MODULE_TABLE, serverUserConfig, this)
+                addMenuItem(AppModule.USER_PROPERTY_EDIT, ActionType.MODULE_FORM, serverUserConfig.id, serverUserConfig, this)
+                addMenuItem(AppModule.USER, ActionType.MODULE_TABLE, null, serverUserConfig, this)
 
                 if (size > 0) {
                     alMenu += MenuData("Система", null, this)
