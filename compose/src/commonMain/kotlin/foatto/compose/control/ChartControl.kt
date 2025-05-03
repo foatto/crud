@@ -11,25 +11,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.hsl
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.rememberTextMeasurer
-import foatto.compose.AppControl
-import foatto.compose.Root
-import foatto.compose.colorControlBack
-import foatto.compose.colorMainBack0
-import foatto.compose.colorMainText
+import androidx.compose.ui.unit.dp
+import foatto.compose.*
 import foatto.compose.control.composable.chart.ChartToolBar
 import foatto.compose.control.composable.onPointerEvents
 import foatto.compose.control.model.MouseRectData
 import foatto.compose.control.model.chart.*
-import foatto.compose.invokeRequest
 import foatto.core.ActionType
 import foatto.core.model.AppAction
 import foatto.core.model.request.ChartActionRequest
@@ -65,6 +63,8 @@ class ChartControl(
 ) : AbstractControl(tabId) {
 
     companion object {
+        private val SCROLL_BAR_TICKNESS = 16.dp
+
         private val COLOR_CHART_TIME_LINE = hsl(180.0f, 1.0f, 0.5f)
         private val COLOR_CHART_LABEL_BACK = hsl(60.0f, 1.0f, 0.5f)
         private val COLOR_CHART_LABEL_BORDER = hsl(60.0f, 1.0f, 0.25f)
@@ -74,8 +74,7 @@ class ChartControl(
         private const val COLOR_CHART_LINE_WIDTH = 1.0f
 
         private const val MARGIN_LEFT = 100     // на каждую ось Y
-
-        //private const val MARGIN_RIGHT = 40 - вычисляется динамически по размеру шрифта
+        private const val MARGIN_RIGHT = 20.0f
         private const val MARGIN_TOP = 40
         private const val MARGIN_BOTTOM = 60
 
@@ -145,6 +144,8 @@ class ChartControl(
 
     private var screenOffsetX: Float by mutableFloatStateOf(0.0f)
     private var screenOffsetY: Float by mutableFloatStateOf(0.0f)
+
+    private var vScrollBarLength: Float by mutableFloatStateOf(0.0f)
 
     //--- нужен для извлечения/показа величин на графике
     //    private val alElement = mutableStateListOf<Pair<String, ChartGroupDTO>>()
@@ -231,7 +232,6 @@ class ChartControl(
     @Composable
     fun MainChartBody(withInteractive: Boolean) {
         val density = LocalDensity.current
-        val coroutineScope = rememberCoroutineScope()
         val textMeasurer = rememberTextMeasurer()
 
         Row(
@@ -242,30 +242,35 @@ class ChartControl(
                     canvasHeight = size.height.toFloat()
                 }
         ) {
-            YAxisBody(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .width(with(density) { axisCanvasWidth.toDp() })
-                    .clipToBounds(),
-                textMeasurer = textMeasurer,
-                withInteractive = withInteractive,
-            )
-            ChartBody(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .width(with(density) { bodyCanvasWidth.toDp() })
-                    .clipToBounds(),
-                textMeasurer = textMeasurer,
-                withInteractive = withInteractive,
-            )
-            LegendBody(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .width(with(density) { legendCanvasWidth.toDp() })
-                    .clipToBounds(),
-                textMeasurer = textMeasurer,
-                withInteractive = withInteractive,
-            )
+            //--- перевод pixEndY в mutableFloatState не помогает :/
+            key(pixEndY) {
+                YAxisBody(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(with(density) { axisCanvasWidth.toDp() })
+                        .clipToBounds(),
+                    textMeasurer = textMeasurer,
+                    withInteractive = withInteractive,
+                )
+                ChartBody(
+                    modifier = Modifier
+                        .weight(1.0f)
+                        .fillMaxHeight()
+                        .width(with(density) { bodyCanvasWidth.toDp() })
+                        .clipToBounds(),
+                    textMeasurer = textMeasurer,
+                    withInteractive = withInteractive,
+                )
+                LegendBody(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(with(density) { legendCanvasWidth.toDp() })
+                        .clipToBounds(),
+                    textMeasurer = textMeasurer,
+                    withInteractive = withInteractive,
+                )
+                VerticalScrollBody()
+            }
         }
     }
 
@@ -630,6 +635,53 @@ class ChartControl(
         }
     }
 
+    @Composable
+    private fun VerticalScrollBody() {
+        val density = LocalDensity.current
+
+        Canvas(
+            modifier = Modifier
+                .width(SCROLL_BAR_TICKNESS)
+                .fillMaxHeight()
+                .onSizeChanged { size ->
+                    vScrollBarLength = size.height.toFloat()
+                }
+                .clipToBounds()
+                .onPointerEvents(
+                    withInteractive = true,
+                    onPointerDown = { pointerInputChange -> },
+                    onPointerUp = { pointerInputChange -> },
+                    onDragStart = { offset -> },
+                    onDrag = { pointerInputChange, offset ->
+                        val incScaleY = pixEndY / vScrollBarLength
+                        onScrollDrag(pointerInputChange, 0.0f, -offset.y * incScaleY)
+                    },
+                    onDragEnd = { },
+                    onDragCancel = { },
+                )
+        ) {
+            drawRect(
+                topLeft = Offset(0.0f, 0.0f),
+                size = Size(with(density) { SCROLL_BAR_TICKNESS.toPx() }, vScrollBarLength),
+                color = colorScrollBarBack,
+                style = Fill,
+            )
+            val decScaleY = min(1.0f, canvasHeight / pixEndY)
+            val scrollBarH = vScrollBarLength * decScaleY
+            val scrollBarY = if (canvasHeight >= pixEndY) {
+                0.0f
+            } else {
+                (vScrollBarLength - scrollBarH) * (-screenOffsetY) / (pixEndY - canvasHeight)
+            }
+            drawRect(
+                topLeft = Offset(0.0f, scrollBarY),
+                size = Size(with(density) { SCROLL_BAR_TICKNESS.toPx() }, scrollBarH),
+                color = colorScrollBarFore,
+                style = Fill,
+            )
+        }
+    }
+
     override suspend fun start() {
         root.setTabInfo(tabId, chartResponse.tabCaption)
         headerData = chartResponse.headerData
@@ -777,7 +829,7 @@ class ChartControl(
 
                 //--- переинициализировать значение левого поля
                 maxMarginLeft = max(maxMarginLeft, cge.alAxisYData.size * MARGIN_LEFT * root.scaleKoef)
-                maxMarginRight = max(maxMarginRight, cge.legends.size * getLegendWidth(root.scaleKoef))
+                maxMarginRight = max(maxMarginRight, max(MARGIN_RIGHT, cge.legends.size * getLegendWidth(root.scaleKoef)))
 
                 val grHeight = cge.height.toInt()
                 if (grHeight > 0) {
@@ -1411,6 +1463,20 @@ class ChartControl(
             ChartWorkMode.PAN -> {}
 
             ChartWorkMode.ZOOM_BOX -> {}
+        }
+    }
+
+    private fun onScrollDrag(change: PointerInputChange, dx: Float, dy: Float) {
+        val newOffsetY = screenOffsetY + dy
+
+        if (newOffsetY <= 0) {
+            screenOffsetY = if (newOffsetY >= canvasHeight - pixEndY) {
+                newOffsetY
+            } else {
+                canvasHeight - pixEndY
+            }
+        } else {
+            screenOffsetY = 0.0f
         }
     }
 
