@@ -160,7 +160,6 @@ class CompositeControl(
     @Composable
     private fun VerticalScrollBody() {
         val density = LocalDensity.current
-        val coroutineScope = rememberCoroutineScope()
 
         Canvas(
             modifier = Modifier
@@ -210,7 +209,6 @@ class CompositeControl(
     @Composable
     private fun HorizontalScrollBody() {
         val density = LocalDensity.current
-        val coroutineScope = rememberCoroutineScope()
 
         Canvas(
             modifier = Modifier

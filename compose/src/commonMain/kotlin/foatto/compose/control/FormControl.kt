@@ -1,6 +1,7 @@
 package foatto.compose.control
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,10 +22,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -40,6 +44,7 @@ import foatto.compose.*
 import foatto.compose.composable.FileLinkLifeTimeInputDialog
 import foatto.compose.composable.ImageOrTextFromNameControl
 import foatto.compose.composable.StardartDialog
+import foatto.compose.control.composable.onPointerEvents
 import foatto.compose.control.model.form.FormCellCaptionInfo
 import foatto.compose.control.model.form.FormCellVisibleInfo
 import foatto.compose.control.model.form.cell.FormBaseCellClient
@@ -90,8 +95,17 @@ class FormControl(
     tabId: Int,
 ) : AbstractControl(tabId) {
 
+    companion object {
+        private val SCROLL_BAR_TICKNESS = 16.dp
+    }
+
     private val alHiddenCells = mutableListOf<FormBaseCellClient>()
     private val alGridRows = mutableStateListOf<MutableList<FormBaseCellClient?>>()
+
+    private var formBodyHeight: Float by mutableFloatStateOf(0.0f)
+
+    private var vScrollBarLength: Float by mutableFloatStateOf(0.0f)
+    private val rowHeights = mutableStateMapOf<Int, Float>()
 
     private val verticalScrollState = ScrollState(0)
     private val horizontalScrollState = ScrollState(0)
@@ -288,124 +302,138 @@ class FormControl(
         ) {
             getHeader()
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(state = verticalScrollState)
-                    .horizontalScroll(state = horizontalScrollState)
-                    .draggable(
-                        orientation = Orientation.Horizontal,
-                        state = rememberDraggableState { delta ->
-                            coroutineScope.launch {
-                                horizontalScrollState.scrollBy(-delta)
-                            }
-                        },
-                    )
-                    .draggable(
-                        orientation = Orientation.Vertical,
-                        state = rememberDraggableState { delta ->
-                            coroutineScope.launch {
-                                verticalScrollState.scrollBy(-delta)
-                            }
-                        },
-                    )
-                    .weight(1.0f),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                for (alGridRow in alGridRows) {
-                    Row(
+            //--- bugfix for verticalScrollState/horizontalScrollState value cashing
+            key(verticalScrollState, horizontalScrollState) {
+                Row(
+                    modifier = Modifier
+                        .weight(1.0f)
+                        .fillMaxWidth()
+                ) {
+                    Column(
                         modifier = Modifier
-                            //.width(intrinsicSize = IntrinsicSize.Max) - оставлю на память, чтобы опять не искать, но пользы/разницы не увидел
-                            //--- чтобы ячейки занимали всю отведённую им (общую) высоту (работает только совместно с .fillMaxHeight())
-                            .height(intrinsicSize = IntrinsicSize.Max),
-//?                        horizontalArrangement = Arrangement.aligned(Alignment.CenterHorizontally),
+                            .weight(1.0f)
+                            .fillMaxHeight()
+                            .onSizeChanged { size ->
+                                formBodyHeight = size.height.toFloat()
+                            }
+                            .verticalScroll(state = verticalScrollState)
+                            .horizontalScroll(state = horizontalScrollState)
+                            .draggable(
+                                orientation = Orientation.Horizontal,
+                                state = rememberDraggableState { delta ->
+                                    coroutineScope.launch {
+                                        horizontalScrollState.scrollBy(-delta)
+                                    }
+                                },
+                            )
+                            .draggable(
+                                orientation = Orientation.Vertical,
+                                state = rememberDraggableState { delta ->
+                                    coroutineScope.launch {
+                                        verticalScrollState.scrollBy(-delta)
+                                    }
+                                },
+                            )
+                            .weight(1.0f),
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        alGridRow.forEachIndexed { col, gridData ->
-                            //--- специальное хитрое условие: показывать если gridData == null или isVisible == true
-                            if (gridData?.isVisible?.value != false) {
-                                Row(
-                                    horizontalArrangement = gridData?.align ?: Arrangement.Center,
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier
-                                        .fillMaxHeight()    // работает только совместно с .height(intrinsicSize = IntrinsicSize.Max)
-                                        //!!! только на время отладки
-                                        //.border(BorderStroke(width = 1.dp, color = Color.LightGray))
-                                        //.wrapContentSize(align = Alignment.Center, unbounded = true)  //- ничем не помогает
-                                        .padding(16.dp)
-                                        .onSizeChanged { size ->
-                                            gridData?.let {
-                                                val componentWidth = with(density) {
-                                                    maxDp(size.width.toDp(), gridData.minWidth.dp)
-                                                }
-                                                gridData.componentWidth = maxDp(gridData.componentWidth, componentWidth)
-                                                hmColumnMaxWidth[col] = maxDp(hmColumnMaxWidth[col] ?: 0.dp, componentWidth)
-                                            }
-                                        }
-                                        .then(
-                                            gridData?.let {
-                                                hmColumnMaxWidth[col]?.let { maxColWidth ->
-                                                    if (gridData.componentWidth < maxColWidth) {
-                                                        Modifier.width(maxColWidth)
-                                                    } else {
-                                                        Modifier.width(gridData.componentWidth)
+                        alGridRows.forEachIndexed { index, alGridRow ->
+                            Row(
+                                modifier = Modifier
+                                    //.width(intrinsicSize = IntrinsicSize.Max) - оставлю на память, чтобы опять не искать, но пользы/разницы не увидел
+                                    //--- чтобы ячейки занимали всю отведённую им (общую) высоту (работает только совместно с .fillMaxHeight())
+                                    .height(intrinsicSize = IntrinsicSize.Max)
+                                    .onSizeChanged { size ->
+                                        rowHeights[index] = size.height.toFloat()
+                                    },
+//?                        horizontalArrangement = Arrangement.aligned(Alignment.CenterHorizontally),
+                            ) {
+                                alGridRow.forEachIndexed { col, gridData ->
+                                    //--- специальное хитрое условие: показывать если gridData == null или isVisible == true
+                                    if (gridData?.isVisible?.value != false) {
+                                        Row(
+                                            horizontalArrangement = gridData?.align ?: Arrangement.Center,
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier
+                                                .fillMaxHeight()    // работает только совместно с .height(intrinsicSize = IntrinsicSize.Max)
+                                                //!!! только на время отладки
+                                                //.border(BorderStroke(width = 1.dp, color = Color.LightGray))
+                                                //.wrapContentSize(align = Alignment.Center, unbounded = true)  //- ничем не помогает
+                                                .padding(16.dp)
+                                                .onSizeChanged { size ->
+                                                    gridData?.let {
+                                                        val componentWidth = with(density) {
+                                                            maxDp(size.width.toDp(), gridData.minWidth.dp)
+                                                        }
+                                                        gridData.componentWidth = maxDp(gridData.componentWidth, componentWidth)
+                                                        hmColumnMaxWidth[col] = maxDp(hmColumnMaxWidth[col] ?: 0.dp, componentWidth)
                                                     }
                                                 }
-                                            } ?: Modifier
-                                        )
-                                ) {
-                                    when (gridData) {
-                                        is FormLabelCellClient -> {
-                                            Text(text = gridData.current.value)
+                                                .then(
+                                                    gridData?.let {
+                                                        hmColumnMaxWidth[col]?.let { maxColWidth ->
+                                                            if (gridData.componentWidth < maxColWidth) {
+                                                                Modifier.width(maxColWidth)
+                                                            } else {
+                                                                Modifier.width(gridData.componentWidth)
+                                                            }
+                                                        }
+                                                    } ?: Modifier
+                                                )
+                                        ) {
+                                            when (gridData) {
+                                                is FormLabelCellClient -> {
+                                                    Text(text = gridData.current.value)
 //                                            if (gridData.text.value == BR) {
 //                                                Br()
 //                                            } else {
 //                                                Text(gridData.text.value)
 //                                            }
-                                        }
+                                                }
 
-                                        is FormSimpleCellClient -> {
-                                            OutlinedTextField(
-                                                modifier = Modifier
-                                                    .widthIn(max = root.scaledWindowWidth.dp / 2)
-                                                    .then(
-                                                        if (gridData.data.isEditable) {
-                                                            Modifier.background(colorControlBack)
+                                                is FormSimpleCellClient -> {
+                                                    OutlinedTextField(
+                                                        modifier = Modifier
+                                                            .widthIn(max = root.scaledWindowWidth.dp / 2)
+                                                            .then(
+                                                                if (gridData.data.isEditable) {
+                                                                    Modifier.background(colorControlBack)
+                                                                } else {
+                                                                    Modifier
+                                                                }
+                                                            ).then(
+                                                                if (gridData.data.isEditable && gridData.data.isAutoFocus) {
+                                                                    isFocusRequesterDefined = true
+                                                                    Modifier.focusRequester(focusRequester)
+                                                                } else {
+                                                                    Modifier
+                                                                }
+                                                            ),
+                                                        colors = colorOutlinedTextInput ?: OutlinedTextFieldDefaults.colors(),
+                                                        value = gridData.current.value,
+                                                        onValueChange = { newText ->
+                                                            gridData.current.value = newText
+                                                        },
+                                                        readOnly = !gridData.data.isEditable,
+                                                        //!!! label = { Text("Имя") }, - использовать для мобильной версии без FormCellTypeClient.LABEL
+                                                        isError = gridData.error != null,
+                                                        supportingText = gridData.error?.let { error ->
+                                                            {
+                                                                Text(
+                                                                    text = error,
+                                                                    color = Color.Red,
+                                                                )
+                                                            }
+                                                        },
+                                                        singleLine = gridData.data.rows == 1,
+                                                        minLines = gridData.data.rows,
+                                                        maxLines = gridData.data.rows,
+                                                        visualTransformation = if (gridData.data.isPassword) {
+                                                            PasswordVisualTransformation()
                                                         } else {
-                                                            Modifier
-                                                        }
-                                                    ).then(
-                                                        if (gridData.data.isEditable && gridData.data.isAutoFocus) {
-                                                            isFocusRequesterDefined = true
-                                                            Modifier.focusRequester(focusRequester)
-                                                        } else {
-                                                            Modifier
-                                                        }
-                                                    ),
-                                                colors = colorOutlinedTextInput ?: OutlinedTextFieldDefaults.colors(),
-                                                value = gridData.current.value,
-                                                onValueChange = { newText ->
-                                                    gridData.current.value = newText
-                                                },
-                                                readOnly = !gridData.data.isEditable,
-                                                //!!! label = { Text("Имя") }, - использовать для мобильной версии без FormCellTypeClient.LABEL
-                                                isError = gridData.error != null,
-                                                supportingText = gridData.error?.let { error ->
-                                                    {
-                                                        Text(
-                                                            text = error,
-                                                            color = Color.Red,
-                                                        )
-                                                    }
-                                                },
-                                                singleLine = gridData.data.rows == 1,
-                                                minLines = gridData.data.rows,
-                                                maxLines = gridData.data.rows,
-                                                visualTransformation = if (gridData.data.isPassword) {
-                                                    PasswordVisualTransformation()
-                                                } else {
-                                                    VisualTransformation.None
-                                                },
-                                            )
+                                                            VisualTransformation.None
+                                                        },
+                                                    )
 //                                            id(getFocusId(gridData.id))
 //                                            onFocusIn { syntheticFocusEvent ->
 //                                                selectAllText(syntheticFocusEvent)
@@ -413,40 +441,40 @@ class FormControl(
 //                                            onKeyUp { syntheticKeyboardEvent ->
 //                                                doKeyUp(gridData, syntheticKeyboardEvent)
 //                                            }
-                                        }
-
-                                        is FormBooleanCellClient -> {
-                                            if (gridData.data.alSwitchText.isEmpty()) {
-                                                Checkbox(
-                                                    modifier = Modifier
-                                                        .then(
-                                                            if (gridData.data.isEditable) {
-                                                                Modifier.background(Color.Transparent)
-                                                            } else {
-                                                                Modifier
-                                                            }
-                                                        ),
-                                                    colors = colorCheckBox ?: CheckboxDefaults.colors(),
-                                                    checked = gridData.current.value,
-                                                    onCheckedChange = { newState ->
-                                                        if (gridData.data.isEditable) {
-                                                            gridData.current.value = newState
-                                                            doVisibleAndCaptionChange(gridData)
-                                                        }
-                                                    },
-                                                )
-                                                gridData.error?.let { error ->
-                                                    Text(
-                                                        text = error,
-                                                        color = Color.Red,
-                                                    )
                                                 }
-                                                //                                            id(getFocusId(gridData.id))
-                                                //onInput { syntheticInputEvent -> - тоже можно
-                                                //                                            onKeyUp { syntheticKeyboardEvent ->
-                                                //                                                doKeyUp(gridData, syntheticKeyboardEvent)
-                                                //                                            }
-                                            } else {
+
+                                                is FormBooleanCellClient -> {
+                                                    if (gridData.data.alSwitchText.isEmpty()) {
+                                                        Checkbox(
+                                                            modifier = Modifier
+                                                                .then(
+                                                                    if (gridData.data.isEditable) {
+                                                                        Modifier.background(Color.Transparent)
+                                                                    } else {
+                                                                        Modifier
+                                                                    }
+                                                                ),
+                                                            colors = colorCheckBox ?: CheckboxDefaults.colors(),
+                                                            checked = gridData.current.value,
+                                                            onCheckedChange = { newState ->
+                                                                if (gridData.data.isEditable) {
+                                                                    gridData.current.value = newState
+                                                                    doVisibleAndCaptionChange(gridData)
+                                                                }
+                                                            },
+                                                        )
+                                                        gridData.error?.let { error ->
+                                                            Text(
+                                                                text = error,
+                                                                color = Color.Red,
+                                                            )
+                                                        }
+                                                        //                                            id(getFocusId(gridData.id))
+                                                        //onInput { syntheticInputEvent -> - тоже можно
+                                                        //                                            onKeyUp { syntheticKeyboardEvent ->
+                                                        //                                                doKeyUp(gridData, syntheticKeyboardEvent)
+                                                        //                                            }
+                                                    } else {
 //                                                getFormSwitch(
 //                                                    id0 = getFocusId(gridData.id, 0),
 //                                                    id1 = getFocusId(gridData.id, 1),
@@ -470,86 +498,86 @@ class FormControl(
 //                                                        doKeyUp(gridData, key, isCtrlKey)
 //                                                    },
 //                                                )
-                                            }
-                                        }
-
-                                        is FormDateTimeCellClient -> {
-                                            val (dateString, timeString) = gridData.current.value?.let { curDateTimeValue ->
-                                                val dateTimeString = getDateTimeDMYHMSString(
-                                                    root.appUserConfig.timeOffset,
-                                                    curDateTimeValue,
-                                                )
-                                                when (gridData.data.mode) {
-                                                    FormDateTimeCellMode.DMY -> dateTimeString.substring(0, 10) to null
-                                                    FormDateTimeCellMode.DMYHMS -> dateTimeString.substring(0, 10) to dateTimeString.substring(11)
+                                                    }
                                                 }
-                                            } ?: run {
-                                                when (gridData.data.mode) {
-                                                    FormDateTimeCellMode.DMY -> {
-                                                        if (gridData.data.isEditable) {
-                                                            "-" to null
-                                                        } else {
-                                                            "" to null
+
+                                                is FormDateTimeCellClient -> {
+                                                    val (dateString, timeString) = gridData.current.value?.let { curDateTimeValue ->
+                                                        val dateTimeString = getDateTimeDMYHMSString(
+                                                            root.appUserConfig.timeOffset,
+                                                            curDateTimeValue,
+                                                        )
+                                                        when (gridData.data.mode) {
+                                                            FormDateTimeCellMode.DMY -> dateTimeString.substring(0, 10) to null
+                                                            FormDateTimeCellMode.DMYHMS -> dateTimeString.substring(0, 10) to dateTimeString.substring(11)
+                                                        }
+                                                    } ?: run {
+                                                        when (gridData.data.mode) {
+                                                            FormDateTimeCellMode.DMY -> {
+                                                                if (gridData.data.isEditable) {
+                                                                    "-" to null
+                                                                } else {
+                                                                    "" to null
+                                                                }
+                                                            }
+
+                                                            FormDateTimeCellMode.DMYHMS -> {
+                                                                if (gridData.data.isEditable) {
+                                                                    "-" to "-"
+                                                                } else {
+                                                                    "" to ""
+                                                                }
+                                                            }
                                                         }
                                                     }
 
-                                                    FormDateTimeCellMode.DMYHMS -> {
-                                                        if (gridData.data.isEditable) {
-                                                            "-" to "-"
-                                                        } else {
-                                                            "" to ""
+                                                    Text(text = dateString)
+                                                    if (gridData.data.isEditable) {
+                                                        FilledIconButton(
+                                                            shape = singleButtonShape,
+                                                            colors = colorIconButton ?: IconButtonDefaults.iconButtonColors(),
+                                                            onClick = {
+                                                                val curDateTime = gridData.current.value?.let { seconds ->
+                                                                    seconds * 1000L
+                                                                } ?: Clock.System.now().toEpochMilliseconds()
+
+                                                                datePickerState.displayedMonthMillis = curDateTime
+                                                                datePickerState.selectedDateMillis = curDateTime
+
+                                                                datePickerData = gridData
+                                                            }
+                                                        ) {
+                                                            Icon(
+                                                                imageVector = Icons.Default.Edit,
+                                                                contentDescription = null,
+                                                            )
                                                         }
                                                     }
-                                                }
-                                            }
-
-                                            Text(text = dateString)
-                                            if (gridData.data.isEditable) {
-                                                FilledIconButton(
-                                                    shape = singleButtonShape,
-                                                    colors = colorIconButton ?: IconButtonDefaults.iconButtonColors(),
-                                                    onClick = {
-                                                        val curDateTime = gridData.current.value?.let { seconds ->
-                                                            seconds * 1000L
-                                                        } ?: Clock.System.now().toEpochMilliseconds()
-
-                                                        datePickerState.displayedMonthMillis = curDateTime
-                                                        datePickerState.selectedDateMillis = curDateTime
-
-                                                        datePickerData = gridData
-                                                    }
-                                                ) {
-                                                    Icon(
-                                                        imageVector = Icons.Default.Edit,
-                                                        contentDescription = null,
-                                                    )
-                                                }
-                                            }
-                                            //--- time fields on new line on narrow screens
+                                                    //--- time fields on new line on narrow screens
 //                                            if (styleIsNarrowScreen && index == 3) {
 //                                                Br()
 //                                            }
-                                            if (!gridData.data.isEditable) {
-                                                Text(modifier = Modifier.padding(8.dp), text = "")
-                                            }
-
-                                            timeString?.let {
-                                                Text(text = timeString)
-                                                if (gridData.data.isEditable) {
-                                                    FilledIconButton(
-                                                        shape = singleButtonShape,
-                                                        colors = colorIconButton ?: IconButtonDefaults.iconButtonColors(),
-                                                        onClick = {
-                                                            timePickerData = gridData
-                                                        }
-                                                    ) {
-                                                        Icon(
-                                                            imageVector = Icons.Default.Edit,
-                                                            contentDescription = null,
-                                                        )
+                                                    if (!gridData.data.isEditable) {
+                                                        Text(modifier = Modifier.padding(8.dp), text = "")
                                                     }
-                                                }
-                                            }
+
+                                                    timeString?.let {
+                                                        Text(text = timeString)
+                                                        if (gridData.data.isEditable) {
+                                                            FilledIconButton(
+                                                                shape = singleButtonShape,
+                                                                colors = colorIconButton ?: IconButtonDefaults.iconButtonColors(),
+                                                                onClick = {
+                                                                    timePickerData = gridData
+                                                                }
+                                                            ) {
+                                                                Icon(
+                                                                    imageVector = Icons.Default.Edit,
+                                                                    contentDescription = null,
+                                                                )
+                                                            }
+                                                        }
+                                                    }
 //                                                id(getFocusId(gridData.id, gridData.alSubId?.get(index)))
 //                                                onFocusIn { syntheticFocusEvent ->
 //                                                    selectAllText(syntheticFocusEvent)
@@ -557,42 +585,42 @@ class FormControl(
 //                                                onKeyUp { syntheticKeyboardEvent ->
 //                                                    doKeyUp(gridData, syntheticKeyboardEvent)
 //                                                }
-                                        }
-
-                                        is FormComboCellClient -> {
-                                            if (gridData.data.asRadioButtons) {
-                                                Column(
-                                                    modifier = Modifier.selectableGroup(),
-                                                ) {
-                                                    for ((value, descr) in gridData.data.values) {
-                                                        Row(
-                                                            modifier = Modifier.selectable(
-                                                                selected = gridData.current.value == value,
-                                                                onClick = {
-                                                                    if (gridData.data.isEditable) {
-                                                                        gridData.current.value = value
-                                                                        doVisibleAndCaptionChange(gridData)
-                                                                    }
-                                                                }
-                                                            ),
-                                                            verticalAlignment = Alignment.CenterVertically,
-                                                        ) {
-                                                            RadioButton(
-                                                                colors = colorRadioButton ?: RadioButtonDefaults.colors(),
-                                                                selected = gridData.current.value == value,
-                                                                onClick = {
-                                                                    if (gridData.data.isEditable) {
-                                                                        gridData.current.value = value
-                                                                        doVisibleAndCaptionChange(gridData)
-                                                                    }
-                                                                }
-                                                            )
-                                                            Text(
-                                                                text = descr,
-                                                            )
-                                                        }
-                                                    }
                                                 }
+
+                                                is FormComboCellClient -> {
+                                                    if (gridData.data.asRadioButtons) {
+                                                        Column(
+                                                            modifier = Modifier.selectableGroup(),
+                                                        ) {
+                                                            for ((value, descr) in gridData.data.values) {
+                                                                Row(
+                                                                    modifier = Modifier.selectable(
+                                                                        selected = gridData.current.value == value,
+                                                                        onClick = {
+                                                                            if (gridData.data.isEditable) {
+                                                                                gridData.current.value = value
+                                                                                doVisibleAndCaptionChange(gridData)
+                                                                            }
+                                                                        }
+                                                                    ),
+                                                                    verticalAlignment = Alignment.CenterVertically,
+                                                                ) {
+                                                                    RadioButton(
+                                                                        colors = colorRadioButton ?: RadioButtonDefaults.colors(),
+                                                                        selected = gridData.current.value == value,
+                                                                        onClick = {
+                                                                            if (gridData.data.isEditable) {
+                                                                                gridData.current.value = value
+                                                                                doVisibleAndCaptionChange(gridData)
+                                                                            }
+                                                                        }
+                                                                    )
+                                                                    Text(
+                                                                        text = descr,
+                                                                    )
+                                                                }
+                                                            }
+                                                        }
 //                                            gridData.alComboData.forEachIndexed { index, comboData ->
 //                                                val focusId = getFocusId(gridData.id, gridData.alSubId?.get(index))
 //                                                    id(focusId)
@@ -600,239 +628,242 @@ class FormControl(
 //                                                        doKeyUp(gridData, syntheticKeyboardEvent)
 //                                                    }
 //                                                }
-                                            } else {
+                                                    } else {
 //                                                id(getFocusId(gridData.id))
 //                                                onKeyUp { syntheticKeyboardEvent ->
 //                                                    doKeyUp(gridData, syntheticKeyboardEvent)
 //                                                }
-                                                var isExpanded by remember { mutableStateOf(false) }
-                                                var textFieldSize by remember { mutableStateOf(Size.Zero) }
+                                                        var isExpanded by remember { mutableStateOf(false) }
+                                                        var textFieldSize by remember { mutableStateOf(Size.Zero) }
 
-                                                OutlinedTextField(
-                                                    modifier = Modifier
-                                                        .onGloballyPositioned { coordinates ->
-                                                            textFieldSize = coordinates.size.toSize()
-                                                        }.then(
-                                                            if (gridData.data.isEditable) {
-                                                                Modifier.background(colorControlBack)
-                                                            } else {
-                                                                Modifier
-                                                            }
-                                                        ),
-                                                    colors = colorOutlinedTextInput ?: OutlinedTextFieldDefaults.colors(),
-                                                    value = gridData.data.values.find { (value, _) ->
-                                                        gridData.current.value == value
-                                                    }?.second ?: "(неизвестное значение)",
-                                                    onValueChange = {},
-                                                    readOnly = !gridData.data.isEditable,
-                                                    //!!! label = { Text("Имя") }, - использовать для мобильной версии без FormCellTypeClient.LABEL
-                                                    isError = gridData.error != null,
-                                                    supportingText = gridData.error?.let { error ->
-                                                        {
-                                                            Text(
-                                                                text = error,
-                                                                color = Color.Red,
-                                                            )
-                                                        }
-                                                    },
-                                                    singleLine = true,
-                                                    trailingIcon = {
-                                                        Icon(
-                                                            imageVector = if (isExpanded) {
-                                                                Icons.Filled.KeyboardArrowUp
-                                                            } else {
-                                                                Icons.Filled.KeyboardArrowDown
-                                                            },
-                                                            contentDescription = null,
-                                                            modifier = Modifier.clickable {
-                                                                if (gridData.data.isEditable) {
-                                                                    isExpanded = !isExpanded
-                                                                }
-                                                            }
-                                                        )
-                                                    },
-                                                )
-                                                DropdownMenu(
-                                                    modifier = Modifier
-                                                        .offset(
-                                                            //!!! x = FORM_CELL_PADDING, - почему-то не срабатывает, даже если включить внутри Box или Column
-                                                            //y = +- FORM_CELL_PADDING, - бесполезно, т.к. меню может вылезти как снизу, так и сверху
-                                                        )
-                                                        .width(
-                                                            with(density) {
-                                                                textFieldSize.width.toDp()
-                                                            }
-                                                        ),
-                                                    expanded = isExpanded,
-                                                    onDismissRequest = { isExpanded = false },
-                                                ) {
-                                                    for ((value, descr) in gridData.data.values) {
-                                                        DropdownMenuItem(
-                                                            text = {
-                                                                Text(text = descr)
-                                                            },
-                                                            onClick = {
-                                                                gridData.current.value = value
-                                                                isExpanded = false
-                                                                doVisibleAndCaptionChange(gridData)
-                                                            },
-                                                            //contentPadding = PaddingValues(start = getMenuPadding(level), end = 16.dp),
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                        is FormFileCellClient -> {
-                                            if (gridData.data.isEditable && gridData.data.maxFileCount > gridData.files.size) {
-                                                if (isFileAddInProgress) {
-                                                    CircularProgressIndicator()
-                                                } else {
-                                                    ImageOrTextFromNameControl(
-                                                        name = "/web/images/ic_add_${getStyleOtherIconNameSuffix()}.png",
-                                                        iconSize = styleOtherIconSize,
-                                                        imageButton = { func ->
-                                                            FilledIconButton(
-                                                                shape = singleButtonShape,
-                                                                colors = colorIconButton ?: IconButtonDefaults.iconButtonColors(),
-                                                                onClick = {
-                                                                    fileGridData = gridData
-                                                                    isFilePickerVisible = true
-                                                                }
-//                                                    onKeyUp { syntheticKeyboardEvent ->
-//                                                        doKeyUp(gridData, syntheticKeyboardEvent)
-//                                                    }
-                                                            ) {
-                                                                func()
-                                                            }
-                                                        },
-                                                        textButton = {},
-                                                    )
-                                                }
-                                            }
-                                            Column {
-                                                for (fileData in gridData.files) {
-                                                    Row(
-                                                        verticalAlignment = Alignment.CenterVertically,
-                                                    ) {
-                                                        Button(
-                                                            shape = singleButtonShape,
-                                                            colors = colorTextButton ?: ButtonDefaults.buttonColors(),
-                                                            enabled = fileData.id >= 0,
-                                                            onClick = {
-                                                                if (fileData.id >= 0) {
-                                                                    coroutineScope.launch {
-                                                                        showFile(fileData.action)
+                                                        OutlinedTextField(
+                                                            modifier = Modifier
+                                                                .onGloballyPositioned { coordinates ->
+                                                                    textFieldSize = coordinates.size.toSize()
+                                                                }.then(
+                                                                    if (gridData.data.isEditable) {
+                                                                        Modifier.background(colorControlBack)
+                                                                    } else {
+                                                                        Modifier
                                                                     }
+                                                                ),
+                                                            colors = colorOutlinedTextInput ?: OutlinedTextFieldDefaults.colors(),
+                                                            value = gridData.data.values.find { (value, _) ->
+                                                                gridData.current.value == value
+                                                            }?.second ?: "(неизвестное значение)",
+                                                            onValueChange = {},
+                                                            readOnly = !gridData.data.isEditable,
+                                                            //!!! label = { Text("Имя") }, - использовать для мобильной версии без FormCellTypeClient.LABEL
+                                                            isError = gridData.error != null,
+                                                            supportingText = gridData.error?.let { error ->
+                                                                {
+                                                                    Text(
+                                                                        text = error,
+                                                                        color = Color.Red,
+                                                                    )
                                                                 }
                                                             },
-                                                        ) {
-                                                            Text(text = fileData.name)
-                                                        }
-                                                        ImageOrTextFromNameControl(
-                                                            name = IconName.COPY,
-                                                            iconSize = styleOtherIconSize,
-                                                            imageButton = { func ->
-                                                                FilledIconButton(
-                                                                    shape = singleButtonShape,
-                                                                    colors = colorIconButton ?: IconButtonDefaults.iconButtonColors(),
-                                                                    onClick = {
-                                                                        if (fileData.id >= 0) {
-                                                                            copyFileRef = fileData.ref
-                                                                            showFileLinkLifeTimeInputDialog = true
+                                                            singleLine = true,
+                                                            trailingIcon = {
+                                                                Icon(
+                                                                    imageVector = if (isExpanded) {
+                                                                        Icons.Filled.KeyboardArrowUp
+                                                                    } else {
+                                                                        Icons.Filled.KeyboardArrowDown
+                                                                    },
+                                                                    contentDescription = null,
+                                                                    modifier = Modifier.clickable {
+                                                                        if (gridData.data.isEditable) {
+                                                                            isExpanded = !isExpanded
                                                                         }
                                                                     }
-                                                                ) {
-                                                                    func()
-                                                                }
+                                                                )
                                                             },
-                                                            textButton = {},
                                                         )
-                                                        if (gridData.data.isEditable) {
+                                                        DropdownMenu(
+                                                            modifier = Modifier
+                                                                .offset(
+                                                                    //!!! x = FORM_CELL_PADDING, - почему-то не срабатывает, даже если включить внутри Box или Column
+                                                                    //y = +- FORM_CELL_PADDING, - бесполезно, т.к. меню может вылезти как снизу, так и сверху
+                                                                )
+                                                                .width(
+                                                                    with(density) {
+                                                                        textFieldSize.width.toDp()
+                                                                    }
+                                                                ),
+                                                            expanded = isExpanded,
+                                                            onDismissRequest = { isExpanded = false },
+                                                        ) {
+                                                            for ((value, descr) in gridData.data.values) {
+                                                                DropdownMenuItem(
+                                                                    text = {
+                                                                        Text(text = descr)
+                                                                    },
+                                                                    onClick = {
+                                                                        gridData.current.value = value
+                                                                        isExpanded = false
+                                                                        doVisibleAndCaptionChange(gridData)
+                                                                    },
+                                                                    //contentPadding = PaddingValues(start = getMenuPadding(level), end = 16.dp),
+                                                                )
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+                                                is FormFileCellClient -> {
+                                                    if (gridData.data.isEditable && gridData.data.maxFileCount > gridData.files.size) {
+                                                        if (isFileAddInProgress) {
+                                                            CircularProgressIndicator()
+                                                        } else {
                                                             ImageOrTextFromNameControl(
-                                                                name = "/web/images/ic_delete_forever_${getStyleOtherIconNameSuffix()}.png",
+                                                                name = "/web/images/ic_add_${getStyleOtherIconNameSuffix()}.png",
                                                                 iconSize = styleOtherIconSize,
                                                                 imageButton = { func ->
                                                                     FilledIconButton(
                                                                         shape = singleButtonShape,
                                                                         colors = colorIconButton ?: IconButtonDefaults.iconButtonColors(),
                                                                         onClick = {
-                                                                            if (!isFileAddInProgress) {
-                                                                                coroutineScope.launch {
-                                                                                    deleteFile(gridData, fileData.id)
-                                                                                }
-                                                                            }
+                                                                            fileGridData = gridData
+                                                                            isFilePickerVisible = true
                                                                         }
+//                                                    onKeyUp { syntheticKeyboardEvent ->
+//                                                        doKeyUp(gridData, syntheticKeyboardEvent)
+//                                                    }
                                                                     ) {
                                                                         func()
                                                                     }
                                                                 },
                                                                 textButton = {},
                                                             )
-//                                                                doKeyUp(gridData, syntheticKeyboardEvent)
                                                         }
                                                     }
-                                                }
-                                                gridData.error?.let { error ->
-                                                    Text(
-                                                        text = error,
-                                                        color = Color.Red,
-                                                    )
-                                                }
-                                            }
-//                                            id(getFocusId(gridData.id))
-                                        }
-                                    }
-
-                                    if (gridData is FormSimpleCellClient) {
-                                        gridData.data.selectorAction?.let { selectorAction ->
-                                            ImageOrTextFromNameControl(
-                                                name = "/web/images/ic_reply_${getStyleOtherIconNameSuffix()}.png",
-                                                iconSize = styleOtherIconSize,
-                                                imageButton = { func ->
-                                                    FilledIconButton(
-                                                        shape = singleButtonShape,
-                                                        colors = colorIconButton ?: IconButtonDefaults.iconButtonColors(),
-                                                        onClick = {
-                                                            if (!isFileAddInProgress) {
-                                                                coroutineScope.launch {
-                                                                    callSelector(selectorAction)
+                                                    Column {
+                                                        for (fileData in gridData.files) {
+                                                            Row(
+                                                                verticalAlignment = Alignment.CenterVertically,
+                                                            ) {
+                                                                Button(
+                                                                    shape = singleButtonShape,
+                                                                    colors = colorTextButton ?: ButtonDefaults.buttonColors(),
+                                                                    enabled = fileData.id >= 0,
+                                                                    onClick = {
+                                                                        if (fileData.id >= 0) {
+                                                                            coroutineScope.launch {
+                                                                                showFile(fileData.action)
+                                                                            }
+                                                                        }
+                                                                    },
+                                                                ) {
+                                                                    Text(text = fileData.name)
+                                                                }
+                                                                ImageOrTextFromNameControl(
+                                                                    name = IconName.COPY,
+                                                                    iconSize = styleOtherIconSize,
+                                                                    imageButton = { func ->
+                                                                        FilledIconButton(
+                                                                            shape = singleButtonShape,
+                                                                            colors = colorIconButton ?: IconButtonDefaults.iconButtonColors(),
+                                                                            onClick = {
+                                                                                if (fileData.id >= 0) {
+                                                                                    copyFileRef = fileData.ref
+                                                                                    showFileLinkLifeTimeInputDialog = true
+                                                                                }
+                                                                            }
+                                                                        ) {
+                                                                            func()
+                                                                        }
+                                                                    },
+                                                                    textButton = {},
+                                                                )
+                                                                if (gridData.data.isEditable) {
+                                                                    ImageOrTextFromNameControl(
+                                                                        name = "/web/images/ic_delete_forever_${getStyleOtherIconNameSuffix()}.png",
+                                                                        iconSize = styleOtherIconSize,
+                                                                        imageButton = { func ->
+                                                                            FilledIconButton(
+                                                                                shape = singleButtonShape,
+                                                                                colors = colorIconButton ?: IconButtonDefaults.iconButtonColors(),
+                                                                                onClick = {
+                                                                                    if (!isFileAddInProgress) {
+                                                                                        coroutineScope.launch {
+                                                                                            deleteFile(gridData, fileData.id)
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            ) {
+                                                                                func()
+                                                                            }
+                                                                        },
+                                                                        textButton = {},
+                                                                    )
+//                                                                doKeyUp(gridData, syntheticKeyboardEvent)
                                                                 }
                                                             }
                                                         }
-                                                    ) {
-                                                        func()
+                                                        gridData.error?.let { error ->
+                                                            Text(
+                                                                text = error,
+                                                                color = Color.Red,
+                                                            )
+                                                        }
                                                     }
-                                                },
-                                                textButton = {},
-                                            )
+//                                            id(getFocusId(gridData.id))
+                                                }
+                                            }
+
+                                            if (gridData is FormSimpleCellClient) {
+                                                gridData.data.selectorAction?.let { selectorAction ->
+                                                    ImageOrTextFromNameControl(
+                                                        name = "/web/images/ic_reply_${getStyleOtherIconNameSuffix()}.png",
+                                                        iconSize = styleOtherIconSize,
+                                                        imageButton = { func ->
+                                                            FilledIconButton(
+                                                                shape = singleButtonShape,
+                                                                colors = colorIconButton ?: IconButtonDefaults.iconButtonColors(),
+                                                                onClick = {
+                                                                    if (!isFileAddInProgress) {
+                                                                        coroutineScope.launch {
+                                                                            callSelector(selectorAction)
+                                                                        }
+                                                                    }
+                                                                }
+                                                            ) {
+                                                                func()
+                                                            }
+                                                        },
+                                                        textButton = {},
+                                                    )
 //                                                doKeyUp(gridData, syntheticKeyboardEvent)
 
-                                            ImageOrTextFromNameControl(
-                                                name = "/web/images/ic_delete_forever_${getStyleOtherIconNameSuffix()}.png",
-                                                iconSize = styleOtherIconSize,
-                                                imageButton = { func ->
-                                                    FilledIconButton(
-                                                        shape = singleButtonShape,
-                                                        colors = colorIconButton ?: IconButtonDefaults.iconButtonColors(),
-                                                        onClick = {
-                                                            if (!isFileAddInProgress) {
-                                                                clearSelector(selectorAction)
+                                                    ImageOrTextFromNameControl(
+                                                        name = "/web/images/ic_delete_forever_${getStyleOtherIconNameSuffix()}.png",
+                                                        iconSize = styleOtherIconSize,
+                                                        imageButton = { func ->
+                                                            FilledIconButton(
+                                                                shape = singleButtonShape,
+                                                                colors = colorIconButton ?: IconButtonDefaults.iconButtonColors(),
+                                                                onClick = {
+                                                                    if (!isFileAddInProgress) {
+                                                                        clearSelector(selectorAction)
+                                                                    }
+                                                                }
+                                                            ) {
+                                                                func()
                                                             }
-                                                        }
-                                                    ) {
-                                                        func()
-                                                    }
-                                                },
-                                                textButton = {},
-                                            )
+                                                        },
+                                                        textButton = {},
+                                                    )
 ////                                                doKeyUp(gridData, syntheticKeyboardEvent)
+                                                }
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
                     }
+                    VerticalScrollBody()
                 }
             }
 
@@ -912,6 +943,65 @@ class FormControl(
             if (isFocusRequesterDefined) {
                 focusRequester.requestFocus()
             }
+        }
+    }
+
+    @Composable
+    private fun VerticalScrollBody() {
+        val density = LocalDensity.current
+        val coroutineScope = rememberCoroutineScope()
+
+        Canvas(
+            modifier = Modifier
+                .width(SCROLL_BAR_TICKNESS)
+                .fillMaxHeight()
+                .onSizeChanged { size ->
+                    vScrollBarLength = size.height.toFloat()
+                }
+                .clipToBounds()
+                .onPointerEvents(
+                    withInteractive = true,
+                    onPointerDown = { pointerInputChange -> },
+                    onPointerUp = { pointerInputChange -> },
+                    onDragStart = { offset -> },
+                    onDrag = { pointerInputChange, offset ->
+                        val dy = offset.y
+                        if (
+                            dy < 0 && verticalScrollState.value > 0 ||
+                            dy > 0 && verticalScrollState.value < verticalScrollState.maxValue
+                        ) {
+                            coroutineScope.launch {
+                                val rowHeightSum = rowHeights.values.sum()
+                                val incScaleY = max(1.0f, rowHeightSum / vScrollBarLength)
+                                verticalScrollState.scrollBy(dy * incScaleY)
+                                //verticalScrollState.scrollTo((verticalScrollState.value + dy * incScaleY).toInt())
+                            }
+                        }
+                    },
+                    onDragEnd = { },
+                    onDragCancel = { },
+                )
+        ) {
+            drawRect(
+                topLeft = Offset(0.0f, 0.0f),
+                size = Size(with(density) { SCROLL_BAR_TICKNESS.toPx() }, vScrollBarLength),
+                color = colorScrollBarBack,
+                style = Fill,
+            )
+            val rowHeightSum = rowHeights.values.sum()
+            val decScaleY = min(1.0f, formBodyHeight / rowHeightSum)
+            val scrollBarH = vScrollBarLength * decScaleY
+            val scrollBarY = if (formBodyHeight >= rowHeightSum) {
+                0.0f
+            } else {
+                (vScrollBarLength - scrollBarH) * verticalScrollState.value / verticalScrollState.maxValue
+            }
+            drawRect(
+                topLeft = Offset(0.0f, scrollBarY),
+                size = Size(with(density) { SCROLL_BAR_TICKNESS.toPx() }, scrollBarH),
+                color = colorScrollBarFore,
+                style = Fill,
+            )
         }
     }
 
