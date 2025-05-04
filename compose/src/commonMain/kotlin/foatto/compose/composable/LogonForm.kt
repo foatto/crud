@@ -58,7 +58,7 @@ fun LogonForm(
     ) {
         KamelImage(
             modifier = Modifier.size(128.dp).align(Alignment.CenterHorizontally).padding(bottom = 16.dp),
-            resource = asyncPainterResource(data = getFullUrl("/web/images/logo.png")),
+            resource = asyncPainterResource(data = getFullUrl("/images/logo.png")),
             contentDescription = null,
         )
         errorText?.let {

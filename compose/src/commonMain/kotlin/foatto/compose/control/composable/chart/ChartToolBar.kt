@@ -64,13 +64,13 @@ internal fun ChartToolBar(
         ToolBarBlock {
             ToolBarIconButton(
                 isEnabled = refreshInterval == 0 && isPanButtonEnabled,
-                name = "/web/images/ic_open_with_${getStyleToolbarIconNameSuffix()}.png",
+                name = "/images/ic_open_with_${getStyleToolbarIconNameSuffix()}.png",
             ) {
                 setMode(ChartWorkMode.PAN)
             }
             ToolBarIconButton(
                 isEnabled = refreshInterval == 0 && isZoomButtonEnabled,
-                name = "/web/images/ic_search_${getStyleToolbarIconNameSuffix()}.png",
+                name = "/images/ic_search_${getStyleToolbarIconNameSuffix()}.png",
             ) {
                 setMode(ChartWorkMode.ZOOM_BOX)
             }
@@ -78,13 +78,13 @@ internal fun ChartToolBar(
         ToolBarBlock {
             ToolBarIconButton(
                 isEnabled = refreshInterval == 0,
-                name = "/web/images/ic_zoom_in_${getStyleToolbarIconNameSuffix()}.png",
+                name = "/images/ic_zoom_in_${getStyleToolbarIconNameSuffix()}.png",
             ) {
                 zoomIn()
             }
             ToolBarIconButton(
                 isEnabled = refreshInterval == 0,
-                name = "/web/images/ic_zoom_out_${getStyleToolbarIconNameSuffix()}.png",
+                name = "/images/ic_zoom_out_${getStyleToolbarIconNameSuffix()}.png",
             ) {
                 zoomOut()
             }
@@ -92,7 +92,7 @@ internal fun ChartToolBar(
         ToolBarBlock {
             ToolBarIconButton(
                 isEnabled = refreshInterval == 0,
-                name = "/web/images/ic_timeline_${getStyleToolbarIconNameSuffix()}.png",
+                name = "/images/ic_timeline_${getStyleToolbarIconNameSuffix()}.png",
             ) {
                 onShowChartList()
             }

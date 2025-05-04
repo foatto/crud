@@ -73,7 +73,7 @@ internal fun SchemeToolBar(
             if (isElementMoveEnabled) {
                 ToolBarIconButton(
                     isEnabled = refreshInterval == 0,
-                    name = "/web/images/ic_touch_app_${getStyleToolbarIconNameSuffix()}.png",
+                    name = "/images/ic_touch_app_${getStyleToolbarIconNameSuffix()}.png",
                 ) {
                     onMoveButtonClick()
                 }

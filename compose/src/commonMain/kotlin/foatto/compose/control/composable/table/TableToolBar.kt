@@ -70,7 +70,7 @@ fun TableToolBar(
         ToolBarBlock {
             ToolBarIconButton(
                 isVisible = selectorCancelAction != null,
-                name = "/web/images/ic_reply_all_${getStyleToolbarIconNameSuffix()}.png",
+                name = "/images/ic_reply_all_${getStyleToolbarIconNameSuffix()}.png",
             ) {
                 selectorCancelAction?.invoke()
             }
@@ -101,13 +101,13 @@ fun TableToolBar(
 //                }
             }
             ToolBarIconButton(
-                name = "/web/images/ic_search_${getStyleToolbarIconNameSuffix()}.png",
+                name = "/images/ic_search_${getStyleToolbarIconNameSuffix()}.png",
             ) {
                 doFind(false)
             }
             ToolBarIconButton(
                 isVisible = findText.isNotBlank(),
-                name = "/web/images/ic_youtube_searched_for_${getStyleToolbarIconNameSuffix()}.png",
+                name = "/images/ic_youtube_searched_for_${getStyleToolbarIconNameSuffix()}.png",
             ) {
                 doFind(true)
             }
@@ -125,19 +125,19 @@ fun TableToolBar(
                 }
                 ToolBarIconButton(
                     isVisible = (isWideScreen || !isFindTextVisible) && isFormButtonVisible,
-                    name = "/web/images/ic_mode_edit_${getStyleToolbarIconNameSuffix()}.png",
+                    name = "/images/ic_mode_edit_${getStyleToolbarIconNameSuffix()}.png",
                 ) {
                     doForm()
                 }
                 ToolBarIconButton(
                     isVisible = (isWideScreen || !isFindTextVisible) && isGotoButtonVisible,
-                    name = "/web/images/ic_exit_to_app_${getStyleToolbarIconNameSuffix()}.png",
+                    name = "/images/ic_exit_to_app_${getStyleToolbarIconNameSuffix()}.png",
                 ) {
                     doGoto()
                 }
                 ToolBarIconButton(
                     isVisible = (isWideScreen || !isFindTextVisible) && isPopupButtonVisible,
-                    name = "/web/images/ic_menu_${getStyleToolbarIconNameSuffix()}.png",
+                    name = "/images/ic_menu_${getStyleToolbarIconNameSuffix()}.png",
                 ) {
                     doPopup()
                 }
@@ -169,7 +169,7 @@ fun TableToolBar(
         ToolBarBlock {
             if (isWideScreen || !isFindTextVisible) {
                 ToolBarIconButton(
-                    name = "/web/images/ic_sync_${getStyleToolbarIconNameSuffix()}.png",
+                    name = "/images/ic_sync_${getStyleToolbarIconNameSuffix()}.png",
                 ) {
                     call(tableAction, false)
                 }

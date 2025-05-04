@@ -14,12 +14,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.boot.runApplication
 import org.springframework.context.event.EventListener
-import org.springframework.web.servlet.config.annotation.EnableWebMvc
 
 @SpringBootApplication(
     scanBasePackages = ["foatto.server"],
 )
-@EnableWebMvc
 class MMSSpringApp : SpringApp() {
 
     companion object {

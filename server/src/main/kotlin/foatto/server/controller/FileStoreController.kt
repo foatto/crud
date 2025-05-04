@@ -7,6 +7,7 @@ import foatto.core.model.response.form.FormFileUploadParams
 import foatto.core.model.response.form.FormFileUploadResponse
 import foatto.server.SpringApp
 import foatto.server.service.FileStoreService
+import foatto.server.service.ReportService
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.GetMapping
@@ -18,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
 import java.io.File
 import java.net.URLConnection
-import java.util.concurrent.ConcurrentHashMap
 
 @RestController
 class FileStoreController(
@@ -46,6 +46,12 @@ class FileStoreController(
 
     @Value("\${temp_dir}")
     private val tempDirName: String = ""
+
+    @GetMapping(value = ["/"])
+    fun downloadRoot(response: HttpServletResponse) {
+        //!!! после удаления старой версии переименовать в index.html
+        download(response, "${rootDirName}/web/index_2.html")
+    }
 
     @PostMapping(ApiUrl.GET_SHORT_FILE_LINK)
     fun getShortFileLink(
@@ -93,6 +99,15 @@ class FileStoreController(
         } ?: run {
             response.status = 403       // forbidden
         }
+    }
+
+    @GetMapping(value = ["/${ReportService.REPORT_FILES_BASE}/{fileName}"])
+    fun downloadReports(
+        response: HttpServletResponse,
+        @PathVariable("fileName")
+        fileName: String
+    ) {
+        download(response, "${rootDirName}/reports/$fileName")
     }
 
 }

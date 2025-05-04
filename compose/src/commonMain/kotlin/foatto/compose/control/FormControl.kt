@@ -717,7 +717,7 @@ class FormControl(
                                                             CircularProgressIndicator()
                                                         } else {
                                                             ImageOrTextFromNameControl(
-                                                                name = "/web/images/ic_add_${getStyleOtherIconNameSuffix()}.png",
+                                                                name = "/images/ic_add_${getStyleOtherIconNameSuffix()}.png",
                                                                 iconSize = styleOtherIconSize,
                                                                 imageButton = { func ->
                                                                     FilledIconButton(
@@ -778,7 +778,7 @@ class FormControl(
                                                                 )
                                                                 if (gridData.data.isEditable) {
                                                                     ImageOrTextFromNameControl(
-                                                                        name = "/web/images/ic_delete_forever_${getStyleOtherIconNameSuffix()}.png",
+                                                                        name = "/images/ic_delete_forever_${getStyleOtherIconNameSuffix()}.png",
                                                                         iconSize = styleOtherIconSize,
                                                                         imageButton = { func ->
                                                                             FilledIconButton(
@@ -815,7 +815,7 @@ class FormControl(
                                             if (gridData is FormSimpleCellClient) {
                                                 gridData.data.selectorAction?.let { selectorAction ->
                                                     ImageOrTextFromNameControl(
-                                                        name = "/web/images/ic_reply_${getStyleOtherIconNameSuffix()}.png",
+                                                        name = "/images/ic_reply_${getStyleOtherIconNameSuffix()}.png",
                                                         iconSize = styleOtherIconSize,
                                                         imageButton = { func ->
                                                             FilledIconButton(
@@ -837,7 +837,7 @@ class FormControl(
 //                                                doKeyUp(gridData, syntheticKeyboardEvent)
 
                                                     ImageOrTextFromNameControl(
-                                                        name = "/web/images/ic_delete_forever_${getStyleOtherIconNameSuffix()}.png",
+                                                        name = "/images/ic_delete_forever_${getStyleOtherIconNameSuffix()}.png",
                                                         iconSize = styleOtherIconSize,
                                                         imageButton = { func ->
                                                             FilledIconButton(

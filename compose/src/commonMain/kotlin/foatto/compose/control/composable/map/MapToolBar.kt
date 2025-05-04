@@ -67,26 +67,26 @@ internal fun MapToolBar(
             if (isToolBarsVisible) {
                 ToolBarIconButton(
                     isEnabled = refreshInterval == 0 && isPanButtonEnabled,
-                    name = "/web/images/ic_open_with_${getStyleToolbarIconNameSuffix()}.png",
+                    name = "/images/ic_open_with_${getStyleToolbarIconNameSuffix()}.png",
                 ) {
                     setMode(MapWorkMode.PAN)
                 }
                 ToolBarIconButton(
                     isEnabled = refreshInterval == 0 && isZoomButtonEnabled,
-                    name = "/web/images/ic_search_${getStyleToolbarIconNameSuffix()}.png",
+                    name = "/images/ic_search_${getStyleToolbarIconNameSuffix()}.png",
                 ) {
                     setMode(MapWorkMode.ZOOM_BOX)
                 }
                 if (isWideScreen) {
                     ToolBarIconButton(
                         isEnabled = refreshInterval == 0 && isDistancerButtonEnabled,
-                        name = "/web/images/ic_linear_scale_${getStyleToolbarIconNameSuffix()}.png",
+                        name = "/images/ic_linear_scale_${getStyleToolbarIconNameSuffix()}.png",
                     ) {
                         setMode(MapWorkMode.DISTANCER)
                     }
                     ToolBarIconButton(
                         isEnabled = refreshInterval == 0 && isSelectButtonEnabled,
-                        name = "/web/images/ic_touch_app_${getStyleToolbarIconNameSuffix()}.png",
+                        name = "/images/ic_touch_app_${getStyleToolbarIconNameSuffix()}.png",
                     ) {
                         setMode(MapWorkMode.SELECT_FOR_ACTION)
                     }
@@ -97,13 +97,13 @@ internal fun MapToolBar(
             if (isToolBarsVisible) {
                 ToolBarIconButton(
                     isEnabled = refreshInterval == 0 && isZoomInButtonEnabled,
-                    name = "/web/images/ic_zoom_in_${getStyleToolbarIconNameSuffix()}.png",
+                    name = "/images/ic_zoom_in_${getStyleToolbarIconNameSuffix()}.png",
                 ) {
                     zoomIn()
                 }
                 ToolBarIconButton(
                     isEnabled = refreshInterval == 0 && isZoomOutButtonEnabled,
-                    name = "/web/images/ic_zoom_out_${getStyleToolbarIconNameSuffix()}.png",
+                    name = "/images/ic_zoom_out_${getStyleToolbarIconNameSuffix()}.png",
                 ) {
                     zoomOut()
                 }
@@ -133,13 +133,13 @@ internal fun MapToolBar(
         ToolBarBlock {
             ToolBarIconButton(
                 isVisible = refreshInterval == 0 && isEditPointButtonVisible,
-                name = "/web/images/ic_format_shapes_${getStyleToolbarIconNameSuffix()}.png",
+                name = "/images/ic_format_shapes_${getStyleToolbarIconNameSuffix()}.png",
             ) {
                 startEditPoint()
             }
             ToolBarIconButton(
                 isVisible = refreshInterval == 0 && isMoveElementsButtonVisible,
-                name = "/web/images/ic_zoom_out_map_${getStyleToolbarIconNameSuffix()}.png",
+                name = "/images/ic_zoom_out_map_${getStyleToolbarIconNameSuffix()}.png",
             ) {
                 startMoveElements()
             }
@@ -147,13 +147,13 @@ internal fun MapToolBar(
         ToolBarBlock {
             ToolBarIconButton(
                 isVisible = refreshInterval == 0 && isActionOkButtonVisible,
-                name = "/web/images/ic_save_${getStyleToolbarIconNameSuffix()}.png",
+                name = "/images/ic_save_${getStyleToolbarIconNameSuffix()}.png",
             ) {
                 actionOk()
             }
             ToolBarIconButton(
                 isVisible = refreshInterval == 0 && isActionCancelButtonVisible,
-                name = "/web/images/ic_exit_to_app_${getStyleToolbarIconNameSuffix()}.png",
+                name = "/images/ic_exit_to_app_${getStyleToolbarIconNameSuffix()}.png",
             ) {
                 actionCancel()
             }

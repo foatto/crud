@@ -19,7 +19,7 @@ fun RefreshSubToolBar(
         }.forEach { interval ->
             ToolBarIconButton(
                 isEnabled = (interval == 0 || interval != refreshInterval),
-                name = "/web/images/ic_replay_${if (interval == 0) "" else "${interval}_"}${getStyleToolbarIconNameSuffix()}.png",
+                name = "/images/ic_replay_${if (interval == 0) "" else "${interval}_"}${getStyleToolbarIconNameSuffix()}.png",
             ) {
                 onButtonClick(interval)
             }
