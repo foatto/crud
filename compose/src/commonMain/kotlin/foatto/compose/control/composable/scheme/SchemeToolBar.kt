@@ -26,11 +26,11 @@ import foatto.core.model.AppAction
 @Composable
 internal fun SchemeToolBar(
     isWideScreen: Boolean,
-    refreshInterval: Int,
     isElementMoveEnabled: Boolean,
     isShowElementList: Boolean,
     alServerButton: SnapshotStateList<ServerActionButtonClient>,
     alMoveableElementData: SnapshotStateList<ElementMoveData>,
+    refreshInterval: Int,
     onServerButtonClick: (action: AppAction) -> Unit,
     onMoveButtonClick: () -> Unit,
     doCloseElementList: () -> Unit,

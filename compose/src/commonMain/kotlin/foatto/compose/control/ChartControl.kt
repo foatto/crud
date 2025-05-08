@@ -175,8 +175,7 @@ class ChartControl(
         width = mutableFloatStateOf(1.0f),
     )
 
-    //--- использовать для отображения кнопок переключения режимов
-    private var curMode by mutableStateOf(ChartWorkMode.PAN)
+    private var curMode = ChartWorkMode.PAN
 
     private var refreshInterval by mutableIntStateOf(0)
 
@@ -199,11 +198,11 @@ class ChartControl(
 
             ChartToolBar(
                 isWideScreen = root.isWideScreen,
-                refreshInterval = refreshInterval,
                 isPanButtonEnabled = isPanButtonEnabled,
                 isZoomButtonEnabled = isZoomButtonEnabled,
                 isShowChartList = isShowChartList,
                 alChartVisibleData = alChartVisibleData,
+                refreshInterval = refreshInterval,
                 setMode = { chartWorkMode: ChartWorkMode -> setMode(chartWorkMode) },
                 zoomIn = { coroutineScope.launch { zoomIn() } },
                 zoomOut = { coroutineScope.launch { zoomOut() } },
@@ -215,8 +214,7 @@ class ChartControl(
                         doChangeChartVisibility()
                     }
                 },
-                setInterval = { interval: Int -> coroutineScope.launch { setInterval(interval) } },
-            )
+            ) { interval: Int -> coroutineScope.launch { setInterval(interval) } }
 
             MainChartBody(withInteractive = true)
         }

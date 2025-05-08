@@ -28,11 +28,11 @@ import foatto.compose.getStyleToolbarIconNameSuffix
 @Composable
 internal fun ChartToolBar(
     isWideScreen: Boolean,
-    refreshInterval: Int,
     isPanButtonEnabled: Boolean,
     isZoomButtonEnabled: Boolean,
     isShowChartList: Boolean,
     alChartVisibleData: SnapshotStateList<ChartVisibleData>,
+    refreshInterval: Int,
     setMode: (chartWorkMode: ChartWorkMode) -> Unit,
     zoomIn: () -> Unit,
     zoomOut: () -> Unit,
@@ -63,13 +63,13 @@ internal fun ChartToolBar(
     ) {
         ToolBarBlock {
             ToolBarIconButton(
-                isEnabled = refreshInterval == 0 && isPanButtonEnabled,
+                isEnabled = isPanButtonEnabled && refreshInterval == 0,
                 name = "/images/ic_open_with_${getStyleToolbarIconNameSuffix()}.png",
             ) {
                 setMode(ChartWorkMode.PAN)
             }
             ToolBarIconButton(
-                isEnabled = refreshInterval == 0 && isZoomButtonEnabled,
+                isEnabled = isZoomButtonEnabled && refreshInterval == 0,
                 name = "/images/ic_search_${getStyleToolbarIconNameSuffix()}.png",
             ) {
                 setMode(ChartWorkMode.ZOOM_BOX)

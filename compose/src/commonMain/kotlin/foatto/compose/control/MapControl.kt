@@ -116,7 +116,6 @@ class MapControl(
             MapToolBar(
                 isWideScreen = root.isWideScreen,
                 isToolBarsVisible = isToolBarsVisible,
-                refreshInterval = refreshInterval,
                 isPanButtonEnabled = isPanButtonEnabled,
                 isZoomButtonEnabled = isZoomButtonEnabled,
                 isDistancerButtonEnabled = isDistancerButtonEnabled,
@@ -129,6 +128,7 @@ class MapControl(
                 isActionOkButtonVisible = isActionOkButtonVisible,
                 isActionCancelButtonVisible = isActionCancelButtonVisible,
                 alAddEC = alAddEC,
+                refreshInterval = refreshInterval,
                 setMode = { mapWorkMode: MapWorkMode -> setMode(mapWorkMode) },
                 zoomIn = { zoomIn() },
                 zoomOut = { zoomOut() },
@@ -137,8 +137,7 @@ class MapControl(
                 startMoveElements = { /*!!! startMoveElements()*/ },
                 actionOk = { /*!!! actionOk()*/ },
                 actionCancel = { /*!!! actionCancel()*/ },
-                setInterval = { interval: Int -> coroutineScope.launch { setInterval(interval) } },
-            )
+            ) { interval: Int -> coroutineScope.launch { setInterval(interval) } }
 
             getXyElementTemplate(true)
         }

@@ -79,11 +79,11 @@ class SchemeControl(
 
             SchemeToolBar(
                 isWideScreen = root.isWideScreen,
-                refreshInterval = refreshInterval,
                 isElementMoveEnabled = isElementMoveEnabled,
                 isShowElementList = isShowElementList,
                 alServerButton = alServerButton,
                 alMoveableElementData = alMoveableElementData,
+                refreshInterval = refreshInterval,
                 onServerButtonClick = { action: AppAction -> coroutineScope.launch { invokeServerButton(action) } },
                 onMoveButtonClick = { isShowElementList = !isShowElementList },
                 doCloseElementList = { isShowElementList = false },
@@ -93,8 +93,7 @@ class SchemeControl(
                     moveRectX = (data.x - xyViewCoord.x1) / xyViewCoord.scale * root.scaleKoef
                     moveRectY = (data.y - xyViewCoord.y1) / xyViewCoord.scale * root.scaleKoef
                 },
-                setInterval = { interval: Int -> coroutineScope.launch { setInterval(interval) } },
-            )
+            ) { interval: Int -> coroutineScope.launch { setInterval(interval) } }
 
             getXyElementTemplate(true)
         }

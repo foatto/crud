@@ -24,7 +24,6 @@ import foatto.core.model.response.xy.XyElementConfig
 internal fun MapToolBar(
     isWideScreen: Boolean,
     isToolBarsVisible: Boolean,
-    refreshInterval: Int,
     isPanButtonEnabled: Boolean,
     isZoomButtonEnabled: Boolean,
     isDistancerButtonEnabled: Boolean,
@@ -37,6 +36,7 @@ internal fun MapToolBar(
     isActionOkButtonVisible: Boolean,
     isActionCancelButtonVisible: Boolean,
     alAddEC: List<XyElementConfig>,
+    refreshInterval: Int,
     setMode: (mapWorkMode: MapWorkMode) -> Unit,
     zoomIn: () -> Unit,
     zoomOut: () -> Unit,
@@ -66,26 +66,26 @@ internal fun MapToolBar(
         ToolBarBlock {
             if (isToolBarsVisible) {
                 ToolBarIconButton(
-                    isEnabled = refreshInterval == 0 && isPanButtonEnabled,
+                    isEnabled = isPanButtonEnabled && refreshInterval == 0,
                     name = "/images/ic_open_with_${getStyleToolbarIconNameSuffix()}.png",
                 ) {
                     setMode(MapWorkMode.PAN)
                 }
                 ToolBarIconButton(
-                    isEnabled = refreshInterval == 0 && isZoomButtonEnabled,
+                    isEnabled = isZoomButtonEnabled && refreshInterval == 0,
                     name = "/images/ic_search_${getStyleToolbarIconNameSuffix()}.png",
                 ) {
                     setMode(MapWorkMode.ZOOM_BOX)
                 }
                 if (isWideScreen) {
                     ToolBarIconButton(
-                        isEnabled = refreshInterval == 0 && isDistancerButtonEnabled,
+                        isEnabled = isDistancerButtonEnabled && refreshInterval == 0,
                         name = "/images/ic_linear_scale_${getStyleToolbarIconNameSuffix()}.png",
                     ) {
                         setMode(MapWorkMode.DISTANCER)
                     }
                     ToolBarIconButton(
-                        isEnabled = refreshInterval == 0 && isSelectButtonEnabled,
+                        isEnabled = isSelectButtonEnabled && refreshInterval == 0,
                         name = "/images/ic_touch_app_${getStyleToolbarIconNameSuffix()}.png",
                     ) {
                         setMode(MapWorkMode.SELECT_FOR_ACTION)
@@ -96,13 +96,13 @@ internal fun MapToolBar(
         ToolBarBlock {
             if (isToolBarsVisible) {
                 ToolBarIconButton(
-                    isEnabled = refreshInterval == 0 && isZoomInButtonEnabled,
+                    isEnabled = isZoomInButtonEnabled && refreshInterval == 0,
                     name = "/images/ic_zoom_in_${getStyleToolbarIconNameSuffix()}.png",
                 ) {
                     zoomIn()
                 }
                 ToolBarIconButton(
-                    isEnabled = refreshInterval == 0 && isZoomOutButtonEnabled,
+                    isEnabled = isZoomOutButtonEnabled && refreshInterval == 0,
                     name = "/images/ic_zoom_out_${getStyleToolbarIconNameSuffix()}.png",
                 ) {
                     zoomOut()
@@ -132,13 +132,13 @@ internal fun MapToolBar(
         }
         ToolBarBlock {
             ToolBarIconButton(
-                isVisible = refreshInterval == 0 && isEditPointButtonVisible,
+                isVisible = isEditPointButtonVisible && refreshInterval == 0,
                 name = "/images/ic_format_shapes_${getStyleToolbarIconNameSuffix()}.png",
             ) {
                 startEditPoint()
             }
             ToolBarIconButton(
-                isVisible = refreshInterval == 0 && isMoveElementsButtonVisible,
+                isVisible = isMoveElementsButtonVisible && refreshInterval == 0,
                 name = "/images/ic_zoom_out_map_${getStyleToolbarIconNameSuffix()}.png",
             ) {
                 startMoveElements()
@@ -146,13 +146,13 @@ internal fun MapToolBar(
         }
         ToolBarBlock {
             ToolBarIconButton(
-                isVisible = refreshInterval == 0 && isActionOkButtonVisible,
+                isVisible = isActionOkButtonVisible && refreshInterval == 0,
                 name = "/images/ic_save_${getStyleToolbarIconNameSuffix()}.png",
             ) {
                 actionOk()
             }
             ToolBarIconButton(
-                isVisible = refreshInterval == 0 && isActionCancelButtonVisible,
+                isVisible = isActionCancelButtonVisible && refreshInterval == 0,
                 name = "/images/ic_exit_to_app_${getStyleToolbarIconNameSuffix()}.png",
             ) {
                 actionCancel()
