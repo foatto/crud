@@ -39,7 +39,12 @@ import foatto.server.model.ServerUserConfig
 import foatto.server.repository.UserRepository
 import foatto.server.util.encodePassword
 import foatto.server.util.getNextId
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.UtcOffset
+import kotlinx.datetime.offsetAt
 import kotlinx.datetime.toInstant
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Sort
@@ -464,7 +469,7 @@ class UserService(
             name = FIELD_TIME_OFFSET,
             caption = "Сдвиг часового пояса [сек]",
             isEditable = changeEnabled,
-            value = userEntity?.timeOffset?.toString() ?: "10800",
+            value = (userEntity?.timeOffset ?: TimeZone.currentSystemDefault().offsetAt(Clock.System.now()).totalSeconds).toString(),
             visibility = nonVisibleForDivision,
         )
         formCells += FormSimpleCell(
@@ -626,7 +631,7 @@ class UserService(
             login = login,
             password = encodedPassword,
             roles = roles,
-            timeOffset = formActionData[FIELD_TIME_OFFSET]?.stringValue?.toIntOrNull() ?: 0,
+            timeOffset = formActionData[FIELD_TIME_OFFSET]?.stringValue?.toIntOrNull() ?: TimeZone.currentSystemDefault().offsetAt(Clock.System.now()).totalSeconds,
             eMail = formActionData[FIELD_EMAIL]?.stringValue,
             contactInfo = formActionData[FIELD_CONTACT_INFO]?.stringValue,
             useThousandsDivider = formActionData[FIELD_USE_THOUSANDS_DIVIDER]?.booleanValue ?: true,

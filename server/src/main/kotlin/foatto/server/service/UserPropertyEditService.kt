@@ -16,6 +16,9 @@ import foatto.server.checkRowPermission
 import foatto.server.model.AppModuleConfig
 import foatto.server.model.ServerUserConfig
 import foatto.server.repository.UserRepository
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.offsetAt
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
@@ -55,7 +58,7 @@ class UserPropertyEditService(
             name = FIELD_TIME_OFFSET,
             caption = "Сдвиг часового пояса [сек]",
             isEditable = changeEnabled,
-            value = userEntity?.timeOffset?.toString() ?: "10800",
+            value = (userEntity?.timeOffset ?: TimeZone.currentSystemDefault().offsetAt(Clock.System.now()).totalSeconds).toString(),
         )
         formCells += FormSimpleCell(
             name = FIELD_EMAIL,
@@ -110,7 +113,7 @@ class UserPropertyEditService(
         val userEntity = userRepository.findByIdOrNull(id) ?: return FormActionResponse(responseCode = ResponseCode.ERROR)
 
         userEntity.apply {
-            timeOffset = formActionData[FIELD_TIME_OFFSET]?.stringValue?.toIntOrNull() ?: 0
+            timeOffset = formActionData[FIELD_TIME_OFFSET]?.stringValue?.toIntOrNull() ?: TimeZone.currentSystemDefault().offsetAt(Clock.System.now()).totalSeconds
             eMail = formActionData[FIELD_EMAIL]?.stringValue
             contactInfo = formActionData[FIELD_CONTACT_INFO]?.stringValue
             useThousandsDivider = formActionData[FIELD_USE_THOUSANDS_DIVIDER]?.booleanValue ?: true
