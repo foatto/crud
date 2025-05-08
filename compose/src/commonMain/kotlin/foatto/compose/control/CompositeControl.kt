@@ -20,6 +20,7 @@ import foatto.compose.colorScrollBarFore
 import foatto.compose.control.composable.composite.CompositeToolBar
 import foatto.compose.control.composable.onPointerEvents
 import foatto.compose.control.model.composite.CompositeBlockControl
+import foatto.compose.control.model.composite.CompositeWorkMode
 import foatto.core.model.response.composite.CompositeBlock
 import foatto.core.model.response.composite.CompositeResponse
 import kotlinx.coroutines.delay
@@ -46,6 +47,11 @@ class CompositeControl(
         const val BLOCK_MIN_HEIGHT: Int = 240
     }
 
+    private var isToolBarsVisible by mutableStateOf(true)
+
+    private var isPanButtonEnabled by mutableStateOf(false)
+    private var isLayoutButtonEnabled by mutableStateOf(true)
+
     private var refreshInterval: Int by mutableIntStateOf(0)
 
     private var canvasWidth: Float by mutableFloatStateOf(0.0f)
@@ -62,6 +68,8 @@ class CompositeControl(
     private var screenOffsetX: Float by mutableFloatStateOf(0.0f)
     private var screenOffsetY: Float by mutableFloatStateOf(0.0f)
 
+    private var curMode = CompositeWorkMode.PAN
+
     @Composable
     override fun Body() {
         val density = LocalDensity.current
@@ -75,7 +83,11 @@ class CompositeControl(
 
             CompositeToolBar(
                 isWideScreen = root.isWideScreen,
+                isToolBarsVisible = isToolBarsVisible,
+                isPanButtonEnabled = isPanButtonEnabled,
+                isLayoutButtonEnabled = isLayoutButtonEnabled,
                 refreshInterval = refreshInterval,
+                setMode = { compositeWorkMode: CompositeWorkMode -> setMode(compositeWorkMode) },
                 setInterval = { interval: Int -> coroutineScope.launch { setInterval(interval) } },
             )
 
@@ -329,6 +341,29 @@ class CompositeControl(
                         ?: println("refreshAll: не задан тип блока!")
                 }
         }
+    }
+
+    private fun setMode(newMode: CompositeWorkMode) {
+        when (curMode) {
+            CompositeWorkMode.PAN -> {
+                isPanButtonEnabled = true
+            }
+
+            CompositeWorkMode.LAYOUT -> {
+                isLayoutButtonEnabled = true
+            }
+        }
+
+        when (newMode) {
+            CompositeWorkMode.PAN -> {
+                isPanButtonEnabled = false
+            }
+
+            CompositeWorkMode.LAYOUT -> {
+                isLayoutButtonEnabled = false
+            }
+        }
+        curMode = newMode
     }
 
     private fun onDrag(change: PointerInputChange, dx: Float, dy: Float) {

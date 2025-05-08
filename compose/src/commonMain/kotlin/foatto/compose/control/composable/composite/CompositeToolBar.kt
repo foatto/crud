@@ -12,11 +12,18 @@ import androidx.compose.ui.unit.dp
 import foatto.compose.colorToolBar
 import foatto.compose.control.composable.RefreshSubToolBar
 import foatto.compose.control.composable.ToolBarBlock
+import foatto.compose.control.composable.ToolBarIconButton
+import foatto.compose.control.model.composite.CompositeWorkMode
+import foatto.compose.getStyleToolbarIconNameSuffix
 
 @Composable
 internal fun CompositeToolBar(
     isWideScreen: Boolean,
+    isToolBarsVisible: Boolean,
+    isPanButtonEnabled: Boolean,
+    isLayoutButtonEnabled: Boolean,
     refreshInterval: Int,
+    setMode: (compositeWorkMode: CompositeWorkMode) -> Unit,
     setInterval: (interval: Int) -> Unit,
 ) {
     Row(
@@ -39,8 +46,26 @@ internal fun CompositeToolBar(
 //                        backgroundColor(getColorTableToolbarBack())
     ) {
         ToolBarBlock {
-            // Space()?
+            if (isToolBarsVisible) {
+                ToolBarIconButton(
+                    isEnabled = isPanButtonEnabled && refreshInterval == 0,
+                    name = "/images/ic_open_with_${getStyleToolbarIconNameSuffix()}.png",
+                ) {
+                    setMode(CompositeWorkMode.PAN)
+                }
+                if (isWideScreen) {
+                    ToolBarIconButton(
+                        isEnabled = isLayoutButtonEnabled && refreshInterval == 0,
+                        name = "/images/ic_touch_app_${getStyleToolbarIconNameSuffix()}.png",
+                    ) {
+                        setMode(CompositeWorkMode.LAYOUT)
+                    }
+                }
+            }
         }
+//        ToolBarBlock {
+//            // Space()?
+//        }
         RefreshSubToolBar(
             isWideScreen = isWideScreen,
             refreshInterval = refreshInterval,
