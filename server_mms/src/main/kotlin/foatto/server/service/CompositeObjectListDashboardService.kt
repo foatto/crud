@@ -131,7 +131,7 @@ class CompositeObjectListDashboardService(
         val appResponse = objectListService.app(sessionId, tableAction)
 
         blocks += CompositeBlock(
-            isScrollable = false,
+            isStatic = true,
             x = 0,
             y = 0,
             w = 1,
@@ -147,7 +147,7 @@ class CompositeObjectListDashboardService(
 
         sensorEntities.forEach { (sensorType, sensorEntity) ->
             blocks += CompositeBlock(
-                isScrollable = true,
+                isStatic = false,
                 x = col,
                 y = row,
                 w = 1,
@@ -196,8 +196,6 @@ class CompositeObjectListDashboardService(
                     ),
                     rows = rows,
                 ),
-                cols = blockOnRow,
-                rows = blockRows,
                 blocks = blocks,
             )
         )

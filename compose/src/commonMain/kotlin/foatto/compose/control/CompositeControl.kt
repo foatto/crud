@@ -1,7 +1,10 @@
 package foatto.compose.control
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -13,16 +16,16 @@ import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import foatto.compose.AppControl
-import foatto.compose.Root
-import foatto.compose.colorScrollBarBack
-import foatto.compose.colorScrollBarFore
+import foatto.compose.*
 import foatto.compose.control.composable.composite.CompositeToolBar
 import foatto.compose.control.composable.onPointerEvents
 import foatto.compose.control.model.composite.CompositeBlockControl
 import foatto.compose.control.model.composite.CompositeWorkMode
+import foatto.compose.utils.getFullUrl
 import foatto.core.model.response.composite.CompositeBlock
 import foatto.core.model.response.composite.CompositeResponse
+import io.kamel.image.KamelImage
+import io.kamel.image.asyncPainterResource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.max
@@ -52,6 +55,10 @@ class CompositeControl(
     private var isPanButtonEnabled by mutableStateOf(false)
     private var isLayoutButtonEnabled by mutableStateOf(true)
 
+    private var isLayoutSaveButtonVisible by mutableStateOf(false)
+    private var isLayoutSaveButtonEnabled by mutableStateOf(false)
+
+    private var isRefreshButtonsVisible by mutableStateOf(true)
     private var refreshInterval: Int by mutableIntStateOf(0)
 
     private var canvasWidth: Float by mutableFloatStateOf(0.0f)
@@ -60,8 +67,6 @@ class CompositeControl(
     private var oneBlockWidth by mutableFloatStateOf(0.0f)
     private var oneBlockHeight by mutableFloatStateOf(0.0f)
 
-    private var blocks by mutableStateOf<List<CompositeBlockControl>>(emptyList())
-
     private var vScrollBarLength: Float by mutableFloatStateOf(0.0f)
     private var hScrollBarLength: Float by mutableFloatStateOf(0.0f)
 
@@ -69,6 +74,10 @@ class CompositeControl(
     private var screenOffsetY: Float by mutableFloatStateOf(0.0f)
 
     private var curMode = CompositeWorkMode.PAN
+
+    private val blocks = mutableStateListOf<CompositeBlockControl>()
+
+    private var movingBlock: CompositeBlockControl? by mutableStateOf(null)
 
     @Composable
     override fun Body() {
@@ -86,13 +95,16 @@ class CompositeControl(
                 isToolBarsVisible = isToolBarsVisible,
                 isPanButtonEnabled = isPanButtonEnabled,
                 isLayoutButtonEnabled = isLayoutButtonEnabled,
+                isLayoutSaveButtonVisible = isLayoutSaveButtonVisible,
+                isLayoutSaveButtonEnabled = isLayoutSaveButtonEnabled,
+                isRefreshButtonsVisible = isRefreshButtonsVisible,
                 refreshInterval = refreshInterval,
                 setMode = { compositeWorkMode: CompositeWorkMode -> setMode(compositeWorkMode) },
+                saveLayout = {},
                 setInterval = { interval: Int -> coroutineScope.launch { setInterval(interval) } },
             )
 
-            //--- bugfix for compositeResponse value caching
-            key(compositeResponse) {
+            key(blocks) {
                 Row(
                     modifier = Modifier
                         .weight(1.0f)
@@ -107,13 +119,13 @@ class CompositeControl(
                                 canvasWidth = size.width.toFloat()
                                 canvasHeight = size.height.toFloat()
 
-                                oneBlockWidth = max(BLOCK_MIN_WIDTH * root.scaleKoef, canvasWidth / compositeResponse.cols)
-                                oneBlockHeight = max(BLOCK_MIN_HEIGHT * root.scaleKoef, canvasHeight / compositeResponse.rows)
+                                oneBlockWidth = max(BLOCK_MIN_WIDTH * root.scaleKoef, canvasWidth / getBlockColSum())
+                                oneBlockHeight = max(BLOCK_MIN_HEIGHT * root.scaleKoef, canvasHeight / getBlockRowSum())
                             }
                             .onPointerEvents(
                                 withInteractive = true,
                                 onPointerDown = { pointerInputChange -> },
-                                onPointerUp = { pointerInputChange -> },
+                                onPointerUp = { pointerInputChange -> onPointerUp(pointerInputChange) },
                                 onDragStart = { offset -> },
                                 onDrag = { pointerInputChange, offset -> onDrag(pointerInputChange, offset.x, offset.y) },
                                 onDragEnd = { },
@@ -121,43 +133,120 @@ class CompositeControl(
                             ),
                     ) {
                         for (block in blocks) {
-                            val blockX = block.x * oneBlockWidth + if (block.isScrollable) {
-                                screenOffsetX
-                            } else {
-                                0.0f
+                            BlockBody(block) { blockX, blockY, blockW, blockH ->
+                                Box(
+                                    modifier = Modifier
+                                        .offset(
+                                            x = with(density) { blockX.toDp() },
+                                            y = with(density) { blockY.toDp() },
+                                        )
+                                        .size(
+                                            width = with(density) { blockW.toDp() },
+                                            height = with(density) { blockH.toDp() },
+                                        )
+                                ) {
+                                    block.chartBlock?.MainChartBody(false)
+                                        ?: block.mapBlock?.getXyElementTemplate(false)
+                                        ?: block.schemeBlock?.getXyElementTemplate(false)
+                                        ?: block.tableBlock?.TableBody(Modifier)
+                                        ?: run {
+                                            Text(text = "Не задан тип блока!")
+                                        }
+                                }
                             }
-                            val blockY = block.y * oneBlockHeight + if (block.isScrollable) {
-                                screenOffsetY
-                            } else {
-                                0.0f
-                            }
-                            val blockW = block.w * oneBlockWidth
-                            val blockH = block.h * oneBlockHeight
+                        }
 
-                            Box(
-                                modifier = Modifier
-                                    .offset(
-                                        x = with(density) { blockX.toDp() },
-                                        y = with(density) { blockY.toDp() },
-                                    )
-                                    .size(
-                                        width = with(density) { blockW.toDp() },
-                                        height = with(density) { blockH.toDp() },
-                                    )
-                            ) {
-                                block.chartBlock?.MainChartBody(false)
-                                    ?: block.mapBlock?.getXyElementTemplate(false)
-                                    ?: block.schemeBlock?.getXyElementTemplate(false)
-                                    ?: block.tableBlock?.TableBody(Modifier)
-                                    ?: run {
-                                        Text(text = "Не задан тип блока!")
-                                    }
+                        movingBlock?.let { block ->
+                            BlockBody(block) { blockX, blockY, blockW, blockH ->
+                                Box(
+                                    modifier = Modifier
+                                        .offset(
+                                            x = with(density) { blockX.toDp() },
+                                            y = with(density) { blockY.toDp() },
+                                        )
+                                        .size(
+                                            width = with(density) { blockW.toDp() },
+                                            height = with(density) { blockH.toDp() },
+                                        )
+                                        .background(color = colorCompositeMovedBlockBack)
+                                )
+
+                                val iconSize = styleToolbarIconSize
+
+                                val blockCenterX = blockX + blockW / 2 - iconSize / 2
+                                val blockCenterY = blockY + blockH / 2 - iconSize / 2
+
+                                LayoutButton(
+                                    modifier = Modifier.offset(
+                                        x = with(density) { blockCenterX.toDp() },
+                                        y = with(density) { blockCenterY.toDp() },
+                                    ),
+                                    iconName = "/images/ic_done_${getStyleToolbarIconNameSuffix()}.png",
+                                    isEnabled = true
+                                ) {
+                                    movingBlock = null
+                                    isToolBarsVisible = true
+                                }
+
+                                LayoutButton(
+                                    modifier = Modifier.offset(
+                                        x = with(density) { blockCenterX.toDp() },
+                                        y = with(density) { (blockCenterY - iconSize * 2).toDp() },
+                                    ),
+                                    iconName = "/images/ic_arrow_upward_${getStyleToolbarIconNameSuffix()}.png",
+                                    isEnabled = true
+                                ) {
+                                    onBlockMoveUp(block)
+                                }
+
+                                LayoutButton(
+                                    modifier = Modifier.offset(
+                                        x = with(density) { (blockCenterX - iconSize * 2).toDp() },
+                                        y = with(density) { blockCenterY.toDp() },
+                                    ),
+                                    iconName = "/images/ic_arrow_back_${getStyleToolbarIconNameSuffix()}.png",
+                                    isEnabled = true
+                                ) {
+                                    onBlockMoveLeft(block)
+                                }
+
+                                LayoutButton(
+                                    modifier = Modifier.offset(
+                                        x = with(density) { (blockCenterX + iconSize * 2).toDp() },
+                                        y = with(density) { blockCenterY.toDp() },
+                                    ),
+                                    iconName = "/images/ic_arrow_forward_${getStyleToolbarIconNameSuffix()}.png",
+                                    isEnabled = true
+                                ) {
+                                    onBlockMoveRight(block)
+                                }
+
+                                LayoutButton(
+                                    modifier = Modifier.offset(
+                                        x = with(density) { blockCenterX.toDp() },
+                                        y = with(density) { (blockCenterY + iconSize * 2).toDp() },
+                                    ),
+                                    iconName = "/images/ic_arrow_downward_${getStyleToolbarIconNameSuffix()}.png",
+                                    isEnabled = true
+                                ) {
+                                    onBlockMoveDown(block)
+                                }
+
+                                LayoutButton(
+                                    modifier = Modifier.offset(
+                                        x = with(density) { (blockCenterX + iconSize * 3).toDp() },
+                                        y = with(density) { (blockCenterY + iconSize * 2).toDp() },
+                                    ),
+                                    iconName = "/images/ic_visibility_off_${getStyleToolbarIconNameSuffix()}.png",
+                                    isEnabled = true
+                                ) {}
                             }
                         }
                     }
                     VerticalScrollBody()
                 }
                 HorizontalScrollBody()
+
             }
         }
 
@@ -166,6 +255,51 @@ class CompositeControl(
                 refreshAll()
                 delay(refreshInterval * 1000L)
             }
+        }
+    }
+
+    @Composable
+    fun BlockBody(
+        block: CompositeBlockControl,
+        content: @Composable (blockX: Float, blockY: Float, blockW: Float, blockH: Float) -> Unit,
+    ) {
+        val blockX = block.x * oneBlockWidth + if (block.isStatic) {
+            0.0f
+        } else {
+            screenOffsetX
+        }
+        val blockY = block.y * oneBlockHeight + if (block.isStatic) {
+            0.0f
+        } else {
+            screenOffsetY
+        }
+        val blockW = block.w * oneBlockWidth
+        val blockH = block.h * oneBlockHeight
+
+        content(blockX, blockY, blockW, blockH)
+    }
+
+    @Composable
+    fun LayoutButton(
+        modifier: Modifier,
+        iconName: String,
+        isEnabled: Boolean,
+        onClick: () -> Unit,
+    ) {
+        FilledIconButton(
+            modifier = modifier,
+            shape = singleButtonShape,
+            colors = colorIconButton ?: IconButtonDefaults.iconButtonColors(),
+            enabled = isEnabled,
+            onClick = {
+                onClick()
+            }
+        ) {
+            KamelImage(
+                modifier = Modifier.size(styleToolbarIconSize.dp),
+                resource = asyncPainterResource(data = getFullUrl(iconName)),
+                contentDescription = iconName,
+            )
         }
     }
 
@@ -187,7 +321,7 @@ class CompositeControl(
                     onPointerUp = { pointerInputChange -> },
                     onDragStart = { offset -> },
                     onDrag = { pointerInputChange, offset ->
-                        val pixEndY = compositeResponse.rows * oneBlockHeight
+                        val pixEndY = getBlockRowSum() * oneBlockHeight
                         val incScaleY = pixEndY / vScrollBarLength
                         onDrag(pointerInputChange, 0.0f, -offset.y * incScaleY)
                     },
@@ -201,7 +335,7 @@ class CompositeControl(
                 color = colorScrollBarBack,
                 style = Fill,
             )
-            val pixEndY = compositeResponse.rows * oneBlockHeight
+            val pixEndY = getBlockRowSum() * oneBlockHeight
             val decScaleY = min(1.0f, canvasHeight / pixEndY)
             val scrollBarH = vScrollBarLength * decScaleY
             val scrollBarY = if (canvasHeight >= pixEndY) {
@@ -236,7 +370,7 @@ class CompositeControl(
                     onPointerUp = { pointerInputChange -> },
                     onDragStart = { offset -> },
                     onDrag = { pointerInputChange, offset ->
-                        val pixEndX = compositeResponse.cols * oneBlockWidth
+                        val pixEndX = getBlockColSum() * oneBlockWidth
                         val incScaleX = pixEndX / hScrollBarLength
                         onDrag(pointerInputChange, -offset.x * incScaleX, 0.0f)
                     },
@@ -250,7 +384,7 @@ class CompositeControl(
                 color = colorScrollBarBack,
                 style = Fill,
             )
-            val pixEndX = compositeResponse.cols * oneBlockWidth
+            val pixEndX = getBlockColSum() * oneBlockWidth
             val decScaleX = min(1.0f, canvasWidth / pixEndX)
             val scrollBarW = hScrollBarLength * decScaleX
             val scrollBarX = if (canvasWidth >= pixEndX) {
@@ -271,18 +405,16 @@ class CompositeControl(
         root.setTabInfo(tabId, compositeResponse.tabCaption)
         headerData = compositeResponse.headerData
 
-        val newBlocks = mutableListOf<CompositeBlockControl>()
+        blocks.clear()
 
         //--- scrollable blocks first
-        compositeResponse.blocks.filter { block -> block.isScrollable }.forEach { blockControlData ->
-            readBlock(blockControlData, newBlocks)
+        compositeResponse.blocks.filter { block -> !block.isStatic }.forEach { blockControlData ->
+            readBlock(blockControlData, blocks)
         }
         //--- static/non-scrollable blocks seconds (as next layer for drawing)
-        compositeResponse.blocks.filter { block -> !block.isScrollable }.forEach { blockControlData ->
-            readBlock(blockControlData, newBlocks)
+        compositeResponse.blocks.filter { block -> block.isStatic }.forEach { blockControlData ->
+            readBlock(blockControlData, blocks)
         }
-
-        blocks = newBlocks
         /*
             !!! setInterval(10)
          */
@@ -290,11 +422,7 @@ class CompositeControl(
 
     private suspend fun readBlock(blockControlData: CompositeBlock, newBlocks: MutableList<CompositeBlockControl>) {
         newBlocks += CompositeBlockControl(
-            isScrollable = blockControlData.isScrollable,
-            x = blockControlData.x.toFloat(),
-            y = blockControlData.y.toFloat(),
-            w = blockControlData.w.toFloat(),
-            h = blockControlData.h.toFloat(),
+            isStatic = blockControlData.isStatic,
             chartBlock = blockControlData.chartResponse?.let { chartResponse ->
                 ChartControl(root, appControl, blockControlData.action, chartResponse, tabId).apply {
                     startChartBody()
@@ -319,7 +447,12 @@ class CompositeControl(
                     startTableBody()
                 }
             },
-        )
+        ).apply {
+            x = blockControlData.x
+            y = blockControlData.y
+            w = blockControlData.w
+            h = blockControlData.h
+        }
     }
 
     private suspend fun setInterval(sec: Int) {
@@ -351,47 +484,196 @@ class CompositeControl(
 
             CompositeWorkMode.LAYOUT -> {
                 isLayoutButtonEnabled = true
+
+                movingBlock = null
+                isLayoutSaveButtonVisible = false
+                isLayoutSaveButtonEnabled = false
             }
         }
 
         when (newMode) {
             CompositeWorkMode.PAN -> {
                 isPanButtonEnabled = false
+                isRefreshButtonsVisible = true
             }
 
             CompositeWorkMode.LAYOUT -> {
                 isLayoutButtonEnabled = false
+
+                isLayoutSaveButtonVisible = true
+                isLayoutSaveButtonEnabled = false
+
+                isRefreshButtonsVisible = false
             }
         }
         curMode = newMode
+
+        refreshInterval = 0
     }
 
-    private fun onDrag(change: PointerInputChange, dx: Float, dy: Float) {
-        val pixEndX = compositeResponse.cols * oneBlockWidth
-        val pixEndY = compositeResponse.rows * oneBlockHeight
+    private fun onPointerUp(pointerInputChange: PointerInputChange) {
+        val mouseX = pointerInputChange.position.x
+        val mouseY = pointerInputChange.position.y
 
-        val newOffsetX = screenOffsetX + dx
-        val newOffsetY = screenOffsetY + dy
+        when (curMode) {
+            CompositeWorkMode.LAYOUT -> {
+                for (block in blocks) {
+                    if (block.isStatic) {
+                        continue
+                    }
 
-        if (newOffsetX <= 0) {
-            screenOffsetX = if (newOffsetX >= canvasWidth - pixEndX) {
-                newOffsetX
-            } else {
-                canvasWidth - pixEndX
+                    val blockX = block.x * oneBlockWidth + if (block.isStatic) {
+                        0.0f
+                    } else {
+                        screenOffsetX
+                    }
+                    val blockY = block.y * oneBlockHeight + if (block.isStatic) {
+                        0.0f
+                    } else {
+                        screenOffsetY
+                    }
+                    val blockW = block.w * oneBlockWidth
+                    val blockH = block.h * oneBlockHeight
+
+                    if (mouseX > blockX &&
+                        mouseX < blockX + blockW &&
+                        mouseY > blockY &&
+                        mouseY < blockY + blockH
+                    ) {
+                        isToolBarsVisible = false
+                        movingBlock = block
+                        break
+                    }
+                }
             }
-        } else {
-            screenOffsetX = 0.0f
-        }
 
-        if (newOffsetY <= 0) {
-            screenOffsetY = if (newOffsetY >= canvasHeight - pixEndY) {
-                newOffsetY
-            } else {
-                canvasHeight - pixEndY
-            }
-        } else {
-            screenOffsetY = 0.0f
+            else -> {}
         }
     }
 
+    private fun onDrag(pointerInputChange: PointerInputChange, dx: Float, dy: Float) {
+        when (curMode) {
+            CompositeWorkMode.PAN, CompositeWorkMode.LAYOUT -> {
+                val pixEndX = getBlockColSum() * oneBlockWidth
+                val pixEndY = getBlockRowSum() * oneBlockHeight
+
+                val newOffsetX = screenOffsetX + dx
+                val newOffsetY = screenOffsetY + dy
+
+                if (newOffsetX <= 0) {
+                    screenOffsetX = if (newOffsetX >= canvasWidth - pixEndX) {
+                        newOffsetX
+                    } else {
+                        canvasWidth - pixEndX
+                    }
+                } else {
+                    screenOffsetX = 0.0f
+                }
+
+                if (newOffsetY <= 0) {
+                    screenOffsetY = if (newOffsetY >= canvasHeight - pixEndY) {
+                        newOffsetY
+                    } else {
+                        canvasHeight - pixEndY
+                    }
+                } else {
+                    screenOffsetY = 0.0f
+                }
+            }
+
+            else -> {}
+        }
+    }
+
+    private fun onBlockMoveLeft(block: CompositeBlockControl) {
+        if (block.x > 0) {
+            val nearBlocks = blocks.filter { b ->
+                b.isIntersect(block.x - 1, block.y, block.w, block.h)
+            }
+            if (nearBlocks.isEmpty()) {
+                block.x--
+            } else {
+                if (nearBlocks.none { b -> b.isStatic }) {
+                    nearBlocks.forEach { b ->
+                        b.x += b.w + block.w - 1
+                        //!!!проверить последующее пересечение перемещаемых блоков с другими блоками и
+                        // при необходимости двигать в правый/левый/нижний/верхний конец схемы, не трогая остальные элементы
+                        // (или сделать циклическое/рекурсивное смещение всех участвующих элементов вправо/влевоЭвниз/вверх)
+                    }
+                    block.x--
+                }
+            }
+            isLayoutSaveButtonEnabled = true
+        }
+    }
+
+    private fun onBlockMoveRight(block: CompositeBlockControl) {
+        val nearBlocks = blocks.filter { b ->
+            b.isIntersect(block.x + 1, block.y, block.w, block.h)
+        }
+        if (nearBlocks.isEmpty()) {
+            block.x++
+        } else {
+            if (nearBlocks.none { b -> b.isStatic }) {
+                nearBlocks.forEach { b ->
+                    b.x -= b.w + block.w - 1
+                    //!!!проверить последующее пересечение перемещаемых блоков с другими блоками и
+                    // при необходимости двигать в правый/левый/нижний/верхний конец схемы, не трогая остальные элементы
+                    // (или сделать циклическое/рекурсивное смещение всех участвующих элементов вправо/влевоЭвниз/вверх)
+                }
+                block.x++
+            }
+        }
+        isLayoutSaveButtonEnabled = true
+    }
+
+    private fun onBlockMoveUp(block: CompositeBlockControl) {
+        if (block.y > 0) {
+            val nearBlocks = blocks.filter { b ->
+                b.isIntersect(block.x, block.y - 1, block.w, block.h)
+            }
+            if (nearBlocks.isEmpty()) {
+                block.y--
+            } else {
+                if (nearBlocks.none { b -> b.isStatic }) {
+                    nearBlocks.forEach { b ->
+                        b.y += b.h + block.h - 1
+                        //!!!проверить последующее пересечение перемещаемых блоков с другими блоками и
+                        // при необходимости двигать в правый/левый/нижний/верхний конец схемы, не трогая остальные элементы
+                        // (или сделать циклическое/рекурсивное смещение всех участвующих элементов вправо/влевоЭвниз/вверх)
+                    }
+                    block.y--
+                }
+            }
+            isLayoutSaveButtonEnabled = true
+        }
+    }
+
+    private fun onBlockMoveDown(block: CompositeBlockControl) {
+        val nearBlocks = blocks.filter { b ->
+            b.isIntersect(block.x, block.y + 1, block.w, block.h)
+        }
+        if (nearBlocks.isEmpty()) {
+            block.y++
+        } else {
+            if (nearBlocks.none { b -> b.isStatic }) {
+                nearBlocks.forEach { b ->
+                    b.y -= b.h + block.h - 1
+                    //!!!проверить последующее пересечение перемещаемых блоков с другими блоками и
+                    // при необходимости двигать в правый/левый/нижний/верхний конец схемы, не трогая остальные элементы
+                    // (или сделать циклическое/рекурсивное смещение всех участвующих элементов вправо/влевоЭвниз/вверх)
+                }
+                block.y++
+            }
+        }
+        isLayoutSaveButtonEnabled = true
+    }
+
+    private fun getBlockColSum(): Int = blocks.maxOf { block ->
+        block.x + block.w
+    }
+
+    private fun getBlockRowSum(): Int = blocks.maxOf { block ->
+        block.y + block.h
+    }
 }

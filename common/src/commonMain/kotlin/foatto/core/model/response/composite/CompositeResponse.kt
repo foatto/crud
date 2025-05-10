@@ -8,8 +8,5 @@ class CompositeResponse(
     val tabCaption: String,
     val headerData: HeaderData,
 
-    val cols: Int,
-    val rows: Int,
-
     val blocks: List<CompositeBlock>,
 )
