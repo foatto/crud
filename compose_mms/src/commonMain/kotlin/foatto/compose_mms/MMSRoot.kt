@@ -128,5 +128,6 @@ class MMSRoot : Root() {
         //--- чуть светлее брендового цвета, чтобы на его фоне были видны кнопки селекторов
         colorTableCurrentRow = Color.hsl(MMS_FIRM_COLOR_2_H, MMS_FIRM_COLOR_2_S, 0.80f)
 
+        colorCompositeMovedBlockBack = darkBlueColor.copy(alpha = 0.7f)
     }
 }

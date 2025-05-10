@@ -71,3 +71,5 @@ var colorTimePicker: TimePickerColors? = null
 
 val alertDialogShape: Shape = RoundedCornerShape(8.dp)
 val singleButtonShape: Shape = RoundedCornerShape(4.dp)
+
+var colorCompositeMovedBlockBack: Color = Color.White
