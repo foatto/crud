@@ -281,7 +281,7 @@ class SchemeControl(
         println("Drag Start!")
     }
 
-    override fun onDrag(change: PointerInputChange, dragAmount: Offset) {
+    override fun onDrag(pointerInputChange: PointerInputChange, dragAmount: Offset) {
         screenOffsetX += dragAmount.x
         screenOffsetY += dragAmount.y
         println("DRAG!")

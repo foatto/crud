@@ -22,8 +22,12 @@ internal fun CompositeToolBar(
     isToolBarsVisible: Boolean,
     isPanButtonEnabled: Boolean,
     isLayoutButtonEnabled: Boolean,
+    isLayoutSaveButtonVisible: Boolean,
+    isLayoutSaveButtonEnabled: Boolean,
+    isRefreshButtonsVisible: Boolean,
     refreshInterval: Int,
     setMode: (compositeWorkMode: CompositeWorkMode) -> Unit,
+    saveLayout: () -> Unit,
     setInterval: (interval: Int) -> Unit,
 ) {
     Row(
@@ -45,8 +49,8 @@ internal fun CompositeToolBar(
 //                        )
 //                        backgroundColor(getColorTableToolbarBack())
     ) {
-        ToolBarBlock {
-            if (isToolBarsVisible) {
+        if (isToolBarsVisible) {
+            ToolBarBlock {
                 ToolBarIconButton(
                     isEnabled = isPanButtonEnabled && refreshInterval == 0,
                     name = "/images/ic_open_with_${getStyleToolbarIconNameSuffix()}.png",
@@ -63,14 +67,27 @@ internal fun CompositeToolBar(
                 }
             }
         }
-//        ToolBarBlock {
-//            // Space()?
-//        }
-        RefreshSubToolBar(
-            isWideScreen = isWideScreen,
-            refreshInterval = refreshInterval,
-        ) { interval ->
-            setInterval(interval)
+        ToolBarBlock {
+        }
+        ToolBarBlock {
+            if (isLayoutSaveButtonVisible) {
+                ToolBarIconButton(
+                    isEnabled = isLayoutSaveButtonEnabled && refreshInterval == 0,
+                    name = "/images/ic_save_${getStyleToolbarIconNameSuffix()}.png",
+                ) {
+                    saveLayout()
+                }
+            }
+        }
+        ToolBarBlock {
+        }
+        if (isToolBarsVisible && isRefreshButtonsVisible) {
+            RefreshSubToolBar(
+                isWideScreen = isWideScreen,
+                refreshInterval = refreshInterval,
+            ) { interval ->
+                setInterval(interval)
+            }
         }
     }
 }

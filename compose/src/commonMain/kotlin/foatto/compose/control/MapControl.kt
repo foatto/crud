@@ -422,6 +422,8 @@ class MapControl(
             }
         }
         curMode = newMode
+
+        refreshInterval = 0
     }
 
     private fun zoomIn() {
@@ -526,9 +528,9 @@ class MapControl(
 //        isMouseDown = true
     }
 
-    override fun onDrag(change: PointerInputChange, dragAmount: Offset) {
-        val mouseX = change.position.x
-        val mouseY = change.position.y
+    override fun onDrag(pointerInputChange: PointerInputChange, dragAmount: Offset) {
+        val mouseX = pointerInputChange.position.x
+        val mouseY = pointerInputChange.position.y
 
         when (curMode) {
             MapWorkMode.PAN -> {

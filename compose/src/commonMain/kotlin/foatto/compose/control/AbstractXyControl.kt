@@ -959,7 +959,7 @@ abstract class AbstractXyControl(
     protected abstract fun onPointerDown(pointerInputChange: PointerInputChange)
     protected abstract fun onPointerUp(pointerInputChange: PointerInputChange)
     protected abstract fun onDragStart(offset: Offset)
-    protected abstract fun onDrag(change: PointerInputChange, dragAmount: Offset)
+    protected abstract fun onDrag(pointerInputChange: PointerInputChange, dragAmount: Offset)
     protected abstract suspend fun onDragEnd()
     protected abstract fun onDragCancel()
 

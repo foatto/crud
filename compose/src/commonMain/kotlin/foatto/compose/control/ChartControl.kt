@@ -1410,6 +1410,8 @@ class ChartControl(
             }
         }
         curMode = newMode
+
+        refreshInterval = 0
     }
 
     private suspend fun zoomIn() {
@@ -1501,9 +1503,9 @@ class ChartControl(
         }
     }
 
-    private fun onDrag(change: PointerInputChange, dragAmount: Offset) {
-        val mouseX = change.position.x
-        val mouseY = change.position.y
+    private fun onDrag(pointerInputChange: PointerInputChange, dragAmount: Offset) {
+        val mouseX = pointerInputChange.position.x
+        val mouseY = pointerInputChange.position.y
 
         when (curMode) {
             ChartWorkMode.PAN -> {
