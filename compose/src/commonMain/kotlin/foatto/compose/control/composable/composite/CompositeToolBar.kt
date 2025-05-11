@@ -2,10 +2,18 @@ package foatto.compose.control.composable.composite
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -13,6 +21,7 @@ import foatto.compose.colorToolBar
 import foatto.compose.control.composable.RefreshSubToolBar
 import foatto.compose.control.composable.ToolBarBlock
 import foatto.compose.control.composable.ToolBarIconButton
+import foatto.compose.control.model.composite.CompositeBlockControl
 import foatto.compose.control.model.composite.CompositeWorkMode
 import foatto.compose.getStyleToolbarIconNameSuffix
 
@@ -22,14 +31,26 @@ internal fun CompositeToolBar(
     isToolBarsVisible: Boolean,
     isPanButtonEnabled: Boolean,
     isLayoutButtonEnabled: Boolean,
+    isBlocksVisibilityButtonVisible: Boolean,
+    isShowBlocksList: Boolean,
+    blocks: SnapshotStateList<CompositeBlockControl>,
     isLayoutSaveButtonVisible: Boolean,
     isLayoutSaveButtonEnabled: Boolean,
     isRefreshButtonsVisible: Boolean,
     refreshInterval: Int,
     setMode: (compositeWorkMode: CompositeWorkMode) -> Unit,
+    onShowBlocksList: () -> Unit,
+    doCloseBlocksList: () -> Unit,
+    onBlocksListClick: (block: CompositeBlockControl) -> Unit,
     saveLayout: () -> Unit,
     setInterval: (interval: Int) -> Unit,
 ) {
+    /*
+        onShowChartList: () -> Unit,
+        doCloseChartList: () -> Unit,
+        onChartListClick: (data: ChartVisibleData) -> Unit,
+        setInterval: (interval: Int) -> Unit,
+     */
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -70,6 +91,55 @@ internal fun CompositeToolBar(
         ToolBarBlock {
         }
         ToolBarBlock {
+            if (isBlocksVisibilityButtonVisible) {
+                ToolBarIconButton(
+                    isEnabled = refreshInterval == 0,
+                    name = "/images/ic_visibility_${getStyleToolbarIconNameSuffix()}.png",
+                ) {
+                    onShowBlocksList()
+                }
+            }
+            if (isShowBlocksList && refreshInterval == 0) {
+//                                        backgroundColor(getColorPopupMenuBack())
+//                                        color(colorMenuTextDefault)
+//                                        setBorder(color = getColorMenuBorder(), radius = styleFormBorderRadius)
+                DropdownMenu(
+                    expanded = isShowBlocksList,
+                    onDismissRequest = {
+                        doCloseBlocksList()
+                    },
+                ) {
+                    for (block in blocks) {
+                        val headerData = block.chartBlock?.headerData
+                            ?: block.mapBlock?.headerData
+                            ?: block.schemeBlock?.headerData
+                            ?: block.tableBlock?.headerData
+                        val text = headerData?.rows?.firstOrNull()?.second ?: "Не задан заголовок блока!"
+
+                        DropdownMenuItem(
+//                                                backgroundColor(getColorButtonBack())
+                            leadingIcon = if (!block.isHidden) {
+                                {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = null,
+                                    )
+                                }
+                            } else {
+                                null
+                            },
+                            text = {
+                                Text(text)
+                            },
+                            contentPadding = PaddingValues(16.dp),
+                            onClick = {
+                                doCloseBlocksList()
+                                onBlocksListClick(block)
+                            },
+                        )
+                    }
+                }
+            }
             if (isLayoutSaveButtonVisible) {
                 ToolBarIconButton(
                     isEnabled = isLayoutSaveButtonEnabled && refreshInterval == 0,

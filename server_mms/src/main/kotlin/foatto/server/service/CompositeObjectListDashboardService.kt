@@ -132,6 +132,7 @@ class CompositeObjectListDashboardService(
 
         blocks += CompositeBlock(
             isStatic = true,
+            isHidden = false,
             x = 0,
             y = 0,
             w = 1,
@@ -148,6 +149,7 @@ class CompositeObjectListDashboardService(
         sensorEntities.forEach { (sensorType, sensorEntity) ->
             blocks += CompositeBlock(
                 isStatic = false,
+                isHidden = false,
                 x = col,
                 y = row,
                 w = 1,
@@ -170,11 +172,10 @@ class CompositeObjectListDashboardService(
                     tabCaption = "",
                     headerData = HeaderData(
                         titles = emptyList(),
-                        rows = emptyList(),
+                        rows = listOf("Описание датчика" to (sensorEntity.descr ?: "(датчик без описания)")),
                     ),
                 ),
             )
-
             col++
             if (col >= blockOnRow) {
                 row++

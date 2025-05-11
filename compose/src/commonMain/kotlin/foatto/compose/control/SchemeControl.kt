@@ -131,7 +131,6 @@ class SchemeControl(
 
     override suspend fun start() {
         root.setTabInfo(tabId, schemeResponse.tabCaption)
-        headerData = schemeResponse.headerData
 
         alServerButton.clear()
         schemeResponse.alServerActionButton?.let { alServerActionButton ->
@@ -153,6 +152,9 @@ class SchemeControl(
         isCentered: Boolean,
         curScale: Int,
     ) {
+        //--- вынесено сюда для использования во внешнем CompositeControl
+        headerData = schemeResponse.headerData
+
         root.setWait(true)
         invokeRequest(
             SchemeActionRequest(

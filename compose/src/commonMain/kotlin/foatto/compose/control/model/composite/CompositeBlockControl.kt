@@ -2,6 +2,7 @@ package foatto.compose.control.model.composite
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import foatto.compose.control.ChartControl
 import foatto.compose.control.MapControl
@@ -16,6 +17,8 @@ class CompositeBlockControl(
     val schemeBlock: SchemeControl? = null,
     val tableBlock: TableControl? = null,
 ) {
+    var isHidden: Boolean by mutableStateOf(false)
+
     var x: Int by mutableIntStateOf(0)
     var y: Int by mutableIntStateOf(0)
     var w: Int by mutableIntStateOf(0)

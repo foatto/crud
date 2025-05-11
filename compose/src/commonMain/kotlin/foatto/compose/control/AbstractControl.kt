@@ -49,7 +49,7 @@ abstract class AbstractControl(
         const val MIN_USER_RECT_SIZE: Float = 8.0f
     }
 
-    protected var headerData by mutableStateOf<HeaderData?>(null)
+    var headerData: HeaderData? by mutableStateOf(null)
 
     @Composable
     abstract fun Body()

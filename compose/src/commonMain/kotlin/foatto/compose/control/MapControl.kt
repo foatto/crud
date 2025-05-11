@@ -243,7 +243,6 @@ class MapControl(
 //        )
 
         root.setTabInfo(tabId, mapResponse.tabCaption)
-        headerData = mapResponse.headerData
 
         startMapBody(curScale = minXyScale)
 
@@ -252,6 +251,9 @@ class MapControl(
 
     @OptIn(DelicateCoroutinesApi::class)
     suspend fun startMapBody(curScale: Int) {
+        //--- вынесено сюда для использования во внешнем CompositeControl
+        headerData = mapResponse.headerData
+
         root.setWait(true)
         invokeRequest(
             MapActionRequest(

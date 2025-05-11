@@ -55,6 +55,8 @@ class CompositeControl(
     private var isPanButtonEnabled by mutableStateOf(false)
     private var isLayoutButtonEnabled by mutableStateOf(true)
 
+    private var isBlocksVisibilityButtonVisible by mutableStateOf(false)
+    private var isShowBlocksList by mutableStateOf(false)
     private var isLayoutSaveButtonVisible by mutableStateOf(false)
     private var isLayoutSaveButtonEnabled by mutableStateOf(false)
 
@@ -90,21 +92,29 @@ class CompositeControl(
         ) {
             getHeader()
 
-            CompositeToolBar(
-                isWideScreen = root.isWideScreen,
-                isToolBarsVisible = isToolBarsVisible,
-                isPanButtonEnabled = isPanButtonEnabled,
-                isLayoutButtonEnabled = isLayoutButtonEnabled,
-                isLayoutSaveButtonVisible = isLayoutSaveButtonVisible,
-                isLayoutSaveButtonEnabled = isLayoutSaveButtonEnabled,
-                isRefreshButtonsVisible = isRefreshButtonsVisible,
-                refreshInterval = refreshInterval,
-                setMode = { compositeWorkMode: CompositeWorkMode -> setMode(compositeWorkMode) },
-                saveLayout = {},
-                setInterval = { interval: Int -> coroutineScope.launch { setInterval(interval) } },
-            )
-
             key(blocks) {
+                CompositeToolBar(
+                    isWideScreen = root.isWideScreen,
+                    isToolBarsVisible = isToolBarsVisible,
+                    isPanButtonEnabled = isPanButtonEnabled,
+                    isLayoutButtonEnabled = isLayoutButtonEnabled,
+                    isBlocksVisibilityButtonVisible = isBlocksVisibilityButtonVisible,
+                    isShowBlocksList = isShowBlocksList,
+                    blocks = blocks,
+                    isLayoutSaveButtonVisible = isLayoutSaveButtonVisible,
+                    isLayoutSaveButtonEnabled = isLayoutSaveButtonEnabled,
+                    isRefreshButtonsVisible = isRefreshButtonsVisible,
+                    refreshInterval = refreshInterval,
+                    setMode = { compositeWorkMode: CompositeWorkMode -> setMode(compositeWorkMode) },
+                    onShowBlocksList = { isShowBlocksList = !isShowBlocksList },
+                    doCloseBlocksList = { isShowBlocksList = false },
+                    onBlocksListClick = { block: CompositeBlockControl ->
+                        doChangeBlockVisibility(block)
+                    },
+                    saveLayout = {},
+                    setInterval = { interval: Int -> coroutineScope.launch { setInterval(interval) } },
+                )
+
                 Row(
                     modifier = Modifier
                         .weight(1.0f)
@@ -133,25 +143,27 @@ class CompositeControl(
                             ),
                     ) {
                         for (block in blocks) {
-                            BlockBody(block) { blockX, blockY, blockW, blockH ->
-                                Box(
-                                    modifier = Modifier
-                                        .offset(
-                                            x = with(density) { blockX.toDp() },
-                                            y = with(density) { blockY.toDp() },
-                                        )
-                                        .size(
-                                            width = with(density) { blockW.toDp() },
-                                            height = with(density) { blockH.toDp() },
-                                        )
-                                ) {
-                                    block.chartBlock?.MainChartBody(false)
-                                        ?: block.mapBlock?.getXyElementTemplate(false)
-                                        ?: block.schemeBlock?.getXyElementTemplate(false)
-                                        ?: block.tableBlock?.TableBody(Modifier)
-                                        ?: run {
-                                            Text(text = "Не задан тип блока!")
-                                        }
+                            if (!block.isHidden) {
+                                BlockBody(block) { blockX, blockY, blockW, blockH ->
+                                    Box(
+                                        modifier = Modifier
+                                            .offset(
+                                                x = with(density) { blockX.toDp() },
+                                                y = with(density) { blockY.toDp() },
+                                            )
+                                            .size(
+                                                width = with(density) { blockW.toDp() },
+                                                height = with(density) { blockH.toDp() },
+                                            )
+                                    ) {
+                                        block.chartBlock?.MainChartBody(false)
+                                            ?: block.mapBlock?.getXyElementTemplate(false)
+                                            ?: block.schemeBlock?.getXyElementTemplate(false)
+                                            ?: block.tableBlock?.TableBody(Modifier)
+                                            ?: run {
+                                                Text(text = "Не задан тип блока!")
+                                            }
+                                    }
                                 }
                             }
                         }
@@ -239,7 +251,11 @@ class CompositeControl(
                                     ),
                                     iconName = "/images/ic_visibility_off_${getStyleToolbarIconNameSuffix()}.png",
                                     isEnabled = true
-                                ) {}
+                                ) {
+                                    block.isHidden = true
+                                    movingBlock = null
+                                    isToolBarsVisible = true
+                                }
                             }
                         }
                     }
@@ -409,19 +425,19 @@ class CompositeControl(
 
         //--- scrollable blocks first
         compositeResponse.blocks.filter { block -> !block.isStatic }.forEach { blockControlData ->
-            readBlock(blockControlData, blocks)
+            readBlock(blockControlData)
         }
         //--- static/non-scrollable blocks seconds (as next layer for drawing)
         compositeResponse.blocks.filter { block -> block.isStatic }.forEach { blockControlData ->
-            readBlock(blockControlData, blocks)
+            readBlock(blockControlData)
         }
         /*
             !!! setInterval(10)
          */
     }
 
-    private suspend fun readBlock(blockControlData: CompositeBlock, newBlocks: MutableList<CompositeBlockControl>) {
-        newBlocks += CompositeBlockControl(
+    private suspend fun readBlock(blockControlData: CompositeBlock) {
+        blocks += CompositeBlockControl(
             isStatic = blockControlData.isStatic,
             chartBlock = blockControlData.chartResponse?.let { chartResponse ->
                 ChartControl(root, appControl, blockControlData.action, chartResponse, tabId).apply {
@@ -448,6 +464,8 @@ class CompositeControl(
                 }
             },
         ).apply {
+            isHidden = blockControlData.isHidden
+
             x = blockControlData.x
             y = blockControlData.y
             w = blockControlData.w
@@ -465,6 +483,9 @@ class CompositeControl(
 
     private suspend fun refreshAll() {
         for (block in blocks) {
+            if (block.isHidden) {
+                continue
+            }
             block.chartBlock?.doChartRefresh(null, false)
                 ?: run {
                     block.chartBlock?.doChartRefresh(null, false)
@@ -486,6 +507,8 @@ class CompositeControl(
                 isLayoutButtonEnabled = true
 
                 movingBlock = null
+
+                isBlocksVisibilityButtonVisible = false
                 isLayoutSaveButtonVisible = false
                 isLayoutSaveButtonEnabled = false
             }
@@ -494,12 +517,14 @@ class CompositeControl(
         when (newMode) {
             CompositeWorkMode.PAN -> {
                 isPanButtonEnabled = false
+
                 isRefreshButtonsVisible = true
             }
 
             CompositeWorkMode.LAYOUT -> {
                 isLayoutButtonEnabled = false
 
+                isBlocksVisibilityButtonVisible = true
                 isLayoutSaveButtonVisible = true
                 isLayoutSaveButtonEnabled = false
 
@@ -518,7 +543,7 @@ class CompositeControl(
         when (curMode) {
             CompositeWorkMode.LAYOUT -> {
                 for (block in blocks) {
-                    if (block.isStatic) {
+                    if (block.isStatic || block.isHidden) {
                         continue
                     }
 
@@ -588,7 +613,7 @@ class CompositeControl(
     private fun onBlockMoveLeft(block: CompositeBlockControl) {
         if (block.x > 0) {
             val nearBlocks = blocks.filter { b ->
-                b.isIntersect(block.x - 1, block.y, block.w, block.h)
+                !b.isHidden && b.isIntersect(block.x - 1, block.y, block.w, block.h)
             }
             if (nearBlocks.isEmpty()) {
                 block.x--
@@ -609,7 +634,7 @@ class CompositeControl(
 
     private fun onBlockMoveRight(block: CompositeBlockControl) {
         val nearBlocks = blocks.filter { b ->
-            b.isIntersect(block.x + 1, block.y, block.w, block.h)
+            !b.isHidden && b.isIntersect(block.x + 1, block.y, block.w, block.h)
         }
         if (nearBlocks.isEmpty()) {
             block.x++
@@ -630,7 +655,7 @@ class CompositeControl(
     private fun onBlockMoveUp(block: CompositeBlockControl) {
         if (block.y > 0) {
             val nearBlocks = blocks.filter { b ->
-                b.isIntersect(block.x, block.y - 1, block.w, block.h)
+                !b.isHidden && b.isIntersect(block.x, block.y - 1, block.w, block.h)
             }
             if (nearBlocks.isEmpty()) {
                 block.y--
@@ -651,7 +676,7 @@ class CompositeControl(
 
     private fun onBlockMoveDown(block: CompositeBlockControl) {
         val nearBlocks = blocks.filter { b ->
-            b.isIntersect(block.x, block.y + 1, block.w, block.h)
+            !b.isHidden && b.isIntersect(block.x, block.y + 1, block.w, block.h)
         }
         if (nearBlocks.isEmpty()) {
             block.y++
@@ -669,11 +694,40 @@ class CompositeControl(
         isLayoutSaveButtonEnabled = true
     }
 
-    private fun getBlockColSum(): Int = blocks.maxOf { block ->
-        block.x + block.w
-    }
+    private fun getBlockColSum(): Int = blocks
+        .filterNot { block -> block.isHidden }
+        .maxOf { block ->
+            block.x + block.w
+        }
 
-    private fun getBlockRowSum(): Int = blocks.maxOf { block ->
-        block.y + block.h
+    private fun getBlockRowSum(): Int = blocks
+        .filterNot { block -> block.isHidden }
+        .maxOf { block ->
+            block.y + block.h
+        }
+
+    private fun doChangeBlockVisibility(block: CompositeBlockControl) {
+        if (block.isHidden) {
+            var x = block.x
+            var y = block.y
+            while (true) {
+                val samePlacedBlocks = blocks.filter { b ->
+                    !b.isHidden && b.isIntersect(x, y, block.w, block.h)
+                }
+                if (samePlacedBlocks.isEmpty()) {
+                    block.x = x
+                    block.y = y
+                    break
+                } else {
+                    //---двигаемся к краю, который поближе
+                    if (getBlockColSum() <= getBlockRowSum()) {
+                        x++
+                    } else {
+                        y++
+                    }
+                }
+            }
+            block.isHidden = !block.isHidden
+        }
     }
 }

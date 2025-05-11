@@ -644,12 +644,14 @@ class TableControl(
 
     override suspend fun start() {
         root.setTabInfo(tabId, tableResponse.tabCaption)
-        headerData = tableResponse.headerData
 
         startTableBody()
     }
 
     fun startTableBody() {
+        //--- вынесено сюда для использования во внешнем CompositeControl
+        headerData = tableResponse.headerData
+
         findText = tableResponse.findText
 
         readAddButtons()

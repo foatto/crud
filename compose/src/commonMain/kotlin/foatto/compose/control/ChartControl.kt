@@ -682,13 +682,15 @@ class ChartControl(
 
     override suspend fun start() {
         root.setTabInfo(tabId, chartResponse.tabCaption)
-        headerData = chartResponse.headerData
 
         startChartBody()
     }
 
     @OptIn(DelicateCoroutinesApi::class)
     fun startChartBody() {
+        //--- вынесено сюда для использования во внешнем CompositeControl
+        headerData = chartResponse.headerData
+
         val newViewCoord = ChartViewCoord(
             t1 = if (chartAction.timeRangeType == 0) {
                 chartAction.begTime ?: (getCurrentTimeInt() - 86_400)
