@@ -9,4 +9,6 @@ class CompositeResponse(
     val headerData: HeaderData,
 
     val blocks: List<CompositeBlock>,
+
+    val layoutSaveKey: String,
 )

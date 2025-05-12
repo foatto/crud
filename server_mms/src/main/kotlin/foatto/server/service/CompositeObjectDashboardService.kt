@@ -7,6 +7,7 @@ import foatto.core.model.response.HeaderData
 import foatto.core.model.response.ResponseCode
 import foatto.core.model.response.TitleData
 import foatto.core.model.response.composite.CompositeBlock
+import foatto.core.model.response.composite.CompositeLayoutData
 import foatto.core.model.response.composite.CompositeResponse
 import foatto.core.model.response.xy.scheme.SchemeResponse
 import foatto.core_mms.AppModuleMMS
@@ -21,6 +22,7 @@ import foatto.server.repository.SensorRepository
 import foatto.server.service.scheme.SchemeAnalogueIndicatorStateService
 import foatto.server.service.scheme.SchemeCounterIndicatorStateService
 import foatto.server.service.scheme.SchemeWorkIndicatorStateService
+import kotlinx.serialization.json.Json
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import kotlin.math.ceil
@@ -47,7 +49,14 @@ class CompositeObjectDashboardService(
             return AppResponse(ResponseCode.LOGON_NEED)
         }
         val moduleConfig = appModuleConfigs[actionModule] ?: return AppResponse(ResponseCode.LOGON_NEED)
-        val objectEntity = objectRepository.findByIdOrNull(action.id) ?: return AppResponse(ResponseCode.LOGON_NEED)
+        val objectEntity = action.id?.let { objectId ->
+            objectRepository.findByIdOrNull(objectId)
+        } ?: return AppResponse(ResponseCode.LOGON_NEED)
+
+        val layoutSaveKey = actionModule + objectEntity.id
+        val compositeLayoutDatas = userConfig.userProperties[layoutSaveKey]?.let { propertyValue ->
+            Json.decodeFromString<Map<Int, CompositeLayoutData>>(propertyValue)
+        }
 
         val caption = moduleConfig.caption
         val rows = listOf(
@@ -108,17 +117,26 @@ class CompositeObjectDashboardService(
         val blockOnRow = blockRows * 2
 
         val blocks = mutableListOf<CompositeBlock>()
+
         var row = 0
         var col = 0
 
         sensorEntities.forEach { (sensorType, sensorEntity) ->
+            //--- логика обработки:
+            //--- если compositeLayoutDatas == null, то сохранённого состояния вообще нет и раскладываем сами на серверной стороне,
+            //--- иначе ищем там раскладку. Если раскладки нет - значит датчик свежедобавленный и будет isHidden с нулевыми координатами
+            val compositeLayoutData = compositeLayoutDatas?.let {
+                compositeLayoutDatas[sensorEntity.id]
+            }
+
             blocks += CompositeBlock(
+                id = sensorEntity.id,
                 isStatic = false,
-                isHidden = false,
-                x = col,
-                y = row,
-                w = 1,
-                h = 1,
+                isHidden = compositeLayoutDatas?.let { compositeLayoutData?.isHidden ?: true } ?: false,
+                x = compositeLayoutDatas?.let { compositeLayoutData?.x ?: 0 } ?: col,
+                y = compositeLayoutDatas?.let { compositeLayoutData?.y ?: 0 } ?: row,
+                w = compositeLayoutDatas?.let { compositeLayoutData?.w ?: 1 } ?: 1,
+                h = compositeLayoutDatas?.let { compositeLayoutData?.h ?: 1 } ?: 1,
                 action = AppAction(
                     type = ActionType.MODULE_SCHEME,
                     module = when (sensorType) {
@@ -164,6 +182,7 @@ class CompositeObjectDashboardService(
                     rows = rows,
                 ),
                 blocks = blocks,
+                layoutSaveKey = layoutSaveKey
             )
         )
     }

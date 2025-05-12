@@ -35,7 +35,6 @@ internal fun CompositeToolBar(
     isShowBlocksList: Boolean,
     blocks: SnapshotStateList<CompositeBlockControl>,
     isLayoutSaveButtonVisible: Boolean,
-    isLayoutSaveButtonEnabled: Boolean,
     isRefreshButtonsVisible: Boolean,
     refreshInterval: Int,
     setMode: (compositeWorkMode: CompositeWorkMode) -> Unit,
@@ -118,7 +117,10 @@ internal fun CompositeToolBar(
 
                         DropdownMenuItem(
 //                                                backgroundColor(getColorButtonBack())
-                            leadingIcon = if (!block.isHidden) {
+                            text = {
+                                Text(text)
+                            },
+                            trailingIcon = if (!block.isHidden) {
                                 {
                                     Icon(
                                         imageVector = Icons.Default.Check,
@@ -127,9 +129,6 @@ internal fun CompositeToolBar(
                                 }
                             } else {
                                 null
-                            },
-                            text = {
-                                Text(text)
                             },
                             contentPadding = PaddingValues(16.dp),
                             onClick = {
@@ -142,7 +141,7 @@ internal fun CompositeToolBar(
             }
             if (isLayoutSaveButtonVisible) {
                 ToolBarIconButton(
-                    isEnabled = isLayoutSaveButtonEnabled && refreshInterval == 0,
+                    isEnabled = refreshInterval == 0,
                     name = "/images/ic_save_${getStyleToolbarIconNameSuffix()}.png",
                 ) {
                     saveLayout()

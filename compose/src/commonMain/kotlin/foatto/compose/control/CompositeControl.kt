@@ -22,12 +22,17 @@ import foatto.compose.control.composable.onPointerEvents
 import foatto.compose.control.model.composite.CompositeBlockControl
 import foatto.compose.control.model.composite.CompositeWorkMode
 import foatto.compose.utils.getFullUrl
+import foatto.core.model.request.SaveUserPropertyRequest
+import foatto.core.model.response.SaveUserPropertyResponse
 import foatto.core.model.response.composite.CompositeBlock
+import foatto.core.model.response.composite.CompositeLayoutData
 import foatto.core.model.response.composite.CompositeResponse
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import kotlin.math.max
 import kotlin.math.min
 
@@ -58,7 +63,6 @@ class CompositeControl(
     private var isBlocksVisibilityButtonVisible by mutableStateOf(false)
     private var isShowBlocksList by mutableStateOf(false)
     private var isLayoutSaveButtonVisible by mutableStateOf(false)
-    private var isLayoutSaveButtonEnabled by mutableStateOf(false)
 
     private var isRefreshButtonsVisible by mutableStateOf(true)
     private var refreshInterval: Int by mutableIntStateOf(0)
@@ -102,16 +106,15 @@ class CompositeControl(
                     isShowBlocksList = isShowBlocksList,
                     blocks = blocks,
                     isLayoutSaveButtonVisible = isLayoutSaveButtonVisible,
-                    isLayoutSaveButtonEnabled = isLayoutSaveButtonEnabled,
                     isRefreshButtonsVisible = isRefreshButtonsVisible,
                     refreshInterval = refreshInterval,
                     setMode = { compositeWorkMode: CompositeWorkMode -> setMode(compositeWorkMode) },
                     onShowBlocksList = { isShowBlocksList = !isShowBlocksList },
                     doCloseBlocksList = { isShowBlocksList = false },
                     onBlocksListClick = { block: CompositeBlockControl ->
-                        doChangeBlockVisibility(block)
+                        changeBlockVisibility(block)
                     },
-                    saveLayout = {},
+                    saveLayout = { saveLayout() },
                     setInterval = { interval: Int -> coroutineScope.launch { setInterval(interval) } },
                 )
 
@@ -143,27 +146,25 @@ class CompositeControl(
                             ),
                     ) {
                         for (block in blocks) {
-                            if (!block.isHidden) {
-                                BlockBody(block) { blockX, blockY, blockW, blockH ->
-                                    Box(
-                                        modifier = Modifier
-                                            .offset(
-                                                x = with(density) { blockX.toDp() },
-                                                y = with(density) { blockY.toDp() },
-                                            )
-                                            .size(
-                                                width = with(density) { blockW.toDp() },
-                                                height = with(density) { blockH.toDp() },
-                                            )
-                                    ) {
-                                        block.chartBlock?.MainChartBody(false)
-                                            ?: block.mapBlock?.getXyElementTemplate(false)
-                                            ?: block.schemeBlock?.getXyElementTemplate(false)
-                                            ?: block.tableBlock?.TableBody(Modifier)
-                                            ?: run {
-                                                Text(text = "Не задан тип блока!")
-                                            }
-                                    }
+                            BlockBody(block) { blockX, blockY, blockW, blockH ->
+                                Box(
+                                    modifier = Modifier
+                                        .offset(
+                                            x = with(density) { blockX.toDp() },
+                                            y = with(density) { blockY.toDp() },
+                                        )
+                                        .size(
+                                            width = with(density) { blockW.toDp() },
+                                            height = with(density) { blockH.toDp() },
+                                        )
+                                ) {
+                                    block.chartBlock?.MainChartBody(false)
+                                        ?: block.mapBlock?.getXyElementTemplate(false)
+                                        ?: block.schemeBlock?.getXyElementTemplate(false)
+                                        ?: block.tableBlock?.TableBody(Modifier)
+                                        ?: run {
+                                            Text(text = "Не задан тип блока!")
+                                        }
                                 }
                             }
                         }
@@ -253,6 +254,9 @@ class CompositeControl(
                                     isEnabled = true
                                 ) {
                                     block.isHidden = true
+                                    block.x = -block.x - 1    // добавим -1 с учётом возможных координат 0,0
+                                    block.y = -block.y - 1
+
                                     movingBlock = null
                                     isToolBarsVisible = true
                                 }
@@ -438,6 +442,7 @@ class CompositeControl(
 
     private suspend fun readBlock(blockControlData: CompositeBlock) {
         blocks += CompositeBlockControl(
+            id = blockControlData.id,
             isStatic = blockControlData.isStatic,
             chartBlock = blockControlData.chartResponse?.let { chartResponse ->
                 ChartControl(root, appControl, blockControlData.action, chartResponse, tabId).apply {
@@ -510,7 +515,6 @@ class CompositeControl(
 
                 isBlocksVisibilityButtonVisible = false
                 isLayoutSaveButtonVisible = false
-                isLayoutSaveButtonEnabled = false
             }
         }
 
@@ -526,7 +530,6 @@ class CompositeControl(
 
                 isBlocksVisibilityButtonVisible = true
                 isLayoutSaveButtonVisible = true
-                isLayoutSaveButtonEnabled = false
 
                 isRefreshButtonsVisible = false
             }
@@ -628,7 +631,6 @@ class CompositeControl(
                     block.x--
                 }
             }
-            isLayoutSaveButtonEnabled = true
         }
     }
 
@@ -649,7 +651,6 @@ class CompositeControl(
                 block.x++
             }
         }
-        isLayoutSaveButtonEnabled = true
     }
 
     private fun onBlockMoveUp(block: CompositeBlockControl) {
@@ -670,7 +671,6 @@ class CompositeControl(
                     block.y--
                 }
             }
-            isLayoutSaveButtonEnabled = true
         }
     }
 
@@ -691,7 +691,6 @@ class CompositeControl(
                 block.y++
             }
         }
-        isLayoutSaveButtonEnabled = true
     }
 
     private fun getBlockColSum(): Int = blocks
@@ -706,8 +705,11 @@ class CompositeControl(
             block.y + block.h
         }
 
-    private fun doChangeBlockVisibility(block: CompositeBlockControl) {
+    private fun changeBlockVisibility(block: CompositeBlockControl) {
         if (block.isHidden) {
+            block.x = -(block.x + 1)
+            block.y = -(block.y + 1)
+
             var x = block.x
             var y = block.y
             while (true) {
@@ -719,7 +721,7 @@ class CompositeControl(
                     block.y = y
                     break
                 } else {
-                    //---двигаемся к краю, который поближе
+                    //--- двигаемся к краю, который поближе
                     if (getBlockColSum() <= getBlockRowSum()) {
                         x++
                     } else {
@@ -727,7 +729,33 @@ class CompositeControl(
                     }
                 }
             }
-            block.isHidden = !block.isHidden
+        } else {
+            block.x = -(block.x + 1)    // добавим -1 с учётом возможных координат 0,0
+            block.y = -(block.y + 1)
         }
+        block.isHidden = !block.isHidden
+    }
+
+    private fun saveLayout() {
+        val compositeLayoutDatas = blocks.associate { block ->
+            block.id to CompositeLayoutData(
+                isHidden = block.isHidden,
+                x = block.x,
+                y = block.y,
+                w = block.w,
+                h = block.h,
+            )
+        }
+
+        invokeRequest(
+            SaveUserPropertyRequest(
+                name = compositeResponse.layoutSaveKey,
+                value = Json.encodeToString(compositeLayoutDatas),
+            )
+        ) { _: SaveUserPropertyResponse ->
+            root.showAlert("Сохранено")
+        }
+//            root.appUserConfig.userProperties[propertyName] = propertyValue
+//        }
     }
 }
