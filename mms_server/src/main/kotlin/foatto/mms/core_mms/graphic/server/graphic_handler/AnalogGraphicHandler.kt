@@ -59,5 +59,16 @@ open class AnalogGraphicHandler : iGraphicHandler {
     }
 
     override fun getLineColorIndex(axisIndex: Int, sca: SensorConfigAnalogue, rawTime: Int, rawData: Double, prevTime: Int, prevData: Double): ChartColorIndex =
-        getLineNormalColorIndex(axisIndex)
+        if (rawTime - prevTime > ObjectCalc.MAX_WORK_TIME_INTERVAL) {
+            getLineNoneColorIndex(axisIndex)
+        } else if (sca.minLimit == sca.maxLimit) {
+            getLineNormalColorIndex(axisIndex)
+        } else if (rawData > sca.maxLimit) {
+            getLineAboveColorIndex(axisIndex)
+        } else if (rawData < sca.minLimit) {
+            getLineBelowColorIndex(axisIndex)
+        } else {
+            getLineNormalColorIndex(axisIndex)
+        }
+
 }

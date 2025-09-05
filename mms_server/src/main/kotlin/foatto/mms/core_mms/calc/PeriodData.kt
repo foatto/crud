@@ -108,7 +108,7 @@ class OverSensorPeriodData(
     aBegTime: Int,
     aEndTime: Int,
     val maxOverSensorTime: Int,
-    val maxOverSensorCoord: XyPoint,
+    val maxOverSensorCoord: XyPoint?,
     val maxOverSensorMax: Double,
     val maxOverSensorDiff: Double
 ) : AbstractPeriodData(aBegTime, aEndTime) {

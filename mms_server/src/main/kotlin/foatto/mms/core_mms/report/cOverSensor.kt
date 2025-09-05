@@ -5,10 +5,7 @@ import foatto.core.app.chart.ChartElementDTO
 import foatto.core.app.chart.ChartElementTypeDTO
 import foatto.core.app.xy.geom.XyPoint
 import foatto.core.link.FormData
-import foatto.util.DateTime_DMYHMS
-import foatto.util.getSBFromIterable
 import foatto.core.util.getSplittedDouble
-import foatto.util.secondIntervalToString
 import foatto.mms.core_mms.ObjectConfig
 import foatto.mms.core_mms.ZoneData
 import foatto.mms.core_mms.calc.ObjectCalc
@@ -17,6 +14,9 @@ import foatto.mms.core_mms.graphic.server.graphic_handler.AnalogGraphicHandler
 import foatto.mms.core_mms.sensor.config.SensorConfig
 import foatto.mms.core_mms.sensor.config.SensorConfigAnalogue
 import foatto.mms.iMMSApplication
+import foatto.util.DateTime_DMYHMS
+import foatto.util.getSBFromIterable
+import foatto.util.secondIntervalToString
 import jxl.CellView
 import jxl.format.PageOrientation
 import jxl.format.PaperSize
@@ -182,6 +182,7 @@ class cOverSensor : cMMSReport() {
         val (begTime, endTime) = getBegEndTimeFromParam()
 
         val graphicHandler = AnalogGraphicHandler()
+        val overColorIndexes = setOf(graphicHandler.getLineAboveColorIndex(0), graphicHandler.getLineBelowColorIndex(0))
 
         val alobjectId = mutableListOf<Int>()
         //--- если объект не указан, то загрузим полный список доступных объектов
@@ -232,13 +233,12 @@ class cOverSensor : cMMSReport() {
                     if (newColorIndex != curColorIndex) {
                         //--- the previous period ended at the previous point
                         val endPos = i - 1
-                        //--- the period must have at least two points, we discard one-point periods
-                        //--- (this is usually the starting point in the "normal" state)
-                        if (begPos < endPos) {
-                            //--- the previous "abnormal" period has ended
-                            if (newColorIndex == graphicHandler.getLineNormalColorIndex(0)) {
-                                calcOverSensor(reportZone, hmZoneData, graphicHandler, objectConfig, scsc, aLine, begPos, endPos, curColorIndex, alObjectResult)
-                            }
+                        //--- the previous "abnormal" period has ended
+                        if (curColorIndex in overColorIndexes
+                            && newColorIndex !in overColorIndexes
+                            && aLine.alGLD[endPos].x > aLine.alGLD[begPos].x
+                        ) {
+                            calcOverSensor(reportZone, hmZoneData, graphicHandler, objectConfig, scsc, aLine, begPos, endPos, curColorIndex, alObjectResult)
                         }
                         //--- the new period actually starts from the previous point
                         begPos = i - 1
@@ -248,11 +248,15 @@ class cOverSensor : cMMSReport() {
                 //--- let's finish the last period
                 val endPos = aLine.alGLD.size - 1
                 //--- ending the previous "abnormal" period
-                if (curColorIndex != graphicHandler.getLineNormalColorIndex(0)) {
+                if (curColorIndex in overColorIndexes
+                    && aLine.alGLD[endPos].x > aLine.alGLD[begPos].x
+                ) {
                     calcOverSensor(reportZone, hmZoneData, graphicHandler, objectConfig, scsc, aLine, begPos, endPos, curColorIndex, alObjectResult)
                 }
             }
-            if (alObjectResult.isNotEmpty()) alAllResult.add(alObjectResult)
+            if (alObjectResult.isNotEmpty()) {
+                alAllResult.add(alObjectResult)
+            }
         }
         return alAllResult
     }
@@ -276,14 +280,22 @@ class cOverSensor : cMMSReport() {
         var maxOverSensorDiff = 0.0
         for (pos in begPos..endPos) {
             val y = aLine.alGLD[pos].y
-            val over = if (curColorIndex == graphicHandler.getLineAboveColorIndex(0)) {
-                y - scsc.maxLimit
-            } else {
-                scsc.minLimit - y
+            val over = when (curColorIndex) {
+                graphicHandler.getLineAboveColorIndex(0) -> {
+                    y - scsc.maxLimit
+                }
+
+                graphicHandler.getLineBelowColorIndex(0) -> {
+                    scsc.minLimit - y
+                }
+
+                else -> {
+                    0.0
+                }
             }
             if (over > maxOverSensorDiff) {
-                maxOverSensorTime = aLine.alGLD.get(pos).x
-                maxOverSensorCoord = aLine.alGLD.get(pos).coord
+                maxOverSensorTime = aLine.alGLD[pos].x
+                maxOverSensorCoord = aLine.alGLD[pos].coord
                 maxOverSensorMax = y.toDouble()
                 maxOverSensorDiff = over
             }
@@ -294,11 +306,18 @@ class cOverSensor : cMMSReport() {
         if (maxOverSensorCoord != null) {
             val inZone = ObjectCalc.fillZoneList(hmZoneData, reportZone, maxOverSensorCoord, tsZoneName)
             //--- filter by geofences, if set
-            if (reportZone != 0 && !inZone) return
+            if (reportZone != 0 && !inZone) {
+                return
+            }
         }
 
         val ospd = OverSensorPeriodData(
-            aLine.alGLD[begPos].x, aLine.alGLD.get(endPos).x, maxOverSensorTime, maxOverSensorCoord!!, maxOverSensorMax, maxOverSensorDiff
+            aBegTime = aLine.alGLD[begPos].x,
+            aEndTime = aLine.alGLD[endPos].x,
+            maxOverSensorTime = maxOverSensorTime,
+            maxOverSensorCoord = maxOverSensorCoord,
+            maxOverSensorMax = maxOverSensorMax,
+            maxOverSensorDiff = maxOverSensorDiff
         )
         ospd.objectConfig = objectConfig
         ospd.sbZoneName = getSBFromIterable(tsZoneName, ", ")

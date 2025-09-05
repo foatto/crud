@@ -646,56 +646,6 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
         ) {
             val alGLD = aLine.alGLD.toMutableList()
 
-//            if (sca.isUseAggregator &&
-//                MMSFunction.checkAggregationTableIsExists(conn, sca.id) &&
-//                (endTime <= sca.calcTime || (sca.rawTime - sca.calcTime) <= MAX_AGGREGATOR_TIME_DIFF)
-//            ) {
-//                val rs = conn.executeQuery(
-//                    """
-//                        SELECT ontime, value_2 , type_1
-//                        FROM MMS_agg_${sca.id}
-//                        WHERE ontime BETWEEN $begTime AND $endTime
-//                        ORDER BY ontime
-//                    """
-//                )
-//                while (rs.next()) {
-//                    val time = rs.getInt(1)
-//                    val value = rs.getDouble(2)
-//                    val type = rs.getInt(3)
-//
-//                    val curColorIndex = when (type) {
-//                        AnalogueValueType.NONE.value -> {
-//                            chartLineNoneColorIndexes[axisIndex]
-//                        }
-//
-//                        AnalogueValueType.NORMAL.value -> {
-//                            chartLineNormalColorIndexes[axisIndex]
-//                        }
-//
-//                        AnalogueValueType.BELOW.value -> {
-//                            chartLineBelowColorIndexes[axisIndex]
-//                        }
-//
-//                        AnalogueValueType.ABOVE.value -> {
-//                            chartLineAboveColorIndexes[axisIndex]
-//                        }
-//
-//                        else -> {
-//                            chartLineNoneColorIndexes[axisIndex]
-//                        }
-//                    }
-//
-//                    val gldLast = alGLD.lastOrNull()
-//                    if (gldLast == null || time - gldLast.x > xScale || abs(value - gldLast.y) > yScale || curColorIndex != gldLast.colorIndex) {
-////!!! add GEO info ?
-////                        val gd = scg?.let {
-////                            AbstractObjectStateCalc.getGeoData(scg, alRawData[pos])
-////                        }
-//                        alGLD.add(ChartElementLineDTO(time, value.toFloat(), curColorIndex, null /*gd?.let { XyProjection.wgs_pix(gd.wgs) }*/))
-//                    }
-//                }
-//                rs.close()
-//            } else {
             //--- immediately add / set static (permanent) constraints if required / supported
             if (graphicHandler.isStaticMinLimit(sca)) {
                 graphicHandler.setStaticMinLimit(sca, begTime, endTime, aMinLimit)
@@ -783,7 +733,6 @@ class ObjectCalc(val objectConfig: ObjectConfig) {
                     }
                 }
             }
-//            }
 
             aLine.alGLD = alGLD
         }
