@@ -47,19 +47,6 @@ pluginManagement {
 }
 
 include(
-    ":common",
-    ":common_mms",
-    ":common_ts",
-
-    ":compose",
-    ":compose_mms",
-    ":compose_ts",
-
-    ":server",
-    ":server_mms",
-
-//---------------------
-
     ":core",
 
     ":core_compose_web",

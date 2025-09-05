@@ -1,5 +1,0 @@
-package foatto.compose.utils
-
-import kotlinx.coroutines.CoroutineDispatcher
-
-expect val applicationDispatcher: CoroutineDispatcher
