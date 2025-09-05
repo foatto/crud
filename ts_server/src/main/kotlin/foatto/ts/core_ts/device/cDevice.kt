@@ -24,6 +24,18 @@ class cDevice : cStandart() {
         val PARKING_DEPTH_SHOW_POS = 4
     }
 
+    //--- перекрывается наследниками для генерации данных в момент загрузки записей ДО фильтров поиска и страничной разбивки
+    override fun generateColumnDataBeforeFilter(hmColumnData: MutableMap<iColumn, iData>) {
+        super.generateColumnDataBeforeFilter(hmColumnData)
+
+        val md = model as mDevice
+
+        //--- прописываем глобальное/локальное время (оно прописано в поле ontime как якобы id-поле)
+        val showId = (hmColumnData[md.columnId] as DataInt).intValue
+
+        (hmColumnData[md.columnShowId] as DataInt).intValue = showId
+    }
+
     override fun getTableColumnStyle(isNewRow: Boolean, hmColumnData: Map<iColumn, iData>, column: iColumn, tci: TableCell) {
         super.getTableColumnStyle(isNewRow, hmColumnData, column, tci)
 

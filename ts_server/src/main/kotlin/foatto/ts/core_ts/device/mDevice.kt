@@ -24,6 +24,7 @@ class mDevice : mAbstract() {
         private val MAX_DEVICE_COUNT_PER_OBJECT = 65
     }
 
+    lateinit var columnShowId: ColumnInt
     lateinit var columnDeviceIsLocked: ColumnBoolean
     lateinit var columnDeviceIndex: ColumnInt
     lateinit var columnDeviceType: ColumnRadioButton
@@ -59,6 +60,9 @@ class mDevice : mAbstract() {
         //----------------------------------------------------------------------------------------------------------------------
 
         columnId = ColumnInt(modelTableName, "id")
+
+        columnShowId = ColumnInt(modelTableName, "_id_", "ID записи")
+        columnShowId.isVirtual = true
 
         //----------------------------------------------------------------------------------------------------------------------
 
@@ -121,6 +125,7 @@ class mDevice : mAbstract() {
 
         alTableHiddenColumn += columnId
 
+        addTableColumn(columnShowId)
         addTableColumn(columnDeviceIsLocked)
         addTableColumn(columnDeviceIndex)
         addTableColumn(columnDeviceType)
