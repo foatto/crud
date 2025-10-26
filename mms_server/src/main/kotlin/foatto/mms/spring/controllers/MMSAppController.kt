@@ -103,6 +103,7 @@ class MMSAppController(
         val alMenuCommonReport = mutableListOf<MenuData>()
 
         addMenu(hmAliasConfig, hmAliasPerm, alMenuCommonReport, "mms_report_summary", false)
+        addMenu(hmAliasConfig, hmAliasPerm, alMenuCommonReport, "mms_report_summary_2", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuCommonReport, "mms_report_summary_bngre", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuCommonReport, "mms_report_day_work", false)
         addMenu(hmAliasConfig, hmAliasPerm, alMenuCommonReport, "mms_report_day_work_bngre", false)
